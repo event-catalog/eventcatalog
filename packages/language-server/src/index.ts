@@ -10,3 +10,24 @@ export { compile } from "./compiler.js";
 export type { CompiledOutput, CompileOptions } from "./compiler.js";
 export * from "./ast-utils.js";
 export { formatEc } from "./formatter.js";
+export {
+  parseSpec,
+  extractMessages,
+  extractChannels,
+  extractService,
+  messageToEc,
+  channelToEc,
+  serviceToEc,
+  resolveAsyncApiImports,
+  resolveAsyncApiImportsAsync,
+} from "./resolvers/index.js";
+export type {
+  SpecMessage,
+  SpecChannel,
+  SpecOperation,
+  SpecService,
+  ResourceType,
+  ResolveError,
+  SpecResolveResult,
+  FetchFn,
+} from "./resolvers/index.js";

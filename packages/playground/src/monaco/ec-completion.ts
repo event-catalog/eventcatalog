@@ -1,5 +1,6 @@
 import type { Monaco } from '@monaco-editor/react';
 import type { editor, languages, Position, CancellationToken } from 'monaco-editor';
+import { parseSpec } from '@eventcatalog/language-server';
 
 type Suggestion = { label: string; detail: string; insertText: string };
 
@@ -142,17 +143,13 @@ function findEnclosingResource(text: string): string | null {
     } else if (token === '{') {
       stack.push('unknown');
     } else {
-      const keyword = match[1];
-      stack.push(keyword);
+      stack.push(match[1]);
     }
   }
 
-  if (stack.length > 0) {
-    const top = stack[stack.length - 1];
-    if (top === 'subdomain') return 'domain';
-    return top;
-  }
-  return null;
+  if (stack.length === 0) return null;
+  const top = stack[stack.length - 1];
+  return top === 'subdomain' ? 'domain' : top;
 }
 
 function extractResourceVersions(text: string): Map<string, string[]> {
@@ -166,12 +163,10 @@ function extractResourceVersions(text: string): Map<string, string[]> {
     );
     let match;
     while ((match = defRegex.exec(text)) !== null) {
-      const name = match[1];
-      const ver = match[2];
-      const key = `${type}:${name}`;
-      if (!versions.has(key)) versions.set(key, []);
-      const arr = versions.get(key)!;
-      if (!arr.includes(ver)) arr.push(ver);
+      const key = `${type}:${match[1]}`;
+      const arr = versions.get(key) ?? [];
+      if (!arr.includes(match[2])) arr.push(match[2]);
+      versions.set(key, arr);
     }
 
     const inlineRegex = new RegExp(
@@ -179,23 +174,115 @@ function extractResourceVersions(text: string): Map<string, string[]> {
       'g'
     );
     while ((match = inlineRegex.exec(text)) !== null) {
-      const name = match[1];
-      const ver = match[2];
-      const key = `${type}:${name}`;
-      if (!versions.has(key)) versions.set(key, []);
-      const arr = versions.get(key)!;
-      if (!arr.includes(ver)) arr.push(ver);
+      const key = `${type}:${match[1]}`;
+      const arr = versions.get(key) ?? [];
+      if (!arr.includes(match[2])) arr.push(match[2]);
+      versions.set(key, arr);
     }
   }
 
   return versions;
 }
 
+// ─── State & caching ────────────────────────────────────
+
 let _allFilesSources: Record<string, string> = {};
+const _fetchedSpecCache = new Map<string, string>();
+
+// Invalidated when _allFilesSources changes
+let _cachedAllText: string | null = null;
+let _cachedSpecParsed: Map<string, ReturnType<typeof parseSpec>> | null = null;
 
 export function setAllFilesSources(files: Record<string, string>) {
   _allFilesSources = files;
+  _cachedAllText = null;
+  _cachedSpecParsed = null;
 }
+
+/**
+ * Cache fetched remote spec content so autocompletion can parse it.
+ * Called by the playground when remote AsyncAPI specs are fetched.
+ */
+export function cacheSpecContent(url: string, content: string) {
+  _fetchedSpecCache.set(url, content);
+  _cachedSpecParsed = null;
+}
+
+function getAllText(): string {
+  if (_cachedAllText === null) {
+    _cachedAllText = Object.values(_allFilesSources).join('\n');
+  }
+  return _cachedAllText;
+}
+
+function getParsedSpecs(): Map<string, ReturnType<typeof parseSpec>> {
+  if (_cachedSpecParsed === null) {
+    _cachedSpecParsed = new Map();
+    for (const [filename, content] of Object.entries(_allFilesSources)) {
+      if (isYamlFile(filename)) {
+        try {
+          _cachedSpecParsed.set(filename, parseSpec(content));
+        } catch { /* skip invalid specs */ }
+      }
+    }
+    for (const [url, content] of _fetchedSpecCache) {
+      try {
+        _cachedSpecParsed.set(url, parseSpec(content));
+      } catch { /* skip invalid specs */ }
+    }
+  }
+  return _cachedSpecParsed;
+}
+
+function isYamlFile(filename: string): boolean {
+  return filename.endsWith('.yml') || filename.endsWith('.yaml');
+}
+
+// ─── Shared helpers for completion handlers ─────────────
+
+function lookupSpecContent(specPath: string): string | undefined {
+  const normalizedPath = specPath.replace(/^\.\//, '');
+  return _allFilesSources[specPath]
+    ?? _allFilesSources[normalizedPath]
+    ?? _allFilesSources[`./${normalizedPath}`]
+    ?? _fetchedSpecCache.get(specPath);
+}
+
+function collectRegexMatches(pattern: RegExp, text: string): string[] {
+  const results: string[] = [];
+  let m;
+  while ((m = pattern.exec(text)) !== null) {
+    results.push(m[1]);
+  }
+  return results;
+}
+
+function getSpecSummaries(
+  kind: 'messages' | 'channels',
+  filterNames?: Set<string>,
+): Map<string, string> {
+  const summaries = new Map<string, string>();
+  for (const [, parsed] of getParsedSpecs()) {
+    const catalog = kind === 'channels' ? parsed.channels : parsed.messages;
+    for (const [name, resource] of catalog) {
+      if ((!filterNames || filterNames.has(name)) && resource.summary) {
+        summaries.set(name, resource.summary);
+      }
+    }
+  }
+  return summaries;
+}
+
+function makeRange(position: Position, word: { startColumn: number; endColumn: number }) {
+  return {
+    startLineNumber: position.lineNumber,
+    startColumn: word.startColumn,
+    endLineNumber: position.lineNumber,
+    endColumn: word.endColumn,
+  };
+}
+
+// ─── Completion provider ────────────────────────────────
 
 export function registerEcCompletion(monaco: Monaco) {
   monaco.languages.registerCompletionItemProvider('ec', {
@@ -217,7 +304,7 @@ export function registerEcCompletion(monaco: Monaco) {
       const textBeforeCursor = lineContent.substring(0, position.column - 1);
 
       // Auto-complete file paths in import from "..."
-      const importFromMatch = textBeforeCursor.match(/import\s*\{[^}]*\}\s*from\s*"([^"]*)$/);
+      const importFromMatch = textBeforeCursor.match(/import\s+(?:(?:events|commands|queries|channels)\s+)?\{[^}]*\}\s*from\s*"([^"]*)$/);
       if (importFromMatch) {
         const range = {
           startLineNumber: position.lineNumber,
@@ -241,66 +328,152 @@ export function registerEcCompletion(monaco: Monaco) {
       }
 
       // Auto-complete resource names inside import { ... }
-      const importBracesMatch = textBeforeCursor.match(/import\s*\{([^}]*)$/);
+      // Supports both plain `import { ... }` and typed `import events { ... } from "spec.yml"`
+      const importBracesMatch = textBeforeCursor.match(/import\s+(?:(events|commands|queries|channels)\s+)?\{([^}]*)$/);
       if (importBracesMatch) {
-        const allText = Object.values(_allFilesSources).join('\n');
-        const resourceTypes = ['service', 'event', 'command', 'query', 'domain', 'channel', 'flow', 'container'];
-        const resources = new Set<string>();
+        const word = model.getWordUntilPosition(position);
+        const range = makeRange(position, word);
+        const resourceKind = importBracesMatch[1] as 'events' | 'commands' | 'queries' | 'channels' | undefined;
+        const alreadyImported = new Set(
+          (importBracesMatch[2] || '').split(',').map(s => s.trim()).filter(Boolean)
+        );
 
-        for (const type of resourceTypes) {
-          const defRegex = new RegExp(
-            `\\b${type}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\{`,
-            'g'
-          );
-          let match;
-          while ((match = defRegex.exec(allText)) !== null) {
-            resources.add(match[1]);
+        // Check if the full line references a .yml/.yaml file (AsyncAPI spec)
+        const fromSpecMatch = lineContent.match(/from\s*"([^"]+\.ya?ml)"/);
+
+        if (resourceKind && fromSpecMatch) {
+          const specContent = lookupSpecContent(fromSpecMatch[1]);
+          if (specContent) {
+            try {
+              const parsed = parseSpec(specContent);
+              const catalog = resourceKind === 'channels' ? parsed.channels : parsed.messages;
+              const normalizedPath = fromSpecMatch[1].replace(/^\.\//, '');
+
+              return {
+                suggestions: [...catalog.entries()]
+                  .filter(([name]) => !alreadyImported.has(name))
+                  .map(([name, resource], i) => ({
+                    label: name,
+                    kind: monaco.languages.CompletionItemKind.Field,
+                    detail: resource.summary || `Import from ${normalizedPath}`,
+                    insertText: name,
+                    range,
+                    sortText: String(i).padStart(5, '0'),
+                  })),
+              };
+            } catch {
+              // Fall through to generic suggestions
+            }
           }
         }
 
-        const range = {
-          startLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endLineNumber: position.lineNumber,
-          endColumn: word.endColumn,
-        };
+        // Fallback: suggest resource names defined in .ec files
+        const allText = getAllText();
+        const ecResourceTypes = ['service', 'event', 'command', 'query', 'domain', 'channel', 'flow', 'container'];
+        const resources = new Set<string>();
+        for (const type of ecResourceTypes) {
+          for (const name of collectRegexMatches(
+            new RegExp(`\\b${type}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\{`, 'g'),
+            allText,
+          )) {
+            resources.add(name);
+          }
+        }
 
         return {
-          suggestions: Array.from(resources).map((resourceName, i) => ({
-            label: resourceName,
+          suggestions: [...resources].map((name, i) => ({
+            label: name,
             kind: monaco.languages.CompletionItemKind.Class,
             detail: 'Resource to import',
-            insertText: resourceName,
+            insertText: name,
             range,
             sortText: String(i).padStart(5, '0'),
           })),
         };
       }
 
+      // Auto-complete channel names after "sends event Name to" or "receives event Name from"
+      const channelRefMatch = textBeforeCursor.match(/\b(?:sends|receives)\s+(?:event|command|query)\s+[a-zA-Z_][a-zA-Z0-9_.\-]*(?:@[\d]+\.[\d]+\.[\d]+[a-zA-Z0-9_.\-]*)?\s+(?:to|from)\s+(?:.*,\s*)?([a-zA-Z_][a-zA-Z0-9_.\-]*)?$/);
+      if (channelRefMatch) {
+        const allText = getAllText();
+        const channels = new Set([
+          ...collectRegexMatches(/\bchannel\s+([a-zA-Z_][a-zA-Z0-9_.\-]*)\s*\{/g, allText),
+          ...collectRegexMatches(/\b(?:sends|receives)\s+(?:event|command|query)\s+[a-zA-Z_][a-zA-Z0-9_.\-]*(?:@[^\s]*)?\s+(?:to|from)\s+([a-zA-Z_][a-zA-Z0-9_.\-]*)/g, allText),
+          ...collectRegexMatches(/import\s+channels\s*\{([^}]*)\}\s*from\s*"[^"]+"/g, allText)
+            .flatMap(match => match.split(',').map(s => s.trim()).filter(Boolean)),
+        ]);
+
+        // Also include channel names from parsed AsyncAPI specs
+        for (const [, parsed] of getParsedSpecs()) {
+          for (const name of parsed.channels.keys()) {
+            channels.add(name);
+          }
+        }
+
+        const summaries = getSpecSummaries('channels');
+        const word = model.getWordUntilPosition(position);
+        const range = makeRange(position, word);
+
+        return {
+          suggestions: [...channels].map((name, i) => ({
+            label: name,
+            kind: monaco.languages.CompletionItemKind.Field,
+            detail: summaries.get(name) || `channel ${name}`,
+            insertText: name,
+            range,
+            sortText: String(i).padStart(5, '0'),
+          })),
+        };
+      }
+
+      // Auto-complete resource names after "sends event", "receives command", etc.
+      const sendsReceivesMatch = textBeforeCursor.match(/\b(?:sends|receives)\s+(event|command|query)\s+([a-zA-Z_][a-zA-Z0-9_.\-]*)?$/);
+      if (sendsReceivesMatch && !sendsReceivesMatch[0].endsWith('@')) {
+        const msgType = sendsReceivesMatch[1];
+        const pluralType = msgType === 'event' ? 'events' : msgType === 'command' ? 'commands' : 'queries';
+        const allText = getAllText();
+
+        const names = new Set([
+          ...collectRegexMatches(new RegExp(`\\b${msgType}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\{`, 'g'), allText),
+          ...collectRegexMatches(new RegExp(`\\b(?:sends|receives)\\s+${msgType}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)`, 'g'), allText),
+          ...collectRegexMatches(new RegExp(`import\\s+${pluralType}\\s*\\{([^}]*)\\}\\s*from\\s*"[^"]+"`, 'g'), allText)
+            .flatMap(match => match.split(',').map(s => s.trim()).filter(Boolean)),
+        ]);
+
+        const summaries = getSpecSummaries('messages', names);
+        const word = model.getWordUntilPosition(position);
+        const range = makeRange(position, word);
+
+        return {
+          suggestions: [...names].map((name, i) => ({
+            label: name,
+            kind: monaco.languages.CompletionItemKind.Field,
+            detail: summaries.get(name) || `${msgType} ${name}`,
+            insertText: name,
+            range,
+            sortText: String(i).padStart(5, '0'),
+          })),
+        };
+      }
+
+      // Auto-complete version after "sends event Name@"
       const atMatch = textBeforeCursor.match(/\b(?:sends|receives)\s+(event|command|query)\s+([a-zA-Z_][a-zA-Z0-9_.\-]*)@$/);
       if (atMatch) {
-        const msgType = atMatch[1];
-        const msgName = atMatch[2];
-        const key = `${msgType}:${msgName}`;
-
-        const allText = Object.values(_allFilesSources).join('\n');
-        const allVersions = extractResourceVersions(allText);
-        const versions = allVersions.get(key) || [];
-
-        const range = {
-          startLineNumber: position.lineNumber,
-          startColumn: position.column,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column,
-        };
+        const key = `${atMatch[1]}:${atMatch[2]}`;
+        const versions = extractResourceVersions(getAllText()).get(key) || [];
 
         return {
           suggestions: versions.map((ver, i) => ({
             label: ver,
             kind: monaco.languages.CompletionItemKind.Value,
-            detail: `Version ${ver} of ${msgName}`,
+            detail: `Version ${ver} of ${atMatch[2]}`,
             insertText: ver,
-            range,
+            range: {
+              startLineNumber: position.lineNumber,
+              startColumn: position.column,
+              endLineNumber: position.lineNumber,
+              endColumn: position.column,
+            },
             sortText: String(i).padStart(5, '0'),
           })),
         };
@@ -343,42 +516,23 @@ export function registerEcCompletion(monaco: Monaco) {
       }
 
       const word = model.getWordUntilPosition(position);
-      const range = {
-        startLineNumber: position.lineNumber,
-        startColumn: word.startColumn,
-        endLineNumber: position.lineNumber,
-        endColumn: word.endColumn,
-      };
+      const range = makeRange(position, word);
 
       const enclosingResource = findEnclosingResource(textUntilPosition);
-      const suggestions: languages.CompletionItem[] = [];
+      const items = enclosingResource
+        ? (contextSuggestions[enclosingResource] || commonProps)
+        : resourceKeywords;
 
-      if (!enclosingResource) {
-        for (const kw of resourceKeywords) {
-          suggestions.push({
-            label: kw.label,
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            detail: kw.detail,
-            insertText: kw.insertText,
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-          });
-        }
-      } else {
-        const items = contextSuggestions[enclosingResource] || commonProps;
-        for (const kw of items) {
-          suggestions.push({
-            label: kw.label,
-            kind: monaco.languages.CompletionItemKind.Snippet,
-            detail: kw.detail,
-            insertText: kw.insertText,
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-            range,
-          });
-        }
-      }
-
-      return { suggestions };
+      return {
+        suggestions: items.map((kw) => ({
+          label: kw.label,
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          detail: kw.detail,
+          insertText: kw.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        })),
+      };
     },
   });
 }

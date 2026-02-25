@@ -730,6 +730,436 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
 ]
 `;
 
+exports[`playground examples snapshot tests > AsyncAPI Import > AsyncAPI Import - edges 1`] = `
+[
+  {
+    "id": "service:OrderService@1.0.0-sends-event:OrderCreated",
+    "label": undefined,
+    "source": "service:OrderService@1.0.0",
+    "target": "event:OrderCreated",
+    "type": "sends",
+  },
+  {
+    "id": "event:OrderCreated-routes-to-channel:orderCreated",
+    "label": undefined,
+    "source": "event:OrderCreated",
+    "target": "channel:orderCreated",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:OrderService@1.0.0-sends-event:OrderShipped",
+    "label": undefined,
+    "source": "service:OrderService@1.0.0",
+    "target": "event:OrderShipped",
+    "type": "sends",
+  },
+  {
+    "id": "event:OrderShipped-routes-to-channel:orderShipped",
+    "label": undefined,
+    "source": "event:OrderShipped",
+    "target": "channel:orderShipped",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:OrderService@1.0.0-sends-event:OrderCancelled",
+    "label": undefined,
+    "source": "service:OrderService@1.0.0",
+    "target": "event:OrderCancelled",
+    "type": "sends",
+  },
+  {
+    "id": "event:OrderCancelled-routes-to-channel:orderCancelled",
+    "label": undefined,
+    "source": "event:OrderCancelled",
+    "target": "channel:orderCancelled",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:ShippingService@1.0.0-sends-event:OrderShipped",
+    "label": undefined,
+    "source": "service:ShippingService@1.0.0",
+    "target": "event:OrderShipped",
+    "type": "sends",
+  },
+  {
+    "id": "channel:orderCreated-receives-service:ShippingService@1.0.0",
+    "label": undefined,
+    "source": "channel:orderCreated",
+    "target": "service:ShippingService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "channel:orderShipped-receives-service:NotificationService@1.0.0",
+    "label": undefined,
+    "source": "channel:orderShipped",
+    "target": "service:NotificationService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "channel:orderCancelled-receives-service:NotificationService@1.0.0",
+    "label": undefined,
+    "source": "channel:orderCancelled",
+    "target": "service:NotificationService@1.0.0",
+    "type": "receives",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > AsyncAPI Import > AsyncAPI Import - nodes 1`] = `
+[
+  {
+    "id": "service:OrderService@1.0.0",
+    "label": "OrderService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Manages order lifecycle",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "event:OrderCreated",
+    "label": "OrderCreated",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "channel:orderCreated",
+    "label": "orderCreated",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "event:OrderShipped",
+    "label": "OrderShipped",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "channel:orderShipped",
+    "label": "orderShipped",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "event:OrderCancelled",
+    "label": "OrderCancelled",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "channel:orderCancelled",
+    "label": "orderCancelled",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "service:ShippingService@1.0.0",
+    "label": "ShippingService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Handles shipping and delivery",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "service:NotificationService@1.0.0",
+    "label": "NotificationService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Sends customer notifications",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > AsyncAPI Multi-Service > AsyncAPI Multi-Service - edges 1`] = `[]`;
+
+exports[`playground examples snapshot tests > AsyncAPI Multi-Service > AsyncAPI Multi-Service - nodes 1`] = `
+[
+  {
+    "id": "service:OrderService",
+    "label": "OrderService",
+    "metadata": {
+      "version": undefined,
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "service:ShippingService",
+    "label": "ShippingService",
+    "metadata": {
+      "version": undefined,
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "service:NotificationService",
+    "label": "NotificationService",
+    "metadata": {
+      "version": undefined,
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > AsyncAPI Remote Import > AsyncAPI Remote Import - edges 1`] = `
+[
+  {
+    "id": "service:StreetlightsAPI@1.0.0-sends-event:lightMeasured",
+    "label": undefined,
+    "source": "service:StreetlightsAPI@1.0.0",
+    "target": "event:lightMeasured",
+    "type": "sends",
+  },
+  {
+    "id": "event:lightMeasured-routes-to-channel:lightingMeasured",
+    "label": undefined,
+    "source": "event:lightMeasured",
+    "target": "channel:lightingMeasured",
+    "type": "routes-to",
+  },
+  {
+    "id": "event:turnOnOff-routes-to-channel:lightTurnOn",
+    "label": undefined,
+    "source": "event:turnOnOff",
+    "target": "channel:lightTurnOn",
+    "type": "routes-to",
+  },
+  {
+    "id": "channel:lightTurnOn-receives-service:StreetlightsAPI@1.0.0",
+    "label": undefined,
+    "source": "channel:lightTurnOn",
+    "target": "service:StreetlightsAPI@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "event:dimLight-routes-to-channel:lightsDim",
+    "label": undefined,
+    "source": "event:dimLight",
+    "target": "channel:lightsDim",
+    "type": "routes-to",
+  },
+  {
+    "id": "channel:lightsDim-receives-service:StreetlightsAPI@1.0.0",
+    "label": undefined,
+    "source": "channel:lightsDim",
+    "target": "service:StreetlightsAPI@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "channel:lightingMeasured-receives-service:LightingDashboard@1.0.0",
+    "label": undefined,
+    "source": "channel:lightingMeasured",
+    "target": "service:LightingDashboard@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "service:LightController@1.0.0-sends-event:turnOnOff",
+    "label": undefined,
+    "source": "service:LightController@1.0.0",
+    "target": "event:turnOnOff",
+    "type": "sends",
+  },
+  {
+    "id": "service:LightController@1.0.0-sends-event:dimLight",
+    "label": undefined,
+    "source": "service:LightController@1.0.0",
+    "target": "event:dimLight",
+    "type": "sends",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > AsyncAPI Remote Import > AsyncAPI Remote Import - nodes 1`] = `
+[
+  {
+    "id": "service:StreetlightsAPI@1.0.0",
+    "label": "StreetlightsAPI",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Controls city streetlight infrastructure",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "event:lightMeasured",
+    "label": "lightMeasured",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "channel:lightingMeasured",
+    "label": "lightingMeasured",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "event:turnOnOff",
+    "label": "turnOnOff",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "channel:lightTurnOn",
+    "label": "lightTurnOn",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "event:dimLight",
+    "label": "dimLight",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "channel:lightsDim",
+    "label": "lightsDim",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "service:LightingDashboard@1.0.0",
+    "label": "LightingDashboard",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Monitoring dashboard for streetlights",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "service:LightController@1.0.0",
+    "label": "LightController",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Automated light control system",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > AsyncAPI Service Import > AsyncAPI Service Import - edges 1`] = `
+[
+  {
+    "id": "event:OrderCreated-routes-to-channel:orderCreated",
+    "label": undefined,
+    "source": "event:OrderCreated",
+    "target": "channel:orderCreated",
+    "type": "routes-to",
+  },
+  {
+    "id": "channel:orderCreated-receives-service:NotificationService@1.0.0",
+    "label": undefined,
+    "source": "channel:orderCreated",
+    "target": "service:NotificationService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "event:OrderShipped-routes-to-channel:orderShipped",
+    "label": undefined,
+    "source": "event:OrderShipped",
+    "target": "channel:orderShipped",
+    "type": "routes-to",
+  },
+  {
+    "id": "channel:orderShipped-receives-service:NotificationService@1.0.0",
+    "label": undefined,
+    "source": "channel:orderShipped",
+    "target": "service:NotificationService@1.0.0",
+    "type": "receives",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > AsyncAPI Service Import > AsyncAPI Service Import - nodes 1`] = `
+[
+  {
+    "id": "service:OrderService",
+    "label": "OrderService",
+    "metadata": {
+      "version": undefined,
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "service:NotificationService@1.0.0",
+    "label": "NotificationService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Sends customer notifications",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "event:OrderCreated",
+    "label": "OrderCreated",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "channel:orderCreated",
+    "label": "orderCreated",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "event:OrderShipped",
+    "label": "OrderShipped",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "channel:orderShipped",
+    "label": "orderShipped",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "channel",
+  },
+]
+`;
+
 exports[`playground examples snapshot tests > Banking with Subdomains > Banking with Subdomains - edges 1`] = `
 [
   {
@@ -7274,135 +7704,6 @@ exports[`playground examples snapshot tests > Planning Future Services > Plannin
       "deprecated": undefined,
       "draft": true,
       "summary": "Real-time analytics and reporting - planned for Q2 2026",
-      "version": "1.0.0",
-    },
-    "parentId": undefined,
-    "type": "service",
-  },
-]
-`;
-
-exports[`playground examples snapshot tests > Post-It Style > Post-It Style - edges 1`] = `
-[
-  {
-    "id": "service:OrderService@1.0.0-sends-event:OrderCreated@1.0.0",
-    "label": undefined,
-    "source": "service:OrderService@1.0.0",
-    "target": "event:OrderCreated@1.0.0",
-    "type": "sends",
-  },
-  {
-    "id": "event:OrderCreated@1.0.0-routes-to-channel:OrderQueue@1.0.0",
-    "label": undefined,
-    "source": "event:OrderCreated@1.0.0",
-    "target": "channel:OrderQueue@1.0.0",
-    "type": "routes-to",
-  },
-  {
-    "id": "service:OrderService@1.0.0-sends-event:OrderShipped@1.0.0",
-    "label": undefined,
-    "source": "service:OrderService@1.0.0",
-    "target": "event:OrderShipped@1.0.0",
-    "type": "sends",
-  },
-  {
-    "id": "event:OrderShipped@1.0.0-routes-to-channel:OrderQueue@1.0.0",
-    "label": undefined,
-    "source": "event:OrderShipped@1.0.0",
-    "target": "channel:OrderQueue@1.0.0",
-    "type": "routes-to",
-  },
-  {
-    "id": "service:WarehouseService@1.0.0-sends-event:OrderShipped@1.0.0",
-    "label": undefined,
-    "source": "service:WarehouseService@1.0.0",
-    "target": "event:OrderShipped@1.0.0",
-    "type": "sends",
-  },
-  {
-    "id": "channel:OrderQueue@1.0.0-receives-service:WarehouseService@1.0.0",
-    "label": undefined,
-    "source": "channel:OrderQueue@1.0.0",
-    "target": "service:WarehouseService@1.0.0",
-    "type": "receives",
-  },
-  {
-    "id": "channel:OrderQueue@1.0.0-receives-service:NotificationService@1.0.0",
-    "label": undefined,
-    "source": "channel:OrderQueue@1.0.0",
-    "target": "service:NotificationService@1.0.0",
-    "type": "receives",
-  },
-]
-`;
-
-exports[`playground examples snapshot tests > Post-It Style > Post-It Style - nodes 1`] = `
-[
-  {
-    "id": "channel:OrderQueue@1.0.0",
-    "label": "OrderQueue",
-    "metadata": {
-      "address": "orders.queue",
-      "deprecated": undefined,
-      "draft": undefined,
-      "protocols": [
-        "azure-servicebus",
-      ],
-      "summary": undefined,
-      "version": "1.0.0",
-    },
-    "parentId": undefined,
-    "type": "channel",
-  },
-  {
-    "id": "service:OrderService@1.0.0",
-    "label": "OrderService",
-    "metadata": {
-      "deprecated": undefined,
-      "draft": undefined,
-      "summary": "Manages orders",
-      "version": "1.0.0",
-    },
-    "parentId": undefined,
-    "type": "service",
-  },
-  {
-    "id": "event:OrderCreated@1.0.0",
-    "label": "OrderCreated",
-    "metadata": {
-      "version": "1.0.0",
-    },
-    "parentId": undefined,
-    "type": "event",
-  },
-  {
-    "id": "event:OrderShipped@1.0.0",
-    "label": "OrderShipped",
-    "metadata": {
-      "version": "1.0.0",
-    },
-    "parentId": undefined,
-    "type": "event",
-  },
-  {
-    "id": "service:WarehouseService@1.0.0",
-    "label": "WarehouseService",
-    "metadata": {
-      "deprecated": undefined,
-      "draft": undefined,
-      "summary": "Manages inventory and shipping",
-      "version": "1.0.0",
-    },
-    "parentId": undefined,
-    "type": "service",
-  },
-  {
-    "id": "service:NotificationService@1.0.0",
-    "label": "NotificationService",
-    "metadata": {
-      "deprecated": undefined,
-      "draft": undefined,
-      "summary": "Sends customer notifications",
       "version": "1.0.0",
     },
     "parentId": undefined,

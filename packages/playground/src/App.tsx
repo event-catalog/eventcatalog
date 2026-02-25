@@ -8,7 +8,7 @@ import { CommandPalette } from './components/CommandPalette';
 import type { EditorHandle } from './components/Editor';
 import { useDslParser, compileDsl } from './hooks/useDslParser';
 import { getErrorsForFile } from './monaco/ec-diagnostics';
-import { examples } from './examples';
+import { examples } from './examples/index';
 import { createZipBlob } from './utils/zip';
 import { normalizeCompiledCatalogFiles } from './utils/catalog-export';
 import { ChevronDown, AlignLeft, Check, Download, Share2, Sun, Moon, X, Copy, FolderDown } from 'lucide-react';

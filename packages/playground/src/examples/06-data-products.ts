@@ -1,0 +1,73 @@
+import type { Example } from './types';
+
+export const example: Example = {
+  name: 'Data Products',
+  description: 'Analytical data products with inputs and outputs',
+  source: {
+    'main.ec': `visualizer main {
+  name "Analytics Platform"
+
+  channel EventBus {
+    version 1.0.0
+    address "analytics.events"
+    protocol "kafka"
+  }
+
+  service OrderService {
+    version 1.0.0
+    summary "Manages order lifecycle"
+
+    sends event OrderCreated to EventBus {
+      version 1.0.0
+      summary "New order has been placed"
+    }
+
+    sends event OrderCompleted to EventBus {
+      version 1.0.0
+      summary "Order has been fulfilled"
+    }
+  }
+
+  service PaymentService {
+    version 1.0.0
+    summary "Handles payment processing"
+
+    sends event PaymentProcessed to EventBus {
+      version 1.0.0
+      summary "Payment completed successfully"
+    }
+  }
+
+  data-product OrderAnalytics {
+    version 1.0.0
+    name "Order Analytics Dataset"
+    summary "Aggregated order and payment data for business intelligence"
+
+    input event OrderCreated
+    input event OrderCompleted
+    input event PaymentProcessed
+
+    output event OrderMetrics {
+      contract {
+        path "./schemas/order-metrics.json"
+        name "OrderMetricsSchema"
+        type "json-schema"
+      }
+    }
+
+    output event CustomerInsights
+  }
+
+  data-product RevenueReporting {
+    version 1.0.0
+    summary "Revenue analysis and reporting"
+
+    input event PaymentProcessed
+
+    output event DailyRevenue
+    output event MonthlyRevenue
+  }
+}
+`,
+  },
+};

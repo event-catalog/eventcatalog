@@ -38,9 +38,11 @@ export type EcKeywordNames =
   | "avatar"
   | "cache"
   | "channel"
+  | "channels"
   | "classification"
   | "color"
   | "command"
+  | "commands"
   | "confidential"
   | "container"
   | "container-type"
@@ -59,6 +61,7 @@ export type EcKeywordNames =
   | "email"
   | "enum"
   | "event"
+  | "events"
   | "examples"
   | "external-system"
   | "externalSaaS"
@@ -89,6 +92,7 @@ export type EcKeywordNames =
   | "pull"
   | "push"
   | "push-pull"
+  | "queries"
   | "query"
   | "read"
   | "readWrite"
@@ -441,6 +445,19 @@ export const FlowBodyItem = "FlowBodyItem";
 
 export function isFlowBodyItem(item: unknown): item is FlowBodyItem {
   return reflection.isInstance(item, FlowBodyItem);
+}
+
+export type ImportResourceType = "channels" | "commands" | "events" | "queries";
+
+export function isImportResourceType(
+  item: unknown,
+): item is ImportResourceType {
+  return (
+    item === "events" ||
+    item === "commands" ||
+    item === "queries" ||
+    item === "channels"
+  );
 }
 
 export type MessageBodyItem =
@@ -1159,6 +1176,7 @@ export interface ImportDecl extends langium.AstNode {
   readonly $type: "ImportDecl";
   imports: Array<ImportItem>;
   path: string;
+  resourceType?: ImportResourceType;
 }
 
 export const ImportDecl = "ImportDecl";
@@ -2767,7 +2785,11 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       case ImportDecl: {
         return {
           name: ImportDecl,
-          properties: [{ name: "imports", defaultValue: [] }, { name: "path" }],
+          properties: [
+            { name: "imports", defaultValue: [] },
+            { name: "path" },
+            { name: "resourceType" },
+          ],
         };
       }
       case ImportItem: {

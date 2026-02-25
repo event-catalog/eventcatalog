@@ -4,7 +4,7 @@ import { EmptyFileSystem } from "langium";
 import { parseDocument } from "langium/test";
 import type { Program } from "../src/generated/ast.js";
 import { astToGraph } from "../src/graph.js";
-import { examples } from "../../playground/src/examples.js";
+import { examples } from "../../playground/src/examples/index.js";
 
 const services = createEcServices(EmptyFileSystem);
 
