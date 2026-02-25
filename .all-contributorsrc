@@ -646,6 +646,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mrfelton",
+      "name": "Tom Kirkpatrick",
+      "avatar_url": "https://avatars.githubusercontent.com/u/200251?v=4",
+      "profile": "https://kirkdesigns.co.uk",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
