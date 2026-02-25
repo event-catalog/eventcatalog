@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { GraphNode, GraphEdge } from '@eventcatalog/visualiser';
 import type { DslError } from '../monaco/ec-diagnostics';
-import { resolveAsyncApiImportsAsync } from '../resolvers';
+import { resolveSpecImportsAsync } from '../resolvers';
 import { cacheSpecContent } from '../monaco/ec-completion';
 
 interface ParseResult {
@@ -162,7 +162,7 @@ async function parseSingle(source: string, activeVisualizer?: string): Promise<P
 async function resolveAllImports(
   inputFiles: Record<string, string>
 ): Promise<{ files: Record<string, string>; errors: DslError[] }> {
-  const { files: specResolved, errors: specErrors } = await resolveAsyncApiImportsAsync(inputFiles, fetchSpec);
+  const { files: specResolved, errors: specErrors } = await resolveSpecImportsAsync(inputFiles, fetchSpec);
   const { files: urlResolved, errors: fetchErrors } = await resolveUrlImports(specResolved);
   return { files: urlResolved, errors: [...specErrors, ...fetchErrors] };
 }

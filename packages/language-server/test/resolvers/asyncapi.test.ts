@@ -633,7 +633,7 @@ describe("resolveImports", () => {
     };
     const { errors } = resolveImports(files);
     expect(errors).toHaveLength(1);
-    expect(errors[0].message).toContain("AsyncAPI file not found");
+    expect(errors[0].message).toContain("Spec file not found");
   });
 
   it("reports error for message not found in spec", () => {
@@ -827,7 +827,7 @@ components:
       mockFetch,
     );
     expect(errors).toHaveLength(1);
-    expect(errors[0].message).toContain("Failed to fetch AsyncAPI spec");
+    expect(errors[0].message).toContain("Failed to fetch spec");
     expect(errors[0].message).toContain("Network error");
     expect(resolved["main.ec"]).toContain("// ERROR");
   });

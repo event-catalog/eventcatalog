@@ -4,13 +4,16 @@ export const example: Example = {
   name: 'AsyncAPI Service Import',
   description: 'Import a full service with channels and operations inferred from an AsyncAPI spec',
   source: {
-    'main.ec': `import OrderService from "./orders-asyncapi.yml"
+    'main.ec': `// Full service generated from AsyncAPI spec (events, channels, and service definition)
+import OrderService from "./orders-asyncapi.yml"
 
 visualizer main {
   name "Order Processing (Full Service Import)"
 
+  // Generated from AsyncAPI spec
   service OrderService
 
+  // New service that integrates with the AsyncAPI service
   service NotificationService {
     version 1.0.0
     summary "Sends customer notifications"

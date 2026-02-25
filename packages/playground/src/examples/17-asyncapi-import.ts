@@ -4,12 +4,14 @@ export const example: Example = {
   name: 'AsyncAPI Import',
   description: 'Import events and channels from an AsyncAPI spec into services',
   source: {
-    'main.ec': `import events { OrderCreated, OrderShipped, OrderCancelled } from "./orders-asyncapi.yml"
+    'main.ec': `// Events and channels generated from AsyncAPI spec
+import events { OrderCreated, OrderShipped, OrderCancelled } from "./orders-asyncapi.yml"
 import channels { orderCreated, orderShipped, orderCancelled } from "./orders-asyncapi.yml"
 
 visualizer main {
   name "Order Processing (AsyncAPI Import)"
 
+  // Service that publishes the imported events
   service OrderService {
     version 1.0.0
     summary "Manages order lifecycle"
@@ -19,6 +21,7 @@ visualizer main {
     sends event OrderCancelled to orderCancelled
   }
 
+  // New service that consumes events from the AsyncAPI service
   service ShippingService {
     version 1.0.0
     summary "Handles shipping and delivery"
@@ -27,6 +30,7 @@ visualizer main {
     sends event OrderShipped to orderShipped
   }
 
+  // New service that consumes events from the AsyncAPI service
   service NotificationService {
     version 1.0.0
     summary "Sends customer notifications"

@@ -20,6 +20,10 @@ import { example as asyncapiImport } from './17-asyncapi-import';
 import { example as asyncapiRemoteImport } from './18-asyncapi-remote-import';
 import { example as asyncapiServiceImport } from './19-asyncapi-service-import';
 import { example as asyncapiMultiService } from './20-asyncapi-multi-service';
+import { example as openapiImport } from './21-openapi-import';
+import { example as openapiServiceImport } from './22-openapi-service-import';
+import { example as openapiAsyncapiMixed } from './23-openapi-asyncapi-mixed';
+import { example as openapiRemoteImport } from './24-openapi-remote-import';
 
 import type { Example } from './types';
 
@@ -44,4 +48,8 @@ export const examples: Example[] = [
   asyncapiRemoteImport,
   asyncapiServiceImport,
   asyncapiMultiService,
+  openapiImport,
+  openapiServiceImport,
+  openapiAsyncapiMixed,
+  openapiRemoteImport,
 ];

@@ -1,6 +1,6 @@
 import type { Monaco } from '@monaco-editor/react';
 import type { editor, languages, Position, CancellationToken } from 'monaco-editor';
-import { parseSpec } from '@eventcatalog/language-server';
+import { parseSpec, parseOpenApiSpec, detectSpecType } from '@eventcatalog/language-server';
 
 type Suggestion = { label: string; detail: string; insertText: string };
 
@@ -215,27 +215,37 @@ function getAllText(): string {
   return _cachedAllText;
 }
 
+function parseSpecAuto(content: string): ReturnType<typeof parseSpec> {
+  const specType = detectSpecType(content);
+  if (specType === 'openapi') {
+    const parsed = parseOpenApiSpec(content);
+    // Normalize to same shape as AsyncAPI parseSpec result (OpenAPI messages are a superset of SpecMessage)
+    return { messages: parsed.messages as Map<string, import('@eventcatalog/language-server').SpecMessage>, channels: new Map(), errors: parsed.errors };
+  }
+  return parseSpec(content);
+}
+
 function getParsedSpecs(): Map<string, ReturnType<typeof parseSpec>> {
   if (_cachedSpecParsed === null) {
     _cachedSpecParsed = new Map();
     for (const [filename, content] of Object.entries(_allFilesSources)) {
-      if (isYamlFile(filename)) {
+      if (isSpecFile(filename)) {
         try {
-          _cachedSpecParsed.set(filename, parseSpec(content));
+          _cachedSpecParsed.set(filename, parseSpecAuto(content));
         } catch { /* skip invalid specs */ }
       }
     }
     for (const [url, content] of _fetchedSpecCache) {
       try {
-        _cachedSpecParsed.set(url, parseSpec(content));
+        _cachedSpecParsed.set(url, parseSpecAuto(content));
       } catch { /* skip invalid specs */ }
     }
   }
   return _cachedSpecParsed;
 }
 
-function isYamlFile(filename: string): boolean {
-  return filename.endsWith('.yml') || filename.endsWith('.yaml');
+function isSpecFile(filename: string): boolean {
+  return filename.endsWith('.yml') || filename.endsWith('.yaml') || filename.endsWith('.json');
 }
 
 // ─── Shared helpers for completion handlers ─────────────
@@ -338,14 +348,14 @@ export function registerEcCompletion(monaco: Monaco) {
           (importBracesMatch[2] || '').split(',').map(s => s.trim()).filter(Boolean)
         );
 
-        // Check if the full line references a .yml/.yaml file (AsyncAPI spec)
-        const fromSpecMatch = lineContent.match(/from\s*"([^"]+\.ya?ml)"/);
+        // Check if the full line references a spec file (AsyncAPI or OpenAPI)
+        const fromSpecMatch = lineContent.match(/from\s*"([^"]+\.(?:ya?ml|json))"/);
 
         if (resourceKind && fromSpecMatch) {
           const specContent = lookupSpecContent(fromSpecMatch[1]);
           if (specContent) {
             try {
-              const parsed = parseSpec(specContent);
+              const parsed = parseSpecAuto(specContent);
               const catalog = resourceKind === 'channels' ? parsed.channels : parsed.messages;
               const normalizedPath = fromSpecMatch[1].replace(/^\.\//, '');
 
