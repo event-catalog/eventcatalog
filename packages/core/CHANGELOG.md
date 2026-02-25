@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.17.6
+
+### Patch Changes
+
+- 3a3b9ec: fix(mcp): create McpServer and transport per-request to fix stateless transport reuse error
+
 ## 3.17.5
 
 ### Patch Changes
