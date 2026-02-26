@@ -6,7 +6,7 @@
 
 let _customBuildUrl: ((path: string) => string) | null = null;
 
-export function setBuildUrlFn(fn: (path: string) => string): void {
+export function setBuildUrlFn(fn: ((path: string) => string) | null): void {
   _customBuildUrl = fn;
 }
 
