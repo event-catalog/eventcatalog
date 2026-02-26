@@ -11,6 +11,7 @@
 import { useCallback, lazy, Suspense } from 'react';
 import '@eventcatalog/visualiser/styles.css';
 import type { Node, Edge } from '@xyflow/react';
+import { buildUrl } from '@utils/url-builder';
 
 const NodeGraph = lazy(() => import('@eventcatalog/visualiser').then((module) => ({ default: module.NodeGraph })));
 
@@ -45,11 +46,9 @@ const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: Astro
     window.location.href = url;
   }, []);
 
-  // Astro-specific URL builder
+  // Astro-specific URL builder that respects the configured base path
   const handleBuildUrl = useCallback((path: string) => {
-    // Simple URL builder - just return the path as-is
-    // The consuming app (core) should handle base URLs if needed
-    return path;
+    return buildUrl(path);
   }, []);
 
   // Layout persistence: Save layout to Astro API route
