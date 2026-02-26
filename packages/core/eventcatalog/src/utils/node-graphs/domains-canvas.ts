@@ -1,6 +1,12 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
-import { generateIdForNode, createDagreGraph, calculatedNodes, createEdge } from '@utils/node-graphs/utils/utils';
+import {
+  generateIdForNode,
+  createDagreGraph,
+  calculatedNodes,
+  createEdge,
+  getOperationFields,
+} from '@utils/node-graphs/utils/utils';
 import { findInMap, createVersionedMap } from '@utils/collections/util';
 import type { Node, Edge } from '@xyflow/react';
 import { getDomains } from '@utils/collections/domains';
@@ -170,7 +176,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
           position: { x: 0, y: 0 }, // Temporary position, will be calculated by dagre
           data: {
             mode: 'simple',
-            message: { ...messageObject.data },
+            message: { ...messageObject.data, ...getOperationFields(messageObject.data) },
           },
           sourcePosition: 'right',
           targetPosition: 'left',

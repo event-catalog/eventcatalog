@@ -8,6 +8,8 @@ import {
   createEdge,
   getColorFromString,
   buildContextMenuForResource,
+  DEFAULT_NODE_WIDTH,
+  DEFAULT_NODE_HEIGHT,
 } from '@utils/node-graphs/utils/utils';
 
 import { findInMap, createVersionedMap, mergeMaps, collectionToResourceMap } from '@utils/collections/util';
@@ -208,7 +210,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   });
 
   nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: 150, height: 100 });
+    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
   });
 
   edges.forEach((edge: any) => {

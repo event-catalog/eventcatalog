@@ -311,6 +311,14 @@ const flows = defineCollection({
     .merge(baseSchema),
 });
 
+const operationSchema = z
+  .object({
+    method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']).optional(),
+    path: z.string().optional(),
+    statusCodes: z.array(z.string()).optional(),
+  })
+  .optional();
+
 const messageDetailsPanelPropertySchema = z.object({
   producers: detailPanelPropertySchema.optional(),
   consumers: detailPanelPropertySchema.optional(),
@@ -332,10 +340,12 @@ const events = defineCollection({
   }),
   schema: z
     .object({
+      // Used by users
+      operation: operationSchema,
+      // Used by eventcatalog
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
       channels: z.array(channelPointer).optional(),
-      // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
     })
@@ -352,11 +362,13 @@ const commands = defineCollection({
   }),
   schema: z
     .object({
+      // Used by users
+      operation: operationSchema,
+      // Used by eventcatalog
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
       channels: z.array(channelPointer).optional(),
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
-      // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
     })
     .merge(baseSchema),
@@ -372,11 +384,13 @@ const queries = defineCollection({
   }),
   schema: z
     .object({
+      // Used by users
+      operation: operationSchema,
+      // Used by eventcatalog
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
       channels: z.array(channelPointer).optional(),
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
-      // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
     })
     .merge(baseSchema),
@@ -622,6 +636,7 @@ const channels = defineCollection({
       channels: z.array(channelPointer).optional(),
       address: z.string().optional(),
       protocols: z.array(z.string()).optional(),
+      deliveryGuarantee: z.enum(['at-most-once', 'at-least-once', 'exactly-once']).optional(),
       routes: z.array(channelPointer).optional(),
       parameters: z
         .record(

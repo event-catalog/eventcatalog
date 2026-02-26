@@ -1,6 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
-import { createDagreGraph, calculatedNodes } from '@utils/node-graphs/utils/utils';
+import { createDagreGraph, calculatedNodes, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from '@utils/node-graphs/utils/utils';
 import { MarkerType } from '@xyflow/react';
 import type { Node as NodeType } from '@xyflow/react';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
@@ -153,7 +153,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   });
 
   nodes.forEach((node: any) => {
-    graph.setNode(node.id, { width: 150, height: 100 });
+    graph.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
   });
 
   edges.forEach((edge: any) => {

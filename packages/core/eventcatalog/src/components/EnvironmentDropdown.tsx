@@ -63,7 +63,7 @@ export const EnvironmentDropdown: React.FC<EnvironmentDropdownProps> = ({ enviro
       <button
         type="button"
         onClick={toggleDropdown}
-        className="flex items-center space-x-1 text-sm font-medium text-[rgb(var(--ec-header-text))] hover:text-[rgb(var(--ec-icon-hover))] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] rounded-md px-3 py-2"
+        className="flex items-center space-x-1 text-sm font-medium text-[rgb(var(--ec-header-text)/0.7)] hover:text-[rgb(var(--ec-header-text))] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] rounded-md px-3 py-2 transition-colors"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >

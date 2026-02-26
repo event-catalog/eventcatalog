@@ -98,6 +98,9 @@ export const calculatedNodes = (flow: dagre.graphlib.Graph, nodes: Node[]) => {
   });
 };
 
+export const DEFAULT_NODE_WIDTH = 150;
+export const DEFAULT_NODE_HEIGHT = 120;
+
 // Creates a new dagre graph
 export const createDagreGraph = ({ ranksep = 180, nodesep = 50, ...rest }: any) => {
   const graph = new dagre.graphlib.Graph({ compound: true });
@@ -122,6 +125,7 @@ export const createEdge = (edgeOptions: Edge) => {
     },
     style: {
       strokeWidth: 1,
+      stroke: 'var(--ec-edge-stroke, #6b7280)',
     },
     ...edgeOptions,
   };
@@ -180,6 +184,61 @@ export const buildContextMenuForMessage = ({
   return items;
 };
 
+const getSpecMenuItems = (
+  specs: unknown,
+  id: string,
+  version: string
+): { label: string; href: string; separator?: boolean }[] => {
+  const items: { label: string; href: string; separator?: boolean }[] = [];
+
+  const addSpec = (type: string, filePath: string, isFirst: boolean) => {
+    const filename = filePath.split('/').pop() || filePath;
+    const filenameNoExt = filename.replace(/\.[^/.]+$/, '');
+    const typeLower = type.toLowerCase();
+
+    let label = 'View specification';
+    let urlSegment = 'spec';
+    if (typeLower === 'asyncapi') {
+      label = 'View AsyncAPI spec';
+      urlSegment = 'asyncapi';
+    } else if (typeLower === 'openapi') {
+      label = 'View OpenAPI spec';
+      urlSegment = 'spec';
+    } else if (typeLower === 'graphql') {
+      label = 'View GraphQL spec';
+      urlSegment = 'graphql';
+    }
+
+    items.push({
+      label,
+      href: buildUrl(`/docs/services/${id}/${version}/${urlSegment}/${filenameNoExt}`),
+      separator: isFirst,
+    });
+  };
+
+  if (Array.isArray(specs)) {
+    specs.forEach((spec: any, i: number) => {
+      if (spec?.type && spec?.path) addSpec(spec.type, spec.path, i === 0);
+    });
+  } else if (specs && typeof specs === 'object') {
+    const legacy = specs as Record<string, string>;
+    let first = true;
+    if (legacy.asyncapiPath) {
+      addSpec('asyncapi', legacy.asyncapiPath, first);
+      first = false;
+    }
+    if (legacy.openapiPath) {
+      addSpec('openapi', legacy.openapiPath, first);
+      first = false;
+    }
+    if (legacy.graphqlPath) {
+      addSpec('graphql', legacy.graphqlPath, first);
+    }
+  }
+
+  return items;
+};
+
 export const buildContextMenuForService = ({
   id,
   version,
@@ -188,25 +247,13 @@ export const buildContextMenuForService = ({
 }: {
   id: string;
   version: string;
-  specifications?: { type: string; path: string }[];
+  specifications?: unknown;
   repository?: { url: string };
 }): ContextMenuItem[] => {
   const items: ContextMenuItem[] = [{ label: 'Read documentation', href: buildUrl(`/docs/services/${id}/${version}`) }];
 
-  if (specifications && Array.isArray(specifications)) {
-    for (const spec of specifications) {
-      const specType = spec.type?.toLowerCase() || '';
-      let label = 'View specification';
-      if (specType.includes('asyncapi')) label = 'View AsyncAPI spec';
-      else if (specType.includes('openapi')) label = 'View OpenAPI spec';
-
-      items.push({
-        label,
-        href: buildUrl(`/docs/services/${id}/${version}/spec/${spec.type}`),
-        separator: items.length === 1,
-      });
-    }
-  }
+  const specItems = getSpecMenuItems(specifications, id, version);
+  items.push(...specItems);
 
   if (repository?.url) {
     items.push({
@@ -221,7 +268,7 @@ export const buildContextMenuForService = ({
     label: 'Read changelog',
     href: buildUrl(`/docs/services/${id}/${version}/changelog`),
     external: true,
-    separator: !repository?.url && (!specifications || specifications.length === 0),
+    separator: !repository?.url && specItems.length === 0,
   });
 
   return items;
@@ -247,6 +294,22 @@ export const buildContextMenuForResource = ({
   ];
 };
 
+/**
+ * Extracts operation fields (method, path, statusCodes) from a message's
+ * `operation` frontmatter and returns them as top-level props the visualiser expects.
+ */
+export const getOperationFields = (data: Record<string, any>) => {
+  const op = data.operation;
+  if (!op) return {};
+  return {
+    ...(op.method ? { method: op.method } : {}),
+    ...(op.path ? { path: op.path } : {}),
+    ...(Array.isArray(op.statusCodes) && op.statusCodes.length > 0
+      ? { statusCodes: op.statusCodes.map(Number).filter((n: number) => !isNaN(n)) }
+      : {}),
+  };
+};
+
 export const getNodesAndEdgesFromDagre = ({
   nodes,
   edges,
@@ -259,7 +322,7 @@ export const getNodesAndEdgesFromDagre = ({
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
 
   nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: 150, height: 100 });
+    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
   });
 
   edges.forEach((edge: any) => {

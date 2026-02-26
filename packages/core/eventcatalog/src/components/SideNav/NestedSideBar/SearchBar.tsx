@@ -190,7 +190,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
               placeholder="Search resources..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 text-sm bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))]"
+              className="w-full !pl-9 !pr-8 !py-2 !text-sm !bg-[rgb(var(--ec-input-bg))] !border !border-[rgb(var(--ec-input-border))] !rounded-lg focus:!outline-none focus:!ring-2 focus:!ring-[rgb(var(--ec-accent))] focus:!border-transparent !text-[rgb(var(--ec-input-text))] placeholder:!text-[rgb(var(--ec-input-placeholder))]"
             />
             {searchQuery && (
               <button

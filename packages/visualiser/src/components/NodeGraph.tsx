@@ -1642,14 +1642,8 @@ const NodeGraph = ({
 
               {href && (
                 <div className="py-2 w-full text-right flex justify-between">
-                  {/* <span className="text-sm text-gray-500 italic">Right click a node to access documentation</span> */}
-                  <button
-                    onClick={openStudioModal}
-                    className=" text-sm underline text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] flex items-center space-x-1"
-                  >
-                    <span>Open in EventCatalog Studio</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
+                  {/* Studio link temporarily hidden */}
+                  <span />
                   <a
                     className=" text-sm underline text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]"
                     href={href}

@@ -8,6 +8,8 @@ import {
   generateIdForNode,
   buildContextMenuForService,
   buildContextMenuForResource,
+  DEFAULT_NODE_WIDTH,
+  DEFAULT_NODE_HEIGHT,
 } from './utils/utils';
 import { MarkerType } from '@xyflow/react';
 import { findMatchingNodes } from '@utils/collections/util';
@@ -84,6 +86,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
         type: 'default',
         style: {
           strokeWidth: 1,
+          stroke: 'var(--ec-edge-stroke, #6b7280)',
         },
       });
     }
@@ -119,6 +122,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
         type: 'default',
         style: {
           strokeWidth: 1,
+          stroke: 'var(--ec-edge-stroke, #6b7280)',
         },
       });
     }
@@ -277,7 +281,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
   });
 
   nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: 150, height: 100 });
+    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
   });
 
   edges.forEach((edge: any) => {

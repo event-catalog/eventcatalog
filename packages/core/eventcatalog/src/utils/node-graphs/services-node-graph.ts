@@ -9,6 +9,8 @@ import {
   buildContextMenuForService,
   buildContextMenuForResource,
   versionMatches,
+  DEFAULT_NODE_WIDTH,
+  DEFAULT_NODE_HEIGHT,
 } from '@utils/node-graphs/utils/utils';
 
 import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
@@ -275,6 +277,7 @@ export const getNodesAndEdges = async ({
           },
           style: {
             strokeWidth: 1,
+            stroke: 'var(--ec-edge-stroke, #6b7280)',
           },
         });
       }
@@ -305,7 +308,7 @@ export const getNodesAndEdges = async ({
   });
 
   nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: 150, height: 100 });
+    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
   });
 
   edges.forEach((edge: any) => {

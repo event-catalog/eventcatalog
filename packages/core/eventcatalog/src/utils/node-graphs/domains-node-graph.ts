@@ -55,7 +55,7 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
     const servicesCount = domainServices.length;
     const SERVICES_PER_ROW = 1;
     const SERVICE_WIDTH = 330;
-    const SERVICE_HEIGHT = 100;
+    const SERVICE_HEIGHT = 120;
     const PADDING = 40;
     const TITLE_HEIGHT = 20;
 

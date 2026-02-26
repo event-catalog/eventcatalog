@@ -29,8 +29,8 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
           <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-2xl bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-accent)/0.3)]">
             <LockClosedIcon className="h-8 w-8 text-[rgb(var(--ec-accent))]" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">API Access</h3>
-          <p className="text-sm text-gray-600 mb-6">
+          <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))] mb-2">API Access</h3>
+          <p className="text-sm text-[rgb(var(--ec-page-text-muted))] mb-6">
             Access your schemas programmatically via REST API. Perfect for CI/CD pipelines, automation, and integrations with your
             development workflow.
           </p>
@@ -45,7 +45,7 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </a>
-          <p className="text-xs text-gray-500 mt-3">Start your 14-day free trial</p>
+          <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-3">Start your 14-day free trial</p>
         </div>
       </div>
     );
@@ -56,12 +56,12 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
       <div className="max-w-2xl">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-            <CommandLineIcon className="h-5 w-5 text-gray-700" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[rgb(var(--ec-accent-subtle))]">
+            <CommandLineIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">API Access</h3>
-            <p className="text-xs text-gray-500">Access this schema programmatically</p>
+            <h3 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">API Access</h3>
+            <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">Access this schema programmatically</p>
           </div>
         </div>
 
@@ -125,16 +125,18 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
         </div>
 
         {/* Response Info */}
-        <div className="border border-gray-200 rounded-lg p-4">
-          <h4 className="text-xs font-semibold text-gray-900 mb-3">Response</h4>
+        <div className="border border-[rgb(var(--ec-page-border))] rounded-lg p-4">
+          <h4 className="text-xs font-semibold text-[rgb(var(--ec-page-text))] mb-3">Response</h4>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">Content-Type</span>
-              <code className="text-gray-700 bg-gray-100 px-2 py-0.5 rounded">application/json</code>
+              <span className="text-[rgb(var(--ec-page-text-muted))]">Content-Type</span>
+              <code className="text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-input-bg))] px-2 py-0.5 rounded">
+                application/json
+              </code>
             </div>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">Returns</span>
-              <span className="text-gray-700">Raw schema content</span>
+              <span className="text-[rgb(var(--ec-page-text-muted))]">Returns</span>
+              <span className="text-[rgb(var(--ec-page-text))]">Raw schema content</span>
             </div>
           </div>
         </div>

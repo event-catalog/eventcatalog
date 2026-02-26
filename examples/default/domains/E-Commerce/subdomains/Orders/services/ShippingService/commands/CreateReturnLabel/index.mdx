@@ -7,6 +7,10 @@ summary: |
 owners:
     - dboyne
 schemaPath: schema.json
+operation:
+  method: POST
+  path: /shipments/{shipmentId}/return-label
+  statusCodes: ['201', '404']
 sidebar:
   badge: 'POST'
 ---

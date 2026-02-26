@@ -24,7 +24,15 @@ import {
 import type { CollectionMessageTypes } from '@types';
 import { getCommands } from '@utils/collections/commands';
 import { getQueries } from '@utils/collections/queries';
-import { createNode, buildContextMenuForMessage, buildContextMenuForService, buildContextMenuForResource } from './utils/utils';
+import {
+  createNode,
+  buildContextMenuForMessage,
+  buildContextMenuForService,
+  buildContextMenuForResource,
+  getOperationFields,
+  DEFAULT_NODE_WIDTH,
+  DEFAULT_NODE_HEIGHT,
+} from './utils/utils';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
 import { getNodesAndEdgesForChannelChain } from './channel-node-graph';
 import { getChannelChain, isChannelsConnected } from '@utils/collections/channels';
@@ -79,6 +87,7 @@ const getNodesAndEdges = async ({
       mode,
       message: {
         ...message.data,
+        ...getOperationFields(message.data),
       },
       contextMenu: buildContextMenuForMessage({
         id: message.data.id,
@@ -458,7 +467,7 @@ const getNodesAndEdges = async ({
   });
 
   nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: 150, height: 100 });
+    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
   });
 
   edges.forEach((edge: any) => {
@@ -546,7 +555,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
       type: message.collection,
       data: {
         mode,
-        message: { ...message.data },
+        message: { ...message.data, ...getOperationFields(message.data) },
         contextMenu: buildContextMenuForMessage({
           id: message.data.id,
           version: message.data.version,
@@ -893,7 +902,7 @@ export const getNodesAndEdgesForProducedMessage = ({
       type: message.collection,
       data: {
         mode,
-        message: { ...message.data },
+        message: { ...message.data, ...getOperationFields(message.data) },
         contextMenu: buildContextMenuForMessage({
           id: message.data.id,
           version: message.data.version,

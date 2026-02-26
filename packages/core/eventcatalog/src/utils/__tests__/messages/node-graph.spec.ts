@@ -2016,4 +2016,59 @@ describe('Message NodeGraph', () => {
       });
     });
   });
+
+  describe('operation fields', () => {
+    it('passes operation method, path, and statusCodes to message node data', async () => {
+      const messageWithOperation = {
+        id: 'CreateOrder',
+        collection: 'events',
+        data: {
+          id: 'CreateOrder',
+          version: '1.0.0',
+          name: 'CreateOrder',
+          operation: {
+            method: 'POST',
+            path: '/orders',
+            statusCodes: ['201', '400'],
+          },
+        },
+      } as unknown as CollectionEntry<CollectionMessageTypes>;
+
+      const { nodes } = await getNodesAndEdgesForConsumedMessage({
+        message: messageWithOperation,
+        services: [] as any,
+        channels: [] as any,
+        currentNodes: [],
+        target: mockServices[0] as any,
+        targetChannels: [],
+      });
+
+      const messageNode = nodes.find((n: any) => n.id === 'CreateOrder-1.0.0');
+      expect(messageNode).toBeDefined();
+      const messageData = (messageNode as any)?.data.message;
+      expect(messageData.method).toBe('POST');
+      expect(messageData.path).toBe('/orders');
+      expect(messageData.statusCodes).toEqual([201, 400]);
+    });
+
+    it('does not add operation fields when no operation is present', async () => {
+      const message = mockEvents[0] as unknown as CollectionEntry<CollectionMessageTypes>;
+
+      const { nodes } = await getNodesAndEdgesForConsumedMessage({
+        message,
+        services: mockServices as any,
+        channels: mockChannels as any,
+        currentNodes: [],
+        target: mockServices[0] as any,
+        targetChannels: [],
+      });
+
+      const messageNode = nodes.find((n: any) => n.id === 'PaymentProcessed-0.0.1');
+      expect(messageNode).toBeDefined();
+      const messageData = (messageNode as any)?.data.message;
+      expect(messageData.method).toBeUndefined();
+      expect(messageData.path).toBeUndefined();
+      expect(messageData.statusCodes).toBeUndefined();
+    });
+  });
 });

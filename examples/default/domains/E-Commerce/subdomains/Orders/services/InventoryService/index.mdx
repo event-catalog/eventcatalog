@@ -15,14 +15,8 @@ receives:
     from:
       - id: orders-domain-eventbus
   - id: UpdateInventory
-    from:
-      - id: inventory-domain-eventbus
   - id: AddInventory
-    from:
-      - id: inventory-domain-eventbus
   - id: DeleteInventory
-    from:
-      - id: inventory-domain-eventbus
 sends:
   - id: InventoryAdjusted
     version: 1.0.0

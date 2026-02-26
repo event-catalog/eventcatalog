@@ -13,8 +13,8 @@ const EMPTY_GROUP_HEIGHT = 80;
 const defaultSizes: Record<string, { w: number; h: number }> = {
   service: { w: 300, h: 140 },
   event: { w: 240, h: 140 },
-  command: { w: 300, h: 100 },
-  query: { w: 300, h: 100 },
+  command: { w: 300, h: 120 },
+  query: { w: 300, h: 120 },
   channel: { w: 300, h: 140 },
   container: { w: 300, h: 140 },
   "data-product": { w: 300, h: 140 },
@@ -87,6 +87,9 @@ export function buildNodeData(
           ...base,
           protocols: (node.metadata.protocols as string[]) || [],
           address: (node.metadata.address as string) || "",
+          ...(node.metadata.deliveryGuarantee
+            ? { deliveryGuarantee: node.metadata.deliveryGuarantee as string }
+            : {}),
         },
       };
     case "container":

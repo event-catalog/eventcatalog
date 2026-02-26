@@ -7,6 +7,10 @@ summary: |
 owners:
     - dboyne
 schemaPath: schema.json
+operation:
+  method: POST
+  path: /shipments/{shipmentId}/cancel
+  statusCodes: ['200', '404']
 sidebar:
   badge: 'POST'
 ---

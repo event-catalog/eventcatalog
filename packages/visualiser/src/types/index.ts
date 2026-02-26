@@ -55,6 +55,7 @@ export type Service = {
   deprecated?: boolean;
   draft?: boolean;
   notes?: Note[];
+  specifications?: unknown;
 };
 
 /**
@@ -71,6 +72,8 @@ export type Channel = {
   deprecated?: boolean;
   draft?: boolean;
   notes?: Note[];
+  /** Delivery guarantee (e.g. at-most-once, at-least-once, exactly-once) */
+  deliveryGuarantee?: string;
 };
 
 /**

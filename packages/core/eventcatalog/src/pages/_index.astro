@@ -1,36 +1,38 @@
 ---
 import { buildUrl } from '@utils/url-builder';
-import {
-  ChatBubbleLeftIcon,
-  RectangleGroupIcon,
-  ServerIcon,
-  CodeBracketIcon,
-  DocumentTextIcon,
-  ArrowRightIcon,
-  PlusIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowRightIcon, PlusIcon } from '@heroicons/react/24/outline';
 import config from '@config';
 
-import { getMessages } from '@utils/collections/messages';
-import { getDomains } from '@utils/collections/domains';
-import { getServices } from '@utils/collections/services';
-import { getFlows } from '@utils/collections/flows';
+import { getCollection } from 'astro:content';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { BookOpenText, Workflow, TableProperties, BookUser, Zap, Terminal, Code2, FileJson } from 'lucide-react';
+import { BookOpenText, Workflow, TableProperties, BookUser, Code2, FileJson } from 'lucide-react';
 
-const { commands = [], events = [], queries = [] } = await getMessages({ getAllVersions: false });
-const messages = [...events, ...queries, ...commands];
-const domains = await getDomains({ getAllVersions: false });
-const services = await getServices({ getAllVersions: false });
-const flows = await getFlows({ getAllVersions: false });
+// Lightweight data fetch: only raw collections, no hydration.
+// The homepage only needs counts + one item per type for default URLs.
+const [allDomains, allServices, allEvents, allCommands, allQueries, allFlows] = await Promise.all([
+  getCollection('domains'),
+  getCollection('services'),
+  getCollection('events'),
+  getCollection('commands'),
+  getCollection('queries'),
+  getCollection('flows'),
+]);
+
+const isCurrentVersion = (item: { data: { hidden?: boolean }; filePath?: string }) =>
+  item.data.hidden !== true && !item.filePath?.includes('versioned');
+
+const domains = allDomains.filter(isCurrentVersion);
+const services = allServices.filter(isCurrentVersion);
+const messages = [...allEvents, ...allCommands, ...allQueries].filter(isCurrentVersion);
+const flows = allFlows.filter(isCurrentVersion);
 
 // Check if catalog has content
 const hasContent = domains.length > 0 || services.length > 0 || messages.length > 0 || flows.length > 0;
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
-  if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
-  if (services.length > 0) return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.latestVersion}`);
-  if (flows.length > 0) return buildUrl(`/${route}/flows/${flows[0].data.id}/${flows[0].data.latestVersion}`);
+  if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.version}`);
+  if (services.length > 0) return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.version}`);
+  if (flows.length > 0) return buildUrl(`/${route}/flows/${flows[0].data.id}/${flows[0].data.version}`);
   return buildUrl(defaultValue);
 };
 
@@ -40,10 +42,9 @@ const topTiles = [
     count: domains.length,
     description: 'Business domains',
     href: buildUrl('/discover/domains'),
-    icon: RectangleGroupIcon,
-    bgColor: 'bg-yellow-500',
-    borderColor: 'border-yellow-200',
-    textColor: 'text-yellow-600',
+    badgeBg: 'bg-[rgb(var(--ec-badge-domain-bg))]',
+    badgeText: 'text-[rgb(var(--ec-badge-domain-text))]',
+    glowColor: 'var(--ec-badge-domain-text)',
     emptyText: 'No domains yet',
     addHref: 'https://www.eventcatalog.dev/docs/domains',
   },
@@ -52,10 +53,9 @@ const topTiles = [
     count: services.length,
     description: 'Documented services',
     href: buildUrl('/discover/services'),
-    icon: ServerIcon,
-    bgColor: 'bg-pink-500',
-    borderColor: 'border-pink-200',
-    textColor: 'text-pink-600',
+    badgeBg: 'bg-[rgb(var(--ec-badge-service-bg))]',
+    badgeText: 'text-[rgb(var(--ec-badge-service-text))]',
+    glowColor: 'var(--ec-badge-service-text)',
     emptyText: 'No services yet',
     addHref: 'https://www.eventcatalog.dev/docs/services',
   },
@@ -64,10 +64,9 @@ const topTiles = [
     count: messages.length,
     description: 'Events, commands & queries',
     href: buildUrl('/discover/events'),
-    icon: ChatBubbleLeftIcon,
-    bgColor: 'bg-blue-500',
-    borderColor: 'border-blue-200',
-    textColor: 'text-blue-600',
+    badgeBg: 'bg-[rgb(var(--ec-badge-message-bg))]',
+    badgeText: 'text-[rgb(var(--ec-badge-message-text))]',
+    glowColor: 'var(--ec-badge-message-text)',
     emptyText: 'No messages yet',
     addHref: 'https://www.eventcatalog.dev/docs/messages',
   },
@@ -76,10 +75,9 @@ const topTiles = [
     count: flows.length,
     description: 'Business flows',
     href: buildUrl('/discover/flows'),
-    icon: Workflow,
-    bgColor: 'bg-[rgb(var(--ec-accent))]',
-    borderColor: 'border-[rgb(var(--ec-accent)/0.3)]',
-    textColor: 'text-[rgb(var(--ec-accent))]',
+    badgeBg: 'bg-[rgb(var(--ec-badge-query-bg))]',
+    badgeText: 'text-[rgb(var(--ec-badge-query-text))]',
+    glowColor: 'var(--ec-badge-query-text)',
     emptyText: 'No flows yet',
     addHref: 'https://www.eventcatalog.dev/docs/flows',
   },
@@ -88,52 +86,58 @@ const topTiles = [
 const quickActions = [
   {
     title: 'Documentation',
-    description: 'Browse all documented resources',
+    description: 'Explore all your events, commands, queries, and services in one place.',
     icon: BookOpenText,
     href: getDefaultUrl('docs', 'domains'),
     iconBg: 'bg-blue-50 dark:bg-blue-500/10',
     iconColor: 'text-blue-600 dark:text-blue-400',
+    span: 'lg:col-span-2',
   },
   {
     title: 'Visualizer',
-    description: 'Interactive architecture diagrams',
+    description: 'Visualize service relationships and message flows across your architecture.',
     icon: Workflow,
     href: getDefaultUrl('visualiser', 'domains'),
     iconBg: 'bg-[rgb(var(--ec-accent-subtle))]',
     iconColor: 'text-[rgb(var(--ec-accent))]',
+    span: '',
   },
   {
     title: 'Discover',
-    description: 'Search and filter all resources',
+    description: 'Quickly find any event, service, or team across your entire catalog.',
     icon: TableProperties,
     href: buildUrl('/discover/events'),
     iconBg: 'bg-teal-50 dark:bg-teal-500/10',
     iconColor: 'text-teal-600 dark:text-teal-400',
+    span: '',
   },
   {
     title: 'Schema Explorer',
-    description: 'Browse and compare schemas',
+    description: 'Track schema evolution, compare versions, and catch breaking changes.',
     icon: FileJson,
     href: buildUrl('/schemas/explorer'),
     iconBg: 'bg-amber-50 dark:bg-amber-500/10',
     iconColor: 'text-amber-600 dark:text-amber-400',
+    span: '',
   },
   {
     title: 'Team Directory',
-    description: 'Ownership & contacts',
+    description: 'See who owns what — find team contacts and service ownership at a glance.',
     icon: BookUser,
     href: buildUrl('/directory/users'),
     iconBg: 'bg-orange-50 dark:bg-orange-500/10',
     iconColor: 'text-orange-600 dark:text-orange-400',
+    span: '',
   },
   {
     title: 'API & SDK',
-    description: 'Programmatic access',
+    description: 'Query and manage your catalog programmatically with a fully-typed SDK.',
     icon: Code2,
     href: 'https://www.eventcatalog.dev/docs/sdk',
     iconBg: 'bg-indigo-50 dark:bg-indigo-500/10',
     iconColor: 'text-indigo-600 dark:text-indigo-400',
     external: true,
+    span: 'lg:col-span-2',
   },
 ];
 ---
@@ -141,83 +145,50 @@ const quickActions = [
 <VerticalSideBarLayout title="EventCatalog">
   <div class="min-h-screen font-inter">
     <!-- Hero Section -->
-    <div class="relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border-b border-[rgb(var(--ec-page-border))]">
-      <main class="container px-6 lg:px-8 mx-auto py-10 max-w-[85em]">
-        <div class="max-w-3xl">
-          <h1 class="text-3xl md:text-4xl font-bold mb-3 text-[rgb(var(--ec-page-text))] tracking-tight">
-            {config?.organizationName || 'EventCatalog'}
-          </h1>
-          <p class="text-base text-[rgb(var(--ec-page-text-muted))] leading-relaxed mb-6">
-            {
-              config.tagline ||
-                'Explore and understand your event-driven architecture. Browse documentation, visualize dependencies, and discover how your systems communicate.'
-            }
-          </p>
-
-          <!-- Primary CTAs -->
-          <div class="flex flex-wrap items-center gap-3">
-            <a
-              href={getDefaultUrl('docs', 'domains')}
-              class="inline-flex items-center gap-2 px-5 py-2.5 bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] rounded-lg font-medium hover:bg-[rgb(var(--ec-button-bg-hover))] transition-colors"
-            >
-              <BookOpenText className="w-4 h-4" />
-              Explore Docs
-            </a>
-            <a
-              href={getDefaultUrl('visualiser', 'domains')}
-              class="inline-flex items-center gap-2 px-5 py-2.5 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))] rounded-lg font-medium hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent))] transition-colors"
-            >
-              <Workflow className="w-4 h-4" />
-              View Architecture
-            </a>
+    <div class="relative">
+      <main class="px-6 lg:px-8 pt-10 pb-8 max-w-[85em]">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 class="text-2xl md:text-3xl font-bold mb-1 text-[rgb(var(--ec-page-text))] tracking-tight">
+              Welcome to <span class="italic text-[rgb(var(--ec-accent))]">{config?.organizationName || 'EventCatalog'}</span>
+            </h1>
+            <p class="text-sm text-[rgb(var(--ec-page-text-muted))] leading-relaxed">
+              {config.tagline || 'Explore and understand your event-driven architecture'}
+            </p>
           </div>
         </div>
       </main>
     </div>
 
     <!-- Main Content -->
-    <main class="container px-6 lg:px-8 mx-auto py-8 max-w-[85em]">
-      <!-- Architecture Stats -->
+    <main class="px-6 lg:px-8 pb-8 max-w-[85em]">
+      <!-- Stat Cards -->
       <section class="mb-10">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-sm font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">Your Catalog</h2>
-          {
-            hasContent && (
-              <a
-                href={buildUrl('/discover/events')}
-                class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] flex items-center gap-1"
-              >
-                View all
-                <ArrowRightIcon className="w-3 h-3" />
-              </a>
-            )
-          }
-        </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           {
             topTiles.map((tile: any) =>
               tile.count > 0 ? (
                 <a
                   href={tile.href}
-                  class={`group relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-5 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-t-[rgb(var(--ec-accent))] hover:border-r-[rgb(var(--ec-accent))] hover:border-b-[rgb(var(--ec-accent))] hover:shadow-sm transition-all`}
+                  class="ec-stat-card group relative overflow-hidden bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-5 rounded-xl border transition-all"
+                  style={`--glow-color: rgb(${tile.glowColor}); border-color: rgb(${tile.glowColor} / 0.2);`}
                 >
-                  <div class={`absolute left-0 top-0 bottom-0 w-1 ${tile.bgColor} rounded-l-xl`} />
-                  <div class="flex items-start justify-between mb-3">
-                    <div class={`p-2 rounded-lg ${tile.iconBg || 'bg-[rgb(var(--ec-content-hover))]'}`}>
-                      <tile.icon className={`w-4 h-4 ${tile.textColor}`} />
-                    </div>
-                    <ArrowRightIcon className="w-4 h-4 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-page-text-muted))] transition-colors" />
+                  <div class="flex items-center justify-between mb-4">
+                    <span
+                      class={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ${tile.badgeBg} ${tile.badgeText}`}
+                    >
+                      {tile.title}
+                    </span>
                   </div>
-                  <div class="text-2xl font-bold text-[rgb(var(--ec-page-text))] mb-0.5">{tile.count}</div>
+                  <div class="text-3xl font-bold text-[rgb(var(--ec-page-text))] mb-1">{tile.count}</div>
                   <div class="text-sm text-[rgb(var(--ec-page-text-muted))]">{tile.description}</div>
                 </a>
               ) : (
-                <div class="relative bg-[rgb(var(--ec-content-hover))] p-5 rounded-xl border border-dashed border-[rgb(var(--ec-page-border))]">
-                  <div class={`absolute left-0 top-0 bottom-0 w-1 bg-[rgb(var(--ec-icon-color))] rounded-l-xl`} />
-                  <div class="flex items-start justify-between mb-3">
-                    <div class="p-2 rounded-lg bg-[rgb(var(--ec-content-hover))]">
-                      <tile.icon className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
-                    </div>
+                <div class="relative overflow-hidden bg-[rgb(var(--ec-content-hover))] p-5 rounded-xl border border-dashed border-[rgb(var(--ec-page-border))]">
+                  <div class="flex items-center justify-between mb-4">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-[rgb(var(--ec-badge-default-bg))] text-[rgb(var(--ec-badge-default-text))]">
+                      {tile.title}
+                    </span>
                   </div>
                   <div class="text-sm font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">{tile.emptyText}</div>
                   <a
@@ -237,20 +208,26 @@ const quickActions = [
 
       <!-- Explore Section - Full Width -->
       <section class="mb-10">
-        <h2 class="text-lg font-semibold text-[rgb(var(--ec-page-text))] mb-4">Explore</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="flex items-center gap-4 mb-4">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))] flex-shrink-0">
+            Explore
+          </h2>
+          <div class="flex-1 h-px bg-[rgb(var(--ec-page-border))]"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {
             quickActions.map((action: any) => (
               <a
                 href={action.href}
                 target={action.external ? '_blank' : undefined}
-                class="group flex items-start gap-4 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-5 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent))] hover:shadow-sm transition-all"
+                class={`ec-stat-card group flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-6 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all min-h-[160px] ${action.span}`}
+                style="--glow-color: rgb(var(--ec-accent));"
               >
-                <div class={`${action.iconBg} p-3 rounded-xl flex-shrink-0`}>
-                  <action.icon className={`w-5 h-5 ${action.iconColor}`} />
-                </div>
-                <div class="flex-1 min-w-0 pt-0.5">
-                  <div class="font-semibold text-[rgb(var(--ec-page-text))] mb-1 flex items-center gap-1.5">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class={`${action.iconBg} p-2.5 rounded-lg`}>
+                    <action.icon className={`w-5 h-5 ${action.iconColor}`} />
+                  </div>
+                  <span class="font-semibold text-[rgb(var(--ec-page-text))] flex items-center gap-1.5">
                     {action.title}
                     {action.external && (
                       <svg
@@ -267,9 +244,9 @@ const quickActions = [
                         />
                       </svg>
                     )}
-                  </div>
-                  <div class="text-sm text-[rgb(var(--ec-page-text-muted))] leading-relaxed">{action.description}</div>
+                  </span>
                 </div>
+                <p class="text-sm text-[rgb(var(--ec-page-text-muted))] leading-relaxed">{action.description}</p>
               </a>
             ))
           }
@@ -336,3 +313,51 @@ const quickActions = [
     </main>
   </div>
 </VerticalSideBarLayout>
+
+<style is:global>
+  .ec-stat-card {
+    position: relative;
+  }
+  .ec-stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* Dark mode: radial glow that follows cursor */
+  :root[data-theme='dark'] .ec-stat-card::before {
+    background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--glow-color) 0%, transparent 70%);
+  }
+  :root[data-theme='dark'] .ec-stat-card:hover::before {
+    opacity: 0.15;
+  }
+  /* Light mode: subtle solid background */
+  :root:not([data-theme='dark']) .ec-stat-card::before,
+  :root[data-theme='light'] .ec-stat-card::before {
+    background: rgb(var(--ec-content-hover));
+  }
+  :root:not([data-theme='dark']) .ec-stat-card:hover::before,
+  :root[data-theme='light'] .ec-stat-card:hover::before {
+    opacity: 1;
+  }
+  .ec-stat-card > * {
+    position: relative;
+    z-index: 1;
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.ec-stat-card').forEach((card) => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      (e.currentTarget as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
+      (e.currentTarget as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
+    });
+  });
+</script>

@@ -15,6 +15,87 @@ import {
   useDarkMode,
 } from "../shared-styles";
 
+const SPEC_LABELS: Record<string, string> = {
+  openapi: "OpenAPI",
+  asyncapi: "AsyncAPI",
+  graphql: "GraphQL",
+};
+
+const SPEC_COLORS: Record<
+  string,
+  { bg: string; text: string; darkBg: string; darkText: string }
+> = {
+  openapi: {
+    bg: "rgba(106,170,63,0.12)",
+    text: "#4d7c0f",
+    darkBg: "rgba(106,170,63,0.2)",
+    darkText: "#a3e635",
+  },
+  asyncapi: {
+    bg: "rgba(116,78,194,0.12)",
+    text: "#6d28d9",
+    darkBg: "rgba(116,78,194,0.2)",
+    darkText: "#c4b5fd",
+  },
+  graphql: {
+    bg: "rgba(229,53,171,0.12)",
+    text: "#be185d",
+    darkBg: "rgba(229,53,171,0.2)",
+    darkText: "#f9a8d4",
+  },
+};
+
+/** Normalize both array and legacy object spec formats into unique type strings */
+function normalizeSpecTypes(specs: unknown): string[] {
+  const types = new Set<string>();
+  if (Array.isArray(specs)) {
+    for (const spec of specs) {
+      if (spec?.type) types.add(String(spec.type).toLowerCase());
+    }
+  } else if (specs && typeof specs === "object") {
+    const legacy = specs as Record<string, unknown>;
+    if (legacy.asyncapiPath) types.add("asyncapi");
+    if (legacy.openapiPath) types.add("openapi");
+    if (legacy.graphqlPath) types.add("graphql");
+  }
+  return Array.from(types);
+}
+
+const SpecBadges = memo(function SpecBadges({
+  specifications,
+  isDark,
+}: {
+  specifications: unknown;
+  isDark: boolean;
+}) {
+  const specTypes = useMemo(
+    () => normalizeSpecTypes(specifications),
+    [specifications],
+  );
+
+  if (specTypes.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-1 flex-wrap justify-end">
+      {specTypes.map((type) => {
+        const colors = SPEC_COLORS[type] || SPEC_COLORS.openapi;
+        return (
+          <span
+            key={type}
+            className="inline-flex items-center text-[7px] font-bold px-1.5 py-0.5 rounded"
+            style={{
+              background: isDark ? colors.darkBg : colors.bg,
+              color: isDark ? colors.darkText : colors.text,
+            }}
+          >
+            {SPEC_LABELS[type] || type}
+          </span>
+        );
+      })}
+    </div>
+  );
+});
+
 const MiniEnvelope = memo(function MiniEnvelope({
   side,
   delay,
@@ -114,9 +195,10 @@ type ServiceNodeData = EventCatalogResource & {
 export type ServiceNode = Node<ServiceNodeData, "service">;
 
 function PostItService(props: ServiceNode) {
-  const { version, name, summary, deprecated, draft, notes } =
+  const { version, name, summary, deprecated, draft, notes, specifications } =
     props.data.service;
   const mode = props.data.mode || "simple";
+  const isDark = useDarkMode();
 
   return (
     <div
@@ -224,13 +306,20 @@ function PostItService(props: ServiceNode) {
             {summary}
           </div>
         )}
+
+        {/* Spec badges */}
+        {!!specifications && (
+          <div className="mt-1.5 flex justify-end">
+            <SpecBadges specifications={specifications} isDark={isDark} />
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 function DefaultService(props: ServiceNode) {
-  const { version, name, summary, deprecated, draft, notes } =
+  const { version, name, summary, deprecated, draft, notes, specifications } =
     props.data.service;
   const mode = props.data.mode || "simple";
   const owners = useMemo(
@@ -318,13 +407,18 @@ function DefaultService(props: ServiceNode) {
           </div>
         )}
 
-        {/* Owners */}
-        <OwnerIndicator
-          owners={owners}
-          accentColor="bg-pink-400"
-          borderColor="rgba(236,72,153,0.08)"
-          iconClass="text-pink-300"
-        />
+        {/* Owners + Spec badges row */}
+        <div className="flex items-end justify-between gap-1">
+          <OwnerIndicator
+            owners={owners}
+            accentColor="bg-pink-400"
+            borderColor="rgba(236,72,153,0.08)"
+            iconClass="text-pink-300"
+          />
+          {!!specifications && (
+            <SpecBadges specifications={specifications} isDark={isDark} />
+          )}
+        </div>
       </div>
     </div>
   );

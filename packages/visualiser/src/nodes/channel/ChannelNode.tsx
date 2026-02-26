@@ -5,7 +5,6 @@ import {
   HIDDEN_HANDLE_STYLE,
 } from "../OwnerIndicator";
 import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
-import { getIconForProtocol } from "../../utils/protocols";
 import { EventCatalogResource, Channel as ChannelType } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import {
@@ -16,6 +15,77 @@ import {
 } from "../shared-styles";
 
 import { memo, useMemo } from "react";
+
+const DELIVERY_GUARANTEE_LABELS: Record<string, string> = {
+  "at-most-once": "At most once",
+  "at-least-once": "At least once",
+  "exactly-once": "Exactly once",
+};
+
+const GUARANTEE_COLORS: Record<string, { hex: string; rgb: string }> = {
+  "exactly-once": { hex: "#22d3ee", rgb: "34,211,238" },
+  "at-least-once": { hex: "#a78bfa", rgb: "167,139,250" },
+  "at-most-once": { hex: "#f87171", rgb: "248,113,113" },
+};
+
+const DEFAULT_GUARANTEE = { hex: "#6b7280", rgb: "107,114,128" };
+
+function getGuarantee(guarantee?: string) {
+  return (guarantee && GUARANTEE_COLORS[guarantee]) || DEFAULT_GUARANTEE;
+}
+
+/**
+ * Delivery guarantee dot icon.
+ * - exactly-once  → filled circle
+ * - at-least-once → half-filled circle
+ * - at-most-once  → hollow ring
+ */
+function GuaranteeDot({
+  guarantee,
+  size = 6,
+}: {
+  guarantee: string;
+  size?: number;
+}) {
+  const { hex } = getGuarantee(guarantee);
+
+  if (guarantee === "exactly-once") {
+    return (
+      <span
+        className="shrink-0 rounded-full"
+        style={{ width: size, height: size, background: hex }}
+      />
+    );
+  }
+
+  if (guarantee === "at-least-once") {
+    return (
+      <span
+        className="shrink-0 rounded-full overflow-hidden"
+        style={{
+          width: size,
+          height: size,
+          background: `linear-gradient(90deg, ${hex} 50%, transparent 50%)`,
+          border: `1.5px solid ${hex}`,
+          boxSizing: "border-box",
+        }}
+      />
+    );
+  }
+
+  // at-most-once → hollow ring
+  return (
+    <span
+      className="shrink-0 rounded-full"
+      style={{
+        width: size,
+        height: size,
+        border: `1.5px solid ${hex}`,
+        boxSizing: "border-box",
+      }}
+    />
+  );
+}
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
@@ -58,9 +128,10 @@ function PostItChannel(props: ChannelNode) {
     draft,
     protocols = EMPTY_ARRAY,
     notes,
+    deliveryGuarantee,
   } = data.channel;
   const mode = props.data.mode || "simple";
-  const iconEntry = getIconForProtocol(protocols?.[0]);
+  const guarantee = getGuarantee(deliveryGuarantee);
 
   return (
     <div
@@ -115,6 +186,7 @@ function PostItChannel(props: ChannelNode) {
       </div>
 
       <div className="relative px-3.5 py-3">
+        {/* Type badge row */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
             <ArrowRightLeft
@@ -136,36 +208,58 @@ function PostItChannel(props: ChannelNode) {
                 Deprecated
               </span>
             )}
-            {protocols?.[0] && (
-              <span className="flex items-center gap-0.5 text-[7px] font-semibold text-gray-900/50 bg-gray-900/10 px-1 py-px rounded uppercase">
-                {protocols[0]}
-              </span>
+          </div>
+        </div>
+
+        {/* Name + version */}
+        <div className="flex items-baseline gap-1.5">
+          <div
+            className={classNames(
+              "text-[13px] font-bold leading-snug",
+              deprecated ? "text-gray-950/40 line-through" : "text-gray-950",
             )}
+          >
+            {name}
           </div>
-        </div>
-
-        <div
-          className={classNames(
-            "text-[13px] font-bold leading-snug",
-            deprecated ? "text-gray-950/40 line-through" : "text-gray-950",
+          {version && (
+            <span className="text-[9px] text-gray-900/30 font-medium shrink-0">
+              v{version}
+            </span>
           )}
-        >
-          {name}
         </div>
 
-        {version && (
-          <div className="text-[9px] text-gray-900/40 font-semibold mt-0.5">
-            v{version}
-          </div>
-        )}
-
+        {/* Summary */}
         {mode === "full" && summary && (
           <div
-            className="mt-2 pt-1.5 border-t border-gray-900/10 text-[9px] text-gray-950/60 leading-relaxed overflow-hidden"
+            className="mt-1 text-[9px] text-gray-950/50 leading-relaxed overflow-hidden"
             style={LINE_CLAMP_STYLE}
             title={summary}
           >
             {summary}
+          </div>
+        )}
+
+        {/* Operational row: delivery guarantee + protocol pills */}
+        {(deliveryGuarantee || protocols?.[0]) && (
+          <div className="flex items-center gap-1 flex-wrap mt-2">
+            {deliveryGuarantee && (
+              <span
+                className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-wide rounded-full px-1.5 py-0.5"
+                style={{
+                  background: `rgba(${guarantee.rgb}, 0.12)`,
+                  color: guarantee.hex,
+                }}
+              >
+                <GuaranteeDot guarantee={deliveryGuarantee} size={5} />
+                {DELIVERY_GUARANTEE_LABELS[deliveryGuarantee] ||
+                  deliveryGuarantee}
+              </span>
+            )}
+            {protocols?.[0] && (
+              <span className="inline-flex items-center text-[7px] font-semibold text-gray-900/50 bg-gray-900/10 rounded-full px-1.5 py-0.5 uppercase tracking-wide">
+                {protocols[0]}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -184,6 +278,7 @@ function DefaultChannel(props: ChannelNode) {
     protocols = EMPTY_ARRAY,
     address,
     notes,
+    deliveryGuarantee,
   } = data.channel;
   const mode = props.data.mode || "simple";
   const owners = useMemo(
@@ -196,6 +291,7 @@ function DefaultChannel(props: ChannelNode) {
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
     : "rgba(239,68,68,0.1)";
+  const guarantee = getGuarantee(deliveryGuarantee);
 
   return (
     <div
@@ -248,25 +344,23 @@ function DefaultChannel(props: ChannelNode) {
           {deprecated && " (Deprecated)"}
         </span>
       </div>
-      {/* Protocol badge top-right */}
-      {protocols?.[0] && (
-        <span
-          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-full px-1.5 py-0.5 uppercase tracking-wide"
-          style={{ position: "absolute", top: -8, right: 10 }}
-        >
-          {protocols[0]}
-        </span>
-      )}
+      {/* Protocol badge top-right — removed, now in operational row */}
 
       <div className="px-3 pt-3.5 pb-2.5">
         {/* Name + version */}
-        <div className="flex items-baseline gap-1">
+        <div className="flex items-baseline gap-1.5">
           <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
             {name}
           </span>
           {version && (
-            <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
-              (v{version})
+            <span
+              className="text-[9px] font-normal shrink-0"
+              style={{
+                color: "rgb(var(--ec-page-text-muted))",
+                opacity: 0.5,
+              }}
+            >
+              v{version}
             </span>
           )}
         </div>
@@ -274,8 +368,8 @@ function DefaultChannel(props: ChannelNode) {
         {/* Summary */}
         {mode === "full" && summary && (
           <div
-            className="mt-1.5 text-[9px] text-[rgb(var(--ec-page-text-muted))] leading-relaxed overflow-hidden"
-            style={LINE_CLAMP_STYLE}
+            className="mt-1 text-[9px] text-[rgb(var(--ec-page-text-muted))] leading-relaxed overflow-hidden"
+            style={{ ...LINE_CLAMP_STYLE, marginBottom: 4 }}
             title={summary}
           >
             {summary}
@@ -284,11 +378,43 @@ function DefaultChannel(props: ChannelNode) {
 
         {/* Address */}
         {mode === "full" && address && (
-          <div className="flex items-center gap-1 mt-1.5">
+          <div className="flex items-center gap-1 mt-1">
             <Link className="w-2.5 h-2.5 text-[rgb(var(--ec-page-text-muted))]" />
             <span className="text-[8px] text-[rgb(var(--ec-page-text-muted))] font-mono">
               {address}
             </span>
+          </div>
+        )}
+
+        {/* Operational row: delivery guarantee + protocol pills */}
+        {(deliveryGuarantee || protocols?.[0]) && (
+          <div className="flex items-center gap-1 flex-wrap mt-2">
+            {deliveryGuarantee && (
+              <span
+                className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-wide rounded-full px-1.5 py-0.5"
+                style={{
+                  background: `rgba(${guarantee.rgb}, 0.08)`,
+                  color: guarantee.hex,
+                }}
+              >
+                <GuaranteeDot guarantee={deliveryGuarantee} size={5} />
+                {DELIVERY_GUARANTEE_LABELS[deliveryGuarantee] ||
+                  deliveryGuarantee}
+              </span>
+            )}
+            {protocols?.[0] && (
+              <span
+                className="inline-flex items-center text-[7px] font-semibold rounded-full px-1.5 py-0.5 uppercase tracking-wide"
+                style={{
+                  background: isDark
+                    ? "rgba(255,255,255,0.08)"
+                    : "rgba(107,114,128,0.1)",
+                  color: "rgb(var(--ec-page-text-muted))",
+                }}
+              >
+                {protocols[0]}
+              </span>
+            )}
           </div>
         )}
 

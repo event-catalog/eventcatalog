@@ -299,7 +299,7 @@ const canPageBeEmbedded = isEmbedEnabled();
       <div class="flex">
         <aside class="flex" id="eventcatalog-vertical-nav">
           <div
-            class="fixed flex flex-col items-center w-14 h-screen py-3 bg-[rgb(var(--ec-sidebar-bg))] bg-gradient-to-b from-[rgb(var(--ec-sidebar-bg))] to-[rgb(var(--ec-sidebar-bg-gradient))] border-r border-[rgb(var(--ec-sidebar-border))] z-20 shadow-md justify-between"
+            class="fixed flex flex-col items-center w-14 h-screen py-3 bg-[rgb(var(--ec-sidebar-bg))] bg-gradient-to-t from-[rgb(var(--ec-accent)/0.08)] to-[rgb(var(--ec-sidebar-bg))] border-r border-[rgb(var(--ec-sidebar-border))] z-20 shadow-md justify-between"
           >
             <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
               <div class="flex flex-col items-center flex-1 space-y-6">
@@ -332,30 +332,6 @@ const canPageBeEmbedded = isEmbedEnabled();
                 }
 
                 <hr class="w-8 border-t border-[rgb(var(--ec-sidebar-border))]" />
-
-                {
-                  studioNavigationItem.length > 0 && (
-                    <a
-                      id={studioNavigationItem[0].id}
-                      data-role="nav-item"
-                      href={studioNavigationItem[0].href}
-                      aria-label={studioNavigationItem[0].label}
-                      class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'}`}
-                    >
-                      <div class="has-tooltip">
-                        <span
-                          class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
-                          aria-hidden="true"
-                        >
-                          {studioNavigationItem[0].label}
-                        </span>
-                        <SquareDashedMousePointerIcon className="h-6 w-6" aria-hidden="true" />
-                      </div>
-                    </a>
-                  )
-                }
-
-                {studioNavigationItem.length > 0 && <hr class="w-8 border-t border-[rgb(var(--ec-sidebar-border))]" />}
 
                 {
                   premiumFeatures.map((item) => (
@@ -420,7 +396,7 @@ const canPageBeEmbedded = isEmbedEnabled();
             showNestedSideBar && (
               <SideNav
                 id="sidebar"
-                class={`sidebar-transition h-content bg-[rgb(var(--ec-sidebar-bg))] border-r border-[rgb(var(--ec-sidebar-border))] w-[320px] ml-14`}
+                class={`sidebar-transition h-content bg-[rgb(var(--ec-sidebar-bg))] bg-gradient-to-bl from-[rgb(var(--ec-sidebar-bg))] via-[rgb(var(--ec-sidebar-bg))] to-[rgb(var(--ec-accent)/0.08)] border-r border-[rgb(var(--ec-sidebar-border))] w-[320px] ml-14`}
               />
             )
           }
