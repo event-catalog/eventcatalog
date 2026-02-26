@@ -354,8 +354,8 @@ const quickActions = [
   document.querySelectorAll('.ec-stat-card').forEach((card) => {
     card.addEventListener('mousemove', (e) => {
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const x = (e as MouseEvent).clientX - rect.left;
+      const y = (e as MouseEvent).clientY - rect.top;
       (e.currentTarget as HTMLElement).style.setProperty('--mouse-x', `${x}px`);
       (e.currentTarget as HTMLElement).style.setProperty('--mouse-y', `${y}px`);
     });
