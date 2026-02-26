@@ -8,6 +8,7 @@ import {
 import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
 import { Message, EventCatalogResource } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
+import { MethodBadge, ApiPath, StatusCodes } from "../ApiInfo";
 import {
   LINE_CLAMP_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
@@ -159,9 +160,20 @@ function PostItCommand(props: CommandNode) {
 }
 
 function DefaultCommand(props: CommandNode) {
-  const { version, name, summary, deprecated, draft, schema, notes } =
-    props.data.message;
+  const {
+    version,
+    name,
+    summary,
+    deprecated,
+    draft,
+    schema,
+    notes,
+    method,
+    path,
+    statusCodes,
+  } = props.data.message;
   const mode = props.data.mode || "simple";
+  const hasApiInfo = !!(method || path);
   const owners = useMemo(
     () => normalizeOwners(props.data.message?.owners),
     [props.data.message?.owners],
@@ -233,17 +245,27 @@ function DefaultCommand(props: CommandNode) {
       )}
 
       <div className="px-3 pt-3.5 pb-2.5">
+        {/* API method + path row */}
+        {hasApiInfo && (
+          <div className="flex items-center gap-1.5 mb-1 overflow-hidden min-w-0">
+            {method && <MethodBadge method={method} />}
+            {path && <ApiPath path={path} />}
+          </div>
+        )}
+
         {/* Name + version */}
-        <div className="flex items-baseline gap-1">
-          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
-            {name}
-          </span>
-          {version && (
-            <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
-              (v{version})
+        {!hasApiInfo && (
+          <div className="flex items-baseline gap-1">
+            <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
+              {name}
             </span>
-          )}
-        </div>
+            {version && (
+              <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
+                (v{version})
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Summary */}
         {mode === "full" && summary && (
@@ -254,6 +276,11 @@ function DefaultCommand(props: CommandNode) {
           >
             {summary}
           </div>
+        )}
+
+        {/* Status codes */}
+        {statusCodes && statusCodes.length > 0 && (
+          <StatusCodes codes={statusCodes} />
         )}
 
         {/* Owners */}

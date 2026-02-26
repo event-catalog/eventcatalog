@@ -69,6 +69,14 @@ export function buildNodeData(
         message: {
           ...base,
           schema: (node.metadata.schema as string) || "",
+          ...(node.metadata.method
+            ? { method: node.metadata.method as string }
+            : {}),
+          ...(node.metadata.path ? { path: node.metadata.path as string } : {}),
+          ...(Array.isArray(node.metadata.statusCodes) &&
+          node.metadata.statusCodes.length > 0
+            ? { statusCodes: node.metadata.statusCodes as number[] }
+            : {}),
         },
       };
     case "channel":

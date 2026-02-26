@@ -110,12 +110,22 @@ export function parseOpenApiSpec(content: string): ParsedOpenApiSpec {
             ? "query"
             : "command";
 
+      // Extract response status codes
+      const statusCodes: number[] = op.responses
+        ? Object.keys(op.responses)
+            .map(Number)
+            .filter((c) => !isNaN(c))
+        : [];
+
       messages.set(name, {
         name,
         summary: op.summary,
         description: op.description,
         version: specVersion,
         messageType,
+        method: method.toUpperCase(),
+        path,
+        ...(statusCodes.length > 0 ? { statusCodes } : {}),
       });
     }
   }
@@ -176,6 +186,9 @@ export function extractOpenApiService(
       summary: msg.summary,
       description: msg.description,
       version: msg.version,
+      method: msg.method,
+      path: msg.path,
+      statusCodes: msg.statusCodes,
     });
   }
 
@@ -208,6 +221,7 @@ export function openApiServiceToEc(service: SpecService): string {
       ecBlock(msgType, msg.name, [
         msg.version && `version ${msg.version}`,
         msg.summary && `summary "${escapeEc(msg.summary)}"`,
+        apiAnnotation(msg),
       ]),
     );
   }
@@ -216,6 +230,20 @@ export function openApiServiceToEc(service: SpecService): string {
   parts.push(serviceToEc(service));
 
   return parts.join("\n\n");
+}
+
+/**
+ * Build an @api annotation string from method, path, and statusCodes.
+ */
+function apiAnnotation(msg: SpecMessage): string | false {
+  if (!msg.method && !msg.path) return false;
+  const args: string[] = [];
+  if (msg.method) args.push(`method: "${msg.method}"`);
+  if (msg.path) args.push(`path: "${escapeEc(msg.path)}"`);
+  if (msg.statusCodes && msg.statusCodes.length > 0) {
+    args.push(`statusCodes: "${msg.statusCodes.join(",")}"`);
+  }
+  return `@api(${args.join(", ")})`;
 }
 
 /**
@@ -228,5 +256,6 @@ export function openApiMessageToEc(
   return ecBlock(msg.messageType, msg.name, [
     msg.version && `version ${msg.version}`,
     msg.summary && `summary "${escapeEc(msg.summary)}"`,
+    apiAnnotation(msg),
   ]);
 }

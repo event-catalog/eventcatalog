@@ -364,22 +364,22 @@ describe("openApiServiceToEc", () => {
     const { service } = extractOpenApiService(openApiV30Spec);
     const ec = openApiServiceToEc(service);
 
-    // Standalone query definitions
+    // Standalone query definitions with @api annotations
     expect(ec).toContain(
-      'query GetOrders {\n  version 1.0.0\n  summary "List all orders"\n}',
+      'query GetOrders {\n  version 1.0.0\n  summary "List all orders"\n  @api(method: "GET", path: "/orders")\n}',
     );
     expect(ec).toContain(
-      'query GetOrder {\n  version 1.0.0\n  summary "Get order by ID"\n}',
+      'query GetOrder {\n  version 1.0.0\n  summary "Get order by ID"\n  @api(method: "GET", path: "/orders/{id}")\n}',
     );
-    // Standalone command definitions
+    // Standalone command definitions with @api annotations
     expect(ec).toContain(
-      'command CreateOrder {\n  version 1.0.0\n  summary "Create a new order"\n}',
-    );
-    expect(ec).toContain(
-      'command UpdateOrder {\n  version 1.0.0\n  summary "Update an existing order"\n}',
+      'command CreateOrder {\n  version 1.0.0\n  summary "Create a new order"\n  @api(method: "POST", path: "/orders")\n}',
     );
     expect(ec).toContain(
-      'command DeleteOrder {\n  version 1.0.0\n  summary "Delete an order"\n}',
+      'command UpdateOrder {\n  version 1.0.0\n  summary "Update an existing order"\n  @api(method: "PUT", path: "/orders/{id}")\n}',
+    );
+    expect(ec).toContain(
+      'command DeleteOrder {\n  version 1.0.0\n  summary "Delete an order"\n  @api(method: "DELETE", path: "/orders/{id}")\n}',
     );
   });
 });

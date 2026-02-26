@@ -31,6 +31,7 @@ const commonProps: Suggestion[] = [
 ];
 
 const annotationSuggestions: Suggestion[] = [
+  { label: '@api', detail: 'HTTP API metadata', insertText: 'api(method: "${1|GET,POST,PUT,PATCH,DELETE|}", path: "${2:/resource}", statusCodes: "${3:200}")' },
   { label: '@badge', detail: 'Visual badge', insertText: 'badge("${1:label}", bg: "${2:#22c55e}", text: "${3:#fff}")' },
   { label: '@note', detail: 'Developer note or reminder', insertText: 'note("${1:note text}")' },
   { label: '@note (with params)', detail: 'Note with author and priority', insertText: 'note("${1:note text}", author: "${2:name}", priority: "${3|low,medium,high|}")' },

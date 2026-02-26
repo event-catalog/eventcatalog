@@ -18,6 +18,7 @@ event <id> {
   // Annotations
   @badge(...)
   @repository(...)
+  @api(method: "...", path: "...", statusCodes: "...")
 }
 ```
 

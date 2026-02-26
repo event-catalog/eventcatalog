@@ -14,7 +14,10 @@ command <id> {
 
   channel <channel-ref>
 
-  // Same annotations as event
+  // Annotations (same as event)
+  @badge(...)
+  @repository(...)
+  @api(method: "...", path: "...", statusCodes: "...")
 }
 ```
 

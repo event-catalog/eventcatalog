@@ -68,6 +68,58 @@ service PaymentService {
 }
 ```
 
+## @api
+
+Attaches HTTP API metadata to a message (event, command, or query). Typically generated automatically when importing an OpenAPI spec, but can also be written manually. The visualiser displays the method badge, API path, and response status codes on the node.
+
+```
+// Basic usage with method and path
+command CreateOrder {
+  version 1.0.0
+  summary "Create a new order"
+  @api(method: "POST", path: "/orders")
+}
+
+// With status codes
+query GetOrders {
+  version 1.0.0
+  summary "List all orders"
+  @api(method: "GET", path: "/orders", statusCodes: "200,401")
+}
+
+// On inline message definitions
+service PaymentService {
+  version 2.0.0
+  receives command CreatePayment {
+    version 2.0.0
+    summary "Process a new payment"
+    @api(method: "POST", path: "/payments", statusCodes: "201,400,422")
+  }
+  receives query GetPayment {
+    version 2.0.0
+    @api(method: "GET", path: "/payments/{paymentId}", statusCodes: "200,404")
+  }
+}
+```
+
+### Parameters
+
+| Parameter     | Type   | Description                                              |
+| ------------- | ------ | -------------------------------------------------------- |
+| `method`      | string | HTTP method (GET, POST, PUT, PATCH, DELETE)              |
+| `path`        | string | API path (e.g. `/orders`, `/users/{id}`)                 |
+| `statusCodes` | string | Comma-separated HTTP status codes (e.g. `"200,401,500"`) |
+
+### Auto-generated from OpenAPI
+
+When importing an OpenAPI spec, `@api` annotations are automatically added to the generated `.ec` definitions:
+
+```
+import PaymentService from "./payments-openapi.yml"
+```
+
+This generates commands and queries with `@api` annotations populated from the OpenAPI paths, methods, and response codes.
+
 ## @detailsPanel
 
 Controls visibility of detail panel sections:

@@ -2092,6 +2092,79 @@ describe("astToGraph", () => {
     expect(svc!.metadata.owners).toEqual(["orders-team", "platform-team"]);
   });
 
+  it("@api annotation enriched from top-level def via service receives", async () => {
+    const program = await parseProgram(`
+      query getHealth {
+        version 1.0.0
+        summary "Health check"
+        @api(method: "GET", path: "/health", statusCodes: "200")
+      }
+
+      service StatusAPI {
+        version 1.0.0
+        receives query getHealth@1.0.0
+      }
+
+      visualizer main {
+        name "Test"
+        service StatusAPI
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const queryNode = graph.nodes.find(
+      (n) => n.type === "query" && n.label === "getHealth",
+    );
+    expect(queryNode).toBeDefined();
+    expect(queryNode!.metadata.method).toBe("GET");
+    expect(queryNode!.metadata.path).toBe("/health");
+    expect(queryNode!.metadata.statusCodes).toEqual([200]);
+  });
+
+  it("command with @api annotation includes method, path, and statusCodes in metadata", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        command CreateOrder {
+          version 1.0.0
+          summary "Create a new order"
+          @api(method: "POST", path: "/orders", statusCodes: "200,401")
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const cmdNode = graph.nodes.find(
+      (n) => n.type === "command" && n.label === "CreateOrder",
+    );
+    expect(cmdNode).toBeDefined();
+    expect(cmdNode!.metadata.method).toBe("POST");
+    expect(cmdNode!.metadata.path).toBe("/orders");
+    expect(cmdNode!.metadata.statusCodes).toEqual([200, 401]);
+  });
+
+  it("query with @api annotation includes method and path in metadata", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        query GetOrders {
+          version 1.0.0
+          @api(method: "GET", path: "/orders")
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const queryNode = graph.nodes.find(
+      (n) => n.type === "query" && n.label === "GetOrders",
+    );
+    expect(queryNode).toBeDefined();
+    expect(queryNode!.metadata.method).toBe("GET");
+    expect(queryNode!.metadata.path).toBe("/orders");
+    expect(queryNode!.metadata.statusCodes).toBeUndefined();
+  });
+
   // ─── Version resolution tests ──────────────────────────────
 
   it("bare ref resolves to latest version when multiple versions exist", async () => {
