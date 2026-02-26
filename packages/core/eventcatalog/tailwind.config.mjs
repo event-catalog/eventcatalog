@@ -11,7 +11,11 @@ export default {
     // Resolve globs relative to this config file, not process.cwd().
     // This prevents production builds from missing utilities when Astro is launched from a different working directory.
     relative: true,
-    files: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+    files: [
+      './src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}',
+      // Include visualizer components so core Tailwind generates their utilities.
+      '../../visualiser/src/**/*.{js,jsx,ts,tsx}',
+    ],
   },
   theme: {
     extend: {

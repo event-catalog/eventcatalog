@@ -8,8 +8,7 @@
  * - URL building with Astro's URL utilities
  */
 
-import { useCallback, lazy, Suspense } from 'react';
-import '@eventcatalog/visualiser/styles.css';
+import { useCallback, lazy, Suspense, useEffect } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 
 const NodeGraph = lazy(() => import('@eventcatalog/visualiser').then((module) => ({ default: module.NodeGraph })));
@@ -39,6 +38,12 @@ interface AstroNodeGraphProps {
 }
 
 const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: AstroNodeGraphProps) => {
+  useEffect(() => {
+    // Load visualizer styles only when this component is mounted.
+    // Use the core-scoped stylesheet so visualizer styles don't override EventCatalog utility classes globally.
+    import('@eventcatalog/visualiser/styles-core.css');
+  }, []);
+
   // Astro-specific navigation handler
   const handleNavigate = useCallback((url: string) => {
     // Use window.location for navigation since we can't import astro:transitions/client in a React component
