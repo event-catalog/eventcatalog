@@ -76,7 +76,7 @@ export default {
     { pattern: /bg-.*-500\/(10|20)/, variants: ['dark'] },
     { pattern: /from-.*-(100|200|300|400|500|600|700)/ },
     { pattern: /to-.*-(100|200|300|400|500|600|700)/ },
-    { pattern: /text-.*-(300|400|500|800)/, variants: ['dark', 'group-hover', 'dark:group-hover'] },
+    { pattern: /text-.*-(100|300|400|500|800)/, variants: ['dark', 'group-hover', 'dark:group-hover'] },
     { pattern: /ring-.*-500\/30/, variants: ['dark'] },
     'border-blue-200',
     'border-green-300',
