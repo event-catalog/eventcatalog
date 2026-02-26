@@ -97,7 +97,7 @@
   /* Light-mode canvas: grey background (matches Tailwind gray-50) */
   --ec-page-bg: 249, 250, 251;
   --ec-bg-dots: #bbb;
-  --ec-edge-stroke: #b0b5bc;
+  --ec-edge-stroke: #6b7280;
   --ec-service-node-bg: #fef7fb;
   --ec-event-node-bg: #fff8f5;
   --ec-command-node-bg: #f5f8ff;
@@ -202,12 +202,25 @@
 }
 
 /* ReactFlow customizations */
+:root:not([data-theme="dark"]) .react-flow,
+:root[data-theme="light"] .react-flow {
+  background-color: #f1f5f9 !important; /* slate-100 */
+}
+
 .react-flow__node {
   cursor: pointer;
 }
 
 .react-flow__edge-path {
+  stroke: var(--ec-edge-stroke, #6b7280) !important;
+  stroke-width: 1.5 !important;
   transition: stroke-width 0.15s ease;
+}
+
+/* Widen the invisible interaction area for edges */
+.react-flow__edge-interaction {
+  stroke-width: 40 !important;
+  cursor: pointer;
 }
 
 /* Highlight the entire edge on hover — "electricity flowing" effect */
@@ -255,6 +268,7 @@
 .ec-edge-hover-node {
   outline: 3px solid #2563eb !important;
   outline-offset: 2px;
+  border-radius: 12px !important;
   animation: ec-node-pulse 1s ease-in-out infinite !important;
 }
 
@@ -283,18 +297,28 @@
 }
 
 .react-flow__controls {
-  background-color: rgb(var(--ec-card-bg));
-  border: 1px solid rgb(var(--ec-page-border));
+  background-color: rgb(var(--ec-card-bg)) !important;
+  border: 1px solid rgb(var(--ec-page-border)) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
 }
 
 .react-flow__controls-button {
-  background-color: rgb(var(--ec-card-bg));
-  color: rgb(var(--ec-page-text));
-  border-bottom: 1px solid rgb(var(--ec-page-border));
+  background-color: rgb(var(--ec-card-bg)) !important;
+  color: rgb(var(--ec-page-text)) !important;
+  border-bottom: 1px solid rgb(var(--ec-page-border)) !important;
+}
+
+.react-flow__controls-button svg {
+  fill: rgb(var(--ec-page-text)) !important;
 }
 
 .react-flow__controls-button:hover {
-  background-color: rgb(var(--ec-accent-subtle));
+  background-color: rgb(var(--ec-accent-subtle)) !important;
+}
+
+.react-flow__controls-button:hover svg {
+  fill: rgb(var(--ec-accent-text)) !important;
 }
 
 /* Notes modal close button */

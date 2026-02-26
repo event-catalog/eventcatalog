@@ -5,6 +5,12 @@ export interface SpecMessage {
   summary?: string;
   description?: string;
   version?: string;
+  /** HTTP method (from OpenAPI) */
+  method?: string;
+  /** API path (from OpenAPI) */
+  path?: string;
+  /** HTTP status codes (from OpenAPI) */
+  statusCodes?: number[];
 }
 
 export interface SpecChannel {

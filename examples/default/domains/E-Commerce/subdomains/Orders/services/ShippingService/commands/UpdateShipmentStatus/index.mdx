@@ -7,6 +7,10 @@ summary: |
 owners:
     - dboyne
 schemaPath: schema.json
+operation:
+  method: PUT
+  path: /shipments/{shipmentId}/status
+  statusCodes: ['200', '400', '404']
 sidebar:
   badge: 'POST'
 ---

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { versionMatches } from '../../../node-graphs/utils/utils';
+import { versionMatches, getOperationFields } from '../../../node-graphs/utils/utils';
 
 describe('versionMatches', () => {
   describe('when configVersion is undefined or "latest"', () => {
@@ -102,5 +102,54 @@ describe('versionMatches', () => {
       expect(versionMatches('2.x', '1.0.0')).toBe(false);
       expect(versionMatches('1.2.x', '1.3.0')).toBe(false);
     });
+  });
+});
+
+describe('getOperationFields', () => {
+  it('returns empty object when no operation field exists', () => {
+    expect(getOperationFields({ id: 'test', version: '1.0.0' })).toEqual({});
+  });
+
+  it('returns empty object when operation is undefined', () => {
+    expect(getOperationFields({ operation: undefined })).toEqual({});
+  });
+
+  it('extracts method from operation', () => {
+    const result = getOperationFields({ operation: { method: 'GET' } });
+    expect(result).toEqual({ method: 'GET' });
+  });
+
+  it('extracts path from operation', () => {
+    const result = getOperationFields({ operation: { path: '/orders' } });
+    expect(result).toEqual({ path: '/orders' });
+  });
+
+  it('extracts statusCodes from operation and converts to numbers', () => {
+    const result = getOperationFields({ operation: { statusCodes: ['200', '404', '500'] } });
+    expect(result).toEqual({ statusCodes: [200, 404, 500] });
+  });
+
+  it('extracts all operation fields together', () => {
+    const result = getOperationFields({
+      operation: { method: 'POST', path: '/orders', statusCodes: ['201', '400'] },
+    });
+    expect(result).toEqual({ method: 'POST', path: '/orders', statusCodes: [201, 400] });
+  });
+
+  it('ignores empty statusCodes array', () => {
+    const result = getOperationFields({ operation: { method: 'GET', statusCodes: [] } });
+    expect(result).toEqual({ method: 'GET' });
+  });
+
+  it('filters out non-numeric statusCodes', () => {
+    const result = getOperationFields({ operation: { statusCodes: ['200', 'abc', '404'] } });
+    expect(result).toEqual({ statusCodes: [200, 404] });
+  });
+
+  it('ignores non-relevant operation fields like action and protocol', () => {
+    const result = getOperationFields({
+      operation: { method: 'GET', path: '/orders', action: 'send', protocol: 'http' },
+    });
+    expect(result).toEqual({ method: 'GET', path: '/orders' });
   });
 });

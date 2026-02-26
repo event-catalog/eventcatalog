@@ -146,6 +146,12 @@ interface Props {
   resourceKey?: string;
   /** Controls whether message flow animation is enabled. When set, overrides URL params and localStorage. */
   animated?: boolean;
+  /** When set, the graph will zoom to this node id. */
+  focusNodeId?: string;
+  /** Optional token to force repeated focus for the same node id. */
+  focusRequestId?: number;
+  /** Optional token to trigger fit-to-screen behavior. */
+  fitRequestId?: number;
 
   // Callback API for framework integration
   /** Called when a node is clicked */
@@ -183,6 +189,9 @@ const NodeGraphBuilder = ({
   isDevMode = false,
   resourceKey,
   animated,
+  focusNodeId,
+  focusRequestId,
+  fitRequestId,
   onNodeClick,
   onBuildUrl: _onBuildUrl,
   onNavigate,
@@ -447,7 +456,7 @@ const NodeGraphBuilder = ({
     setNodes((nds) =>
       nds.map((node) => {
         node.style = { ...node.style, opacity: 1 };
-        return { ...node, animated: animateMessages };
+        return { ...node, animated: animateMessages, selected: false };
       }),
     );
     setEdges((eds) =>
@@ -462,6 +471,34 @@ const NodeGraphBuilder = ({
       }),
     );
   }, [setNodes, setEdges, animateMessages]);
+
+  useEffect(() => {
+    if (!focusNodeId) return;
+    const targetNode = nodesRef.current.find((node) => node.id === focusNodeId);
+    if (!targetNode) return;
+
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        selected: node.id === focusNodeId,
+      })),
+    );
+
+    requestAnimationFrame(() => {
+      fitView({
+        duration: 450,
+        padding: 0.35,
+        nodes: [targetNode],
+      });
+    });
+  }, [focusNodeId, focusRequestId, fitView, setNodes]);
+
+  useEffect(() => {
+    if (fitRequestId == null) return;
+    requestAnimationFrame(() => {
+      fitView({ duration: 400, padding: 0.2 });
+    });
+  }, [fitRequestId, fitView]);
 
   const handleNodeClick = useCallback(
     (_: any, node: Node) => {
@@ -1459,6 +1496,12 @@ interface NodeGraphProps {
   resourceKey?: string;
   /** Controls whether message flow animation is enabled. When set, overrides URL params and localStorage. */
   animated?: boolean;
+  /** When set, the graph will zoom to this node id. */
+  focusNodeId?: string;
+  /** Optional token to force repeated focus for the same node id. */
+  focusRequestId?: number;
+  /** Optional token to trigger fit-to-screen behavior. */
+  fitRequestId?: number;
 
   // Callback API for framework integration
   onNodeClick?: (node: Node) => void;
@@ -1495,6 +1538,9 @@ const NodeGraph = ({
   isDevMode = false,
   resourceKey,
   animated: animatedProp,
+  focusNodeId,
+  focusRequestId,
+  fitRequestId,
   onNodeClick,
   onBuildUrl,
   onNavigate,
@@ -1574,6 +1620,9 @@ const NodeGraph = ({
             isDevMode={isDevMode}
             resourceKey={resourceKey}
             animated={animated}
+            focusNodeId={focusNodeId}
+            focusRequestId={focusRequestId}
+            fitRequestId={fitRequestId}
             onNodeClick={onNodeClick}
             onBuildUrl={onBuildUrl}
             onNavigate={onNavigate}
@@ -1593,14 +1642,8 @@ const NodeGraph = ({
 
               {href && (
                 <div className="py-2 w-full text-right flex justify-between">
-                  {/* <span className="text-sm text-gray-500 italic">Right click a node to access documentation</span> */}
-                  <button
-                    onClick={openStudioModal}
-                    className=" text-sm underline text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] flex items-center space-x-1"
-                  >
-                    <span>Open in EventCatalog Studio</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
+                  {/* Studio link temporarily hidden */}
+                  <span />
                   <a
                     className=" text-sm underline text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]"
                     href={href}

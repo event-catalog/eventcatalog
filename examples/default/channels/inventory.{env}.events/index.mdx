@@ -7,8 +7,9 @@ summary: |
 owners:
   - dboyne
 address: inventory.{env}.events
-protocols: 
+protocols:
   - kafka
+deliveryGuarantee: at-least-once
 
 parameters:
   env:

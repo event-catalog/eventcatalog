@@ -25,6 +25,12 @@ export type Message = {
   draft?: boolean;
   schema?: string;
   notes?: Note[];
+  /** HTTP method (e.g. GET, POST, PUT, DELETE) */
+  method?: string;
+  /** API path (e.g. /pets, /users/:id) */
+  path?: string;
+  /** HTTP status codes (e.g. [200, 401, 500]) */
+  statusCodes?: number[];
 };
 
 /**
@@ -49,6 +55,7 @@ export type Service = {
   deprecated?: boolean;
   draft?: boolean;
   notes?: Note[];
+  specifications?: unknown;
 };
 
 /**
@@ -65,6 +72,8 @@ export type Channel = {
   deprecated?: boolean;
   draft?: boolean;
   notes?: Note[];
+  /** Delivery guarantee (e.g. at-most-once, at-least-once, exactly-once) */
+  deliveryGuarantee?: string;
 };
 
 /**

@@ -865,7 +865,7 @@ export default function NestedSideBar() {
             <span
               className={cn(
                 'flex items-center justify-center w-5 h-5 flex-shrink-0',
-                isActive ? 'text-[rgb(var(--ec-content-text))]' : 'text-[rgb(var(--ec-content-text-muted))]'
+                isActive ? 'text-[rgb(var(--ec-accent-text))]' : 'text-[rgb(var(--ec-content-text-muted))]'
               )}
             >
               <IconComponent className="w-4 h-4" />
@@ -876,7 +876,7 @@ export default function NestedSideBar() {
             className={cn(
               'text-[13px] truncate',
               isActive
-                ? 'text-[rgb(var(--ec-content-text))] font-medium'
+                ? 'text-[rgb(var(--ec-accent-text))] font-medium'
                 : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
             )}
           >
@@ -910,7 +910,7 @@ export default function NestedSideBar() {
       'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
     const activeClasses = isActive
-      ? 'bg-[rgb(var(--ec-content-active))] hover:bg-[rgb(var(--ec-content-active))] border-l-2 border-[rgb(var(--ec-accent))] rounded-l-none'
+      ? 'bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] !rounded-none'
       : '';
 
     // Leaf item with href → render as link
@@ -1122,8 +1122,7 @@ export default function NestedSideBar() {
                         onClick={() => navigateToFavorite(fav)}
                         className={cn(
                           'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-500/10 active:bg-amber-500/20',
-                          isActive &&
-                            'bg-[rgb(var(--ec-content-active))] hover:bg-[rgb(var(--ec-content-active))] border-l-2 border-[rgb(var(--ec-accent))] rounded-l-none'
+                          isActive && 'bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] !rounded-none'
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1131,7 +1130,7 @@ export default function NestedSideBar() {
                             className={cn(
                               'text-[14px] truncate',
                               isActive
-                                ? 'text-[rgb(var(--ec-content-text))] font-medium'
+                                ? 'text-[rgb(var(--ec-accent-text))] font-medium'
                                 : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
                             )}
                           >

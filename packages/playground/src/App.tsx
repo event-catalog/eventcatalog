@@ -1,23 +1,49 @@
-import { useState, useCallback, useRef, useEffect, memo } from 'react';
-import { Editor } from './components/Editor';
-import { Visualizer } from './components/Visualizer';
-import { TabBar } from './components/TabBar';
-import { TemplatePicker } from './components/TemplatePicker';
-import { StatusBar } from './components/StatusBar';
-import { CommandPalette } from './components/CommandPalette';
-import type { EditorHandle } from './components/Editor';
-import { useDslParser, compileDsl } from './hooks/useDslParser';
-import { getErrorsForFile } from './monaco/ec-diagnostics';
-import { examples } from './examples/index';
-import { createZipBlob } from './utils/zip';
-import { normalizeCompiledCatalogFiles } from './utils/catalog-export';
-import { ChevronDown, AlignLeft, Check, Download, Share2, Sun, Moon, X, Copy, FolderDown } from 'lucide-react';
-import { formatEc } from '@eventcatalog/language-server';
+import { useState, useCallback, useRef, useEffect, memo } from "react";
+import { useParams } from "react-router-dom";
+import { useStore } from "@nanostores/react";
+import { Editor } from "./components/Editor";
+import { Visualizer } from "./components/Visualizer";
+import { TabBar } from "./components/TabBar";
+import { TemplatePicker } from "./components/TemplatePicker";
+import { StatusBar } from "./components/StatusBar";
+import { CommandPalette } from "./components/CommandPalette";
+import type { EditorHandle } from "./components/Editor";
+import { useDslParser, compileDsl } from "./hooks/useDslParser";
+import { getErrorsForFile } from "./monaco/ec-diagnostics";
+import { examples } from "./examples/index";
+import { createZipBlob } from "./utils/zip";
+import { normalizeCompiledCatalogFiles } from "./utils/catalog-export";
+import { NextStepsGuide } from "./components/NextStepsGuide";
+import {
+  $theme,
+  $workspace,
+  loadWorkspace,
+  saveWorkspace,
+  clearWorkspace,
+  loadDraft as loadDraftStore,
+  saveDraft as saveDraftStore,
+  clearDraft as clearDraftStore,
+  getSpecFile,
+} from "./stores/workspace";
+import type { DraftState } from "./stores/workspace";
+import {
+  ChevronDown,
+  AlignLeft,
+  Check,
+  Download,
+  Share2,
+  Sun,
+  Moon,
+  X,
+  Copy,
+  FolderDown,
+} from "lucide-react";
+import { formatEc } from "@eventcatalog/language-server";
 
 const MIN_PANEL_PCT = 20;
 const MAX_PANEL_PCT = 80;
 const DEFAULT_SPLIT = 45;
-const EXPORT_EXTRACT_DIR = './ec-model';
+const EXPORT_EXTRACT_DIR = "./ec-model";
 
 interface ExportResult {
   fileName: string;
@@ -30,6 +56,7 @@ const AppHeader = memo(function AppHeader({
   templateUnselected,
   onExampleChange,
   loadedFromUrl,
+  workspaceTitle,
   onExport,
   onExportCatalog,
   exportRecentlyDownloaded,
@@ -41,18 +68,21 @@ const AppHeader = memo(function AppHeader({
   templateUnselected: boolean;
   onExampleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   loadedFromUrl: boolean;
+  workspaceTitle?: string;
   onExport: () => void;
   onExportCatalog: () => void;
   exportRecentlyDownloaded: boolean;
   onShare: () => void;
-  vizTheme: 'light' | 'dark';
+  vizTheme: "light" | "dark";
   onToggleVizTheme: () => void;
 }) {
-  const currentName = loadedFromUrl
-    ? 'Shared Link'
-    : templateUnselected
-      ? ''
-      : examples[selectedExample]?.name ?? '';
+  const currentName = workspaceTitle
+    ? workspaceTitle
+    : loadedFromUrl
+      ? "Shared Link"
+      : templateUnselected
+        ? ""
+        : (examples[selectedExample]?.name ?? "");
 
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -64,20 +94,35 @@ const AppHeader = memo(function AppHeader({
         setExportOpen(false);
       }
     };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, [exportOpen]);
 
   return (
     <header className="header">
       <div className="header-logo">
-        <h1>EventCatalog Canvas{currentName ? <span className="header-template-name"> — {currentName}</span> : ''}</h1>
+        <a
+          href="/"
+          className="header-home-link"
+          aria-label="Go to EventCatalog Compass homepage"
+        >
+          <h1>
+            EventCatalog Compass
+            {currentName ? (
+              <span className="header-template-name"> — {currentName}</span>
+            ) : (
+              ""
+            )}
+          </h1>
+        </a>
       </div>
       <div className="header-actions">
         <div className="example-select-wrapper">
           <select
             className="example-select"
-            value={loadedFromUrl ? 'url' : (templateUnselected ? '' : selectedExample)}
+            value={
+              loadedFromUrl ? "url" : templateUnselected ? "" : selectedExample
+            }
             onChange={onExampleChange}
           >
             {templateUnselected && (
@@ -85,11 +130,7 @@ const AppHeader = memo(function AppHeader({
                 Select a template
               </option>
             )}
-            {loadedFromUrl && (
-              <option value="url">
-                Shared Link
-              </option>
-            )}
+            {loadedFromUrl && <option value="url">Shared Link</option>}
             {examples.map((ex, i) => (
               <option key={i} value={i}>
                 {ex.name}
@@ -101,33 +142,68 @@ const AppHeader = memo(function AppHeader({
         <button
           className="header-icon-btn"
           onClick={onToggleVizTheme}
-          title={vizTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+          title={
+            vizTheme === "light"
+              ? "Switch to dark theme"
+              : "Switch to light theme"
+          }
         >
-          {vizTheme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+          {vizTheme === "light" ? <Moon size={15} /> : <Sun size={15} />}
         </button>
-        <button className="header-icon-btn" onClick={onShare} title="Share model link">
+        <button
+          className="header-icon-btn"
+          onClick={onShare}
+          title="Share model link"
+        >
           <Share2 size={15} />
         </button>
         <div className="export-dropdown-wrapper" ref={exportRef}>
-          <button className="export-btn-header" onClick={() => setExportOpen((v) => !v)}>
-            {exportRecentlyDownloaded ? <Check size={14} /> : <Download size={14} />}
+          <button
+            className="export-btn-header"
+            onClick={() => setExportOpen((v) => !v)}
+          >
+            {exportRecentlyDownloaded ? (
+              <Check size={14} />
+            ) : (
+              <Download size={14} />
+            )}
             Export
             <ChevronDown size={12} />
           </button>
           {exportOpen && (
             <div className="export-dropdown">
-              <button className="export-dropdown-item" onClick={() => { setExportOpen(false); onExport(); }}>
+              <button
+                className="export-dropdown-item"
+                onClick={() => {
+                  setExportOpen(false);
+                  onExport();
+                }}
+              >
                 <Download size={14} />
                 <div>
-                  <span className="export-dropdown-item-title">Download DSL files</span>
-                  <span className="export-dropdown-item-desc">Export .ec files for use with the CLI</span>
+                  <span className="export-dropdown-item-title">
+                    Download DSL files
+                  </span>
+                  <span className="export-dropdown-item-desc">
+                    Export .ec files for use with the CLI
+                  </span>
                 </div>
               </button>
-              <button className="export-dropdown-item" onClick={() => { setExportOpen(false); onExportCatalog(); }}>
+              <button
+                className="export-dropdown-item"
+                onClick={() => {
+                  setExportOpen(false);
+                  onExportCatalog();
+                }}
+              >
                 <FolderDown size={14} />
                 <div>
-                  <span className="export-dropdown-item-title">Download as Catalog</span>
-                  <span className="export-dropdown-item-desc">Ready-to-run project — just npm install and start</span>
+                  <span className="export-dropdown-item-title">
+                    Download as Catalog
+                  </span>
+                  <span className="export-dropdown-item-desc">
+                    Ready-to-run project — just npm install and start
+                  </span>
                 </div>
               </button>
             </div>
@@ -156,27 +232,38 @@ const ShareLinkModal = memo(function ShareLinkModal({
 
   return (
     <div className="export-modal-overlay" onClick={onClose} role="presentation">
-      <div className="export-modal" role="dialog" aria-modal="true" aria-label="Share model" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="export-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Share model"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="export-modal-header">
           <h2>Share this model</h2>
-          <button className="export-modal-close" onClick={onClose} title="Close">
+          <button
+            className="export-modal-close"
+            onClick={onClose}
+            title="Close"
+          >
             <X size={16} />
           </button>
         </div>
 
-        <p className="export-modal-lead">Share this URL with your team so they can open the same model in EventCatalog Canvas.</p>
+        <p className="export-modal-lead">
+          Share this URL with your team so they can open the same model in
+          EventCatalog Compass.
+        </p>
 
         <div className="command-row">
           <code>{shareUrl}</code>
           <button className="command-copy-btn" onClick={copy}>
             {copied ? <Check size={13} /> : <Copy size={13} />}
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? "Copied" : "Copy"}
           </button>
         </div>
 
-        <p className="share-modal-note">
-          Data is local and not stored.
-        </p>
+        <p className="share-modal-note">Data is local and not stored.</p>
       </div>
     </div>
   );
@@ -189,11 +276,13 @@ const ExportHelpModal = memo(function ExportHelpModal({
   exportResult: ExportResult;
   onClose: () => void;
 }) {
-  const [copiedValue, setCopiedValue] = useState<string>('');
+  const [copiedValue, setCopiedValue] = useState<string>("");
   const hasMultiple = exportResult.isZip;
   const importedFiles = hasMultiple
-    ? exportResult.ecFiles.map((file) => `${EXPORT_EXTRACT_DIR}/${file}`).join(' ')
-    : `./${exportResult.ecFiles[0] ?? 'main.ec'}`;
+    ? exportResult.ecFiles
+        .map((file) => `${EXPORT_EXTRACT_DIR}/${file}`)
+        .join(" ")
+    : `./${exportResult.ecFiles[0] ?? "main.ec"}`;
   const unzipCommand = `unzip ${exportResult.fileName} -d ${EXPORT_EXTRACT_DIR}`;
   const createCommand = `npx @eventcatalog/cli --dir ./my-catalog import ${importedFiles}`;
   const updateCommand = `npx @eventcatalog/cli --dir ./existing-catalog import ${importedFiles}`;
@@ -201,21 +290,32 @@ const ExportHelpModal = memo(function ExportHelpModal({
   const copy = useCallback((value: string) => {
     navigator.clipboard.writeText(value).then(() => {
       setCopiedValue(value);
-      setTimeout(() => setCopiedValue(''), 2000);
+      setTimeout(() => setCopiedValue(""), 2000);
     });
   }, []);
 
   return (
     <div className="export-modal-overlay" onClick={onClose} role="presentation">
-      <div className="export-modal" role="dialog" aria-modal="true" aria-label="Import into EventCatalog" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="export-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Import into EventCatalog"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="export-modal-header">
           <h2>Export downloaded</h2>
-          <button className="export-modal-close" onClick={onClose} title="Close">
+          <button
+            className="export-modal-close"
+            onClick={onClose}
+            title="Close"
+          >
             <X size={16} />
           </button>
         </div>
         <p className="export-modal-lead">
-          Your model is saved as <code>{exportResult.fileName}</code>. Run these commands to turn it into an EventCatalog project.
+          Your model is saved as <code>{exportResult.fileName}</code>. Run these
+          commands to turn it into an EventCatalog project.
         </p>
 
         {hasMultiple && (
@@ -223,8 +323,15 @@ const ExportHelpModal = memo(function ExportHelpModal({
             <p>1. Unzip the model files</p>
             <div className="command-row">
               <code>{unzipCommand}</code>
-              <button className="command-copy-btn" onClick={() => copy(unzipCommand)}>
-                {copiedValue === unzipCommand ? <Check size={13} /> : <Copy size={13} />}
+              <button
+                className="command-copy-btn"
+                onClick={() => copy(unzipCommand)}
+              >
+                {copiedValue === unzipCommand ? (
+                  <Check size={13} />
+                ) : (
+                  <Copy size={13} />
+                )}
                 Copy
               </button>
             </div>
@@ -232,28 +339,50 @@ const ExportHelpModal = memo(function ExportHelpModal({
         )}
 
         <div className="command-section">
-          <p>{hasMultiple ? '2' : '1'}. Import into a new EventCatalog project</p>
+          <p>
+            {hasMultiple ? "2" : "1"}. Import into a new EventCatalog project
+          </p>
           <div className="command-row">
             <code>{createCommand}</code>
-            <button className="command-copy-btn" onClick={() => copy(createCommand)}>
-              {copiedValue === createCommand ? <Check size={13} /> : <Copy size={13} />}
+            <button
+              className="command-copy-btn"
+              onClick={() => copy(createCommand)}
+            >
+              {copiedValue === createCommand ? (
+                <Check size={13} />
+              ) : (
+                <Copy size={13} />
+              )}
               Copy
             </button>
           </div>
         </div>
 
         <div className="command-section">
-          <p>{hasMultiple ? '3' : '2'}. Import into an existing EventCatalog project</p>
+          <p>
+            {hasMultiple ? "3" : "2"}. Import into an existing EventCatalog
+            project
+          </p>
           <div className="command-row">
             <code>{updateCommand}</code>
-            <button className="command-copy-btn" onClick={() => copy(updateCommand)}>
-              {copiedValue === updateCommand ? <Check size={13} /> : <Copy size={13} />}
+            <button
+              className="command-copy-btn"
+              onClick={() => copy(updateCommand)}
+            >
+              {copiedValue === updateCommand ? (
+                <Check size={13} />
+              ) : (
+                <Copy size={13} />
+              )}
               Copy
             </button>
           </div>
         </div>
 
-        <p className="export-modal-tip">Tip: add <code>--dry-run</code> first to preview changes before writing files.</p>
+        <p className="export-modal-tip">
+          Tip: add <code>--dry-run</code> first to preview changes before
+          writing files.
+        </p>
       </div>
     </div>
   );
@@ -274,10 +403,20 @@ const CatalogExportModal = memo(function CatalogExportModal({
 }) {
   return (
     <div className="export-modal-overlay" onClick={onClose} role="presentation">
-      <div className="export-modal export-modal--compact" role="dialog" aria-modal="true" aria-label="Export catalog" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="export-modal export-modal--compact"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Export catalog"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="export-modal-header">
           <h2>Customize Your Catalog</h2>
-          <button className="export-modal-close" onClick={onClose} title="Close">
+          <button
+            className="export-modal-close"
+            onClick={onClose}
+            title="Close"
+          >
             <X size={16} />
           </button>
         </div>
@@ -309,7 +448,7 @@ const CatalogExportModal = memo(function CatalogExportModal({
             type="submit"
             disabled={isExporting || organizationName.trim().length === 0}
           >
-            {isExporting ? 'Creating Zip...' : 'Create Catalog Zip'}
+            {isExporting ? "Creating Zip..." : "Create Catalog Zip"}
           </button>
         </form>
       </div>
@@ -319,60 +458,71 @@ const CatalogExportModal = memo(function CatalogExportModal({
 
 let newFileCounter = 1;
 
-const DRAFT_KEY = 'ec-canvas-draft';
-const DRAFT_ACTIVE_FILE_KEY = 'ec-canvas-draft-active';
-
-function saveDraft(files: Record<string, string>, activeFile: string): void {
+/** Peek at a non-workspace draft without loading into the store. */
+function peekDraft(): DraftState | null {
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(files));
-    localStorage.setItem(DRAFT_ACTIVE_FILE_KEY, activeFile);
-  } catch {}
-}
-
-function loadDraft(): { files: Record<string, string>; activeFile: string } | null {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY);
+    const raw =
+      localStorage.getItem("ec-compass-draft") ??
+      localStorage.getItem("ec-canvas-draft");
     if (!raw) return null;
     const files = JSON.parse(raw);
-    if (!files || typeof files !== 'object' || Object.keys(files).length === 0) return null;
-    const activeFile = localStorage.getItem(DRAFT_ACTIVE_FILE_KEY) || Object.keys(files)[0];
+    if (!files || typeof files !== "object" || Object.keys(files).length === 0)
+      return null;
+    const activeFile =
+      localStorage.getItem("ec-compass-draft-active") ??
+      localStorage.getItem("ec-canvas-draft-active") ??
+      Object.keys(files)[0];
     return { files, activeFile };
-  } catch {}
-  return null;
+  } catch {
+    return null;
+  }
 }
 
-function clearDraft(): void {
+/** Peek at workspace files without loading the full store. */
+function peekWorkspaceFiles(
+  id: string,
+): { files: Record<string, string>; activeFile: string } | null {
   try {
-    localStorage.removeItem(DRAFT_KEY);
-    localStorage.removeItem(DRAFT_ACTIVE_FILE_KEY);
-  } catch {}
+    const raw = localStorage.getItem(`ec-workspace-${id}-files`);
+    if (!raw) return null;
+    const files = JSON.parse(raw);
+    if (!files || typeof files !== "object" || Object.keys(files).length === 0)
+      return null;
+    const activeFile =
+      localStorage.getItem(`ec-workspace-${id}-active`) ??
+      Object.keys(files)[0];
+    return { files, activeFile };
+  } catch {
+    return null;
+  }
 }
 
 function getCodeFromUrl(): string | null {
   try {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
+    const code = params.get("code");
     if (code) return decodeURIComponent(escape(atob(code)));
   } catch {}
   return null;
 }
 
 function isNewRoute(): boolean {
-  const path = window.location.pathname.replace(/\/+$/, '');
-  return path.endsWith('/new');
+  const path = window.location.pathname.replace(/\/+$/, "");
+  return path.endsWith("/new");
 }
 
 function getBasePathname(): string {
-  const basePath = window.location.pathname.replace(/\/new\/?$/, '/');
-  return basePath || '/playground';
+  const basePath = window.location.pathname.replace(/\/new\/?$/, "/");
+  return basePath || "/playground";
 }
 
 function hasExampleHash(): boolean {
   return /example=\d+/.test(window.location.hash);
 }
 
-function shouldShowTemplatePicker(): boolean {
-  if (getCodeFromUrl() || hasExampleHash() || loadDraft()) return false;
+function shouldShowTemplatePicker(workspaceId?: string): boolean {
+  if (workspaceId) return false;
+  if (getCodeFromUrl() || hasExampleHash() || peekDraft()) return false;
   return true;
 }
 
@@ -387,28 +537,38 @@ function getInitialExample(): number {
   return 0;
 }
 
-function getInitialFiles(): Record<string, string> {
+function getInitialFiles(workspaceId?: string): Record<string, string> {
+  if (workspaceId) {
+    const ws = peekWorkspaceFiles(workspaceId);
+    if (ws) return ws.files;
+    return { "main.ec": "" };
+  }
   const code = getCodeFromUrl();
-  if (code) return { 'main.ec': code };
-  if (isNewRoute()) return { 'main.ec': '' };
-  const draft = loadDraft();
+  if (code) return { "main.ec": code };
+  if (isNewRoute()) return { "main.ec": "" };
+  const draft = peekDraft();
   if (draft) return draft.files;
-  if (shouldShowTemplatePicker()) return { 'main.ec': '' };
+  if (shouldShowTemplatePicker()) return { "main.ec": "" };
   return { ...examples[getInitialExample()].source };
 }
 
-function getInitialActiveFile(): string {
+function getInitialActiveFile(workspaceId?: string): string {
+  if (workspaceId) {
+    const ws = peekWorkspaceFiles(workspaceId);
+    if (ws) return ws.activeFile;
+    return "main.ec";
+  }
   const code = getCodeFromUrl();
-  if (code) return 'main.ec';
-  if (isNewRoute()) return 'main.ec';
-  const draft = loadDraft();
+  if (code) return "main.ec";
+  if (isNewRoute()) return "main.ec";
+  const draft = peekDraft();
   if (draft) return draft.activeFile;
   return Object.keys(examples[getInitialExample()].source)[0];
 }
 
 function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
@@ -416,75 +576,125 @@ function downloadBlob(blob: Blob, filename: string): void {
 }
 
 export default function App() {
+  const { workspaceId } = useParams<{ workspaceId?: string }>();
+  const ws = useStore($workspace);
+  const vizTheme = useStore($theme);
+
+  // Load workspace store on mount (once)
+  const wsLoadedRef = useRef(false);
+  if (!wsLoadedRef.current && workspaceId) {
+    loadWorkspace(workspaceId);
+    wsLoadedRef.current = true;
+  }
+
   const [selectedExample, setSelectedExample] = useState(getInitialExample);
-  const [loadedFromUrl, setLoadedFromUrl] = useState(() => getCodeFromUrl() !== null);
-  const [templateUnselected, setTemplateUnselected] = useState(() => !shouldShowTemplatePicker() && isNewRoute() && getCodeFromUrl() === null);
-  const [showTemplatePicker, setShowTemplatePicker] = useState(shouldShowTemplatePicker);
-  const [files, setFiles] = useState<Record<string, string>>(getInitialFiles);
-  const [activeFile, setActiveFile] = useState(getInitialActiveFile);
+  const [loadedFromUrl, setLoadedFromUrl] = useState(
+    () => getCodeFromUrl() !== null,
+  );
+  const [templateUnselected, setTemplateUnselected] = useState(
+    () =>
+      !shouldShowTemplatePicker(workspaceId) &&
+      isNewRoute() &&
+      getCodeFromUrl() === null,
+  );
+  const [showTemplatePicker, setShowTemplatePicker] = useState(() =>
+    shouldShowTemplatePicker(workspaceId),
+  );
+  const [files, setFiles] = useState<Record<string, string>>(() =>
+    getInitialFiles(workspaceId),
+  );
+  const [activeFile, setActiveFile] = useState(() =>
+    getInitialActiveFile(workspaceId),
+  );
   // Track whether the current session is user-authored content that should be saved
-  const isUserDraft = useRef(!!getCodeFromUrl() || isNewRoute() || !!loadDraft());
-  const [activeVisualizer, setActiveVisualizer] = useState<string | undefined>(undefined);
+  const isUserDraft = useRef(
+    !!workspaceId || !!getCodeFromUrl() || isNewRoute() || !!peekDraft(),
+  );
+  const [activeVisualizer, setActiveVisualizer] = useState<string | undefined>(
+    undefined,
+  );
   const { graph, errors, fileOffsets } = useDslParser(files, activeVisualizer);
   const [splitPct, setSplitPct] = useState(DEFAULT_SPLIT);
-  const [vizTheme, setVizTheme] = useState<'light' | 'dark'>(() => {
-    try {
-      const saved = localStorage.getItem('ec-playground-theme');
-      if (saved === 'dark' || saved === 'light') {
-        return saved;
-      }
-    } catch {}
-    return 'light';
-  });
-  // Set data-theme on mount (runs after any landing page cleanup)
+
+  // Workspace-derived values from the store
+  const showGuide = workspaceId ? ws.showGuide : false;
+  const workspaceKind = workspaceId ? ws.kind : undefined;
+  const workspaceSpecFile = workspaceId ? getSpecFile(ws.files) : "spec.yml";
+  const workspaceServiceNames = workspaceId ? ws.services : [];
+
+  // Set data-theme on mount and when theme changes
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', vizTheme);
+    document.documentElement.setAttribute("data-theme", vizTheme);
   }, [vizTheme]);
 
+  // Set document title based on workspace
+  useEffect(() => {
+    if (workspaceId && ws.title) {
+      document.title = `EventCatalog Compass — ${ws.title}`;
+    } else {
+      document.title = "EventCatalog Compass";
+    }
+    return () => {
+      document.title = "EventCatalog Compass";
+    };
+  }, [workspaceId, ws.title]);
+
   const [cmdkOpen, setCmdkOpen] = useState(false);
+  const [focusRequest, setFocusRequest] = useState<{
+    nodeId: string;
+    requestId: number;
+  } | null>(null);
+  const [fitRequestId, setFitRequestId] = useState(0);
   const editorRef = useRef<EditorHandle>(null);
   const isDragging = useRef(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
   const toggleVizTheme = useCallback(() => {
-    setVizTheme((prev) => {
-      const next = prev === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('ec-playground-theme', next); } catch {}
-      return next;
-    });
+    const next = $theme.get() === "light" ? "dark" : "light";
+    $theme.set(next);
   }, []);
 
-  const handleExampleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (e.target.value === '') return;
-    const idx = Number(e.target.value);
-    if (e.target.value === 'url') return;
-    setSelectedExample(idx);
-    setTemplateUnselected(false);
-    setLoadedFromUrl(false);
-    isUserDraft.current = false;
-    clearDraft();
-    // Clear ?code param when switching to a built-in example
-    const url = new URL(window.location.href);
-    url.pathname = getBasePathname();
-    url.search = '';
-    url.hash = `example=${idx}`;
-    window.history.replaceState(null, '', url.toString());
-    const newFiles = { ...examples[idx].source };
-    setFiles(newFiles);
-    setActiveFile(Object.keys(newFiles)[0]);
-    setActiveVisualizer(undefined);
-  }, []);
+  const handleExampleChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (e.target.value === "") return;
+      const idx = Number(e.target.value);
+      if (e.target.value === "url") return;
+      setSelectedExample(idx);
+      setTemplateUnselected(false);
+      setLoadedFromUrl(false);
+      isUserDraft.current = false;
+      if (workspaceId) {
+        clearWorkspace(workspaceId);
+      } else {
+        clearDraftStore();
+      }
+      // Clear ?code param when switching to a built-in example
+      const url = new URL(window.location.href);
+      url.pathname = getBasePathname();
+      url.search = "";
+      url.hash = `example=${idx}`;
+      window.history.replaceState(null, "", url.toString());
+      const newFiles = { ...examples[idx].source };
+      setFiles(newFiles);
+      setActiveFile(Object.keys(newFiles)[0]);
+      setActiveVisualizer(undefined);
+    },
+    [workspaceId],
+  );
 
   const handleTemplateSelect = useCallback((exampleIndex: number) => {
     setSelectedExample(exampleIndex);
     setTemplateUnselected(false);
     setShowTemplatePicker(false);
     isUserDraft.current = false;
-    clearDraft();
+    if (workspaceId) {
+      clearWorkspace(workspaceId);
+    } else {
+      clearDraftStore();
+    }
     const url = new URL(window.location.href);
     url.hash = `example=${exampleIndex}`;
-    window.history.replaceState(null, '', url.toString());
+    window.history.replaceState(null, "", url.toString());
     const newFiles = { ...examples[exampleIndex].source };
     setFiles(newFiles);
     setActiveFile(Object.keys(newFiles)[0]);
@@ -495,36 +705,40 @@ export default function App() {
     setShowTemplatePicker(false);
     setTemplateUnselected(true);
     isUserDraft.current = true;
-    setFiles({ 'main.ec': '' });
-    setActiveFile('main.ec');
+    setFiles({ "main.ec": "" });
+    setActiveFile("main.ec");
   }, []);
 
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [exportRecentlyDownloaded, setExportRecentlyDownloaded] = useState(false);
+  const [exportRecentlyDownloaded, setExportRecentlyDownloaded] =
+    useState(false);
   const [latestExport, setLatestExport] = useState<ExportResult | null>(null);
   const [showCatalogExport, setShowCatalogExport] = useState(false);
-  const [catalogOrganizationName, setCatalogOrganizationName] = useState('My Organization');
+  const [catalogOrganizationName, setCatalogOrganizationName] =
+    useState("My Organization");
   const [isCatalogExporting, setIsCatalogExporting] = useState(false);
   const handleShare = useCallback(() => {
-    const allContent = Object.values(files).join('\n');
+    const allContent = Object.values(files).join("\n");
     const encoded = btoa(unescape(encodeURIComponent(allContent)));
     const url = new URL(window.location.href);
     url.pathname = getBasePathname();
     url.search = `?code=${encoded}`;
-    url.hash = '';
+    url.hash = "";
     setShareUrl(url.toString());
   }, [files]);
 
   const handleExportForImport = useCallback(() => {
     const ecFiles = Object.entries(files)
-      .filter(([filename]) => filename.toLowerCase().endsWith('.ec'))
+      .filter(([filename]) => filename.toLowerCase().endsWith(".ec"))
       .map(([filename, content]) => ({ name: filename, content }));
 
     const ecFileNames = ecFiles.map((file) => file.name);
 
     if (ecFiles.length <= 1) {
-      const oneFile = ecFiles[0] ?? { name: 'main.ec', content: '' };
-      const blob = new Blob([oneFile.content], { type: 'text/plain;charset=utf-8' });
+      const oneFile = ecFiles[0] ?? { name: "main.ec", content: "" };
+      const blob = new Blob([oneFile.content], {
+        type: "text/plain;charset=utf-8",
+      });
       downloadBlob(blob, oneFile.name);
       setLatestExport({
         fileName: oneFile.name,
@@ -533,9 +747,9 @@ export default function App() {
       });
     } else {
       const zip = createZipBlob(ecFiles);
-      downloadBlob(zip, 'ec-model.zip');
+      downloadBlob(zip, "ec-model.zip");
       setLatestExport({
-        fileName: 'ec-model.zip',
+        fileName: "ec-model.zip",
         isZip: true,
         ecFiles: ecFileNames,
       });
@@ -555,8 +769,8 @@ export default function App() {
     const organizationSlug =
       organizationName
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'my-organization';
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "my-organization";
     const catalogFolderName = `${organizationSlug}-catalog`;
 
     setIsCatalogExporting(true);
@@ -570,20 +784,24 @@ export default function App() {
 
       const catalogId = crypto.randomUUID();
 
-      const packageJson = JSON.stringify({
-        name: catalogFolderName,
-        version: '0.1.0',
-        private: true,
-        scripts: {
-          dev: 'eventcatalog dev',
-          build: 'eventcatalog build',
-          start: 'eventcatalog start',
-          preview: 'eventcatalog preview',
+      const packageJson = JSON.stringify(
+        {
+          name: catalogFolderName,
+          version: "0.1.0",
+          private: true,
+          scripts: {
+            dev: "eventcatalog dev",
+            build: "eventcatalog build",
+            start: "eventcatalog start",
+            preview: "eventcatalog preview",
+          },
+          dependencies: {
+            "@eventcatalog/core": "latest",
+          },
         },
-        dependencies: {
-          '@eventcatalog/core': 'latest',
-        },
-      }, null, 2);
+        null,
+        2,
+      );
 
       const configJs = `/** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */
 export default {
@@ -620,7 +838,10 @@ Welcome to your generated EventCatalog project.
 
       const zipFiles = [
         { name: `${catalogFolderName}/package.json`, content: packageJson },
-        { name: `${catalogFolderName}/eventcatalog.config.js`, content: configJs },
+        {
+          name: `${catalogFolderName}/eventcatalog.config.js`,
+          content: configJs,
+        },
         { name: `${catalogFolderName}/README.md`, content: readmeMd },
         ...compiled.map((file) => ({
           name: `${catalogFolderName}/${file.path}`,
@@ -635,7 +856,7 @@ Welcome to your generated EventCatalog project.
       setExportRecentlyDownloaded(true);
       setTimeout(() => setExportRecentlyDownloaded(false), 2000);
     } catch (err) {
-      console.error('Catalog export error:', err);
+      console.error("Catalog export error:", err);
     } finally {
       setIsCatalogExporting(false);
     }
@@ -644,46 +865,77 @@ Welcome to your generated EventCatalog project.
   useEffect(() => {
     if (!latestExport && !shareUrl && !showCatalogExport) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setLatestExport(null);
         setShareUrl(null);
         setShowCatalogExport(false);
       }
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [latestExport, shareUrl, showCatalogExport]);
 
   // Persist files to localStorage so user work survives page refreshes
   useEffect(() => {
-    if (isUserDraft.current) {
-      saveDraft(files, activeFile);
+    if (!isUserDraft.current) return;
+    if (workspaceId) {
+      $workspace.setKey("files", files);
+      $workspace.setKey("activeFile", activeFile);
+      saveWorkspace();
+    } else {
+      saveDraftStore(files, activeFile);
     }
-  }, [files, activeFile]);
+  }, [files, activeFile, workspaceId]);
 
-  const handleFileChange = useCallback((value: string) => {
-    isUserDraft.current = true;
-    setFiles((prev) => ({ ...prev, [activeFile]: value }));
-  }, [activeFile]);
+  const handleFileChange = useCallback(
+    (value: string) => {
+      isUserDraft.current = true;
+      setFiles((prev) => ({ ...prev, [activeFile]: value }));
+    },
+    [activeFile],
+  );
+
+  const handleApplyGuideStep = useCallback(
+    (transform: (content: string) => string) => {
+      isUserDraft.current = true;
+      setFiles((prev) => {
+        const mainContent = prev["main.ec"] ?? "";
+        return { ...prev, "main.ec": transform(mainContent) };
+      });
+      setActiveFile("main.ec");
+      requestAnimationFrame(() => {
+        editorRef.current?.revealLine(99999);
+      });
+    },
+    [],
+  );
+
+  const handleDismissGuide = useCallback(() => {
+    $workspace.setKey("showGuide", false);
+    saveWorkspace();
+  }, []);
 
   const handleAddFile = useCallback(() => {
     isUserDraft.current = true;
     const name = `file${newFileCounter++}.ec`;
-    setFiles((prev) => ({ ...prev, [name]: '' }));
+    setFiles((prev) => ({ ...prev, [name]: "" }));
     setActiveFile(name);
   }, []);
 
-  const handleCloseFile = useCallback((filename: string) => {
-    setFiles((prev) => {
-      const next = { ...prev };
-      delete next[filename];
-      return next;
-    });
-    if (activeFile === filename) {
-      const remaining = Object.keys(files).filter((f) => f !== filename);
-      setActiveFile(remaining[0]);
-    }
-  }, [activeFile, files]);
+  const handleCloseFile = useCallback(
+    (filename: string) => {
+      setFiles((prev) => {
+        const next = { ...prev };
+        delete next[filename];
+        return next;
+      });
+      if (activeFile === filename) {
+        const remaining = Object.keys(files).filter((f) => f !== filename);
+        setActiveFile(remaining[0]);
+      }
+    },
+    [activeFile, files],
+  );
 
   const handleFormat = useCallback(() => {
     setFiles((prev) => ({ ...prev, [activeFile]: formatEc(prev[activeFile]) }));
@@ -692,25 +944,39 @@ Welcome to your generated EventCatalog project.
   // Cmd+K / Ctrl+K to open command palette
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setCmdkOpen((v) => !v);
       }
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const handleGoToLine = useCallback((line: number) => {
     editorRef.current?.revealLine(line);
   }, []);
 
-  const handleSwitchFileAndLine = useCallback((filename: string, line: number) => {
-    setActiveFile(filename);
-    // Wait for editor to update with new file content before revealing line
-    requestAnimationFrame(() => {
-      editorRef.current?.revealLine(line);
-    });
+  const handleSwitchFileAndLine = useCallback(
+    (filename: string, line: number) => {
+      setActiveFile(filename);
+      // Wait for editor to update with new file content before revealing line
+      requestAnimationFrame(() => {
+        editorRef.current?.revealLine(line);
+      });
+    },
+    [],
+  );
+
+  const handleFocusResource = useCallback((nodeId: string) => {
+    setFocusRequest((prev) => ({
+      nodeId,
+      requestId: (prev?.requestId ?? 0) + 1,
+    }));
+  }, []);
+
+  const handleFitScreen = useCallback(() => {
+    setFitRequestId((prev) => prev + 1);
   }, []);
 
   const activeFileErrors = getErrorsForFile(errors, activeFile, fileOffsets);
@@ -718,7 +984,7 @@ Welcome to your generated EventCatalog project.
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     isDragging.current = true;
-    document.body.classList.add('resizing');
+    document.body.classList.add("resizing");
   }, []);
 
   useEffect(() => {
@@ -732,19 +998,21 @@ Welcome to your generated EventCatalog project.
     const onMouseUp = () => {
       if (isDragging.current) {
         isDragging.current = false;
-        document.body.classList.remove('resizing');
+        document.body.classList.remove("resizing");
       }
     };
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     };
   }, []);
 
   const fileNames = Object.keys(files);
+
+  const workspaceTitle = workspaceId ? ws.title : undefined;
 
   return (
     <div className="app">
@@ -753,6 +1021,7 @@ Welcome to your generated EventCatalog project.
         templateUnselected={templateUnselected}
         onExampleChange={handleExampleChange}
         loadedFromUrl={loadedFromUrl}
+        workspaceTitle={workspaceTitle}
         onExport={handleExportForImport}
         onExportCatalog={handleOpenCatalogExport}
         exportRecentlyDownloaded={exportRecentlyDownloaded}
@@ -761,7 +1030,10 @@ Welcome to your generated EventCatalog project.
         onToggleVizTheme={toggleVizTheme}
       />
       <div className="main" ref={mainRef}>
-        <div className="editor-pane" style={{ width: `${splitPct}%` }}>
+        <div
+          className="editor-pane"
+          style={{ width: `${splitPct}%`, position: "relative" }}
+        >
           <div className="pane-header">
             <TabBar
               files={fileNames}
@@ -770,51 +1042,112 @@ Welcome to your generated EventCatalog project.
               onCloseFile={handleCloseFile}
               onAddFile={handleAddFile}
             />
-            <button className="format-btn" onClick={handleFormat} title="Format code (Shift+Alt+F)">
+            <button
+              className="format-btn"
+              onClick={handleFormat}
+              title="Format code (Shift+Alt+F)"
+            >
               <AlignLeft size={14} />
             </button>
             {errors.length > 0 && (
               <span className="error-count">
-                {errors.length} error{errors.length !== 1 ? 's' : ''}
+                {errors.length} error{errors.length !== 1 ? "s" : ""}
               </span>
             )}
           </div>
           <Editor
             ref={editorRef}
-            value={files[activeFile] ?? ''}
+            value={files[activeFile] ?? ""}
             onChange={handleFileChange}
             errors={activeFileErrors}
             allFiles={files}
             onFormat={handleFormat}
             onCommandPalette={() => setCmdkOpen(true)}
           />
+          {showGuide && workspaceId && workspaceKind && (
+            <NextStepsGuide
+              specKind={workspaceKind}
+              specFile={workspaceSpecFile}
+              serviceNames={workspaceServiceNames}
+              onApplyStep={handleApplyGuideStep}
+              onExportCatalog={handleOpenCatalogExport}
+              onDismiss={handleDismissGuide}
+            />
+          )}
         </div>
         <div className="resize-handle" onMouseDown={onMouseDown}>
           <div className="resize-handle-line" />
         </div>
-        <div className="visualizer-pane" style={{ width: `${100 - splitPct}%` }}>
+        <div
+          className="visualizer-pane"
+          style={{ width: `${100 - splitPct}%` }}
+        >
           {graph.empty ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'rgb(var(--ec-page-text-muted))', flexDirection: 'column', gap: '8px' }}>
-              <p style={{ fontSize: '16px', fontWeight: 500 }}>No visualizer block found</p>
-              <p style={{ fontSize: '13px' }}>Add a <code>visualizer</code> block to see the architecture diagram</p>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                color: "rgb(var(--ec-page-text-muted))",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              <p style={{ fontSize: "16px", fontWeight: 500 }}>
+                No visualizer block found
+              </p>
+              <p style={{ fontSize: "13px" }}>
+                Add a <code>visualizer</code> block to see the architecture
+                diagram
+              </p>
             </div>
           ) : (
             <>
               {graph.visualizers && graph.visualizers.length > 1 && (
-                <div style={{ padding: '4px 8px', borderBottom: '1px solid rgb(var(--ec-page-border))', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '12px', color: 'rgb(var(--ec-page-text-muted))' }}>View:</span>
+                <div
+                  style={{
+                    padding: "4px 8px",
+                    borderBottom: "1px solid rgb(var(--ec-page-border))",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "rgb(var(--ec-page-text-muted))",
+                    }}
+                  >
+                    View:
+                  </span>
                   <select
-                    value={graph.activeVisualizer || ''}
+                    value={graph.activeVisualizer || ""}
                     onChange={(e) => setActiveVisualizer(e.target.value)}
-                    style={{ fontSize: '12px', background: 'rgb(var(--ec-card-bg))', color: 'rgb(var(--ec-page-text))', border: '1px solid rgb(var(--ec-page-border))', borderRadius: '4px', padding: '2px 6px' }}
+                    style={{
+                      fontSize: "12px",
+                      background: "rgb(var(--ec-card-bg))",
+                      color: "rgb(var(--ec-page-text))",
+                      border: "1px solid rgb(var(--ec-page-border))",
+                      borderRadius: "4px",
+                      padding: "2px 6px",
+                    }}
                   >
                     {graph.visualizers.map((name) => (
-                      <option key={name} value={name}>{name}</option>
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
                     ))}
                   </select>
                 </div>
               )}
-              <Visualizer graph={graph} />
+              <Visualizer
+                graph={graph}
+                focusNodeId={focusRequest?.nodeId ?? null}
+                focusRequestId={focusRequest?.requestId}
+                fitRequestId={fitRequestId}
+              />
             </>
           )}
         </div>
@@ -824,8 +1157,15 @@ Welcome to your generated EventCatalog project.
         errorCount={errors.length}
         onCommandPalette={() => setCmdkOpen(true)}
       />
-      {shareUrl && <ShareLinkModal shareUrl={shareUrl} onClose={() => setShareUrl(null)} />}
-      {latestExport && <ExportHelpModal exportResult={latestExport} onClose={() => setLatestExport(null)} />}
+      {shareUrl && (
+        <ShareLinkModal shareUrl={shareUrl} onClose={() => setShareUrl(null)} />
+      )}
+      {latestExport && (
+        <ExportHelpModal
+          exportResult={latestExport}
+          onClose={() => setLatestExport(null)}
+        />
+      )}
       {showCatalogExport && (
         <CatalogExportModal
           organizationName={catalogOrganizationName}
@@ -835,7 +1175,12 @@ Welcome to your generated EventCatalog project.
           onClose={() => setShowCatalogExport(false)}
         />
       )}
-      {showTemplatePicker && <TemplatePicker onSelect={handleTemplateSelect} onBlank={handleBlankStart} />}
+      {showTemplatePicker && (
+        <TemplatePicker
+          onSelect={handleTemplateSelect}
+          onBlank={handleBlankStart}
+        />
+      )}
       <CommandPalette
         open={cmdkOpen}
         onOpenChange={setCmdkOpen}
@@ -844,6 +1189,8 @@ Welcome to your generated EventCatalog project.
         activeFile={activeFile}
         onGoToLine={handleGoToLine}
         onSwitchFile={handleSwitchFileAndLine}
+        onSelectResource={(node) => handleFocusResource(node.id)}
+        onFitScreen={handleFitScreen}
       />
     </div>
   );

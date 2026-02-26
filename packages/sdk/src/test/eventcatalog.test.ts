@@ -143,8 +143,7 @@ describe('EventCatalog', () => {
       expect(config).toEqual({
         cId: '8027010c-f3d6-417a-8234-e2f46087fc56',
         title: 'FlowMart',
-        tagline:
-          'Welcome to FlowMart EventCatalog. Here you can find all the information you need to know about our events and services (demo catalog).',
+        tagline: 'Here you can find all the information you need to know about our events and services (demo catalog).',
         organizationName: 'FlowMart',
         homepageLink: 'https://eventcatalog.dev',
         editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',

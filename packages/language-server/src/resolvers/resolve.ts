@@ -26,13 +26,13 @@ import {
 // Matches: import events { OrderCreated } from "https://example.com/spec.yml"
 // Also matches .json files for OpenAPI specs
 const SPEC_IMPORT_RE =
-  /import\s+(events|commands|queries|channels)\s*\{([^}]*)\}\s*from\s*"([^"]+\.(?:ya?ml|json))"\s*\n?/g;
+  /^\s*import\s+(events|commands|queries|channels)\s*\{([^}]*)\}\s*from\s*"([^"]+\.(?:ya?ml|json))"\s*(?:\/\/.*)?$/gm;
 
 // Matches: import OrderService from "./spec.yml"
 // A bare identifier (no braces, no resource type keyword) imports a full service
 // Also matches .json files for OpenAPI specs
 const SERVICE_IMPORT_RE =
-  /import\s+([A-Z][a-zA-Z0-9_]*)\s+from\s*"([^"]+\.(?:ya?ml|json))"\s*\n?/g;
+  /^\s*import\s+([A-Z][a-zA-Z0-9_]*)\s+from\s*"([^"]+\.(?:ya?ml|json))"\s*(?:\/\/.*)?$/gm;
 
 type SpecType = "asyncapi" | "openapi" | "unknown";
 

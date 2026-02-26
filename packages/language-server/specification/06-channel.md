@@ -11,6 +11,7 @@ channel <id> {
 
   address "<address-string>"
   protocol "<protocol>"
+  deliveryGuarantee at-most-once|at-least-once|exactly-once
 
   // Channel parameters
   parameter <name> {
@@ -28,6 +29,24 @@ channel <id> {
   @repository(...)
 }
 ```
+
+## Delivery guarantee
+
+The `deliveryGuarantee` property declares the message delivery semantics of a channel. The visualiser renders a colored badge on the channel node to make the guarantee visible at a glance.
+
+```
+channel OrderEvents {
+  version 1.0.0
+  protocol "Kafka"
+  deliveryGuarantee exactly-once
+}
+```
+
+| Value           | Meaning                                                     |
+| --------------- | ----------------------------------------------------------- |
+| `at-most-once`  | Messages may be lost; never delivered more than once        |
+| `at-least-once` | Messages are never lost but may be delivered more than once |
+| `exactly-once`  | Messages are delivered exactly once with no duplicates      |
 
 ## Channel-to-Channel Routing
 
@@ -112,10 +131,11 @@ service OrderService {
 ```ebnf
 channel_decl     = "channel" identifier "{" common_props
                    { channel_body_item } "}" ;
-channel_body_item= address_prop | protocol_prop | parameter_decl
-                 | route_stmt | annotation ;
-address_prop     = "address" string_lit ;
-protocol_prop    = "protocol" string_lit ;
+channel_body_item= address_prop | protocol_prop | delivery_guarantee_prop
+                 | parameter_decl | route_stmt | annotation ;
+address_prop              = "address" string_lit ;
+protocol_prop             = "protocol" string_lit ;
+delivery_guarantee_prop   = "deliveryGuarantee" ( "at-most-once" | "at-least-once" | "exactly-once" ) ;
 parameter_decl   = "parameter" identifier "{" { param_prop } "}" ;
 param_prop       = "description" string_lit
                  | "default" string_lit

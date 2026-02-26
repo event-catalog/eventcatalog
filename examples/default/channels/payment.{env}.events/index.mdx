@@ -7,8 +7,9 @@ summary: |
 owners:
  - dboyne
 address: payments.{env}.events
-protocols: 
+protocols:
  - kafka
+deliveryGuarantee: exactly-once
 
 parameters:
  env:

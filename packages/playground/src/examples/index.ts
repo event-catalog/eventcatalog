@@ -24,6 +24,7 @@ import { example as openapiImport } from './21-openapi-import';
 import { example as openapiServiceImport } from './22-openapi-service-import';
 import { example as openapiAsyncapiMixed } from './23-openapi-asyncapi-mixed';
 import { example as openapiRemoteImport } from './24-openapi-remote-import';
+import { example as sampleEventDrivenSystem } from './25-sample-event-driven-system';
 
 import type { Example } from './types';
 
@@ -52,4 +53,5 @@ export const examples: Example[] = [
   openapiServiceImport,
   openapiAsyncapiMixed,
   openapiRemoteImport,
+  sampleEventDrivenSystem,
 ];

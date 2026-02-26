@@ -29,7 +29,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 >
   <div class="px-4 sm:px-4 lg:px-4">
     <div class="flex justify-between items-center">
-      <div class="flex-shrink-0 flex items-center w-3/12">
+      <div class="flex-shrink-0 flex items-center w-3/12 lg:w-[360px]">
         <a href={buildUrl(catalog.landingPage || '/')} class="flex space-x-2 items-center group">
           {
             logo.src && logo.src !== '/' && (
@@ -45,7 +45,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
       </div>
 
       <div class="hidden lg:flex flex-grow -ml-1 items-center">
-        <div class="flex-grow max-w-xl">
+        <div class="w-full max-w-xl">
           <Search />
         </div>
         {isEventCatalogChatEnabled() && <ChatPanelButton client:idle />}
@@ -132,7 +132,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                         <img
                           src={buildUrl('/icons/discord.svg', true)}
                           alt=""
-                          class="h-6 w-6  hover:opacity-100 transition-opacity"
+                          class="h-6 w-6 hover:opacity-100 transition-opacity ec-themed-icon"
                           aria-hidden="true"
                         />
                       </a>
@@ -146,7 +146,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                         <img
                           src={buildUrl('/icons/github.svg', true)}
                           alt=""
-                          class="h-6 w-6  hover:opacity-100 transition-opacity"
+                          class="h-6 w-6 hover:opacity-100 transition-opacity ec-themed-icon"
                           aria-hidden="true"
                         />
                       </a>
@@ -164,7 +164,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                         <img
                           src={buildUrl('/icons/github.svg', true)}
                           alt=""
-                          class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity"
+                          class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity ec-themed-icon"
                           aria-hidden="true"
                         />
                       </a>

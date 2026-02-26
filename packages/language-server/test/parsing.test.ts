@@ -18,6 +18,8 @@ import {
   isDataProductDef,
   isDiagramDef,
   isEventDef,
+  isCommandDef,
+  isQueryDef,
   isSubdomainDef,
   isServiceRefStmt,
   isActorDef,
@@ -1230,6 +1232,86 @@ describe("@note annotation", () => {
       expect(annotations).toHaveLength(2);
       expect(annotations[0].name).toBe("note");
       expect(annotations[1].name).toBe("note");
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// @api annotation
+// ---------------------------------------------------------------------------
+describe("@api annotation", () => {
+  it("parses @api with method and path on a command", async () => {
+    const doc = await parseProgram(`
+      command CreateOrder {
+        version 1.0.0
+        @api(method: "POST", path: "/orders")
+      }
+    `);
+    expect(doc.parseResult.parserErrors).toHaveLength(0);
+
+    const cmd = doc.parseResult.value.definitions[0];
+    if (isCommandDef(cmd)) {
+      const annotations = utils.getAnnotations(cmd.body);
+      expect(annotations).toHaveLength(1);
+      expect(annotations[0].name).toBe("api");
+      expect(annotations[0].args).toHaveLength(2);
+    }
+  });
+
+  it("parses @api with method, path, and statusCodes on a query", async () => {
+    const doc = await parseProgram(`
+      query GetOrders {
+        version 1.0.0
+        @api(method: "GET", path: "/orders", statusCodes: "200,401")
+      }
+    `);
+    expect(doc.parseResult.parserErrors).toHaveLength(0);
+
+    const qry = doc.parseResult.value.definitions[0];
+    if (isQueryDef(qry)) {
+      const annotations = utils.getAnnotations(qry.body);
+      expect(annotations).toHaveLength(1);
+      expect(annotations[0].name).toBe("api");
+      expect(annotations[0].args).toHaveLength(3);
+    }
+  });
+
+  it("parses @api on an inline message inside sends", async () => {
+    const doc = await parseProgram(`
+      service OrderService {
+        version 1.0.0
+        sends command CreateOrder {
+          version 1.0.0
+          @api(method: "POST", path: "/orders", statusCodes: "201")
+        }
+      }
+    `);
+    expect(doc.parseResult.parserErrors).toHaveLength(0);
+
+    const svc = doc.parseResult.value.definitions[0];
+    if (isServiceDef(svc)) {
+      const sends = utils.getSends(svc.body);
+      expect(sends).toHaveLength(1);
+      const annotations = utils.getAnnotations(sends[0].body);
+      expect(annotations).toHaveLength(1);
+      expect(annotations[0].name).toBe("api");
+    }
+  });
+
+  it("parses @api with path containing parameters", async () => {
+    const doc = await parseProgram(`
+      query GetOrder {
+        version 1.0.0
+        @api(method: "GET", path: "/orders/{orderId}")
+      }
+    `);
+    expect(doc.parseResult.parserErrors).toHaveLength(0);
+
+    const qry = doc.parseResult.value.definitions[0];
+    if (isQueryDef(qry)) {
+      const annotations = utils.getAnnotations(qry.body);
+      expect(annotations).toHaveLength(1);
+      expect(annotations[0].name).toBe("api");
     }
   });
 });

@@ -49,8 +49,8 @@ event CheckoutSubmitted {
 4. Resolve notes by updating the model.
 5. Import the approved model into EventCatalog.
 
-## Optional: use EventCatalog Canvas for live feedback
+## Optional: use EventCatalog Compass for live feedback
 
-You can paste your model into EventCatalog Canvas, share the link in your PR, and discuss the design with visual context:
+You can paste your model into EventCatalog Compass, share the link in your PR, and discuss the design with visual context:
 
 - https://playground.eventcatalog.dev/

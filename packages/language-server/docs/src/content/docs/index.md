@@ -1,9 +1,9 @@
 ---
-title: EventCatalog Canvas
+title: EventCatalog Compass
 description: Model your event-driven architecture in .ec and keep it in sync with EventCatalog.
 ---
 
-EventCatalog Canvas helps you define architecture as code in `.ec` files, review changes in Git, and sync those models with EventCatalog.
+EventCatalog Compass helps you define architecture as code in `.ec` files, review changes in Git, and sync those models with EventCatalog.
 
 :::caution[Beta]
 The `.ec` docs experience is in beta.

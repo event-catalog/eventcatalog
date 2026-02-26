@@ -1364,6 +1364,398 @@
   border-color: rgba(52, 211, 153, 0.15);
 }
 
+/* --- Open Workspace Modal --- */
+@keyframes workspace-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes workspace-modal-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.landing .workspace-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(3, 5, 9, 0.72);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: workspace-overlay-in 0.2s ease-out;
+}
+
+.landing .workspace-modal {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  border-radius: 16px;
+  border: 1px solid var(--border-hover);
+  background: rgba(16, 20, 29, 0.98);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 24px 56px rgba(0, 0, 0, 0.55),
+    0 0 120px -40px rgba(99, 102, 241, 0.08);
+  padding: 24px;
+  animation: workspace-modal-in 0.25s ease-out;
+}
+
+.landing .workspace-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.landing .workspace-modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.landing .workspace-modal-header p {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  max-width: 560px;
+  font-size: 14px;
+}
+
+.landing .workspace-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.landing .workspace-modal-close:hover {
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.landing .workspace-modal-close:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Sections */
+.landing .workspace-modal-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.landing .workspace-modal-section-header {
+  margin-bottom: 12px;
+}
+
+.landing .workspace-modal-section-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.landing .workspace-modal-section-header p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  line-height: 1.4;
+  font-size: 13px;
+}
+
+/* Import grid */
+.landing .workspace-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.landing .workspace-modal-grid-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Import cards */
+.landing .workspace-option-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(19, 24, 34, 0.7);
+  padding: 16px;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+/* Colored top accent bar */
+.landing .workspace-option-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.landing .workspace-option-card--openapi::before {
+  background: var(--cyan);
+}
+
+.landing .workspace-option-card--asyncapi::before {
+  background: var(--green);
+}
+
+.landing .workspace-option-card:hover {
+  border-color: var(--border-hover);
+}
+
+.landing .workspace-option-card:hover::before {
+  opacity: 1;
+}
+
+.landing .workspace-option-card.is-dragging {
+  border-color: rgba(34, 211, 238, 0.55);
+  background: rgba(10, 34, 45, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.2);
+}
+
+.landing .workspace-option-card.is-dragging .workspace-option-card-drop-hint {
+  opacity: 1;
+  color: var(--cyan);
+}
+
+.landing .workspace-option-card--asyncapi.is-dragging {
+  border-color: rgba(52, 211, 153, 0.55);
+  background: rgba(10, 45, 30, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.2);
+}
+
+.landing .workspace-option-card--asyncapi.is-dragging .workspace-option-card-drop-hint {
+  color: var(--green);
+}
+
+/* Card icon */
+.landing .workspace-option-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.landing .workspace-option-card-icon--openapi {
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--cyan);
+  border: 1px solid rgba(34, 211, 238, 0.15);
+}
+
+.landing .workspace-option-card-icon--asyncapi {
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--green);
+  border: 1px solid rgba(52, 211, 153, 0.15);
+}
+
+.landing .workspace-option-card-body h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.landing .workspace-option-card-body p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  font-size: 13px;
+}
+
+/* Drop hint */
+.landing .workspace-option-card-drop-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.landing .workspace-option-card:hover .workspace-option-card-drop-hint {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+}
+
+/* Card footer */
+.landing .workspace-option-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  gap: 8px;
+}
+
+.landing .workspace-option-card-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.landing .workspace-option-card-cta {
+  border: 1px solid var(--border-hover);
+  border-radius: 7px;
+  background: rgba(232, 234, 237, 0.94);
+  color: #090b10;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.landing .workspace-option-card-cta:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.landing .workspace-option-card-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Secondary section (explore / connect) */
+.landing .workspace-modal-section--secondary {
+  border-top-style: dashed;
+}
+
+.landing .workspace-secondary-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.landing .workspace-secondary-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.landing .workspace-secondary-btn > svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+
+.landing .workspace-secondary-btn:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.landing .workspace-secondary-btn:hover > svg {
+  color: var(--cyan);
+}
+
+.landing .workspace-secondary-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.landing .workspace-secondary-btn-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.landing .workspace-secondary-btn-desc {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.landing .workspace-secondary-btn--disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.landing .workspace-secondary-btn--disabled:hover {
+  border-color: var(--border);
+  background: transparent;
+}
+
+.landing .workspace-secondary-btn--disabled:hover > svg {
+  color: var(--text-muted);
+}
+
+.landing .workspace-secondary-btn-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 650;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+/* Error */
+.landing .workspace-modal-error {
+  margin: 12px 0 0;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: rgba(127, 29, 29, 0.18);
+  color: #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.landing .workspace-file-input {
+  display: none;
+}
+
+.landing .workspace-modal-privacy {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
 /* --- CTA --- */
 .landing .cta-hero {
   padding: 120px 40px;
@@ -1585,6 +1977,44 @@
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
+  .landing .workspace-modal-overlay {
+    padding: 8px;
+    align-items: flex-start;
+  }
+
+  .landing .workspace-modal {
+    margin-top: 56px;
+    max-height: calc(100vh - 64px);
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .landing .workspace-modal-header h2 {
+    font-size: 19px;
+  }
+
+  .landing .workspace-modal-header p {
+    font-size: 13px;
+  }
+
+  .landing .workspace-modal-grid-two {
+    grid-template-columns: 1fr;
+  }
+
+  .landing .workspace-option-card-drop-hint {
+    display: none;
+  }
+
+  .landing .workspace-option-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing .workspace-option-card-cta {
+    width: 100%;
+    text-align: center;
+  }
+
   /* Nav */
   .landing nav { padding: 0 16px; }
   .landing .nav-links { display: none; }

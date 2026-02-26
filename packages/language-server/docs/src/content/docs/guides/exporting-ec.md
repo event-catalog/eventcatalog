@@ -32,7 +32,7 @@ npx @eventcatalog/cli --dir ./catalog export --resource event --id OrderCreated 
 
 - `--hydrate`: Include referenced resources in output.
 - `--output <path>`: Write to a specific file.
-- `--playground`: Open exported DSL in EventCatalog Canvas.
+- `--playground`: Open exported DSL in EventCatalog Compass.
 
 ## Current export scope
 

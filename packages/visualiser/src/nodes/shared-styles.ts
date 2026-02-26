@@ -113,7 +113,7 @@ export const EDGE_DEFAULT_STYLE = {
 
 export const EDGE_FLOW_BASE_STYLE = {
   strokeWidth: 3,
-  stroke: "rgb(var(--ec-page-text-muted))",
+  stroke: "var(--ec-edge-stroke, #6b7280)",
   strokeDasharray: "5 5",
 } as const;
 

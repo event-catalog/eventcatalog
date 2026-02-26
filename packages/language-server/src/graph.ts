@@ -447,6 +447,7 @@ export function astToGraph(
 
       const enrichOwners = getOwners(body);
       const enrichNotes = extractNotes(body);
+      const enrichApiInfo = extractApiInfo(body);
       const meta: Record<string, unknown> = {
         version: defVersion,
         summary: getSummary(body),
@@ -455,6 +456,11 @@ export function astToGraph(
         schema: getSchema(body),
         ...(enrichOwners.length > 0 ? { owners: enrichOwners } : {}),
         ...(enrichNotes.length > 0 ? { notes: enrichNotes } : {}),
+        ...(enrichApiInfo.method ? { method: enrichApiInfo.method } : {}),
+        ...(enrichApiInfo.path ? { path: enrichApiInfo.path } : {}),
+        ...(enrichApiInfo.statusCodes && enrichApiInfo.statusCodes.length > 0
+          ? { statusCodes: enrichApiInfo.statusCodes }
+          : {}),
       };
       if (isChannelDef(def)) {
         meta.address = getAddress(body);
@@ -543,7 +549,7 @@ export function astToGraph(
       }
       addEdge(serviceId, msgNodeId, "sends");
 
-      // Inline body summary + schema + notes
+      // Inline body summary + schema + notes + api info
       if (s.body.length > 0) {
         const existing = nodes.find((n) => n.id === msgNodeId);
         if (existing) {
@@ -556,6 +562,17 @@ export function astToGraph(
           const inlineNotes = extractNotes(s.body as AstNode[]);
           if (inlineNotes.length > 0 && !existing.metadata.notes)
             existing.metadata.notes = inlineNotes;
+          const inlineApi = extractApiInfo(s.body as AstNode[]);
+          if (inlineApi.method && !existing.metadata.method)
+            existing.metadata.method = inlineApi.method;
+          if (inlineApi.path && !existing.metadata.path)
+            existing.metadata.path = inlineApi.path;
+          if (
+            inlineApi.statusCodes &&
+            inlineApi.statusCodes.length > 0 &&
+            !existing.metadata.statusCodes
+          )
+            existing.metadata.statusCodes = inlineApi.statusCodes;
         }
       }
 
@@ -642,6 +659,17 @@ export function astToGraph(
           const inlineNotes = extractNotes(r.body as AstNode[]);
           if (inlineNotes.length > 0 && !existing.metadata.notes)
             existing.metadata.notes = inlineNotes;
+          const inlineApi = extractApiInfo(r.body as AstNode[]);
+          if (inlineApi.method && !existing.metadata.method)
+            existing.metadata.method = inlineApi.method;
+          if (inlineApi.path && !existing.metadata.path)
+            existing.metadata.path = inlineApi.path;
+          if (
+            inlineApi.statusCodes &&
+            inlineApi.statusCodes.length > 0 &&
+            !existing.metadata.statusCodes
+          )
+            existing.metadata.statusCodes = inlineApi.statusCodes;
         }
       }
 
@@ -901,6 +929,39 @@ export function astToGraph(
     processReceives(domId, getReceives(body));
   }
 
+  function extractApiInfo(body: AstNode[]): {
+    method?: string;
+    path?: string;
+    statusCodes?: number[];
+  } {
+    const annotations = getAnnotations(body);
+    for (const ann of annotations) {
+      if (ann.name !== "api") continue;
+      const result: { method?: string; path?: string; statusCodes?: number[] } =
+        {};
+      for (const arg of ann.args) {
+        if (isNamedAnnotationArg(arg)) {
+          const val = isStringAnnotationValue(arg.value)
+            ? stripQuotes(arg.value.value)
+            : isIdAnnotationValue(arg.value)
+              ? arg.value.value
+              : undefined;
+          if (!val) continue;
+          if (arg.key === "method") result.method = val;
+          else if (arg.key === "path") result.path = val;
+          else if (arg.key === "statusCodes") {
+            result.statusCodes = val
+              .split(",")
+              .map(Number)
+              .filter((c) => !isNaN(c));
+          }
+        }
+      }
+      return result;
+    }
+    return {};
+  }
+
   function processMessage(def: EventDef | CommandDef | QueryDef): void {
     const nodeType: GraphNode["type"] = isEventDef(def)
       ? "event"
@@ -911,6 +972,7 @@ export function astToGraph(
     const msgName = getName(body) || def.name;
     const notes = extractNotes(body);
     const msgOwners = getOwners(body);
+    const apiInfo = extractApiInfo(body);
     addNode(def.name, nodeType, msgName, undefined, {
       version: getVersion(body),
       summary: getSummary(body),
@@ -919,6 +981,11 @@ export function astToGraph(
       schema: getSchema(body),
       ...(msgOwners.length > 0 ? { owners: msgOwners } : {}),
       ...(notes.length > 0 ? { notes } : {}),
+      ...(apiInfo.method ? { method: apiInfo.method } : {}),
+      ...(apiInfo.path ? { path: apiInfo.path } : {}),
+      ...(apiInfo.statusCodes && apiInfo.statusCodes.length > 0
+        ? { statusCodes: apiInfo.statusCodes }
+        : {}),
     });
 
     for (const ref of getChannelRefs(body)) {

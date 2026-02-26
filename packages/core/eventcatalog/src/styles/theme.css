@@ -157,7 +157,7 @@
   --ec-content-bg: 13 17 23; /* #0d1117 */
   --ec-content-text: 201 209 217; /* #c9d1d9 - softer than pure white */
   --ec-content-text-muted: 139 148 158; /* #8b949e */
-  --ec-content-text-secondary: 139 148 158; /* #8b949e - muted for sidebar children */
+  --ec-content-text-secondary: 170 178 186; /* #aab2ba - sidebar children text */
   --ec-content-border: 33 38 45; /* #21262d */
   --ec-content-hover: 22 27 34; /* #161b22 */
   --ec-content-active: 33 38 45; /* #21262d */
@@ -175,7 +175,7 @@
   /* Main content/docs area - base dark surface */
   --ec-page-bg: 13 17 23; /* #0d1117 */
   --ec-page-text: 240 246 252; /* #f0f6fc */
-  --ec-page-text-muted: 139 148 158; /* #8b949e */
+  --ec-page-text-muted: 163 172 182; /* #a3acb6 */
   --ec-page-border: 33 38 45; /* #21262d */
 
   /* Card/elevated surfaces - for depth */
@@ -256,4 +256,9 @@
 
 :root[data-theme="dark"] .prose table td {
   border-color: rgb(33 38 45); /* #21262d */
+}
+
+/* Invert dark SVG icons in dark mode so they stay visible */
+:root[data-theme="dark"] .ec-themed-icon {
+  filter: invert(1);
 }

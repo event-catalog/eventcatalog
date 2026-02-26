@@ -75,6 +75,10 @@ const BLOCK_KEYWORDS = new Map<string, string>([
 ]);
 
 const KNOWN_ANNOTATIONS = [
+  {
+    name: "api",
+    description: "Attach HTTP API metadata (method, path, status codes)",
+  },
   { name: "badge", description: "Add a visual badge to the resource" },
   { name: "note", description: "Add a developer note or reminder" },
   { name: "repository", description: "Link to a source code repository" },

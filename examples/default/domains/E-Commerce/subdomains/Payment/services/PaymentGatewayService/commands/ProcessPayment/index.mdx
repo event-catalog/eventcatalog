@@ -12,6 +12,10 @@ badges:
     backgroundColor: blue
     textColor: white
 schemaPath: schema.json
+operation:
+  method: POST
+  path: /payments/process
+  statusCodes: ['200', '400', '402']
 ---
 
 import Footer from '@catalog/components/footer.astro'
