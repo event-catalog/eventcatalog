@@ -204,8 +204,7 @@ const NodeGraphBuilder = ({
     if (onBuildUrl) {
       setBuildUrlFn(onBuildUrl);
     }
-    return () => setBuildUrlFn(null);
-  }, [onBuildUrl]);
+  }, []);
 
   const nodeTypes = useMemo(() => {
     const wrapWithContextMenu = (Component: React.ComponentType<any>) => {
