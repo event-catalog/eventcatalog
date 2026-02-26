@@ -445,6 +445,28 @@ describe("resolveImports with OpenAPI", () => {
     expect(files["main.ec"]).toContain("command UpdateOrder {");
   });
 
+  it("ignores commented import lines", () => {
+    const { files, errors } = resolveImports({
+      "main.ec": [
+        `// import commands { CreateOrder } from "./api.yml"`,
+        `// import queries { GetOrder } from "./api.yml"`,
+        `visualizer main {`,
+        `  name "Test"`,
+        `}`,
+        "",
+      ].join("\n"),
+      "api.yml": openApiV30Spec,
+    });
+    expect(errors).toHaveLength(0);
+    expect(files["main.ec"]).toContain(
+      `// import commands { CreateOrder } from "./api.yml"`,
+    );
+    expect(files["main.ec"]).toContain(
+      `// import queries { GetOrder } from "./api.yml"`,
+    );
+    expect(files["main.ec"]).not.toContain("command CreateOrder {");
+  });
+
   it("returns error for event import from OpenAPI spec", () => {
     const { errors } = resolveImports({
       "main.ec": `import events { CreateOrder } from "./api.yml"\n`,

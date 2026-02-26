@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Command } from 'cmdk';
 import type { GraphNode } from '@eventcatalog/language-server';
-import { Globe, Server, Zap, Terminal, Radio, Hash, Search } from 'lucide-react';
+import { Globe, Server, Zap, Terminal, Radio, Hash, Search, Maximize } from 'lucide-react';
 
 const TYPE_META: Record<string, { label: string; icon: React.ReactNode; keyword: string }> = {
   domain: { label: 'Domain', icon: <Globe size={14} />, keyword: 'domain' },
@@ -23,6 +23,8 @@ interface CommandPaletteProps {
   activeFile: string;
   onGoToLine: (line: number) => void;
   onSwitchFile: (filename: string, line: number) => void;
+  onSelectResource?: (node: GraphNode) => void;
+  onFitScreen?: () => void;
 }
 
 function findResourceLine(
@@ -54,6 +56,8 @@ export function CommandPalette({
   activeFile,
   onGoToLine,
   onSwitchFile,
+  onSelectResource,
+  onFitScreen,
 }: CommandPaletteProps) {
   const [search, setSearch] = useState('');
   const [mode, setMode] = useState<'commands' | 'goto-line'>('commands');
@@ -72,7 +76,8 @@ export function CommandPalette({
   }, [open]);
 
   const handleSelect = useCallback(
-    (keyword: string, label: string) => {
+    (node: GraphNode, keyword: string, label: string) => {
+      onSelectResource?.(node);
       const loc = findResourceLine(files, keyword, label);
       if (loc) {
         if (loc.filename === activeFile) {
@@ -83,7 +88,7 @@ export function CommandPalette({
       }
       onOpenChange(false);
     },
-    [files, activeFile, onGoToLine, onSwitchFile, onOpenChange],
+    [files, activeFile, onGoToLine, onSwitchFile, onOpenChange, onSelectResource],
   );
 
   const handleGoToLine = useCallback(() => {
@@ -186,6 +191,17 @@ export function CommandPalette({
                     <Hash size={14} />
                     Go to Line...
                   </Command.Item>
+                  <Command.Item
+                    value="Fit Screen"
+                    keywords={['fit', 'screen', 'zoom', 'view', 'fit view']}
+                    onSelect={() => {
+                      onFitScreen?.();
+                      onOpenChange(false);
+                    }}
+                  >
+                    <Maximize size={14} />
+                    Fit Screen
+                  </Command.Item>
                 </Command.Group>
                 {Array.from(grouped.entries()).map(([type, items]) => {
                   const meta = TYPE_META[type];
@@ -197,7 +213,7 @@ export function CommandPalette({
                           key={node.id}
                           value={`${meta.label} ${node.label}`}
                           keywords={[meta.keyword, node.label, ...(node.metadata?.summary ? [String(node.metadata.summary)] : [])]}
-                          onSelect={() => handleSelect(meta.keyword, node.label)}
+                          onSelect={() => handleSelect(node, meta.keyword, node.label)}
                         >
                           {meta.icon}
                           <span className="cmdk-item-content">

@@ -28,6 +28,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/new" element={<App />} />
         <Route path="/playground" element={<App />} />
         <Route path="/playground/new" element={<App />} />
+        <Route path="/playground/:workspaceId" element={<App />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

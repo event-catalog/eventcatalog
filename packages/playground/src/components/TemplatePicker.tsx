@@ -54,7 +54,7 @@ export const TemplatePicker = memo(function TemplatePicker({
           <div className="template-picker-logo">
             <Zap size={28} />
           </div>
-          <h2>Welcome to EventCatalog Canvas</h2>
+          <h2>Welcome to EventCatalog Compass</h2>
           <p>Pick a starter template to explore, or start from scratch.</p>
         </div>
         <div className="template-picker-grid">

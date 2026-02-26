@@ -15,12 +15,12 @@ Use the **Copy as Markdown** button at the top right of the page, then paste it 
 
 ## Step 2: Give your requirements
 
-Ask the LLM to create a diagram in EventCatalog Canvas DSL.
+Ask the LLM to create a diagram in EventCatalog Compass DSL.
 
 Use this prompt template:
 
 ```text
-You are generating EventCatalog Canvas (.ec) code.
+You are generating EventCatalog Compass (.ec) code.
 Follow this DSL specification exactly:
 [PASTE SPECIFICATION HERE]
 
@@ -39,7 +39,7 @@ Return only valid .ec code, no explanation.
 
 ## Step 3: Review and refine the generated model
 
-Paste the output into EventCatalog Canvas and iterate with your team:
+Paste the output into EventCatalog Compass and iterate with your team:
 
 - https://playground.eventcatalog.dev/new
 

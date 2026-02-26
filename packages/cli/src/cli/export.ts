@@ -259,9 +259,9 @@ export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): P
     const encoded = Buffer.from(dsl).toString('base64');
     const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
-    lines.push('', `  Opening in EventCatalog Canvas...`);
+    lines.push('', `  Opening in EventCatalog Compass...`);
   } else {
-    lines.push('', `  Tip: Use --playground to open in EventCatalog Canvas`);
+    lines.push('', `  Tip: Use --playground to open in EventCatalog Compass`);
   }
 
   lines.push('');
@@ -303,9 +303,9 @@ export async function exportAll(options: ExportOptions): Promise<string> {
     const encoded = Buffer.from(dsl).toString('base64');
     const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
-    lines.push('', `  Opening in EventCatalog Canvas...`);
+    lines.push('', `  Opening in EventCatalog Compass...`);
   } else {
-    lines.push('', `  Tip: Use --playground to open in EventCatalog Canvas`);
+    lines.push('', `  Tip: Use --playground to open in EventCatalog Compass`);
   }
 
   lines.push('');
@@ -356,9 +356,9 @@ export async function exportResource(options: ExportOptions): Promise<string> {
     const encoded = Buffer.from(dsl).toString('base64');
     const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
-    lines.push('', `  Opening in EventCatalog Canvas...`);
+    lines.push('', `  Opening in EventCatalog Compass...`);
   } else {
-    lines.push('', `  Tip: Use --playground to open in EventCatalog Canvas`);
+    lines.push('', `  Tip: Use --playground to open in EventCatalog Compass`);
   }
 
   lines.push('');

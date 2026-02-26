@@ -1,12 +1,20 @@
-@import '@eventcatalog/visualiser/styles.css';
-@import '@xyflow/react/dist/style.css';
+@import "@eventcatalog/visualiser/styles.css";
+@import "@xyflow/react/dist/style.css";
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
 }
 
 /* Lock overflow only on the playground editor view */
@@ -14,7 +22,8 @@ body:has(.app) {
   overflow: hidden;
 }
 
-body:has(.app), body:has(.app) #root {
+body:has(.app),
+body:has(.app) #root {
   height: 100%;
   overflow: hidden;
 }
@@ -95,12 +104,24 @@ body:has(.landing) #root {
   gap: 8px;
 }
 
+.header-home-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-home-link:hover h1 {
+  opacity: 0.92;
+}
+
 .header h1 {
   font-size: 15px;
   font-weight: 700;
   color: var(--shell-title);
   letter-spacing: -0.02em;
   white-space: nowrap;
+  margin: 0;
 }
 
 .header-template-name {
@@ -119,7 +140,9 @@ body:has(.landing) #root {
   background: var(--shell-control-bg);
   color: var(--shell-button-text);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
   padding: 0;
 }
 
@@ -241,12 +264,14 @@ body:has(.landing) #root {
   left: 50%;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
   z-index: 20;
 }
 
 .tooltip-wrap::before {
-  content: '';
+  content: "";
   bottom: calc(100% + 2px);
   transform: translate(-50%, 4px);
   border: 5px solid transparent;
@@ -289,7 +314,9 @@ body:has(.landing) #root {
   height: 28px;
   padding: 0;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .fullscreen-btn:hover {
@@ -408,7 +435,10 @@ body:has(.landing) #root {
   cursor: pointer;
   white-space: nowrap;
   border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .tab-item:hover {
@@ -429,7 +459,9 @@ body:has(.landing) #root {
   height: 16px;
   border-radius: 3px;
   opacity: 0;
-  transition: opacity 0.15s, background 0.15s;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
 }
 
 .tab-item:hover .tab-close {
@@ -453,7 +485,9 @@ body:has(.landing) #root {
   cursor: pointer;
   border-radius: 4px;
   flex-shrink: 0;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .tab-add:hover {
@@ -473,7 +507,9 @@ body:has(.landing) #root {
   cursor: pointer;
   border-radius: 4px;
   flex-shrink: 0;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .format-btn:hover {
@@ -515,7 +551,9 @@ body.resizing .resize-handle {
   height: 32px;
   border-radius: 1px;
   background: var(--shell-muted);
-  transition: background 0.15s, height 0.15s;
+  transition:
+    background 0.15s,
+    height 0.15s;
 }
 
 .resize-handle:hover .resize-handle-line,
@@ -820,7 +858,10 @@ body.resizing .editor-pane {
   padding: 2px 8px;
   border-radius: 4px;
   cursor: pointer;
-  transition: color 0.12s, background 0.12s;
+  text-decoration: none;
+  transition:
+    color 0.12s,
+    background 0.12s;
 }
 
 .status-bar-btn:hover {
@@ -907,12 +948,12 @@ body.resizing .editor-pane {
   transition: background 0.08s;
 }
 
-[cmdk-item][data-selected='true'] {
+[cmdk-item][data-selected="true"] {
   background: rgba(168, 85, 247, 0.12);
   color: var(--modal-text);
 }
 
-[cmdk-item][data-disabled='true'] {
+[cmdk-item][data-disabled="true"] {
   color: var(--shell-muted);
   cursor: default;
   opacity: 0.6;
@@ -923,7 +964,7 @@ body.resizing .editor-pane {
   color: var(--shell-muted);
 }
 
-[cmdk-item][data-selected='true'] svg {
+[cmdk-item][data-selected="true"] svg {
   color: #a855f7;
 }
 
@@ -944,7 +985,7 @@ body.resizing .editor-pane {
 .cmdk-item-version {
   font-size: 11px;
   color: var(--shell-muted);
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
 }
 
 .cmdk-item-summary {
@@ -1037,7 +1078,10 @@ body.resizing .editor-pane {
   background: var(--shell-control-bg);
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.1s;
   font-family: inherit;
   color: inherit;
 }
@@ -1055,7 +1099,11 @@ body.resizing .editor-pane {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(124, 58, 237, 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.12),
+    rgba(124, 58, 237, 0.08)
+  );
   color: #a855f7;
   flex-shrink: 0;
 }
@@ -1099,11 +1147,188 @@ body.resizing .editor-pane {
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 6px;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
   font-family: inherit;
 }
 
 .template-blank-btn:hover {
   color: var(--modal-text);
   background: var(--shell-control-bg);
+}
+
+/* ── Next Steps Guide ── */
+@keyframes next-steps-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.next-steps-guide {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 14px;
+  z-index: 20;
+  animation: next-steps-slide-in 0.25s ease-out;
+}
+
+.next-steps-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.next-steps-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f0f6fc;
+}
+
+.next-steps-subtitle {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #8b949e;
+}
+
+.next-steps-close {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: transparent;
+  color: #8b949e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.next-steps-close:hover {
+  color: #f0f6fc;
+  border-color: #484f58;
+}
+
+.next-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.next-steps-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #e1e4e8;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.next-steps-item:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: #30363d;
+}
+
+.next-steps-item--done {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.next-steps-item--done:hover {
+  background: transparent;
+  border-color: transparent;
+}
+
+.next-steps-item-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.next-steps-item:not(.next-steps-item--done) .next-steps-item-check {
+  border: 1.5px solid #484f58;
+}
+
+.next-steps-item--done .next-steps-item-check {
+  background: #238636;
+  color: #fff;
+  border: none;
+}
+
+.next-steps-item-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #484f58;
+  transition: background 0.15s;
+}
+
+.next-steps-item:hover:not(:disabled) .next-steps-item-dot {
+  background: #a855f7;
+}
+
+.next-steps-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.next-steps-item-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f0f6fc;
+}
+
+.next-steps-item-desc {
+  font-size: 11px;
+  color: #8b949e;
+}
+
+.next-steps-item-arrow {
+  flex-shrink: 0;
+  color: #484f58;
+  transition:
+    color 0.15s,
+    transform 0.15s;
+}
+
+.next-steps-item:hover:not(:disabled) .next-steps-item-arrow {
+  color: #a855f7;
+  transform: translateX(2px);
 }

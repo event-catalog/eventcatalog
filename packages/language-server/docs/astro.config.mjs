@@ -4,7 +4,7 @@ import starlight from "@astrojs/starlight";
 export default defineConfig({
   integrations: [
     starlight({
-      title: "EventCatalog Canvas",
+      title: "EventCatalog Compass",
       description:
         "Use .ec files to model architecture quickly and sync to and from EventCatalog with the CLI.",
       social: {

@@ -1,6 +1,6 @@
 ---
 title: Designing target architectures
-description: Use EventCatalog Canvas to design future-state architecture before implementation.
+description: Use EventCatalog Compass to design future-state architecture before implementation.
 ---
 
 This guide is for architects who want to design a target architecture before teams start building. You can take existing EventCatalog resources, export them to `.ec` models, and then iterate on future-state ideas in Git.
@@ -41,7 +41,7 @@ Then edit `target.ec` with planned changes (new services, message routes, channe
 
 Commit `target.ec` and review it with your team in a PR so the architecture discussion happens in code review, not disconnected docs.
 
-For quick visual collaboration, open the model in EventCatalog Canvas:
+For quick visual collaboration, open the model in EventCatalog Compass:
 
 - https://playground.eventcatalog.dev/
 

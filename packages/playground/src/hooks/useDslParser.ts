@@ -20,10 +20,10 @@ const urlFetchCache = new Map<string, string>();
 //   import { ... } from "file.ec"
 //   import events { ... } from "file.yml"
 //   import ServiceName from "file.yml"
-const LOCAL_IMPORT_RE = /import\s+(?:(?:events|commands|queries|channels)\s+)?\{[^}]*\}\s*from\s*"(?!https?:\/\/)([^"]+)"\s*\n?|import\s+[A-Z][a-zA-Z0-9_]*\s+from\s*"(?!https?:\/\/)([^"]+)"\s*\n?/g;
+const LOCAL_IMPORT_RE = /^\s*import\s+(?:(?:events|commands|queries|channels)\s+)?\{[^}]*\}\s*from\s*"(?!https?:\/\/)([^"]+)"\s*(?:\/\/.*)?$|^\s*import\s+[A-Z][a-zA-Z0-9_]*\s+from\s*"(?!https?:\/\/)([^"]+)"\s*(?:\/\/.*)?$/gm;
 
 // Matches URL imports for .ec files (not spec files - those are handled by the resolver)
-const URL_IMPORT_RE = /import\s*\{[^}]*\}\s*from\s*"(https?:\/\/[^"]+)"/g;
+const URL_IMPORT_RE = /^\s*import\s*\{[^}]*\}\s*from\s*"(https?:\/\/[^"]+)"\s*(?:\/\/.*)?$/gm;
 
 /**
  * Converts GitHub blob/tree URLs to raw.githubusercontent.com URLs.

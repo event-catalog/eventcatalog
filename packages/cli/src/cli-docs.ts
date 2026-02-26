@@ -1664,7 +1664,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
         name: 'playground',
         type: 'boolean',
         required: false,
-        description: 'Open the exported DSL in EventCatalog Canvas',
+        description: 'Open the exported DSL in EventCatalog Compass',
       },
       { name: 'output', type: 'string', required: false, description: 'Output file path (defaults to <id>.ec or catalog.ec)' },
     ],
@@ -1694,7 +1694,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
         command: 'npx @eventcatalog/cli export --all --hydrate -o my-catalog.ec',
       },
       {
-        description: 'Export and open in EventCatalog Canvas',
+        description: 'Export and open in EventCatalog Compass',
         command: 'npx @eventcatalog/cli export --resource services --hydrate --playground',
       },
     ],
