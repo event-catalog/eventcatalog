@@ -7,7 +7,12 @@ const theme = config.theme || {};
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['selector', '[data-theme="dark"]'],
-  content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+  content: {
+    // Resolve globs relative to this config file, not process.cwd().
+    // This prevents production builds from missing utilities when Astro is launched from a different working directory.
+    relative: true,
+    files: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+  },
   theme: {
     extend: {
       fontFamily: {
