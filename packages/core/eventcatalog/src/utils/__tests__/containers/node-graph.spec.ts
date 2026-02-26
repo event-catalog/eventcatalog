@@ -25,14 +25,14 @@ describe('Containers NodeGraph', () => {
           sourcePosition: 'right',
           targetPosition: 'left',
           data: expect.objectContaining({ mode: 'simple', service: { ...mockServices[0].data } }),
-          position: { x: 75, y: 50 },
+          position: { x: 75, y: 60 },
         },
         {
           id: 'OrderDatabase-1.0.0',
           sourcePosition: 'right',
           targetPosition: 'left',
           data: expect.objectContaining({ mode: 'simple', data: { ...mockContainers[0].data } }),
-          position: { x: 525, y: 50 },
+          position: { x: 525, y: 60 },
           type: 'data',
         },
         {
@@ -40,7 +40,7 @@ describe('Containers NodeGraph', () => {
           sourcePosition: 'left',
           targetPosition: 'right',
           data: expect.objectContaining({ title: 'SubscriptionService', mode: 'simple', service: { ...mockServices[0].data } }),
-          position: { x: 75, y: 50 },
+          position: { x: 75, y: 60 },
           type: undefined,
         },
       ]);
@@ -51,6 +51,7 @@ describe('Containers NodeGraph', () => {
           animated: false,
           style: {
             strokeWidth: 1,
+            stroke: 'var(--ec-edge-stroke, #6b7280)',
           },
           id: 'SubscriptionService-0.0.1-OrderDatabase-1.0.0',
           source: 'OrderDatabase-1.0.0',
@@ -66,6 +67,7 @@ describe('Containers NodeGraph', () => {
             },
           },
           type: 'multiline',
+          markerEnd: undefined,
           markerStart: {
             type: 'arrowclosed',
             width: 20,
@@ -82,6 +84,7 @@ describe('Containers NodeGraph', () => {
           },
           style: {
             strokeWidth: 1,
+            stroke: 'var(--ec-edge-stroke, #6b7280)',
           },
           id: 'OrderDatabase-1.0.0-SubscriptionService-0.0.1-both',
           source: 'SubscriptionService-0.0.1',
