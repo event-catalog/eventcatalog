@@ -65,6 +65,7 @@ import { convertToMermaid } from "../utils/export-mermaid";
 import { copyToClipboard } from "../utils/clipboard";
 import { layoutGraph } from "../utils/layout";
 import { AllNotesModal, getNotesFromNode } from "./NotesToolbarButton";
+import { setBuildUrlFn } from "../utils/url-builder";
 import type { DslGraph } from "../types";
 
 // Minimum pixel change to detect layout modifications (avoids floating point comparison issues)
@@ -193,11 +194,18 @@ const NodeGraphBuilder = ({
   focusRequestId,
   fitRequestId,
   onNodeClick,
-  onBuildUrl: _onBuildUrl,
+  onBuildUrl,
   onNavigate,
   onSaveLayout,
   onResetLayout,
 }: Props) => {
+  // Wire up the URL builder so all nodes can use buildUrl() with the correct base path
+  useEffect(() => {
+    if (onBuildUrl) {
+      setBuildUrlFn(onBuildUrl);
+    }
+  }, []);
+
   const nodeTypes = useMemo(() => {
     const wrapWithContextMenu = (Component: React.ComponentType<any>) => {
       const Wrapped = memo((props: any) => {
