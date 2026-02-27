@@ -1373,7 +1373,7 @@ describe('getNestedSideBarData', () => {
         const navigationData = await getNestedSideBarData();
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         const entitiesSection = getChildNodeByTitle('Entities', serviceNode.pages ?? []);
-        expect(entitiesSection.pages).toEqual(['entity:Order:0.0.1']);
+        expect(entitiesSection.pages).toEqual([{ type: 'item', title: 'Order', href: '/docs/entities/Order/0.0.1' }]);
       });
     });
 

@@ -141,7 +141,11 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
         type: 'group',
         title: 'Entities',
         icon: 'Box',
-        pages: serviceEntities.map((entity) => `entity:${(entity as any).data.id}:${(entity as any).data.version}`),
+        pages: serviceEntities.map((entity) => ({
+          type: 'item',
+          title: (entity as any).data?.name || (entity as any).data.id,
+          href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
+        })),
       },
       sendsMessages.length > 0 &&
         renderMessages && {
