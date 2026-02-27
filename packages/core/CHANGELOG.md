@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.18.2
+
+### Patch Changes
+
+- 56fae87: Include visualiser dist files in tailwind content paths for published package installs
+
 ## 3.18.1
 
 ### Patch Changes
