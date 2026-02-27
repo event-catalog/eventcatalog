@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  memo,
+  type RefObject,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   ReactFlow,
@@ -66,6 +74,7 @@ import { copyToClipboard } from "../utils/clipboard";
 import { layoutGraph } from "../utils/layout";
 import { AllNotesModal, getNotesFromNode } from "./NotesToolbarButton";
 import { setBuildUrlFn } from "../utils/url-builder";
+import { PortalContainerProvider } from "../context/PortalContainerContext";
 import type { DslGraph } from "../types";
 
 // Minimum pixel change to detect layout modifications (avoids floating point comparison issues)
@@ -1103,116 +1112,18 @@ const NodeGraphBuilder = ({
     <div
       ref={reactFlowWrapperRef}
       className="w-full h-full bg-[rgb(var(--ec-page-bg))] flex flex-col eventcatalog-visualizer"
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
     >
-      {isMermaidView ? (
-        <>
-          {/* Menu Bar for Mermaid View */}
-          <div className="w-full pr-6 flex space-x-2 justify-between items-center bg-[rgb(var(--ec-page-bg))] border-b border-[rgb(var(--ec-page-border))] p-4">
-            <div className="flex space-x-2 ml-4">
-              {/* Settings Dropdown Menu */}
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger asChild>
-                  <button
-                    className="py-2.5 px-4 bg-[rgb(var(--ec-page-bg))] hover:bg-[rgb(var(--ec-accent-subtle)/0.4)] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center gap-3 transition-all duration-200 hover:border-[rgb(var(--ec-accent)/0.3)] group whitespace-nowrap"
-                    aria-label="Open menu"
-                  >
-                    {title && (
-                      <span className="text-base font-medium text-[rgb(var(--ec-page-text))] leading-tight">
-                        {title}
-                      </span>
-                    )}
-                    <MoreVertical className="h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150" />
-                  </button>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Portal>
-                  <DropdownMenu.Content
-                    className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
-                    sideOffset={0}
-                    align="end"
-                    alignOffset={-180}
-                  >
-                    <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
-                    <VisualizerDropdownContent
-                      isMermaidView={isMermaidView}
-                      setIsMermaidView={setIsMermaidView}
-                      animateMessages={animateMessages}
-                      toggleAnimateMessages={toggleAnimateMessages}
-                      hideChannels={hideChannels}
-                      toggleChannelsVisibility={toggleChannelsVisibility}
-                      hasChannels={hasChannels}
-                      showMinimap={showMinimap}
-                      setShowMinimap={setShowMinimap}
-                      handleFitView={handleFitView}
-                      searchRef={searchRef}
-                      isChatEnabled={isChatEnabled}
-                      openChat={openChat}
-                      handleCopyArchitectureCode={handleCopyArchitectureCode}
-                      handleExportVisual={handleExportVisual}
-                      setIsShareModalOpen={setIsShareModalOpen}
-                      toggleFullScreen={toggleFullScreen}
-                      openStudioModal={openStudioModal}
-                      isDevMode={isDevMode}
-                      onSaveLayout={handleSaveLayout}
-                      onResetLayout={handleResetLayout}
-                    />
-                  </DropdownMenu.Content>
-                </DropdownMenu.Portal>
-              </DropdownMenu.Root>
-            </div>
-            {mode === "full" && showSearch && (
-              <div className="flex justify-end items-center gap-2">
-                {!isMermaidView && (
-                  <div className="w-96">
-                    <VisualiserSearch
-                      ref={searchRef}
-                      nodes={searchNodes}
-                      onNodeSelect={handleNodeSelect}
-                      onClear={handleSearchClear}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          {/* Mermaid View */}
-          <div className="flex-1 overflow-hidden relative">
-            <MermaidView
-              nodes={nodes}
-              edges={edges}
-              maxTextSize={maxTextSize}
-            />
-          </div>
-        </>
-      ) : (
-        <ReactFlow
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          minZoom={0.07}
-          nodes={nodes}
-          edges={edges}
-          fitView
-          onNodesChange={handleNodesChange}
-          onEdgesChange={onEdgesChange}
-          onEdgeMouseEnter={handleEdgeMouseEnter}
-          onEdgeMouseLeave={handleEdgeMouseLeave}
-          connectionLineType={ConnectionLineType.SmoothStep}
-          nodeOrigin={NODE_ORIGIN}
-          onNodeClick={handleNodeClick}
-          onNodeMouseEnter={handleNodeMouseEnter}
-          onNodeMouseLeave={handleNodeMouseLeave}
-          onPaneClick={handlePaneClick}
-          onMoveStart={startInteraction}
-          onMoveEnd={endInteraction}
-          onNodeDragStart={startInteraction}
-          onNodeDragStop={endInteraction}
-          zoomOnScroll={zoomOnScroll}
-          className="relative"
-        >
-          <Panel
-            position="top-center"
-            className="w-full pr-6 pointer-events-none"
-          >
-            <div className="flex space-x-2 justify-between items-center pointer-events-auto">
+      <PortalContainerProvider value={reactFlowWrapperRef.current}>
+        {isMermaidView ? (
+          <>
+            {/* Menu Bar for Mermaid View */}
+            <div className="w-full pr-6 flex space-x-2 justify-between items-center bg-[rgb(var(--ec-page-bg))] border-b border-[rgb(var(--ec-page-border))] p-4">
               <div className="flex space-x-2 ml-4">
                 {/* Settings Dropdown Menu */}
                 <DropdownMenu.Root>
@@ -1229,7 +1140,7 @@ const NodeGraphBuilder = ({
                       <MoreVertical className="h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150" />
                     </button>
                   </DropdownMenu.Trigger>
-                  <DropdownMenu.Portal>
+                  <DropdownMenu.Portal container={reactFlowWrapperRef.current}>
                     <DropdownMenu.Content
                       className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
                       sideOffset={0}
@@ -1259,8 +1170,6 @@ const NodeGraphBuilder = ({
                         isDevMode={isDevMode}
                         onSaveLayout={handleSaveLayout}
                         onResetLayout={handleResetLayout}
-                        notesCount={totalNotesCount}
-                        onOpenNotes={openNotesModal}
                       />
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>
@@ -1281,143 +1190,254 @@ const NodeGraphBuilder = ({
                 </div>
               )}
             </div>
-            {links.length > 0 && (
-              <div className="flex justify-end mt-3">
-                <div className="relative flex items-center -mt-1">
-                  <span className="absolute left-2 pointer-events-none flex items-center h-full">
-                    <HistoryIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
-                  </span>
-                  <select
-                    value={
-                      links.find((link) =>
-                        window.location.href.includes(link.url),
-                      )?.url || links[0].url
-                    }
-                    onChange={(e) => {
-                      if (onNavigate) {
-                        onNavigate(e.target.value);
-                      } else {
-                        window.location.href = e.target.value;
-                      }
-                    }}
-                    className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] rounded-md border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-page-border)/0.5)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
-                    style={{ minWidth: 120, height: "26px" }}
-                  >
-                    {links.map((link) => (
-                      <option key={link.url} value={link.url}>
-                        {link.label}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="absolute right-2 pointer-events-none">
-                    <svg
-                      className="w-4 h-4 text-[rgb(var(--ec-page-text-muted))]"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            )}
-          </Panel>
-
-          {includeBackground && (
-            <Background color="var(--ec-bg-dots)" gap={16} />
-          )}
-          {includeBackground && <Controls />}
-          {showMinimap && (
-            <MiniMap
-              nodeStrokeWidth={3}
-              zoomable
-              pannable
-              style={MINIMAP_STYLE}
-            />
-          )}
-          {isFlowVisualization && showFlowWalkthrough && (
-            <Panel position="bottom-left">
-              <StepWalkthrough
+            {/* Mermaid View */}
+            <div className="flex-1 overflow-hidden relative">
+              <MermaidView
                 nodes={nodes}
                 edges={edges}
-                isFlowVisualization={isFlowVisualization}
-                onStepChange={handleStepChange}
-                mode={mode}
+                maxTextSize={maxTextSize}
               />
-            </Panel>
-          )}
-          {/* Dev Mode: Layout change indicator */}
-          {isDevMode && hasLayoutChanges && (
-            <Panel
-              position="bottom-left"
-              style={
-                isFlowVisualization && showFlowWalkthrough
-                  ? LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH
-                  : LAYOUT_CHANGE_PANEL_STYLE_DEFAULT
-              }
-            >
-              <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-md px-3 py-2 flex items-center gap-3">
-                <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
-                  Layout changed
-                </span>
-                <button
-                  onClick={handleQuickSaveLayout}
-                  disabled={isSavingLayout}
-                  className="text-xs font-medium text-[rgb(var(--ec-accent-text))] bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle)/0.7)] px-2 py-1 rounded transition-colors disabled:opacity-50"
-                >
-                  {isSavingLayout ? "Saving..." : "Save"}
-                </button>
-              </div>
-            </Panel>
-          )}
-          {includeKey && (
-            <LegendPanel
-              legend={legend}
-              showMinimap={showMinimap}
-              onLegendClick={handleLegendClick}
-            />
-          )}
-        </ReactFlow>
-      )}
-      <StudioModal
-        isOpen={isStudioModalOpen || false}
-        onClose={() => setIsStudioModalOpen(false)}
-      />
-      <FocusModeModal
-        isOpen={focusModeOpen}
-        onClose={() => setFocusModeOpen(false)}
-        initialNodeId={focusedNodeId}
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-      />
-      <AllNotesModal
-        noteGroups={allNoteGroups}
-        isOpen={isNotesModalOpen}
-        onClose={() => setIsNotesModalOpen(false)}
-        nodes={nodes}
-      />
-
-      {/* Share Link Modal */}
-      {isShareModalOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/20 z-40"
-            onClick={() => setIsShareModalOpen(false)}
-            style={{ animation: "fadeIn 150ms ease-out" }}
-          />
-          <div
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[rgb(var(--ec-page-bg))] rounded-lg shadow-xl z-50 w-full max-w-md p-6 border border-[rgb(var(--ec-page-border))]"
-            style={{ animation: "slideInCenter 250ms ease-out" }}
+            </div>
+          </>
+        ) : (
+          <ReactFlow
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            minZoom={0.07}
+            nodes={nodes}
+            edges={edges}
+            fitView
+            onNodesChange={handleNodesChange}
+            onEdgesChange={onEdgesChange}
+            onEdgeMouseEnter={handleEdgeMouseEnter}
+            onEdgeMouseLeave={handleEdgeMouseLeave}
+            connectionLineType={ConnectionLineType.SmoothStep}
+            nodeOrigin={NODE_ORIGIN}
+            onNodeClick={handleNodeClick}
+            onNodeMouseEnter={handleNodeMouseEnter}
+            onNodeMouseLeave={handleNodeMouseLeave}
+            onPaneClick={handlePaneClick}
+            onMoveStart={startInteraction}
+            onMoveEnd={endInteraction}
+            onNodeDragStart={startInteraction}
+            onNodeDragStop={endInteraction}
+            zoomOnScroll={zoomOnScroll}
+            className="relative"
           >
-            <style>{`
+            <Panel
+              position="top-center"
+              className="w-full pr-6 pointer-events-none"
+            >
+              <div className="flex space-x-2 justify-between items-center pointer-events-auto">
+                <div className="flex space-x-2 ml-4">
+                  {/* Settings Dropdown Menu */}
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger asChild>
+                      <button
+                        className="py-2.5 px-4 bg-[rgb(var(--ec-page-bg))] hover:bg-[rgb(var(--ec-accent-subtle)/0.4)] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center gap-3 transition-all duration-200 hover:border-[rgb(var(--ec-accent)/0.3)] group whitespace-nowrap"
+                        aria-label="Open menu"
+                      >
+                        {title && (
+                          <span className="text-base font-medium text-[rgb(var(--ec-page-text))] leading-tight">
+                            {title}
+                          </span>
+                        )}
+                        <MoreVertical className="h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150" />
+                      </button>
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Portal
+                      container={reactFlowWrapperRef.current}
+                    >
+                      <DropdownMenu.Content
+                        className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
+                        sideOffset={0}
+                        align="end"
+                        alignOffset={-180}
+                      >
+                        <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
+                        <VisualizerDropdownContent
+                          isMermaidView={isMermaidView}
+                          setIsMermaidView={setIsMermaidView}
+                          animateMessages={animateMessages}
+                          toggleAnimateMessages={toggleAnimateMessages}
+                          hideChannels={hideChannels}
+                          toggleChannelsVisibility={toggleChannelsVisibility}
+                          hasChannels={hasChannels}
+                          showMinimap={showMinimap}
+                          setShowMinimap={setShowMinimap}
+                          handleFitView={handleFitView}
+                          searchRef={searchRef}
+                          isChatEnabled={isChatEnabled}
+                          openChat={openChat}
+                          handleCopyArchitectureCode={
+                            handleCopyArchitectureCode
+                          }
+                          handleExportVisual={handleExportVisual}
+                          setIsShareModalOpen={setIsShareModalOpen}
+                          toggleFullScreen={toggleFullScreen}
+                          openStudioModal={openStudioModal}
+                          isDevMode={isDevMode}
+                          onSaveLayout={handleSaveLayout}
+                          onResetLayout={handleResetLayout}
+                          notesCount={totalNotesCount}
+                          onOpenNotes={openNotesModal}
+                        />
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu.Root>
+                </div>
+                {mode === "full" && showSearch && (
+                  <div className="flex justify-end items-center gap-2">
+                    {!isMermaidView && (
+                      <div className="w-96">
+                        <VisualiserSearch
+                          ref={searchRef}
+                          nodes={searchNodes}
+                          onNodeSelect={handleNodeSelect}
+                          onClear={handleSearchClear}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {links.length > 0 && (
+                <div className="flex justify-end mt-3">
+                  <div className="relative flex items-center -mt-1">
+                    <span className="absolute left-2 pointer-events-none flex items-center h-full">
+                      <HistoryIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
+                    </span>
+                    <select
+                      value={
+                        links.find((link) =>
+                          window.location.href.includes(link.url),
+                        )?.url || links[0].url
+                      }
+                      onChange={(e) => {
+                        if (onNavigate) {
+                          onNavigate(e.target.value);
+                        } else {
+                          window.location.href = e.target.value;
+                        }
+                      }}
+                      className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] rounded-md border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-page-border)/0.5)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
+                      style={{ minWidth: 120, height: "26px" }}
+                    >
+                      {links.map((link) => (
+                        <option key={link.url} value={link.url}>
+                          {link.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="absolute right-2 pointer-events-none">
+                      <svg
+                        className="w-4 h-4 text-[rgb(var(--ec-page-text-muted))]"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              )}
+            </Panel>
+
+            {includeBackground && (
+              <Background color="var(--ec-bg-dots)" gap={16} />
+            )}
+            {includeBackground && <Controls />}
+            {showMinimap && (
+              <MiniMap
+                nodeStrokeWidth={3}
+                zoomable
+                pannable
+                style={MINIMAP_STYLE}
+              />
+            )}
+            {isFlowVisualization && showFlowWalkthrough && (
+              <Panel position="bottom-left">
+                <StepWalkthrough
+                  nodes={nodes}
+                  edges={edges}
+                  isFlowVisualization={isFlowVisualization}
+                  onStepChange={handleStepChange}
+                  mode={mode}
+                />
+              </Panel>
+            )}
+            {/* Dev Mode: Layout change indicator */}
+            {isDevMode && hasLayoutChanges && (
+              <Panel
+                position="bottom-left"
+                style={
+                  isFlowVisualization && showFlowWalkthrough
+                    ? LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH
+                    : LAYOUT_CHANGE_PANEL_STYLE_DEFAULT
+                }
+              >
+                <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-md px-3 py-2 flex items-center gap-3">
+                  <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
+                    Layout changed
+                  </span>
+                  <button
+                    onClick={handleQuickSaveLayout}
+                    disabled={isSavingLayout}
+                    className="text-xs font-medium text-[rgb(var(--ec-accent-text))] bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle)/0.7)] px-2 py-1 rounded transition-colors disabled:opacity-50"
+                  >
+                    {isSavingLayout ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              </Panel>
+            )}
+            {includeKey && (
+              <LegendPanel
+                legend={legend}
+                showMinimap={showMinimap}
+                onLegendClick={handleLegendClick}
+              />
+            )}
+          </ReactFlow>
+        )}
+        <StudioModal
+          isOpen={isStudioModalOpen || false}
+          onClose={() => setIsStudioModalOpen(false)}
+        />
+        <FocusModeModal
+          isOpen={focusModeOpen}
+          onClose={() => setFocusModeOpen(false)}
+          initialNodeId={focusedNodeId}
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+        />
+        <AllNotesModal
+          noteGroups={allNoteGroups}
+          isOpen={isNotesModalOpen}
+          onClose={() => setIsNotesModalOpen(false)}
+          nodes={nodes}
+        />
+
+        {/* Share Link Modal */}
+        {isShareModalOpen && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/20 z-40"
+              onClick={() => setIsShareModalOpen(false)}
+              style={{ animation: "fadeIn 150ms ease-out" }}
+            />
+            <div
+              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[rgb(var(--ec-page-bg))] rounded-lg shadow-xl z-50 w-full max-w-md p-6 border border-[rgb(var(--ec-page-border))]"
+              style={{ animation: "slideInCenter 250ms ease-out" }}
+            >
+              <style>{`
               @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
@@ -1428,53 +1448,54 @@ const NodeGraphBuilder = ({
               }
             `}</style>
 
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">
-                Share Link
-              </h3>
-              <button
-                onClick={() => setIsShareModalOpen(false)}
-                className="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-                aria-label="Close modal"
-              >
-                <ExternalLink className="w-5 h-5 rotate-180" />
-              </button>
-            </div>
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">
+                  Share Link
+                </h3>
+                <button
+                  onClick={() => setIsShareModalOpen(false)}
+                  className="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+                  aria-label="Close modal"
+                >
+                  <ExternalLink className="w-5 h-5 rotate-180" />
+                </button>
+              </div>
 
-            <p className="text-sm text-[rgb(var(--ec-page-text-muted))] mb-4">
-              Share this link with your team to let them view this
-              visualization.
-            </p>
+              <p className="text-sm text-[rgb(var(--ec-page-text-muted))] mb-4">
+                Share this link with your team to let them view this
+                visualization.
+              </p>
 
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={
-                  typeof window !== "undefined" ? window.location.href : ""
-                }
-                className="flex-1 px-3 py-2.5 bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] rounded-md text-[rgb(var(--ec-input-text))] text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
-              />
-              <button
-                onClick={handleCopyShareUrl}
-                className={`px-4 py-2.5 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
-                  shareUrlCopySuccess
-                    ? "bg-green-500 text-white"
-                    : "bg-[rgb(var(--ec-accent))] text-white hover:opacity-90"
-                }`}
-                aria-label={shareUrlCopySuccess ? "Copied!" : "Copy link"}
-              >
-                {shareUrlCopySuccess ? (
-                  <CheckIcon className="w-4 h-4" />
-                ) : (
-                  <ClipboardIcon className="w-4 h-4" />
-                )}
-                <span>{shareUrlCopySuccess ? "Copied!" : "Copy"}</span>
-              </button>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={
+                    typeof window !== "undefined" ? window.location.href : ""
+                  }
+                  className="flex-1 px-3 py-2.5 bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] rounded-md text-[rgb(var(--ec-input-text))] text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                />
+                <button
+                  onClick={handleCopyShareUrl}
+                  className={`px-4 py-2.5 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
+                    shareUrlCopySuccess
+                      ? "bg-green-500 text-white"
+                      : "bg-[rgb(var(--ec-accent))] text-white hover:opacity-90"
+                  }`}
+                  aria-label={shareUrlCopySuccess ? "Copied!" : "Copy link"}
+                >
+                  {shareUrlCopySuccess ? (
+                    <CheckIcon className="w-4 h-4" />
+                  ) : (
+                    <ClipboardIcon className="w-4 h-4" />
+                  )}
+                  <span>{shareUrlCopySuccess ? "Copied!" : "Copy"}</span>
+                </button>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </PortalContainerProvider>
     </div>
   );
 };

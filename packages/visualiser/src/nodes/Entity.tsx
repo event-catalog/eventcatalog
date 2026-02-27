@@ -3,6 +3,7 @@ import { getIcon } from "../utils/badges";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { buildUrl } from "../utils/url-builder";
 import { memo, useState, useMemo } from "react";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import {
   HANDLE_LEFT_OFFSET_STYLE,
   HANDLE_RIGHT_OFFSET_STYLE,
@@ -74,6 +75,7 @@ export default memo(function EntityNode({
   const Icon = useMemo(() => getIcon(icon), [icon]);
 
   const [hoveredProperty, setHoveredProperty] = useState<string | null>(null);
+  const portalContainer = usePortalContainer();
 
   return (
     <ContextMenu.Root>
@@ -206,7 +208,7 @@ export default memo(function EntityNode({
           )}
         </div>
       </ContextMenu.Trigger>
-      <ContextMenu.Portal>
+      <ContextMenu.Portal container={portalContainer}>
         <ContextMenu.Content
           className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]"
           onClick={(e) => e.stopPropagation()}

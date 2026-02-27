@@ -5,6 +5,7 @@ import {
   Position,
 } from "@xyflow/react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import { buildUrl } from "../utils/url-builder";
 import { getIcon } from "../utils/badges";
 import { memo, useState, useCallback, useMemo } from "react";
@@ -41,6 +42,7 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
 
   const Icon = useMemo(() => getIcon(icon), [icon]);
   const ServerIcon = useMemo(() => getIcon("ServerIcon"), []);
+  const portalContainer = usePortalContainer();
 
   // Listen for selection changes to highlight connected services
   const handleSelectionChange = useCallback(
@@ -144,7 +146,7 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
                         </div>
                       </div>
                     </ContextMenu.Trigger>
-                    <ContextMenu.Portal>
+                    <ContextMenu.Portal container={portalContainer}>
                       <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
                         <ContextMenu.Item
                           className="text-sm text-[rgb(var(--ec-page-text))] px-2 py-1.5 outline-none cursor-pointer hover:bg-[rgb(var(--ec-page-border)/0.5)] rounded-sm flex items-center"
@@ -175,7 +177,7 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
           )}
         </div>
       </ContextMenu.Trigger>
-      <ContextMenu.Portal>
+      <ContextMenu.Portal container={portalContainer}>
         <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
           <ContextMenu.Item
             className="text-sm text-[rgb(var(--ec-page-text))] px-2 py-1.5 outline-none cursor-pointer hover:bg-[rgb(var(--ec-page-border)/0.5)] rounded-sm flex items-center"

@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import { Handle } from "@xyflow/react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import { buildUrl } from "../utils/url-builder";
 import { getIcon } from "../utils/badges";
 import {
@@ -58,6 +59,7 @@ export default memo(function FlowNode({
     styles || {};
 
   const Icon = useMemo(() => getIcon(icon), [icon]);
+  const portalContainer = usePortalContainer();
   const nodeLabel = label || flow?.data?.sidebar?.badge || "Flow";
   const fontSize = nodeLabel.length > 10 ? "7px" : "9px";
 
@@ -132,7 +134,7 @@ export default memo(function FlowNode({
           </div>
         </div>
       </ContextMenu.Trigger>
-      <ContextMenu.Portal>
+      <ContextMenu.Portal container={portalContainer}>
         <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
           <ContextMenu.Item
             asChild

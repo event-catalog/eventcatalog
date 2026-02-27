@@ -13,10 +13,6 @@ export default {
     relative: true,
     files: [
       './src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}',
-      // Workspace/dev: include visualizer source files so core Tailwind generates their utilities.
-      '../../visualiser/src/**/*.{js,jsx,ts,tsx}',
-      // Published package/install: visualizer ships compiled JS in dist (no src folder).
-      '../../visualiser/dist/**/*.{js,cjs,mjs}',
     ],
   },
   theme: {

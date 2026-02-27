@@ -1,5 +1,6 @@
 import React, { type RefObject, useState, memo } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import {
   Code,
   Share2,
@@ -78,6 +79,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
       const [layoutStatus, setLayoutStatus] = useState<
         "idle" | "saving" | "resetting"
       >("idle");
+      const portalContainer = usePortalContainer();
 
       const handleSaveLayout = async () => {
         if (!onSaveLayout) return;
@@ -125,7 +127,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                 />
               </svg>
             </DropdownMenu.SubTrigger>
-            <DropdownMenu.Portal>
+            <DropdownMenu.Portal container={portalContainer}>
               <DropdownMenu.SubContent
                 className="min-w-[200px] bg-[rgb(var(--ec-card-bg))] rounded-lg shadow-xl border border-[rgb(var(--ec-page-border))] py-1.5 z-[60]"
                 sideOffset={8}
@@ -264,7 +266,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                   />
                 </svg>
               </DropdownMenu.SubTrigger>
-              <DropdownMenu.Portal>
+              <DropdownMenu.Portal container={portalContainer}>
                 <DropdownMenu.SubContent
                   className="min-w-[180px] bg-[rgb(var(--ec-card-bg))] rounded-lg shadow-xl border border-[rgb(var(--ec-page-border))] py-1.5 z-[60]"
                   sideOffset={8}

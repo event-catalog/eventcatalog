@@ -1,4 +1,9 @@
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
 @import '@xyflow/react/dist/style.css';
+
+@source "../src/**/*.{js,ts,jsx,tsx}";
+@source "../src/safelist.txt";
 
 /**
  * EventCatalog Visualizer Theme Variables
@@ -89,6 +94,12 @@
 
 /* Base styles for visualizer container */
 .eventcatalog-visualizer {
+  /* Ensure the container itself has dimensions (scoped utilities only apply to descendants) */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(var(--ec-page-bg));
   /* Light-mode canvas: grey background (matches Tailwind gray-50) */
   --ec-page-bg: 249, 250, 251;
   --ec-bg-dots: #bbb;
@@ -119,10 +130,10 @@
 [data-theme="dark"] .eventcatalog-visualizer {
   --ec-bg-dots: #5a6270;
   --ec-edge-stroke: #6e7681;
-  --ec-page-bg: 22 27 34;
-  --ec-card-bg: 40 46 56;
-  --ec-page-border: 48 54 61;
-  --ec-page-text: 240 246 252;
+  --ec-page-bg: 22, 27, 34;
+  --ec-card-bg: 40, 46, 56;
+  --ec-page-border: 48, 54, 61;
+  --ec-page-text: 240, 246, 252;
   --ec-page-text-muted: 220, 225, 232;
   --ec-service-node-bg: rgb(40, 46, 56);
   --ec-event-node-bg: rgb(40, 46, 56);
@@ -134,16 +145,16 @@
   --ec-external-node-bg: rgb(40, 46, 56);
   --ec-actor-node-bg: rgb(40, 46, 56);
   --ec-deprecated-stripe: rgba(239, 68, 68, 0.25);
-  --ec-input-bg: 22 27 34;
-  --ec-input-border: 48 54 61;
-  --ec-input-text: 240 246 252;
-  --ec-accent: 192 132 252;
-  --ec-accent-subtle: 88 28 135;
-  --ec-accent-text: 216 180 254;
-  --ec-button-bg: 147 51 234;
-  --ec-button-text: 255 255 255;
-  --ec-icon-color: 139 148 158;
-  --ec-icon-hover: 240 246 252;
+  --ec-input-bg: 22, 27, 34;
+  --ec-input-border: 48, 54, 61;
+  --ec-input-text: 240, 246, 252;
+  --ec-accent: 192, 132, 252;
+  --ec-accent-subtle: 88, 28, 135;
+  --ec-accent-text: 216, 180, 254;
+  --ec-button-bg: 147, 51, 234;
+  --ec-button-text: 255, 255, 255;
+  --ec-icon-color: 139, 148, 158;
+  --ec-icon-hover: 240, 246, 252;
 }
 
 /* Node handle pulse animations (shared across all node types) */
@@ -197,9 +208,12 @@
 }
 
 /* ReactFlow customizations */
-:root:not([data-theme="dark"]) .react-flow,
-:root[data-theme="light"] .react-flow {
-  background-color: #f1f5f9 !important; /* slate-100 */
+.react-flow {
+  background-color: #f1f5f9 !important; /* slate-100 — light mode default */
+}
+
+[data-theme="dark"] .react-flow {
+  background-color: rgb(var(--ec-page-bg)) !important;
 }
 
 .react-flow__node {

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useReactFlow, type Node } from "@xyflow/react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import type { Note } from "../types";
 
 /* ------------------------------------------------------------------ */
@@ -340,6 +341,7 @@ export function AllNotesModal({
 }) {
   const { setCenter, getZoom } = useReactFlow();
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const portalContainer = usePortalContainer();
 
   const totalNotes = noteGroups.reduce((sum, g) => sum + g.notes.length, 0);
   const selected = noteGroups[selectedIdx] || noteGroups[0];
@@ -370,9 +372,7 @@ export function AllNotesModal({
         }
       }}
     >
-      <Dialog.Portal
-        container={typeof document !== "undefined" ? document.body : undefined}
-      >
+      <Dialog.Portal container={portalContainer}>
         <div
           className="fixed inset-0 z-[99999]"
           style={{ isolation: "isolate" }}

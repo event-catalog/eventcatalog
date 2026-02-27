@@ -24,9 +24,9 @@ const FocusModeNodeActions: React.FC<FocusModeNodeActionsProps> = ({
   const direction = (node.position?.x ?? 0) < 0 ? "left" : "right";
 
   // Scale sizes based on zoom (inverse relationship - smaller when zoomed out)
-  const baseButtonSize = 32;
-  const baseIconSize = 16;
-  const scaleFactor = Math.max(0.6, Math.min(1, zoom));
+  const baseButtonSize = 24;
+  const baseIconSize = 12;
+  const scaleFactor = Math.max(0.4, Math.min(1, zoom));
   const buttonSize = Math.round(baseButtonSize * scaleFactor);
   const iconSize = Math.round(baseIconSize * scaleFactor);
 

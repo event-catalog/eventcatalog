@@ -1,5 +1,6 @@
 import { memo } from "react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import type { ContextMenuItem } from "../types";
 
 interface NodeContextMenuProps {
@@ -11,12 +12,14 @@ export default memo(function NodeContextMenu({
   items,
   children,
 }: NodeContextMenuProps) {
+  const portalContainer = usePortalContainer();
+
   if (!items || items.length === 0) return <>{children}</>;
 
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger>{children}</ContextMenu.Trigger>
-      <ContextMenu.Portal>
+      <ContextMenu.Portal container={portalContainer}>
         <ContextMenu.Content
           className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200 z-50"
           onClick={(e) => e.stopPropagation()}
