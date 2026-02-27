@@ -3,6 +3,7 @@ import * as Icons from "@heroicons/react/24/solid";
 import { memo, useMemo, type ComponentType } from "react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import {
   NODE_WIDTH_STYLE,
   ROTATED_LABEL_STYLE,
@@ -75,6 +76,7 @@ export default memo(function UserNode({
 
   const isLongType = type && type.length > 10;
   const displayType = isLongType ? `${type.substring(0, 10)}...` : type;
+  const portalContainer = usePortalContainer();
 
   return (
     <ContextMenu.Root>
@@ -109,7 +111,7 @@ export default memo(function UserNode({
                     </span>
                   </Tooltip.Trigger>
                   {isLongType && (
-                    <Tooltip.Portal>
+                    <Tooltip.Portal container={portalContainer}>
                       <Tooltip.Content
                         className="bg-slate-800 text-white rounded px-2 py-1 text-xs shadow-md z-50"
                         side="right"
@@ -192,7 +194,7 @@ export default memo(function UserNode({
         </div>
       </ContextMenu.Trigger>
       {menu?.length > 0 && (
-        <ContextMenu.Portal>
+        <ContextMenu.Portal container={portalContainer}>
           <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
             {menu?.map((item) => {
               return (

@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CheckIcon, ClipboardIcon, ExternalLinkIcon } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import { exportNodeGraphForStudio } from "../utils/export-node-graph";
 
 interface StudioModalProps {
@@ -11,6 +12,7 @@ interface StudioModalProps {
 
 const StudioModal: React.FC<StudioModalProps> = ({ isOpen, onClose }) => {
   const [copySuccess, setCopySuccess] = useState(false);
+  const portalContainer = usePortalContainer();
 
   const { toObject } = useReactFlow();
 
@@ -46,7 +48,7 @@ const StudioModal: React.FC<StudioModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
-      <Dialog.Portal>
+      <Dialog.Portal container={portalContainer}>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-overlayShow z-50" />
         <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-xl focus:outline-none data-[state=open]:animate-contentShow z-[100]">
           <Dialog.Title className="text-lg font-semibold text-gray-900 mb-3">

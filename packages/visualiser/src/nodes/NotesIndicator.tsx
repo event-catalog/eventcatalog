@@ -1,6 +1,7 @@
 import { MessageCircle, AlertTriangle, XIcon } from "lucide-react";
 import { useState, useCallback, memo } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import type { Note } from "../types";
 import { useDarkMode } from "./shared-styles";
 
@@ -317,6 +318,7 @@ export function NotesModal({
   icon?: React.ReactNode;
 }) {
   const isDark = useDarkMode();
+  const portalContainer = usePortalContainer();
   const count = notes.length;
   const urgent = notes.filter(
     (n) =>
@@ -327,9 +329,7 @@ export function NotesModal({
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <Dialog.Portal
-        container={typeof document !== "undefined" ? document.body : undefined}
-      >
+      <Dialog.Portal container={portalContainer}>
         <div
           className="fixed inset-0 z-[99999]"
           style={{ isolation: "isolate" }}

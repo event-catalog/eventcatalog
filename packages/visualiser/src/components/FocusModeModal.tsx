@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { XIcon, FocusIcon } from "lucide-react";
+import { usePortalContainer } from "../context/PortalContainerContext";
 import {
   ReactFlowProvider,
   type Node,
@@ -35,6 +36,7 @@ const FocusModeModal: React.FC<FocusModeModalProps> = ({
     initialNodeId,
   );
   const isDark = useDarkMode();
+  const portalContainer = usePortalContainer();
 
   // Reset center node when modal opens with new initial node
   useEffect(() => {
@@ -62,12 +64,15 @@ const FocusModeModal: React.FC<FocusModeModalProps> = ({
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <Dialog.Portal
-        container={typeof document !== "undefined" ? document.body : undefined}
-      >
+      <Dialog.Portal>
         <div
-          className="fixed inset-0 z-[99999] eventcatalog-visualizer"
-          style={{ isolation: "isolate" }}
+          className="eventcatalog-visualizer"
+          style={{
+            position: "fixed",
+            inset: 0,
+            isolation: "isolate",
+            zIndex: 99999,
+          }}
         >
           <Dialog.Overlay
             style={{
@@ -82,7 +87,7 @@ const FocusModeModal: React.FC<FocusModeModalProps> = ({
           <Dialog.Content
             style={{
               position: "fixed",
-              inset: "1rem",
+              inset: "5%",
               borderRadius: 12,
               background: isDark ? "#0f172a" : "#ffffff",
               border: `1px solid ${
