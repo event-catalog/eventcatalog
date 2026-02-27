@@ -404,6 +404,62 @@ describe('Commands SDK', () => {
       expect(fs.existsSync(path.join(CATALOG_PATH, 'commands/UpdateInventory', 'index.md'))).toBe(true);
     });
 
+    it('when operation is given, it writes the command with the given operation', async () => {
+      await writeCommand({
+        id: 'UpdateInventory',
+        name: 'Update Inventory',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'PUT',
+          path: '/inventory/{id}',
+          statusCodes: ['200', '404'],
+        },
+      });
+
+      const command = await getCommand('UpdateInventory');
+
+      expect(command).toEqual({
+        id: 'UpdateInventory',
+        name: 'Update Inventory',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'PUT',
+          path: '/inventory/{id}',
+          statusCodes: ['200', '404'],
+        },
+      });
+    });
+
+    it('when operation is given with only a method, it writes the command with the partial operation', async () => {
+      await writeCommand({
+        id: 'UpdateInventory',
+        name: 'Update Inventory',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'DELETE',
+        },
+      });
+
+      const command = await getCommand('UpdateInventory');
+
+      expect(command).toEqual({
+        id: 'UpdateInventory',
+        name: 'Update Inventory',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'DELETE',
+        },
+      });
+    });
+
     it('writes the given command to EventCatalog under the correct path when a path is given', async () => {
       await writeCommand(
         {
