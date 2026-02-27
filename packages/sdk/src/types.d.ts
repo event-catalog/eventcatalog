@@ -75,6 +75,12 @@ export interface ChannelPointer extends ResourcePointer {
   parameters?: Record<string, string>;
 }
 
+export type Operation = {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  path?: string;
+  statusCodes?: string[];
+};
+
 export type Message = Event | Command | Query;
 
 enum ResourceType {
@@ -107,14 +113,17 @@ interface MessageDetailsPanelProperty {
 
 export interface Event extends BaseSchema {
   channels?: ChannelPointer[];
+  operation?: Operation;
   detailsPanel?: MessageDetailsPanelProperty;
 }
 export interface Command extends BaseSchema {
   channels?: ChannelPointer[];
+  operation?: Operation;
   detailsPanel?: MessageDetailsPanelProperty;
 }
 export interface Query extends BaseSchema {
   channels?: ChannelPointer[];
+  operation?: Operation;
   detailsPanel?: MessageDetailsPanelProperty;
 }
 export interface Channel extends BaseSchema {

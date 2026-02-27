@@ -659,6 +659,62 @@ describe('Queries SDK', () => {
       expect(fs.existsSync(path.join(CATALOG_PATH, 'queries/GetOrder', 'index.md'))).toBe(true);
     });
 
+    it('when operation is given, it writes the query with the given operation', async () => {
+      await writeQuery({
+        id: 'GetOrder',
+        name: 'Get Order',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'GET',
+          path: '/orders/{id}',
+          statusCodes: ['200', '404'],
+        },
+      });
+
+      const query = await getQuery('GetOrder');
+
+      expect(query).toEqual({
+        id: 'GetOrder',
+        name: 'Get Order',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'GET',
+          path: '/orders/{id}',
+          statusCodes: ['200', '404'],
+        },
+      });
+    });
+
+    it('when operation is given with only a path, it writes the query with the partial operation', async () => {
+      await writeQuery({
+        id: 'GetOrder',
+        name: 'Get Order',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          path: '/orders',
+        },
+      });
+
+      const query = await getQuery('GetOrder');
+
+      expect(query).toEqual({
+        id: 'GetOrder',
+        name: 'Get Order',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          path: '/orders',
+        },
+      });
+    });
+
     it('writes the given query to EventCatalog under the correct path when a path is given', async () => {
       await writeQuery(
         {
