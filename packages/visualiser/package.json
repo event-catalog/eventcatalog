@@ -11,7 +11,8 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./styles-core.css": "./dist/styles-core.css"
   },
   "files": [
     "dist"
@@ -19,8 +20,8 @@
   "scripts": {
     "build": "tsup && pnpm build:css",
     "build:bin": "tsup && pnpm build:css",
-    "build:css": "postcss src/styles.css -o dist/styles.css",
-    "build:watch": "concurrently \"tsup --watch\" \"postcss src/styles.css -o dist/styles.css --watch\"",
+    "build:css": "postcss src/styles.css -o dist/styles.css && postcss src/styles-core.css -o dist/styles-core.css",
+    "build:watch": "concurrently \"tsup --watch\" \"postcss src/styles.css -o dist/styles.css --watch\" \"postcss src/styles-core.css -o dist/styles-core.css --watch\"",
     "dev": "tsup --watch --onSuccess \"pnpm build:css\"",
     "playground": "vite playground --config playground/vite.config.ts",
     "clean": "rimraf dist",

@@ -1,5 +1,6 @@
 ---
-"@eventcatalog/core": minor
+"@eventcatalog/core": patch
+"@eventcatalog/visualiser": patch
 ---
 
-Add type assertions for mouse event properties on homepage stat cards
+Use relative content paths in tailwind config and lazy-load visualizer styles to prevent CSS conflicts

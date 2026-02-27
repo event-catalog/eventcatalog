@@ -1,9 +1,6 @@
 ---
 import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import components from '@components/MDX/page-components';
-import mdxComponents from '@components/MDX/components';
-import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import { getMDXComponentsByName } from '@utils/markdown';
 import { resourceToCollectionMap } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
@@ -13,6 +10,8 @@ import config from '@config';
 
 let nodeGraphs: any[] = [];
 let CustomContent = null;
+let NodeGraph = null;
+let customHomepageComponents: Record<string, any> = {};
 
 import path from 'path';
 import { existsSync, readFileSync } from 'fs';
@@ -26,8 +25,20 @@ if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
   // @ts-ignore
   CustomContent = Object.values(customPages)[0]?.default || null;
 
+  const [{ default: pageComponents }, { default: mdxComponents }] = await Promise.all([
+    import('@components/MDX/page-components'),
+    import('@components/MDX/components'),
+  ]);
+  customHomepageComponents = { ...pageComponents, ...mdxComponents(props) };
+
   const rawContent = readFileSync(pathToUserDefinedLandingPage, 'utf-8');
   nodeGraphs = getMDXComponentsByName(rawContent, 'NodeGraph') || [];
+
+  // Avoid pulling visualizer CSS into the default homepage bundle.
+  // Only load the NodeGraph component when the custom homepage actually uses it.
+  if (nodeGraphs.length > 0) {
+    NodeGraph = (await import('@components/MDX/NodeGraph/NodeGraph.astro')).default;
+  }
 }
 
 if (config.landingPage) {
@@ -42,12 +53,13 @@ if (config.landingPage) {
         <div class="flex docs-layout w-full">
           <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
             <div class="w-full !max-w-none">
-              <CustomContent components={{ ...components, ...mdxComponents(props) }} />
+              <CustomContent components={customHomepageComponents} />
             </div>
             <Footer />
           </div>
         </div>
-        {nodeGraphs.length > 0 &&
+        {NodeGraph &&
+          nodeGraphs.length > 0 &&
           nodeGraphs.map((nodeGraph: any) => {
             const collection = resourceToCollectionMap[nodeGraph.type as keyof typeof resourceToCollectionMap];
             return (

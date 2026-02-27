@@ -86,7 +86,7 @@ jobs:
           name: eventcatalog-packages-artifact
       - name: Install @eventcatalog packages
         working-directory: examples/default/
-        run: npm install ../../sdk-package.tgz ../../core-package.tgz
+        run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../visualiser-package.tgz
       - name: Build EventCatalog
         working-directory: examples/default/
         run: npx eventcatalog build
