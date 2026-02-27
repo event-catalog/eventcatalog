@@ -1,5 +1,16 @@
 # @eventcatalog/visualiser
 
+## 3.15.0
+
+### Minor Changes
+
+- e11249b: Refine UI theme: improve sidebar active states with accent colors, brighten dark mode text, add subtle gradients, update homepage layout, and add dark mode icon invert support
+
+### Patch Changes
+
+- a67f051: fix visualiser URL builder to support configurable base paths via setBuildUrlFn
+- 31b931c: Use relative content paths in tailwind config and lazy-load visualizer styles to prevent CSS conflicts
+
 ## 3.14.1
 
 ### Patch Changes

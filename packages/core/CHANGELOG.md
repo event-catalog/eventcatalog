@@ -1,5 +1,22 @@
 # @eventcatalog/core
 
+## 3.18.0
+
+### Minor Changes
+
+- e11249b: Refine UI theme: improve sidebar active states with accent colors, brighten dark mode text, add subtle gradients, update homepage layout, and add dark mode icon invert support
+
+### Patch Changes
+
+- a67f051: fix visualiser URL builder to support configurable base paths via setBuildUrlFn
+- 31b931c: Use relative content paths in tailwind config and lazy-load visualizer styles to prevent CSS conflicts
+- ad8b333: Fix Tailwind content paths to be relative to config file, preventing missing utilities in production builds when Astro runs from a different working directory
+- 0d4892a: chore(core): updated rimraf version
+- Updated dependencies [e11249b]
+- Updated dependencies [a67f051]
+- Updated dependencies [31b931c]
+  - @eventcatalog/visualiser@3.15.0
+
 ## 3.17.6
 
 ### Patch Changes
