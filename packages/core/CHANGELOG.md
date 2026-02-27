@@ -1,5 +1,19 @@
 # @eventcatalog/core
 
+## 3.18.2
+
+### Patch Changes
+
+- 56fae87: Include visualiser dist files in tailwind content paths for published package installs
+
+## 3.18.1
+
+### Patch Changes
+
+- Updated dependencies [b5bbb3d]
+  - @eventcatalog/sdk@2.15.1
+  - @eventcatalog/linter@1.0.8
+
 ## 3.18.0
 
 ### Minor Changes

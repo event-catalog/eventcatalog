@@ -749,6 +749,62 @@ describe('Events SDK', () => {
       expect(fs.existsSync(path.join(CATALOG_PATH, 'events/Inventory/InventoryAdjusted', 'index.mdx'))).toBe(true);
     });
 
+    it('when operation is given, it writes the event with the given operation', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'POST',
+          path: '/inventory/adjust',
+          statusCodes: ['200', '400', '500'],
+        },
+      });
+
+      const event = await getEvent('InventoryAdjusted');
+
+      expect(event).toEqual({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'POST',
+          path: '/inventory/adjust',
+          statusCodes: ['200', '400', '500'],
+        },
+      });
+    });
+
+    it('when operation is given with only a method, it writes the event with the partial operation', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'GET',
+        },
+      });
+
+      const event = await getEvent('InventoryAdjusted');
+
+      expect(event).toEqual({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        operation: {
+          method: 'GET',
+        },
+      });
+    });
+
     it('writes the given event to EventCatalog under the correct path when a path is given', async () => {
       await writeEvent(
         {

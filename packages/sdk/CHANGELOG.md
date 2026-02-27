@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.15.1
+
+### Patch Changes
+
+- b5bbb3d: Add operation type to Event, Command, and Query interfaces in the SDK
+
 ## 2.15.0
 
 ### Minor Changes
