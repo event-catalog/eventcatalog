@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.18.4
+
+### Patch Changes
+
+- da693fb: fix service sidebar entities to render as navigable links instead of unresolved pointers
+
 ## 3.18.3
 
 ### Patch Changes
