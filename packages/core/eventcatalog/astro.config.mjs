@@ -107,10 +107,22 @@ export default defineConfig({
     server: {
       fs: {
         allow: [
-          '..', 
+          '..',
           './node_modules/@fontsource',
           searchForWorkspaceRoot(process.cwd()),
         ]
+      },
+      // Prevent stale FSEvents from triggering a config-dependency restart on first run.
+      // During startup, catalogToAstro copies eventcatalog.config.js into .eventcatalog-core
+      // shortly before Astro/Vite begins watching. On macOS, FSEvents can deliver buffered
+      // notifications for those recent writes, causing Vite to restart mid-dep-scan.
+      // awaitWriteFinish makes chokidar verify the file is stable before emitting events,
+      // filtering out those stale notifications.
+      watch: {
+        awaitWriteFinish: {
+          stabilityThreshold: 100,
+          pollInterval: 50,
+        },
       },
       ...(config.server?.allowedHosts ? { allowedHosts: config.server?.allowedHosts } : {}),
     },
