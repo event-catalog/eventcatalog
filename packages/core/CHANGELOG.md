@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.18.5
+
+### Patch Changes
+
+- 143fe9c: fix first-run vite dep-scan errors by adding awaitWriteFinish to chokidar watcher config
+
 ## 3.18.4
 
 ### Patch Changes
