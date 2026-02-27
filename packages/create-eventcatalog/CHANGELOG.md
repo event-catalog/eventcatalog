@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.2.2
+
+### Patch Changes
+
+- 58fdcf2: fix dark mode for embedded Flow border and footer text by using theme CSS variables instead of hardcoded colors
+
 ## 4.2.1
 
 ### Patch Changes

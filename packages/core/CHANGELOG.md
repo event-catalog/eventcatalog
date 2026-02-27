@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.18.3
+
+### Patch Changes
+
+- 58fdcf2: fix dark mode for embedded Flow border and footer text by using theme CSS variables instead of hardcoded colors
+
 ## 3.18.2
 
 ### Patch Changes
