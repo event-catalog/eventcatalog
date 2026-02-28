@@ -80,13 +80,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.x
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('examples/default/package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
       - name: Download package artifacts
         uses: actions/download-artifact@v4
         with:
           name: eventcatalog-packages-artifact
       - name: Install @eventcatalog packages
         working-directory: examples/default/
-        run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../visualiser-package.tgz
+        run: npm install --prefer-offline ../../sdk-package.tgz ../../core-package.tgz ../../visualiser-package.tgz
       - name: Build EventCatalog
         working-directory: examples/default/
         run: npx eventcatalog build
