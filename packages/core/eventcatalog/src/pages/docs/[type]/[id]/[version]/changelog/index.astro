@@ -199,7 +199,7 @@ const badges = [getBadge()];
                       ))}
                     </div>
                   )}
-                  <div class="prose prose-md !max-w-none py-2">
+                  <div class="prose prose-md max-w-none! py-2">
                     <log.Content components={mdxComponents(props)} />
                   </div>
                   {log.diffs && log.diffs.map((diff) => <div class="bg-white rounded-lg p-2 my-2" set:html={diff} />)}

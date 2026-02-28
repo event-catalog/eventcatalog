@@ -53,7 +53,7 @@ const EntityBadge = memo(({ entity }: { entity: any }) => {
   return (
     <a
       href={buildUrl(`/docs/entities/${id}`)}
-      className="inline-flex items-center gap-2 px-3 py-2 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-sm font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-sm"
+      className="inline-flex items-center gap-2 px-3 py-2 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-sm font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-xs"
     >
       <BoxIcon className="h-4 w-4 text-[rgb(var(--ec-accent))]" />
       <span>{name}</span>
@@ -93,7 +93,7 @@ const SpecificationBadge = memo(
     return (
       <a
         href={getSpecUrl(spec, serviceId, serviceVersion)}
-        className="inline-flex items-center gap-1.5 px-2 py-1.5 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-sm"
+        className="inline-flex items-center gap-1.5 px-2 py-1.5 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-xs"
       >
         <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt={`${spec.type} icon`} className="h-3.5 w-3.5" />
         <span>{getSpecLabel(spec.type)}</span>
@@ -159,7 +159,7 @@ const SearchableBox = memo(
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 px-2 py-0.5 text-xs border border-[rgb(var(--ec-input-border))] rounded focus:outline-none focus:border-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))]"
+              className="flex-1 px-2 py-0.5 text-xs border border-[rgb(var(--ec-input-border))] rounded focus:outline-hidden focus:border-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))]"
               onClick={(e) => e.stopPropagation()}
             />
           )}
@@ -261,7 +261,7 @@ const ServiceCard = memo(({ service }: { service: any }) => {
   const hasContent = hasMessages || hasContainers;
 
   return (
-    <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-xs hover:shadow-md transition-shadow">
       {/* Service Header */}
       <div
         onClick={() => hasContent && setIsCollapsed(!isCollapsed)}
@@ -335,7 +335,7 @@ const DataProductCard = memo(({ dataProduct }: { dataProduct: any }) => {
   return (
     <a
       href={href}
-      className="block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-sm hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] transition-all"
+      className="block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-xs hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] transition-all"
     >
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2.5">
@@ -373,7 +373,7 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
   const dataProducts = data['data-products'] || [];
 
   return (
-    <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl overflow-hidden shadow-xs">
       {/* Subdomain Header - Clickable */}
       <div
         onClick={() => setIsCollapsed(!isCollapsed)}

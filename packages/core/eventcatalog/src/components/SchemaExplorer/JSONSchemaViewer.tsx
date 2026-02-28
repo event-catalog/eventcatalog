@@ -228,7 +228,7 @@ const NestedVariantSelector = ({
           <select
             value={selectedIndex}
             onChange={(e) => setSelectedIndex(parseInt(e.target.value))}
-            className="form-select text-xs border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-sm focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] py-1"
+            className="form-select text-xs border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-xs focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] py-1"
           >
             {variants.map((variant: any, index: number) => (
               <option key={index} value={index}>
@@ -293,7 +293,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
             aria-expanded={isExpanded}
             aria-controls={contentId}
             onClick={() => setIsExpanded(!isExpanded)}
-            className="property-toggle text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] pt-0.5 focus:outline-none w-3 text-center flex-shrink-0"
+            className="property-toggle text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] pt-0.5 focus:outline-hidden w-3 text-center flex-shrink-0"
           >
             <span className={`icon-collapsed font-mono text-xs ${isExpanded ? 'hidden' : ''}`}>&gt;</span>
             <span className={`icon-expanded font-mono text-xs ${!isExpanded ? 'hidden' : ''}`}>v</span>
@@ -396,7 +396,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                     <select
                       value={selectedVariantIndex}
                       onChange={(e) => setSelectedVariantIndex(parseInt(e.target.value))}
-                      className="form-select text-xs border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-sm focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] py-1"
+                      className="form-select text-xs border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-xs focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] py-1"
                     >
                       {details.variants.map((variant: any, index: number) => (
                         <option key={index} value={index}>
@@ -667,12 +667,12 @@ export default function JSONSchemaViewer({
   return (
     <div
       id={id}
-      className={`${heightClass} ${overflowClass} flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-sm`}
+      className={`${heightClass} ${overflowClass} flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-xs`}
       style={containerStyle}
     >
       {/* Toolbar */}
       {searchBool && (
-        <div className="flex-shrink-0 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] pt-4 px-4 mb-4 pb-3 border-b border-[rgb(var(--ec-page-border))] shadow-sm">
+        <div className="flex-shrink-0 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] pt-4 px-4 mb-4 pb-3 border-b border-[rgb(var(--ec-page-border))] shadow-xs">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <input
@@ -681,7 +681,7 @@ export default function JSONSchemaViewer({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search properties..."
-                className="w-full px-3 py-1.5 pr-20 text-sm border border-[rgb(var(--ec-input-border))] rounded-md bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent"
+                className="w-full px-3 py-1.5 pr-20 text-sm border border-[rgb(var(--ec-input-border))] rounded-md bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -720,7 +720,7 @@ export default function JSONSchemaViewer({
               {onOpenFullscreen && (
                 <button
                   onClick={onOpenFullscreen}
-                  className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                  className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
                   title="Open in fullscreen"
                 >
                   <svg
@@ -741,13 +741,13 @@ export default function JSONSchemaViewer({
               )}
               <button
                 onClick={handleExpandAll}
-                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
               >
                 Expand All
               </button>
               <button
                 onClick={handleCollapseAll}
-                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
               >
                 Collapse All
               </button>
@@ -790,7 +790,7 @@ export default function JSONSchemaViewer({
               <select
                 value={selectedVariantIndex}
                 onChange={(e) => setSelectedVariantIndex(parseInt(e.target.value))}
-                className="form-select text-sm border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-sm focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] flex-1 sm:flex-initial"
+                className="form-select text-sm border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-xs focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] flex-1 sm:flex-initial"
               >
                 {variants.map((variant: any, index: number) => (
                   <option key={index} value={index}>

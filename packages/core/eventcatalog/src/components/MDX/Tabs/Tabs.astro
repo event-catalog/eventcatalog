@@ -41,7 +41,7 @@ const tabsId = Math.random().toString(36).substring(2, 9);
       {
         tabItems.map((item) => (
           <button
-            class="whitespace-nowrap py-4 px-1 border-b-2 px-6 font-bold text-sm border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] focus:outline-none tab-button"
+            class="whitespace-nowrap py-4 px-1 border-b-2 px-6 font-bold text-sm border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] focus:outline-hidden tab-button"
             data-tab={item.id}
             aria-selected="false"
           >

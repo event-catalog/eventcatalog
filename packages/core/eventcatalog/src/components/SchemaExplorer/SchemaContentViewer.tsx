@@ -94,7 +94,7 @@ export default function SchemaContentViewer({
             return (
               <a
                 href={specUrl}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-xs"
                 title="View full specification"
               >
                 <svg
@@ -118,7 +118,7 @@ export default function SchemaContentViewer({
         {onOpenFullscreen && (
           <button
             onClick={onOpenFullscreen}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-xs"
             title="Open in fullscreen"
           >
             <ArrowsPointingOutIcon className="h-3.5 w-3.5" />
@@ -127,7 +127,7 @@ export default function SchemaContentViewer({
         )}
         <button
           onClick={onCopy}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-sm"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-xs"
           title="Copy code"
         >
           <ClipboardDocumentIcon className="h-3.5 w-3.5" />

@@ -387,7 +387,7 @@ export default function SearchModal() {
                   />
                   <Combobox.Input
                     ref={inputRef}
-                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-0 sm:text-sm focus:outline-none"
+                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-0 sm:text-sm focus:outline-hidden"
                     placeholder="Search..."
                     onChange={(event) => setQuery(event.target.value)}
                     value={query}

@@ -441,7 +441,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
           value={globalFilter}
           onChange={(value) => setGlobalFilter(String(value))}
           placeholder={`Search ${collectionLabel.toLowerCase()}...`}
-          className="w-full px-3 py-2 text-sm bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-page-border))] rounded-lg placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] focus:border-[rgb(var(--ec-accent))] transition-colors"
+          className="w-full px-3 py-2 text-sm bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-page-border))] rounded-lg placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] focus:border-[rgb(var(--ec-accent))] transition-colors"
         />
 
         {/* Message Filters Section */}
@@ -695,7 +695,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               value={tableFilter}
               onChange={(e) => setTableFilter(e.target.value)}
               placeholder="Filter..."
-              className="pl-9 pr-3 py-1.5 text-sm w-48 bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-page-border))] rounded-lg placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] focus:border-[rgb(var(--ec-accent))] transition-colors"
+              className="pl-9 pr-3 py-1.5 text-sm w-48 bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-page-border))] rounded-lg placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] focus:border-[rgb(var(--ec-accent))] transition-colors"
             />
             {tableFilter && (
               <button
@@ -709,7 +709,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-[rgb(var(--ec-page-border))] overflow-hidden shadow-sm">
+        <div className="rounded-xl border border-[rgb(var(--ec-page-border))] overflow-hidden shadow-xs">
           <table className="min-w-full divide-y divide-[rgb(var(--ec-page-border))]">
             <thead className="bg-[rgb(var(--ec-content-hover))] sticky top-0 z-10 border-b-2 border-[rgb(var(--ec-page-border))]">
               {table.getHeaderGroups().map((headerGroup, index) => (
@@ -822,7 +822,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               onChange={(e) => {
                 table.setPageSize(Number(e.target.value));
               }}
-              className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:border-[rgb(var(--ec-icon-color))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] transition-colors"
+              className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:border-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] transition-colors"
             >
               {[10, 20, 30, 40, 50].map((pageSize) => (
                 <option key={pageSize} value={pageSize}>

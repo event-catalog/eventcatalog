@@ -1,6 +1,6 @@
 
 import { defineConfig } from 'astro/config';
-import tailwind from '@astrojs/tailwind';
+import tailwindcss from '@tailwindcss/vite';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import { searchForWorkspaceRoot } from 'vite';
@@ -64,7 +64,6 @@ export default defineConfig({
   devToolbar: { enabled: false },
   integrations: [
     react(),
-    tailwind(),
     expressiveCode({
       ...expressiveCodeConfig,
     }),
@@ -95,6 +94,7 @@ export default defineConfig({
     eventCatalogIntegration(),
   ].filter(Boolean),
   vite: {
+    plugins: [tailwindcss()],
     define: {
       /**
        * Trailing slash is exposed as global variable here principally for `@utils/url-builder`.
@@ -125,6 +125,22 @@ export default defineConfig({
         },
       },
       ...(config.server?.allowedHosts ? { allowedHosts: config.server?.allowedHosts } : {}),
+      // Pre-transform critical modules during startup so they're ready when
+      // the first page request arrives. Without this, Vite transforms each
+      // module on-demand during the first request, adding seconds to TTFB.
+      warmup: {
+        ssrFiles: [
+          './src/pages/index.astro',
+          './src/pages/_index.astro',
+          './src/layouts/VerticalSideBarLayout.astro',
+          './src/components/Header.astro',
+          './src/components/SideNav/SideNav.astro',
+        ],
+        clientFiles: [
+          './src/components/SideNav/NestedSideBar/index.tsx',
+          './src/components/Search/SearchModal.tsx',
+        ],
+      },
     },
     worker: {
       format: 'es',
@@ -138,6 +154,21 @@ export default defineConfig({
       external: ['eventcatalog.auth.js', 'eventcatalog.chat.js'],
     },
     optimizeDeps: {
+      // Pre-bundle heavy dependencies so Vite doesn't discover and transform
+      // them lazily on first request. This significantly reduces initial page
+      // load time in dev mode.
+      include: [
+        'lucide-react',
+        '@heroicons/react/24/outline',
+        '@heroicons/react/24/solid',
+        '@heroicons/react/20/solid',
+        '@headlessui/react',
+        '@nanostores/react',
+        'nanostores',
+        'react',
+        'react-dom',
+        'semver',
+      ],
       esbuildOptions: {
         jsx: 'automatic',
       },

@@ -999,7 +999,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     onKeyDown={handleInputKeyDown}
                     placeholder="Ask, search, or explain..."
                     disabled={isLoading}
-                    className="w-full px-4 py-3 pr-16 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-none text-sm disabled:opacity-50 rounded-xl"
+                    className="w-full px-4 py-3 pr-16 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-hidden text-sm disabled:opacity-50 rounded-xl"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
                     {isStreaming ? (
@@ -1056,7 +1056,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300]" />
           <Dialog.Content
-            className="fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-none border border-[rgb(var(--ec-page-border))]"
+            className="fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-hidden border border-[rgb(var(--ec-page-border))]"
             style={{
               background: `
                 radial-gradient(ellipse 100% 40% at 50% 100%, rgb(var(--ec-accent) / 0.15) 0%, transparent 100%),
@@ -1291,7 +1291,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     onKeyDown={handleInputKeyDown}
                     placeholder="Ask, search, or explain..."
                     disabled={isLoading}
-                    className="w-full px-4 py-3.5 pr-20 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-none text-sm disabled:opacity-50 rounded-xl"
+                    className="w-full px-4 py-3.5 pr-20 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-hidden text-sm disabled:opacity-50 rounded-xl"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
                     {isStreaming ? (

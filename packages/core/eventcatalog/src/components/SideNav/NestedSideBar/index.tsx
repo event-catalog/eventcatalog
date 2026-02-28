@@ -910,7 +910,7 @@ export default function NestedSideBar() {
       'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
     const activeClasses = isActive
-      ? 'bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] !rounded-none'
+      ? 'bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] rounded-none!'
       : '';
 
     // Leaf item with href → render as link
@@ -1122,7 +1122,7 @@ export default function NestedSideBar() {
                         onClick={() => navigateToFavorite(fav)}
                         className={cn(
                           'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-500/10 active:bg-amber-500/20',
-                          isActive && 'bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] !rounded-none'
+                          isActive && 'bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] rounded-none!'
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">

@@ -105,7 +105,7 @@ const hasResources = resourcesToShow.length > 0;
                         if (resource.type === 'event') {
                           return (
                             <div
-                              class="animate-float-in flex items-center gap-2 text-sm text-[rgb(var(--ec-page-text))] px-4 py-2.5 bg-orange-50 dark:bg-orange-500/10 rounded-lg border border-orange-200 dark:border-orange-500/30 shadow-sm"
+                              class="animate-float-in flex items-center gap-2 text-sm text-[rgb(var(--ec-page-text))] px-4 py-2.5 bg-orange-50 dark:bg-orange-500/10 rounded-lg border border-orange-200 dark:border-orange-500/30 shadow-xs"
                               style={`animation-delay: ${resource.index * 0.3}s;`}
                             >
                               <BoltIcon className="w-4 h-4 text-orange-500" />
@@ -115,7 +115,7 @@ const hasResources = resourcesToShow.length > 0;
                         } else if (resource.type === 'service') {
                           return (
                             <div
-                              class="animate-float-in flex items-center gap-2 text-sm text-[rgb(var(--ec-page-text))] px-4 py-2.5 bg-pink-50 dark:bg-pink-500/10 rounded-lg border border-pink-200 dark:border-pink-500/30 shadow-sm"
+                              class="animate-float-in flex items-center gap-2 text-sm text-[rgb(var(--ec-page-text))] px-4 py-2.5 bg-pink-50 dark:bg-pink-500/10 rounded-lg border border-pink-200 dark:border-pink-500/30 shadow-xs"
                               style={`animation-delay: ${resource.index * 0.3}s;`}
                             >
                               <ServerIcon className="w-4 h-4 text-pink-500" />
@@ -125,7 +125,7 @@ const hasResources = resourcesToShow.length > 0;
                         } else if (resource.type === 'channel') {
                           return (
                             <div
-                              class="animate-float-in flex items-center gap-2 text-sm text-[rgb(var(--ec-page-text))] px-4 py-2.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg border border-indigo-200 dark:border-indigo-500/30 shadow-sm"
+                              class="animate-float-in flex items-center gap-2 text-sm text-[rgb(var(--ec-page-text))] px-4 py-2.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg border border-indigo-200 dark:border-indigo-500/30 shadow-xs"
                               style={`animation-delay: ${resource.index * 0.3}s;`}
                             >
                               <ArrowLeftRightIcon className="w-4 h-4 text-indigo-500" />

@@ -105,7 +105,7 @@ const sortedGroups = Object.entries(groupedAttachments).sort(([a], [b]) => {
                     href={attachment.url}
                     target={isExternal ? '_blank' : '_self'}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
-                    class="group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg p-4 transition-all duration-200 hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2"
+                    class="group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg p-4 transition-all duration-200 hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2"
                   >
                     <div class="flex items-start gap-3">
                       <div class="flex-shrink-0 p-2 bg-[rgb(var(--ec-content-hover))] rounded-lg group-hover:bg-[rgb(var(--ec-accent-subtle))] transition-colors duration-200">

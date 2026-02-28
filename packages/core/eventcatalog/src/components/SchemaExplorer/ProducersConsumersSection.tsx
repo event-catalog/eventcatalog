@@ -54,7 +54,7 @@ export default function ProducersConsumersSection({ message, isExpanded, onToggl
                   <a
                     key={`${producer.id}-${idx}`}
                     href={buildUrl(`/docs/services/${producer.id}/${producer.version}`)}
-                    className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-sm transition-all"
+                    className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-xs transition-all"
                     title={`View ${producer.id}`}
                   >
                     <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-b from-pink-500 to-pink-600 rounded-full">
@@ -75,7 +75,7 @@ export default function ProducersConsumersSection({ message, isExpanded, onToggl
                   <a
                     key={`${consumer.id}-${idx}`}
                     href={buildUrl(`/docs/services/${consumer.id}/${consumer.version}`)}
-                    className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-sm transition-all"
+                    className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-xs transition-all"
                     title={`View ${consumer.id}`}
                   >
                     <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-b from-pink-500 to-pink-600 rounded-full">

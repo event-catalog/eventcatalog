@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@plugin "@tailwindcss/typography";
+
+/* Dark mode uses data-theme attribute, not prefers-color-scheme */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+
+  --breakpoint-xxl: 1990px;
+
+  --color-primary: #a855f7;
+  --color-secondary-light: #ff9980;
+  --color-secondary: #ff6633;
+  --color-secondary-dark: #cc3300;
+
+  --spacing-header: 4rem;
+  --spacing-content: calc(100vh - 4rem);
+
+  --animate-progress-bar: progress-bar 2s linear infinite;
+  --animate-progress-bar-reverse: progress-bar-reverse 2s linear infinite;
+  --animate-overlayShow: overlayShow 200ms ease-out;
+  --animate-contentShow: contentShow 200ms ease-out;
+
+  @keyframes progress-bar {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  @keyframes progress-bar-reverse {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  @keyframes overlayShow {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes contentShow {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+}
+
+/*
+ * Safelist: dynamic color classes used in components that construct class names
+ * at runtime (e.g. `bg-${color}-50`). Tailwind v4 can't detect these from source
+ * scanning, so we explicitly declare them here.
+ *
+ * Colors used: orange, blue, green, emerald, amber, violet, pink, purple, gray
+ * Used in: SchemaListItem, Grids/components, SchemaExplorer, MessageGrid
+ */
+@source inline("bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{50,100}");
+@source inline("bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500/{10,20}");
+@source inline("text-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{400,500,600,700}");
+@source inline("border-l-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500");
+@source inline("ring-2");
+@source inline("ring-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500");
+
+/* Border color variants for MessageGrid cards */
+@source inline("border-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{200,300}");
+@source inline("{dark:,}border-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500/{30,50}");
+@source inline("{hover:,dark:hover:,}border-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{300,500/50}");
+
+/* Explicit safelist classes used in various components */
+@source inline("bg-{blue,orange}-600");
+@source inline("bg-{red,yellow,pink,green,blue,indigo}-50");
+@source inline("bg-{yellow,pink,green,blue,indigo}-100");
+@source inline("border-l-{red,yellow,blue}-500");
+@source inline("text-[5px] text-[9px] min-h-[100px]");
+
+/* Gradient classes for dynamic colors */
+@source inline("from-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,200,300,400,500,600,700}");
+@source inline("to-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,200,300,400,500,600,700}");
+
+/* Dark variant safelist for dynamic colors */
+@source inline("{dark:,}bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,200,400,500}");
+@source inline("{dark:,}bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500/{20,30}");
+@source inline("{dark:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,300,400,500,800}");
+@source inline("{dark:,group-hover:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,300,400,500,600,800}");
+@source inline("{dark:,}ring-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500/30");
+@source inline("{group-hover:,dark:group-hover:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{400,600}");

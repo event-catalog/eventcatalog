@@ -76,7 +76,7 @@ try {
                 data-expand={schema.expand ? 'true' : 'false'}
                 data-search={schema.search !== false ? 'true' : 'false'}
               >
-                {schema.title && <h2 class="text-2xl font-bold mb-2 !mt-0">{schema.title}</h2>}
+                {schema.title && <h2 class="text-2xl font-bold mb-2 mt-0!">{schema.title}</h2>}
 
                 {/* Render AvroSchemaViewer for Avro schemas */}
                 {schema.isAvroSchema ? (

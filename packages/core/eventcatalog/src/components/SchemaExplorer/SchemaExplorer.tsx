@@ -357,7 +357,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
       {/* Split View - Full Height */}
       <div className="flex-1 flex gap-4 overflow-hidden">
         {/* Left: Schema List */}
-        <div className="w-[320px] flex-shrink-0 flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg overflow-hidden shadow-sm">
+        <div className="w-[320px] flex-shrink-0 flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg overflow-hidden shadow-xs">
           {/* Search Header */}
           <div className="flex-shrink-0 p-3 border-b border-[rgb(var(--ec-page-border))]">
             {/* Search + Format Filter Row */}
@@ -372,7 +372,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                   placeholder="Search schemas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] py-2 pl-9 pr-8 text-sm text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:border-[rgb(var(--ec-accent))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] transition-all"
+                  className="w-full rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] py-2 pl-9 pr-8 text-sm text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:border-[rgb(var(--ec-accent))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] transition-all"
                 />
                 {searchQuery && (
                   <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 flex items-center pr-2.5">
@@ -385,7 +385,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                 <select
                   value={selectedSchemaType}
                   onChange={(e) => setSelectedSchemaType(e.target.value)}
-                  className="flex-shrink-0 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-page-border))] rounded-md px-2 py-2 focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] focus:border-[rgb(var(--ec-accent))] cursor-pointer hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
+                  className="flex-shrink-0 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-page-border))] rounded-md px-2 py-2 focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] focus:border-[rgb(var(--ec-accent))] cursor-pointer hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
                 >
                   <option value="all">All formats</option>
                   {schemaTypes.map((type) => {

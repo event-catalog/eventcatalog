@@ -47,7 +47,7 @@ const MessageCard = memo(({ message, compact = false }: { message: any; compact?
   return (
     <a
       href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-      className={`group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-${color}-200 dark:border-${color}-500/30 rounded-lg shadow-sm hover:shadow-md hover:border-${color}-300 dark:hover:border-${color}-500/50 transition-all`}
+      className={`group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-${color}-200 dark:border-${color}-500/30 rounded-lg shadow-xs hover:shadow-md hover:border-${color}-300 dark:hover:border-${color}-500/50 transition-all`}
     >
       <div className={compact ? 'p-3' : 'p-4'}>
         <div className="flex items-center gap-2 mb-1">
@@ -82,7 +82,7 @@ const ContainerCard = memo(({ container, type }: { container: any; type: 'reads'
   return (
     <a
       href={buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`)}
-      className={`group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border rounded-lg shadow-sm hover:shadow-md transition-all ${
+      className={`group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border rounded-lg shadow-xs hover:shadow-md transition-all ${
         type === 'reads'
           ? 'border-amber-200 dark:border-amber-500/30 hover:border-amber-300 dark:hover:border-amber-500/50'
           : 'border-violet-200 dark:border-violet-500/30 hover:border-violet-300 dark:hover:border-violet-500/50'
@@ -117,7 +117,7 @@ const SpecificationCard = memo(
     return (
       <a
         href={getSpecUrl(spec, serviceId, serviceVersion)}
-        className={`group flex items-center gap-3 p-3 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-${color}-200 dark:border-${color}-500/30 rounded-lg shadow-sm hover:shadow-md hover:border-${color}-300 dark:hover:border-${color}-500/50 transition-all`}
+        className={`group flex items-center gap-3 p-3 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-${color}-200 dark:border-${color}-500/30 rounded-lg shadow-xs hover:shadow-md hover:border-${color}-300 dark:hover:border-${color}-500/50 transition-all`}
       >
         <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt={`${spec.type} icon`} className="h-6 w-6" />
         <div className="flex-1 min-w-0">
@@ -154,7 +154,7 @@ const CollapsibleMessageSection = memo(
     const hasContent = messages.length > 0;
 
     return (
-      <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-xs overflow-hidden">
         <div
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[rgb(var(--ec-content-hover))] transition-colors ${!isCollapsed && hasContent ? 'border-b border-[rgb(var(--ec-page-border))]' : ''}`}
@@ -198,7 +198,7 @@ const CollapsibleContainerSection = memo(
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     return (
-      <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-xs overflow-hidden">
         <div
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[rgb(var(--ec-content-hover))] transition-colors ${!isCollapsed ? 'border-b border-[rgb(var(--ec-page-border))]' : ''}`}
