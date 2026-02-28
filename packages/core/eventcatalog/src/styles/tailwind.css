@@ -49,18 +49,22 @@
  * at runtime (e.g. `bg-${color}-50`). Tailwind v4 can't detect these from source
  * scanning, so we explicitly declare them here.
  *
- * Colors used: orange, blue, green, pink, purple, gray
- * Used in: SchemaListItem, Grids/components, SchemaExplorer
+ * Colors used: orange, blue, green, emerald, amber, violet, pink, purple, gray
+ * Used in: SchemaListItem, Grids/components, SchemaExplorer, MessageGrid
  */
-@source inline("bg-{orange,blue,green,pink,purple,gray}-{50,100}");
-@source inline("bg-{orange,blue,green,pink,purple,gray}-500/{10,20}");
-@source inline("text-{orange,blue,green,pink,purple,gray}-{400,500,600,700}");
-@source inline("border-l-{orange,blue,green,pink,purple,gray}-500");
+@source inline("bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{50,100}");
+@source inline("bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500/{10,20}");
+@source inline("text-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{400,500,600,700}");
+@source inline("border-l-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500");
 @source inline("ring-2");
-@source inline("ring-{orange,blue,green,pink,purple,gray}-500");
+@source inline("ring-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500");
+
+/* Border color variants for MessageGrid cards */
+@source inline("border-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{200,300}");
+@source inline("{dark:,}border-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500/{30,50}");
+@source inline("{hover:,dark:hover:,}border-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{300,500/50}");
 
 /* Explicit safelist classes used in various components */
-@source inline("border-blue-200 border-green-300");
 @source inline("bg-{blue,orange}-600");
 @source inline("bg-{red,yellow,pink,green,blue,indigo}-50");
 @source inline("bg-{yellow,pink,green,blue,indigo}-100");
@@ -68,11 +72,13 @@
 @source inline("text-[5px] text-[9px] min-h-[100px]");
 
 /* Gradient classes for dynamic colors */
-@source inline("from-{orange,blue,green,pink,purple,gray}-{100,200,300,400,500,600,700}");
-@source inline("to-{orange,blue,green,pink,purple,gray}-{100,200,300,400,500,600,700}");
+@source inline("from-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,200,300,400,500,600,700}");
+@source inline("to-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,200,300,400,500,600,700}");
 
 /* Dark variant safelist for dynamic colors */
-@source inline("{dark:,}bg-{orange,blue,green,pink,purple,gray}-{100,200,400,500}");
-@source inline("{dark:,}text-{orange,blue,green,pink,purple,gray}-{100,300,400,500,800}");
-@source inline("{dark:,group-hover:,}text-{orange,blue,green,pink,purple,gray}-{100,300,400,500,800}");
-@source inline("{dark:,}ring-{orange,blue,green,pink,purple,gray}-500/30");
+@source inline("{dark:,}bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,200,400,500}");
+@source inline("{dark:,}bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500/{20,30}");
+@source inline("{dark:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,300,400,500,800}");
+@source inline("{dark:,group-hover:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{100,300,400,500,600,800}");
+@source inline("{dark:,}ring-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-500/30");
+@source inline("{group-hover:,dark:group-hover:,}text-{orange,blue,green,emerald,amber,violet,pink,purple,gray}-{400,600}");
