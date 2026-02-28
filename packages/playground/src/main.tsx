@@ -1,4 +1,3 @@
-import { scan } from 'react-scan';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -6,9 +5,9 @@ import App from './App';
 import Landing from './pages/Landing';
 import './index.css';
 
-// Enable react-scan in development only
+// Enable react-scan in development only (dynamic import to avoid bundling in prod)
 if (import.meta.env.DEV) {
-  scan({ enabled: true });
+  import('react-scan').then((m) => m.scan({ enabled: true }));
 }
 
 /** Show landing page unless the URL carries query params or a hash (shared link). */

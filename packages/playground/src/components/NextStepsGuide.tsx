@@ -1,4 +1,4 @@
-import { useCallback, memo } from "react";
+import { useCallback, useMemo, memo } from "react";
 import { useStore } from "@nanostores/react";
 import { X, ChevronRight, Check, ExternalLink } from "lucide-react";
 import { $workspace, saveWorkspace } from "../stores/workspace";
@@ -206,7 +206,7 @@ export const NextStepsGuide = memo(function NextStepsGuide({
   onDismiss,
 }: NextStepsGuideProps) {
   const ws = useStore($workspace);
-  const completedSteps = new Set(ws.guideDone);
+  const completedSteps = useMemo(() => new Set(ws.guideDone), [ws.guideDone]);
   const steps = getSteps(specKind, specFile, serviceNames, onExportCatalog);
 
   const handleStepClick = useCallback(
@@ -235,10 +235,6 @@ export const NextStepsGuide = memo(function NextStepsGuide({
     [completedSteps, onApplyStep, ws.guideDone],
   );
 
-  const handleDismiss = useCallback(() => {
-    onDismiss();
-  }, [onDismiss]);
-
   const transformSteps = steps.filter(
     (s) => s.type === "transform" || s.type === "action",
   );
@@ -262,7 +258,7 @@ export const NextStepsGuide = memo(function NextStepsGuide({
         <button
           type="button"
           className="next-steps-close"
-          onClick={handleDismiss}
+          onClick={onDismiss}
           aria-label="Dismiss guide"
         >
           <X size={14} />

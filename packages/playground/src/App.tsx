@@ -24,8 +24,9 @@ import {
   saveDraft as saveDraftStore,
   clearDraft as clearDraftStore,
   getSpecFile,
+  peekDraft,
+  peekWorkspaceFiles,
 } from "./stores/workspace";
-import type { DraftState } from "./stores/workspace";
 import {
   ChevronDown,
   AlignLeft,
@@ -458,45 +459,6 @@ const CatalogExportModal = memo(function CatalogExportModal({
 
 let newFileCounter = 1;
 
-/** Peek at a non-workspace draft without loading into the store. */
-function peekDraft(): DraftState | null {
-  try {
-    const raw =
-      localStorage.getItem("ec-compass-draft") ??
-      localStorage.getItem("ec-canvas-draft");
-    if (!raw) return null;
-    const files = JSON.parse(raw);
-    if (!files || typeof files !== "object" || Object.keys(files).length === 0)
-      return null;
-    const activeFile =
-      localStorage.getItem("ec-compass-draft-active") ??
-      localStorage.getItem("ec-canvas-draft-active") ??
-      Object.keys(files)[0];
-    return { files, activeFile };
-  } catch {
-    return null;
-  }
-}
-
-/** Peek at workspace files without loading the full store. */
-function peekWorkspaceFiles(
-  id: string,
-): { files: Record<string, string>; activeFile: string } | null {
-  try {
-    const raw = localStorage.getItem(`ec-workspace-${id}-files`);
-    if (!raw) return null;
-    const files = JSON.parse(raw);
-    if (!files || typeof files !== "object" || Object.keys(files).length === 0)
-      return null;
-    const activeFile =
-      localStorage.getItem(`ec-workspace-${id}-active`) ??
-      Object.keys(files)[0];
-    return { files, activeFile };
-  } catch {
-    return null;
-  }
-}
-
 function getCodeFromUrl(): string | null {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -537,33 +499,19 @@ function getInitialExample(): number {
   return 0;
 }
 
-function getInitialFiles(workspaceId?: string): Record<string, string> {
+function getInitialState(workspaceId?: string): { files: Record<string, string>; activeFile: string } {
+  const defaultState = { files: { "main.ec": "" }, activeFile: "main.ec" };
   if (workspaceId) {
-    const ws = peekWorkspaceFiles(workspaceId);
-    if (ws) return ws.files;
-    return { "main.ec": "" };
+    return peekWorkspaceFiles(workspaceId) ?? defaultState;
   }
   const code = getCodeFromUrl();
-  if (code) return { "main.ec": code };
-  if (isNewRoute()) return { "main.ec": "" };
+  if (code) return { files: { "main.ec": code }, activeFile: "main.ec" };
+  if (isNewRoute()) return defaultState;
   const draft = peekDraft();
-  if (draft) return draft.files;
-  if (shouldShowTemplatePicker()) return { "main.ec": "" };
-  return { ...examples[getInitialExample()].source };
-}
-
-function getInitialActiveFile(workspaceId?: string): string {
-  if (workspaceId) {
-    const ws = peekWorkspaceFiles(workspaceId);
-    if (ws) return ws.activeFile;
-    return "main.ec";
-  }
-  const code = getCodeFromUrl();
-  if (code) return "main.ec";
-  if (isNewRoute()) return "main.ec";
-  const draft = peekDraft();
-  if (draft) return draft.activeFile;
-  return Object.keys(examples[getInitialExample()].source)[0];
+  if (draft) return draft;
+  if (shouldShowTemplatePicker()) return defaultState;
+  const source = examples[getInitialExample()].source;
+  return { files: { ...source }, activeFile: Object.keys(source)[0] };
 }
 
 function downloadBlob(blob: Blob, filename: string): void {
@@ -600,12 +548,11 @@ export default function App() {
   const [showTemplatePicker, setShowTemplatePicker] = useState(() =>
     shouldShowTemplatePicker(workspaceId),
   );
-  const [files, setFiles] = useState<Record<string, string>>(() =>
-    getInitialFiles(workspaceId),
+  const [initialState] = useState(() => getInitialState(workspaceId));
+  const [files, setFiles] = useState<Record<string, string>>(
+    initialState.files,
   );
-  const [activeFile, setActiveFile] = useState(() =>
-    getInitialActiveFile(workspaceId),
-  );
+  const [activeFile, setActiveFile] = useState(initialState.activeFile);
   // Track whether the current session is user-authored content that should be saved
   const isUserDraft = useRef(
     !!workspaceId || !!getCodeFromUrl() || isNewRoute() || !!peekDraft(),
@@ -654,11 +601,8 @@ export default function App() {
     $theme.set(next);
   }, []);
 
-  const handleExampleChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      if (e.target.value === "") return;
-      const idx = Number(e.target.value);
-      if (e.target.value === "url") return;
+  const loadExample = useCallback(
+    (idx: number) => {
       setSelectedExample(idx);
       setTemplateUnselected(false);
       setLoadedFromUrl(false);
@@ -668,7 +612,6 @@ export default function App() {
       } else {
         clearDraftStore();
       }
-      // Clear ?code param when switching to a built-in example
       const url = new URL(window.location.href);
       url.pathname = getBasePathname();
       url.search = "";
@@ -682,24 +625,21 @@ export default function App() {
     [workspaceId],
   );
 
-  const handleTemplateSelect = useCallback((exampleIndex: number) => {
-    setSelectedExample(exampleIndex);
-    setTemplateUnselected(false);
-    setShowTemplatePicker(false);
-    isUserDraft.current = false;
-    if (workspaceId) {
-      clearWorkspace(workspaceId);
-    } else {
-      clearDraftStore();
-    }
-    const url = new URL(window.location.href);
-    url.hash = `example=${exampleIndex}`;
-    window.history.replaceState(null, "", url.toString());
-    const newFiles = { ...examples[exampleIndex].source };
-    setFiles(newFiles);
-    setActiveFile(Object.keys(newFiles)[0]);
-    setActiveVisualizer(undefined);
-  }, []);
+  const handleExampleChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (e.target.value === "" || e.target.value === "url") return;
+      loadExample(Number(e.target.value));
+    },
+    [loadExample],
+  );
+
+  const handleTemplateSelect = useCallback(
+    (exampleIndex: number) => {
+      setShowTemplatePicker(false);
+      loadExample(exampleIndex);
+    },
+    [loadExample],
+  );
 
   const handleBlankStart = useCallback(() => {
     setShowTemplatePicker(false);

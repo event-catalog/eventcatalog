@@ -130,6 +130,39 @@ function extractNotes(
   return notes;
 }
 
+function extractApiInfo(body: AstNode[]): {
+  method?: string;
+  path?: string;
+  statusCodes?: number[];
+} {
+  const annotations = getAnnotations(body);
+  for (const ann of annotations) {
+    if (ann.name !== "api") continue;
+    const result: { method?: string; path?: string; statusCodes?: number[] } =
+      {};
+    for (const arg of ann.args) {
+      if (isNamedAnnotationArg(arg)) {
+        const val = isStringAnnotationValue(arg.value)
+          ? stripQuotes(arg.value.value)
+          : isIdAnnotationValue(arg.value)
+            ? arg.value.value
+            : undefined;
+        if (!val) continue;
+        if (arg.key === "method") result.method = val;
+        else if (arg.key === "path") result.path = val;
+        else if (arg.key === "statusCodes") {
+          result.statusCodes = val
+            .split(",")
+            .map(Number)
+            .filter((c) => !isNaN(c));
+        }
+      }
+    }
+    return result;
+  }
+  return {};
+}
+
 export function astToGraph(
   program: Program,
   visualizerName?: string,
@@ -490,6 +523,31 @@ export function astToGraph(
     }
   }
 
+  /** Enrich an existing node with metadata from an inline sends/receives body. */
+  function enrichNodeFromInlineBody(nodeId: string, body: AstNode[]): void {
+    const existing = nodes.find((n) => n.id === nodeId);
+    if (!existing) return;
+    const summary = getSummary(body);
+    if (summary && !existing.metadata.summary)
+      existing.metadata.summary = summary;
+    const schema = getSchema(body);
+    if (schema && !existing.metadata.schema) existing.metadata.schema = schema;
+    const inlineNotes = extractNotes(body);
+    if (inlineNotes.length > 0 && !existing.metadata.notes)
+      existing.metadata.notes = inlineNotes;
+    const inlineApi = extractApiInfo(body);
+    if (inlineApi.method && !existing.metadata.method)
+      existing.metadata.method = inlineApi.method;
+    if (inlineApi.path && !existing.metadata.path)
+      existing.metadata.path = inlineApi.path;
+    if (
+      inlineApi.statusCodes &&
+      inlineApi.statusCodes.length > 0 &&
+      !existing.metadata.statusCodes
+    )
+      existing.metadata.statusCodes = inlineApi.statusCodes;
+  }
+
   // For sends/receives references: resolve to versioned node if it exists, otherwise create
   function resolveOrCreateMsg(
     name: string,
@@ -551,29 +609,7 @@ export function astToGraph(
 
       // Inline body summary + schema + notes + api info
       if (s.body.length > 0) {
-        const existing = nodes.find((n) => n.id === msgNodeId);
-        if (existing) {
-          const summary = getSummary(s.body as AstNode[]);
-          if (summary && !existing.metadata.summary)
-            existing.metadata.summary = summary;
-          const schema = getSchema(s.body as AstNode[]);
-          if (schema && !existing.metadata.schema)
-            existing.metadata.schema = schema;
-          const inlineNotes = extractNotes(s.body as AstNode[]);
-          if (inlineNotes.length > 0 && !existing.metadata.notes)
-            existing.metadata.notes = inlineNotes;
-          const inlineApi = extractApiInfo(s.body as AstNode[]);
-          if (inlineApi.method && !existing.metadata.method)
-            existing.metadata.method = inlineApi.method;
-          if (inlineApi.path && !existing.metadata.path)
-            existing.metadata.path = inlineApi.path;
-          if (
-            inlineApi.statusCodes &&
-            inlineApi.statusCodes.length > 0 &&
-            !existing.metadata.statusCodes
-          )
-            existing.metadata.statusCodes = inlineApi.statusCodes;
-        }
+        enrichNodeFromInlineBody(msgNodeId, s.body as AstNode[]);
       }
 
       // Channel clause (on the sends statement itself)
@@ -648,29 +684,7 @@ export function astToGraph(
       addEdge(msgNodeId, serviceId, "receives", getReceivesLabel(msgType));
 
       if (r.body.length > 0) {
-        const existing = nodes.find((n) => n.id === msgNodeId);
-        if (existing) {
-          const summary = getSummary(r.body as AstNode[]);
-          if (summary && !existing.metadata.summary)
-            existing.metadata.summary = summary;
-          const schema = getSchema(r.body as AstNode[]);
-          if (schema && !existing.metadata.schema)
-            existing.metadata.schema = schema;
-          const inlineNotes = extractNotes(r.body as AstNode[]);
-          if (inlineNotes.length > 0 && !existing.metadata.notes)
-            existing.metadata.notes = inlineNotes;
-          const inlineApi = extractApiInfo(r.body as AstNode[]);
-          if (inlineApi.method && !existing.metadata.method)
-            existing.metadata.method = inlineApi.method;
-          if (inlineApi.path && !existing.metadata.path)
-            existing.metadata.path = inlineApi.path;
-          if (
-            inlineApi.statusCodes &&
-            inlineApi.statusCodes.length > 0 &&
-            !existing.metadata.statusCodes
-          )
-            existing.metadata.statusCodes = inlineApi.statusCodes;
-        }
+        enrichNodeFromInlineBody(msgNodeId, r.body as AstNode[]);
       }
 
       // Channel clause: "from ChannelX" means the service receives via that channel.
@@ -927,39 +941,6 @@ export function astToGraph(
 
     processSends(domId, getSends(body));
     processReceives(domId, getReceives(body));
-  }
-
-  function extractApiInfo(body: AstNode[]): {
-    method?: string;
-    path?: string;
-    statusCodes?: number[];
-  } {
-    const annotations = getAnnotations(body);
-    for (const ann of annotations) {
-      if (ann.name !== "api") continue;
-      const result: { method?: string; path?: string; statusCodes?: number[] } =
-        {};
-      for (const arg of ann.args) {
-        if (isNamedAnnotationArg(arg)) {
-          const val = isStringAnnotationValue(arg.value)
-            ? stripQuotes(arg.value.value)
-            : isIdAnnotationValue(arg.value)
-              ? arg.value.value
-              : undefined;
-          if (!val) continue;
-          if (arg.key === "method") result.method = val;
-          else if (arg.key === "path") result.path = val;
-          else if (arg.key === "statusCodes") {
-            result.statusCodes = val
-              .split(",")
-              .map(Number)
-              .filter((c) => !isNaN(c));
-          }
-        }
-      }
-      return result;
-    }
-    return {};
   }
 
   function processMessage(def: EventDef | CommandDef | QueryDef): void {

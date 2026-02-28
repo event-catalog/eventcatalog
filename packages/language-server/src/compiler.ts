@@ -246,7 +246,7 @@ function writeFrontmatterFields(
 function getAnnotationArgValue(
   arg: NamedAnnotationArg | PositionalAnnotationArg,
 ): string | boolean | number {
-  const v = isNamedAnnotationArg(arg) ? arg.value : arg.value;
+  const v = arg.value;
   if (isStringAnnotationValue(v)) return stripQuotes(v.value);
   if (isIdAnnotationValue(v)) return v.value;
   if (isNumberAnnotationValue(v)) return parseInt(v.value, 10);
