@@ -315,32 +315,19 @@ const LiveVisualizer = memo(function LiveVisualizer({ graph, id, portalId }: { g
 
 /** Read-only Monaco editor for the code panel */
 const HeroEditor = memo(function HeroEditor({ value, language }: { value: string; language: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<any>(null);
 
-  useEffect(() => {
-    let disposed = false;
-
-    import('@monaco-editor/react').then((mod) => {
-      // We can't use the React component easily here since we need beforeMount,
-      // so we'll set state to trigger a render instead
-      if (!disposed) {
-        setReady(true);
-      }
-    });
-
-    return () => { disposed = true; };
-  }, []);
-
-  const [ready, setReady] = useState(false);
   const [MonacoEditor, setMonacoEditor] = useState<any>(null);
 
   useEffect(() => {
-    if (!ready) return;
+    let disposed = false;
     import('@monaco-editor/react').then((mod) => {
-      setMonacoEditor(() => mod.default);
+      if (!disposed) {
+        setMonacoEditor(() => mod.default);
+      }
     });
-  }, [ready]);
+    return () => { disposed = true; };
+  }, []);
 
   const handleBeforeMount = useCallback((monaco: any) => {
     // Register EC language + dark theme synchronously before editor mounts

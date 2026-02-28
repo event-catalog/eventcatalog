@@ -228,6 +228,47 @@ export function clearDraft(): void {
 }
 
 // ---------------------------------------------------------------------------
+// Peek helpers (read from localStorage without updating stores)
+// ---------------------------------------------------------------------------
+
+/** Read draft files+activeFile from localStorage without updating the $draft store. */
+export function peekDraft(): DraftState | null {
+  try {
+    const raw =
+      localStorage.getItem(DRAFT_KEY) ?? localStorage.getItem(LEGACY_DRAFT_KEY);
+    if (!raw) return null;
+    const files = JSON.parse(raw);
+    if (!files || typeof files !== "object" || Object.keys(files).length === 0)
+      return null;
+    const activeFile =
+      localStorage.getItem(DRAFT_ACTIVE_KEY) ??
+      localStorage.getItem(LEGACY_ACTIVE_KEY) ??
+      Object.keys(files)[0];
+    return { files, activeFile };
+  } catch {
+    return null;
+  }
+}
+
+/** Read workspace files+activeFile from localStorage without updating the $workspace store. */
+export function peekWorkspaceFiles(
+  id: string,
+): { files: Record<string, string>; activeFile: string } | null {
+  try {
+    const raw = localStorage.getItem(wsKey(id, "files"));
+    if (!raw) return null;
+    const files = JSON.parse(raw);
+    if (!files || typeof files !== "object" || Object.keys(files).length === 0)
+      return null;
+    const activeFile =
+      localStorage.getItem(wsKey(id, "active")) ?? Object.keys(files)[0];
+    return { files, activeFile };
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 

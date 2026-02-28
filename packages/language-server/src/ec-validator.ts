@@ -52,27 +52,18 @@ export class EcValidator {
     // but event Foo 1.0.0 and event Foo 2.0.0 is allowed.
     const seen = new Map<string, AstNode>();
 
-    function registerDef(
-      def: AstNode & { name: string; body?: AstNode[] },
-    ): void {
-      const version = def.body ? getVersion(def.body) : undefined;
-      const key = version ? `${def.name}@${version}` : def.name;
-      if (seen.has(key)) {
-        const label = version
-          ? `'${def.name}' version ${version}`
-          : `'${def.name}'`;
-        accept("error", `Duplicate resource definition: ${label}`, {
-          node: def,
-          property: "name",
-        });
-      } else {
-        seen.set(key, def);
-      }
-    }
-
     for (const def of program.definitions) {
       if ("name" in def && typeof def.name === "string") {
-        registerDef(def as AstNode & { name: string; body?: AstNode[] });
+        checkAndRegisterDuplicate(
+          seen,
+          def.name,
+          "body" in def && Array.isArray(def.body)
+            ? getVersion(def.body)
+            : undefined,
+          def,
+          "name",
+          accept,
+        );
 
         // Also check inline definitions nested inside domains/services
         if (isDomainDef(def) || isSubdomainDef(def)) {
@@ -95,6 +86,27 @@ export class EcValidator {
   }
 }
 
+/** Check if a name+version pair is already in `seen`; if so, emit an error. */
+function checkAndRegisterDuplicate(
+  seen: Map<string, AstNode>,
+  name: string,
+  version: string | undefined,
+  node: AstNode,
+  property: string,
+  accept: ValidationAcceptor,
+): void {
+  const key = version ? `${name}@${version}` : name;
+  if (seen.has(key)) {
+    const label = version ? `'${name}' version ${version}` : `'${name}'`;
+    accept("error", `Duplicate resource definition: ${label}`, {
+      node,
+      property,
+    });
+  } else {
+    seen.set(key, node);
+  }
+}
+
 function checkNestedDuplicates(
   body: AstNode[],
   seen: Map<string, AstNode>,
@@ -102,35 +114,25 @@ function checkNestedDuplicates(
 ): void {
   for (const item of body) {
     if (isServiceDef(item)) {
-      const version = getVersion(item.body as AstNode[]);
-      const key = version ? `${item.name}@${version}` : item.name;
-      if (seen.has(key)) {
-        const label = version
-          ? `'${item.name}' version ${version}`
-          : `'${item.name}'`;
-        accept("error", `Duplicate resource definition: ${label}`, {
-          node: item,
-          property: "name",
-        });
-      } else {
-        seen.set(key, item);
-      }
+      checkAndRegisterDuplicate(
+        seen,
+        item.name,
+        getVersion(item.body as AstNode[]),
+        item,
+        "name",
+        accept,
+      );
       checkInlineDuplicates(item.body as AstNode[], seen, accept);
     }
     if (isSubdomainDef(item)) {
-      const version = getVersion(item.body as AstNode[]);
-      const key = version ? `${item.name}@${version}` : item.name;
-      if (seen.has(key)) {
-        const label = version
-          ? `'${item.name}' version ${version}`
-          : `'${item.name}'`;
-        accept("error", `Duplicate resource definition: ${label}`, {
-          node: item,
-          property: "name",
-        });
-      } else {
-        seen.set(key, item);
-      }
+      checkAndRegisterDuplicate(
+        seen,
+        item.name,
+        getVersion(item.body as AstNode[]),
+        item,
+        "name",
+        accept,
+      );
       checkNestedDuplicates(item.body as AstNode[], seen, accept);
     }
   }
@@ -143,19 +145,14 @@ function checkInlineDuplicates(
 ): void {
   for (const item of body) {
     if ((isSendsStmt(item) || isReceivesStmt(item)) && item.body.length > 0) {
-      const version = getVersion(item.body as AstNode[]);
-      const key = version ? `${item.messageName}@${version}` : item.messageName;
-      if (seen.has(key)) {
-        const label = version
-          ? `'${item.messageName}' version ${version}`
-          : `'${item.messageName}'`;
-        accept("error", `Duplicate resource definition: ${label}`, {
-          node: item,
-          property: "messageName",
-        });
-      } else {
-        seen.set(key, item);
-      }
+      checkAndRegisterDuplicate(
+        seen,
+        item.messageName,
+        getVersion(item.body as AstNode[]),
+        item,
+        "messageName",
+        accept,
+      );
     }
   }
 }
@@ -272,19 +269,14 @@ function checkVisualizerDuplicates(
         "body" in item && Array.isArray(item.body)
           ? (item.body as AstNode[])
           : [];
-      const version = getVersion(itemBody);
-      const key = version ? `${item.name}@${version}` : item.name;
-      if (seen.has(key)) {
-        const label = version
-          ? `'${item.name}' version ${version}`
-          : `'${item.name}'`;
-        accept("error", `Duplicate resource definition: ${label}`, {
-          node: item,
-          property: "name",
-        });
-      } else {
-        seen.set(key, item);
-      }
+      checkAndRegisterDuplicate(
+        seen,
+        item.name,
+        getVersion(itemBody),
+        item,
+        "name",
+        accept,
+      );
       if (isServiceDef(item)) {
         checkInlineDuplicates(item.body as AstNode[], seen, accept);
       }
@@ -294,19 +286,14 @@ function checkVisualizerDuplicates(
     }
     if (isEventDef(item) || isCommandDef(item) || isQueryDef(item)) {
       if (item.body && item.body.length > 0) {
-        const version = getVersion(item.body as AstNode[]);
-        const key = version ? `${item.name}@${version}` : item.name;
-        if (seen.has(key)) {
-          const label = version
-            ? `'${item.name}' version ${version}`
-            : `'${item.name}'`;
-          accept("error", `Duplicate resource definition: ${label}`, {
-            node: item,
-            property: "name",
-          });
-        } else {
-          seen.set(key, item);
-        }
+        checkAndRegisterDuplicate(
+          seen,
+          item.name,
+          getVersion(item.body as AstNode[]),
+          item,
+          "name",
+          accept,
+        );
       }
     }
   }

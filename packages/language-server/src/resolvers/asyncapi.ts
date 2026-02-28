@@ -28,6 +28,7 @@ function resolveRef(doc: any, ref: string): any {
 }
 
 interface ParsedSpec {
+  doc: any;
   messages: Map<string, SpecMessage>;
   channels: Map<string, SpecChannel>;
   errors: ResolveError[];
@@ -42,6 +43,7 @@ export function parseSpec(content: string): ParsedSpec {
     doc = yaml.load(content);
   } catch (e) {
     return {
+      doc: null,
       messages: new Map(),
       channels: new Map(),
       errors: [
@@ -56,6 +58,7 @@ export function parseSpec(content: string): ParsedSpec {
 
   if (!doc || typeof doc !== "object") {
     return {
+      doc: null,
       messages: new Map(),
       channels: new Map(),
       errors: [
@@ -83,7 +86,7 @@ export function parseSpec(content: string): ParsedSpec {
     }
   }
 
-  return { messages, channels, errors: [] };
+  return { doc, messages, channels, errors: [] };
 }
 
 /**
@@ -102,24 +105,23 @@ export function extractService(
   });
 
   const parsed = parseSpec(content);
-  if (parsed.errors.length > 0) {
+  if (parsed.errors.length > 0 || !parsed.doc) {
     return {
       service: emptyService(serviceName || "UnknownService"),
-      errors: parsed.errors,
+      errors:
+        parsed.errors.length > 0
+          ? parsed.errors
+          : [
+              {
+                message: "AsyncAPI file is empty or invalid",
+                line: 1,
+                column: 1,
+              },
+            ],
     };
   }
 
-  // parseSpec returns empty maps for empty/invalid docs, so check that
-  const doc = yaml.load(content) as any;
-  if (!doc || typeof doc !== "object") {
-    return {
-      service: emptyService(serviceName || "UnknownService"),
-      errors: [
-        { message: "AsyncAPI file is empty or invalid", line: 1, column: 1 },
-      ],
-    };
-  }
-
+  const doc = parsed.doc;
   const name =
     serviceName || sanitizeServiceName(doc.info?.title) || "UnknownService";
   const version = doc.info?.version;
