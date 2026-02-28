@@ -63,7 +63,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 <button
                   id="profile-menu-button"
                   type="button"
-                  class="flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 rounded-full"
+                  class="flex items-center focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 rounded-full"
                   aria-expanded="false"
                   aria-haspopup="true"
                   aria-label="User menu"
@@ -72,10 +72,10 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                     <img
                       src={session.user.image}
                       alt={session.user?.name || 'User'}
-                      class="h-9 w-9 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-all shadow-sm"
+                      class="h-9 w-9 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-all shadow-xs"
                     />
                   ) : (
-                    <div class="h-9 w-9 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-all bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600 shadow-sm">
+                    <div class="h-9 w-9 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-all bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600 shadow-xs">
                       {session.user?.name
                         ? session.user.name
                             .split(' ')
@@ -115,7 +115,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 {isAuthEnabled() && (
                   <button
                     id="okta-signin-btn"
-                    class="bg-[rgb(var(--ec-button-bg))] hover:bg-[rgb(var(--ec-button-bg-hover))] text-[rgb(var(--ec-button-text))] text-sm font-medium px-4 py-2 rounded-lg transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                    class="bg-[rgb(var(--ec-button-bg))] hover:bg-[rgb(var(--ec-button-bg-hover))] text-[rgb(var(--ec-button-text))] text-sm font-medium px-4 py-2 rounded-lg transition-all shadow-xs hover:shadow focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                   >
                     Sign In
                   </button>
@@ -158,7 +158,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                     <li>
                       <a
                         href={repositoryUrl}
-                        class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors focus:outline-none"
+                        class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors focus:outline-hidden"
                         aria-label="View repository on GitHub"
                       >
                         <img
@@ -181,7 +181,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
         <button
           id="menu-toggle"
           type="button"
-          class="text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] focus:outline-none focus:text-[rgb(var(--ec-icon-hover))]"
+          class="text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] focus:outline-hidden focus:text-[rgb(var(--ec-icon-hover))]"
           aria-label="Toggle menu"
         >
           <svg viewBox="0 0 24 24" class="h-6 w-6 fill-current">

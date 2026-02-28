@@ -12,7 +12,7 @@ declare global {
 
 export default function Example({ title, children }: any) {
   return (
-    <div className="border border-[rgb(var(--ec-page-border))] rounded-md px-4 shadow-sm py-2 accordion bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
+    <div className="border border-[rgb(var(--ec-page-border))] rounded-md px-4 shadow-xs py-2 accordion bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
       <Disclosure as="div" key={title} className="">
         {({ open }) => {
           useEffect(() => {

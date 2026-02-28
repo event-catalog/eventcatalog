@@ -141,7 +141,7 @@ if (renderAs === 'auto') {
     <div class="remote-file-content">
       {finalRenderAs === 'schema' ? (
         <div class="not-prose my-4">
-          {title && <h2 class="text-3xl font-bold mb-2 !mt-0">{title}</h2>}
+          {title && <h2 class="text-3xl font-bold mb-2 mt-0!">{title}</h2>}
           <JSONSchemaViewer client:load schema={processedData} maxHeight={maxHeight} expand={false} search={true} />
         </div>
       ) : (

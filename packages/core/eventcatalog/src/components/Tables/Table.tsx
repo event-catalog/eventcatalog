@@ -353,7 +353,7 @@ export const Table = <T extends TCollectionTypes>({
             onChange={(e) => {
               table.setPageSize(Number(e.target.value));
             }}
-            className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:border-[rgb(var(--ec-icon-color))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] transition-colors"
+            className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:border-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] transition-colors"
           >
             {[10, 20, 30, 40, 50].map((pageSize) => (
               <option key={pageSize} value={pageSize}>
@@ -428,7 +428,7 @@ function Filter<T extends TCollectionTypes>({ column }: { column: Column<TData<T
         value={(columnFilterValue ?? '') as string}
         onChange={(value) => column.setFilterValue(value)}
         placeholder={!column?.columnDef?.meta?.filterVariant ? `Search (${uniqueCount})...` : 'Search...'}
-        className="w-full px-3 py-2 text-sm bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-input-border))] rounded-lg placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] focus:border-[rgb(var(--ec-accent))] transition-colors"
+        className="w-full px-3 py-2 text-sm bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-input-border))] rounded-lg placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] focus:border-[rgb(var(--ec-accent))] transition-colors"
         list={column.id + 'list'}
       />
     </div>

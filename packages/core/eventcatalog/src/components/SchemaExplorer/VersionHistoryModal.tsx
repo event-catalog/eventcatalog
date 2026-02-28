@@ -22,7 +22,7 @@ export default function VersionHistoryModal({
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-overlayShow z-50" />
-        <Dialog.Content className="fixed inset-4 md:inset-8 rounded-lg bg-white shadow-xl focus:outline-none data-[state=open]:animate-contentShow z-[100] flex flex-col">
+        <Dialog.Content className="fixed inset-4 md:inset-8 rounded-lg bg-white shadow-xl focus:outline-hidden data-[state=open]:animate-contentShow z-[100] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-center gap-3">
@@ -59,7 +59,7 @@ export default function VersionHistoryModal({
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
               >
                 Close
               </button>

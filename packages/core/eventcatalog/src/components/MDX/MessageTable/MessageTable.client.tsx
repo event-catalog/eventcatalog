@@ -284,7 +284,7 @@ const MessageTable = (props: MessageTableProps) => {
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full py-2 align-middle">
             <div className="max-w-full overflow-hidden">
-              <table className="min-w-full table-fixed divide-y divide-[rgb(var(--ec-page-border))] rounded-sm bg-[rgb(var(--ec-page-bg))]">
+              <table className="min-w-full table-fixed divide-y divide-[rgb(var(--ec-page-border))] rounded-xs bg-[rgb(var(--ec-page-bg))]">
                 <thead>
                   <tr>
                     <th
@@ -373,7 +373,7 @@ const MessageTable = (props: MessageTableProps) => {
                 </p>
               </div>
               <div>
-                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <nav className="isolate inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
                   <button
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}

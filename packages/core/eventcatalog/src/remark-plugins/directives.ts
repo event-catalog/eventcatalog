@@ -116,7 +116,7 @@ export function remarkDirectives() {
           data: {
             hName: 'div',
             hProperties: {
-              class: 'prose prose-md dark:prose-invert w-full !max-w-none prose-p:my-1 prose-p:text-inherit',
+              class: 'prose prose-md dark:prose-invert w-full max-w-none! prose-p:my-1 prose-p:text-inherit',
             },
           },
           children: contentChildren,

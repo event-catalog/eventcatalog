@@ -320,12 +320,12 @@ export default function AvroSchemaViewer({
 
   return (
     <div
-      className={`${heightClass} ${overflowClass} flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-sm`}
+      className={`${heightClass} ${overflowClass} flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-xs`}
       style={containerStyle}
     >
       {/* Toolbar */}
       {searchBool && (
-        <div className="flex-shrink-0 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] pt-4 px-4 pb-3 border-b border-[rgb(var(--ec-page-border))] shadow-sm">
+        <div className="flex-shrink-0 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] pt-4 px-4 pb-3 border-b border-[rgb(var(--ec-page-border))] shadow-xs">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <input
@@ -334,7 +334,7 @@ export default function AvroSchemaViewer({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search fields..."
-                className="w-full px-3 py-1.5 pr-20 text-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] rounded-md focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent"
+                className="w-full px-3 py-1.5 pr-20 text-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] rounded-md focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -373,7 +373,7 @@ export default function AvroSchemaViewer({
               {onOpenFullscreen && (
                 <button
                   onClick={onOpenFullscreen}
-                  className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                  className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
                   title="Open in fullscreen"
                 >
                   <svg
@@ -394,13 +394,13 @@ export default function AvroSchemaViewer({
               )}
               <button
                 onClick={handleExpandAll}
-                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
               >
                 Expand All
               </button>
               <button
                 onClick={handleCollapseAll}
-                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
               >
                 Collapse All
               </button>

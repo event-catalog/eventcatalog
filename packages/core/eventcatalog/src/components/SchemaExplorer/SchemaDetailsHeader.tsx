@@ -70,7 +70,7 @@ export default function SchemaDetailsHeader({
                       <select
                         value={selectedVersion || message.data.version}
                         onChange={(e) => onVersionChange(e.target.value)}
-                        className="appearance-none text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md pl-2.5 pr-7 py-1 focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))] cursor-pointer hover:bg-[rgb(var(--ec-input-bg))] transition-colors"
+                        className="appearance-none text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md pl-2.5 pr-7 py-1 focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))] cursor-pointer hover:bg-[rgb(var(--ec-input-bg))] transition-colors"
                       >
                         {availableVersions.map((v) => (
                           <option key={v.data.version} value={v.data.version}>
@@ -127,7 +127,7 @@ export default function SchemaDetailsHeader({
             onClick={() => onViewModeChange('code')}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-all ${
               schemaViewMode === 'code'
-                ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm'
+                ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-xs'
                 : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
             }`}
             title="View raw code"
@@ -140,7 +140,7 @@ export default function SchemaDetailsHeader({
               onClick={() => onViewModeChange('schema')}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-all ${
                 schemaViewMode === 'schema'
-                  ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm'
+                  ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-xs'
                   : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
               }`}
               title="View as schema"
@@ -154,7 +154,7 @@ export default function SchemaDetailsHeader({
               onClick={() => onViewModeChange('diff')}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-all ${
                 schemaViewMode === 'diff'
-                  ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm'
+                  ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-xs'
                   : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
               }`}
               title="View version diffs"
@@ -176,7 +176,7 @@ export default function SchemaDetailsHeader({
             onClick={() => onViewModeChange('api')}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-all ${
               schemaViewMode === 'api'
-                ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm'
+                ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-xs'
                 : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
             }`}
             title="API access"

@@ -42,7 +42,7 @@ export default function OwnersSection({ message, isExpanded, onToggle }: OwnersS
                 <a
                   key={`${owner.id}-${idx}`}
                   href={owner.href}
-                  className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-[rgb(var(--ec-accent))] hover:shadow-sm transition-all"
+                  className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-[rgb(var(--ec-accent))] hover:shadow-xs transition-all"
                   title={owner.name}
                 >
                   <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-b from-[rgb(var(--ec-accent-gradient-from))] to-[rgb(var(--ec-accent-gradient-to))] rounded-full">

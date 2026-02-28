@@ -21,11 +21,11 @@ export function SearchBar({ searchQuery, onSearchChange, placeholder, totalResul
           placeholder={placeholder || 'Search...'}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="block w-full rounded-lg border-0 py-2.5 pl-10 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+          className="block w-full rounded-lg border-0 py-2.5 pl-10 pr-4 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
         />
         {searchQuery && (
           <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-            <button onClick={() => onSearchChange('')} className="text-gray-400 hover:text-gray-500 focus:outline-none">
+            <button onClick={() => onSearchChange('')} className="text-gray-400 hover:text-gray-500 focus:outline-hidden">
               <span className="sr-only">Clear search</span>
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path
@@ -126,7 +126,7 @@ export function Pagination({ currentPage, totalPages, totalItems, itemsPerPage, 
           </p>
         </div>
         <div>
-          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+          <nav className="isolate inline-flex -space-x-px rounded-md shadow-xs" aria-label="Pagination">
             <button
               onClick={() => onPageChange(1)}
               disabled={currentPage === 1}

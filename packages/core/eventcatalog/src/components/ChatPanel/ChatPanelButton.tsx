@@ -19,7 +19,7 @@ const ChatPanelButton = () => {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-[rgb(var(--ec-card-bg))] hover:bg-[rgb(var(--ec-content-hover))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))] shadow-sm transition-colors text-sm ml-[-1px]"
+        className="flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-[rgb(var(--ec-card-bg))] hover:bg-[rgb(var(--ec-content-hover))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))] shadow-xs transition-colors text-sm ml-[-1px]"
         aria-label="Open AI Assistant"
       >
         <BookOpen size={14} className="text-[rgb(var(--ec-accent))]" />
