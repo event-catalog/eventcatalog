@@ -11,12 +11,32 @@
     "directory": "packages/vscode-extension"
   },
   "license": "SEE LICENSE IN LICENSE",
+  "icon": "icons/logo.png",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Visualization"
   ],
+  "keywords": [
+    "event-driven architecture",
+    "EDA",
+    "events",
+    "services",
+    "domains",
+    "architecture",
+    "documentation",
+    "asyncapi",
+    "openapi"
+  ],
+  "homepage": "https://eventcatalog.dev",
+  "bugs": {
+    "url": "https://github.com/event-catalog/eventcatalog/issues"
+  },
+  "sponsor": {
+    "url": "https://eventcatalog.dev"
+  },
   "activationEvents": [
     "onLanguage:ec",
     "onWebviewPanel:eventcatalog.preview"
