@@ -1,0 +1,167 @@
+---
+title: Import from OpenAPI
+description: Import operations and endpoints from your OpenAPI specs into .ec models.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+If you have OpenAPI specs, you can import operations directly into your `.ec` files and start modeling how your REST services connect.
+
+## What gets imported
+
+From an OpenAPI file, you can import:
+
+| Resource type | What it maps to                                 |
+| ------------- | ----------------------------------------------- |
+| `operations`  | API operations (mapped to commands and queries) |
+
+## Import specific operations
+
+Pick the operations you need from a spec:
+
+<Tabs>
+<TabItem label="main.ec">
+```ec
+import operations { CreateOrder, GetOrder, ListOrders } from "./orders-openapi.yml"
+
+visualizer main {
+  name "Order API"
+
+  service OrderService {
+    version 1.0.0
+    receives command CreateOrder
+    receives query GetOrder
+    receives query ListOrders
+  }
+}
+```
+</TabItem>
+<TabItem label="orders-openapi.yml">
+```yaml
+openapi: 3.0.0
+info:
+  title: Order API
+  version: 1.0.0
+
+paths:
+  /orders:
+    post:
+      operationId: CreateOrder
+      summary: Create a new order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                items:
+                  type: array
+    get:
+      operationId: ListOrders
+      summary: List all orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+  /orders/{orderId}:
+    get:
+      operationId: GetOrder
+      summary: Get order by ID
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+```
+</TabItem>
+</Tabs>
+
+## Import a service from a spec
+
+You can import a full service directly from a spec. This brings in the service with all its operations resolved from the file:
+
+<Tabs>
+<TabItem label="main.ec">
+```ec
+import OrderService from "./orders-openapi.yml"
+
+visualizer main {
+  name "Order Management"
+
+  service OrderService
+
+  service FulfillmentService {
+    version 1.0.0
+    receives query GetOrder
+    sends event OrderFulfilled
+  }
+}
+```
+</TabItem>
+<TabItem label="orders-openapi.yml">
+```yaml
+openapi: 3.0.0
+info:
+  title: Order Service
+  version: 1.0.0
+
+paths:
+  /orders:
+    post:
+      operationId: CreateOrder
+      summary: Create a new order
+    get:
+      operationId: ListOrders
+      summary: List all orders
+  /orders/{orderId}:
+    get:
+      operationId: GetOrder
+      summary: Get order by ID
+    put:
+      operationId: UpdateOrder
+      summary: Update an existing order
+```
+</TabItem>
+</Tabs>
+
+The imported `OrderService` comes in with all its operations. You can then model new services around it.
+
+## Combine with AsyncAPI imports
+
+A real system often has both REST APIs and async messaging. You can import from both in the same model:
+
+```ec title="main.ec"
+import operations { CreateOrder, GetOrder } from "./orders-openapi.yml"
+import events { OrderCreated, OrderShipped } from "./orders-asyncapi.yml"
+import channels { orderEvents } from "./orders-asyncapi.yml"
+
+visualizer main {
+  name "Order System"
+
+  service OrderService {
+    version 1.0.0
+    summary "Manages order lifecycle"
+
+    // REST operations
+    receives command CreateOrder
+    receives query GetOrder
+
+    // Async messaging
+    sends event OrderCreated to orderEvents
+    sends event OrderShipped to orderEvents
+  }
+
+  service ShippingService {
+    version 1.0.0
+    receives event OrderCreated from orderEvents
+  }
+}
+```
+
+## Supported OpenAPI versions
+
+Compass supports OpenAPI 3.x specs in YAML and JSON formats.

@@ -10,162 +10,79 @@ import type {
   CompletionValueItem,
 } from "langium/lsp";
 import type { NextFeature } from "langium/lsp";
+import { isSpecFile } from "./resolvers/resolve.js";
+import { isCatalogPath } from "./resolvers/types.js";
+import {
+  parseCatalogResources,
+  parseCatalogChannels,
+  parseCatalogServices,
+} from "./resolvers/catalog.js";
+import {
+  collectRegexMatches,
+  extractResourceVersions,
+  parseSpecAuto,
+  findEnclosingResource,
+  collectChannelNames,
+  collectMessageNames,
+} from "./completion-utils.js";
+import type { ParsedSpecResult } from "./completion-utils.js";
+import {
+  RESOURCE_KEYWORDS,
+  ANNOTATION_SUGGESTIONS,
+  CONTEXT_SUGGESTIONS,
+  MESSAGE_TYPE_PLURAL,
+} from "./completion-data.js";
+import type { Suggestion } from "./completion-data.js";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const RESOURCE_KEYWORDS = new Map<string, string>([
-  ["domain", "Top-level bounded context"],
-  ["service", "Microservice or application"],
-  ["event", "Domain event"],
-  ["command", "Command message"],
-  ["query", "Query message"],
-  ["channel", "Communication channel"],
-  ["container", "Data container (database, cache, etc.)"],
-  ["data-product", "Analytical data product"],
-  ["flow", "Process flow definition"],
-  ["diagram", "Architecture diagram"],
-  ["user", "User definition"],
-  ["team", "Team definition"],
-  ["visualizer", "Visualizer view"],
-  ["actor", "Human actor (for flows)"],
-  ["external-system", "External system (for flows)"],
-]);
+/** Build a lookup from keyword label → Suggestion for resource snippets */
+const RESOURCE_SUGGESTION_MAP = new Map<string, Suggestion>(
+  RESOURCE_KEYWORDS.map((r) => [r.label, r]),
+);
 
-const PROPERTY_KEYWORDS = new Map<string, string>([
-  ["version", "Semantic version (e.g. 1.0.0)"],
-  ["name", "Display name"],
-  ["summary", "Short description"],
-  ["owner", "Owner reference (e.g. team-name)"],
-  ["schema", "Schema file path"],
-  ["draft", "Mark resource as draft"],
-  ["deprecated", "Mark resource as deprecated"],
-  ["address", "Channel address or topic"],
-  ["protocol", "Channel protocol (e.g. kafka, http)"],
-  ["technology", "Technology or implementation"],
-  ["residency", "Data residency region"],
-  ["retention", "Data retention policy"],
-  ["authoritative", "Authoritative data source"],
-  ["classification", "Data classification level"],
-  ["access-mode", "Data access pattern (read, write, etc.)"],
-  ["container-type", "Type of container (database, cache, etc.)"],
-  ["legend", "Show/hide legend in visualizer"],
-  ["search", "Show/hide search in visualizer"],
-  ["toolbar", "Show/hide toolbar in visualizer"],
-  ["focus-mode", "Enable/disable focus mode in visualizer"],
-  ["animated", "Simulate message flow animation in visualizer"],
-]);
+// ─── Per-request workspace snapshot ──────────────────────
+// Computed lazily on first access per completion request, then reused.
 
-const RELATIONSHIP_KEYWORDS = new Map<string, string>([
-  ["sends", "Service sends a message"],
-  ["receives", "Service receives a message"],
-  ["writes-to", "Service writes to a container"],
-  ["reads-from", "Service reads from a container"],
-  ["to", "Target channel"],
-  ["from", "Source channel"],
-]);
-
-const BLOCK_KEYWORDS = new Map<string, string>([
-  ["subdomain", "Nested subdomain"],
-  ["parameter", "Channel parameter"],
-  ["->", "Flow arrow"],
-  ["when", "Flow when-block trigger"],
-  ["and", "Convergence (multiple triggers)"],
-  ["input", "Data product input"],
-  ["output", "Data product output"],
-  ["route", "Route to another channel"],
-  ["contract", "Output contract definition"],
-]);
-
-const KNOWN_ANNOTATIONS = [
-  {
-    name: "api",
-    description: "Attach HTTP API metadata (method, path, status codes)",
-  },
-  { name: "badge", description: "Add a visual badge to the resource" },
-  { name: "note", description: "Add a developer note or reminder" },
-  { name: "repository", description: "Link to a source code repository" },
-  { name: "specifications", description: "Add specification links" },
-  { name: "externalId", description: "Set an external identifier" },
-  { name: "tag", description: "Add a tag to the resource" },
-];
-
-/** Snippet templates for resource types that benefit from scaffolding */
-const RESOURCE_SNIPPETS: Record<string, { label: string; snippet: string }> = {
-  service: {
-    label: "service (block)",
-    snippet:
-      'service ${1:ServiceName} {\n  version ${2:0.0.1}\n  summary "${3:Service that manages and processes $1 operations}"\n  $0\n}',
-  },
-  event: {
-    label: "event (block)",
-    snippet:
-      'event ${1:EventName} {\n  version ${2:0.0.1}\n  summary "${3:Triggered when a significant change occurs in the domain}"\n  $0\n}',
-  },
-  command: {
-    label: "command (block)",
-    snippet:
-      'command ${1:CommandName} {\n  version ${2:0.0.1}\n  summary "${3:Requests an action to be performed in the system}"\n  $0\n}',
-  },
-  query: {
-    label: "query (block)",
-    snippet:
-      'query ${1:QueryName} {\n  version ${2:0.0.1}\n  summary "${3:Retrieves data from the system without side effects}"\n  $0\n}',
-  },
-  domain: {
-    label: "domain (block)",
-    snippet:
-      'domain ${1:DomainName} {\n  version ${2:0.0.1}\n  summary "${3:Bounded context responsible for $1}"\n  $0\n}',
-  },
-  container: {
-    label: "container (block)",
-    snippet:
-      'container ${1:ContainerName} {\n  version ${2:0.0.1}\n  summary "${3:Data store that persists and manages $1 data}"\n  $0\n}',
-  },
-  visualizer: {
-    label: "visualizer (block)",
-    snippet: 'visualizer ${1:main} {\n  name "${2:View Name}"\n  $0\n}',
-  },
-  actor: {
-    label: "actor (block)",
-    snippet:
-      'actor ${1:ActorName} {\n  name "${2:Display Name}"\n  summary "${3:User or persona that interacts with the system}"\n}',
-  },
-  "external-system": {
-    label: "external-system (block)",
-    snippet:
-      'external-system ${1:SystemName} {\n  name "${2:Display Name}"\n  summary "${3:Third-party system that integrates with the platform}"\n}',
-  },
-};
-
-function getKeywordInfo(
-  keyword: string,
-): { category: string; description: string } | undefined {
-  const resourceDesc = RESOURCE_KEYWORDS.get(keyword);
-  if (resourceDesc) return { category: "Resource", description: resourceDesc };
-  const propDesc = PROPERTY_KEYWORDS.get(keyword);
-  if (propDesc) return { category: "Property", description: propDesc };
-  const relDesc = RELATIONSHIP_KEYWORDS.get(keyword);
-  if (relDesc) return { category: "Relationship", description: relDesc };
-  const blockDesc = BLOCK_KEYWORDS.get(keyword);
-  if (blockDesc) return { category: "Block", description: blockDesc };
-  return undefined;
+interface WorkspaceSnapshot {
+  allText?: string;
+  parsedSpecs?: Map<string, ParsedSpecResult>;
+  dirListing?: { dir: string; files: string[]; dirs: string[] };
 }
+
+// ─── Completion provider ─────────────────────────────────
 
 export class EcCompletionProvider extends DefaultCompletionProvider {
   override readonly completionOptions: CompletionProviderOptions = {
-    triggerCharacters: ["@"],
+    triggerCharacters: ["@", '"', "{"],
   };
+
+  private langiumServices: LangiumServices;
+
+  /** Snapshot for the current completion request. Reset on each `completionFor` call. */
+  private snapshot: WorkspaceSnapshot = {};
 
   constructor(services: LangiumServices) {
     super(services);
+    this.langiumServices = services;
   }
 
-  protected override completionFor(
+  protected override async completionFor(
     context: CompletionContext,
     next: NextFeature,
     acceptor: CompletionAcceptor,
-  ): MaybePromise<void> {
-    // When completing after '@', offer known annotation names
+  ): Promise<void> {
+    // Reset per-request cache
+    this.snapshot = {};
+
+    // When completing after '@', offer annotation snippets
     if (this.isAnnotationNameContext(context, next)) {
       this.completeAnnotationNames(context, acceptor);
+      return;
+    }
+    // Try dynamic cross-file completions before grammar-driven ones
+    if (await this.tryDynamicCompletion(context, acceptor)) {
       return;
     }
     return super.completionFor(context, next, acceptor);
@@ -178,41 +95,577 @@ export class EcCompletionProvider extends DefaultCompletionProvider {
   ): MaybePromise<void> {
     const kw = keyword.value;
 
-    // Skip '@' itself as a completion — we handle annotation names in completionFor
+    // Skip '@' itself — we handle annotation names in completionFor
     if (kw === "@") {
       return;
     }
 
-    const info = getKeywordInfo(kw);
-    const item: CompletionValueItem = {
+    // Determine what resource block the cursor is inside (if any)
+    const text = context.textDocument.getText();
+    const textBefore = text.substring(0, context.offset);
+    const enclosing = findEnclosingResource(textBefore);
+
+    // Inside a non-visualizer resource block: only show context-appropriate items
+    if (enclosing && enclosing !== "visualizer") {
+      const suggestions = CONTEXT_SUGGESTIONS[enclosing];
+      if (suggestions) {
+        const match = suggestions.find((s) => s.label === kw);
+        if (match) {
+          acceptor(context, {
+            label: kw,
+            kind: CompletionItemKind.Snippet,
+            detail: match.detail,
+            insertText: match.insertText,
+            insertTextFormat: InsertTextFormat.Snippet,
+            sortText: "0" + kw,
+          });
+        }
+      }
+      // Don't show resource keywords or unrelated keywords inside resource blocks
+      return;
+    }
+
+    // At top level or inside a visualizer: offer resource keyword snippets
+    const resourceSuggestion = RESOURCE_SUGGESTION_MAP.get(kw);
+    if (resourceSuggestion) {
+      acceptor(context, {
+        label: kw,
+        kind: CompletionItemKind.Snippet,
+        detail: resourceSuggestion.detail,
+        insertText: resourceSuggestion.insertText,
+        insertTextFormat: InsertTextFormat.Snippet,
+        sortText: "0" + kw,
+      });
+      return;
+    }
+
+    // Inside a visualizer: also check visualizer-specific context suggestions
+    if (enclosing === "visualizer") {
+      const suggestions = CONTEXT_SUGGESTIONS[enclosing];
+      if (suggestions) {
+        const match = suggestions.find((s) => s.label === kw);
+        if (match) {
+          acceptor(context, {
+            label: kw,
+            kind: CompletionItemKind.Snippet,
+            detail: match.detail,
+            insertText: match.insertText,
+            insertTextFormat: InsertTextFormat.Snippet,
+            sortText: "0" + kw,
+          });
+          return;
+        }
+      }
+    }
+
+    // Fallback: plain keyword
+    acceptor(context, {
       label: kw,
       kind: CompletionItemKind.Keyword,
-      ...(info
-        ? { detail: info.category, documentation: info.description }
-        : {}),
-      sortText: info?.category === "Resource" ? "0" + kw : undefined,
-    };
-    acceptor(context, item);
+    });
+  }
 
-    // Also offer a snippet variant for resource keywords
-    const snippet = RESOURCE_SNIPPETS[kw];
-    if (snippet) {
+  // ─── Dynamic cross-file completions ──────────────────
+
+  private async tryDynamicCompletion(
+    context: CompletionContext,
+    acceptor: CompletionAcceptor,
+  ): Promise<boolean> {
+    const text = context.textDocument.getText();
+    const offset = context.offset;
+
+    // Get the current line text before cursor
+    const textBefore = text.substring(0, offset);
+    const lastNewline = textBefore.lastIndexOf("\n");
+    const lineText = textBefore.substring(lastNewline + 1);
+
+    // 1. Import file paths: from "..."
+    if (lineText.includes("import")) {
+      const importFromMatch = lineText.match(
+        /import\s+(?:(?:events|commands|queries|channels|services)\s+)?\{[^}]*\}\s*from\s*"([^"]*)$/,
+      );
+      if (importFromMatch) {
+        this.completeImportPaths(context, acceptor);
+        return true;
+      }
+
+      // 2. Resource names in import braces: import { ... }
+      const importBracesMatch = lineText.match(
+        /import\s+(?:(events|commands|queries|channels|services|containers)\s+)?\{([^}]*)$/,
+      );
+      if (importBracesMatch) {
+        const fullLineContent = this.getFullLineContent(text, offset);
+        await this.completeImportNames(
+          context,
+          acceptor,
+          importBracesMatch[1] as
+            | "events"
+            | "commands"
+            | "queries"
+            | "channels"
+            | "containers"
+            | undefined,
+          importBracesMatch[2] || "",
+          fullLineContent,
+        );
+        return true;
+      }
+    }
+
+    if (lineText.includes("sends") || lineText.includes("receives")) {
+      // 3. Channel names: sends event X to ...
+      const channelRefMatch = lineText.match(
+        /\b(?:sends|receives)\s+(?:event|command|query)\s+[a-zA-Z_][a-zA-Z0-9_.\-]*(?:@[\d]+\.[\d]+\.[\d]+[a-zA-Z0-9_.\-]*)?\s+(?:to|from)\s+(?:.*,\s*)?([a-zA-Z_][a-zA-Z0-9_.\-]*)?$/,
+      );
+      if (channelRefMatch) {
+        this.completeChannelNames(context, acceptor);
+        return true;
+      }
+
+      // 4. Message names: sends event ...
+      const sendsReceivesMatch = lineText.match(
+        /\b(?:sends|receives)\s+(event|command|query)\s+([a-zA-Z_][a-zA-Z0-9_.\-]*)?$/,
+      );
+      if (sendsReceivesMatch && !sendsReceivesMatch[0].endsWith("@")) {
+        this.completeMessageNames(context, acceptor, sendsReceivesMatch[1]);
+        return true;
+      }
+
+      // 5. Version after @: sends event Name@
+      const atMatch = lineText.match(
+        /\b(?:sends|receives)\s+(event|command|query)\s+([a-zA-Z_][a-zA-Z0-9_.\-]*)@$/,
+      );
+      if (atMatch) {
+        this.completeVersions(context, acceptor, atMatch[1], atMatch[2]);
+        return true;
+      }
+    }
+
+    // 6. Context-aware completions for the enclosing resource block
+    // Offer all suggestions for the current context — this ensures items like
+    // sends, receives, writes-to, reads-from, and scaffold snippets are always
+    // available, even when Langium's grammar analysis doesn't offer them.
+    const enclosing = findEnclosingResource(textBefore);
+    if (enclosing) {
+      const suggestions = CONTEXT_SUGGESTIONS[enclosing];
+      if (suggestions) {
+        for (const s of suggestions) {
+          acceptor(context, {
+            label: s.label,
+            kind: CompletionItemKind.Snippet,
+            detail: s.detail,
+            insertText: s.insertText,
+            insertTextFormat: InsertTextFormat.Snippet,
+            sortText: "1" + s.label,
+          });
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // ─── Lazy per-request helpers ─────────────────────────
+
+  private getAllWorkspaceText(): string {
+    if (this.snapshot.allText !== undefined) return this.snapshot.allText;
+    const docs = this.langiumServices.shared.workspace.LangiumDocuments.all;
+    this.snapshot.allText = docs
+      .filter((d) => d.uri.path.endsWith(".ec"))
+      .map((d) => d.textDocument.getText())
+      .toArray()
+      .join("\n");
+    return this.snapshot.allText;
+  }
+
+  private getFullLineContent(text: string, offset: number): string {
+    const start = text.lastIndexOf("\n", offset - 1) + 1;
+    let end = text.indexOf("\n", offset);
+    if (end === -1) end = text.length;
+    return text.substring(start, end);
+  }
+
+  private getDocumentDir(uri: string): string {
+    return dirname(fileURLToPath(uri));
+  }
+
+  /**
+   * Read the workspace directory listing once per request.
+   * Returns files (spec + .ec), directories, and the base dir.
+   */
+  private getDirListing(currentUri: string): {
+    dir: string;
+    files: string[];
+    dirs: string[];
+  } {
+    if (this.snapshot.dirListing) return this.snapshot.dirListing;
+    try {
+      const currentPath = fileURLToPath(currentUri);
+      const dir = dirname(currentPath);
+      const currentFilename = currentPath.substring(
+        currentPath.lastIndexOf("/") + 1,
+      );
+      const files: string[] = [];
+      const dirs: string[] = [];
+      for (const entry of readdirSync(dir)) {
+        if (entry === currentFilename) continue;
+        if (entry.startsWith(".") || entry === "node_modules") continue;
+        try {
+          if (statSync(resolve(dir, entry)).isDirectory()) {
+            dirs.push(entry);
+          } else if (entry.endsWith(".ec") || isSpecFile(entry)) {
+            files.push(entry);
+          }
+        } catch {
+          // skip unreadable entries
+        }
+      }
+      this.snapshot.dirListing = { dir, files, dirs };
+      return this.snapshot.dirListing;
+    } catch {
+      this.snapshot.dirListing = { dir: "", files: [], dirs: [] };
+      return this.snapshot.dirListing;
+    }
+  }
+
+  private getWorkspaceFilenames(currentUri: string): string[] {
+    const listing = this.getDirListing(currentUri);
+    if (listing.files.length > 0) return listing.files;
+    const docs = this.langiumServices.shared.workspace.LangiumDocuments.all;
+    return docs
+      .filter((d) => d.uri.toString() !== currentUri)
+      .map((d) => {
+        const p = d.uri.path;
+        return p.substring(p.lastIndexOf("/") + 1);
+      })
+      .toArray();
+  }
+
+  private readSpecFile(
+    specPath: string,
+    currentDocUri: string,
+  ): string | undefined {
+    try {
+      const dir = this.getDocumentDir(currentDocUri);
+      const normalizedPath = specPath.replace(/^\.\//, "");
+      const fullPath = resolve(dir, normalizedPath);
+      return readFileSync(fullPath, "utf-8");
+    } catch {
+      return undefined;
+    }
+  }
+
+  private parseWorkspaceSpecs(
+    currentDocUri: string,
+  ): Map<string, ParsedSpecResult> {
+    if (this.snapshot.parsedSpecs) return this.snapshot.parsedSpecs;
+    const parsed = new Map<string, ParsedSpecResult>();
+    const listing = this.getDirListing(currentDocUri);
+
+    for (const filename of listing.files) {
+      if (!isSpecFile(filename)) continue;
+      try {
+        const content = readFileSync(resolve(listing.dir, filename), "utf-8");
+        parsed.set(filename, parseSpecAuto(content));
+      } catch {
+        // skip unreadable or invalid files
+      }
+    }
+    this.snapshot.parsedSpecs = parsed;
+    return parsed;
+  }
+
+  // 1. Complete import file paths
+  private completeImportPaths(
+    context: CompletionContext,
+    acceptor: CompletionAcceptor,
+  ): void {
+    const filenames = this.getWorkspaceFilenames(context.textDocument.uri);
+    for (const filename of filenames) {
       acceptor(context, {
-        label: snippet.label,
-        kind: CompletionItemKind.Snippet,
-        detail: "Resource (snippet)",
-        insertText: snippet.snippet,
-        insertTextFormat: InsertTextFormat.Snippet,
-        sortText: "1" + kw,
+        label: `./${filename}`,
+        kind: CompletionItemKind.File,
+        detail: `Import from ${filename}`,
+        insertText: `./${filename}`,
+        sortText: `0${filename}`,
+      });
+    }
+
+    // Also suggest directories as potential catalog imports
+    const listing = this.getDirListing(context.textDocument.uri);
+    for (const dirName of listing.dirs) {
+      acceptor(context, {
+        label: `./${dirName}`,
+        kind: CompletionItemKind.Folder,
+        detail: `Import from catalog directory ${dirName}`,
+        insertText: `./${dirName}`,
+        sortText: `1${dirName}`,
       });
     }
   }
+
+  // 2. Complete resource names inside import { ... }
+  private async completeImportNames(
+    context: CompletionContext,
+    acceptor: CompletionAcceptor,
+    resourceKind:
+      | "events"
+      | "commands"
+      | "queries"
+      | "channels"
+      | "services"
+      | "containers"
+      | undefined,
+    alreadyTyped: string,
+    fullLineContent: string,
+  ): Promise<void> {
+    const alreadyImported = new Set(
+      alreadyTyped
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    );
+
+    const fromSpecMatch = fullLineContent.match(
+      /from\s*"([^"]+\.(?:ya?ml|json))"/,
+    );
+    if (resourceKind && fromSpecMatch) {
+      const specContent = this.readSpecFile(
+        fromSpecMatch[1],
+        context.textDocument.uri,
+      );
+
+      if (specContent) {
+        try {
+          const parsed = parseSpecAuto(specContent);
+          const catalog =
+            resourceKind === "channels" ? parsed.channels : parsed.messages;
+          for (const [name, resource] of catalog) {
+            if (!alreadyImported.has(name)) {
+              acceptor(context, {
+                label: name,
+                kind: CompletionItemKind.Field,
+                detail: resource.summary || `Import from ${fromSpecMatch[1]}`,
+                insertText: name,
+                sortText: `0${name}`,
+              });
+            }
+          }
+          return;
+        } catch {
+          // Fall through to generic suggestions
+        }
+      }
+    }
+
+    // Catalog directory imports: import events { ... } from "./my-catalog"
+    const fromCatalogMatch = fullLineContent.match(/from\s*"([^"]+)"/);
+    if (
+      resourceKind &&
+      fromCatalogMatch &&
+      isCatalogPath(fromCatalogMatch[1])
+    ) {
+      await this.completeCatalogImportNames(
+        context,
+        acceptor,
+        resourceKind,
+        fromCatalogMatch[1],
+        alreadyImported,
+      );
+      return;
+    }
+
+    const allText = this.getAllWorkspaceText();
+    const ecResourceTypes = [
+      "service",
+      "event",
+      "command",
+      "query",
+      "domain",
+      "channel",
+      "flow",
+      "container",
+    ];
+    const resources = new Set<string>();
+    for (const type of ecResourceTypes) {
+      for (const name of collectRegexMatches(
+        new RegExp(`\\b${type}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\{`, "g"),
+        allText,
+      )) {
+        if (!alreadyImported.has(name)) {
+          resources.add(name);
+        }
+      }
+    }
+
+    for (const name of resources) {
+      acceptor(context, {
+        label: name,
+        kind: CompletionItemKind.Class,
+        detail: "Resource to import",
+        insertText: name,
+        sortText: `0${name}`,
+      });
+    }
+  }
+
+  // 2b. Complete resource names from a catalog directory import
+  private async completeCatalogImportNames(
+    context: CompletionContext,
+    acceptor: CompletionAcceptor,
+    resourceKind:
+      | "events"
+      | "commands"
+      | "queries"
+      | "channels"
+      | "services"
+      | "containers",
+    catalogPath: string,
+    alreadyImported: Set<string>,
+  ): Promise<void> {
+    try {
+      const dir = this.getDocumentDir(context.textDocument.uri);
+      const catalogDir = resolve(dir, catalogPath);
+
+      if (resourceKind === "services") {
+        const { services } = await parseCatalogServices(catalogDir);
+        for (const [name, svc] of services) {
+          if (!alreadyImported.has(name)) {
+            acceptor(context, {
+              label: name,
+              kind: CompletionItemKind.Class,
+              detail: svc.summary || `Import from catalog ${catalogPath}`,
+              insertText: name,
+              sortText: `0${name}`,
+            });
+          }
+        }
+        return;
+      }
+
+      if (resourceKind === "channels") {
+        const { channels } = await parseCatalogChannels(catalogDir);
+        for (const [name, ch] of channels) {
+          if (!alreadyImported.has(name)) {
+            acceptor(context, {
+              label: name,
+              kind: CompletionItemKind.Field,
+              detail: ch.summary || `Import from catalog ${catalogPath}`,
+              insertText: name,
+              sortText: `0${name}`,
+            });
+          }
+        }
+        return;
+      }
+
+      const { messages } = await parseCatalogResources(
+        catalogDir,
+        resourceKind,
+      );
+
+      for (const [name, resource] of messages) {
+        if (!alreadyImported.has(name)) {
+          acceptor(context, {
+            label: name,
+            kind: CompletionItemKind.Field,
+            detail: resource.summary || `Import from catalog ${catalogPath}`,
+            insertText: name,
+            sortText: `0${name}`,
+          });
+        }
+      }
+    } catch {
+      // Silently ignore errors in completions
+    }
+  }
+
+  // 3. Complete channel names
+  private completeChannelNames(
+    context: CompletionContext,
+    acceptor: CompletionAcceptor,
+  ): void {
+    const allText = this.getAllWorkspaceText();
+    const channels = collectChannelNames(allText);
+
+    const parsedSpecs = this.parseWorkspaceSpecs(context.textDocument.uri);
+    const channelSummaries = new Map<string, string>();
+    for (const [, parsed] of parsedSpecs) {
+      for (const [name, resource] of parsed.channels) {
+        channels.add(name);
+        if (resource.summary) channelSummaries.set(name, resource.summary);
+      }
+    }
+
+    for (const name of channels) {
+      acceptor(context, {
+        label: name,
+        kind: CompletionItemKind.Field,
+        detail: channelSummaries.get(name) || `channel ${name}`,
+        insertText: name,
+        sortText: `0${name}`,
+      });
+    }
+  }
+
+  // 4. Complete message names (event/command/query)
+  private completeMessageNames(
+    context: CompletionContext,
+    acceptor: CompletionAcceptor,
+    msgType: string,
+  ): void {
+    const pluralType = MESSAGE_TYPE_PLURAL[msgType] || "events";
+    const allText = this.getAllWorkspaceText();
+    const names = collectMessageNames(allText, msgType, pluralType);
+
+    const parsedSpecs = this.parseWorkspaceSpecs(context.textDocument.uri);
+    const msgSummaries = new Map<string, string>();
+    for (const [, parsed] of parsedSpecs) {
+      for (const [name, resource] of parsed.messages) {
+        names.add(name);
+        if (resource.summary) msgSummaries.set(name, resource.summary);
+      }
+    }
+
+    for (const name of names) {
+      acceptor(context, {
+        label: name,
+        kind: CompletionItemKind.Field,
+        detail: msgSummaries.get(name) || `${msgType} ${name}`,
+        insertText: name,
+        sortText: `0${name}`,
+      });
+    }
+  }
+
+  // 5. Complete versions after @
+  private completeVersions(
+    context: CompletionContext,
+    acceptor: CompletionAcceptor,
+    msgType: string,
+    resourceName: string,
+  ): void {
+    const allText = this.getAllWorkspaceText();
+    const key = `${msgType}:${resourceName}`;
+    const versions = extractResourceVersions(allText, msgType).get(key) || [];
+
+    for (const ver of versions) {
+      acceptor(context, {
+        label: ver,
+        kind: CompletionItemKind.Value,
+        detail: `Version ${ver} of ${resourceName}`,
+        insertText: ver,
+        sortText: `0${ver}`,
+      });
+    }
+  }
+
+  // ─── Annotation completions ────────────────────────────
 
   private isAnnotationNameContext(
     context: CompletionContext,
     next: NextFeature,
   ): boolean {
-    // Check if the next expected feature is the AnnotationName rule call
     const feature = next.feature;
     if ("rule" in feature && "$type" in feature) {
       const ruleCall = feature as {
@@ -227,7 +680,6 @@ export class EcCompletionProvider extends DefaultCompletionProvider {
       }
     }
 
-    // Also detect if we just typed '@' by checking the text before cursor
     const text = context.textDocument.getText();
     const beforeCursor = text.substring(
       Math.max(0, context.offset - 1),
@@ -244,13 +696,14 @@ export class EcCompletionProvider extends DefaultCompletionProvider {
     context: CompletionContext,
     acceptor: CompletionAcceptor,
   ): void {
-    for (const annotation of KNOWN_ANNOTATIONS) {
+    for (const annotation of ANNOTATION_SUGGESTIONS) {
       acceptor(context, {
-        label: annotation.name,
-        kind: CompletionItemKind.Property,
-        detail: "Annotation",
-        documentation: annotation.description,
-        sortText: "0" + annotation.name,
+        label: annotation.label,
+        kind: CompletionItemKind.Snippet,
+        detail: annotation.detail,
+        insertText: annotation.insertText,
+        insertTextFormat: InsertTextFormat.Snippet,
+        sortText: "0" + annotation.label,
       });
     }
   }

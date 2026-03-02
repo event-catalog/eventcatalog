@@ -10,9 +10,17 @@ export default defineConfig({
       social: {
         github: "https://github.com/event-catalog/eventcatalog",
       },
+      head: [
+        {
+          tag: "script",
+          content: `!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);posthog.init('phc_HQZncKORYsXgO87WuSjSdKbQSTzylljE6HTtUw0fBIH',{api_host:'https://e.eventcatalog.dev/relay-fBIH',capture_performance:false})`,
+        },
+      ],
       components: {
         PageTitle: "./src/components/PageTitle.astro",
         MarkdownContent: "./src/components/MarkdownContent.astro",
+        SiteTitle: "./src/components/SiteTitle.astro",
+        Header: "./src/components/Header.astro",
       },
       sidebar: [
         {
@@ -20,29 +28,8 @@ export default defineConfig({
           items: [{ slug: "get-started/tutorial" }],
         },
         {
-          label: "Introduction",
-          items: [
-            { label: "Overview", link: "/" },
-            { slug: "why-ec" },
-            { label: "CLI", slug: "get-started/cli-setup" },
-          ],
-        },
-        {
-          label: "Import & Export",
-          items: [
-            { slug: "guides/importing-ec" },
-            { slug: "guides/exporting-ec" },
-          ],
-        },
-        {
-          label: "Guides",
-          items: [
-            { slug: "guides/from-design-to-documentation" },
-            { slug: "guides/designing-target-architectures" },
-            { slug: "guides/getting-feedback-from-designs" },
-            { slug: "guides/remote-fetching-models" },
-            { slug: "guides/using-ai-to-generate-diagrams" },
-          ],
+          label: "EventCatalog Compass",
+          items: [{ label: "Overview", link: "/" }],
         },
         {
           label: "Models",
@@ -51,46 +38,51 @@ export default defineConfig({
             { slug: "resources/services" },
             { slug: "resources/messages" },
             { slug: "resources/channels" },
-            { slug: "resources/databases" },
-            { label: "Data Producers", slug: "resources/data-products" },
+            { label: "Containers", slug: "resources/databases" },
+            { slug: "resources/flows" },
+            { label: "Data Products", slug: "resources/data-products" },
             { slug: "resources/teams-and-users" },
           ],
         },
         {
           label: "Annotations",
+          items: [{ slug: "annotations/notes" }],
+        },
+        {
+          label: "Importing Resources",
           items: [
-            { slug: "annotations/notes" },
-            { slug: "annotations/badges" },
-            { slug: "annotations/repository-links" },
+            { slug: "guides/import-from-asyncapi" },
+            { slug: "guides/import-from-openapi" },
+            { slug: "guides/import-from-eventcatalog" },
+            { slug: "guides/import-from-ec-files" },
           ],
         },
         {
-          label: "Examples",
+          label: "Exporting Resources",
           items: [
-            { slug: "examples/playground/payment-domain" },
-            { slug: "examples/playground/order-service-showcase" },
-            { slug: "examples/playground/minimal-service" },
-            { slug: "examples/playground/e-commerce-platform" },
-            { slug: "examples/playground/event-driven-saga" },
-            { slug: "examples/playground/post-it-style" },
-            { slug: "examples/playground/data-products" },
-            { slug: "examples/playground/multi-file-with-imports" },
-            { slug: "examples/playground/remote-url-imports" },
-            { slug: "examples/playground/banking-with-subdomains" },
-            { slug: "examples/playground/planning-future-services" },
-            { slug: "examples/playground/enterprise-e-commerce" },
-            { slug: "examples/playground/notes-and-annotations" },
-            { slug: "examples/playground/channel-routing" },
-            { slug: "examples/playground/aws-event-pipeline" },
-            { slug: "examples/playground/flow-order-fulfillment" },
-            { slug: "examples/playground/flow-e-commerce-checkout" },
+            { slug: "guides/export-to-eventcatalog" },
+            { slug: "guides/export-to-static-site" },
           ],
+        },
+        {
+          label: "Tooling",
+          items: [{ slug: "tooling/editors" }, { slug: "tooling/cli" }],
         },
         {
           label: "Specification",
           items: [
             { slug: "reference/dsl-spec" },
             { slug: "reference/command-cheatsheet" },
+          ],
+        },
+        {
+          label: "Changelog",
+          items: [
+            {
+              label: "Releases",
+              link: "https://github.com/event-catalog/eventcatalog/releases",
+              attrs: { target: "_blank", rel: "noopener noreferrer" },
+            },
           ],
         },
       ],

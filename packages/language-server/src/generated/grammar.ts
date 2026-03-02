@@ -59,47 +59,31 @@ export const EcGrammar = (): Grammar =>
       "$type": "ParserRule",
       "name": "ImportDecl",
       "definition": {
-        "$type": "Group",
+        "$type": "Alternatives",
         "elements": [
-          {
-            "$type": "Keyword",
-            "value": "import"
-          },
-          {
-            "$type": "Assignment",
-            "feature": "resourceType",
-            "operator": "=",
-            "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@2"
-              },
-              "arguments": []
-            },
-            "cardinality": "?"
-          },
-          {
-            "$type": "Keyword",
-            "value": "{"
-          },
-          {
-            "$type": "Assignment",
-            "feature": "imports",
-            "operator": "+=",
-            "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@3"
-              },
-              "arguments": []
-            }
-          },
           {
             "$type": "Group",
             "elements": [
               {
                 "$type": "Keyword",
-                "value": ","
+                "value": "import"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "resourceType",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@2"
+                  },
+                  "arguments": []
+                },
+                "cardinality": "?"
+              },
+              {
+                "$type": "Keyword",
+                "value": "{"
               },
               {
                 "$type": "Assignment",
@@ -112,29 +96,87 @@ export const EcGrammar = (): Grammar =>
                   },
                   "arguments": []
                 }
-              }
-            ],
-            "cardinality": "*"
-          },
-          {
-            "$type": "Keyword",
-            "value": "}"
-          },
-          {
-            "$type": "Keyword",
-            "value": "from"
-          },
-          {
-            "$type": "Assignment",
-            "feature": "path",
-            "operator": "=",
-            "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@140"
               },
-              "arguments": []
-            }
+              {
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": ","
+                  },
+                  {
+                    "$type": "Assignment",
+                    "feature": "imports",
+                    "operator": "+=",
+                    "terminal": {
+                      "$type": "RuleCall",
+                      "rule": {
+                        "$ref": "#/rules@3"
+                      },
+                      "arguments": []
+                    }
+                  }
+                ],
+                "cardinality": "*"
+              },
+              {
+                "$type": "Keyword",
+                "value": "}"
+              },
+              {
+                "$type": "Keyword",
+                "value": "from"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "path",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@140"
+                  },
+                  "arguments": []
+                }
+              }
+            ]
+          },
+          {
+            "$type": "Group",
+            "elements": [
+              {
+                "$type": "Keyword",
+                "value": "import"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "imports",
+                "operator": "+=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@3"
+                  },
+                  "arguments": []
+                }
+              },
+              {
+                "$type": "Keyword",
+                "value": "from"
+              },
+              {
+                "$type": "Assignment",
+                "feature": "path",
+                "operator": "=",
+                "terminal": {
+                  "$type": "RuleCall",
+                  "rule": {
+                    "$ref": "#/rules@140"
+                  },
+                  "arguments": []
+                }
+              }
+            ]
           }
         ]
       },
@@ -167,6 +209,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "Keyword",
             "value": "channels"
+          },
+          {
+            "$type": "Keyword",
+            "value": "services"
+          },
+          {
+            "$type": "Keyword",
+            "value": "containers"
           }
         ]
       },

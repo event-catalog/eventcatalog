@@ -1,5 +1,6 @@
 ---
 "@eventcatalog/language-server": patch
+"@eventcatalog/visualiser": patch
 ---
 
-Simplify duplicated code: extract shared duplicate-check helper in validator, deduplicate inline metadata enrichment in graph builder, eliminate double YAML parsing in AsyncAPI resolver, fix dead code in compiler, and move extractApiInfo to top-level scope
+Refactor language server, playground, and visualiser: extract shared helpers to reduce duplication, add browser entrypoint, definition/hover/formatter providers, resource index, catalog resolver, restructure docs, simplify layout utils, and add VSCode extension scaffold

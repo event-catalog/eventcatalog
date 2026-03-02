@@ -1,19 +1,9 @@
 ---
-title: Databases
-description: Model databases using container resources with database type.
+title: Containers
+description: Model databases, caches, and data stores with container resources.
 ---
 
-import { LinkButton } from "@astrojs/starlight/components";
-
-Databases are modeled with `container` and `container-type database`.
-
-<LinkButton
-  href="https://playground.eventcatalog.dev/#example=11"
-  target="_blank"
-  rel="noopener noreferrer"
->
-  Open in EventCatalog Compass
-</LinkButton>
+`container` models a data store, cache, or external system that services read from or write to.
 
 ## Example
 
@@ -46,7 +36,7 @@ service OrdersService {
 | `version`        | semver    | Yes             | Resource version.                                            | `1.0.0`                         |
 | `name`           | string    | No              | Display name (defaults to id).                               | `"Orders DB"`                   |
 | `summary`        | string    | No              | Short description.                                           | `"Primary transactional store"` |
-| `container-type` | enum      | Yes             | Container category (`database`, `cache`, etc.).              | `database`                      |
+| `container-type` | enum      | Yes             | Container category (see types below).                        | `database`                      |
 | `technology`     | string    | No              | Implementation detail/version.                               | `"PostgreSQL 15"`               |
 | `authoritative`  | boolean   | No              | Whether it is source of truth.                               | `authoritative true`            |
 | `access-mode`    | enum      | No              | Access pattern (`read`, `write`, `readWrite`, `appendOnly`). | `readWrite`                     |
@@ -57,3 +47,53 @@ service OrdersService {
 | `service`        | reference | No (repeatable) | Service references to this container.                        | `service OrdersService@1.0.0`   |
 | `draft`          | boolean   | No              | Marks resource as draft.                                     | `draft true`                    |
 | `deprecated`     | boolean   | No              | Marks resource as deprecated.                                | `deprecated true`               |
+
+## Container types
+
+| Type            | Use for                          |
+| --------------- | -------------------------------- |
+| `database`      | Relational or document databases |
+| `cache`         | Redis, Memcached, etc.           |
+| `objectStore`   | S3, GCS, Azure Blob              |
+| `searchIndex`   | Elasticsearch, OpenSearch        |
+| `dataWarehouse` | BigQuery, Snowflake, Redshift    |
+| `dataLake`      | Delta Lake, Iceberg              |
+| `externalSaaS`  | Third-party managed services     |
+| `other`         | Anything that doesn't fit above  |
+
+## Examples by type
+
+```ec title="main.ec"
+container orders-db {
+  version 1.0.0
+  container-type database
+  technology "PostgreSQL 15"
+}
+
+container session-cache {
+  version 1.0.0
+  container-type cache
+  technology "Redis 7"
+  retention "24h"
+}
+
+container assets-bucket {
+  version 1.0.0
+  container-type objectStore
+  technology "AWS S3"
+  classification internal
+}
+
+container product-search {
+  version 1.0.0
+  container-type searchIndex
+  technology "Elasticsearch 8"
+}
+```
+
+## Used by services
+
+| Usage                 | Example                                |
+| --------------------- | -------------------------------------- |
+| Write to a container  | `writes-to container orders-db@1.0.0`  |
+| Read from a container | `reads-from container orders-db@1.0.0` |

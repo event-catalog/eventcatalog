@@ -46,6 +46,7 @@ export type EcKeywordNames =
   | "confidential"
   | "container"
   | "container-type"
+  | "containers"
   | "contract"
   | "data-product"
   | "dataLake"
@@ -108,6 +109,7 @@ export type EcKeywordNames =
   | "searchIndex"
   | "sends"
   | "service"
+  | "services"
   | "slack"
   | "style"
   | "subdomain"
@@ -447,7 +449,13 @@ export function isFlowBodyItem(item: unknown): item is FlowBodyItem {
   return reflection.isInstance(item, FlowBodyItem);
 }
 
-export type ImportResourceType = "channels" | "commands" | "events" | "queries";
+export type ImportResourceType =
+  | "channels"
+  | "commands"
+  | "containers"
+  | "events"
+  | "queries"
+  | "services";
 
 export function isImportResourceType(
   item: unknown,
@@ -456,7 +464,9 @@ export function isImportResourceType(
     item === "events" ||
     item === "commands" ||
     item === "queries" ||
-    item === "channels"
+    item === "channels" ||
+    item === "services" ||
+    item === "containers"
   );
 }
 

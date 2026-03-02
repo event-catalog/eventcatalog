@@ -1,0 +1,83 @@
+{
+  "name": "eventcatalog-dsl",
+  "displayName": "EventCatalog DSL",
+  "description": "Language support and live preview for EventCatalog DSL (.ec files)",
+  "version": "0.1.0",
+  "publisher": "eventcatalog",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:ec",
+    "onWebviewPanel:eventcatalog.preview"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ec",
+        "aliases": [
+          "EventCatalog DSL",
+          "ec"
+        ],
+        "extensions": [
+          ".ec"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/ec-file.svg",
+          "dark": "./icons/ec-file.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ec",
+        "scopeName": "source.ec",
+        "path": "./syntaxes/ec.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "eventcatalog.openPreview",
+        "title": "EventCatalog: Open Preview",
+        "icon": "$(preview)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceLangId == ec",
+          "command": "eventcatalog.openPreview",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs --production",
+    "build:bin": "node esbuild.mjs --production",
+    "dev": "node esbuild.mjs --watch",
+    "format": "prettier --write .",
+    "format:diff": "prettier --check ."
+  },
+  "dependencies": {
+    "@eventcatalog/language-server": "workspace:*",
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@eventcatalog/visualiser": "workspace:*",
+    "@types/vscode": "^1.85.0",
+    "@xyflow/react": "^12.4.0",
+    "esbuild": "^0.21.0",
+    "langium": "^3.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.7.0",
+    "prettier": "^3.2.5"
+  }
+}

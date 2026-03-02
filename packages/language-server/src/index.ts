@@ -1,7 +1,24 @@
 // Public API exports
-export { createEcServices, EcLspModule } from "./ec-module.js";
+export { createEcServices } from "./ec-module.js";
 export type { EcServices, EcAddedServices } from "./ec-module.js";
 export { EcCompletionProvider } from "./ec-completion-provider.js";
+export {
+  collectRegexMatches,
+  collectChannelNames,
+  collectMessageNames,
+  extractResourceVersions,
+  parseSpecAuto,
+  findEnclosingResource,
+} from "./completion-utils.js";
+export type { ParsedSpecResult } from "./completion-utils.js";
+export {
+  RESOURCE_KEYWORDS,
+  COMMON_PROPS,
+  ANNOTATION_SUGGESTIONS,
+  CONTEXT_SUGGESTIONS,
+  MESSAGE_TYPE_PLURAL,
+} from "./completion-data.js";
+export type { Suggestion } from "./completion-data.js";
 export { EcLanguageMetaData } from "./generated/module.js";
 export * from "./generated/ast.js";
 export { astToGraph } from "./graph.js";
@@ -25,6 +42,7 @@ export {
   resolveSpecImports,
   resolveSpecImportsAsync,
   detectSpecType,
+  isSpecFile,
   resolveAsyncApiImports,
   resolveAsyncApiImportsAsync,
 } from "./resolvers/index.js";

@@ -1,0 +1,19 @@
+---
+const { siteTitle } = Astro.locals.starlightRoute;
+---
+
+<a href="https://compass.eventcatalog.dev" class="site-title sl-flex">
+	<span translate="no">{siteTitle}</span>
+</a>
+
+<style>
+	.site-title {
+		align-items: center;
+		gap: var(--sl-nav-gap);
+		font-size: var(--sl-text-h4);
+		font-weight: 600;
+		color: var(--sl-color-text-accent);
+		text-decoration: none;
+		white-space: nowrap;
+	}
+</style>

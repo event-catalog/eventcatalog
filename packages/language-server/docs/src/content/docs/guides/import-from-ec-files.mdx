@@ -1,0 +1,250 @@
+---
+title: Import from .ec files
+description: Split your architecture across multiple .ec files and import resources between them.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+As your architecture grows, you can split your model across multiple `.ec` files and import resources between them. This keeps files focused and avoids duplication.
+
+## Import resources
+
+Pull any resources from another `.ec` file by name. No type keywords needed:
+
+<Tabs>
+<TabItem label="main.ec">
+```ec
+import { OrderService } from "./services/orders.ec"
+import { OrderCreated, OrderShipped } from "./events/order-events.ec"
+import { orderEvents } from "./channels.ec"
+
+visualizer main {
+  name "Order System"
+
+  service OrderService
+
+  service ShippingService {
+    version 1.0.0
+    receives event OrderCreated from orderEvents
+    sends event OrderShipped to orderEvents
+  }
+}
+```
+</TabItem>
+<TabItem label="services/orders.ec">
+```ec
+service OrderService {
+  version 1.0.0
+  summary "Manages order lifecycle"
+  owner @order-team
+  sends event OrderCreated to orderEvents
+  sends event OrderShipped to orderEvents
+}
+```
+</TabItem>
+<TabItem label="events/order-events.ec">
+```ec
+event OrderCreated {
+  version 1.0.0
+  summary "Raised when a new order is placed"
+}
+
+event OrderShipped {
+  version 1.0.0
+  summary "Raised when an order ships"
+}
+```
+</TabItem>
+</Tabs>
+
+## Import many resources at once
+
+Group all the resources you need in a single import block:
+
+<Tabs>
+<TabItem label="main.ec">
+```ec
+import {
+  OrderCreated, OrderShipped, OrderCancelled,
+  PaymentProcessed, PaymentFailed,
+  CreateOrder, GetOrderStatus
+} from "./messages.ec"
+
+import {
+  OrderService, PaymentService, InventoryService,
+  NotificationService
+} from "./services.ec"
+
+visualizer main {
+  name "Order Processing"
+
+  service OrderService
+  service PaymentService
+  service InventoryService
+  service NotificationService
+}
+```
+</TabItem>
+<TabItem label="messages.ec">
+```ec
+event OrderCreated {
+  version 1.0.0
+  summary "Raised when a new order is placed"
+}
+
+event OrderShipped {
+  version 1.0.0
+  summary "Raised when an order ships"
+}
+
+event OrderCancelled {
+  version 1.0.0
+  summary "Raised when an order is cancelled"
+}
+
+event PaymentProcessed {
+  version 1.0.0
+  summary "Raised when payment completes"
+}
+
+event PaymentFailed {
+  version 1.0.0
+  summary "Raised when payment fails"
+}
+
+command CreateOrder {
+  version 1.0.0
+  summary "Creates a new order"
+}
+
+query GetOrderStatus {
+  version 1.0.0
+  summary "Returns current order status"
+}
+```
+</TabItem>
+<TabItem label="services.ec">
+```ec
+service OrderService {
+  version 1.0.0
+  summary "Manages order lifecycle"
+  sends event OrderCreated
+  sends event OrderShipped
+  receives command CreateOrder
+  receives query GetOrderStatus
+}
+
+service PaymentService {
+  version 1.0.0
+  summary "Handles payments"
+  receives event OrderCreated
+  sends event PaymentProcessed
+  sends event PaymentFailed
+}
+
+service InventoryService {
+  version 1.0.0
+  summary "Tracks stock levels"
+  receives event OrderCreated
+}
+
+service NotificationService {
+  version 1.0.0
+  summary "Sends customer notifications"
+  receives event OrderShipped
+  receives event OrderCancelled
+}
+```
+</TabItem>
+</Tabs>
+
+## Organize by domain
+
+A common pattern is one file per domain or bounded context:
+
+<Tabs>
+<TabItem label="main.ec">
+```ec
+import { OrderService, PaymentService, OrderCreated, PaymentProcessed } from "./domains/commerce.ec"
+import { ShippingService } from "./domains/logistics.ec"
+
+visualizer main {
+  name "Full System Overview"
+
+  domain Commerce {
+    version 1.0.0
+    service OrderService
+    service PaymentService
+  }
+
+  domain Logistics {
+    version 1.0.0
+    service ShippingService
+  }
+}
+```
+</TabItem>
+<TabItem label="domains/commerce.ec">
+```ec
+service OrderService {
+  version 1.0.0
+  sends event OrderCreated
+}
+
+service PaymentService {
+  version 1.0.0
+  receives event OrderCreated
+  sends event PaymentProcessed
+}
+
+event OrderCreated {
+  version 1.0.0
+}
+
+event PaymentProcessed {
+  version 1.0.0
+}
+```
+</TabItem>
+<TabItem label="domains/logistics.ec">
+```ec
+service ShippingService {
+  version 1.0.0
+  receives event PaymentProcessed
+  sends event ShipmentDispatched
+}
+```
+</TabItem>
+</Tabs>
+
+## Mix .ec imports with spec imports
+
+You can import from `.ec` files and spec files in the same model:
+
+```ec title="main.ec"
+import { PaymentService } from "./domains/payments.ec"
+import OrderService from "./orders-openapi.yml"
+import events { InventoryReserved } from "./inventory-asyncapi.yml"
+
+visualizer main {
+  name "Checkout Flow"
+
+  service OrderService
+  service PaymentService
+
+  service InventoryService {
+    version 1.0.0
+    receives event OrderCreated
+    sends event InventoryReserved
+  }
+}
+```
+
+## When to split files
+
+| Scenario                      | Approach                                                      |
+| ----------------------------- | ------------------------------------------------------------- |
+| Small system (< 5 services)   | One `main.ec` file is fine                                    |
+| Medium system (5-15 services) | Split by domain or team                                       |
+| Large system (15+ services)   | One file per domain, shared events/channels in separate files |
+| Multi-team collaboration      | Each team owns their `.ec` files, main file imports from all  |

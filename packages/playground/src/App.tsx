@@ -4,7 +4,6 @@ import { useStore } from "@nanostores/react";
 import { Editor } from "./components/Editor";
 import { Visualizer } from "./components/Visualizer";
 import { TabBar } from "./components/TabBar";
-import { TemplatePicker } from "./components/TemplatePicker";
 import { StatusBar } from "./components/StatusBar";
 import { CommandPalette } from "./components/CommandPalette";
 import type { EditorHandle } from "./components/Editor";
@@ -39,7 +38,7 @@ import {
   Copy,
   FolderDown,
 } from "lucide-react";
-import { formatEc } from "@eventcatalog/language-server";
+import { formatEc } from "@eventcatalog/language-server/browser";
 
 const MIN_PANEL_PCT = 20;
 const MAX_PANEL_PCT = 80;
@@ -470,7 +469,7 @@ function getCodeFromUrl(): string | null {
 
 function isNewRoute(): boolean {
   const path = window.location.pathname.replace(/\/+$/, "");
-  return path.endsWith("/new");
+  return path.endsWith("/new") || path === "/playground";
 }
 
 function getBasePathname(): string {
@@ -480,12 +479,6 @@ function getBasePathname(): string {
 
 function hasExampleHash(): boolean {
   return /example=\d+/.test(window.location.hash);
-}
-
-function shouldShowTemplatePicker(workspaceId?: string): boolean {
-  if (workspaceId) return false;
-  if (getCodeFromUrl() || hasExampleHash() || peekDraft()) return false;
-  return true;
 }
 
 function getInitialExample(): number {
@@ -509,7 +502,6 @@ function getInitialState(workspaceId?: string): { files: Record<string, string>;
   if (isNewRoute()) return defaultState;
   const draft = peekDraft();
   if (draft) return draft;
-  if (shouldShowTemplatePicker()) return defaultState;
   const source = examples[getInitialExample()].source;
   return { files: { ...source }, activeFile: Object.keys(source)[0] };
 }
@@ -540,13 +532,7 @@ export default function App() {
     () => getCodeFromUrl() !== null,
   );
   const [templateUnselected, setTemplateUnselected] = useState(
-    () =>
-      !shouldShowTemplatePicker(workspaceId) &&
-      isNewRoute() &&
-      getCodeFromUrl() === null,
-  );
-  const [showTemplatePicker, setShowTemplatePicker] = useState(() =>
-    shouldShowTemplatePicker(workspaceId),
+    () => isNewRoute() && getCodeFromUrl() === null,
   );
   const [initialState] = useState(() => getInitialState(workspaceId));
   const [files, setFiles] = useState<Record<string, string>>(
@@ -632,22 +618,6 @@ export default function App() {
     },
     [loadExample],
   );
-
-  const handleTemplateSelect = useCallback(
-    (exampleIndex: number) => {
-      setShowTemplatePicker(false);
-      loadExample(exampleIndex);
-    },
-    [loadExample],
-  );
-
-  const handleBlankStart = useCallback(() => {
-    setShowTemplatePicker(false);
-    setTemplateUnselected(true);
-    isUserDraft.current = true;
-    setFiles({ "main.ec": "" });
-    setActiveFile("main.ec");
-  }, []);
 
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [exportRecentlyDownloaded, setExportRecentlyDownloaded] =
@@ -1113,12 +1083,6 @@ Welcome to your generated EventCatalog project.
           onCreateCatalog={handleExportCatalog}
           isExporting={isCatalogExporting}
           onClose={() => setShowCatalogExport(false)}
-        />
-      )}
-      {showTemplatePicker && (
-        <TemplatePicker
-          onSelect={handleTemplateSelect}
-          onBlank={handleBlankStart}
         />
       )}
       <CommandPalette

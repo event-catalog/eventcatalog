@@ -266,6 +266,17 @@ export function astToGraph(
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
 
+  /** Set parentId on a node, guarding against self-reference */
+  function assignParent(
+    node: GraphNode,
+    nodeId: string,
+    parentId: string | undefined,
+  ): void {
+    if (parentId && parentId !== nodeId && !node.parentId) {
+      node.parentId = parentId;
+    }
+  }
+
   // Build a versioned node ID: type:name@version or type:name (unversioned)
   function nid(name: string, type: string, version?: string): string {
     if (version) return `${type}:${name}@${version}`;
@@ -346,9 +357,7 @@ export function astToGraph(
     const id = nid(name, type, version);
     const existing = nodes.find((n) => n.id === id);
     if (existing) {
-      if (parentId && !existing.parentId) {
-        existing.parentId = parentId;
-      }
+      assignParent(existing, id, parentId);
       // Merge metadata: fill in values the existing node is missing
       for (const [key, value] of Object.entries(metadata)) {
         if (value != null && existing.metadata[key] == null) {
@@ -366,9 +375,7 @@ export function astToGraph(
       const resolved = resolveNodeId(name, type);
       if (resolved) {
         const existingNode = nodes.find((n) => n.id === resolved)!;
-        if (parentId && !existingNode.parentId) {
-          existingNode.parentId = parentId;
-        }
+        assignParent(existingNode, resolved, parentId);
         return resolved;
       }
     }
@@ -499,6 +506,9 @@ export function astToGraph(
         meta.address = getAddress(body);
         meta.protocols = getProtocols(body);
       }
+      if (isContainerDef(def)) {
+        meta.containerType = getContainerType(body);
+      }
       for (const [key, value] of Object.entries(meta)) {
         if (value != null && node.metadata[key] == null) {
           node.metadata[key] = value;
@@ -560,7 +570,7 @@ export function astToGraph(
       const existingId = resolveNodeId(name, type, version);
       if (existingId) {
         const node = nodes.find((n) => n.id === existingId)!;
-        if (parentId && !node.parentId) node.parentId = parentId;
+        assignParent(node, existingId, parentId);
         enrichFromTopLevel(existingId, name, type);
         return existingId;
       }
@@ -573,7 +583,7 @@ export function astToGraph(
     const existingId = resolveNodeId(name, type);
     if (existingId) {
       const node = nodes.find((n) => n.id === existingId)!;
-      if (parentId && !node.parentId) node.parentId = parentId;
+      assignParent(node, existingId, parentId);
       enrichFromTopLevel(existingId, name, type);
       return existingId;
     }

@@ -5,4 +5,4 @@ export type {
   ResourceType,
   ResolveError,
   SpecResolveResult,
-} from '@eventcatalog/language-server';
+} from '@eventcatalog/language-server/browser';

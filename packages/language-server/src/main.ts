@@ -1,6 +1,7 @@
 import { startLanguageServer } from "langium/lsp";
 import { createDefaultModule, createDefaultSharedModule } from "langium/lsp";
-import { inject } from "langium";
+import type { LangiumServices, PartialLangiumLSPServices } from "langium/lsp";
+import { type Module, inject } from "langium";
 import { NodeFileSystem } from "langium/node";
 import {
   createConnection,
@@ -10,8 +11,24 @@ import {
   EcGeneratedModule,
   EcGeneratedSharedModule,
 } from "./generated/module.js";
-import { EcModule, EcLspModule } from "./ec-module.js";
+import { EcModule } from "./ec-module.js";
+import { EcCompletionProvider } from "./ec-completion-provider.js";
+import { EcDefinitionProvider } from "./ec-definition-provider.js";
+import { EcHoverProvider } from "./ec-hover-provider.js";
+import { EcFormatterProvider } from "./ec-formatter-provider.js";
 import { registerValidationChecks } from "./ec-validator.js";
+
+/**
+ * LSP module that overrides default providers with EC-specific implementations.
+ */
+const EcLspModule: Module<LangiumServices, PartialLangiumLSPServices> = {
+  lsp: {
+    CompletionProvider: (services) => new EcCompletionProvider(services),
+    DefinitionProvider: (services) => new EcDefinitionProvider(services),
+    HoverProvider: (services) => new EcHoverProvider(services),
+    Formatter: () => new EcFormatterProvider(),
+  },
+};
 
 const connection = createConnection(ProposedFeatures.all);
 

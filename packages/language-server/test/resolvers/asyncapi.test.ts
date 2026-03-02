@@ -7,6 +7,7 @@ import {
   messageToEc,
   channelToEc,
   serviceToEc,
+  escapeEc,
   resolveAsyncApiImports as resolveImports,
   resolveAsyncApiImportsAsync as resolveImportsAsync,
 } from "../../src/resolvers/index.js";
@@ -555,6 +556,63 @@ describe("messageToEc", () => {
       "events",
     );
     expect(ec).toContain('summary "Said \\"hello\\""');
+  });
+
+  it("strips newlines from summary to produce valid .ec", () => {
+    const ec = messageToEc(
+      { name: "Evt", summary: "Line one\nLine two\n", version: "1.0.0" },
+      "events",
+    );
+    // Summary should be on a single line with no embedded newlines inside the quotes
+    const summaryLine = ec.split("\n").find((l) => l.includes("summary"));
+    expect(summaryLine).toBeDefined();
+    expect(summaryLine).toMatch(/^\s*summary "[^"]*"$/);
+    expect(summaryLine).toContain("Line one Line two");
+  });
+
+  it("handles summary with trailing newline from catalog frontmatter", () => {
+    const ec = messageToEc(
+      {
+        name: "DeliveryFailed",
+        summary: "Event that is emitted when a shipment delivery fails.\n",
+        version: "0.0.1",
+      },
+      "events",
+    );
+    expect(ec).toContain(
+      'summary "Event that is emitted when a shipment delivery fails."',
+    );
+    expect(ec).not.toMatch(/summary "[^"]*\n/);
+  });
+});
+
+// ─── escapeEc ───────────────────────────────────────────
+
+describe("escapeEc", () => {
+  it("escapes double quotes", () => {
+    expect(escapeEc('say "hi"')).toBe('say \\"hi\\"');
+  });
+
+  it("replaces newlines with spaces", () => {
+    expect(escapeEc("line one\nline two")).toBe("line one line two");
+  });
+
+  it("strips carriage returns", () => {
+    expect(escapeEc("line one\r\nline two")).toBe("line one line two");
+  });
+
+  it("trims leading and trailing whitespace", () => {
+    expect(escapeEc("  hello  \n")).toBe("hello");
+  });
+
+  it("escapes backslashes", () => {
+    expect(escapeEc("back\\slash")).toBe("back\\\\slash");
+  });
+
+  it("handles combined special characters", () => {
+    expect(escapeEc('He said "hi"\nand left\n')).toBe(
+      'He said \\"hi\\" and left',
+    );
   });
 });
 

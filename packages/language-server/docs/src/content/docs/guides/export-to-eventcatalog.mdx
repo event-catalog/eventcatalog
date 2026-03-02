@@ -1,0 +1,80 @@
+---
+title: Export to EventCatalog
+description: Turn your .ec models into EventCatalog documentation with the CLI.
+---
+
+Once you have modeled your architecture in `.ec` files, you can export them back into EventCatalog. This turns your models into browsable, versioned documentation that your whole team can discover.
+
+## How it works
+
+The CLI reads your `.ec` files and creates or updates matching resources in your EventCatalog directory. Services become service pages, events become event pages, and so on.
+
+```bash
+npx @eventcatalog/cli --dir ./catalog import ./main.ec
+```
+
+## Import a single file
+
+```bash
+npx @eventcatalog/cli --dir ./catalog import ./main.ec
+```
+
+## Import multiple files
+
+```bash
+npx @eventcatalog/cli --dir ./catalog import ./core.ec ./payments.ec ./shipping.ec
+```
+
+## Import from stdin
+
+Pipe `.ec` content directly into the CLI:
+
+```bash
+cat ./main.ec | npx @eventcatalog/cli --dir ./catalog import --stdin
+```
+
+## Preview changes first
+
+Use `--dry-run` to see what would be created or updated without writing anything:
+
+```bash
+npx @eventcatalog/cli --dir ./catalog import ./main.ec --dry-run
+```
+
+## What gets created
+
+The CLI creates EventCatalog resources for everything defined in your `.ec` files:
+
+| .ec definition | EventCatalog resource |
+| -------------- | --------------------- |
+| `service`      | Service page          |
+| `event`        | Event page            |
+| `command`      | Command page          |
+| `query`        | Query page            |
+| `domain`       | Domain page           |
+| `channel`      | Channel page          |
+| `container`    | Container page        |
+| `data-product` | Data Product page     |
+| `user`         | User page             |
+| `team`         | Team page             |
+
+If a resource already exists, it gets updated. If you are importing a newer version, the CLI versions the previous content automatically.
+
+## Flags
+
+| Flag        | What it does                                              |
+| ----------- | --------------------------------------------------------- |
+| `--dry-run` | Preview creates, updates, and versioning without writing  |
+| `--flat`    | Write resources in top-level folders instead of nesting   |
+| `--no-init` | Skip initialization prompts (useful in CI/CD)             |
+
+## The design-to-documentation workflow
+
+This is the core loop for keeping models and documentation in sync:
+
+1. **Model** your architecture in `.ec` files
+2. **Review** the changes in a pull request
+3. **Export** to EventCatalog with the CLI
+4. **Browse** the updated documentation in your catalog
+
+Your `.ec` files become the source of truth for architectural decisions. EventCatalog becomes the place where everyone discovers and reads them.
