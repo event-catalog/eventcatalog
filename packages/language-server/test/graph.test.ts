@@ -360,6 +360,32 @@ describe("astToGraph", () => {
     expect(readsFromEdge).toBeUndefined();
   });
 
+  it("writes-to container inherits summary and containerType from top-level definition", async () => {
+    const program = await parseProgram(`
+      container orders-db {
+        name "Orders Database"
+        version 1.0.0
+        summary "Primary database for orders"
+        container-type database
+      }
+
+      visualizer main {
+        service OrderService {
+          version 1.0.0
+          writes-to container orders-db
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+    const dbNode = graph.nodes.find((n) => n.type === "container");
+    expect(dbNode).toBeDefined();
+    expect(dbNode!.label).toBe("Orders Database");
+    expect(dbNode!.metadata.summary).toBe("Primary database for orders");
+    expect(dbNode!.metadata.version).toBe("1.0.0");
+    expect(dbNode!.metadata.containerType).toBe("database");
+  });
+
   it("subdomain hierarchy produces correct parentIds and contains edges", async () => {
     const program = await parseProgram(`
       visualizer main {

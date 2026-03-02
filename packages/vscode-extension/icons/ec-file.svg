@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- File shape -->
+  <path d="M6 2h14l6 6v20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#1e1b4b" opacity="0.08"/>
+  <path d="M6 2h14l6 6v20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" stroke="#6d28d9" stroke-width="1" fill="none"/>
+  <path d="M20 2v6h6" stroke="#6d28d9" stroke-width="1" fill="none"/>
+  <!-- EC text -->
+  <text x="16" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#6d28d9">EC</text>
+</svg>

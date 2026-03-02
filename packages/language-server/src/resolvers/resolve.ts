@@ -1,17 +1,19 @@
 import yaml from "js-yaml";
-import type {
-  SpecMessage,
-  SpecChannel,
-  ResourceType,
-  ResolveError,
-  SpecResolveResult,
-  FetchFn,
+import {
+  isCatalogPath,
+  type SpecMessage,
+  type SpecChannel,
+  type ResourceType,
+  type ResolveError,
+  type SpecResolveResult,
+  type FetchFn,
 } from "./types.js";
 import {
   parseSpec,
   extractService,
   messageToEc,
   channelToEc,
+  containerToEc,
   serviceToEc,
 } from "./asyncapi.js";
 import {
@@ -20,7 +22,6 @@ import {
   openApiServiceToEc,
   openApiMessageToEc,
 } from "./openapi.js";
-
 // Matches: import events { OrderCreated } from "./spec.yml"
 // Matches: import channels { orderEvents } from "./spec.yml"
 // Matches: import events { OrderCreated } from "https://example.com/spec.yml"
@@ -33,6 +34,14 @@ const SPEC_IMPORT_RE =
 // Also matches .json files for OpenAPI specs
 const SERVICE_IMPORT_RE =
   /^\s*import\s+([A-Z][a-zA-Z0-9_]*)\s+from\s*"([^"]+\.(?:ya?ml|json))"\s*(?:\/\/.*)?$/gm;
+
+// Matches: import events { OrderCreated } from "./my-catalog"
+// Matches: import services { OrderService } from "./my-catalog"
+// Matches: import containers { PaymentsDB } from "./my-catalog"
+// Catches any typed import whose path is NOT a spec file and NOT a URL (i.e., a directory path).
+// Uses the same shape as SPEC_IMPORT_RE but with a generic path capture.
+const CATALOG_IMPORT_RE =
+  /^\s*import\s+(events|commands|queries|channels|services|containers)\s*\{([^}]*)\}\s*from\s*"([^"]+)"\s*(?:\/\/.*)?$/gm;
 
 type SpecType = "asyncapi" | "openapi" | "unknown";
 
@@ -99,6 +108,110 @@ function findServiceImports(source: string): ServiceImportMatch[] {
     });
   }
   return imports;
+}
+
+function findCatalogImports(source: string): ImportMatch[] {
+  const imports: ImportMatch[] = [];
+  CATALOG_IMPORT_RE.lastIndex = 0;
+  let match;
+  while ((match = CATALOG_IMPORT_RE.exec(source)) !== null) {
+    const specPath = match[3];
+    // Only keep matches that are catalog paths (not spec files, not URLs)
+    if (!isCatalogPath(specPath)) continue;
+    imports.push({
+      full: match[0],
+      resourceType: match[1] as ResourceType,
+      importNames: match[2]
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      specPath,
+    });
+  }
+  return imports;
+}
+
+async function resolveCatalogImportToEc(
+  imp: ImportMatch,
+  basePath: string,
+  importingFile?: string,
+): Promise<ImportResolution> {
+  // Dynamic imports to avoid pulling Node.js/SDK deps into browser builds
+  const { resolve, dirname, isAbsolute } = await import("node:path");
+  // Resolve relative paths against the importing file's directory when available,
+  // falling back to basePath for absolute paths or when the file is unknown.
+  let catalogDir: string;
+  if (importingFile && !isAbsolute(imp.specPath)) {
+    const fileDir = resolve(basePath, dirname(importingFile));
+    catalogDir = resolve(fileDir, imp.specPath);
+  } else {
+    catalogDir = resolve(basePath, imp.specPath);
+  }
+
+  // Service imports use a different code path
+  if (imp.resourceType === "services") {
+    const { parseCatalogServices } = await import("./catalog.js");
+    const { services, errors } = await parseCatalogServices(catalogDir);
+
+    const ecDefs = imp.importNames.map((name) => {
+      const svc = services.get(name);
+      if (!svc) {
+        errors.push({
+          message: `Service "${name}" not found in catalog "${imp.specPath}". Available: ${[...services.keys()].join(", ") || "(none)"}`,
+          line: 1,
+          column: 1,
+        });
+        return `// ERROR: Service "${name}" not found in catalog ${imp.specPath}`;
+      }
+      return serviceToEc(svc);
+    });
+
+    return { ec: ecDefs.join("\n\n"), errors };
+  }
+
+  // Channel imports use a dedicated resolver to capture address/protocol
+  if (imp.resourceType === "channels") {
+    const { parseCatalogChannels } = await import("./catalog.js");
+    const { channels, errors } = await parseCatalogChannels(catalogDir);
+
+    const ecDefs = imp.importNames.map((name) => {
+      const ch = channels.get(name);
+      if (!ch) {
+        errors.push({
+          message: `Channel "${name}" not found in catalog "${imp.specPath}". Available: ${[...channels.keys()].join(", ") || "(none)"}`,
+          line: 1,
+          column: 1,
+        });
+        return `// ERROR: Channel "${name}" not found in catalog ${imp.specPath}`;
+      }
+      return channelToEc(ch);
+    });
+
+    return { ec: ecDefs.join("\n\n"), errors };
+  }
+
+  const { parseCatalogResources } = await import("./catalog.js");
+  const { messages, errors } = await parseCatalogResources(
+    catalogDir,
+    imp.resourceType,
+  );
+
+  const ecDefs = imp.importNames.map((name) => {
+    const msg = messages.get(name);
+    if (!msg) {
+      errors.push({
+        message: `"${name}" not found in catalog "${imp.specPath}". Available: ${[...messages.keys()].join(", ") || "(none)"}`,
+        line: 1,
+        column: 1,
+      });
+      return `// ERROR: "${name}" not found in catalog ${imp.specPath}`;
+    }
+    return imp.resourceType === "containers"
+      ? containerToEc(msg)
+      : messageToEc(msg, imp.resourceType);
+  });
+
+  return { ec: ecDefs.join("\n\n"), errors };
 }
 
 interface ImportResolution {
@@ -248,7 +361,7 @@ function lookupLocalSpec(
   );
 }
 
-function isSpecFile(filename: string): boolean {
+export function isSpecFile(filename: string): boolean {
   return (
     filename.endsWith(".yml") ||
     filename.endsWith(".yaml") ||
@@ -394,10 +507,13 @@ export function resolveSpecImports(
  * Fetches remote specs via the provided fetchFn, then resolves all imports.
  * Auto-detects AsyncAPI vs OpenAPI from file content.
  * For local file imports, looks them up in the files map.
+ * When basePath is provided, also resolves catalog directory imports
+ * (e.g., `import events { OrderCreated } from "./my-catalog"`).
  */
 export async function resolveSpecImportsAsync(
   files: Record<string, string>,
   fetchFn: FetchFn,
+  basePath?: string,
 ): Promise<SpecResolveResult> {
   // Collect all unique remote URLs that need fetching
   const urlsToFetch = new Set<string>();
@@ -442,6 +558,73 @@ export async function resolveSpecImportsAsync(
     }
     return content;
   });
+
+  // Resolve catalog directory imports (import events { ... } from "./my-catalog")
+  // Only when basePath is provided (Node.js/VSCode context, not browser)
+  if (basePath) {
+    const catalogErrors: ResolveError[] = [];
+
+    // Collect files that have catalog imports so we can resolve them in parallel.
+    // The TTL cache in catalog.ts ensures that multiple imports pointing at
+    // the same catalog directory only trigger one SDK scan.
+    const filesToResolve: { filename: string; imports: ImportMatch[] }[] = [];
+    for (const [filename, source] of Object.entries(result.files)) {
+      const catalogImports = findCatalogImports(source);
+      if (catalogImports.length > 0) {
+        filesToResolve.push({ filename, imports: catalogImports });
+      }
+    }
+
+    // Resolve all files and their imports in parallel.
+    // Imports within a file are also resolved concurrently since they may
+    // point at different catalog directories.
+    const catalogResolutions = new Map<string, string>();
+    await Promise.all(
+      filesToResolve.map(async ({ filename, imports }) => {
+        const resolutions = await Promise.all(
+          imports.map(async (imp) => {
+            try {
+              return await resolveCatalogImportToEc(imp, basePath, filename);
+            } catch (err) {
+              return {
+                ec: `// ERROR: Failed to resolve catalog "${imp.specPath}": ${String(err)}`,
+                errors: [
+                  {
+                    message: `Failed to resolve catalog "${imp.specPath}": ${String(err)}`,
+                    line: 1,
+                    column: 1,
+                  },
+                ],
+              } as ImportResolution;
+            }
+          }),
+        );
+        let resolved = result.files[filename];
+        for (let i = 0; i < imports.length; i++) {
+          catalogErrors.push(...resolutions[i].errors);
+          resolved = resolved.replace(imports[i].full, resolutions[i].ec);
+        }
+        catalogResolutions.set(filename, resolved);
+      }),
+    );
+
+    // Build output preserving the original file order from result.files
+    const resolvedFiles: Record<string, string> = {};
+    for (const filename of Object.keys(result.files)) {
+      resolvedFiles[filename] =
+        catalogResolutions.get(filename) ?? result.files[filename];
+    }
+
+    return {
+      files: resolvedFiles,
+      errors: [
+        ...fetchErrors,
+        ...notFoundErrors,
+        ...result.errors,
+        ...catalogErrors,
+      ],
+    };
+  }
 
   return {
     files: result.files,

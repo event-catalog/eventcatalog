@@ -9,6 +9,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
+    },
     "./language-server": {
       "import": "./dist/main.js"
     }
@@ -42,6 +46,7 @@
     "format:diff": "prettier --check ."
   },
   "dependencies": {
+    "@eventcatalog/sdk": "workspace:*",
     "js-yaml": "^4.1.1",
     "langium": "^3.3.1",
     "semver": "^7.7.4",

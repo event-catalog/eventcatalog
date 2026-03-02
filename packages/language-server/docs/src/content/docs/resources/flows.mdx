@@ -1,0 +1,186 @@
+---
+title: Flows
+description: Model step-by-step business processes with flow resources.
+---
+
+`flow` models a business process as a sequence of steps, triggers, and reactions. Flows read like a narrative of what happens in your system.
+
+## Example
+
+This example models an order fulfillment flow from placement through to shipping.
+
+```ec title="main.ec"
+flow OrderFulfillment {
+  version 1.0.0
+  name "Order Fulfillment"
+  summary "End-to-end order processing from placement to delivery"
+  owner fulfillment-team
+
+  Customer "places an order"
+    -> PlaceOrder
+    -> OrderService "creates the order"
+    -> OrderCreated
+
+  when OrderCreated
+    PaymentService "processes the payment"
+      -> "success": PaymentProcessed
+      -> "failure": PaymentFailed
+    InventoryService "reserves stock"
+      -> StockReserved
+
+  when PaymentFailed
+    NotificationService "notifies the customer of failure"
+
+  when PaymentProcessed and StockReserved
+    FulfillmentService "ships the order"
+      -> OrderShipped
+
+  when OrderShipped
+    WarehouseWMS "syncs with legacy WMS"
+    NotificationService "notifies the customer"
+      -> CustomerNotified
+}
+```
+
+## Properties
+
+| Property     | Type      | Required        | Description                    | Example                         |
+| ------------ | --------- | --------------- | ------------------------------ | ------------------------------- |
+| `version`    | semver    | Yes             | Resource version.              | `1.0.0`                         |
+| `name`       | string    | No              | Display name (defaults to id). | `"Order Fulfillment"`           |
+| `summary`    | string    | No              | Short description.             | `"End-to-end order processing"` |
+| `owner`      | reference | No (repeatable) | Team/user owner reference.     | `owner fulfillment-team`        |
+| `draft`      | boolean   | No              | Marks resource as draft.       | `draft true`                    |
+| `deprecated` | boolean   | No              | Marks resource as deprecated.  | `deprecated true`               |
+
+## Entry chains
+
+The entry chain defines the starting sequence of a flow using arrow (`->`) syntax. This is where the process begins.
+
+```ec title="main.ec"
+flow CheckoutFlow {
+  version 1.0.0
+
+  Customer "places an order"
+    -> PlaceOrder
+    -> OrderService "creates the order"
+    -> OrderCreated
+}
+```
+
+Multiple sources can converge into a single chain:
+
+```ec title="main.ec"
+flow MergeFlow {
+  version 1.0.0
+
+  WebOrder, MobileOrder -> OrderService "processes the order"
+    -> OrderCreated
+}
+```
+
+## When blocks
+
+`when` blocks define what happens in reaction to an event. Each block starts with a trigger, followed by one or more actions.
+
+```ec title="main.ec"
+flow PaymentFlow {
+  version 1.0.0
+
+  OrderService "creates order" -> OrderCreated
+
+  when OrderCreated
+    PaymentService "processes the payment"
+      -> "success": PaymentProcessed
+      -> "failure": PaymentFailed
+}
+```
+
+### Labeled outputs
+
+Action outputs can have labels to describe the outcome:
+
+```ec
+-> "success": PaymentProcessed    // labeled output
+-> StockReserved                   // unlabeled output
+```
+
+### Convergence
+
+Use `and` to require multiple triggers before actions execute:
+
+```ec
+when PaymentProcessed and StockReserved
+  FulfillmentService "ships the order"
+    -> OrderShipped
+```
+
+### Terminal actions
+
+Actions without outputs are terminal steps in the flow:
+
+```ec
+when OrderShipped
+  WarehouseWMS "syncs with legacy WMS"
+  NotificationService "notifies the customer"
+```
+
+## Actors and external systems
+
+Use `actor` and `external-system` to represent people and third-party systems in your flows. Define them as top-level resources alongside your flow.
+
+```ec title="main.ec"
+actor Customer {
+  name "Customer"
+  summary "End user on the storefront"
+}
+
+external-system WarehouseWMS {
+  name "Warehouse WMS"
+  summary "Legacy warehouse management system"
+}
+
+flow OrderFulfillment {
+  version 1.0.0
+
+  Customer "places an order"
+    -> PlaceOrder
+    -> OrderService "creates the order"
+    -> OrderCreated
+
+  when OrderShipped
+    WarehouseWMS "syncs with legacy WMS"
+}
+```
+
+Actors and external systems can also be bare (no body):
+
+```ec
+actor Customer
+external-system WarehouseWMS
+```
+
+## Flow references
+
+Resources in flows are referenced by name only. You don't need type keywords like `service` or `event`. Types are resolved automatically from other definitions in your `.ec` files or catalog.
+
+Each reference can include an optional label:
+
+| Reference                                | Description              |
+| ---------------------------------------- | ------------------------ |
+| `Customer "places an order"`             | Name with display label  |
+| `PlaceOrder`                             | Bare name (no label)     |
+| `PaymentService "processes the payment"` | Service with description |
+
+If no matching definition is found for a reference, it defaults to a `step` type.
+
+## Referencing flows from services
+
+Services can reference related flows:
+
+```ec
+service OrderService {
+  version 1.0.0
+  flow OrderFulfillment@1.0.0
+}
+```

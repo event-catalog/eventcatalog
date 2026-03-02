@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import { AlertCircle, Bug } from "lucide-react";
-import type { GraphNode } from "@eventcatalog/language-server";
+import type { GraphNode } from "@eventcatalog/language-server/browser";
 
 const NODE_LABELS: Record<string, [string, string]> = {
   domain: ["domain", "domains"],

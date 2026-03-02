@@ -266,7 +266,7 @@ let cachedGraph: DslGraph | null = null;
 async function parseHeroDsl(): Promise<DslGraph> {
   if (cachedGraph) return cachedGraph;
 
-  const langModule = await import('@eventcatalog/language-server');
+  const langModule = await import('@eventcatalog/language-server/browser');
   const { EmptyFileSystem, URI } = await import('langium');
 
   const services = langModule.createEcServices(EmptyFileSystem);

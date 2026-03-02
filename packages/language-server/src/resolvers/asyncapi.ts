@@ -13,6 +13,8 @@ export const RESOURCE_TYPE_SINGULAR: Record<ResourceType, string> = {
   commands: "command",
   queries: "query",
   channels: "channel",
+  services: "service",
+  containers: "container",
 };
 
 function resolveRef(doc: any, ref: string): any {
@@ -514,6 +516,7 @@ export function messageToEc(
   resourceType: ResourceType,
 ): string {
   return ecBlock(RESOURCE_TYPE_SINGULAR[resourceType], msg.name, [
+    msg.displayName && `name "${escapeEc(msg.displayName)}"`,
     msg.version && `version ${msg.version}`,
     msg.summary && `summary "${escapeEc(msg.summary)}"`,
   ]);
@@ -524,10 +527,22 @@ export function messageToEc(
  */
 export function channelToEc(ch: SpecChannel): string {
   return ecBlock("channel", ch.name, [
+    ch.displayName && `name "${escapeEc(ch.displayName)}"`,
     ch.version && `version ${ch.version}`,
     ch.address && `address "${escapeEc(ch.address)}"`,
     ch.protocol && `protocol "${escapeEc(ch.protocol)}"`,
     ch.summary && `summary "${escapeEc(ch.summary)}"`,
+  ]);
+}
+
+/**
+ * Convert a SpecMessage (container) to an .ec container definition string.
+ */
+export function containerToEc(msg: SpecMessage): string {
+  return ecBlock("container", msg.name, [
+    msg.displayName && `name "${escapeEc(msg.displayName)}"`,
+    msg.version && `version ${msg.version}`,
+    msg.summary && `summary "${escapeEc(msg.summary)}"`,
   ]);
 }
 
@@ -542,6 +557,23 @@ export function serviceToEc(service: SpecService): string {
   // Generate channel definitions
   for (const ch of service.channels) {
     parts.push(channelToEc(ch));
+  }
+
+  // Generate standalone message definitions so metadata (summary, version) is available
+  const msgTypeLookup = new Map(
+    service.operations.map((op) => [op.messageName, op.messageType || "event"]),
+  );
+  for (const msg of service.messages) {
+    const resourceType = msgTypeLookup.get(msg.name) || "event";
+    const singular =
+      RESOURCE_TYPE_SINGULAR[`${resourceType}s` as ResourceType] ||
+      resourceType;
+    parts.push(
+      ecBlock(singular, msg.name, [
+        msg.version && `version ${msg.version}`,
+        msg.summary && `summary "${escapeEc(msg.summary)}"`,
+      ]),
+    );
   }
 
   // Build the service block
@@ -601,5 +633,10 @@ export function ecBlock(
 }
 
 export function escapeEc(value: string): string {
-  return value.replace(/"/g, '\\"');
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, " ")
+    .replace(/\r/g, "")
+    .trim();
 }

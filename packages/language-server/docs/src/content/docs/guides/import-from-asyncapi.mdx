@@ -1,0 +1,170 @@
+---
+title: Import from AsyncAPI
+description: Import events, channels, and operations from your AsyncAPI specs into .ec models.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+If you already have AsyncAPI specs, you can import resources directly into your `.ec` files. No need to re-type what your specs already describe.
+
+## What gets imported
+
+From an AsyncAPI file, you can import:
+
+| Resource type | What it maps to                                             |
+| ------------- | ----------------------------------------------------------- |
+| `events`      | Messages defined in the spec (publish/subscribe operations) |
+| `channels`    | Channel definitions with addresses and protocols            |
+
+## Import specific resources
+
+Pick exactly the events and channels you need:
+
+<Tabs>
+<TabItem label="main.ec">
+```ec
+import events { OrderCreated, OrderShipped } from "./orders-asyncapi.yml"
+import channels { orderCreated, orderShipped } from "./orders-asyncapi.yml"
+
+visualizer main {
+  name "Order Processing"
+
+  service OrderService {
+    version 1.0.0
+    sends event OrderCreated to orderCreated
+    sends event OrderShipped to orderShipped
+  }
+
+  service ShippingService {
+    version 1.0.0
+    receives event OrderCreated from orderCreated
+    sends event OrderShipped to orderShipped
+  }
+}
+```
+</TabItem>
+<TabItem label="orders-asyncapi.yml">
+```yaml
+asyncapi: 3.0.0
+info:
+  title: Order Service
+  version: 1.0.0
+
+channels:
+  orderCreated:
+    address: orders.created
+    messages:
+      OrderCreated:
+        payload:
+          type: object
+          properties:
+            orderId:
+              type: string
+            customerId:
+              type: string
+            totalAmount:
+              type: number
+  orderShipped:
+    address: orders.shipped
+    messages:
+      OrderShipped:
+        payload:
+          type: object
+          properties:
+            orderId:
+              type: string
+            trackingNumber:
+              type: string
+```
+</TabItem>
+</Tabs>
+
+## Import a service from a spec
+
+You can import a full service directly from a spec. This brings in the service with all its events, channels, and operations resolved from the file:
+
+<Tabs>
+<TabItem label="main.ec">
+```ec
+import OrderService from "./orders-asyncapi.yml"
+
+visualizer main {
+  name "Order Processing"
+
+  service OrderService
+
+  service NotificationService {
+    version 1.0.0
+    receives event OrderShipped
+    receives event OrderCancelled
+  }
+}
+```
+</TabItem>
+<TabItem label="orders-asyncapi.yml">
+```yaml
+asyncapi: 3.0.0
+info:
+  title: Order Service
+  version: 1.0.0
+
+channels:
+  orderCreated:
+    address: orders.created
+    messages:
+      OrderCreated:
+        payload:
+          type: object
+  orderShipped:
+    address: orders.shipped
+    messages:
+      OrderShipped:
+        payload:
+          type: object
+  orderCancelled:
+    address: orders.cancelled
+    messages:
+      OrderCancelled:
+        payload:
+          type: object
+```
+</TabItem>
+</Tabs>
+
+The imported `OrderService` comes in with everything the spec defines. You can then model new services around it.
+
+## Build on imported resources
+
+Once imported, use the resources in your model like any other. Add domains, ownership, and new services around them:
+
+```ec title="main.ec"
+import events { OrderCreated, OrderShipped, OrderCancelled } from "./orders-asyncapi.yml"
+import channels { orderCreated, orderShipped, orderCancelled } from "./orders-asyncapi.yml"
+
+visualizer main {
+  name "Order Management"
+
+  domain OrderManagement {
+    version 1.0.0
+    owner @order-team
+
+    service OrderService {
+      version 1.0.0
+      sends event OrderCreated to orderCreated
+      sends event OrderShipped to orderShipped
+      sends event OrderCancelled to orderCancelled
+    }
+
+    service NotificationService {
+      version 1.0.0
+      summary "Sends customer notifications"
+      receives event OrderShipped from orderShipped
+      receives event OrderCancelled from orderCancelled
+    }
+  }
+}
+```
+
+## Supported AsyncAPI versions
+
+Compass supports AsyncAPI 2.x and 3.x specs in YAML and JSON formats.

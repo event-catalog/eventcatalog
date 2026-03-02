@@ -16,6 +16,7 @@ export {
   messageToEc,
   channelToEc,
   serviceToEc,
+  escapeEc,
 } from "./asyncapi.js";
 export {
   parseOpenApiSpec,
@@ -28,7 +29,14 @@ export {
   resolveSpecImports,
   resolveSpecImportsAsync,
   detectSpecType,
+  isSpecFile,
 } from "./resolve.js";
+export {
+  parseCatalogResources,
+  parseCatalogServices,
+  clearCatalogCache,
+} from "./catalog.js";
+export { isCatalogPath } from "./types.js";
 /** @deprecated Use `resolveSpecImports` / `resolveSpecImportsAsync` instead. These aliases now handle both AsyncAPI and OpenAPI specs. */
 export {
   resolveSpecImports as resolveAsyncApiImports,

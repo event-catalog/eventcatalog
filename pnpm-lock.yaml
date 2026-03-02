@@ -461,6 +461,9 @@ importers:
 
   packages/language-server:
     dependencies:
+      '@eventcatalog/sdk':
+        specifier: workspace:*
+        version: link:../sdk
       js-yaml:
         specifier: ^4.1.1
         version: 4.1.1
@@ -757,6 +760,43 @@ importers:
       vite:
         specifier: ^7.1.9
         version: 7.1.9(@types/node@22.13.14)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.39.0)(tsx@4.21.0)(yaml@2.8.1)
+
+  packages/vscode-extension:
+    dependencies:
+      '@eventcatalog/language-server':
+        specifier: workspace:*
+        version: link:../language-server
+      vscode-languageclient:
+        specifier: ^9.0.1
+        version: 9.0.1
+    devDependencies:
+      '@eventcatalog/visualiser':
+        specifier: workspace:*
+        version: link:../visualiser
+      '@types/vscode':
+        specifier: ^1.85.0
+        version: 1.109.0
+      '@xyflow/react':
+        specifier: ^12.4.0
+        version: 12.8.6(@types/react@19.2.13)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      esbuild:
+        specifier: ^0.21.0
+        version: 0.21.5
+      langium:
+        specifier: ^3.3.1
+        version: 3.5.0
+      prettier:
+        specifier: ^3.2.5
+        version: 3.6.2
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
 packages:
 
@@ -3546,6 +3586,9 @@ packages:
 
   '@types/validate-npm-package-name@3.0.0':
     resolution: {integrity: sha512-iFNNIrEaJH1lbPiyX+O/QyxSbKxrTjdNBVZGckt+iEL9So0hdZNBL68sOfHnt2txuUD8UJXvmKv/1DkgkebgUg==}
+
+  '@types/vscode@1.109.0':
+    resolution: {integrity: sha512-0Pf95rnwEIwDbmXGC08r0B4TQhAbsHQ5UyTIgVgoieDe4cOnf92usuR5dEczb6bTKEp7ziZH4TV1TRGPPCExtw==}
 
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
@@ -12542,6 +12585,8 @@ snapshots:
 
   '@types/validate-npm-package-name@3.0.0': {}
 
+  '@types/vscode@1.109.0': {}
+
   '@types/web-bluetooth@0.0.20': {}
 
   '@ungap/structured-clone@1.3.0': {}
@@ -14866,7 +14911,7 @@ snapshots:
 
   glob@13.0.2:
     dependencies:
-      minimatch: 10.1.2
+      minimatch: 10.2.2
       minipass: 7.1.2
       path-scurry: 2.0.0
 

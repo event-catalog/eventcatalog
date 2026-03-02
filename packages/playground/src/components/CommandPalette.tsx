@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Command } from 'cmdk';
-import type { GraphNode } from '@eventcatalog/language-server';
+import type { GraphNode } from '@eventcatalog/language-server/browser';
 import { Globe, Server, Zap, Terminal, Radio, Hash, Search, Maximize } from 'lucide-react';
 
 const TYPE_META: Record<string, { label: string; icon: React.ReactNode; keyword: string }> = {

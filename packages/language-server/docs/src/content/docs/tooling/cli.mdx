@@ -1,0 +1,85 @@
+---
+title: CLI
+description: Use the EventCatalog CLI to import and export .ec files.
+---
+
+The EventCatalog CLI connects your `.ec` files to your EventCatalog. Import models into your catalog, export existing resources to `.ec` files, and automate workflows in CI/CD.
+
+## Install
+
+The CLI runs via `npx` with no install required:
+
+```bash
+npx @eventcatalog/cli --help
+```
+
+## Command pattern
+
+```bash
+npx @eventcatalog/cli --dir <catalog-path> <command> [options]
+```
+
+The `--dir` flag points to your EventCatalog directory.
+
+## Import .ec files into EventCatalog
+
+Take your `.ec` models and create or update resources in your catalog:
+
+```bash
+# Import a single file
+npx @eventcatalog/cli --dir ./catalog import ./main.ec
+
+# Import multiple files
+npx @eventcatalog/cli --dir ./catalog import ./core.ec ./payments.ec
+
+# Preview changes without writing
+npx @eventcatalog/cli --dir ./catalog import ./main.ec --dry-run
+
+# Read from stdin
+cat ./main.ec | npx @eventcatalog/cli --dir ./catalog import --stdin
+```
+
+### Import flags
+
+| Flag        | What it does                                             |
+| ----------- | -------------------------------------------------------- |
+| `--dry-run` | Preview creates, updates, and versioning without writing |
+| `--flat`    | Write resources in top-level folders instead of nesting  |
+| `--no-init` | Skip initialization prompts (useful in CI/CD)            |
+
+## Export EventCatalog to .ec files
+
+Pull existing resources out of your catalog as `.ec` files:
+
+```bash
+# Export everything
+npx @eventcatalog/cli --dir ./catalog export --all --stdout
+
+# Export one resource type
+npx @eventcatalog/cli --dir ./catalog export --resource service --stdout
+
+# Export a specific resource
+npx @eventcatalog/cli --dir ./catalog export --resource event --id OrderCreated --version 1.0.0 --stdout
+```
+
+### Export flags
+
+| Flag               | What it does                                    |
+| ------------------ | ----------------------------------------------- |
+| `--all`            | Export every resource in the catalog             |
+| `--resource <type>`| Filter by resource type (service, event, etc.)   |
+| `--id <name>`      | Export a specific resource by ID                 |
+| `--version <ver>`  | Target a specific version                        |
+| `--hydrate`        | Include referenced resources in output           |
+| `--output <path>`  | Write to a file instead of stdout                |
+| `--playground`     | Open exported DSL in EventCatalog Compass        |
+
+## CI/CD usage
+
+Run imports in your pipeline to keep documentation in sync with `.ec` file changes:
+
+```bash
+npx @eventcatalog/cli --dir ./catalog import ./main.ec --no-init
+```
+
+Use `--no-init` to skip interactive prompts in automated environments.

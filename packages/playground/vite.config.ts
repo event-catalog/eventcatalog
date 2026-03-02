@@ -25,9 +25,17 @@ export default defineConfig({
   plugins: [resolveJsToTs(), react()],
   resolve: {
     alias: {
+      '@eventcatalog/language-server/browser': path.resolve(__dirname, '../language-server/src/browser.ts'),
       '@eventcatalog/language-server': path.resolve(__dirname, '../language-server/src/index.ts'),
       '@eventcatalog/visualiser/styles.css': path.resolve(__dirname, '../visualiser/dist/styles.css'),
       '@eventcatalog/visualiser': path.resolve(__dirname, '../visualiser/src/index.ts'),
+    },
+  },
+  build: {
+    rollupOptions: {
+      // catalog.ts dynamically imports the SDK which is Node.js-only.
+      // Externalize it so Rollup doesn't try to bundle it for the browser.
+      external: ['@eventcatalog/sdk'],
     },
   },
 });

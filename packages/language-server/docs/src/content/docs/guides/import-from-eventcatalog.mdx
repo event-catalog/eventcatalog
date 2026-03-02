@@ -1,0 +1,113 @@
+---
+title: Import from EventCatalog
+description: Pull existing services, events, and other resources from your EventCatalog into .ec models.
+---
+
+If you have an existing EventCatalog, you can import resources directly into your `.ec` files. This lets you build on what's already documented instead of starting from scratch.
+
+## Import resources
+
+Pull in any documented resource by name from your catalog directory:
+
+```ec title="main.ec"
+import { OrderService, PaymentService } from "./my-catalog"
+import { OrderCreated, PaymentProcessed } from "./my-catalog"
+
+visualizer main {
+  name "Shipping Design"
+
+  service OrderService
+  service PaymentService
+
+  service ShippingService {
+    version 1.0.0
+    summary "New service we're designing"
+    receives event OrderCreated
+    receives event PaymentProcessed
+    sends event ShipmentDispatched
+  }
+}
+```
+
+The imported `OrderService` and `PaymentService` come in with their existing properties (version, summary, sends/receives). You can then model new services around them.
+
+## Import many resources at once
+
+Group everything you need in a single import:
+
+```ec title="main.ec"
+import {
+  OrderService, PaymentService, InventoryService,
+  OrderCreated, PaymentProcessed,
+  orderEvents, paymentEvents
+} from "./my-catalog"
+
+visualizer main {
+  name "Current Architecture"
+
+  service OrderService
+  service PaymentService
+  service InventoryService
+}
+```
+
+## Design future state from current state
+
+This is the core workflow for architects. Import your current system, then model what comes next:
+
+```ec title="main.ec"
+import {
+  OrderService, PaymentService, InventoryService,
+  OrderCreated, PaymentProcessed,
+  orderEvents, paymentEvents
+} from "./my-catalog"
+
+visualizer main {
+  name "Fulfillment — Future State"
+
+  // Design what we're adding
+  domain Fulfillment {
+    version 1.0.0
+    owner @logistics-team
+
+    // Existing service, now part of this domain
+    service InventoryService
+
+    // New service we're proposing
+    service ShippingService {
+      version 1.0.0
+      summary "Proposed shipping orchestrator"
+      receives event OrderCreated from orderEvents
+      receives event PaymentProcessed from paymentEvents
+      sends event ShipmentDispatched to shippingEvents
+      @note("Pending SRE review for retry strategy")
+    }
+  }
+
+  channel shippingEvents {
+    version 1.0.0
+    protocol "Kafka"
+    address "fulfillment.shipping.v1"
+  }
+}
+```
+
+## The circular workflow
+
+Importing from EventCatalog is one half of a loop:
+
+1. **Export** your catalog to `.ec` files (or import specific resources as shown above)
+2. **Model** changes: add new services, restructure domains, plan migrations
+3. **Review** the `.ec` diff in a pull request
+4. **Import back** into EventCatalog to update your documentation
+
+This keeps your documentation and your models in sync. Neither goes stale because each feeds into the other.
+
+## Export vs import
+
+| Approach                             | When to use                                                   |
+| ------------------------------------ | ------------------------------------------------------------- |
+| `import { ... } from "./my-catalog"` | You want specific resources as building blocks in a new model |
+| `npx @eventcatalog/cli export --all` | You want your entire catalog as `.ec` files to edit directly  |
+
+Both are valid. Use imports for targeted modeling work. Use CLI export for a full baseline.

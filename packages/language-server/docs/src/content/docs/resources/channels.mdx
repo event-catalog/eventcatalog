@@ -3,17 +3,7 @@ title: Channels
 description: Model topics, queues, and other transport layers with channel resources.
 ---
 
-import { LinkButton } from "@astrojs/starlight/components";
-
 `channel` models the transport path messages flow through (for example Kafka, MQTT, SQS, or HTTP streams).
-
-<LinkButton
-  href="https://playground.eventcatalog.dev/new"
-  target="_blank"
-  rel="noopener noreferrer"
->
-  Open in EventCatalog Compass
-</LinkButton>
 
 ## Example
 
@@ -47,8 +37,56 @@ service OrdersService {
 | `protocol`   | string    | No              | Transport technology/protocol.     | `"Kafka"`                      |
 | `address`    | string    | No              | Broker/topic/queue address.        | `"orders.events.v1"`           |
 | `route`      | reference | No (repeatable) | Route from one channel to another. | `route AnalyticsChannel@1.0.0` |
+| `parameter`  | block     | No (repeatable) | Dynamic address parameter.         | `parameter sensorId { ... }`   |
 | `draft`      | boolean   | No              | Marks resource as draft.           | `draft true`                   |
 | `deprecated` | boolean   | No              | Marks resource as deprecated.      | `deprecated true`              |
+
+## Channel parameters
+
+Use `parameter` to define dynamic segments in channel addresses:
+
+```ec title="main.ec"
+channel sensor-data {
+  version 1.0.0
+  address "sensors/{sensorId}/data"
+  protocol "MQTT"
+
+  parameter sensorId {
+    description "Unique sensor identifier"
+    default "sensor-001"
+    enum ["sensor-001", "sensor-042", "sensor-099"]
+    examples ["sensor-001", "sensor-042"]
+  }
+}
+```
+
+### Parameter properties
+
+| Property      | Type     | Required | Description                   | Example                        |
+| ------------- | -------- | -------- | ----------------------------- | ------------------------------ |
+| `description` | string   | No       | What the parameter represents | `"Unique sensor identifier"`   |
+| `default`     | string   | No       | Default value                 | `"sensor-001"`                 |
+| `enum`        | string[] | No       | Allowed values                | `["sensor-001", "sensor-042"]` |
+| `examples`    | string[] | No       | Example values                | `["sensor-001", "sensor-042"]` |
+
+## Channel routing
+
+Channels can route to other channels, modeling message pipelines:
+
+```ec title="main.ec"
+channel Ingestion {
+  version 1.0.0
+  protocol "Kafka"
+  route Filtered
+  route Archive
+}
+
+channel Filtered {
+  version 1.0.0
+  protocol "Kafka"
+  route Analytics
+}
+```
 
 ## Used by services
 

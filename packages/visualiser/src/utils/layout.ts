@@ -199,7 +199,11 @@ export function layoutGraph(
     groupChildren.set(id, []);
   }
   for (const node of nodes) {
-    if (node.parentId && allGroupIds.has(node.parentId)) {
+    if (
+      node.parentId &&
+      node.parentId !== node.id &&
+      allGroupIds.has(node.parentId)
+    ) {
       groupChildren.get(node.parentId)!.push(node);
     }
   }
@@ -218,116 +222,130 @@ export function layoutGraph(
     }
   >();
 
+  const computing = new Set<string>();
+
   function computeGroupSize(groupId: string): {
     width: number;
     height: number;
   } {
     if (groupSizes.has(groupId)) return groupSizes.get(groupId)!;
 
-    const children = groupChildren.get(groupId) || [];
-
-    if (children.length === 0) {
+    // Cycle guard: if we're already computing this group, treat it as empty
+    if (computing.has(groupId)) {
       const size = { width: EMPTY_GROUP_WIDTH, height: EMPTY_GROUP_HEIGHT };
       groupSizes.set(groupId, size);
-      groupInternalLayouts.set(groupId, {
-        childPositions: new Map(),
-        width: size.width,
-        height: size.height,
-      });
       return size;
     }
+    computing.add(groupId);
 
-    for (const child of children) {
-      if (allGroupIds.has(child.id)) {
-        computeGroupSize(child.id);
-      }
-    }
+    try {
+      const children = groupChildren.get(groupId) || [];
 
-    const ig = new dagre.graphlib.Graph();
-    ig.setDefaultEdgeLabel(() => ({}));
-    ig.setGraph({
-      rankdir,
-      nodesep: Math.max(nodesep, 80),
-      ranksep: Math.max(ranksep, 100),
-      edgesep,
-    });
-
-    for (const child of children) {
-      if (allGroupIds.has(child.id)) {
-        const childSize = groupSizes.get(child.id)!;
-        ig.setNode(child.id, {
-          width: childSize.width,
-          height: childSize.height,
+      if (children.length === 0) {
+        const size = { width: EMPTY_GROUP_WIDTH, height: EMPTY_GROUP_HEIGHT };
+        groupSizes.set(groupId, size);
+        groupInternalLayouts.set(groupId, {
+          childPositions: new Map(),
+          width: size.width,
+          height: size.height,
         });
-      } else {
-        const s = nodeSize(child.type);
-        ig.setNode(child.id, { width: s.w, height: s.h });
+        return size;
       }
-    }
 
-    const childIdSet = new Set(children.map((c) => c.id));
-    for (const edge of edges) {
-      if (childIdSet.has(edge.source) && childIdSet.has(edge.target)) {
-        ig.setEdge(edge.source, edge.target);
+      for (const child of children) {
+        if (allGroupIds.has(child.id)) {
+          computeGroupSize(child.id);
+        }
       }
-    }
 
-    dagre.layout(ig);
-
-    const childPositions = new Map<
-      string,
-      { x: number; y: number; w: number; h: number }
-    >();
-    let minX = Infinity,
-      minY = Infinity,
-      maxX = -Infinity,
-      maxY = -Infinity;
-
-    for (const child of children) {
-      const pos = ig.node(child.id);
-      if (!pos) continue;
-      const left = pos.x - pos.width / 2;
-      const top = pos.y - pos.height / 2;
-      const right = pos.x + pos.width / 2;
-      const bottom = pos.y + pos.height / 2;
-      childPositions.set(child.id, {
-        x: left,
-        y: top,
-        w: pos.width,
-        h: pos.height,
+      const ig = new dagre.graphlib.Graph();
+      ig.setDefaultEdgeLabel(() => ({}));
+      ig.setGraph({
+        rankdir,
+        nodesep: Math.max(nodesep, 80),
+        ranksep: Math.max(ranksep, 100),
+        edgesep,
       });
-      minX = Math.min(minX, left);
-      minY = Math.min(minY, top);
-      maxX = Math.max(maxX, right);
-      maxY = Math.max(maxY, bottom);
-    }
 
-    const contentH = maxY - minY;
-    const contentW = maxX - minX;
-    const totalW = contentW + GROUP_PADDING_X * 2;
-    const totalH =
-      GROUP_HEADER_HEIGHT +
-      GROUP_CONTENT_PADDING_TOP +
-      contentH +
-      GROUP_CONTENT_PADDING_BOTTOM;
-    const contentTop = GROUP_HEADER_HEIGHT + GROUP_CONTENT_PADDING_TOP;
+      for (const child of children) {
+        if (allGroupIds.has(child.id)) {
+          const childSize = groupSizes.get(child.id)!;
+          ig.setNode(child.id, {
+            width: childSize.width,
+            height: childSize.height,
+          });
+        } else {
+          const s = nodeSize(child.type);
+          ig.setNode(child.id, { width: s.w, height: s.h });
+        }
+      }
 
-    for (const [id, pos] of childPositions) {
-      childPositions.set(id, {
-        x: pos.x - minX + GROUP_PADDING_X,
-        y: pos.y - minY + contentTop,
-        w: pos.w,
-        h: pos.h,
+      const childIdSet = new Set(children.map((c) => c.id));
+      for (const edge of edges) {
+        if (childIdSet.has(edge.source) && childIdSet.has(edge.target)) {
+          ig.setEdge(edge.source, edge.target);
+        }
+      }
+
+      dagre.layout(ig);
+
+      const childPositions = new Map<
+        string,
+        { x: number; y: number; w: number; h: number }
+      >();
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity;
+
+      for (const child of children) {
+        const pos = ig.node(child.id);
+        if (!pos) continue;
+        const left = pos.x - pos.width / 2;
+        const top = pos.y - pos.height / 2;
+        const right = pos.x + pos.width / 2;
+        const bottom = pos.y + pos.height / 2;
+        childPositions.set(child.id, {
+          x: left,
+          y: top,
+          w: pos.width,
+          h: pos.height,
+        });
+        minX = Math.min(minX, left);
+        minY = Math.min(minY, top);
+        maxX = Math.max(maxX, right);
+        maxY = Math.max(maxY, bottom);
+      }
+
+      const contentH = maxY - minY;
+      const contentW = maxX - minX;
+      const totalW = contentW + GROUP_PADDING_X * 2;
+      const totalH =
+        GROUP_HEADER_HEIGHT +
+        GROUP_CONTENT_PADDING_TOP +
+        contentH +
+        GROUP_CONTENT_PADDING_BOTTOM;
+      const contentTop = GROUP_HEADER_HEIGHT + GROUP_CONTENT_PADDING_TOP;
+
+      for (const [id, pos] of childPositions) {
+        childPositions.set(id, {
+          x: pos.x - minX + GROUP_PADDING_X,
+          y: pos.y - minY + contentTop,
+          w: pos.w,
+          h: pos.h,
+        });
+      }
+
+      groupSizes.set(groupId, { width: totalW, height: totalH });
+      groupInternalLayouts.set(groupId, {
+        childPositions,
+        width: totalW,
+        height: totalH,
       });
+      return { width: totalW, height: totalH };
+    } finally {
+      computing.delete(groupId);
     }
-
-    groupSizes.set(groupId, { width: totalW, height: totalH });
-    groupInternalLayouts.set(groupId, {
-      childPositions,
-      width: totalW,
-      height: totalH,
-    });
-    return { width: totalW, height: totalH };
   }
 
   for (const groupId of allGroupIds) {

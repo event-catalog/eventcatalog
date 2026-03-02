@@ -1,7 +1,15 @@
-export type ResourceType = "events" | "commands" | "queries" | "channels";
+export type ResourceType =
+  | "events"
+  | "commands"
+  | "queries"
+  | "channels"
+  | "services"
+  | "containers";
 
 export interface SpecMessage {
   name: string;
+  /** Human-readable display name (from catalog `name` field) */
+  displayName?: string;
   summary?: string;
   description?: string;
   version?: string;
@@ -15,6 +23,8 @@ export interface SpecMessage {
 
 export interface SpecChannel {
   name: string;
+  /** Human-readable display name (from catalog `name` field) */
+  displayName?: string;
   address?: string;
   protocol?: string;
   summary?: string;
@@ -54,3 +64,14 @@ export interface SpecResolveResult {
  * Allows callers to provide their own fetch implementation (browser fetch, node-fetch, etc.)
  */
 export type FetchFn = (url: string) => Promise<string>;
+
+/**
+ * Check whether a path looks like a catalog directory (not a spec file, not a URL).
+ * Browser-safe — no Node.js dependencies.
+ */
+export function isCatalogPath(specPath: string): boolean {
+  if (specPath.startsWith("http://") || specPath.startsWith("https://"))
+    return false;
+  if (/\.(?:ya?ml|json)$/i.test(specPath)) return false;
+  return true;
+}

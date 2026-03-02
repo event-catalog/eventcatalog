@@ -688,13 +688,13 @@ export default function Landing() {
           Now in preview
         </div>
         <h1>
-          You have the specs.
+          Model, visualize, and share
           <br />
-          <span className="highlight">See the architecture.</span>
+          your <span className="highlight">architecture.</span>
         </h1>
         <p className="hero-sub">
-          Import your AsyncAPI and OpenAPI files, see how services connect, and
-          export straight to EventCatalog.
+          Design event-driven systems from scratch, import from your AsyncAPI
+          and OpenAPI specs, or pull resources from an existing EventCatalog.
         </p>
         <div className="hero-actions">
           <a
@@ -726,10 +726,10 @@ export default function Landing() {
               <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
             <div>
-              <strong>DSL for architecture</strong>
+              <strong>One language for your whole system</strong>
               <span>
-                Define domains, services, messages, and channels in one readable
-                language
+                Define domains, services, events, and channels. All in one
+                readable file.
               </span>
             </div>
           </div>
@@ -745,10 +745,9 @@ export default function Landing() {
               <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <div>
-              <strong>Model with your specifications</strong>
+              <strong>Start from what you already have</strong>
               <span>
-                Import messages, operations, and channels from your specs and
-                model your architecture
+                Import directly from AsyncAPI and OpenAPI. No manual re-entry.
               </span>
             </div>
           </div>
@@ -764,10 +763,10 @@ export default function Landing() {
               <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <div>
-              <strong>Export to documentation</strong>
+              <strong>From model to docs in one click</strong>
               <span>
-                Turns your architecture artifacts into documentation portal for
-                your teams
+                Export to EventCatalog and give your whole team a living
+                architecture portal.
               </span>
             </div>
           </div>
@@ -796,10 +795,12 @@ export default function Landing() {
         <div className="section-label section-label-red reveal">
           The Problem
         </div>
-        <h2 className="section-title reveal">Your architecture is invisible</h2>
+        <h2 className="section-title reveal">
+          Your architecture is scattered across five tools and one person's head
+        </h2>
         <p className="section-desc reveal">
-          Specs describe individual APIs. Diagrams go stale. The full picture
-          lives in someone's head.
+          Your specs describe the pieces. Your diagrams are six months old. The
+          person who knows how it all connects is on holiday.
         </p>
         <div className="bento-grid stagger-children">
           {/* Row 1: Wide + 2 regular */}
@@ -1220,7 +1221,7 @@ export default function Landing() {
       <section className="section" id="how">
         <div className="section-label reveal">How It Works</div>
         <h2 className="section-title reveal">
-          Specs to architecture in three steps
+          From spec files to architecture in three steps
         </h2>
         <p className="section-desc reveal">Import. Compose. Visualize.</p>
         <div className="steps stagger-children">
@@ -1793,7 +1794,7 @@ export default function Landing() {
           See your architecture in 30 seconds
         </h2>
         <p className="cta-hero-desc reveal">
-          No signup. No install. Just paste a spec and see it come to life.
+          No signup. No install. Drop in a spec and see your services connect.
         </p>
         <div className="cta-hero-actions reveal">
           <a
@@ -1808,7 +1809,7 @@ export default function Landing() {
           </a>
         </div>
         <p className="cta-hero-note reveal">
-          Free forever &middot; No account required &middot; Exports to
+          Free and open source &middot; No account required &middot; Exports to
           EventCatalog
         </p>
       </section>

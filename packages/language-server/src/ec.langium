@@ -5,10 +5,11 @@ entry Program:
   (imports+=ImportDecl)* (definitions+=ResourceDefinition)*;
 
 ImportDecl:
-  'import' (resourceType=ImportResourceType)? '{' imports+=ImportItem (',' imports+=ImportItem)* '}' 'from' path=STRING;
+  'import' (resourceType=ImportResourceType)? '{' imports+=ImportItem (',' imports+=ImportItem)* '}' 'from' path=STRING
+  | 'import' imports+=ImportItem 'from' path=STRING;
 
 ImportResourceType returns string:
-  'events' | 'commands' | 'queries' | 'channels';
+  'events' | 'commands' | 'queries' | 'channels' | 'services' | 'containers';
 
 ImportItem:
   name=ID;
