@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.15.2
+
+### Patch Changes
+
+- a43021e: Refactor language server, playground, and visualiser: extract shared helpers to reduce duplication, add browser entrypoint, definition/hover/formatter providers, resource index, catalog resolver, restructure docs, simplify layout utils, and add VSCode extension scaffold
+
 ## 3.15.1
 
 ### Patch Changes

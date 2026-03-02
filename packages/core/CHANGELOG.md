@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.19.1
+
+### Patch Changes
+
+- 6338c0d: fix tailwind v4 migration: add CSS import to embed page and expand hover border safelist with missing shades and colors
+- Updated dependencies [a43021e]
+  - @eventcatalog/visualiser@3.15.2
+
 ## 3.19.0
 
 ### Minor Changes
