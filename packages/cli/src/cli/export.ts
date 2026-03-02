@@ -257,7 +257,7 @@ export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): P
 
   if (playground) {
     const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
+    const playgroundUrl = `https://compass.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
     lines.push('', `  Opening in EventCatalog Compass...`);
   } else {
@@ -301,7 +301,7 @@ export async function exportAll(options: ExportOptions): Promise<string> {
 
   if (playground) {
     const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
+    const playgroundUrl = `https://compass.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
     lines.push('', `  Opening in EventCatalog Compass...`);
   } else {
@@ -354,7 +354,7 @@ export async function exportResource(options: ExportOptions): Promise<string> {
 
   if (playground) {
     const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
+    const playgroundUrl = `https://compass.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
     lines.push('', `  Opening in EventCatalog Compass...`);
   } else {
