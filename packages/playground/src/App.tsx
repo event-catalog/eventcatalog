@@ -499,6 +499,10 @@ function getInitialState(workspaceId?: string): { files: Record<string, string>;
   }
   const code = getCodeFromUrl();
   if (code) return { files: { "main.ec": code }, activeFile: "main.ec" };
+  if (hasExampleHash()) {
+    const source = examples[getInitialExample()].source;
+    return { files: { ...source }, activeFile: Object.keys(source)[0] };
+  }
   if (isNewRoute()) return defaultState;
   const draft = peekDraft();
   if (draft) return draft;
@@ -532,7 +536,7 @@ export default function App() {
     () => getCodeFromUrl() !== null,
   );
   const [templateUnselected, setTemplateUnselected] = useState(
-    () => isNewRoute() && getCodeFromUrl() === null,
+    () => isNewRoute() && getCodeFromUrl() === null && !hasExampleHash(),
   );
   const [initialState] = useState(() => getInitialState(workspaceId));
   const [files, setFiles] = useState<Record<string, string>>(

@@ -465,7 +465,7 @@ export default function Landing() {
         <div className="nav-links">
           <a href="#how">How It Works</a>
           <a href="#usecases">Use Cases</a>
-          <a href="https://eventcatalog.dev/docs">Docs</a>
+          <a href="/docs">Docs</a>
           <a
             href="https://github.com/event-catalog"
             target="_blank"
@@ -688,13 +688,12 @@ export default function Landing() {
           Now in preview
         </div>
         <h1>
-          Model, visualize, and share
+          Design your architecture.
           <br />
-          your <span className="highlight">architecture.</span>
+          Visualize every <span className="highlight">flow.</span>
         </h1>
         <p className="hero-sub">
-          Design event-driven systems from scratch, import from your AsyncAPI
-          and OpenAPI specs, or pull resources from an existing EventCatalog.
+          Import from AsyncAPI, OpenAPI, or an existing EventCatalog. Model your system in code, visualize it live, and keep your docs in sync.
         </p>
         <div className="hero-actions">
           <a
@@ -747,7 +746,7 @@ export default function Landing() {
             <div>
               <strong>Start from what you already have</strong>
               <span>
-                Import directly from AsyncAPI and OpenAPI. No manual re-entry.
+                Import from AsyncAPI, OpenAPI, or an existing EventCatalog.
               </span>
             </div>
           </div>
@@ -796,10 +795,10 @@ export default function Landing() {
           The Problem
         </div>
         <h2 className="section-title reveal">
-          Your architecture is scattered across five tools and one person's head
+          Your architecture lives in five tools and one person's head
         </h2>
         <p className="section-desc reveal">
-          Your specs describe the pieces. Your diagrams are six months old. The
+          Your specs describe the pieces. The diagrams are six months old. The
           person who knows how it all connects is on holiday.
         </p>
         <div className="bento-grid stagger-children">
@@ -1210,8 +1209,8 @@ export default function Landing() {
           </div>
         </div>
         <p className="bento-statement reveal">
-          <strong>Your specs already describe the pieces.</strong> Compass
-          connects them into the full picture.
+          <strong>Your specs and catalogs already describe the pieces.</strong> Compass
+          connects them into one living view.
         </p>
       </section>
 
@@ -1221,22 +1220,22 @@ export default function Landing() {
       <section className="section" id="how">
         <div className="section-label reveal">How It Works</div>
         <h2 className="section-title reveal">
-          From spec files to architecture in three steps
+          From specs to architecture in three steps
         </h2>
         <p className="section-desc reveal">Import. Compose. Visualize.</p>
         <div className="steps stagger-children">
           <div className="step">
             <div className="step-head">
               <div className="step-num">1</div>
-              <h3>Import your specs</h3>
+              <h3>Import from specs or EventCatalog</h3>
             </div>
             <div className="step-body">
               <p>
-                Import events, operations, and channels from your existing
-                AsyncAPI and OpenAPI files. Pick specific resources or bring in
-                an entire spec at once.
+                Pull events, operations, and channels from AsyncAPI and
+                OpenAPI files. Or start from an existing EventCatalog.
               </p>
               <div className="code-block">
+                <div className="code-tab">main.ec</div>
                 <pre>
                   <span className="cm">{"// Import specific resources"}</span>
                   {"\n"}
@@ -1259,6 +1258,15 @@ export default function Landing() {
                   {"\n"}
                   <span className="kw">import from</span>{" "}
                   <span className="str">"./orders-asyncapi.yml"</span>
+                  {"\n\n"}
+                  <span className="cm">{"// Import from an existing EventCatalog"}</span>
+                  {"\n"}
+                  <span className="kw">import service</span>{" "}
+                  <span className="br">{"{"}</span>{" "}
+                  <span className="ref">PaymentService</span>{" "}
+                  <span className="br">{"}"}</span>{" "}
+                  <span className="kw">from</span>{" "}
+                  <span className="str">"@eventcatalog"</span>
                 </pre>
               </div>
             </div>
@@ -1270,10 +1278,11 @@ export default function Landing() {
             </div>
             <div className="step-body">
               <p>
-                Add domains, ownership, and the context that specs alone can't
-                capture.
+                Add domains, ownership, and messaging. The context that specs
+                alone can't capture.
               </p>
               <div className="code-block">
+                <div className="code-tab">main.ec</div>
                 <pre>
                   <span className="cm">
                     {"// Group services into a business domain"}
@@ -1312,7 +1321,7 @@ export default function Landing() {
                   {"\n\n"}
                   {"  "}
                   <span className="cm">
-                    {"// Define consumers — Compass maps the dependency"}
+                    {"// Define consumers. Compass maps the dependency"}
                   </span>
                   {"\n"}
                   {"  "}
@@ -1337,13 +1346,13 @@ export default function Landing() {
           <div className="step">
             <div className="step-head">
               <div className="step-num">3</div>
-              <h3>Visualize and share</h3>
+              <h3>Visualize and commit</h3>
             </div>
             <div className="step-body">
               <p>
-                Your architecture renders as you type. Share a link so everyone
-                sees the same picture. When you're ready, export to EventCatalog
-                for full documentation.
+                Your architecture renders as you type. Commit your .ec files to
+                the repo so the whole team sees the same picture. When you're
+                ready, export to EventCatalog for full documentation.
               </p>
               <StepVisualizer />
             </div>
@@ -1356,41 +1365,31 @@ export default function Landing() {
       {/* Sources */}
       <section className="section section-center">
         <div className="section-label reveal">Import From Anywhere</div>
-        <h2 className="section-title reveal">Your specs. One architecture.</h2>
+        <h2 className="section-title reveal">Your specs. Your catalog. One architecture.</h2>
         <p className="section-desc reveal">
-          Start with local files today. Connect to registries as your needs
-          grow.
+          AsyncAPI, OpenAPI, and EventCatalog today. Registries and more coming soon.
         </p>
         <div className="sources-grid stagger-children">
           <div className="source-card">
             <div className="source-icon-wrap">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--cyan)"
-                strokeWidth="1.5"
-              >
-                <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                <path d="M9 13h6m-6 3h4" />
-              </svg>
+              <img src="/asyncapi.svg" alt="AsyncAPI" width="24" height="24" />
             </div>
             <h4>AsyncAPI</h4>
             <span className="source-detail">Events, channels</span>
           </div>
           <div className="source-card">
             <div className="source-icon-wrap">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--green)"
-                strokeWidth="1.5"
-              >
-                <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                <path d="M10 12l2 2 4-4" />
-              </svg>
+              <img src="/openapi.svg" alt="OpenAPI" width="24" height="24" />
             </div>
             <h4>OpenAPI</h4>
             <span className="source-detail">Operations, endpoints</span>
+          </div>
+          <div className="source-card">
+            <div className="source-icon-wrap source-icon-wrap-ec">
+              <img src="/eventcatalog-logo.png" alt="EventCatalog" />
+            </div>
+            <h4>EventCatalog</h4>
+            <span className="source-detail">Services, messages, domains</span>
           </div>
           <div className="source-card soon">
             <div className="source-icon-wrap">
@@ -1419,20 +1418,6 @@ export default function Landing() {
             </div>
             <h4>AWS</h4>
             <span className="source-detail">EventBridge, Glue</span>
-          </div>
-          <div className="source-card soon">
-            <div className="source-icon-wrap">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--text-muted)"
-                strokeWidth="1.5"
-              >
-                <path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.858 15.355-5.858 21.213 0" />
-              </svg>
-            </div>
-            <h4>Solace</h4>
-            <span className="source-detail">Queues, topics</span>
           </div>
           <div className="source-card soon">
             <div className="source-icon-wrap">
@@ -1574,7 +1559,8 @@ export default function Landing() {
               <h3>Design and planning</h3>
             </div>
             <p>
-              Import current state from specs, sketch proposed changes inline.
+              Import current state from specs or EventCatalog. Design future
+              and target architectures inline.
               <br />
               <strong>Compare before and after in one view.</strong>
             </p>
@@ -1804,7 +1790,7 @@ export default function Landing() {
           >
             Open Playground &rarr;
           </a>
-          <a href="https://eventcatalog.dev/docs" className="btn-ghost btn-lg">
+          <a href="/docs" className="btn-ghost btn-lg">
             Read the docs
           </a>
         </div>

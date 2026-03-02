@@ -1,3 +1,7 @@
+html:has(.landing) {
+  scroll-behavior: smooth;
+}
+
 .landing {
   --bg-deep: #0b0d11;
   --bg-surface: #12151b;
@@ -1019,7 +1023,7 @@
   background: var(--bg-code);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 16px 20px;
+  padding: 0;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12.5px;
   line-height: 1.75;
@@ -1027,7 +1031,18 @@
   overflow-x: auto;
 }
 
+.landing .code-tab {
+  display: inline-block;
+  padding: 6px 14px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .landing .code-block pre {
+  padding: 16px 20px;
   margin: 0;
   font-family: inherit;
   font-size: inherit;
@@ -1076,6 +1091,19 @@
   stroke-width: 1.5;
 }
 
+.landing .source-card .source-icon-wrap-ec {
+  background: #fff;
+  overflow: hidden;
+  padding: 0;
+}
+
+.landing .source-card .source-icon-wrap-ec img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9px;
+}
+
 .landing .source-card h4 {
   font-size: 13px;
   font-weight: 600;
@@ -1087,7 +1115,7 @@
   color: var(--text-muted);
 }
 
-.landing .source-card.soon { opacity: 0.4; }
+.landing .source-card.soon { opacity: 0.35 !important; }
 
 .landing .source-card.soon .source-detail::after {
   content: ' \00B7  soon';
