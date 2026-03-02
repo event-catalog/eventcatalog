@@ -23,7 +23,7 @@ Language support and live preview for [EventCatalog](https://eventcatalog.dev) D
 ## Resources
 
 - [Documentation](https://eventcatalog.dev/docs)
-- [Playground](https://playground.eventcatalog.dev)
+- [Playground](https://compass.eventcatalog.dev)
 - [GitHub](https://github.com/event-catalog/eventcatalog)
 - [Discord](https://discord.gg/3rjaZMmrAm)
 

@@ -88,16 +88,16 @@ eventcatalog export [options]
 
 **Options:**
 
-| Option                | Description                                                                                  |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| `--all`               | Export the entire catalog                                                                    |
-| `--resource <type>`   | Resource type to export (`event`, `command`, `query`, `service`, `domain`, `channel`)        |
-| `--id <id>`           | Export a specific resource by ID (requires `--resource`)                                     |
-| `--version <version>` | Export a specific version (requires `--resource` and `--id`)                                 |
-| `--hydrate`           | Include referenced resources (e.g., messages referenced by a service)                        |
-| `--stdout`            | Print to stdout instead of writing a file                                                    |
-| `--playground`        | Open the exported DSL in the [EventCatalog Playground](https://playground.eventcatalog.dev/) |
-| `--output <path>`     | Custom output file path                                                                      |
+| Option                | Description                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| `--all`               | Export the entire catalog                                                                 |
+| `--resource <type>`   | Resource type to export (`event`, `command`, `query`, `service`, `domain`, `channel`)     |
+| `--id <id>`           | Export a specific resource by ID (requires `--resource`)                                  |
+| `--version <version>` | Export a specific version (requires `--resource` and `--id`)                              |
+| `--hydrate`           | Include referenced resources (e.g., messages referenced by a service)                     |
+| `--stdout`            | Print to stdout instead of writing a file                                                 |
+| `--playground`        | Open the exported DSL in the [EventCatalog Playground](https://compass.eventcatalog.dev/) |
+| `--output <path>`     | Custom output file path                                                                   |
 
 **Examples:**
 
