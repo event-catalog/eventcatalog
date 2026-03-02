@@ -4,6 +4,7 @@ import { HeroPreview, StepVisualizer } from "../components/HeroPreview";
 import { X, Upload, Play, Link2 } from "lucide-react";
 import { createWorkspace } from "../stores/workspace";
 import type { SpecKind } from "../stores/workspace";
+import { track } from "../utils/analytics";
 import "./Landing.css";
 
 /** Official OpenAPI Initiative mark (simplified chain-link icon) */
@@ -365,10 +366,13 @@ export default function Landing() {
           services: serviceNames,
         });
 
+        track("workspace_created", { source: kind, file_count: fileEntries.length });
+
         setIsWorkspaceModalOpen(false);
         setActiveDropKind(null);
         navigate(`/playground/${wsId}`);
       } catch {
+        track("workspace_import_failed", { source: kind });
         setImportError(
           "Unable to import the selected specs. Please try again.",
         );
@@ -384,6 +388,7 @@ export default function Landing() {
     e.preventDefault();
     setImportError(null);
     setIsWorkspaceModalOpen(true);
+    track("cta_clicked", { cta: "get_started" });
   };
 
   const handleDrop = useCallback(
@@ -423,6 +428,7 @@ export default function Landing() {
 
   const openSampleWorkspace = useCallback(() => {
     if (isImportingSpecs) return;
+    track("workspace_created", { source: "sample" });
     setIsWorkspaceModalOpen(false);
     setActiveDropKind(null);
     navigate(`/playground#example=${SAMPLE_EVENT_SYSTEM_INDEX}`);
@@ -781,7 +787,6 @@ export default function Landing() {
           <span>AWS</span>
           <span>Ticketmaster</span>
           <span>Eurostar</span>
-          <span>M&amp;S</span>
           <span>TUI</span>
           <span>Mazda</span>
         </div>
@@ -1370,27 +1375,27 @@ export default function Landing() {
           AsyncAPI, OpenAPI, and EventCatalog today. Registries and more coming soon.
         </p>
         <div className="sources-grid stagger-children">
-          <div className="source-card">
+          <a href="https://compass.eventcatalog.dev/docs/guides/import-from-asyncapi/" target="_blank" rel="noopener noreferrer" className="source-card">
             <div className="source-icon-wrap">
               <img src="/asyncapi.svg" alt="AsyncAPI" width="24" height="24" />
             </div>
             <h4>AsyncAPI</h4>
             <span className="source-detail">Events, channels</span>
-          </div>
-          <div className="source-card">
+          </a>
+          <a href="https://compass.eventcatalog.dev/docs/guides/import-from-openapi/" target="_blank" rel="noopener noreferrer" className="source-card">
             <div className="source-icon-wrap">
               <img src="/openapi.svg" alt="OpenAPI" width="24" height="24" />
             </div>
             <h4>OpenAPI</h4>
             <span className="source-detail">Operations, endpoints</span>
-          </div>
-          <div className="source-card">
+          </a>
+          <a href="https://compass.eventcatalog.dev/docs/guides/import-from-eventcatalog/" target="_blank" rel="noopener noreferrer" className="source-card">
             <div className="source-icon-wrap source-icon-wrap-ec">
               <img src="/eventcatalog-logo.png" alt="EventCatalog" />
             </div>
             <h4>EventCatalog</h4>
             <span className="source-detail">Services, messages, domains</span>
-          </div>
+          </a>
           <div className="source-card soon">
             <div className="source-icon-wrap">
               <svg

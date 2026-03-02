@@ -12,6 +12,7 @@ import { getErrorsForFile } from "./monaco/ec-diagnostics";
 import { examples } from "./examples/index";
 import { createZipBlob } from "./utils/zip";
 import { normalizeCompiledCatalogFiles } from "./utils/catalog-export";
+import { track } from "./utils/analytics";
 import { NextStepsGuide } from "./components/NextStepsGuide";
 import {
   $theme,
@@ -473,7 +474,10 @@ function isNewRoute(): boolean {
 }
 
 function getBasePathname(): string {
-  const basePath = window.location.pathname.replace(/\/new\/?$/, "/");
+  // Strip /new or any workspace ID suffix so share links use the base /playground path
+  const basePath = window.location.pathname
+    .replace(/\/new\/?$/, "")
+    .replace(/\/playground\/[^/]+\/?$/, "/playground");
   return basePath || "/playground";
 }
 
@@ -611,6 +615,7 @@ export default function App() {
       setFiles(newFiles);
       setActiveFile(Object.keys(newFiles)[0]);
       setActiveVisualizer(undefined);
+      track("example_loaded", { example: examples[idx].name, index: idx });
     },
     [workspaceId],
   );
@@ -636,9 +641,10 @@ export default function App() {
     const encoded = btoa(unescape(encodeURIComponent(allContent)));
     const url = new URL(window.location.href);
     url.pathname = getBasePathname();
-    url.search = `?code=${encoded}`;
+    url.search = `?code=${encodeURIComponent(encoded)}`;
     url.hash = "";
     setShareUrl(url.toString());
+    track("share_link_created");
   }, [files]);
 
   const handleExportForImport = useCallback(() => {
@@ -669,12 +675,14 @@ export default function App() {
       });
     }
 
+    track("ec_files_exported", { file_count: ecFiles.length });
     setExportRecentlyDownloaded(true);
     setTimeout(() => setExportRecentlyDownloaded(false), 2000);
   }, [files]);
 
   const handleOpenCatalogExport = useCallback(() => {
     setShowCatalogExport(true);
+    track("catalog_export_opened");
   }, []);
 
   const handleExportCatalog = useCallback(async () => {

@@ -78,19 +78,7 @@ function getSteps(
 ): Step[] {
   const serviceList = serviceNames.length > 0 ? serviceNames : ["MyService"];
   const domainName = kind === "openapi" ? "ApiDomain" : "EventsDomain";
-  const producerName = serviceList[0];
-  const consumerName =
-    kind === "openapi" ? "FrontendApp" : "NotificationService";
-  const consumerSummary =
-    kind === "openapi"
-      ? "Web application that consumes the API"
-      : "Sends notifications when events occur";
   const serviceRefs = serviceList.map((s) => `  service ${s}`).join("\n");
-
-  const messageName = kind === "openapi" ? "GetOrder" : "OrderCreated";
-  const messageType = kind === "openapi" ? "queries" : "events";
-  const sendVerb = kind === "openapi" ? "receives query" : "sends event";
-  const receiveVerb = kind === "openapi" ? "sends query" : "receives event";
 
   return [
     {
@@ -113,59 +101,51 @@ function getSteps(
       },
     },
     {
-      id: "consumer",
-      title: "Add a consuming service",
-      description:
-        kind === "openapi"
-          ? "Import a query from your spec and wire up a consumer."
-          : "Import an event from your spec and wire up a consumer.",
+      id: "new-service",
+      title: "Add a new service",
+      description: "Add a draft service that produces and consumes messages.",
       type: "transform",
       apply: (content) => {
-        // 1. Add the message import from the spec file
-        const importLine = `import ${messageType} { ${messageName} } from "./${specFile}"`;
+        // Add a new draft service that sends events/commands and receives queries
+        const serviceBlock = [
+          `service FullfillmentService {`,
+          `  version 0.1.0`,
+          `  draft true`,
+          `  summary "Handles order fullfillment and shipping"`,
+          `  sends event ShipmentDispatched {`,
+          `    version 1.0.0`,
+          `    summary "Raised when a shipment leaves the warehouse"`,
+          `  }`,
+          `  sends command RequestPickup {`,
+          `    version 1.0.0`,
+          `    summary "Requests a carrier pickup for a parcel"`,
+          `  }`,
+          `  receives query GetShipmentStatus {`,
+          `    version 1.0.0`,
+          `    summary "Returns the current status of a shipment"`,
+          `  }`,
+          `  receives event OrderCreated {`,
+          `    version 1.0.0`,
+          `    summary "Triggers fullfillment when a new order is placed"`,
+          `  }`,
+          `}`,
+          ``,
+          ``,
+        ].join("\n");
 
-        // Insert after the last import line, or before the first non-empty line
-        const lastImport = content.lastIndexOf("\nimport ");
+        const vizIndex = content.search(/^visualizer\s/m);
         let updated: string;
-        if (lastImport >= 0) {
-          const endOfLine = content.indexOf("\n", lastImport + 1);
-          updated =
-            content.slice(0, endOfLine) +
-            "\n" +
-            importLine +
-            content.slice(endOfLine);
-        } else {
-          updated = importLine + "\n" + content;
-        }
-
-        // 2. Add "sends/receives" to the producer service if it exists as a block
-        const producerBlockRe = new RegExp(
-          `(service\\s+${producerName}\\s*\\{[^}]*)(\\n\\})`,
-          "m",
-        );
-        const producerMatch = updated.match(producerBlockRe);
-        if (producerMatch && producerMatch.index !== undefined) {
-          const insertAt = producerMatch.index + producerMatch[1].length;
-          updated =
-            updated.slice(0, insertAt) +
-            `\n  ${sendVerb} ${messageName}` +
-            updated.slice(insertAt);
-        }
-
-        // 3. Add consumer service definition before the visualizer block
-        const serviceBlock = `service ${consumerName} {\n  version 1.0.0\n  summary "${consumerSummary}"\n  ${receiveVerb} ${messageName}\n}\n\n`;
-        const vizIndex = updated.search(/^visualizer\s/m);
         if (vizIndex >= 0) {
           updated =
-            updated.slice(0, vizIndex) + serviceBlock + updated.slice(vizIndex);
+            content.slice(0, vizIndex) + serviceBlock + content.slice(vizIndex);
         } else {
-          updated = updated + "\n" + serviceBlock;
+          updated = content + "\n" + serviceBlock;
         }
 
-        // 4. Add the consumer service into the visualizer block
+        // Add the service into the visualizer block
         updated = insertIntoVisualizerBlock(
           updated,
-          `  service ${consumerName}`,
+          `  service FullfillmentService`,
         );
 
         return updated;
@@ -183,7 +163,7 @@ function getSteps(
       title: "Learn more",
       description: "Read the EventCatalog DSL docs.",
       type: "link",
-      href: "https://www.eventcatalog.dev/docs/eventcatalog-dsl/introduction",
+      href: "/docs",
     },
   ];
 }

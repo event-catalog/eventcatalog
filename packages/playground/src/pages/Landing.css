@@ -1065,6 +1065,8 @@ html:has(.landing) {
   padding: 24px 16px;
   text-align: center;
   transition: all 0.2s;
+  text-decoration: none;
+  color: inherit;
 }
 
 .landing .source-card:hover {
@@ -1447,7 +1449,7 @@ html:has(.landing) {
 
 .landing .workspace-modal-header p {
   margin: 6px 0 0;
-  color: var(--text-secondary);
+  color: rgba(232, 234, 237, 0.7);
   line-height: 1.45;
   max-width: 560px;
   font-size: 14px;
@@ -1496,12 +1498,12 @@ html:has(.landing) {
   font-weight: 600;
   letter-spacing: -0.01em;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: rgba(232, 234, 237, 0.75);
 }
 
 .landing .workspace-modal-section-header p {
   margin: 4px 0 0;
-  color: var(--text-muted);
+  color: rgba(232, 234, 237, 0.55);
   line-height: 1.4;
   font-size: 13px;
 }
@@ -1611,7 +1613,7 @@ html:has(.landing) {
 
 .landing .workspace-option-card-body p {
   margin: 4px 0 0;
-  color: var(--text-secondary);
+  color: rgba(232, 234, 237, 0.6);
   line-height: 1.4;
   font-size: 13px;
 }
@@ -1624,9 +1626,9 @@ html:has(.landing) {
   margin-top: 12px;
   padding: 10px;
   border-radius: 8px;
-  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.015);
-  color: var(--text-muted);
+  color: rgba(232, 234, 237, 0.5);
   font-size: 12px;
   text-align: center;
   justify-content: center;
@@ -1649,7 +1651,7 @@ html:has(.landing) {
 
 .landing .workspace-option-card-meta {
   font-size: 11px;
-  color: var(--text-muted);
+  color: rgba(232, 234, 237, 0.45);
 }
 
 .landing .workspace-option-card-cta {
@@ -1730,7 +1732,7 @@ html:has(.landing) {
 .landing .workspace-secondary-btn-desc {
   display: block;
   font-size: 12px;
-  color: var(--text-muted);
+  color: rgba(232, 234, 237, 0.5);
   margin-top: 1px;
 }
 
@@ -1780,7 +1782,7 @@ html:has(.landing) {
   margin: 16px 0 0;
   text-align: center;
   font-size: 11px;
-  color: var(--text-muted);
+  color: rgba(232, 234, 237, 0.4);
   letter-spacing: 0.01em;
 }
 
