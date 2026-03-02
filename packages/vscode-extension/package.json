@@ -2,7 +2,7 @@
   "name": "eventcatalog-dsl",
   "displayName": "EventCatalog",
   "description": "Language support and live preview for EventCatalog DSL (.ec files)",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "eventcatalog",
   "private": true,
   "repository": {
