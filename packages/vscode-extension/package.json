@@ -1,6 +1,6 @@
 {
   "name": "eventcatalog-dsl",
-  "displayName": "EventCatalog DSL",
+  "displayName": "EventCatalog",
   "description": "Language support and live preview for EventCatalog DSL (.ec files)",
   "version": "0.1.0",
   "publisher": "eventcatalog",
