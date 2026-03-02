@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/docs",
+      "destination": "https://compass-docs-liart.vercel.app/docs/"
+    },
+    {
       "source": "/docs/:path*",
       "destination": "https://compass-docs-liart.vercel.app/docs/:path*"
     },
