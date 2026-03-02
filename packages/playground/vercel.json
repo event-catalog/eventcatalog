@@ -5,8 +5,8 @@
       "destination": "https://compass-docs-liart.vercel.app/"
     },
     {
-      "source": "/docs/:path*",
-      "destination": "https://compass-docs-liart.vercel.app/:path*"
+      "source": "/docs/(.*)",
+      "destination": "https://compass-docs-liart.vercel.app/$1"
     },
     {
       "source": "/(.*)",
