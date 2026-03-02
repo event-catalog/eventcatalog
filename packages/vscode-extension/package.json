@@ -2,9 +2,15 @@
   "name": "eventcatalog-dsl",
   "displayName": "EventCatalog",
   "description": "Language support and live preview for EventCatalog DSL (.ec files)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "eventcatalog",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog",
+    "directory": "packages/vscode-extension"
+  },
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "vscode": "^1.85.0"
   },
