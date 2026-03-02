@@ -251,9 +251,11 @@ function collectFromImport(
   const specPath = stripQuotes(imp.path);
   if (!isSpecFile(specPath)) return;
 
+  // Bare imports (no resourceType) use the `import Name from "spec"` form,
+  // which is the grammar's service import syntax.
   const resourceType = imp.resourceType
     ? RESOURCE_TYPE_SINGULAR[imp.resourceType]
-    : undefined;
+    : "service";
 
   // Read and parse the spec file
   let specContent: string;
@@ -292,7 +294,7 @@ function collectFromImport(
       results.push({
         node: item, // The ImportItem AST node
         document: doc,
-        resourceType: resourceType || "event",
+        resourceType,
         name: item.name,
         specInfo: {
           specPath,
@@ -310,7 +312,7 @@ function collectFromImport(
       results.push({
         node: item,
         document: doc,
-        resourceType: resourceType || "event",
+        resourceType,
         name: item.name,
         specInfo: { specPath },
       });

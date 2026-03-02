@@ -559,11 +559,15 @@ export function serviceToEc(service: SpecService): string {
     parts.push(channelToEc(ch));
   }
 
-  // Generate standalone message definitions so metadata (summary, version) is available
+  // Generate standalone message definitions so metadata (summary, version) is available.
+  // Deduplicate: a message that appears in both sends and receives should only be emitted once.
   const msgTypeLookup = new Map(
     service.operations.map((op) => [op.messageName, op.messageType || "event"]),
   );
+  const emittedMessages = new Set<string>();
   for (const msg of service.messages) {
+    if (emittedMessages.has(msg.name)) continue;
+    emittedMessages.add(msg.name);
     const resourceType = msgTypeLookup.get(msg.name) || "event";
     const singular =
       RESOURCE_TYPE_SINGULAR[`${resourceType}s` as ResourceType] ||
