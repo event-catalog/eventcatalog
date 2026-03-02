@@ -1,0 +1,57 @@
+name: Release VS Code Extension
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.repository == 'event-catalog/eventcatalog'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+
+      - name: Install deps
+        run: pnpm i
+
+      - name: Bump version
+        working-directory: packages/vscode-extension
+        run: npm version ${{ inputs.version }} --no-git-tag-version
+
+      - name: Build all packages
+        run: pnpm run build:bin
+
+      - name: Publish to VS Code Marketplace
+        working-directory: packages/vscode-extension
+        run: npx @vscode/vsce publish --no-dependencies
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Get version
+        id: version
+        working-directory: packages/vscode-extension
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add packages/vscode-extension/package.json
+          git commit -m "chore: release vscode extension v${{ steps.version.outputs.version }}"
+          git push
