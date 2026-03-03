@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.15.3
+
+### Patch Changes
+
+- d41c8c3: Re-enable hide/show channels toggle in the visualiser
+
 ## 3.15.2
 
 ### Patch Changes
