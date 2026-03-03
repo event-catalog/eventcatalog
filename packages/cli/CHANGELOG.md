@@ -1,5 +1,12 @@
 # @eventcatalog/cli
 
+## 0.4.9
+
+### Patch Changes
+
+- Updated dependencies [b86daae]
+  - @eventcatalog/language-server@0.7.0
+
 ## 0.4.8
 
 ### Patch Changes

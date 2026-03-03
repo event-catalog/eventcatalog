@@ -1,5 +1,11 @@
 # @eventcatalog/language-server
 
+## 0.7.0
+
+### Minor Changes
+
+- b86daae: Support inline flow definitions inside domain blocks in the DSL
+
 ## 0.6.2
 
 ### Patch Changes
