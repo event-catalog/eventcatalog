@@ -143,3 +143,62 @@ describe("Visualizer validation", () => {
     expect(versionErrors[0]).toContain("OrderService");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Actor and ExternalSystem validation — no version required
+// ---------------------------------------------------------------------------
+describe("Actor and ExternalSystem validation", () => {
+  it("actor without version does not produce error", async () => {
+    const errors = await getValidationErrors(`
+      actor User {
+        name "The User"
+        summary "User persona"
+      }
+    `);
+    const versionErrors = errors.filter((e) => e.includes("version"));
+    expect(versionErrors).toHaveLength(0);
+  });
+
+  it("external-system without version does not produce error", async () => {
+    const errors = await getValidationErrors(`
+      external-system Random {
+        name "Display Name"
+        summary "Third-party system that integrates with the platform"
+      }
+    `);
+    const versionErrors = errors.filter((e) => e.includes("version"));
+    expect(versionErrors).toHaveLength(0);
+  });
+
+  it("actor inside visualizer without version does not produce error", async () => {
+    const errors = await getValidationErrors(`
+      visualizer main {
+        actor User {
+          name "The User"
+          summary "User persona"
+        }
+        service OrderService {
+          version 1.0.0
+        }
+      }
+    `);
+    const versionErrors = errors.filter((e) => e.includes("version"));
+    expect(versionErrors).toHaveLength(0);
+  });
+
+  it("external-system inside visualizer without version does not produce error", async () => {
+    const errors = await getValidationErrors(`
+      visualizer main {
+        external-system PaymentGateway {
+          name "Payment Gateway"
+          summary "External payment processor"
+        }
+        service OrderService {
+          version 1.0.0
+        }
+      }
+    `);
+    const versionErrors = errors.filter((e) => e.includes("version"));
+    expect(versionErrors).toHaveLength(0);
+  });
+});

@@ -149,6 +149,77 @@ function stripAndConcatenate(
   return { source: parts.join("\n") };
 }
 
+// Matches local .ec file imports: import { Foo } from "./other.ec"
+const EC_IMPORT_PATH_RE =
+  /^\s*import\s+(?:(?:events|commands|queries|channels|services|containers)\s+)?\{[^}]*\}\s*from\s*"(?!https?:\/\/)([^"]+\.ec)"\s*(?:\/\/.*)?$|^\s*import\s+[A-Z][a-zA-Z0-9_]*\s+from\s*"(?!https?:\/\/)([^"]+\.ec)"\s*(?:\/\/.*)?$/gm;
+
+/**
+ * Collect the set of .ec files reachable from a starting file via local imports.
+ * Returns workspace-relative filenames (matching keys in `files`).
+ */
+function collectImportedEcFiles(
+  startFile: string,
+  files: Record<string, string>,
+): Set<string> {
+  const visited = new Set<string>();
+  const queue = [startFile];
+
+  while (queue.length > 0) {
+    const current = queue.pop()!;
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const source = files[current];
+    if (!source) continue;
+
+    EC_IMPORT_PATH_RE.lastIndex = 0;
+    let match;
+    while ((match = EC_IMPORT_PATH_RE.exec(source)) !== null) {
+      const importPath = match[1] || match[2];
+      if (!importPath) continue;
+
+      // Resolve relative to the importing file's directory
+      const importingDir = current.includes("/")
+        ? current.substring(0, current.lastIndexOf("/"))
+        : "";
+      const resolved = importingDir
+        ? normalizePosixPath(`${importingDir}/${importPath}`)
+        : importPath.replace(/^\.\//, "");
+
+      // Check if this resolved path exists in the files map
+      const actualKey =
+        files[resolved] !== undefined
+          ? resolved
+          : files[`./${resolved}`] !== undefined
+            ? `./${resolved}`
+            : undefined;
+
+      if (actualKey && !visited.has(actualKey)) {
+        queue.push(actualKey);
+      }
+    }
+  }
+
+  return visited;
+}
+
+/**
+ * Normalize a POSIX-style path by resolving `.` and `..` segments.
+ */
+function normalizePosixPath(p: string): string {
+  const parts = p.split("/");
+  const result: string[] = [];
+  for (const part of parts) {
+    if (part === "." || part === "") continue;
+    if (part === "..") {
+      result.pop();
+    } else {
+      result.push(part);
+    }
+  }
+  return result.join("/");
+}
+
 async function parseSingle(
   source: string,
   activeVisualizer?: string,
@@ -184,8 +255,16 @@ export async function parseWorkspaceFiles(
   basePath?: string,
   activeFile?: string,
 ): Promise<DslGraph> {
-  const { files: resolved } = await resolveAllImports(files, basePath);
+  console.log("[EC Parser] Input files:", Object.keys(files));
+  const { files: resolved, errors } = await resolveAllImports(files, basePath);
   const filenames = Object.keys(resolved);
+  if (errors.length > 0) {
+    console.log("[EC Parser] Resolve errors:");
+    for (const err of errors) {
+      console.log("[EC Parser]  -", err);
+    }
+  }
+  console.log("[EC Parser] Resolved files:", Object.keys(resolved));
 
   if (filenames.length === 0) {
     return { nodes: [], edges: [], empty: true };
@@ -203,8 +282,23 @@ export async function parseWorkspaceFiles(
   // Parse main file alone to get its node IDs
   const mainResult = await parseSingle(mainSource, activeVisualizer);
 
-  // Concatenate supporting files before main file
-  const supportingFiles = filenames.filter((f) => f !== mainFile);
+  // Only include .ec files that are actually imported by the main file (directly or transitively),
+  // plus any spec files (yaml/yml/json). This prevents a syntax error in an unrelated .ec file
+  // from breaking the preview of the active file.
+  const reachableFiles = collectImportedEcFiles(mainFile, resolved);
+  const supportingFiles = filenames.filter(
+    (f) =>
+      f !== mainFile &&
+      (reachableFiles.has(f) ||
+        f.endsWith(".yml") ||
+        f.endsWith(".yaml") ||
+        f.endsWith(".json")),
+  );
+
+  if (supportingFiles.length === 0) {
+    return mainResult;
+  }
+
   const concatOrder = [...supportingFiles, mainFile];
   const { source: combinedSource } = stripAndConcatenate(resolved, concatOrder);
   const fullResult = await parseSingle(combinedSource, activeVisualizer);

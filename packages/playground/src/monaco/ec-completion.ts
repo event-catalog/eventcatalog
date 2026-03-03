@@ -13,6 +13,7 @@ import {
   collectChannelNames,
   collectMessageNames,
   extractResourceVersions,
+  extractResourceNamesFromText,
   parseSpecAuto,
   findEnclosingResource,
   isSpecFile,
@@ -190,28 +191,45 @@ export function registerEcCompletion(monaco: Monaco) {
           }
         }
 
-        // Fallback: suggest resource names defined in .ec files
-        const allText = getAllText();
-        const ecResourceTypes = ['service', 'event', 'command', 'query', 'domain', 'channel', 'flow', 'container'];
-        const resources = new Set<string>();
-        for (const type of ecResourceTypes) {
-          for (const name of collectRegexMatches(
-            new RegExp(`\\b${type}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\{`, 'g'),
-            allText,
-          )) {
-            resources.add(name);
+        // .ec file imports: only suggest resources defined in the target file
+        const fromEcMatch = lineContent.match(/from\s*"([^"]+\.ec)"/);
+        if (fromEcMatch) {
+          const normalizedPath = fromEcMatch[1].replace(/^\.\//, '');
+          const ecContent = _allFilesSources[fromEcMatch[1]]
+            ?? _allFilesSources[normalizedPath]
+            ?? _allFilesSources[`./${normalizedPath}`];
+          if (ecContent) {
+            const names = extractResourceNamesFromText(ecContent);
+            return {
+              suggestions: [...names]
+                .filter(name => !alreadyImported.has(name))
+                .map((name, i) => ({
+                  label: name,
+                  kind: monaco.languages.CompletionItemKind.Class,
+                  detail: `Import from ${fromEcMatch[1]}`,
+                  insertText: name,
+                  range,
+                  sortText: String(i).padStart(5, '0'),
+                })),
+            };
           }
         }
 
+        // Fallback: suggest resource names from all workspace .ec files
+        const allText = getAllText();
+        const resources = extractResourceNamesFromText(allText);
+
         return {
-          suggestions: [...resources].map((name, i) => ({
-            label: name,
-            kind: monaco.languages.CompletionItemKind.Class,
-            detail: 'Resource to import',
-            insertText: name,
-            range,
-            sortText: String(i).padStart(5, '0'),
-          })),
+          suggestions: [...resources]
+            .filter(name => !alreadyImported.has(name))
+            .map((name, i) => ({
+              label: name,
+              kind: monaco.languages.CompletionItemKind.Class,
+              detail: 'Resource to import',
+              insertText: name,
+              range,
+              sortText: String(i).padStart(5, '0'),
+            })),
         };
       }
 

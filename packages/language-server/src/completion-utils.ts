@@ -179,3 +179,34 @@ export function findEnclosingResource(text: string): string | null {
   const top = stack[stack.length - 1];
   return top === "subdomain" ? "domain" : top;
 }
+
+const EC_RESOURCE_TYPES = [
+  "service",
+  "event",
+  "command",
+  "query",
+  "domain",
+  "channel",
+  "flow",
+  "container",
+  "data-product",
+  "actor",
+  "external-system",
+];
+
+/**
+ * Extract top-level resource names defined in a single .ec file's text.
+ */
+export function extractResourceNamesFromText(text: string): Set<string> {
+  const names = new Set<string>();
+  for (const type of EC_RESOURCE_TYPES) {
+    const regex = new RegExp(
+      `\\b${type}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\{`,
+      "g",
+    );
+    for (const name of collectRegexMatches(regex, text)) {
+      names.add(name);
+    }
+  }
+  return names;
+}

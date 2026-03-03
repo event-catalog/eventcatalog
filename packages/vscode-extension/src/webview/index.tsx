@@ -46,6 +46,7 @@ function App() {
   }, []);
 
   if (graph.nodes.length === 0) {
+    const hasVisualizer = graph.visualizers && graph.visualizers.length > 0;
     return (
       <div
         style={{
@@ -58,7 +59,9 @@ function App() {
           fontSize: "14px",
         }}
       >
-        Add a visualizer block to your .ec file to see the preview
+        {hasVisualizer
+          ? "Add resources to your visualizer block to see the preview"
+          : "Add a visualizer block to your .ec file to see the preview"}
       </div>
     );
   }

@@ -20,6 +20,7 @@ export {
   collectChannelNames,
   collectMessageNames,
   extractResourceVersions,
+  extractResourceNamesFromText,
   parseSpecAuto,
   findEnclosingResource,
 } from "./completion-utils.js";

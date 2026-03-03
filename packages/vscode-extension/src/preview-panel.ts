@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
 
+const LOG_PREFIX = "[EventCatalog Preview]";
+
 export class PreviewPanelManager {
   private panel: vscode.WebviewPanel | undefined;
   private debounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -42,18 +44,29 @@ export class PreviewPanelManager {
           ],
         },
       );
+      // Queue the initial document for when webview is ready
+      this.pendingDocument = editor.document;
+
       this.panel.webview.html = this.getHtml(this.panel.webview);
 
       // Listen for ready signal from webview
       this.panel.webview.onDidReceiveMessage((message) => {
-        if (message.type === "ready" && this.pendingDocument) {
+        if (message.type === "ready") {
           this.webviewReady = true;
-          this.onDocumentChanged(this.pendingDocument);
-          this.pendingDocument = undefined;
+          console.log(
+            LOG_PREFIX,
+            "Webview ready, pending:",
+            !!this.pendingDocument,
+          );
+          if (this.pendingDocument) {
+            this.onDocumentChanged(this.pendingDocument);
+            this.pendingDocument = undefined;
+          }
         }
       });
 
       this.panel.onDidDispose(() => {
+        console.log(LOG_PREFIX, "Panel disposed");
         this.panel = undefined;
         this.webviewReady = false;
         if (this.debounceTimer) {
@@ -61,9 +74,6 @@ export class PreviewPanelManager {
           this.debounceTimer = undefined;
         }
       });
-
-      // Queue the initial document for when webview is ready
-      this.pendingDocument = editor.document;
     }
   }
 
@@ -94,9 +104,13 @@ export class PreviewPanelManager {
           basePath,
           activeFile,
         );
+        console.log(
+          LOG_PREFIX,
+          `Parsed ${Object.keys(files).length} file(s) → ${graph.nodes?.length ?? 0} nodes, ${graph.edges?.length ?? 0} edges`,
+        );
         this.panel?.webview.postMessage({ type: "update-graph", graph });
       } catch (err) {
-        console.error("[EventCatalog Preview]", err);
+        console.error(LOG_PREFIX, "Parse failed:", err);
       }
     }, 150);
   }
@@ -111,41 +125,21 @@ export class PreviewPanelManager {
     files[activePath] = activeDocument.getText();
 
     // Use cached file list, only scan workspace when cache is invalidated.
-    // Load all .ec files, but only load spec files (yaml/yml) that sit in
-    // the same directories as .ec files. This prevents loading hundreds of
-    // irrelevant files from catalog project directories (which are resolved
-    // via the SDK instead). JSON files are excluded entirely — OpenAPI JSON
-    // specs can be renamed to .yaml or referenced via URL import.
+    // Load all .ec files and all spec files (yaml/yml). Spec files may live
+    // in subdirectories separate from .ec files (e.g., ./asyncapi-files/spec.yml)
+    // so we cannot restrict to co-located directories. The parser only uses
+    // spec files that are actually referenced by imports.
     if (!this.cachedFileUris) {
-      const ecFiles = await vscode.workspace.findFiles(
-        "**/*.ec",
-        "**/node_modules/**",
+      const [ecFiles, specFiles] = await Promise.all([
+        vscode.workspace.findFiles("**/*.ec", "**/node_modules/**"),
+        vscode.workspace.findFiles("**/*.{yaml,yml}", "**/node_modules/**"),
+      ]);
+
+      this.cachedFileUris = [...ecFiles, ...specFiles];
+      console.log(
+        LOG_PREFIX,
+        `Workspace scan: ${ecFiles.length} .ec file(s), ${specFiles.length} spec file(s)`,
       );
-
-      // Collect directories that contain .ec files
-      const ecDirs = new Set<string>();
-      for (const uri of ecFiles) {
-        const rel = vscode.workspace.asRelativePath(uri);
-        const dir = rel.includes("/")
-          ? rel.substring(0, rel.lastIndexOf("/"))
-          : "";
-        ecDirs.add(dir);
-      }
-
-      // Load spec files only from directories that contain .ec files
-      const specFiles = await vscode.workspace.findFiles(
-        "**/*.{yaml,yml}",
-        "**/node_modules/**",
-      );
-      const relevantSpecFiles = specFiles.filter((uri) => {
-        const rel = vscode.workspace.asRelativePath(uri);
-        const dir = rel.includes("/")
-          ? rel.substring(0, rel.lastIndexOf("/"))
-          : "";
-        return ecDirs.has(dir);
-      });
-
-      this.cachedFileUris = [...ecFiles, ...relevantSpecFiles];
     }
 
     for (const fileUri of this.cachedFileUris) {

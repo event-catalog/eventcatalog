@@ -354,11 +354,45 @@ function normalizeSpecKey(specPath: string): string {
 function lookupLocalSpec(
   specPath: string,
   files: Record<string, string>,
+  importingFile?: string,
 ): string | undefined {
+  // If the importing file is known, resolve the spec path relative to it
+  if (importingFile && !isUrl(specPath)) {
+    const importingDir = importingFile.includes("/")
+      ? importingFile.substring(0, importingFile.lastIndexOf("/"))
+      : "";
+    const resolved = importingDir
+      ? normalizePosixPath(`${importingDir}/${specPath}`)
+      : specPath;
+    const normalizedResolved = resolved.replace(/^\.\//, "");
+    const found =
+      files[resolved] ??
+      files[normalizedResolved] ??
+      files[`./${normalizedResolved}`];
+    if (found) return found;
+  }
+  // Fallback: direct lookup (for root-level files or when importing file is unknown)
   const normalizedPath = specPath.replace(/^\.\//, "");
   return (
     files[specPath] ?? files[normalizedPath] ?? files[`./${normalizedPath}`]
   );
+}
+
+/**
+ * Normalize a POSIX-style path by resolving `.` and `..` segments.
+ */
+function normalizePosixPath(p: string): string {
+  const parts = p.split("/");
+  const result: string[] = [];
+  for (const part of parts) {
+    if (part === "." || part === "") continue;
+    if (part === "..") {
+      result.pop();
+    } else {
+      result.push(part);
+    }
+  }
+  return result.join("/");
 }
 
 export function isSpecFile(filename: string): boolean {
@@ -370,7 +404,10 @@ export function isSpecFile(filename: string): boolean {
 }
 
 const SKIP = Symbol("skip");
-type SpecLookup = (specPath: string) => string | typeof SKIP | undefined;
+type SpecLookup = (
+  specPath: string,
+  importingFile: string,
+) => string | typeof SKIP | undefined;
 
 /**
  * Core resolution logic shared by sync and async resolvers.
@@ -415,7 +452,7 @@ function resolveFileImports(
 
     // Resolve resource imports (import events { ... } from "spec.yml")
     for (const imp of imports) {
-      const specContent = getSpecContent(imp.specPath);
+      const specContent = getSpecContent(imp.specPath, filename);
       if (specContent === SKIP) continue;
       if (!specContent) {
         result = result.replace(
@@ -447,7 +484,7 @@ function resolveFileImports(
 
     // Resolve service imports (import ServiceName from "spec.yml")
     for (const imp of serviceImports) {
-      const specContent = getSpecContent(imp.specPath);
+      const specContent = getSpecContent(imp.specPath, filename);
       if (specContent === SKIP) continue;
       if (!specContent) {
         result = result.replace(
@@ -483,9 +520,9 @@ export function resolveSpecImports(
 ): SpecResolveResult {
   const notFoundErrors: ResolveError[] = [];
 
-  const result = resolveFileImports(files, (specPath) => {
+  const result = resolveFileImports(files, (specPath, importingFile) => {
     if (isUrl(specPath)) return SKIP;
-    const content = lookupLocalSpec(specPath, files);
+    const content = lookupLocalSpec(specPath, files, importingFile);
     if (!content) {
       notFoundErrors.push({
         message: `Spec file not found: "${specPath}"`,
@@ -546,9 +583,9 @@ export async function resolveSpecImportsAsync(
 
   const notFoundErrors: ResolveError[] = [];
 
-  const result = resolveFileImports(files, (specPath) => {
+  const result = resolveFileImports(files, (specPath, importingFile) => {
     if (isUrl(specPath)) return fetchedSpecs.get(specPath);
-    const content = lookupLocalSpec(specPath, files);
+    const content = lookupLocalSpec(specPath, files, importingFile);
     if (!content) {
       notFoundErrors.push({
         message: `Spec file not found: "${specPath}"`,
