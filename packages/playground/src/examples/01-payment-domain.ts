@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Payment Domain',
+  group: 'Getting Started',
   description: 'Payment processing with RabbitMQ messaging',
   source: {
     'main.ec': `visualizer main {

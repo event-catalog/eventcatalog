@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Order Service Showcase',
+  group: 'Getting Started',
   description: 'Service with events, drafts, deprecations, notes, and channels',
   source: {
     'main.ec': `import {

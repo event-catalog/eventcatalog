@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Sample Event-Driven System',
+  group: 'Getting Started',
   description: 'A realistic cross-domain architecture with imported REST APIs and event-driven workflows',
   source: {
     'main.ec': `import CheckoutApi from "./checkout-openapi.yml"
@@ -83,6 +84,7 @@ visualizer main {
 info:
   title: Checkout API
   version: 1.0.0
+  group: 'Getting Started',
   description: REST API for shopping cart and order checkout.
 paths:
   /checkout:
@@ -91,19 +93,22 @@ paths:
       summary: Create a checkout session
       responses:
         '201':
-          description: Checkout session created
+          group: 'Getting Started',
+  description: Checkout session created
   /checkout/{sessionId}/confirm:
     post:
       operationId: ConfirmCheckoutSession
       summary: Confirm an existing checkout session
       responses:
         '200':
-          description: Session confirmed
+          group: 'Getting Started',
+  description: Session confirmed
 `,
     'customers-openapi.yml': `openapi: 3.0.3
 info:
   title: Customer API
   version: 1.0.0
+  group: 'Getting Started',
   description: REST API for customer profile and notification preferences.
 paths:
   /customers/{customerId}:
@@ -112,19 +117,22 @@ paths:
       summary: Retrieve customer profile details
       responses:
         '200':
-          description: Customer profile
+          group: 'Getting Started',
+  description: Customer profile
   /customers/{customerId}/preferences:
     patch:
       operationId: UpdateNotificationPreferences
       summary: Update customer notification preferences
       responses:
         '200':
-          description: Preferences updated
+          group: 'Getting Started',
+  description: Preferences updated
 `,
     'commerce-asyncapi.yml': `asyncapi: 3.0.0
 info:
   title: Commerce Event Bus
   version: 1.0.0
+  group: 'Getting Started',
   description: Event contracts for checkout, payment, inventory, and fulfillment workflows.
 
 channels:

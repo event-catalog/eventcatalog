@@ -696,18 +696,18 @@ export default function Landing() {
         <h1>
           Design your architecture.
           <br />
-          Visualize every <span className="highlight">flow.</span>
+          From what you <span className="highlight">already have.</span>
         </h1>
         <p className="hero-sub">
-          Import from AsyncAPI, OpenAPI, or an existing EventCatalog. Model your system in code, visualize it live, and keep your docs in sync.
+          Import AsyncAPI, OpenAPI, or EventCatalog. Model new domains, services, and flows — then publish them as living documentation.
         </p>
         <div className="hero-actions">
           <a
-            href="/playground"
+            href="https://compass.eventcatalog.dev/docs/get-started/tutorial/"
             className="btn-primary"
-            onClick={openPlayground}
+            // onClick={openPlayground}
           >
-            Open Playground &rarr;
+            Get started &rarr;
           </a>
           <a href="#how" className="btn-ghost">
             How it works
@@ -731,7 +731,7 @@ export default function Landing() {
               <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
             <div>
-              <strong>One language for your whole system</strong>
+              <strong>A language for your architecture</strong>
               <span>
                 Define domains, services, events, and channels. All in one
                 readable file.
@@ -752,7 +752,7 @@ export default function Landing() {
             <div>
               <strong>Start from what you already have</strong>
               <span>
-                Import from AsyncAPI, OpenAPI, or an existing EventCatalog.
+                Import resources from AsyncAPI, OpenAPI, or an existing EventCatalog.
               </span>
             </div>
           </div>
@@ -770,7 +770,7 @@ export default function Landing() {
             <div>
               <strong>From model to docs in one click</strong>
               <span>
-                Export to EventCatalog and give your whole team a living
+                Import and export to EventCatalog and give your whole team a living
                 architecture portal.
               </span>
             </div>
@@ -800,7 +800,7 @@ export default function Landing() {
           The Problem
         </div>
         <h2 className="section-title reveal">
-          Your architecture lives in five tools and one person's head
+          Your architecture lives in five tools <br/> and one person's head
         </h2>
         <p className="section-desc reveal">
           Your specs describe the pieces. The diagrams are six months old. The
@@ -1749,7 +1749,7 @@ export default function Landing() {
               >
                 <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <h3>AI-ready architecture</h3>
+              <h3>Queryable architecture</h3>
             </div>
             <p>
               Export to EventCatalog and use the MCP server to let AI agents

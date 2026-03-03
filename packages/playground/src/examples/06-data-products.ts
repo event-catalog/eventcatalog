@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Data Products',
+  group: 'Architecture Patterns',
   description: 'Analytical data products with inputs and outputs',
   source: {
     'main.ec': `visualizer main {

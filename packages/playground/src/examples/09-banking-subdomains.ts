@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Banking with Subdomains',
+  group: 'Architecture Patterns',
   description: 'Banking domain organized with subdomains for different banking functions',
   source: {
     'main.ec': `visualizer main {

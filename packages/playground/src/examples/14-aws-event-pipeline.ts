@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'AWS Event Pipeline',
+  group: 'Architecture Patterns',
   description: 'Cross-domain EventBridge routing with SQS queues on AWS',
   source: {
     'main.ec': `visualizer main {

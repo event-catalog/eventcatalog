@@ -324,16 +324,18 @@ body:has(.landing) #root {
   border-color: var(--shell-button-border-hover);
 }
 
-/* ── Examples Dropdown ── */
-.example-select-wrapper {
+/* ── Template Dropdown ── */
+.template-dropdown {
   position: relative;
   min-width: 0;
 }
 
-.example-select {
-  appearance: none;
+.template-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 32px;
-  padding: 0 28px 0 10px;
+  padding: 0 10px;
   font-size: 12px;
   font-family: inherit;
   border: 1px solid var(--shell-control-border);
@@ -344,27 +346,82 @@ body:has(.landing) #root {
   outline: none;
   transition: border-color 0.15s;
   max-width: 420px;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden;
 }
 
-.example-select:hover {
+.template-dropdown-trigger:hover {
   border-color: var(--shell-control-border-hover);
 }
 
-.example-select:focus {
+.template-dropdown-trigger:focus-visible {
   border-color: #a855f7;
   box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
 }
 
-.example-select-arrow {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
+.template-dropdown-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.template-dropdown-chevron {
+  flex-shrink: 0;
   color: var(--shell-muted);
+}
+
+.template-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 240px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--shell-control-border);
+  border-radius: 8px;
+  background: var(--shell-control-bg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+}
+
+.template-dropdown-group + .template-dropdown-group {
+  border-top: 1px solid var(--shell-control-border);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.template-dropdown-group-header {
+  padding: 6px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--shell-muted);
+  pointer-events: none;
+}
+
+.template-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  border: none;
+  background: none;
+  color: var(--shell-control-text);
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.template-dropdown-item:hover {
+  background: rgba(168, 85, 247, 0.08);
+}
+
+.template-dropdown-item--active {
+  color: #a855f7;
+  font-weight: 500;
 }
 
 /* ── Main Split ── */

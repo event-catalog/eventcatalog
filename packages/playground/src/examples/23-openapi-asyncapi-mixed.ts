@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'OpenAPI + AsyncAPI Mixed',
+  group: 'Getting Started',
   description: 'Combine REST (OpenAPI) and event-driven (AsyncAPI) specs in a single architecture',
   source: {
     'main.ec': `// Generated from OpenAPI spec (REST API)

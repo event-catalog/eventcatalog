@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Enterprise E-Commerce',
+  group: 'Architecture Patterns',
   description: 'Complex enterprise system with 8 domains and multiple channels',
   source: {
     'main.ec': `import { Orders, OrderService, OrderCreated, OrderShipped, OrderCancelled } from "./orders.ec"

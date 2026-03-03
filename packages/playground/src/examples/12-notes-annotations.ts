@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Notes & Annotations',
+  group: 'DSL Features',
   description: 'Attach notes to resources for context, decisions, and reminders',
   source: {
     'main.ec': `visualizer main {

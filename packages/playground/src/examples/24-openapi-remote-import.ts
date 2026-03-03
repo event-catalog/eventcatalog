@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'OpenAPI Remote Import',
+  group: 'Getting Started',
   description: 'Import commands and queries from a remote OpenAPI spec (Swagger Petstore) via URL',
   source: {
     'main.ec': `// Commands and queries generated from remote OpenAPI spec (Swagger Petstore)

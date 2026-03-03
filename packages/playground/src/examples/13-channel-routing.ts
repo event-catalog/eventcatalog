@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Channel Routing',
+  group: 'Architecture Patterns',
   description: 'IoT pipeline with channel-to-channel routing (Kafka \u2192 Kafka \u2192 MQTT)',
   source: {
     'main.ec': `visualizer main {

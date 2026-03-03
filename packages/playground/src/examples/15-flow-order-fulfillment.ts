@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Flow: Order Fulfillment',
+  group: 'Flows',
   description: 'PM-friendly business flow with when-blocks, branching, and convergence',
   source: {
     'main.ec': `import { OrderService, PaymentService, InventoryService, FulfillmentService, NotificationService } from "./services.ec"

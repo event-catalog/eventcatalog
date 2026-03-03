@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Flow: E-Commerce Checkout',
+  group: 'Flows',
   description: 'Complex flow with validation, fraud detection, parallel processing, and multiple failure paths',
   source: {
     'main.ec': `import {

@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Planning Future Services',
+  group: 'Architecture Patterns',
   description: 'Demonstrates planning future services and migrations using draft mode',
   source: {
     'main.ec': `visualizer main {

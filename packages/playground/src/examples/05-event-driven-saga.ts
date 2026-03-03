@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Event-Driven Saga',
+  group: 'Architecture Patterns',
   description: 'Choreography-based saga with NServiceBus',
   source: {
     'main.ec': `visualizer main {

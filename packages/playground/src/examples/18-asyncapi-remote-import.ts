@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'AsyncAPI Remote Import',
+  group: 'Getting Started',
   description: 'Import events and channels from a remote AsyncAPI spec via URL',
   source: {
     'main.ec': `// Events and channels generated from remote AsyncAPI spec

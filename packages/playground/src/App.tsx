@@ -39,6 +39,7 @@ import {
   Copy,
   FolderDown,
 } from "lucide-react";
+import { TemplateDropdown } from "./components/TemplateDropdown";
 import { formatEc } from "@eventcatalog/language-server/browser";
 
 const MIN_PANEL_PCT = 20;
@@ -67,7 +68,7 @@ const AppHeader = memo(function AppHeader({
 }: {
   selectedExample: number;
   templateUnselected: boolean;
-  onExampleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onExampleChange: (index: number) => void;
   loadedFromUrl: boolean;
   workspaceTitle?: string;
   onExport: () => void;
@@ -118,28 +119,12 @@ const AppHeader = memo(function AppHeader({
         </a>
       </div>
       <div className="header-actions">
-        <div className="example-select-wrapper">
-          <select
-            className="example-select"
-            value={
-              loadedFromUrl ? "url" : templateUnselected ? "" : selectedExample
-            }
-            onChange={onExampleChange}
-          >
-            {templateUnselected && (
-              <option value="" disabled>
-                Select a template
-              </option>
-            )}
-            {loadedFromUrl && <option value="url">Shared Link</option>}
-            {examples.map((ex, i) => (
-              <option key={i} value={i}>
-                {ex.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={14} className="example-select-arrow" />
-        </div>
+        <TemplateDropdown
+          selectedExample={selectedExample}
+          templateUnselected={templateUnselected}
+          loadedFromUrl={loadedFromUrl}
+          onSelectExample={onExampleChange}
+        />
         <button
           className="header-icon-btn"
           onClick={onToggleVizTheme}
@@ -621,9 +606,8 @@ export default function App() {
   );
 
   const handleExampleChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      if (e.target.value === "" || e.target.value === "url") return;
-      loadExample(Number(e.target.value));
+    (index: number) => {
+      loadExample(index);
     },
     [loadExample],
   );

@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'E-Commerce Platform',
+  group: 'Architecture Patterns',
   description: 'E-commerce with Kafka messaging and HTTP commands',
   source: {
     'main.ec': `visualizer main {

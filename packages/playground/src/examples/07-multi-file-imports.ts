@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Multi-File with Imports',
+  group: 'DSL Features',
   description: 'Demonstrates splitting definitions across files with imports',
   source: {
     'main.ec': `import { PaymentService, PaymentProcessed, PaymentFailed } from "./payment.ec"

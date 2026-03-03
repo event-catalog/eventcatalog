@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'Minimal Service',
+  group: 'Getting Started',
   description: 'Simplest possible service definition',
   source: {
     'main.ec': `visualizer main {

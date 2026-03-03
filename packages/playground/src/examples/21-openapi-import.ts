@@ -2,6 +2,7 @@ import type { Example } from './types';
 
 export const example: Example = {
   name: 'OpenAPI Import',
+  group: 'Getting Started',
   description: 'Import commands and queries from an OpenAPI spec into services',
   source: {
     'main.ec': `// Commands and queries generated from OpenAPI spec
