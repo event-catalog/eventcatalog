@@ -1,5 +1,13 @@
 # @eventcatalog/cli
 
+## 0.4.8
+
+### Patch Changes
+
+- cb0235a: Replace playground.eventcatalog.dev URLs with compass.eventcatalog.dev
+- Updated dependencies [cb0235a]
+  - @eventcatalog/language-server@0.6.2
+
 ## 0.4.7
 
 ### Patch Changes
