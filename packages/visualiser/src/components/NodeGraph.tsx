@@ -67,6 +67,7 @@ import StepWalkthrough from "./StepWalkthrough";
 import StudioModal from "./StudioModal";
 import FocusModeModal from "./FocusModeModal";
 import MermaidView from "./MermaidView";
+import { useChannelVisibility } from "../hooks/use-channel-visibility";
 import VisualizerDropdownContent from "./VisualizerDropdownContent";
 import NodeContextMenu from "./NodeContextMenu";
 import { convertToMermaid } from "../utils/export-mermaid";
@@ -403,17 +404,13 @@ const NodeGraphBuilder = ({
     () => initialNodes.some((node: any) => node.type === "channels"),
     [initialNodes],
   );
-  // TODO: Re-enable channel visibility feature
-  // const { hideChannels, toggleChannelsVisibility } = useChannelVisibility({
-  //   nodes,
-  //   edges,
-  //   setNodes,
-  //   setEdges,
-  //   skipProcessing: !hasChannels,
-  // });
-  // Temporary implementation
-  const hideChannels = false;
-  const toggleChannelsVisibility = () => {};
+  const { hideChannels, toggleChannelsVisibility } = useChannelVisibility({
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    skipProcessing: !hasChannels,
+  });
   const searchRef = useRef<VisualiserSearchRef>(null);
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const scrollableContainerRef = useRef<HTMLElement | null>(null);
