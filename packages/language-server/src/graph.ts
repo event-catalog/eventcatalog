@@ -65,6 +65,7 @@ import {
   getContainers,
   getServiceRefs,
   getFlowRefs,
+  getFlows,
   getDataProductRefs,
   getSends,
   getReceives,
@@ -240,6 +241,9 @@ export function astToGraph(
       }
       for (const ch of body.filter(isChannelDef)) {
         addToDefMap(ch as ResourceDefinition);
+      }
+      for (const flow of getFlows(body)) {
+        addToDefMap(flow as ResourceDefinition);
       }
       // Subdomains are handled separately (they have their own services/containers)
       for (const subdomain of getSubdomains(body)) {
@@ -929,14 +933,23 @@ export function astToGraph(
       processSubdomain(sub, domId);
     }
 
+    for (const flow of getFlows(body)) {
+      processFlow(flow, domId);
+    }
+
     for (const ref of getFlowRefs(body)) {
-      const flowId = resolveOrCreateMsg(
-        ref.ref.name,
-        "flow",
-        ref.ref.version,
-        domId,
-      );
-      addEdge(domId, flowId, "contains");
+      const def = lookupDef(ref.ref.name, ref.ref.version);
+      if (def && isFlowDef(def)) {
+        processFlow(def, domId);
+      } else {
+        const flowId = resolveOrCreateMsg(
+          ref.ref.name,
+          "flow",
+          ref.ref.version,
+          domId,
+        );
+        addEdge(domId, flowId, "contains");
+      }
     }
 
     for (const ref of getDataProductRefs(body)) {
@@ -951,6 +964,100 @@ export function astToGraph(
 
     processSends(domId, getSends(body));
     processReceives(domId, getReceives(body));
+  }
+
+  function processFlow(def: FlowDef, parentId?: string): void {
+    const body = def.body as AstNode[];
+    const entryChains = getFlowEntryChains(body);
+    const whenBlocks = getFlowWhenBlocks(body);
+
+    if (entryChains.length > 0 || whenBlocks.length > 0) {
+      // Resolve a FlowRef to a graph node, inferring type from catalog
+      function resolveFlowRef(ref: FlowRef): string {
+        return resolveOrCreateMsg(
+          ref.name,
+          inferTypeFromCatalog(ref.name),
+          undefined,
+          parentId,
+        );
+      }
+
+      // Get the edge label from a FlowRef (the quoted string after the name)
+      function flowRefLabel(ref: FlowRef): string | undefined {
+        return ref.label ? stripQuotes(ref.label) : undefined;
+      }
+
+      // Process entry chains
+      for (const chain of entryChains) {
+        for (const ref of [...chain.sources, ...chain.targets]) {
+          resolveFlowRef(ref);
+        }
+        const firstTarget = chain.targets[0];
+        if (firstTarget) {
+          const firstTargetId = resolveFlowRef(firstTarget);
+          for (const src of chain.sources) {
+            addEdge(
+              resolveFlowRef(src),
+              firstTargetId,
+              "flow-step",
+              flowRefLabel(src),
+            );
+          }
+        }
+        for (let i = 0; i < chain.targets.length - 1; i++) {
+          addEdge(
+            resolveFlowRef(chain.targets[i]),
+            resolveFlowRef(chain.targets[i + 1]),
+            "flow-step",
+            flowRefLabel(chain.targets[i]),
+          );
+        }
+      }
+
+      // Process when blocks
+      for (const block of whenBlocks) {
+        for (const trigger of block.triggers) {
+          resolveFlowRef(trigger);
+        }
+        for (const action of block.actions) {
+          const actionId = resolveFlowRef(action.ref);
+          for (const trigger of block.triggers) {
+            addEdge(
+              resolveFlowRef(trigger),
+              actionId,
+              "flow-step",
+              flowRefLabel(action.ref),
+            );
+          }
+          for (const output of action.outputs) {
+            const targetId = resolveFlowRef(output.target);
+            addEdge(
+              actionId,
+              targetId,
+              "flow-step",
+              output.label ? stripQuotes(output.label) : undefined,
+            );
+          }
+        }
+      }
+    } else {
+      // No flow body — just show as a single node
+      const flowId = addNode(
+        def.name,
+        "flow",
+        getName(body) || def.name,
+        parentId,
+        {
+          version: getVersion(body),
+          summary: getSummary(body),
+          deprecated: getDeprecated(body),
+          draft: getDraft(body),
+        },
+      );
+      if (parentId) {
+        addEdge(parentId, flowId, "contains");
+      }
+    }
   }
 
   function processMessage(def: EventDef | CommandDef | QueryDef): void {
@@ -1071,86 +1178,7 @@ export function astToGraph(
         addEdge(dpId, outId, "sends");
       }
     } else if (isFlowDef(def)) {
-      const body = def.body as AstNode[];
-      const entryChains = getFlowEntryChains(body);
-      const whenBlocks = getFlowWhenBlocks(body);
-
-      if (entryChains.length > 0 || whenBlocks.length > 0) {
-        // Resolve a FlowRef to a graph node, inferring type from catalog
-        function resolveFlowRef(ref: FlowRef): string {
-          return resolveOrCreateMsg(ref.name, inferTypeFromCatalog(ref.name));
-        }
-
-        // Get the edge label from a FlowRef (the quoted string after the name)
-        function flowRefLabel(ref: FlowRef): string | undefined {
-          return ref.label ? stripQuotes(ref.label) : undefined;
-        }
-
-        // Process entry chains
-        for (const chain of entryChains) {
-          for (const ref of [...chain.sources, ...chain.targets]) {
-            resolveFlowRef(ref);
-          }
-          const firstTarget = chain.targets[0];
-          if (firstTarget) {
-            const firstTargetId = resolveFlowRef(firstTarget);
-            for (const src of chain.sources) {
-              // Label on source ref becomes the edge label to first target
-              addEdge(
-                resolveFlowRef(src),
-                firstTargetId,
-                "flow-step",
-                flowRefLabel(src),
-              );
-            }
-          }
-          for (let i = 0; i < chain.targets.length - 1; i++) {
-            addEdge(
-              resolveFlowRef(chain.targets[i]),
-              resolveFlowRef(chain.targets[i + 1]),
-              "flow-step",
-              flowRefLabel(chain.targets[i]),
-            );
-          }
-        }
-
-        // Process when blocks
-        for (const block of whenBlocks) {
-          for (const trigger of block.triggers) {
-            resolveFlowRef(trigger);
-          }
-          for (const action of block.actions) {
-            const actionId = resolveFlowRef(action.ref);
-            // Triggers connect to each action; action ref label goes on the edge
-            for (const trigger of block.triggers) {
-              addEdge(
-                resolveFlowRef(trigger),
-                actionId,
-                "flow-step",
-                flowRefLabel(action.ref),
-              );
-            }
-            // Action outputs
-            for (const output of action.outputs) {
-              const targetId = resolveFlowRef(output.target);
-              addEdge(
-                actionId,
-                targetId,
-                "flow-step",
-                output.label ? stripQuotes(output.label) : undefined,
-              );
-            }
-          }
-        }
-      } else {
-        // No flow body — just show as a single node
-        addNode(def.name, "flow", getName(body) || def.name, undefined, {
-          version: getVersion(body),
-          summary: getSummary(body),
-          deprecated: getDeprecated(body),
-          draft: getDraft(body),
-        });
-      }
+      processFlow(def);
     } else if (isDiagramDef(def)) {
       const body = def.body as AstNode[];
       addNode(def.name, "diagram", getName(body) || def.name, undefined, {

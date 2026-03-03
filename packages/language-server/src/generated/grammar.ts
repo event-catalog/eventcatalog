@@ -500,6 +500,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@43"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@106"
             },
             "arguments": []
