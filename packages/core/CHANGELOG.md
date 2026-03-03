@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.19.2
+
+### Patch Changes
+
+- 29f57f5: Add getChannelsForService utility and display channels in the service sidebar
+
 ## 3.19.1
 
 ### Patch Changes
