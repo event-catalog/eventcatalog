@@ -7,6 +7,7 @@ import {
   getConsumersOfMessage,
   getSpecificationsForService,
   getProducersAndConsumersForChannel,
+  getChannelsForService,
 } from '@utils/collections/services';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -25,6 +26,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockQueries);
         case 'containers':
           return Promise.resolve(mockContainers);
+        case 'channels':
+          return Promise.resolve(mockChannels);
         default:
           return Promise.resolve([]);
       }
@@ -451,6 +454,43 @@ describe('Services', () => {
       expect(consumers[0].data.id).toEqual('InventoryService');
       expect(consumers[1].data.id).toEqual('NotificationsService');
       expect(consumers[2].data.id).toEqual('PaymentService');
+    });
+  });
+
+  describe('getChannelsForService', () => {
+    it('returns channels referenced in sends[].to for a service', async () => {
+      // PaymentService sends PaymentPaid to EmailChannel
+      const channels = await getChannelsForService('PaymentService');
+
+      expect(channels.length).toBeGreaterThanOrEqual(1);
+      expect(channels.some((c) => c.data.id === 'EmailChannel')).toBe(true);
+    });
+
+    it('returns channels referenced in receives[].from for a service', async () => {
+      // PaymentService receives OrderDeletedEvent from EmailChannel
+      const channels = await getChannelsForService('PaymentService');
+
+      expect(channels.some((c) => c.data.id === 'EmailChannel')).toBe(true);
+    });
+
+    it('deduplicates channels that appear in both sends and receives', async () => {
+      // PaymentService references EmailChannel in both sends[].to and receives[].from
+      const channels = await getChannelsForService('PaymentService');
+
+      const emailChannels = channels.filter((c) => c.data.id === 'EmailChannel');
+      expect(emailChannels).toHaveLength(1);
+    });
+
+    it('returns an empty array when a service has no channel references', async () => {
+      const channels = await getChannelsForService('OrderService');
+
+      expect(channels).toEqual([]);
+    });
+
+    it('returns an empty array when the service does not exist', async () => {
+      const channels = await getChannelsForService('NonExistentService');
+
+      expect(channels).toEqual([]);
     });
   });
 });

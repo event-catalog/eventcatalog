@@ -3,7 +3,14 @@ import type { CollectionEntry } from 'astro:content';
 import semver from 'semver';
 import type { CollectionMessageTypes, CollectionTypes } from '@types';
 import { getDomains, getDomainsForService } from './domains';
-import { createVersionedMap, findInMap, versionMatches, processSpecifications } from '@utils/collections/util';
+import {
+  createVersionedMap,
+  findInMap,
+  versionMatches,
+  processSpecifications,
+  getItemsFromCollectionByIdAndSemverOrLatest,
+} from '@utils/collections/util';
+import { getChannels } from './channels';
 
 export type Service = CollectionEntry<'services'>;
 
@@ -182,6 +189,48 @@ export const getProducersAndConsumersForChannel = async (channel: CollectionEntr
     consumers: consumers ?? [],
   };
 };
+export const getChannelsForService = async (serviceId: string, version?: string): Promise<CollectionEntry<'channels'>[]> => {
+  const allServices = await getCollection('services');
+  const allChannels = await getChannels({ getAllVersions: true });
+
+  const matched = getItemsFromCollectionByIdAndSemverOrLatest(allServices, serviceId, version);
+  const service = matched[0];
+  if (!service) return [];
+
+  const sends = service.data.sends ?? [];
+  const receives = service.data.receives ?? [];
+
+  const channelPointers: Array<{ id: string; version?: string }> = [];
+
+  for (const send of sends) {
+    for (const channel of send.to ?? []) {
+      channelPointers.push({ id: channel.id, version: channel.version });
+    }
+  }
+
+  for (const receive of receives) {
+    for (const channel of receive.from ?? []) {
+      channelPointers.push({ id: channel.id, version: channel.version });
+    }
+  }
+
+  const seen = new Set<string>();
+  const channels: CollectionEntry<'channels'>[] = [];
+
+  for (const pointer of channelPointers) {
+    const key = `${pointer.id}-${pointer.version ?? 'latest'}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const matched = getItemsFromCollectionByIdAndSemverOrLatest(allChannels, pointer.id, pointer.version);
+    for (const channel of matched) {
+      channels.push(channel as CollectionEntry<'channels'>);
+    }
+  }
+
+  return channels;
+};
+
 export const getServicesNotInAnyDomain = async (): Promise<Service[]> => {
   const services = await getServices({ getAllVersions: false });
 

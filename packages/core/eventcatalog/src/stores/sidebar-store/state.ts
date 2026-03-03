@@ -1,6 +1,7 @@
+import type { CollectionEntry } from 'astro:content';
 import { getContainers } from '@utils/collections/containers';
 import { getDomains } from '@utils/collections/domains';
-import { getServices } from '@utils/collections/services';
+import { getServices, getChannelsForService } from '@utils/collections/services';
 import { getMessages, pluralizeMessageType } from '@utils/collections/messages';
 import { getOwner } from '@utils/collections/owners';
 import { getFlows } from '@utils/collections/flows';
@@ -149,10 +150,20 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  // Compute channels for each service
+  const serviceChannelsMap = new Map<string, CollectionEntry<'channels'>[]>();
+  await Promise.all(
+    services.map(async (service) => {
+      const serviceChannels = await getChannelsForService(service.data.id, service.data.version);
+      serviceChannelsMap.set(`${service.data.id}:${service.data.version}`, serviceChannels);
+    })
+  );
+
   const serviceNodes = servicesWithOwners.reduce(
     (acc, { service, owners }) => {
       const versionedKey = `service:${service.data.id}:${service.data.version}`;
-      acc[versionedKey] = buildServiceNode(service, owners, context);
+      const serviceChannels = serviceChannelsMap.get(`${service.data.id}:${service.data.version}`) || [];
+      acc[versionedKey] = buildServiceNode(service, owners, context, serviceChannels);
       if (service.data.latestVersion === service.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`service:${service.data.id}`] = versionedKey;
