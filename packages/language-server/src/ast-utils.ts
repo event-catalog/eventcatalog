@@ -40,6 +40,7 @@ import {
   isRetentionStmt,
   isInputStmt,
   isOutputStmt,
+  isFlowDef,
   isFlowEntryChain,
   isFlowWhenBlock,
   isToClause,
@@ -52,6 +53,7 @@ import type {
   ContainerDef,
   ContainerRefStmt,
   DomainRefStmt,
+  FlowDef,
   FlowEntryChain,
   FlowWhenBlock,
   FlowRefStmt,
@@ -188,6 +190,11 @@ export function getContainers(body: AstNode[]): ContainerDef[] {
 /** Return all FlowRefStmt nodes from `body`. */
 export function getFlowRefs(body: AstNode[]): FlowRefStmt[] {
   return body.filter(isFlowRefStmt);
+}
+
+/** Return all inline FlowDef nodes from `body`. */
+export function getFlows(body: AstNode[]): FlowDef[] {
+  return body.filter(isFlowDef);
 }
 
 /** Return all DataProductRefStmt nodes from `body`. */

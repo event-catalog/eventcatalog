@@ -2388,6 +2388,107 @@ describe("astToGraph", () => {
     expect(containerNode!.type).toBe("container");
   });
 
+  // ─── Flow inside domain tests ─────────────────────────────────────
+
+  it("inline flow inside domain expands entry chain steps parented to domain", async () => {
+    const program = await parseProgram(`
+      event OrderCreated { version 1.0.0 }
+      service OrderService { version 1.0.0 }
+
+      visualizer main {
+        domain Orders {
+          version 1.0.0
+          flow OrderFlow {
+            version 1.0.0
+            OrderService -> OrderCreated
+          }
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const domainNode = graph.nodes.find((n) => n.type === "domain");
+    expect(domainNode).toBeDefined();
+
+    const svcNode = graph.nodes.find((n) => n.label === "OrderService");
+    expect(svcNode).toBeDefined();
+    expect(svcNode!.type).toBe("service");
+    expect(svcNode!.parentId).toBe(domainNode!.id);
+
+    const eventNode = graph.nodes.find((n) => n.label === "OrderCreated");
+    expect(eventNode).toBeDefined();
+    expect(eventNode!.type).toBe("event");
+    expect(eventNode!.parentId).toBe(domainNode!.id);
+
+    const flowEdge = graph.edges.find((e) => e.type === "flow-step");
+    expect(flowEdge).toBeDefined();
+  });
+
+  it("inline flow inside domain with no steps renders as single flow node", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        domain Orders {
+          version 1.0.0
+          flow OrderFlow {
+            version 1.0.0
+            summary "A flow without steps"
+          }
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const flowNode = graph.nodes.find((n) => n.type === "flow");
+    expect(flowNode).toBeDefined();
+    expect(flowNode!.label).toBe("OrderFlow");
+    expect(flowNode!.metadata.summary).toBe("A flow without steps");
+
+    const domainNode = graph.nodes.find((n) => n.type === "domain");
+    expect(flowNode!.parentId).toBe(domainNode!.id);
+
+    const containsEdge = graph.edges.find(
+      (e) => e.type === "contains" && e.target === flowNode!.id,
+    );
+    expect(containsEdge).toBeDefined();
+  });
+
+  it("flow ref inside domain resolves and expands the flow definition", async () => {
+    const program = await parseProgram(`
+      event OrderCreated { version 1.0.0 }
+      service OrderService { version 1.0.0 }
+
+      flow OrderFlow {
+        version 1.0.0
+        OrderService -> OrderCreated
+      }
+
+      visualizer main {
+        domain Orders {
+          version 1.0.0
+          flow OrderFlow
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const domainNode = graph.nodes.find((n) => n.type === "domain");
+    expect(domainNode).toBeDefined();
+
+    const svcNode = graph.nodes.find((n) => n.label === "OrderService");
+    expect(svcNode).toBeDefined();
+    expect(svcNode!.parentId).toBe(domainNode!.id);
+
+    const eventNode = graph.nodes.find((n) => n.label === "OrderCreated");
+    expect(eventNode).toBeDefined();
+    expect(eventNode!.parentId).toBe(domainNode!.id);
+
+    const flowEdge = graph.edges.find((e) => e.type === "flow-step");
+    expect(flowEdge).toBeDefined();
+  });
+
   // ─── Data-product message type tests ──────────────────────────────
 
   it("data-product input command creates a command node, not event", async () => {

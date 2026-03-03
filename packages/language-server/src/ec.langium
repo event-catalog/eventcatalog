@@ -28,7 +28,7 @@ DomainDef:
 DomainBodyItem:
   VersionStmt | NameStmt | SummaryStmt | OwnerStmt |
   DeprecatedStmt | DraftStmt |
-  ServiceDef | SubdomainDef | ContainerDef | ChannelDef |
+  ServiceDef | SubdomainDef | ContainerDef | ChannelDef | FlowDef |
   ServiceRefStmt | DataProductRefStmt | FlowRefStmt |
   SendsStmt | ReceivesStmt | Annotation;
 

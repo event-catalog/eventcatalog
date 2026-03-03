@@ -12,7 +12,9 @@ import type {
 import type { EcServices } from "./ec-module.js";
 import type { AstNode } from "langium";
 import {
+  isActorDef,
   isDomainDef,
+  isExternalSystemDef,
   isSubdomainDef,
   isServiceDef,
   isUserDef,
@@ -124,6 +126,16 @@ function checkNestedDuplicates(
       );
       checkInlineDuplicates(item.body as AstNode[], seen, accept);
     }
+    if (isFlowDef(item)) {
+      checkAndRegisterDuplicate(
+        seen,
+        item.name,
+        getVersion(item.body as AstNode[]),
+        item,
+        "name",
+        accept,
+      );
+    }
     if (isSubdomainDef(item)) {
       checkAndRegisterDuplicate(
         seen,
@@ -161,8 +173,14 @@ function checkVersionRecursive(
   def: ResourceDefinition | SubdomainDef,
   accept: ValidationAcceptor,
 ): void {
-  // Users, teams, and visualizers don't need versions
-  if (isUserDef(def) || isTeamDef(def) || isVisualizerDef(def)) {
+  // Users, teams, actors, external-systems, and visualizers don't need versions
+  if (
+    isUserDef(def) ||
+    isTeamDef(def) ||
+    isActorDef(def) ||
+    isExternalSystemDef(def) ||
+    isVisualizerDef(def)
+  ) {
     // But check inline resources inside visualizers
     if (isVisualizerDef(def)) {
       for (const item of def.body) {
@@ -215,6 +233,7 @@ function checkVersionRecursive(
     if (isDomainDef(def) || isSubdomainDef(def)) {
       for (const item of def.body) {
         if (isServiceDef(item)) checkVersionRecursive(item, accept);
+        if (isFlowDef(item)) checkVersionRecursive(item, accept);
         if (isSubdomainDef(item)) checkVersionRecursive(item, accept);
       }
     }

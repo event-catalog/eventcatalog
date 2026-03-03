@@ -407,6 +407,7 @@ export type DomainBodyItem =
   | DataProductRefStmt
   | DeprecatedStmt
   | DraftStmt
+  | FlowDef
   | FlowRefStmt
   | NameStmt
   | OwnerStmt
@@ -1068,7 +1069,7 @@ export function isFlowAction(item: unknown): item is FlowAction {
 }
 
 export interface FlowDef extends langium.AstNode {
-  readonly $container: Program | VisualizerDef;
+  readonly $container: DomainDef | Program | SubdomainDef | VisualizerDef;
   readonly $type: "FlowDef";
   body: Array<FlowBodyItem>;
   name: string;
@@ -2349,7 +2350,6 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       case DomainDef:
       case EventDef:
       case ExternalSystemDef:
-      case FlowDef:
       case QueryDef: {
         return (
           this.isSubtype(ResourceDefinition, supertype) ||
@@ -2404,6 +2404,7 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       }
       case ChannelDef:
       case ContainerDef:
+      case FlowDef:
       case ServiceDef: {
         return (
           this.isSubtype(DomainBodyItem, supertype) ||
