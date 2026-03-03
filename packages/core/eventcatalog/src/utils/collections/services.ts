@@ -214,6 +214,7 @@ export const getChannelsForService = async (serviceId: string, version?: string)
     }
   }
 
+  const channelMap = createVersionedMap(allChannels);
   const seen = new Set<string>();
   const channels: CollectionEntry<'channels'>[] = [];
 
@@ -222,10 +223,8 @@ export const getChannelsForService = async (serviceId: string, version?: string)
     if (seen.has(key)) continue;
     seen.add(key);
 
-    const matched = getItemsFromCollectionByIdAndSemverOrLatest(allChannels, pointer.id, pointer.version);
-    for (const channel of matched) {
-      channels.push(channel as CollectionEntry<'channels'>);
-    }
+    const match = findInMap(channelMap, pointer.id, pointer.version);
+    if (match) channels.push(match as CollectionEntry<'channels'>);
   }
 
   return channels;
