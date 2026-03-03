@@ -536,6 +536,24 @@ describe("resolveImports with OpenAPI", () => {
     expect(files["main.ec"]).toContain("service MyService {");
   });
 
+  it("resolves command import from multi-level nested OpenAPI spec", () => {
+    const { files, errors } = resolveImports({
+      "main.ec": `import commands { CreateOrder } from "./services/pricing/api.yml"\n`,
+      "services/pricing/api.yml": openApiV30Spec,
+    });
+    expect(errors).toHaveLength(0);
+    expect(files["main.ec"]).toContain("command CreateOrder {");
+  });
+
+  it("resolves service import from multi-level nested OpenAPI spec", () => {
+    const { files, errors } = resolveImports({
+      "main.ec": `import PricingAPI from "./services/pricing/api.yml"\n`,
+      "services/pricing/api.yml": openApiV30Spec,
+    });
+    expect(errors).toHaveLength(0);
+    expect(files["main.ec"]).toContain("service PricingAPI {");
+  });
+
   it("excludes spec files from output", () => {
     const { files } = resolveImports({
       "main.ec": `import commands { CreateOrder } from "./api.yml"\n`,

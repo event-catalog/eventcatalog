@@ -1,13 +1,20 @@
 import { DefaultCompletionProvider } from "langium/lsp";
 import type { LangiumServices } from "langium/lsp";
-import type { MaybePromise } from "langium";
+import type { MaybePromise, LangiumDocument } from "langium";
 import { GrammarAST } from "langium";
-import { CompletionItemKind, InsertTextFormat } from "vscode-languageserver";
+import {
+  CompletionItemKind,
+  CompletionList,
+  InsertTextFormat,
+} from "vscode-languageserver";
+import type {
+  CompletionParams,
+  CancellationToken,
+} from "vscode-languageserver";
 import type {
   CompletionAcceptor,
   CompletionContext,
   CompletionProviderOptions,
-  CompletionValueItem,
 } from "langium/lsp";
 import type { NextFeature } from "langium/lsp";
 import { isSpecFile } from "./resolvers/resolve.js";
@@ -20,6 +27,7 @@ import {
 import {
   collectRegexMatches,
   extractResourceVersions,
+  extractResourceNamesFromText,
   parseSpecAuto,
   findEnclosingResource,
   collectChannelNames,
@@ -68,14 +76,56 @@ export class EcCompletionProvider extends DefaultCompletionProvider {
     this.langiumServices = services;
   }
 
+  override async getCompletion(
+    document: LangiumDocument,
+    params: CompletionParams,
+    cancelToken?: CancellationToken,
+  ): Promise<CompletionList | undefined> {
+    // Reset per-request cache
+    this.snapshot = {};
+
+    // Let Langium handle grammar-driven completions first
+    const result = await super.getCompletion(document, params, cancelToken);
+
+    // If Langium produced results, return them (tryDynamicCompletion was called via completionFor)
+    if (result && result.items.length > 0) {
+      return result;
+    }
+
+    // Langium's parser couldn't determine next features (common for deeply nested resources).
+    // Provide context-aware completions as a fallback.
+    const textDocument = document.textDocument;
+    const offset = textDocument.offsetAt(params.position);
+    const textBefore = textDocument.getText().substring(0, offset);
+    const enclosing = findEnclosingResource(textBefore);
+
+    if (!enclosing) {
+      return result;
+    }
+
+    const suggestions = CONTEXT_SUGGESTIONS[enclosing];
+    if (!suggestions || suggestions.length === 0) {
+      return result;
+    }
+
+    const fallbackItems = suggestions.map((s) => ({
+      label: s.label,
+      kind: CompletionItemKind.Snippet,
+      detail: s.detail,
+      insertText: s.insertText,
+      insertTextFormat: InsertTextFormat.Snippet,
+      sortText: "1" + s.label,
+    }));
+
+    const existingItems = result?.items ?? [];
+    return CompletionList.create([...existingItems, ...fallbackItems], true);
+  }
+
   protected override async completionFor(
     context: CompletionContext,
     next: NextFeature,
     acceptor: CompletionAcceptor,
   ): Promise<void> {
-    // Reset per-request cache
-    this.snapshot = {};
-
     // When completing after '@', offer annotation snippets
     if (this.isAnnotationNameContext(context, next)) {
       this.completeAnnotationNames(context, acceptor);
@@ -475,37 +525,44 @@ export class EcCompletionProvider extends DefaultCompletionProvider {
       return;
     }
 
-    const allText = this.getAllWorkspaceText();
-    const ecResourceTypes = [
-      "service",
-      "event",
-      "command",
-      "query",
-      "domain",
-      "channel",
-      "flow",
-      "container",
-    ];
-    const resources = new Set<string>();
-    for (const type of ecResourceTypes) {
-      for (const name of collectRegexMatches(
-        new RegExp(`\\b${type}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\{`, "g"),
-        allText,
-      )) {
-        if (!alreadyImported.has(name)) {
-          resources.add(name);
+    // .ec file imports: only suggest resources defined in the target file
+    const fromEcMatch = fullLineContent.match(/from\s*"([^"]+\.ec)"/);
+    if (fromEcMatch) {
+      const ecContent = this.readSpecFile(
+        fromEcMatch[1],
+        context.textDocument.uri,
+      );
+      if (ecContent) {
+        const names = extractResourceNamesFromText(ecContent);
+        for (const name of names) {
+          if (!alreadyImported.has(name)) {
+            acceptor(context, {
+              label: name,
+              kind: CompletionItemKind.Class,
+              detail: `Import from ${fromEcMatch[1]}`,
+              insertText: name,
+              sortText: `0${name}`,
+            });
+          }
         }
+        return;
       }
     }
 
+    // Fallback: suggest resource names from all workspace .ec files
+    const allText = this.getAllWorkspaceText();
+    const resources = extractResourceNamesFromText(allText);
+
     for (const name of resources) {
-      acceptor(context, {
-        label: name,
-        kind: CompletionItemKind.Class,
-        detail: "Resource to import",
-        insertText: name,
-        sortText: `0${name}`,
-      });
+      if (!alreadyImported.has(name)) {
+        acceptor(context, {
+          label: name,
+          kind: CompletionItemKind.Class,
+          detail: "Resource to import",
+          insertText: name,
+          sortText: `0${name}`,
+        });
+      }
     }
   }
 

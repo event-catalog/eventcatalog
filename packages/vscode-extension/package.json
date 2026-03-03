@@ -88,6 +88,7 @@
     "build": "node esbuild.mjs --production",
     "build:bin": "node esbuild.mjs --production",
     "dev": "node esbuild.mjs --watch",
+    "test": "vitest run",
     "format": "prettier --write .",
     "format:diff": "prettier --check ."
   },
@@ -104,6 +105,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "^5.7.0",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "vitest": "^3.0.0"
   }
 }

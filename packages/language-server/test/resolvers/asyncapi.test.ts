@@ -781,6 +781,77 @@ components:
     expect(resolved["main.ec"]).toContain("import events");
     expect(resolved["main.ec"]).toContain("https://example.com/spec.yml");
   });
+
+  it("resolves spec imports from a nested .ec file", () => {
+    const files = {
+      "sub/main.ec": `import events { OrderCreated } from "./spec.yml"\n`,
+      "sub/spec.yml": v3Spec,
+    };
+    const { files: resolved, errors } = resolveImports(files);
+    expect(errors).toHaveLength(0);
+    expect(resolved["sub/main.ec"]).toContain("event OrderCreated {");
+  });
+
+  it("resolves spec imports to a parent directory", () => {
+    const files = {
+      "sub/main.ec": `import events { OrderCreated } from "../spec.yml"\n`,
+      "spec.yml": v3Spec,
+    };
+    const { files: resolved, errors } = resolveImports(files);
+    expect(errors).toHaveLength(0);
+    expect(resolved["sub/main.ec"]).toContain("event OrderCreated {");
+  });
+
+  it("resolves spec imports from a nested folder path", () => {
+    const files = {
+      "main.ec": `import events { OrderCreated } from "./asyncapi-files/spec.yml"\n`,
+      "asyncapi-files/spec.yml": v3Spec,
+    };
+    const { files: resolved, errors } = resolveImports(files);
+    expect(errors).toHaveLength(0);
+    expect(resolved["main.ec"]).toContain("event OrderCreated {");
+  });
+
+  it("resolves service imports from nested folders", () => {
+    const files = {
+      "sub/main.ec": `import OrderService from "./specs/api.yml"\n`,
+      "sub/specs/api.yml": v3SpecWithOps,
+    };
+    const { files: resolved, errors } = resolveImports(files);
+    expect(errors).toHaveLength(0);
+    expect(resolved["sub/main.ec"]).toContain("service OrderService {");
+  });
+
+  it("resolves deeply nested .ec importing from sibling folder", () => {
+    const files = {
+      "src/dsl/main.ec": `import events { OrderCreated } from "../specs/api.yml"\n`,
+      "src/specs/api.yml": v3Spec,
+    };
+    const { files: resolved, errors } = resolveImports(files);
+    expect(errors).toHaveLength(0);
+    expect(resolved["src/dsl/main.ec"]).toContain("event OrderCreated {");
+  });
+
+  it("resolves multi-level nested spec imports from root .ec file", () => {
+    const files = {
+      "main.ec": `import events { OrderCreated } from "./services/pricing/api.yml"\nimport commands { OrderCreated } from "./services/booking/api.yml"\n`,
+      "services/pricing/api.yml": v3Spec,
+      "services/booking/api.yml": v3Spec,
+    };
+    const { files: resolved, errors } = resolveImports(files);
+    expect(errors).toHaveLength(0);
+    expect(resolved["main.ec"]).toContain("event OrderCreated {");
+  });
+
+  it("resolves service imports from multi-level nested paths", () => {
+    const files = {
+      "main.ec": `import PricingAPI from "./services/pricing/api.yml"\n`,
+      "services/pricing/api.yml": v3SpecWithOps,
+    };
+    const { files: resolved, errors } = resolveImports(files);
+    expect(errors).toHaveLength(0);
+    expect(resolved["main.ec"]).toContain("service PricingAPI {");
+  });
 });
 
 // ─── resolveImportsAsync ────────────────────────────────
@@ -914,6 +985,50 @@ components:
     expect(errors).toHaveLength(0);
     expect(mockFetch).not.toHaveBeenCalled();
     expect(resolved["main.ec"]).toContain("event OrderCreated {");
+  });
+
+  it("resolves local spec imports from nested .ec files", async () => {
+    const mockFetch = vi.fn();
+    const files = {
+      "sub/main.ec": `import events { OrderCreated } from "./spec.yml"\n`,
+      "sub/spec.yml": v3Spec,
+    };
+    const { files: resolved, errors } = await resolveImportsAsync(
+      files,
+      mockFetch,
+    );
+    expect(errors).toHaveLength(0);
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(resolved["sub/main.ec"]).toContain("event OrderCreated {");
+  });
+
+  it("resolves local spec imports from nested folder paths", async () => {
+    const mockFetch = vi.fn();
+    const files = {
+      "main.ec": `import events { OrderCreated } from "./asyncapi-files/spec.yml"\n`,
+      "asyncapi-files/spec.yml": v3Spec,
+    };
+    const { files: resolved, errors } = await resolveImportsAsync(
+      files,
+      mockFetch,
+    );
+    expect(errors).toHaveLength(0);
+    expect(resolved["main.ec"]).toContain("event OrderCreated {");
+  });
+
+  it("resolves local service imports from nested folders", async () => {
+    const mockFetch = vi.fn();
+    const files = {
+      "sub/main.ec": `import OrderService from "./specs/api.yml"\n`,
+      "sub/specs/api.yml": v3SpecWithOps,
+    };
+    const { files: resolved, errors } = await resolveImportsAsync(
+      files,
+      mockFetch,
+    );
+    expect(errors).toHaveLength(0);
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(resolved["sub/main.ec"]).toContain("service OrderService {");
   });
 
   it("fetches multiple different URLs in parallel", async () => {
