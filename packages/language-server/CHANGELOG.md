@@ -1,5 +1,11 @@
 # @eventcatalog/language-server
 
+## 0.8.0
+
+### Minor Changes
+
+- a461a9b: Add cross-file resource name completions, improve spec resolver path handling for nested folders, and support workspace-aware multi-file parsing in VS Code extension preview
+
 ## 0.7.0
 
 ### Minor Changes
