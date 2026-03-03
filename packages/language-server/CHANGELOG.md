@@ -1,5 +1,11 @@
 # @eventcatalog/language-server
 
+## 0.6.2
+
+### Patch Changes
+
+- cb0235a: Replace playground.eventcatalog.dev URLs with compass.eventcatalog.dev
+
 ## 0.6.1
 
 ### Patch Changes
