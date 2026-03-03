@@ -1,3 +1,5 @@
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 import { getContainers } from '@utils/collections/containers';
 import { getDomains } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
@@ -20,6 +22,7 @@ import { buildDataProductNode } from './builders/data-product';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
+import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { buildQuickReferenceSection, buildResourceDocsSection } from './builders/shared';
 
 export type { NavigationData, NavNode, ChildRef };
@@ -149,10 +152,47 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  // Compute channels for each service from raw sends[].to / receives[].from pointers
+  const rawServices = await getCollection('services');
+  const channelMap = createVersionedMap(channels);
+  const serviceChannelsMap = new Map<string, CollectionEntry<'channels'>[]>();
+
+  for (const service of services) {
+    const rawService = rawServices.find((s) => s.data.id === service.data.id && s.data.version === service.data.version);
+    if (!rawService) continue;
+
+    const pointers: Array<{ id: string; version?: string }> = [];
+    for (const send of rawService.data.sends ?? []) {
+      for (const ch of send.to ?? []) {
+        pointers.push({ id: ch.id, version: ch.version });
+      }
+    }
+    for (const receive of rawService.data.receives ?? []) {
+      for (const ch of receive.from ?? []) {
+        pointers.push({ id: ch.id, version: ch.version });
+      }
+    }
+
+    const seen = new Set<string>();
+    const resolved: CollectionEntry<'channels'>[] = [];
+    for (const pointer of pointers) {
+      const key = `${pointer.id}-${pointer.version ?? 'latest'}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const match = findInMap(channelMap, pointer.id, pointer.version);
+      if (match) resolved.push(match as CollectionEntry<'channels'>);
+    }
+
+    if (resolved.length > 0) {
+      serviceChannelsMap.set(`${service.data.id}:${service.data.version}`, resolved);
+    }
+  }
+
   const serviceNodes = servicesWithOwners.reduce(
     (acc, { service, owners }) => {
       const versionedKey = `service:${service.data.id}:${service.data.version}`;
-      acc[versionedKey] = buildServiceNode(service, owners, context);
+      const serviceChannels = serviceChannelsMap.get(`${service.data.id}:${service.data.version}`) || [];
+      acc[versionedKey] = buildServiceNode(service, owners, context, serviceChannels);
       if (service.data.latestVersion === service.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`service:${service.data.id}`] = versionedKey;

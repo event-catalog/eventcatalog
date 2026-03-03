@@ -16,7 +16,12 @@ import {
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 
-export const buildServiceNode = (service: CollectionEntry<'services'>, owners: any[], context: ResourceGroupContext): NavNode => {
+export const buildServiceNode = (
+  service: CollectionEntry<'services'>,
+  owners: any[],
+  context: ResourceGroupContext,
+  serviceChannels: CollectionEntry<'channels'>[] = []
+): NavNode => {
   const sendsMessages = service.data.sends || [];
   const receivesMessages = service.data.receives || [];
   const serviceEntities = service.data.entities || [];
@@ -165,6 +170,12 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
             (receive) => `${pluralizeMessageType(receive as any)}:${(receive as any).data.id}:${(receive as any).data.version}`
           ),
         },
+      serviceChannels.length > 0 && {
+        type: 'group',
+        title: 'Channels',
+        icon: 'ArrowRightLeft',
+        pages: serviceChannels.map((channel) => `channel:${(channel as any).data.id}:${(channel as any).data.version}`),
+      },
       hasFlows && {
         type: 'group',
         title: 'Flows',
