@@ -2,7 +2,7 @@ import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
 import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildResourceDocsSection } from './shared';
-import { isVisualiserEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { getItemsFromCollectionByIdAndSemverOrLatest, sortVersioned } from '@utils/collections/util';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
 
@@ -96,9 +96,16 @@ export const buildDataProductNode = (
     badge: 'Data Product',
     summary: dataProduct.data.summary,
     pages: [
-      buildQuickReferenceSection([
-        { title: 'Overview', href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}`) },
-      ]),
+      buildQuickReferenceSection(
+        [
+          { title: 'Overview', href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}`) },
+          isChangelogEnabled() &&
+            shouldRenderSideBarSection(dataProduct, 'changelog') && {
+              title: 'Changelog',
+              href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}/changelog`),
+            },
+        ].filter(Boolean) as { title: string; href: string }[]
+      ),
       docsSection,
       renderVisualiser && {
         type: 'group',

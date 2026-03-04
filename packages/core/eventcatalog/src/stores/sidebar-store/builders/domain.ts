@@ -11,7 +11,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
 } from './shared';
-import { isVisualiserEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 import { getSpecificationsForDomain } from '@utils/collections/domains';
 
@@ -74,10 +74,20 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
     badge: 'Domain',
     summary: domain.data.summary,
     pages: [
-      buildQuickReferenceSection([
-        { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
-        renderUbiquitousLanguage && { title: 'Ubiquitous Language', href: buildUrl(`/docs/domains/${domain.data.id}/language`) },
-      ]),
+      buildQuickReferenceSection(
+        [
+          { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
+          renderUbiquitousLanguage && {
+            title: 'Ubiquitous Language',
+            href: buildUrl(`/docs/domains/${domain.data.id}/language`),
+          },
+          isChangelogEnabled() &&
+            shouldRenderSideBarSection(domain, 'changelog') && {
+              title: 'Changelog',
+              href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}/changelog`),
+            },
+        ].filter(Boolean) as { title: string; href: string }[]
+      ),
       docsSection,
       {
         type: 'group',
