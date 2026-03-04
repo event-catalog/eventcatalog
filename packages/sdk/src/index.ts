@@ -99,6 +99,7 @@ import { writeTeam, getTeam, getTeams, rmTeamById, getOwnersForResource } from '
 
 import { writeUser, getUser, getUsers, rmUserById } from './users';
 import { dumpCatalog, getEventCatalogConfigurationFile } from './eventcatalog';
+import { writeChangelog, appendChangelog, getChangelog, rmChangelog } from './changelogs';
 import { getEntity, getEntities, writeEntity, rmEntity, rmEntityById, versionEntity, entityHasVersion } from './entities';
 
 import {
@@ -984,6 +985,48 @@ export default (path: string) => {
      * @returns A JSON object with the configuration for the event catalog.
      */
     getEventCatalogConfigurationFile: getEventCatalogConfigurationFile(join(path)),
+    /**
+     * ================================
+     *            Changelogs
+     * ================================
+     */
+
+    /**
+     * Writes a changelog entry to a resource in EventCatalog
+     *
+     * @param id - The id of the resource to write the changelog to
+     * @param changelog - The changelog entry to write
+     * @param options - Optional options (version, format)
+     *
+     */
+    writeChangelog: writeChangelog(join(path)),
+    /**
+     * Appends a changelog entry to an existing changelog for a resource.
+     * If no changelog exists, one is created.
+     *
+     * @param id - The id of the resource to append the changelog to
+     * @param changelog - The changelog entry to append
+     * @param options - Optional options (version, format)
+     *
+     */
+    appendChangelog: appendChangelog(join(path)),
+    /**
+     * Returns the changelog for a resource in EventCatalog
+     *
+     * @param id - The id of the resource to get the changelog for
+     * @param options - Optional options (version)
+     * @returns Changelog|Undefined
+     */
+    getChangelog: getChangelog(join(path)),
+    /**
+     * Removes the changelog for a resource in EventCatalog
+     *
+     * @param id - The id of the resource to remove the changelog from
+     * @param options - Optional options (version)
+     *
+     */
+    rmChangelog: rmChangelog(join(path)),
+
     /**
      * ================================
      *            Resources Utils
