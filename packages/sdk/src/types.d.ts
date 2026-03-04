@@ -241,6 +241,12 @@ export interface Badge {
   icon?: string;
 }
 
+export interface Changelog {
+  createdAt: Date | string;
+  badges?: Badge[];
+  markdown: string;
+}
+
 export interface UbiquitousLanguage {
   id: string;
   name: string;
