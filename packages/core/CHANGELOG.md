@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 3.19.3
+
+### Patch Changes
+
+- 2015fc0: Bump astro dependency from ^5.17.3 to ^5.18.0 and sort @tailwindcss/vite alphabetically in package.json
+- a5e20a3: Add changelog link to left sidebar Quick Reference section for all resource types and remove redundant "Read changelog" link from right-side panel
+- Updated dependencies [283c147]
+  - @eventcatalog/sdk@2.16.0
+  - @eventcatalog/linter@1.0.9
+
 ## 3.19.2
 
 ### Patch Changes

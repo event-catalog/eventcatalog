@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.16.0
+
+### Minor Changes
+
+- 283c147: Add changelog SDK methods: writeChangelog, appendChangelog, getChangelog, and rmChangelog to programmatically manage changelog entries for any resource
+
 ## 2.15.1
 
 ### Patch Changes
