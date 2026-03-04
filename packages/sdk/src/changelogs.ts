@@ -124,6 +124,8 @@ export const appendChangelog =
 
     if (changelog.badges && changelog.badges.length > 0) {
       fm.badges = changelog.badges;
+    } else {
+      delete fm.badges;
     }
 
     const document = matter.stringify(combined, fm);
@@ -202,7 +204,8 @@ export const rmChangelog =
 
     if (fsSync.existsSync(mdxPath)) {
       await fs.rm(mdxPath);
-    } else if (fsSync.existsSync(mdPath)) {
+    }
+    if (fsSync.existsSync(mdPath)) {
       await fs.rm(mdPath);
     }
 

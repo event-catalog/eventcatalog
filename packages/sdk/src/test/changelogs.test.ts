@@ -453,6 +453,32 @@ describe('Changelogs SDK', () => {
       ).rejects.toThrow('No resource found with id: NonExistent');
     });
 
+    it('clears stale badges when appending entry without badges', async () => {
+      await writeEvent({
+        id: 'OrderCreated',
+        name: 'Order Created',
+        version: '1.0.0',
+        summary: 'Event for order creation',
+        markdown: '# Order Created',
+      });
+
+      await writeChangelog('OrderCreated', {
+        createdAt: '2024-08-01',
+        badges: [{ content: 'Breaking change', backgroundColor: 'red', textColor: 'red' }],
+        markdown: '### First entry with badges',
+      });
+
+      await appendChangelog('OrderCreated', {
+        createdAt: '2024-09-01',
+        markdown: '### Second entry without badges',
+      });
+
+      const changelogPath = path.join(CATALOG_PATH, 'events', 'OrderCreated', 'changelog.mdx');
+      const content = fs.readFileSync(changelogPath, 'utf-8');
+      const parsed = matter(content);
+      expect(parsed.data.badges).toBeUndefined();
+    });
+
     it('uses badges from the new entry', async () => {
       await writeEvent({
         id: 'OrderCreated',
@@ -535,6 +561,29 @@ describe('Changelogs SDK', () => {
 
       await rmChangelog('OrderCreated', { version: '1.0.0' });
       expect(fs.existsSync(changelogPath)).toBe(false);
+    });
+
+    it('removes both .mdx and .md changelog files when both exist', async () => {
+      await writeEvent({
+        id: 'OrderCreated',
+        name: 'Order Created',
+        version: '1.0.0',
+        summary: 'Event for order creation',
+        markdown: '# Order Created',
+      });
+
+      // Write one in md format, then one in mdx format
+      await writeChangelog('OrderCreated', { createdAt: '2024-08-01', markdown: '### md entry' }, { format: 'md' });
+      await writeChangelog('OrderCreated', { createdAt: '2024-08-01', markdown: '### mdx entry' }, { format: 'mdx' });
+
+      const mdxPath = path.join(CATALOG_PATH, 'events', 'OrderCreated', 'changelog.mdx');
+      const mdPath = path.join(CATALOG_PATH, 'events', 'OrderCreated', 'changelog.md');
+      expect(fs.existsSync(mdxPath)).toBe(true);
+      expect(fs.existsSync(mdPath)).toBe(true);
+
+      await rmChangelog('OrderCreated');
+      expect(fs.existsSync(mdxPath)).toBe(false);
+      expect(fs.existsSync(mdPath)).toBe(false);
     });
 
     it('throws an error if the resource does not exist', async () => {
