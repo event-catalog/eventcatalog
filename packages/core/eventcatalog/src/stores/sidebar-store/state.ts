@@ -24,6 +24,7 @@ import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { buildQuickReferenceSection, buildResourceDocsSection } from './builders/shared';
+import { isChangelogEnabled } from '@utils/feature';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -301,12 +302,18 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
         badge: 'Channel',
         summary: channel.data.summary,
         pages: [
-          buildQuickReferenceSection([
-            {
-              title: 'Overview',
-              href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
-            },
-          ]),
+          buildQuickReferenceSection(
+            [
+              {
+                title: 'Overview',
+                href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
+              },
+              isChangelogEnabled() && {
+                title: 'Changelog',
+                href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}/changelog`),
+              },
+            ].filter(Boolean) as { title: string; href: string }[]
+          ),
           docsSection,
         ].filter(Boolean) as ChildRef[],
       };

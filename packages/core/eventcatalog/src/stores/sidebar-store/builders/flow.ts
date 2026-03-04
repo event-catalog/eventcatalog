@@ -1,7 +1,8 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
-import { buildQuickReferenceSection, buildResourceDocsSection } from './shared';
+import { buildQuickReferenceSection, buildResourceDocsSection, shouldRenderSideBarSection } from './shared';
+import { isChangelogEnabled } from '@utils/feature';
 
 export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceGroupContext): NavNode => {
   const docsSection = buildResourceDocsSection(
@@ -19,7 +20,16 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
     badge: 'Flow',
     summary: flow.data.summary,
     pages: [
-      buildQuickReferenceSection([{ title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) }]),
+      buildQuickReferenceSection(
+        [
+          { title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) },
+          isChangelogEnabled() &&
+            shouldRenderSideBarSection(flow, 'changelog') && {
+              title: 'Changelog',
+              href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}/changelog`),
+            },
+        ].filter(Boolean) as { title: string; href: string }[]
+      ),
       docsSection,
       {
         type: 'group',

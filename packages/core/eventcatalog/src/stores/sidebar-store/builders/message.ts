@@ -11,7 +11,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
 } from './shared';
-import { isVisualiserEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 
 export const buildMessageNode = (
   message: CollectionEntry<'events' | 'commands' | 'queries'>,
@@ -59,12 +59,19 @@ export const buildMessageNode = (
     badge,
     summary: message.data.summary,
     pages: [
-      buildQuickReferenceSection([
-        {
-          title: 'Overview',
-          href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}`),
-        },
-      ]),
+      buildQuickReferenceSection(
+        [
+          {
+            title: 'Overview',
+            href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}`),
+          },
+          isChangelogEnabled() &&
+            shouldRenderSideBarSection(message, 'changelog') && {
+              title: 'Changelog',
+              href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}/changelog`),
+            },
+        ].filter(Boolean) as { title: string; href: string }[]
+      ),
       docsSection,
       renderVisualiser && {
         type: 'group',

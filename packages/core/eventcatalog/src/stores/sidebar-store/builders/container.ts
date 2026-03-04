@@ -10,7 +10,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
 } from './shared';
-import { isVisualiserEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 
 export const buildContainerNode = (
   container: CollectionEntry<'containers'>,
@@ -62,12 +62,19 @@ export const buildContainerNode = (
     badge: 'Container',
     summary: container.data.summary,
     pages: [
-      buildQuickReferenceSection([
-        {
-          title: 'Overview',
-          href: buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`),
-        },
-      ]),
+      buildQuickReferenceSection(
+        [
+          {
+            title: 'Overview',
+            href: buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`),
+          },
+          isChangelogEnabled() &&
+            shouldRenderSideBarSection(container, 'changelog') && {
+              title: 'Changelog',
+              href: buildUrl(`/docs/containers/${container.data.id}/${container.data.version}/changelog`),
+            },
+        ].filter(Boolean) as { title: string; href: string }[]
+      ),
       docsSection,
       renderVisualiser && {
         type: 'group',

@@ -35,13 +35,7 @@ import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails 
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { getIcon } from '@utils/badges';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
-import {
-  isEventCatalogChatEnabled,
-  isMarkdownDownloadEnabled,
-  isVisualiserEnabled,
-  isChangelogEnabled,
-  isRSSEnabled,
-} from '@utils/feature';
+import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled, isVisualiserEnabled, isRSSEnabled } from '@utils/feature';
 import { getMDXComponentsByName } from '@utils/markdown';
 
 import type { CollectionTypes } from '@types';
@@ -521,17 +515,6 @@ nodeGraphs.push({
                 versions={props.data.versions}
                 collectionItem={props}
               />
-            )
-          }
-          <!-- Change log link -->
-          {
-            isChangelogEnabled() && shouldRenderSideBarSection(props, 'changelog') && (
-              <a
-                href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}/changelog`)}
-                class="text-xs text-[rgb(var(--ec-page-text-muted))] underline hover:text-[rgb(var(--ec-page-text))]"
-              >
-                <span class="block">Read changelog &rarr;</span>
-              </a>
             )
           }
         </div>

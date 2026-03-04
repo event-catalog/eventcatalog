@@ -13,7 +13,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
 } from './shared';
-import { isVisualiserEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 
 export const buildServiceNode = (
@@ -69,9 +69,16 @@ export const buildServiceNode = (
     badge: 'Service',
     summary: service.data.summary,
     pages: [
-      buildQuickReferenceSection([
-        { title: 'Overview', href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}`) },
-      ]),
+      buildQuickReferenceSection(
+        [
+          { title: 'Overview', href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}`) },
+          isChangelogEnabled() &&
+            shouldRenderSideBarSection(service, 'changelog') && {
+              title: 'Changelog',
+              href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}/changelog`),
+            },
+        ].filter(Boolean) as { title: string; href: string }[]
+      ),
       docsSection,
       {
         type: 'group',
