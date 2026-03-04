@@ -91,6 +91,12 @@ const mockResourceDocs = [
     data: { id: 'on-call', type: 'guides', version: '1.0.0', title: 'On-call Guide' },
   },
   {
+    id: 'services/BillingService/docs/general.mdx',
+    collection: 'resourceDocs',
+    filePath: 'services/BillingService/docs/general.mdx',
+    data: { title: 'General Service Information' },
+  },
+  {
     id: 'domains/Payments/services/BillingService/events/InvoiceIssued/docs/reference/payload.mdx',
     collection: 'resourceDocs',
     filePath: 'domains/Payments/services/BillingService/events/InvoiceIssued/docs/reference/payload.mdx',
@@ -210,6 +216,16 @@ describe('resource-docs', () => {
           data: expect.objectContaining({
             id: 'on-call',
             type: 'guides',
+            resourceCollection: 'services',
+            resourceId: 'BillingService',
+            resourceVersion: '2.0.0',
+          }),
+        }),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            id: 'general',
+            type: 'pages',
+            version: '2.0.0',
             resourceCollection: 'services',
             resourceId: 'BillingService',
             resourceVersion: '2.0.0',
@@ -343,5 +359,21 @@ describe('resource-docs', () => {
       resourceId: 'random',
       resourceVersion: '1.0.0',
     });
+  });
+
+  it('inherits resource version when doc version and summary are omitted', async () => {
+    const docsForService = await getResourceDocsForResource('services', 'BillingService', '2.0.0');
+    const generalDoc = docsForService.find((doc) => doc.data.id === 'general');
+
+    expect(generalDoc).toBeDefined();
+    expect(generalDoc!.data).toMatchObject({
+      id: 'general',
+      type: 'pages',
+      version: '2.0.0',
+      resourceCollection: 'services',
+      resourceId: 'BillingService',
+      resourceVersion: '2.0.0',
+    });
+    expect(generalDoc!.data.summary).toBeUndefined();
   });
 });
