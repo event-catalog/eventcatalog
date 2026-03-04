@@ -5,6 +5,7 @@ import type { CollectionEntry } from 'astro:content';
 // Mock feature utils
 vi.mock('@utils/feature', () => ({
   isVisualiserEnabled: () => true,
+  isChangelogEnabled: () => false,
 }));
 
 // Mock url-builder
