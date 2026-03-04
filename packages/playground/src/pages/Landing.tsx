@@ -323,6 +323,10 @@ export default function Landing() {
           })),
         );
 
+        for (const file of fileEntries) {
+          track(`${kind}_spec_file_uploaded`, { file_name: file.fileName });
+        }
+
         const usedServiceNames = new Set<string>();
         const imports: string[] = [];
         const serviceNames: string[] = [];
