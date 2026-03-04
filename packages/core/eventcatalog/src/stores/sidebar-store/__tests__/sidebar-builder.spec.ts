@@ -160,6 +160,8 @@ describe('getNestedSideBarData', () => {
     fs.mkdirSync(CATALOG_FOLDER, { recursive: true });
     // Remove any navigation data from teh config
     delete config.navigation;
+    // Reset changelog config
+    delete config.changelog;
   });
 
   describe('root navigation items (default navigation config)', () => {
@@ -295,6 +297,67 @@ describe('getNestedSideBarData', () => {
           title: 'Ubiquitous Language',
           href: '/docs/domains/Shipping/language',
         });
+      });
+
+      it('the changelog link is listed when changelog is enabled', async () => {
+        config.changelog = { enabled: true };
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        expect(domainNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/domains/Shipping/0.0.1/changelog',
+        });
+        config.changelog = { enabled: false };
+      });
+
+      it('the changelog link is not listed when changelog is disabled', async () => {
+        config.changelog = { enabled: false };
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        expect(domainNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/domains/Shipping/0.0.1/changelog',
+        });
+      });
+
+      it('the changelog link is not listed when the domain is configured to hide it', async () => {
+        config.changelog = { enabled: true };
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          detailsPanel: {
+            changelog: {
+              visible: false,
+            },
+          },
+        });
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        expect(domainNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/domains/Shipping/0.0.1/changelog',
+        });
+        config.changelog = { enabled: false };
       });
     });
 
@@ -1107,6 +1170,67 @@ describe('getNestedSideBarData', () => {
           href: '/docs/services/ShippingService/0.0.1',
         });
       });
+
+      it('the changelog link is listed when changelog is enabled', async () => {
+        config.changelog = { enabled: true };
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        expect(serviceNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
+        });
+        config.changelog = { enabled: false };
+      });
+
+      it('the changelog link is not listed when changelog is disabled', async () => {
+        config.changelog = { enabled: false };
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        expect(serviceNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
+        });
+      });
+
+      it('the changelog link is not listed when the service is configured to hide it', async () => {
+        config.changelog = { enabled: true };
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          detailsPanel: {
+            changelog: {
+              visible: false,
+            },
+          },
+        });
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        expect(serviceNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
+        });
+        config.changelog = { enabled: false };
+      });
     });
 
     describe('Architecture section', () => {
@@ -1710,6 +1834,67 @@ describe('getNestedSideBarData', () => {
           href: '/docs/events/PaymentProcessed/0.0.1',
         });
       });
+
+      it('the changelog link is listed when changelog is enabled', async () => {
+        config.changelog = { enabled: true };
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/events/PaymentProcessed/0.0.1/changelog',
+        });
+        config.changelog = { enabled: false };
+      });
+
+      it('the changelog link is not listed when changelog is disabled', async () => {
+        config.changelog = { enabled: false };
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/events/PaymentProcessed/0.0.1/changelog',
+        });
+      });
+
+      it('the changelog link is not listed when the message is configured to hide it', async () => {
+        config.changelog = { enabled: true };
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          detailsPanel: {
+            changelog: {
+              visible: false,
+            },
+          },
+        });
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/events/PaymentProcessed/0.0.1/changelog',
+        });
+        config.changelog = { enabled: false };
+      });
     });
 
     describe('architecture & design section', () => {
@@ -2084,6 +2269,70 @@ describe('getNestedSideBarData', () => {
           title: 'Overview',
           href: '/docs/containers/PaymentDataStore/0.0.1',
         });
+      });
+
+      it('the changelog link is listed when changelog is enabled', async () => {
+        config.changelog = { enabled: true };
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        expect(containerNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/containers/PaymentDataStore/0.0.1/changelog',
+        });
+        config.changelog = { enabled: false };
+      });
+
+      it('the changelog link is not listed when changelog is disabled', async () => {
+        config.changelog = { enabled: false };
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        expect(containerNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/containers/PaymentDataStore/0.0.1/changelog',
+        });
+      });
+
+      it('the changelog link is not listed when the container is configured to hide it', async () => {
+        config.changelog = { enabled: true };
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+          detailsPanel: {
+            changelog: {
+              visible: false,
+            },
+          },
+        });
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        expect(containerNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Changelog',
+          href: '/docs/containers/PaymentDataStore/0.0.1/changelog',
+        });
+        config.changelog = { enabled: false };
       });
     });
 
@@ -2605,6 +2854,43 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
       const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
       expect(channelNode).toBeDefined();
+    });
+
+    it('the changelog link is listed when changelog is enabled', async () => {
+      config.changelog = { enabled: true };
+      const { writeChannel } = utils(CATALOG_FOLDER);
+      await writeChannel({
+        id: 'PaymentChannel',
+        name: 'Payment Channel',
+        version: '0.0.1',
+        markdown: 'Payment Channel',
+      });
+      const navigationData = await getNestedSideBarData();
+      const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+      expect(channelNode).toHaveNavigationLink({
+        type: 'item',
+        title: 'Changelog',
+        href: '/docs/channels/PaymentChannel/0.0.1/changelog',
+      });
+      config.changelog = { enabled: false };
+    });
+
+    it('the changelog link is not listed when changelog is disabled', async () => {
+      config.changelog = { enabled: false };
+      const { writeChannel } = utils(CATALOG_FOLDER);
+      await writeChannel({
+        id: 'PaymentChannel',
+        name: 'Payment Channel',
+        version: '0.0.1',
+        markdown: 'Payment Channel',
+      });
+      const navigationData = await getNestedSideBarData();
+      const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+      expect(channelNode).not.toHaveNavigationLink({
+        type: 'item',
+        title: 'Changelog',
+        href: '/docs/channels/PaymentChannel/0.0.1/changelog',
+      });
     });
   });
 
