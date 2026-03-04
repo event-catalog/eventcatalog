@@ -70,9 +70,12 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     params.set('version', message.data.version);
     params.set('collection', message.collection);
 
-    // For services, add spec type
+    // For services, add spec type and filename to disambiguate multiple specs of the same type
     if (message.collection === 'services') {
       params.set('specType', message.specType || 'unknown');
+      if (message.specFilenameWithoutExtension) {
+        params.set('specFilename', message.specFilenameWithoutExtension);
+      }
     }
 
     const newUrl = `${window.location.pathname}?${params.toString()}`;
@@ -83,9 +86,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
   const messagesByIdAndVersions = useMemo(() => {
     const grouped = new Map<string, SchemaItem[]>();
     schemas.forEach((message) => {
-      // For services, group by ID + spec type to keep different specs separate
+      // For services, group by ID + spec type + filename to keep different specs separate
       const groupKey =
-        message.collection === 'services' ? `${message.data.id}__${message.specType || 'unknown'}` : message.data.id;
+        message.collection === 'services'
+          ? `${message.data.id}__${message.specType || 'unknown'}__${message.specFilenameWithoutExtension || message.specName || ''}`
+          : message.data.id;
 
       const existingVersions = grouped.get(groupKey) || [];
       grouped.set(groupKey, [...existingVersions, message]);
@@ -206,6 +211,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     const version = params.get('version');
     const collection = params.get('collection');
     const specType = params.get('specType');
+    const specFilename = params.get('specFilename');
 
     if (id && version) {
       // Find the matching message
@@ -214,10 +220,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         const versionMatch = msg.data.version === version;
         const collectionMatch = !collection || msg.collection === collection;
 
-        // For services, also match spec type
+        // For services, also match spec type and filename to disambiguate multiple specs of the same type
         if (msg.collection === 'services') {
           const specTypeMatch = !specType || msg.specType === specType;
-          return idMatch && versionMatch && collectionMatch && specTypeMatch;
+          const specFilenameMatch = !specFilename || msg.specFilenameWithoutExtension === specFilename;
+          return idMatch && versionMatch && collectionMatch && specTypeMatch && specFilenameMatch;
         }
 
         return idMatch && versionMatch && collectionMatch;
@@ -255,10 +262,10 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
   const displayMessage = useMemo(() => {
     if (!selectedMessage) return null;
 
-    // For services, use compound key (ID + spec type), otherwise just ID
+    // For services, use compound key (ID + spec type + filename), otherwise just ID
     const groupKey =
       selectedMessage.collection === 'services'
-        ? `${selectedMessage.data.id}__${selectedMessage.specType || 'unknown'}`
+        ? `${selectedMessage.data.id}__${selectedMessage.specType || 'unknown'}__${selectedMessage.specFilenameWithoutExtension || selectedMessage.specName || ''}`
         : selectedMessage.data.id;
 
     const versions = messagesByIdAndVersions.get(groupKey);
@@ -308,7 +315,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     if (!displayMessage) return [];
     const groupKey =
       displayMessage.collection === 'services'
-        ? `${displayMessage.data.id}__${displayMessage.specType || 'unknown'}`
+        ? `${displayMessage.data.id}__${displayMessage.specType || 'unknown'}__${displayMessage.specFilenameWithoutExtension || displayMessage.specName || ''}`
         : displayMessage.data.id;
     return messagesByIdAndVersions.get(groupKey) || [displayMessage];
   }, [displayMessage, messagesByIdAndVersions]);
@@ -541,15 +548,19 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
             {paginatedMessages.length > 0 ? (
               <div className="divide-y divide-[rgb(var(--ec-page-border))]">
                 {paginatedMessages.map((message) => {
-                  // For services, also check spec type to determine if selected
+                  // For services, also check spec type and filename to determine if selected
                   const isSelected =
                     message.collection === 'services'
-                      ? selectedMessage?.data.id === message.data.id && selectedMessage?.specType === message.specType
+                      ? selectedMessage?.data.id === message.data.id &&
+                        selectedMessage?.specType === message.specType &&
+                        selectedMessage?.specFilenameWithoutExtension === message.specFilenameWithoutExtension
                       : selectedMessage?.data.id === message.data.id;
 
                   // Get versions using compound key for services
                   const groupKey =
-                    message.collection === 'services' ? `${message.data.id}__${message.specType || 'unknown'}` : message.data.id;
+                    message.collection === 'services'
+                      ? `${message.data.id}__${message.specType || 'unknown'}__${message.specFilenameWithoutExtension || message.specName || ''}`
+                      : message.data.id;
 
                   const versions = messagesByIdAndVersions.get(groupKey) || [message];
 
