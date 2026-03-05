@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.17.0
+
+### Minor Changes
+
+- af2d4f4: add architecture change detection with governance rules, catalog snapshots, and webhook notifications
+
 ## 2.16.0
 
 ### Minor Changes
