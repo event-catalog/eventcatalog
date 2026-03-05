@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { rmSync } from 'node:fs';
 import createSDK from '@eventcatalog/sdk';
 
 export const snapshotCreate = async (opts: { label?: string; output?: string; stdout?: boolean; dir: string }) => {
@@ -11,6 +12,7 @@ export const snapshotCreate = async (opts: { label?: string; output?: string; st
   });
 
   if (opts.stdout) {
+    rmSync(result.filePath, { force: true });
     return JSON.stringify(result.snapshot, null, 2);
   }
 

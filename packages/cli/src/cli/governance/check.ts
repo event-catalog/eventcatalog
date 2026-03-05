@@ -82,6 +82,15 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
 
     const results = evaluateGovernanceRules(diff, config, targetResult.snapshot);
 
+    // Always execute actions (webhooks) regardless of output format
+    const messageTypes = buildMessageTypeMap(targetResult.snapshot);
+    const serviceOwners = buildServiceOwnersMap(targetResult.snapshot);
+    const actionOutput = await executeGovernanceActions(results, {
+      messageTypes,
+      status: opts.status,
+      serviceOwners,
+    });
+
     if (opts.format === 'json') {
       return JSON.stringify({ baseBranch, target: opts.target || 'working directory', results, diff: diff.summary }, null, 2);
     }
@@ -91,13 +100,6 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
 
     lines.push(formatGovernanceOutput(results));
 
-    const messageTypes = buildMessageTypeMap(targetResult.snapshot);
-    const serviceOwners = buildServiceOwnersMap(targetResult.snapshot);
-    const actionOutput = await executeGovernanceActions(results, {
-      messageTypes,
-      status: opts.status,
-      serviceOwners,
-    });
     if (actionOutput.length > 0) {
       lines.push('');
       lines.push(...actionOutput);
