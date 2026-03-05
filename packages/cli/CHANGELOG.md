@@ -1,5 +1,12 @@
 # @eventcatalog/cli
 
+## 0.5.1
+
+### Patch Changes
+
+- 78bf2d4: Support governance.yml in addition to governance.yaml
+- bcef8cc: add message_deprecated governance trigger to notify teams when a producing service deprecates a message
+
 ## 0.5.0
 
 ### Minor Changes
