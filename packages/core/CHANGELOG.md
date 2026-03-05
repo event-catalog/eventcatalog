@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.20.0
+
+### Minor Changes
+
+- 7ebc6b2: Bump hono dependency from 4.11.7 to 4.12.4
+
 ## 3.19.4
 
 ### Patch Changes
