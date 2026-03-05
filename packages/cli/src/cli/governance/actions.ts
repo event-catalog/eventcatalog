@@ -96,9 +96,15 @@ export const executeGovernanceActions = async (
 
   const settled = await Promise.allSettled(webhookCalls.map((c) => c.request));
 
-  return settled.map((result, i) =>
-    result.status === 'fulfilled'
-      ? `  Webhook sent: ${webhookCalls[i].urlTemplate} ✓`
-      : `  Webhook failed: ${webhookCalls[i].urlTemplate} ✗ (${result.reason instanceof Error ? result.reason.message : String(result.reason)})`
-  );
+  return settled.map((result, i) => {
+    const url = webhookCalls[i].urlTemplate;
+    if (result.status === 'fulfilled') {
+      const res = result.value;
+      if (!res.ok) {
+        return `  Webhook failed: ${url} ✗ (HTTP ${res.status})`;
+      }
+      return `  Webhook sent: ${url} ✓`;
+    }
+    return `  Webhook failed: ${url} ✗ (${result.reason instanceof Error ? result.reason.message : String(result.reason)})`;
+  });
 };

@@ -250,6 +250,122 @@ describe('Snapshots SDK', () => {
       expect(diff.summary.relationshipsAdded).toBe(1);
     });
 
+    it('does not emit false relationship changes when a service version is bumped without changing relationships', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrdersService',
+        name: 'Orders Service',
+        version: '1.0.0',
+        markdown: '',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+      });
+
+      const snapshotA = await createSnapshot({ label: 'before', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      // Bump service version without changing relationships
+      await writeService(
+        {
+          id: 'OrdersService',
+          name: 'Orders Service',
+          version: '2.0.0',
+          markdown: '',
+          sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        },
+        { override: true }
+      );
+
+      const snapshotB = await createSnapshot({ label: 'after', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      const diff = await diffSnapshots(snapshotA.filePath, snapshotB.filePath);
+
+      // Service was versioned, but no relationship changes
+      expect(diff.relationships).toHaveLength(0);
+      expect(diff.summary.relationshipsAdded).toBe(0);
+      expect(diff.summary.relationshipsRemoved).toBe(0);
+    });
+
+    it('detects relationship changes when a service version bump also adds new relationships', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeEvent({ id: 'OrderUpdated', name: 'Order Updated', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrdersService',
+        name: 'Orders Service',
+        version: '1.0.0',
+        markdown: '',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+      });
+
+      const snapshotA = await createSnapshot({ label: 'before', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      // Bump version AND add a new sends relationship
+      await writeService(
+        {
+          id: 'OrdersService',
+          name: 'Orders Service',
+          version: '2.0.0',
+          markdown: '',
+          sends: [
+            { id: 'OrderCreated', version: '1.0.0' },
+            { id: 'OrderUpdated', version: '1.0.0' },
+          ],
+        },
+        { override: true }
+      );
+
+      const snapshotB = await createSnapshot({ label: 'after', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      const diff = await diffSnapshots(snapshotA.filePath, snapshotB.filePath);
+
+      // Only the new relationship should appear, not the existing one
+      expect(diff.relationships).toHaveLength(1);
+      const addedRel = diff.relationships[0];
+      expect(addedRel.serviceId).toBe('OrdersService');
+      expect(addedRel.resourceId).toBe('OrderUpdated');
+      expect(addedRel.direction).toBe('sends');
+      expect(addedRel.changeType).toBe('added');
+    });
+
+    it('detects relationship changes when a service version bump also removes relationships', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeEvent({ id: 'OrderUpdated', name: 'Order Updated', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrdersService',
+        name: 'Orders Service',
+        version: '1.0.0',
+        markdown: '',
+        sends: [
+          { id: 'OrderCreated', version: '1.0.0' },
+          { id: 'OrderUpdated', version: '1.0.0' },
+        ],
+      });
+
+      const snapshotA = await createSnapshot({ label: 'before', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      // Bump version AND remove OrderUpdated
+      await writeService(
+        {
+          id: 'OrdersService',
+          name: 'Orders Service',
+          version: '2.0.0',
+          markdown: '',
+          sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        },
+        { override: true }
+      );
+
+      const snapshotB = await createSnapshot({ label: 'after', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      const diff = await diffSnapshots(snapshotA.filePath, snapshotB.filePath);
+
+      // Only the removed relationship should appear
+      expect(diff.relationships).toHaveLength(1);
+      const removedRel = diff.relationships[0];
+      expect(removedRel.serviceId).toBe('OrdersService');
+      expect(removedRel.resourceId).toBe('OrderUpdated');
+      expect(removedRel.direction).toBe('sends');
+      expect(removedRel.changeType).toBe('removed');
+    });
+
     it('detects when a service removes a receives relationship', async () => {
       await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
       await writeEvent({ id: 'PaymentProcessed', name: 'Payment Processed', version: '1.0.0', markdown: '' });

@@ -1173,6 +1173,41 @@ describe('Governance', () => {
       expect(output[0]).toContain('Connection refused');
     });
 
+    it('reports failure when webhook returns non-2xx status', async () => {
+      vi.stubEnv('NON2XX_URL', 'https://non2xx.example.com');
+
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('Forbidden', { status: 403 }));
+
+      const results = [
+        {
+          rule: {
+            name: 'non2xx-webhook',
+            when: ['consumer_added' as const],
+            resources: ['*'],
+            actions: [{ type: 'webhook' as const, url: '$NON2XX_URL' }],
+          },
+          trigger: 'consumer_added' as const,
+          matchedChanges: [
+            {
+              serviceId: 'PaymentService',
+              serviceVersion: '1.0.0',
+              resourceId: 'OrderCreated',
+              resourceVersion: '1.0.0',
+              direction: 'receives' as const,
+              changeType: 'added' as const,
+            },
+          ],
+        },
+      ];
+
+      const output = await executeGovernanceActions(results);
+
+      expect(output).toHaveLength(1);
+      expect(output[0]).toContain('$NON2XX_URL');
+      expect(output[0]).toContain('✗');
+      expect(output[0]).toContain('HTTP 403');
+    });
+
     it('consumer_removed payload uses correct summary verb', async () => {
       vi.stubEnv('REMOVED_URL', 'https://removed.example.com');
 

@@ -172,12 +172,11 @@ type ServicePointer = { id: string; version?: string };
 
 const getRelationshipKey = (
   serviceId: string,
-  serviceVersion: string,
   resourceId: string,
   resourceVersion: string | undefined,
   direction: string
 ): string => {
-  return `${serviceId}@${serviceVersion}:${direction}:${resourceId}@${resourceVersion || 'latest'}`;
+  return `${serviceId}:${direction}:${resourceId}@${resourceVersion || 'latest'}`;
 };
 
 type RelationshipInfo = Omit<RelationshipChange, 'changeType'>;
@@ -189,7 +188,7 @@ const extractRelationships = (snapshot: CatalogSnapshot): Map<string, Relationsh
     for (const direction of ['sends', 'receives'] as const) {
       const pointers: ServicePointer[] = (service as Record<string, any>)[direction] || [];
       for (const pointer of pointers) {
-        const key = getRelationshipKey(service.id as string, service.version as string, pointer.id, pointer.version, direction);
+        const key = getRelationshipKey(service.id as string, pointer.id, pointer.version, direction);
         relationships.set(key, {
           serviceId: service.id as string,
           serviceVersion: service.version as string,
