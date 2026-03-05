@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { compare } from 'semver';
 import type { CatalogSnapshot, SnapshotOptions, SnapshotResult, SnapshotMeta, SnapshotDiff } from './snapshot-types';
 import utils from './index';
 import { computeResourceDiff, computeRelationshipDiff } from './snapshot-diff';
@@ -26,22 +27,11 @@ const pickCoreFields = (resource: any): any => {
   return picked;
 };
 
-const compareSemver = (a: string, b: string): number => {
-  const pa = a.split('.').map(Number);
-  const pb = b.split('.').map(Number);
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const na = pa[i] || 0;
-    const nb = pb[i] || 0;
-    if (na !== nb) return na - nb;
-  }
-  return 0;
-};
-
 const deduplicateByLatestVersion = (resources: any[]): any[] => {
   const seen = new Map<string, any>();
   for (const r of resources) {
     const existing = seen.get(r.id);
-    if (!existing || compareSemver(r.version, existing.version) > 0) {
+    if (!existing || compare(r.version, existing.version) > 0) {
       seen.set(r.id, r);
     }
   }
