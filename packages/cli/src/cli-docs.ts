@@ -1747,6 +1747,120 @@ export const cliFunctions: CLIFunctionDoc[] = [
       },
     ],
   },
+
+  // Snapshots
+  {
+    name: 'createSnapshot',
+    description: 'Take a point-in-time snapshot of the entire catalog, capturing all resources and their metadata as a JSON file',
+    category: 'Snapshots',
+    args: [
+      {
+        name: 'label',
+        type: 'string',
+        required: false,
+        description: 'Human-readable label for the snapshot (defaults to ISO timestamp)',
+      },
+      {
+        name: 'outputDir',
+        type: 'string',
+        required: false,
+        description: 'Output directory for the snapshot file (defaults to .snapshots/)',
+      },
+    ],
+    examples: [
+      {
+        description: 'Create a snapshot with default settings',
+        command: 'npx @eventcatalog/cli snapshot create',
+      },
+      {
+        description: 'Create a snapshot with a custom label',
+        command: 'npx @eventcatalog/cli snapshot create --label pre-release-v2',
+      },
+      {
+        description: 'Create a snapshot and print JSON to stdout',
+        command: 'npx @eventcatalog/cli snapshot create --stdout',
+      },
+    ],
+  },
+  {
+    name: 'diffSnapshots',
+    description:
+      'Compare two snapshot files and output a structured diff showing added, removed, modified, and versioned resources plus relationship changes',
+    category: 'Snapshots',
+    args: [
+      { name: 'fileA', type: 'string', required: true, description: 'Path to the first (older) snapshot file' },
+      { name: 'fileB', type: 'string', required: true, description: 'Path to the second (newer) snapshot file' },
+    ],
+    examples: [
+      {
+        description: 'Diff two snapshot files as text',
+        command: 'npx @eventcatalog/cli snapshot diff .snapshots/before.snapshot.json .snapshots/after.snapshot.json',
+      },
+      {
+        description: 'Diff two snapshot files as JSON',
+        command:
+          'npx @eventcatalog/cli snapshot diff .snapshots/before.snapshot.json .snapshots/after.snapshot.json --format json',
+      },
+    ],
+  },
+  {
+    name: 'listSnapshots',
+    description: 'List all snapshots in the catalog .snapshots directory with their labels, timestamps, and git info',
+    category: 'Snapshots',
+    args: [],
+    examples: [
+      {
+        description: 'List all snapshots',
+        command: 'npx @eventcatalog/cli snapshot list',
+      },
+      {
+        description: 'List all snapshots as JSON',
+        command: 'npx @eventcatalog/cli snapshot list --format json',
+      },
+    ],
+  },
+
+  // Governance
+  {
+    name: 'governanceCheck',
+    description:
+      'Compare the current catalog (or a target branch) against a base branch and evaluate governance rules defined in governance.yaml',
+    category: 'Governance',
+    args: [
+      { name: '--base', type: 'string', required: false, description: 'Base branch to compare against (default: main)' },
+      {
+        name: '--target',
+        type: 'string',
+        required: false,
+        description: 'Target branch to compare (default: current working directory)',
+      },
+      { name: '--format', type: 'string', required: false, description: 'Output format: text or json (default: text)' },
+      {
+        name: '--status',
+        type: 'string',
+        required: false,
+        description: 'Status label to include in webhook payloads (e.g. proposed, approved)',
+      },
+    ],
+    examples: [
+      {
+        description: 'Check governance rules against main branch',
+        command: 'npx @eventcatalog/cli governance check',
+      },
+      {
+        description: 'Check against a specific base branch',
+        command: 'npx @eventcatalog/cli governance check --base develop',
+      },
+      {
+        description: 'Compare two branches directly',
+        command: 'npx @eventcatalog/cli governance check --base main --target feat/new-service',
+      },
+      {
+        description: 'Output results as JSON',
+        command: 'npx @eventcatalog/cli governance check --format json',
+      },
+    ],
+  },
 ];
 
 /**
