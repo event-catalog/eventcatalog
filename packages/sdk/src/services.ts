@@ -438,7 +438,7 @@ export const addMessageToService =
     const path = existingResource.split(/[\\/]+services/)[0];
     const pathToResource = join(path, 'services');
 
-    await rmServiceById(directory)(id, version);
+    await rmServiceById(directory)(id, version, true);
     await writeService(pathToResource)(service, { format: extension === '.md' ? 'md' : 'mdx' });
   };
 
@@ -554,7 +554,7 @@ export const addEntityToService =
     const path = existingResource.split(/[\\/]+services/)[0];
     const pathToResource = join(path, 'services');
 
-    await rmServiceById(directory)(id, version);
+    await rmServiceById(directory)(id, version, true);
     await writeService(pathToResource)(service, { format: extension === '.md' ? 'md' : 'mdx' });
   };
 
@@ -625,6 +625,6 @@ export const addDataStoreToService =
     const path = existingResource.split(/[\\/]+services/)[0];
     const pathToResource = join(path, 'services');
 
-    await rmServiceById(directory)(id, version);
+    await rmServiceById(directory)(id, version, true);
     await writeService(pathToResource)(service, { format: extension === '.md' ? 'md' : 'mdx' });
   };
