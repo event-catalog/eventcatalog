@@ -59,18 +59,26 @@ const matchesResource = (change: RelationshipChange, resources: string[], messag
   });
 };
 
+const REMOVED_TRIGGERS: Set<GovernanceTrigger> = new Set(['consumer_removed', 'producer_removed']);
+
 export const evaluateGovernanceRules = (
   diff: SnapshotDiff,
   config: GovernanceConfig,
-  snapshot?: CatalogSnapshot
+  targetSnapshot?: CatalogSnapshot,
+  baseSnapshot?: CatalogSnapshot
 ): GovernanceResult[] => {
   const results: GovernanceResult[] = [];
-  const messageSets = snapshot ? buildServiceMessageSets(snapshot) : undefined;
+  const targetMessageSets = targetSnapshot ? buildServiceMessageSets(targetSnapshot) : undefined;
+  const baseMessageSets = baseSnapshot ? buildServiceMessageSets(baseSnapshot) : undefined;
 
   for (const rule of config.rules) {
     for (const trigger of rule.when) {
       const filter = TRIGGER_FILTERS[trigger];
       if (!filter) continue;
+
+      // For removed triggers, resolve produces:/consumes: prefixes against
+      // the base snapshot where the relationship still existed.
+      const messageSets = REMOVED_TRIGGERS.has(trigger) && baseMessageSets ? baseMessageSets : targetMessageSets;
 
       const matchedChanges = diff.relationships.filter((c) => filter(c) && matchesResource(c, rule.resources, messageSets));
 

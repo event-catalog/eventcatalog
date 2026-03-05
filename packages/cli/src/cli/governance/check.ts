@@ -80,7 +80,7 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
       return 'No governance.yaml found or no rules defined.';
     }
 
-    const results = evaluateGovernanceRules(diff, config, targetResult.snapshot);
+    const results = evaluateGovernanceRules(diff, config, targetResult.snapshot, baseResult.snapshot);
 
     // Always execute actions (webhooks) regardless of output format
     const messageTypes = buildMessageTypeMap(targetResult.snapshot);
