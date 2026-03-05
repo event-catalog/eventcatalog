@@ -99,6 +99,7 @@ import { writeTeam, getTeam, getTeams, rmTeamById, getOwnersForResource } from '
 
 import { writeUser, getUser, getUsers, rmUserById } from './users';
 import { dumpCatalog, getEventCatalogConfigurationFile } from './eventcatalog';
+import { createSnapshot, diffSnapshots, listSnapshots } from './snapshots';
 import { writeChangelog, appendChangelog, getChangelog, rmChangelog } from './changelogs';
 import { getEntity, getEntities, writeEntity, rmEntity, rmEntityById, versionEntity, entityHasVersion } from './entities';
 
@@ -139,6 +140,7 @@ import {
 
 // Export the types
 export type * from './types';
+export type * from './snapshot-types';
 
 /**
  * Init the SDK for EventCatalog
@@ -1375,6 +1377,10 @@ export default (path: string) => {
      * const dsl = await sdk.toDSL(services, { type: 'service', hydrate: true });
      * ```
      */
+    createSnapshot: createSnapshot(join(path)),
+    diffSnapshots: diffSnapshots(join(path)),
+    listSnapshots: listSnapshots(join(path)),
+
     toDSL: toDSL(join(path), {
       getEvent: getEvent(join(path)),
       getCommand: getCommand(join(path)),

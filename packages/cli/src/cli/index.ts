@@ -7,6 +7,8 @@ import { executeFunction } from './executor';
 import { listFunctions, formatListOutput } from './list';
 import { exportResource, exportCatalog } from './export';
 import { importDSL } from './import';
+import { snapshotCreate, snapshotDiff, snapshotList } from './snapshot';
+import { governanceCheck } from './governance';
 
 // Read package.json to get version
 let version = '1.0.0';
@@ -109,6 +111,87 @@ program
         dryRun: opts.dryRun,
         flat: opts.flat,
         noInit: !opts.init,
+        dir,
+      });
+      console.log(result);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+// Snapshot command group
+const snapshot = program.command('snapshot').description('Create, diff, and list catalog snapshots');
+
+snapshot
+  .command('create')
+  .description('Take a point-in-time snapshot of the catalog')
+  .option('--label <label>', 'Human-readable label (default: ISO timestamp)')
+  .option('-o, --output <path>', 'Output directory for the snapshot file')
+  .option('--stdout', 'Print JSON to stdout instead of writing a file', false)
+  .action(async (opts) => {
+    try {
+      const globalOpts = program.opts() as any;
+      const dir = globalOpts.dir || '.';
+      const result = await snapshotCreate({ label: opts.label, output: opts.output, stdout: opts.stdout, dir });
+      console.log(result);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+snapshot
+  .command('diff <fileA> <fileB>')
+  .description('Compare two snapshot files and output a structured diff')
+  .option('--format <format>', 'Output format: text or json', 'text')
+  .action(async (fileA: string, fileB: string, opts) => {
+    try {
+      const globalOpts = program.opts() as any;
+      const dir = globalOpts.dir || '.';
+      const result = await snapshotDiff({ fileA, fileB, format: opts.format, dir });
+      console.log(result);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+snapshot
+  .command('list')
+  .description('List all snapshots in the catalog')
+  .option('--format <format>', 'Output format: text or json', 'text')
+  .action(async (opts) => {
+    try {
+      const globalOpts = program.opts() as any;
+      const dir = globalOpts.dir || '.';
+      const result = await snapshotList({ format: opts.format, dir });
+      console.log(result);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+// Governance command group
+const governance = program.command('governance').description('Run governance rules against catalog changes');
+
+governance
+  .command('check')
+  .description('Compare catalog against a base branch and evaluate governance rules')
+  .option('--base <branch>', 'Base branch to compare against (default: main)')
+  .option('--target <branch>', 'Target branch to compare (default: current working directory)')
+  .option('--format <format>', 'Output format: text or json', 'text')
+  .option('--status <status>', 'Status label to include in webhook payloads (e.g. proposed, approved)')
+  .action(async (opts) => {
+    try {
+      const globalOpts = program.opts() as any;
+      const dir = globalOpts.dir || '.';
+      const result = await governanceCheck({
+        base: opts.base,
+        target: opts.target,
+        format: opts.format,
+        status: opts.status,
         dir,
       });
       console.log(result);

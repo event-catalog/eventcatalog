@@ -26,15 +26,24 @@ importers:
       '@eventcatalog/language-server':
         specifier: workspace:*
         version: link:../language-server
+      '@eventcatalog/license':
+        specifier: ^0.0.7
+        version: 0.0.7
       '@eventcatalog/sdk':
         specifier: workspace:*
         version: link:../sdk
       commander:
         specifier: ^12.0.0
         version: 12.1.0
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.6.1
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
+      js-yaml:
+        specifier: ^4.1.1
+        version: 4.1.1
       langium:
         specifier: ^3.3.1
         version: 3.5.0
@@ -42,6 +51,9 @@ importers:
         specifier: ^11.0.0
         version: 11.0.0
     devDependencies:
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
       '@types/node':
         specifier: ^20.14.10
         version: 20.19.19
