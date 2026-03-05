@@ -1950,6 +1950,50 @@ describe('Governance', () => {
       expect(output[0]).toContain('✓');
     });
 
+    it('sends fallback deprecation webhook when producerServices is empty', async () => {
+      vi.stubEnv('DEPR_WEBHOOK_URL', 'https://deprecation.example.com');
+
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('ok'));
+
+      const results = [
+        {
+          rule: {
+            name: 'deprecation-webhook',
+            when: ['message_deprecated' as const],
+            resources: ['*'],
+            actions: [{ type: 'webhook' as const, url: '$DEPR_WEBHOOK_URL' }],
+          },
+          trigger: 'message_deprecated' as const,
+          matchedChanges: [],
+          deprecationChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrphanEvent',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['deprecated'],
+              },
+              producerServices: [],
+            },
+          ],
+        },
+      ];
+
+      const eventTypes: MessageTypeMap = new Map([['OrphanEvent', 'event']]);
+      const output = await executeGovernanceActions(results, { messageTypes: eventTypes });
+
+      expect(fetchSpy).toHaveBeenCalledOnce();
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]!.body as string);
+      expect(body.type).toBe('eventcatalog.governance.message_deprecated');
+      expect(body.data.summary).toBe('OrphanEvent (event) has been deprecated by unknown');
+      expect(body.data.producer).toEqual({ id: 'unknown', version: 'unknown' });
+      expect(body.data.message).toEqual({ id: 'OrphanEvent', version: '1.0.0', type: 'event' });
+      expect(output).toHaveLength(1);
+      expect(output[0]).toContain('✓');
+    });
+
     it('skips console actions and only executes webhooks', async () => {
       vi.stubEnv('MIX_URL', 'https://mix.example.com');
 

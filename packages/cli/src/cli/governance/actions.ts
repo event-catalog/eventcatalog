@@ -62,7 +62,12 @@ export const executeGovernanceActions = async (
         for (const dc of result.deprecationChanges) {
           const messageType = messageTypes?.get(dc.resourceChange.resourceId) || 'message';
 
-          for (const producer of dc.producerServices) {
+          const producers =
+            dc.producerServices.length > 0
+              ? dc.producerServices
+              : [{ id: 'unknown', version: 'unknown' } as { id: string; version: string; owners?: string[] }];
+
+          for (const producer of producers) {
             const payload = {
               specversion: '1.0',
               type: `eventcatalog.governance.message_deprecated`,
