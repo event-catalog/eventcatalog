@@ -77,7 +77,7 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
     const config = loadGovernanceConfig(dir);
 
     if (config.rules.length === 0) {
-      return 'No governance.yaml found or no rules defined.';
+      return 'No governance.yaml (or governance.yml) found or no rules defined.';
     }
 
     const results = evaluateGovernanceRules(diff, config, targetResult.snapshot, baseResult.snapshot);

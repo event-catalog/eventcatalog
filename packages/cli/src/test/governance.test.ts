@@ -91,6 +91,56 @@ describe('Governance', () => {
       expect(config.rules[0].actions).toEqual([{ type: 'console' }]);
     });
 
+    it('parses a valid governance.yml file', () => {
+      fs.writeFileSync(
+        path.join(TEMP_DIR, 'governance.yml'),
+        `rules:
+  - name: notify-consumer-added
+    when:
+      - consumer_added
+    resources:
+      - "*"
+    actions:
+      - type: console
+`
+      );
+
+      const config = loadGovernanceConfig(TEMP_DIR);
+
+      expect(config.rules).toHaveLength(1);
+      expect(config.rules[0].name).toBe('notify-consumer-added');
+    });
+
+    it('prefers governance.yaml over governance.yml when both exist', () => {
+      fs.writeFileSync(
+        path.join(TEMP_DIR, 'governance.yaml'),
+        `rules:
+  - name: from-yaml
+    when:
+      - consumer_added
+    resources:
+      - "*"
+    actions:
+      - type: console
+`
+      );
+      fs.writeFileSync(
+        path.join(TEMP_DIR, 'governance.yml'),
+        `rules:
+  - name: from-yml
+    when:
+      - consumer_added
+    resources:
+      - "*"
+    actions:
+      - type: console
+`
+      );
+
+      const config = loadGovernanceConfig(TEMP_DIR);
+      expect(config.rules[0].name).toBe('from-yaml');
+    });
+
     it('parses rules with webhook actions including headers', () => {
       fs.writeFileSync(
         path.join(TEMP_DIR, 'governance.yaml'),
