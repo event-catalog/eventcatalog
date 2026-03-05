@@ -5,9 +5,12 @@ import type { SnapshotDiff, RelationshipChange, CatalogSnapshot } from '@eventca
 import type { GovernanceConfig, GovernanceTrigger, GovernanceResult } from './types';
 
 export const loadGovernanceConfig = (catalogDir: string): GovernanceConfig => {
-  const configPath = path.join(catalogDir, 'governance.yaml');
+  const yamlPath = path.join(catalogDir, 'governance.yaml');
+  const ymlPath = path.join(catalogDir, 'governance.yml');
 
-  if (!fs.existsSync(configPath)) {
+  const configPath = fs.existsSync(yamlPath) ? yamlPath : fs.existsSync(ymlPath) ? ymlPath : null;
+
+  if (!configPath) {
     return { rules: [] };
   }
 

@@ -1824,7 +1824,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
   {
     name: 'governanceCheck',
     description:
-      'Compare the current catalog (or a target branch) against a base branch and evaluate governance rules defined in governance.yaml',
+      'Compare the current catalog (or a target branch) against a base branch and evaluate governance rules defined in governance.yaml (or governance.yml)',
     category: 'Governance',
     args: [
       { name: '--base', type: 'string', required: false, description: 'Base branch to compare against (default: main)' },

@@ -90,6 +90,6 @@ describe('governance check', () => {
 
     const result = await governanceCheck({ dir: TEMP_DIR });
 
-    expect(result).toContain('No governance.yaml found or no rules defined');
+    expect(result).toContain('No governance.yaml (or governance.yml) found or no rules defined');
   });
 });
