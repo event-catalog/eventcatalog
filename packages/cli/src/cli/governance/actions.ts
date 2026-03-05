@@ -57,6 +57,51 @@ export const executeGovernanceActions = async (
         }
       }
 
+      // Handle deprecation changes
+      if (result.deprecationChanges && result.deprecationChanges.length > 0) {
+        for (const dc of result.deprecationChanges) {
+          const messageType = messageTypes?.get(dc.resourceChange.resourceId) || 'message';
+
+          const producers =
+            dc.producerServices.length > 0
+              ? dc.producerServices
+              : [{ id: 'unknown', version: 'unknown' } as { id: string; version: string; owners?: string[] }];
+
+          for (const producer of producers) {
+            const payload = {
+              specversion: '1.0',
+              type: `eventcatalog.governance.message_deprecated`,
+              source: 'eventcatalog/governance',
+              id: randomUUID(),
+              time: now,
+              datacontenttype: 'application/json',
+              data: {
+                schemaVersion: 1,
+                ...(status && { status }),
+                summary: `${dc.resourceChange.resourceId} (${messageType}) has been deprecated by ${producer.id}`,
+                producer: {
+                  id: producer.id,
+                  version: producer.version,
+                  ...(producer.owners && { owners: producer.owners }),
+                },
+                message: {
+                  id: dc.resourceChange.resourceId,
+                  version: dc.resourceChange.version,
+                  type: messageType,
+                },
+              },
+            };
+
+            webhookCalls.push({
+              urlTemplate: action.url,
+              request: fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) }),
+            });
+          }
+        }
+        continue;
+      }
+
+      // Handle relationship changes
       for (const change of result.matchedChanges) {
         const verb = getChangeVerb(result.trigger, change.changeType);
         const messageType = messageTypes?.get(change.resourceId) || 'message';

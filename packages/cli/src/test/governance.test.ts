@@ -11,7 +11,7 @@ import {
   buildServiceOwnersMap,
 } from '../cli/governance';
 import type { GovernanceConfig, MessageTypeMap, ServiceOwnersMap, GovernanceActionOptions } from '../cli/governance';
-import type { SnapshotDiff, RelationshipChange, CatalogSnapshot } from '@eventcatalog/sdk';
+import type { SnapshotDiff, RelationshipChange, ResourceChange, CatalogSnapshot } from '@eventcatalog/sdk';
 
 const TEMP_DIR = path.join(__dirname, 'governance-temp');
 
@@ -24,24 +24,36 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const makeDiff = (relationships: RelationshipChange[]): SnapshotDiff => ({
+const makeDiff = (relationships: RelationshipChange[], resources: ResourceChange[] = []): SnapshotDiff => ({
   snapshotA: { label: 'before', createdAt: '2026-03-04T12:00:00Z' },
   snapshotB: { label: 'after', createdAt: '2026-03-04T13:00:00Z' },
   summary: {
-    totalChanges: relationships.length,
+    totalChanges: relationships.length + resources.length,
     resourcesAdded: 0,
     resourcesRemoved: 0,
-    resourcesModified: 0,
+    resourcesModified: resources.length,
     resourcesVersioned: 0,
     relationshipsAdded: relationships.filter((r) => r.changeType === 'added').length,
     relationshipsRemoved: relationships.filter((r) => r.changeType === 'removed').length,
   },
-  resources: [],
+  resources,
   relationships,
 });
 
+type SnapshotMessages = {
+  events?: Array<Record<string, any>>;
+  commands?: Array<Record<string, any>>;
+  queries?: Array<Record<string, any>>;
+};
+
 const makeSnapshot = (
-  services: Array<{ id: string; sends?: Array<{ id: string }>; receives?: Array<{ id: string }> }>
+  services: Array<{
+    id: string;
+    sends?: Array<{ id: string }>;
+    receives?: Array<{ id: string }>;
+    owners?: string[];
+  }>,
+  messages?: SnapshotMessages
 ): CatalogSnapshot => ({
   snapshotVersion: '1.0.0',
   catalogVersion: '1.0.0',
@@ -50,7 +62,11 @@ const makeSnapshot = (
   resources: {
     domains: [],
     services: services.map((s) => ({ ...s, version: '1.0.0', name: s.id })),
-    messages: { events: [], commands: [], queries: [] },
+    messages: {
+      events: messages?.events || [],
+      commands: messages?.commands || [],
+      queries: messages?.queries || [],
+    },
     channels: [],
   },
 });
@@ -727,6 +743,463 @@ describe('Governance', () => {
       const results = evaluateGovernanceRules(diff, config);
 
       expect(results).toHaveLength(0);
+    });
+  });
+
+  describe('evaluateGovernanceRules - message_deprecated', () => {
+    it('fires when a message is newly deprecated with wildcard resource', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'deprecation-rule',
+            when: ['message_deprecated'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated', deprecated: true }],
+      });
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].trigger).toBe('message_deprecated');
+      expect(results[0].deprecationChanges).toHaveLength(1);
+      expect(results[0].deprecationChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+      expect(results[0].deprecationChanges![0].producerServices).toHaveLength(1);
+      expect(results[0].deprecationChanges![0].producerServices[0].id).toBe('OrdersService');
+    });
+
+    it('does not fire when message was already deprecated in base', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'deprecation-rule',
+            when: ['message_deprecated'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated', deprecated: true }],
+      });
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated', deprecated: true }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('does not fire when deprecated field is removed (un-deprecation)', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'deprecation-rule',
+            when: ['message_deprecated'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated', deprecated: true }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('supports deprecated as an object with date and message', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'deprecation-rule',
+            when: ['message_deprecated'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [
+          {
+            id: 'OrderCreated',
+            version: '1.0.0',
+            name: 'OrderCreated',
+            deprecated: { date: '2026-06-01', message: 'Use OrderCreatedV2 instead' },
+          },
+        ],
+      });
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].deprecationChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('filters by message: prefix', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'specific-message',
+            when: ['message_deprecated'],
+            resources: ['message:OrderCreated'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+          {
+            resourceId: 'OrderShipped',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }, { id: 'OrderShipped' }] }], {
+        events: [
+          { id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated', deprecated: true },
+          { id: 'OrderShipped', version: '1.0.0', name: 'OrderShipped', deprecated: true },
+        ],
+      });
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }, { id: 'OrderShipped' }] }], {
+        events: [
+          { id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' },
+          { id: 'OrderShipped', version: '1.0.0', name: 'OrderShipped' },
+        ],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].deprecationChanges).toHaveLength(1);
+      expect(results[0].deprecationChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('filters by consumes: prefix to notify consuming services', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'consumer-deprecation-alert',
+            when: ['message_deprecated'],
+            resources: ['consumes:PaymentService'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+          {
+            resourceId: 'UserSignedUp',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersService', sends: [{ id: 'OrderCreated' }] },
+          { id: 'PaymentService', receives: [{ id: 'OrderCreated' }] },
+          { id: 'AuthService', sends: [{ id: 'UserSignedUp' }] },
+        ],
+        {
+          events: [
+            { id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated', deprecated: true },
+            { id: 'UserSignedUp', version: '1.0.0', name: 'UserSignedUp', deprecated: true },
+          ],
+        }
+      );
+      const baseSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersService', sends: [{ id: 'OrderCreated' }] },
+          { id: 'PaymentService', receives: [{ id: 'OrderCreated' }] },
+          { id: 'AuthService', sends: [{ id: 'UserSignedUp' }] },
+        ],
+        {
+          events: [
+            { id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' },
+            { id: 'UserSignedUp', version: '1.0.0', name: 'UserSignedUp' },
+          ],
+        }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].deprecationChanges).toHaveLength(1);
+      expect(results[0].deprecationChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('includes producer service owners in deprecation changes', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'deprecation-rule',
+            when: ['message_deprecated'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }], owners: ['team-orders'] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated', deprecated: true }],
+      });
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }], owners: ['team-orders'] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results[0].deprecationChanges![0].producerServices[0].owners).toEqual(['team-orders']);
+    });
+
+    it('works with commands and queries, not just events', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'deprecation-rule',
+            when: ['message_deprecated'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'PlaceOrder',
+            version: '1.0.0',
+            type: 'command',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'PlaceOrder' }] }], {
+        commands: [{ id: 'PlaceOrder', version: '1.0.0', name: 'PlaceOrder', deprecated: true }],
+      });
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'PlaceOrder' }] }], {
+        commands: [{ id: 'PlaceOrder', version: '1.0.0', name: 'PlaceOrder' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].deprecationChanges![0].resourceChange.type).toBe('command');
+    });
+
+    it('ignores non-message resource types like service', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'deprecation-rule',
+            when: ['message_deprecated'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrdersService',
+            version: '1.0.0',
+            type: 'service',
+            changeType: 'modified',
+            changedFields: ['deprecated'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [] }]);
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(0);
+    });
+  });
+
+  describe('formatGovernanceOutput - message_deprecated', () => {
+    it('formats deprecation results with producer names', () => {
+      const results = [
+        {
+          rule: {
+            name: 'deprecation-rule',
+            when: ['message_deprecated' as const],
+            resources: ['*'],
+            actions: [{ type: 'console' as const }],
+          },
+          trigger: 'message_deprecated' as const,
+          matchedChanges: [],
+          deprecationChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['deprecated'],
+              },
+              producerServices: [
+                { id: 'OrdersService', version: '1.0.0' },
+                { id: 'LegacyService', version: '2.0.0' },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const output = formatGovernanceOutput(results);
+
+      expect(output).toContain('deprecation-rule');
+      expect(output).toContain('message_deprecated');
+      expect(output).toContain('! OrderCreated (event) deprecated by OrdersService, LegacyService');
+    });
+
+    it('shows unknown producer when no producer services found', () => {
+      const results = [
+        {
+          rule: {
+            name: 'deprecation-rule',
+            when: ['message_deprecated' as const],
+            resources: ['*'],
+            actions: [{ type: 'console' as const }],
+          },
+          trigger: 'message_deprecated' as const,
+          matchedChanges: [],
+          deprecationChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrphanEvent',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['deprecated'],
+              },
+              producerServices: [],
+            },
+          ],
+        },
+      ];
+
+      const output = formatGovernanceOutput(results);
+
+      expect(output).toContain('! OrphanEvent (event) deprecated by unknown producer');
     });
   });
 
@@ -1470,6 +1943,105 @@ describe('Governance', () => {
       const body = JSON.parse(fetchSpy.mock.calls[0][1]?.body as string);
       expect(body.data.producer.owners).toEqual(['team-orders']);
       expect(body.data.consumer).toBeUndefined();
+    });
+
+    it('sends deprecation webhook with CloudEvents envelope per producer', async () => {
+      vi.stubEnv('DEPR_WEBHOOK_URL', 'https://deprecation.example.com');
+
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('ok'));
+
+      const results = [
+        {
+          rule: {
+            name: 'deprecation-webhook',
+            when: ['message_deprecated' as const],
+            resources: ['*'],
+            actions: [{ type: 'webhook' as const, url: '$DEPR_WEBHOOK_URL' }],
+          },
+          trigger: 'message_deprecated' as const,
+          matchedChanges: [],
+          deprecationChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['deprecated'],
+              },
+              producerServices: [
+                { id: 'OrdersService', version: '2.0.0', owners: ['team-orders'] },
+                { id: 'LegacyService', version: '1.0.0' },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const eventTypes: MessageTypeMap = new Map([['OrderCreated', 'event']]);
+      const output = await executeGovernanceActions(results, { messageTypes: eventTypes });
+
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+
+      const body1 = JSON.parse(fetchSpy.mock.calls[0][1]!.body as string);
+      expect(body1.specversion).toBe('1.0');
+      expect(body1.type).toBe('eventcatalog.governance.message_deprecated');
+      expect(body1.source).toBe('eventcatalog/governance');
+      expect(body1.data.summary).toBe('OrderCreated (event) has been deprecated by OrdersService');
+      expect(body1.data.producer).toEqual({ id: 'OrdersService', version: '2.0.0', owners: ['team-orders'] });
+      expect(body1.data.message).toEqual({ id: 'OrderCreated', version: '1.0.0', type: 'event' });
+
+      const body2 = JSON.parse(fetchSpy.mock.calls[1][1]!.body as string);
+      expect(body2.data.producer).toEqual({ id: 'LegacyService', version: '1.0.0' });
+      expect(body2.data.producer.owners).toBeUndefined();
+
+      expect(body1.id).not.toBe(body2.id);
+      expect(output).toHaveLength(2);
+      expect(output[0]).toContain('✓');
+    });
+
+    it('sends fallback deprecation webhook when producerServices is empty', async () => {
+      vi.stubEnv('DEPR_WEBHOOK_URL', 'https://deprecation.example.com');
+
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('ok'));
+
+      const results = [
+        {
+          rule: {
+            name: 'deprecation-webhook',
+            when: ['message_deprecated' as const],
+            resources: ['*'],
+            actions: [{ type: 'webhook' as const, url: '$DEPR_WEBHOOK_URL' }],
+          },
+          trigger: 'message_deprecated' as const,
+          matchedChanges: [],
+          deprecationChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrphanEvent',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['deprecated'],
+              },
+              producerServices: [],
+            },
+          ],
+        },
+      ];
+
+      const eventTypes: MessageTypeMap = new Map([['OrphanEvent', 'event']]);
+      const output = await executeGovernanceActions(results, { messageTypes: eventTypes });
+
+      expect(fetchSpy).toHaveBeenCalledOnce();
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]!.body as string);
+      expect(body.type).toBe('eventcatalog.governance.message_deprecated');
+      expect(body.data.summary).toBe('OrphanEvent (event) has been deprecated by unknown');
+      expect(body.data.producer).toEqual({ id: 'unknown', version: 'unknown' });
+      expect(body.data.message).toEqual({ id: 'OrphanEvent', version: '1.0.0', type: 'event' });
+      expect(output).toHaveLength(1);
+      expect(output[0]).toContain('✓');
     });
 
     it('skips console actions and only executes webhooks', async () => {

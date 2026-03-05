@@ -11,4 +11,11 @@ export type { MessageTypeMap, ServiceOwnersMap, GovernanceActionOptions } from '
 export { formatGovernanceOutput } from './format';
 export { governanceCheck } from './check';
 export type { GovernanceCheckOptions } from './check';
-export type { GovernanceTrigger, GovernanceAction, GovernanceRule, GovernanceConfig, GovernanceResult } from './types';
+export type {
+  GovernanceTrigger,
+  GovernanceAction,
+  GovernanceRule,
+  GovernanceConfig,
+  GovernanceResult,
+  DeprecationChange,
+} from './types';

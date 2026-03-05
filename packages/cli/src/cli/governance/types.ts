@@ -1,6 +1,11 @@
-import type { RelationshipChange } from '@eventcatalog/sdk';
+import type { RelationshipChange, ResourceChange } from '@eventcatalog/sdk';
 
-export type GovernanceTrigger = 'consumer_added' | 'consumer_removed' | 'producer_added' | 'producer_removed';
+export type GovernanceTrigger =
+  | 'consumer_added'
+  | 'consumer_removed'
+  | 'producer_added'
+  | 'producer_removed'
+  | 'message_deprecated';
 
 export type GovernanceAction = { type: 'console' } | { type: 'webhook'; url: string; headers?: Record<string, string> };
 
@@ -15,8 +20,14 @@ export type GovernanceConfig = {
   rules: GovernanceRule[];
 };
 
+export type DeprecationChange = {
+  resourceChange: ResourceChange;
+  producerServices: Array<{ id: string; version: string; owners?: string[] }>;
+};
+
 export type GovernanceResult = {
   rule: GovernanceRule;
   trigger: GovernanceTrigger;
   matchedChanges: RelationshipChange[];
+  deprecationChanges?: DeprecationChange[];
 };
