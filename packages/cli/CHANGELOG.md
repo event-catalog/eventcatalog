@@ -1,5 +1,17 @@
 # @eventcatalog/cli
 
+## 0.5.0
+
+### Minor Changes
+
+- af2d4f4: add architecture change detection with governance rules, catalog snapshots, and webhook notifications
+
+### Patch Changes
+
+- Updated dependencies [af2d4f4]
+  - @eventcatalog/sdk@2.17.0
+  - @eventcatalog/language-server@0.8.2
+
 ## 0.4.11
 
 ### Patch Changes
