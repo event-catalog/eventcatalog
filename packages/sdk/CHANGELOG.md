@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.17.2
+
+### Patch Changes
+
+- 0514bb1: fix(sdk): adding resources to services no longer deletes other resources in the folder directory
+
 ## 2.17.1
 
 ### Patch Changes
