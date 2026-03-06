@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.17.1
+
+### Patch Changes
+
+- 6456054: Fix schema API returning empty response in SSR mode and add getSchemaForMessage SDK function
+
 ## 2.17.0
 
 ### Minor Changes

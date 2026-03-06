@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 3.20.1
+
+### Patch Changes
+
+- 6456054: Fix schema API returning empty response in SSR mode and add getSchemaForMessage SDK function
+- Updated dependencies [6456054]
+  - @eventcatalog/sdk@2.17.1
+  - @eventcatalog/linter@1.0.11
+
 ## 3.20.0
 
 ### Minor Changes
