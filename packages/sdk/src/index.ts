@@ -89,6 +89,7 @@ import {
   getMessageBySchemaPath,
   getProducersAndConsumersForMessage,
   getProducersOfSchema,
+  getSchemaForMessage,
 } from './messages';
 
 import { getResourcePath, getResourceFolderName } from './internal/resources';
@@ -1080,6 +1081,15 @@ export default (path: string) => {
      * @returns Service[]
      */
     getProducersOfSchema: getProducersOfSchema(join(path)),
+
+    /**
+     * Returns the schema for a given message (event, command or query) by its id and version.
+     * If no version is given, the latest version is used.
+     * @param id - The id of the message to get the schema for
+     * @param version - Optional version of the message
+     * @returns { schema: string, fileName: string } | undefined
+     */
+    getSchemaForMessage: getSchemaForMessage(join(path)),
 
     /**
      * Returns the owners for a given resource (e.g domain, service, event, command, query, etc.)

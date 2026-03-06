@@ -1,8 +1,9 @@
 import { dirname, join } from 'node:path';
+import fsSync from 'node:fs';
 import type { Message, Service } from './types';
 import matter from 'gray-matter';
 import { getResource, getResourcePath, isLatestVersion } from './internal/resources';
-import { getFiles } from './internal/utils';
+import { findFileById, getFiles } from './internal/utils';
 import { getServices } from './services';
 import { satisfies, validRange } from 'semver';
 
@@ -170,3 +171,44 @@ export const getProducersOfSchema = (directory: string) => async (path: string) 
     return [];
   }
 };
+
+/**
+ * Returns the schema for a given message (event, command or query) by its id and version.
+ *
+ * If no version is given, the latest version is used.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { getSchemaForMessage } = utils('/path/to/eventcatalog');
+ *
+ * // Get the schema for the latest version of the message
+ * const schema = await getSchemaForMessage('InventoryAdjusted');
+ *
+ * // Get the schema for a specific version
+ * const schema = await getSchemaForMessage('InventoryAdjusted', '0.0.1');
+ * ```
+ */
+export const getSchemaForMessage =
+  (directory: string) =>
+  async (id: string, version?: string): Promise<{ schema: string; fileName: string } | undefined> => {
+    const file = await findFileById(directory, id, version);
+    if (!file || !fsSync.existsSync(file)) return undefined;
+
+    const { data } = matter.read(file);
+
+    if (!data.schemaPath) return undefined;
+
+    const resourceDirectory = dirname(file);
+    const pathToSchema = join(resourceDirectory, data.schemaPath);
+
+    if (!fsSync.existsSync(pathToSchema)) return undefined;
+
+    const schema = fsSync.readFileSync(pathToSchema, 'utf8');
+
+    return {
+      schema,
+      fileName: data.schemaPath,
+    };
+  };

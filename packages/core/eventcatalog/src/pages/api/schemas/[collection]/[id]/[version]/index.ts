@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import path from 'node:path';
 import fs from 'node:fs';
+import utils from '@eventcatalog/sdk';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { sortVersioned } from '@utils/collections/util';
 
@@ -59,7 +60,7 @@ export async function getStaticPaths() {
   return [...versionedPaths, ...latestPaths];
 }
 
-export const GET: APIRoute = async ({ props }) => {
+export const GET: APIRoute = async ({ props, params }) => {
   if (!isEventCatalogScaleEnabled()) {
     return new Response(
       JSON.stringify({
@@ -76,7 +77,34 @@ export const GET: APIRoute = async ({ props }) => {
     );
   }
 
-  return new Response(props.schema, {
+  // In static mode, props are pre-computed by getStaticPaths
+  if (props.schema) {
+    return new Response(props.schema, {
+      headers: { 'Content-Type': 'text/plain' },
+    });
+  }
+
+  // In SSR mode, dynamically resolve the schema using the SDK
+  const { id, version } = params;
+
+  if (!id) {
+    return new Response(JSON.stringify({ error: 'Missing id parameter' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { getSchemaForMessage } = utils(process.env.PROJECT_DIR || '');
+  const result = await getSchemaForMessage(id, version === 'latest' ? undefined : version);
+
+  if (!result) {
+    return new Response(JSON.stringify({ error: 'Schema not found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  return new Response(result.schema, {
     headers: { 'Content-Type': 'text/plain' },
   });
 };
