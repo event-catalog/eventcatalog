@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.17.3
+
+### Patch Changes
+
+- 46a2292: Add schema_changed governance trigger and improve snapshot handling
+
 ## 2.17.2
 
 ### Patch Changes
