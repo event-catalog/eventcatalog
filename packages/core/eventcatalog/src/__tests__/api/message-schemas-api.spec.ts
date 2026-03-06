@@ -1,13 +1,18 @@
 import type { ContentCollectionKey } from 'astro:content';
-import { expect, describe, it, vi, beforeEach } from 'vitest';
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
 import { getStaticPaths, GET } from '../../pages/api/schemas/[collection]/[id]/[version]/index.ts';
 import path from 'path';
+import fs from 'node:fs';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 let mockEvents: any[] = [];
 let mockCommands: any[] = [];
 let mockQueries: any[] = [];
+
+let mockGetSchemaForMessage = vi.fn();
+let mockIsEventCatalogScaleEnabled = vi.fn();
+let mockIsSSR = vi.fn().mockReturnValue(false);
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -24,6 +29,21 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve([]);
       }
     },
+  };
+});
+
+vi.mock('@eventcatalog/sdk', () => {
+  return {
+    default: () => ({
+      getSchemaForMessage: (...args: any[]) => mockGetSchemaForMessage(...args),
+    }),
+  };
+});
+
+vi.mock('@utils/feature', () => {
+  return {
+    isEventCatalogScaleEnabled: () => mockIsEventCatalogScaleEnabled(),
+    isSSR: () => mockIsSSR(),
   };
 });
 
@@ -177,9 +197,9 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
     });
   });
 
-  describe('GET', () => {
+  describe('GET (static mode)', () => {
     it('returns the given schema when EventCatalog Scale is enabled', async () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
+      mockIsEventCatalogScaleEnabled.mockReturnValue(true);
       const response = await GET({
         request: new Request('http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0'),
         props: { schema: 'test-schema.json' },
@@ -188,7 +208,7 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
       expect(await response.text()).toEqual('test-schema.json');
     });
     it('returns an error when EventCatalog Scale is disabled', async () => {
-      process.env.EVENTCATALOG_SCALE = 'false';
+      mockIsEventCatalogScaleEnabled.mockReturnValue(false);
       const response = await GET({
         request: new Request('http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0'),
         props: { schema: 'test-schema.json' },
@@ -197,6 +217,69 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
       expect(await response.text()).toEqual(
         '{"error":"feature_not_available_on_server","message":"Schema API is not enabled for this deployment and supported in EventCatalog Scale."}'
       );
+    });
+  });
+
+  describe('GET (SSR mode)', () => {
+    beforeEach(() => {
+      mockGetSchemaForMessage.mockReset();
+      mockIsEventCatalogScaleEnabled.mockReturnValue(true);
+      mockIsSSR.mockReturnValue(true);
+    });
+
+    it('resolves the schema dynamically when props are empty (SSR mode)', async () => {
+      const schemaContent = fs.readFileSync(path.join(__dirname, 'schemas', 'test-schema.json'), 'utf8');
+
+      mockGetSchemaForMessage.mockResolvedValue({ schema: schemaContent, fileName: 'test-schema.json' });
+
+      const response = await GET({
+        request: new Request('http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0'),
+        props: {},
+        params: { collection: 'events', id: 'OrderPlaced', version: '1.0.0' },
+      } as any);
+
+      expect(response.status).toBe(200);
+      expect(await response.text()).toEqual(schemaContent);
+      expect(mockGetSchemaForMessage).toHaveBeenCalledWith('OrderPlaced', '1.0.0');
+    });
+
+    it('passes undefined version to the SDK when version is "latest"', async () => {
+      const schemaContent = fs.readFileSync(path.join(__dirname, 'schemas', 'test-schema.json'), 'utf8');
+
+      mockGetSchemaForMessage.mockResolvedValue({ schema: schemaContent, fileName: 'test-schema.json' });
+
+      const response = await GET({
+        request: new Request('http://localhost:4321/api/schemas/events/OrderPlaced/latest'),
+        props: {},
+        params: { collection: 'events', id: 'OrderPlaced', version: 'latest' },
+      } as any);
+
+      expect(response.status).toBe(200);
+      expect(mockGetSchemaForMessage).toHaveBeenCalledWith('OrderPlaced', undefined);
+    });
+
+    it('returns 404 when the schema is not found in SSR mode', async () => {
+      mockGetSchemaForMessage.mockResolvedValue(undefined);
+
+      const response = await GET({
+        request: new Request('http://localhost:4321/api/schemas/events/NonExistent/1.0.0'),
+        props: {},
+        params: { collection: 'events', id: 'NonExistent', version: '1.0.0' },
+      } as any);
+
+      expect(response.status).toBe(404);
+      expect(await response.json()).toEqual({ error: 'Schema not found' });
+    });
+
+    it('returns 400 when id param is missing in SSR mode', async () => {
+      const response = await GET({
+        request: new Request('http://localhost:4321/api/schemas/events//1.0.0'),
+        props: {},
+        params: { collection: 'events', id: '', version: '1.0.0' },
+      } as any);
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ error: 'Missing id parameter' });
     });
   });
 });

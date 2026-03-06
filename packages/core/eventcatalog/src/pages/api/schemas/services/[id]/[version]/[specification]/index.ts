@@ -4,6 +4,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { getSpecificationsForService } from '@utils/collections/services';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
+import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 
 export async function getStaticPaths() {
   const services = await getCollection('services');
@@ -32,7 +33,7 @@ export async function getStaticPaths() {
   );
 }
 
-export const GET: APIRoute = async ({ props }) => {
+export const GET: APIRoute = async ({ props, params }) => {
   if (!isEventCatalogScaleEnabled()) {
     return new Response(
       JSON.stringify({
@@ -45,7 +46,54 @@ export const GET: APIRoute = async ({ props }) => {
       }
     );
   }
-  return new Response(props.schema, {
+
+  // In static mode, props are pre-computed by getStaticPaths
+  if (props.schema) {
+    return new Response(props.schema, {
+      headers: { 'Content-Type': 'text/plain' },
+    });
+  }
+
+  // In SSR mode, dynamically resolve the schema from params
+  const { id, version, specification } = params;
+
+  if (!id || !version || !specification) {
+    return new Response(JSON.stringify({ error: 'Missing id, version, or specification parameter' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const services = await getCollection('services');
+  const service = services.find((s) => s.data.id === id && s.data.version === version);
+
+  if (!service) {
+    return new Response(JSON.stringify({ error: 'Service not found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const specifications = getSpecificationsForService(service);
+  const spec = specifications.find((s) => s.type === specification);
+
+  if (!spec || !resourceFileExists(service, spec.path)) {
+    return new Response(JSON.stringify({ error: 'Specification not found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const schema = readResourceFile(service, spec.path);
+
+  if (!schema) {
+    return new Response(JSON.stringify({ error: 'Specification file could not be read' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  return new Response(schema, {
     headers: { 'Content-Type': 'text/plain' },
   });
 };

@@ -7,8 +7,11 @@ const CATALOG_PATH = path.join(__dirname, 'catalog-messages');
 
 const {
   getMessageBySchemaPath,
+  getSchemaForMessage,
   writeEvent,
   addSchemaToEvent,
+  writeCommand,
+  addSchemaToCommand,
   getProducersAndConsumersForMessage,
   writeService,
   addEventToService,
@@ -672,6 +675,156 @@ describe('Messages SDK', () => {
     it('if no producers are found for the schema, an empty array is returned', async () => {
       const producers = await getProducersOfSchema('events/InventoryAdjusted/schema.json');
       expect(producers).toEqual([]);
+    });
+  });
+
+  describe('getSchemaForMessage', () => {
+    it('returns the schema for a message by id and version', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        schemaPath: 'schema.json',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const schemaObj = { type: 'object', properties: { name: { type: 'string' } } };
+      await addSchemaToEvent('InventoryAdjusted', { schema: JSON.stringify(schemaObj), fileName: 'schema.json' });
+
+      const result = await getSchemaForMessage('InventoryAdjusted', '0.0.1');
+
+      expect(result).toBeDefined();
+      expect(JSON.parse(result!.schema)).toEqual(schemaObj);
+      expect(result!.fileName).toEqual('schema.json');
+    });
+
+    it('returns the schema for the latest version when no version is specified', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        schemaPath: 'schema.json',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const schemaObj = { type: 'object', properties: { name: { type: 'string' } } };
+      await addSchemaToEvent('InventoryAdjusted', { schema: JSON.stringify(schemaObj), fileName: 'schema.json' });
+
+      const result = await getSchemaForMessage('InventoryAdjusted');
+
+      expect(result).toBeDefined();
+      expect(JSON.parse(result!.schema)).toEqual(schemaObj);
+      expect(result!.fileName).toEqual('schema.json');
+    });
+
+    it('returns the schema for a versioned message', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        schemaPath: 'schema.json',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const schemaObjV1 = { version: 1 };
+      await addSchemaToEvent('InventoryAdjusted', { schema: JSON.stringify(schemaObjV1), fileName: 'schema.json' });
+
+      await versionEvent('InventoryAdjusted');
+
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '1.0.0',
+        schemaPath: 'schema.json',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const schemaObjV2 = { version: 2 };
+      await addSchemaToEvent('InventoryAdjusted', { schema: JSON.stringify(schemaObjV2), fileName: 'schema.json' });
+
+      const resultV1 = await getSchemaForMessage('InventoryAdjusted', '0.0.1');
+      expect(resultV1).toBeDefined();
+      expect(JSON.parse(resultV1!.schema)).toEqual(schemaObjV1);
+
+      const resultLatest = await getSchemaForMessage('InventoryAdjusted');
+      expect(resultLatest).toBeDefined();
+      expect(JSON.parse(resultLatest!.schema)).toEqual(schemaObjV2);
+    });
+
+    it('returns undefined when the message does not exist', async () => {
+      const result = await getSchemaForMessage('NonExistent', '0.0.1');
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the message has no schemaPath', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const result = await getSchemaForMessage('InventoryAdjusted', '0.0.1');
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the schema file does not exist on disk', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        schemaPath: 'missing-schema.json',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const result = await getSchemaForMessage('InventoryAdjusted', '0.0.1');
+      expect(result).toBeUndefined();
+    });
+
+    it('works with commands', async () => {
+      await writeCommand({
+        id: 'PlaceOrder',
+        name: 'Place Order',
+        version: '1.0.0',
+        schemaPath: 'schema.json',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const schemaObj = { type: 'object' };
+      await addSchemaToCommand('PlaceOrder', { schema: JSON.stringify(schemaObj), fileName: 'schema.json' });
+
+      const result = await getSchemaForMessage('PlaceOrder', '1.0.0');
+
+      expect(result).toBeDefined();
+      expect(JSON.parse(result!.schema)).toEqual(schemaObj);
+      expect(result!.fileName).toEqual('schema.json');
+    });
+
+    it('works with non-JSON schema files (e.g. avro)', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        schemaPath: 'schema.avro',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const avroSchema = 'non-json avro content here';
+      await addSchemaToEvent('InventoryAdjusted', { schema: avroSchema, fileName: 'schema.avro' });
+
+      const result = await getSchemaForMessage('InventoryAdjusted', '0.0.1');
+
+      expect(result).toBeDefined();
+      expect(result!.schema).toEqual(avroSchema);
+      expect(result!.fileName).toEqual('schema.avro');
     });
   });
 });
