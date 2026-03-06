@@ -40,7 +40,8 @@
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1",
     "langium": "^3.3.1",
-    "open": "^11.0.0"
+    "open": "^11.0.0",
+    "semver": "^7.7.2"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

@@ -1630,7 +1630,6 @@ describe('Services SDK', () => {
       expect(service.receives).toEqual([{ id: 'UpdateInventory', version: '2.0.0' }]);
     });
   });
-
   describe('addQueryToService', () => {
     it('takes an existing query and adds it to the sends of an existing service', async () => {
       await writeService({

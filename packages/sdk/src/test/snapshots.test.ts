@@ -5,7 +5,17 @@ import fs from 'node:fs';
 
 const CATALOG_PATH = path.join(__dirname, 'catalog-snapshots');
 
-const { writeService, writeEvent, versionEvent, createSnapshot, diffSnapshots, listSnapshots } = utils(CATALOG_PATH);
+const {
+  writeService,
+  writeEvent,
+  writeCommand,
+  writeQuery,
+  versionEvent,
+  addSchemaToEvent,
+  createSnapshot,
+  diffSnapshots,
+  listSnapshots,
+} = utils(CATALOG_PATH);
 
 // clean the catalog before each test
 beforeEach(() => {
@@ -65,6 +75,97 @@ describe('Snapshots SDK', () => {
 
       expect(result.snapshot.label).toBe('pre-release');
       expect(result.filePath).toContain('pre-release');
+    });
+
+    it('when an event has a schemaPath and schema file, createSnapshot includes a schemaHash for that event', async () => {
+      await writeEvent({
+        id: 'OrderCreated',
+        name: 'Order Created',
+        version: '1.0.0',
+        schemaPath: 'schema.json',
+        markdown: '',
+      });
+      await addSchemaToEvent('OrderCreated', {
+        schema: JSON.stringify({ type: 'object', properties: { orderId: { type: 'string' } } }),
+        fileName: 'schema.json',
+      });
+
+      const result = await createSnapshot({ outputDir: path.join(CATALOG_PATH, '.snapshots') });
+      const event = result.snapshot.resources.messages.events[0];
+
+      expect(event.schemaHash).toBeDefined();
+      expect(typeof event.schemaHash).toBe('string');
+      expect(event.schemaHash.length).toBe(64); // SHA-256 hex digest
+    });
+
+    it('when an event has no schemaPath, createSnapshot does not include a schemaHash for that event', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+
+      const result = await createSnapshot({ outputDir: path.join(CATALOG_PATH, '.snapshots') });
+      const event = result.snapshot.resources.messages.events[0];
+
+      expect(event.schemaHash).toBeUndefined();
+    });
+
+    it('when schema file content changes, createSnapshot produces a different schemaHash', async () => {
+      await writeEvent({
+        id: 'OrderCreated',
+        name: 'Order Created',
+        version: '1.0.0',
+        schemaPath: 'schema.json',
+        markdown: '',
+      });
+      await addSchemaToEvent('OrderCreated', {
+        schema: JSON.stringify({ type: 'object', properties: { orderId: { type: 'string' } } }),
+        fileName: 'schema.json',
+      });
+
+      const result1 = await createSnapshot({ label: 'snap1', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+      const hash1 = result1.snapshot.resources.messages.events[0].schemaHash;
+
+      // Change the schema content
+      await addSchemaToEvent('OrderCreated', {
+        schema: JSON.stringify({ type: 'object', properties: { orderId: { type: 'string' }, amount: { type: 'number' } } }),
+        fileName: 'schema.json',
+      });
+
+      const result2 = await createSnapshot({ label: 'snap2', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+      const hash2 = result2.snapshot.resources.messages.events[0].schemaHash;
+
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('when commands and queries have schema files, createSnapshot includes schemaHash values for them too', async () => {
+      await writeCommand({
+        id: 'ProcessPayment',
+        name: 'Process Payment',
+        version: '1.0.0',
+        schemaPath: 'schema.json',
+        markdown: '',
+      });
+      // Write schema file directly for the command
+      const commandSchemaPath = path.join(CATALOG_PATH, 'commands', 'ProcessPayment', 'schema.json');
+      fs.writeFileSync(commandSchemaPath, JSON.stringify({ type: 'object' }));
+
+      await writeQuery({
+        id: 'GetOrder',
+        name: 'Get Order',
+        version: '1.0.0',
+        schemaPath: 'schema.json',
+        markdown: '',
+      });
+      const querySchemaPath = path.join(CATALOG_PATH, 'queries', 'GetOrder', 'schema.json');
+      fs.writeFileSync(querySchemaPath, JSON.stringify({ type: 'object', properties: { id: { type: 'string' } } }));
+
+      const result = await createSnapshot({ outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      const command = result.snapshot.resources.messages.commands[0];
+      const query = result.snapshot.resources.messages.queries[0];
+
+      expect(command.schemaHash).toBeDefined();
+      expect(command.schemaHash.length).toBe(64);
+      expect(query.schemaHash).toBeDefined();
+      expect(query.schemaHash.length).toBe(64);
     });
 
     it('writes the snapshot file to disk', async () => {
@@ -364,6 +465,59 @@ describe('Snapshots SDK', () => {
       expect(removedRel.resourceId).toBe('OrderUpdated');
       expect(removedRel.direction).toBe('sends');
       expect(removedRel.changeType).toBe('removed');
+    });
+
+    it('when a message schema file changes between snapshots, diffSnapshots reports schemaHash as a changed field', async () => {
+      await writeEvent({
+        id: 'OrderCreated',
+        name: 'Order Created',
+        version: '1.0.0',
+        schemaPath: 'schema.json',
+        markdown: '',
+      });
+      await addSchemaToEvent('OrderCreated', {
+        schema: JSON.stringify({ type: 'object', properties: { orderId: { type: 'string' } } }),
+        fileName: 'schema.json',
+      });
+
+      const snapshotA = await createSnapshot({ label: 'before', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      // Change the schema content
+      await addSchemaToEvent('OrderCreated', {
+        schema: JSON.stringify({ type: 'object', properties: { orderId: { type: 'string' }, amount: { type: 'number' } } }),
+        fileName: 'schema.json',
+      });
+
+      const snapshotB = await createSnapshot({ label: 'after', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      const diff = await diffSnapshots(snapshotA.filePath, snapshotB.filePath);
+
+      const modified = diff.resources.find((r) => r.resourceId === 'OrderCreated');
+      expect(modified).toBeDefined();
+      expect(modified!.changeType).toBe('modified');
+      expect(modified!.changedFields).toContain('schemaHash');
+    });
+
+    it('when schema content is identical between snapshots, diffSnapshots does not report a schema change', async () => {
+      await writeEvent({
+        id: 'OrderCreated',
+        name: 'Order Created',
+        version: '1.0.0',
+        schemaPath: 'schema.json',
+        markdown: '',
+      });
+      await addSchemaToEvent('OrderCreated', {
+        schema: JSON.stringify({ type: 'object', properties: { orderId: { type: 'string' } } }),
+        fileName: 'schema.json',
+      });
+
+      const snapshotA = await createSnapshot({ label: 'before', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+      const snapshotB = await createSnapshot({ label: 'after', outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      const diff = await diffSnapshots(snapshotA.filePath, snapshotB.filePath);
+
+      expect(diff.summary.totalChanges).toBe(0);
+      expect(diff.resources).toHaveLength(0);
     });
 
     it('detects when a service removes a receives relationship', async () => {

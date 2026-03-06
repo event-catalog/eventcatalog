@@ -11,7 +11,14 @@ export const formatGovernanceOutput = (results: GovernanceResult[]): string => {
   for (const result of results) {
     lines.push(`  Rule "${result.rule.name}" triggered (${result.trigger}):`);
 
-    if (result.deprecationChanges && result.deprecationChanges.length > 0) {
+    if (result.schemaChanges && result.schemaChanges.length > 0) {
+      for (const sc of result.schemaChanges) {
+        const consumers = sc.consumerServices.length > 0 ? sc.consumerServices.map((c) => c.id).join(', ') : 'no known consumers';
+        lines.push(
+          `    ! Schema changed for ${sc.resourceChange.resourceId} (${sc.resourceChange.type}) — consumers: ${consumers}`
+        );
+      }
+    } else if (result.deprecationChanges && result.deprecationChanges.length > 0) {
       for (const dc of result.deprecationChanges) {
         const producers = dc.producerServices.length > 0 ? dc.producerServices.map((p) => p.id).join(', ') : 'unknown producer';
         lines.push(`    ! ${dc.resourceChange.resourceId} (${dc.resourceChange.type}) deprecated by ${producers}`);

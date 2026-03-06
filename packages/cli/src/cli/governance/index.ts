@@ -5,6 +5,7 @@ export {
   isProducerTrigger,
   getChangeVerb,
   buildServiceMessageSets,
+  enrichSchemaContent,
 } from './rules';
 export { executeGovernanceActions, buildMessageTypeMap, buildServiceOwnersMap } from './actions';
 export type { MessageTypeMap, ServiceOwnersMap, GovernanceActionOptions } from './actions';
@@ -18,4 +19,5 @@ export type {
   GovernanceConfig,
   GovernanceResult,
   DeprecationChange,
+  SchemaChange,
 } from './types';

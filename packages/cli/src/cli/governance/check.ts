@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import dotenv from 'dotenv';
 import createSDK from '@eventcatalog/sdk';
 import { isEventCatalogScaleEnabled } from '@eventcatalog/license';
-import { loadGovernanceConfig, evaluateGovernanceRules } from './rules';
+import { loadGovernanceConfig, evaluateGovernanceRules, enrichSchemaContent } from './rules';
 import { formatGovernanceOutput } from './format';
 import { executeGovernanceActions, buildMessageTypeMap, buildServiceOwnersMap } from './actions';
 
@@ -63,11 +63,13 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
     const baseResult = await baseSDK.createSnapshot({ label: `base-${baseBranch}`, outputDir: baseSnapshotDir });
 
     let targetResult;
+    let targetCatalogDir: string;
     if (opts.target) {
-      const targetTmpDir = extractBranchToTempDir(opts.target, dir, tempDirs);
-      const targetSDK = createSDK(targetTmpDir);
+      targetCatalogDir = extractBranchToTempDir(opts.target, dir, tempDirs);
+      const targetSDK = createSDK(targetCatalogDir);
       targetResult = await targetSDK.createSnapshot({ label: `target-${opts.target}`, outputDir: targetSnapshotDir });
     } else {
+      targetCatalogDir = dir;
       const targetSDK = createSDK(dir);
       targetResult = await targetSDK.createSnapshot({ label: 'current', outputDir: targetSnapshotDir });
     }
@@ -82,6 +84,9 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
 
     const results = evaluateGovernanceRules(diff, config, targetResult.snapshot, baseResult.snapshot);
 
+    // Populate before/after schema content for any schema_changed results
+    await enrichSchemaContent(results, baseTmpDir, targetCatalogDir);
+
     // Always execute actions (webhooks) regardless of output format
     const messageTypes = buildMessageTypeMap(targetResult.snapshot);
     const serviceOwners = buildServiceOwnersMap(targetResult.snapshot);
@@ -89,6 +94,8 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
       messageTypes,
       status: opts.status,
       serviceOwners,
+      baseRef: baseBranch,
+      targetRef: opts.target || 'working-directory',
     });
 
     if (opts.format === 'json') {
