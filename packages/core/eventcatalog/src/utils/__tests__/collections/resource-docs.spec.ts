@@ -82,13 +82,13 @@ const mockResourceDocs = [
     id: 'domains/Payments/versioned/0.9.0/docs/runbooks/legacy-ops.mdx',
     collection: 'resourceDocs',
     filePath: 'domains/Payments/versioned/0.9.0/docs/runbooks/legacy-ops.mdx',
-    data: { id: 'legacy-ops', type: 'runbooks', version: '1.0.0', title: 'Legacy Operations' },
+    data: { id: 'legacy-ops', type: 'runbooks', title: 'Legacy Operations' },
   },
   {
     id: 'domains/Payments/services/BillingService/docs/guides/on-call.mdx',
     collection: 'resourceDocs',
     filePath: 'domains/Payments/services/BillingService/docs/guides/on-call.mdx',
-    data: { id: 'on-call', type: 'guides', version: '1.0.0', title: 'On-call Guide' },
+    data: { id: 'on-call', type: 'guides', title: 'On-call Guide' },
   },
   {
     id: 'domains/Payments/services/BillingService/events/InvoiceIssued/docs/reference/payload.mdx',
@@ -342,6 +342,34 @@ describe('resource-docs', () => {
       resourceCollection: 'domains',
       resourceId: 'random',
       resourceVersion: '1.0.0',
+    });
+  });
+
+  it('when a resource doc does not specify a version, it inherits the version from its parent resource', async () => {
+    const docs = await getResourceDocs();
+    const versionedDoc = docs.find(
+      (doc) =>
+        doc.data.resourceCollection === 'domains' &&
+        doc.data.resourceId === 'Payments' &&
+        doc.data.resourceVersion === '0.9.0' &&
+        doc.data.id === 'legacy-ops'
+    );
+    const resourceScopedDoc = docs.find(
+      (doc) => doc.data.resourceCollection === 'services' && doc.data.resourceId === 'BillingService' && doc.data.id === 'on-call'
+    );
+
+    expect(versionedDoc).toBeDefined();
+    expect(versionedDoc!.data).toMatchObject({
+      version: '0.9.0',
+      latestVersion: '0.9.0',
+      resourceVersion: '0.9.0',
+    });
+
+    expect(resourceScopedDoc).toBeDefined();
+    expect(resourceScopedDoc!.data).toMatchObject({
+      version: '2.0.0',
+      latestVersion: '2.0.0',
+      resourceVersion: '2.0.0',
     });
   });
 });
