@@ -12,9 +12,14 @@ const {
   writeServiceToDomain,
   writeVersionedService,
   writeEvent,
+  writeCommand,
+  writeEventToService,
+  writeCommandToService,
   getService,
   getServiceByPath,
   getServices,
+  getEvent,
+  getCommand,
   versionService,
   rmService,
   rmServiceById,
@@ -1466,6 +1471,166 @@ describe('Services SDK', () => {
       ).rejects.toThrowError("Direction doesnotexist is invalid, only 'receives' and 'sends' are supported");
     });
   });
+
+  describe('addMessageToService does not remove sibling resources', () => {
+    it('when a command is added to a service via addCommandToService, an event previously written to the service with writeEventToService is not deleted', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      // Write an event to the service using SDK (no version → goes to events/ directly)
+      await writeEventToService(
+        {
+          id: 'InventoryUpdatedEvent',
+          name: 'Inventory Updated',
+          version: '1.0.0',
+          summary: 'Event when inventory is updated',
+          markdown: '# Inventory Updated Event',
+        },
+        { id: 'InventoryService' }
+      );
+
+      // Add the event to the service sends
+      await addEventToService('InventoryService', 'sends', { id: 'InventoryUpdatedEvent', version: '1.0.0' }, '0.0.1');
+
+      // Verify event exists before the command is added
+      const eventBefore = await getEvent('InventoryUpdatedEvent', '1.0.0');
+      expect(eventBefore).toBeDefined();
+
+      // Now add a command to the same service
+      await addCommandToService('InventoryService', 'receives', { id: 'UpdateInventory', version: '2.0.0' }, '0.0.1');
+
+      // The event should still be retrievable after addCommandToService
+      const eventAfter = await getEvent('InventoryUpdatedEvent', '1.0.0');
+      expect(eventAfter).toBeDefined();
+      expect(eventAfter.id).toBe('InventoryUpdatedEvent');
+      expect(eventAfter.version).toBe('1.0.0');
+
+      // The event file should still exist on disk
+      expect(
+        fs.existsSync(path.join(CATALOG_PATH, 'services', 'InventoryService', 'events', 'InventoryUpdatedEvent', 'index.mdx'))
+      ).toBe(true);
+
+      // The service frontmatter should reference both
+      const service = await getService('InventoryService');
+      expect(service.sends).toEqual([{ id: 'InventoryUpdatedEvent', version: '1.0.0' }]);
+      expect(service.receives).toEqual([{ id: 'UpdateInventory', version: '2.0.0' }]);
+    });
+
+    it('when an event is added to a service via addEventToService, a command previously written to the service with writeCommandToService is not deleted', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      // Write a command to the service using SDK (no version → goes to commands/ directly)
+      await writeCommandToService(
+        {
+          id: 'UpdateInventory',
+          name: 'Update Inventory',
+          version: '2.0.0',
+          summary: 'Command to update inventory',
+          markdown: '# Update Inventory Command',
+        },
+        { id: 'InventoryService' }
+      );
+
+      // Add the command to the service receives
+      await addCommandToService('InventoryService', 'receives', { id: 'UpdateInventory', version: '2.0.0' }, '0.0.1');
+
+      // Verify command exists before the event is added
+      const commandBefore = await getCommand('UpdateInventory', '2.0.0');
+      expect(commandBefore).toBeDefined();
+
+      // Now add an event to the same service
+      await addEventToService('InventoryService', 'sends', { id: 'InventoryUpdatedEvent', version: '1.0.0' }, '0.0.1');
+
+      // The command should still be retrievable after addEventToService
+      const commandAfter = await getCommand('UpdateInventory', '2.0.0');
+      expect(commandAfter).toBeDefined();
+      expect(commandAfter.id).toBe('UpdateInventory');
+      expect(commandAfter.version).toBe('2.0.0');
+
+      // The command file should still exist on disk
+      expect(
+        fs.existsSync(path.join(CATALOG_PATH, 'services', 'InventoryService', 'commands', 'UpdateInventory', 'index.mdx'))
+      ).toBe(true);
+
+      // The service frontmatter should reference both
+      const service = await getService('InventoryService');
+      expect(service.receives).toEqual([{ id: 'UpdateInventory', version: '2.0.0' }]);
+      expect(service.sends).toEqual([{ id: 'InventoryUpdatedEvent', version: '1.0.0' }]);
+    });
+
+    it('when a command is added to a service, both an event and command previously written to the service survive', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      // Write an event to the service (no version → events/ directly)
+      await writeEventToService(
+        {
+          id: 'InventoryUpdatedEvent',
+          name: 'Inventory Updated',
+          version: '1.0.0',
+          summary: 'Event when inventory is updated',
+          markdown: '# Inventory Updated Event',
+        },
+        { id: 'InventoryService' }
+      );
+      await addEventToService('InventoryService', 'sends', { id: 'InventoryUpdatedEvent', version: '1.0.0' }, '0.0.1');
+
+      // Write a command to the service (no version → commands/ directly)
+      await writeCommandToService(
+        {
+          id: 'UpdateInventory',
+          name: 'Update Inventory',
+          version: '2.0.0',
+          summary: 'Command to update inventory',
+          markdown: '# Update Inventory Command',
+        },
+        { id: 'InventoryService' }
+      );
+      await addCommandToService('InventoryService', 'receives', { id: 'UpdateInventory', version: '2.0.0' }, '0.0.1');
+
+      // Now add a second command — this should not destroy the event or first command
+      await addCommandToService('InventoryService', 'sends', { id: 'NotifyWarehouse', version: '1.0.0' }, '0.0.1');
+
+      // Event file must still exist
+      expect(
+        fs.existsSync(path.join(CATALOG_PATH, 'services', 'InventoryService', 'events', 'InventoryUpdatedEvent', 'index.mdx'))
+      ).toBe(true);
+      const eventStillExists = await getEvent('InventoryUpdatedEvent', '1.0.0');
+      expect(eventStillExists).toBeDefined();
+
+      // Command file must still exist
+      expect(
+        fs.existsSync(path.join(CATALOG_PATH, 'services', 'InventoryService', 'commands', 'UpdateInventory', 'index.mdx'))
+      ).toBe(true);
+      const commandStillExists = await getCommand('UpdateInventory', '2.0.0');
+      expect(commandStillExists).toBeDefined();
+
+      // Service should reference all messages
+      const service = await getService('InventoryService');
+      expect(service.sends).toEqual([
+        { id: 'InventoryUpdatedEvent', version: '1.0.0' },
+        { id: 'NotifyWarehouse', version: '1.0.0' },
+      ]);
+      expect(service.receives).toEqual([{ id: 'UpdateInventory', version: '2.0.0' }]);
+    });
+  });
+
   describe('addQueryToService', () => {
     it('takes an existing query and adds it to the sends of an existing service', async () => {
       await writeService({
