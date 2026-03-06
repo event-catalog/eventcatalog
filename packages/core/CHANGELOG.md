@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.20.3
+
+### Patch Changes
+
+- 1ac3ffc: fix resource docs without explicit version being silently dropped — they now inherit the version from their parent resource
+
 ## 3.20.2
 
 ### Patch Changes
