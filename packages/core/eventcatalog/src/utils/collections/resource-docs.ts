@@ -374,10 +374,10 @@ export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
       const inferredType = inferDocTypeFromFilePath(doc.filePath);
       const resolvedType = doc.data.type || inferredType || 'pages';
       const resolvedDocId = doc.data.id || inferDocIdFromFilePath(doc.filePath);
-      const resolvedDocVersion = doc.data.version;
       const { resourceCollection, resourceId, resourceVersion } = resolvedResource;
+      const resolvedDocVersion = doc.data.version || resourceVersion;
 
-      if (!resolvedDocId || !resolvedDocVersion) {
+      if (!resolvedDocId) {
         return null;
       }
 
