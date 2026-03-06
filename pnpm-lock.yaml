@@ -50,6 +50,9 @@ importers:
       open:
         specifier: ^11.0.0
         version: 11.0.0
+      semver:
+        specifier: ^7.7.2
+        version: 7.7.4
     devDependencies:
       '@types/js-yaml':
         specifier: ^4.0.9
@@ -9475,7 +9478,7 @@ snapshots:
       package-manager-detector: 0.2.11
       picocolors: 1.1.1
       resolve-from: 5.0.0
-      semver: 7.7.3
+      semver: 7.7.4
       spawndamnit: 3.0.1
       term-size: 2.2.1
     transitivePeerDependencies:
@@ -15669,7 +15672,7 @@ snapshots:
       lodash.isstring: 4.0.1
       lodash.once: 4.1.1
       ms: 2.1.3
-      semver: 7.7.3
+      semver: 7.7.4
 
   junk@4.0.1: {}
 
@@ -18551,7 +18554,7 @@ snapshots:
       is-npm: 6.1.0
       latest-version: 9.0.0
       pupa: 3.3.0
-      semver: 7.7.3
+      semver: 7.7.4
       xdg-basedir: 5.1.0
 
   urijs@1.19.11: {}

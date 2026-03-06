@@ -10,6 +10,8 @@ export type GovernanceActionOptions = {
   messageTypes?: MessageTypeMap;
   status?: string;
   serviceOwners?: ServiceOwnersMap;
+  baseRef?: string;
+  targetRef?: string;
 };
 
 export const buildMessageTypeMap = (snapshot: CatalogSnapshot): MessageTypeMap => {
@@ -40,7 +42,7 @@ export const executeGovernanceActions = async (
   results: GovernanceResult[],
   opts: GovernanceActionOptions = {}
 ): Promise<string[]> => {
-  const { messageTypes, status, serviceOwners } = opts;
+  const { messageTypes, status, serviceOwners, baseRef, targetRef } = opts;
   const webhookCalls: Array<{ urlTemplate: string; request: Promise<Response> }> = [];
   const now = new Date().toISOString();
 
@@ -55,6 +57,50 @@ export const executeGovernanceActions = async (
         for (const [key, value] of Object.entries(action.headers)) {
           headers[key] = resolveEnvVars(value);
         }
+      }
+
+      // Handle schema changes
+      if (result.schemaChanges && result.schemaChanges.length > 0) {
+        for (const sc of result.schemaChanges) {
+          const messageType = messageTypes?.get(sc.resourceChange.resourceId) || 'message';
+
+          const payload = {
+            specversion: '1.0',
+            type: 'eventcatalog.governance.schema_changed',
+            source: 'eventcatalog/governance',
+            id: randomUUID(),
+            time: now,
+            datacontenttype: 'application/json',
+            data: {
+              schemaVersion: 1,
+              ...(status && { status }),
+              summary: `Schema changed for ${messageType} ${sc.resourceChange.resourceId}`,
+              message: {
+                id: sc.resourceChange.resourceId,
+                version: sc.resourceChange.version,
+                type: messageType,
+              },
+              schema: {
+                beforeHash: sc.beforeSchemaHash ?? null,
+                afterHash: sc.afterSchemaHash ?? null,
+                beforePath: sc.beforeSchemaPath ?? null,
+                afterPath: sc.afterSchemaPath ?? null,
+              },
+              refs: {
+                base: baseRef ?? null,
+                target: targetRef ?? null,
+              },
+              consumers: sc.consumerServices,
+              producers: sc.producerServices,
+            },
+          };
+
+          webhookCalls.push({
+            urlTemplate: action.url,
+            request: fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) }),
+          });
+        }
+        continue;
       }
 
       // Handle deprecation changes

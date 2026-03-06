@@ -1,6 +1,7 @@
 import { expect, it, describe, beforeEach, afterEach, vi } from 'vitest';
 import path from 'node:path';
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import {
   loadGovernanceConfig,
   evaluateGovernanceRules,
@@ -9,8 +10,15 @@ import {
   executeGovernanceActions,
   buildMessageTypeMap,
   buildServiceOwnersMap,
+  enrichSchemaContent,
 } from '../cli/governance';
-import type { GovernanceConfig, MessageTypeMap, ServiceOwnersMap, GovernanceActionOptions } from '../cli/governance';
+import type {
+  GovernanceConfig,
+  MessageTypeMap,
+  ServiceOwnersMap,
+  GovernanceActionOptions,
+  GovernanceResult,
+} from '../cli/governance';
 import type { SnapshotDiff, RelationshipChange, ResourceChange, CatalogSnapshot } from '@eventcatalog/sdk';
 
 const TEMP_DIR = path.join(__dirname, 'governance-temp');
@@ -49,8 +57,8 @@ type SnapshotMessages = {
 const makeSnapshot = (
   services: Array<{
     id: string;
-    sends?: Array<{ id: string }>;
-    receives?: Array<{ id: string }>;
+    sends?: Array<{ id: string; version?: string }>;
+    receives?: Array<{ id: string; version?: string }>;
     owners?: string[];
   }>,
   messages?: SnapshotMessages
@@ -1134,9 +1142,682 @@ describe('Governance', () => {
     });
   });
 
+  describe('evaluateGovernanceRules - schema_changed', () => {
+    it('when a message schema hash changes, the schema_changed rule triggers for that message', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].trigger).toBe('schema_changed');
+      expect(results[0].schemaChanges).toHaveLength(1);
+      expect(results[0].schemaChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('when a resource changes without changing schemaHash, the schema_changed rule does not trigger', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['name'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }]);
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }]);
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('when a rule targets message:OrderCreated, it ignores schema changes for other messages', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'specific-schema-rule',
+            when: ['schema_changed'],
+            resources: ['message:OrderCreated'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+          {
+            resourceId: 'PaymentProcessed',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }]);
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].schemaChanges).toHaveLength(1);
+      expect(results[0].schemaChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('when a rule targets consumes:PaymentService, it triggers for schema changes on messages consumed by that service', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'consumer-schema-rule',
+            when: ['schema_changed'],
+            resources: ['consumes:PaymentService'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+          {
+            resourceId: 'UserRegistered',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([
+        { id: 'PaymentService', receives: [{ id: 'OrderCreated' }] },
+        { id: 'OrdersService', sends: [{ id: 'OrderCreated' }] },
+      ]);
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].schemaChanges).toHaveLength(1);
+      expect(results[0].schemaChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('when a rule targets produces:OrdersService, it triggers for schema changes on messages produced by that service', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'producer-schema-rule',
+            when: ['schema_changed'],
+            resources: ['produces:OrdersService'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+          {
+            resourceId: 'UserRegistered',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([
+        { id: 'OrdersService', sends: [{ id: 'OrderCreated' }] },
+        { id: 'UserService', sends: [{ id: 'UserRegistered' }] },
+      ]);
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].schemaChanges).toHaveLength(1);
+      expect(results[0].schemaChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('when a schema change is matched, it includes impacted consumer and producer services in the result', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([
+        { id: 'OrdersService', sends: [{ id: 'OrderCreated' }], owners: ['team-orders'] },
+        { id: 'PaymentService', receives: [{ id: 'OrderCreated' }], owners: ['team-payments'] },
+        { id: 'NotificationService', receives: [{ id: 'OrderCreated' }] },
+      ]);
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      const sc = results[0].schemaChanges![0];
+      expect(sc.producerServices).toHaveLength(1);
+      expect(sc.producerServices[0]).toEqual({ id: 'OrdersService', version: '1.0.0', owners: ['team-orders'] });
+      expect(sc.consumerServices).toHaveLength(2);
+      expect(sc.consumerServices.find((c) => c.id === 'PaymentService')).toEqual({
+        id: 'PaymentService',
+        version: '1.0.0',
+        owners: ['team-payments'],
+      });
+      expect(sc.consumerServices.find((c) => c.id === 'NotificationService')).toEqual({
+        id: 'NotificationService',
+        version: '1.0.0',
+      });
+    });
+
+    it('when a schema changes for version 2.0.0, only services pinned to version 2.0.0 are included as impacted consumers and producers', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '2.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersV1Producer', sends: [{ id: 'OrderCreated', version: '1.0.0' }] },
+          { id: 'OrdersV2Producer', sends: [{ id: 'OrderCreated', version: '2.0.0' }] },
+          { id: 'BillingV1Consumer', receives: [{ id: 'OrderCreated', version: '1.0.0' }] },
+          { id: 'BillingV2Consumer', receives: [{ id: 'OrderCreated', version: '2.0.0' }] },
+        ],
+        {
+          events: [{ id: 'OrderCreated', version: '2.0.0', name: 'OrderCreated' }],
+        }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].schemaChanges).toHaveLength(1);
+      expect(results[0].schemaChanges![0].producerServices).toEqual([{ id: 'OrdersV2Producer', version: '1.0.0' }]);
+      expect(results[0].schemaChanges![0].consumerServices).toEqual([{ id: 'BillingV2Consumer', version: '1.0.0' }]);
+    });
+
+    it('when a schema changes for the latest version, services with no version are treated as consuming and producing latest', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '2.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersLatestProducer', sends: [{ id: 'OrderCreated' }] },
+          { id: 'BillingLatestConsumer', receives: [{ id: 'OrderCreated' }] },
+        ],
+        {
+          events: [{ id: 'OrderCreated', version: '2.0.0', name: 'OrderCreated' }],
+        }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].schemaChanges).toHaveLength(1);
+      expect(results[0].schemaChanges![0].producerServices).toEqual([{ id: 'OrdersLatestProducer', version: '1.0.0' }]);
+      expect(results[0].schemaChanges![0].consumerServices).toEqual([{ id: 'BillingLatestConsumer', version: '1.0.0' }]);
+    });
+
+    it('when a schema changes for version 2.0.0, services with no version are not included if 2.0.0 is not the latest version in the target snapshot', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '2.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersLatestProducer', sends: [{ id: 'OrderCreated' }] },
+          { id: 'BillingLatestConsumer', receives: [{ id: 'OrderCreated' }] },
+          { id: 'OrdersV2Producer', sends: [{ id: 'OrderCreated', version: '2.0.0' }] },
+          { id: 'BillingV2Consumer', receives: [{ id: 'OrderCreated', version: '2.0.0' }] },
+        ],
+        {
+          events: [{ id: 'OrderCreated', version: '3.0.0', name: 'OrderCreated' }],
+        }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].schemaChanges).toHaveLength(1);
+      expect(results[0].schemaChanges![0].producerServices).toEqual([{ id: 'OrdersV2Producer', version: '1.0.0' }]);
+      expect(results[0].schemaChanges![0].consumerServices).toEqual([{ id: 'BillingV2Consumer', version: '1.0.0' }]);
+    });
+
+    it('when a rule targets consumes:BillingService, it does not trigger for a schema change on a version BillingService does not consume', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['consumes:BillingService'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '2.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'BillingService', receives: [{ id: 'OrderCreated', version: '1.0.0' }] }], {
+        events: [{ id: 'OrderCreated', version: '2.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('when a rule targets produces:OrdersService, it does not trigger for a schema change on a version OrdersService does not produce', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['produces:OrdersService'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '2.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated', version: '1.0.0' }] }], {
+        events: [{ id: 'OrderCreated', version: '2.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('when a service uses a caret semver range, it is included when the changed schema version satisfies that range', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.2.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersCaretProducer', sends: [{ id: 'OrderCreated', version: '^1.0.0' }] },
+          { id: 'BillingCaretConsumer', receives: [{ id: 'OrderCreated', version: '^1.0.0' }] },
+        ],
+        {
+          events: [{ id: 'OrderCreated', version: '2.0.0', name: 'OrderCreated' }],
+        }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].schemaChanges).toHaveLength(1);
+      expect(results[0].schemaChanges![0].producerServices).toEqual([{ id: 'OrdersCaretProducer', version: '1.0.0' }]);
+      expect(results[0].schemaChanges![0].consumerServices).toEqual([{ id: 'BillingCaretConsumer', version: '1.0.0' }]);
+    });
+
+    it('when a service uses a tilde semver range, it is included for compatible patch releases and excluded for incompatible minor releases', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const patchDiff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.2.5',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const incompatibleMinorDiff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.3.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersTildeProducer', sends: [{ id: 'OrderCreated', version: '~1.2.0' }] },
+          { id: 'BillingTildeConsumer', receives: [{ id: 'OrderCreated', version: '~1.2.0' }] },
+        ],
+        {
+          events: [{ id: 'OrderCreated', version: '2.0.0', name: 'OrderCreated' }],
+        }
+      );
+
+      const patchResults = evaluateGovernanceRules(patchDiff, config, targetSnapshot);
+      const incompatibleMinorResults = evaluateGovernanceRules(incompatibleMinorDiff, config, targetSnapshot);
+
+      expect(patchResults).toHaveLength(1);
+      expect(patchResults[0].schemaChanges).toHaveLength(1);
+      expect(patchResults[0].schemaChanges![0].producerServices).toEqual([{ id: 'OrdersTildeProducer', version: '1.0.0' }]);
+      expect(patchResults[0].schemaChanges![0].consumerServices).toEqual([{ id: 'BillingTildeConsumer', version: '1.0.0' }]);
+
+      expect(incompatibleMinorResults).toHaveLength(1);
+      expect(incompatibleMinorResults[0].schemaChanges).toHaveLength(1);
+      expect(incompatibleMinorResults[0].schemaChanges![0].producerServices).toEqual([]);
+      expect(incompatibleMinorResults[0].schemaChanges![0].consumerServices).toEqual([]);
+    });
+
+    it('when schemaHash changes on commands and queries, the schema_changed rule treats them as supported message types', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'ProcessPayment',
+            version: '1.0.0',
+            type: 'command',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+          {
+            resourceId: 'GetOrder',
+            version: '1.0.0',
+            type: 'query',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'ProcessPayment' }, { id: 'GetOrder' }] }]);
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].schemaChanges).toHaveLength(2);
+    });
+
+    it('when schemaHash changes on non-message resources, the schema_changed rule ignores those changes', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'schema-change-rule',
+            when: ['schema_changed'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrdersService',
+            version: '1.0.0',
+            type: 'service',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService' }]);
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(0);
+    });
+  });
+
+  describe('formatGovernanceOutput - schema_changed', () => {
+    it('when formatting schema_changed output, it includes the changed message type and impacted consumer names', () => {
+      const results: GovernanceResult[] = [
+        {
+          rule: {
+            name: 'schema-change-rule',
+            when: ['schema_changed' as const],
+            resources: ['*'],
+            actions: [{ type: 'console' as const }],
+          },
+          trigger: 'schema_changed' as const,
+          matchedChanges: [],
+          schemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [
+                { id: 'PaymentService', version: '1.0.0' },
+                { id: 'NotificationService', version: '1.0.0' },
+              ],
+              producerServices: [{ id: 'OrdersService', version: '1.0.0' }],
+            },
+          ],
+        },
+      ];
+
+      const output = formatGovernanceOutput(results);
+
+      expect(output).toContain('schema-change-rule');
+      expect(output).toContain('schema_changed');
+      expect(output).toContain('OrderCreated');
+      expect(output).toContain('event');
+      expect(output).toContain('PaymentService');
+      expect(output).toContain('NotificationService');
+    });
+  });
+
   describe('formatGovernanceOutput - message_deprecated', () => {
     it('formats deprecation results with producer names', () => {
-      const results = [
+      const results: GovernanceResult[] = [
         {
           rule: {
             name: 'deprecation-rule',
@@ -1172,7 +1853,7 @@ describe('Governance', () => {
     });
 
     it('shows unknown producer when no producer services found', () => {
-      const results = [
+      const results: GovernanceResult[] = [
         {
           rule: {
             name: 'deprecation-rule',
@@ -1229,7 +1910,7 @@ describe('Governance', () => {
 
   describe('formatGovernanceOutput', () => {
     it('formats consumer_added results as human-readable text', () => {
-      const results = [
+      const results: GovernanceResult[] = [
         {
           rule: {
             name: 'consumer-added-rule',
@@ -1265,7 +1946,7 @@ describe('Governance', () => {
     });
 
     it('formats producer_added results with producing verb', () => {
-      const results = [
+      const results: GovernanceResult[] = [
         {
           rule: {
             name: 'producer-added-rule',
@@ -2044,6 +2725,112 @@ describe('Governance', () => {
       expect(output[0]).toContain('✓');
     });
 
+    it('sends schema_changed webhook with schema hashes, schema paths, impacted services, and refs instead of raw schema bodies', async () => {
+      vi.stubEnv('SCHEMA_WEBHOOK_URL', 'https://schema.example.com/hook');
+
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('ok'));
+
+      const results = [
+        {
+          rule: {
+            name: 'schema-change-webhook',
+            when: ['schema_changed' as const],
+            resources: ['*'],
+            actions: [{ type: 'webhook' as const, url: '$SCHEMA_WEBHOOK_URL' }],
+          },
+          trigger: 'schema_changed' as const,
+          matchedChanges: [],
+          schemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [{ id: 'PaymentService', version: '1.0.0', owners: ['team-payments'] }],
+              producerServices: [{ id: 'OrdersService', version: '1.0.0', owners: ['team-orders'] }],
+              beforeSchemaHash: 'before-hash',
+              afterSchemaHash: 'after-hash',
+              beforeSchemaPath: 'schemas/order-created.v1.json',
+              afterSchemaPath: 'schemas/order-created.v2.json',
+            },
+          ],
+        },
+      ];
+
+      const eventTypes: MessageTypeMap = new Map([['OrderCreated', 'event']]);
+      await executeGovernanceActions(results, {
+        messageTypes: eventTypes,
+        baseRef: 'main',
+        targetRef: 'working-directory',
+      });
+
+      expect(fetchSpy).toHaveBeenCalledOnce();
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]!.body as string);
+      expect(body.specversion).toBe('1.0');
+      expect(body.type).toBe('eventcatalog.governance.schema_changed');
+      expect(body.source).toBe('eventcatalog/governance');
+      expect(body.data.summary).toContain('OrderCreated');
+      expect(body.data.message).toEqual({ id: 'OrderCreated', version: '1.0.0', type: 'event' });
+      expect(body.data.schema).toEqual({
+        beforeHash: 'before-hash',
+        afterHash: 'after-hash',
+        beforePath: 'schemas/order-created.v1.json',
+        afterPath: 'schemas/order-created.v2.json',
+      });
+      expect(body.data.refs).toEqual({ base: 'main', target: 'working-directory' });
+      expect(body.data.consumers).toEqual([{ id: 'PaymentService', version: '1.0.0', owners: ['team-payments'] }]);
+      expect(body.data.producers).toEqual([{ id: 'OrdersService', version: '1.0.0', owners: ['team-orders'] }]);
+    });
+
+    it('sends schema_changed webhook with null schema metadata on the missing side when a schema is newly added', async () => {
+      vi.stubEnv('SCHEMA_WEBHOOK_URL', 'https://schema.example.com/hook');
+
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('ok'));
+
+      const results = [
+        {
+          rule: {
+            name: 'schema-change-webhook',
+            when: ['schema_changed' as const],
+            resources: ['*'],
+            actions: [{ type: 'webhook' as const, url: '$SCHEMA_WEBHOOK_URL' }],
+          },
+          trigger: 'schema_changed' as const,
+          matchedChanges: [],
+          schemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [],
+              producerServices: [],
+              afterSchemaHash: 'new-hash',
+              afterSchemaPath: 'schema.json',
+            },
+          ],
+        },
+      ];
+
+      const eventTypes: MessageTypeMap = new Map([['OrderCreated', 'event']]);
+      await executeGovernanceActions(results, { messageTypes: eventTypes });
+
+      const body = JSON.parse(fetchSpy.mock.calls[0][1]!.body as string);
+      expect(body.data.schema).toEqual({
+        beforeHash: null,
+        afterHash: 'new-hash',
+        beforePath: null,
+        afterPath: 'schema.json',
+      });
+    });
+
     it('skips console actions and only executes webhooks', async () => {
       vi.stubEnv('MIX_URL', 'https://mix.example.com');
 
@@ -2076,6 +2863,224 @@ describe('Governance', () => {
       expect(fetchSpy).toHaveBeenCalledOnce();
       expect(output).toHaveLength(1);
       expect(output[0]).toContain('✓');
+    });
+  });
+
+  describe('enrichSchemaContent', () => {
+    const createCatalogWithSchema = (baseDir: string, resourceId: string, version: string, schemaContent: string) => {
+      const resourceDir = path.join(baseDir, 'events', resourceId);
+      fs.mkdirSync(resourceDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(resourceDir, 'index.mdx'),
+        `---\nid: ${resourceId}\nversion: ${version}\nname: ${resourceId}\nschemaPath: schema.json\n---\n`
+      );
+      fs.writeFileSync(path.join(resourceDir, 'schema.json'), schemaContent);
+    };
+
+    it('populates schema content, schema paths, and schema hashes from the base and target catalog directories', async () => {
+      const baseCatalog = path.join(TEMP_DIR, 'base');
+      const targetCatalog = path.join(TEMP_DIR, 'target');
+
+      const beforeSchema = '{"type":"object","properties":{"orderId":{"type":"string"}}}';
+      const afterSchema = '{"type":"object","properties":{"orderId":{"type":"string"},"amount":{"type":"number"}}}';
+
+      createCatalogWithSchema(baseCatalog, 'OrderCreated', '1.0.0', beforeSchema);
+      createCatalogWithSchema(targetCatalog, 'OrderCreated', '1.0.0', afterSchema);
+
+      const results = [
+        {
+          rule: { name: 'test', when: ['schema_changed' as const], resources: ['*'], actions: [] },
+          trigger: 'schema_changed' as const,
+          matchedChanges: [],
+          schemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [],
+              producerServices: [],
+            },
+          ],
+        },
+      ];
+
+      await enrichSchemaContent(results, baseCatalog, targetCatalog);
+
+      expect(results[0].schemaChanges![0].before).toBe(beforeSchema);
+      expect(results[0].schemaChanges![0].after).toBe(afterSchema);
+      expect(results[0].schemaChanges![0].beforeSchemaPath).toBe('schema.json');
+      expect(results[0].schemaChanges![0].afterSchemaPath).toBe('schema.json');
+      expect(results[0].schemaChanges![0].beforeSchemaHash).toBe(createHash('sha256').update(beforeSchema).digest('hex'));
+      expect(results[0].schemaChanges![0].afterSchemaHash).toBe(createHash('sha256').update(afterSchema).digest('hex'));
+    });
+
+    it('sets before to undefined when schema does not exist in the base catalog', async () => {
+      const baseCatalog = path.join(TEMP_DIR, 'base');
+      const targetCatalog = path.join(TEMP_DIR, 'target');
+
+      fs.mkdirSync(baseCatalog, { recursive: true });
+      createCatalogWithSchema(targetCatalog, 'OrderCreated', '1.0.0', '{"type":"object"}');
+
+      const results = [
+        {
+          rule: { name: 'test', when: ['schema_changed' as const], resources: ['*'], actions: [] },
+          trigger: 'schema_changed' as const,
+          matchedChanges: [],
+          schemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [],
+              producerServices: [],
+            },
+          ],
+        },
+      ];
+
+      await enrichSchemaContent(results, baseCatalog, targetCatalog);
+
+      expect(results[0].schemaChanges![0].before).toBeUndefined();
+      expect(results[0].schemaChanges![0].after).toBe('{"type":"object"}');
+    });
+
+    it('sets after to undefined when schema does not exist in the target catalog', async () => {
+      const baseCatalog = path.join(TEMP_DIR, 'base');
+      const targetCatalog = path.join(TEMP_DIR, 'target');
+
+      createCatalogWithSchema(baseCatalog, 'OrderCreated', '1.0.0', '{"old":"schema"}');
+      fs.mkdirSync(targetCatalog, { recursive: true });
+
+      const results = [
+        {
+          rule: { name: 'test', when: ['schema_changed' as const], resources: ['*'], actions: [] },
+          trigger: 'schema_changed' as const,
+          matchedChanges: [],
+          schemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [],
+              producerServices: [],
+            },
+          ],
+        },
+      ];
+
+      await enrichSchemaContent(results, baseCatalog, targetCatalog);
+
+      expect(results[0].schemaChanges![0].before).toBe('{"old":"schema"}');
+      expect(results[0].schemaChanges![0].after).toBeUndefined();
+    });
+
+    it('handles versioned resource directories', async () => {
+      const baseCatalog = path.join(TEMP_DIR, 'base');
+      const targetCatalog = path.join(TEMP_DIR, 'target');
+
+      // Versioned: resource may be in events/OrderCreated/versioned/1.0.0/
+      const versionedDir = path.join(baseCatalog, 'events', 'OrderCreated', 'versioned', '1.0.0');
+      fs.mkdirSync(versionedDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(versionedDir, 'index.mdx'),
+        '---\nid: OrderCreated\nversion: 1.0.0\nname: OrderCreated\nschemaPath: schema.json\n---\n'
+      );
+      fs.writeFileSync(path.join(versionedDir, 'schema.json'), '{"versioned":"base"}');
+
+      createCatalogWithSchema(targetCatalog, 'OrderCreated', '1.0.0', '{"versioned":"target"}');
+
+      const results = [
+        {
+          rule: { name: 'test', when: ['schema_changed' as const], resources: ['*'], actions: [] },
+          trigger: 'schema_changed' as const,
+          matchedChanges: [],
+          schemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event' as const,
+                changeType: 'modified' as const,
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [],
+              producerServices: [],
+            },
+          ],
+        },
+      ];
+
+      await enrichSchemaContent(results, baseCatalog, targetCatalog);
+
+      expect(results[0].schemaChanges![0].before).toBe('{"versioned":"base"}');
+      expect(results[0].schemaChanges![0].after).toBe('{"versioned":"target"}');
+    });
+
+    it('uses previousVersion for base and newVersion for target on versioned schema changes', async () => {
+      const baseCatalog = path.join(TEMP_DIR, 'base');
+      const targetCatalog = path.join(TEMP_DIR, 'target');
+
+      createCatalogWithSchema(baseCatalog, 'OrderCreated', '1.0.0', '{"version":"1.0.0"}');
+      createCatalogWithSchema(targetCatalog, 'OrderCreated', '2.0.0', '{"version":"2.0.0"}');
+
+      const results = [
+        {
+          rule: { name: 'test', when: ['schema_changed' as const], resources: ['*'], actions: [] },
+          trigger: 'schema_changed' as const,
+          matchedChanges: [],
+          schemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '2.0.0',
+                type: 'event' as const,
+                changeType: 'versioned' as const,
+                previousVersion: '1.0.0',
+                newVersion: '2.0.0',
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [],
+              producerServices: [],
+            },
+          ],
+        },
+      ];
+
+      await enrichSchemaContent(results, baseCatalog, targetCatalog);
+
+      expect(results[0].schemaChanges![0].before).toBe('{"version":"1.0.0"}');
+      expect(results[0].schemaChanges![0].after).toBe('{"version":"2.0.0"}');
+    });
+
+    it('skips results that have no schemaChanges', async () => {
+      const baseCatalog = path.join(TEMP_DIR, 'base');
+      const targetCatalog = path.join(TEMP_DIR, 'target');
+      fs.mkdirSync(baseCatalog, { recursive: true });
+      fs.mkdirSync(targetCatalog, { recursive: true });
+
+      const results = [
+        {
+          rule: { name: 'test', when: ['consumer_added' as const], resources: ['*'], actions: [] },
+          trigger: 'consumer_added' as const,
+          matchedChanges: [],
+        },
+      ];
+
+      // Should not throw
+      await enrichSchemaContent(results, baseCatalog, targetCatalog);
+      expect(results[0]).not.toHaveProperty('schemaChanges');
     });
   });
 });

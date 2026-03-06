@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { compare } from 'semver';
 import type { CatalogSnapshot, SnapshotOptions, SnapshotResult, SnapshotMeta, SnapshotDiff } from './snapshot-types';
@@ -24,6 +25,8 @@ const pickCoreFields = (resource: any): any => {
   if (resource.receives) picked.receives = resource.receives;
   if (resource.deprecated) picked.deprecated = resource.deprecated;
   if (resource.owners) picked.owners = resource.owners;
+  if (resource.schemaPath) picked.schemaPath = resource.schemaPath;
+  if (resource.schemaHash) picked.schemaHash = resource.schemaHash;
   return picked;
 };
 
@@ -55,6 +58,20 @@ const detectGitInfo = (catalogDir: string): { branch: string; commit: string; di
   }
 };
 
+const enrichWithSchemaHashes = async (
+  getSchemaForMessage: (id: string, version?: string) => Promise<{ schema: string; fileName: string } | undefined>,
+  resources: any[]
+): Promise<void> => {
+  await Promise.all(
+    resources.map(async (resource) => {
+      if (!resource.schemaPath) return;
+      const schema = await getSchemaForMessage(resource.id, resource.version);
+      if (!schema) return;
+      resource.schemaHash = createHash('sha256').update(schema.schema).digest('hex');
+    })
+  );
+};
+
 export const createSnapshot = (directory: string) => {
   // Note: sdk is created lazily inside the inner function to avoid circular
   // dependency issues (index.ts imports snapshots.ts and vice versa).
@@ -72,7 +89,14 @@ export const createSnapshot = (directory: string) => {
       sdk.getChannels(),
     ]);
 
-    // Strip to core fields only (id, version, name, sends, receives, deprecated)
+    // Enrich messages with schema hashes before stripping
+    await Promise.all([
+      enrichWithSchemaHashes(sdk.getSchemaForMessage, events || []),
+      enrichWithSchemaHashes(sdk.getSchemaForMessage, commands || []),
+      enrichWithSchemaHashes(sdk.getSchemaForMessage, queries || []),
+    ]);
+
+    // Strip to core fields only
     const snapshotDomains = stripToCore(domains);
     const snapshotServices = stripToCore(services);
     const snapshotEvents = stripToCore(events);
