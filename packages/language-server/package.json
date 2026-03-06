@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/language-server",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

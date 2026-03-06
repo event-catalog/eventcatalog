@@ -1,5 +1,13 @@
 # @eventcatalog/cli
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [6456054]
+  - @eventcatalog/sdk@2.17.1
+  - @eventcatalog/language-server@0.8.3
+
 ## 0.5.1
 
 ### Patch Changes
