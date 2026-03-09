@@ -14,7 +14,7 @@ const ga4ConfigScript = integrations?.ga4
   ? `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', ${JSON.stringify(integrations.ga4.measurementId)});`
+gtag('config', ${JSON.stringify(integrations.ga4.measurementId)}, { send_page_view: false });`
   : '';
 
 const gtmScript = integrations?.gtm

@@ -8,6 +8,9 @@ const hasProviders = enabled && (integrations?.ga4 || integrations?.gtm || integ
 const debug = integrations?.debug ?? false;
 const shouldRender = enabled && (hasProviders || debug);
 
+const base = (config.base || '/').replace(/\/$/, '');
+const baseJson = JSON.stringify(base);
+
 const COLLECTION_TYPE_MAP_JSON = JSON.stringify({
   services: 'service',
   events: 'event',
@@ -20,6 +23,7 @@ const COLLECTION_TYPE_MAP_JSON = JSON.stringify({
 });
 
 const trackerScript = `(function() {
+var BASE_PATH = ${baseJson};
 var COLLECTION_TYPE_MAP = ${COLLECTION_TYPE_MAP_JSON};
 var SECTION_PATTERNS = [
   [/^\\/visualiser/, 'visualiser'],
@@ -58,7 +62,8 @@ if (!window.__ec_tracker_initialized) {
   document.addEventListener('astro:page-load', function() {
     if (window.__ec_analytics) {
       var url = window.location.pathname;
-      var properties = extractPageProperties(url);
+      var normalizedUrl = (BASE_PATH && url.indexOf(BASE_PATH) === 0) ? url.slice(BASE_PATH.length) || '/' : url;
+      var properties = extractPageProperties(normalizedUrl);
       window.__ec_analytics.pageView(url, properties);
     }
   });
