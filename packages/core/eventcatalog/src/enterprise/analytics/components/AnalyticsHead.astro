@@ -1,0 +1,109 @@
+---
+import config from '@config';
+import { isIntegrationsEnabled } from '@utils/feature';
+
+const integrations = config.integrations;
+const enabled = isIntegrationsEnabled() && integrations;
+const hasProviders = enabled && (integrations?.ga4 || integrations?.gtm || integrations?.posthog);
+const debug = integrations?.debug ?? false;
+// Render the manager if there are providers OR if debug mode is on (so users can verify the pipeline)
+const shouldRender = enabled && (hasProviders || debug);
+
+// Build script contents in frontmatter to avoid Prettier/JSX parsing issues with braces in inline scripts
+const ga4ConfigScript = integrations?.ga4
+  ? `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', ${JSON.stringify(integrations.ga4.measurementId)});`
+  : '';
+
+const gtmScript = integrations?.gtm
+  ? `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer',${JSON.stringify(integrations.gtm.tagId)});`
+  : '';
+
+const posthogApiKey = JSON.stringify(integrations?.posthog?.apiKey || '');
+const posthogApiHost = JSON.stringify(integrations?.posthog?.apiHost || 'https://us.i.posthog.com');
+const posthogScript = integrations?.posthog
+  ? `!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init(${posthogApiKey}, {api_host: ${posthogApiHost}, person_profiles: 'identified_only'});`
+  : '';
+
+const hasGA4 = !!integrations?.ga4;
+const hasGTM = !!integrations?.gtm;
+const hasPostHog = !!integrations?.posthog;
+
+const managerScript = `(function() {
+function AnalyticsManager(opts) {
+  this.adapters = [];
+  this.debug = opts && opts.debug;
+}
+AnalyticsManager.prototype.register = function(adapter) {
+  this.adapters.push(adapter);
+  if (this.debug) console.log('[EventCatalog Analytics] Registered adapter: ' + adapter.name);
+};
+AnalyticsManager.prototype.track = function(event, props) {
+  if (this.debug) console.log('[EventCatalog Analytics] track: ' + event, props);
+  for (var i = 0; i < this.adapters.length; i++) {
+    try { this.adapters[i].track(event, props); } catch(e) {}
+  }
+};
+AnalyticsManager.prototype.pageView = function(url, props) {
+  if (this.debug) console.log('[EventCatalog Analytics] pageView: ' + url, props);
+  for (var i = 0; i < this.adapters.length; i++) {
+    try { this.adapters[i].pageView(url, props); } catch(e) {}
+  }
+};
+var manager = new AnalyticsManager({ debug: ${debug} });
+${
+  hasGA4
+    ? `manager.register({
+  name: 'ga4',
+  track: function(event, props) { if (typeof gtag === 'function') gtag('event', event, props); },
+  pageView: function(url, props) { if (typeof gtag === 'function') gtag('event', 'page_view', Object.assign({ page_location: url }, props || {})); }
+});`
+    : ''
+}
+${
+  hasGTM
+    ? `manager.register({
+  name: 'gtm',
+  track: function(event, props) { if (window.dataLayer) window.dataLayer.push(Object.assign({ event: event }, props || {})); },
+  pageView: function(url, props) { if (window.dataLayer) window.dataLayer.push(Object.assign({ event: 'page_view', page_location: url }, props || {})); }
+});`
+    : ''
+}
+${
+  hasPostHog
+    ? `manager.register({
+  name: 'posthog',
+  track: function(event, props) { if (window.posthog) window.posthog.capture(event, props); },
+  pageView: function(url, props) { if (window.posthog) window.posthog.capture('$pageview', Object.assign({ '$current_url': url }, props || {})); }
+});`
+    : ''
+}
+window.__ec_analytics = manager;
+})();`;
+---
+
+{
+  shouldRender && (
+    <>
+      {integrations?.ga4 && (
+        <>
+          <script is:inline src={`https://www.googletagmanager.com/gtag/js?id=${integrations.ga4.measurementId}`} async />
+          <script is:inline set:html={ga4ConfigScript} />
+        </>
+      )}
+
+      {integrations?.gtm && <script is:inline set:html={gtmScript} />}
+
+      {integrations?.posthog && <script is:inline set:html={posthogScript} />}
+
+      <script is:inline set:html={managerScript} />
+    </>
+  )
+}

@@ -1,0 +1,55 @@
+---
+import SEO from '../components/Seo.astro';
+import AnalyticsHead from '../enterprise/analytics/components/AnalyticsHead.astro';
+import AnalyticsTracker from '../enterprise/analytics/components/AnalyticsTracker.astro';
+import config from '@config';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogTitle?: string;
+}
+
+const { title, description, ogTitle } = Astro.props;
+const catalogTheme = config.theme || 'default';
+---
+
+<!doctype html>
+<html lang="en" data-catalog-theme={catalogTheme}>
+  <head>
+    <!-- Inline script to prevent flash of wrong theme -->
+    <script is:inline define:vars={{ catalogTheme }}>
+      (function () {
+        function getSystemTheme() {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+          }
+          return 'light';
+        }
+
+        function applyTheme() {
+          // Check localStorage first, fall back to system preference
+          const stored = localStorage.getItem('eventcatalog-theme');
+          const theme = stored === 'light' || stored === 'dark' ? stored : getSystemTheme();
+          document.documentElement.setAttribute('data-theme', theme);
+          // Also ensure catalog theme is set (for page transitions)
+          document.documentElement.setAttribute('data-catalog-theme', catalogTheme);
+        }
+
+        // Apply on initial load
+        applyTheme();
+
+        // Apply after Astro page transitions
+        document.addEventListener('astro:after-swap', applyTheme);
+        document.addEventListener('astro:page-load', applyTheme);
+      })();
+    </script>
+    <SEO title={title} description={description} ogTitle={ogTitle} />
+    <AnalyticsHead />
+    <slot name="head" />
+  </head>
+  <body>
+    <slot />
+    <AnalyticsTracker />
+  </body>
+</html>

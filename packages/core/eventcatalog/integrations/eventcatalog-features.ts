@@ -1,5 +1,6 @@
 import type { AstroIntegration } from 'astro';
 import path from 'path';
+import config from '../eventcatalog.config.js';
 import {
   isEventCatalogChatEnabled,
   isAuthEnabled,
@@ -8,6 +9,7 @@ import {
   isEventCatalogMCPEnabled,
   isFullCatalogAPIEnabled,
   isDevMode,
+  isIntegrationsEnabled,
 } from '../src/utils/feature';
 
 const catalogDirectory = process.env.CATALOG_DIR || process.cwd();
@@ -81,6 +83,11 @@ export default function eventCatalogIntegration(): AstroIntegration {
             pattern: '/api/catalog',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/api/catalog.ts'),
           });
+        }
+
+        // Warn if integrations are configured without Scale plan
+        if (config.integrations && !isIntegrationsEnabled()) {
+          console.warn('[EventCatalog] Integrations require the Scale plan. Analytics integrations will not be loaded.');
         }
 
         // Dev-only routes for visualizer layout persistence
