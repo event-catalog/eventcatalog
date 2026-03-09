@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/cli",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "CLI for EventCatalog",
   "scripts": {
     "build": "tsup",
