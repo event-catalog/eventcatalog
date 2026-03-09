@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.21.0
+
+### Minor Changes
+
+- 0517d15: Add analytics integrations support (GA4, GTM, PostHog) for Scale plan users with adapter-based tracking system
+
 ## 3.20.4
 
 ### Patch Changes
