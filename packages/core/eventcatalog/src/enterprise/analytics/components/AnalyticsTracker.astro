@@ -1,0 +1,74 @@
+---
+import config from '@config';
+import { isIntegrationsEnabled } from '@utils/feature';
+
+const integrations = config.integrations;
+const enabled = isIntegrationsEnabled() && integrations;
+const hasProviders = enabled && (integrations?.ga4 || integrations?.gtm || integrations?.posthog);
+const debug = integrations?.debug ?? false;
+const shouldRender = enabled && (hasProviders || debug);
+
+const base = (config.base || '/').replace(/\/$/, '');
+const baseJson = JSON.stringify(base);
+
+const COLLECTION_TYPE_MAP_JSON = JSON.stringify({
+  services: 'service',
+  events: 'event',
+  commands: 'command',
+  queries: 'query',
+  domains: 'domain',
+  flows: 'flow',
+  channels: 'channel',
+  entities: 'entity',
+});
+
+const trackerScript = `(function() {
+var BASE_PATH = ${baseJson};
+var COLLECTION_TYPE_MAP = ${COLLECTION_TYPE_MAP_JSON};
+var SECTION_PATTERNS = [
+  [/^\\/visualiser/, 'visualiser'],
+  [/^\\/discover/, 'discover'],
+  [/^\\/directory/, 'directory'],
+  [/^\\/schemas/, 'schemas'],
+  [/^\\/docs\\/custom/, 'custom-docs'],
+  [/^\\/docs/, 'docs'],
+  [/^\\/$/, 'home']
+];
+
+function extractPageProperties(url) {
+  var properties = { url: url };
+  for (var i = 0; i < SECTION_PATTERNS.length; i++) {
+    if (SECTION_PATTERNS[i][0].test(url)) {
+      properties.section = SECTION_PATTERNS[i][1];
+      break;
+    }
+  }
+  if (!properties.section) properties.section = 'other';
+  var parts = url.split('/').filter(Boolean);
+  for (var j = 0; j < parts.length; j++) {
+    var collectionType = COLLECTION_TYPE_MAP[parts[j]];
+    if (collectionType) {
+      properties.resource_type = collectionType;
+      if (parts[j + 1]) properties.resource_id = decodeURIComponent(parts[j + 1]);
+      if (parts[j + 2]) properties.resource_version = parts[j + 2];
+      break;
+    }
+  }
+  return properties;
+}
+
+if (!window.__ec_tracker_initialized) {
+  window.__ec_tracker_initialized = true;
+  document.addEventListener('astro:page-load', function() {
+    if (window.__ec_analytics) {
+      var url = window.location.pathname;
+      var normalizedUrl = (BASE_PATH && url.indexOf(BASE_PATH) === 0) ? url.slice(BASE_PATH.length) || '/' : url;
+      var properties = extractPageProperties(normalizedUrl);
+      window.__ec_analytics.pageView(url, properties);
+    }
+  });
+}
+})();`;
+---
+
+{shouldRender && <script is:inline set:html={trackerScript} />}

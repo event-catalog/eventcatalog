@@ -55,6 +55,27 @@ type AuthConfig = {
   enabled: boolean;
 };
 
+type GA4Config = {
+  measurementId: string;
+};
+
+type GTMConfig = {
+  tagId: string;
+};
+
+type PostHogConfig = {
+  apiKey: string;
+  apiHost?: string;
+};
+
+type IntegrationsConfig = {
+  ga4?: GA4Config;
+  gtm?: GTMConfig;
+  posthog?: PostHogConfig;
+  /** Log all analytics events to the browser console */
+  debug?: boolean;
+};
+
 export interface Config {
   title: string;
   tagline: false;
@@ -179,4 +200,5 @@ export interface Config {
   queries?: {
     tableConfiguration?: TableConfiguration;
   };
+  integrations?: IntegrationsConfig;
 }

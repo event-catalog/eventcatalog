@@ -76,3 +76,5 @@ export const isEventCatalogMCPEnabled = () => isEventCatalogScaleEnabled() && is
 export const isFullCatalogAPIEnabled = () => config?.api?.fullCatalogAPIEnabled ?? false;
 
 export const isDevMode = () => process.env.EVENTCATALOG_DEV_MODE === 'true';
+
+export const isIntegrationsEnabled = () => isEventCatalogScaleEnabled();
