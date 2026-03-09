@@ -7,6 +7,7 @@ import {
   evaluateGovernanceRules,
   resolveEnvVars,
   formatGovernanceOutput,
+  formatFailureOutput,
   executeGovernanceActions,
   buildMessageTypeMap,
   buildServiceOwnersMap,
@@ -3081,6 +3082,154 @@ describe('Governance', () => {
       // Should not throw
       await enrichSchemaContent(results, baseCatalog, targetCatalog);
       expect(results[0]).not.toHaveProperty('schemaChanges');
+    });
+  });
+
+  describe('fail action', () => {
+    describe('loadGovernanceConfig', () => {
+      it('when governance.yaml contains a rule with a fail action and a message, the action is parsed with type "fail" and the message string', () => {
+        const configYaml = `rules:
+  - name: block-schema-changes
+    when:
+      - schema_changed
+    resources:
+      - "*"
+    actions:
+      - type: console
+      - type: fail
+        message: "Schema changes require review"
+`;
+        fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), configYaml);
+        const config = loadGovernanceConfig(TEMP_DIR);
+
+        expect(config.rules).toHaveLength(1);
+        expect(config.rules[0].actions).toHaveLength(2);
+        expect(config.rules[0].actions[1]).toEqual({ type: 'fail', message: 'Schema changes require review' });
+      });
+
+      it('when governance.yaml contains a fail action without a message field, the action is parsed with type "fail" and no message', () => {
+        const configYaml = `rules:
+  - name: block-schema-changes
+    when:
+      - schema_changed
+    resources:
+      - "*"
+    actions:
+      - type: fail
+`;
+        fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), configYaml);
+        const config = loadGovernanceConfig(TEMP_DIR);
+
+        expect(config.rules[0].actions[0]).toEqual({ type: 'fail' });
+      });
+
+      it('when governance.yaml contains a rule with multiple fail actions, all fail actions are parsed and preserved in order', () => {
+        const configYaml = `rules:
+  - name: multi-fail
+    when:
+      - schema_changed
+    resources:
+      - "*"
+    actions:
+      - type: fail
+        message: "First failure reason"
+      - type: fail
+        message: "Second failure reason"
+`;
+        fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), configYaml);
+        const config = loadGovernanceConfig(TEMP_DIR);
+
+        expect(config.rules[0].actions).toHaveLength(2);
+        expect(config.rules[0].actions[0]).toEqual({ type: 'fail', message: 'First failure reason' });
+        expect(config.rules[0].actions[1]).toEqual({ type: 'fail', message: 'Second failure reason' });
+      });
+    });
+
+    describe('formatFailureOutput', () => {
+      it('when the failures array is empty, the failure output is an empty string', () => {
+        expect(formatFailureOutput([])).toBe('');
+      });
+
+      it('when a failure has a message, the output shows "FAILED: <rule-name>" followed by the message', () => {
+        const output = formatFailureOutput([{ ruleName: 'schema-guard', messages: ['Schema changes require review'] }]);
+        expect(output).toContain('FAILED: schema-guard');
+        expect(output).toContain('Schema changes require review');
+      });
+
+      it('when a failure has no messages, the output shows "FAILED: <rule-name>" with no message line', () => {
+        const output = formatFailureOutput([{ ruleName: 'schema-guard', messages: [] }]);
+        expect(output).toContain('FAILED: schema-guard');
+      });
+
+      it('when multiple failures exist, each is listed in the output', () => {
+        const output = formatFailureOutput([
+          { ruleName: 'schema-guard', messages: ['Review required'] },
+          { ruleName: 'removal-guard', messages: ['Breaking change'] },
+        ]);
+        expect(output).toContain('FAILED: schema-guard');
+        expect(output).toContain('Review required');
+        expect(output).toContain('FAILED: removal-guard');
+        expect(output).toContain('Breaking change');
+      });
+
+      it('when a single failure has multiple messages, all messages are shown under the rule name', () => {
+        const output = formatFailureOutput([{ ruleName: 'multi-fail', messages: ['First reason', 'Second reason'] }]);
+        expect(output).toContain('FAILED: multi-fail');
+        expect(output).toContain('First reason');
+        expect(output).toContain('Second reason');
+      });
+    });
+
+    describe('executeGovernanceActions with fail action', () => {
+      it('when a rule has console, fail, and webhook actions, only the webhook is sent and the fail action does not trigger an HTTP request', async () => {
+        vi.stubEnv('FAIL_TEST_URL', 'https://fail-test.example.com');
+
+        const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('ok'));
+
+        const results: GovernanceResult[] = [
+          {
+            rule: {
+              name: 'mixed-with-fail',
+              when: ['consumer_added' as const],
+              resources: ['*'],
+              actions: [
+                { type: 'console' as const },
+                { type: 'fail' as const, message: 'Block the build' },
+                { type: 'webhook' as const, url: '$FAIL_TEST_URL' },
+              ],
+            },
+            trigger: 'consumer_added' as const,
+            matchedChanges: [
+              {
+                serviceId: 'PaymentService',
+                serviceVersion: '1.0.0',
+                resourceId: 'OrderCreated',
+                resourceVersion: '1.0.0',
+                direction: 'receives' as const,
+                changeType: 'added' as const,
+              },
+            ],
+          },
+        ];
+
+        const output = await executeGovernanceActions(results);
+
+        // Only the webhook should fire, not the fail action
+        expect(fetchSpy).toHaveBeenCalledOnce();
+        expect(output).toHaveLength(1);
+        expect(output[0]).toContain('✓');
+      });
+    });
+
+    describe('fail action message supports env var interpolation', () => {
+      it('when a fail action message contains $ENV_VAR references, the variables are resolved to their values in the formatted output', () => {
+        vi.stubEnv('TEAM_LEAD', 'Alice');
+
+        const output = formatFailureOutput([
+          { ruleName: 'env-fail', messages: [resolveEnvVars('Contact $TEAM_LEAD for approval')] },
+        ]);
+        expect(output).toContain('Contact Alice for approval');
+      });
     });
   });
 });

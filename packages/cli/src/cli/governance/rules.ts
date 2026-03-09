@@ -19,7 +19,17 @@ export const loadGovernanceConfig = (catalogDir: string): GovernanceConfig => {
 
   const content = fs.readFileSync(configPath, 'utf-8');
   const parsed = yaml.load(content) as GovernanceConfig;
-  return { rules: parsed?.rules || [] };
+  const rules = parsed?.rules || [];
+
+  for (const rule of rules) {
+    for (const action of rule.actions) {
+      if (action.type === 'fail' && action.message !== undefined && typeof action.message !== 'string') {
+        throw new Error(`Invalid "message" in fail action for rule "${rule.name}". Must be a string.`);
+      }
+    }
+  }
+
+  return { rules };
 };
 
 const TRIGGER_FILTERS: Partial<Record<GovernanceTrigger, (change: RelationshipChange) => boolean>> = {
