@@ -1,5 +1,11 @@
 # @eventcatalog/cli
 
+## 0.5.5
+
+### Patch Changes
+
+- 21c8095: Add `type: fail` governance action to block CI/CD pipelines when rules trigger. Supports optional `message` field with `$ENV_VAR` interpolation. Rules without a fail action continue to exit 0 (backward compatible).
+
 ## 0.5.4
 
 ### Patch Changes
