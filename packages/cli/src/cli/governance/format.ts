@@ -36,3 +36,18 @@ export const formatGovernanceOutput = (results: GovernanceResult[]): string => {
 
   return lines.join('\n');
 };
+
+export const formatFailureOutput = (failures: Array<{ ruleName: string; messages: string[] }>): string => {
+  if (failures.length === 0) return '';
+
+  const lines: string[] = [];
+
+  for (const f of failures) {
+    lines.push(`FAILED: ${f.ruleName}`);
+    for (const msg of f.messages) {
+      lines.push(`  ${msg}`);
+    }
+  }
+
+  return lines.join('\n');
+};

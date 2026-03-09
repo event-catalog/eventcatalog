@@ -8,7 +8,10 @@ export type GovernanceTrigger =
   | 'message_deprecated'
   | 'schema_changed';
 
-export type GovernanceAction = { type: 'console' } | { type: 'webhook'; url: string; headers?: Record<string, string> };
+export type GovernanceAction =
+  | { type: 'console' }
+  | { type: 'webhook'; url: string; headers?: Record<string, string> }
+  | { type: 'fail'; message?: string };
 
 export type GovernanceRule = {
   name: string;
@@ -44,4 +47,12 @@ export type GovernanceResult = {
   matchedChanges: RelationshipChange[];
   deprecationChanges?: DeprecationChange[];
   schemaChanges?: SchemaChange[];
+  failed?: boolean;
+  failMessages?: string[];
+};
+
+export type GovernanceCheckResult = {
+  output: string;
+  exitCode: number;
+  failures: Array<{ ruleName: string; messages: string[] }>;
 };

@@ -9,7 +9,7 @@ export {
 } from './rules';
 export { executeGovernanceActions, buildMessageTypeMap, buildServiceOwnersMap } from './actions';
 export type { MessageTypeMap, ServiceOwnersMap, GovernanceActionOptions } from './actions';
-export { formatGovernanceOutput } from './format';
+export { formatGovernanceOutput, formatFailureOutput } from './format';
 export { governanceCheck } from './check';
 export type { GovernanceCheckOptions } from './check';
 export type {
@@ -18,6 +18,7 @@ export type {
   GovernanceRule,
   GovernanceConfig,
   GovernanceResult,
+  GovernanceCheckResult,
   DeprecationChange,
   SchemaChange,
 } from './types';
