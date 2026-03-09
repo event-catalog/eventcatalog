@@ -195,7 +195,7 @@ governance
         dir,
       });
       console.log(result.output);
-      process.exit(result.exitCode);
+      process.exitCode = result.exitCode;
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));
       process.exit(1);
