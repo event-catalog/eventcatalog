@@ -5,9 +5,10 @@ import { tmpdir } from 'node:os';
 import dotenv from 'dotenv';
 import createSDK from '@eventcatalog/sdk';
 import { isEventCatalogScaleEnabled } from '@eventcatalog/license';
-import { loadGovernanceConfig, evaluateGovernanceRules, enrichSchemaContent } from './rules';
-import { formatGovernanceOutput } from './format';
+import { loadGovernanceConfig, evaluateGovernanceRules, enrichSchemaContent, resolveEnvVars } from './rules';
+import { formatGovernanceOutput, formatFailureOutput } from './format';
 import { executeGovernanceActions, buildMessageTypeMap, buildServiceOwnersMap } from './actions';
+import type { GovernanceCheckResult } from './types';
 
 export type GovernanceCheckOptions = {
   base?: string;
@@ -33,7 +34,7 @@ const extractBranchToTempDir = (branch: string, catalogDir: string, tempDirs: st
   return tmpDir;
 };
 
-export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<string> => {
+export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<GovernanceCheckResult> => {
   const dir = path.resolve(opts.dir);
 
   // Load .env file from catalog directory (contains license key, webhook secrets, etc.)
@@ -79,10 +80,21 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
     const config = loadGovernanceConfig(dir);
 
     if (config.rules.length === 0) {
-      return 'No governance.yaml (or governance.yml) found or no rules defined.';
+      return { output: 'No governance.yaml (or governance.yml) found or no rules defined.', exitCode: 0, failures: [] };
     }
 
     const results = evaluateGovernanceRules(diff, config, targetResult.snapshot, baseResult.snapshot);
+
+    // Mark results that have fail actions and collect their messages
+    for (const result of results) {
+      const failActions = result.rule.actions.filter((a) => a.type === 'fail');
+      if (failActions.length > 0) {
+        result.failed = true;
+        result.failMessages = failActions
+          .map((a) => ('message' in a && a.message ? resolveEnvVars(a.message) : undefined))
+          .filter((m): m is string => m !== undefined);
+      }
+    }
 
     // Populate before/after schema content for any schema_changed results
     await enrichSchemaContent(results, baseTmpDir, targetCatalogDir);
@@ -98,8 +110,22 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
       targetRef: opts.target || 'working-directory',
     });
 
+    // Collect failures
+    const failures = results.filter((r) => r.failed).map((r) => ({ ruleName: r.rule.name, messages: r.failMessages || [] }));
+
     if (opts.format === 'json') {
-      return JSON.stringify({ baseBranch, target: opts.target || 'working directory', results, diff: diff.summary }, null, 2);
+      const jsonOutput = {
+        baseBranch,
+        target: opts.target || 'working directory',
+        results,
+        summary: {
+          rulesTriggered: results.length,
+          failures: failures.length,
+          passed: failures.length === 0,
+        },
+        diff: diff.summary,
+      };
+      return { output: JSON.stringify(jsonOutput, null, 2), exitCode: failures.length > 0 ? 1 : 0, failures };
     }
 
     const targetLabel = opts.target || 'working directory';
@@ -120,7 +146,14 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<str
       lines.push(parts.join(', ') + '.');
     }
 
-    return lines.join('\n');
+    // Append failure output
+    const failureOutput = formatFailureOutput(failures);
+    if (failureOutput) {
+      lines.push('');
+      lines.push(failureOutput);
+    }
+
+    return { output: lines.join('\n'), exitCode: failures.length > 0 ? 1 : 0, failures };
   } finally {
     for (const d of tempDirs) {
       rmSync(d, { recursive: true, force: true });

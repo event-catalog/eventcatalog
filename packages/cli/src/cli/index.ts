@@ -194,7 +194,8 @@ governance
         status: opts.status,
         dir,
       });
-      console.log(result);
+      console.log(result.output);
+      process.exit(result.exitCode);
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));
       process.exit(1);

@@ -90,7 +90,9 @@ describe('governance check', () => {
 
     const result = await governanceCheck({ dir: TEMP_DIR });
 
-    expect(result).toContain('No governance.yaml (or governance.yml) found or no rules defined');
+    expect(result.output).toContain('No governance.yaml (or governance.yml) found or no rules defined');
+    expect(result.exitCode).toBe(0);
+    expect(result.failures).toEqual([]);
   });
 
   it('when governanceCheck finds a schema change, the json output includes schema content plus compact schema metadata for the affected message', async () => {
@@ -202,7 +204,7 @@ describe('governance check', () => {
     });
 
     const result = await governanceCheck({ dir: TEMP_DIR, format: 'json' });
-    const parsed = JSON.parse(result);
+    const parsed = JSON.parse(result.output);
 
     expect(parsed.results).toHaveLength(1);
     expect(parsed.results[0].trigger).toBe('schema_changed');
