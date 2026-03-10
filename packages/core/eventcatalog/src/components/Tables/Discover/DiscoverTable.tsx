@@ -9,13 +9,12 @@ import {
   useReactTable,
   type ColumnFiltersState,
 } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SearchX, X, Search, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, SearchX, X, Search, Users } from 'lucide-react';
 import { UserIcon } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
 import type { TableConfiguration } from '@types';
 import { isSameVersion } from '@utils/collections/version-compare';
 import { FilterDropdown, CheckboxItem } from './FilterComponents';
-import DebouncedInput from '../DebouncedInput';
 import { getDiscoverColumns } from './columns';
 
 export type CollectionType =
@@ -106,7 +105,6 @@ export function DiscoverTable<T extends DiscoverTableData>({
     [collectionType, tableConfiguration]
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
   const [tableFilter, setTableFilter] = useState('');
   const [showOnlyLatest, setShowOnlyLatest] = useState(true);
   const [onlyShowDrafts, setOnlyShowDrafts] = useState(false);
@@ -257,16 +255,6 @@ export function DiscoverTable<T extends DiscoverTableData>({
         }
       }
 
-      // Global search filter (sidebar)
-      if (globalFilter) {
-        const searchLower = globalFilter.toLowerCase();
-        const nameMatch = row.data.name.toLowerCase().includes(searchLower);
-        const summaryMatch = row.data.summary?.toLowerCase().includes(searchLower);
-        if (!nameMatch && !summaryMatch) {
-          return false;
-        }
-      }
-
       // Table filter (header)
       if (tableFilter) {
         const searchLower = tableFilter.toLowerCase();
@@ -289,9 +277,14 @@ export function DiscoverTable<T extends DiscoverTableData>({
     selectedConsumers,
     selectedBadges,
     selectedProperties,
-    globalFilter,
     tableFilter,
   ]);
+
+  const columnVisibility = useMemo(
+    () =>
+      Object.fromEntries(Object.entries(tableConfiguration?.columns ?? {}).map(([key, value]) => [key, value.visible ?? true])),
+    [tableConfiguration]
+  );
 
   const table = useReactTable({
     data: filteredData,
@@ -305,9 +298,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     getPaginationRowModel: getPaginationRowModel(),
     state: {
       columnFilters,
-      columnVisibility: Object.fromEntries(
-        Object.entries(tableConfiguration?.columns ?? {}).map(([key, value]) => [key, value.visible ?? true])
-      ),
+      columnVisibility,
     },
   });
 
@@ -397,7 +388,6 @@ export function DiscoverTable<T extends DiscoverTableData>({
     setSelectedProperties([]);
     setShowOnlyLatest(true);
     setOnlyShowDrafts(false);
-    setGlobalFilter('');
     setTableFilter('');
     setColumnFilters([]);
   };
@@ -428,138 +418,133 @@ export function DiscoverTable<T extends DiscoverTableData>({
   const filteredProducers = producers.filter((p) => (producerCounts[p.id] || 0) > 0);
   const filteredConsumers = consumers.filter((c) => (consumerCounts[c.id] || 0) > 0);
 
+  // Split owners into users and teams for the filter dropdown
+  const ownerUsers = owners.filter((o) => o.type !== 'team');
+  const ownerTeams = owners.filter((o) => o.type === 'team');
+
   // Get selected property labels for display
   const selectedPropertyLabels = selectedProperties.map((id) => propertyOptions.find((p) => p.id === id)?.label || id);
 
   return (
-    <div className="flex gap-8 items-start">
+    <div className="flex h-full">
       {/* Filter Sidebar */}
-      <div className="w-72 flex-shrink-0 space-y-6 p-4 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl">
-        {/* Search */}
-        <DebouncedInput
-          type="text"
-          value={globalFilter}
-          onChange={(value) => setGlobalFilter(String(value))}
-          placeholder={`Search ${collectionLabel.toLowerCase()}...`}
-          className="w-full px-3 py-2 text-sm bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-page-border))] rounded-lg placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] focus:border-[rgb(var(--ec-accent))] transition-colors"
-        />
+      <div className="w-[320px] flex-shrink-0 flex flex-col bg-[rgb(var(--ec-page-bg))] bg-gradient-to-bl from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.08)] border-r border-[rgb(var(--ec-page-border))]">
+        {/* Filter sections */}
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 space-y-6">
+          {/* Message Filters Section */}
+          {(showProducersFilter || showConsumersFilter) && (filteredProducers.length > 0 || filteredConsumers.length > 0) && (
+            <div className="space-y-3">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-[rgb(var(--ec-page-text))] pb-2">
+                Message Filters
+              </h3>
 
-        {/* Message Filters Section */}
-        {(showProducersFilter || showConsumersFilter) && (filteredProducers.length > 0 || filteredConsumers.length > 0) && (
-          <div className="space-y-2">
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-[rgb(var(--ec-page-text-muted))]">
-              Message Filters
+              {/* Producers Filter */}
+              {showProducersFilter && filteredProducers.length > 0 && (
+                <div>
+                  <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Producers</label>
+                  <FilterDropdown
+                    label="Select producers..."
+                    selectedItems={selectedProducerNames}
+                    onClear={() => setSelectedProducers([])}
+                    onRemoveItem={(name) => {
+                      const producer = filteredProducers.find((p) => p.name === name);
+                      if (producer) toggleProducer(producer.id);
+                    }}
+                  >
+                    {filteredProducers.map((producer) => (
+                      <CheckboxItem
+                        key={producer.id}
+                        label={producer.name}
+                        checked={selectedProducers.includes(producer.id)}
+                        onChange={() => toggleProducer(producer.id)}
+                        count={producerCounts[producer.id] || 0}
+                      />
+                    ))}
+                  </FilterDropdown>
+                </div>
+              )}
+
+              {/* Consumers Filter */}
+              {showConsumersFilter && filteredConsumers.length > 0 && (
+                <div>
+                  <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Consumers</label>
+                  <FilterDropdown
+                    label="Select consumers..."
+                    selectedItems={selectedConsumerNames}
+                    onClear={() => setSelectedConsumers([])}
+                    onRemoveItem={(name) => {
+                      const consumer = filteredConsumers.find((c) => c.name === name);
+                      if (consumer) toggleConsumer(consumer.id);
+                    }}
+                  >
+                    {filteredConsumers.map((consumer) => (
+                      <CheckboxItem
+                        key={consumer.id}
+                        label={consumer.name}
+                        checked={selectedConsumers.includes(consumer.id)}
+                        onChange={() => toggleConsumer(consumer.id)}
+                        count={consumerCounts[consumer.id] || 0}
+                      />
+                    ))}
+                  </FilterDropdown>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Catalog Filters Section */}
+          <div className="space-y-3">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-[rgb(var(--ec-page-text))] pb-2">
+              Catalog Filters
             </h3>
 
-            {/* Producers Filter */}
-            {showProducersFilter && filteredProducers.length > 0 && (
+            {/* Domains Filter */}
+            {showDomainsFilter && domains.length > 0 && (
               <div>
-                <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-1.5">Producers</label>
+                <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Domains</label>
                 <FilterDropdown
-                  label="Select producers..."
-                  selectedItems={selectedProducerNames}
-                  onClear={() => setSelectedProducers([])}
+                  label="Select domains..."
+                  selectedItems={selectedDomainNames}
+                  onClear={() => setSelectedDomains([])}
                   onRemoveItem={(name) => {
-                    const producer = filteredProducers.find((p) => p.name === name);
-                    if (producer) toggleProducer(producer.id);
+                    const domain = domains.find((d) => d.name === name);
+                    if (domain) toggleDomain(domain.id);
                   }}
                 >
-                  {filteredProducers.map((producer) => (
+                  {domains.map((domain) => (
                     <CheckboxItem
-                      key={producer.id}
-                      label={producer.name}
-                      checked={selectedProducers.includes(producer.id)}
-                      onChange={() => toggleProducer(producer.id)}
-                      count={producerCounts[producer.id] || 0}
+                      key={domain.id}
+                      label={domain.name}
+                      checked={selectedDomains.includes(domain.id)}
+                      onChange={() => toggleDomain(domain.id)}
+                      count={domainCounts[domain.id] || 0}
                     />
                   ))}
                 </FilterDropdown>
               </div>
             )}
 
-            {/* Consumers Filter */}
-            {showConsumersFilter && filteredConsumers.length > 0 && (
+            {/* Owners Filter */}
+            {showOwnersFilter && owners.length > 0 && (
               <div>
-                <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-1.5">Consumers</label>
+                <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Owners</label>
                 <FilterDropdown
-                  label="Select consumers..."
-                  selectedItems={selectedConsumerNames}
-                  onClear={() => setSelectedConsumers([])}
+                  label="Select owners..."
+                  selectedItems={selectedOwnerNames}
+                  onClear={() => setSelectedOwners([])}
                   onRemoveItem={(name) => {
-                    const consumer = filteredConsumers.find((c) => c.name === name);
-                    if (consumer) toggleConsumer(consumer.id);
+                    const owner = owners.find((o) => o.name === name);
+                    if (owner) toggleOwner(owner.id);
                   }}
                 >
-                  {filteredConsumers.map((consumer) => (
-                    <CheckboxItem
-                      key={consumer.id}
-                      label={consumer.name}
-                      checked={selectedConsumers.includes(consumer.id)}
-                      onChange={() => toggleConsumer(consumer.id)}
-                      count={consumerCounts[consumer.id] || 0}
-                    />
-                  ))}
-                </FilterDropdown>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Catalog Filters Section */}
-        <div className="space-y-2">
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-[rgb(var(--ec-page-text-muted))]">
-            Catalog Filters
-          </h3>
-
-          {/* Domains Filter */}
-          {showDomainsFilter && domains.length > 0 && (
-            <div>
-              <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-1.5">Domains</label>
-              <FilterDropdown
-                label="Select domains..."
-                selectedItems={selectedDomainNames}
-                onClear={() => setSelectedDomains([])}
-                onRemoveItem={(name) => {
-                  const domain = domains.find((d) => d.name === name);
-                  if (domain) toggleDomain(domain.id);
-                }}
-              >
-                {domains.map((domain) => (
-                  <CheckboxItem
-                    key={domain.id}
-                    label={domain.name}
-                    checked={selectedDomains.includes(domain.id)}
-                    onChange={() => toggleDomain(domain.id)}
-                    count={domainCounts[domain.id] || 0}
-                  />
-                ))}
-              </FilterDropdown>
-            </div>
-          )}
-
-          {/* Owners Filter */}
-          {showOwnersFilter && owners.length > 0 && (
-            <div>
-              <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-1.5">Owners</label>
-              <FilterDropdown
-                label="Select owners..."
-                selectedItems={selectedOwnerNames}
-                onClear={() => setSelectedOwners([])}
-                onRemoveItem={(name) => {
-                  const owner = owners.find((o) => o.name === name);
-                  if (owner) toggleOwner(owner.id);
-                }}
-              >
-                {/* Users section */}
-                {owners.filter((o) => o.type !== 'team').length > 0 && (
-                  <>
-                    <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))] flex items-center gap-1.5">
-                      <UserIcon className="w-3 h-3" />
-                      Users
-                    </div>
-                    {owners
-                      .filter((o) => o.type !== 'team')
-                      .map((owner) => (
+                  {/* Users section */}
+                  {ownerUsers.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))] flex items-center gap-1.5">
+                        <UserIcon className="w-3 h-3" />
+                        Users
+                      </div>
+                      {ownerUsers.map((owner) => (
                         <CheckboxItem
                           key={owner.id}
                           label={owner.name}
@@ -568,18 +553,16 @@ export function DiscoverTable<T extends DiscoverTableData>({
                           count={ownerCounts[owner.id] || 0}
                         />
                       ))}
-                  </>
-                )}
-                {/* Teams section */}
-                {owners.filter((o) => o.type === 'team').length > 0 && (
-                  <>
-                    <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))] flex items-center gap-1.5 mt-2 border-t border-[rgb(var(--ec-page-border))] pt-2">
-                      <Users className="w-3 h-3" />
-                      Teams
-                    </div>
-                    {owners
-                      .filter((o) => o.type === 'team')
-                      .map((owner) => (
+                    </>
+                  )}
+                  {/* Teams section */}
+                  {ownerTeams.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))] flex items-center gap-1.5 mt-2 border-t border-[rgb(var(--ec-page-border))] pt-2">
+                        <Users className="w-3 h-3" />
+                        Teams
+                      </div>
+                      {ownerTeams.map((owner) => (
                         <CheckboxItem
                           key={owner.id}
                           label={owner.name}
@@ -588,105 +571,106 @@ export function DiscoverTable<T extends DiscoverTableData>({
                           count={ownerCounts[owner.id] || 0}
                         />
                       ))}
-                  </>
-                )}
-              </FilterDropdown>
-            </div>
-          )}
+                    </>
+                  )}
+                </FilterDropdown>
+              </div>
+            )}
 
-          {/* Badges Filter */}
-          {allBadges.length > 0 && (
-            <div>
-              <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-1.5">Badges</label>
-              <FilterDropdown
-                label="Select badges..."
-                selectedItems={selectedBadges}
-                onClear={() => setSelectedBadges([])}
-                onRemoveItem={(badge) => toggleBadge(badge)}
-              >
-                {allBadges.map((badge) => (
-                  <CheckboxItem
-                    key={badge.content}
-                    label={badge.content}
-                    checked={selectedBadges.includes(badge.content)}
-                    onChange={() => toggleBadge(badge.content)}
-                    count={badge.count}
-                  />
-                ))}
-              </FilterDropdown>
-            </div>
-          )}
+            {/* Badges Filter */}
+            {allBadges.length > 0 && (
+              <div>
+                <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Badges</label>
+                <FilterDropdown
+                  label="Select badges..."
+                  selectedItems={selectedBadges}
+                  onClear={() => setSelectedBadges([])}
+                  onRemoveItem={(badge) => toggleBadge(badge)}
+                >
+                  {allBadges.map((badge) => (
+                    <CheckboxItem
+                      key={badge.content}
+                      label={badge.content}
+                      checked={selectedBadges.includes(badge.content)}
+                      onChange={() => toggleBadge(badge.content)}
+                      count={badge.count}
+                    />
+                  ))}
+                </FilterDropdown>
+              </div>
+            )}
 
-          {/* Properties Filter */}
-          {propertyOptions.length > 0 && (
+            {/* Properties Filter */}
+            {propertyOptions.length > 0 && (
+              <div>
+                <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Properties</label>
+                <FilterDropdown
+                  label="Select properties..."
+                  selectedItems={selectedPropertyLabels}
+                  onClear={() => setSelectedProperties([])}
+                  onRemoveItem={(label) => {
+                    const prop = propertyOptions.find((p) => p.label === label);
+                    if (prop) toggleProperty(prop.id);
+                  }}
+                >
+                  {propertyOptions.map((option) => (
+                    <CheckboxItem
+                      key={option.id}
+                      label={option.label}
+                      checked={selectedProperties.includes(option.id)}
+                      onChange={() => toggleProperty(option.id)}
+                    />
+                  ))}
+                </FilterDropdown>
+              </div>
+            )}
+
+            {/* Version Filter */}
             <div>
-              <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-1.5">Properties</label>
+              <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Version</label>
               <FilterDropdown
-                label="Select properties..."
-                selectedItems={selectedPropertyLabels}
-                onClear={() => setSelectedProperties([])}
-                onRemoveItem={(label) => {
-                  const prop = propertyOptions.find((p) => p.label === label);
-                  if (prop) toggleProperty(prop.id);
+                label="Select version..."
+                selectedItems={[...(showOnlyLatest ? ['Latest only'] : []), ...(onlyShowDrafts ? ['Drafts only'] : [])]}
+                onClear={() => {
+                  setShowOnlyLatest(true);
+                  setOnlyShowDrafts(false);
+                }}
+                onRemoveItem={(item) => {
+                  if (item === 'Latest only') setShowOnlyLatest(false);
+                  if (item === 'Drafts only') setOnlyShowDrafts(false);
                 }}
               >
-                {propertyOptions.map((option) => (
-                  <CheckboxItem
-                    key={option.id}
-                    label={option.label}
-                    checked={selectedProperties.includes(option.id)}
-                    onChange={() => toggleProperty(option.id)}
-                  />
-                ))}
+                <CheckboxItem
+                  label="Latest version only"
+                  checked={showOnlyLatest}
+                  onChange={() => setShowOnlyLatest(!showOnlyLatest)}
+                />
+                <CheckboxItem label="Drafts only" checked={onlyShowDrafts} onChange={() => setOnlyShowDrafts(!onlyShowDrafts)} />
               </FilterDropdown>
             </div>
-          )}
-
-          {/* Version Filter */}
-          <div>
-            <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-1.5">Version</label>
-            <FilterDropdown
-              label="Select version..."
-              selectedItems={[...(showOnlyLatest ? ['Latest only'] : []), ...(onlyShowDrafts ? ['Drafts only'] : [])]}
-              onClear={() => {
-                setShowOnlyLatest(true);
-                setOnlyShowDrafts(false);
-              }}
-              onRemoveItem={(item) => {
-                if (item === 'Latest only') setShowOnlyLatest(false);
-                if (item === 'Drafts only') setOnlyShowDrafts(false);
-              }}
-            >
-              <CheckboxItem
-                label="Latest version only"
-                checked={showOnlyLatest}
-                onChange={() => setShowOnlyLatest(!showOnlyLatest)}
-              />
-              <CheckboxItem label="Drafts only" checked={onlyShowDrafts} onChange={() => setOnlyShowDrafts(!onlyShowDrafts)} />
-            </FilterDropdown>
           </div>
-        </div>
 
-        {/* Results & Clear */}
-        <div className="flex items-center justify-between pt-4 mt-2 border-t border-[rgb(var(--ec-page-border))]">
-          <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">
-            <span className="font-semibold text-[rgb(var(--ec-page-text))]">{totalResults}</span> results
-          </span>
-          {activeFilterCount > 0 && (
-            <button onClick={clearAllFilters} className="text-xs font-medium text-[rgb(var(--ec-accent))] hover:underline">
-              Clear all
-            </button>
-          )}
+          {/* Results & Clear */}
+          <div className="flex items-center justify-between pt-3 mt-2 border-t border-[rgb(var(--ec-page-border))]">
+            <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
+              <span className="font-semibold text-[rgb(var(--ec-page-text))]">{totalResults}</span> results
+            </span>
+            {activeFilterCount > 0 && (
+              <button onClick={clearAllFilters} className="text-xs font-medium text-[rgb(var(--ec-accent))] hover:underline">
+                Clear all
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Main Table */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {/* Table Header */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-[rgb(var(--ec-page-text))]">
+        <div className="flex items-center justify-between px-6 py-4">
+          <h2 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">
             {collectionLabel}{' '}
-            <span className="text-base text-[rgb(var(--ec-page-text-muted))] font-normal ml-1">({totalResults})</span>
+            <span className="text-sm text-[rgb(var(--ec-page-text-muted))] font-normal ml-1">({totalResults})</span>
           </h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
@@ -695,7 +679,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               value={tableFilter}
               onChange={(e) => setTableFilter(e.target.value)}
               placeholder="Filter..."
-              className="pl-9 pr-3 py-1.5 text-sm w-48 bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-page-border))] rounded-lg placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] focus:border-[rgb(var(--ec-accent))] transition-colors"
+              className="pl-9 pr-3 py-1.5 text-sm w-48 bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-dropdown-border))] rounded-lg placeholder:text-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] focus:border-[rgb(var(--ec-accent))] transition-colors"
             />
             {tableFilter && (
               <button
@@ -709,38 +693,31 @@ export function DiscoverTable<T extends DiscoverTableData>({
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-[rgb(var(--ec-page-border))] overflow-hidden shadow-xs">
+        <div className="flex-1 overflow-auto px-6">
           <table className="min-w-full divide-y divide-[rgb(var(--ec-page-border))]">
-            <thead className="bg-[rgb(var(--ec-content-hover))] sticky top-0 z-10 border-b-2 border-[rgb(var(--ec-page-border))]">
+            <thead className="sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup, index) => (
                 <tr key={`${headerGroup}-${index}`}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={`${header.id}`}
-                      className="px-4 py-3.5 text-left text-[11px] font-bold text-[rgb(var(--ec-page-text-muted))] uppercase tracking-widest"
+                      className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider"
                     >
-                      <div className="flex flex-col gap-2">
-                        <div>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</div>
-                      </div>
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
                 </tr>
               ))}
             </thead>
 
-            <tbody className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] divide-y divide-[rgb(var(--ec-page-border)/0.5)]">
+            <tbody className="divide-y divide-[rgb(var(--ec-page-border)/0.5)]">
               {hasResults ? (
                 table.getRowModel().rows.map((row, index) => (
-                  <tr
-                    key={`${row.id}-${index}`}
-                    className={`group hover:bg-[rgb(var(--ec-accent)/0.04)] transition-all duration-150 border-l-2 border-transparent hover:border-[rgb(var(--ec-accent))] ${
-                      index % 2 === 1 ? 'bg-[rgb(var(--ec-page-bg)/0.5)]' : ''
-                    }`}
-                  >
+                  <tr key={`${row.id}-${index}`} className="group hover:bg-[rgb(var(--ec-content-hover))] transition-colors">
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className={`px-4 py-4 text-sm text-[rgb(var(--ec-page-text))] ${cell.column.columnDef.meta?.className || ''}`}
+                        className={`px-4 py-3 text-sm text-[rgb(var(--ec-page-text))] ${cell.column.columnDef.meta?.className || ''}`}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
@@ -768,68 +745,37 @@ export function DiscoverTable<T extends DiscoverTableData>({
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-1 py-4">
-          <div className="text-sm text-[rgb(var(--ec-page-text-muted))]">
+        <div className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-t border-[rgb(var(--ec-page-border))]">
+          <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
             {totalResults > 0 && (
-              <span>
-                Showing <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getRowModel().rows.length}</span> of{' '}
+              <>
+                <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getRowModel().rows.length}</span> of{' '}
                 <span className="font-medium text-[rgb(var(--ec-page-text))]">{totalResults}</span> results
-              </span>
+              </>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
-              <button
-                className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors rounded-l-lg"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-                title="First page"
-              >
-                <ChevronsLeft className="w-4 h-4" />
-              </button>
-              <button
-                className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors border-l border-[rgb(var(--ec-page-border))]"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-                title="Previous page"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] border-l border-r border-[rgb(var(--ec-page-border))] min-w-[100px] text-center">
-                Page{' '}
-                <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getState().pagination.pageIndex + 1}</span>{' '}
-                of <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getPageCount() || 1}</span>
-              </span>
-              <button
-                className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors border-r border-[rgb(var(--ec-page-border))]"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-                title="Next page"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <button
-                className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors rounded-r-lg"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-                title="Last page"
-              >
-                <ChevronsRight className="w-4 h-4" />
-              </button>
-            </div>
-            <select
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value));
-              }}
-              className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:border-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] transition-colors"
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              title="Previous page"
             >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize} per page
-                </option>
-              ))}
-            </select>
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))] min-w-[60px] text-center">
+              <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getState().pagination.pageIndex + 1}</span>
+              {' / '}
+              <span>{table.getPageCount() || 1}</span>
+            </span>
+            <button
+              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              title="Next page"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

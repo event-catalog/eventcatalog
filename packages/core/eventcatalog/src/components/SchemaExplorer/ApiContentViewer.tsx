@@ -1,5 +1,5 @@
 import { ClipboardDocumentIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { CommandLineIcon, LockClosedIcon } from '@heroicons/react/24/solid';
+import { LockClosedIcon } from '@heroicons/react/24/solid';
 import type { SchemaItem } from './types';
 
 interface ApiContentViewerProps {
@@ -52,95 +52,80 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
   }
 
   return (
-    <div className="h-full overflow-auto p-4">
-      <div className="max-w-2xl">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[rgb(var(--ec-accent-subtle))]">
-            <CommandLineIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">API Access</h3>
-            <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">Access this schema programmatically</p>
-          </div>
-        </div>
-
-        {/* Endpoint Card */}
-        <div className="bg-gray-900 rounded-lg overflow-hidden mb-4">
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
-            <span className="text-xs font-medium text-gray-400">Endpoint</span>
-            <button
-              onClick={() => onCopy(fullUrl, `${message.data.id}-url`)}
-              className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded transition-colors ${
-                copiedId === `${message.data.id}-url` ? 'text-emerald-400' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              {copiedId === `${message.data.id}-url` ? (
-                <>
-                  <CheckIcon className="h-3.5 w-3.5" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <ClipboardDocumentIcon className="h-3.5 w-3.5" />
-                  Copy URL
-                </>
-              )}
-            </button>
-          </div>
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-3">
-              <span className="px-2 py-1 text-xs font-bold text-emerald-400 bg-emerald-400/10 rounded">GET</span>
-              <code className="text-sm text-gray-300 font-mono break-all">{apiPath}</code>
+    <div className="h-full overflow-auto">
+      <div className="space-y-4">
+        {/* Endpoint */}
+        <div className="rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden bg-[rgb(var(--ec-code-bg))]">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-[rgb(var(--ec-page-border))]">
+            <div className="flex items-center gap-2">
+              <span className="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 rounded">
+                GET
+              </span>
+              <span className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Endpoint</span>
             </div>
-          </div>
-        </div>
-
-        {/* cURL Example */}
-        <div className="bg-gray-900 rounded-lg overflow-hidden mb-6">
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
-            <span className="text-xs font-medium text-gray-400">cURL Example</span>
-            <button
-              onClick={() => onCopy(curlCommand, `${message.data.id}-curl`)}
-              className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded transition-colors ${
-                copiedId === `${message.data.id}-curl` ? 'text-emerald-400' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              {copiedId === `${message.data.id}-curl` ? (
-                <>
-                  <CheckIcon className="h-3.5 w-3.5" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <ClipboardDocumentIcon className="h-3.5 w-3.5" />
-                  Copy
-                </>
-              )}
-            </button>
+            <CopyButton
+              label="Copy URL"
+              isCopied={copiedId === `${message.data.id}-url`}
+              onClick={() => onCopy(fullUrl, `${message.data.id}-url`)}
+            />
           </div>
           <div className="px-4 py-3">
-            <code className="text-sm text-gray-300 font-mono break-all">{curlCommand}</code>
+            <code className="text-[13px] text-[rgb(var(--ec-page-text))] font-mono break-all leading-relaxed">{apiPath}</code>
           </div>
         </div>
 
-        {/* Response Info */}
-        <div className="border border-[rgb(var(--ec-page-border))] rounded-lg p-4">
-          <h4 className="text-xs font-semibold text-[rgb(var(--ec-page-text))] mb-3">Response</h4>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[rgb(var(--ec-page-text-muted))]">Content-Type</span>
-              <code className="text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-input-bg))] px-2 py-0.5 rounded">
+        {/* cURL */}
+        <div className="rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden bg-[rgb(var(--ec-code-bg))]">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-[rgb(var(--ec-page-border))]">
+            <span className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">cURL</span>
+            <CopyButton
+              label="Copy"
+              isCopied={copiedId === `${message.data.id}-curl`}
+              onClick={() => onCopy(curlCommand, `${message.data.id}-curl`)}
+            />
+          </div>
+          <div className="px-4 py-3">
+            <code className="text-[13px] text-[rgb(var(--ec-page-text))] font-mono break-all leading-relaxed">
+              <span className="text-[rgb(var(--ec-accent))]">curl</span> {fullUrl}
+            </code>
+          </div>
+        </div>
+
+        {/* Response details */}
+        <div className="rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-[rgb(var(--ec-page-border))]">
+            <span className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Response</span>
+          </div>
+          <div className="divide-y divide-[rgb(var(--ec-page-border))]">
+            <div className="flex items-center justify-between px-4 py-2.5">
+              <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">Content-Type</span>
+              <code className="text-xs font-mono text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded">
                 application/json
               </code>
             </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[rgb(var(--ec-page-text-muted))]">Returns</span>
-              <span className="text-[rgb(var(--ec-page-text))]">Raw schema content</span>
+            <div className="flex items-center justify-between px-4 py-2.5">
+              <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">Returns</span>
+              <span className="text-xs text-[rgb(var(--ec-page-text))]">Raw schema content</span>
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function CopyButton({ label, isCopied, onClick }: { label: string; isCopied: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded transition-colors ${
+        isCopied
+          ? 'text-emerald-400'
+          : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))]'
+      }`}
+    >
+      {isCopied ? <CheckIcon className="h-3 w-3" /> : <ClipboardDocumentIcon className="h-3 w-3" />}
+      {isCopied ? 'Copied' : label}
+    </button>
   );
 }
