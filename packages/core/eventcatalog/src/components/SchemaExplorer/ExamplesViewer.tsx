@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
@@ -16,6 +16,10 @@ export default function ExamplesViewer({ examples }: ExamplesViewerProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const isDarkMode = useDarkMode();
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [examples]);
 
   if (examples.length === 0) {
     return (
