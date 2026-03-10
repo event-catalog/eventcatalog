@@ -1,0 +1,15 @@
+check-passed.json:
+  name: Check Passed
+  summary: All fraud checks passed for a low-risk returning customer. Identity, card BIN, address, and velocity checks all cleared in 342ms.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @check-passed.json
+
+check-flagged.json:
+  name: Check Flagged
+  summary: Fraud check flagged due to geolocation mismatch and impossible travel detection. Address verification returned a partial match.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @check-flagged.json

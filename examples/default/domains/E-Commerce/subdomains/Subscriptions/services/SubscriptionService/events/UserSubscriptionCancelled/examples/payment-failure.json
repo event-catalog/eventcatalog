@@ -1,0 +1,25 @@
+{
+  "eventId": "evt_sub_cancel_b19c3f",
+  "eventType": "UserSubscriptionCancelled",
+  "timestamp": "2024-07-03T08:12:55Z",
+  "data": {
+    "subscriptionId": "sub_7j21np48",
+    "userId": "usr_41839",
+    "plan": {
+      "planId": "plan_annual_enterprise",
+      "name": "Enterprise Annual"
+    },
+    "cancellationReason": "payment_failure",
+    "cancellationNote": "Automatic cancellation after 3 failed payment attempts",
+    "cancelledBy": "system",
+    "effectiveDate": "2024-07-03",
+    "refundAmount": 0,
+    "failedPaymentAttempts": 3,
+    "lastPaymentAttempt": "2024-07-02T23:00:00Z",
+    "subscriptionDurationDays": 182
+  },
+  "metadata": {
+    "correlationId": "corr_aa11bb22",
+    "version": "1.0.0"
+  }
+}

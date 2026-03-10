@@ -1,0 +1,46 @@
+{
+  "eventId": "evt_fd_d4e5f6a7-4567-89ab-cdef-012345678901",
+  "timestamp": "2024-03-16T02:48:02.331Z",
+  "type": "FraudDetected",
+  "source": "fraud-detection-service",
+  "data": {
+    "fraudCaseId": "fraud_5d6e7f8a-9b0c-1d2e-3f4a-5b6c7d8e9f0a",
+    "assessmentId": "risk_8c9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f",
+    "paymentId": "pay_9e8d7c6b-5a4f-3e2d-1c0b-9a8f7e6d5c4b",
+    "orderId": "ord_92858321",
+    "customerId": "cust_67103",
+    "fraudType": "stolen_card",
+    "severity": "critical",
+    "riskScore": 95,
+    "evidence": [
+      {
+        "type": "card_reported_stolen",
+        "description": "Card number matches entry in stolen card database (reported 2024-03-14)",
+        "confidence": 0.98
+      },
+      {
+        "type": "velocity_anomaly",
+        "description": "5 purchase attempts with different cards in 12 minutes from same device",
+        "confidence": 0.92
+      },
+      {
+        "type": "device_fingerprint",
+        "description": "Device linked to 3 confirmed fraud cases in the past 30 days",
+        "confidence": 0.95
+      }
+    ],
+    "actionsTaken": [
+      "payment_blocked",
+      "account_suspended",
+      "card_issuer_notified"
+    ],
+    "amount": 2499.99,
+    "currency": "USD",
+    "detectedAt": "2024-03-16T02:48:02.331Z"
+  },
+  "metadata": {
+    "correlationId": "corr_aabbccdd-eeff-1122-3344-556677889900",
+    "modelVersion": "fraud-ml-v3.2.1",
+    "reviewRequired": false
+  }
+}

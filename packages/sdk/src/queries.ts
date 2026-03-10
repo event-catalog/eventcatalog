@@ -4,6 +4,9 @@ import { findFileById, invalidateFileCache } from './internal/utils';
 import type { Query } from './types';
 import {
   addFileToResource,
+  addExampleToResource,
+  getExamplesFromResource,
+  removeExampleFromResource,
   getResource,
   getResourcePath,
   getResources,
@@ -315,3 +318,52 @@ export const queryHasVersion = (directory: string) => async (id: string, version
   const file = await findFileById(directory, id, version);
   return !!file;
 };
+
+/**
+ * Add an example file to a query.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { addExampleToQuery } = utils('/path/to/eventcatalog');
+ *
+ * await addExampleToQuery('GetOrder', { content: '{"id": "123"}', fileName: 'basic.json' });
+ * await addExampleToQuery('GetOrder', { content: '{"id": "123"}', fileName: 'basic.json' }, '0.0.1');
+ * ```
+ */
+export const addExampleToQuery =
+  (directory: string) => async (id: string, example: { content: string; fileName: string }, version?: string) =>
+    addExampleToResource(directory, id, example, version);
+
+/**
+ * Get all examples from a query.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { getExamplesFromQuery } = utils('/path/to/eventcatalog');
+ *
+ * const examples = await getExamplesFromQuery('GetOrder');
+ * const examples = await getExamplesFromQuery('GetOrder', '0.0.1');
+ * ```
+ */
+export const getExamplesFromQuery = (directory: string) => async (id: string, version?: string) =>
+  getExamplesFromResource(directory, id, version);
+
+/**
+ * Remove an example file from a query.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { removeExampleFromQuery } = utils('/path/to/eventcatalog');
+ *
+ * await removeExampleFromQuery('GetOrder', 'basic.json');
+ * await removeExampleFromQuery('GetOrder', 'basic.json', '0.0.1');
+ * ```
+ */
+export const removeExampleFromQuery = (directory: string) => async (id: string, fileName: string, version?: string) =>
+  removeExampleFromResource(directory, id, fileName, version);

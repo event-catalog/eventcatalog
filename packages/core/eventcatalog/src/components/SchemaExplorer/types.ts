@@ -1,4 +1,6 @@
 import type { CollectionMessageTypes } from '@types';
+import type { MessageExample } from '@utils/collections/examples';
+export type { MessageExample };
 
 export interface Producer {
   id: string;
@@ -38,6 +40,8 @@ export interface SchemaItem {
   contractType?: string;
   dataProductId?: string;
   dataProductVersion?: string;
+  // Examples
+  examples?: MessageExample[];
 }
 
 export interface VersionDiff {

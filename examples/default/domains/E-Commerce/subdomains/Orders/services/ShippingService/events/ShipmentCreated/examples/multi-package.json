@@ -1,0 +1,76 @@
+{
+  "eventId": "evt_sc_12005",
+  "shipmentId": "shp_88245",
+  "orderId": "ord_10558",
+  "createdAt": "2026-03-10T11:00:00Z",
+  "status": "created",
+  "customer": {
+    "customerId": "cust_9225",
+    "name": "David Kim",
+    "email": "david.kim@example.com"
+  },
+  "shippingAddress": {
+    "line1": "500 Technology Square",
+    "line2": "Apt 12B",
+    "city": "San Francisco",
+    "state": "CA",
+    "zipCode": "94105",
+    "country": "US"
+  },
+  "shippingMethod": "express",
+  "carrier": "FedEx",
+  "packages": [
+    {
+      "packageId": "pkg_44350",
+      "weightKg": 8.5,
+      "dimensions": {
+        "lengthCm": 60,
+        "widthCm": 45,
+        "heightCm": 35
+      },
+      "items": [
+        {
+          "itemId": "item_30420",
+          "sku": "ELEC-MON-32-4K",
+          "name": "32\" 4K Professional Monitor",
+          "quantity": 1
+        }
+      ],
+      "fragile": true
+    },
+    {
+      "packageId": "pkg_44351",
+      "weightKg": 3.2,
+      "dimensions": {
+        "lengthCm": 40,
+        "widthCm": 30,
+        "heightCm": 20
+      },
+      "items": [
+        {
+          "itemId": "item_30421",
+          "sku": "ELEC-KB-MECH-01",
+          "name": "Mechanical Keyboard",
+          "quantity": 1
+        },
+        {
+          "itemId": "item_30422",
+          "sku": "ELEC-MOUSE-ERG-01",
+          "name": "Ergonomic Wireless Mouse",
+          "quantity": 1
+        },
+        {
+          "itemId": "item_30423",
+          "sku": "ELEC-DOCK-USB-01",
+          "name": "USB-C Docking Station",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "estimatedDelivery": "2026-03-12T14:00:00Z",
+  "shippingCost": {
+    "amount": 24.99,
+    "currency": "USD"
+  }
+}

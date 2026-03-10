@@ -1,0 +1,40 @@
+{
+  "eventId": "evt_c3e91d47-8b2f-4a6c-b019-7d4e5f8a1b23",
+  "eventType": "OrderCancelled",
+  "timestamp": "2025-11-15T11:42:08.734Z",
+  "orderId": "ord_84210",
+  "userId": "usr_29381",
+  "cancellationReason": "CUSTOMER_REQUEST",
+  "cancellationNote": "Changed my mind, found a better deal elsewhere.",
+  "orderItems": [
+    {
+      "productId": "prod_2045",
+      "productName": "Ergonomic Office Chair",
+      "sku": "EOC-PRO-GRY",
+      "quantity": 1,
+      "unitPrice": 349.99,
+      "totalPrice": 349.99
+    },
+    {
+      "productId": "prod_3087",
+      "productName": "Adjustable Monitor Stand",
+      "sku": "AMS-200-SLV",
+      "quantity": 1,
+      "unitPrice": 79.99,
+      "totalPrice": 79.99
+    }
+  ],
+  "orderTotal": 429.98,
+  "currency": "USD",
+  "refund": {
+    "refundId": "ref_19283",
+    "amount": 429.98,
+    "method": "original_payment_method",
+    "estimatedProcessingDays": 5
+  },
+  "orderStatus": "cancelled",
+  "metadata": {
+    "source": "web",
+    "correlationId": "corr_1122aabb-cc33-dd44-ee55-ff6677889900"
+  }
+}

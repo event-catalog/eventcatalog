@@ -1,0 +1,38 @@
+{
+  "eventId": "evt_pf_8a3b1c9d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+  "timestamp": "2024-03-15T14:23:47.892Z",
+  "type": "PaymentFailed",
+  "source": "payment-gateway-service",
+  "data": {
+    "paymentId": "pay_7f8e9d0c-1b2a-3c4d-5e6f-7a8b9c0d1e2f",
+    "orderId": "ord_92847561",
+    "customerId": "cust_10482",
+    "amount": 249.99,
+    "currency": "USD",
+    "paymentMethod": {
+      "type": "credit_card",
+      "brand": "visa",
+      "last4": "4242",
+      "expiryMonth": 11,
+      "expiryYear": 2026
+    },
+    "failureReason": "card_declined",
+    "failureCode": "DECLINED_GENERIC",
+    "failureMessage": "The card was declined. Please contact your card issuer for more information.",
+    "gatewayResponse": {
+      "gatewayId": "gw_stripe",
+      "transactionId": "txn_3PqR5sT7uV9wX1y",
+      "responseCode": "05",
+      "avsCheck": "pass",
+      "cvvCheck": "pass"
+    },
+    "retryable": true,
+    "attemptNumber": 1,
+    "maxAttempts": 3
+  },
+  "metadata": {
+    "correlationId": "corr_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "ipAddress": "192.168.1.42",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+  }
+}

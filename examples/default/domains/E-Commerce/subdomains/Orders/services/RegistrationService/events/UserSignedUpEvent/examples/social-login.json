@@ -1,0 +1,36 @@
+{
+  "eventId": "evt_ca037fb8-4b6d-4a2c-f873-1d4e5f6a7b90",
+  "eventType": "UserSignedUpEvent",
+  "timestamp": "2025-11-17T15:21:09.648Z",
+  "userId": "usr_55198",
+  "email": "emma.chen@example.com",
+  "signupMethod": "google_oauth",
+  "profile": {
+    "firstName": "Emma",
+    "lastName": "Chen",
+    "displayName": "Emma Chen",
+    "avatarUrl": "https://lh3.googleusercontent.com/a/example-avatar-hash",
+    "locale": "en-GB",
+    "timezone": "Europe/London"
+  },
+  "oauthProvider": {
+    "provider": "google",
+    "providerUserId": "118234567890123456789",
+    "scopes": ["email", "profile"]
+  },
+  "preferences": {
+    "marketingOptIn": false,
+    "newsletterOptIn": false,
+    "preferredCurrency": "GBP"
+  },
+  "verification": {
+    "emailVerified": true,
+    "verifiedAt": "2025-11-17T15:21:09.648Z"
+  },
+  "metadata": {
+    "source": "mobile-app",
+    "ipAddress": "198.51.100.78",
+    "userAgent": "EventCatalog-Mobile/2.3.1 (Android 14)",
+    "correlationId": "corr_33445566-7788-99aa-bbcc-ddeeff001122"
+  }
+}

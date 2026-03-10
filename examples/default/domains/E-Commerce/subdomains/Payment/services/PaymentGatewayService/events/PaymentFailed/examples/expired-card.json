@@ -1,0 +1,38 @@
+{
+  "eventId": "evt_pf_5c6d7e8f-9a0b-1c2d-3e4f-5a6b7c8d9e0f",
+  "timestamp": "2024-03-16T09:12:05.671Z",
+  "type": "PaymentFailed",
+  "source": "payment-gateway-service",
+  "data": {
+    "paymentId": "pay_9e8d7c6b-5a4f-3e2d-1c0b-9a8f7e6d5c4b",
+    "orderId": "ord_92853298",
+    "customerId": "cust_30692",
+    "amount": 54.50,
+    "currency": "EUR",
+    "paymentMethod": {
+      "type": "credit_card",
+      "brand": "amex",
+      "last4": "1003",
+      "expiryMonth": 1,
+      "expiryYear": 2024
+    },
+    "failureReason": "expired_card",
+    "failureCode": "CARD_EXPIRED",
+    "failureMessage": "The card has expired. Please use a different payment method.",
+    "gatewayResponse": {
+      "gatewayId": "gw_stripe",
+      "transactionId": "txn_OpQrStUvWxYz123",
+      "responseCode": "54",
+      "avsCheck": "unavailable",
+      "cvvCheck": "fail"
+    },
+    "retryable": false,
+    "attemptNumber": 1,
+    "maxAttempts": 3
+  },
+  "metadata": {
+    "correlationId": "corr_11223344-5566-7788-99aa-bbccddeeff00",
+    "ipAddress": "172.16.0.55",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X)"
+  }
+}

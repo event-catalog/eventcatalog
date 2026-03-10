@@ -9,6 +9,7 @@ import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 import path from 'node:path';
 import type { SchemaItem } from '@components/SchemaExplorer/types';
+import { getExamplesForResource } from '@utils/collections/examples';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -102,6 +103,7 @@ if (isDataProduct && contractPath) {
           },
           schemaContent,
           schemaExtension,
+          examples: getExamplesForResource(message),
         } as SchemaItem;
       } catch (error) {
         console.error(`Error reading schema for ${message.data.id}:`, error);

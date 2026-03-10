@@ -1,0 +1,32 @@
+{
+  "eventId": "evt_sd_29301",
+  "shipmentId": "shp_88214",
+  "orderId": "ord_10482",
+  "dispatchedAt": "2026-03-10T09:15:00Z",
+  "carrier": "FedEx",
+  "trackingNumber": "FX7829041635",
+  "shippingMethod": "standard",
+  "estimatedDelivery": "2026-03-15T18:00:00Z",
+  "warehouse": {
+    "id": "wh_east_01",
+    "name": "East Coast Distribution Center",
+    "location": "Newark, NJ"
+  },
+  "destination": {
+    "city": "Boston",
+    "state": "MA",
+    "zipCode": "02101",
+    "country": "US"
+  },
+  "packages": [
+    {
+      "packageId": "pkg_44102",
+      "weightKg": 2.3,
+      "dimensions": {
+        "lengthCm": 30,
+        "widthCm": 20,
+        "heightCm": 15
+      }
+    }
+  ]
+}

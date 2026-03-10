@@ -1,0 +1,15 @@
+domestic-transit.json:
+  name: Domestic Transit Update
+  summary: A shipment moving between facilities within the US, currently at a ground hub in Connecticut.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @domestic-transit.json
+
+international-transit.json:
+  name: International Transit Update
+  summary: An international shipment routed through London with customs clearance, en route from the US to Germany.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @international-transit.json

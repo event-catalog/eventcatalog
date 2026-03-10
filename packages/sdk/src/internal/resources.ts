@@ -332,6 +332,65 @@ export const getVersionedDirectory = (sourceDirectory: string, version: any): st
   return join(sourceDirectory, 'versioned', version);
 };
 
+const CONFIG_FILES = ['examples.config.yaml', 'examples.config.yml', 'examples.config.json'];
+
+export const addExampleToResource = async (
+  catalogDir: string,
+  id: string,
+  example: { content: string; fileName: string },
+  version?: string
+) => {
+  const pathToResource = await findFileById(catalogDir, id, version);
+  if (!pathToResource) throw new Error('Cannot find directory to write example to');
+
+  const examplesDir = join(dirname(pathToResource), 'examples');
+  fsSync.mkdirSync(examplesDir, { recursive: true });
+  fsSync.writeFileSync(join(examplesDir, example.fileName), example.content);
+};
+
+export const getExamplesFromResource = async (
+  catalogDir: string,
+  id: string,
+  version?: string
+): Promise<{ fileName: string; content: string }[]> => {
+  const pathToResource = await findFileById(catalogDir, id, version);
+  if (!pathToResource) throw new Error('Cannot find resource');
+
+  const examplesDir = join(dirname(pathToResource), 'examples');
+  if (!fsSync.existsSync(examplesDir)) return [];
+
+  const collectFiles = (dir: string, baseDir: string): { fileName: string; content: string }[] => {
+    const results: { fileName: string; content: string }[] = [];
+    const entries = fsSync.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        results.push(...collectFiles(fullPath, baseDir));
+      } else if (entry.isFile() && !CONFIG_FILES.includes(entry.name)) {
+        results.push({
+          fileName: path.relative(baseDir, fullPath),
+          content: fsSync.readFileSync(fullPath, 'utf-8'),
+        });
+      }
+    }
+    return results;
+  };
+
+  return collectFiles(examplesDir, examplesDir).sort((a, b) => a.fileName.localeCompare(b.fileName));
+};
+
+export const removeExampleFromResource = async (catalogDir: string, id: string, fileName: string, version?: string) => {
+  const pathToResource = await findFileById(catalogDir, id, version);
+  if (!pathToResource) throw new Error('Cannot find resource');
+
+  const examplePath = join(dirname(pathToResource), 'examples', fileName);
+  if (!fsSync.existsSync(examplePath)) {
+    throw new Error(`Example file ${fileName} does not exist in resource ${id}${version ? ` v(${version})` : ''}`);
+  }
+
+  fsSync.unlinkSync(examplePath);
+};
+
 export const isLatestVersion = async (catalogDir: string, id: string, version?: string) => {
   const resource = await getResource(catalogDir, id, version);
   if (!resource) return false;

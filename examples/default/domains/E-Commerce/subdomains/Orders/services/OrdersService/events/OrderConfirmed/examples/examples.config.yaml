@@ -1,0 +1,15 @@
+standard-order.json:
+  name: Standard Order
+  summary: A typical order confirmation with two clothing items, standard shipping, and credit card payment.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @standard-order.json
+
+gift-order.json:
+  name: Gift Order
+  summary: An order confirmed as a gift with gift wrapping, a personalized message, and express shipping to the recipient.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @gift-order.json

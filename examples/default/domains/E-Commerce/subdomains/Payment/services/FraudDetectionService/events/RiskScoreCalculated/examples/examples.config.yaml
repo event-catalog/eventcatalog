@@ -1,0 +1,23 @@
+low-risk.json:
+  name: Low Risk Score
+  summary: Returning customer with a strong purchase history scores 12/100, automatically approved without manual review.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @low-risk.json
+
+medium-risk.json:
+  name: Medium Risk Score
+  summary: New customer with mismatched addresses and a high-value order scores 52/100, flagged for manual review.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @medium-risk.json
+
+high-risk.json:
+  name: High Risk Score
+  summary: Brand new account with a device matching known fraud patterns and geolocation mismatch scores 89/100, automatically declined.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @high-risk.json

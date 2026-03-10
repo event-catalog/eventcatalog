@@ -1,0 +1,7 @@
+product-depleted.json:
+  name: Product Depleted
+  summary: A Mechanical Gaming Keyboard reaches zero stock after fulfilling an order, with 12 pending orders and an automatic reorder triggered.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @product-depleted.json

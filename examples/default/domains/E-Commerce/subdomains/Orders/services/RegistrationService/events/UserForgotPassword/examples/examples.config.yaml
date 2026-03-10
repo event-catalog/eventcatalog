@@ -1,0 +1,7 @@
+password-reset-request.json:
+  name: Password Reset Request
+  summary: User requested a password reset from a mobile device, triggering a reset email with a tokenized link.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @password-reset-request.json

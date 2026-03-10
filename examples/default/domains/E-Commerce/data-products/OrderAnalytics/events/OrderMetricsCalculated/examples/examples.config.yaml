@@ -1,0 +1,7 @@
+daily-metrics.json:
+  name: Daily Order Metrics
+  summary: End-of-day order metrics calculation including revenue, fulfillment rate, top categories, and day-over-day comparisons.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @daily-metrics.json

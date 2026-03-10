@@ -1,0 +1,22 @@
+{
+  "eventId": "evt_inv_adj_3e92df",
+  "eventType": "InventoryAdjusted",
+  "timestamp": "2024-04-10T09:45:33Z",
+  "data": {
+    "adjustmentId": "adj_20241015",
+    "sku": "SKU-MOUSE-ERGO",
+    "productName": "Ergonomic Wireless Mouse",
+    "warehouseId": "wh_east_01",
+    "adjustmentType": "decrease",
+    "previousQuantity": 340,
+    "adjustedQuantity": -18,
+    "newQuantity": 322,
+    "reason": "damaged_goods",
+    "notes": "18 units found damaged during quarterly inventory audit",
+    "adjustedBy": "warehouse_mgr_alee"
+  },
+  "metadata": {
+    "correlationId": "corr_adj_002",
+    "version": "1.0.0"
+  }
+}

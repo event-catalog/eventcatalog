@@ -1,0 +1,39 @@
+{
+  "eventId": "evt_metrics_9d42fa",
+  "eventType": "OrderMetricsCalculated",
+  "timestamp": "2024-04-16T00:15:00Z",
+  "data": {
+    "reportId": "rpt_daily_20240415",
+    "period": {
+      "type": "daily",
+      "date": "2024-04-15",
+      "startTime": "2024-04-15T00:00:00Z",
+      "endTime": "2024-04-15T23:59:59Z"
+    },
+    "metrics": {
+      "totalOrders": 1247,
+      "completedOrders": 1189,
+      "cancelledOrders": 34,
+      "returnedOrders": 24,
+      "totalRevenue": 87493.52,
+      "averageOrderValue": 73.59,
+      "currency": "USD",
+      "topSellingCategories": [
+        { "category": "Electronics", "orderCount": 412, "revenue": 38920.00 },
+        { "category": "Home & Garden", "orderCount": 298, "revenue": 18740.50 },
+        { "category": "Clothing", "orderCount": 237, "revenue": 14210.80 }
+      ],
+      "fulfillmentRate": 0.954,
+      "averageFulfillmentTimeHours": 4.2
+    },
+    "comparedToPreviousDay": {
+      "ordersChange": 0.08,
+      "revenueChange": 0.12,
+      "aovChange": -0.02
+    }
+  },
+  "metadata": {
+    "correlationId": "corr_metrics_001",
+    "version": "1.0.0"
+  }
+}

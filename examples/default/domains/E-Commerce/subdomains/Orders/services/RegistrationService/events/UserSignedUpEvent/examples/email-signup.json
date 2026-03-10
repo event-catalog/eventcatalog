@@ -1,0 +1,30 @@
+{
+  "eventId": "evt_b9d26ea7-3a5c-4f1b-e762-0c3d4e5f6a89",
+  "eventType": "UserSignedUpEvent",
+  "timestamp": "2025-11-17T08:33:45.291Z",
+  "userId": "usr_55120",
+  "email": "alex.martinez@example.com",
+  "signupMethod": "email",
+  "profile": {
+    "firstName": "Alex",
+    "lastName": "Martinez",
+    "displayName": "Alex M.",
+    "locale": "en-US",
+    "timezone": "America/New_York"
+  },
+  "preferences": {
+    "marketingOptIn": true,
+    "newsletterOptIn": false,
+    "preferredCurrency": "USD"
+  },
+  "verification": {
+    "emailVerified": false,
+    "verificationTokenExpiresAt": "2025-11-18T08:33:45.291Z"
+  },
+  "metadata": {
+    "source": "web",
+    "ipAddress": "203.0.113.42",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "correlationId": "corr_22334455-6677-8899-aabb-ccddeeff0011"
+  }
+}

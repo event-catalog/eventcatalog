@@ -1,0 +1,15 @@
+stolen-card.json:
+  name: Stolen Card
+  summary: Fraud detected using a card reported stolen, with device fingerprint linked to prior fraud cases. Payment blocked and account suspended.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @stolen-card.json
+
+unusual-location.json:
+  name: Unusual Location
+  summary: Fraud detected due to impossible travel pattern - purchase from Nigeria while customer was in Portland 2 hours prior. Payment held pending verification.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @unusual-location.json

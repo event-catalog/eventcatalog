@@ -1,0 +1,7 @@
+warehouse-restock.json:
+  name: Warehouse Restock
+  summary: New inventory received at the East Coast Distribution Center from a supplier purchase order.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @warehouse-restock.json

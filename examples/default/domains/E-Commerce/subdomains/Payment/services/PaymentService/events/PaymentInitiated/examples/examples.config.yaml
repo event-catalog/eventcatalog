@@ -1,0 +1,15 @@
+standard-checkout.json:
+  name: Standard Checkout
+  summary: Payment initiated through the standard web checkout flow with a Visa credit card and multiple items.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @standard-checkout.json
+
+express-checkout.json:
+  name: Express Checkout
+  summary: Payment initiated via Apple Pay express checkout on mobile for a single item with a discount code applied.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @express-checkout.json

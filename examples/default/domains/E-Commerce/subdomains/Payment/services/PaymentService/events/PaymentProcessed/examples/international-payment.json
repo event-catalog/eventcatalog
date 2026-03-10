@@ -1,0 +1,14 @@
+{
+  "id": "pay_99887",
+  "orderId": "ord_55443",
+  "amount": 249.50,
+  "currency": "EUR",
+  "status": "processed",
+  "paymentMethod": "bank_transfer",
+  "processedAt": "2024-02-20T14:15:00Z",
+  "metadata": {
+    "country": "DE",
+    "taxRate": 0.19,
+    "exchangeRate": 1.08
+  }
+}
