@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.22.0
+
+### Minor Changes
+
+- 3d40745: Redesign schema explorer UI with modern layout, dark mode support, and improved code organization
+
 ## 3.21.0
 
 ### Minor Changes
