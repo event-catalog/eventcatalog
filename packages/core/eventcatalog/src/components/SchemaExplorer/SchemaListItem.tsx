@@ -1,7 +1,6 @@
 import { buildUrl } from '@utils/url-builder';
-import { getCollectionStyles } from '@components/Grids/utils';
-import { getSchemaTypeLabel } from './utils';
 import type { SchemaItem } from './types';
+import { getSchemaTypeLabel, ICON_SPECS, getFormatBadge, extractServiceName } from './utils';
 
 interface SchemaListItemProps {
   message: SchemaItem;
@@ -11,69 +10,85 @@ interface SchemaListItemProps {
   itemRef?: React.Ref<HTMLButtonElement>;
 }
 
-export default function SchemaListItem({ message, isSelected, versions, onClick, itemRef }: SchemaListItemProps) {
-  const { color, Icon } = getCollectionStyles(message.collection);
-  const hasMultipleVersions = versions.length > 1;
+// Derive a namespace from available data
+function getNamespace(message: SchemaItem): string | null {
+  const producers = message.data.producers || [];
+  const firstProducer = producers[0];
 
-  // Get the schema icon
-  const ext = message.schemaExtension?.toLowerCase();
-  const hasSchemaIcon = ['openapi', 'asyncapi', 'graphql', 'avro', 'json', 'proto'].includes(ext || '');
-  const iconName = ext === 'json' ? 'json-schema' : ext;
+  if (firstProducer) {
+    const serviceName = extractServiceName(firstProducer.id);
+    return `${serviceName}.${message.collection}`;
+  }
+
+  // For services, use the service ID + spec type
+  if (message.collection === 'services' && message.specType) {
+    return `${message.specType}`;
+  }
+
+  // For data products
+  if (message.collection === 'data-products' && message.dataProductId) {
+    return `${extractServiceName(message.dataProductId)}.contracts`;
+  }
+
+  return null;
+}
+
+export default function SchemaListItem({ message, isSelected, versions, onClick, itemRef }: SchemaListItemProps) {
+  const hasMultipleVersions = versions.length > 1;
+  const ext = message.schemaExtension?.toLowerCase() || '';
+  const iconSpec = ICON_SPECS[ext];
+  const { label: formatLabel, color: formatColor } = getFormatBadge(ext);
+  const namespace = getNamespace(message);
 
   return (
     <button
       ref={itemRef}
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 transition-all duration-75 group border-l-2 ${
+      className={`w-full text-left px-3 py-2 transition-all duration-100 group ${
         isSelected
-          ? `bg-${color}-50 dark:bg-${color}-500/10 border-l-${color}-500`
-          : 'hover:bg-[rgb(var(--ec-content-hover))] border-l-transparent'
+          ? 'bg-[rgb(var(--ec-accent-subtle))] border-l-2 border-l-[rgb(var(--ec-accent))]'
+          : 'hover:bg-[rgb(var(--ec-content-hover))] border-l-2 border-l-transparent'
       }`}
     >
       <div className="flex items-center gap-2.5">
-        {/* Collection Icon */}
-        <div
-          className={`flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-md ${
-            isSelected ? `bg-${color}-100 dark:bg-${color}-500/20` : `bg-${color}-100/60 dark:bg-${color}-500/10`
-          }`}
-        >
-          <Icon className={`h-3.5 w-3.5 text-${color}-600 dark:text-${color}-400`} />
+        {/* Schema Format Badge */}
+        <div className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-md bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border)/0.5)]">
+          {iconSpec ? (
+            <img src={buildUrl(`/icons/${iconSpec}.svg`, true)} alt={`${ext} icon`} className="h-4 w-4 schema-icon" />
+          ) : (
+            <span className={`text-[10px] font-bold font-mono ${formatColor}`}>{formatLabel}</span>
+          )}
         </div>
 
+        {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Name row with version */}
-          <div className="flex items-center gap-1.5">
-            <span
-              className={`text-[13px] font-semibold truncate ${isSelected ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'}`}
-            >
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-[13px] font-medium text-[rgb(var(--ec-page-text))] truncate leading-tight">
               {message.data.name}
             </span>
-            <span
-              className={`text-[10px] tabular-nums flex-shrink-0 ${isSelected ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]'}`}
-            >
+            <span className="flex-shrink-0 text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted))] font-mono">
               v{message.data.version}
             </span>
           </div>
-
-          {/* Meta row */}
           <div className="flex items-center gap-1.5 mt-0.5">
-            {/* Schema Format */}
-            <span
-              className={`inline-flex items-center gap-1 text-[10px] ${isSelected ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-page-text-muted))]'}`}
-            >
-              {hasSchemaIcon && (
-                <img src={buildUrl(`/icons/${iconName}.svg`, true)} alt={`${ext} icon`} className="h-3 w-3 opacity-70" />
-              )}
+            <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))]">
               {getSchemaTypeLabel(message.schemaExtension)}
             </span>
-
-            {/* Versions count */}
+            {namespace && (
+              <>
+                <span className="text-[rgb(var(--ec-page-text-muted))] opacity-40">&middot;</span>
+                <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] truncate font-mono opacity-70">
+                  {namespace}
+                </span>
+              </>
+            )}
             {hasMultipleVersions && (
-              <span
-                className={`text-[10px] ${isSelected ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]'}`}
-              >
-                · {versions.length}v
-              </span>
+              <>
+                <span className="text-[rgb(var(--ec-page-text-muted))] opacity-40">&middot;</span>
+                <span className="text-[11px] tabular-nums text-[rgb(var(--ec-page-text-muted))] opacity-70">
+                  {versions.length}v
+                </span>
+              </>
             )}
           </div>
         </div>
