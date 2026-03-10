@@ -378,7 +378,7 @@ const title = `${currentTypeConfig.label} (${data.length})`;
 ---
 
 <VerticalSideBarLayout title={`Explore | ${title}`} showNestedSideBar={false}>
-  <main class="ml-0 bg-[rgb(var(--ec-page-bg))] min-h-content">
+  <main class="ml-0 bg-[rgb(var(--ec-page-bg))] h-content flex flex-col overflow-hidden">
     <div id="discover-collection-tabs">
       <div class="hidden sm:block">
         <div class="border-b border-[rgb(var(--ec-page-border))]">
@@ -409,7 +409,7 @@ const title = `${currentTypeConfig.label} (${data.length})`;
       </div>
     </div>
 
-    <div class="py-4 px-6 md:pr-10">
+    <div class="flex-1 overflow-hidden">
       <DiscoverTable
         data={tableData as DiscoverTableData[]}
         collectionType={type as CollectionType}

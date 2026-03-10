@@ -69,7 +69,7 @@ const BadgesCell = ({ badges }: { badges: Array<{ content: string; backgroundCol
       {visibleItems.map((badge, index) => (
         <span
           key={`${badge.content}-${index}`}
-          className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md max-w-[140px] truncate border border-[rgb(var(--ec-accent)/0.5)] text-[rgb(var(--ec-page-text))] bg-transparent"
+          className="inline-flex items-center px-2 py-0.5 text-[11px] font-normal rounded-md max-w-[140px] truncate border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] bg-transparent"
           title={badge.content}
         >
           {badge.content}
