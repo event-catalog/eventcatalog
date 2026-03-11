@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.23.1
+
+### Patch Changes
+
+- 2ba795d: fix(core): populate actor node data in flow node graphs
+- 13958d6: fix(core): sidebar navigation loses sync with custom base path
+
 ## 3.23.0
 
 ### Minor Changes
