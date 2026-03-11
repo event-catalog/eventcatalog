@@ -16,6 +16,7 @@ let _sdk: SdkFactory | undefined;
 
 async function getSdk(): Promise<SdkFactory> {
   if (!_sdk) {
+    // @ts-ignore - SDK types may not be available during build; runtime-only import
     const mod = await import("@eventcatalog/sdk");
     _sdk = mod.default as unknown as SdkFactory;
   }
