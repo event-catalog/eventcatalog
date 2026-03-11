@@ -6,7 +6,7 @@ export const getCollection = async (key: string, filter?: (entry: any) => boolea
   return [];
 };
 
-export type ContentCollectionKey =
+export type CollectionKey =
   | 'events'
   | 'services'
   | 'commands'
@@ -18,7 +18,7 @@ export type ContentCollectionKey =
   | 'entities'
   | 'schemas';
 
-export type CollectionEntry<T extends ContentCollectionKey> = {
+export type CollectionEntry<T extends CollectionKey> = {
   id: string;
   slug: string;
   body: string;

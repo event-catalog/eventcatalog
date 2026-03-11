@@ -1,4 +1,4 @@
-import type { CollectionEntry, ContentCollectionKey } from 'astro:content';
+import type { CollectionEntry, CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels } from './mocks';
 import { getChannels, getChannelChain, isChannelsConnected } from '@utils/collections/channels';
@@ -7,7 +7,7 @@ vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
     // this will only affect "foo" outside of the original module
-    getCollection: (key: ContentCollectionKey) => {
+    getCollection: (key: CollectionKey) => {
       switch (key) {
         case 'services':
           return Promise.resolve(mockServices);

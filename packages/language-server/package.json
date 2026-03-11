@@ -56,10 +56,10 @@
     "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
-    "@astrojs/starlight": "^0.32.0",
+    "@astrojs/starlight": "^0.38.0",
     "@types/js-yaml": "^4.0.9",
     "@types/semver": "^7.7.1",
-    "astro": "^5.17.2",
+    "astro": "^6.0.2",
     "langium-cli": "^3.3.1",
     "prettier": "^3.2.5",
     "typescript": "^5.7.0",

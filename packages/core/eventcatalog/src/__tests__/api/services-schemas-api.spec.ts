@@ -1,4 +1,4 @@
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { getStaticPaths, GET } from '../../pages/api/schemas/services/[id]/[version]/[specification]/index.ts';
 import path from 'path';
@@ -40,7 +40,7 @@ const mockServices = [
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getCollection: (key: ContentCollectionKey) => {
+    getCollection: (key: CollectionKey) => {
       switch (key) {
         case 'services':
           return Promise.resolve(mockServices);

@@ -1,4 +1,4 @@
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { getDomainsCanvasData } from '@utils/node-graphs/domains-canvas';
 import { MarkerType } from '@xyflow/react';
@@ -135,7 +135,7 @@ const mockEvents = [
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getCollection: (key: ContentCollectionKey) => {
+    getCollection: (key: CollectionKey) => {
       switch (key) {
         case 'services':
           return Promise.resolve(mockAllServices);

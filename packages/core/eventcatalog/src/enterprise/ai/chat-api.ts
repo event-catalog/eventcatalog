@@ -2,7 +2,8 @@ import type { APIContext } from 'astro';
 import { convertToModelMessages, stepCountIs, streamText, tool, type LanguageModel, type ModelMessage, type UIMessage } from 'ai';
 import { join } from 'node:path';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
-import { z, getCollection, getEntry } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
+import { z } from 'astro/zod';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
 import {
   getResources as getResourcesImpl,

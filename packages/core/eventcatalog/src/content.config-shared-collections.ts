@@ -1,4 +1,4 @@
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 
 // Shared schemas used across multiple files
 export const badge = z.object({

@@ -109,6 +109,9 @@ interface MessageDetailsPanelProperty {
   channels?: DetailPanelProperty;
   versions?: DetailPanelProperty;
   repository?: DetailPanelProperty;
+  owners?: DetailPanelProperty;
+  changelog?: DetailPanelProperty;
+  attachments?: DetailPanelProperty;
 }
 
 export interface Event extends BaseSchema {
