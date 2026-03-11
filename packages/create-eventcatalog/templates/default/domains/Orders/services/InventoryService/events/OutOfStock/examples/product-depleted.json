@@ -1,0 +1,19 @@
+{
+  "eventId": "evt_4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e",
+  "eventType": "OutOfStock",
+  "timestamp": "2025-11-18T10:05:38.922Z",
+  "productId": "prod_4102",
+  "productName": "Limited Edition Sneakers",
+  "sku": "LES-42-WHT",
+  "warehouseId": "wh_west_02",
+  "previousQuantity": 1,
+  "currentQuantity": 0,
+  "lastSoldOrderId": "ord_86701",
+  "restockEstimate": null,
+  "affectedPendingOrders": 3,
+  "metadata": {
+    "source": "inventory-system",
+    "correlationId": "corr_aabbccdd-eeff-0011-2233-445566778899",
+    "triggeredBy": "order_fulfillment"
+  }
+}

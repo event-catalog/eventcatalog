@@ -1,0 +1,23 @@
+card-declined.json:
+  name: Card Declined
+  summary: Payment failed because the card was declined by the issuing bank with a generic decline code.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @card-declined.json
+
+insufficient-funds.json:
+  name: Insufficient Funds
+  summary: Payment failed due to insufficient funds on a Mastercard for a high-value order.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @insufficient-funds.json
+
+expired-card.json:
+  name: Expired Card
+  summary: Payment failed because the customer attempted to use an expired Amex card. This failure is non-retryable.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @expired-card.json

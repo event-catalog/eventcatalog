@@ -1,0 +1,48 @@
+{
+  "eventId": "evt_tr_55010",
+  "shipmentId": "shp_88214",
+  "orderId": "ord_10482",
+  "timestamp": "2026-03-12T06:20:00Z",
+  "carrier": "FedEx",
+  "trackingNumber": "FX7829041635",
+  "transitType": "domestic",
+  "currentLocation": {
+    "facility": "FedEx Ground Hub",
+    "city": "Hartford",
+    "state": "CT",
+    "country": "US",
+    "coordinates": {
+      "latitude": 41.7658,
+      "longitude": -72.6734
+    }
+  },
+  "origin": {
+    "city": "Newark",
+    "state": "NJ",
+    "country": "US"
+  },
+  "destination": {
+    "city": "Boston",
+    "state": "MA",
+    "country": "US"
+  },
+  "status": "in_transit",
+  "estimatedDelivery": "2026-03-15T18:00:00Z",
+  "transitHistory": [
+    {
+      "location": "Newark, NJ",
+      "status": "picked_up",
+      "timestamp": "2026-03-10T09:15:00Z"
+    },
+    {
+      "location": "Edison, NJ",
+      "status": "departed_facility",
+      "timestamp": "2026-03-10T22:00:00Z"
+    },
+    {
+      "location": "Hartford, CT",
+      "status": "arrived_at_facility",
+      "timestamp": "2026-03-12T06:20:00Z"
+    }
+  ]
+}

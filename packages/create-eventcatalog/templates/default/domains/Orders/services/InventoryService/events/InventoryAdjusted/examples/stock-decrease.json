@@ -1,0 +1,23 @@
+{
+  "eventId": "evt_8a9b0c1d-2e3f-4a5b-6c7d-8e9f0a1b2c3d",
+  "eventType": "InventoryAdjusted",
+  "timestamp": "2025-11-17T14:22:09.587Z",
+  "adjustmentId": "adj_40355",
+  "productId": "prod_4102",
+  "productName": "Limited Edition Sneakers",
+  "sku": "LES-42-WHT",
+  "warehouseId": "wh_west_02",
+  "adjustmentType": "DECREASE",
+  "reason": "DAMAGED_GOODS",
+  "previousQuantity": 15,
+  "adjustedQuantity": 3,
+  "newQuantity": 12,
+  "unitCost": 85.0,
+  "currency": "USD",
+  "metadata": {
+    "source": "warehouse-system",
+    "correlationId": "corr_fedcba98-7654-3210-fedc-ba9876543210",
+    "inspectionReportId": "insp_71882",
+    "adjustedBy": "usr_wh_2011"
+  }
+}

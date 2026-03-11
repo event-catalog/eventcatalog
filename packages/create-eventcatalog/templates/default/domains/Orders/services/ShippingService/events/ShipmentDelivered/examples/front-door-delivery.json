@@ -1,0 +1,30 @@
+{
+  "eventId": "evt_del_40210",
+  "shipmentId": "shp_88214",
+  "orderId": "ord_10482",
+  "deliveredAt": "2026-03-14T11:42:00Z",
+  "carrier": "FedEx",
+  "trackingNumber": "FX7829041635",
+  "deliveryType": "front_door",
+  "signatureRequired": false,
+  "deliveryLocation": {
+    "type": "front_door",
+    "notes": "Left at front door per customer instructions"
+  },
+  "proofOfDelivery": {
+    "photoUrl": "https://cdn.shipping.example.com/delivery-photos/shp_88214.jpg",
+    "gpsCoordinates": {
+      "latitude": 42.3601,
+      "longitude": -71.0589
+    }
+  },
+  "recipient": {
+    "name": "Sarah Johnson",
+    "address": {
+      "city": "Boston",
+      "state": "MA",
+      "zipCode": "02101",
+      "country": "US"
+    }
+  }
+}

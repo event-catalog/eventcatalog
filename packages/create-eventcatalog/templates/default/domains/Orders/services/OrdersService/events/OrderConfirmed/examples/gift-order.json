@@ -1,0 +1,38 @@
+{
+  "eventId": "evt_7f8e9d0c-1b2a-3c4d-5e6f-7a8b9c0d1e2f",
+  "eventType": "OrderConfirmed",
+  "timestamp": "2025-11-16T12:15:44.882Z",
+  "orderId": "ord_85412",
+  "userId": "usr_72019",
+  "items": [
+    {
+      "productId": "prod_6300",
+      "productName": "Scented Candle Gift Set",
+      "sku": "SCG-050-AST",
+      "quantity": 1,
+      "unitPrice": 59.99,
+      "lineTotal": 59.99
+    }
+  ],
+  "orderTotal": 65.98,
+  "currency": "USD",
+  "isGift": true,
+  "giftMessage": "Happy Birthday! Hope you enjoy these.",
+  "giftWrapping": true,
+  "giftWrappingCost": 5.99,
+  "shippingAddress": {
+    "line1": "305 Pine Lane",
+    "line2": "Suite 4",
+    "city": "Seattle",
+    "state": "WA",
+    "postalCode": "98101",
+    "country": "US"
+  },
+  "shippingMethod": "express",
+  "estimatedDelivery": "2025-11-18",
+  "paymentMethod": "paypal",
+  "metadata": {
+    "source": "mobile-app",
+    "correlationId": "corr_ffeeddcc-bbaa-9988-7766-554433221100"
+  }
+}

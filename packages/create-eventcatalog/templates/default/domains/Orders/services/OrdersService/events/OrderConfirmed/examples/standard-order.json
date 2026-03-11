@@ -1,0 +1,42 @@
+{
+  "eventId": "evt_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+  "eventType": "OrderConfirmed",
+  "timestamp": "2025-11-16T08:30:12.654Z",
+  "orderId": "ord_85330",
+  "userId": "usr_61482",
+  "items": [
+    {
+      "productId": "prod_5210",
+      "productName": "USB-C Charging Cable 2m",
+      "sku": "UCC-200-WHT",
+      "quantity": 2,
+      "unitPrice": 14.99,
+      "lineTotal": 29.98
+    },
+    {
+      "productId": "prod_5211",
+      "productName": "Wireless Mouse",
+      "sku": "WM-300-BLK",
+      "quantity": 1,
+      "unitPrice": 34.99,
+      "lineTotal": 34.99
+    }
+  ],
+  "orderTotal": 64.97,
+  "currency": "USD",
+  "shippingAddress": {
+    "line1": "720 Elm Drive",
+    "line2": null,
+    "city": "Austin",
+    "state": "TX",
+    "postalCode": "73301",
+    "country": "US"
+  },
+  "shippingMethod": "standard",
+  "estimatedDelivery": "2025-11-21",
+  "paymentMethod": "credit_card",
+  "metadata": {
+    "source": "web",
+    "correlationId": "corr_11223344-5566-7788-99aa-bbccddeeff00"
+  }
+}

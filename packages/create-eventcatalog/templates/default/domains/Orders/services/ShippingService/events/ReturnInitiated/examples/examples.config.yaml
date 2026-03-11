@@ -1,0 +1,15 @@
+defective-item.json:
+  name: Defective Item Return
+  summary: A return initiated for a defective monitor with a dead pixel, scheduled for carrier pickup with full refund.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @defective-item.json
+
+wrong-item.json:
+  name: Wrong Item Received
+  summary: A return initiated because the customer received the wrong product, with drop-off return and automatic reshipping.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @wrong-item.json

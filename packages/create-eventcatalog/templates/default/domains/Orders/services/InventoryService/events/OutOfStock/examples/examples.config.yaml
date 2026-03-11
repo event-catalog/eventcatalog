@@ -1,0 +1,7 @@
+product-depleted.json:
+  name: Product Depleted
+  summary: A product reached zero stock after fulfilling an order, with 3 pending orders still affected.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @product-depleted.json

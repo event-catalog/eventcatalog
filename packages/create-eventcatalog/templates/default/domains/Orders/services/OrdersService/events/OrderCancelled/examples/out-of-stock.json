@@ -1,0 +1,28 @@
+{
+  "eventId": "evt_e5f92b38-8c63-4a7d-b401-3f0a6c9d2e85",
+  "eventType": "OrderCancelled",
+  "timestamp": "2025-11-15T16:18:45.291Z",
+  "orderId": "ord_84507",
+  "userId": "usr_28956",
+  "cancellationReason": "OUT_OF_STOCK",
+  "cancellationNote": "Product no longer available from supplier",
+  "items": [
+    {
+      "productId": "prod_4102",
+      "productName": "Limited Edition Sneakers",
+      "sku": "LES-42-WHT",
+      "quantity": 1,
+      "unitPrice": 189.99
+    }
+  ],
+  "refundAmount": 189.99,
+  "currency": "USD",
+  "previousStatus": "confirmed",
+  "newStatus": "cancelled",
+  "metadata": {
+    "source": "system",
+    "correlationId": "corr_a9b8c7d6-5432-1098-fedc-ba9876543210",
+    "cancelledBy": "system",
+    "inventoryCheckId": "inv_chk_77201"
+  }
+}

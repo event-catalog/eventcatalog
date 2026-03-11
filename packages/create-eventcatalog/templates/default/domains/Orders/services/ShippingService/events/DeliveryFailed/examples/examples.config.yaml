@@ -1,0 +1,23 @@
+address-not-found.json:
+  name: Address Not Found
+  summary: Delivery failed because the provided address could not be located by the carrier.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @address-not-found.json
+
+customer-unavailable.json:
+  name: Customer Unavailable
+  summary: Three delivery attempts were made but the customer was not available to receive the package.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @customer-unavailable.json
+
+damaged-in-transit.json:
+  name: Damaged in Transit
+  summary: Package was damaged during shipping and returned to the warehouse for inspection.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @damaged-in-transit.json

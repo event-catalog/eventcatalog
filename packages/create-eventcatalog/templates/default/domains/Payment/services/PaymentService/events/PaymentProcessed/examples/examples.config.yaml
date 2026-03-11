@@ -1,0 +1,15 @@
+successful-payment.json:
+  name: Successful Payment
+  summary: A standard credit card payment completed successfully for a domestic order with multiple items.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @successful-payment.json
+
+international-payment.json:
+  name: International Payment
+  summary: Payment processed for an international order in GBP with currency conversion details included.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @international-payment.json

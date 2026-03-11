@@ -1,0 +1,34 @@
+{
+  "eventId": "evt_c4e81a29-7d52-4f6b-a390-2e9f5b8c1d74",
+  "eventType": "OrderCancelled",
+  "timestamp": "2025-11-15T11:42:08.734Z",
+  "orderId": "ord_84219",
+  "userId": "usr_33741",
+  "cancellationReason": "CUSTOMER_REQUEST",
+  "cancellationNote": "Changed my mind about the purchase",
+  "items": [
+    {
+      "productId": "prod_2045",
+      "productName": "Ergonomic Office Chair",
+      "sku": "EOC-200-GRY",
+      "quantity": 1,
+      "unitPrice": 349.99
+    },
+    {
+      "productId": "prod_3087",
+      "productName": "Standing Desk Mat",
+      "sku": "SDM-100-BLK",
+      "quantity": 1,
+      "unitPrice": 44.99
+    }
+  ],
+  "refundAmount": 394.98,
+  "currency": "USD",
+  "previousStatus": "confirmed",
+  "newStatus": "cancelled",
+  "metadata": {
+    "source": "web",
+    "correlationId": "corr_d2c3b4a5-6789-0123-abcd-456789012345",
+    "cancelledBy": "customer"
+  }
+}

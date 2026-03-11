@@ -1,0 +1,7 @@
+upcoming-renewal.json:
+  name: Upcoming Renewal Payment
+  summary: A payment reminder generated 3 days before a Pro Monthly subscription renewal is due.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @upcoming-renewal.json

@@ -1,0 +1,23 @@
+{
+  "eventId": "evt_df_60101",
+  "shipmentId": "shp_84201",
+  "orderId": "ord_10482",
+  "failedAt": "2026-03-14T14:30:00Z",
+  "carrier": "FedEx",
+  "trackingNumber": "FX7829041890",
+  "failureReason": "address_not_found",
+  "failureDetails": "Delivery address not found. The provided address does not match any known location.",
+  "deliveryAttempts": 1,
+  "destination": {
+    "line1": "999 Phantom Lane",
+    "city": "Denver",
+    "state": "CO",
+    "zipCode": "80201",
+    "country": "US"
+  },
+  "nextAction": "contact_customer",
+  "customer": {
+    "customerId": "cust_8901",
+    "email": "taylor.morgan@example.com"
+  }
+}

@@ -1,0 +1,15 @@
+monthly-plan.json:
+  name: Monthly Plan Subscription
+  summary: A user subscribes to the Pro Monthly plan with a 14-day trial period via web checkout.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @monthly-plan.json
+
+annual-plan.json:
+  name: Annual Enterprise Plan
+  summary: A user subscribes to the Enterprise Annual plan through the sales team with a discount code applied.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @annual-plan.json

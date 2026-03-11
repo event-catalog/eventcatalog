@@ -1,0 +1,40 @@
+{
+  "eventId": "evt_df_60108",
+  "shipmentId": "shp_84305",
+  "orderId": "ord_10596",
+  "failedAt": "2026-03-15T17:45:00Z",
+  "carrier": "UPS",
+  "trackingNumber": "1Z9R8F030392850142",
+  "failureReason": "customer_unavailable",
+  "failureDetails": "Customer unavailable. Three delivery attempts were made with no response.",
+  "deliveryAttempts": 3,
+  "attemptHistory": [
+    {
+      "attempt": 1,
+      "timestamp": "2026-03-13T10:30:00Z",
+      "notes": "No answer at door"
+    },
+    {
+      "attempt": 2,
+      "timestamp": "2026-03-14T14:15:00Z",
+      "notes": "No answer at door, left notice"
+    },
+    {
+      "attempt": 3,
+      "timestamp": "2026-03-15T17:45:00Z",
+      "notes": "Final attempt, no answer"
+    }
+  ],
+  "destination": {
+    "line1": "310 Oak Avenue",
+    "city": "Seattle",
+    "state": "WA",
+    "zipCode": "98101",
+    "country": "US"
+  },
+  "nextAction": "return_to_warehouse",
+  "customer": {
+    "customerId": "cust_9340",
+    "email": "chris.baker@example.com"
+  }
+}
