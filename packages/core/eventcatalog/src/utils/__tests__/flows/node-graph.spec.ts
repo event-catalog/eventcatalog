@@ -252,6 +252,15 @@ describe('Flows NodeGraph', () => {
       });
     });
 
+    it('should populate actor node data with name and summary from the actor step', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'CancelSubscription', version: '1.0.0' });
+
+      const actorNode = nodes.find((node: any) => node.type === 'actor');
+
+      expect(actorNode).toBeDefined();
+      expect(actorNode?.data?.name).toBe('User');
+    });
+
     it('returns empty nodes and edges if no flow is found', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownFlow', version: '1.0.0' });
 
