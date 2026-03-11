@@ -1,0 +1,51 @@
+{
+  "eventId": "evt_ret_70305",
+  "returnId": "ret_22014",
+  "shipmentId": "shp_88201",
+  "orderId": "ord_10468",
+  "initiatedAt": "2026-03-10T08:15:00Z",
+  "reason": "wrong_item",
+  "reasonDetails": "Ordered navy blue running shoes size 10, received black hiking boots size 11.",
+  "items": [
+    {
+      "itemId": "item_30310",
+      "sku": "SHOE-HIKE-BLK-11",
+      "name": "Trail Hiking Boots - Black (Size 11)",
+      "quantity": 1,
+      "pricePerUnit": 129.95
+    }
+  ],
+  "expectedItems": [
+    {
+      "sku": "SHOE-RUN-NVY-10",
+      "name": "Performance Running Shoes - Navy (Size 10)",
+      "quantity": 1
+    }
+  ],
+  "customer": {
+    "customerId": "cust_9103",
+    "email": "jamie.patel@example.com"
+  },
+  "returnMethod": "drop_off",
+  "dropOffLocations": [
+    {
+      "name": "UPS Store - Downtown",
+      "address": "142 Main St, Portland, OR 97201"
+    },
+    {
+      "name": "UPS Store - Mall",
+      "address": "8500 SE Sunnyside Rd, Portland, OR 97086"
+    }
+  ],
+  "returnLabel": {
+    "carrier": "UPS",
+    "trackingNumber": "1Z9R8F030392811280",
+    "labelUrl": "https://cdn.shipping.example.com/return-labels/ret_22014.pdf"
+  },
+  "refundEstimate": {
+    "amount": 129.95,
+    "currency": "USD",
+    "method": "original_payment"
+  },
+  "reshipping": true
+}

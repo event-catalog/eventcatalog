@@ -1,0 +1,38 @@
+{
+  "eventId": "evt_e6a93b74-0d2f-4c8e-b439-7f0a1b2c3d56",
+  "eventType": "OrderCancelled",
+  "timestamp": "2025-11-15T16:30:44.218Z",
+  "orderId": "ord_84387",
+  "userId": "usr_41520",
+  "cancellationReason": "OUT_OF_STOCK",
+  "cancellationNote": "Item is no longer available from the supplier. Customer has been notified via email.",
+  "orderItems": [
+    {
+      "productId": "prod_7783",
+      "productName": "Limited Edition Sneakers - Retro Collection",
+      "sku": "LES-RC-WHT-42",
+      "quantity": 1,
+      "unitPrice": 189.99,
+      "totalPrice": 189.99
+    }
+  ],
+  "orderTotal": 189.99,
+  "currency": "EUR",
+  "refund": {
+    "refundId": "ref_19301",
+    "amount": 189.99,
+    "method": "original_payment_method",
+    "estimatedProcessingDays": 3
+  },
+  "inventoryDetails": {
+    "warehouseId": "wh_eu_central_01",
+    "lastStockCheckAt": "2025-11-15T16:28:00.000Z",
+    "availableQuantity": 0,
+    "nextRestockEstimate": null
+  },
+  "orderStatus": "cancelled",
+  "metadata": {
+    "source": "system",
+    "correlationId": "corr_ddeeff00-1122-3344-5566-778899aabbcc"
+  }
+}

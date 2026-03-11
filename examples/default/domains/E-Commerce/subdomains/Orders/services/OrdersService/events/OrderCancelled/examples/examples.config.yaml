@@ -1,0 +1,23 @@
+customer-request.json:
+  name: Customer Requested Cancellation
+  summary: Order cancelled by the customer before shipment, triggering a full refund to the original payment method.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @customer-request.json
+
+payment-failed.json:
+  name: Payment Failed
+  summary: Order automatically cancelled after payment authorization was declined following 3 retry attempts.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @payment-failed.json
+
+out-of-stock.json:
+  name: Out of Stock
+  summary: Order cancelled by the system because the item is no longer available from the supplier.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @out-of-stock.json

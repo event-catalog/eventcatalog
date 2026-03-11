@@ -1,0 +1,54 @@
+{
+  "eventId": "evt_rs_c3d4e5f6-3456-789a-bcde-f01234567890",
+  "timestamp": "2024-03-16T02:47:19.103Z",
+  "type": "RiskScoreCalculated",
+  "source": "fraud-detection-service",
+  "data": {
+    "assessmentId": "risk_8c9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f",
+    "paymentId": "pay_9e8d7c6b-5a4f-3e2d-1c0b-9a8f7e6d5c4b",
+    "orderId": "ord_92858321",
+    "customerId": "cust_67103",
+    "riskScore": 89,
+    "riskLevel": "high",
+    "maxScore": 100,
+    "threshold": {
+      "low": 30,
+      "medium": 60,
+      "high": 80
+    },
+    "factors": [
+      {
+        "name": "customer_history",
+        "score": 25,
+        "description": "Brand new account created 4 minutes before purchase"
+      },
+      {
+        "name": "device_fingerprint",
+        "score": 20,
+        "description": "Device fingerprint matches known fraudulent device cluster"
+      },
+      {
+        "name": "geolocation_mismatch",
+        "score": 22,
+        "description": "IP location (Nigeria) does not match billing address (United States)"
+      },
+      {
+        "name": "order_amount",
+        "score": 12,
+        "description": "High-value electronics order ($2,499.99) from new account"
+      },
+      {
+        "name": "velocity_check",
+        "score": 10,
+        "description": "Multiple payment attempts with different cards in last 10 minutes"
+      }
+    ],
+    "recommendation": "decline",
+    "requiresManualReview": false,
+    "calculatedAt": "2024-03-16T02:47:19.103Z"
+  },
+  "metadata": {
+    "correlationId": "corr_aabbccdd-eeff-1122-3344-556677889900",
+    "modelVersion": "fraud-ml-v3.2.1"
+  }
+}

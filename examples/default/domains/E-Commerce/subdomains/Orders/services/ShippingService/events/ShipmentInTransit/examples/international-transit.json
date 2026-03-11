@@ -1,0 +1,61 @@
+{
+  "eventId": "evt_tr_55018",
+  "shipmentId": "shp_88230",
+  "orderId": "ord_10534",
+  "timestamp": "2026-03-11T18:45:00Z",
+  "carrier": "DHL",
+  "trackingNumber": "DHL4829173650",
+  "transitType": "international",
+  "currentLocation": {
+    "facility": "DHL International Gateway",
+    "city": "London",
+    "country": "GB",
+    "coordinates": {
+      "latitude": 51.4700,
+      "longitude": -0.4543
+    }
+  },
+  "origin": {
+    "city": "New York",
+    "state": "NY",
+    "country": "US"
+  },
+  "destination": {
+    "city": "Berlin",
+    "country": "DE"
+  },
+  "status": "in_transit",
+  "estimatedDelivery": "2026-03-16T14:00:00Z",
+  "customs": {
+    "status": "cleared",
+    "clearedAt": "2026-03-11T14:30:00Z",
+    "declarationNumber": "GB-CUS-2026-0384751"
+  },
+  "transitHistory": [
+    {
+      "location": "New York, US",
+      "status": "picked_up",
+      "timestamp": "2026-03-09T16:00:00Z"
+    },
+    {
+      "location": "JFK Airport, US",
+      "status": "departed_country",
+      "timestamp": "2026-03-10T02:30:00Z"
+    },
+    {
+      "location": "London Heathrow, GB",
+      "status": "arrived_at_hub",
+      "timestamp": "2026-03-11T10:15:00Z"
+    },
+    {
+      "location": "London, GB",
+      "status": "customs_cleared",
+      "timestamp": "2026-03-11T14:30:00Z"
+    },
+    {
+      "location": "London, GB",
+      "status": "in_transit_to_destination",
+      "timestamp": "2026-03-11T18:45:00Z"
+    }
+  ]
+}

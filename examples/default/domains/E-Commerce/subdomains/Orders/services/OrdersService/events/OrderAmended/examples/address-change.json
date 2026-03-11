@@ -1,0 +1,36 @@
+{
+  "eventId": "evt_b7d14e92-6f3a-4c09-9e72-1a5b8d3f6c20",
+  "eventType": "OrderAmended",
+  "timestamp": "2025-11-14T14:05:33.119Z",
+  "orderId": "ord_83102",
+  "userId": "usr_51037",
+  "amendmentType": "ADDRESS_CHANGE",
+  "amendments": [],
+  "shippingAddress": {
+    "previous": {
+      "line1": "42 Oak Street",
+      "line2": "Apt 7B",
+      "city": "Portland",
+      "state": "OR",
+      "postalCode": "97201",
+      "country": "US"
+    },
+    "updated": {
+      "line1": "158 Maple Avenue",
+      "line2": null,
+      "city": "Portland",
+      "state": "OR",
+      "postalCode": "97205",
+      "country": "US"
+    }
+  },
+  "previousOrderTotal": 89.97,
+  "newOrderTotal": 89.97,
+  "currency": "USD",
+  "orderStatus": "confirmed",
+  "metadata": {
+    "source": "mobile-app",
+    "correlationId": "corr_f8e7d6c5-b4a3-2190-fedc-ba0987654321",
+    "userAgent": "EventCatalog-Mobile/2.3.1 (iOS 17.4)"
+  }
+}

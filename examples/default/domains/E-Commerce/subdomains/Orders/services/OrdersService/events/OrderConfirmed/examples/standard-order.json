@@ -1,0 +1,48 @@
+{
+  "eventId": "evt_f7b04c85-1e3a-4d9f-c540-8a1b2c3d4e67",
+  "eventType": "OrderConfirmed",
+  "timestamp": "2025-11-16T10:15:29.553Z",
+  "orderId": "ord_85001",
+  "userId": "usr_33204",
+  "orderItems": [
+    {
+      "productId": "prod_4410",
+      "productName": "Organic Cotton T-Shirt",
+      "sku": "OCT-M-NVY",
+      "quantity": 2,
+      "unitPrice": 34.99,
+      "totalPrice": 69.98
+    },
+    {
+      "productId": "prod_4425",
+      "productName": "Slim Fit Chinos",
+      "sku": "SFC-32-KHK",
+      "quantity": 1,
+      "unitPrice": 64.99,
+      "totalPrice": 64.99
+    }
+  ],
+  "orderTotal": 134.97,
+  "currency": "USD",
+  "shippingAddress": {
+    "line1": "2200 Pennsylvania Ave NW",
+    "line2": null,
+    "city": "Washington",
+    "state": "DC",
+    "postalCode": "20037",
+    "country": "US"
+  },
+  "shippingMethod": "standard",
+  "estimatedDeliveryDate": "2025-11-21",
+  "payment": {
+    "paymentId": "pay_90102",
+    "method": "credit_card",
+    "cardLastFour": "1881",
+    "status": "captured"
+  },
+  "orderStatus": "confirmed",
+  "metadata": {
+    "source": "web",
+    "correlationId": "corr_11223344-5566-7788-99aa-bbccddeeff00"
+  }
+}

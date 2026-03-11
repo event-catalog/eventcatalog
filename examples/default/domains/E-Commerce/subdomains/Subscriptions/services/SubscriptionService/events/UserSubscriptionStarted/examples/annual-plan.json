@@ -1,0 +1,26 @@
+{
+  "eventId": "evt_sub_start_e91f2a",
+  "eventType": "UserSubscriptionStarted",
+  "timestamp": "2024-06-01T14:05:33Z",
+  "data": {
+    "subscriptionId": "sub_3k72mf91",
+    "userId": "usr_55102",
+    "plan": {
+      "planId": "plan_annual_enterprise",
+      "name": "Enterprise Annual",
+      "billingCycle": "annual",
+      "price": 499.00,
+      "currency": "USD"
+    },
+    "trialPeriodDays": 0,
+    "startDate": "2024-06-01",
+    "nextBillingDate": "2025-06-01",
+    "paymentMethodId": "pm_card_1881",
+    "source": "sales_team",
+    "discountCode": "ENTERPRISE20"
+  },
+  "metadata": {
+    "correlationId": "corr_ff93aa12",
+    "version": "1.0.0"
+  }
+}

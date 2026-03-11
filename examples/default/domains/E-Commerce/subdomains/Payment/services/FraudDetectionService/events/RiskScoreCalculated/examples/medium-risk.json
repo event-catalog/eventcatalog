@@ -1,0 +1,49 @@
+{
+  "eventId": "evt_rs_b2c3d4e5-2345-6789-abcd-ef0123456789",
+  "timestamp": "2024-03-15T14:15:33.891Z",
+  "type": "RiskScoreCalculated",
+  "source": "fraud-detection-service",
+  "data": {
+    "assessmentId": "risk_2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
+    "paymentId": "pay_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+    "orderId": "ord_92845678",
+    "customerId": "cust_20571",
+    "riskScore": 52,
+    "riskLevel": "medium",
+    "maxScore": 100,
+    "threshold": {
+      "low": 30,
+      "medium": 60,
+      "high": 80
+    },
+    "factors": [
+      {
+        "name": "customer_history",
+        "score": 15,
+        "description": "New customer with only 2 previous orders"
+      },
+      {
+        "name": "device_fingerprint",
+        "score": 10,
+        "description": "First time device used on this account"
+      },
+      {
+        "name": "shipping_billing_match",
+        "score": 20,
+        "description": "Shipping address differs from billing address"
+      },
+      {
+        "name": "order_amount",
+        "score": 7,
+        "description": "Order amount ($1,299.00) is above customer average ($85.50)"
+      }
+    ],
+    "recommendation": "review",
+    "requiresManualReview": true,
+    "calculatedAt": "2024-03-15T14:15:33.891Z"
+  },
+  "metadata": {
+    "correlationId": "corr_f7e6d5c4-b3a2-1098-7654-321fedcba098",
+    "modelVersion": "fraud-ml-v3.2.1"
+  }
+}

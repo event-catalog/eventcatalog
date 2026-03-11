@@ -1,0 +1,33 @@
+{
+  "eventId": "evt_sd_29302",
+  "shipmentId": "shp_88215",
+  "orderId": "ord_10499",
+  "dispatchedAt": "2026-03-10T14:30:00Z",
+  "carrier": "UPS",
+  "trackingNumber": "1Z9R8F030392847561",
+  "shippingMethod": "express",
+  "estimatedDelivery": "2026-03-11T12:00:00Z",
+  "priority": true,
+  "warehouse": {
+    "id": "wh_central_03",
+    "name": "Central Fulfillment Hub",
+    "location": "Chicago, IL"
+  },
+  "destination": {
+    "city": "Minneapolis",
+    "state": "MN",
+    "zipCode": "55401",
+    "country": "US"
+  },
+  "packages": [
+    {
+      "packageId": "pkg_44210",
+      "weightKg": 0.8,
+      "dimensions": {
+        "lengthCm": 22,
+        "widthCm": 15,
+        "heightCm": 10
+      }
+    }
+  ]
+}

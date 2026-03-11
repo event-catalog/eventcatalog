@@ -1,0 +1,56 @@
+{
+  "eventId": "evt_a8c15d96-2f4b-4e0a-d651-9b2c3d4e5f78",
+  "eventType": "OrderConfirmed",
+  "timestamp": "2025-12-18T19:42:11.807Z",
+  "orderId": "ord_92340",
+  "userId": "usr_18573",
+  "orderItems": [
+    {
+      "productId": "prod_8812",
+      "productName": "Premium Espresso Machine",
+      "sku": "PEM-DLX-SLV",
+      "quantity": 1,
+      "unitPrice": 299.99,
+      "totalPrice": 299.99
+    },
+    {
+      "productId": "prod_8899",
+      "productName": "Artisan Coffee Bean Sampler Pack",
+      "sku": "ACB-SMPLR-6PK",
+      "quantity": 1,
+      "unitPrice": 44.99,
+      "totalPrice": 44.99
+    }
+  ],
+  "orderTotal": 344.98,
+  "currency": "USD",
+  "isGift": true,
+  "giftDetails": {
+    "recipientName": "Sarah Johnson",
+    "giftMessage": "Happy Holidays! Enjoy your new coffee setup.",
+    "giftWrapping": true,
+    "giftWrappingCost": 5.99,
+    "hidePrice": true
+  },
+  "shippingAddress": {
+    "line1": "78 Riverside Drive",
+    "line2": "Suite 4A",
+    "city": "New York",
+    "state": "NY",
+    "postalCode": "10024",
+    "country": "US"
+  },
+  "shippingMethod": "express",
+  "estimatedDeliveryDate": "2025-12-22",
+  "payment": {
+    "paymentId": "pay_94501",
+    "method": "paypal",
+    "paypalEmail": "j***n@email.com",
+    "status": "captured"
+  },
+  "orderStatus": "confirmed",
+  "metadata": {
+    "source": "mobile-app",
+    "correlationId": "corr_ffeeddcc-bbaa-9988-7766-554433221100"
+  }
+}

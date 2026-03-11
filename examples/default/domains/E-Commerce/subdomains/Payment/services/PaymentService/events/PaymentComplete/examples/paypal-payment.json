@@ -1,0 +1,41 @@
+{
+  "eventId": "evt_pc_d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
+  "timestamp": "2024-03-15T18:22:10.556Z",
+  "type": "PaymentComplete",
+  "source": "payment-service",
+  "data": {
+    "paymentId": "pay_8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c",
+    "orderId": "ord_92847892",
+    "customerId": "cust_44219",
+    "amount": 74.50,
+    "currency": "GBP",
+    "paymentMethod": {
+      "type": "paypal",
+      "paypalEmail": "j***n@example.com",
+      "paypalPayerId": "PAYER_9X8Y7Z6W5V"
+    },
+    "status": "completed",
+    "transactionId": "txn_PP_4Kl5Mn6Op7Qr8St",
+    "processingFee": 2.46,
+    "netAmount": 72.04,
+    "billingAddress": {
+      "line1": "45 Oxford Road",
+      "city": "London",
+      "postalCode": "W1D 2DZ",
+      "country": "GB"
+    },
+    "items": [
+      {
+        "productId": "prod_7820",
+        "name": "Running Shoes - Size 10",
+        "quantity": 1,
+        "unitPrice": 74.50
+      }
+    ],
+    "completedAt": "2024-03-15T18:22:10.556Z"
+  },
+  "metadata": {
+    "correlationId": "corr_e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b",
+    "channel": "mobile_app"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "eventId": "evt_inv_adj_7b41ce",
+  "eventType": "InventoryAdjusted",
+  "timestamp": "2024-04-08T13:22:18Z",
+  "data": {
+    "adjustmentId": "adj_20241002",
+    "sku": "SKU-HEADPHONES-BT",
+    "productName": "Wireless Bluetooth Headphones",
+    "warehouseId": "wh_west_02",
+    "adjustmentType": "increase",
+    "previousQuantity": 120,
+    "adjustedQuantity": 45,
+    "newQuantity": 165,
+    "reason": "customer_return",
+    "notes": "Bulk return from cancelled corporate order #ORD-9821",
+    "adjustedBy": "warehouse_mgr_jsmith"
+  },
+  "metadata": {
+    "correlationId": "corr_adj_001",
+    "version": "1.0.0"
+  }
+}

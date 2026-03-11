@@ -1,0 +1,45 @@
+{
+  "eventId": "evt_pi_9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c",
+  "timestamp": "2024-03-16T07:33:41.890Z",
+  "type": "PaymentInitiated",
+  "source": "payment-service",
+  "data": {
+    "paymentId": "pay_3e2d1c0b-9a8f-7e6d-5c4b-3a2f1e0d9c8b",
+    "orderId": "ord_92855010",
+    "customerId": "cust_55832",
+    "amount": 29.99,
+    "currency": "USD",
+    "paymentMethod": {
+      "type": "apple_pay",
+      "brand": "mastercard",
+      "last4": "7654",
+      "walletType": "apple_pay"
+    },
+    "checkoutType": "express",
+    "shippingAddress": {
+      "line1": "890 Broadway",
+      "city": "New York",
+      "state": "NY",
+      "postalCode": "10003",
+      "country": "US"
+    },
+    "items": [
+      {
+        "productId": "prod_8210",
+        "name": "Phone Case - Clear",
+        "quantity": 1,
+        "unitPrice": 29.99
+      }
+    ],
+    "discountCode": "SAVE10",
+    "taxAmount": 2.66,
+    "shippingCost": 0.00,
+    "initiatedAt": "2024-03-16T07:33:41.890Z"
+  },
+  "metadata": {
+    "correlationId": "corr_c3d4e5f6-a7b8-9012-cdef-345678901234",
+    "channel": "mobile_app",
+    "ipAddress": "10.0.0.201",
+    "sessionId": "sess_2r3s4t5u6v7w8x9y"
+  }
+}

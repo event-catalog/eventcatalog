@@ -11,6 +11,9 @@ import {
   addSchemaToEvent,
   eventHasVersion,
   getEvents,
+  addExampleToEvent,
+  getExamplesFromEvent,
+  removeExampleFromEvent,
 } from './events';
 import {
   rmCommand,
@@ -23,6 +26,9 @@ import {
   addFileToCommand,
   addSchemaToCommand,
   commandHasVersion,
+  addExampleToCommand,
+  getExamplesFromCommand,
+  removeExampleFromCommand,
 } from './commands';
 import {
   rmQuery,
@@ -35,6 +41,9 @@ import {
   addFileToQuery,
   addSchemaToQuery,
   queryHasVersion,
+  addExampleToQuery,
+  getExamplesFromQuery,
+  removeExampleFromQuery,
 } from './queries';
 import {
   writeService,
@@ -223,6 +232,9 @@ export default (path: string) => {
      * @returns
      */
     eventHasVersion: eventHasVersion(join(path)),
+    addExampleToEvent: addExampleToEvent(join(path)),
+    getExamplesFromEvent: getExamplesFromEvent(join(path)),
+    removeExampleFromEvent: removeExampleFromEvent(join(path)),
 
     /**
      * ================================
@@ -305,6 +317,9 @@ export default (path: string) => {
      * @returns
      */
     commandHasVersion: commandHasVersion(join(path)),
+    addExampleToCommand: addExampleToCommand(join(path)),
+    getExamplesFromCommand: getExamplesFromCommand(join(path)),
+    removeExampleFromCommand: removeExampleFromCommand(join(path)),
 
     /**
      * ================================
@@ -384,6 +399,9 @@ export default (path: string) => {
      * @returns
      */
     queryHasVersion: queryHasVersion(join(path)),
+    addExampleToQuery: addExampleToQuery(join(path)),
+    getExamplesFromQuery: getExamplesFromQuery(join(path)),
+    removeExampleFromQuery: removeExampleFromQuery(join(path)),
 
     /**
      * ================================

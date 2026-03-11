@@ -1,0 +1,15 @@
+front-door-delivery.json:
+  name: Front Door Delivery
+  summary: A standard delivery left at the customer's front door with photo proof of delivery.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @front-door-delivery.json
+
+signed-delivery.json:
+  name: Signed Delivery
+  summary: A delivery requiring recipient signature, hand-delivered and signed by the customer.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @signed-delivery.json

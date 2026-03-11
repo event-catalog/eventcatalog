@@ -1,0 +1,15 @@
+voluntary-cancellation.json:
+  name: Voluntary Cancellation
+  summary: A customer voluntarily cancels their Pro Monthly subscription, effective at the end of the current billing cycle.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @voluntary-cancellation.json
+
+payment-failure.json:
+  name: Payment Failure Cancellation
+  summary: System automatically cancels an Enterprise Annual subscription after 3 consecutive failed payment attempts.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @payment-failure.json

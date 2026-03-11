@@ -1,0 +1,15 @@
+subscription-invoice.json:
+  name: Subscription Invoice
+  summary: A recurring monthly invoice generated for a Pro Monthly subscription renewal.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @subscription-invoice.json
+
+one-time-invoice.json:
+  name: One-Time Invoice
+  summary: A one-time invoice for additional storage and priority support add-on purchases.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @one-time-invoice.json

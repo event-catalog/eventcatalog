@@ -3,6 +3,9 @@ import { join } from 'node:path';
 import type { Command } from './types';
 import {
   addFileToResource,
+  addExampleToResource,
+  getExamplesFromResource,
+  removeExampleFromResource,
   getResource,
   getResourcePath,
   getResources,
@@ -315,3 +318,52 @@ export const commandHasVersion = (directory: string) => async (id: string, versi
   const file = await findFileById(directory, id, version);
   return !!file;
 };
+
+/**
+ * Add an example file to a command.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { addExampleToCommand } = utils('/path/to/eventcatalog');
+ *
+ * await addExampleToCommand('UpdateInventory', { content: '{"id": "123"}', fileName: 'basic.json' });
+ * await addExampleToCommand('UpdateInventory', { content: '{"id": "123"}', fileName: 'basic.json' }, '0.0.1');
+ * ```
+ */
+export const addExampleToCommand =
+  (directory: string) => async (id: string, example: { content: string; fileName: string }, version?: string) =>
+    addExampleToResource(directory, id, example, version);
+
+/**
+ * Get all examples from a command.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { getExamplesFromCommand } = utils('/path/to/eventcatalog');
+ *
+ * const examples = await getExamplesFromCommand('UpdateInventory');
+ * const examples = await getExamplesFromCommand('UpdateInventory', '0.0.1');
+ * ```
+ */
+export const getExamplesFromCommand = (directory: string) => async (id: string, version?: string) =>
+  getExamplesFromResource(directory, id, version);
+
+/**
+ * Remove an example file from a command.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { removeExampleFromCommand } = utils('/path/to/eventcatalog');
+ *
+ * await removeExampleFromCommand('UpdateInventory', 'basic.json');
+ * await removeExampleFromCommand('UpdateInventory', 'basic.json', '0.0.1');
+ * ```
+ */
+export const removeExampleFromCommand = (directory: string) => async (id: string, fileName: string, version?: string) =>
+  removeExampleFromResource(directory, id, fileName, version);

@@ -1,0 +1,15 @@
+credit-card-payment.json:
+  name: Credit Card Payment
+  summary: A completed credit card payment for a multi-item order with Visa, including processing fees and net amount.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @credit-card-payment.json
+
+paypal-payment.json:
+  name: PayPal Payment
+  summary: A completed PayPal payment from a mobile app customer in GBP for a single-item order.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @paypal-payment.json

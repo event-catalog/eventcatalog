@@ -1,0 +1,48 @@
+---
+import { Code } from 'astro-expressive-code/components';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Footer from '@layouts/Footer.astro';
+import { Page } from './_[...filename].data';
+import { getLanguageForHighlight } from '@components/SchemaExplorer/utils';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+const props = await Page.getData(Astro);
+const { collection, data, example } = props;
+
+const pageTitle = `${collection} | ${data.name} | ${example.title}`.replace(/^\w/, (c: string) => c.toUpperCase());
+const lang = getLanguageForHighlight(example.extension);
+---
+
+<VerticalSideBarLayout title={pageTitle} description={`Example: ${example.title} for ${data.name}`}>
+  <main class="flex sm:px-8 docs-layout h-full">
+    <div class="flex docs-layout w-full">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-4">
+          <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))] mb-2">
+            {example.title}
+          </h1>
+          <h2 class="text-lg text-[rgb(var(--ec-page-text-muted))] font-medium mb-1">
+            Example for {data.name} <span class="text-[rgb(var(--ec-page-text-muted))]">(v{data.version})</span>
+          </h2>
+        </div>
+
+        <div class="mt-6">
+          <div class="not-prose overflow-x-auto">
+            <Code code={example.content} title={example.fileName} lang={lang} />
+          </div>
+        </div>
+
+        <Footer />
+      </div>
+    </div>
+  </main>
+
+  <style is:global>
+    .docs-layout .prose {
+      max-width: none;
+      overflow: auto;
+    }
+  </style>
+</VerticalSideBarLayout>

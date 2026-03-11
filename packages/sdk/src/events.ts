@@ -4,6 +4,9 @@ import { findFileById, invalidateFileCache } from './internal/utils';
 import type { Event } from './types';
 import {
   addFileToResource,
+  addExampleToResource,
+  getExamplesFromResource,
+  removeExampleFromResource,
   getResource,
   getResourcePath,
   getResources,
@@ -314,3 +317,52 @@ export const eventHasVersion = (directory: string) => async (id: string, version
   const file = await findFileById(directory, id, version);
   return !!file;
 };
+
+/**
+ * Add an example file to an event.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { addExampleToEvent } = utils('/path/to/eventcatalog');
+ *
+ * await addExampleToEvent('InventoryAdjusted', { content: '{"id": "123"}', fileName: 'basic.json' });
+ * await addExampleToEvent('InventoryAdjusted', { content: '{"id": "123"}', fileName: 'basic.json' }, '0.0.1');
+ * ```
+ */
+export const addExampleToEvent =
+  (directory: string) => async (id: string, example: { content: string; fileName: string }, version?: string) =>
+    addExampleToResource(directory, id, example, version);
+
+/**
+ * Get all examples from an event.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { getExamplesFromEvent } = utils('/path/to/eventcatalog');
+ *
+ * const examples = await getExamplesFromEvent('InventoryAdjusted');
+ * const examples = await getExamplesFromEvent('InventoryAdjusted', '0.0.1');
+ * ```
+ */
+export const getExamplesFromEvent = (directory: string) => async (id: string, version?: string) =>
+  getExamplesFromResource(directory, id, version);
+
+/**
+ * Remove an example file from an event.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { removeExampleFromEvent } = utils('/path/to/eventcatalog');
+ *
+ * await removeExampleFromEvent('InventoryAdjusted', 'basic.json');
+ * await removeExampleFromEvent('InventoryAdjusted', 'basic.json', '0.0.1');
+ * ```
+ */
+export const removeExampleFromEvent = (directory: string) => async (id: string, fileName: string, version?: string) =>
+  removeExampleFromResource(directory, id, fileName, version);

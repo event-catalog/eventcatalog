@@ -93,7 +93,7 @@ export const buildMessageNode = (
       },
       hasSchema && {
         type: 'group',
-        title: `API & Contracts`,
+        title: 'API & Contracts',
         icon: 'FileJson',
         pages: [
           {

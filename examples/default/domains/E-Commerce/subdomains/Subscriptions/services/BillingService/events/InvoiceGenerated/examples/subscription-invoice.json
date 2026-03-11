@@ -1,0 +1,34 @@
+{
+  "eventId": "evt_inv_gen_2c94ab",
+  "eventType": "InvoiceGenerated",
+  "timestamp": "2024-04-01T00:05:22Z",
+  "data": {
+    "invoiceId": "inv_82947",
+    "invoiceNumber": "INV-2024-00482",
+    "customerId": "usr_28471",
+    "subscriptionId": "sub_9f84kd02",
+    "type": "subscription",
+    "lineItems": [
+      {
+        "description": "Pro Monthly - April 2024",
+        "quantity": 1,
+        "unitPrice": 29.99,
+        "total": 29.99
+      }
+    ],
+    "subtotal": 29.99,
+    "tax": 2.40,
+    "total": 32.39,
+    "currency": "USD",
+    "billingPeriod": {
+      "start": "2024-04-01",
+      "end": "2024-04-30"
+    },
+    "dueDate": "2024-04-15",
+    "status": "issued"
+  },
+  "metadata": {
+    "correlationId": "corr_inv_001",
+    "version": "1.0.0"
+  }
+}

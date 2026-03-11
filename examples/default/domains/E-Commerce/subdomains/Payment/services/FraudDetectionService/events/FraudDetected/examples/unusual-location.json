@@ -1,0 +1,40 @@
+{
+  "eventId": "evt_fd_e5f6a7b8-5678-9abc-def0-123456789012",
+  "timestamp": "2024-03-16T19:05:44.772Z",
+  "type": "FraudDetected",
+  "source": "fraud-detection-service",
+  "data": {
+    "fraudCaseId": "fraud_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+    "assessmentId": "risk_4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a",
+    "paymentId": "pay_6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c",
+    "orderId": "ord_92860445",
+    "customerId": "cust_31207",
+    "fraudType": "unusual_location",
+    "severity": "high",
+    "riskScore": 82,
+    "evidence": [
+      {
+        "type": "geolocation_anomaly",
+        "description": "Purchase from IP in Lagos, Nigeria while customer's last 200 orders originated from Portland, OR",
+        "confidence": 0.88
+      },
+      {
+        "type": "impossible_travel",
+        "description": "Previous purchase made from Portland 2 hours ago; impossible to travel to detected location in that time",
+        "confidence": 0.96
+      }
+    ],
+    "actionsTaken": [
+      "payment_held",
+      "customer_verification_requested"
+    ],
+    "amount": 899.00,
+    "currency": "USD",
+    "detectedAt": "2024-03-16T19:05:44.772Z"
+  },
+  "metadata": {
+    "correlationId": "corr_11aa22bb-33cc-44dd-55ee-66ff77008899",
+    "modelVersion": "fraud-ml-v3.2.1",
+    "reviewRequired": true
+  }
+}

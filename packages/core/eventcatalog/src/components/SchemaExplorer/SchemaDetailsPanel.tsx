@@ -6,11 +6,12 @@ import {
   ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
   ClipboardDocumentIcon,
-  DocumentTextIcon,
+  TableCellsIcon,
   CodeBracketIcon,
-  ArrowsRightLeftIcon,
+  ClockIcon,
   GlobeAltIcon,
   ServerIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { buildUrl } from '@utils/url-builder';
@@ -18,6 +19,7 @@ import { getCollectionStyles } from '@components/Grids/utils';
 import SchemaContentViewer from './SchemaContentViewer';
 import DiffViewer from './DiffViewer';
 import ApiContentViewer from './ApiContentViewer';
+import ExamplesViewer from './ExamplesViewer';
 import VersionHistoryModal from './VersionHistoryModal';
 import SchemaCodeModal from './SchemaCodeModal';
 import SchemaViewerModal from './SchemaViewerModal';
@@ -44,7 +46,7 @@ export default function SchemaDetailsPanel({
   showProducersConsumers = true,
 }: SchemaDetailsPanelProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'code' | 'schema' | 'diff' | 'api'>('code');
+  const [activeTab, setActiveTab] = useState<'code' | 'schema' | 'diff' | 'api' | 'examples'>('code');
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [isSchemaViewerModalOpen, setIsSchemaViewerModalOpen] = useState(false);
@@ -157,13 +159,17 @@ export default function SchemaDetailsPanel({
   const hasParsedSchema = !!parsedSchema || !!parsedAvroSchema;
   // Build tabs
   const tabs: { id: string; label: string; icon: React.ReactNode }[] = [
-    { id: 'code', label: 'Code', icon: <CodeBracketIcon className="h-3.5 w-3.5" /> },
+    { id: 'code', label: 'Schema', icon: <CodeBracketIcon className="h-3.5 w-3.5" /> },
   ];
   if (hasParsedSchema) {
-    tabs.push({ id: 'schema', label: 'Schema', icon: <DocumentTextIcon className="h-3.5 w-3.5" /> });
+    tabs.push({ id: 'schema', label: 'Properties', icon: <TableCellsIcon className="h-3.5 w-3.5" /> });
+  }
+  const examples = message.examples || [];
+  if (examples.length > 0) {
+    tabs.push({ id: 'examples', label: 'Usage Examples', icon: <BookOpenIcon className="h-3.5 w-3.5" /> });
   }
   if (allDiffs.length > 0) {
-    tabs.push({ id: 'diff', label: 'Diff', icon: <ArrowsRightLeftIcon className="h-3.5 w-3.5" /> });
+    tabs.push({ id: 'diff', label: 'Changes', icon: <ClockIcon className="h-3.5 w-3.5" /> });
   }
   tabs.push({ id: 'api', label: 'API', icon: <GlobeAltIcon className="h-3.5 w-3.5" /> });
 
@@ -215,7 +221,9 @@ export default function SchemaDetailsPanel({
 
         {/* Tab content */}
         <div className="flex-1 overflow-hidden p-6">
-          {activeTab === 'api' ? (
+          {activeTab === 'examples' && examples.length > 0 ? (
+            <ExamplesViewer examples={examples} />
+          ) : activeTab === 'api' ? (
             <ApiContentViewer
               message={message}
               onCopy={handleCopyCustom}

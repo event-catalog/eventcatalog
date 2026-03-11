@@ -9,6 +9,7 @@ import { getDataProducts } from '@utils/collections/data-products';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
+import { getExamplesForResource } from '@utils/collections/examples';
 import path from 'path';
 
 // Helper function to enrich owners with full details
@@ -64,6 +65,7 @@ async function fetchAllSchemas() {
             },
             schemaContent,
             schemaExtension,
+            examples: getExamplesForResource(message),
           };
         } catch (error) {
           console.error(`Error reading schema for ${message.data.id}:`, error);

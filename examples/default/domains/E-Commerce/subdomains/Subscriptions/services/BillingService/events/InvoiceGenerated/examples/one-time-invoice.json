@@ -1,0 +1,37 @@
+{
+  "eventId": "evt_inv_gen_8f31dc",
+  "eventType": "InvoiceGenerated",
+  "timestamp": "2024-05-12T11:30:05Z",
+  "data": {
+    "invoiceId": "inv_93102",
+    "invoiceNumber": "INV-2024-00651",
+    "customerId": "usr_62150",
+    "subscriptionId": null,
+    "type": "one_time",
+    "lineItems": [
+      {
+        "description": "Additional Storage - 50GB",
+        "quantity": 1,
+        "unitPrice": 49.99,
+        "total": 49.99
+      },
+      {
+        "description": "Priority Support Add-on",
+        "quantity": 1,
+        "unitPrice": 19.99,
+        "total": 19.99
+      }
+    ],
+    "subtotal": 69.98,
+    "tax": 5.60,
+    "total": 75.58,
+    "currency": "USD",
+    "billingPeriod": null,
+    "dueDate": "2024-05-26",
+    "status": "issued"
+  },
+  "metadata": {
+    "correlationId": "corr_inv_002",
+    "version": "1.0.0"
+  }
+}

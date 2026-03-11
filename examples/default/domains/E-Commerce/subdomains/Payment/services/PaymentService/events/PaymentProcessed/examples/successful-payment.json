@@ -1,0 +1,9 @@
+{
+  "id": "pay_12345",
+  "orderId": "ord_67890",
+  "amount": 99.99,
+  "currency": "USD",
+  "status": "processed",
+  "paymentMethod": "credit_card",
+  "processedAt": "2024-01-15T10:30:00Z"
+}

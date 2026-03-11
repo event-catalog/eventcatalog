@@ -1,0 +1,24 @@
+{
+  "eventId": "evt_oos_1a93bc",
+  "eventType": "OutOfStock",
+  "timestamp": "2024-04-22T18:33:07Z",
+  "data": {
+    "sku": "SKU-KEYBOARD-MECH",
+    "productName": "Mechanical Gaming Keyboard",
+    "productId": "prod_48291",
+    "warehouseId": "wh_east_01",
+    "warehouseName": "East Coast Distribution Center",
+    "previousQuantity": 3,
+    "currentQuantity": 0,
+    "lastSoldAt": "2024-04-22T18:32:55Z",
+    "triggeredByOrderId": "ord_29471",
+    "pendingOrders": 12,
+    "estimatedRestockDate": "2024-05-01",
+    "supplierId": "sup_keysworld",
+    "autoReorderTriggered": true
+  },
+  "metadata": {
+    "correlationId": "corr_oos_001",
+    "version": "1.0.0"
+  }
+}

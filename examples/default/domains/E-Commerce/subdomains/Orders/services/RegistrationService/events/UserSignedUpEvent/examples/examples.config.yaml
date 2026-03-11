@@ -1,0 +1,15 @@
+email-signup.json:
+  name: Email Signup
+  summary: A new user registering with their email address and password, with email verification pending.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @email-signup.json
+
+social-login.json:
+  name: Social Login (Google OAuth)
+  summary: A new user signing up via Google OAuth, with email automatically verified by the provider.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @social-login.json
