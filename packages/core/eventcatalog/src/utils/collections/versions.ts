@@ -1,6 +1,6 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import { satisfies, validRange } from 'semver';
+import { coerce, compare, satisfies, validRange } from 'semver';
 
 export const getVersionFromCollection = (
   collection: CollectionEntry<CollectionTypes>[],
@@ -16,8 +16,13 @@ export const getVersionFromCollection = (
 
   const filteredEvents = data.filter((event) => event.data.id === id);
 
-  // Order by version
+  // Order by semver
   const sorted = filteredEvents.sort((a, b) => {
+    const semverA = coerce(a.data.version);
+    const semverB = coerce(b.data.version);
+    if (semverA && semverB) {
+      return compare(semverA, semverB);
+    }
     return a.data.version.localeCompare(b.data.version);
   });
 

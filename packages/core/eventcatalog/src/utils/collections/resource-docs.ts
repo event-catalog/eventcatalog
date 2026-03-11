@@ -1,5 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import path from 'node:path';
+import { coerce, rcompare } from 'semver';
 import { sortVersioned } from './util';
 import { isResourceDocsEnabled } from '@utils/feature';
 
@@ -445,6 +446,11 @@ export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
       return titleA.localeCompare(titleB);
     }
 
+    const semverA = coerce(a.data.version);
+    const semverB = coerce(b.data.version);
+    if (semverA && semverB) {
+      return rcompare(semverA, semverB);
+    }
     return b.data.version.localeCompare(a.data.version);
   });
 
@@ -614,6 +620,11 @@ export const getGroupedResourceDocsByType = (
             return titleCompare;
           }
 
+          const semverA = coerce(a.data.version);
+          const semverB = coerce(b.data.version);
+          if (semverA && semverB) {
+            return rcompare(semverA, semverB);
+          }
           return b.data.version.localeCompare(a.data.version);
         }),
       };
