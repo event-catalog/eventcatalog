@@ -2,13 +2,13 @@ import { MarkerType } from '@xyflow/react';
 import { getNodesAndEdges } from '../../node-graphs/services-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels, mockContainers } from './mocks';
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
     // this will only affect "foo" outside of the original module
-    getCollection: (key: ContentCollectionKey) => {
+    getCollection: (key: CollectionKey) => {
       switch (key) {
         case 'services':
           return Promise.resolve(mockServices);

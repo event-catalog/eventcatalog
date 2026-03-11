@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getNestedSideBarData, type NavigationData, type NavNode } from '../state';
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 import utils from '@eventcatalog/sdk';
 import path from 'path';
 import fs from 'fs';
@@ -49,7 +49,7 @@ const getNavigationConfigurationByKey = (key: string, data: NavigationData): Nav
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getCollection: async (key: ContentCollectionKey) => {
+    getCollection: async (key: CollectionKey) => {
       switch (key) {
         case 'domains':
           const { getDomains } = utils(CATALOG_FOLDER);

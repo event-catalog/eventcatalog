@@ -1,7 +1,7 @@
 import { getAdjacentPages } from '../../utils/custom-docs';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { mockDocs } from './mocks';
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 import { join } from 'node:path';
 
 const pathToTestCatalog = join(__dirname, 'fake-catalog');
@@ -47,7 +47,7 @@ vi.mock('@config', async () => {
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getEntry: (key: ContentCollectionKey, id: string) => {
+    getEntry: (key: CollectionKey, id: string) => {
       switch (key) {
         case 'customPages':
           return Promise.resolve(mockDocs.find((doc) => doc.id === id));

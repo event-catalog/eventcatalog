@@ -1,4 +1,4 @@
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -146,7 +146,7 @@ const mockResourceDocCategories = [
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getCollection: (key: ContentCollectionKey) => {
+    getCollection: (key: CollectionKey) => {
       switch (key) {
         case 'domains':
           return Promise.resolve(mockDomains as any[]);

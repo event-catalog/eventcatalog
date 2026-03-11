@@ -1,11 +1,11 @@
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { GET } from '../../pages/docs/llm/schemas.txt.ts';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getCollection: (key: ContentCollectionKey) => {
+    getCollection: (key: CollectionKey) => {
       switch (key) {
         case 'events':
           return Promise.resolve([

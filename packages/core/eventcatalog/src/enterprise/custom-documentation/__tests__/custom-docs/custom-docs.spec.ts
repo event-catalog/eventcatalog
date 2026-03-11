@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { getNavigationItems } from '../../utils/custom-docs';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 import { mockDocs } from './mocks';
 
 type Badge = {
@@ -120,7 +120,7 @@ vi.mock('node:fs', () => ({
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getEntry: (key: ContentCollectionKey, id: string) => {
+    getEntry: (key: CollectionKey, id: string) => {
       // Add mock entries for nested directory structure
       const nestedMockDocs = [
         ...mockDocs,

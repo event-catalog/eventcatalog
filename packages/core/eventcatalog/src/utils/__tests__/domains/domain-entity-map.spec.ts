@@ -2,7 +2,7 @@ import { MarkerType } from '@xyflow/react';
 import { getNodesAndEdges } from '../../node-graphs/domain-entity-map';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { getCollection, getEntry } from 'astro:content';
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 
 // Mock entities for testing
 const mockEntities = [
@@ -245,7 +245,7 @@ const mockServices = [
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getCollection: (key: ContentCollectionKey) => {
+    getCollection: (key: CollectionKey) => {
       switch (key) {
         case 'domains':
           return Promise.resolve(mockDomains);
@@ -257,7 +257,7 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve([]);
       }
     },
-    getEntry: (collection: ContentCollectionKey, id: string) => {
+    getEntry: (collection: CollectionKey, id: string) => {
       if (collection === 'domains') {
         return Promise.resolve(mockDomains.find((d) => d.id === `domains/${id}`));
       }

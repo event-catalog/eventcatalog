@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionKey } from 'astro:content';
 
 // Type definitions for test results
 type ProducerConsumer = { id: string; version: string; name: string };
@@ -10,7 +10,7 @@ import { mockEvents, mockTeams, mockUsers, mockCollections } from './catalog-too
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getCollection: (key: ContentCollectionKey) => {
+    getCollection: (key: CollectionKey) => {
       return Promise.resolve(mockCollections[key as string] ?? []);
     },
     getEntry: (collection: string, id: string) => {

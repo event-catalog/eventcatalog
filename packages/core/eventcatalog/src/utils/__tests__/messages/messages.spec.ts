@@ -1,4 +1,4 @@
-import type { CollectionEntry, ContentCollectionKey } from 'astro:content';
+import type { CollectionEntry, CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels, mockDataProducts } from './mocks';
 import { getMessages, hydrateProducersAndConsumers } from '@utils/collections/messages';
@@ -6,7 +6,7 @@ import { getMessages, hydrateProducersAndConsumers } from '@utils/collections/me
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    async getCollection<T extends ContentCollectionKey>(key: T, filterFn: (entry: CollectionEntry<T>) => boolean = () => true) {
+    async getCollection<T extends CollectionKey>(key: T, filterFn: (entry: CollectionEntry<T>) => boolean = () => true) {
       switch (key) {
         case 'services':
           return mockServices.filter(filterFn as any);

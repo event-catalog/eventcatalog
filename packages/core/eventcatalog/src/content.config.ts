@@ -1,4 +1,5 @@
-import { z, defineCollection, reference } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 import { glob as globPackage } from 'glob';
 import { v4 as uuidv4 } from 'uuid';
@@ -59,9 +60,9 @@ const detailPanelPropertySchema = z.object({
 
 const channelPointer = z
   .object({
-    parameters: z.record(z.string()).optional(),
+    parameters: z.record(z.string(), z.string()).optional(),
   })
-  .merge(pointer);
+  .extend(pointer.shape);
 
 const sendsPointer = z.object({
   id: z.string(),
@@ -154,7 +155,7 @@ const baseSchema = z.object({
           type: z.enum(['openapi', 'asyncapi', 'graphql']),
           path: z.string(),
           name: z.string().optional(),
-          headers: z.record(z.string()).optional(),
+          headers: z.record(z.string(), z.string()).optional(),
         })
       ),
     ])
@@ -276,7 +277,7 @@ const flows = defineCollection({
                 summary: z.string().optional(),
                 url: z.string().url().optional(),
                 color: z.string().optional(),
-                properties: z.record(z.union([z.string(), z.number()])).optional(),
+                properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
                 height: z.number().optional(),
                 menu: z
                   .array(
@@ -308,7 +309,7 @@ const flows = defineCollection({
           })
       ),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const operationSchema = z
@@ -349,7 +350,7 @@ const events = defineCollection({
       messageChannels: z.array(reference('channels')).optional(),
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const commands = defineCollection({
@@ -371,7 +372,7 @@ const commands = defineCollection({
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
       messageChannels: z.array(reference('channels')).optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const queries = defineCollection({
@@ -393,7 +394,7 @@ const queries = defineCollection({
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
       messageChannels: z.array(reference('channels')).optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const dataProductOutputPointer = z.object({
@@ -421,7 +422,7 @@ const dataProducts = defineCollection({
       inputs: z.array(pointer).optional(),
       outputs: z.array(dataProductOutputPointer).optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const services = defineCollection({
@@ -465,7 +466,7 @@ const services = defineCollection({
         })
         .optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 // 1) Put this near your other enums/utilities
@@ -520,7 +521,7 @@ const containers = defineCollection({
       dataProductsThatWriteToContainer: z.array(reference('data-products')).optional(),
       dataProductsThatReadFromContainer: z.array(reference('data-products')).optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const customPages = defineCollection({
@@ -620,7 +621,7 @@ const domains = defineCollection({
         })
         .optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const channels = defineCollection({
@@ -640,6 +641,7 @@ const channels = defineCollection({
       routes: z.array(channelPointer).optional(),
       parameters: z
         .record(
+          z.string(),
           z.object({
             enum: z.array(z.string()).optional(),
             default: z.string().optional(),
@@ -664,7 +666,7 @@ const channels = defineCollection({
         })
         .optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const ubiquitousLanguages = defineCollection({
@@ -740,7 +742,7 @@ const entities = defineCollection({
         .optional(),
     })
 
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 const users = defineCollection({
@@ -832,7 +834,7 @@ const diagrams = defineCollection({
       version: z.string(),
       summary: z.string().optional(),
     })
-    .merge(baseSchema),
+    .extend(baseSchema.shape),
 });
 
 export const collections = {

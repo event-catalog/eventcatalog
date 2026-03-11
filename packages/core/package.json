@@ -45,11 +45,11 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.17",
-    "@astrojs/markdown-remark": "^6.3.10",
-    "@astrojs/mdx": "^4.3.13",
-    "@astrojs/node": "^9.5.4",
-    "@astrojs/react": "^4.4.2",
-    "@astrojs/rss": "^4.0.15",
+    "@astrojs/markdown-remark": "^7.0.0",
+    "@astrojs/mdx": "^5.0.0",
+    "@astrojs/node": "^10.0.0",
+    "@astrojs/react": "^5.0.0",
+    "@astrojs/rss": "^4.0.17",
     "@asyncapi/avro-schema-parser": "3.0.24",
     "@asyncapi/parser": "3.6.0",
     "@asyncapi/react-component": "3.0.2",
@@ -77,9 +77,9 @@
     "@tanstack/react-table": "^8.17.3",
     "@xyflow/react": "^12.3.6",
     "ai": "^6.0.17",
-    "astro": "^5.18.0",
+    "astro": "^6.0.2",
     "astro-compress": "^2.3.8",
-    "astro-expressive-code": "^0.41.3",
+    "astro-expressive-code": "^0.41.7",
     "astro-seo": "^0.8.4",
     "auth-astro": "^4.2.0",
     "axios": "^1.13.5",
@@ -113,7 +113,7 @@
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^15.6.6",
     "rehype-autolink-headings": "^7.1.0",
-    "rehype-expressive-code": "^0.41.3",
+    "rehype-expressive-code": "^0.41.7",
     "rehype-slug": "^6.0.0",
     "remark-comment": "^1.0.0",
     "remark-directive": "^3.0.0",
@@ -127,10 +127,10 @@
     "unist-util-visit": "^5.0.0",
     "update-notifier": "^7.3.1",
     "uuid": "^10.0.0",
-    "zod": "^3.25.0"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.6",
+    "@astrojs/check": "^0.9.7",
     "@types/dagre": "^0.7.52",
     "@types/diff": "^5.2.2",
     "@types/js-yaml": "^4.0.9",
@@ -152,7 +152,7 @@
     "tsup": "^8.1.0",
     "vite": "^7.1.11",
     "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "2.1.9"
+    "vitest": "^4.0.18"
   },
   "pnpm": {
     "overrides": {
