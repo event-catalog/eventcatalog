@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.23.2
+
+### Patch Changes
+
+- 7946203: update dependencies: bump @asyncapi/parser, astro-compress, and jsonpath to latest versions
+
 ## 3.23.1
 
 ### Patch Changes
