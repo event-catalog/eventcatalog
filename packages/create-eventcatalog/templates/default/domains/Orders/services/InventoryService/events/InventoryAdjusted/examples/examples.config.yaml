@@ -1,0 +1,15 @@
+stock-increase.json:
+  name: Stock Increase
+  summary: Inventory increased after receiving a supplier delivery of 200 units at the east warehouse.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @stock-increase.json
+
+stock-decrease.json:
+  name: Stock Decrease
+  summary: Inventory decreased by 3 units due to damaged goods identified during warehouse inspection.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @stock-decrease.json

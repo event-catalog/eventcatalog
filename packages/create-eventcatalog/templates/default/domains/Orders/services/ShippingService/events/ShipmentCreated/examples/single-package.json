@@ -1,0 +1,51 @@
+{
+  "eventId": "evt_sc_12001",
+  "shipmentId": "shp_88240",
+  "orderId": "ord_10550",
+  "createdAt": "2026-03-10T07:30:00Z",
+  "status": "created",
+  "customer": {
+    "customerId": "cust_9210",
+    "name": "Emily Watson",
+    "email": "emily.watson@example.com"
+  },
+  "shippingAddress": {
+    "line1": "742 Evergreen Terrace",
+    "city": "Austin",
+    "state": "TX",
+    "zipCode": "73301",
+    "country": "US"
+  },
+  "shippingMethod": "standard",
+  "carrier": "USPS",
+  "packages": [
+    {
+      "packageId": "pkg_44320",
+      "weightKg": 1.2,
+      "dimensions": {
+        "lengthCm": 25,
+        "widthCm": 18,
+        "heightCm": 10
+      },
+      "items": [
+        {
+          "itemId": "item_30400",
+          "sku": "BOOK-PROG-TS-01",
+          "name": "Programming TypeScript",
+          "quantity": 1
+        },
+        {
+          "itemId": "item_30401",
+          "sku": "BOOK-PROG-RS-01",
+          "name": "The Rust Programming Language",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "estimatedDelivery": "2026-03-16T18:00:00Z",
+  "shippingCost": {
+    "amount": 5.99,
+    "currency": "USD"
+  }
+}

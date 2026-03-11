@@ -1,0 +1,15 @@
+customer-request.json:
+  name: Customer Requested Cancellation
+  summary: Customer cancelled a confirmed order containing two items before shipment.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @customer-request.json
+
+out-of-stock.json:
+  name: Out of Stock Cancellation
+  summary: System automatically cancelled an order because the product was no longer available from the supplier.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @out-of-stock.json

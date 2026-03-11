@@ -1,0 +1,33 @@
+{
+  "eventId": "evt_ret_70301",
+  "returnId": "ret_22010",
+  "shipmentId": "shp_88190",
+  "orderId": "ord_10450",
+  "initiatedAt": "2026-03-09T10:22:00Z",
+  "reason": "defective_item",
+  "reasonDetails": "Screen has a dead pixel cluster in the upper-left corner. Noticed after unboxing.",
+  "items": [
+    {
+      "itemId": "item_30291",
+      "sku": "ELEC-MON-27-4K",
+      "name": "27\" 4K Monitor",
+      "quantity": 1,
+      "pricePerUnit": 449.99
+    }
+  ],
+  "customer": {
+    "customerId": "cust_8842",
+    "email": "alex.rivera@example.com"
+  },
+  "returnMethod": "carrier_pickup",
+  "returnLabel": {
+    "carrier": "UPS",
+    "trackingNumber": "1Z9R8F030392811204",
+    "labelUrl": "https://cdn.shipping.example.com/return-labels/ret_22010.pdf"
+  },
+  "refundEstimate": {
+    "amount": 449.99,
+    "currency": "USD",
+    "method": "original_payment"
+  }
+}

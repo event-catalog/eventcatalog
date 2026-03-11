@@ -1,0 +1,52 @@
+{
+  "eventId": "evt_pi_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+  "timestamp": "2024-03-15T10:58:22.104Z",
+  "type": "PaymentInitiated",
+  "source": "payment-service",
+  "data": {
+    "paymentId": "pay_4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e",
+    "orderId": "ord_92840123",
+    "customerId": "cust_10482",
+    "amount": 189.97,
+    "currency": "USD",
+    "paymentMethod": {
+      "type": "credit_card",
+      "brand": "visa",
+      "last4": "4242",
+      "expiryMonth": 11,
+      "expiryYear": 2026
+    },
+    "checkoutType": "standard",
+    "shippingAddress": {
+      "line1": "123 Main Street",
+      "city": "San Francisco",
+      "state": "CA",
+      "postalCode": "94102",
+      "country": "US"
+    },
+    "items": [
+      {
+        "productId": "prod_5001",
+        "name": "Wireless Headphones",
+        "quantity": 1,
+        "unitPrice": 149.99
+      },
+      {
+        "productId": "prod_5032",
+        "name": "USB-C Cable",
+        "quantity": 2,
+        "unitPrice": 19.99
+      }
+    ],
+    "discountCode": null,
+    "taxAmount": 15.58,
+    "shippingCost": 0.0,
+    "initiatedAt": "2024-03-15T10:58:22.104Z"
+  },
+  "metadata": {
+    "correlationId": "corr_b2c3d4e5-f6a7-8901-bcde-f23456789012",
+    "channel": "web",
+    "ipAddress": "192.168.1.42",
+    "sessionId": "sess_7k8l9m0n1o2p3q4r"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "eventId": "evt_pay_due_5a72bf",
+  "eventType": "SubscriptionPaymentDue",
+  "timestamp": "2024-04-12T06:00:00Z",
+  "data": {
+    "subscriptionId": "sub_9f84kd02",
+    "userId": "usr_28471",
+    "plan": {
+      "planId": "plan_monthly_pro",
+      "name": "Pro Monthly"
+    },
+    "amount": 32.39,
+    "currency": "USD",
+    "dueDate": "2024-04-15",
+    "billingPeriod": {
+      "start": "2024-04-15",
+      "end": "2024-05-15"
+    },
+    "paymentMethodId": "pm_card_4242",
+    "paymentMethodLast4": "4242",
+    "remindersSent": 1,
+    "daysUntilDue": 3
+  },
+  "metadata": {
+    "correlationId": "corr_due_001",
+    "version": "1.0.0"
+  }
+}

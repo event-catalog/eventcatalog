@@ -1,0 +1,25 @@
+{
+  "eventId": "evt_sub_start_7a3b1c",
+  "eventType": "UserSubscriptionStarted",
+  "timestamp": "2024-03-15T09:22:41Z",
+  "data": {
+    "subscriptionId": "sub_9f84kd02",
+    "userId": "usr_28471",
+    "plan": {
+      "planId": "plan_monthly_pro",
+      "name": "Pro Monthly",
+      "billingCycle": "monthly",
+      "price": 29.99,
+      "currency": "USD"
+    },
+    "trialPeriodDays": 14,
+    "startDate": "2024-03-15",
+    "nextBillingDate": "2024-04-15",
+    "paymentMethodId": "pm_card_4242",
+    "source": "web_checkout"
+  },
+  "metadata": {
+    "correlationId": "corr_ab12cd34",
+    "version": "1.0.0"
+  }
+}

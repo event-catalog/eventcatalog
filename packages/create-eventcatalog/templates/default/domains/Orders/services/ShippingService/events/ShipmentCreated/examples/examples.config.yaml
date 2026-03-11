@@ -1,0 +1,15 @@
+single-package.json:
+  name: Single Package Shipment
+  summary: A new shipment created with a single package containing two books, shipped via standard USPS.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @single-package.json
+
+multi-package.json:
+  name: Multi-Package Shipment
+  summary: A new shipment created with two packages (monitor and peripherals) for express delivery via FedEx.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @multi-package.json

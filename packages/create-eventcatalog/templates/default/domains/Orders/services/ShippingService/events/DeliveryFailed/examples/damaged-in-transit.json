@@ -1,0 +1,33 @@
+{
+  "eventId": "evt_df_60115",
+  "shipmentId": "shp_84410",
+  "orderId": "ord_10703",
+  "failedAt": "2026-03-13T08:20:00Z",
+  "carrier": "FedEx",
+  "trackingNumber": "FX7829042104",
+  "failureReason": "damaged_in_transit",
+  "failureDetails": "Package damaged in transit. Item was returned to the warehouse for inspection.",
+  "deliveryAttempts": 0,
+  "damageReport": {
+    "reportId": "dmg_5501",
+    "severity": "major",
+    "description": "Outer packaging crushed, visible damage to contents",
+    "reportedBy": "warehouse_staff",
+    "photos": [
+      "https://cdn.shipping.example.com/damage-reports/dmg_5501_01.jpg",
+      "https://cdn.shipping.example.com/damage-reports/dmg_5501_02.jpg"
+    ]
+  },
+  "destination": {
+    "line1": "88 River Road",
+    "city": "Portland",
+    "state": "OR",
+    "zipCode": "97201",
+    "country": "US"
+  },
+  "nextAction": "reship_order",
+  "customer": {
+    "customerId": "cust_9412",
+    "email": "sam.nguyen@example.com"
+  }
+}

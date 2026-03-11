@@ -1,0 +1,38 @@
+{
+  "eventId": "evt_pf_2d3e4f5a-6b7c-8d9e-0f1a-2b3c4d5e6f7a",
+  "timestamp": "2024-03-15T16:45:12.334Z",
+  "type": "PaymentFailed",
+  "source": "payment-gateway-service",
+  "data": {
+    "paymentId": "pay_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+    "orderId": "ord_92851034",
+    "customerId": "cust_20571",
+    "amount": 1299.0,
+    "currency": "USD",
+    "paymentMethod": {
+      "type": "credit_card",
+      "brand": "mastercard",
+      "last4": "8910",
+      "expiryMonth": 3,
+      "expiryYear": 2027
+    },
+    "failureReason": "insufficient_funds",
+    "failureCode": "INSUFFICIENT_FUNDS",
+    "failureMessage": "The card has insufficient funds to complete this transaction.",
+    "gatewayResponse": {
+      "gatewayId": "gw_stripe",
+      "transactionId": "txn_9AbCdEfGhIjKlMn",
+      "responseCode": "51",
+      "avsCheck": "pass",
+      "cvvCheck": "pass"
+    },
+    "retryable": true,
+    "attemptNumber": 1,
+    "maxAttempts": 3
+  },
+  "metadata": {
+    "correlationId": "corr_f7e6d5c4-b3a2-1098-7654-321fedcba098",
+    "ipAddress": "10.0.0.88",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+  }
+}

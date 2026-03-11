@@ -1,0 +1,31 @@
+{
+  "eventId": "evt_del_40215",
+  "shipmentId": "shp_88220",
+  "orderId": "ord_10517",
+  "deliveredAt": "2026-03-12T15:08:00Z",
+  "carrier": "UPS",
+  "trackingNumber": "1Z9R8F030392847582",
+  "deliveryType": "signed",
+  "signatureRequired": true,
+  "deliveryLocation": {
+    "type": "hand_delivered",
+    "notes": "Signed by recipient at front door"
+  },
+  "proofOfDelivery": {
+    "signedBy": "Michael Chen",
+    "signatureUrl": "https://cdn.shipping.example.com/signatures/shp_88220.png",
+    "gpsCoordinates": {
+      "latitude": 40.7128,
+      "longitude": -74.006
+    }
+  },
+  "recipient": {
+    "name": "Michael Chen",
+    "address": {
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "10001",
+      "country": "US"
+    }
+  }
+}

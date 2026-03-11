@@ -1,0 +1,23 @@
+{
+  "eventId": "evt_3d4e5f6a-7b8c-9d0e-1f2a-3b4c5d6e7f8a",
+  "eventType": "InventoryAdjusted",
+  "timestamp": "2025-11-17T07:45:22.310Z",
+  "adjustmentId": "adj_40291",
+  "productId": "prod_1129",
+  "productName": "Wireless Bluetooth Headphones",
+  "sku": "WBH-400-BLK",
+  "warehouseId": "wh_east_01",
+  "adjustmentType": "INCREASE",
+  "reason": "SUPPLIER_DELIVERY",
+  "previousQuantity": 42,
+  "adjustedQuantity": 200,
+  "newQuantity": 242,
+  "unitCost": 22.5,
+  "currency": "USD",
+  "metadata": {
+    "source": "warehouse-system",
+    "correlationId": "corr_12345678-abcd-ef01-2345-6789abcdef01",
+    "purchaseOrderId": "po_20251117_003",
+    "receivedBy": "usr_wh_1044"
+  }
+}

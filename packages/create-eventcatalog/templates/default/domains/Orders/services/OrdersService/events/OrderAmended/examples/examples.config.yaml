@@ -1,0 +1,15 @@
+quantity-change.json:
+  name: Quantity Change
+  summary: Customer updated the quantity of an item in their order from 1 to 3 units.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @quantity-change.json
+
+address-change.json:
+  name: Shipping Address Change
+  summary: Customer changed the shipping address on a confirmed order before dispatch.
+  usage: |
+    curl -X POST http://localhost:3000/api/events/publish \
+      -H "Content-Type: application/json" \
+      -d @address-change.json

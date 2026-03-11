@@ -1,0 +1,15 @@
+standard-shipping.json:
+  name: Standard Shipping Dispatch
+  summary: A shipment dispatched via standard ground shipping from the East Coast warehouse to Boston.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @standard-shipping.json
+
+express-shipping.json:
+  name: Express Shipping Dispatch
+  summary: A high-priority express shipment dispatched for next-day delivery via UPS.
+  usage: |
+    curl -X POST http://localhost:3000/events/publish \
+      -H "Content-Type: application/json" \
+      -d @express-shipping.json
