@@ -1,6 +1,7 @@
 import type { CollectionTypes } from '@types';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import path from 'node:path';
+import { coerce, rcompare } from 'semver';
 
 export type ChangeLog = CollectionEntry<'changelogs'>;
 
@@ -36,8 +37,13 @@ export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Pro
     };
   });
 
-  // Order by version string
+  // Order by semver (descending)
   return hydratedLogs.sort((a, b) => {
+    const semverA = coerce(a.data.version);
+    const semverB = coerce(b.data.version);
+    if (semverA && semverB) {
+      return rcompare(semverA, semverB);
+    }
     return b.data.version.localeCompare(a.data.version);
   });
 };
