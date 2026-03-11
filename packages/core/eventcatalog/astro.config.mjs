@@ -100,6 +100,7 @@ export default defineConfig({
        * such as `node:path`.
        */
       '__EC_TRAILING_SLASH__': config.trailingSlash || false,
+      '__EC_BASE__': JSON.stringify(base),
     },
     server: {
       fs: {

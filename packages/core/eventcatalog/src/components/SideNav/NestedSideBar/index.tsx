@@ -18,6 +18,18 @@ import { getBadgeClasses } from './utils';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
 
+/**
+ * Strip the configured base path from a pathname so URL pattern matching works
+ * regardless of the base path setting (e.g. `/eventcatalog/docs/...` → `/docs/...`).
+ */
+const stripBasePath = (pathname: string): string => {
+  const base = __EC_BASE__.replace(/\/$/, ''); // e.g. '/eventcatalog'
+  if (base && pathname.startsWith(base)) {
+    return pathname.slice(base.length) || '/';
+  }
+  return pathname;
+};
+
 // ============================================
 // Component
 // ============================================
@@ -198,6 +210,9 @@ export default function NestedSideBar() {
    */
   const findNodeKeyByUrl = useCallback(
     (url: string): string | null => {
+      // Strip the base path so patterns always match against /docs/..., /visualiser/..., etc.
+      const normalizedUrl = stripBasePath(url);
+
       // URL patterns to match resources with version
       const urlPatternsWithVersion = [
         // Domains
@@ -232,7 +247,7 @@ export default function NestedSideBar() {
 
       // First try to match patterns with version
       for (const { pattern, type } of urlPatternsWithVersion) {
-        const match = url.match(pattern);
+        const match = normalizedUrl.match(pattern);
         if (match) {
           const id = match[1];
           const version = match[2];
@@ -251,7 +266,7 @@ export default function NestedSideBar() {
 
       // Then try patterns without version
       for (const { pattern, type } of urlPatternsWithoutVersion) {
-        const match = url.match(pattern);
+        const match = normalizedUrl.match(pattern);
         if (match) {
           const id = match[1];
           const foundNodeKey = nodeLookup.get(`${type}:${id}`);
@@ -362,9 +377,10 @@ export default function NestedSideBar() {
     if (!data || roots.length === 0 || isInitialized) return;
 
     const currentUrl = window.location.pathname;
+    const normalizedCurrentUrl = stripBasePath(currentUrl);
 
     // Force root navigation on homepage
-    if (currentUrl === '/' || currentUrl === '') {
+    if (normalizedCurrentUrl === '/' || normalizedCurrentUrl === '') {
       setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
       setIsInitialized(true);
       return;
