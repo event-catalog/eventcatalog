@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 3.22.1
+
+### Patch Changes
+
+- 83aca74: add usage examples support for messages in schema explorer with optional config metadata
+- Updated dependencies [83aca74]
+  - @eventcatalog/sdk@2.17.4
+  - @eventcatalog/linter@1.0.14
+
 ## 3.22.0
 
 ### Minor Changes
