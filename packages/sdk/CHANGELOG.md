@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.17.4
+
+### Patch Changes
+
+- 83aca74: add usage examples support for messages in schema explorer with optional config metadata
+
 ## 2.17.3
 
 ### Patch Changes
