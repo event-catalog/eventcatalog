@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.2.3
+
+### Patch Changes
+
+- 7a23aa2: add usage examples to all events with schemas in the default template
+
 ## 4.2.2
 
 ### Patch Changes
