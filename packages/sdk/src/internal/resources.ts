@@ -334,6 +334,14 @@ export const getVersionedDirectory = (sourceDirectory: string, version: any): st
 
 const CONFIG_FILES = ['examples.config.yaml', 'examples.config.yml', 'examples.config.json'];
 
+function resolveExamplePath(examplesDir: string, fileName: string): string {
+  const resolved = path.resolve(examplesDir, fileName);
+  if (!resolved.startsWith(path.resolve(examplesDir) + path.sep) && resolved !== path.resolve(examplesDir)) {
+    throw new Error(`Invalid example fileName: path traversal detected in "${fileName}"`);
+  }
+  return resolved;
+}
+
 export const addExampleToResource = async (
   catalogDir: string,
   id: string,
@@ -344,8 +352,9 @@ export const addExampleToResource = async (
   if (!pathToResource) throw new Error('Cannot find directory to write example to');
 
   const examplesDir = join(dirname(pathToResource), 'examples');
-  fsSync.mkdirSync(examplesDir, { recursive: true });
-  fsSync.writeFileSync(join(examplesDir, example.fileName), example.content);
+  const targetPath = resolveExamplePath(examplesDir, example.fileName);
+  fsSync.mkdirSync(path.dirname(targetPath), { recursive: true });
+  fsSync.writeFileSync(targetPath, example.content);
 };
 
 export const getExamplesFromResource = async (
@@ -383,7 +392,8 @@ export const removeExampleFromResource = async (catalogDir: string, id: string, 
   const pathToResource = await findFileById(catalogDir, id, version);
   if (!pathToResource) throw new Error('Cannot find resource');
 
-  const examplePath = join(dirname(pathToResource), 'examples', fileName);
+  const examplesDir = join(dirname(pathToResource), 'examples');
+  const examplePath = resolveExamplePath(examplesDir, fileName);
   if (!fsSync.existsSync(examplePath)) {
     throw new Error(`Example file ${fileName} does not exist in resource ${id}${version ? ` v(${version})` : ''}`);
   }
