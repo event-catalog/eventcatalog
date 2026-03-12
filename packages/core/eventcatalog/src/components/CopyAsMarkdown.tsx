@@ -1,5 +1,14 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink, PenSquareIcon, RssIcon } from 'lucide-react';
+import {
+  Copy,
+  FileText,
+  MessageCircleQuestion,
+  ChevronDownIcon,
+  ExternalLink,
+  PenSquareIcon,
+  RssIcon,
+  PrinterIcon,
+} from 'lucide-react';
 import React, { useState, isValidElement } from 'react';
 import type { Schema } from '@utils/collections/schemas';
 import { buildUrl, toMarkdownUrl } from '@utils/url-builder';
@@ -51,6 +60,7 @@ export function CopyPageMenu({
   rssFeedEnabled = false,
   preferChatAsDefault = false,
   chatButtonText = 'Ask',
+  printUrl,
 }: {
   schemas: Schema[];
   chatQuery?: string;
@@ -60,6 +70,7 @@ export function CopyPageMenu({
   rssFeedEnabled: boolean;
   preferChatAsDefault?: boolean;
   chatButtonText?: string;
+  printUrl?: string;
 }) {
   // Define available actions
   const availableActions = {
@@ -69,6 +80,7 @@ export function CopyPageMenu({
     viewMarkdown: markdownDownloadEnabled,
     chat: chatEnabled,
     rssFeed: rssFeedEnabled,
+    exportPDF: !!printUrl,
   };
 
   // Check if any actions are available
@@ -133,6 +145,13 @@ export function CopyPageMenu({
         type: 'rssFeed',
         text: 'RSS Feed',
         icon: RssIcon,
+      };
+    }
+    if (availableActions.exportPDF) {
+      return {
+        type: 'exportPDF',
+        text: 'Export to PDF',
+        icon: PrinterIcon,
       };
     }
     return null;
@@ -201,6 +220,9 @@ export function CopyPageMenu({
       case 'chat':
         // Dispatch custom event to open chat panel instead of navigating
         window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'));
+        break;
+      case 'exportPDF':
+        window.open(printUrl, '_blank');
         break;
     }
   };
@@ -318,6 +340,15 @@ export function CopyPageMenu({
             onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`), '_blank')}
           >
             <MenuItemContent icon={RssIcon} title="RSS Feed" description="View this page as RSS feed" external={true} />
+          </DropdownMenu.Item>
+        )}
+
+        {availableActions.exportPDF && (
+          <DropdownMenu.Item
+            className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-hidden focus:bg-[rgb(var(--ec-dropdown-hover))]"
+            onSelect={() => window.open(printUrl, '_blank')}
+          >
+            <MenuItemContent icon={PrinterIcon} title="Export to PDF" description="Open print-friendly version" external={true} />
           </DropdownMenu.Item>
         )}
 

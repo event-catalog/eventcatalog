@@ -1,50 +1,13 @@
 {
-  "eventId": "evt_fc_a7b8c9d0-7890-bcde-f012-345678901234",
-  "timestamp": "2024-03-16T19:05:50.219Z",
-  "type": "FraudCheckCompleted",
-  "source": "fraud-detection-service",
-  "data": {
-    "checkId": "chk_9e0f1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b",
-    "assessmentId": "risk_4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a",
-    "paymentId": "pay_6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c",
-    "orderId": "ord_92860445",
-    "customerId": "cust_31207",
-    "result": "flagged",
-    "riskScore": 82,
-    "riskLevel": "high",
-    "checksPerformed": [
-      {
-        "name": "identity_verification",
-        "status": "passed",
-        "details": "Customer identity verified"
-      },
-      {
-        "name": "card_bin_check",
-        "status": "passed",
-        "details": "Card BIN matches issuing bank"
-      },
-      {
-        "name": "address_verification",
-        "status": "warning",
-        "details": "AVS returned partial match - postal code mismatch"
-      },
-      {
-        "name": "geolocation_check",
-        "status": "failed",
-        "details": "IP geolocation (Lagos, Nigeria) does not match billing country (US)"
-      },
-      {
-        "name": "impossible_travel_check",
-        "status": "failed",
-        "details": "Impossible travel detected between Portland, OR and Lagos in 2 hours"
-      }
-    ],
-    "processingTimeMs": 1205,
-    "fraudDetected": true,
-    "completedAt": "2024-03-16T19:05:50.219Z"
-  },
-  "metadata": {
-    "correlationId": "corr_11aa22bb-33cc-44dd-55ee-66ff77008899",
-    "modelVersion": "fraud-ml-v3.2.1"
-  }
+  "transactionId": "txn_a7b8c9d0-7890-bcde-f012-345678901234",
+  "paymentId": "pay_6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c",
+  "riskScore": 82,
+  "decision": "flagged",
+  "reasons": [
+    "IP geolocation does not match billing country",
+    "Impossible travel detected between Portland, OR and Lagos in 2 hours",
+    "AVS returned partial match - postal code mismatch"
+  ],
+  "confidence": 0.91,
+  "timestamp": "2024-03-16T19:05:50.219Z"
 }

@@ -1,0 +1,271 @@
+---
+interface Props {
+  title: string;
+  stamp?: 'draft' | 'deprecated';
+}
+
+const { title, stamp } = Astro.props;
+---
+
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <style is:global>
+      @import '../../../styles/tailwind.css';
+
+      @media print {
+        body {
+          font-size: 11pt;
+          background: #fff;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .no-print {
+          display: none !important;
+        }
+
+        /* Expand code blocks fully for print, use smaller font to fit */
+        pre,
+        code,
+        .schema-viewer {
+          max-height: none !important;
+          overflow: visible !important;
+          font-size: 0.65rem !important;
+        }
+      }
+
+      /* Toggle switch – no Tailwind equivalent */
+      .print-toggle {
+        position: relative;
+        width: 36px;
+        height: 20px;
+        appearance: none;
+        -webkit-appearance: none;
+        background: #cbd5e1;
+        border-radius: 10px;
+        outline: none;
+        cursor: pointer;
+        transition: background 0.2s;
+        flex-shrink: 0;
+      }
+      .print-toggle:checked {
+        background: #0f172a;
+      }
+      .print-toggle::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+      .print-toggle:checked::before {
+        transform: translateX(16px);
+      }
+
+      /* Stamp watermark */
+      .stamp-watermark {
+        font-size: 7rem;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        transform: rotate(-28deg);
+        border: 0.45rem solid;
+        border-radius: 1.25rem;
+        padding: 0.5rem 2.5rem;
+        white-space: nowrap;
+        user-select: none;
+      }
+      .stamp-draft {
+        color: rgba(217, 119, 6, 0.06);
+        border-color: rgba(217, 119, 6, 0.06);
+      }
+      .stamp-deprecated {
+        font-size: 4.5rem;
+        color: rgba(220, 38, 38, 0.06);
+        border-color: rgba(220, 38, 38, 0.06);
+      }
+
+      /* Section title decorative line */
+      .print-section-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+      }
+
+      /* Settings panel visibility */
+      .print-settings-panel {
+        display: none;
+      }
+      .print-settings-panel.open {
+        display: block;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-800 font-sans leading-relaxed print:bg-white">
+    <!-- Settings (top-left) -->
+    <div class="no-print fixed top-5 left-5 z-50">
+      <button
+        id="settings-toggle"
+        class="inline-flex items-center gap-2 px-3 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-lg text-sm font-semibold cursor-pointer shadow-sm hover:bg-slate-50 hover:shadow-md transition-all"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+          ></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        Settings
+      </button>
+      <div
+        class="print-settings-panel absolute top-full left-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg py-3 min-w-[240px]"
+        id="settings-panel"
+      >
+        <div
+          class="px-4 pb-2.5 text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1"
+        >
+          Show / Hide sections
+        </div>
+        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
+          <label for="toggle-producers-consumers" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
+            >Producers &amp; Consumers</label
+          >
+          <input type="checkbox" class="print-toggle" id="toggle-producers-consumers" checked />
+        </div>
+        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
+          <label for="toggle-versions" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
+            >Version History</label
+          >
+          <input type="checkbox" class="print-toggle" id="toggle-versions" checked />
+        </div>
+        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
+          <label for="toggle-documentation" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
+            >Documentation</label
+          >
+          <input type="checkbox" class="print-toggle" id="toggle-documentation" />
+        </div>
+        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
+          <label for="toggle-schema" class="text-sm font-medium text-slate-700 cursor-pointer select-none">Schema</label>
+          <input type="checkbox" class="print-toggle" id="toggle-schema" checked />
+        </div>
+        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
+          <label for="toggle-examples" class="text-sm font-medium text-slate-700 cursor-pointer select-none">Examples</label>
+          <input type="checkbox" class="print-toggle" id="toggle-examples" checked />
+        </div>
+      </div>
+    </div>
+
+    <!-- Export button (top-right) -->
+    <div class="no-print fixed top-5 right-5 z-50 flex gap-2">
+      <button
+        onclick="window.print()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-semibold cursor-pointer shadow-md hover:bg-slate-800 hover:-translate-y-px hover:shadow-lg transition-all"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Export PDF
+      </button>
+    </div>
+
+    <!-- Page content -->
+    <div
+      class="relative max-w-[860px] mx-auto my-8 px-10 py-12 pb-16 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_6px_24px_rgba(0,0,0,0.06)] print:max-w-full print:m-0 print:p-0 print:shadow-none print:rounded-none overflow-hidden"
+    >
+      {
+        stamp && (
+          <div class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+            <div class={`stamp-watermark ${stamp === 'draft' ? 'stamp-draft' : 'stamp-deprecated'}`} aria-hidden="true">
+              {stamp === 'draft' ? 'DRAFT' : 'DEPRECATED'}
+            </div>
+          </div>
+        )
+      }
+      <slot />
+    </div>
+
+    <script is:inline>
+      const settingsToggle = document.getElementById('settings-toggle');
+      const settingsPanel = document.getElementById('settings-panel');
+
+      settingsToggle.addEventListener('click', () => {
+        settingsPanel.classList.toggle('open');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!settingsToggle.contains(e.target) && !settingsPanel.contains(e.target)) {
+          settingsPanel.classList.remove('open');
+        }
+      });
+
+      // Hide documentation by default
+      document.querySelectorAll('[data-print-section="documentation"]').forEach((section) => {
+        section.style.display = 'none';
+      });
+
+      document.getElementById('toggle-producers-consumers').addEventListener('change', (e) => {
+        const sections = document.querySelectorAll('[data-print-section="producers"], [data-print-section="consumers"]');
+        sections.forEach((section) => {
+          section.style.display = e.target.checked ? '' : 'none';
+        });
+      });
+
+      document.getElementById('toggle-versions').addEventListener('change', (e) => {
+        const sections = document.querySelectorAll('[data-print-section="versions"]');
+        sections.forEach((section) => {
+          section.style.display = e.target.checked ? '' : 'none';
+        });
+      });
+
+      document.getElementById('toggle-documentation').addEventListener('change', (e) => {
+        const sections = document.querySelectorAll('[data-print-section="documentation"]');
+        sections.forEach((section) => {
+          section.style.display = e.target.checked ? '' : 'none';
+        });
+      });
+
+      document.getElementById('toggle-schema').addEventListener('change', (e) => {
+        const sections = document.querySelectorAll('[data-print-section="schema"]');
+        sections.forEach((section) => {
+          section.style.display = e.target.checked ? '' : 'none';
+        });
+      });
+
+      document.getElementById('toggle-examples').addEventListener('change', (e) => {
+        const sections = document.querySelectorAll('[data-print-section="examples"]');
+        sections.forEach((section) => {
+          section.style.display = e.target.checked ? '' : 'none';
+        });
+      });
+    </script>
+  </body>
+</html>

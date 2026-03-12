@@ -1,0 +1,107 @@
+---
+interface Props {
+  schema: any;
+  isAvro: boolean;
+}
+
+interface SchemaProperty {
+  name: string;
+  type: string;
+  description: string;
+  required: boolean;
+}
+
+const { schema, isAvro } = Astro.props;
+
+function getAvroTypeName(type: any): string {
+  if (typeof type === 'string') return type;
+  if (Array.isArray(type)) {
+    return type.map((t) => (typeof t === 'string' ? t : t.type || 'complex')).join(' | ');
+  }
+  if (typeof type === 'object' && type !== null) {
+    if (type.type === 'array' && type.items) {
+      return `array<${getAvroTypeName(type.items)}>`;
+    }
+    return type.type || 'complex';
+  }
+  return 'unknown';
+}
+
+function extractProperties(schema: any, isAvro: boolean): SchemaProperty[] {
+  if (!schema) return [];
+
+  if (isAvro && schema.fields) {
+    return schema.fields.map((field: any) => ({
+      name: field.name,
+      type: getAvroTypeName(field.type),
+      description: field.doc || '',
+      required: !Array.isArray(field.type) || !field.type.includes('null'),
+    }));
+  }
+
+  if (schema.properties) {
+    const required = schema.required || [];
+    return Object.entries(schema.properties).map(([name, prop]: [string, any]) => ({
+      name,
+      type: prop.type || (prop.enum ? 'enum' : prop.$ref ? '$ref' : 'object'),
+      description: prop.description || '',
+      required: required.includes(name),
+    }));
+  }
+
+  return [];
+}
+
+const properties = extractProperties(schema, isAvro);
+---
+
+{
+  properties.length > 0 && (
+    <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+      <thead>
+        <tr>
+          <th class="w-[25%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+            Property
+          </th>
+          <th class="w-[15%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+            Type
+          </th>
+          <th class="w-[45%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+            Description
+          </th>
+          <th class="w-[15%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+            Required
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {properties.map((prop, i) => (
+          <tr>
+            <td
+              class={`px-4 py-2.5 font-medium text-slate-700 font-mono text-xs ${i < properties.length - 1 ? 'border-b border-slate-100' : ''}`}
+            >
+              {prop.name}
+            </td>
+            <td
+              class={`px-4 py-2.5 text-slate-500 font-mono text-xs ${i < properties.length - 1 ? 'border-b border-slate-100' : ''}`}
+            >
+              {prop.type}
+            </td>
+            <td class={`px-4 py-2.5 text-slate-500 ${i < properties.length - 1 ? 'border-b border-slate-100' : ''}`}>
+              {prop.description || '—'}
+            </td>
+            <td class={`px-4 py-2.5 ${i < properties.length - 1 ? 'border-b border-slate-100' : ''}`}>
+              {prop.required ? (
+                <span class="inline-flex items-center text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                  Required
+                </span>
+              ) : (
+                <span class="text-xs text-slate-400">Optional</span>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}

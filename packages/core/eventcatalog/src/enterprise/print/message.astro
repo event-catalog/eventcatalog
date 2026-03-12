@@ -1,0 +1,353 @@
+---
+import { render } from 'astro:content';
+import PrintLayout from './components/PrintLayout.astro';
+import PrintHeader from './components/PrintHeader.astro';
+import PrintSection from './components/PrintSection.astro';
+import PrintSchemaViewer from './components/PrintSchemaViewer';
+import config from '@config';
+import { PrintPage } from './_message.data';
+import fs from 'node:fs/promises';
+import { getAbsoluteFilePathForAstroFile, isAvroSchema } from '@utils/files';
+import components from '@components/MDX/components';
+import { getOwnerDetails } from '@utils/collections/owners';
+import { satisfies, collectionToResourceMap, getPointerField } from '@utils/collections/util';
+import { getDomains } from '@utils/collections/domains';
+import { getExamplesForResource } from '@utils/collections/examples';
+import { hydrateParticipants } from './utils';
+import PrintSchemaPropertiesTable from './components/PrintSchemaPropertiesTable.astro';
+import PrintParticipantsTable from './components/PrintParticipantsTable.astro';
+import yaml from 'js-yaml';
+
+export const prerender = PrintPage.prerender;
+export const getStaticPaths = PrintPage.getStaticPaths;
+
+const props = await PrintPage.getData(Astro);
+const { Content } = await render(props);
+
+const messageType = (collectionToResourceMap as Record<string, string>)[props.collection] as 'event' | 'command' | 'query';
+const catalogName = config?.title || 'EventCatalog';
+
+// Get producers and consumers
+const producers = props.data.producers || [];
+const consumers = props.data.consumers || [];
+
+// Hydrate message owners
+const hydratedOwners = await getOwnerDetails(props.data.owners || []);
+
+const messageId = props.data.id;
+const latestVersion = props.data.latestVersion || props.data.version;
+
+const [producersWithOwners, consumersWithOwners] = await Promise.all([
+  hydrateParticipants(producers, 'sends', messageId, latestVersion),
+  hydrateParticipants(consumers, 'receives', messageId, latestVersion),
+]);
+
+// Get schema content from schemaPath frontmatter property
+let schemaContent: string | null = null;
+let schemaFormat: string | null = null;
+let schemaExtension: string = 'json';
+let schemaParsed: any = null;
+let schemaIsAvro: boolean = false;
+
+try {
+  if (props.data.schemaPath) {
+    const schemaPath = getAbsoluteFilePathForAstroFile(props.filePath, props.data.schemaPath);
+    schemaContent = await fs.readFile(schemaPath, 'utf-8');
+    const ext = schemaPath.split('.').pop() || '';
+    schemaExtension = ext;
+    schemaIsAvro = isAvroSchema(schemaPath);
+    schemaFormat =
+      ext === 'json' ? 'JSON' : ext === 'avsc' ? 'Avro' : ext === 'yaml' || ext === 'yml' ? 'YAML' : ext.toUpperCase();
+
+    // Parse schema for the property viewer
+    try {
+      if (ext === 'yaml' || ext === 'yml') {
+        schemaParsed = yaml.load(schemaContent);
+      } else {
+        schemaParsed = JSON.parse(schemaContent);
+      }
+    } catch {}
+
+    // Pretty-print JSON using the already-parsed object
+    if (schemaParsed && (ext === 'json' || ext === 'avsc')) {
+      schemaContent = JSON.stringify(schemaParsed, null, 2);
+    }
+  }
+} catch {
+  // Schema loading is best-effort
+}
+
+// Get examples
+const messageExamples = getExamplesForResource(props);
+
+const dotColor = messageType === 'event' ? '#ea580c' : messageType === 'command' ? '#2563eb' : '#16a34a';
+const stamp = props.data.draft ? 'draft' : props.data.deprecated ? 'deprecated' : undefined;
+
+// Compute consumer counts per version using already-loaded consumers
+const allVersions = [...new Set([props.data.version, ...(props.data.versions || [])])];
+const sortedVersions = [...allVersions].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+
+const versionConsumerCounts = new Map<string, number>();
+for (const v of allVersions) versionConsumerCounts.set(v, 0);
+
+// Extract consumer pointers from the already-hydrated consumers (services + data-products)
+const consumerPointers: { id: string; version?: string }[] = [];
+for (const c of consumers) {
+  const field = getPointerField(c.collection, 'receives');
+  for (const pointer of c.data?.[field] || []) {
+    if (pointer.id === messageId) consumerPointers.push(pointer);
+  }
+}
+// Also check domain-level receives (getDomains is cached internally)
+const allDomains = await getDomains({ getAllVersions: false });
+for (const domain of allDomains) {
+  for (const pointer of (domain.data as any).receives || []) {
+    if (pointer.id === messageId) consumerPointers.push(pointer);
+  }
+}
+
+for (const pointer of consumerPointers) {
+  let matched: string | undefined;
+  if (!pointer.version || pointer.version === 'latest') {
+    matched = latestVersion;
+  } else {
+    matched = sortedVersions.find((v) => satisfies(v, pointer.version));
+  }
+  if (matched && versionConsumerCounts.has(matched)) {
+    versionConsumerCounts.set(matched, (versionConsumerCounts.get(matched) || 0) + 1);
+  }
+}
+---
+
+<PrintLayout title={`${props.data.name} — ${catalogName}`} stamp={stamp}>
+  <PrintHeader
+    name={props.data.name}
+    version={props.data.version}
+    type={messageType}
+    summary={props.data.summary}
+    catalogName={catalogName}
+    draft={props.data.draft}
+    deprecated={props.data.deprecated}
+  />
+
+  <!-- Overview cards -->
+  <div class="grid grid-cols-5 gap-3 mb-9">
+    <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+      <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Type</div>
+      <div class="text-sm font-medium text-slate-700 capitalize">{messageType}</div>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+      <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Latest Version</div>
+      <div class="text-sm font-medium text-slate-700">{latestVersion}</div>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+      <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Producers</div>
+      <div class="text-sm font-medium text-slate-700">{producers.length}</div>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+      <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Consumers</div>
+      <div class="text-sm font-medium text-slate-700">{consumers.length}</div>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+      <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Versions</div>
+      <div class="text-sm font-medium text-slate-700">{props.data.versions?.length || 1}</div>
+    </div>
+  </div>
+
+  {
+    hydratedOwners.length > 0 && (
+      <PrintSection title="Owners">
+        <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+          <thead>
+            <tr>
+              <th class="w-[50%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                Name
+              </th>
+              <th class="w-[20%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                Type
+              </th>
+              <th class="w-[30%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                Role
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {hydratedOwners.map((owner, i) => (
+              <tr>
+                <td
+                  class={`px-4 py-2.5 font-medium text-slate-700 ${i < hydratedOwners.length - 1 ? 'border-b border-slate-100' : ''}`}
+                >
+                  {owner.name}
+                </td>
+                <td class={`px-4 py-2.5 text-slate-500 ${i < hydratedOwners.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                  <span class="inline-flex items-center gap-1.5 text-sm">
+                    {owner.type === 'teams' ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-slate-400"
+                      >
+                        <path d="M18 21a8 8 0 0 0-16 0" />
+                        <circle cx="10" cy="8" r="5" />
+                        <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" />
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-slate-400"
+                      >
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    )}
+                    {owner.type === 'teams' ? 'Team' : owner.type === 'users' ? 'User' : '—'}
+                  </span>
+                </td>
+                <td class={`px-4 py-2.5 text-slate-500 ${i < hydratedOwners.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                  {owner.role || '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </PrintSection>
+    )
+  }
+
+  <PrintSection title="Producers" sectionId="producers">
+    <PrintParticipantsTable
+      participants={producersWithOwners}
+      dotColor={dotColor}
+      emptyMessage="No producers found for this message."
+    />
+  </PrintSection>
+
+  <PrintSection title="Consumers" sectionId="consumers">
+    <PrintParticipantsTable
+      participants={consumersWithOwners}
+      dotColor={dotColor}
+      emptyMessage="No consumers found for this message."
+    />
+  </PrintSection>
+
+  {
+    (props.data.versions?.length || 0) > 0 && (
+      <PrintSection title="Version History" sectionId="versions">
+        <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+          <thead>
+            <tr>
+              <th class="w-[50%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                Version
+              </th>
+              <th class="w-[20%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                Status
+              </th>
+              <th class="w-[30%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                Consumers
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {allVersions.map((v, i) => (
+              <tr>
+                <td
+                  class={`px-4 py-2.5 font-medium text-slate-700 ${i < allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}
+                >
+                  <span class="flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0" style={`background: ${i === 0 ? dotColor : '#94a3b8'};`} />v
+                    {v}
+                  </span>
+                </td>
+                <td class={`px-4 py-2.5 text-slate-500 ${i < allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                  {i === 0 ? (
+                    <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                      Current
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
+                      Previous
+                    </span>
+                  )}
+                </td>
+                <td class={`px-4 py-2.5 text-slate-700 ${i < allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                  {versionConsumerCounts.get(v) || 0}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </PrintSection>
+    )
+  }
+
+  <PrintSection title="Documentation" sectionId="documentation">
+    <div class="prose prose-slate prose-sm max-w-none">
+      <Content
+        components={{
+          ...components(props),
+          NodeGraph: () => null,
+          Flow: () => null,
+          EntityMap: () => null,
+          Tiles: () => null,
+          Tile: () => null,
+        }}
+      />
+    </div>
+  </PrintSection>
+
+  {
+    schemaContent && (
+      <PrintSection title="Schema" sectionId="schema">
+        <PrintSchemaViewer client:load content={schemaContent} format={schemaFormat || 'Schema'} extension={schemaExtension} />
+      </PrintSection>
+    )
+  }
+
+  {
+    schemaParsed && (
+      <PrintSection title="Schema Properties" sectionId="schema">
+        <PrintSchemaPropertiesTable schema={schemaParsed} isAvro={schemaIsAvro} />
+      </PrintSection>
+    )
+  }
+
+  {
+    messageExamples.length > 0 && (
+      <PrintSection title="Examples" sectionId="examples">
+        <div class="space-y-5">
+          {messageExamples.map((example) => (
+            <div>
+              {example.summary && <p class="text-sm text-slate-500 mb-2">{example.summary}</p>}
+              <PrintSchemaViewer
+                client:load
+                content={example.content}
+                format={`${example.title} (.${example.extension})`}
+                extension={example.extension}
+              />
+            </div>
+          ))}
+        </div>
+      </PrintSection>
+    )
+  }
+
+  <div class="mt-12 pt-6 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400">
+    <span>Generated from {catalogName}</span>
+    <span>EventCatalog</span>
+  </div>
+</PrintLayout>

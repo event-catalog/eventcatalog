@@ -1,0 +1,17 @@
+---
+interface Props {
+  title: string;
+  sectionId?: string;
+}
+
+const { title, sectionId } = Astro.props;
+---
+
+<section class="mb-9 break-inside-avoid" {...sectionId ? { 'data-print-section': sectionId } : {}}>
+  <h2
+    class="print-section-title text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 mb-3.5 flex items-center gap-2"
+  >
+    {title}
+  </h2>
+  <slot />
+</section>

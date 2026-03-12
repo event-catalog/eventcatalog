@@ -1,6 +1,8 @@
 import type { CollectionTypes } from '@types';
 import {
   getDeprecatedDetails,
+  getPointerField,
+  getResourceTypeLabel,
   isSameVersion,
   processSpecifications,
   satisfies,
@@ -249,6 +251,47 @@ describe('Collections - utils', () => {
         expect(versionMatches('2.1.0', '2.x')).toBe(true);
         expect(versionMatches('2.99.99', '2.x')).toBe(true);
       });
+    });
+  });
+
+  describe('getResourceTypeLabel', () => {
+    it('converts a plural collection name to a capitalized singular label', () => {
+      expect(getResourceTypeLabel('services')).toBe('Service');
+      expect(getResourceTypeLabel('events')).toBe('Event');
+      expect(getResourceTypeLabel('commands')).toBe('Command');
+      expect(getResourceTypeLabel('queries')).toBe('Query');
+      expect(getResourceTypeLabel('domains')).toBe('Domain');
+    });
+
+    it('converts hyphenated collection names to title-cased words', () => {
+      expect(getResourceTypeLabel('data-products')).toBe('Data Product');
+    });
+
+    it('title-cases the raw collection name when not found in collectionToResourceMap', () => {
+      expect(getResourceTypeLabel('unknown-collection')).toBe('Unknown Collection');
+    });
+  });
+
+  describe('getPointerField', () => {
+    it('returns "outputs" for data-products when direction is "sends"', () => {
+      expect(getPointerField('data-products', 'sends')).toBe('outputs');
+    });
+
+    it('returns "inputs" for data-products when direction is "receives"', () => {
+      expect(getPointerField('data-products', 'receives')).toBe('inputs');
+    });
+
+    it('returns "sends" for services when direction is "sends"', () => {
+      expect(getPointerField('services', 'sends')).toBe('sends');
+    });
+
+    it('returns "receives" for services when direction is "receives"', () => {
+      expect(getPointerField('services', 'receives')).toBe('receives');
+    });
+
+    it('returns the direction as-is for domains', () => {
+      expect(getPointerField('domains', 'sends')).toBe('sends');
+      expect(getPointerField('domains', 'receives')).toBe('receives');
     });
   });
 });
