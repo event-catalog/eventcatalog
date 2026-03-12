@@ -41,3 +41,39 @@ export async function getOwner(lookup: { id: string }): Promise<CollectionEntry<
 
   return owner;
 }
+
+export interface OwnerDetail {
+  id: string;
+  name: string;
+  type: 'users' | 'teams' | 'unknown';
+  role: string | undefined;
+}
+
+/**
+ * Resolves a list of raw owner references to detailed owner objects including type and role.
+ * Falls back to a minimal object with the raw ID if the owner cannot be found.
+ */
+export async function getOwnerDetails(rawOwners: (string | { id: string })[]): Promise<OwnerDetail[]> {
+  return Promise.all(
+    rawOwners.map(async (owner) => {
+      const ownerId = typeof owner === 'string' ? owner : owner.id;
+      const resolved = await getOwner({ id: ownerId });
+      if (!resolved) return { id: ownerId, name: ownerId, type: 'unknown' as const, role: undefined };
+      return {
+        id: resolved.data.id,
+        name: resolved.data.name,
+        type: resolved.collection as 'users' | 'teams',
+        role: resolved.collection === 'users' ? (resolved.data as any).role : (resolved.data as any).summary,
+      };
+    })
+  );
+}
+
+/**
+ * Resolves a list of raw owner references (string IDs or {id} objects) to their display names.
+ * Falls back to the raw ID if the owner cannot be found.
+ */
+export async function getOwnerNames(rawOwners: (string | { id: string })[]): Promise<string[]> {
+  const details = await getOwnerDetails(rawOwners);
+  return details.map((d) => d.name);
+}

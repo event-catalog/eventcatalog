@@ -204,6 +204,27 @@ export const collectionToResourceMap = {
   'data-products': 'data-product',
 } as const;
 
+/**
+ * Converts a collection name to a human-readable resource type label.
+ * e.g. 'data-products' → 'Data Product', 'services' → 'Service'
+ */
+export const getResourceTypeLabel = (collection: string): string => {
+  const raw = (collectionToResourceMap as Record<string, string>)[collection] || collection;
+  return raw
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+};
+
+/**
+ * Returns the correct pointer field name for a collection and direction.
+ * Data-products use 'outputs'/'inputs' instead of 'sends'/'receives'.
+ */
+export const getPointerField = (collection: string, direction: 'sends' | 'receives'): string => {
+  if (collection === 'data-products') return direction === 'sends' ? 'outputs' : 'inputs';
+  return direction;
+};
+
 export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => {
   let options = {
     isMarkedAsDeprecated: false,

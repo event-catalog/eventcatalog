@@ -78,3 +78,5 @@ export const isFullCatalogAPIEnabled = () => config?.api?.fullCatalogAPIEnabled 
 export const isDevMode = () => process.env.EVENTCATALOG_DEV_MODE === 'true';
 
 export const isIntegrationsEnabled = () => isEventCatalogScaleEnabled();
+
+export const isExportPDFEnabled = () => true;
