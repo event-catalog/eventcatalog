@@ -111,7 +111,7 @@ for (const pointer of consumerPointers) {
   if (!pointer.version || pointer.version === 'latest') {
     matched = latestVersion;
   } else {
-    matched = sortedVersions.find((v) => satisfies(v, pointer.version));
+    matched = sortedVersions.find((v) => satisfies(v, pointer.version as string));
   }
   if (matched && versionConsumerCounts.has(matched)) {
     versionConsumerCounts.set(matched, (versionConsumerCounts.get(matched) || 0) + 1);
