@@ -147,6 +147,13 @@ export function CopyPageMenu({
         icon: RssIcon,
       };
     }
+    if (availableActions.exportPDF) {
+      return {
+        type: 'exportPDF',
+        text: 'Export to PDF',
+        icon: PrinterIcon,
+      };
+    }
     return null;
   };
 
@@ -213,6 +220,9 @@ export function CopyPageMenu({
       case 'chat':
         // Dispatch custom event to open chat panel instead of navigating
         window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'));
+        break;
+      case 'exportPDF':
+        window.open(printUrl, '_blank');
         break;
     }
   };
