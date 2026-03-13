@@ -41,7 +41,7 @@ describe('file cache path normalization', () => {
 
     const updatedDocument = makeDocument('Updated summary', '# Updated');
     fs.writeFileSync(ABS_RESOURCE_PATH, updatedDocument);
-    upsertFileCacheEntry(REL_CATALOG_PATH, REL_RESOURCE_PATH, updatedDocument);
+    upsertFileCacheEntry(REL_RESOURCE_PATH, updatedDocument);
 
     const updatedResolvedPath = await findFileById(REL_CATALOG_PATH, 'OrderPlaced', '1.0.0');
     expect(updatedResolvedPath).toBeDefined();

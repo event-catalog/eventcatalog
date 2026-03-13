@@ -6,8 +6,9 @@ import {
   searchFilesForId,
   versionExists,
   cachedMatterRead,
-  invalidateFileCache,
   upsertFileCacheEntry,
+  removeFileCacheEntries,
+  removeFileCacheEntriesUnderDir,
 } from './utils';
 import matter from 'gray-matter';
 import fs from 'node:fs/promises';
@@ -51,6 +52,13 @@ export const versionResource = async (catalogDir: string, id: string) => {
     return true;
   });
 
+  // Capture root index file before deleting so we can patch the cache
+  const rootIndexFile = fsSync.existsSync(join(sourceDirectory, 'index.mdx'))
+    ? join(sourceDirectory, 'index.mdx')
+    : join(sourceDirectory, 'index.md');
+  const rootIndexExists = fsSync.existsSync(rootIndexFile);
+  const rootParsed = rootIndexExists ? matter.read(rootIndexFile) : null;
+
   // Remove all the files in the root of the resource as they have now been versioned
   await fs.readdir(sourceDirectory).then(async (resourceFiles) => {
     await Promise.all(
@@ -66,7 +74,18 @@ export const versionResource = async (catalogDir: string, id: string) => {
     );
   });
 
-  invalidateFileCache();
+  // Optimistically patch cache: remove old root entry, add versioned copy
+  if (rootIndexExists) {
+    removeFileCacheEntries([rootIndexFile]);
+  }
+  if (rootParsed) {
+    const versionedIndexFile = fsSync.existsSync(join(targetDirectory, 'index.mdx'))
+      ? join(targetDirectory, 'index.mdx')
+      : join(targetDirectory, 'index.md');
+    if (fsSync.existsSync(versionedIndexFile)) {
+      upsertFileCacheEntry(versionedIndexFile, fsSync.readFileSync(versionedIndexFile, 'utf-8'));
+    }
+  }
 };
 
 export const writeResource = async (
@@ -124,7 +143,7 @@ export const writeResource = async (
 
     const document = matter.stringify(markdown.trim(), frontmatter);
     fsSync.writeFileSync(lockPath, document);
-    upsertFileCacheEntry(catalogDir, lockPath, document);
+    upsertFileCacheEntry(lockPath, document);
   } finally {
     // Always release the lock
     await unlock(lockPath).catch(() => {});
@@ -247,22 +266,22 @@ export const rmResourceById = async (
     await Promise.all(
       matchedFiles.map(async (file) => {
         await fs.rm(file, { recursive: true });
-        // Verify file is actually removed
         await waitForFileRemoval(file);
       })
     );
+    removeFileCacheEntries(matchedFiles as string[]);
   } else {
     await Promise.all(
       matchedFiles.map(async (file) => {
         const directory = dirname(file);
         await fs.rm(directory, { recursive: true, force: true });
-        // Verify directory is actually removed
         await waitForFileRemoval(directory);
+        // Purge all descendant cache entries under the deleted directory,
+        // not just the matched files, since recursive rm removes nested resources too.
+        removeFileCacheEntriesUnderDir(directory);
       })
     );
   }
-
-  invalidateFileCache();
 };
 
 // Helper function to ensure file/directory is completely removed
