@@ -52,17 +52,31 @@ function formatAvroType(type: any): string {
 
 // Check if a type has nested fields
 function hasNestedFields(type: any): boolean {
-  // Check if it's a direct record type
+  if (!type) return false;
   if (typeof type === 'object' && !Array.isArray(type)) {
-    return type.type === 'record' && type.fields && type.fields.length > 0;
+    if (type.type === 'record') return !!(type.fields && type.fields.length > 0);
+    if (type.type === 'array') return hasNestedFields(type.items);
+    if (type.type === 'map') return hasNestedFields(type.values);
   }
-
-  // Check if it's a union type that contains a record
-  if (Array.isArray(type)) {
-    return type.some((t) => typeof t === 'object' && !Array.isArray(t) && t.type === 'record' && t.fields && t.fields.length > 0);
-  }
-
+  if (Array.isArray(type)) return type.some((t) => hasNestedFields(t));
   return false;
+}
+
+// Deep extractor for Records or Enums
+function getNestedType(type: any, target: 'record' | 'enum'): any {
+  if (!type) return null;
+  if (typeof type === 'object' && !Array.isArray(type)) {
+    if (type.type === target) return type;
+    if (type.type === 'array') return getNestedType(type.items, target);
+    if (type.type === 'map') return getNestedType(type.values, target);
+  }
+  if (Array.isArray(type)) {
+    for (const t of type) {
+      const result = getNestedType(t, target);
+      if (result) return result;
+    }
+  }
+  return null;
 }
 
 // Check if a field is required (not optional)
@@ -91,13 +105,6 @@ function isFieldRequired(field: any): boolean {
   return true;
 }
 
-// Helper function to get the record type from a union if it exists
-function getRecordFromUnion(type: any): any {
-  if (Array.isArray(type)) {
-    return type.find((t) => typeof t === 'object' && !Array.isArray(t) && t.type === 'record');
-  }
-  return null;
-}
 
 // AvroField component - displays a single field with nested support
 const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
@@ -106,8 +113,9 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
   const indentClass = `pl-${level * 4}`;
   const isRequired = showRequired ? isFieldRequired(field) : undefined;
 
-  // Get the record type, either directly or from within a union
-  const recordType = typeof field.type === 'object' && field.type.type === 'record' ? field.type : getRecordFromUnion(field.type);
+  // Get the record and enum types by resolving deep nesting
+  const recordType = getNestedType(field.type, 'record');
+  const enumType = getNestedType(field.type, 'enum');
 
   useEffect(() => {
     setIsExpanded(expand);
@@ -142,10 +150,10 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
           {field.doc && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-1">{field.doc}</p>}
 
           {/* Show enum values if present */}
-          {field.type?.type === 'enum' && field.type.symbols && (
+          {enumType && enumType.symbols && (
             <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
               Values:{' '}
-              {field.type.symbols.map((s: string) => (
+              {enumType.symbols.map((s: string) => (
                 <code key={s} className="bg-[rgb(var(--ec-content-hover))] px-1 rounded mx-0.5 text-[rgb(var(--ec-page-text))]">
                   {s}
                 </code>
