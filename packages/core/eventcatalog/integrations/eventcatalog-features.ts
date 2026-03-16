@@ -88,6 +88,15 @@ export default function eventCatalogIntegration(): AstroIntegration {
 
         // Export to PDF print pages (Scale plan)
         if (isExportPDFEnabled()) {
+          // Service print pages must be registered before the generic [type] route
+          params.injectRoute({
+            pattern: '/docs/print/services/[id]/[version]/docs',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/print/service-docs.astro'),
+          });
+          params.injectRoute({
+            pattern: '/docs/print/services/[id]/[version]',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/print/service.astro'),
+          });
           params.injectRoute({
             pattern: '/docs/print/[type]/[id]/[version]',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/print/message.astro'),

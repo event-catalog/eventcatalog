@@ -2,6 +2,18 @@ import { getOwnerNames } from '@utils/collections/owners';
 import { satisfies, getResourceTypeLabel, getPointerField } from '@utils/collections/util';
 import { getDomainsForService } from '@utils/collections/domains';
 
+export const PRINT_DOT_COLORS: Record<string, string> = {
+  event: '#ea580c',
+  command: '#2563eb',
+  query: '#16a34a',
+};
+
+export const PRINT_BADGE_COLORS: Record<string, string> = {
+  event: 'bg-gradient-to-br from-orange-50 to-orange-100 text-orange-700 border-orange-300',
+  command: 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 border-blue-300',
+  query: 'bg-gradient-to-br from-green-50 to-green-100 text-green-700 border-green-300',
+};
+
 export interface HydratedParticipant {
   name: string;
   resourceType: string;

@@ -1,0 +1,2586 @@
+---
+import { render } from 'astro:content';
+import PrintServiceLayout from './components/PrintServiceDocsLayout.astro';
+import PrintServiceHeader from './components/PrintServiceHeader.astro';
+import PrintSection from './components/PrintSection.astro';
+import PrintSchemaViewer from './components/PrintSchemaViewer';
+import PrintSchemaPropertiesTable from './components/PrintSchemaPropertiesTable.astro';
+import config from '@config';
+import { ServicePrintPage } from './_service.data';
+import fs from 'node:fs/promises';
+import { getAbsoluteFilePathForAstroFile, isAvroSchema } from '@utils/files';
+import components from '@components/MDX/components';
+import { getOwnerDetails } from '@utils/collections/owners';
+import { getDomainsForService } from '@utils/collections/domains';
+import { getSpecificationsForService } from '@utils/collections/services';
+import { satisfies, collectionToResourceMap, getPointerField } from '@utils/collections/util';
+import { getExamplesForResource } from '@utils/collections/examples';
+import { getEvents } from '@utils/collections/events';
+import { getCommands } from '@utils/collections/commands';
+import { getQueries } from '@utils/collections/queries';
+import { getDomains } from '@utils/collections/domains';
+import { hydrateParticipants, PRINT_DOT_COLORS as dotColors, PRINT_BADGE_COLORS as badgeColors } from './utils';
+import type { HydratedParticipant } from './utils';
+import PrintHeader from './components/PrintHeader.astro';
+import PrintParticipantsTable from './components/PrintParticipantsTable.astro';
+import yaml from 'js-yaml';
+import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
+import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
+
+export const prerender = ServicePrintPage.prerender;
+export const getStaticPaths = ServicePrintPage.getStaticPaths;
+
+const props = await ServicePrintPage.getData(Astro);
+const catalogName = config?.title || 'EventCatalog';
+
+// Raw message entries for detailed rendering
+const rawSends: any[] = props.data.sends || [];
+const rawReceives: any[] = props.data.receives || [];
+
+// Mapped summaries for overview tables
+const sends = rawSends.map((msg: any) => ({
+  name: msg.data?.name || msg.data?.id || msg.id,
+  version: msg.data?.version || 'unknown',
+  type: (collectionToResourceMap as Record<string, string>)[msg.collection] || 'message',
+  isLatest: msg.data?.version === (msg.data?.latestVersion || msg.data?.version),
+}));
+
+const receives = rawReceives.map((msg: any) => ({
+  name: msg.data?.name || msg.data?.id || msg.id,
+  version: msg.data?.version || 'unknown',
+  type: (collectionToResourceMap as Record<string, string>)[msg.collection] || 'message',
+  isLatest: msg.data?.version === (msg.data?.latestVersion || msg.data?.version),
+}));
+
+// Parallel: hydrate owners, domains, and service graph
+const specifications = getSpecificationsForService(props);
+const [hydratedOwners, domains, { nodes: serviceGraphNodes, edges: serviceGraphEdges }] = await Promise.all([
+  getOwnerDetails(props.data.owners || []),
+  getDomainsForService(props),
+  getNodesAndEdgesForService({ id: props.data.id, version: props.data.version, mode: 'simple' }),
+]);
+const domainNames = domains.map((d) => d.data.name || d.data.id).join(', ');
+
+// Load specification contents (best-effort)
+const specContents: { name: string; type: string; content: string; extension: string }[] = [];
+for (const spec of specifications) {
+  try {
+    const specPath = getAbsoluteFilePathForAstroFile(props.filePath, spec.path);
+    const content = await fs.readFile(specPath, 'utf-8');
+    const ext = specPath.split('.').pop() || '';
+    specContents.push({ name: spec.name, type: spec.type, content, extension: ext });
+  } catch {
+    // Spec loading is best-effort
+  }
+}
+const serviceMermaidDiagram = convertToMermaid(serviceGraphNodes as any, serviceGraphEdges as any, {
+  direction: 'LR',
+  includeStyles: true,
+});
+
+const currentPath = Astro.url.pathname;
+const latestVersion = props.data.latestVersion || props.data.version;
+const stamp = props.data.draft ? 'draft' : props.data.deprecated ? 'deprecated' : undefined;
+const allVersions = [...new Set([props.data.version, ...(props.data.versions || [])])];
+
+// Load enriched messages (with producers/consumers) from proper loaders
+const [allEvents, allCommands, allQueries, allDomainsForPointers] = await Promise.all([
+  getEvents(),
+  getCommands(),
+  getQueries(),
+  getDomains({ getAllVersions: false }),
+]);
+const enrichedMessageMap = new Map<string, any>();
+for (const msg of [...allEvents, ...allCommands, ...allQueries]) {
+  const key = `${msg.collection}-${msg.data?.id}-${msg.data?.version}`;
+  enrichedMessageMap.set(key, msg);
+}
+
+// Hydrate full message details for each send/receive
+interface MessageDetail {
+  name: string;
+  id: string;
+  version: string;
+  type: 'event' | 'command' | 'query';
+  summary?: string;
+  draft?: boolean | { title?: string; message?: string };
+  deprecated?: boolean | { message?: string; date?: string | Date };
+  Content: any;
+  schemaContent: string | null;
+  schemaFormat: string | null;
+  schemaExtension: string;
+  schemaParsed: any;
+  schemaIsAvro: boolean;
+  examples: any[];
+  entry: any;
+  owners: Awaited<ReturnType<typeof getOwnerDetails>>;
+  producers: any[];
+  consumers: any[];
+  producersWithOwners: HydratedParticipant[];
+  consumersWithOwners: HydratedParticipant[];
+  latestVersion: string;
+  allVersions: string[];
+  versionConsumerCounts: Map<string, number>;
+  dotColor: string;
+}
+
+async function hydrateMessageDetail(rawMsg: any): Promise<MessageDetail> {
+  // Look up the enriched message (with producers/consumers) from the proper loader
+  const enrichKey = `${rawMsg.collection}-${rawMsg.data?.id}-${rawMsg.data?.version}`;
+  const msg = enrichedMessageMap.get(enrichKey) || rawMsg;
+
+  const msgType = (collectionToResourceMap as Record<string, string>)[msg.collection] as 'event' | 'command' | 'query';
+  const { Content } = await render(msg);
+
+  // Schema
+  let schemaContent: string | null = null;
+  let schemaFormat: string | null = null;
+  let schemaExtension = 'json';
+  let schemaParsed: any = null;
+  let schemaIsAvro = false;
+
+  try {
+    if (msg.data.schemaPath) {
+      const schemaPath = getAbsoluteFilePathForAstroFile(msg.filePath, msg.data.schemaPath);
+      schemaContent = await fs.readFile(schemaPath, 'utf-8');
+      const ext = schemaPath.split('.').pop() || '';
+      schemaExtension = ext;
+      schemaIsAvro = isAvroSchema(schemaPath);
+      schemaFormat =
+        ext === 'json' ? 'JSON' : ext === 'avsc' ? 'Avro' : ext === 'yaml' || ext === 'yml' ? 'YAML' : ext.toUpperCase();
+
+      try {
+        if (ext === 'yaml' || ext === 'yml') {
+          schemaParsed = yaml.load(schemaContent);
+        } else {
+          schemaParsed = JSON.parse(schemaContent);
+        }
+      } catch {}
+
+      if (schemaParsed && (ext === 'json' || ext === 'avsc')) {
+        schemaContent = JSON.stringify(schemaParsed, null, 2);
+      }
+    }
+  } catch {}
+
+  // Examples
+  const examples = getExamplesForResource(msg);
+
+  // Owners
+  const msgOwners = await getOwnerDetails(msg.data.owners || []);
+
+  // Producers and consumers
+  const msgProducers = msg.data.producers || [];
+  const msgConsumers = msg.data.consumers || [];
+  const messageId = msg.data?.id || msg.id;
+  const msgLatestVersion = msg.data.latestVersion || msg.data.version;
+
+  const [producersWithOwners, consumersWithOwners] = await Promise.all([
+    hydrateParticipants(msgProducers, 'sends', messageId, msgLatestVersion),
+    hydrateParticipants(msgConsumers, 'receives', messageId, msgLatestVersion),
+  ]);
+
+  // Version history with consumer counts
+  const allVersions = [...new Set([msg.data.version, ...(msg.data.versions || [])])];
+  const sortedVersions = [...allVersions].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+
+  const versionConsumerCounts = new Map<string, number>();
+  for (const v of allVersions) versionConsumerCounts.set(v, 0);
+
+  const consumerPointers: { id: string; version?: string }[] = [];
+  for (const c of msgConsumers) {
+    const field = getPointerField(c.collection, 'receives');
+    for (const pointer of c.data?.[field] || []) {
+      if (pointer.id === messageId) consumerPointers.push(pointer);
+    }
+  }
+  for (const domain of allDomainsForPointers) {
+    for (const pointer of (domain.data as any).receives || []) {
+      if (pointer.id === messageId) consumerPointers.push(pointer);
+    }
+  }
+  for (const pointer of consumerPointers) {
+    let matched: string | undefined;
+    if (!pointer.version || pointer.version === 'latest') {
+      matched = msgLatestVersion;
+    } else {
+      matched = sortedVersions.find((v) => satisfies(v, pointer.version as string));
+    }
+    if (matched && versionConsumerCounts.has(matched)) {
+      versionConsumerCounts.set(matched, (versionConsumerCounts.get(matched) || 0) + 1);
+    }
+  }
+
+  const dotColor = msgType === 'event' ? '#ea580c' : msgType === 'command' ? '#2563eb' : '#16a34a';
+
+  return {
+    name: msg.data?.name || msg.data?.id || msg.id,
+    id: messageId,
+    version: msg.data?.version || 'unknown',
+    type: msgType,
+    summary: msg.data?.summary,
+    draft: msg.data?.draft,
+    deprecated: msg.data?.deprecated,
+    Content,
+    schemaContent,
+    schemaFormat,
+    schemaExtension,
+    schemaParsed,
+    schemaIsAvro,
+    examples,
+    entry: msg,
+    owners: msgOwners,
+    producers: msgProducers,
+    consumers: msgConsumers,
+    producersWithOwners,
+    consumersWithOwners,
+    latestVersion: msgLatestVersion,
+    allVersions,
+    versionConsumerCounts,
+    dotColor,
+  };
+}
+
+// Hydrate sends and receives separately (deduplicate within each group)
+const seenSends = new Set<string>();
+const uniqueSends: any[] = [];
+for (const msg of rawSends) {
+  const key = `${msg.collection}-${msg.data?.id}-${msg.data?.version}`;
+  if (!seenSends.has(key)) {
+    seenSends.add(key);
+    uniqueSends.push(msg);
+  }
+}
+
+const seenReceives = new Set<string>();
+const uniqueReceives: any[] = [];
+for (const msg of rawReceives) {
+  const key = `${msg.collection}-${msg.data?.id}-${msg.data?.version}`;
+  if (!seenReceives.has(key)) {
+    seenReceives.add(key);
+    uniqueReceives.push(msg);
+  }
+}
+
+const sendDetails = await Promise.all(uniqueSends.map(hydrateMessageDetail));
+const receiveDetails = await Promise.all(uniqueReceives.map(hydrateMessageDetail));
+const messageDetails = [...sendDetails, ...receiveDetails];
+
+const exportDate = new Date().toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+// Compute service health signals
+interface HealthSignal {
+  label: string;
+  status: 'good' | 'warning' | 'missing';
+  detail: string;
+  missingLabel?: string;
+  missingItems?: string[];
+}
+
+const messagesWithSchemas = messageDetails.filter((m) => m.schemaContent);
+const messagesWithoutSchemas = messageDetails.filter((m) => !m.schemaContent);
+const messagesWithExamples = messageDetails.filter((m) => m.examples.length > 0);
+const messagesWithoutExamples = messageDetails.filter((m) => m.examples.length === 0);
+
+// Architecture signals
+const unusedSends = sendDetails.filter((m) => m.consumers.length === 0);
+const highImpactThreshold = 3;
+const highImpactSends = sendDetails.filter((m) => m.consumers.length >= highImpactThreshold);
+const draftMessages = messageDetails.filter((m) => m.draft);
+const deprecatedMessages = messageDetails.filter((m) => m.deprecated);
+
+// Documentation signals (included in score)
+const docSignals: HealthSignal[] = [
+  {
+    label: 'Ownership',
+    status: hydratedOwners.length > 0 ? 'good' : 'missing',
+    detail:
+      hydratedOwners.length > 0
+        ? `${hydratedOwners.length} owner${hydratedOwners.length !== 1 ? 's' : ''} assigned`
+        : 'No owners assigned',
+  },
+  {
+    label: 'Message Schemas',
+    status:
+      messageDetails.length === 0
+        ? 'warning'
+        : messagesWithSchemas.length === messageDetails.length
+          ? 'good'
+          : messagesWithSchemas.length > 0
+            ? 'warning'
+            : 'missing',
+    detail:
+      messageDetails.length === 0
+        ? 'No messages defined'
+        : `${messagesWithSchemas.length} of ${messageDetails.length} messages have schemas`,
+    missingLabel: messagesWithoutSchemas.length > 0 ? 'Missing schema' : undefined,
+    missingItems: messagesWithoutSchemas.length > 0 ? messagesWithoutSchemas.map((m) => m.name) : undefined,
+  },
+  {
+    label: 'Examples',
+    status:
+      messageDetails.length === 0
+        ? 'warning'
+        : messagesWithExamples.length === messageDetails.length
+          ? 'good'
+          : messagesWithExamples.length > 0
+            ? 'warning'
+            : 'missing',
+    detail:
+      messageDetails.length === 0
+        ? 'No messages defined'
+        : `${messagesWithExamples.length} of ${messageDetails.length} messages have examples`,
+    missingLabel: messagesWithoutExamples.length > 0 ? 'Missing examples' : undefined,
+    missingItems: messagesWithoutExamples.length > 0 ? messagesWithoutExamples.map((m) => m.name) : undefined,
+  },
+  {
+    label: 'Specifications',
+    status: specContents.length > 0 ? 'good' : 'missing',
+    detail:
+      specContents.length > 0
+        ? `${specContents.length} spec${specContents.length !== 1 ? 's' : ''} (${specContents.map((s) => s.type).join(', ')})`
+        : 'No specifications attached',
+  },
+  {
+    label: 'Lifecycle',
+    status: props.data.deprecated ? 'warning' : props.data.draft ? 'warning' : 'good',
+    detail: props.data.deprecated ? 'Deprecated' : props.data.draft ? 'Draft' : 'Active',
+  },
+  {
+    label: 'Versioning',
+    status: allVersions.length > 1 ? 'good' : 'warning',
+    detail: `${allVersions.length} version${allVersions.length !== 1 ? 's' : ''} tracked`,
+  },
+];
+
+// Architecture signals (warnings/insights, not scored)
+const archSignals: HealthSignal[] = [
+  {
+    label: 'Unused Messages',
+    status:
+      sendDetails.length === 0
+        ? 'good'
+        : unusedSends.length === 0
+          ? 'good'
+          : unusedSends.length === sendDetails.length
+            ? 'missing'
+            : 'warning',
+    detail:
+      sendDetails.length === 0
+        ? 'No messages sent'
+        : unusedSends.length === 0
+          ? `All ${sendDetails.length} sent messages have consumers`
+          : `${unusedSends.length} message${unusedSends.length !== 1 ? 's have' : ' has'} no consumers`,
+    missingLabel: unusedSends.length > 0 ? 'No consumers' : undefined,
+    missingItems: unusedSends.length > 0 ? unusedSends.map((m) => m.name) : undefined,
+  },
+  {
+    label: 'Consumer Impact',
+    status: highImpactSends.length > 0 ? 'warning' : 'good',
+    detail:
+      highImpactSends.length > 0
+        ? `${highImpactSends.length} high-impact message${highImpactSends.length !== 1 ? 's' : ''} — changes may affect multiple consumers`
+        : 'No high-impact messages detected',
+    missingLabel: highImpactSends.length > 0 ? 'Be careful changing' : undefined,
+    missingItems:
+      highImpactSends.length > 0 ? highImpactSends.map((m) => `${m.name} (${m.consumers.length} consumers)`) : undefined,
+  },
+  {
+    label: 'Lifecycle Risk',
+    status:
+      draftMessages.length === 0 && deprecatedMessages.length === 0
+        ? 'good'
+        : deprecatedMessages.length > 0
+          ? 'warning'
+          : 'warning',
+    detail:
+      draftMessages.length === 0 && deprecatedMessages.length === 0
+        ? 'All messages are active and stable'
+        : [
+            draftMessages.length > 0 ? `${draftMessages.length} still in draft` : '',
+            deprecatedMessages.length > 0 ? `${deprecatedMessages.length} deprecated` : '',
+          ]
+            .filter(Boolean)
+            .join(', '),
+    missingLabel:
+      draftMessages.length > 0 && deprecatedMessages.length > 0
+        ? 'Needs attention'
+        : draftMessages.length > 0
+          ? 'Still in draft'
+          : deprecatedMessages.length > 0
+            ? 'Deprecated'
+            : undefined,
+    missingItems:
+      draftMessages.length > 0 || deprecatedMessages.length > 0
+        ? [...draftMessages.map((m) => m.name), ...deprecatedMessages.map((m) => m.name)]
+        : undefined,
+  },
+  {
+    label: 'Dependencies',
+    status: sends.length > 0 || receives.length > 0 ? 'good' : 'missing',
+    detail:
+      sends.length > 0 || receives.length > 0 ? `${sends.length} sent, ${receives.length} received` : 'No messages documented',
+  },
+];
+
+// Metadata (not scored)
+const metadataItems = [
+  { label: 'Domain', value: domains.length > 0 ? domainNames : 'Not assigned' },
+  { label: 'Current Version', value: `v${props.data.version}` },
+  { label: 'Total Versions', value: `${allVersions.length}` },
+];
+
+// Score based only on documentation signals
+const docGoodCount = docSignals.filter((s) => s.status === 'good').length;
+const healthScore = Math.round((docGoodCount / docSignals.length) * 100);
+const healthGoodCount = docGoodCount;
+const healthSignals = [...docSignals, ...archSignals];
+
+// Precompute type breakdowns for divider pages
+const sendTypeCounts = Array.from(
+  sendDetails.reduce((map, m) => map.set(m.type, (map.get(m.type) || 0) + 1), new Map<string, number>()),
+  ([type, count]) => ({ type, count, color: dotColors[type] || '#6b7280' })
+);
+const receiveTypeCounts = Array.from(
+  receiveDetails.reduce((map, m) => map.set(m.type, (map.get(m.type) || 0) + 1), new Map<string, number>()),
+  ([type, count]) => ({ type, count, color: dotColors[type] || '#6b7280' })
+);
+---
+
+<PrintServiceLayout title={`${props.data.name} — Documentation Artifact — ${catalogName}`} stamp={stamp}>
+  <!-- PAGE GRID — initial view (hidden in print) -->
+  <div id="page-grid" class="print:hidden">
+    <!-- Full document hero -->
+    <div class="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-xl p-8 mb-8">
+      <div class="flex items-center gap-8">
+        <!-- Thumbnail -->
+        <button class="page-card text-left cursor-pointer group shrink-0 w-[160px]" data-page-index="all">
+          <div class="relative mb-1.5">
+            <div class="absolute top-[5px] left-[5px] w-full h-full bg-white/60 border border-slate-200 rounded"></div>
+            <div class="absolute top-[2.5px] left-[2.5px] w-full h-full bg-white/80 border border-slate-200 rounded"></div>
+            <div
+              class="relative bg-white border border-slate-200 rounded shadow-sm group-hover:shadow-md group-hover:border-slate-300 transition-all overflow-hidden aspect-[8.5/11] p-3 flex flex-col"
+            >
+              <div class="h-0.5 rounded-full mb-2 bg-slate-800"></div>
+              <div class="text-[0.5rem] font-bold text-slate-800 leading-tight mb-0.5">{props.data.name}</div>
+              <div class="text-[0.4rem] text-slate-400 mb-2">v{props.data.version}</div>
+              <div class="flex-1 space-y-1">
+                <div class="h-[2px] bg-slate-100 rounded-full w-full"></div>
+                <div class="h-[2px] bg-slate-100 rounded-full w-4/5"></div>
+                <div class="h-[2px] bg-slate-100 rounded-full w-11/12"></div>
+                <div class="h-[2px] bg-slate-100 rounded-full w-3/5"></div>
+                <div class="h-[2px] mt-2"></div>
+                <div class="h-[2px] bg-slate-100 rounded-full w-full"></div>
+                <div class="h-[2px] bg-slate-100 rounded-full w-2/3"></div>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2.5 mb-1">
+            <h1 class="text-xl font-bold text-slate-800 truncate">{props.data.name}</h1>
+            <span class="text-xs font-semibold text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded shrink-0"
+              >v{props.data.version}</span
+            >
+          </div>
+          <p class="text-sm text-slate-500 mb-4">{props.data.summary}</p>
+
+          <div class="flex items-center gap-4 text-sm text-slate-500 mb-5 flex-wrap">
+            {
+              hydratedOwners.length > 0 && (
+                <span>
+                  <span class="font-medium text-slate-600">Owners:</span> {hydratedOwners.map((o) => o.name).join(', ')}
+                </span>
+              )
+            }
+            {
+              domainNames && (
+                <span>
+                  <span class="font-medium text-slate-600">Domain:</span> {domainNames}
+                </span>
+              )
+            }
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button
+              onclick="window.print()"
+              class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-semibold cursor-pointer shadow-md hover:bg-slate-800 hover:-translate-y-px hover:shadow-lg transition-all"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export PDF
+            </button>
+            <button
+              class="page-card inline-flex items-center gap-2 px-4 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-lg text-sm font-semibold cursor-pointer shadow-sm hover:bg-slate-50 hover:shadow-md transition-all"
+              data-page-index="all"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+              Read Full Document
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pages section -->
+    <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-3 print-section-title">
+      Pages
+    </h3>
+
+    <div class="grid grid-cols-3 gap-5">
+      <!-- Service page thumbnail -->
+      <button class="page-card text-left cursor-pointer group" data-page-index="service">
+        <div
+          class="bg-white border border-slate-200 rounded shadow-sm group-hover:shadow-md group-hover:border-slate-300 transition-all overflow-hidden aspect-[8.5/11] p-4 flex flex-col"
+        >
+          <div class="h-0.5 rounded-full mb-3 bg-purple-500"></div>
+          <span
+            class="inline-flex items-center self-start gap-1 px-1.5 py-0.5 rounded-full font-semibold border mb-2 bg-gradient-to-br from-purple-50 to-purple-100 text-purple-700 border-purple-300"
+            style="font-size: 0.5rem;">Service</span
+          >
+          <div class="text-[0.65rem] font-bold text-slate-800 leading-tight mb-1">{props.data.name}</div>
+          <div class="text-[0.5rem] text-slate-400 mb-2">v{props.data.version}</div>
+          <div class="flex-1 space-y-1.5">
+            <div class="h-[3px] bg-slate-100 rounded-full w-full"></div>
+            <div class="h-[3px] bg-slate-100 rounded-full w-4/5"></div>
+            <div class="h-[3px] bg-slate-100 rounded-full w-11/12"></div>
+            <div class="h-[3px] bg-slate-100 rounded-full w-3/5"></div>
+            <div class="h-[3px] mt-3"></div>
+            <div class="h-[3px] bg-slate-100 rounded-full w-2/3"></div>
+            <div class="h-[3px] bg-slate-100 rounded-full w-full"></div>
+          </div>
+          <div class="flex items-center gap-2 mt-auto pt-2 border-t border-slate-100">
+            <span class="text-[0.45rem] text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-100"
+              >{sends.length} sends</span
+            >
+            <span class="text-[0.45rem] text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-100"
+              >{receives.length} receives</span
+            >
+          </div>
+        </div>
+      </button>
+
+      <!-- Service health page thumbnail -->
+      <button class="page-card text-left cursor-pointer group" data-page-index="health">
+        <div
+          class="bg-white border border-slate-200 rounded shadow-sm group-hover:shadow-md group-hover:border-slate-300 transition-all overflow-hidden aspect-[8.5/11] p-4 flex flex-col"
+        >
+          <div class="h-0.5 rounded-full mb-3 bg-purple-500"></div>
+          <span
+            class="inline-flex items-center self-start gap-1 px-1.5 py-0.5 rounded-full font-semibold border mb-2 bg-gradient-to-br from-purple-50 to-purple-100 text-purple-700 border-purple-300"
+            style="font-size: 0.5rem;">Health</span
+          >
+          <div class="text-[0.65rem] font-bold text-slate-800 leading-tight mb-1">Service Health</div>
+          <div class="text-[0.5rem] text-slate-400 mb-2">{healthScore}% coverage</div>
+          <div class="flex-1 space-y-1">
+            <div class="text-[0.4rem] font-semibold uppercase tracking-wider text-slate-300 mb-0.5">Docs</div>
+            {
+              docSignals.slice(0, 3).map((signal) => (
+                <div class="flex items-center gap-1.5">
+                  <span
+                    class={`w-1.5 h-1.5 rounded-full shrink-0 ${signal.status === 'good' ? 'bg-green-500' : signal.status === 'warning' ? 'bg-amber-400' : 'bg-red-400'}`}
+                  />
+                  <div class="h-[3px] bg-slate-100 rounded-full flex-1" />
+                </div>
+              ))
+            }
+            <div class="text-[0.4rem] font-semibold uppercase tracking-wider text-slate-300 mt-1.5 mb-0.5">Arch</div>
+            {
+              archSignals.slice(0, 2).map((signal) => (
+                <div class="flex items-center gap-1.5">
+                  <span
+                    class={`w-1.5 h-1.5 rounded-full shrink-0 ${signal.status === 'good' ? 'bg-green-500' : signal.status === 'warning' ? 'bg-amber-400' : 'bg-red-400'}`}
+                  />
+                  <div class="h-[3px] bg-slate-100 rounded-full flex-1" />
+                </div>
+              ))
+            }
+          </div>
+          <div class="flex items-center gap-2 mt-auto pt-2 border-t border-slate-100">
+            <span class="text-[0.45rem] text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-100"
+              >{docGoodCount}/{docSignals.length} docs</span
+            >
+            {
+              unusedSends.length > 0 && (
+                <span class="text-[0.45rem] text-amber-500 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                  {unusedSends.length} unused
+                </span>
+              )
+            }
+          </div>
+        </div>
+      </button>
+
+      <!-- Message page thumbnails -->
+      {
+        messageDetails.map((msg, msgIndex) => {
+          const badge = badgeColors[msg.type] || '';
+          const dotColor = dotColors[msg.type] || '#6b7280';
+          const hasSchema = !!msg.schemaContent;
+          const hasExamples = msg.examples.length > 0;
+          return (
+            <button class="page-card text-left cursor-pointer group" data-page-index={`msg-${msgIndex}`}>
+              <div class={`relative ${hasSchema ? 'mb-1.5' : ''}`}>
+                {hasSchema && (
+                  <>
+                    <div class="absolute top-[6px] left-[6px] w-full h-full bg-slate-50 border border-slate-200 rounded" />
+                    <div class="absolute top-[3px] left-[3px] w-full h-full bg-slate-100 border border-slate-200 rounded" />
+                  </>
+                )}
+                <div class="relative bg-white border border-slate-200 rounded shadow-sm group-hover:shadow-md group-hover:border-slate-300 transition-all overflow-hidden aspect-[8.5/11] p-4 flex flex-col">
+                  <div class="h-0.5 rounded-full mb-3" style={`background: ${dotColor};`} />
+                  <span
+                    class={`inline-flex items-center self-start gap-1 px-1.5 py-0.5 rounded-full font-semibold border mb-2 ${badge}`}
+                    style="font-size: 0.5rem;"
+                  >
+                    {msg.type.charAt(0).toUpperCase() + msg.type.slice(1)}
+                  </span>
+                  <div class="text-[0.65rem] font-bold text-slate-800 leading-tight mb-1">{msg.name}</div>
+                  <div class="text-[0.5rem] text-slate-400 mb-2">v{msg.version}</div>
+                  <div class="flex-1 space-y-1.5">
+                    <div class="h-[3px] bg-slate-100 rounded-full w-full" />
+                    <div class="h-[3px] bg-slate-100 rounded-full w-4/5" />
+                    <div class="h-[3px] bg-slate-100 rounded-full w-11/12" />
+                    <div class="h-[3px] bg-slate-100 rounded-full w-3/5" />
+                    {hasSchema && (
+                      <>
+                        <div class="h-[3px] mt-3" />
+                        <div class="h-[3px] bg-slate-50 rounded-full w-2/5 border border-slate-100" />
+                        <div class="h-[3px] bg-slate-50 rounded-full w-full border border-slate-100" />
+                        <div class="h-[3px] bg-slate-50 rounded-full w-4/5 border border-slate-100" />
+                      </>
+                    )}
+                  </div>
+                  <div class="flex items-center gap-2 mt-auto pt-2 border-t border-slate-100">
+                    {hasSchema && (
+                      <span class="text-[0.45rem] text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-100">
+                        Schema
+                      </span>
+                    )}
+                    {hasExamples && (
+                      <span class="text-[0.45rem] text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-100">
+                        {msg.examples.length} example{msg.examples.length !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </button>
+          );
+        })
+      }
+      {
+        (messagesWithSchemas.length > 0 || specContents.length > 0) && (
+          <button class="page-card text-left cursor-pointer group" data-page-index="appendix-divider">
+            <div class="bg-white border border-slate-200 rounded shadow-sm group-hover:shadow-md group-hover:border-slate-300 transition-all overflow-hidden aspect-[8.5/11] p-4 flex flex-col">
+              <div class="h-0.5 rounded-full mb-3 bg-slate-400" />
+              <span
+                class="inline-flex items-center self-start gap-1 px-1.5 py-0.5 rounded-full font-semibold border mb-2 bg-gradient-to-br from-slate-50 to-slate-100 text-slate-600 border-slate-300"
+                style="font-size: 0.5rem;"
+              >
+                Appendix
+              </span>
+              <div class="text-[0.65rem] font-bold text-slate-800 leading-tight mb-1">Reference Material</div>
+              <div class="text-[0.5rem] text-slate-400 mb-2">
+                {specContents.length > 0 && `${specContents.length} spec${specContents.length !== 1 ? 's' : ''}`}
+                {specContents.length > 0 && messagesWithSchemas.length > 0 && ' · '}
+                {messagesWithSchemas.length > 0 &&
+                  `${messagesWithSchemas.length} schema${messagesWithSchemas.length !== 1 ? 's' : ''}`}
+              </div>
+              <div class="flex-1 space-y-1.5">
+                <div class="h-[3px] bg-slate-50 rounded-full w-full border border-slate-100" />
+                <div class="h-[3px] bg-slate-50 rounded-full w-4/5 border border-slate-100" />
+                <div class="h-[3px] bg-slate-50 rounded-full w-11/12 border border-slate-100" />
+                <div class="h-[3px] mt-3" />
+                <div class="h-[3px] bg-slate-50 rounded-full w-3/5 border border-slate-100" />
+                <div class="h-[3px] bg-slate-50 rounded-full w-full border border-slate-100" />
+                <div class="h-[3px] bg-slate-50 rounded-full w-2/3 border border-slate-100" />
+              </div>
+              <div class="flex items-center gap-2 mt-auto pt-2 border-t border-slate-100">
+                {specContents.length > 0 && (
+                  <span class="text-[0.45rem] text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-100">
+                    Specifications
+                  </span>
+                )}
+                {messagesWithSchemas.length > 0 && (
+                  <span class="text-[0.45rem] text-slate-400 bg-slate-50 px-1 py-0.5 rounded border border-slate-100">
+                    Schemas
+                  </span>
+                )}
+              </div>
+            </div>
+          </button>
+        )
+      }
+    </div>
+  </div>
+
+  <!-- BACK BUTTON — shown when viewing a detail page, positioned above the document -->
+  <div id="page-back-btn-wrapper" class="hidden print:hidden fixed top-5 left-5 z-50">
+    <button
+      id="page-back-btn"
+      class="inline-flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm hover:shadow-md transition-all cursor-pointer"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+      All pages
+    </button>
+  </div>
+
+  <!-- SIDEBAR — artifact tabs + page TOC, rendered into layout's sidebar-slot -->
+  <div id="page-toc" class="hidden print:hidden" data-sidebar-content>
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+      <!-- Pages -->
+      <div class="py-2 max-h-[calc(100vh-180px)] overflow-y-auto">
+        <div class="px-3 pb-1.5 text-[0.6rem] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
+          Pages
+        </div>
+        <a
+          href="#page-cover"
+          class="page-toc-link flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-slate-800 shrink-0"></span>
+          <span class="truncate">Cover</span>
+        </a>
+        <a
+          href="#page-toc-page"
+          class="page-toc-link flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>
+          <span class="truncate">Contents</span>
+        </a>
+        <a
+          href="#page-service"
+          class="page-toc-link flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
+          <span class="truncate">{props.data.name}</span>
+        </a>
+        <a
+          href="#page-health"
+          class="page-toc-link flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
+          <span class="truncate">Service Health</span>
+        </a>
+        <a
+          href="#page-visualization"
+          class="page-toc-link flex items-center gap-2 px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
+          <span class="truncate">Visualization</span>
+        </a>
+        {
+          sendDetails.length > 0 && (
+            <>
+              <a
+                href="#page-sends-divider"
+                class="page-toc-link flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-50 transition-colors mt-1"
+              >
+                <span class="truncate">Sends ({sendDetails.length})</span>
+              </a>
+              {sendDetails.map((msg, i) => {
+                const dotColor = dotColors[msg.type] || '#6b7280';
+                return (
+                  <a
+                    href={`#page-msg-${i}`}
+                    class="page-toc-link flex items-center gap-2 pl-5 pr-3 py-1 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0" style={`background: ${dotColor};`} />
+                    <span class="truncate">{msg.name}</span>
+                  </a>
+                );
+              })}
+            </>
+          )
+        }
+        {
+          receiveDetails.length > 0 && (
+            <>
+              <a
+                href="#page-receives-divider"
+                class="page-toc-link flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-50 transition-colors mt-1"
+              >
+                <span class="truncate">Receives ({receiveDetails.length})</span>
+              </a>
+              {receiveDetails.map((msg, i) => {
+                const dotColor = dotColors[msg.type] || '#6b7280';
+                return (
+                  <a
+                    href={`#page-msg-${sendDetails.length + i}`}
+                    class="page-toc-link flex items-center gap-2 pl-5 pr-3 py-1 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0" style={`background: ${dotColor};`} />
+                    <span class="truncate">{msg.name}</span>
+                  </a>
+                );
+              })}
+            </>
+          )
+        }
+        {
+          (messagesWithSchemas.length > 0 || specContents.length > 0) && (
+            <>
+              <a
+                href="#page-appendix-divider"
+                class="page-toc-link flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-50 transition-colors mt-1"
+              >
+                <span class="truncate">Appendix</span>
+              </a>
+              {specContents.map((spec, i) => (
+                <a
+                  href={`#page-spec-${i}`}
+                  class="page-toc-link flex items-center gap-2 pl-5 pr-3 py-1 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                  <span class="truncate">{spec.name}</span>
+                </a>
+              ))}
+              {messagesWithSchemas.map((msg, i) => {
+                const dotColor = dotColors[msg.type] || '#6b7280';
+                return (
+                  <a
+                    href={`#page-schema-${i}`}
+                    class="page-toc-link flex items-center gap-2 pl-5 pr-3 py-1 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0" style={`background: ${dotColor};`} />
+                    <span class="truncate">{msg.name}</span>
+                  </a>
+                );
+              })}
+            </>
+          )
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- COVER PAGE -->
+  <div class="page-detail hidden print:block" data-page-detail="cover" id="page-cover">
+    <div class="overflow-hidden min-h-[960px] flex flex-col print:min-h-0">
+      <!-- Top accent -->
+      <div class="h-1 bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400"></div>
+
+      <!-- Top section with catalog branding -->
+      <div class="px-12 pt-12 pb-6">
+        <div class="text-[0.6875rem] font-bold uppercase tracking-[0.25em] text-slate-300">
+          {catalogName}
+        </div>
+      </div>
+
+      <!-- Main content — pushed to vertical center -->
+      <div class="flex-1 flex flex-col justify-center px-12">
+        <div class="max-w-lg">
+          <!-- Thin decorative line -->
+          <div class="w-12 h-0.5 bg-purple-500 mb-8"></div>
+
+          <!-- Document type -->
+          <div class="text-xs font-semibold uppercase tracking-[0.15em] text-purple-600 mb-4">Service Documentation</div>
+
+          <!-- Service name -->
+          <h1 class="text-5xl font-extrabold text-slate-900 leading-[1.1] tracking-tight mb-4">
+            {props.data.name}
+          </h1>
+
+          <!-- Version -->
+          <div class="text-base font-medium text-slate-400 mb-8">Version {props.data.version}</div>
+
+          {
+            props.data.summary && (
+              <p class="text-base text-slate-500 leading-relaxed max-w-md mb-10 border-l-2 border-slate-200 pl-4">
+                {props.data.summary}
+              </p>
+            )
+          }
+
+          <!-- Metadata -->
+          <div class="space-y-2 text-sm text-slate-500">
+            {
+              hydratedOwners.length > 0 && (
+                <div class="flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="text-slate-400"
+                  >
+                    <path d="M18 21a8 8 0 0 0-16 0" />
+                    <circle cx="10" cy="8" r="5" />
+                    <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" />
+                  </svg>
+                  {hydratedOwners.map((o) => o.name).join(', ')}
+                </div>
+              )
+            }
+            {
+              domainNames && (
+                <div class="flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="text-slate-400"
+                  >
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <path d="M3 9h18" />
+                    <path d="M9 21V9" />
+                  </svg>
+                  {domainNames}
+                </div>
+              )
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-12 py-8 border-t border-slate-100 flex justify-between items-center">
+        <div class="text-xs text-slate-400">{exportDate}</div>
+        <div class="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-slate-300">Confidential</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS PAGE -->
+  <div class="page-detail hidden print:block mt-12" data-page-detail="toc" id="page-toc-page">
+    <div>
+      <h2 class="text-lg font-bold text-slate-800 mb-6">Contents</h2>
+
+      <div class="space-y-0">
+        {/* Top-level entries */}
+        <a href="#page-service" class="toc-entry flex items-baseline no-underline py-[5px] group">
+          <span class="text-[0.8rem] text-slate-800 group-hover:text-purple-600 transition-colors">{props.data.name}</span>
+          <span class="flex-1 mx-2 border-b border-dotted border-slate-300 relative -top-[2px]"></span>
+          <span class="text-[0.7rem] text-slate-400 shrink-0">Service</span>
+        </a>
+        <a href="#page-health" class="toc-entry flex items-baseline no-underline py-[5px] group">
+          <span class="text-[0.8rem] text-slate-800 group-hover:text-purple-600 transition-colors">Service Health</span>
+          <span class="flex-1 mx-2 border-b border-dotted border-slate-300 relative -top-[2px]"></span>
+          <span class="text-[0.7rem] text-slate-400 shrink-0">Scorecard</span>
+        </a>
+        <a href="#page-visualization" class="toc-entry flex items-baseline no-underline py-[5px] group">
+          <span class="text-[0.8rem] text-slate-800 group-hover:text-purple-600 transition-colors">Service Visualization</span>
+          <span class="flex-1 mx-2 border-b border-dotted border-slate-300 relative -top-[2px]"></span>
+          <span class="text-[0.7rem] text-slate-400 shrink-0">Diagram</span>
+        </a>
+
+        {/* Sends */}
+        {
+          sendDetails.length > 0 && (
+            <div class="mt-2">
+              <div class="text-[0.8rem] font-semibold text-slate-800 py-[5px]">Sends</div>
+              {sendDetails.map((msg, i) => {
+                const consumerNames = msg.consumersWithOwners.map((c) => c.name).join(', ');
+                return (
+                  <div class="pl-6">
+                    <a href={`#page-msg-${i}`} class="toc-entry flex items-baseline no-underline py-[5px] group">
+                      <span class="text-[0.8rem] text-slate-600 group-hover:text-purple-600 transition-colors">{msg.name}</span>
+                      <span class="flex-1 mx-2 border-b border-dotted border-slate-300 relative -top-[2px]" />
+                      <span class="text-[0.7rem] text-slate-400 shrink-0 capitalize">{msg.type}</span>
+                    </a>
+                    {consumerNames && (
+                      <div class="pl-0 pb-1 text-[0.65rem] text-slate-400">
+                        <span class="text-slate-500">Consumers:</span> {consumerNames}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )
+        }
+
+        {/* Receives */}
+        {
+          receiveDetails.length > 0 && (
+            <div class="mt-2">
+              <div class="text-[0.8rem] font-semibold text-slate-800 py-[5px]">Receives</div>
+              {receiveDetails.map((msg, i) => {
+                const producerNames = msg.producersWithOwners.map((p) => p.name).join(', ');
+                return (
+                  <div class="pl-6">
+                    <a
+                      href={`#page-msg-${sendDetails.length + i}`}
+                      class="toc-entry flex items-baseline no-underline py-[5px] group"
+                    >
+                      <span class="text-[0.8rem] text-slate-600 group-hover:text-purple-600 transition-colors">{msg.name}</span>
+                      <span class="flex-1 mx-2 border-b border-dotted border-slate-300 relative -top-[2px]" />
+                      <span class="text-[0.7rem] text-slate-400 shrink-0 capitalize">{msg.type}</span>
+                    </a>
+                    {producerNames && (
+                      <div class="pl-0 pb-1 text-[0.65rem] text-slate-400">
+                        <span class="text-slate-500">Producers:</span> {producerNames}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )
+        }
+
+        {/* Appendix */}
+        {
+          (messagesWithSchemas.length > 0 || specContents.length > 0) && (
+            <div class="mt-2">
+              <div class="text-[0.8rem] font-semibold text-slate-800 py-[5px]">Appendix</div>
+              {specContents.length > 0 && (
+                <div class="pl-6">
+                  <div class="text-[0.8rem] text-slate-600 font-medium py-[5px]">Specifications</div>
+                  {specContents.map((spec, i) => (
+                    <div class="pl-6">
+                      <a href={`#page-spec-${i}`} class="toc-entry flex items-baseline no-underline py-[5px] group">
+                        <span class="text-[0.8rem] text-slate-600 group-hover:text-purple-600 transition-colors">
+                          {spec.name}
+                        </span>
+                        <span class="flex-1 mx-2 border-b border-dotted border-slate-300 relative -top-[2px]" />
+                        <span class="text-[0.7rem] text-slate-400 shrink-0">{spec.type}</span>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {messagesWithSchemas.length > 0 && (
+                <div class="pl-6">
+                  <div class="text-[0.8rem] text-slate-600 font-medium py-[5px]">Message Schemas</div>
+                  {messagesWithSchemas.map((msg, i) => (
+                    <div class="pl-6">
+                      <a href={`#page-schema-${i}`} class="toc-entry flex items-baseline no-underline py-[5px] group">
+                        <span class="text-[0.8rem] text-slate-600 group-hover:text-purple-600 transition-colors">{msg.name}</span>
+                        <span class="flex-1 mx-2 border-b border-dotted border-slate-300 relative -top-[2px]" />
+                        <span class="text-[0.7rem] text-slate-400 shrink-0 capitalize">{msg.type}</span>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICE DETAIL PAGE -->
+  <div class="page-detail hidden print:block mt-12 print:break-before-page" data-page-detail="service" id="page-service">
+    <div class="print:p-0">
+      <PrintServiceHeader
+        name={props.data.name}
+        version={props.data.version}
+        summary={props.data.summary}
+        catalogName={catalogName}
+        draft={props.data.draft}
+        deprecated={props.data.deprecated}
+      />
+
+      <!-- Overview cards -->
+      <div class="grid grid-cols-5 gap-3 mb-9">
+        <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+          <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Type</div>
+          <div class="text-sm font-medium text-slate-700">Service</div>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+          <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Latest Version</div>
+          <div class="text-sm font-medium text-slate-700">{latestVersion}</div>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+          <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Sends</div>
+          <div class="text-sm font-medium text-slate-700">{sends.length}</div>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+          <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Receives</div>
+          <div class="text-sm font-medium text-slate-700">{receives.length}</div>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+          <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Versions</div>
+          <div class="text-sm font-medium text-slate-700">{props.data.versions?.length || 1}</div>
+        </div>
+      </div>
+
+      {
+        hydratedOwners.length > 0 && (
+          <PrintSection title="Owners">
+            <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+              <thead>
+                <tr>
+                  <th class="w-[50%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th class="w-[20%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th class="w-[30%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                    Role
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {hydratedOwners.map((owner, i) => (
+                  <tr>
+                    <td
+                      class={`px-4 py-2.5 font-medium text-slate-700 ${i < hydratedOwners.length - 1 ? 'border-b border-slate-100' : ''}`}
+                    >
+                      {owner.name}
+                    </td>
+                    <td class={`px-4 py-2.5 text-slate-500 ${i < hydratedOwners.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                      <span class="inline-flex items-center gap-1.5 text-sm">
+                        {owner.type === 'teams' ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="text-slate-400"
+                          >
+                            <path d="M18 21a8 8 0 0 0-16 0" />
+                            <circle cx="10" cy="8" r="5" />
+                            <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="text-slate-400"
+                          >
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                        )}
+                        {owner.type === 'teams' ? 'Team' : owner.type === 'users' ? 'User' : '—'}
+                      </span>
+                    </td>
+                    <td class={`px-4 py-2.5 text-slate-500 ${i < hydratedOwners.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                      {owner.role || '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </PrintSection>
+        )
+      }
+
+      {
+        domainNames && (
+          <PrintSection title="Domain">
+            <p class="text-sm text-slate-700">{domainNames}</p>
+          </PrintSection>
+        )
+      }
+
+      <PrintSection title="Sends" sectionId="sends">
+        {
+          sendDetails.length > 0 ? (
+            <div class="space-y-3">
+              {sendDetails.map((msg) => {
+                const consumerNames = msg.consumersWithOwners.map((c) => c.name);
+                return (
+                  <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50">
+                      <span class="w-2 h-2 rounded-full shrink-0" style={`background: ${msg.dotColor};`} />
+                      <span class="font-semibold text-sm text-slate-800">{msg.name}</span>
+                      <span
+                        class={`text-[0.625rem] font-semibold uppercase px-2 py-0.5 rounded-full border ${badgeColors[msg.type]}`}
+                      >
+                        {msg.type}
+                      </span>
+                      <span class="ml-auto text-xs text-slate-400">v{msg.version}</span>
+                      {msg.version === msg.latestVersion && (
+                        <span class="inline-flex items-center text-[0.625rem] font-semibold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">
+                          Latest
+                        </span>
+                      )}
+                    </div>
+                    {(msg.summary || consumerNames.length > 0) && (
+                      <div class="px-4 py-2.5 border-t border-slate-100 space-y-1.5">
+                        {msg.summary && <p class="text-xs text-slate-500 leading-relaxed">{msg.summary}</p>}
+                        {consumerNames.length > 0 && (
+                          <div class="flex items-center gap-1.5 text-[0.6875rem] text-slate-400">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="11"
+                              height="11"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="text-slate-300"
+                            >
+                              <path d="M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2" />
+                              <rect width="18" height="18" x="3" y="4" rx="2" />
+                              <circle cx="12" cy="10" r="2" />
+                              <line x1="8" x2="8" y1="2" y2="4" />
+                              <line x1="16" x2="16" y1="2" y2="4" />
+                            </svg>
+                            <span class="text-slate-500">
+                              {consumerNames.length} consumer{consumerNames.length !== 1 ? 's' : ''}:
+                            </span>
+                            <span>{consumerNames.join(', ')}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p class="text-sm italic text-slate-400 py-3">This service does not send any messages.</p>
+          )
+        }
+      </PrintSection>
+
+      <PrintSection title="Receives" sectionId="receives">
+        {
+          receiveDetails.length > 0 ? (
+            <div class="space-y-3">
+              {receiveDetails.map((msg) => {
+                const producerNames = msg.producersWithOwners.map((p) => p.name);
+                return (
+                  <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50">
+                      <span class="w-2 h-2 rounded-full shrink-0" style={`background: ${msg.dotColor};`} />
+                      <span class="font-semibold text-sm text-slate-800">{msg.name}</span>
+                      <span
+                        class={`text-[0.625rem] font-semibold uppercase px-2 py-0.5 rounded-full border ${badgeColors[msg.type]}`}
+                      >
+                        {msg.type}
+                      </span>
+                      <span class="ml-auto text-xs text-slate-400">v{msg.version}</span>
+                      {msg.version === msg.latestVersion && (
+                        <span class="inline-flex items-center text-[0.625rem] font-semibold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">
+                          Latest
+                        </span>
+                      )}
+                    </div>
+                    {(msg.summary || producerNames.length > 0) && (
+                      <div class="px-4 py-2.5 border-t border-slate-100 space-y-1.5">
+                        {msg.summary && <p class="text-xs text-slate-500 leading-relaxed">{msg.summary}</p>}
+                        {producerNames.length > 0 && (
+                          <div class="flex items-center gap-1.5 text-[0.6875rem] text-slate-400">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="11"
+                              height="11"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="text-slate-300"
+                            >
+                              <path d="M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2" />
+                              <rect width="18" height="18" x="3" y="4" rx="2" />
+                              <circle cx="12" cy="10" r="2" />
+                              <line x1="8" x2="8" y1="2" y2="4" />
+                              <line x1="16" x2="16" y1="2" y2="4" />
+                            </svg>
+                            <span class="text-slate-500">
+                              {producerNames.length} producer{producerNames.length !== 1 ? 's' : ''}:
+                            </span>
+                            <span>{producerNames.join(', ')}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p class="text-sm italic text-slate-400 py-3">This service does not receive any messages.</p>
+          )
+        }
+      </PrintSection>
+
+      {
+        (props.data.versions?.length || 0) > 0 && (
+          <PrintSection title="Version History" sectionId="versions">
+            <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+              <thead>
+                <tr>
+                  <th class="w-[60%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                    Version
+                  </th>
+                  <th class="w-[40%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {allVersions.map((v, i) => (
+                  <tr>
+                    <td
+                      class={`px-4 py-2.5 font-medium text-slate-700 ${i < allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}
+                    >
+                      <span class="flex items-center gap-2">
+                        <span
+                          class="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={`background: ${i === 0 ? '#9333ea' : '#94a3b8'};`}
+                        />
+                        v{v}
+                      </span>
+                    </td>
+                    <td class={`px-4 py-2.5 text-slate-500 ${i < allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                      {i === 0 ? (
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                          Current
+                        </span>
+                      ) : (
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
+                          Previous
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </PrintSection>
+        )
+      }
+    </div>
+  </div>
+
+  <!-- SERVICE HEALTH PAGE -->
+  <div class="page-detail hidden print:block mt-12 print:break-before-page" data-page-detail="health" id="page-health">
+    <div>
+      <div class="h-1 bg-gradient-to-r from-purple-600 to-purple-600/50 rounded-sm mb-7"></div>
+      <h2 class="text-2xl font-extrabold text-slate-900 leading-tight tracking-tight mb-6">Service Health</h2>
+
+      <!-- Compact score bar -->
+      <div class="flex items-center gap-4 mb-8 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg">
+        <div class="relative w-11 h-11 shrink-0">
+          <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" stroke-width="3"></circle>
+            <circle
+              cx="18"
+              cy="18"
+              r="15.9"
+              fill="none"
+              stroke={healthScore >= 75 ? '#16a34a' : healthScore >= 50 ? '#d97706' : '#dc2626'}
+              stroke-width="3"
+              stroke-dasharray={`${healthScore} ${100 - healthScore}`}
+              stroke-linecap="round"></circle>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-xs font-bold text-slate-700">{healthScore}%</span>
+          </div>
+        </div>
+        <div class="flex-1">
+          <div class="text-xs font-semibold text-slate-700">Documentation Coverage</div>
+          <div class="text-[0.675rem] text-slate-400">{docGoodCount} of {docSignals.length} signals satisfied</div>
+        </div>
+        <div class="flex items-center gap-3 text-[0.675rem] text-slate-400">
+          <span class="flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+            {docSignals.filter((s) => s.status === 'good').length}
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            {docSignals.filter((s) => s.status === 'warning').length}
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+            {docSignals.filter((s) => s.status === 'missing').length}
+          </span>
+        </div>
+      </div>
+
+      <!-- Documentation Signals -->
+      <div class="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 mb-2">Documentation</div>
+      <div class="space-y-0 border border-slate-200 rounded-lg overflow-hidden mb-6">
+        {
+          docSignals.map((signal, i) => (
+            <div class={`flex items-center gap-4 px-5 py-3.5 ${i < docSignals.length - 1 ? 'border-b border-slate-100' : ''}`}>
+              <div class="shrink-0">
+                {signal.status === 'good' ? (
+                  <div class="w-7 h-7 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#16a34a"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                  </div>
+                ) : signal.status === 'warning' ? (
+                  <div class="w-7 h-7 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#d97706"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M12 9v4" />
+                      <path d="M12 17h.01" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div class="w-7 h-7 rounded-full bg-red-50 border border-red-200 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#dc2626"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="m15 9-6 6" />
+                      <path d="m9 9 6 6" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-slate-800">{signal.label}</div>
+                <div class="text-xs text-slate-500 mt-0.5">{signal.detail}</div>
+                {signal.missingItems && signal.missingItems.length > 0 && (
+                  <div class="mt-1.5 text-[0.675rem] text-slate-400">
+                    <span class="font-medium text-slate-500">{signal.missingLabel}:</span> {signal.missingItems.join(', ')}
+                  </div>
+                )}
+              </div>
+              <span
+                class={`shrink-0 text-[0.625rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                  signal.status === 'good'
+                    ? 'text-green-700 bg-green-50 border-green-200'
+                    : signal.status === 'warning'
+                      ? 'text-amber-700 bg-amber-50 border-amber-200'
+                      : 'text-red-700 bg-red-50 border-red-200'
+                }`}
+              >
+                {signal.status === 'good' ? 'Complete' : signal.status === 'warning' ? 'Partial' : 'Missing'}
+              </span>
+            </div>
+          ))
+        }
+      </div>
+
+      <!-- Message Coverage -->
+      {
+        messageDetails.length > 0 && (
+          <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                Messages with schemas
+              </div>
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-xl font-bold text-slate-800">{messagesWithSchemas.length}</span>
+                <span class="text-sm text-slate-400">/ {messageDetails.length}</span>
+              </div>
+              <div class="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-green-500"
+                  style={`width: ${Math.round((messagesWithSchemas.length / messageDetails.length) * 100)}%`}
+                />
+              </div>
+            </div>
+            <div class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                Messages with examples
+              </div>
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-xl font-bold text-slate-800">{messagesWithExamples.length}</span>
+                <span class="text-sm text-slate-400">/ {messageDetails.length}</span>
+              </div>
+              <div class="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-green-500"
+                  style={`width: ${Math.round((messagesWithExamples.length / messageDetails.length) * 100)}%`}
+                />
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      <!-- Architecture Signals -->
+      <div class="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 mb-2">Architecture</div>
+      <div class="space-y-0 border border-slate-200 rounded-lg overflow-hidden mb-6">
+        {
+          archSignals.map((signal, i) => (
+            <div
+              class={`flex items-center gap-4 px-5 py-3.5 ${signal.status !== 'good' ? 'bg-amber-50/40' : ''} ${i < archSignals.length - 1 ? 'border-b border-slate-100' : ''}`}
+            >
+              <div class="shrink-0">
+                {signal.status === 'good' ? (
+                  <div class="w-7 h-7 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#16a34a"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                  </div>
+                ) : signal.status === 'warning' ? (
+                  <div class="w-8 h-8 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#d97706"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                      <path d="M12 9v4" />
+                      <path d="M12 17h.01" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div class="w-8 h-8 rounded-full bg-red-100 border border-red-300 flex items-center justify-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#dc2626"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="m15 9-6 6" />
+                      <path d="m9 9 6 6" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class={`text-sm font-semibold ${signal.status !== 'good' ? 'text-amber-900' : 'text-slate-800'}`}>
+                  {signal.label}
+                </div>
+                <div class={`text-xs mt-0.5 ${signal.status !== 'good' ? 'text-amber-700' : 'text-slate-500'}`}>
+                  {signal.detail}
+                </div>
+                {signal.missingItems && signal.missingItems.length > 0 && (
+                  <div class="mt-1.5 text-[0.675rem] text-amber-600/80">
+                    <span class="font-medium text-amber-700">{signal.missingLabel}:</span> {signal.missingItems.join(', ')}
+                  </div>
+                )}
+              </div>
+              <span
+                class={`shrink-0 text-[0.625rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                  signal.status === 'good'
+                    ? 'text-green-700 bg-green-50 border-green-200'
+                    : signal.status === 'warning'
+                      ? 'text-amber-800 bg-amber-100 border-amber-300'
+                      : 'text-red-700 bg-red-100 border-red-300'
+                }`}
+              >
+                {signal.status === 'good' ? 'Healthy' : signal.status === 'warning' ? 'Review' : 'Action needed'}
+              </span>
+            </div>
+          ))
+        }
+      </div>
+
+      <!-- Metadata (not scored) -->
+      <div class="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 mb-2">Metadata</div>
+      <div class="space-y-0 border border-slate-200 rounded-lg overflow-hidden">
+        {
+          metadataItems.map((item, i) => (
+            <div
+              class={`flex items-center justify-between px-5 py-3 ${i < metadataItems.length - 1 ? 'border-b border-slate-100' : ''}`}
+            >
+              <span class="text-sm text-slate-500">{item.label}</span>
+              <span class="text-sm font-medium text-slate-700">{item.value}</span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICE VISUALIZATION PAGE -->
+  <div
+    class="page-detail hidden print:block mt-12 print:break-before-page"
+    data-page-detail="visualization"
+    id="page-visualization"
+  >
+    <div class="flex flex-col h-full min-h-[inherit]">
+      <div
+        class="print-section-title flex items-center gap-3 text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 mb-5"
+      >
+        Service Visualization
+      </div>
+      <div class="flex-1 flex items-center">
+        <div class="border border-slate-200 rounded-lg overflow-hidden p-4 w-full">
+          <div class="mermaid" data-content={serviceMermaidDiagram}>
+            <p class="text-sm text-slate-400">Loading diagram...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENDS DIVIDER PAGE -->
+  {
+    sendDetails.length > 0 && (
+      <div
+        class="page-detail hidden print:block mt-12 print:break-before-page"
+        data-page-detail="sends-divider"
+        id="page-sends-divider"
+      >
+        <div class="flex flex-col min-h-[400px] print:min-h-[80vh]">
+          {/* Header area */}
+          <div class="text-center pt-16 pb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 border border-purple-200 rounded-full mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#9333ea"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <>
+                  <path d="m22 2-7 20-4-9-9-4Z" />
+                  <path d="M22 2 11 13" />
+                </>
+              </svg>
+              <span class="text-[0.6875rem] font-bold uppercase tracking-[0.15em] text-purple-600">Outbound Messages</span>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">Sends</h2>
+            <p class="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+              Messages produced and published by <span class="font-semibold text-slate-700">{props.data.name}</span> to downstream
+              consumers.
+            </p>
+          </div>
+
+          {/* Message list */}
+          <div class="max-w-lg mx-auto w-full mt-2">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="text-[0.625rem] font-bold uppercase tracking-wider text-slate-400">
+                {sendDetails.length} message{sendDetails.length !== 1 ? 's' : ''} in this section
+              </div>
+              <div class="flex-1 h-px bg-slate-200" />
+              <div class="flex items-center gap-3 text-[0.625rem] text-slate-400">
+                {sendTypeCounts.map((tc) => (
+                  <span class="inline-flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full" style={`background: ${tc.color};`} />
+                    {tc.count} {tc.type}
+                    {tc.count !== 1 ? 's' : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div class="relative">
+              <div class="space-y-2">
+                {sendDetails.slice(0, 8).map((msg, i) => {
+                  const consumerCount = msg.consumers.length;
+                  return (
+                    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg">
+                      <span class="w-2 h-2 rounded-full shrink-0" style={`background: ${msg.dotColor};`} />
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm font-semibold text-slate-800 truncate">{msg.name}</span>
+                          <span
+                            class={`text-[0.5625rem] font-semibold uppercase px-1.5 py-0.5 rounded-full border ${badgeColors[msg.type]}`}
+                          >
+                            {msg.type}
+                          </span>
+                        </div>
+                        {msg.summary && <p class="text-[0.6875rem] text-slate-400 mt-0.5 truncate">{msg.summary}</p>}
+                      </div>
+                      <div class="flex items-center gap-3 shrink-0 text-[0.6875rem] text-slate-400">
+                        {consumerCount > 0 && (
+                          <span>
+                            {consumerCount} consumer{consumerCount !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                        <span class="text-slate-300">v{msg.version}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {sendDetails.length > 5 && (
+                <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+              )}
+              {sendDetails.length > 8 && (
+                <div class="text-center mt-4 relative">
+                  <span class="text-xs text-slate-400">
+                    and {sendDetails.length - 8} more message{sendDetails.length - 8 !== 1 ? 's' : ''} detailed in the following
+                    pages
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  <!-- SEND MESSAGE DETAIL PAGES -->
+  {
+    sendDetails.map((msg, i) => {
+      const msgIndex = i;
+      return (
+        <div
+          class="page-detail hidden print:block mt-12 print:break-before-page"
+          data-page-detail={`msg-${msgIndex}`}
+          id={`page-msg-${msgIndex}`}
+        >
+          <div class="print:p-0 print:mt-10 print:pt-8 print:border-t print:border-slate-200">
+            <PrintHeader
+              name={msg.name}
+              version={msg.version}
+              type={msg.type}
+              summary={msg.summary}
+              catalogName={catalogName}
+              draft={msg.draft}
+              deprecated={msg.deprecated}
+            />
+
+            {/* Overview cards */}
+            <div class="grid grid-cols-5 gap-3 mb-9">
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Type</div>
+                <div class="text-sm font-medium text-slate-700 capitalize">{msg.type}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Latest Version</div>
+                <div class="text-sm font-medium text-slate-700">{msg.latestVersion}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Producers</div>
+                <div class="text-sm font-medium text-slate-700">{msg.producers.length}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Consumers</div>
+                <div class="text-sm font-medium text-slate-700">{msg.consumers.length}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Versions</div>
+                <div class="text-sm font-medium text-slate-700">{msg.allVersions.length}</div>
+              </div>
+            </div>
+
+            {/* Owners */}
+            {msg.owners.length > 0 && (
+              <PrintSection title="Owners">
+                <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+                  <thead>
+                    <tr>
+                      <th class="w-[50%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th class="w-[20%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Type
+                      </th>
+                      <th class="w-[30%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Role
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {msg.owners.map((owner, i) => (
+                      <tr>
+                        <td
+                          class={`px-4 py-2.5 font-medium text-slate-700 ${i < msg.owners.length - 1 ? 'border-b border-slate-100' : ''}`}
+                        >
+                          {owner.name}
+                        </td>
+                        <td class={`px-4 py-2.5 text-slate-500 ${i < msg.owners.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                          <span class="inline-flex items-center gap-1.5 text-sm">
+                            {owner.type === 'teams' ? (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="13"
+                                height="13"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="text-slate-400"
+                              >
+                                <path d="M18 21a8 8 0 0 0-16 0" />
+                                <circle cx="10" cy="8" r="5" />
+                                <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" />
+                              </svg>
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="13"
+                                height="13"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="text-slate-400"
+                              >
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                              </svg>
+                            )}
+                            {owner.type === 'teams' ? 'Team' : owner.type === 'users' ? 'User' : '—'}
+                          </span>
+                        </td>
+                        <td class={`px-4 py-2.5 text-slate-500 ${i < msg.owners.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                          {owner.role || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </PrintSection>
+            )}
+
+            {/* Producers */}
+            <PrintSection title="Producers" sectionId="producers">
+              <PrintParticipantsTable
+                participants={msg.producersWithOwners}
+                dotColor={msg.dotColor}
+                emptyMessage="No producers found for this message."
+              />
+            </PrintSection>
+
+            {/* Consumers */}
+            <PrintSection title="Consumers" sectionId="consumers">
+              <PrintParticipantsTable
+                participants={msg.consumersWithOwners}
+                dotColor={msg.dotColor}
+                emptyMessage="No consumers found for this message."
+              />
+            </PrintSection>
+
+            {/* Version History */}
+            {msg.allVersions.length > 1 && (
+              <PrintSection title="Version History" sectionId="versions">
+                <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+                  <thead>
+                    <tr>
+                      <th class="w-[50%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Version
+                      </th>
+                      <th class="w-[20%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th class="w-[30%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Consumers
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {msg.allVersions.map((v, i) => (
+                      <tr>
+                        <td
+                          class={`px-4 py-2.5 font-medium text-slate-700 ${i < msg.allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}
+                        >
+                          <span class="flex items-center gap-2">
+                            <span
+                              class="w-1.5 h-1.5 rounded-full shrink-0"
+                              style={`background: ${i === 0 ? msg.dotColor : '#94a3b8'};`}
+                            />
+                            v{v}
+                          </span>
+                        </td>
+                        <td
+                          class={`px-4 py-2.5 text-slate-500 ${i < msg.allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}
+                        >
+                          {i === 0 ? (
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                              Current
+                            </span>
+                          ) : (
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
+                              Previous
+                            </span>
+                          )}
+                        </td>
+                        <td
+                          class={`px-4 py-2.5 text-slate-700 ${i < msg.allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}
+                        >
+                          {msg.versionConsumerCounts.get(v) || 0}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </PrintSection>
+            )}
+
+            {/* Documentation */}
+            <PrintSection title="Documentation" sectionId="documentation">
+              <div class="prose prose-slate prose-sm max-w-none">
+                <msg.Content
+                  components={{
+                    ...components(msg.entry),
+                    NodeGraph: () => null,
+                    Flow: () => null,
+                    EntityMap: () => null,
+                    Tiles: () => null,
+                    Tile: () => null,
+                  }}
+                />
+              </div>
+            </PrintSection>
+
+            {/* Schema Properties */}
+            {msg.schemaParsed && (
+              <PrintSection title="Schema Properties" sectionId="schema">
+                <PrintSchemaPropertiesTable schema={msg.schemaParsed} isAvro={msg.schemaIsAvro} />
+              </PrintSection>
+            )}
+
+            {/* Examples */}
+            {msg.examples.length > 0 && (
+              <PrintSection title="Examples" sectionId="examples">
+                <div class="space-y-5">
+                  {msg.examples.map((example: any) => (
+                    <div>
+                      {example.summary && <p class="text-sm text-slate-500 mb-2">{example.summary}</p>}
+                      <PrintSchemaViewer
+                        client:load
+                        content={example.content}
+                        format={`${example.title} (.${example.extension})`}
+                        extension={example.extension}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </PrintSection>
+            )}
+          </div>
+        </div>
+      );
+    })
+  }
+
+  <!-- RECEIVES DIVIDER PAGE -->
+  {
+    receiveDetails.length > 0 && (
+      <div
+        class="page-detail hidden print:block mt-12 print:break-before-page"
+        data-page-detail="receives-divider"
+        id="page-receives-divider"
+      >
+        <div class="flex flex-col min-h-[400px] print:min-h-[80vh]">
+          {/* Header area */}
+          <div class="text-center pt-16 pb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 border border-purple-200 rounded-full mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#9333ea"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" x2="12" y1="15" y2="3" />
+                </>
+              </svg>
+              <span class="text-[0.6875rem] font-bold uppercase tracking-[0.15em] text-purple-600">Inbound Messages</span>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">Receives</h2>
+            <p class="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+              Messages consumed by <span class="font-semibold text-slate-700">{props.data.name}</span> from upstream producers.
+            </p>
+          </div>
+
+          {/* Message list */}
+          <div class="max-w-lg mx-auto w-full mt-2">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="text-[0.625rem] font-bold uppercase tracking-wider text-slate-400">
+                {receiveDetails.length} message{receiveDetails.length !== 1 ? 's' : ''} in this section
+              </div>
+              <div class="flex-1 h-px bg-slate-200" />
+              <div class="flex items-center gap-3 text-[0.625rem] text-slate-400">
+                {receiveTypeCounts.map((tc) => (
+                  <span class="inline-flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full" style={`background: ${tc.color};`} />
+                    {tc.count} {tc.type}
+                    {tc.count !== 1 ? 's' : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div class="relative">
+              <div class="space-y-2">
+                {receiveDetails.slice(0, 8).map((msg) => {
+                  const producerCount = msg.producers.length;
+                  return (
+                    <div class="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg">
+                      <span class="w-2 h-2 rounded-full shrink-0" style={`background: ${msg.dotColor};`} />
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm font-semibold text-slate-800 truncate">{msg.name}</span>
+                          <span
+                            class={`text-[0.5625rem] font-semibold uppercase px-1.5 py-0.5 rounded-full border ${badgeColors[msg.type]}`}
+                          >
+                            {msg.type}
+                          </span>
+                        </div>
+                        {msg.summary && <p class="text-[0.6875rem] text-slate-400 mt-0.5 truncate">{msg.summary}</p>}
+                      </div>
+                      <div class="flex items-center gap-3 shrink-0 text-[0.6875rem] text-slate-400">
+                        {producerCount > 0 && (
+                          <span>
+                            {producerCount} producer{producerCount !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                        <span class="text-slate-300">v{msg.version}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {receiveDetails.length > 5 && (
+                <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+              )}
+              {receiveDetails.length > 8 && (
+                <div class="text-center mt-4 relative">
+                  <span class="text-xs text-slate-400">
+                    and {receiveDetails.length - 8} more message{receiveDetails.length - 8 !== 1 ? 's' : ''} detailed in the
+                    following pages
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  <!-- RECEIVE MESSAGE DETAIL PAGES -->
+  {
+    receiveDetails.map((msg, i) => {
+      const msgIndex = sendDetails.length + i;
+      return (
+        <div
+          class="page-detail hidden print:block mt-12 print:break-before-page"
+          data-page-detail={`msg-${msgIndex}`}
+          id={`page-msg-${msgIndex}`}
+        >
+          <div class="print:p-0 print:mt-10 print:pt-8 print:border-t print:border-slate-200">
+            <PrintHeader
+              name={msg.name}
+              version={msg.version}
+              type={msg.type}
+              summary={msg.summary}
+              catalogName={catalogName}
+              draft={msg.draft}
+              deprecated={msg.deprecated}
+            />
+
+            {/* Overview cards */}
+            <div class="grid grid-cols-5 gap-3 mb-9">
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Type</div>
+                <div class="text-sm font-medium text-slate-700 capitalize">{msg.type}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Latest Version</div>
+                <div class="text-sm font-medium text-slate-700">{msg.latestVersion}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Producers</div>
+                <div class="text-sm font-medium text-slate-700">{msg.producers.length}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Consumers</div>
+                <div class="text-sm font-medium text-slate-700">{msg.consumers.length}</div>
+              </div>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
+                <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-1">Versions</div>
+                <div class="text-sm font-medium text-slate-700">{msg.allVersions.length}</div>
+              </div>
+            </div>
+
+            {/* Owners */}
+            {msg.owners.length > 0 && (
+              <PrintSection title="Owners">
+                <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+                  <thead>
+                    <tr>
+                      <th class="w-[50%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th class="w-[20%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Type
+                      </th>
+                      <th class="w-[30%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Role
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {msg.owners.map((owner: any, oi: number) => (
+                      <tr>
+                        <td
+                          class={`px-4 py-2.5 font-medium text-slate-700 ${oi < msg.owners.length - 1 ? 'border-b border-slate-100' : ''}`}
+                        >
+                          {owner.name}
+                        </td>
+                        <td class={`px-4 py-2.5 text-slate-500 ${oi < msg.owners.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                          {owner.type === 'teams' ? 'Team' : owner.type === 'users' ? 'User' : '—'}
+                        </td>
+                        <td class={`px-4 py-2.5 text-slate-500 ${oi < msg.owners.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                          {owner.role || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </PrintSection>
+            )}
+
+            {/* Producers */}
+            {msg.producersWithOwners.length > 0 && (
+              <PrintSection title="Producers" sectionId="producers">
+                <PrintParticipantsTable participants={msg.producersWithOwners} />
+              </PrintSection>
+            )}
+
+            {/* Consumers */}
+            {msg.consumersWithOwners.length > 0 && (
+              <PrintSection title="Consumers" sectionId="consumers">
+                <PrintParticipantsTable participants={msg.consumersWithOwners} />
+              </PrintSection>
+            )}
+
+            {/* Version History */}
+            {msg.allVersions.length > 1 && (
+              <PrintSection title="Version History" sectionId="versions">
+                <table class="w-full text-sm border-separate border-spacing-0 border border-slate-200 rounded-lg overflow-hidden table-fixed">
+                  <thead>
+                    <tr>
+                      <th class="w-[40%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Version
+                      </th>
+                      <th class="w-[35%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th class="w-[25%] text-left font-semibold text-slate-500 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[0.6875rem] uppercase tracking-wider">
+                        Consumers
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {msg.allVersions.map((v: string, vi: number) => (
+                      <tr>
+                        <td
+                          class={`px-4 py-2.5 font-medium text-slate-700 ${vi < msg.allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}
+                        >
+                          <span class="flex items-center gap-2">
+                            <span
+                              class="w-1.5 h-1.5 rounded-full shrink-0"
+                              style={`background: ${vi === 0 ? msg.dotColor : '#94a3b8'};`}
+                            />
+                            v{v}
+                          </span>
+                        </td>
+                        <td
+                          class={`px-4 py-2.5 text-slate-500 ${vi < msg.allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}
+                        >
+                          {vi === 0 ? (
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                              Current
+                            </span>
+                          ) : (
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
+                              Previous
+                            </span>
+                          )}
+                        </td>
+                        <td
+                          class={`px-4 py-2.5 text-slate-700 ${vi < msg.allVersions.length - 1 ? 'border-b border-slate-100' : ''}`}
+                        >
+                          {msg.versionConsumerCounts.get(v) || 0}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </PrintSection>
+            )}
+
+            {/* Documentation */}
+            <PrintSection title="Documentation" sectionId="documentation">
+              <div class="prose prose-slate prose-sm max-w-none">
+                <msg.Content
+                  components={{
+                    ...components(msg.entry),
+                    NodeGraph: () => null,
+                    Flow: () => null,
+                    EntityMap: () => null,
+                    Tiles: () => null,
+                    Tile: () => null,
+                  }}
+                />
+              </div>
+            </PrintSection>
+
+            {/* Schema Properties */}
+            {msg.schemaParsed && (
+              <PrintSection title="Schema Properties" sectionId="schema">
+                <PrintSchemaPropertiesTable schema={msg.schemaParsed} isAvro={msg.schemaIsAvro} />
+              </PrintSection>
+            )}
+
+            {/* Examples */}
+            {msg.examples.length > 0 && (
+              <PrintSection title="Examples" sectionId="examples">
+                <div class="space-y-5">
+                  {msg.examples.map((example: any) => (
+                    <div>
+                      {example.summary && <p class="text-sm text-slate-500 mb-2">{example.summary}</p>}
+                      <PrintSchemaViewer
+                        client:load
+                        content={example.content}
+                        format={`${example.title} (.${example.extension})`}
+                        extension={example.extension}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </PrintSection>
+            )}
+          </div>
+        </div>
+      );
+    })
+  }
+
+  <!-- APPENDIX -->
+  {
+    (messagesWithSchemas.length > 0 || specContents.length > 0) && (
+      <>
+        <div
+          class="page-detail hidden print:block mt-12 print:break-before-page"
+          data-page-detail="appendix-divider"
+          id="page-appendix-divider"
+        >
+          <div class="flex flex-col items-center justify-center min-h-[400px] print:min-h-[60vh] text-center">
+            <div class="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-slate-400 mb-3">Appendix</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-3">Reference Material</h2>
+            <p class="text-sm text-slate-500 max-w-md leading-relaxed">
+              {specContents.length > 0 ? 'Specifications and message schemas' : 'Message schemas'} for{' '}
+              <span class="font-semibold text-slate-700">{props.data.name}</span>
+            </p>
+            <div class="w-16 h-0.5 bg-purple-500 mt-6" />
+          </div>
+        </div>
+
+        {/* Specifications */}
+        {specContents.map((spec, i) => (
+          <div
+            class="page-detail hidden print:block mt-12 print:break-before-page"
+            data-page-detail={`spec-${i}`}
+            id={`page-spec-${i}`}
+            data-print-section="specifications"
+          >
+            <div>
+              <div class="flex items-center gap-3 mb-6">
+                <h3 class="text-xl font-bold text-slate-800">{spec.name}</h3>
+                <span class="inline-block text-[0.6rem] font-semibold uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                  {spec.type}
+                </span>
+              </div>
+              <PrintSchemaViewer
+                client:load
+                content={spec.content}
+                format={`${spec.name} (.${spec.extension})`}
+                extension={spec.extension}
+              />
+            </div>
+          </div>
+        ))}
+
+        {/* Message Schemas */}
+        {messagesWithSchemas.map((msg, i) => (
+          <div
+            class="page-detail hidden print:block mt-12 print:break-before-page"
+            data-page-detail={`schema-${i}`}
+            id={`page-schema-${i}`}
+            data-print-section="specifications"
+          >
+            <div>
+              <div class="flex items-center gap-3 mb-1">
+                <h3 class="text-xl font-bold text-slate-800">{msg.name}</h3>
+                <span
+                  class={`inline-block text-[0.6rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border capitalize ${
+                    msg.type === 'event'
+                      ? 'text-orange-700 bg-orange-50 border-orange-200'
+                      : msg.type === 'command'
+                        ? 'text-blue-700 bg-blue-50 border-blue-200'
+                        : 'text-green-700 bg-green-50 border-green-200'
+                  }`}
+                >
+                  {msg.type}
+                </span>
+              </div>
+              <div class="text-xs text-slate-400 mb-5">v{msg.version}</div>
+              <PrintSchemaViewer
+                client:load
+                content={msg.schemaContent}
+                format={msg.schemaFormat || 'Schema'}
+                extension={msg.schemaExtension}
+              />
+            </div>
+          </div>
+        ))}
+      </>
+    )
+  }
+
+  <script>
+    // Render mermaid diagrams
+    async function renderMermaidDiagrams() {
+      const graphs = document.querySelectorAll('.mermaid[data-content]');
+      if (graphs.length === 0) return;
+
+      const { default: mermaid } = await import('mermaid');
+      mermaid.initialize({
+        startOnLoad: false,
+        fontFamily: 'var(--sans-font)',
+        theme: 'default',
+        flowchart: {
+          curve: 'linear',
+        },
+        maxTextSize: 100000,
+      });
+
+      for (const graph of graphs) {
+        const content = graph.getAttribute('data-content');
+        if (!content) continue;
+        const id = 'mermaid-print-' + Math.round(Math.random() * 100000);
+        try {
+          const result = await mermaid.render(id, content);
+          graph.innerHTML = result.svg;
+        } catch (e) {
+          console.error('Mermaid render error:', e);
+          graph.innerHTML = '<p class="text-sm text-red-500">Failed to render diagram</p>';
+        }
+      }
+    }
+    renderMermaidDiagrams();
+  </script>
+
+  <script is:inline>
+    // Move sidebar content into layout's sidebar slot
+    const sidebarSlot = document.getElementById('sidebar-slot');
+    const sidebarContent = document.querySelector('[data-sidebar-content]');
+    if (sidebarSlot && sidebarContent) {
+      sidebarSlot.appendChild(sidebarContent);
+    }
+
+    // Page grid interaction
+    const pageGrid = document.getElementById('page-grid');
+    const backBtnWrapper = document.getElementById('page-back-btn-wrapper');
+    const backBtn = document.getElementById('page-back-btn');
+    const pageToc = document.getElementById('page-toc');
+    const wrapper = document.getElementById('page-content-wrapper');
+    const leftSidebar = document.getElementById('left-sidebar');
+    const cards = document.querySelectorAll('.page-card');
+    const details = document.querySelectorAll('.page-detail');
+
+    function setWrapperTransparent(transparent) {
+      if (!wrapper) return;
+      if (transparent) {
+        wrapper.classList.add('wrapper-transparent');
+      } else {
+        wrapper.classList.remove('wrapper-transparent');
+      }
+    }
+
+    function showFullDocument() {
+      pageGrid.style.display = 'none';
+      if (backBtnWrapper) backBtnWrapper.classList.remove('hidden');
+      if (pageToc) pageToc.classList.remove('hidden');
+      if (leftSidebar) leftSidebar.style.top = '60px';
+      setWrapperTransparent(true);
+      details.forEach((d) => {
+        d.classList.remove('hidden');
+        d.classList.add('block');
+      });
+    }
+
+    function showSinglePage(index) {
+      pageGrid.style.display = 'none';
+      if (backBtnWrapper) backBtnWrapper.classList.remove('hidden');
+      if (pageToc) pageToc.classList.add('hidden');
+      if (leftSidebar) leftSidebar.style.top = '60px';
+      setWrapperTransparent(true);
+      details.forEach((d) => d.classList.add('hidden'));
+      const target = document.querySelector(`[data-page-detail="${index}"]`);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('block');
+      }
+    }
+
+    function showGrid() {
+      pageGrid.style.display = '';
+      if (backBtnWrapper) backBtnWrapper.classList.add('hidden');
+      if (pageToc) pageToc.classList.add('hidden');
+      if (leftSidebar) leftSidebar.style.top = '';
+      setWrapperTransparent(false);
+      details.forEach((d) => {
+        d.classList.add('hidden');
+        d.classList.remove('block');
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    if (cards.length > 0) {
+      cards.forEach((card) => {
+        card.addEventListener('click', () => {
+          const index = card.getAttribute('data-page-index');
+          if (index === 'all') {
+            showFullDocument();
+          } else {
+            showSinglePage(index);
+          }
+        });
+      });
+
+      backBtn.addEventListener('click', showGrid);
+    }
+
+    // TOC active state on scroll
+    if (pageToc) {
+      const tocLinks = pageToc.querySelectorAll('.page-toc-link');
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id;
+              tocLinks.forEach((link) => {
+                if (link.getAttribute('href') === `#${id}`) {
+                  link.classList.add('text-slate-800', 'font-semibold', 'bg-slate-50');
+                  link.classList.remove('text-slate-500');
+                } else {
+                  link.classList.remove('text-slate-800', 'font-semibold', 'bg-slate-50');
+                  link.classList.add('text-slate-500');
+                }
+              });
+            }
+          });
+        },
+        { rootMargin: '-20% 0px -60% 0px' }
+      );
+
+      document.querySelectorAll('[id^="page-"]').forEach((el) => observer.observe(el));
+    }
+  </script>
+
+  <div class="mt-12 pt-6 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400">
+    <span>Generated from {catalogName}</span>
+    <span>EventCatalog</span>
+  </div>
+</PrintServiceLayout>

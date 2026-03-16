@@ -258,7 +258,7 @@ export function CopyPageMenu({
 
       {/* Adjust styling for the content dropdown */}
       <DropdownMenu.Content
-        className="w-72 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-lg border border-[rgb(var(--ec-dropdown-border))] mt-1 py-1"
+        className="z-50 w-72 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-lg border border-[rgb(var(--ec-dropdown-border))] mt-1 py-1"
         sideOffset={5}
         align="end"
       >

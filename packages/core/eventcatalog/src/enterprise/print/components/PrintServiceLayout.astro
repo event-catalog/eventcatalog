@@ -5,6 +5,9 @@ interface Props {
 }
 
 const { title, stamp } = Astro.props;
+
+// Build the docs artifact URL from the current path
+const docsUrl = `${Astro.url.pathname.replace(/\/$/, '')}/docs`;
 ---
 
 <html lang="en" data-theme="light">
@@ -32,7 +35,11 @@ const { title, stamp } = Astro.props;
           display: none !important;
         }
 
-        /* Expand code blocks fully for print, use smaller font to fit */
+        #print-content-wrapper {
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+        }
+
         pre,
         code,
         .schema-viewer {
@@ -42,7 +49,7 @@ const { title, stamp } = Astro.props;
         }
       }
 
-      /* Toggle switch – no Tailwind equivalent */
+      /* Toggle switch */
       .print-toggle {
         position: relative;
         width: 36px;
@@ -115,70 +122,86 @@ const { title, stamp } = Astro.props;
     </style>
   </head>
   <body class="bg-slate-50 text-slate-800 font-sans leading-relaxed print:bg-white">
-    <!-- Settings (top-left) -->
-    <div class="no-print fixed top-5 left-5 z-50">
-      <button
-        id="settings-toggle"
-        class="inline-flex items-center gap-2 px-3 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-lg text-sm font-semibold cursor-pointer shadow-sm hover:bg-slate-50 hover:shadow-md transition-all"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
-          ></path>
-          <circle cx="12" cy="12" r="3"></circle>
-        </svg>
-        Settings
-      </button>
-      <div
-        class="print-settings-panel absolute top-full left-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg py-3 min-w-[240px]"
-        id="settings-panel"
-      >
-        <div
-          class="px-4 pb-2.5 text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1"
-        >
-          Show / Hide sections
+    <!-- Left sidebar: Tabs -->
+    <div class="no-print fixed top-5 left-5 z-50 flex flex-col gap-3 max-w-[260px]">
+      <!-- Tabs -->
+      <div class="flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-4 py-3 bg-slate-900 text-left border-b border-slate-200">
+          <div class="text-sm font-semibold text-white">Summary Artifact</div>
+          <div class="text-xs text-slate-400 mt-0.5">Quick overview of the service and messages</div>
         </div>
-        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
-          <label for="toggle-producers-consumers" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
-            >Producers &amp; Consumers</label
-          >
-          <input type="checkbox" class="print-toggle" id="toggle-producers-consumers" checked />
-        </div>
-        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
-          <label for="toggle-versions" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
-            >Version History</label
-          >
-          <input type="checkbox" class="print-toggle" id="toggle-versions" checked />
-        </div>
-        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
-          <label for="toggle-documentation" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
-            >Documentation</label
-          >
-          <input type="checkbox" class="print-toggle" id="toggle-documentation" />
-        </div>
-        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
-          <label for="toggle-schema" class="text-sm font-medium text-slate-700 cursor-pointer select-none">Schema</label>
-          <input type="checkbox" class="print-toggle" id="toggle-schema" checked />
-        </div>
-        <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
-          <label for="toggle-examples" class="text-sm font-medium text-slate-700 cursor-pointer select-none">Examples</label>
-          <input type="checkbox" class="print-toggle" id="toggle-examples" checked />
-        </div>
+        <a href={docsUrl} class="px-4 py-3 text-left hover:bg-slate-50 transition-colors block">
+          <div class="text-sm font-semibold text-slate-500">Documentation Artifact</div>
+          <div class="text-xs text-slate-400 mt-0.5">Full service documentation pack</div>
+          <ul class="text-[0.625rem] text-slate-400 mt-1.5 space-y-0.5 list-none pl-0">
+            <li class="flex items-center gap-1">
+              <span class="text-slate-300">&#8226;</span> Full message schemas
+            </li>
+            <li class="flex items-center gap-1">
+              <span class="text-slate-300">&#8226;</span> Event payload examples
+            </li>
+            <li class="flex items-center gap-1">
+              <span class="text-slate-300">&#8226;</span> Service visualizations
+            </li>
+          </ul>
+        </a>
       </div>
     </div>
 
-    <!-- Export button (top-right) -->
-    <div class="no-print fixed top-5 right-5 z-50 flex gap-2">
+    <!-- Top-right: Settings + Export PDF -->
+    <div class="no-print fixed top-5 right-5 z-50 flex gap-2 items-start">
+      <div class="relative">
+        <button
+          id="settings-toggle"
+          class="inline-flex items-center gap-2 px-3 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-lg text-sm font-semibold cursor-pointer shadow-sm hover:bg-slate-50 hover:shadow-md transition-all"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+            ></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          Settings
+        </button>
+        <div
+          class="print-settings-panel absolute top-full right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg py-3 min-w-[240px]"
+          id="settings-panel"
+        >
+          <div
+            class="px-4 pb-2.5 text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1"
+          >
+            Show / Hide sections
+          </div>
+          <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
+            <label for="toggle-messages" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
+              >Sends &amp; Receives</label
+            >
+            <input type="checkbox" class="print-toggle" id="toggle-messages" checked />
+          </div>
+          <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
+            <label for="toggle-versions" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
+              >Version History</label
+            >
+            <input type="checkbox" class="print-toggle" id="toggle-versions" checked />
+          </div>
+          <div class="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-slate-50">
+            <label for="toggle-documentation" class="text-sm font-medium text-slate-700 cursor-pointer select-none"
+              >Documentation</label
+            >
+            <input type="checkbox" class="print-toggle" id="toggle-documentation" />
+          </div>
+        </div>
+      </div>
       <button
         onclick="window.print()"
         class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-semibold cursor-pointer shadow-md hover:bg-slate-800 hover:-translate-y-px hover:shadow-lg transition-all"
@@ -204,7 +227,9 @@ const { title, stamp } = Astro.props;
 
     <!-- Page content -->
     <div
-      class="relative max-w-[860px] mx-auto my-8 px-10 py-12 pb-16 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_6px_24px_rgba(0,0,0,0.06)] print:max-w-full print:m-0 print:p-0 print:shadow-none print:rounded-none overflow-hidden"
+      id="print-content-wrapper"
+      class="relative max-w-[860px] my-8 mx-auto px-10 py-12 pb-16 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_6px_24px_rgba(0,0,0,0.06)] print:max-w-full print:m-0 print:p-0 print:shadow-none print:rounded-none overflow-hidden"
+      style="margin-left: max(300px, calc(50% - 430px));"
     >
       {
         stamp && (
@@ -232,13 +257,16 @@ const { title, stamp } = Astro.props;
         }
       });
 
-      // Hide documentation by default
+      // Hide documentation and specifications by default (summary artifact)
       document.querySelectorAll('[data-print-section="documentation"]').forEach((section) => {
         section.style.display = 'none';
       });
+      document.querySelectorAll('[data-print-section="specifications"]').forEach((section) => {
+        section.style.display = 'none';
+      });
 
-      document.getElementById('toggle-producers-consumers').addEventListener('change', (e) => {
-        const sections = document.querySelectorAll('[data-print-section="producers"], [data-print-section="consumers"]');
+      document.getElementById('toggle-messages').addEventListener('change', (e) => {
+        const sections = document.querySelectorAll('[data-print-section="sends"], [data-print-section="receives"]');
         sections.forEach((section) => {
           section.style.display = e.target.checked ? '' : 'none';
         });
@@ -253,20 +281,6 @@ const { title, stamp } = Astro.props;
 
       document.getElementById('toggle-documentation').addEventListener('change', (e) => {
         const sections = document.querySelectorAll('[data-print-section="documentation"]');
-        sections.forEach((section) => {
-          section.style.display = e.target.checked ? '' : 'none';
-        });
-      });
-
-      document.getElementById('toggle-schema').addEventListener('change', (e) => {
-        const sections = document.querySelectorAll('[data-print-section="schema"]');
-        sections.forEach((section) => {
-          section.style.display = e.target.checked ? '' : 'none';
-        });
-      });
-
-      document.getElementById('toggle-examples').addEventListener('change', (e) => {
-        const sections = document.querySelectorAll('[data-print-section="examples"]');
         sections.forEach((section) => {
           section.style.display = e.target.checked ? '' : 'none';
         });

@@ -248,9 +248,9 @@ friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendl
 
 const schemasForResource = getSchemasFromResource(props);
 
-const messageCollections = ['events', 'commands', 'queries'];
+const printCollections = ['events', 'commands', 'queries', 'services'];
 const printUrl =
-  isExportPDFEnabled() && messageCollections.includes(props.collection)
+  isExportPDFEnabled() && printCollections.includes(props.collection)
     ? buildUrl(`/docs/print/${props.collection}/${props.data.id}/${props.data.version}`)
     : undefined;
 

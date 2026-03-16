@@ -1,0 +1,134 @@
+---
+import { marked } from 'marked';
+
+interface Props {
+  name: string;
+  version: string;
+  summary?: string;
+  catalogName?: string;
+  draft?: boolean | { title?: string; message?: string };
+  deprecated?: boolean | { message?: string; date?: string | Date };
+}
+
+const { name, version, summary, catalogName = 'EventCatalog', draft, deprecated } = Astro.props;
+
+const isDraft = !!draft;
+const draftMessage = typeof draft === 'object' ? draft.message : undefined;
+const draftMessageHtml = draftMessage ? await marked.parse(draftMessage) : null;
+
+const isDeprecated = !!deprecated;
+const deprecatedMessage = typeof deprecated === 'object' ? deprecated.message : undefined;
+const deprecatedMessageHtml = deprecatedMessage ? await marked.parse(deprecatedMessage) : null;
+const deprecatedDate =
+  typeof deprecated === 'object' && deprecated.date
+    ? new Date(deprecated.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : undefined;
+
+const now = new Date();
+const exportDate = now.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<header>
+  <div class="h-1 bg-gradient-to-r from-purple-600 to-purple-600/50 rounded-sm mb-7"></div>
+
+  <div class="flex justify-between items-start mb-5">
+    <div class="flex-1">
+      <div class="flex items-center gap-2.5 mb-2.5">
+        <span
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border bg-gradient-to-br from-purple-50 to-purple-100 text-purple-700 border-purple-300"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+            <path d="M7 7h10"></path>
+            <path d="M7 12h10"></path>
+            <path d="M7 17h10"></path>
+          </svg>
+          Service
+        </span>
+        <span class="text-sm font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded">v{version}</span>
+      </div>
+      <h1 class="text-3xl font-extrabold text-slate-900 leading-tight tracking-tight">
+        {name}
+      </h1>
+    </div>
+    <div class="text-right shrink-0 ml-8 pt-1">
+      <div class="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">
+        {catalogName}
+      </div>
+      <div class="text-[0.6875rem] text-slate-400">
+        {exportDate}
+      </div>
+    </div>
+  </div>
+
+  {summary && <p class="text-base text-slate-600 mb-6 leading-relaxed max-w-xl">{summary}</p>}
+
+  {
+    isDraft && (
+      <div class="px-4 py-3 mb-4 border-2 border-dashed border-amber-400 rounded-lg opacity-75">
+        <div>
+          <span class="text-sm font-semibold text-amber-700">This service is currently in draft</span>
+          {draftMessageHtml ? (
+            <div class="text-sm text-slate-600 mt-0.5 prose prose-sm max-w-none" set:html={draftMessageHtml} />
+          ) : (
+            <p class="text-sm text-slate-600 mt-0.5">This document has not been finalized and may be subject to change.</p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  {
+    isDeprecated && (
+      <div class="flex items-center gap-3 px-4 py-3 mb-4 bg-red-50 border border-red-200 rounded-lg">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 shrink-0">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-red-600"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="m15 9-6 6" />
+            <path d="m9 9 6 6" />
+          </svg>
+        </span>
+        <div>
+          <span class="text-sm font-semibold text-red-800">
+            This service has been deprecated
+            {deprecatedDate && <span class="font-normal text-red-600"> as of {deprecatedDate}</span>}
+          </span>
+          {deprecatedMessageHtml ? (
+            <div class="text-sm text-red-700 mt-0.5 prose prose-sm prose-red max-w-none" set:html={deprecatedMessageHtml} />
+          ) : (
+            <p class="text-sm text-red-700 mt-0.5">
+              This service is no longer actively maintained and may be removed in a future version.
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  <div class="h-px bg-slate-200 mb-8"></div>
+</header>
