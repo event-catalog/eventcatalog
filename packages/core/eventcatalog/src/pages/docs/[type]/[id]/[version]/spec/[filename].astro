@@ -9,6 +9,7 @@ import { isEventCatalogChatEnabled } from '@utils/feature';
 import './_styles.css';
 import { Page } from './_[filename].data.ts';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import config from '@config';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -85,7 +86,7 @@ if (isRemote) {
             />
           </div>
         )}
-        <OpenAPISpec client:only="react" spec={content} />
+        <OpenAPISpec client:only="react" configuration={config?.scalarConfiguration} spec={content} />
       </div>
     )
   }

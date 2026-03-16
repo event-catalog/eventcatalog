@@ -76,6 +76,9 @@ type IntegrationsConfig = {
   debug?: boolean;
 };
 
+// Any Scalar Configuration for the OpenAPI Component.
+type ScalarConfiguration = any;
+
 export interface Config {
   title: string;
   tagline: false;
@@ -201,4 +204,5 @@ export interface Config {
     tableConfiguration?: TableConfiguration;
   };
   integrations?: IntegrationsConfig;
+  scalarConfiguration?: ScalarConfiguration;
 }

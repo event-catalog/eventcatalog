@@ -6,7 +6,10 @@ const ApiReferenceReact = lazy(() =>
   import('@scalar/api-reference-react').then((module) => ({ default: module.ApiReferenceReact }))
 );
 
-const OpenAPISpec = ({ spec }: { spec: string }) => {
+// Any Scalar Configuration for the OpenAPI Component.
+type ScalarConfiguration = any;
+
+const OpenAPISpec = ({ spec, configuration }: { spec: string; configuration?: ScalarConfiguration }) => {
   const [loaded, setLoaded] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return document.documentElement.getAttribute('data-theme') === 'dark';
@@ -52,6 +55,7 @@ const OpenAPISpec = ({ spec }: { spec: string }) => {
             hideDarkModeToggle: true,
             searchHotKey: 'p',
             showSidebar: true,
+            ...configuration,
           }}
         />
       </Suspense>
