@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.23.3
+
+### Patch Changes
+
+- 3ea125d: allow scalar configuration to be passed through to the OpenAPI spec component via `scalarConfiguration` config option
+- 3411565: Add export to PDF for message pages (events, commands, queries) with print-friendly layout, schema viewer, producer/consumer tables, version history, and owner details
+
 ## 3.23.2
 
 ### Patch Changes
