@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.25.0
+
+### Minor Changes
+
+- e8ab8db: Continue running remaining generators when one fails instead of stopping the entire generation process
+
 ## 3.24.0
 
 ### Minor Changes
