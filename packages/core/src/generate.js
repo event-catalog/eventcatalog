@@ -29,6 +29,8 @@ export const generate = async (PROJECT_DIRECTORY) => {
       return;
     }
 
+    const errors = [];
+
     for (const generator of generators) {
       let plugin = generator[0];
       const pluginConfig = generator[1];
@@ -48,17 +50,21 @@ export const generate = async (PROJECT_DIRECTORY) => {
         const generator = getDefaultExport(importedGenerator);
 
         await generator({ eventCatalogConfig: {} }, pluginConfig);
-
-        // Use importedGenerator here
       } catch (error) {
-        logger.error('Error loading plugin:', 'generator');
+        logger.error(`Failed to run generator "${plugin}":`, 'generator');
         console.error(error);
-        await cleanup(PROJECT_DIRECTORY);
-        return;
+        errors.push({ plugin, error });
       }
     }
 
     await cleanup(PROJECT_DIRECTORY);
+
+    if (errors.length > 0) {
+      logger.error(`${errors.length} generator(s) failed:`, 'generator');
+      for (const { plugin } of errors) {
+        logger.error(`  - ${plugin}`, 'generator');
+      }
+    }
   } catch (error) {
     // Failed to generate clean up...
     console.error(error);
