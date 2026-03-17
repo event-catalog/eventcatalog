@@ -309,6 +309,12 @@ export const copyDir = async (catalogDir: string, source: string, target: string
 };
 
 // Makes sure values in sends/recieves are unique
+export const buildMessagePointer = (message: { id: string; version: string; fields?: string[] }) => {
+  const pointer: { id: string; version: string; fields?: string[] } = { id: message.id, version: message.version };
+  if (message.fields) pointer.fields = message.fields;
+  return pointer;
+};
+
 export const uniqueVersions = (messages: { id: string; version: string }[]): { id: string; version: string }[] => {
   const uniqueSet = new Set();
 

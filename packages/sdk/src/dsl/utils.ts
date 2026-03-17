@@ -46,12 +46,14 @@ interface ChannelPointer {
 interface SendsPointer {
   id: string;
   version?: string;
+  fields?: string[];
   to?: ChannelPointer[];
 }
 
 interface ReceivesPointer {
   id: string;
   version?: string;
+  fields?: string[];
   from?: ChannelPointer[];
 }
 

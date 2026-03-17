@@ -14,12 +14,40 @@ receives:
     from:
       - id: notifications-queue
   - id: PaymentProcessed
+    fields:
+      - userId
+      - orderId
+      - amount
+      - status
+      - timestamp
     from:
       - id: notifications-queue
   - id: InvoiceGenerated
+    fields:
+      - invoiceId
+      - customerId
+      - status
+      - total
+      - currency
     from:
       - id: notifications-queue
   - id: OutOfStock
+    from:
+      - id: notifications-queue
+  - id: OrderConfirmed
+    fields:
+      - orderId
+      - userId
+      - orderStatus
+      - randomHero
+      - totalAmount
+    from:
+      - id: notifications-queue
+  - id: OrderAmended
+    fields:
+      - orderId
+      - customer
+      - orderStatus
     from:
       - id: notifications-queue
   - id: OrderMetricsCalculated

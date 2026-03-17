@@ -203,11 +203,25 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  // Build a set of message IDs that have field usage declared by any service.
+  // We use rawServices (from getCollection) because the hydrated services replace
+  // sends/receives pointers with resolved message entries, which strips the fields property.
+  const messagesWithFieldUsage = new Set<string>();
+  for (const service of rawServices) {
+    for (const pointer of service.data.sends || []) {
+      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
+    }
+    for (const pointer of service.data.receives || []) {
+      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
+    }
+  }
+
   const messageNodes = messagesWithOwners.reduce(
     (acc, { message, owners }) => {
       const type = pluralizeMessageType(message as any);
       const versionedKey = `${type}:${message.data.id}:${message.data.version}`;
-      acc[versionedKey] = buildMessageNode(message, owners, context);
+      const hasFieldUsage = messagesWithFieldUsage.has(message.data.id);
+      acc[versionedKey] = buildMessageNode(message, owners, context, hasFieldUsage);
       if (message.data.latestVersion === message.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`${type}:${message.data.id}`] = versionedKey;

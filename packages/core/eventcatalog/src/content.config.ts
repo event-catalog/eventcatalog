@@ -67,6 +67,7 @@ const channelPointer = z
 const sendsPointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
+  fields: z.array(z.string()).optional(),
   to: z
     .array(
       z.object({
@@ -80,6 +81,7 @@ const sendsPointer = z.object({
 const receivesPointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
+  fields: z.array(z.string()).optional(),
   from: z
     .array(
       z.object({

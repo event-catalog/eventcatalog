@@ -13,9 +13,30 @@ repository:
   url: 'https://github.com/eventcatalog/billing-service'
 receives:
   - id: PaymentProcessed
+    fields:
+      - paymentId
+      - amount
+      - currency
+      - subscriptionId
 sends:
   - id: InvoiceGenerated
+    fields:
+      - invoiceId
+      - invoiceNumber
+      - subscriptionId
+      - customerId
+      - status
+      - lineItems
+      - total
+      - currency
+      - billingPeriod
   - id: SubscriptionPaymentDue
+    fields:
+      - subscriptionId
+      - customerId
+      - amount
+      - currency
+      - dueDate
 owners:
   - dboyne
 attachments:

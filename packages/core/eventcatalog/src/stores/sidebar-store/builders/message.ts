@@ -16,7 +16,8 @@ import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 export const buildMessageNode = (
   message: CollectionEntry<'events' | 'commands' | 'queries'>,
   owners: any[],
-  context: ResourceGroupContext
+  context: ResourceGroupContext,
+  hasFieldUsage: boolean = false
 ): NavNode => {
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
@@ -101,7 +102,12 @@ export const buildMessageNode = (
             title: `Schema (${getSchemaFormatFromURL(message.data.schemaPath!).toUpperCase()})`,
             href: buildUrl(`/schemas/${collection}/${message.data.id}/${message.data.version}`),
           },
-        ],
+          hasFieldUsage && {
+            type: 'item',
+            title: 'Field Usage',
+            href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}/field-lineage`),
+          },
+        ].filter(Boolean),
       },
       renderProducers && {
         type: 'group',

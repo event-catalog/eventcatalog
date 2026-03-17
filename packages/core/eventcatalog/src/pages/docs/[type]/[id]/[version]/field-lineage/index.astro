@@ -1,0 +1,368 @@
+---
+import Footer from '@layouts/Footer.astro';
+import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { getCollection } from 'astro:content';
+import path from 'node:path';
+
+import { buildUrl } from '@utils/url-builder';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { ClientRouter } from 'astro:transitions';
+import { satisfies } from '@utils/collections/util';
+import { readResourceFile } from '@utils/resource-files';
+import { extractSchemaProperties, type SchemaProperty } from '@utils/schema-utils';
+
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+// Get data
+const props = await Page.getData(Astro);
+
+const { data, collection } = props;
+const messageId = data.id;
+const messageVersion = data.version;
+const latestVersion = data.latestVersion || messageVersion;
+
+// Get all services to find field usage
+const allServices = await getCollection('services');
+
+const matchesVersion = (pointerVersion: string | undefined) => {
+  if (pointerVersion === 'latest' || pointerVersion === undefined) {
+    return messageVersion === latestVersion;
+  }
+  return satisfies(messageVersion, pointerVersion);
+};
+
+// Read schema and extract property metadata
+const schemaPropertyMap = new Map<string, SchemaProperty>();
+if (data.schemaPath) {
+  const schemaContent = readResourceFile(props, data.schemaPath);
+  if (schemaContent) {
+    const format = path.extname(data.schemaPath).slice(1);
+    const properties = extractSchemaProperties(schemaContent, format);
+    for (const prop of properties) {
+      schemaPropertyMap.set(prop.name, prop);
+    }
+  }
+}
+
+// Build field usage: field → list of { service, direction }
+type FieldConsumer = {
+  resourceId: string;
+  resourceName: string;
+  resourceVersion: string;
+  direction: 'receives' | 'sends';
+};
+
+const fieldMap = new Map<string, FieldConsumer[]>();
+
+// Scan services
+for (const service of allServices) {
+  for (const pointer of service.data.receives || []) {
+    if (pointer.id === messageId && matchesVersion(pointer.version) && pointer.fields?.length) {
+      for (const field of pointer.fields) {
+        if (!fieldMap.has(field)) fieldMap.set(field, []);
+        fieldMap.get(field)!.push({
+          resourceId: service.data.id,
+          resourceName: service.data.name || service.data.id,
+          resourceVersion: service.data.version,
+          direction: 'receives',
+        });
+      }
+    }
+  }
+  for (const pointer of service.data.sends || []) {
+    if (pointer.id === messageId && matchesVersion(pointer.version) && pointer.fields?.length) {
+      for (const field of pointer.fields) {
+        if (!fieldMap.has(field)) fieldMap.set(field, []);
+        fieldMap.get(field)!.push({
+          resourceId: service.data.id,
+          resourceName: service.data.name || service.data.id,
+          resourceVersion: service.data.version,
+          direction: 'sends',
+        });
+      }
+    }
+  }
+}
+
+// Ensure all schema properties appear, even without consumers
+for (const [name] of schemaPropertyMap) {
+  if (!fieldMap.has(name)) {
+    fieldMap.set(name, []);
+  }
+}
+
+// Split into matched (in schema or no schema exists) and unmatched (declared but not in schema)
+const hasSchema = schemaPropertyMap.size > 0;
+const matchedFields: [string, FieldConsumer[]][] = [];
+const unmatchedFields: [string, FieldConsumer[]][] = [];
+
+for (const [field, consumers] of fieldMap) {
+  if (!hasSchema || schemaPropertyMap.has(field)) {
+    matchedFields.push([field, consumers]);
+  } else if (consumers.length > 0) {
+    // Only show unmatched if someone actually declared this field
+    unmatchedFields.push([field, consumers]);
+  }
+}
+
+const sortedFields = matchedFields.sort(([a], [b]) => a.localeCompare(b));
+const sortedUnmatchedFields = unmatchedFields.sort(([a], [b]) => a.localeCompare(b));
+
+const getBadge = () => {
+  if (collection === 'events') {
+    return { badgeType: 'event', content: 'Event', icon: BoltIcon };
+  }
+  if (collection === 'commands') {
+    return { badgeType: 'command', content: 'Command', icon: ChatBubbleLeftIcon };
+  }
+  if (collection === 'queries') {
+    return { badgeType: 'query', content: 'Query', icon: MagnifyingGlassIcon };
+  }
+};
+
+const badge = getBadge();
+---
+
+<VerticalSideBarLayout title="Field Usage">
+  <main class="w-full md:pt-4 px-8 overflow-y-auto h-full max-w-[95%]">
+    <nav aria-label="Breadcrumb" class="flex">
+      <ol role="list" class="flex items-center space-x-2">
+        <li>
+          <div>
+            <a
+              href={buildUrl(`/docs/${collection}/${data.id}/${data.version}`)}
+              class="text-sm font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
+            >
+              {data.name}
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <svg
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+              class="h-5 w-5 flex-shrink-0 text-[rgb(var(--ec-page-border))]"
+            >
+              <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"></path>
+            </svg>
+            <span class="text-sm font-medium text-[rgb(var(--ec-page-text-muted))]"> Field Usage </span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+    <div class="border-b border-[rgb(var(--ec-page-border))] flex justify-between items-start py-4 w-full">
+      <div>
+        <h2 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name} (Field Usage)</h2>
+        <h2 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">
+          Track which services depend on specific fields of this message.
+        </h2>
+        {
+          badge && (
+            <div class="flex flex-wrap items-center gap-2 py-2 pt-4">
+              <span
+                class="text-sm font-medium px-2 py-1 rounded-md space-x-1 flex items-center"
+                style={`background-color: rgb(var(--ec-badge-${badge.badgeType}-bg)); color: rgb(var(--ec-badge-${badge.badgeType}-text));`}
+              >
+                {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1" />}
+                <span>{badge.content}</span>
+              </span>
+              <button
+                id="filter-consumed-btn"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-2 py-1 text-xs rounded-md border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-card-bg))] transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3.5 w-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                  />
+                </svg>
+                <span id="filter-consumed-label">Consumed only</span>
+              </button>
+            </div>
+          )
+        }
+      </div>
+    </div>
+
+    {
+      sortedFields.length === 0 && (
+        <div class="py-8 text-[rgb(var(--ec-page-text-muted))]">
+          <p>
+            No field usage data found. Services can declare which fields they depend on using the{' '}
+            <code class="bg-[rgb(var(--ec-card-bg))] px-1.5 py-0.5 rounded text-sm">fields</code> property in their{' '}
+            <code class="bg-[rgb(var(--ec-card-bg))] px-1.5 py-0.5 rounded text-sm">sends</code> or{' '}
+            <code class="bg-[rgb(var(--ec-card-bg))] px-1.5 py-0.5 rounded text-sm">receives</code> configuration.
+          </p>
+        </div>
+      )
+    }
+
+    {
+      sortedFields.length > 0 && (
+        <div class="py-6">
+          <div class="overflow-x-auto">
+            <table id="field-usage-table" class="min-w-full">
+              <thead>
+                <tr class="border-b border-[rgb(var(--ec-page-border))]">
+                  <th class="text-left py-3 px-4 text-sm font-semibold text-[rgb(var(--ec-page-text))]">Field</th>
+                  <th class="text-left py-3 px-4 text-sm font-semibold text-[rgb(var(--ec-page-text))]">Type</th>
+                  <th class="text-left py-3 px-4 text-sm font-semibold text-[rgb(var(--ec-page-text))]">Description</th>
+                  <th class="text-left py-3 px-4 text-sm font-semibold text-[rgb(var(--ec-page-text))]">Consumers</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedFields.map(([field, consumers]) => {
+                  const schemaProp = schemaPropertyMap.get(field);
+                  const isRequired = schemaProp?.required ?? false;
+                  return (
+                    <tr
+                      class="field-row border-b border-[rgb(var(--ec-page-border)/0.5)] hover:bg-[rgb(var(--ec-card-bg)/0.3)] transition-colors"
+                      data-has-consumers={consumers.length > 0 ? 'true' : 'false'}
+                    >
+                      <td class="py-3 px-4">
+                        <div class="flex items-baseline gap-2">
+                          <span class="font-semibold text-sm text-[rgb(var(--ec-page-text))]">{field}</span>
+                          {isRequired && <span class="text-xs text-[rgb(var(--ec-accent))]">required</span>}
+                        </div>
+                      </td>
+                      <td class="py-3 px-4">
+                        {schemaProp?.type ? (
+                          <span class="font-mono text-xs text-[rgb(var(--ec-accent))]">{schemaProp.type}</span>
+                        ) : (
+                          <span class="text-xs text-[rgb(var(--ec-page-text-muted))]">—</span>
+                        )}
+                      </td>
+                      <td class="py-3 px-4">
+                        <span class="text-xs text-[rgb(var(--ec-page-text-muted))]">{schemaProp?.description || '—'}</span>
+                      </td>
+                      <td class="py-3 px-4">
+                        <div class="flex flex-col gap-1">
+                          {consumers.length > 0 ? (
+                            consumers.map((consumer) => (
+                              <a
+                                href={buildUrl(`/docs/services/${consumer.resourceId}/${consumer.resourceVersion}`)}
+                                class="inline-flex items-center gap-1.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-accent))] transition-colors"
+                              >
+                                <ServerIcon className="h-3.5 w-3.5 text-pink-500 shrink-0" />
+                                <span class="truncate">{consumer.resourceName}</span>
+                              </a>
+                            ))
+                          ) : (
+                            <span class="text-xs text-[rgb(var(--ec-page-text-muted))]">—</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {sortedUnmatchedFields.length > 0 && (
+            <div class="mt-8">
+              <div class="flex items-center gap-2 mb-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-amber-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <h3 class="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Fields not found in schema</h3>
+              </div>
+              <p class="text-xs text-[rgb(var(--ec-page-text-muted))] mb-4">
+                These fields are declared by consumers but do not exist in the message schema. This may indicate outdated
+                documentation, a typo, or a missing field in the schema.
+              </p>
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead>
+                    <tr class="border-b border-[rgb(var(--ec-page-border))]">
+                      <th class="text-left py-3 px-4 text-sm font-semibold text-[rgb(var(--ec-page-text))]">Field</th>
+                      <th class="text-left py-3 px-4 text-sm font-semibold text-[rgb(var(--ec-page-text))]">Declared by</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedUnmatchedFields.map(([field, consumers]) => (
+                      <tr class="border-b border-[rgb(var(--ec-page-border)/0.5)]">
+                        <td class="py-3 px-4">
+                          <code class="text-sm font-mono font-semibold text-amber-500">{field}</code>
+                        </td>
+                        <td class="py-3 px-4">
+                          <div class="flex flex-col gap-1">
+                            {consumers.map((consumer) => (
+                              <a
+                                href={buildUrl(`/docs/services/${consumer.resourceId}/${consumer.resourceVersion}`)}
+                                class="inline-flex items-center gap-1.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-accent))] transition-colors"
+                              >
+                                <ServerIcon className="h-3.5 w-3.5 text-pink-500 shrink-0" />
+                                <span class="truncate">{consumer.resourceName}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    <Footer />
+  </main>
+  <ClientRouter />
+</VerticalSideBarLayout>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const btn = document.getElementById('filter-consumed-btn');
+    const label = document.getElementById('filter-consumed-label');
+    if (!btn || !label) return;
+
+    let filtered = false;
+
+    btn.addEventListener('click', () => {
+      filtered = !filtered;
+      const rows = document.querySelectorAll('.field-row');
+      rows.forEach((row) => {
+        const el = row as HTMLElement;
+        if (filtered && el.dataset.hasConsumers === 'false') {
+          el.style.display = 'none';
+        } else {
+          el.style.display = '';
+        }
+      });
+
+      label.textContent = filtered ? 'All fields' : 'Consumed only';
+      btn.classList.toggle('bg-[rgb(var(--ec-accent-subtle))]', filtered);
+      btn.classList.toggle('text-[rgb(var(--ec-accent))]', filtered);
+      btn.classList.toggle('border-[rgb(var(--ec-accent))]', filtered);
+    });
+  });
+</script>

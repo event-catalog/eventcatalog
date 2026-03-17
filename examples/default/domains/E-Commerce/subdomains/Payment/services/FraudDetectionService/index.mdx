@@ -15,6 +15,14 @@ receives:
 sends:
   - id: FraudCheckCompleted
     version: 0.0.1
+    fields:
+      - transactionId
+      - paymentId
+      - riskScore
+      - decision
+      - reasons
+      - confidence
+      - timestamp
   - id: FraudDetected
     version: 0.0.1
   - id: RiskScoreCalculated
