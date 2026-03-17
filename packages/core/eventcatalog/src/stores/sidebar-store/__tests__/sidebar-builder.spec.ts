@@ -1941,6 +1941,111 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    describe('field usage section', () => {
+      it('the field usage link is shown when a service declares fields for the message', async () => {
+        const { writeEvent, writeService } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          schemaPath: 'schema.json',
+        });
+        await writeService({
+          id: 'ShippingService',
+          name: 'Shipping Service',
+          version: '0.0.1',
+          markdown: 'Shipping Service',
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1', fields: ['orderId', 'amount'] }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Field Usage',
+          href: '/docs/events/PaymentProcessed/0.0.1/field-lineage',
+        });
+      });
+
+      it('the field usage link is not shown when no service declares fields for the message', async () => {
+        const { writeEvent, writeService } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          schemaPath: 'schema.json',
+        });
+        await writeService({
+          id: 'ShippingService',
+          name: 'Shipping Service',
+          version: '0.0.1',
+          markdown: 'Shipping Service',
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Field Usage',
+          href: '/docs/events/PaymentProcessed/0.0.1/field-lineage',
+        });
+      });
+
+      it('the field usage link is not shown when the message has no schema', async () => {
+        const { writeEvent, writeService } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+        await writeService({
+          id: 'ShippingService',
+          name: 'Shipping Service',
+          version: '0.0.1',
+          markdown: 'Shipping Service',
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1', fields: ['orderId', 'amount'] }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Field Usage',
+          href: '/docs/events/PaymentProcessed/0.0.1/field-lineage',
+        });
+      });
+
+      it('the field usage link is shown when a service declares fields in its sends for the message', async () => {
+        const { writeEvent, writeService } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'InventoryAdjusted',
+          name: 'Inventory Adjusted',
+          version: '1.0.0',
+          markdown: 'Inventory Adjusted',
+          schemaPath: 'schema.json',
+        });
+        await writeService({
+          id: 'InventoryService',
+          name: 'Inventory Service',
+          version: '0.0.1',
+          markdown: 'Inventory Service',
+          sends: [{ id: 'InventoryAdjusted', version: '1.0.0', fields: ['productId', 'quantity'] }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:InventoryAdjusted:1.0.0', navigationData);
+        expect(messageNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Field Usage',
+          href: '/docs/events/InventoryAdjusted/1.0.0/field-lineage',
+        });
+      });
+    });
+
     describe('producers section', () => {
       it('is not listed if the no services produce the message', async () => {
         const { writeEvent } = utils(CATALOG_FOLDER);

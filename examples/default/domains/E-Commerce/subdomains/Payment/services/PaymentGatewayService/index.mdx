@@ -12,10 +12,22 @@ repository:
 receives:
   - id: ProcessPayment
     version: 0.0.1
+    fields:
+      - paymentId
+      - amount
+      - currency
+      - paymentMethod
+      - idempotencyKey
+      - captureImmediately
     from:
       - id: 'payment-domain-eventbus'
   - id: FraudCheckCompleted
     version: 0.0.1
+    fields:
+      - transactionId
+      - paymentId
+      - decision
+      - riskScore
 sends:
   - id: PaymentFailed
     version: 0.0.1

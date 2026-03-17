@@ -13,7 +13,7 @@ import {
   getResourcePath,
   toResource,
 } from './internal/resources';
-import { findFileById, invalidateFileCache, uniqueVersions } from './internal/utils';
+import { findFileById, invalidateFileCache, uniqueVersions, buildMessagePointer } from './internal/utils';
 
 /**
  * Returns a service from EventCatalog.
@@ -397,7 +397,8 @@ export const getSpecificationFilesForService = (directory: string) => async (id:
  */
 
 export const addMessageToService =
-  (directory: string) => async (id: string, direction: string, event: { id: string; version: string }, version?: string) => {
+  (directory: string) =>
+  async (id: string, direction: string, event: { id: string; version: string; fields?: string[] }, version?: string) => {
     let service: Service = await getService(directory)(id, version);
     const servicePath = await getResourcePath(directory, id, version);
     const extension = extname(servicePath?.fullPath || '');
@@ -412,7 +413,7 @@ export const addMessageToService =
           return;
         }
       }
-      service.sends.push({ id: event.id, version: event.version });
+      service.sends.push(buildMessagePointer(event));
     } else if (direction === 'receives') {
       if (service.receives === undefined) {
         service.receives = [];
@@ -423,7 +424,7 @@ export const addMessageToService =
           return;
         }
       }
-      service.receives.push({ id: event.id, version: event.version });
+      service.receives.push(buildMessagePointer(event));
     } else {
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }

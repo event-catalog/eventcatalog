@@ -11,7 +11,7 @@ import {
   versionResource,
   writeResource,
 } from './internal/resources';
-import { findFileById, invalidateFileCache, readMdxFile, uniqueVersions } from './internal/utils';
+import { findFileById, invalidateFileCache, readMdxFile, uniqueVersions, buildMessagePointer } from './internal/utils';
 import matter from 'gray-matter';
 
 /**
@@ -514,7 +514,8 @@ export const addDataProductToDomain =
  * ```
  */
 export const addMessageToDomain =
-  (directory: string) => async (id: string, direction: string, message: { id: string; version: string }, version?: string) => {
+  (directory: string) =>
+  async (id: string, direction: string, message: { id: string; version: string; fields?: string[] }, version?: string) => {
     let domain: Domain = await getDomain(directory)(id, version);
     const domainPath = await getResourcePath(directory, id, version);
     const extension = path.extname(domainPath?.fullPath || '');
@@ -529,7 +530,7 @@ export const addMessageToDomain =
           return;
         }
       }
-      domain.sends.push({ id: message.id, version: message.version });
+      domain.sends.push(buildMessagePointer(message));
     } else if (direction === 'receives') {
       if (domain.receives === undefined) {
         domain.receives = [];
@@ -540,7 +541,7 @@ export const addMessageToDomain =
           return;
         }
       }
-      domain.receives.push({ id: message.id, version: message.version });
+      domain.receives.push(buildMessagePointer(message));
     } else {
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }

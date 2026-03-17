@@ -1331,6 +1331,121 @@ describe('Domain SDK', () => {
       });
     });
 
+    describe('fields support on sends and receives', () => {
+      it('persists fields when writing a domain with sends that declare produced fields', async () => {
+        await writeDomain({
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+          sends: [{ id: 'OrderCreated', version: '1.0.0', fields: ['orderId', 'userId', 'totalAmount'] }],
+        });
+
+        const domain = await getDomain('Orders');
+
+        expect(domain.sends).toEqual([{ id: 'OrderCreated', version: '1.0.0', fields: ['orderId', 'userId', 'totalAmount'] }]);
+      });
+
+      it('persists fields when writing a domain with receives that declare consumed fields', async () => {
+        await writeDomain({
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+          receives: [{ id: 'PaymentProcessed', version: '1.0.0', fields: ['orderId', 'amount', 'status'] }],
+        });
+
+        const domain = await getDomain('Orders');
+
+        expect(domain.receives).toEqual([{ id: 'PaymentProcessed', version: '1.0.0', fields: ['orderId', 'amount', 'status'] }]);
+      });
+
+      it('includes fields when adding an event to a domain sends', async () => {
+        await writeDomain({
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+        });
+
+        await addEventToDomain('Orders', 'sends', {
+          id: 'OrderCreated',
+          version: '1.0.0',
+          fields: ['orderId', 'userId'],
+        });
+
+        const domain = await getDomain('Orders');
+
+        expect(domain.sends).toEqual([{ id: 'OrderCreated', version: '1.0.0', fields: ['orderId', 'userId'] }]);
+      });
+
+      it('includes fields when adding an event to a domain receives', async () => {
+        await writeDomain({
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+        });
+
+        await addEventToDomain('Orders', 'receives', {
+          id: 'PaymentProcessed',
+          version: '1.0.0',
+          fields: ['orderId', 'amount', 'currency'],
+        });
+
+        const domain = await getDomain('Orders');
+
+        expect(domain.receives).toEqual([
+          { id: 'PaymentProcessed', version: '1.0.0', fields: ['orderId', 'amount', 'currency'] },
+        ]);
+      });
+
+      it('preserves existing fields on receives when adding a new message', async () => {
+        await writeDomain({
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+          receives: [{ id: 'PaymentProcessed', version: '1.0.0', fields: ['orderId', 'amount'] }],
+        });
+
+        await addEventToDomain('Orders', 'receives', {
+          id: 'ShipmentDelivered',
+          version: '1.0.0',
+          fields: ['shipmentId', 'orderId'],
+        });
+
+        const domain = await getDomain('Orders');
+
+        expect(domain.receives).toEqual([
+          { id: 'PaymentProcessed', version: '1.0.0', fields: ['orderId', 'amount'] },
+          { id: 'ShipmentDelivered', version: '1.0.0', fields: ['shipmentId', 'orderId'] },
+        ]);
+      });
+
+      it('does not include fields property when fields are not provided', async () => {
+        await writeDomain({
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+        });
+
+        await addEventToDomain('Orders', 'sends', { id: 'OrderCreated', version: '1.0.0' });
+
+        const domain = await getDomain('Orders');
+
+        expect(domain.sends).toEqual([{ id: 'OrderCreated', version: '1.0.0' }]);
+        expect(domain.sends![0]).not.toHaveProperty('fields');
+      });
+    });
+
     describe('file handling', () => {
       it('preserves .md format when adding messages', async () => {
         await writeDomain(

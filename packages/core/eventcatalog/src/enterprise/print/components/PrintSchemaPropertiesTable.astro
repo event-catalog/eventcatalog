@@ -1,58 +1,16 @@
 ---
+import { extractSchemaProperties } from '@utils/schema-utils';
+
 interface Props {
   schema: any;
   isAvro: boolean;
 }
 
-interface SchemaProperty {
-  name: string;
-  type: string;
-  description: string;
-  required: boolean;
-}
-
 const { schema, isAvro } = Astro.props;
 
-function getAvroTypeName(type: any): string {
-  if (typeof type === 'string') return type;
-  if (Array.isArray(type)) {
-    return type.map((t) => (typeof t === 'string' ? t : t.type || 'complex')).join(' | ');
-  }
-  if (typeof type === 'object' && type !== null) {
-    if (type.type === 'array' && type.items) {
-      return `array<${getAvroTypeName(type.items)}>`;
-    }
-    return type.type || 'complex';
-  }
-  return 'unknown';
-}
-
-function extractProperties(schema: any, isAvro: boolean): SchemaProperty[] {
-  if (!schema) return [];
-
-  if (isAvro && schema.fields) {
-    return schema.fields.map((field: any) => ({
-      name: field.name,
-      type: getAvroTypeName(field.type),
-      description: field.doc || '',
-      required: !Array.isArray(field.type) || !field.type.includes('null'),
-    }));
-  }
-
-  if (schema.properties) {
-    const required = schema.required || [];
-    return Object.entries(schema.properties).map(([name, prop]: [string, any]) => ({
-      name,
-      type: prop.type || (prop.enum ? 'enum' : prop.$ref ? '$ref' : 'object'),
-      description: prop.description || '',
-      required: required.includes(name),
-    }));
-  }
-
-  return [];
-}
-
-const properties = extractProperties(schema, isAvro);
+const schemaContent = typeof schema === 'string' ? schema : JSON.stringify(schema);
+const format = isAvro ? 'avro' : 'json';
+const properties = extractSchemaProperties(schemaContent, format);
 ---
 
 {

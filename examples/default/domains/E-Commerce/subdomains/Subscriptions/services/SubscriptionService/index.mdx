@@ -9,6 +9,13 @@ owners:
 receives:
   - id: PaymentProcessed
     version: 0.0.1
+    fields:
+      - transactionId
+      - userId
+      - amount
+      - status
+      - subscriptionId
+      - timestamp
     from:
       - id: 'payments.{env}.events'
         parameters:

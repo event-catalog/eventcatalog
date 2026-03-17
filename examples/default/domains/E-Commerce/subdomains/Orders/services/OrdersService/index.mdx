@@ -9,6 +9,9 @@ owners:
 receives:
   - id: InventoryAdjusted
     version: 1.x
+    fields:
+      - Name
+      - Department
     from:
       - id: orders-service-sqs-channel
 writesTo:

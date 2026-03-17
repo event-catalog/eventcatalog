@@ -8,25 +8,60 @@ owners:
   - dboyne
 receives:
   - id: PaymentProcessed
+    fields:
+      - orderId
+      - amount
+      - currency
+      - paymentMethod
+    from:
+      - id: orders-domain-eventbus
+  - id: OrderConfirmed
+    fields:
+      - orderId
+      - orderItems
+      - totalAmount
+      - confirmationTimestamp
     from:
       - id: orders-domain-eventbus
 sends:
   - id: ShipmentCreated
+    fields:
+      - shipmentId
+      - orderId
+      - address
+      - items
+      - shippingMethod
     to:
       - id: orders-domain-eventbus
   - id: ReturnInitiated
+    fields:
+      - shipmentId
+      - orderId
     to:
       - id: orders-domain-eventbus
   - id: ShipmentDispatched
+    fields:
+      - shipmentId
+      - orderId
     to:
       - id: orders-domain-eventbus
   - id: ShipmentInTransit
+    fields:
+      - shipmentId
+      - orderId
     to:
       - id: orders-domain-eventbus
   - id: ShipmentDelivered
+    fields:
+      - shipmentId
+      - orderId
     to:
       - id: orders-domain-eventbus
   - id: DeliveryFailed
+    fields:
+      - shipmentId
+      - orderId
+      - failureReason
     to:
       - id: orders-domain-eventbus
 repository:

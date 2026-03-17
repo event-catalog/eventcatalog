@@ -54,12 +54,14 @@ export type ResourcePointer = {
 export type SendsPointer = {
   id: string;
   version?: string;
+  fields?: string[];
   to?: ChannelPointer[];
 };
 
 export type ReceivesPointer = {
   id: string;
   version?: string;
+  fields?: string[];
   from?: ChannelPointer[];
 };
 

@@ -9,13 +9,28 @@ owners:
 receives:
   - id: UserSignedUp
   - id: OrderConfirmed
+    fields:
+      - orderId
+      - orderItems
+      - totalAmount
     from:
       - id: inventory-service-filter-by-orders-over-100
   - id: OrderAmended
+    fields:
+      - orderId
+      - amendedItems
     from:
       - id: orders-domain-eventbus
   - id: UpdateInventory
+    fields:
+      - productId
+      - quantityChange
+      - warehouseId
   - id: AddInventory
+    fields:
+      - productId
+      - quantity
+      - warehouseId
   - id: DeleteInventory
 sends:
   - id: InventoryAdjusted

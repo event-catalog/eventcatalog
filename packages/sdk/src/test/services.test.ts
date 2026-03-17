@@ -1336,6 +1336,150 @@ describe('Services SDK', () => {
       });
     });
   });
+
+  describe('fields support on sends and receives', () => {
+    it('persists fields when writing a service with sends that declare consumed fields', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+        sends: [{ id: 'InventoryAdjusted', version: '1.0.0', fields: ['productId', 'quantity', 'warehouseId'] }],
+      });
+
+      const service = await getService('InventoryService');
+
+      expect(service.sends).toEqual([
+        { id: 'InventoryAdjusted', version: '1.0.0', fields: ['productId', 'quantity', 'warehouseId'] },
+      ]);
+    });
+
+    it('persists fields when writing a service with receives that declare consumed fields', async () => {
+      await writeService({
+        id: 'ShippingService',
+        name: 'Shipping Service',
+        version: '0.0.1',
+        summary: 'Service that handles shipping',
+        markdown: '# Hello world',
+        receives: [{ id: 'PaymentProcessed', version: '1.0.0', fields: ['orderId', 'amount', 'currency'] }],
+      });
+
+      const service = await getService('ShippingService');
+
+      expect(service.receives).toEqual([{ id: 'PaymentProcessed', version: '1.0.0', fields: ['orderId', 'amount', 'currency'] }]);
+    });
+
+    it('includes fields when adding an event to a service sends', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      await addEventToService(
+        'InventoryService',
+        'sends',
+        { id: 'InventoryAdjusted', version: '1.0.0', fields: ['productId', 'quantity'] },
+        '0.0.1'
+      );
+
+      const service = await getService('InventoryService');
+
+      expect(service.sends).toEqual([{ id: 'InventoryAdjusted', version: '1.0.0', fields: ['productId', 'quantity'] }]);
+    });
+
+    it('includes fields when adding an event to a service receives', async () => {
+      await writeService({
+        id: 'NotificationService',
+        name: 'Notification Service',
+        version: '0.0.1',
+        summary: 'Service that handles notifications',
+        markdown: '# Hello world',
+      });
+
+      await addEventToService(
+        'NotificationService',
+        'receives',
+        { id: 'InvoiceGenerated', version: '1.0.0', fields: ['invoiceId', 'customerId', 'total'] },
+        '0.0.1'
+      );
+
+      const service = await getService('NotificationService');
+
+      expect(service.receives).toEqual([
+        { id: 'InvoiceGenerated', version: '1.0.0', fields: ['invoiceId', 'customerId', 'total'] },
+      ]);
+    });
+
+    it('preserves existing fields on sends when adding a new message', async () => {
+      await writeService({
+        id: 'BillingService',
+        name: 'Billing Service',
+        version: '0.0.1',
+        summary: 'Service that handles billing',
+        markdown: '# Hello world',
+        sends: [{ id: 'InvoiceGenerated', version: '1.0.0', fields: ['invoiceId', 'total'] }],
+      });
+
+      await addEventToService(
+        'BillingService',
+        'sends',
+        { id: 'SubscriptionPaymentDue', version: '1.0.0', fields: ['subscriptionId', 'amount'] },
+        '0.0.1'
+      );
+
+      const service = await getService('BillingService');
+
+      expect(service.sends).toEqual([
+        { id: 'InvoiceGenerated', version: '1.0.0', fields: ['invoiceId', 'total'] },
+        { id: 'SubscriptionPaymentDue', version: '1.0.0', fields: ['subscriptionId', 'amount'] },
+      ]);
+    });
+
+    it('does not include fields property when fields are not provided', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      await addEventToService('InventoryService', 'sends', { id: 'OutOfStock', version: '1.0.0' }, '0.0.1');
+
+      const service = await getService('InventoryService');
+
+      expect(service.sends).toEqual([{ id: 'OutOfStock', version: '1.0.0' }]);
+      expect(service.sends![0]).not.toHaveProperty('fields');
+    });
+
+    it('includes fields when adding a command to a service receives', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      await addCommandToService(
+        'InventoryService',
+        'receives',
+        { id: 'UpdateInventory', version: '1.0.0', fields: ['productId', 'quantityChange', 'warehouseId'] },
+        '0.0.1'
+      );
+
+      const service = await getService('InventoryService');
+
+      expect(service.receives).toEqual([
+        { id: 'UpdateInventory', version: '1.0.0', fields: ['productId', 'quantityChange', 'warehouseId'] },
+      ]);
+    });
+  });
+
   describe('addCommandToService', () => {
     it('takes an existing command and adds it to the sends of an existing service', async () => {
       await writeService({

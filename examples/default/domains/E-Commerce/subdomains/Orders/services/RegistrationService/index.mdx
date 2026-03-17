@@ -15,6 +15,10 @@ sends:
       - id: registrations-domain-eventbus
 receives:
   - id: DeliveryFailed
+    fields:
+      - shipmentId
+      - orderId
+      - failureReason
     from:
       - id: registrations-domain-eventbus
 ---
