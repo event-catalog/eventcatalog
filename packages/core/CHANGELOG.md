@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.25.1
+
+### Patch Changes
+
+- ed1bfdf: Add entity map visualiser for services, matching the existing domain entity map. Services with entities now show an "Entity Map" link in the sidebar under Architecture. Also fix entity map edge arrows not visible in dark mode.
+- Updated dependencies [ed1bfdf]
+  - @eventcatalog/visualiser@3.15.4
+
 ## 3.25.0
 
 ### Minor Changes
