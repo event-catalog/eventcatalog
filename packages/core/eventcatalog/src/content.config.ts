@@ -239,7 +239,7 @@ const flowStep = z
 
 const flows = defineCollection({
   loader: glob({
-    pattern: withIgnoredBuildArtifacts(['**/flows/*/index.(md|mdx)', '**/flows/*/versioned/*/index.(md|mdx)']),
+    pattern: withIgnoredBuildArtifacts(['**/flows/**/index.(md|mdx)', '**/flows/**/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
