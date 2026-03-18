@@ -200,6 +200,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jboeijenga"><img src="https://avatars.githubusercontent.com/u/1516438?v=4?s=100" width="100px;" alt="Jasper Boeijenga"/><br /><sub><b>Jasper Boeijenga</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=jboeijenga" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://kirkdesigns.co.uk"><img src="https://avatars.githubusercontent.com/u/200251?v=4?s=100" width="100px;" alt="Tom Kirkpatrick"/><br /><sub><b>Tom Kirkpatrick</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=mrfelton" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Machul84126"><img src="https://avatars.githubusercontent.com/u/128227109?v=4?s=100" width="100px;" alt="Machul"/><br /><sub><b>Machul</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/issues?q=author%3AMachul84126" title="Bug reports">🐛</a></td>
+    </tr>
   </tbody>
 </table>
 
