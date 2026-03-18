@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.25.2
+
+### Patch Changes
+
+- cd78c03: Support flows in nested directories and across domains and services by using recursive glob patterns
+
 ## 3.25.1
 
 ### Patch Changes
