@@ -96,6 +96,12 @@ export const buildServiceNode = (
             href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`),
           },
           renderVisualiser &&
+            renderEntities && {
+              type: 'item',
+              title: 'Entity Map',
+              href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/entity-map`),
+            },
+          renderVisualiser &&
             hasDataStores && {
               type: 'item',
               title: 'Data Map',

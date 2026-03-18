@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "savedAt": "2026-03-18T10:57:53.882Z",
+  "resourceKey": "services-entities/InventoryService/0.0.2",
+  "positions": {
+    "StockItem-0.0.1": {
+      "x": -499.89830762482586,
+      "y": -6.241011140280648
+    },
+    "Warehouse-0.0.1": {
+      "x": 205.13934130263934,
+      "y": -6.052998946793487
+    }
+  }
+}
