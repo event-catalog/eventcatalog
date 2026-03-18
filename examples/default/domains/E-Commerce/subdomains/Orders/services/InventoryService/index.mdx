@@ -40,6 +40,17 @@ sends:
   - id: OutOfStock
     to:
       - id: orders-domain-eventbus 
+entities:
+  - id: StockItem
+    version: 0.0.1
+  - id: Warehouse
+    version: 0.0.1
+  - id: Reservation
+    version: 0.0.1
+  - id: StockMovement
+    version: 0.0.1
+  - id: ReorderPolicy
+    version: 0.0.1
 writesTo:
   - id: inventory-db
     version: 0.0.1

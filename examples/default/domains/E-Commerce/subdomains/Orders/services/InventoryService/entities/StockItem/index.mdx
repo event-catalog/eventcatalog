@@ -1,0 +1,119 @@
+---
+id: StockItem
+name: Stock Item
+version: 0.0.1
+identifier: stockItemId
+aggregateRoot: true
+summary: Aggregate root for the Inventory bounded context. Tracks stock levels, reservations, and reorder policies for a single product within a warehouse.
+owners:
+  - order-management
+properties:
+  - name: stockItemId
+    type: UUID
+    required: true
+    description: Unique identifier for the stock item aggregate
+  - name: sku
+    type: string
+    required: true
+    description: Stock Keeping Unit — unique product identifier
+  - name: productName
+    type: string
+    required: true
+    description: Denormalized product name for display
+  - name: warehouseId
+    type: UUID
+    required: true
+    description: Warehouse this stock is held in
+    references: Warehouse
+    referencesIdentifier: warehouseId
+    relationType: hasOne
+  - name: quantityOnHand
+    type: integer
+    required: true
+    description: Total physical units currently in the warehouse
+  - name: quantityReserved
+    type: integer
+    required: true
+    description: Units reserved by pending orders (not yet shipped)
+  - name: quantityAvailable
+    type: integer
+    required: true
+    description: Calculated field — onHand minus reserved
+  - name: reorderPolicy
+    type: ReorderPolicy
+    required: true
+    description: Policy governing when and how much to reorder
+    references: ReorderPolicy
+    referencesIdentifier: reorderPolicyId
+    relationType: hasOne
+  - name: reservations
+    type: array
+    items:
+      type: Reservation
+    required: false
+    description: Active reservations against this stock item
+    references: Reservation
+    referencesIdentifier: stockItemId
+    relationType: hasMany
+  - name: movements
+    type: array
+    items:
+      type: StockMovement
+    required: false
+    description: Audit trail of all stock movements
+    references: StockMovement
+    referencesIdentifier: stockItemId
+    relationType: hasMany
+  - name: unitCost
+    type: decimal
+    required: false
+    description: Cost per unit for inventory valuation
+  - name: status
+    type: string
+    required: true
+    description: Current status — ACTIVE, DISCONTINUED, or QUARANTINED
+    enum:
+      - ACTIVE
+      - DISCONTINUED
+      - QUARANTINED
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: When this stock item was first tracked
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Last modification timestamp
+---
+
+## Overview
+
+The **Stock Item** is the aggregate root of the Inventory bounded context. It encapsulates all invariants related to stock levels, reservations, and reorder decisions for a single SKU within a specific warehouse.
+
+All state changes — reservations, adjustments, transfers — are coordinated through this aggregate to maintain consistency.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Aggregate Invariants
+
+* `quantityAvailable` must always equal `quantityOnHand - quantityReserved`
+* `quantityOnHand` cannot be negative
+* `quantityReserved` cannot exceed `quantityOnHand`
+* A reservation can only be created if `quantityAvailable >= requested amount`
+* When `quantityAvailable <= reorderPolicy.reorderPoint`, an `OutOfStock` or reorder event is raised
+
+## Lifecycle
+
+1. **Created** when a new SKU is introduced to a warehouse
+2. **Reserved** when an order claims units (creates a `Reservation`)
+3. **Adjusted** when physical stock changes (creates a `StockMovement`)
+4. **Discontinued** when the product is removed from catalog
+5. **Quarantined** when stock fails quality checks
+
+## Relationships
+
+* **Warehouse:** Each stock item belongs to exactly one `Warehouse`
+* **ReorderPolicy:** Governs automated restocking thresholds and quantities
+* **Reservation:** Temporary holds placed by orders before fulfillment
+* **StockMovement:** Immutable audit log of every quantity change

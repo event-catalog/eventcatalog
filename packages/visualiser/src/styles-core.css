@@ -226,6 +226,12 @@
   transition: stroke-width 0.15s ease;
 }
 
+/* Theme-aware arrow markers */
+.react-flow__edges marker path {
+  fill: var(--ec-edge-stroke, #6b7280);
+  stroke: var(--ec-edge-stroke, #6b7280);
+}
+
 /* Widen the invisible interaction area for edges */
 .react-flow__edge-interaction {
   stroke-width: 40 !important;

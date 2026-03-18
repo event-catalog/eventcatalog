@@ -167,14 +167,12 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
           label: referenceProperty.relationType || 'references',
           style: {
             strokeWidth: 2,
-            stroke: '#000', // gray color for relationship lines
             strokeDasharray: '5,5', // dashed line
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 20,
             height: 20,
-            color: '#000',
           },
         });
       } else {

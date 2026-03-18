@@ -130,6 +130,16 @@ if (collection === 'domains-entities') {
   edges = fetchedEdges;
 }
 
+if (collection === 'services-entities') {
+  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForDomainEntityMap({
+    id,
+    version,
+    type: 'services',
+  });
+  nodes = fetchedNodes;
+  edges = fetchedEdges;
+}
+
 if (collection === 'services-containers') {
   const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForService({
     id,
