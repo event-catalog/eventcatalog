@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.18.1
+
+### Patch Changes
+
+- e2b0460: fix(sdk): preserve subdomain path when adding resources to a domain
+
 ## 2.18.0
 
 ### Minor Changes
