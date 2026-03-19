@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.18.2
+
+### Patch Changes
+
+- 4639ec3: fix(sdk): handle subdomains/ folder convention in resolveDomainWriteDirectory
+
 ## 2.18.1
 
 ### Patch Changes
