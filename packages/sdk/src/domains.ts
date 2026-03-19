@@ -16,15 +16,23 @@ import matter from 'gray-matter';
 
 /**
  * Resolves the write directory for a domain, preserving its location for nested domains (subdomains).
- * Without this, a domain at e.g. domains/E-Commerce/domains/Orders would be relocated to domains/Orders.
+ * Without this, a domain at e.g. domains/E-Commerce/subdomains/Orders would be relocated to domains/Orders.
+ *
+ * Handles both nesting conventions:
+ * - domains/E-Commerce/domains/Orders/index.mdx (domains/ subfolder)
+ * - domains/Buyer/subdomains/Agency/index.mdx (subdomains/ subfolder)
  */
 const resolveDomainWriteDirectory = async (directory: string, id: string, version?: string): Promise<string> => {
   const existingResource = await findFileById(directory, id, version);
   if (!existingResource) return directory;
   const normalizedPath = existingResource.replace(/\\/g, '/');
+  // Find the last /domains/ or /subdomains/ segment to determine the parent directory
   const lastDomainsIndex = normalizedPath.lastIndexOf('/domains/');
-  if (lastDomainsIndex === -1) return directory;
-  return existingResource.substring(0, lastDomainsIndex + '/domains'.length);
+  const lastSubdomainsIndex = normalizedPath.lastIndexOf('/subdomains/');
+  const lastIndex = Math.max(lastDomainsIndex, lastSubdomainsIndex);
+  if (lastIndex === -1) return directory;
+  const segment = lastSubdomainsIndex > lastDomainsIndex ? '/subdomains' : '/domains';
+  return existingResource.substring(0, lastIndex + segment.length);
 };
 
 /**
