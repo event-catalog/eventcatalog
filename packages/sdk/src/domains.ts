@@ -15,6 +15,19 @@ import { findFileById, invalidateFileCache, readMdxFile, uniqueVersions, buildMe
 import matter from 'gray-matter';
 
 /**
+ * Resolves the write directory for a domain, preserving its location for nested domains (subdomains).
+ * Without this, a domain at e.g. domains/E-Commerce/domains/Orders would be relocated to domains/Orders.
+ */
+const resolveDomainWriteDirectory = async (directory: string, id: string, version?: string): Promise<string> => {
+  const existingResource = await findFileById(directory, id, version);
+  if (!existingResource) return directory;
+  const normalizedPath = existingResource.replace(/\\/g, '/');
+  const lastDomainsIndex = normalizedPath.lastIndexOf('/domains/');
+  if (lastDomainsIndex === -1) return directory;
+  return existingResource.substring(0, lastDomainsIndex + '/domains'.length);
+};
+
+/**
  * Returns a domain from EventCatalog.
  *
  * You can optionally specify a version to get a specific version of the domain
@@ -355,8 +368,9 @@ export const addServiceToDomain =
     // Add service to the list
     domain.services.push(service);
 
+    const writeDir = await resolveDomainWriteDirectory(directory, id, version);
     await rmDomainById(directory)(id, version, true);
-    await writeDomain(directory)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeDomain(writeDir)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
   };
 
 /**
@@ -395,11 +409,12 @@ export const addSubDomainToDomain =
       return;
     }
 
-    // Add service to the list
+    // Add subdomain to the list
     domain.domains.push(subDomain);
 
+    const writeDir = await resolveDomainWriteDirectory(directory, id, version);
     await rmDomainById(directory)(id, version, true);
-    await writeDomain(directory)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeDomain(writeDir)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
   };
 
 /**
@@ -440,8 +455,9 @@ export const addEntityToDomain =
     // Add entity to the list
     domain.entities.push(entity);
 
+    const writeDir = await resolveDomainWriteDirectory(directory, id, version);
     await rmDomainById(directory)(id, version, true);
-    await writeDomain(directory)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeDomain(writeDir)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
   };
 
 /**
@@ -484,8 +500,9 @@ export const addDataProductToDomain =
     // Add data product to the list
     domain.dataProducts.push(dataProduct);
 
+    const writeDir = await resolveDomainWriteDirectory(directory, id, version);
     await rmDomainById(directory)(id, version, true);
-    await writeDomain(directory)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeDomain(writeDir)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
   };
 
 /**
@@ -546,18 +563,7 @@ export const addMessageToDomain =
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }
 
-    const existingResource = await findFileById(directory, id, version);
-
-    if (!existingResource) {
-      throw new Error(`Cannot find domain ${id} in the catalog`);
-    }
-
-    // Get where the domain was located, make sure it goes back there (handles subdomains)
-    // Use lastIndexOf to find the last /domains/ in the path (for nested domains)
-    const normalizedPath = existingResource.replace(/\\/g, '/');
-    const lastDomainsIndex = normalizedPath.lastIndexOf('/domains/');
-    const pathToResource = existingResource.substring(0, lastDomainsIndex + '/domains'.length);
-
+    const writeDir = await resolveDomainWriteDirectory(directory, id, version);
     await rmDomainById(directory)(id, version, true);
-    await writeDomain(pathToResource)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeDomain(writeDir)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
   };

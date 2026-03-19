@@ -843,6 +843,44 @@ describe('Domain SDK', () => {
 
       expect(domain.services).toEqual([{ id: 'Order Service', version: '2.0.0' }]);
     });
+
+    it('preserves the domain location when the domain is nested inside another domain (subdomain)', async () => {
+      // Create parent domain
+      await writeDomain({
+        id: 'E-Commerce',
+        name: 'E-Commerce Domain',
+        version: '0.0.1',
+        summary: 'Parent domain',
+        markdown: '# E-Commerce',
+        domains: [{ id: 'Orders', version: '0.0.1' }],
+      });
+
+      // Create subdomain inside parent domain folder
+      await writeDomain(
+        {
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          summary: 'Subdomain',
+          markdown: '# Orders',
+        },
+        { path: 'E-Commerce/domains' }
+      );
+
+      await addServiceToDomain('Orders', { id: 'Order Service', version: '2.0.0' });
+
+      // Verify the subdomain is still in the correct location
+      const subdomainFile = path.join(CATALOG_PATH, 'domains', 'E-Commerce', 'domains', 'Orders', 'index.mdx');
+      expect(fs.existsSync(subdomainFile)).toBe(true);
+
+      // Verify it was NOT relocated to the top level
+      const topLevelFile = path.join(CATALOG_PATH, 'domains', 'Orders', 'index.mdx');
+      expect(fs.existsSync(topLevelFile)).toBe(false);
+
+      // Verify the service was added
+      const subdomain = await getDomain('Orders');
+      expect(subdomain.services).toEqual([{ id: 'Order Service', version: '2.0.0' }]);
+    });
   });
 
   describe('addSubDomainToDomain', () => {
@@ -908,6 +946,44 @@ describe('Domain SDK', () => {
       const domain = await getDomain('Orders');
 
       expect(domain.domains).toEqual([{ id: 'Inventory', version: '1.0.0' }]);
+    });
+
+    it('preserves the domain location when the domain is nested inside another domain (subdomain)', async () => {
+      // Create parent domain
+      await writeDomain({
+        id: 'E-Commerce',
+        name: 'E-Commerce Domain',
+        version: '0.0.1',
+        summary: 'Parent domain',
+        markdown: '# E-Commerce',
+        domains: [{ id: 'Orders', version: '0.0.1' }],
+      });
+
+      // Create subdomain inside parent domain folder
+      await writeDomain(
+        {
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          summary: 'Subdomain',
+          markdown: '# Orders',
+        },
+        { path: 'E-Commerce/domains' }
+      );
+
+      await addSubDomainToDomain('Orders', { id: 'Inventory', version: '1.0.0' });
+
+      // Verify the subdomain is still in the correct location
+      const subdomainFile = path.join(CATALOG_PATH, 'domains', 'E-Commerce', 'domains', 'Orders', 'index.mdx');
+      expect(fs.existsSync(subdomainFile)).toBe(true);
+
+      // Verify it was NOT relocated to the top level
+      const topLevelFile = path.join(CATALOG_PATH, 'domains', 'Orders', 'index.mdx');
+      expect(fs.existsSync(topLevelFile)).toBe(false);
+
+      // Verify the subdomain was added
+      const subdomain = await getDomain('Orders');
+      expect(subdomain.domains).toEqual([{ id: 'Inventory', version: '1.0.0' }]);
     });
   });
 
