@@ -11,11 +11,29 @@ import type { CollectionMessageTypes } from '@types';
 
 // Specification file types (OpenAPI, AsyncAPI, GraphQL)
 const SPEC_TYPES = ['openapi', 'asyncapi', 'graphql'];
+const HIDDEN_FORMAT_FILTERS = new Set(['graphql', 'gql', 'yaml', 'yml']);
 import semver from 'semver';
 import SchemaListItem from './SchemaListItem';
 import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
 import type { SchemaItem } from './types';
+
+/** Resolve the spec filename for a schema item, with consistent fallback. */
+function getSpecFile(item: SchemaItem): string {
+  return item.specFilenameWithoutExtension || item.specName || '';
+}
+
+/**
+ * Build a unique group key for a schema item.
+ * For services, includes spec type and filename to disambiguate
+ * multiple specs of the same type (e.g. two OpenAPI specs).
+ */
+function getGroupKey(item: SchemaItem): string {
+  if (item.collection === 'services') {
+    return `${item.data.id}__${item.specType || 'unknown'}__${getSpecFile(item)}`;
+  }
+  return item.data.id;
+}
 
 interface SchemaExplorerProps {
   schemas: SchemaItem[];
@@ -70,9 +88,13 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     params.set('version', message.data.version);
     params.set('collection', message.collection);
 
-    // For services, add spec type
+    // For services, add spec type and filename to disambiguate multiple specs
     if (message.collection === 'services') {
       params.set('specType', message.specType || 'unknown');
+      const specFile = getSpecFile(message);
+      if (specFile) {
+        params.set('specFilename', specFile);
+      }
     }
 
     const newUrl = `${window.location.pathname}?${params.toString()}`;
@@ -83,12 +105,14 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
   const messagesByIdAndVersions = useMemo(() => {
     const grouped = new Map<string, SchemaItem[]>();
     schemas.forEach((message) => {
-      // For services, group by ID + spec type to keep different specs separate
-      const groupKey =
-        message.collection === 'services' ? `${message.data.id}__${message.specType || 'unknown'}` : message.data.id;
+      const groupKey = getGroupKey(message);
 
-      const existingVersions = grouped.get(groupKey) || [];
-      grouped.set(groupKey, [...existingVersions, message]);
+      const existing = grouped.get(groupKey);
+      if (existing) {
+        existing.push(message);
+      } else {
+        grouped.set(groupKey, [message]);
+      }
     });
 
     // Sort versions for each ID (descending - latest first)
@@ -127,7 +151,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
   }, [messagesByIdAndVersions]);
 
   // Get unique schema types (exclude types that aren't useful as standalone filters)
-  const HIDDEN_FORMAT_FILTERS = new Set(['graphql', 'gql', 'yaml', 'yml']);
   const schemaTypes = useMemo(() => {
     const types = new Set<string>();
     latestMessages.forEach((msg) => {
@@ -207,6 +230,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     const version = params.get('version');
     const collection = params.get('collection');
     const specType = params.get('specType');
+    const specFilename = params.get('specFilename');
 
     if (id && version) {
       // Find the matching message
@@ -215,10 +239,12 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         const versionMatch = msg.data.version === version;
         const collectionMatch = !collection || msg.collection === collection;
 
-        // For services, also match spec type
+        // For services, also match spec type and filename
         if (msg.collection === 'services') {
           const specTypeMatch = !specType || msg.specType === specType;
-          return idMatch && versionMatch && collectionMatch && specTypeMatch;
+          const msgSpecFile = getSpecFile(msg);
+          const specFilenameMatch = !specFilename || msgSpecFile === specFilename;
+          return idMatch && versionMatch && collectionMatch && specTypeMatch && specFilenameMatch;
         }
 
         return idMatch && versionMatch && collectionMatch;
@@ -256,11 +282,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
   const displayMessage = useMemo(() => {
     if (!selectedMessage) return null;
 
-    // For services, use compound key (ID + spec type), otherwise just ID
-    const groupKey =
-      selectedMessage.collection === 'services'
-        ? `${selectedMessage.data.id}__${selectedMessage.specType || 'unknown'}`
-        : selectedMessage.data.id;
+    const groupKey = getGroupKey(selectedMessage);
 
     const versions = messagesByIdAndVersions.get(groupKey);
     if (!versions) return selectedMessage;
@@ -307,12 +329,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
   // Get available versions for the selected message
   const availableVersions = useMemo(() => {
     if (!displayMessage) return [];
-    const groupKey =
-      displayMessage.collection === 'services'
-        ? `${displayMessage.data.id}__${displayMessage.specType || 'unknown'}`
-        : displayMessage.data.id;
+    const groupKey = getGroupKey(displayMessage);
     return messagesByIdAndVersions.get(groupKey) || [displayMessage];
   }, [displayMessage, messagesByIdAndVersions]);
+
+  const selectedGroupKey = useMemo(() => (selectedMessage ? getGroupKey(selectedMessage) : null), [selectedMessage]);
 
   const handleVersionChange = (newVersion: string) => {
     setSelectedVersion(newVersion);
@@ -545,15 +566,8 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
             {paginatedMessages.length > 0 ? (
               <div className="divide-y divide-[rgb(var(--ec-page-border)/0.5)]">
                 {paginatedMessages.map((message) => {
-                  // For services, also check spec type to determine if selected
-                  const isSelected =
-                    message.collection === 'services'
-                      ? selectedMessage?.data.id === message.data.id && selectedMessage?.specType === message.specType
-                      : selectedMessage?.data.id === message.data.id;
-
-                  // Get versions using compound key for services
-                  const groupKey =
-                    message.collection === 'services' ? `${message.data.id}__${message.specType || 'unknown'}` : message.data.id;
+                  const groupKey = getGroupKey(message);
+                  const isSelected = selectedGroupKey === groupKey;
 
                   const versions = messagesByIdAndVersions.get(groupKey) || [message];
 
