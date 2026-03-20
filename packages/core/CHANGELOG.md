@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.25.5
+
+### Patch Changes
+
+- cfeac9b: fix(core): disambiguate multiple specs per service in schema explorer by adding filename to group key
+
 ## 3.25.4
 
 ### Patch Changes
