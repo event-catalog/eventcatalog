@@ -664,6 +664,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "ugostack",
+      "name": "ugostack",
+      "avatar_url": "https://avatars.githubusercontent.com/u/81093728?v=4",
+      "profile": "https://github.com/ugostack",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
