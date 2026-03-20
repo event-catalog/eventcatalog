@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.25.6
+
+### Patch Changes
+
+- 925eb0b: update astro and astro integration dependencies to latest patch versions
+
 ## 3.25.5
 
 ### Patch Changes
