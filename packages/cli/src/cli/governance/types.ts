@@ -6,7 +6,8 @@ export type GovernanceTrigger =
   | 'producer_added'
   | 'producer_removed'
   | 'message_deprecated'
-  | 'schema_changed';
+  | 'schema_changed'
+  | 'schema_breaking_change';
 
 export type GovernanceAction =
   | { type: 'console' }
@@ -21,6 +22,9 @@ export type GovernanceRule = {
 };
 
 export type GovernanceConfig = {
+  compatibility?: {
+    strategy: import('@eventcatalog/breaking-changes').CompatibilityStrategy;
+  };
   rules: GovernanceRule[];
 };
 
@@ -41,12 +45,17 @@ export type SchemaChange = {
   afterSchemaHash?: string;
 };
 
+export type BreakingSchemaChange = SchemaChange & {
+  breakingChanges: import('@eventcatalog/breaking-changes').BreakingChange[];
+};
+
 export type GovernanceResult = {
   rule: GovernanceRule;
   trigger: GovernanceTrigger;
   matchedChanges: RelationshipChange[];
   deprecationChanges?: DeprecationChange[];
   schemaChanges?: SchemaChange[];
+  breakingSchemaChanges?: BreakingSchemaChange[];
   failed?: boolean;
   failMessages?: string[];
 };
