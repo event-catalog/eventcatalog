@@ -244,11 +244,11 @@ export class FieldsDatabase {
       bindings.push(fieldPath);
     }
 
-    // FTS filter
+    // FTS filter (quote the term so dots/brackets in field paths aren't parsed as FTS syntax)
     if (q) {
       conditions.push(`f.id IN (SELECT rowid FROM fields_fts WHERE fields_fts MATCH ?)`);
-      // Append wildcard for prefix matching
-      bindings.push(`${q}*`);
+      const escaped = q.replace(/"/g, '""');
+      bindings.push(`"${escaped}" *`);
     }
 
     // Facet filters (support comma-separated multi-select)
