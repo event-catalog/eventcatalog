@@ -6,6 +6,8 @@ import { satisfies, validRange } from 'semver';
 import createSDK from '@eventcatalog/sdk';
 import type { SnapshotDiff, RelationshipChange, CatalogSnapshot, ResourceChange } from '@eventcatalog/sdk';
 import type { GovernanceConfig, GovernanceTrigger, GovernanceResult, DeprecationChange, SchemaChange, BreakingSchemaChange } from './types';
+import { detectBreakingChanges } from '@eventcatalog/breaking-changes';
+import type { CompatibilityStrategy } from '@eventcatalog/breaking-changes';
 
 export const loadGovernanceConfig = (catalogDir: string): GovernanceConfig => {
   const yamlPath = path.join(catalogDir, 'governance.yaml');
@@ -436,7 +438,8 @@ const readSchemaDetails = async (
 export const enrichSchemaContent = async (
   results: GovernanceResult[],
   baseCatalogDir: string,
-  targetCatalogDir: string
+  targetCatalogDir: string,
+  compatibilityStrategy?: CompatibilityStrategy
 ): Promise<void> => {
   const baseSDK = createSDK(baseCatalogDir);
   const targetSDK = createSDK(targetCatalogDir);
@@ -461,6 +464,39 @@ export const enrichSchemaContent = async (
           sc.afterSchemaPath = after.schemaPath;
           sc.beforeSchemaHash = before.schemaHash;
           sc.afterSchemaHash = after.schemaHash;
+        })()
+      );
+    }
+  }
+
+  for (const result of results) {
+    if (!result.breakingSchemaChanges || !compatibilityStrategy) continue;
+    for (const bsc of result.breakingSchemaChanges) {
+      const { resourceId, version, type, changeType, previousVersion, newVersion } = bsc.resourceChange;
+      const baseVersion = changeType === 'versioned' ? previousVersion || version : version;
+      const targetVersion = changeType === 'versioned' ? newVersion || version : version;
+      promises.push(
+        (async () => {
+          const [before, after] = await Promise.all([
+            readSchemaDetails(baseSDK, resourceId, baseVersion, type),
+            readSchemaDetails(targetSDK, resourceId, targetVersion, type),
+          ]);
+          bsc.before = before.content;
+          bsc.after = after.content;
+          bsc.beforeSchemaPath = before.schemaPath;
+          bsc.afterSchemaPath = after.schemaPath;
+          bsc.beforeSchemaHash = before.schemaHash;
+          bsc.afterSchemaHash = after.schemaHash;
+
+          if (before.content && after.content) {
+            try {
+              const beforeSchema = JSON.parse(before.content);
+              const afterSchema = JSON.parse(after.content);
+              bsc.breakingChanges = detectBreakingChanges(beforeSchema, afterSchema, compatibilityStrategy);
+            } catch {
+              // Schema is not valid JSON — skip breaking change detection
+            }
+          }
         })()
       );
     }
