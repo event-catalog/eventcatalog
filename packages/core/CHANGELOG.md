@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.2
+
+### Patch Changes
+
+- 223ac55: pin @tailwindcss/vite to ~4.2.1 to avoid breaking changes from minor releases
+
 ## 3.26.1
 
 ### Patch Changes
