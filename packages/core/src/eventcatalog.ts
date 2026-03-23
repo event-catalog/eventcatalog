@@ -18,6 +18,7 @@ import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
+import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -346,6 +347,21 @@ program
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
+    // Build fields index if running in SSR mode
+    if (isServer) {
+      try {
+        logger.info('Building fields index...', 'fields');
+        const { warnings } = await buildFieldsIndex(dir, core);
+        if (warnings.length > 0) {
+          logger.info(`Fields index built with ${warnings.length} warning(s)`, 'fields');
+        } else {
+          logger.info('Fields index built successfully', 'fields');
+        }
+      } catch (err: any) {
+        logger.info(`Failed to build fields index: ${err.message}`, 'fields');
+      }
+    }
+
     // is there an eventcatalog update to install?
     checkForUpdate();
 
@@ -431,6 +447,21 @@ program
     await runMigrations(dir);
 
     await catalogToAstro(dir, core);
+
+    // Build fields index if running in SSR mode
+    if (isServer) {
+      try {
+        logger.info('Building fields index...', 'fields');
+        const { warnings } = await buildFieldsIndex(dir, core);
+        if (warnings.length > 0) {
+          logger.info(`Fields index built with ${warnings.length} warning(s)`, 'fields');
+        } else {
+          logger.info('Fields index built successfully', 'fields');
+        }
+      } catch (err: any) {
+        logger.info(`Failed to build fields index: ${err.message}`, 'fields');
+      }
+    }
 
     checkForUpdate();
 

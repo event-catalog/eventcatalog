@@ -25,6 +25,7 @@ pnpm-debug.log*
 
 # EventCatalog files
 **/.eventcatalog-core/
+**/.eventcatalog/
 /examples/large-catalog/*
 packages/core/eventcatalog/pnpm-lock.yaml
 packages/core/eventcatalog/public/pagefind

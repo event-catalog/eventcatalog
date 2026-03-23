@@ -30,7 +30,12 @@ const compress = config.compress ?? false;
 
 
 const expressiveCodeConfig = {
-  themes: ['andromeeda'],
+  themes: ['github-light', 'andromeeda'],
+  themeCssSelector: (theme) => {
+    // Map expressive-code theme names to EventCatalog's data-theme attribute
+    if (theme.name === 'github-light') return '[data-theme="light"]';
+    return '[data-theme="dark"]';
+  },
   defaultProps: {
     wrap: true,
   },
@@ -149,9 +154,10 @@ export default defineConfig({
       }
     },
     ssr: {
-      external: ['eventcatalog.auth.js', 'eventcatalog.chat.js'],
+      external: ['eventcatalog.auth.js', 'eventcatalog.chat.js', 'better-sqlite3'],
     },
     optimizeDeps: {
+      exclude: ['better-sqlite3'],
       // Pre-bundle heavy dependencies so Vite doesn't discover and transform
       // them lazily on first request. This significantly reduces initial page
       // load time in dev mode.

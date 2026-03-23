@@ -118,6 +118,7 @@ const VisualiserSearch = memo(
           step: "bg-gray-700 text-white",
           user: "bg-yellow-500 text-white",
           custom: "bg-gray-500 text-white",
+          field: "bg-cyan-600 text-white",
         };
         return colorClasses[nodeType] || "bg-gray-100 text-gray-700";
       }, []);

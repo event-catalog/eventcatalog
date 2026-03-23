@@ -36,17 +36,16 @@ if (isRemote) {
 const pageTitle = `${collection} | ${data.name} | GraphQL Schema`.replace(/^\w/, (c) => c.toUpperCase());
 
 const getServiceBadge = () => {
-  return [{ backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-600' }];
+  return [{ backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon }];
 };
 
 const getGraphQLBadge = () => {
   return [
     {
-      backgroundColor: 'white',
-      textColor: 'gray',
+      backgroundColor: 'purple',
+      textColor: 'purple',
       content: 'GraphQL Schema',
       iconURL: buildUrl('/icons/graphql.svg', true),
-      class: 'text-black',
       id: 'graphql-schema-badge',
     },
   ];
@@ -68,15 +67,15 @@ const pagefindAttributes =
   <main class="flex sm:px-8 docs-layout h-full" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
-        <div class="border-b border-gray-200 md:pb-4">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-4">
           <div>
             <div class="flex justify-between items-start">
               <div class="flex-1">
-                <h1 class="text-2xl md:text-4xl font-bold text-black mb-2">
+                <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))] mb-2">
                   {data.name}
-                  <span class="text-gray-900">(v{data.version})</span>
+                  <span class="text-[rgb(var(--ec-page-text-muted))]">(v{data.version})</span>
                 </h1>
-                <h2 class="text-lg text-gray-600 font-medium mb-1">GraphQL Schema</h2>
+                <h2 class="text-lg text-[rgb(var(--ec-page-text-muted))] font-medium mb-1">GraphQL Schema</h2>
               </div>
             </div>
 
@@ -88,13 +87,12 @@ const pagefindAttributes =
                       id={badge.id || ''}
                       class={`
                         inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                        bg-${badge.backgroundColor || 'white'}-50 border border-${badge.backgroundColor || 'gray'}-200
-                        text-${badge.textColor || 'gray'}-700 shadow-xs
-                        transition-all duration-200 ease-out
-                        ${badge.class ? badge.class : ''}
+                        bg-${badge.backgroundColor || 'gray'}-500/10 border border-${badge.backgroundColor || 'gray'}-500/20
+                        text-${badge.textColor || 'gray'}-500
+                        shadow-xs transition-all duration-200 ease-out
                       `}
                     >
-                      {badge.icon && <badge.icon className={`w-4 h-4 flex-shrink-0 text-${badge.textColor || 'gray'}-600`} />}
+                      {badge.icon && <badge.icon className={`w-4 h-4 flex-shrink-0`} />}
                       {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
                       <span>{badge.content}</span>
                     </span>
@@ -151,12 +149,12 @@ const pagefindAttributes =
         {
           fileExists && content && (
             <div class="mt-6">
-              <div class="bg-gray-50 rounded-lg p-4 mb-4">
+              <div class="bg-[rgb(var(--ec-card-bg))] rounded-lg p-4 mb-4 border border-[rgb(var(--ec-page-border))]">
                 <div class="flex items-center gap-2 mb-2">
                   <img src={buildUrl('/icons/graphql.svg', true)} class="w-5 h-5" alt="GraphQL" />
-                  <h3 class="text-lg font-semibold text-gray-800">GraphQL Schema</h3>
+                  <h3 class="text-lg font-semibold text-[rgb(var(--ec-page-text))]">GraphQL Schema</h3>
                 </div>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-[rgb(var(--ec-page-text-muted))]">
                   This schema defines the GraphQL API structure including types, queries, mutations, and subscriptions for{' '}
                   {data.name}.
                 </p>

@@ -16,6 +16,7 @@ import {
   FileText,
   SquareDashedMousePointerIcon,
   Braces,
+  Waypoints,
 } from 'lucide-react';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
@@ -51,7 +52,13 @@ import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
 
-import { isEventCatalogUpgradeEnabled, isEmbedEnabled, isCustomStylesEnabled } from '@utils/feature';
+import {
+  isEventCatalogUpgradeEnabled,
+  isEmbedEnabled,
+  isCustomStylesEnabled,
+  isEventCatalogScaleEnabled,
+  isSSR,
+} from '@utils/feature';
 import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
 
@@ -132,7 +139,9 @@ const navigationItems = [
       (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
       currentPath.includes('/architecture/') ||
       currentPath.includes('/visualiser') ||
-      (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer')),
+      (currentPath.includes('/schemas') &&
+        !currentPath.includes('/schemas/explorer') &&
+        !currentPath.includes('/schemas/fields')),
   },
   {
     id: '/discover',
@@ -146,8 +155,19 @@ const navigationItems = [
     label: 'Schema Explorer',
     icon: Braces,
     href: buildUrl('/schemas/explorer'),
-    current: currentPath.includes('/schemas/explorer'),
+    current: currentPath.includes('/schemas/explorer') && !currentPath.includes('/schemas/fields'),
   },
+  ...(isSSR()
+    ? [
+        {
+          id: '/schemas/fields',
+          label: 'Schema Fields',
+          icon: Waypoints,
+          href: buildUrl('/schemas/fields'),
+          current: currentPath.includes('/schemas/fields'),
+        },
+      ]
+    : []),
   {
     id: '/directory',
     label: 'Users & Teams',

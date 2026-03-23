@@ -27,6 +27,7 @@ export const NODE_COLOR_CLASSES: Record<string, string> = {
   "data-products": "bg-indigo-600",
   domains: "bg-yellow-600",
   entities: "bg-purple-600",
+  field: "bg-cyan-600",
 };
 
 export const NODE_TYPE_LABELS: Record<string, string> = {
@@ -43,6 +44,7 @@ export const NODE_TYPE_LABELS: Record<string, string> = {
   "data-products": "Data Product",
   domains: "Domain",
   entities: "Entity",
+  field: "Field",
 };
 
 /**
@@ -90,6 +92,17 @@ const ENTITY_KEYS = [
 export function getNodeDisplayInfo(node: Node): NodeDisplayInfo {
   const nodeType = node.type || "unknown";
   const data = node.data as any;
+
+  // Handle field nodes
+  if (nodeType === "field") {
+    return {
+      id: node.id,
+      name: data?.name || node.id,
+      type: "field",
+      version: undefined,
+      description: `Type: ${data?.type || "unknown"}`,
+    };
+  }
 
   // Find the entity in data using standard keys
   const entityKey = ENTITY_KEYS.find((key) => data[key]);

@@ -11,6 +11,7 @@ import {
   isDevMode,
   isIntegrationsEnabled,
   isExportPDFEnabled,
+  isSSR,
 } from '../src/utils/feature';
 
 const catalogDirectory = process.env.CATALOG_DIR || process.cwd();
@@ -91,6 +92,18 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/docs/print/[type]/[id]/[version]',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/print/message.astro'),
+          });
+        }
+
+        // Fields Explorer (requires SSR)
+        if (isSSR()) {
+          params.injectRoute({
+            pattern: '/schemas/fields',
+            entrypoint: path.join(catalogDirectory, 'src/pages/schemas/fields/index.astro'),
+          });
+          params.injectRoute({
+            pattern: '/api/schemas/fields',
+            entrypoint: path.join(catalogDirectory, 'src/pages/api/schemas/fields/index.ts'),
           });
         }
 

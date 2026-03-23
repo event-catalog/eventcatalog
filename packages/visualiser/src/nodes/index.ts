@@ -13,6 +13,7 @@ import { Data, dataNodeConfig } from "./data";
 import { View } from "./view";
 import { Actor, actorConfig } from "./actor";
 import { ExternalSystem, externalSystemConfig } from "./external-system";
+import { Field, fieldConfig } from "./field";
 
 // Re-export studio-2 nodes
 export { Event, eventConfig };
@@ -44,6 +45,9 @@ export type { ActorNode } from "./actor";
 
 export { ExternalSystem, externalSystemConfig };
 export type { ExternalSystemNode } from "./external-system";
+
+export { Field, fieldConfig };
+export type { FieldNodeType } from "./field";
 
 // Shared components
 export { NotesIndicator } from "./NotesIndicator";
@@ -97,6 +101,7 @@ export const nodeComponents = {
   data: Data,
   view: View,
   actor: Actor,
+  field: Field,
   // Core nodes are available via individual imports
   custom: CustomNode,
   domain: DomainNode,
@@ -114,4 +119,5 @@ export const nodeConfigs = {
   data: dataNodeConfig,
   actor: actorConfig,
   externalSystem: externalSystemConfig,
+  field: fieldConfig,
 };
