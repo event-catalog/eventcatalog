@@ -1774,6 +1774,209 @@ describe('Governance', () => {
     });
   });
 
+  describe('evaluateGovernanceRules - schema_breaking_change', () => {
+    it('triggers schema_breaking_change when schema has breaking changes per strategy', () => {
+      const config: GovernanceConfig = {
+        compatibility: { strategy: 'BACKWARD' },
+        rules: [
+          {
+            name: 'breaking-schema-rule',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
+        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
+      );
+
+      const baseSnapshot = makeSnapshot(
+        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
+        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].trigger).toBe('schema_breaking_change');
+    });
+
+    it('does not trigger when compatibility strategy is NONE', () => {
+      const config: GovernanceConfig = {
+        compatibility: { strategy: 'NONE' },
+        rules: [
+          {
+            name: 'breaking-schema-rule',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
+        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+      expect(results).toHaveLength(0);
+    });
+
+    it('does not trigger when no compatibility config is set', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'breaking-schema-rule',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
+        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+      expect(results).toHaveLength(0);
+    });
+
+    it('respects resource filters for schema_breaking_change', () => {
+      const config: GovernanceConfig = {
+        compatibility: { strategy: 'BACKWARD' },
+        rules: [
+          {
+            name: 'breaking-schema-rule',
+            when: ['schema_breaking_change'],
+            resources: ['message:OrderCreated'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+          {
+            resourceId: 'PaymentProcessed',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersService', sends: [{ id: 'OrderCreated' }] },
+          { id: 'PaymentService', sends: [{ id: 'PaymentProcessed' }] },
+        ],
+        {
+          events: [
+            { id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' },
+            { id: 'PaymentProcessed', version: '1.0.0', name: 'PaymentProcessed' },
+          ],
+        }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].breakingSchemaChanges).toHaveLength(1);
+      expect(results[0].breakingSchemaChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('schema_breaking_change with fail action preserves fail action on result', () => {
+      const config: GovernanceConfig = {
+        compatibility: { strategy: 'BACKWARD' },
+        rules: [
+          {
+            name: 'block-breaking-changes',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'fail', message: 'Breaking schema changes are not allowed' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
+        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].rule.actions[0].type).toBe('fail');
+    });
+  });
+
   describe('formatGovernanceOutput - schema_changed', () => {
     it('when formatting schema_changed output, it includes the changed message type and impacted consumer names', () => {
       const results: GovernanceResult[] = [

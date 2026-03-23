@@ -5,7 +5,7 @@ import yaml from 'js-yaml';
 import { satisfies, validRange } from 'semver';
 import createSDK from '@eventcatalog/sdk';
 import type { SnapshotDiff, RelationshipChange, CatalogSnapshot, ResourceChange } from '@eventcatalog/sdk';
-import type { GovernanceConfig, GovernanceTrigger, GovernanceResult, DeprecationChange, SchemaChange } from './types';
+import type { GovernanceConfig, GovernanceTrigger, GovernanceResult, DeprecationChange, SchemaChange, BreakingSchemaChange } from './types';
 
 export const loadGovernanceConfig = (catalogDir: string): GovernanceConfig => {
   const yamlPath = path.join(catalogDir, 'governance.yaml');
@@ -309,6 +309,44 @@ const evaluateSchemaChangeRules = (
   return results;
 };
 
+const evaluateBreakingSchemaChangeRules = (
+  diff: SnapshotDiff,
+  config: GovernanceConfig,
+  targetSnapshot: CatalogSnapshot
+): GovernanceResult[] => {
+  const breakingRules = config.rules.filter((rule) => rule.when.includes('schema_breaking_change'));
+  if (breakingRules.length === 0) return [];
+
+  const strategy = config.compatibility?.strategy;
+  if (!strategy || strategy === 'NONE') return [];
+
+  const schemaChangedResources = diff.resources.filter((rc) => {
+    if (!MESSAGE_RESOURCE_TYPES.has(rc.type)) return false;
+    return rc.changedFields?.includes('schemaHash');
+  });
+
+  if (schemaChangedResources.length === 0) return [];
+
+  const latestMessageVersions = buildLatestMessageVersionMap(targetSnapshot);
+  const breakingSchemaChanges: BreakingSchemaChange[] = schemaChangedResources.map((resourceChange) => ({
+    resourceChange,
+    producerServices: getServicesForSchemaChange(targetSnapshot, 'sends', resourceChange, latestMessageVersions),
+    consumerServices: getServicesForSchemaChange(targetSnapshot, 'receives', resourceChange, latestMessageVersions),
+    breakingChanges: [],
+  }));
+
+  const results: GovernanceResult[] = [];
+
+  for (const rule of breakingRules) {
+    const matched = breakingSchemaChanges.filter((sc) => matchesSchemaChangeResource(sc, rule.resources));
+    if (matched.length > 0) {
+      results.push({ rule, trigger: 'schema_breaking_change', matchedChanges: [], breakingSchemaChanges: matched });
+    }
+  }
+
+  return results;
+};
+
 export const evaluateGovernanceRules = (
   diff: SnapshotDiff,
   config: GovernanceConfig,
@@ -342,6 +380,7 @@ export const evaluateGovernanceRules = (
   if (targetSnapshot && targetMessageSets) {
     results.push(...evaluateDeprecationRules(diff, config, targetSnapshot, targetMessageSets, baseSnapshot));
     results.push(...evaluateSchemaChangeRules(diff, config, targetSnapshot));
+    results.push(...evaluateBreakingSchemaChangeRules(diff, config, targetSnapshot));
   }
 
   return results;
