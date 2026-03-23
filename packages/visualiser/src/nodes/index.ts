@@ -114,10 +114,11 @@ export const nodeComponents = {
   externalSystem2: ExternalSystem2Node,
 };
 
-export const nodeConfigs = {
-  event: eventConfig,
-  data: dataNodeConfig,
-  actor: actorConfig,
-  externalSystem: externalSystemConfig,
-  field: fieldConfig,
-};
+export const nodeConfigs: Record<string, import("../types").NodeConfiguration> =
+  {
+    event: eventConfig,
+    data: dataNodeConfig,
+    actor: actorConfig,
+    externalSystem: externalSystemConfig,
+    field: fieldConfig,
+  };

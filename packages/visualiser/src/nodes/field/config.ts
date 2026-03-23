@@ -1,6 +1,6 @@
 import { MarkerType } from "@xyflow/react";
 import { Database } from "lucide-react";
-import type { NodeConfiguration } from "../../types";
+import { NodeConfiguration } from "../../types";
 
 export default {
   type: "field",
@@ -26,4 +26,4 @@ export default {
       },
     },
   },
-} satisfies NodeConfiguration;
+} as NodeConfiguration;
