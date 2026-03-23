@@ -4,6 +4,7 @@ import FieldFilters from './FieldFilters';
 import FieldsTable from './FieldsTable';
 import type { FieldResult } from './FieldsTable';
 import FieldNodeGraph from './FieldNodeGraph';
+import { buildUrl } from '@utils/url-builder';
 
 function DummyNode({
   type,
@@ -283,7 +284,7 @@ export default function FieldsExplorer({ isScaleEnabled = false }: FieldsExplore
 
       try {
         const params = buildQueryParams(cursorValue ? { cursor: cursorValue } : undefined);
-        const response = await fetch(`/api/schemas/fields?${params.toString()}`, {
+        const response = await fetch(buildUrl(`/api/schemas/fields?${params.toString()}`), {
           signal: controller.signal,
         });
 
@@ -337,25 +338,33 @@ export default function FieldsExplorer({ isScaleEnabled = false }: FieldsExplore
     }
 
     try {
-      const params = new URLSearchParams();
-      params.set('path', fieldPath);
-      params.set('pageSize', '100');
+      // Fetch all pages of occurrences for this field path
+      let allOccurrences: FieldResult[] = [];
+      let nextCursor: string | null = null;
 
-      const response = await fetch(`/api/schemas/fields?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      do {
+        const params = new URLSearchParams();
+        params.set('path', fieldPath);
+        params.set('pageSize', '100');
+        if (nextCursor) params.set('cursor', nextCursor);
 
-      const data: FieldsApiResponse = await response.json();
-      const occurrences = data.fields || [];
+        const response = await fetch(buildUrl(`/api/schemas/fields?${params.toString()}`));
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data: FieldsApiResponse = await response.json();
+        allOccurrences = allOccurrences.concat(data.fields || []);
+        nextCursor = data.cursor;
+      } while (nextCursor);
 
       setSelectedField({
         path: fieldPath,
-        type: occurrences[0]?.type || 'unknown',
-        description: occurrences[0]?.description || '',
-        required: occurrences[0]?.required || false,
-        conflicts: occurrences[0]?.conflicts,
-        occurrences,
+        type: allOccurrences[0]?.type || 'unknown',
+        description: allOccurrences[0]?.description || '',
+        required: allOccurrences[0]?.required || false,
+        conflicts: allOccurrences[0]?.conflicts,
+        occurrences: allOccurrences,
       });
     } catch {
       // Silently fail — user can retry by clicking again

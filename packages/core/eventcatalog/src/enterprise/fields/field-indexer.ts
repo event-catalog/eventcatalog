@@ -6,7 +6,7 @@ import { extractSchemaFieldsDeep } from './field-extractor';
 function detectFormat(fileName: string): string {
   const ext = path.extname(fileName).toLowerCase();
   if (ext === '.proto') return 'proto';
-  if (ext === '.avro') return 'avro';
+  if (ext === '.avro' || ext === '.avsc') return 'avro';
   return 'json-schema';
 }
 
