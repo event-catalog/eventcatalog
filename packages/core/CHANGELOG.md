@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.1
+
+### Patch Changes
+
+- 02747f8: Update Astro dependency to ^6.0.8
+
 ## 3.26.0
 
 ### Minor Changes
