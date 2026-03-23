@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 3.26.0
+
+### Minor Changes
+
+- 1539e71: add schema fields explorer with field traceability, conflict detection, and node graph visualization
+
+### Patch Changes
+
+- Updated dependencies [1539e71]
+  - @eventcatalog/visualiser@3.16.0
+
 ## 3.25.6
 
 ### Patch Changes
