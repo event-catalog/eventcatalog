@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.3
+
+### Patch Changes
+
+- 6cbccb5: Widen @tailwindcss/vite version range to >=4.1.5 <4.2.2
+
 ## 3.26.2
 
 ### Patch Changes
