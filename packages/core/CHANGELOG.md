@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.4
+
+### Patch Changes
+
+- 214d9df: Fix SSR crash on schema/fields page by moving @xyflow/react CSS import from static to dynamic
+
 ## 3.26.3
 
 ### Patch Changes
