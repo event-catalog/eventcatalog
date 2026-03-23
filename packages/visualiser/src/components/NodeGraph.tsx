@@ -48,6 +48,7 @@ import { View as ViewNode } from "../nodes/view";
 import { Actor as ActorNode } from "../nodes/actor";
 import { ExternalSystem as ExternalSystemNode } from "../nodes/external-system";
 import { Note as NoteNode } from "../nodes/note";
+import { Field as FieldNode } from "../nodes/field";
 // Core nodes (default exports from flat files)
 import FlowNode from "../nodes/Flow";
 import EntityNode from "../nodes/Entity";
@@ -261,6 +262,7 @@ const NodeGraphBuilder = ({
       "data-products": wrapWithContextMenu(DataProductNode),
       group: GroupNode,
       note: memo((props: any) => <NoteNode {...props} readOnly={true} />),
+      field: wrapWithContextMenu(FieldNode),
     } as unknown as NodeTypes;
   }, []);
   const edgeTypes = useMemo(
@@ -883,6 +885,7 @@ const NodeGraphBuilder = ({
       step: "bg-gray-700",
       data: "bg-blue-600",
       "data-products": "bg-indigo-600",
+      field: "bg-cyan-600",
     };
 
     let legendForDomains: {

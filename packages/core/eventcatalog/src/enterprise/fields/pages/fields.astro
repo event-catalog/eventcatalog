@@ -1,0 +1,19 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import FieldsExplorer from '@components/FieldsExplorer/FieldsExplorer';
+import { isEventCatalogScaleEnabled } from '@utils/feature';
+
+export const prerender = false;
+---
+
+<VerticalSideBarLayout title="Fields Explorer - EventCatalog" showNestedSideBar={false}>
+  <main class="flex docs-layout h-[calc(100vh-var(--header-height,0px)-64px)] bg-[rgb(var(--ec-page-bg))]">
+    <div class="flex docs-layout w-full h-full">
+      <div class="w-full flex flex-col h-full">
+        <div class="w-full max-w-none! h-full flex flex-col overflow-hidden">
+          <FieldsExplorer client:load isScaleEnabled={isEventCatalogScaleEnabled()} />
+        </div>
+      </div>
+    </div>
+  </main>
+</VerticalSideBarLayout>

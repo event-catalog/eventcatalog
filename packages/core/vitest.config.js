@@ -19,6 +19,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     testTimeout: 5000,
+    exclude: ['**/node_modules/**', '**/dist/**', '**/fields-db.test.*'],
     env: {
       PROJECT_DIR: path.resolve(__dirname, 'examples/default'),
     },

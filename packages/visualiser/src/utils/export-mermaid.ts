@@ -44,6 +44,8 @@ const NODE_SHAPE_MAP: Record<string, [string, string]> = {
   custom: ["[", "]"], // rectangle
   view: ["[", "]"], // rectangle
   note: ["[", "]"], // rectangle
+  field: ["[(", ")]"], // cylinder
+  fields: ["[(", ")]"], // cylinder
 };
 
 /**
@@ -77,6 +79,8 @@ const NODE_STYLE_CLASSES: Record<string, string> = {
   custom: "fill:#9ca3af,stroke:#6b7280,color:#000",
   view: "fill:#9ca3af,stroke:#6b7280,color:#000",
   note: "fill:#fef3c7,stroke:#d97706,color:#000",
+  field: "fill:#06b6d4,stroke:#0891b2,color:#fff",
+  fields: "fill:#06b6d4,stroke:#0891b2,color:#fff",
 };
 
 /**
@@ -203,6 +207,12 @@ export function getNodeLabel(node: Node): string {
 
   if (type === "note") {
     return (data as any).text || (data as any).label || "Note";
+  }
+
+  if (type === "field" || type === "fields") {
+    const name = (data as any).name || node.id;
+    const fieldType = (data as any).type;
+    return fieldType ? `${name} (${fieldType})` : name;
   }
 
   // Fallback: try common data patterns
