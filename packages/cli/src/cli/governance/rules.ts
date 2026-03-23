@@ -38,6 +38,15 @@ export const loadGovernanceConfig = (catalogDir: string): GovernanceConfig => {
     }
   }
 
+  if (parsed?.compatibility?.strategy) {
+    const validStrategies = new Set(['BACKWARD', 'FORWARD', 'FULL', 'NONE']);
+    if (!validStrategies.has(parsed.compatibility.strategy)) {
+      throw new Error(
+        `Invalid compatibility strategy "${parsed.compatibility.strategy}". Must be one of: BACKWARD, FORWARD, FULL, NONE.`
+      );
+    }
+  }
+
   return {
     ...(parsed?.compatibility && { compatibility: parsed.compatibility }),
     rules,
@@ -496,12 +505,16 @@ export const enrichSchemaContent = async (
           bsc.afterSchemaHash = after.schemaHash;
 
           if (before.content && after.content) {
+            let beforeSchema: object | undefined;
+            let afterSchema: object | undefined;
             try {
-              const beforeSchema = JSON.parse(before.content);
-              const afterSchema = JSON.parse(after.content);
-              bsc.breakingChanges = detectBreakingChanges(beforeSchema, afterSchema, compatibilityStrategy);
+              beforeSchema = JSON.parse(before.content);
+              afterSchema = JSON.parse(after.content);
             } catch {
               // Schema is not valid JSON — skip breaking change detection
+            }
+            if (beforeSchema && afterSchema) {
+              bsc.breakingChanges = detectBreakingChanges(beforeSchema, afterSchema, compatibilityStrategy);
             }
           }
         })()

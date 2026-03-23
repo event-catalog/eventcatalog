@@ -3463,6 +3463,18 @@ rules:
       const config = loadGovernanceConfig(TEMP_DIR);
       expect(config.compatibility).toBeUndefined();
     });
+
+    it('throws on invalid compatibility strategy', () => {
+      const yamlContent = `
+compatibility:
+  strategy: BACKWARDS
+rules: []
+`;
+      fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), yamlContent);
+      expect(() => loadGovernanceConfig(TEMP_DIR)).toThrow(
+        'Invalid compatibility strategy "BACKWARDS". Must be one of: BACKWARD, FORWARD, FULL, NONE.'
+      );
+    });
   });
 
   describe('executeGovernanceActions - schema_breaking_change webhook', () => {
