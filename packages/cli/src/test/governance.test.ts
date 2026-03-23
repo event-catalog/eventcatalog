@@ -3232,4 +3232,38 @@ describe('Governance', () => {
       });
     });
   });
+
+  describe('loadGovernanceConfig - compatibility', () => {
+    it('parses compatibility.strategy from governance.yaml', () => {
+      const yamlContent = `
+compatibility:
+  strategy: BACKWARD
+rules:
+  - name: breaking-change-rule
+    when: [schema_breaking_change]
+    resources: ['*']
+    actions:
+      - type: webhook
+        url: https://example.com/hook
+`;
+      fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), yamlContent);
+      const config = loadGovernanceConfig(TEMP_DIR);
+      expect(config.compatibility).toEqual({ strategy: 'BACKWARD' });
+      expect(config.rules).toHaveLength(1);
+    });
+
+    it('defaults compatibility to undefined when not specified', () => {
+      const yamlContent = `
+rules:
+  - name: some-rule
+    when: [consumer_added]
+    resources: ['*']
+    actions:
+      - type: console
+`;
+      fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), yamlContent);
+      const config = loadGovernanceConfig(TEMP_DIR);
+      expect(config.compatibility).toBeUndefined();
+    });
+  });
 });

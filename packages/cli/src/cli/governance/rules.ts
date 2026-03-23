@@ -29,7 +29,10 @@ export const loadGovernanceConfig = (catalogDir: string): GovernanceConfig => {
     }
   }
 
-  return { rules };
+  return {
+    ...(parsed?.compatibility && { compatibility: parsed.compatibility }),
+    rules,
+  };
 };
 
 const TRIGGER_FILTERS: Partial<Record<GovernanceTrigger, (change: RelationshipChange) => boolean>> = {
