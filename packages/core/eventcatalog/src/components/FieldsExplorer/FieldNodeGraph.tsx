@@ -22,7 +22,6 @@ import { X, ChevronDown, ChevronRight, Search, AlertTriangle } from 'lucide-reac
 import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, ServerIcon } from '@heroicons/react/24/solid';
 import { getNodesAndEdges, type FieldOccurrence } from '@utils/node-graphs/field-node-graph';
 import * as ContextMenu from '@radix-ui/react-context-menu';
-import '@xyflow/react/dist/style.css';
 
 interface FieldNodeGraphProps {
   fieldPath: string;
@@ -223,6 +222,7 @@ function FieldNodeGraphInner({
 
   // Load visualiser styles (animations, hover effects, theme variables)
   useEffect(() => {
+    import('@xyflow/react/dist/style.css');
     import('@eventcatalog/visualiser/styles-core.css');
   }, []);
 
