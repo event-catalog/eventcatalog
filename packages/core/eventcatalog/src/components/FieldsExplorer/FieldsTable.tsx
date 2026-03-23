@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SearchX, Copy, Check, AlertTriangle } from 'lucide-react';
 import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+import { buildUrl } from '@utils/url-builder';
 
 export interface FieldResult {
   path: string;
@@ -50,7 +51,7 @@ const getColorAndIconForMessageType = (type: string) => {
 function MessageBadge({ id, name, version, type }: { id: string; name?: string; version: string; type: string }) {
   const { color, Icon } = getColorAndIconForMessageType(type);
   const collection = type === 'query' ? 'queries' : `${type}s`;
-  const messageUrl = `/docs/${collection}/${id}/${version}`;
+  const messageUrl = buildUrl(`/docs/${collection}/${id}/${version}`);
   return (
     <a
       href={messageUrl}
