@@ -7,11 +7,26 @@ type JsonSchemaObject = {
   [key: string]: any;
 };
 
+const hasProperties = (schema: JsonSchemaObject): boolean =>
+  !!(schema.properties || schema.required);
+
 export const diffJsonSchemas = (
   before: JsonSchemaObject,
   after: JsonSchemaObject,
 ): SchemaChange[] => {
   const changes: SchemaChange[] = [];
+
+  // Detect root-level type changes
+  if (before.type && after.type && before.type !== after.type) {
+    changes.push({
+      type: "TYPE_CHANGED",
+      field: "(root)",
+      message: `Root type changed from '${before.type}' to '${after.type}'`,
+      previousType: before.type,
+      currentType: after.type,
+    });
+  }
+
   compareProperties(before, after, "", changes);
   return changes;
 };
@@ -89,10 +104,12 @@ const compareProperties = (
       });
     }
 
-    // Recurse into nested objects
+    // Recurse into nested objects (explicit type or implicit via properties/required)
     if (
       beforeProps[field].type === "object" ||
-      afterProps[field].type === "object"
+      afterProps[field].type === "object" ||
+      hasProperties(beforeProps[field]) ||
+      hasProperties(afterProps[field])
     ) {
       compareProperties(
         beforeProps[field],

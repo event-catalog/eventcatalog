@@ -321,5 +321,55 @@ describe("diffJsonSchemas", () => {
       });
       expect(changes).toHaveLength(3);
     });
+
+    it("detects root-level type changes", () => {
+      const before = {
+        type: "object",
+        properties: { name: { type: "string" } },
+      };
+      const after = { type: "array" };
+      const changes = diffJsonSchemas(before, after);
+      expect(changes).toContainEqual({
+        type: "TYPE_CHANGED",
+        field: "(root)",
+        message: "Root type changed from 'object' to 'array'",
+        previousType: "object",
+        currentType: "array",
+      });
+    });
+
+    it("recurses into implicit object nodes (no explicit type)", () => {
+      const before = {
+        type: "object",
+        properties: {
+          address: {
+            properties: {
+              street: { type: "string" },
+              city: { type: "string" },
+            },
+            required: ["street"],
+          },
+        },
+      };
+      const after = {
+        type: "object",
+        properties: {
+          address: {
+            properties: {
+              street: { type: "string" },
+            },
+            required: ["street"],
+          },
+        },
+      };
+      const changes = diffJsonSchemas(before, after);
+      expect(changes).toEqual([
+        {
+          type: "FIELD_REMOVED_OPTIONAL",
+          field: "address.city",
+          message: "Optional field 'address.city' was removed",
+        },
+      ]);
+    });
   });
 });
