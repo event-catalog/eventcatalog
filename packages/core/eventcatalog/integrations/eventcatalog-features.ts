@@ -95,15 +95,15 @@ export default function eventCatalogIntegration(): AstroIntegration {
           });
         }
 
-        // Fields Explorer (requires SSR)
+        // Fields Explorer (requires SSR — pages live outside src/pages to avoid static-mode auto-discovery)
         if (isSSR()) {
           params.injectRoute({
             pattern: '/schemas/fields',
-            entrypoint: path.join(catalogDirectory, 'src/pages/schemas/fields/index.astro'),
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/fields/pages/fields.astro'),
           });
           params.injectRoute({
             pattern: '/api/schemas/fields',
-            entrypoint: path.join(catalogDirectory, 'src/pages/api/schemas/fields/index.ts'),
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/fields/pages/api/fields.ts'),
           });
         }
 
