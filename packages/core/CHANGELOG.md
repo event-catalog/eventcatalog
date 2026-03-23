@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.5
+
+### Patch Changes
+
+- 26f2b3d: Fix SSR crash on schema/fields page by adding @xyflow/react to vite.ssr.noExternal so Vite handles CSS imports during SSR
+
 ## 3.26.4
 
 ### Patch Changes
