@@ -149,6 +149,7 @@ export default defineConfig({
       }
     },
     ssr: {
+      noExternal: ['@xyflow/react'],
       external: ['eventcatalog.auth.js', 'eventcatalog.chat.js', 'better-sqlite3'],
     },
     optimizeDeps: {
