@@ -35,7 +35,7 @@ function extractProtoFields(content: string): DeepSchemaField[] {
       path: match[3],
       type,
       description: match[4]?.trim() || '',
-      required: false,
+      required: modifier === 'required',
     });
   }
   return fields;

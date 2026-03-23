@@ -49,7 +49,8 @@ const getColorAndIconForMessageType = (type: string) => {
 
 function MessageBadge({ id, name, version, type }: { id: string; name?: string; version: string; type: string }) {
   const { color, Icon } = getColorAndIconForMessageType(type);
-  const messageUrl = `/docs/${type}s/${id}/${version}`;
+  const collection = type === 'query' ? 'queries' : `${type}s`;
+  const messageUrl = `/docs/${collection}/${id}/${version}`;
   return (
     <a
       href={messageUrl}

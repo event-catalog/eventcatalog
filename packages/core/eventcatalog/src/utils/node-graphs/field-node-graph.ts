@@ -103,7 +103,7 @@ export const getNodesAndEdges = ({
               id: occ.messageId,
               version: occ.messageVersion,
               name: occ.messageName || occ.messageId,
-              collection: `${occ.messageType}s`,
+              collection: occ.messageType === 'query' ? 'queries' : `${occ.messageType}s`,
             }),
             mode,
           },
