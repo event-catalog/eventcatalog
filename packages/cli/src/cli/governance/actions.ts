@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { CatalogSnapshot } from '@eventcatalog/sdk';
+import type { CompatibilityStrategy } from '@eventcatalog/breaking-changes';
 import type { GovernanceResult } from './types';
 import { resolveEnvVars, isProducerTrigger, getChangeVerb } from './rules';
 
@@ -12,6 +13,7 @@ export type GovernanceActionOptions = {
   serviceOwners?: ServiceOwnersMap;
   baseRef?: string;
   targetRef?: string;
+  compatibilityStrategy?: CompatibilityStrategy;
 };
 
 export const buildMessageTypeMap = (snapshot: CatalogSnapshot): MessageTypeMap => {
@@ -42,7 +44,7 @@ export const executeGovernanceActions = async (
   results: GovernanceResult[],
   opts: GovernanceActionOptions = {}
 ): Promise<string[]> => {
-  const { messageTypes, status, serviceOwners, baseRef, targetRef } = opts;
+  const { messageTypes, status, serviceOwners, baseRef, targetRef, compatibilityStrategy } = opts;
   const webhookCalls: Array<{ urlTemplate: string; request: Promise<Response> }> = [];
   const now = new Date().toISOString();
 
@@ -92,6 +94,52 @@ export const executeGovernanceActions = async (
               },
               consumers: sc.consumerServices,
               producers: sc.producerServices,
+            },
+          };
+
+          webhookCalls.push({
+            urlTemplate: action.url,
+            request: fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) }),
+          });
+        }
+        continue;
+      }
+
+      // Handle breaking schema changes
+      if (result.breakingSchemaChanges && result.breakingSchemaChanges.length > 0) {
+        for (const bsc of result.breakingSchemaChanges) {
+          const messageType = messageTypes?.get(bsc.resourceChange.resourceId) || 'message';
+
+          const payload = {
+            specversion: '1.0',
+            type: 'eventcatalog.governance.schema_breaking_change',
+            source: 'eventcatalog/governance',
+            id: randomUUID(),
+            time: now,
+            datacontenttype: 'application/json',
+            data: {
+              schemaVersion: 1,
+              ...(status && { status }),
+              ...(compatibilityStrategy && { compatibilityStrategy }),
+              summary: `Breaking schema change detected for ${messageType} ${bsc.resourceChange.resourceId}`,
+              message: {
+                id: bsc.resourceChange.resourceId,
+                version: bsc.resourceChange.version,
+                type: messageType,
+              },
+              schema: {
+                beforeHash: bsc.beforeSchemaHash ?? null,
+                afterHash: bsc.afterSchemaHash ?? null,
+                beforePath: bsc.beforeSchemaPath ?? null,
+                afterPath: bsc.afterSchemaPath ?? null,
+              },
+              breakingChanges: bsc.breakingChanges,
+              refs: {
+                base: baseRef ?? null,
+                target: targetRef ?? null,
+              },
+              consumers: bsc.consumerServices,
+              producers: bsc.producerServices,
             },
           };
 

@@ -3469,4 +3469,76 @@ rules:
       expect(config.compatibility).toBeUndefined();
     });
   });
+
+  describe('executeGovernanceActions - schema_breaking_change webhook', () => {
+    it('sends correct CloudEvents payload for schema_breaking_change', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('ok', { status: 200 }));
+
+      const results: GovernanceResult[] = [
+        {
+          rule: {
+            name: 'breaking-rule',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'webhook', url: 'https://example.com/hook' }],
+          },
+          trigger: 'schema_breaking_change',
+          matchedChanges: [],
+          breakingSchemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event',
+                changeType: 'modified',
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [{ id: 'PaymentService', version: '1.0.0', owners: ['team-payments'] }],
+              producerServices: [{ id: 'OrdersService', version: '1.0.0' }],
+              beforeSchemaHash: 'abc123',
+              afterSchemaHash: 'def456',
+              beforeSchemaPath: 'schema.json',
+              afterSchemaPath: 'schema.json',
+              breakingChanges: [
+                {
+                  type: 'TYPE_CHANGED',
+                  field: 'amount',
+                  message: "Field 'amount' type changed from 'string' to 'number'",
+                  previousType: 'string',
+                  currentType: 'number',
+                  breaking: true as const,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const messageTypes: MessageTypeMap = new Map([['OrderCreated', 'event']]);
+
+      await executeGovernanceActions(results, {
+        messageTypes,
+        baseRef: 'main',
+        targetRef: 'feature-branch',
+        compatibilityStrategy: 'BACKWARD',
+      });
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      const [, options] = fetchSpy.mock.calls[0];
+      const body = JSON.parse(options.body as string);
+      expect(body.type).toBe('eventcatalog.governance.schema_breaking_change');
+      expect(body.specversion).toBe('1.0');
+      expect(body.data.compatibilityStrategy).toBe('BACKWARD');
+      expect(body.data.message.id).toBe('OrderCreated');
+      expect(body.data.breakingChanges).toHaveLength(1);
+      expect(body.data.breakingChanges[0].type).toBe('TYPE_CHANGED');
+      expect(body.data.breakingChanges[0].field).toBe('amount');
+      expect(body.data.consumers).toHaveLength(1);
+      expect(body.data.producers).toHaveLength(1);
+      expect(body.data.schema.beforeHash).toBe('abc123');
+      expect(body.data.schema.afterHash).toBe('def456');
+
+      fetchSpy.mockRestore();
+    });
+  });
 });

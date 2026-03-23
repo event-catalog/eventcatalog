@@ -116,6 +116,7 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<Gov
       serviceOwners,
       baseRef: baseBranch,
       targetRef: opts.target || 'working-directory',
+      compatibilityStrategy: config.compatibility?.strategy,
     });
 
     // Collect failures
