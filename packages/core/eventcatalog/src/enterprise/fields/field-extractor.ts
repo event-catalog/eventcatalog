@@ -116,10 +116,15 @@ function extractJsonSchemaFields(content: string): DeepSchemaField[] {
 }
 
 function walkJsonSchema(node: any, prefix: string, requiredList: string[], rootSchema: any, fields: DeepSchemaField[]): void {
-  // Handle allOf by merging
+  // Handle allOf by merging (resolve $ref entries first)
   if (node.allOf && Array.isArray(node.allOf)) {
     const merged: any = { type: 'object', properties: {}, required: [] };
-    for (const sub of node.allOf) {
+    for (let sub of node.allOf) {
+      if (sub.$ref) {
+        const resolved = resolveLocalRef(sub.$ref, rootSchema);
+        if (resolved) sub = resolved;
+        else continue;
+      }
       Object.assign(merged.properties, sub.properties || {});
       merged.required.push(...(sub.required || []));
     }

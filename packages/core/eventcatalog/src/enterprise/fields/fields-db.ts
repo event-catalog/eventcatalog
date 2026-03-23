@@ -251,18 +251,26 @@ export class FieldsDatabase {
       bindings.push(`${q}*`);
     }
 
-    // Facet filters
+    // Facet filters (support comma-separated multi-select)
     if (format) {
-      conditions.push(`f.schema_format = ?`);
-      bindings.push(format);
+      const formats = format
+        .split(',')
+        .map((f) => f.trim())
+        .filter(Boolean);
+      conditions.push(`f.schema_format IN (${formats.map(() => '?').join(', ')})`);
+      bindings.push(...formats);
     }
     if (type) {
       conditions.push(`f.type = ?`);
       bindings.push(type);
     }
     if (messageType) {
-      conditions.push(`f.message_type = ?`);
-      bindings.push(messageType);
+      const types = messageType
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+      conditions.push(`f.message_type IN (${types.map(() => '?').join(', ')})`);
+      bindings.push(...types);
     }
     if (message) {
       conditions.push(`f.message_id = ?`);
