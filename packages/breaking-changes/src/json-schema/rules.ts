@@ -1,24 +1,29 @@
-import type { CompatibilityStrategy, SchemaChange, BreakingChange, SchemaChangeType } from '../types';
-import { diffJsonSchemas } from './differ';
+import type {
+  CompatibilityStrategy,
+  SchemaChange,
+  BreakingChange,
+  SchemaChangeType,
+} from "../types";
+import { diffJsonSchemas } from "./differ";
 
 const BREAKING_RULES: Record<CompatibilityStrategy, Set<SchemaChangeType>> = {
   BACKWARD: new Set([
-    'FIELD_ADDED_REQUIRED',
-    'FIELD_REMOVED_REQUIRED',
-    'TYPE_CHANGED',
-    'REQUIRED_ADDED',
+    "FIELD_ADDED_REQUIRED",
+    "FIELD_REMOVED_REQUIRED",
+    "TYPE_CHANGED",
+    "REQUIRED_ADDED",
   ]),
   FORWARD: new Set([
-    'FIELD_ADDED_REQUIRED',
-    'FIELD_REMOVED_REQUIRED',
-    'TYPE_CHANGED',
-    'REQUIRED_ADDED',
+    "FIELD_ADDED_REQUIRED",
+    "FIELD_REMOVED_REQUIRED",
+    "TYPE_CHANGED",
+    "REQUIRED_ADDED",
   ]),
   FULL: new Set([
-    'FIELD_ADDED_REQUIRED',
-    'FIELD_REMOVED_REQUIRED',
-    'TYPE_CHANGED',
-    'REQUIRED_ADDED',
+    "FIELD_ADDED_REQUIRED",
+    "FIELD_REMOVED_REQUIRED",
+    "TYPE_CHANGED",
+    "REQUIRED_ADDED",
   ]),
   NONE: new Set(),
 };
@@ -26,9 +31,9 @@ const BREAKING_RULES: Record<CompatibilityStrategy, Set<SchemaChangeType>> = {
 export const detectBreakingChanges = (
   before: object,
   after: object,
-  strategy: CompatibilityStrategy
+  strategy: CompatibilityStrategy,
 ): BreakingChange[] => {
-  if (strategy === 'NONE') return [];
+  if (strategy === "NONE") return [];
 
   const changes = diffJsonSchemas(before, after);
   const breakingTypes = BREAKING_RULES[strategy];

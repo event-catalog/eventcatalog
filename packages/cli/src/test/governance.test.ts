@@ -1801,15 +1801,13 @@ describe('Governance', () => {
         ]
       );
 
-      const targetSnapshot = makeSnapshot(
-        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
-        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
-      );
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
 
-      const baseSnapshot = makeSnapshot(
-        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
-        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
-      );
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
 
       const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
 
@@ -1843,10 +1841,9 @@ describe('Governance', () => {
         ]
       );
 
-      const targetSnapshot = makeSnapshot(
-        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
-        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
-      );
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
 
       const results = evaluateGovernanceRules(diff, config, targetSnapshot);
       expect(results).toHaveLength(0);
@@ -1877,10 +1874,9 @@ describe('Governance', () => {
         ]
       );
 
-      const targetSnapshot = makeSnapshot(
-        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
-        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
-      );
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
 
       const results = evaluateGovernanceRules(diff, config, targetSnapshot);
       expect(results).toHaveLength(0);
@@ -1965,10 +1961,9 @@ describe('Governance', () => {
         ]
       );
 
-      const targetSnapshot = makeSnapshot(
-        [{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }],
-        { events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }] }
-      );
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
 
       const results = evaluateGovernanceRules(diff, config, targetSnapshot);
 

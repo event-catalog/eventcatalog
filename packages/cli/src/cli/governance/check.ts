@@ -120,7 +120,9 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<Gov
     });
 
     // Collect failures
-    const failures = filteredResults.filter((r) => r.failed).map((r) => ({ ruleName: r.rule.name, messages: r.failMessages || [] }));
+    const failures = filteredResults
+      .filter((r) => r.failed)
+      .map((r) => ({ ruleName: r.rule.name, messages: r.failMessages || [] }));
 
     if (opts.format === 'json') {
       const jsonOutput = {

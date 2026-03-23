@@ -5,7 +5,14 @@ import yaml from 'js-yaml';
 import { satisfies, validRange } from 'semver';
 import createSDK from '@eventcatalog/sdk';
 import type { SnapshotDiff, RelationshipChange, CatalogSnapshot, ResourceChange } from '@eventcatalog/sdk';
-import type { GovernanceConfig, GovernanceTrigger, GovernanceResult, DeprecationChange, SchemaChange, BreakingSchemaChange } from './types';
+import type {
+  GovernanceConfig,
+  GovernanceTrigger,
+  GovernanceResult,
+  DeprecationChange,
+  SchemaChange,
+  BreakingSchemaChange,
+} from './types';
 import { detectBreakingChanges } from '@eventcatalog/breaking-changes';
 import type { CompatibilityStrategy } from '@eventcatalog/breaking-changes';
 

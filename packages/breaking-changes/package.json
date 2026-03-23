@@ -23,7 +23,9 @@
     "format": "prettier --write .",
     "format:diff": "prettier --list-different ."
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.14.10",
