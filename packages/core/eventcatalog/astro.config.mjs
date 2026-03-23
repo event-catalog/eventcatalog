@@ -30,12 +30,7 @@ const compress = config.compress ?? false;
 
 
 const expressiveCodeConfig = {
-  themes: ['github-light', 'andromeeda'],
-  themeCssSelector: (theme) => {
-    // Map expressive-code theme names to EventCatalog's data-theme attribute
-    if (theme.name === 'github-light') return '[data-theme="light"]';
-    return '[data-theme="dark"]';
-  },
+  themes: ['andromeeda'],
   defaultProps: {
     wrap: true,
   },
