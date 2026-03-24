@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.26.6
+
+### Patch Changes
+
+- 038e402: Fix SSR compatibility: remove CSS import from NodeGraph that breaks server-side rendering, add proper type assertion for lazy-loaded component, and export NodeGraphProps type
+- Updated dependencies [038e402]
+  - @eventcatalog/visualiser@3.16.1
+
 ## 3.26.5
 
 ### Patch Changes
