@@ -12,7 +12,9 @@ import { useCallback, lazy, Suspense, useEffect } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import { buildUrl } from '@utils/url-builder';
 
-const NodeGraph = lazy(() => import('@eventcatalog/visualiser').then((module) => ({ default: module.NodeGraph })));
+const NodeGraph = lazy(() =>
+  import('@eventcatalog/visualiser').then((module) => ({ default: module.NodeGraph }))
+) as React.LazyExoticComponent<React.ComponentType<AstroNodeGraphProps & Record<string, unknown>>>;
 
 interface AstroNodeGraphProps {
   id: string;

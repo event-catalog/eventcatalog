@@ -83,7 +83,7 @@ export const getNodesAndEdges = ({
   for (const occ of occurrences) {
     const msgNodeId = `msg-${occ.messageId}-${occ.messageVersion}`;
     const occType = occ.fieldType || fieldType;
-    const fieldNodeId = fieldNodeIds.get(occType) || fieldNodeIds.values().next().value;
+    const fieldNodeId = fieldNodeIds.get(occType) || fieldNodeIds.values().next().value!;
 
     if (!addedNodes.has(msgNodeId)) {
       nodes.push(
