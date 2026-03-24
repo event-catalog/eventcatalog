@@ -26,7 +26,8 @@ import {
   getViewportForBounds,
   type NodeTypes,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+// Styles are provided via styles.css / styles-core.css entry points.
+// Do NOT import CSS here — it breaks SSR (Node cannot load .css files).
 import {
   ExternalLink,
   HistoryIcon,
@@ -1690,4 +1691,5 @@ const NodeGraph = ({
   );
 };
 
+export type { NodeGraphProps };
 export default NodeGraph;
