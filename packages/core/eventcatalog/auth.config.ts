@@ -124,6 +124,7 @@ const getAuthConfig = async () => {
     const providers = await getAuthProviders();
 
     return {
+      trustHost: true,
       providers,
       callbacks: {
         async signIn({ user, account, profile }: { user: User; account: Account | null; profile?: Profile }) {

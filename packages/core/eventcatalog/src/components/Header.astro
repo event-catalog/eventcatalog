@@ -256,7 +256,12 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
       });
 
       document.getElementById('signout-btn')?.addEventListener('click', async () => {
-        await signOut();
+        try {
+          await signOut();
+        } catch (error) {
+          console.error('Sign out failed:', error);
+          alert('Sign out failed. Please check your AUTH_TRUST_HOST configuration if running behind a reverse proxy.');
+        }
       });
     }
   }
