@@ -13,7 +13,7 @@ app.get('/', async (c) => {
     const url = new URL(c.req.raw.url);
     const sp = url.searchParams;
 
-    const db = getFieldsDatabase(dbPath);
+    const db = await getFieldsDatabase(dbPath);
     const params = {
       q: sp.get('q') || undefined,
       format: sp.get('format') || undefined,
