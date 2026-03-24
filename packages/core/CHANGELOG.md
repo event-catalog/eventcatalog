@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.8
+
+### Patch Changes
+
+- 6418562: Fix auth behind reverse proxy: default trustHost to true and add signout error handling
+
 ## 3.26.7
 
 ### Patch Changes
