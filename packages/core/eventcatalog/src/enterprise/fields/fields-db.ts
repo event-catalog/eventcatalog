@@ -271,8 +271,9 @@ export class FieldsDatabase {
 
     // Text search using LIKE (replaces FTS5)
     if (q) {
-      conditions.push(`(f.path LIKE ? OR f.description LIKE ? OR f.type LIKE ?)`);
-      const term = `%${q}%`;
+      conditions.push(`(f.path LIKE ? ESCAPE '\\' OR f.description LIKE ? ESCAPE '\\' OR f.type LIKE ? ESCAPE '\\')`);
+      const escaped = q.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+      const term = `%${escaped}%`;
       bindings.push(term, term, term);
     }
 
