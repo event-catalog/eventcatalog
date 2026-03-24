@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.7
+
+### Patch Changes
+
+- 1035f52: Replace better-sqlite3 (native module) with sql.js (WASM) to eliminate native compilation requirements during npm install
+
 ## 3.26.6
 
 ### Patch Changes
