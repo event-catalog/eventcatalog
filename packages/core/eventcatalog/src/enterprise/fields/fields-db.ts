@@ -1,5 +1,4 @@
-import Database from 'better-sqlite3';
-import type BetterSqlite3 from 'better-sqlite3';
+import initSqlJs, { type Database as SqlJsDatabase } from 'sql.js';
 import fs from 'node:fs';
 
 export interface FieldRow {
@@ -119,37 +118,61 @@ const SCHEMA_SQL = `
   CREATE INDEX IF NOT EXISTS idx_consumers_message ON message_consumers(message_id, message_version);
 `;
 
-const FTS_SQL = `
-  DROP TABLE IF EXISTS fields_fts;
-  CREATE VIRTUAL TABLE fields_fts USING fts5(
-    path,
-    description,
-    type,
-    content=fields,
-    content_rowid=id
-  );
-  INSERT INTO fields_fts(rowid, path, description, type) SELECT id, path, description, type FROM fields;
-`;
+/** Helper: run a SELECT and return rows as plain objects */
+function queryAll(db: SqlJsDatabase, sql: string, params: any[] = []): any[] {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  const rows: any[] = [];
+  while (stmt.step()) {
+    rows.push(stmt.getAsObject());
+  }
+  stmt.free();
+  return rows;
+}
+
+/** Helper: run a SELECT and return the first row as a plain object */
+function queryOne(db: SqlJsDatabase, sql: string, params: any[] = []): any {
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  const result = stmt.step() ? stmt.getAsObject() : null;
+  stmt.free();
+  return result;
+}
 
 export class FieldsDatabase {
-  public db: BetterSqlite3.Database;
+  public db: SqlJsDatabase;
+  private dbPath: string;
 
-  constructor(dbPath: string, options?: { recreate?: boolean }) {
+  private constructor(db: SqlJsDatabase, dbPath: string) {
+    this.db = db;
+    this.dbPath = dbPath;
+  }
+
+  static async create(dbPath: string, options?: { recreate?: boolean }): Promise<FieldsDatabase> {
     if (options?.recreate && fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
     }
-    this.db = new Database(dbPath);
-    this.db.pragma('journal_mode = WAL');
-    this.db.exec(SCHEMA_SQL);
+
+    const SQL = await initSqlJs();
+    let db: SqlJsDatabase;
+
+    if (!options?.recreate && fs.existsSync(dbPath)) {
+      const buffer = fs.readFileSync(dbPath);
+      db = new SQL.Database(buffer);
+    } else {
+      db = new SQL.Database();
+    }
+
+    db.run(SCHEMA_SQL);
+
+    return new FieldsDatabase(db, dbPath);
   }
 
   insertField(field: FieldRow & { messageName?: string; messageSummary?: string; messageOwners?: string[] }): void {
-    this.db
-      .prepare(
-        `INSERT INTO fields (path, type, description, required, schema_format, message_id, message_version, message_type, message_name, message_summary, message_owners)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .run(
+    this.db.run(
+      `INSERT INTO fields (path, type, description, required, schema_format, message_id, message_version, message_type, message_name, message_summary, message_owners)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
         field.path,
         field.type,
         field.description,
@@ -160,8 +183,9 @@ export class FieldsDatabase {
         field.messageType,
         field.messageName || '',
         field.messageSummary || '',
-        JSON.stringify(field.messageOwners || [])
-      );
+        JSON.stringify(field.messageOwners || []),
+      ]
+    );
   }
 
   insertProducer(
@@ -173,20 +197,19 @@ export class FieldsDatabase {
     serviceSummary?: string,
     serviceOwners?: string[]
   ): void {
-    this.db
-      .prepare(
-        `INSERT INTO message_producers (message_id, message_version, service_id, service_version, service_name, service_summary, service_owners)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-      )
-      .run(
+    this.db.run(
+      `INSERT INTO message_producers (message_id, message_version, service_id, service_version, service_name, service_summary, service_owners)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
         messageId,
         messageVersion,
         serviceId,
         serviceVersion,
         serviceName || '',
         serviceSummary || '',
-        JSON.stringify(serviceOwners || [])
-      );
+        JSON.stringify(serviceOwners || []),
+      ]
+    );
   }
 
   insertConsumer(
@@ -198,24 +221,26 @@ export class FieldsDatabase {
     serviceSummary?: string,
     serviceOwners?: string[]
   ): void {
-    this.db
-      .prepare(
-        `INSERT INTO message_consumers (message_id, message_version, service_id, service_version, service_name, service_summary, service_owners)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-      )
-      .run(
+    this.db.run(
+      `INSERT INTO message_consumers (message_id, message_version, service_id, service_version, service_name, service_summary, service_owners)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
         messageId,
         messageVersion,
         serviceId,
         serviceVersion,
         serviceName || '',
         serviceSummary || '',
-        JSON.stringify(serviceOwners || [])
-      );
+        JSON.stringify(serviceOwners || []),
+      ]
+    );
   }
 
-  rebuildFts(): void {
-    this.db.exec(FTS_SQL);
+  /** Save the in-memory database to disk */
+  save(): void {
+    const data = this.db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(this.dbPath, buffer);
   }
 
   queryFields(params: QueryFieldsParams): QueryFieldsResult {
@@ -244,11 +269,12 @@ export class FieldsDatabase {
       bindings.push(fieldPath);
     }
 
-    // FTS filter (quote the term so dots/brackets in field paths aren't parsed as FTS syntax)
+    // Text search using LIKE (replaces FTS5)
     if (q) {
-      conditions.push(`f.id IN (SELECT rowid FROM fields_fts WHERE fields_fts MATCH ?)`);
-      const escaped = q.replace(/"/g, '""');
-      bindings.push(`"${escaped}" *`);
+      conditions.push(`(f.path LIKE ? ESCAPE '\\' OR f.description LIKE ? ESCAPE '\\' OR f.type LIKE ? ESCAPE '\\')`);
+      const escaped = q.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+      const term = `%${escaped}%`;
+      bindings.push(term, term, term);
     }
 
     // Facet filters (support comma-separated multi-select)
@@ -324,47 +350,46 @@ export class FieldsDatabase {
 
     // Total count (without pagination)
     const countSql = `SELECT COUNT(*) as cnt FROM fields f ${whereClause}`;
-    const total = (this.db.prepare(countSql).get(...bindings) as any).cnt;
+    const total = (queryOne(this.db, countSql, bindings) as any).cnt;
 
     // Main query with pagination
     const mainSql = `SELECT f.* FROM fields f ${paginationWhere} ORDER BY f.id ASC LIMIT ?`;
     const allBindings = [...bindings, ...cursorBindings, pageSize];
-    const rows = this.db.prepare(mainSql).all(...allBindings) as any[];
+    const rows = queryAll(this.db, mainSql, allBindings);
 
-    // Prepare usedInCount query (distinct messages per field path)
-    const usedInStmt = this.db.prepare(
-      `SELECT COUNT(DISTINCT message_id || '/' || message_version) as cnt FROM fields WHERE path = ?`
-    );
-
-    // Prepare conflicts query (distinct types per field path with counts)
-    const conflictsStmt = this.db.prepare(
-      `SELECT type, COUNT(DISTINCT message_id || '/' || message_version) as count FROM fields WHERE path = ? GROUP BY type`
-    );
+    const parseOwners = (raw: string) => {
+      try {
+        return JSON.parse(raw || '[]');
+      } catch {
+        return [];
+      }
+    };
 
     // Gather producers and consumers for the returned fields
     const fields: FieldResult[] = rows.map((row) => {
-      const producers = this.db
-        .prepare(
-          `SELECT service_id, service_version, service_name, service_summary, service_owners FROM message_producers WHERE message_id = ? AND message_version = ?`
-        )
-        .all(row.message_id, row.message_version) as any[];
+      const producers = queryAll(
+        this.db,
+        `SELECT service_id, service_version, service_name, service_summary, service_owners FROM message_producers WHERE message_id = ? AND message_version = ?`,
+        [row.message_id, row.message_version]
+      );
 
-      const consumers = this.db
-        .prepare(
-          `SELECT service_id, service_version, service_name, service_summary, service_owners FROM message_consumers WHERE message_id = ? AND message_version = ?`
-        )
-        .all(row.message_id, row.message_version) as any[];
+      const consumers = queryAll(
+        this.db,
+        `SELECT service_id, service_version, service_name, service_summary, service_owners FROM message_consumers WHERE message_id = ? AND message_version = ?`,
+        [row.message_id, row.message_version]
+      );
 
-      const parseOwners = (raw: string) => {
-        try {
-          return JSON.parse(raw || '[]');
-        } catch {
-          return [];
-        }
-      };
+      const usedInCount = (
+        queryOne(this.db, `SELECT COUNT(DISTINCT message_id || '/' || message_version) as cnt FROM fields WHERE path = ?`, [
+          row.path,
+        ]) as any
+      ).cnt;
 
-      const usedInCount = (usedInStmt.get(row.path) as any).cnt;
-      const typeRows = conflictsStmt.all(row.path) as any[];
+      const typeRows = queryAll(
+        this.db,
+        `SELECT type, COUNT(DISTINCT message_id || '/' || message_version) as count FROM fields WHERE path = ? GROUP BY type`,
+        [row.path]
+      );
       const conflicts =
         typeRows.length > 1 ? typeRows.map((r) => ({ type: r.type as string, count: r.count as number })) : undefined;
 
@@ -402,13 +427,13 @@ export class FieldsDatabase {
 
     // Facets (computed from filtered set, not paginated)
     const formatsFacetSql = `SELECT f.schema_format as value, COUNT(*) as count FROM fields f ${whereClause} GROUP BY f.schema_format`;
-    const formats = this.db.prepare(formatsFacetSql).all(...bindings) as FacetEntry[];
+    const formats = queryAll(this.db, formatsFacetSql, bindings) as FacetEntry[];
 
     const typesFacetSql = `SELECT f.type as value, COUNT(*) as count FROM fields f ${whereClause} GROUP BY f.type`;
-    const types = this.db.prepare(typesFacetSql).all(...bindings) as FacetEntry[];
+    const types = queryAll(this.db, typesFacetSql, bindings) as FacetEntry[];
 
     const messageTypesFacetSql = `SELECT f.message_type as value, COUNT(*) as count FROM fields f ${whereClause} GROUP BY f.message_type`;
-    const messageTypes = this.db.prepare(messageTypesFacetSql).all(...bindings) as FacetEntry[];
+    const messageTypes = queryAll(this.db, messageTypesFacetSql, bindings) as FacetEntry[];
 
     // Build cursor for next page
     const lastRow = rows[rows.length - 1];
@@ -438,9 +463,9 @@ function decodeCursor(cursor: string): number {
 // Singleton management
 let instance: FieldsDatabase | null = null;
 
-export function getFieldsDatabase(dbPath: string): FieldsDatabase {
+export async function getFieldsDatabase(dbPath: string): Promise<FieldsDatabase> {
   if (!instance) {
-    instance = new FieldsDatabase(dbPath);
+    instance = await FieldsDatabase.create(dbPath);
   }
   return instance;
 }

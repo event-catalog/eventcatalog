@@ -150,10 +150,10 @@ export default defineConfig({
     },
     ssr: {
       noExternal: ['@xyflow/react'],
-      external: ['eventcatalog.auth.js', 'eventcatalog.chat.js', 'better-sqlite3'],
+      external: ['eventcatalog.auth.js', 'eventcatalog.chat.js'],
     },
     optimizeDeps: {
-      exclude: ['better-sqlite3'],
+      exclude: [],
       // Pre-bundle heavy dependencies so Vite doesn't discover and transform
       // them lazily on first request. This significantly reduces initial page
       // load time in dev mode.

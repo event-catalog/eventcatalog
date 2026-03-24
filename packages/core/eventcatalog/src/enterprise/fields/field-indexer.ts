@@ -35,7 +35,7 @@ export async function buildFieldsIndex(catalogDir: string, outputDir?: string): 
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  const db = new FieldsDatabase(dbPath, { recreate: true });
+  const db = await FieldsDatabase.create(dbPath, { recreate: true });
   const warnings: Warning[] = [];
 
   try {
@@ -121,7 +121,7 @@ export async function buildFieldsIndex(catalogDir: string, outputDir?: string): 
       }
     }
 
-    db.rebuildFts();
+    db.save();
     db.close();
     return { dbPath, warnings };
   } catch (err) {
