@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.2.4
+
+### Patch Changes
+
+- cb40037: Improve generated README with getting started guide, AI tools, integrations, and learning resources
+
 ## 4.2.3
 
 ### Patch Changes
