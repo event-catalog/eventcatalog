@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.9
+
+### Patch Changes
+
+- 6dcb136: fix fields index build failing with "entries is not iterable" when a catalog has no events, commands, or queries
+
 ## 3.26.8
 
 ### Patch Changes
