@@ -47,9 +47,9 @@ export async function buildFieldsIndex(catalogDir: string, outputDir?: string): 
     ]);
 
     const collections = [
-      { entries: events, type: 'event' as const },
-      { entries: commands, type: 'command' as const },
-      { entries: queries, type: 'query' as const },
+      { entries: events || [], type: 'event' as const },
+      { entries: commands || [], type: 'command' as const },
+      { entries: queries || [], type: 'query' as const },
     ];
 
     for (const { entries, type } of collections) {
