@@ -142,7 +142,8 @@ function walkJsonSchema(node: any, prefix: string, requiredList: string[], rootS
     if (prop.$ref) {
       const resolved = resolveLocalRef(prop.$ref, rootSchema);
       if (resolved) {
-        const type = resolved.type || 'object';
+        const rawRefType = resolved.type || 'object';
+        const type = Array.isArray(rawRefType) ? [...rawRefType].sort().join(' | ') : rawRefType;
         fields.push({ path, type, description: resolved.description || '', required: isRequired });
         if (resolved.properties) {
           walkJsonSchema(resolved, path, resolved.required || [], rootSchema, fields);
@@ -154,16 +155,18 @@ function walkJsonSchema(node: any, prefix: string, requiredList: string[], rootS
       continue;
     }
 
-    const type = prop.type || (prop.enum ? 'enum' : prop.$ref ? '$ref' : 'object');
+    const rawType = prop.type || (prop.enum ? 'enum' : prop.$ref ? '$ref' : 'object');
+    const typeList = Array.isArray(rawType) ? rawType : [rawType];
+    const type = Array.isArray(rawType) ? [...rawType].sort().join(' | ') : rawType;
     fields.push({ path, type, description: prop.description || '', required: isRequired });
 
-    // Recurse into nested objects
-    if (prop.type === 'object' && prop.properties) {
+    // Recurse into nested objects (handles both "type": "object" and "type": ["object", "null"])
+    if (typeList.includes('object') && prop.properties) {
       walkJsonSchema(prop, path, prop.required || [], rootSchema, fields);
     }
 
-    // Recurse into array items
-    if (prop.type === 'array' && prop.items) {
+    // Recurse into array items (handles both "type": "array" and "type": ["array", "null"])
+    if (typeList.includes('array') && prop.items) {
       if (prop.items.type === 'object' && prop.items.properties) {
         walkJsonSchema(prop.items, `${path}[]`, prop.items.required || [], rootSchema, fields);
       }
