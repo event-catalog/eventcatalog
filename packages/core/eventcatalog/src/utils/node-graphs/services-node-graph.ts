@@ -11,7 +11,10 @@ import {
   versionMatches,
   DEFAULT_NODE_WIDTH,
   DEFAULT_NODE_HEIGHT,
+  partitionMessagesByGroup,
 } from '@utils/node-graphs/utils/utils';
+
+const sanitizeGroupId = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 
 import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
 import { MarkerType } from '@xyflow/react';
@@ -124,15 +127,74 @@ export const getNodesAndEdges = async ({
   const bothSentAndReceived = findMatchingNodes(receives, sends);
   const bothReadsAndWrites = findMatchingNodes(readsFrom, writesTo);
 
+  // Partition messages by group
+  const receivesPartition = partitionMessagesByGroup(receivesRaw, receives);
+  const sendsPartition = partitionMessagesByGroup(sendsRaw, sends);
+
+  // Collect grouped message IDs to exclude from bothSentAndReceived
+  const groupedMessageIds = new Set<string>();
+  for (const [, groupData] of receivesPartition.grouped) {
+    groupData.messages.forEach((m: any) => groupedMessageIds.add(`${m.data.id}-${m.data.version}`));
+  }
+  for (const [, groupData] of sendsPartition.grouped) {
+    groupData.messages.forEach((m: any) => groupedMessageIds.add(`${m.data.id}-${m.data.version}`));
+  }
+
+  const filteredBothSentAndReceived = bothSentAndReceived.filter(
+    (m: any) => m && !groupedMessageIds.has(`${m.data.id}-${m.data.version}`)
+  );
+
+  const serviceNodeId = `${service.data.id}-${service.data.version}`;
+
   if (renderMessages) {
-    // All the messages the service receives
-    receives.forEach((receive) => {
-      const targetChannels = receivesRaw.find(
-        (receiveRaw) => receiveRaw.id === receive.data.id && versionMatches(receiveRaw.version, receive.data.version)
-      )?.from;
+    // Emit group nodes for grouped receives
+    for (const [groupName, groupData] of receivesPartition.grouped) {
+      const groupNodeId = `message-group-${service.data.id}-${service.data.version}-${sanitizeGroupId(groupName)}-receives`;
+      nodes.push({
+        id: groupNodeId,
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        type: 'messageGroup',
+        data: {
+          mode,
+          groupName,
+          direction: 'receives' as const,
+          messageCount: groupData.messages.length,
+          messageTypes: [...new Set(groupData.messages.map((m: any) => m.collection))],
+          messages: groupData.messages.map((msg: any, i: number) => ({
+            message: msg,
+            channels: groupData.pointers[i]?.from || [],
+          })),
+          service: { id: service.data.id, version: service.data.version },
+        },
+      });
+
+      edges.push(
+        createEdge({
+          id: `${groupNodeId}-to-${serviceNodeId}`,
+          source: groupNodeId,
+          target: serviceNodeId,
+          label: `${groupData.messages.length} messages`,
+          type: 'multiline',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#666',
+            width: 20,
+            height: 20,
+          },
+        })
+      );
+    }
+
+    // Ungrouped receives go through existing path
+    receivesPartition.ungrouped.messages.forEach((receive) => {
+      const receiveRaw = receivesRaw.find(
+        (r) => r.id === (receive as any).data.id && versionMatches(r.version, (receive as any).data.version)
+      );
+      const targetChannels = receiveRaw?.from;
 
       const { nodes: consumedMessageNodes, edges: consumedMessageEdges } = getNodesAndEdgesForConsumedMessage({
-        message: receive,
+        message: receive as any,
         targetChannels: targetChannels,
         services,
         currentNodes: nodes,
@@ -239,13 +301,54 @@ export const getNodesAndEdges = async ({
   });
 
   if (renderMessages) {
-    sends.forEach((send) => {
-      const sourceChannels = sendsRaw.find(
-        (sendRaw) => sendRaw.id === send.data.id && versionMatches(sendRaw.version, send.data.version)
-      )?.to;
+    // Emit group nodes for grouped sends
+    for (const [groupName, groupData] of sendsPartition.grouped) {
+      const groupNodeId = `message-group-${service.data.id}-${service.data.version}-${sanitizeGroupId(groupName)}-sends`;
+      nodes.push({
+        id: groupNodeId,
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        type: 'messageGroup',
+        data: {
+          mode,
+          groupName,
+          direction: 'sends' as const,
+          messageCount: groupData.messages.length,
+          messageTypes: [...new Set(groupData.messages.map((m: any) => m.collection))],
+          messages: groupData.messages.map((msg: any, i: number) => ({
+            message: msg,
+            channels: groupData.pointers[i]?.to || [],
+          })),
+          service: { id: service.data.id, version: service.data.version },
+        },
+      });
+
+      edges.push(
+        createEdge({
+          id: `${serviceNodeId}-to-${groupNodeId}`,
+          source: serviceNodeId,
+          target: groupNodeId,
+          label: `${groupData.messages.length} messages`,
+          type: 'multiline',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#666',
+            width: 20,
+            height: 20,
+          },
+        })
+      );
+    }
+
+    // Ungrouped sends through existing path
+    sendsPartition.ungrouped.messages.forEach((send) => {
+      const sendRaw = sendsRaw.find(
+        (s) => s.id === (send as any).data.id && versionMatches(s.version, (send as any).data.version)
+      );
+      const sourceChannels = sendRaw?.to;
 
       const { nodes: producedMessageNodes, edges: producedMessageEdges } = getNodesAndEdgesForProducedMessage({
-        message: send,
+        message: send as any,
         sourceChannels: sourceChannels,
         services,
         currentNodes: nodes,
@@ -260,8 +363,8 @@ export const getNodesAndEdges = async ({
       edges.push(...producedMessageEdges);
     });
 
-    // Handle messages that are both sent and received
-    bothSentAndReceived.forEach((message) => {
+    // Handle messages that are both sent and received (filtered to exclude grouped)
+    filteredBothSentAndReceived.forEach((message) => {
       if (message) {
         edges.push({
           id: generatedIdForEdge(service, message) + '-both',

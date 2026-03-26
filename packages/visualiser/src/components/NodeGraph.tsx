@@ -25,6 +25,7 @@ import {
   getNodesBounds,
   getViewportForBounds,
   type NodeTypes,
+  MarkerType,
 } from "@xyflow/react";
 // Styles are provided via styles.css / styles-core.css entry points.
 // Do NOT import CSS here — it breaks SSR (Node cannot load .css files).
@@ -60,6 +61,7 @@ import GroupNode from "../nodes/GroupNode";
 import CustomNode from "../nodes/Custom";
 import ExternalSystemNode2 from "../nodes/ExternalSystem2";
 import DataProductNode from "../nodes/DataProduct";
+import { MessageGroupNode } from "../nodes/message-group";
 // Edges
 import AnimatedMessageEdge from "../edges/AnimatedMessageEdge";
 import MultilineEdgeLabel from "../edges/MultilineEdgeLabel";
@@ -264,6 +266,7 @@ const NodeGraphBuilder = ({
       group: GroupNode,
       note: memo((props: any) => <NoteNode {...props} readOnly={true} />),
       field: wrapWithContextMenu(FieldNode),
+      messageGroup: MessageGroupNode,
     } as unknown as NodeTypes;
   }, []);
   const edgeTypes = useMemo(
@@ -304,6 +307,8 @@ const NodeGraphBuilder = ({
   // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const injectedGroupNodeIds = useRef<Set<string>>(new Set());
+  const injectedGroupEdgeIds = useRef<Set<string>>(new Set());
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const openNotesModal = useCallback(() => setIsNotesModalOpen(true), []);
 
@@ -542,6 +547,73 @@ const NodeGraphBuilder = ({
 
       // Disable focus mode for domain nodes
       if (node.type === "domain" || node.type === "domains") return;
+
+      // Handle messageGroup click — open focus mode with expanded sub-graph
+      if (node.type === "messageGroup") {
+        const groupData = node.data as any;
+        const serviceId = `${groupData.service.id}-${groupData.service.version}`;
+
+        const expandedNodes: Node[] = [];
+        const expandedEdges: Edge[] = [];
+
+        // Add individual message nodes from the group
+        groupData.messages.forEach((item: any, index: number) => {
+          const msg = item.message;
+          if (!msg) return;
+          const msgId = `${msg.data.id}-${msg.data.version}`;
+          expandedNodes.push({
+            id: msgId,
+            type: msg.collection,
+            position: { x: 0, y: index * 100 },
+            data: {
+              mode: groupData.mode || "simple",
+              message: { ...msg.data },
+            },
+          } as Node);
+
+          // Create edge between service and message
+          if (groupData.direction === "sends") {
+            expandedEdges.push({
+              id: `${serviceId}-to-${msgId}`,
+              source: serviceId,
+              target: msgId,
+              animated: false,
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                width: 20,
+                height: 20,
+              },
+            } as Edge);
+          } else {
+            expandedEdges.push({
+              id: `${msgId}-to-${serviceId}`,
+              source: msgId,
+              target: serviceId,
+              animated: false,
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                width: 20,
+                height: 20,
+              },
+            } as Edge);
+          }
+        });
+
+        // Track injected IDs for cleanup
+        expandedNodes.forEach((n) => injectedGroupNodeIds.current.add(n.id));
+        expandedEdges.forEach((e) => injectedGroupEdgeIds.current.add(e.id));
+
+        // Inject expanded nodes/edges
+        setNodes((prev) => [
+          ...prev,
+          ...expandedNodes.filter((n) => !prev.find((p) => p.id === n.id)),
+        ]);
+        setEdges((prev) => [...prev, ...expandedEdges]);
+
+        setFocusedNodeId(serviceId);
+        setFocusModeOpen(true);
+        return;
+      }
 
       // Open focus mode modal
       setFocusedNodeId(node.id);
@@ -887,6 +959,7 @@ const NodeGraphBuilder = ({
       data: "bg-blue-600",
       "data-products": "bg-indigo-600",
       field: "bg-cyan-600",
+      messageGroup: "bg-violet-600",
     };
 
     let legendForDomains: {
@@ -1412,7 +1485,19 @@ const NodeGraphBuilder = ({
         />
         <FocusModeModal
           isOpen={focusModeOpen}
-          onClose={() => setFocusModeOpen(false)}
+          onClose={() => {
+            setFocusModeOpen(false);
+            if (injectedGroupNodeIds.current.size > 0) {
+              setNodes((prev) =>
+                prev.filter((n) => !injectedGroupNodeIds.current.has(n.id)),
+              );
+              setEdges((prev) =>
+                prev.filter((e) => !injectedGroupEdgeIds.current.has(e.id)),
+              );
+              injectedGroupNodeIds.current.clear();
+              injectedGroupEdgeIds.current.clear();
+            }
+          }}
           initialNodeId={focusedNodeId}
           nodes={nodes}
           edges={edges}

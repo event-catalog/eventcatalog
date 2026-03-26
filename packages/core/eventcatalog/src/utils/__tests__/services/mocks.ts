@@ -323,3 +323,34 @@ export const mockChannels = [
     },
   },
 ];
+
+export const mockGroupedService = {
+  id: 'services/Student/StudentInfoService/index.mdx',
+  slug: 'services/Student/StudentInfoService',
+  collection: 'services',
+  data: {
+    id: 'StudentInfoService',
+    version: '1.0.0',
+    sends: [
+      { id: 'ProgramCreated', version: '1.0.0', group: 'Academic Structure' },
+      { id: 'ProgramUpdated', version: '1.0.0', group: 'Academic Structure' },
+      { id: 'StudentEnrolled', version: '1.0.0', group: 'Student Lifecycle' },
+      { id: 'GradeRecorded', version: '1.0.0' },
+    ],
+    receives: [
+      { id: 'EnrolmentRequested', version: '1.0.0', group: 'Student Lifecycle' },
+      { id: 'PaymentProcessed', version: '0.0.1' },
+    ],
+  },
+};
+
+export const mockGroupedEvents = [
+  { data: { id: 'ProgramCreated', version: '1.0.0', name: 'ProgramCreated' }, collection: 'events' },
+  { data: { id: 'ProgramUpdated', version: '1.0.0', name: 'ProgramUpdated' }, collection: 'events' },
+  { data: { id: 'StudentEnrolled', version: '1.0.0', name: 'StudentEnrolled' }, collection: 'events' },
+  { data: { id: 'GradeRecorded', version: '1.0.0', name: 'GradeRecorded' }, collection: 'events' },
+];
+
+export const mockGroupedCommands = [
+  { data: { id: 'EnrolmentRequested', version: '1.0.0', name: 'EnrolmentRequested' }, collection: 'commands' },
+];

@@ -1,14 +1,30 @@
 import { MarkerType } from '@xyflow/react';
 import { getNodesAndEdges } from '../../node-graphs/services-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels, mockContainers } from './mocks';
+import {
+  mockCommands,
+  mockEvents,
+  mockQueries,
+  mockServices,
+  mockChannels,
+  mockContainers,
+  mockGroupedService,
+  mockGroupedEvents,
+  mockGroupedCommands,
+} from './mocks';
 import type { CollectionKey } from 'astro:content';
+import { getCollection } from 'astro:content';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    // this will only affect "foo" outside of the original module
-    getCollection: (key: CollectionKey) => {
+    getCollection: vi.fn(),
+  };
+});
+
+describe('Services NodeGraph', () => {
+  beforeEach(() => {
+    vi.mocked(getCollection).mockImplementation(((key: CollectionKey) => {
       switch (key) {
         case 'services':
           return Promise.resolve(mockServices);
@@ -22,14 +38,10 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockQueries);
         case 'containers':
           return Promise.resolve(mockContainers);
+        default:
+          return Promise.resolve([]);
       }
-    },
-  };
-});
-
-describe('Services NodeGraph', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
+    }) as any);
   });
 
   describe('getNodesAndEdges', () => {
@@ -399,6 +411,122 @@ describe('Services NodeGraph', () => {
 
       const hasContainers = nodes.some((node) => node.type === 'data');
       expect(hasContainers).toBe(true);
+    });
+
+    describe('message grouping', () => {
+      it('should collapse grouped sends into messageGroup nodes', async () => {
+        vi.mocked(getCollection).mockImplementation(((key: any) => {
+          switch (key) {
+            case 'services':
+              return Promise.resolve([mockGroupedService]);
+            case 'events':
+              return Promise.resolve([...mockGroupedEvents]);
+            case 'commands':
+              return Promise.resolve([...mockGroupedCommands]);
+            default:
+              return Promise.resolve([]);
+          }
+        }) as any);
+
+        const { nodes } = await getNodesAndEdges({ id: 'StudentInfoService', version: '1.0.0' });
+
+        const groupNodes = nodes.filter((n: any) => n.type === 'messageGroup');
+        expect(groupNodes).toHaveLength(3); // 'Academic Structure' sends, 'Student Lifecycle' sends, 'Student Lifecycle' receives
+
+        const academicGroup = groupNodes.find((n: any) => n.data.groupName === 'Academic Structure');
+        expect(academicGroup).toBeDefined();
+        expect(academicGroup.data.messageCount).toBe(2);
+        expect(academicGroup.data.direction).toBe('sends');
+
+        // GradeRecorded should still be an individual event node (ungrouped)
+        const gradeNode = nodes.find((n: any) => n.id === 'GradeRecorded-1.0.0');
+        expect(gradeNode).toBeDefined();
+        expect(gradeNode.type).toBe('events');
+      });
+
+      it('should create edges from service to group nodes', async () => {
+        vi.mocked(getCollection).mockImplementation(((key: any) => {
+          switch (key) {
+            case 'services':
+              return Promise.resolve([mockGroupedService]);
+            case 'events':
+              return Promise.resolve([...mockGroupedEvents]);
+            case 'commands':
+              return Promise.resolve([...mockGroupedCommands]);
+            default:
+              return Promise.resolve([]);
+          }
+        }) as any);
+
+        const { edges } = await getNodesAndEdges({ id: 'StudentInfoService', version: '1.0.0' });
+
+        const serviceId = 'StudentInfoService-1.0.0';
+        const groupEdges = edges.filter(
+          (e: any) =>
+            (e.source === serviceId || e.target === serviceId) &&
+            (e.source.startsWith('message-group-') || e.target.startsWith('message-group-'))
+        );
+        expect(groupEdges.length).toBeGreaterThanOrEqual(2);
+      });
+
+      it('should skip bothSentAndReceived edge for grouped messages', async () => {
+        const bothWayService = {
+          ...mockGroupedService,
+          data: {
+            ...mockGroupedService.data,
+            id: 'BothWayService',
+            version: '1.0.0',
+            sends: [{ id: 'SharedEvent', version: '1.0.0', group: 'Shared' }],
+            receives: [{ id: 'SharedEvent', version: '1.0.0', group: 'Shared' }],
+          },
+        };
+        const sharedEvent = { data: { id: 'SharedEvent', version: '1.0.0', name: 'SharedEvent' }, collection: 'events' };
+
+        vi.mocked(getCollection).mockImplementation(((key: any) => {
+          switch (key) {
+            case 'services':
+              return Promise.resolve([bothWayService]);
+            case 'events':
+              return Promise.resolve([sharedEvent]);
+            default:
+              return Promise.resolve([]);
+          }
+        }) as any);
+
+        const { edges } = await getNodesAndEdges({ id: 'BothWayService', version: '1.0.0' });
+
+        const bothEdges = edges.filter((e: any) => e.id?.includes('-both'));
+        expect(bothEdges).toHaveLength(0);
+      });
+
+      it('should render a group node even for a single-message group', async () => {
+        const singleGroupService = {
+          ...mockGroupedService,
+          data: {
+            ...mockGroupedService.data,
+            id: 'SingleGroupService',
+            version: '1.0.0',
+            sends: [{ id: 'ProgramCreated', version: '1.0.0', group: 'Lonely Group' }],
+            receives: [],
+          },
+        };
+
+        vi.mocked(getCollection).mockImplementation(((key: any) => {
+          switch (key) {
+            case 'services':
+              return Promise.resolve([singleGroupService]);
+            case 'events':
+              return Promise.resolve([mockGroupedEvents[0]]);
+            default:
+              return Promise.resolve([]);
+          }
+        }) as any);
+
+        const { nodes } = await getNodesAndEdges({ id: 'SingleGroupService', version: '1.0.0' });
+        const groupNodes = nodes.filter((n: any) => n.type === 'messageGroup');
+        expect(groupNodes).toHaveLength(1);
+        expect(groupNodes[0].data.messageCount).toBe(1);
+      });
     });
   });
 });

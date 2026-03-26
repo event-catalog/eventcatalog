@@ -88,6 +88,9 @@ const VisualiserSearch = memo(
       );
 
       const getNodeDisplayName = useCallback((node: CustomNode) => {
+        if (node.type === "messageGroup") {
+          return (node.data as any)?.groupName || node.id;
+        }
         const name =
           node.data?.message?.data?.name ||
           node.data?.service?.data?.name ||
@@ -119,6 +122,7 @@ const VisualiserSearch = memo(
           user: "bg-yellow-500 text-white",
           custom: "bg-gray-500 text-white",
           field: "bg-cyan-600 text-white",
+          messageGroup: "bg-violet-600 text-white",
         };
         return colorClasses[nodeType] || "bg-gray-100 text-gray-700";
       }, []);
