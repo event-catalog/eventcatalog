@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.10
+
+### Patch Changes
+
+- f1680b6: Fix fields explorer crash when JSON Schema uses array type syntax for nullable fields (e.g. `"type": ["string", "null"]`)
+
 ## 3.26.9
 
 ### Patch Changes
