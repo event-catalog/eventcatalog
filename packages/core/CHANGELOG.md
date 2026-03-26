@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.12
+
+### Patch Changes
+
+- 3b68937: Bump astro-compress to ^2.4.0 and sort dependencies alphabetically
+
 ## 3.26.11
 
 ### Patch Changes
