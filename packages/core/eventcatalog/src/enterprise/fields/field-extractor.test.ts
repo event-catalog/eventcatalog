@@ -115,6 +115,23 @@ describe('extractSchemaFieldsDeep', () => {
       expect(fields.map((f) => f.path)).toEqual(['id', 'name']);
     });
 
+    it('converts array type values to a pipe-separated string (e.g. nullable fields)', () => {
+      const schema = JSON.stringify({
+        type: 'object',
+        properties: {
+          userId: { type: 'string', description: 'identifier for a user' },
+          cancellationReason: { type: ['string', 'null'], description: 'optional reason' },
+          renewalDate: { type: ['integer', 'null'], description: 'unix timestamp or null' },
+        },
+      });
+      const fields = extractSchemaFieldsDeep(schema, 'json-schema');
+      expect(fields).toEqual([
+        { path: 'userId', type: 'string', description: 'identifier for a user', required: false },
+        { path: 'cancellationReason', type: 'string | null', description: 'optional reason', required: false },
+        { path: 'renewalDate', type: 'integer | null', description: 'unix timestamp or null', required: false },
+      ]);
+    });
+
     it('returns empty array when schema content is malformed JSON', () => {
       const fields = extractSchemaFieldsDeep('not valid json{{{', 'json-schema');
       expect(fields).toEqual([]);
