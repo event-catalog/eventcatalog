@@ -132,6 +132,45 @@ describe('extractSchemaFieldsDeep', () => {
       ]);
     });
 
+    it('recurses into nested properties when object type is nullable', () => {
+      const schema = JSON.stringify({
+        type: 'object',
+        properties: {
+          metadata: {
+            type: ['object', 'null'],
+            properties: {
+              source: { type: 'string' },
+              version: { type: 'integer' },
+            },
+          },
+        },
+      });
+      const fields = extractSchemaFieldsDeep(schema, 'json-schema');
+      expect(fields.map((f) => f.path)).toEqual(['metadata', 'metadata.source', 'metadata.version']);
+      expect(fields[0].type).toBe('object | null');
+    });
+
+    it('recurses into array items when array type is nullable', () => {
+      const schema = JSON.stringify({
+        type: 'object',
+        properties: {
+          tags: {
+            type: ['array', 'null'],
+            items: {
+              type: 'object',
+              properties: {
+                key: { type: 'string' },
+                value: { type: 'string' },
+              },
+            },
+          },
+        },
+      });
+      const fields = extractSchemaFieldsDeep(schema, 'json-schema');
+      expect(fields.map((f) => f.path)).toEqual(['tags', 'tags[].key', 'tags[].value']);
+      expect(fields[0].type).toBe('array | null');
+    });
+
     it('returns empty array when schema content is malformed JSON', () => {
       const fields = extractSchemaFieldsDeep('not valid json{{{', 'json-schema');
       expect(fields).toEqual([]);
