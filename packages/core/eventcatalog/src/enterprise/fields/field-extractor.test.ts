@@ -115,19 +115,19 @@ describe('extractSchemaFieldsDeep', () => {
       expect(fields.map((f) => f.path)).toEqual(['id', 'name']);
     });
 
-    it('converts array type values to a pipe-separated string (e.g. nullable fields)', () => {
+    it('converts array type values to a sorted pipe-separated string (e.g. nullable fields)', () => {
       const schema = JSON.stringify({
         type: 'object',
         properties: {
           userId: { type: 'string', description: 'identifier for a user' },
           cancellationReason: { type: ['string', 'null'], description: 'optional reason' },
-          renewalDate: { type: ['integer', 'null'], description: 'unix timestamp or null' },
+          renewalDate: { type: ['null', 'integer'], description: 'unix timestamp or null' },
         },
       });
       const fields = extractSchemaFieldsDeep(schema, 'json-schema');
       expect(fields).toEqual([
         { path: 'userId', type: 'string', description: 'identifier for a user', required: false },
-        { path: 'cancellationReason', type: 'string | null', description: 'optional reason', required: false },
+        { path: 'cancellationReason', type: 'null | string', description: 'optional reason', required: false },
         { path: 'renewalDate', type: 'integer | null', description: 'unix timestamp or null', required: false },
       ]);
     });
@@ -147,7 +147,7 @@ describe('extractSchemaFieldsDeep', () => {
       });
       const fields = extractSchemaFieldsDeep(schema, 'json-schema');
       expect(fields.map((f) => f.path)).toEqual(['metadata', 'metadata.source', 'metadata.version']);
-      expect(fields[0].type).toBe('object | null');
+      expect(fields[0].type).toBe('null | object');
     });
 
     it('recurses into array items when array type is nullable', () => {
@@ -168,7 +168,7 @@ describe('extractSchemaFieldsDeep', () => {
       });
       const fields = extractSchemaFieldsDeep(schema, 'json-schema');
       expect(fields.map((f) => f.path)).toEqual(['tags', 'tags[].key', 'tags[].value']);
-      expect(fields[0].type).toBe('array | null');
+      expect(fields[0].type).toBe('array | null'); // already sorted alphabetically
     });
 
     it('returns empty array when schema content is malformed JSON', () => {

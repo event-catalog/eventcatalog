@@ -143,7 +143,7 @@ function walkJsonSchema(node: any, prefix: string, requiredList: string[], rootS
       const resolved = resolveLocalRef(prop.$ref, rootSchema);
       if (resolved) {
         const rawRefType = resolved.type || 'object';
-        const type = Array.isArray(rawRefType) ? rawRefType.join(' | ') : rawRefType;
+        const type = Array.isArray(rawRefType) ? [...rawRefType].sort().join(' | ') : rawRefType;
         fields.push({ path, type, description: resolved.description || '', required: isRequired });
         if (resolved.properties) {
           walkJsonSchema(resolved, path, resolved.required || [], rootSchema, fields);
@@ -157,7 +157,7 @@ function walkJsonSchema(node: any, prefix: string, requiredList: string[], rootS
 
     const rawType = prop.type || (prop.enum ? 'enum' : prop.$ref ? '$ref' : 'object');
     const typeList = Array.isArray(rawType) ? rawType : [rawType];
-    const type = Array.isArray(rawType) ? rawType.join(' | ') : rawType;
+    const type = Array.isArray(rawType) ? [...rawType].sort().join(' | ') : rawType;
     fields.push({ path, type, description: prop.description || '', required: isRequired });
 
     // Recurse into nested objects (handles both "type": "object" and "type": ["object", "null"])
