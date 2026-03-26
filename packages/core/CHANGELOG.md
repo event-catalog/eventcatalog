@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.11
+
+### Patch Changes
+
+- a02b8f9: Clarify licensing boundaries: add root MIT LICENSE, add EventCatalog Commercial License to enterprise directory, move paid feature flags and routes into enterprise scope, add license headers to all enterprise files, and fix package.json license fields
+
 ## 3.26.10
 
 ### Patch Changes
