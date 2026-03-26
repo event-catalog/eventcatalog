@@ -1,6 +1,7 @@
 {
   "name": "eventcatalog-monorepo",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build:bin": "turbo run build:bin",
     "build": "turbo run build",

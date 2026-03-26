@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { getLanguageForHighlight } from '@components/SchemaExplorer/utils';

@@ -1,4 +1,9 @@
 /**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
+/**
  * Shared catalog tools for accessing EventCatalog resources.
  * Used by both the AI Chat feature and MCP Server.
  */

@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ChevronDoubleDownIcon, ChevronDoubleUpIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';

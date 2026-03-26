@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import type { MiddlewareHandler } from 'astro';
 import { authMiddleware } from './middleware-auth.ts';
 import { sequence } from 'astro:middleware';

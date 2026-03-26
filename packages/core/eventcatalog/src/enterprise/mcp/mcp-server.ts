@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import type { APIRoute } from 'astro';
 import { Hono, type Context } from 'hono';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';

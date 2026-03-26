@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import type { APIRoute } from 'astro';
 import fs from 'node:fs';
 import path from 'node:path';

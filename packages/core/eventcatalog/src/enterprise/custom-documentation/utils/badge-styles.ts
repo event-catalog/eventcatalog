@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 type ThemeBadgeType = 'domain' | 'service' | 'event' | 'command' | 'query' | 'design' | 'channel' | 'default';
 
 const THEME_BADGE_CLASSES: Record<ThemeBadgeType, string> = {

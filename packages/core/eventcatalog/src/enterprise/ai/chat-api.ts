@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import type { APIContext } from 'astro';
 import { convertToModelMessages, stepCountIs, streamText, tool, type LanguageModel, type ModelMessage, type UIMessage } from 'ai';
 import { join } from 'node:path';

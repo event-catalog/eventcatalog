@@ -1,82 +1,34 @@
-/**
- * ⚠️ WARNING: IMPORTANT LICENSE NOTICE ⚠️
- *
- * Manually setting environment variables (EVENTCATALOG_STARTER or EVENTCATALOG_SCALE) to 'true'
- * or modifying these functions without a valid license is strictly prohibited and constitutes
- * a violation of EventCatalog's terms of use and license agreement.
- *
- * To access premium features legally:
- * 1. Visit https://www.eventcatalog.dev/pricing
- * 2. Purchase an appropriate license
- * 3. Follow the official activation instructions
- */
-
-import fs from 'fs';
-import { join } from 'path';
 import config from '../../eventcatalog.config.js';
 
-// These functions check for valid, legally obtained access to premium features
-export const isEventCatalogStarterEnabled = () => process.env.EVENTCATALOG_STARTER === 'true';
-export const isEventCatalogScaleEnabled = () => process.env.EVENTCATALOG_SCALE === 'true';
-
-export const isPrivateRemoteSchemaEnabled = () => isEventCatalogScaleEnabled() || isEventCatalogStarterEnabled();
-
-export const isEmbedEnabled = () => process.env.ENABLE_EMBED === 'true';
-
-export const showEventCatalogBranding = () => {
-  const override = process.env.EVENTCATALOG_SHOW_BRANDING;
-  // if any value we return true
-  if (override) {
-    return true;
-  }
-  return !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
-};
-
-export const showCustomBranding = () => {
-  return isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-};
-
-export const isChangelogEnabled = () => config?.changelog?.enabled ?? false;
-
-export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-export const isResourceDocsEnabled = () => isEventCatalogScaleEnabled();
-
-export const isEventCatalogChatEnabled = () => {
-  const isFeatureEnabledFromPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-  const directory = process.env.PROJECT_DIR || process.cwd();
-  const hasChatConfigurationFile = fs.existsSync(join(directory, 'eventcatalog.chat.js'));
-  return isFeatureEnabledFromPlan && hasChatConfigurationFile && isSSR();
-};
-
-export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
-export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-
-export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? true;
-export const isLLMSTxtEnabled = () => config?.llmsTxt?.enabled ?? true;
-
-export const isAuthEnabled = () => {
-  const isAuthEnabledInCatalog = config?.auth?.enabled ?? false;
-  const directory = process.env.PROJECT_DIR || process.cwd();
-  const hasAuthConfigurationFile = fs.existsSync(join(directory, 'eventcatalog.auth.js'));
-  return (isAuthEnabledInCatalog && hasAuthConfigurationFile && isSSR() && isEventCatalogScaleEnabled()) || false;
-};
-
+// Open-source feature flags
 export const isSSR = () => config?.output === 'server';
-export const isRSSEnabled = () => config?.rss?.enabled ?? false;
 export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;
-
-export const isCustomStylesEnabled = () => {
-  return isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-};
-
-export const isDiagramComparisonEnabled = () => isEventCatalogScaleEnabled();
-
-export const isEventCatalogMCPEnabled = () => isEventCatalogScaleEnabled() && isSSR();
-
+export const isChangelogEnabled = () => config?.changelog?.enabled ?? false;
+export const isRSSEnabled = () => config?.rss?.enabled ?? false;
+export const isLLMSTxtEnabled = () => config?.llmsTxt?.enabled ?? true;
+export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? true;
 export const isFullCatalogAPIEnabled = () => config?.api?.fullCatalogAPIEnabled ?? false;
-
 export const isDevMode = () => process.env.EVENTCATALOG_DEV_MODE === 'true';
 
-export const isIntegrationsEnabled = () => isEventCatalogScaleEnabled();
-
-export const isExportPDFEnabled = () => true;
+// Re-export enterprise feature flags for backwards compatibility.
+// These functions are subject to the EventCatalog Commercial License.
+// See /packages/core/eventcatalog/src/enterprise/LICENSE
+export {
+  isEventCatalogStarterEnabled,
+  isEventCatalogScaleEnabled,
+  isPrivateRemoteSchemaEnabled,
+  isEmbedEnabled,
+  showEventCatalogBranding,
+  showCustomBranding,
+  isCustomDocsEnabled,
+  isResourceDocsEnabled,
+  isEventCatalogChatEnabled,
+  isEventCatalogUpgradeEnabled,
+  isCustomLandingPageEnabled,
+  isAuthEnabled,
+  isCustomStylesEnabled,
+  isDiagramComparisonEnabled,
+  isEventCatalogMCPEnabled,
+  isIntegrationsEnabled,
+  isExportPDFEnabled,
+} from '../enterprise/feature';
