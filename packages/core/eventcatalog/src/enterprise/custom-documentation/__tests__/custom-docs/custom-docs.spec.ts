@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import { join } from 'node:path';
 import { getNavigationItems } from '../../utils/custom-docs';
 import { vi, describe, it, expect, beforeEach } from 'vitest';

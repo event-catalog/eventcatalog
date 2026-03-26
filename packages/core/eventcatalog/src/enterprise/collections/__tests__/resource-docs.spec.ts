@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import type { CollectionKey } from 'astro:content';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,7 +11,7 @@ import {
   getResourceDocCategories,
   getResourceDocs,
   getResourceDocsForResource,
-} from '@utils/collections/resource-docs';
+} from '@enterprise/collections/resource-docs-utils';
 
 const mockDomains = [
   {

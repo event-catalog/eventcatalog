@@ -2,6 +2,7 @@
   "name": "@eventcatalog/create-eventcatalog",
   "description": "Create EventCatalog with one command",
   "version": "4.2.4",
+  "license": "MIT",
   "bin": {
     "create-catalog": "./dist/index.js"
   },

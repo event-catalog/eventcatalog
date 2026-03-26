@@ -21,7 +21,7 @@ import rehypeExpressiveCode from 'rehype-expressive-code'
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
-import eventCatalogIntegration from './integrations/eventcatalog-features.ts';
+import eventCatalogIntegration from './src/enterprise/integrations/eventcatalog-features.ts';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';

@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import type { APIRoute } from 'astro';
 import utils from '@eventcatalog/sdk';
 import { isSSR } from '@utils/feature';

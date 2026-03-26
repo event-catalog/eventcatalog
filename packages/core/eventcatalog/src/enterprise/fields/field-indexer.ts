@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import path from 'node:path';
 import fs from 'node:fs';
 import { FieldsDatabase } from './fields-db';

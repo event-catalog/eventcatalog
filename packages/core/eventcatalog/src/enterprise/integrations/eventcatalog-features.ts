@@ -1,6 +1,11 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import type { AstroIntegration } from 'astro';
 import path from 'path';
-import config from '../eventcatalog.config.js';
+import config from '../../../eventcatalog.config.js';
 import {
   isEventCatalogChatEnabled,
   isAuthEnabled,
@@ -11,8 +16,9 @@ import {
   isDevMode,
   isIntegrationsEnabled,
   isExportPDFEnabled,
+  isCustomDocsEnabled,
   isSSR,
-} from '../src/utils/feature';
+} from '../../utils/feature';
 
 const catalogDirectory = process.env.CATALOG_DIR || process.cwd();
 
@@ -76,6 +82,46 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/plans',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/plans/index.astro'),
+          });
+        }
+
+        // Custom documentation routes (Starter/Scale plan)
+        if (isCustomDocsEnabled()) {
+          params.injectRoute({
+            pattern: '/docs/custom',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/root-index.astro'),
+          });
+          params.injectRoute({
+            pattern: '/docs/custom/[...path]',
+            entrypoint: path.join(
+              catalogDirectory,
+              'src/enterprise/custom-documentation/pages/docs/custom/[...path]/index.astro'
+            ),
+          });
+          params.injectRoute({
+            pattern: '/docs/custom/[...path].mdx',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/[...path].mdx.ts'),
+          });
+        } else {
+          // Show feature page for non-paying users
+          params.injectRoute({
+            pattern: '/docs/custom',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/feature.astro'),
+          });
+        }
+
+        // Schema API routes (Scale plan)
+        if (isEventCatalogScaleEnabled()) {
+          params.injectRoute({
+            pattern: '/api/schemas/[collection]/[id]/[version]',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/api/schemas/[collection]/[id]/[version]/index.ts'),
+          });
+          params.injectRoute({
+            pattern: '/api/schemas/services/[id]/[version]/[specification]',
+            entrypoint: path.join(
+              catalogDirectory,
+              'src/enterprise/api/schemas/services/[id]/[version]/[specification]/index.ts'
+            ),
           });
         }
 

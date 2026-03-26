@@ -1,6 +1,6 @@
 import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
-import { getStaticPaths, GET } from '../../pages/api/schemas/[collection]/[id]/[version]/index.ts';
+import { getStaticPaths, GET } from '../../enterprise/api/schemas/[collection]/[id]/[version]/index.ts';
 import path from 'path';
 import fs from 'node:fs';
 

@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import React from 'react';
 import { buildUrl } from '@utils/url-builder';
 import type { SidebarItem } from '../types';

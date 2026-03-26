@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import { getOwnerNames } from '@utils/collections/owners';
 import { satisfies, getResourceTypeLabel, getPointerField } from '@utils/collections/util';
 import { getDomainsForService } from '@utils/collections/domains';
