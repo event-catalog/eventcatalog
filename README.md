@@ -2,7 +2,7 @@
 
 <img src="./images/banner.png" alt="EventCatalog overview" width="800" />
 
-**The architecture catalog for distributed systems**
+## The architecture catalog for distributed systems 
 
 Discover your domains, services, events, and schemas — with AI-powered discovery, interactive visualizations, and 15+ generators for Kafka, EventBridge, RabbitMQ, and more.
 
