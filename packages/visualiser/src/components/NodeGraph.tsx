@@ -61,7 +61,10 @@ import GroupNode from "../nodes/GroupNode";
 import CustomNode from "../nodes/Custom";
 import ExternalSystemNode2 from "../nodes/ExternalSystem2";
 import DataProductNode from "../nodes/DataProduct";
-import { MessageGroupNode } from "../nodes/message-group";
+import {
+  MessageGroupNode,
+  MessageGroupExpandedNode,
+} from "../nodes/message-group";
 // Edges
 import AnimatedMessageEdge from "../edges/AnimatedMessageEdge";
 import MultilineEdgeLabel from "../edges/MultilineEdgeLabel";
@@ -267,6 +270,7 @@ const NodeGraphBuilder = ({
       note: memo((props: any) => <NoteNode {...props} readOnly={true} />),
       field: wrapWithContextMenu(FieldNode),
       messageGroup: MessageGroupNode,
+      messageGroupExpanded: MessageGroupExpandedNode,
     } as unknown as NodeTypes;
   }, []);
   const edgeTypes = useMemo(
@@ -307,8 +311,8 @@ const NodeGraphBuilder = ({
   // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-  const injectedGroupNodeIds = useRef<Set<string>>(new Set());
-  const injectedGroupEdgeIds = useRef<Set<string>>(new Set());
+  const focusModeOverrideNodes = useRef<Node[] | null>(null);
+  const focusModeOverrideEdges = useRef<Edge[] | null>(null);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const openNotesModal = useCallback(() => setIsNotesModalOpen(true), []);
 
@@ -556,6 +560,12 @@ const NodeGraphBuilder = ({
         const expandedNodes: Node[] = [];
         const expandedEdges: Edge[] = [];
 
+        // Add the service node (already in the main graph)
+        const serviceNode = nodes.find((n) => n.id === serviceId);
+        if (serviceNode) {
+          expandedNodes.push(serviceNode);
+        }
+
         // Add individual message nodes from the group
         groupData.messages.forEach((item: any, index: number) => {
           const msg = item.message;
@@ -571,12 +581,12 @@ const NodeGraphBuilder = ({
             },
           } as Node);
 
-          // Create edge between service and message
           if (groupData.direction === "sends") {
             expandedEdges.push({
               id: `${serviceId}-to-${msgId}`,
               source: serviceId,
               target: msgId,
+              type: "smoothstep",
               animated: false,
               markerEnd: {
                 type: MarkerType.ArrowClosed,
@@ -589,6 +599,7 @@ const NodeGraphBuilder = ({
               id: `${msgId}-to-${serviceId}`,
               source: msgId,
               target: serviceId,
+              type: "smoothstep",
               animated: false,
               markerEnd: {
                 type: MarkerType.ArrowClosed,
@@ -599,16 +610,8 @@ const NodeGraphBuilder = ({
           }
         });
 
-        // Track injected IDs for cleanup
-        expandedNodes.forEach((n) => injectedGroupNodeIds.current.add(n.id));
-        expandedEdges.forEach((e) => injectedGroupEdgeIds.current.add(e.id));
-
-        // Inject expanded nodes/edges
-        setNodes((prev) => [
-          ...prev,
-          ...expandedNodes.filter((n) => !prev.find((p) => p.id === n.id)),
-        ]);
-        setEdges((prev) => [...prev, ...expandedEdges]);
+        focusModeOverrideNodes.current = expandedNodes;
+        focusModeOverrideEdges.current = expandedEdges;
 
         setFocusedNodeId(serviceId);
         setFocusModeOpen(true);
@@ -960,6 +963,7 @@ const NodeGraphBuilder = ({
       "data-products": "bg-indigo-600",
       field: "bg-cyan-600",
       messageGroup: "bg-violet-600",
+      messageGroupExpanded: "bg-violet-600",
     };
 
     let legendForDomains: {
@@ -1487,20 +1491,12 @@ const NodeGraphBuilder = ({
           isOpen={focusModeOpen}
           onClose={() => {
             setFocusModeOpen(false);
-            if (injectedGroupNodeIds.current.size > 0) {
-              setNodes((prev) =>
-                prev.filter((n) => !injectedGroupNodeIds.current.has(n.id)),
-              );
-              setEdges((prev) =>
-                prev.filter((e) => !injectedGroupEdgeIds.current.has(e.id)),
-              );
-              injectedGroupNodeIds.current.clear();
-              injectedGroupEdgeIds.current.clear();
-            }
+            focusModeOverrideNodes.current = null;
+            focusModeOverrideEdges.current = null;
           }}
           initialNodeId={focusedNodeId}
-          nodes={nodes}
-          edges={edges}
+          nodes={focusModeOverrideNodes.current || nodes}
+          edges={focusModeOverrideEdges.current || edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
         />

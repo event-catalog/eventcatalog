@@ -47,6 +47,7 @@ const NODE_SHAPE_MAP: Record<string, [string, string]> = {
   field: ["[(", ")]"], // cylinder
   fields: ["[(", ")]"], // cylinder
   messageGroup: ["[[", "]]"],
+  messageGroupExpanded: ["[[", "]]"],
 };
 
 /**
@@ -83,6 +84,7 @@ const NODE_STYLE_CLASSES: Record<string, string> = {
   field: "fill:#06b6d4,stroke:#0891b2,color:#fff",
   fields: "fill:#06b6d4,stroke:#0891b2,color:#fff",
   messageGroup: "fill:#7c3aed,stroke:#5b21b6,color:#fff",
+  messageGroupExpanded: "fill:#7c3aed,stroke:#5b21b6,color:#fff",
 };
 
 /**
@@ -218,6 +220,12 @@ export function getNodeLabel(node: Node): string {
   }
 
   if (type === "messageGroup") {
+    const groupName = (data as any).groupName || node.id;
+    const count = (data as any).messageCount || 0;
+    return `${groupName} (${count} messages)`;
+  }
+
+  if (type === "messageGroupExpanded") {
     const groupName = (data as any).groupName || node.id;
     const count = (data as any).messageCount || 0;
     return `${groupName} (${count} messages)`;

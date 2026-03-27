@@ -91,6 +91,9 @@ const VisualiserSearch = memo(
         if (node.type === "messageGroup") {
           return (node.data as any)?.groupName || node.id;
         }
+        if (node.type === "messageGroupExpanded") {
+          return (node.data as any)?.groupName || node.id;
+        }
         const name =
           node.data?.message?.data?.name ||
           node.data?.service?.data?.name ||
@@ -123,6 +126,7 @@ const VisualiserSearch = memo(
           custom: "bg-gray-500 text-white",
           field: "bg-cyan-600 text-white",
           messageGroup: "bg-violet-600 text-white",
+          messageGroupExpanded: "bg-violet-600 text-white",
         };
         return colorClasses[nodeType] || "bg-gray-100 text-gray-700";
       }, []);
