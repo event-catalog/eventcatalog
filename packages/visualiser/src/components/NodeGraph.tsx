@@ -84,6 +84,7 @@ import { AllNotesModal, getNotesFromNode } from "./NotesToolbarButton";
 import { setBuildUrlFn } from "../utils/url-builder";
 import { PortalContainerProvider } from "../context/PortalContainerContext";
 import type { DslGraph } from "../types";
+import dagre from "dagre";
 
 // Minimum pixel change to detect layout modifications (avoids floating point comparison issues)
 const POSITION_CHANGE_THRESHOLD = 1;
@@ -311,8 +312,7 @@ const NodeGraphBuilder = ({
   // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-  const focusModeOverrideNodes = useRef<Node[] | null>(null);
-  const focusModeOverrideEdges = useRef<Edge[] | null>(null);
+
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const openNotesModal = useCallback(() => setIsNotesModalOpen(true), []);
 
@@ -433,6 +433,141 @@ const NodeGraphBuilder = ({
   const edgesRef = useRef(edges);
   edgesRef.current = edges;
 
+  const relayoutGraph = useCallback((nextNodes: Node[], nextEdges: Edge[]) => {
+    const g = new dagre.graphlib.Graph({ compound: true });
+    g.setGraph({ rankdir: "LR", ranksep: 180, nodesep: 50 });
+    g.setDefaultEdgeLabel(() => ({}));
+
+    // Add nodes to dagre — skip children (they're positioned relative to parent)
+    nextNodes.forEach((node) => {
+      if (node.parentId) return;
+      const w =
+        (node.style?.width as number) ||
+        (node.type === "messageGroupExpanded" ? 350 : 150);
+      const h =
+        (node.style?.height as number) ||
+        (node.type === "messageGroupExpanded" ? 0 : 120);
+
+      // For expanded groups, calculate height from child count
+      if (node.type === "messageGroupExpanded") {
+        const children = nextNodes.filter((n) => n.parentId === node.id);
+        const childHeight = children.length * 170 + 80; // 170px per child + padding
+        g.setNode(node.id, { width: w, height: childHeight });
+      } else {
+        g.setNode(node.id, { width: w, height: h });
+      }
+    });
+
+    // Add edges — only between top-level nodes or from top-level to parent of child
+    nextEdges.forEach((edge) => {
+      const sourceNode = nextNodes.find((n) => n.id === edge.source);
+      const targetNode = nextNodes.find((n) => n.id === edge.target);
+      const sourceTop = sourceNode?.parentId || edge.source;
+      const targetTop = targetNode?.parentId || edge.target;
+      // Only add edge if both endpoints are in the dagre graph
+      if (
+        g.hasNode(sourceTop) &&
+        g.hasNode(targetTop) &&
+        sourceTop !== targetTop
+      ) {
+        g.setEdge(sourceTop, targetTop);
+      }
+    });
+
+    dagre.layout(g);
+
+    // Apply dagre positions to top-level nodes
+    const positioned = nextNodes.map((node) => {
+      if (node.parentId) {
+        // Position children vertically within their parent container
+        const siblings = nextNodes.filter((n) => n.parentId === node.parentId);
+        const index = siblings.indexOf(node);
+        return {
+          ...node,
+          position: { x: 30, y: 60 + index * 170 },
+        };
+      }
+
+      const pos = g.node(node.id);
+      if (!pos) return node;
+      return {
+        ...node,
+        position: { x: pos.x, y: pos.y },
+      };
+    });
+
+    return positioned;
+  }, []);
+
+  const handleCollapseGroup = useCallback(
+    (e: React.MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const collapseBtn = target.closest(".ec-collapse-group-btn");
+      if (!collapseBtn) return;
+
+      // Find the ReactFlow node wrapper to get the node ID
+      const nodeWrapper = target.closest("[data-id]");
+      if (!nodeWrapper) return;
+      const groupNodeId = nodeWrapper.getAttribute("data-id");
+      if (!groupNodeId) return;
+
+      // Find the expanded container node to get its data
+      const expandedNode = nodes.find((n) => n.id === groupNodeId);
+      if (!expandedNode || expandedNode.type !== "messageGroupExpanded") return;
+
+      // Find all child nodes belonging to this group
+      const childNodeIds = new Set(
+        nodes.filter((n) => n.parentId === groupNodeId).map((n) => n.id),
+      );
+
+      // Find the original messageGroup data from initialNodes
+      const originalNode = initialNodes.find(
+        (n: Node) => n.id === groupNodeId && n.type === "messageGroup",
+      );
+      if (!originalNode) return;
+
+      // Find original edges for the compact node from initialEdges
+      const originalEdges = initialEdges.filter(
+        (e: Edge) => e.source === groupNodeId || e.target === groupNodeId,
+      );
+
+      // Swap: remove expanded container + children, restore compact node
+      setNodes((prev) => {
+        const without = prev.filter(
+          (n) => n.id !== groupNodeId && !childNodeIds.has(n.id),
+        );
+        const next = [...without, originalNode];
+        // Remove child edges, add back original edges
+        const nextEdges = edges
+          .filter(
+            (e) => !childNodeIds.has(e.source) && !childNodeIds.has(e.target),
+          )
+          .concat(originalEdges);
+        return relayoutGraph(next, nextEdges);
+      });
+      setEdges((prev) => {
+        const without = prev.filter(
+          (e) => !childNodeIds.has(e.source) && !childNodeIds.has(e.target),
+        );
+        return [...without, ...originalEdges];
+      });
+
+      requestAnimationFrame(() => {
+        fitView({ duration: 300, padding: 0.2 });
+      });
+    },
+    [
+      nodes,
+      edges,
+      initialNodes,
+      initialEdges,
+      setNodes,
+      setEdges,
+      fitView,
+      relayoutGraph,
+    ],
+  );
+
   // Store initial node positions for change detection (dev mode only)
   useEffect(() => {
     if (isDevMode && initialNodes.length > 0) {
@@ -552,69 +687,112 @@ const NodeGraphBuilder = ({
       // Disable focus mode for domain nodes
       if (node.type === "domain" || node.type === "domains") return;
 
-      // Handle messageGroup click — open focus mode with expanded sub-graph
+      // Handle messageGroup click — expand inline
       if (node.type === "messageGroup") {
         const groupData = node.data as any;
-        const serviceId = `${groupData.service.id}-${groupData.service.version}`;
+        const groupNodeId = node.id;
+        const serviceNodeId = `${groupData.service.id}-${groupData.service.version}`;
 
-        const expandedNodes: Node[] = [];
-        const expandedEdges: Edge[] = [];
+        // Calculate expanded container dimensions based on message count
+        const childCount = groupData.messages?.length || 0;
+        const containerWidth = 350;
+        const containerHeight = childCount * 170 + 80; // 170px per child + header + padding
 
-        // Add the service node (already in the main graph)
-        const serviceNode = nodes.find((n) => n.id === serviceId);
-        if (serviceNode) {
-          expandedNodes.push(serviceNode);
-        }
+        // Build the expanded group container node
+        const expandedContainerNode: Node = {
+          id: groupNodeId, // reuse the same ID
+          type: "messageGroupExpanded",
+          position: node.position, // will be recalculated by dagre
+          data: {
+            groupName: groupData.groupName,
+            direction: groupData.direction,
+            messageCount: childCount,
+            onCollapse: groupNodeId,
+          },
+          style: {
+            width: containerWidth,
+            height: containerHeight,
+          },
+        };
 
-        // Add individual message nodes from the group
-        groupData.messages.forEach((item: any, index: number) => {
-          const msg = item.message;
-          if (!msg) return;
-          const msgId = `${msg.data.id}-${msg.data.version}`;
-          expandedNodes.push({
-            id: msgId,
-            type: msg.collection,
-            position: { x: 0, y: index * 100 },
-            data: {
-              mode: groupData.mode || "simple",
-              message: { ...msg.data },
-            },
-          } as Node);
-
-          if (groupData.direction === "sends") {
-            expandedEdges.push({
-              id: `${serviceId}-to-${msgId}`,
-              source: serviceId,
-              target: msgId,
-              type: "smoothstep",
-              animated: false,
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                width: 20,
-                height: 20,
+        // Build child message nodes
+        const childNodes: Node[] = (groupData.messages || []).map(
+          (item: any, index: number) => {
+            const msg = item.message;
+            const msgId = `${msg.data.id}-${msg.data.version}`;
+            return {
+              id: `${groupNodeId}__${msgId}`,
+              type: msg.collection, // "events", "commands", "queries"
+              parentId: groupNodeId,
+              extent: "parent" as const,
+              position: { x: 30, y: 60 + index * 170 }, // will be refined by relayout
+              data: {
+                mode: groupData.mode || "simple",
+                message: { ...msg.data },
               },
-            } as Edge);
-          } else {
-            expandedEdges.push({
-              id: `${msgId}-to-${serviceId}`,
-              source: msgId,
-              target: serviceId,
-              type: "smoothstep",
-              animated: false,
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                width: 20,
-                height: 20,
-              },
-            } as Edge);
-          }
+            } as Node;
+          },
+        );
+
+        // Build edges from service to each child message
+        const childEdges: Edge[] = (groupData.messages || []).map(
+          (item: any) => {
+            const msg = item.message;
+            const msgId = `${msg.data.id}-${msg.data.version}`;
+            const childId = `${groupNodeId}__${msgId}`;
+
+            if (groupData.direction === "sends") {
+              return {
+                id: `${serviceNodeId}-to-${childId}`,
+                source: serviceNodeId,
+                target: childId,
+                type: "smoothstep",
+                animated: false,
+                markerEnd: {
+                  type: MarkerType.ArrowClosed,
+                  width: 20,
+                  height: 20,
+                },
+              } as Edge;
+            } else {
+              return {
+                id: `${childId}-to-${serviceNodeId}`,
+                source: childId,
+                target: serviceNodeId,
+                type: "smoothstep",
+                animated: false,
+                markerEnd: {
+                  type: MarkerType.ArrowClosed,
+                  width: 20,
+                  height: 20,
+                },
+              } as Edge;
+            }
+          },
+        );
+
+        // Swap: remove compact node + its edge, add expanded container + children + child edges
+        setNodes((prev) => {
+          const without = prev.filter((n) => n.id !== groupNodeId);
+          const next = [...without, expandedContainerNode, ...childNodes];
+          return relayoutGraph(next, [
+            ...edgesRef.current.filter(
+              (e) => e.source !== groupNodeId && e.target !== groupNodeId,
+            ),
+            ...childEdges,
+          ]);
+        });
+        setEdges((prev) => {
+          const without = prev.filter(
+            (e) => e.source !== groupNodeId && e.target !== groupNodeId,
+          );
+          return [...without, ...childEdges];
         });
 
-        focusModeOverrideNodes.current = expandedNodes;
-        focusModeOverrideEdges.current = expandedEdges;
-
-        setFocusedNodeId(serviceId);
-        setFocusModeOpen(true);
+        // Fit view after React processes new nodes
+        requestAnimationFrame(() => {
+          fitView({ duration: 300, padding: 0.2 });
+        });
         return;
       }
 
@@ -1189,6 +1367,7 @@ const NodeGraphBuilder = ({
   return (
     <div
       ref={reactFlowWrapperRef}
+      onClick={handleCollapseGroup}
       className="w-full h-full bg-[rgb(var(--ec-page-bg))] flex flex-col eventcatalog-visualizer"
       style={{
         width: "100%",
@@ -1491,12 +1670,10 @@ const NodeGraphBuilder = ({
           isOpen={focusModeOpen}
           onClose={() => {
             setFocusModeOpen(false);
-            focusModeOverrideNodes.current = null;
-            focusModeOverrideEdges.current = null;
           }}
           initialNodeId={focusedNodeId}
-          nodes={focusModeOverrideNodes.current || nodes}
-          edges={focusModeOverrideEdges.current || edges}
+          nodes={nodes}
+          edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
         />
