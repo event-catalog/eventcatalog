@@ -1,0 +1,17 @@
+---
+id: OrderFlow
+name: Order Flow
+version: 2.0.0
+summary: |
+  Business flow for processing orders
+owners:
+  - dboyne
+steps:
+  - id: "create_order"
+    title: Create Order
+    next_step: "confirm_order"
+  - id: "confirm_order"
+    title: Confirm Order
+---
+
+The Order Flow describes how orders are created and confirmed.
