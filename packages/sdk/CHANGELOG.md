@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.18.3
+
+### Patch Changes
+
+- 88795d0: Add entities, containers, and flows to dumpCatalog and add getFlow/getFlows SDK functions
+
 ## 2.18.2
 
 ### Patch Changes
