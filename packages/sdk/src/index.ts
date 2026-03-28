@@ -112,6 +112,7 @@ import { dumpCatalog, getEventCatalogConfigurationFile } from './eventcatalog';
 import { createSnapshot, diffSnapshots, listSnapshots } from './snapshots';
 import { writeChangelog, appendChangelog, getChangelog, rmChangelog } from './changelogs';
 import { getEntity, getEntities, writeEntity, rmEntity, rmEntityById, versionEntity, entityHasVersion } from './entities';
+import { getFlow, getFlows } from './flows';
 
 import {
   getDataStore,
@@ -1170,6 +1171,28 @@ export default (path: string) => {
      * @returns
      */
     entityHasVersion: entityHasVersion(join(path)),
+
+    /**
+     * ================================
+     *              Flows
+     * ================================
+     */
+    /**
+     * Returns a flow from EventCatalog
+     *
+     * @param id - The id of the flow to retrieve
+     * @param version - Optional version of the flow
+     * @returns Flow
+     */
+    getFlow: getFlow(join(path)),
+    /**
+     * Returns all flows from EventCatalog
+     *
+     * @param options - optional options to get flows
+     * @param latestOnly - optional boolean, set to true to get only latest versions
+     * @returns Flow[]|Undefined
+     */
+    getFlows: getFlows(join(path)),
 
     /**
      * ================================

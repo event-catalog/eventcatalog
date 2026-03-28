@@ -135,6 +135,69 @@ describe('EventCatalog', () => {
         expect(dump.resources.channels).toHaveLength(3);
       });
     });
+
+    describe('entities', () => {
+      it('returns a list of entities from the catalog', async () => {
+        const dump = await dumpCatalog();
+        expect(dump.resources.entities).toHaveLength(2);
+
+        const entity = dump.resources.entities?.find((e: any) => e.id === 'Customer');
+        expect(entity).toEqual(
+          expect.objectContaining({
+            id: 'Customer',
+            name: 'Customer',
+            version: '1.0.0',
+          })
+        );
+      });
+
+      it('should not include markdown for entities if the includeMarkdown option is false', async () => {
+        const dump = await dumpCatalog({ includeMarkdown: false });
+        expect(dump.resources.entities?.[0].markdown).toBeUndefined();
+      });
+    });
+
+    describe('containers', () => {
+      it('returns a list of containers from the catalog', async () => {
+        const dump = await dumpCatalog();
+        expect(dump.resources.containers).toHaveLength(2);
+
+        const container = dump.resources.containers?.find((c: any) => c.id === 'orders-db');
+        expect(container).toEqual(
+          expect.objectContaining({
+            id: 'orders-db',
+            name: 'Orders Database',
+            version: '1.0.0',
+          })
+        );
+      });
+
+      it('should not include markdown for containers if the includeMarkdown option is false', async () => {
+        const dump = await dumpCatalog({ includeMarkdown: false });
+        expect(dump.resources.containers?.[0].markdown).toBeUndefined();
+      });
+    });
+
+    describe('flows', () => {
+      it('returns a list of flows from the catalog', async () => {
+        const dump = await dumpCatalog();
+        expect(dump.resources.flows).toHaveLength(2);
+
+        const flow = dump.resources.flows?.find((f: any) => f.id === 'PaymentFlow');
+        expect(flow).toEqual(
+          expect.objectContaining({
+            id: 'PaymentFlow',
+            name: 'Payment Flow',
+            version: '1.0.0',
+          })
+        );
+      });
+
+      it('should not include markdown for flows if the includeMarkdown option is false', async () => {
+        const dump = await dumpCatalog({ includeMarkdown: false });
+        expect(dump.resources.flows?.[0].markdown).toBeUndefined();
+      });
+    });
   });
 
   describe('getEventCatalogConfigurationFile', () => {

@@ -1,0 +1,23 @@
+---
+id: PaymentFlow
+name: Payment Flow
+version: 1.0.0
+summary: |
+  Business flow for processing payments
+owners:
+  - dboyne
+steps:
+  - id: 'place_order'
+    title: Place order
+    message:
+      id: PlaceOrder
+      version: 0.0.1
+    next_step: 'payment_initiated'
+  - id: 'payment_initiated'
+    title: Payment Initiated
+    message:
+      id: PaymentInitiated
+      version: 0.0.1
+---
+
+The Payment Flow describes how payments are processed in the system.
