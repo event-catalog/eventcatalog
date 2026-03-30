@@ -582,6 +582,35 @@ program
   });
 
 program
+  .command('export')
+  .description('Export your EventCatalog using the SDK dumpCatalog function')
+  .option('--include-markdown', 'Include markdown content in the export', false)
+  .action(async (options) => {
+    logger.welcome();
+    logger.info('Exporting EventCatalog...', 'export');
+
+    // Load any .env file in the project directory
+    if (fs.existsSync(path.join(dir, '.env'))) {
+      dotenv.config({ path: path.join(dir, '.env') });
+    }
+
+    const { default: initSDK } = await import('@eventcatalog/sdk');
+    const sdk = initSDK(dir);
+
+    const catalog = await sdk.dumpCatalog({ includeMarkdown: options.includeMarkdown });
+
+    const exportsDir = path.join(dir, 'exports');
+    ensureDir(exportsDir);
+
+    const date = new Date().toISOString().split('T')[0];
+    const exportFile = path.join(exportsDir, `catalog-${date}.json`);
+
+    fs.writeFileSync(exportFile, JSON.stringify(catalog, null, 2), 'utf-8');
+
+    logger.info(`Catalog exported to ${exportFile}`, 'export');
+  });
+
+program
   .command('generate [siteDir]')
   .description('Start the generator scripts.')
   .action(async () => {

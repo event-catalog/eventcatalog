@@ -32,6 +32,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "start:catalog": "node scripts/start-catalog-locally.js",
+    "export:catalog": "node scripts/export-catalog-locally.js",
     "start:catalog:server": "node scripts/start-server-locally.js",
     "preview:catalog": "node scripts/preview-catalog-locally.js",
     "generate:catalog": "node scripts/generate-catalog-locally.js",
