@@ -85,7 +85,33 @@ if (isRemote && Object.keys(resolvedHeaders).length > 0) {
 }
 
 const parsed = await new Parser({ schemaParsers: [AvroSchemaParser()] }).parse(content, parserOptions);
-const stringified = parsed.document?.json();
+
+/**
+ * The AsyncAPI parser resolves all $ref pointers, which can create circular
+ * object references (e.g. oneOf/allOf discriminator patterns where child schemas
+ * reference the parent). We need to safely serialize these to break cycles before
+ * Astro's `define:vars` calls JSON.stringify internally.
+ * See: https://github.com/event-catalog/generators/issues/364
+ */
+const safeStringify = (obj: unknown): string => {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (_key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        const schemaId = (value as Record<string, unknown>)['x-parser-schema-id'];
+        if (schemaId && typeof schemaId === 'string') {
+          return { $ref: `#/components/schemas/${schemaId}` };
+        }
+        return { $ref: '#' };
+      }
+      seen.add(value);
+    }
+    return value;
+  });
+};
+
+const rawJson = parsed.document?.json();
+const stringified = rawJson ? JSON.parse(safeStringify(rawJson)) : undefined;
 const config: ConfigInterface = { show: { sidebar: true, errors: true } };
 
 const component = createElement(AsyncApiComponentWP, { schema: { stringified }, config });
