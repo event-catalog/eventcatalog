@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.2.5
+
+### Patch Changes
+
+- 141b7c1: Add `eventcatalog export` CLI command to export catalog as JSON using dumpCatalog SDK function
+
 ## 4.2.4
 
 ### Patch Changes
