@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.26.15
+
+### Patch Changes
+
+- 39539b3: Fix circular reference error when rendering AsyncAPI specs with oneOf/allOf discriminator patterns
+
 ## 3.26.14
 
 ### Patch Changes
