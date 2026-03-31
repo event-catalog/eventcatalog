@@ -134,18 +134,20 @@ export interface Query extends BaseSchema {
 export interface Channel extends BaseSchema {
   address?: string;
   protocols?: string[];
+  deliveryGuarantee?: 'at-most-once' | 'at-least-once' | 'exactly-once';
   routes?: ChannelPointer[];
   detailsPanel?: {
     producers?: DetailPanelProperty;
     consumers?: DetailPanelProperty;
     messages?: DetailPanelProperty;
     protocols?: DetailPanelProperty;
+    parameters?: DetailPanelProperty;
     versions?: DetailPanelProperty;
     repository?: DetailPanelProperty;
     owners?: DetailPanelProperty;
     changelog?: DetailPanelProperty;
+    attachments?: DetailPanelProperty;
   };
-  // parameters?: Record<string, Parameter>;
   parameters?: {
     [key: string]: {
       enum?: string[];
@@ -174,6 +176,7 @@ export interface Service extends BaseSchema {
   entities?: ResourcePointer[];
   writesTo?: ResourcePointer[];
   readsFrom?: ResourcePointer[];
+  flows?: ResourcePointer[];
   specifications?: Specifications | Specification[];
   detailsPanel?: {
     domains?: DetailPanelProperty;
@@ -192,6 +195,7 @@ export interface Domain extends BaseSchema {
   domains?: ResourcePointer[];
   entities?: ResourcePointer[];
   dataProducts?: ResourcePointer[];
+  flows?: ResourcePointer[];
   sends?: SendsPointer[];
   receives?: ReceivesPointer[];
   detailsPanel?: {
