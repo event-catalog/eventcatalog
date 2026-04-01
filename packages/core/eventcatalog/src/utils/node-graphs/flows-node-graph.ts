@@ -73,6 +73,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const flowMap = createVersionedMap(flows);
 
   const steps = flow?.data.steps || [];
+  const annotations = flow?.data.annotations || [];
 
   //  Hydrate the steps with information they may need.
   const hydratedSteps = steps.map((step: any) => {
@@ -110,6 +111,8 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     }
     if (step.externalSystem) node.data.externalSystem = { ...step.externalSystem, ...step.externalSystem.data };
     if (step.custom) node.data.custom = { ...step.custom, ...step.custom.data };
+    const nodeAnnotations = annotations.filter((a: any) => a.steps.includes(step.id));
+    if (nodeAnnotations.length > 0) node.data.annotations = nodeAnnotations;
     nodes.push(node);
   });
 

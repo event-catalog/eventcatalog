@@ -267,5 +267,35 @@ describe('Flows NodeGraph', () => {
       expect(nodes).toEqual([]);
       expect(edges).toEqual([]);
     });
+
+    describe('when the flow has annotations', () => {
+      it('should attach annotations to the matching nodes', async () => {
+        const flowWithAnnotations = [
+          {
+            ...mockFlow[0],
+            data: {
+              ...mockFlow[0].data,
+              annotations: [
+                { title: 'Fallback Mechanism', description: 'Triggered on failure.', steps: [4] },
+                { title: 'Happy Path', steps: [1, 2] },
+              ],
+            },
+          },
+        ];
+        vi.spyOn(await import('astro:content'), 'getCollection').mockImplementation((key: string) => {
+          if (key === 'flows') return Promise.resolve(flowWithAnnotations) as any;
+          if (key === 'events') return Promise.resolve(mockEvents) as any;
+          return Promise.resolve([]) as any;
+        });
+
+        const { nodes } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
+
+        const node1 = nodes.find((n: any) => n.id === 'step-1');
+        const node4 = nodes.find((n: any) => n.id === 'step-4');
+
+        expect(node1?.data?.annotations).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Happy Path' })]));
+        expect(node4?.data?.annotations).toEqual(expect.arrayContaining([expect.objectContaining({ title: 'Fallback Mechanism' })]));
+      });
+    });
   });
 });

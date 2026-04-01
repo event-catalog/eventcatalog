@@ -310,6 +310,15 @@ const flows = defineCollection({
             return typesUsed === 0 || typesUsed === 1;
           })
       ),
+      annotations: z
+        .array(
+          z.object({
+            title: z.string(),
+            description: z.string().optional(),
+            steps: z.array(z.union([z.string(), z.number()])),
+          })
+        )
+        .optional(),
     })
     .extend(baseSchema.shape),
 });
