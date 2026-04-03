@@ -21,8 +21,29 @@ importers:
         specifier: ^2.8.4
         version: 2.8.4
 
+  packages/breaking-changes:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.10
+        version: 20.19.19
+      prettier:
+        specifier: ^3.3.3
+        version: 3.6.2
+      tsup:
+        specifier: ^8.1.0
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.19)(jiti@2.6.1)(jsdom@27.0.0(postcss@8.5.6))(lightningcss@1.31.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
   packages/cli:
     dependencies:
+      '@eventcatalog/breaking-changes':
+        specifier: workspace:*
+        version: link:../breaking-changes
       '@eventcatalog/language-server':
         specifier: workspace:*
         version: link:../language-server

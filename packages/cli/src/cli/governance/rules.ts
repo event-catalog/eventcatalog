@@ -5,7 +5,16 @@ import yaml from 'js-yaml';
 import { satisfies, validRange } from 'semver';
 import createSDK from '@eventcatalog/sdk';
 import type { SnapshotDiff, RelationshipChange, CatalogSnapshot, ResourceChange } from '@eventcatalog/sdk';
-import type { GovernanceConfig, GovernanceTrigger, GovernanceResult, DeprecationChange, SchemaChange } from './types';
+import type {
+  GovernanceConfig,
+  GovernanceTrigger,
+  GovernanceResult,
+  DeprecationChange,
+  SchemaChange,
+  BreakingSchemaChange,
+} from './types';
+import { detectBreakingChanges } from '@eventcatalog/breaking-changes';
+import type { CompatibilityStrategy } from '@eventcatalog/breaking-changes';
 
 export const loadGovernanceConfig = (catalogDir: string): GovernanceConfig => {
   const yamlPath = path.join(catalogDir, 'governance.yaml');
@@ -29,7 +38,19 @@ export const loadGovernanceConfig = (catalogDir: string): GovernanceConfig => {
     }
   }
 
-  return { rules };
+  if (parsed?.compatibility?.strategy) {
+    const validStrategies = new Set(['BACKWARD', 'FORWARD', 'FULL', 'NONE']);
+    if (!validStrategies.has(parsed.compatibility.strategy)) {
+      throw new Error(
+        `Invalid compatibility strategy "${parsed.compatibility.strategy}". Must be one of: BACKWARD, FORWARD, FULL, NONE.`
+      );
+    }
+  }
+
+  return {
+    ...(parsed?.compatibility && { compatibility: parsed.compatibility }),
+    rules,
+  };
 };
 
 const TRIGGER_FILTERS: Partial<Record<GovernanceTrigger, (change: RelationshipChange) => boolean>> = {
@@ -306,6 +327,44 @@ const evaluateSchemaChangeRules = (
   return results;
 };
 
+const evaluateBreakingSchemaChangeRules = (
+  diff: SnapshotDiff,
+  config: GovernanceConfig,
+  targetSnapshot: CatalogSnapshot
+): GovernanceResult[] => {
+  const breakingRules = config.rules.filter((rule) => rule.when.includes('schema_breaking_change'));
+  if (breakingRules.length === 0) return [];
+
+  const strategy = config.compatibility?.strategy;
+  if (!strategy || strategy === 'NONE') return [];
+
+  const schemaChangedResources = diff.resources.filter((rc) => {
+    if (!MESSAGE_RESOURCE_TYPES.has(rc.type)) return false;
+    return rc.changedFields?.includes('schemaHash');
+  });
+
+  if (schemaChangedResources.length === 0) return [];
+
+  const latestMessageVersions = buildLatestMessageVersionMap(targetSnapshot);
+  const breakingSchemaChanges: BreakingSchemaChange[] = schemaChangedResources.map((resourceChange) => ({
+    resourceChange,
+    producerServices: getServicesForSchemaChange(targetSnapshot, 'sends', resourceChange, latestMessageVersions),
+    consumerServices: getServicesForSchemaChange(targetSnapshot, 'receives', resourceChange, latestMessageVersions),
+    breakingChanges: [],
+  }));
+
+  const results: GovernanceResult[] = [];
+
+  for (const rule of breakingRules) {
+    const matched = breakingSchemaChanges.filter((sc) => matchesSchemaChangeResource(sc, rule.resources));
+    if (matched.length > 0) {
+      results.push({ rule, trigger: 'schema_breaking_change', matchedChanges: [], breakingSchemaChanges: matched });
+    }
+  }
+
+  return results;
+};
+
 export const evaluateGovernanceRules = (
   diff: SnapshotDiff,
   config: GovernanceConfig,
@@ -339,6 +398,7 @@ export const evaluateGovernanceRules = (
   if (targetSnapshot && targetMessageSets) {
     results.push(...evaluateDeprecationRules(diff, config, targetSnapshot, targetMessageSets, baseSnapshot));
     results.push(...evaluateSchemaChangeRules(diff, config, targetSnapshot));
+    results.push(...evaluateBreakingSchemaChangeRules(diff, config, targetSnapshot));
   }
 
   return results;
@@ -394,7 +454,8 @@ const readSchemaDetails = async (
 export const enrichSchemaContent = async (
   results: GovernanceResult[],
   baseCatalogDir: string,
-  targetCatalogDir: string
+  targetCatalogDir: string,
+  compatibilityStrategy?: CompatibilityStrategy
 ): Promise<void> => {
   const baseSDK = createSDK(baseCatalogDir);
   const targetSDK = createSDK(targetCatalogDir);
@@ -419,6 +480,43 @@ export const enrichSchemaContent = async (
           sc.afterSchemaPath = after.schemaPath;
           sc.beforeSchemaHash = before.schemaHash;
           sc.afterSchemaHash = after.schemaHash;
+        })()
+      );
+    }
+  }
+
+  for (const result of results) {
+    if (!result.breakingSchemaChanges || !compatibilityStrategy) continue;
+    for (const bsc of result.breakingSchemaChanges) {
+      const { resourceId, version, type, changeType, previousVersion, newVersion } = bsc.resourceChange;
+      const baseVersion = changeType === 'versioned' ? previousVersion || version : version;
+      const targetVersion = changeType === 'versioned' ? newVersion || version : version;
+      promises.push(
+        (async () => {
+          const [before, after] = await Promise.all([
+            readSchemaDetails(baseSDK, resourceId, baseVersion, type),
+            readSchemaDetails(targetSDK, resourceId, targetVersion, type),
+          ]);
+          bsc.before = before.content;
+          bsc.after = after.content;
+          bsc.beforeSchemaPath = before.schemaPath;
+          bsc.afterSchemaPath = after.schemaPath;
+          bsc.beforeSchemaHash = before.schemaHash;
+          bsc.afterSchemaHash = after.schemaHash;
+
+          if (before.content && after.content) {
+            let beforeSchema: object | undefined;
+            let afterSchema: object | undefined;
+            try {
+              beforeSchema = JSON.parse(before.content);
+              afterSchema = JSON.parse(after.content);
+            } catch {
+              // Schema is not valid JSON — skip breaking change detection
+            }
+            if (beforeSchema && afterSchema) {
+              bsc.breakingChanges = detectBreakingChanges(beforeSchema, afterSchema, compatibilityStrategy);
+            }
+          }
         })()
       );
     }

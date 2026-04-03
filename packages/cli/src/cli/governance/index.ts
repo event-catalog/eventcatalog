@@ -21,4 +21,5 @@ export type {
   GovernanceCheckResult,
   DeprecationChange,
   SchemaChange,
+  BreakingSchemaChange,
 } from './types';

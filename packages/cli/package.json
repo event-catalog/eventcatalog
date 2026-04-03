@@ -32,6 +32,7 @@
     }
   },
   "dependencies": {
+    "@eventcatalog/breaking-changes": "workspace:*",
     "@eventcatalog/language-server": "workspace:*",
     "@eventcatalog/sdk": "workspace:*",
     "@eventcatalog/license": "^0.0.7",

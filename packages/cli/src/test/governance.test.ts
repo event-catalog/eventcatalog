@@ -1774,6 +1774,204 @@ describe('Governance', () => {
     });
   });
 
+  describe('evaluateGovernanceRules - schema_breaking_change', () => {
+    it('triggers schema_breaking_change when schema has breaking changes per strategy', () => {
+      const config: GovernanceConfig = {
+        compatibility: { strategy: 'BACKWARD' },
+        rules: [
+          {
+            name: 'breaking-schema-rule',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const baseSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot, baseSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].trigger).toBe('schema_breaking_change');
+    });
+
+    it('does not trigger when compatibility strategy is NONE', () => {
+      const config: GovernanceConfig = {
+        compatibility: { strategy: 'NONE' },
+        rules: [
+          {
+            name: 'breaking-schema-rule',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+      expect(results).toHaveLength(0);
+    });
+
+    it('does not trigger when no compatibility config is set', () => {
+      const config: GovernanceConfig = {
+        rules: [
+          {
+            name: 'breaking-schema-rule',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+      expect(results).toHaveLength(0);
+    });
+
+    it('respects resource filters for schema_breaking_change', () => {
+      const config: GovernanceConfig = {
+        compatibility: { strategy: 'BACKWARD' },
+        rules: [
+          {
+            name: 'breaking-schema-rule',
+            when: ['schema_breaking_change'],
+            resources: ['message:OrderCreated'],
+            actions: [{ type: 'console' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+          {
+            resourceId: 'PaymentProcessed',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot(
+        [
+          { id: 'OrdersService', sends: [{ id: 'OrderCreated' }] },
+          { id: 'PaymentService', sends: [{ id: 'PaymentProcessed' }] },
+        ],
+        {
+          events: [
+            { id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' },
+            { id: 'PaymentProcessed', version: '1.0.0', name: 'PaymentProcessed' },
+          ],
+        }
+      );
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].breakingSchemaChanges).toHaveLength(1);
+      expect(results[0].breakingSchemaChanges![0].resourceChange.resourceId).toBe('OrderCreated');
+    });
+
+    it('schema_breaking_change with fail action preserves fail action on result', () => {
+      const config: GovernanceConfig = {
+        compatibility: { strategy: 'BACKWARD' },
+        rules: [
+          {
+            name: 'block-breaking-changes',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'fail', message: 'Breaking schema changes are not allowed' }],
+          },
+        ],
+      };
+
+      const diff = makeDiff(
+        [],
+        [
+          {
+            resourceId: 'OrderCreated',
+            version: '1.0.0',
+            type: 'event',
+            changeType: 'modified',
+            changedFields: ['schemaHash'],
+          },
+        ]
+      );
+
+      const targetSnapshot = makeSnapshot([{ id: 'OrdersService', sends: [{ id: 'OrderCreated' }] }], {
+        events: [{ id: 'OrderCreated', version: '1.0.0', name: 'OrderCreated' }],
+      });
+
+      const results = evaluateGovernanceRules(diff, config, targetSnapshot);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].rule.actions[0].type).toBe('fail');
+    });
+  });
+
   describe('formatGovernanceOutput - schema_changed', () => {
     it('when formatting schema_changed output, it includes the changed message type and impacted consumer names', () => {
       const results: GovernanceResult[] = [
@@ -3230,6 +3428,124 @@ describe('Governance', () => {
         ]);
         expect(output).toContain('Contact Alice for approval');
       });
+    });
+  });
+
+  describe('loadGovernanceConfig - compatibility', () => {
+    it('parses compatibility.strategy from governance.yaml', () => {
+      const yamlContent = `
+compatibility:
+  strategy: BACKWARD
+rules:
+  - name: breaking-change-rule
+    when: [schema_breaking_change]
+    resources: ['*']
+    actions:
+      - type: webhook
+        url: https://example.com/hook
+`;
+      fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), yamlContent);
+      const config = loadGovernanceConfig(TEMP_DIR);
+      expect(config.compatibility).toEqual({ strategy: 'BACKWARD' });
+      expect(config.rules).toHaveLength(1);
+    });
+
+    it('defaults compatibility to undefined when not specified', () => {
+      const yamlContent = `
+rules:
+  - name: some-rule
+    when: [consumer_added]
+    resources: ['*']
+    actions:
+      - type: console
+`;
+      fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), yamlContent);
+      const config = loadGovernanceConfig(TEMP_DIR);
+      expect(config.compatibility).toBeUndefined();
+    });
+
+    it('throws on invalid compatibility strategy', () => {
+      const yamlContent = `
+compatibility:
+  strategy: BACKWARDS
+rules: []
+`;
+      fs.writeFileSync(path.join(TEMP_DIR, 'governance.yaml'), yamlContent);
+      expect(() => loadGovernanceConfig(TEMP_DIR)).toThrow(
+        'Invalid compatibility strategy "BACKWARDS". Must be one of: BACKWARD, FORWARD, FULL, NONE.'
+      );
+    });
+  });
+
+  describe('executeGovernanceActions - schema_breaking_change webhook', () => {
+    it('sends correct CloudEvents payload for schema_breaking_change', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('ok', { status: 200 }));
+
+      const results: GovernanceResult[] = [
+        {
+          rule: {
+            name: 'breaking-rule',
+            when: ['schema_breaking_change'],
+            resources: ['*'],
+            actions: [{ type: 'webhook', url: 'https://example.com/hook' }],
+          },
+          trigger: 'schema_breaking_change',
+          matchedChanges: [],
+          breakingSchemaChanges: [
+            {
+              resourceChange: {
+                resourceId: 'OrderCreated',
+                version: '1.0.0',
+                type: 'event',
+                changeType: 'modified',
+                changedFields: ['schemaHash'],
+              },
+              consumerServices: [{ id: 'PaymentService', version: '1.0.0', owners: ['team-payments'] }],
+              producerServices: [{ id: 'OrdersService', version: '1.0.0' }],
+              beforeSchemaHash: 'abc123',
+              afterSchemaHash: 'def456',
+              beforeSchemaPath: 'schema.json',
+              afterSchemaPath: 'schema.json',
+              breakingChanges: [
+                {
+                  type: 'TYPE_CHANGED',
+                  field: 'amount',
+                  message: "Field 'amount' type changed from 'string' to 'number'",
+                  previousType: 'string',
+                  currentType: 'number',
+                  breaking: true as const,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const messageTypes: MessageTypeMap = new Map([['OrderCreated', 'event']]);
+
+      await executeGovernanceActions(results, {
+        messageTypes,
+        baseRef: 'main',
+        targetRef: 'feature-branch',
+        compatibilityStrategy: 'BACKWARD',
+      });
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      const [, options] = fetchSpy.mock.calls[0];
+      const body = JSON.parse(options.body as string);
+      expect(body.type).toBe('eventcatalog.governance.schema_breaking_change');
+      expect(body.specversion).toBe('1.0');
+      expect(body.data.compatibilityStrategy).toBe('BACKWARD');
+      expect(body.data.message.id).toBe('OrderCreated');
+      expect(body.data.breakingChanges).toHaveLength(1);
+      expect(body.data.breakingChanges[0].type).toBe('TYPE_CHANGED');
+      expect(body.data.breakingChanges[0].field).toBe('amount');
+      expect(body.data.consumers).toHaveLength(1);
+      expect(body.data.producers).toHaveLength(1);
+      expect(body.data.schema.beforeHash).toBe('abc123');
+      expect(body.data.schema.afterHash).toBe('def456');
+
+      fetchSpy.mockRestore();
     });
   });
 });

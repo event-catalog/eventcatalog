@@ -1,0 +1,41 @@
+{
+  "name": "@eventcatalog/breaking-changes",
+  "version": "0.1.0",
+  "description": "Breaking schema change detection for EventCatalog",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:bin": "tsup",
+    "test": "vitest --run",
+    "test:ci": "vitest --run",
+    "format": "prettier --write .",
+    "format:diff": "prettier --list-different ."
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "prettier": "^3.3.3",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog"
+  }
+}
