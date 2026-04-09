@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 3.27.2
+
+### Patch Changes
+
+- 80ff83d: fix security vulnerabilities by upgrading mermaid to 11.12.3 and @astrojs/rss to 4.0.18
+- 6a7862a: Replace jsonpath with jsonpath-plus and bump dependencies (@asyncapi/react-component, @scalar/api-reference-react, hono)
+- Updated dependencies [80ff83d]
+- Updated dependencies [4d5a01b]
+  - @eventcatalog/visualiser@3.17.1
+
 ## 3.27.1
 
 ### Patch Changes
