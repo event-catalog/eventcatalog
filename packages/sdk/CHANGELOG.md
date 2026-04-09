@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.19.0
+
+### Minor Changes
+
+- 52b4f24: Add `group` field to SendsPointer and ReceivesPointer types, enabling SDK consumers to assign messages to named groups for visualiser grouping
+
 ## 2.18.4
 
 ### Patch Changes
