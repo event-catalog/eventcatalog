@@ -63,6 +63,7 @@ import StepNode from "./Step";
 import UserNode from "./User";
 import DataProductNode from "./DataProduct";
 import ExternalSystem2Node from "./ExternalSystem2";
+import { MessageGroupNode, MessageGroupExpandedNode } from "./message-group";
 
 export {
   CustomNode,
@@ -74,7 +75,16 @@ export {
   UserNode,
   DataProductNode,
   ExternalSystem2Node,
+  MessageGroupNode,
+  MessageGroupExpandedNode,
 };
+
+export type {
+  MessageGroupNodeType,
+  MessageGroupNodeData,
+} from "./message-group";
+
+export type { MessageGroupExpandedNodeData } from "./message-group";
 
 // Node type constants
 export {
@@ -112,6 +122,8 @@ export const nodeComponents = {
   user: UserNode,
   dataProduct: DataProductNode,
   externalSystem2: ExternalSystem2Node,
+  messageGroup: MessageGroupNode,
+  messageGroupExpanded: MessageGroupExpandedNode,
 };
 
 export const nodeConfigs: Record<string, import("../types").NodeConfiguration> =

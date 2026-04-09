@@ -310,6 +310,55 @@ export const getOperationFields = (data: Record<string, any>) => {
   };
 };
 
+interface PointerWithGroup {
+  id: string;
+  version?: string;
+  group?: string;
+  [key: string]: any;
+}
+
+interface PartitionResult {
+  grouped: Map<string, { messages: CollectionItem[]; pointers: PointerWithGroup[] }>;
+  ungrouped: { messages: CollectionItem[]; pointers: PointerWithGroup[] };
+}
+
+/**
+ * Partition raw message pointers and their hydrated messages by group.
+ * Matches each pointer to its hydrated message by id + version.
+ */
+export const partitionMessagesByGroup = (
+  rawPointers: PointerWithGroup[],
+  hydratedMessages: CollectionItem[]
+): PartitionResult => {
+  const grouped = new Map<string, { messages: CollectionItem[]; pointers: PointerWithGroup[] }>();
+  const ungrouped: { messages: CollectionItem[]; pointers: PointerWithGroup[] } = {
+    messages: [],
+    pointers: [],
+  };
+
+  rawPointers.forEach((pointer) => {
+    const message = hydratedMessages.find((m) => m.data.id === pointer.id && versionMatches(pointer.version, m.data.version));
+
+    if (pointer.group) {
+      if (!grouped.has(pointer.group)) {
+        grouped.set(pointer.group, { messages: [], pointers: [] });
+      }
+      const group = grouped.get(pointer.group)!;
+      group.pointers.push(pointer);
+      if (message) {
+        group.messages.push(message);
+      }
+    } else {
+      ungrouped.pointers.push(pointer);
+      if (message) {
+        ungrouped.messages.push(message);
+      }
+    }
+  });
+
+  return { grouped, ungrouped };
+};
+
 export const getNodesAndEdgesFromDagre = ({
   nodes,
   edges,

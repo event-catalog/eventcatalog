@@ -11,12 +11,88 @@ import {
   versionMatches,
   DEFAULT_NODE_WIDTH,
   DEFAULT_NODE_HEIGHT,
+  partitionMessagesByGroup,
+  getOperationFields,
 } from '@utils/node-graphs/utils/utils';
 
+const sanitizeGroupId = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+
 import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
-import { MarkerType } from '@xyflow/react';
+import { MarkerType, type Node, type Edge } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
 import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from './message-node-graph';
+
+/**
+ * Pre-compute the downstream nodes/edges that should appear when a message group
+ * is expanded. Calls the standard message node-graph function for each grouped
+ * message, then strips out the service and message nodes/edges that the client-side
+ * expand logic handles separately.
+ */
+const precomputeGroupExpansion = (
+  messages: any[],
+  channelPointers: any[],
+  direction: 'sends' | 'receives',
+  opts: {
+    serviceNodeId: string;
+    services: any;
+    service: any;
+    mode: string;
+    channels: any;
+    channelMap: any;
+    existingNodes: any[];
+    existingEdges: any[];
+  }
+) => {
+  const expandedNodes: Node[] = [];
+  const expandedEdges: Edge[] = [];
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    const channelRefs = channelPointers[i] || [];
+
+    // Call the same function used by the ungrouped path
+    const args =
+      direction === 'receives'
+        ? {
+            message: msg as any,
+            targetChannels: channelRefs,
+            services: opts.services,
+            currentNodes: [...opts.existingNodes, ...expandedNodes],
+            target: opts.service,
+            mode: opts.mode,
+            channels: opts.channels,
+            channelMap: opts.channelMap,
+          }
+        : {
+            message: msg as any,
+            sourceChannels: channelRefs,
+            services: opts.services,
+            currentNodes: [...opts.existingNodes, ...expandedNodes],
+            source: opts.service,
+            currentEdges: [...opts.existingEdges, ...expandedEdges],
+            mode: opts.mode,
+            channels: opts.channels,
+            channelMap: opts.channelMap,
+          };
+
+    const { nodes: msgNodes, edges: msgEdges } =
+      direction === 'receives'
+        ? getNodesAndEdgesForConsumedMessage(args as any)
+        : getNodesAndEdgesForProducedMessage(args as any);
+
+    // Strip the service node and message node — the client expand logic creates these.
+    // Also strip the direct service↔message edge for the same reason.
+    const msgId = `${msg.data.id}-${msg.data.version}`;
+    const isServiceOrMessage = (id: string) => id === opts.serviceNodeId || id === msgId;
+    const isDirectEdge = (e: any) =>
+      (e.source === opts.serviceNodeId && e.target === msgId) || (e.source === msgId && e.target === opts.serviceNodeId);
+
+    expandedNodes.push(...msgNodes.filter((n: any) => !isServiceOrMessage(n.id)));
+    expandedEdges.push(...msgEdges.filter((e: any) => !isDirectEdge(e)));
+  }
+
+  return { expandedNodes, expandedEdges };
+};
 
 type DagreGraph = any;
 
@@ -124,15 +200,89 @@ export const getNodesAndEdges = async ({
   const bothSentAndReceived = findMatchingNodes(receives, sends);
   const bothReadsAndWrites = findMatchingNodes(readsFrom, writesTo);
 
+  // Partition messages by group
+  const receivesPartition = partitionMessagesByGroup(receivesRaw, receives);
+  const sendsPartition = partitionMessagesByGroup(sendsRaw, sends);
+
+  // Collect grouped message IDs to exclude from bothSentAndReceived
+  const groupedMessageIds = new Set<string>();
+  for (const [, groupData] of receivesPartition.grouped) {
+    groupData.messages.forEach((m: any) => groupedMessageIds.add(`${m.data.id}-${m.data.version}`));
+  }
+  for (const [, groupData] of sendsPartition.grouped) {
+    groupData.messages.forEach((m: any) => groupedMessageIds.add(`${m.data.id}-${m.data.version}`));
+  }
+
+  const filteredBothSentAndReceived = bothSentAndReceived.filter(
+    (m: any) => m && !groupedMessageIds.has(`${m.data.id}-${m.data.version}`)
+  );
+
+  const serviceNodeId = `${service.data.id}-${service.data.version}`;
+
   if (renderMessages) {
-    // All the messages the service receives
-    receives.forEach((receive) => {
-      const targetChannels = receivesRaw.find(
-        (receiveRaw) => receiveRaw.id === receive.data.id && versionMatches(receiveRaw.version, receive.data.version)
-      )?.from;
+    // Emit group nodes for grouped receives
+    for (const [groupName, groupData] of receivesPartition.grouped) {
+      const groupNodeId = `message-group-${service.data.id}-${service.data.version}-${sanitizeGroupId(groupName)}-receives`;
+
+      // Match each message to its pointer by id/version (not index) to avoid
+      // misalignment when a pointer fails hydration and is missing from messages.
+      const findPointerForMessage = (msg: any) =>
+        groupData.pointers.find((p: any) => p.id === msg.data.id && versionMatches(p.version, msg.data.version));
+
+      const { expandedNodes, expandedEdges } = precomputeGroupExpansion(
+        groupData.messages,
+        groupData.messages.map((msg: any) => findPointerForMessage(msg)?.from || []),
+        'receives',
+        { serviceNodeId, services, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
+      );
+
+      nodes.push({
+        id: groupNodeId,
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        type: 'messageGroup',
+        data: {
+          mode,
+          groupName,
+          direction: 'receives' as const,
+          messageCount: groupData.messages.length,
+          messageTypes: [...new Set(groupData.messages.map((m: any) => m.collection))],
+          messages: groupData.messages.map((msg: any) => ({
+            message: { ...msg, data: { ...msg.data, ...getOperationFields(msg.data) } },
+            channels: findPointerForMessage(msg)?.from || [],
+          })),
+          service: { id: service.data.id, version: service.data.version },
+          expandedNodes,
+          expandedEdges,
+        },
+      });
+
+      edges.push(
+        createEdge({
+          id: `${groupNodeId}-to-${serviceNodeId}`,
+          source: groupNodeId,
+          target: serviceNodeId,
+          label: `consumes ${groupData.messages.length}\nmessages`,
+          type: 'multiline',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#666',
+            width: 20,
+            height: 20,
+          },
+        })
+      );
+    }
+
+    // Ungrouped receives go through existing path
+    receivesPartition.ungrouped.messages.forEach((receive) => {
+      const receiveRaw = receivesRaw.find(
+        (r) => r.id === (receive as any).data.id && versionMatches(r.version, (receive as any).data.version)
+      );
+      const targetChannels = receiveRaw?.from;
 
       const { nodes: consumedMessageNodes, edges: consumedMessageEdges } = getNodesAndEdgesForConsumedMessage({
-        message: receive,
+        message: receive as any,
         targetChannels: targetChannels,
         services,
         currentNodes: nodes,
@@ -239,13 +389,68 @@ export const getNodesAndEdges = async ({
   });
 
   if (renderMessages) {
-    sends.forEach((send) => {
-      const sourceChannels = sendsRaw.find(
-        (sendRaw) => sendRaw.id === send.data.id && versionMatches(sendRaw.version, send.data.version)
-      )?.to;
+    // Emit group nodes for grouped sends
+    for (const [groupName, groupData] of sendsPartition.grouped) {
+      const groupNodeId = `message-group-${service.data.id}-${service.data.version}-${sanitizeGroupId(groupName)}-sends`;
+
+      // Match each message to its pointer by id/version (not index) — same reason as receives above
+      const findPointerForMessage = (msg: any) =>
+        groupData.pointers.find((p: any) => p.id === msg.data.id && versionMatches(p.version, msg.data.version));
+
+      const { expandedNodes, expandedEdges } = precomputeGroupExpansion(
+        groupData.messages,
+        groupData.messages.map((msg: any) => findPointerForMessage(msg)?.to || []),
+        'sends',
+        { serviceNodeId, services, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
+      );
+
+      nodes.push({
+        id: groupNodeId,
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        type: 'messageGroup',
+        data: {
+          mode,
+          groupName,
+          direction: 'sends' as const,
+          messageCount: groupData.messages.length,
+          messageTypes: [...new Set(groupData.messages.map((m: any) => m.collection))],
+          messages: groupData.messages.map((msg: any) => ({
+            message: { ...msg, data: { ...msg.data, ...getOperationFields(msg.data) } },
+            channels: findPointerForMessage(msg)?.to || [],
+          })),
+          service: { id: service.data.id, version: service.data.version },
+          expandedNodes,
+          expandedEdges,
+        },
+      });
+
+      edges.push(
+        createEdge({
+          id: `${serviceNodeId}-to-${groupNodeId}`,
+          source: serviceNodeId,
+          target: groupNodeId,
+          label: `publishes ${groupData.messages.length}\nmessages`,
+          type: 'multiline',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#666',
+            width: 20,
+            height: 20,
+          },
+        })
+      );
+    }
+
+    // Ungrouped sends through existing path
+    sendsPartition.ungrouped.messages.forEach((send) => {
+      const sendRaw = sendsRaw.find(
+        (s) => s.id === (send as any).data.id && versionMatches(s.version, (send as any).data.version)
+      );
+      const sourceChannels = sendRaw?.to;
 
       const { nodes: producedMessageNodes, edges: producedMessageEdges } = getNodesAndEdgesForProducedMessage({
-        message: send,
+        message: send as any,
         sourceChannels: sourceChannels,
         services,
         currentNodes: nodes,
@@ -260,8 +465,8 @@ export const getNodesAndEdges = async ({
       edges.push(...producedMessageEdges);
     });
 
-    // Handle messages that are both sent and received
-    bothSentAndReceived.forEach((message) => {
+    // Handle messages that are both sent and received (filtered to exclude grouped)
+    filteredBothSentAndReceived.forEach((message) => {
       if (message) {
         edges.push({
           id: generatedIdForEdge(service, message) + '-both',

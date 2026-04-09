@@ -24,6 +24,7 @@ const defaultSizes: Record<string, { w: number; h: number }> = {
   actor: { w: 240, h: 100 },
   "external-system": { w: 300, h: 100 },
   step: { w: 280, h: 100 },
+  "message-group": { w: 350, h: 200 },
 };
 const fallbackSize = { w: 280, h: 100 };
 

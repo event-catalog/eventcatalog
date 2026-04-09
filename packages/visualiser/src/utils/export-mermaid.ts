@@ -46,6 +46,8 @@ const NODE_SHAPE_MAP: Record<string, [string, string]> = {
   note: ["[", "]"], // rectangle
   field: ["[(", ")]"], // cylinder
   fields: ["[(", ")]"], // cylinder
+  messageGroup: ["[[", "]]"],
+  messageGroupExpanded: ["[[", "]]"],
 };
 
 /**
@@ -81,6 +83,8 @@ const NODE_STYLE_CLASSES: Record<string, string> = {
   note: "fill:#fef3c7,stroke:#d97706,color:#000",
   field: "fill:#06b6d4,stroke:#0891b2,color:#fff",
   fields: "fill:#06b6d4,stroke:#0891b2,color:#fff",
+  messageGroup: "fill:#7c3aed,stroke:#5b21b6,color:#fff",
+  messageGroupExpanded: "fill:#7c3aed,stroke:#5b21b6,color:#fff",
 };
 
 /**
@@ -213,6 +217,18 @@ export function getNodeLabel(node: Node): string {
     const name = (data as any).name || node.id;
     const fieldType = (data as any).type;
     return fieldType ? `${name} (${fieldType})` : name;
+  }
+
+  if (type === "messageGroup") {
+    const groupName = (data as any).groupName || node.id;
+    const count = (data as any).messageCount || 0;
+    return `${groupName} (${count} messages)`;
+  }
+
+  if (type === "messageGroupExpanded") {
+    const groupName = (data as any).groupName || node.id;
+    const count = (data as any).messageCount || 0;
+    return `${groupName} (${count} messages)`;
   }
 
   // Fallback: try common data patterns

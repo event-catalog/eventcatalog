@@ -28,6 +28,8 @@ export const NODE_COLOR_CLASSES: Record<string, string> = {
   domains: "bg-yellow-600",
   entities: "bg-purple-600",
   field: "bg-cyan-600",
+  messageGroup: "bg-violet-600",
+  messageGroupExpanded: "bg-violet-600",
 };
 
 export const NODE_TYPE_LABELS: Record<string, string> = {
@@ -45,6 +47,8 @@ export const NODE_TYPE_LABELS: Record<string, string> = {
   domains: "Domain",
   entities: "Entity",
   field: "Field",
+  messageGroup: "Message Group",
+  messageGroupExpanded: "Message Group",
 };
 
 /**
@@ -101,6 +105,27 @@ export function getNodeDisplayInfo(node: Node): NodeDisplayInfo {
       type: "field",
       version: undefined,
       description: `Type: ${data?.type || "unknown"}`,
+    };
+  }
+
+  // Handle message group nodes
+  if (nodeType === "messageGroup") {
+    return {
+      id: node.id,
+      name: data?.groupName || node.id,
+      type: "messageGroup",
+      version: undefined,
+      description: `${data?.messageCount || 0} messages (${data?.direction || "unknown"})`,
+    };
+  }
+
+  if (nodeType === "messageGroupExpanded") {
+    return {
+      id: node.id,
+      name: data?.groupName || node.id,
+      type: "messageGroupExpanded",
+      version: undefined,
+      description: `${data?.messageCount || 0} messages (expanded)`,
     };
   }
 
