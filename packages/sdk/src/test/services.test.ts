@@ -1480,6 +1480,139 @@ describe('Services SDK', () => {
     });
   });
 
+  describe('group support on sends and receives', () => {
+    it('persists group when writing a service with sends that declare a group', async () => {
+      await writeService({
+        id: 'WarehouseService',
+        name: 'Warehouse Service',
+        version: '0.0.1',
+        summary: 'Service that handles the warehouse',
+        markdown: '# Hello world',
+        sends: [{ id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping' }],
+      });
+
+      const service = await getService('WarehouseService');
+
+      expect(service.sends).toEqual([{ id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping' }]);
+    });
+
+    it('persists group when writing a service with receives that declare a group', async () => {
+      await writeService({
+        id: 'WarehouseService',
+        name: 'Warehouse Service',
+        version: '0.0.1',
+        summary: 'Service that handles the warehouse',
+        markdown: '# Hello world',
+        receives: [{ id: 'PickRequested', version: '1.0.0', group: 'Picking' }],
+      });
+
+      const service = await getService('WarehouseService');
+
+      expect(service.receives).toEqual([{ id: 'PickRequested', version: '1.0.0', group: 'Picking' }]);
+    });
+
+    it('includes group when adding an event to a service sends', async () => {
+      await writeService({
+        id: 'WarehouseService',
+        name: 'Warehouse Service',
+        version: '0.0.1',
+        summary: 'Service that handles the warehouse',
+        markdown: '# Hello world',
+      });
+
+      await addEventToService(
+        'WarehouseService',
+        'sends',
+        { id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping' },
+        '0.0.1'
+      );
+
+      const service = await getService('WarehouseService');
+
+      expect(service.sends).toEqual([{ id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping' }]);
+    });
+
+    it('includes group when adding an event to a service receives', async () => {
+      await writeService({
+        id: 'WarehouseService',
+        name: 'Warehouse Service',
+        version: '0.0.1',
+        summary: 'Service that handles the warehouse',
+        markdown: '# Hello world',
+      });
+
+      await addEventToService(
+        'WarehouseService',
+        'receives',
+        { id: 'PickRequested', version: '1.0.0', group: 'Picking' },
+        '0.0.1'
+      );
+
+      const service = await getService('WarehouseService');
+
+      expect(service.receives).toEqual([{ id: 'PickRequested', version: '1.0.0', group: 'Picking' }]);
+    });
+
+    it('preserves existing groups on sends when adding a new message', async () => {
+      await writeService({
+        id: 'WarehouseService',
+        name: 'Warehouse Service',
+        version: '0.0.1',
+        summary: 'Service that handles the warehouse',
+        markdown: '# Hello world',
+        sends: [{ id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping' }],
+      });
+
+      await addEventToService(
+        'WarehouseService',
+        'sends',
+        { id: 'ShipmentFailed', version: '1.0.0', group: 'Shipping' },
+        '0.0.1'
+      );
+
+      const service = await getService('WarehouseService');
+
+      expect(service.sends).toEqual([
+        { id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping' },
+        { id: 'ShipmentFailed', version: '1.0.0', group: 'Shipping' },
+      ]);
+    });
+
+    it('does not include group property when group is not provided', async () => {
+      await writeService({
+        id: 'WarehouseService',
+        name: 'Warehouse Service',
+        version: '0.0.1',
+        summary: 'Service that handles the warehouse',
+        markdown: '# Hello world',
+      });
+
+      await addEventToService('WarehouseService', 'sends', { id: 'ShipmentDispatched', version: '1.0.0' }, '0.0.1');
+
+      const service = await getService('WarehouseService');
+
+      expect(service.sends).toEqual([{ id: 'ShipmentDispatched', version: '1.0.0' }]);
+      expect(service.sends![0]).not.toHaveProperty('group');
+    });
+
+    it('supports group alongside fields on the same pointer', async () => {
+      await writeService({
+        id: 'WarehouseService',
+        name: 'Warehouse Service',
+        version: '0.0.1',
+        summary: 'Service that handles the warehouse',
+        markdown: '# Hello world',
+        sends: [{ id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping', fields: ['trackingId', 'destination'] }],
+      });
+
+      const service = await getService('WarehouseService');
+
+      expect(service.sends).toEqual([
+        { id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping', fields: ['trackingId', 'destination'] },
+      ]);
+    });
+  });
+
   describe('addCommandToService', () => {
     it('takes an existing command and adds it to the sends of an existing service', async () => {
       await writeService({

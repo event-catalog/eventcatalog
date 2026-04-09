@@ -540,7 +540,12 @@ export const addDataProductToDomain =
  */
 export const addMessageToDomain =
   (directory: string) =>
-  async (id: string, direction: string, message: { id: string; version: string; fields?: string[] }, version?: string) => {
+  async (
+    id: string,
+    direction: string,
+    message: { id: string; version: string; fields?: string[]; group?: string },
+    version?: string
+  ) => {
     let domain: Domain = await getDomain(directory)(id, version);
     const domainPath = await getResourcePath(directory, id, version);
     const extension = path.extname(domainPath?.fullPath || '');
