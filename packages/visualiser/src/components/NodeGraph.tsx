@@ -926,9 +926,9 @@ const NodeGraphBuilder = ({
             )
           : new Set<string>();
 
-        const downstreamNodes: Node[] = (
-          groupData.expandedNodes || []
-        ).filter((n: any) => !channelNodeIds.has(n.id));
+        const downstreamNodes: Node[] = (groupData.expandedNodes || []).filter(
+          (n: any) => !channelNodeIds.has(n.id),
+        );
 
         const seenEdgeIds = new Set<string>();
         const downstreamEdges: Edge[] = (groupData.expandedEdges || [])
