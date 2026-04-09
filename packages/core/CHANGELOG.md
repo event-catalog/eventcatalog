@@ -1,5 +1,51 @@
 # @eventcatalog/core
 
+## 3.26.16
+
+### Patch Changes
+
+- Updated dependencies [ee142e4]
+  - @eventcatalog/sdk@2.18.4
+  - @eventcatalog/linter@1.0.19
+
+## 3.26.15
+
+### Patch Changes
+
+- 39539b3: Fix circular reference error when rendering AsyncAPI specs with oneOf/allOf discriminator patterns
+
+## 3.26.14
+
+### Patch Changes
+
+- 141b7c1: Add `eventcatalog export` CLI command to export catalog as JSON using dumpCatalog SDK function
+
+## 3.26.13
+
+### Patch Changes
+
+- Updated dependencies [88795d0]
+  - @eventcatalog/sdk@2.18.3
+  - @eventcatalog/linter@1.0.18
+
+## 3.26.12
+
+### Patch Changes
+
+- 3b68937: Bump astro-compress to ^2.4.0 and sort dependencies alphabetically
+
+## 3.26.11
+
+### Patch Changes
+
+- a02b8f9: Clarify licensing boundaries: add root MIT LICENSE, add EventCatalog Commercial License to enterprise directory, move paid feature flags and routes into enterprise scope, add license headers to all enterprise files, and fix package.json license fields
+
+## 3.26.10
+
+### Patch Changes
+
+- f1680b6: Fix fields explorer crash when JSON Schema uses array type syntax for nullable fields (e.g. `"type": ["string", "null"]`)
+
 ## 3.26.9
 
 ### Patch Changes

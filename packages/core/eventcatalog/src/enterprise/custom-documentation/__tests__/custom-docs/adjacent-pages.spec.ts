@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import { getAdjacentPages } from '../../utils/custom-docs';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { mockDocs } from './mocks';

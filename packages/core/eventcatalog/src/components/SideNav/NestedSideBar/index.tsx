@@ -935,6 +935,7 @@ export default function NestedSideBar() {
         <a
           key={`item-${itemKey || index}`}
           href={item.href}
+          title={item.title}
           target={item.external ? '_blank' : undefined}
           className={cn(baseClasses, parentClasses, activeClasses)}
         >
@@ -947,6 +948,7 @@ export default function NestedSideBar() {
     return (
       <button
         key={`item-${itemKey || index}`}
+        title={item.title}
         onClick={() => handleDrillDown(item, itemKey)}
         className={cn(baseClasses, parentClasses)}
       >

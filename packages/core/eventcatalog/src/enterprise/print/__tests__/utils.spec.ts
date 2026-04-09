@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import { describe, it, expect, vi } from 'vitest';
 import { hydrateParticipants } from '../utils';
 

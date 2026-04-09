@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Enterprise Collections
-import { customPagesSchema } from './enterprise/collections';
+import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './enterprise/collections';
 
 export const projectDirBase = (() => {
   const projectDir = process.env.PROJECT_DIR;
@@ -551,17 +551,7 @@ const resourceDocs = defineCollection({
     ]),
     base: projectDirBase,
   }),
-  schema: z.object({
-    id: z.string().optional(),
-    type: z.string().optional(),
-    version: z.string().optional(),
-    order: z.number().optional(),
-    badges: z.array(badge).optional(),
-    title: z.string().optional(),
-    summary: z.string().optional(),
-    slug: z.string().optional(),
-    hidden: z.boolean().optional(),
-  }),
+  schema: resourceDocsSchema,
 });
 
 const resourceDocCategories = defineCollection({
@@ -578,10 +568,7 @@ const resourceDocCategories = defineCollection({
     ]),
     base: projectDirBase,
   }),
-  schema: z.object({
-    label: z.string().optional(),
-    position: z.number().optional(),
-  }),
+  schema: resourceDocCategoriesSchema,
 });
 
 const domains = defineCollection({

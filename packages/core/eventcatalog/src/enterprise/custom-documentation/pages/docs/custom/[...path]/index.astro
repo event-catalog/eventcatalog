@@ -1,0 +1,18 @@
+---
+import CustomDocumentationPage from '@enterprise/custom-documentation/pages/docs/custom/index.astro';
+import { buildUrl } from '@utils/url-builder';
+import { isCustomDocsEnabled } from '@utils/feature';
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+// Get data
+const props = await Page.getData(Astro);
+
+if (!isCustomDocsEnabled()) {
+  return Astro.redirect(buildUrl('/docs/custom/feature'));
+}
+---
+
+<CustomDocumentationPage {...props} />

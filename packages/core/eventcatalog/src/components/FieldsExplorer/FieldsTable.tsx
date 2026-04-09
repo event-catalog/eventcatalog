@@ -71,7 +71,7 @@ function FieldPathCell({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
 
   return (
-    <span className="inline-flex items-center gap-1 font-mono text-[rgb(var(--ec-page-text))]">
+    <span className="inline-flex items-center gap-1 font-mono text-[rgb(var(--ec-page-text))]" title={path}>
       {path}
       <button
         className={`opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-[rgb(var(--ec-content-hover))]`}
@@ -162,8 +162,10 @@ export default function FieldsTable({ fields, onSelectField, isLoading, isScaleE
                 className="group cursor-pointer transition-colors hover:bg-[rgb(var(--ec-content-hover))]"
                 onClick={() => onSelectField(field.path)}
               >
-                <td className="px-4 py-3 text-sm">
-                  <FieldPathCell path={field.path} />
+                <td className="px-4 py-3 text-sm max-w-[300px]">
+                  <div className="overflow-x-auto">
+                    <FieldPathCell path={field.path} />
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-sm font-mono text-[rgb(var(--ec-page-text-muted))]">{field.type}</td>
                 <td className="px-4 py-3 text-sm">

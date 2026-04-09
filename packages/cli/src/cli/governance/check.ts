@@ -85,8 +85,19 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<Gov
 
     const results = evaluateGovernanceRules(diff, config, targetResult.snapshot, baseResult.snapshot);
 
+    // Populate before/after schema content for any schema_changed results
+    await enrichSchemaContent(results, baseTmpDir, targetCatalogDir, config.compatibility?.strategy);
+
+    // Remove schema_breaking_change results where no actual breaking changes were found
+    const filteredResults = results.filter((r) => {
+      if (r.trigger !== 'schema_breaking_change') return true;
+      if (!r.breakingSchemaChanges) return false;
+      r.breakingSchemaChanges = r.breakingSchemaChanges.filter((bsc) => bsc.breakingChanges.length > 0);
+      return r.breakingSchemaChanges.length > 0;
+    });
+
     // Mark results that have fail actions and collect their messages
-    for (const result of results) {
+    for (const result of filteredResults) {
       const failActions = result.rule.actions.filter((a) => a.type === 'fail');
       if (failActions.length > 0) {
         result.failed = true;
@@ -96,30 +107,30 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<Gov
       }
     }
 
-    // Populate before/after schema content for any schema_changed results
-    await enrichSchemaContent(results, baseTmpDir, targetCatalogDir);
-
     // Always execute actions (webhooks) regardless of output format
     const messageTypes = buildMessageTypeMap(targetResult.snapshot);
     const serviceOwners = buildServiceOwnersMap(targetResult.snapshot);
-    const actionOutput = await executeGovernanceActions(results, {
+    const actionOutput = await executeGovernanceActions(filteredResults, {
       messageTypes,
       status: opts.status,
       serviceOwners,
       baseRef: baseBranch,
       targetRef: opts.target || 'working-directory',
+      compatibilityStrategy: config.compatibility?.strategy,
     });
 
     // Collect failures
-    const failures = results.filter((r) => r.failed).map((r) => ({ ruleName: r.rule.name, messages: r.failMessages || [] }));
+    const failures = filteredResults
+      .filter((r) => r.failed)
+      .map((r) => ({ ruleName: r.rule.name, messages: r.failMessages || [] }));
 
     if (opts.format === 'json') {
       const jsonOutput = {
         baseBranch,
         target: opts.target || 'working directory',
-        results,
+        results: filteredResults,
         summary: {
-          rulesTriggered: results.length,
+          rulesTriggered: filteredResults.length,
           failures: failures.length,
           passed: failures.length === 0,
         },
@@ -131,16 +142,16 @@ export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<Gov
     const targetLabel = opts.target || 'working directory';
     const lines: string[] = [`Governance check: comparing ${targetLabel} against ${baseBranch}`, ''];
 
-    lines.push(formatGovernanceOutput(results));
+    lines.push(formatGovernanceOutput(filteredResults));
 
     if (actionOutput.length > 0) {
       lines.push('');
       lines.push(...actionOutput);
     }
 
-    if (results.length > 0) {
+    if (filteredResults.length > 0) {
       const webhookCount = actionOutput.filter((l) => l.includes('Webhook sent')).length;
-      const parts = [`${results.length} rule${results.length === 1 ? '' : 's'} triggered`];
+      const parts = [`${filteredResults.length} rule${filteredResults.length === 1 ? '' : 's'} triggered`];
       if (webhookCount > 0) parts.push(`${webhookCount} webhook${webhookCount === 1 ? '' : 's'} sent`);
       lines.push('');
       lines.push(parts.join(', ') + '.');

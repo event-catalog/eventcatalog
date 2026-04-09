@@ -1,103 +1,141 @@
 <div align="center">
 
-<img width="745" alt="EventCatalog" src="./images/example.png" />
+<img src="./images/banner.png" alt="EventCatalog overview" width="800" />
 
-<h1>📖 EventCatalog</h1>
+## The architecture catalog for distributed systems 
 
-<p align="center">
-  <strong>The architecture catalog for distributed systems</strong>
-  <br/>
-  Document events, services, domains & flows with AI-powered discovery
-  <br/><br/>
-</p>
+Discover your domains, services, events, and schemas — with AI-powered discovery, interactive visualizations, and 15+ generators for Kafka, EventBridge, RabbitMQ, and more.
 
 [![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
 [![npm version](https://badge.fury.io/js/@eventcatalog%2Fcore.svg)](https://badge.fury.io/js/@eventcatalog/core)
 [![All Contributors](https://img.shields.io/badge/all_contributors-69-orange.svg?style=flat-square)](#contributors-)
 
-[Documentation](https://www.eventcatalog.dev/docs) | [Demo](https://demo.eventcatalog.dev) | [Discord](https://discord.gg/3rjaZMmrAm)
+**31,000+ catalogs created**
+
 
 </div>
 
----
+<br/>
 
-## 🚀 Quick Start
+<p align="center">
+  <img src="./images/overview-demo.gif" alt="EventCatalog overview" width="800" />
+</p>
+
+[Documentation](https://www.eventcatalog.dev/docs) | [Live Demo](https://demo.eventcatalog.dev) | [Discord](https://discord.gg/3rjaZMmrAm)
+
+
+<br/>
+
+## Get started in seconds
 
 ```bash
 npx @eventcatalog/create-eventcatalog@latest my-catalog
 ```
 
-Looking for help? Start with our [Getting Started](https://www.eventcatalog.dev/docs/development/getting-started/installation) guide.
+That's it. Open `http://localhost:3000` and start documenting your architecture.
+
+Looking for a guided walkthrough? Check out the [Getting Started](https://www.eventcatalog.dev/docs/development/getting-started/installation) guide.
 
 ---
 
-## ✨ Features
+## Core Features
 
-- **🤖 AI-Native Discovery** - MCP Server integration, semantic search, auto-documentation
-- **📊 Visual Documentation** - Beautiful node graphs, flows, and architecture diagrams
-- **🔄 Multi-Platform** - Kafka, EventBridge, RabbitMQ, SNS/SQS, and more
-- **🔐 Enterprise Ready** - OAuth2, RBAC, schema governance, breaking change detection
-- **🎨 Customizable** - Themes, custom MDX components, configurable layouts
-- **📦 15+ Generators** - OpenAPI, AsyncAPI, AWS, Confluent, Kafka, and more
+### Visualise your architecture
 
----
+Interactive node graphs that map your entire system — services, events, commands, queries, domains, and how they connect.
 
-## 📦 Monorepo Structure
+<p align="center">
+  <img src="./images/visualizer-demo.gif" alt="Architecture visualiser" width="800" />
+</p>
 
-EventCatalog is organized as a Turborepo monorepo:
+### AI-powered discovery
 
-- **[@eventcatalog/core](./eventcatalog)** - Main catalog application (Astro + React)
-- **[@eventcatalog/sdk](./packages/sdk)** - Node.js SDK for programmatic catalog management
-- **[@eventcatalog/create-eventcatalog](./packages/create-eventcatalog)** - CLI scaffolding tool
+Ask questions about your architecture and business in natural language. The built-in AI chat and MCP server let you and your tools explore your catalog.
 
----
+<p align="center">
+  <img src="./images/ai-demo.gif" alt="AI-powered discovery" width="800" />
+</p>
 
-## 🎯 Why EventCatalog?
+### Schema explorer
 
-**vs. Generic Documentation Tools**
-- ✅ Purpose-built for distributed systems and event-driven architectures
-- ✅ AI-powered discovery and semantic search
-- ✅ Schema governance with breaking change detection
+Quickly find any schema across your catalog — OpenAPI, AsyncAPI, Protobuf, JSON Schema, Avro, and more. All in one searchable place.
 
-**vs. Vendor-Specific Tools**
-- ✅ Platform-agnostic (works with any broker/platform)
-- ✅ Vendor-neutral (avoid lock-in)
-- ✅ Open source with commercial support
+<p align="center">
+  <img src="./images/schema-explorer-demo.gif" alt="Schema explorer" width="800" />
+</p>
 
-**vs. Service Catalogs**
-- ✅ 5 minutes to value vs 6+ months implementation
-- ✅ Event-driven architecture depth, not generic breadth
-- ✅ Runtime discovery from traffic analysis
+### Schema fields
 
----
+Filter and find any property on any field across your entire catalog. See how fields are used across services and messages.
 
-## 🌍 Demos
+<p align="center">
+  <img src="./images/schema-fields-demo.gif" alt="Schema fields explorer" width="800" />
+</p>
 
-See EventCatalog in action:
+### Bring your own docs
 
-- [Finance System](https://eventcatalog-examples-finance.vercel.app/)
-- [Healthcare System](https://eventcatalog-examples-healthcare.vercel.app/)
-- [E-Commerce System](https://demo.eventcatalog.dev/)
-- [SaaS System](https://eventcatalog-examples-saas.vercel.app/)
+Attach architecture decision records, runbooks, and any custom documentation to your domains, services, and teams. Version them alongside your architecture.
 
----
+<p align="center">
+  <img src="./images/bring-your-own-docs.gif" alt="Bring your own docs" width="800" />
+</p>
 
-## 📚 Documentation
+### Document business flows
 
-Visit our [official documentation](https://www.eventcatalog.dev/docs/development/getting-started) to learn more.
+Tell the end-to-end story of your business workflows. Reference the services and messages you already have to build a higher-level picture of how everything fits together.
 
----
+<p align="center">
+  <img src="./images/flow-demo.gif" alt="Business flow documentation" width="800" />
+</p>
 
-## 💬 Support
+### And much more...
 
-Having trouble? Get help in the official [EventCatalog Discord](https://discord.gg/3rjaZMmrAm).
+- **Version your resources** — Full semantic versioning for events, commands, services, and more
+- **15+ generators** — Auto-generate from AsyncAPI, OpenAPI, Kafka, Confluent, AWS EventBridge, and more
+- **Customizable** — Themes, custom MDX components, and configurable layouts
+- **Enterprise ready** — OAuth2, RBAC, schema governance, breaking change detection
 
 ---
 
-## 🤝 Contributing
+## Demos
 
-We welcome contributions! See our [contributing guidelines](https://eventcatalog.dev/docs/contributing/overview) to get started.
+See EventCatalog powering real-world architectures:
+
+| | | |
+|---|---|---|
+| [**E-Commerce**](https://demo.eventcatalog.dev/) | [**Finance**](https://eventcatalog-examples-finance.vercel.app/) | [**Healthcare**](https://eventcatalog-examples-healthcare.vercel.app/) |
+| [**SaaS**](https://eventcatalog-examples-saas.vercel.app/) | | |
+
+---
+
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| [@eventcatalog/core](./packages/core) | Main catalog application (Astro + React) |
+| [@eventcatalog/sdk](./packages/sdk) | Node.js SDK for programmatic catalog management |
+| [@eventcatalog/create-eventcatalog](./packages/create-eventcatalog) | CLI scaffolding tool |
+| [@eventcatalog/visualiser](./packages/visualiser) | Standalone React visualiser component |
+| [@eventcatalog/dsl-playground](./packages/playground) | Browser-based DSL playground |
+
+---
+
+## Documentation
+
+Visit the [official docs](https://www.eventcatalog.dev/docs/development/getting-started) to learn more.
+
+---
+
+## Support
+
+Need help? Join the [EventCatalog Discord](https://discord.gg/3rjaZMmrAm).
+
+---
+
+## Contributing
+
+We welcome contributions! See the [contributing guidelines](https://eventcatalog.dev/docs/contributing/overview) to get started.
 
 ---
 
@@ -216,6 +254,16 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ---
 
-## 📄 License
+<div align="center">
+
+**[Website](https://eventcatalog.dev)** | **[Docs](https://www.eventcatalog.dev/docs)** | **[Discord](https://discord.gg/3rjaZMmrAm)** | **[Twitter](https://twitter.com/eventcatalog)**
+
+<sub>Made with ❤️ by the EventCatalog community</sub>
+
+</div>
+
+---
+
+## License
 
 MIT.

@@ -47,6 +47,7 @@ src/__tests__/example-catalog-dependencies/dependencies
 packages/core/eventcatalog/public/ai
 examples/default/public/ai
 examples/default/eventcatalog.chat.js
+examples/default/exports/
 **/[...auth].ts
 
 .astro/
@@ -73,3 +74,4 @@ PERFORMANCE-ANALYSIS.md
 ec-test/
 
 docs/superpowers/*
+.worktrees/

@@ -89,7 +89,19 @@ export const getEventCatalogConfigurationFile = (directory: string) => async ():
 export const dumpCatalog =
   (directory: string) =>
   async (options?: { includeMarkdown?: boolean }): Promise<EventCatalog> => {
-    const { getDomains, getServices, getEvents, getQueries, getCommands, getChannels, getTeams, getUsers } = utils(directory);
+    const {
+      getDomains,
+      getServices,
+      getEvents,
+      getQueries,
+      getCommands,
+      getChannels,
+      getTeams,
+      getUsers,
+      getEntities,
+      getDataStores,
+      getFlows,
+    } = utils(directory);
 
     const { includeMarkdown = true } = options || {};
 
@@ -102,6 +114,9 @@ export const dumpCatalog =
     const teams = await getTeams();
     const users = await getUsers();
     const channels = await getChannels();
+    const entities = await getEntities();
+    const containers = await getDataStores();
+    const flows = await getFlows();
 
     const [
       hydratedDomains,
@@ -112,6 +127,9 @@ export const dumpCatalog =
       hydratedTeams,
       hydratedUsers,
       hydratedChannels,
+      hydratedEntities,
+      hydratedContainers,
+      hydratedFlows,
     ] = await Promise.all([
       hydrateResource(directory, domains),
       hydrateResource(directory, services),
@@ -121,6 +139,9 @@ export const dumpCatalog =
       hydrateResource(directory, teams),
       hydrateResource(directory, users),
       hydrateResource(directory, channels),
+      hydrateResource(directory, entities),
+      hydrateResource(directory, containers),
+      hydrateResource(directory, flows),
     ]);
 
     return {
@@ -138,6 +159,9 @@ export const dumpCatalog =
         teams: filterCollection(hydratedTeams, { includeMarkdown }),
         users: filterCollection(hydratedUsers, { includeMarkdown }),
         channels: filterCollection(hydratedChannels, { includeMarkdown }),
+        entities: filterCollection(hydratedEntities, { includeMarkdown }),
+        containers: filterCollection(hydratedContainers, { includeMarkdown }),
+        flows: filterCollection(hydratedFlows, { includeMarkdown }),
       },
     };
   };

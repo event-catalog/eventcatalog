@@ -134,18 +134,20 @@ export interface Query extends BaseSchema {
 export interface Channel extends BaseSchema {
   address?: string;
   protocols?: string[];
+  deliveryGuarantee?: 'at-most-once' | 'at-least-once' | 'exactly-once';
   routes?: ChannelPointer[];
   detailsPanel?: {
     producers?: DetailPanelProperty;
     consumers?: DetailPanelProperty;
     messages?: DetailPanelProperty;
     protocols?: DetailPanelProperty;
+    parameters?: DetailPanelProperty;
     versions?: DetailPanelProperty;
     repository?: DetailPanelProperty;
     owners?: DetailPanelProperty;
     changelog?: DetailPanelProperty;
+    attachments?: DetailPanelProperty;
   };
-  // parameters?: Record<string, Parameter>;
   parameters?: {
     [key: string]: {
       enum?: string[];
@@ -174,6 +176,7 @@ export interface Service extends BaseSchema {
   entities?: ResourcePointer[];
   writesTo?: ResourcePointer[];
   readsFrom?: ResourcePointer[];
+  flows?: ResourcePointer[];
   specifications?: Specifications | Specification[];
   detailsPanel?: {
     domains?: DetailPanelProperty;
@@ -192,6 +195,7 @@ export interface Domain extends BaseSchema {
   domains?: ResourcePointer[];
   entities?: ResourcePointer[];
   dataProducts?: ResourcePointer[];
+  flows?: ResourcePointer[];
   sends?: SendsPointer[];
   receives?: ReceivesPointer[];
   detailsPanel?: {
@@ -330,6 +334,47 @@ enum DataClassification {
   Regulated = 'regulated',
 }
 
+export interface FlowStep {
+  id: string | number;
+  type?: 'node' | 'message' | 'user' | 'actor';
+  title: string;
+  summary?: string;
+  message?: ResourcePointer;
+  service?: ResourcePointer;
+  flow?: ResourcePointer;
+  actor?: {
+    name: string;
+    summary?: string;
+  };
+  custom?: {
+    title: string;
+    icon?: string;
+    type?: string;
+    summary?: string;
+    url?: string;
+    color?: string;
+    properties?: Record<string, string | number>;
+    height?: number;
+    menu?: { label: string; url?: string }[];
+  };
+  externalSystem?: {
+    name: string;
+    summary?: string;
+    url?: string;
+  };
+  next_step?: string | number | { id: string | number; label?: string };
+  next_steps?: (string | number | { id: string | number; label?: string })[];
+}
+
+export interface Flow extends BaseSchema {
+  steps: FlowStep[];
+  detailsPanel?: {
+    owners?: DetailPanelProperty;
+    versions?: DetailPanelProperty;
+    changelog?: DetailPanelProperty;
+  };
+}
+
 export interface Container extends BaseSchema {
   container_type: 'database' | 'cache' | 'objectStore' | 'searchIndex' | 'dataWarehouse' | 'dataLake' | 'externalSaaS' | 'other';
   technology?: string;
@@ -361,6 +406,9 @@ export type EventCatalog = {
     teams?: ExportedResource<Team>[];
     users?: ExportedResource<User>[];
     channels?: ExportedResource<Channel>[];
+    entities?: ExportedResource<Entity>[];
+    containers?: ExportedResource<Container>[];
+    flows?: ExportedResource<Flow>[];
     customDocs?: ExportedResource<CustomDoc>[];
   };
 };

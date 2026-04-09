@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FieldsDatabase } from './fields-db';
 import path from 'node:path';

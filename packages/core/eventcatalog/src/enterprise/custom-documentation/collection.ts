@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/eventcatalog/src/enterprise/LICENSE
+ */
+
 import { z } from 'astro/zod';
 import { badge, ownerReference } from '../../content.config-shared-collections';
 

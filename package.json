@@ -1,6 +1,7 @@
 {
   "name": "eventcatalog-monorepo",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build:bin": "turbo run build:bin",
     "build": "turbo run build",
@@ -12,6 +13,7 @@
     "start:dsl-docs": "pnpm --filter @eventcatalog/language-server run docs:dev",
     "build:dsl-docs": "pnpm --filter @eventcatalog/sdk run build && pnpm --filter @eventcatalog/language-server run build && pnpm --filter @eventcatalog/language-server run docs:build",
     "start:catalog": "pnpm --filter @eventcatalog/core run start:catalog",
+    "export:catalog": "pnpm --filter @eventcatalog/core run export:catalog",
     "preview:catalog": "pnpm --filter @eventcatalog/core run preview:catalog",
     "start:catalog:server": "pnpm --filter @eventcatalog/core run start:catalog:server",
     "verify-build:catalog": "pnpm --filter @eventcatalog/core run verify-build:catalog",

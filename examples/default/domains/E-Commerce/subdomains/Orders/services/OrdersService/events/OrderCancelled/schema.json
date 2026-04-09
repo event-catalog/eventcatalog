@@ -57,7 +57,7 @@
         "description": "The total amount of the order that was cancelled."
       },
       "cancellationReason": {
-        "type": "string",
+        "type": ["string", "null"],
         "description": "The reason for the order cancellation, if provided."
       },
       "timestamp": {

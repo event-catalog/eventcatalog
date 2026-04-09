@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/cli",
-  "version": "0.5.9",
+  "version": "0.6.0",
   "description": "CLI for EventCatalog",
   "scripts": {
     "build": "tsup",
@@ -19,7 +19,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "files": [
     "dist",
     "package.json"
@@ -32,6 +32,7 @@
     }
   },
   "dependencies": {
+    "@eventcatalog/breaking-changes": "workspace:*",
     "@eventcatalog/language-server": "workspace:*",
     "@eventcatalog/sdk": "workspace:*",
     "@eventcatalog/license": "^0.0.7",
