@@ -224,9 +224,14 @@ export const getNodesAndEdges = async ({
     for (const [groupName, groupData] of receivesPartition.grouped) {
       const groupNodeId = `message-group-${service.data.id}-${service.data.version}-${sanitizeGroupId(groupName)}-receives`;
 
+      // Match each message to its pointer by id/version (not index) to avoid
+      // misalignment when a pointer fails hydration and is missing from messages.
+      const findPointerForMessage = (msg: any) =>
+        groupData.pointers.find((p: any) => p.id === msg.data.id && versionMatches(p.version, msg.data.version));
+
       const { expandedNodes, expandedEdges } = precomputeGroupExpansion(
         groupData.messages,
-        groupData.pointers.map((p: any) => p?.from || []),
+        groupData.messages.map((msg: any) => findPointerForMessage(msg)?.from || []),
         'receives',
         { serviceNodeId, services, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
       );
@@ -242,9 +247,9 @@ export const getNodesAndEdges = async ({
           direction: 'receives' as const,
           messageCount: groupData.messages.length,
           messageTypes: [...new Set(groupData.messages.map((m: any) => m.collection))],
-          messages: groupData.messages.map((msg: any, i: number) => ({
+          messages: groupData.messages.map((msg: any) => ({
             message: { ...msg, data: { ...msg.data, ...getOperationFields(msg.data) } },
-            channels: groupData.pointers[i]?.from || [],
+            channels: findPointerForMessage(msg)?.from || [],
           })),
           service: { id: service.data.id, version: service.data.version },
           expandedNodes,
@@ -388,9 +393,13 @@ export const getNodesAndEdges = async ({
     for (const [groupName, groupData] of sendsPartition.grouped) {
       const groupNodeId = `message-group-${service.data.id}-${service.data.version}-${sanitizeGroupId(groupName)}-sends`;
 
+      // Match each message to its pointer by id/version (not index) — same reason as receives above
+      const findPointerForMessage = (msg: any) =>
+        groupData.pointers.find((p: any) => p.id === msg.data.id && versionMatches(p.version, msg.data.version));
+
       const { expandedNodes, expandedEdges } = precomputeGroupExpansion(
         groupData.messages,
-        groupData.pointers.map((p: any) => p?.to || []),
+        groupData.messages.map((msg: any) => findPointerForMessage(msg)?.to || []),
         'sends',
         { serviceNodeId, services, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
       );
@@ -406,9 +415,9 @@ export const getNodesAndEdges = async ({
           direction: 'sends' as const,
           messageCount: groupData.messages.length,
           messageTypes: [...new Set(groupData.messages.map((m: any) => m.collection))],
-          messages: groupData.messages.map((msg: any, i: number) => ({
+          messages: groupData.messages.map((msg: any) => ({
             message: { ...msg, data: { ...msg.data, ...getOperationFields(msg.data) } },
-            channels: groupData.pointers[i]?.to || [],
+            channels: findPointerForMessage(msg)?.to || [],
           })),
           service: { id: service.data.id, version: service.data.version },
           expandedNodes,
