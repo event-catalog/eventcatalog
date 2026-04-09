@@ -674,16 +674,11 @@ const NodeGraphBuilder = ({
       // Animate the layout transition
       animateLayout();
 
-      // Swap: remove expanded container + children + downstream, restore compact node
+      // Swap: remove expanded container + children + downstream, restore compact node.
+      // Only remove downstream nodes that aren't still referenced by surviving edges
+      // (another expanded group may share the same channel/consumer nodes).
       setNodes((prev) => {
-        const without = prev.filter(
-          (n) =>
-            n.id !== groupNodeId &&
-            !childNodeIds.has(n.id) &&
-            !downstreamNodeIds.has(n.id),
-        );
-        const next = [...without, originalNode];
-        // Remove child + downstream edges, add back original edges
+        // Compute which edges will survive the collapse
         const nextEdges = currentEdges
           .filter(
             (edge) =>
@@ -692,6 +687,21 @@ const NodeGraphBuilder = ({
               !isDownstreamEdge(edge),
           )
           .concat(originalEdges);
+
+        // Nodes still referenced by surviving edges must be kept
+        const referencedByEdges = new Set<string>();
+        for (const edge of nextEdges) {
+          referencedByEdges.add(edge.source);
+          referencedByEdges.add(edge.target);
+        }
+
+        const without = prev.filter(
+          (n) =>
+            n.id !== groupNodeId &&
+            !childNodeIds.has(n.id) &&
+            !(downstreamNodeIds.has(n.id) && !referencedByEdges.has(n.id)),
+        );
+        const next = [...without, originalNode];
         return relayoutGraph(next, nextEdges);
       });
       setEdges((prev) => {
