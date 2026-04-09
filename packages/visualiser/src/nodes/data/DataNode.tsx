@@ -5,7 +5,7 @@ import {
   normalizeOwners,
   HIDDEN_HANDLE_STYLE,
 } from "../OwnerIndicator";
-import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
+import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
 import { EventCatalogResource, Data as DataType } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import {
@@ -182,8 +182,8 @@ function DefaultData(props: DataNode) {
 
   const mode = props.data.mode || "simple";
   const ownersNormalized = useMemo(() => normalizeOwners(owners), [owners]);
-  const targetConnections = useHandleConnections({ type: "target" });
-  const sourceConnections = useHandleConnections({ type: "source" });
+  const targetConnections = useNodeConnections({ handleType: "target" });
+  const sourceConnections = useNodeConnections({ handleType: "source" });
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"

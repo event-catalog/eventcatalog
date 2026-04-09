@@ -4,7 +4,7 @@ import {
   normalizeOwners,
   HIDDEN_HANDLE_STYLE,
 } from "../OwnerIndicator";
-import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
+import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
 import { EventCatalogResource, Channel as ChannelType } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import {
@@ -285,8 +285,8 @@ function DefaultChannel(props: ChannelNode) {
     () => normalizeOwners(data.channel?.owners),
     [data.channel?.owners],
   );
-  const sourceConnections = useHandleConnections({ type: "source" });
-  const targetConnections = useHandleConnections({ type: "target" });
+  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const targetConnections = useNodeConnections({ handleType: "target" });
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
