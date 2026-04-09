@@ -1,5 +1,5 @@
 ---
-import jsonpath from 'jsonpath';
+import { JSONPath } from 'jsonpath-plus';
 import JSONSchemaViewer from '@components/SchemaExplorer/JSONSchemaViewer';
 import { Code } from 'astro-expressive-code/components';
 import { isPrivateRemoteSchemaEnabled } from '@utils/feature';
@@ -45,7 +45,7 @@ function isJSONSchema(data: any): boolean {
 
 function extractWithJSONPath(data: any, path: string): any {
   try {
-    const result = jsonpath.query(data, path);
+    const result = JSONPath({ path, json: data });
     // If the result is an array with a single element, return the element itself
     // unless the original query was meant to return an array
     if (Array.isArray(result) && result.length === 1 && !path.includes('[*]') && !path.includes('.*')) {
