@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.27.4
+
+### Patch Changes
+
+- 50cb951: Inline isSSR in enterprise feature module to fix circular dependency with utils/feature
+
 ## 3.27.3
 
 ### Patch Changes
