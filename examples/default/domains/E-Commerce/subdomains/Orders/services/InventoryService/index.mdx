@@ -9,7 +9,6 @@ owners:
 receives:
   - id: UserSignedUp
   - id: OrderConfirmed
-    group: Order Processing
     fields:
       - orderId
       - orderItems
@@ -17,26 +16,22 @@ receives:
     from:
       - id: inventory-service-filter-by-orders-over-100
   - id: OrderAmended
-    group: Order Processing
     fields:
       - orderId
       - amendedItems
     from:
       - id: orders-domain-eventbus
   - id: UpdateInventory
-    group: Stock Management
     fields:
       - productId
       - quantityChange
       - warehouseId
   - id: AddInventory
-    group: Stock Management
     fields:
       - productId
       - quantity
       - warehouseId
   - id: DeleteInventory
-    group: Stock Management
 sends:
   - id: InventoryAdjusted
     version: 1.0.0
