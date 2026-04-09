@@ -354,3 +354,70 @@ export const mockGroupedEvents = [
 export const mockGroupedCommands = [
   { data: { id: 'EnrolmentRequested', version: '1.0.0', name: 'EnrolmentRequested' }, collection: 'commands' },
 ];
+
+// Service with grouped messages that have channel routing (for downstream expansion tests)
+export const mockGroupedServiceWithChannels = {
+  id: 'services/Warehouse/WarehouseService/index.mdx',
+  slug: 'services/Warehouse/WarehouseService',
+  collection: 'services',
+  data: {
+    id: 'WarehouseService',
+    version: '1.0.0',
+    sends: [
+      { id: 'ShipmentDispatched', version: '1.0.0', group: 'Shipping', to: [{ id: 'ShippingChannel', version: '1.0.0' }] },
+      { id: 'ShipmentFailed', version: '1.0.0', group: 'Shipping' },
+    ],
+    receives: [
+      { id: 'PickRequested', version: '1.0.0', group: 'Picking', from: [{ id: 'PickChannel', version: '1.0.0' }] },
+      { id: 'PickCancelled', version: '1.0.0', group: 'Picking' },
+    ],
+  },
+};
+
+export const mockGroupedChannelEvents = [
+  { data: { id: 'ShipmentDispatched', version: '1.0.0', name: 'ShipmentDispatched' }, collection: 'events' },
+  { data: { id: 'ShipmentFailed', version: '1.0.0', name: 'ShipmentFailed' }, collection: 'events' },
+  { data: { id: 'PickRequested', version: '1.0.0', name: 'PickRequested' }, collection: 'commands' },
+  { data: { id: 'PickCancelled', version: '1.0.0', name: 'PickCancelled' }, collection: 'commands' },
+];
+
+export const mockGroupedChannels = [
+  {
+    id: 'ShippingChannel',
+    slug: 'ShippingChannel',
+    collection: 'channels',
+    data: { id: 'ShippingChannel', version: '1.0.0' },
+  },
+  {
+    id: 'PickChannel',
+    slug: 'PickChannel',
+    collection: 'channels',
+    data: { id: 'PickChannel', version: '1.0.0' },
+  },
+];
+
+// A consumer of ShipmentDispatched (for testing downstream consumer nodes)
+export const mockShipmentConsumerService = {
+  id: 'services/Delivery/DeliveryService/index.mdx',
+  slug: 'services/Delivery/DeliveryService',
+  collection: 'services',
+  data: {
+    id: 'DeliveryService',
+    version: '1.0.0',
+    receives: [{ id: 'ShipmentDispatched', version: '1.0.0' }],
+    sends: [],
+  },
+};
+
+// A producer of PickRequested (for testing upstream producer nodes)
+export const mockPickProducerService = {
+  id: 'services/WMS/WMSService/index.mdx',
+  slug: 'services/WMS/WMSService',
+  collection: 'services',
+  data: {
+    id: 'WMSService',
+    version: '1.0.0',
+    sends: [{ id: 'PickRequested', version: '1.0.0' }],
+    receives: [],
+  },
+};

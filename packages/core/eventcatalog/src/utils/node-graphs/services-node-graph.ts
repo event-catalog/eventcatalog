@@ -12,14 +12,87 @@ import {
   DEFAULT_NODE_WIDTH,
   DEFAULT_NODE_HEIGHT,
   partitionMessagesByGroup,
+  getOperationFields,
 } from '@utils/node-graphs/utils/utils';
 
 const sanitizeGroupId = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 
 import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
-import { MarkerType } from '@xyflow/react';
+import { MarkerType, type Node, type Edge } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
 import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from './message-node-graph';
+
+/**
+ * Pre-compute the downstream nodes/edges that should appear when a message group
+ * is expanded. Calls the standard message node-graph function for each grouped
+ * message, then strips out the service and message nodes/edges that the client-side
+ * expand logic handles separately.
+ */
+const precomputeGroupExpansion = (
+  messages: any[],
+  channelPointers: any[],
+  direction: 'sends' | 'receives',
+  opts: {
+    serviceNodeId: string;
+    services: any;
+    service: any;
+    mode: string;
+    channels: any;
+    channelMap: any;
+    existingNodes: any[];
+    existingEdges: any[];
+  }
+) => {
+  const expandedNodes: Node[] = [];
+  const expandedEdges: Edge[] = [];
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    const channelRefs = channelPointers[i] || [];
+
+    // Call the same function used by the ungrouped path
+    const args =
+      direction === 'receives'
+        ? {
+            message: msg as any,
+            targetChannels: channelRefs,
+            services: opts.services,
+            currentNodes: [...opts.existingNodes, ...expandedNodes],
+            target: opts.service,
+            mode: opts.mode,
+            channels: opts.channels,
+            channelMap: opts.channelMap,
+          }
+        : {
+            message: msg as any,
+            sourceChannels: channelRefs,
+            services: opts.services,
+            currentNodes: [...opts.existingNodes, ...expandedNodes],
+            source: opts.service,
+            currentEdges: [...opts.existingEdges, ...expandedEdges],
+            mode: opts.mode,
+            channels: opts.channels,
+            channelMap: opts.channelMap,
+          };
+
+    const { nodes: msgNodes, edges: msgEdges } =
+      direction === 'receives'
+        ? getNodesAndEdgesForConsumedMessage(args as any)
+        : getNodesAndEdgesForProducedMessage(args as any);
+
+    // Strip the service node and message node — the client expand logic creates these.
+    // Also strip the direct service↔message edge for the same reason.
+    const msgId = `${msg.data.id}-${msg.data.version}`;
+    const isServiceOrMessage = (id: string) => id === opts.serviceNodeId || id === msgId;
+    const isDirectEdge = (e: any) =>
+      (e.source === opts.serviceNodeId && e.target === msgId) || (e.source === msgId && e.target === opts.serviceNodeId);
+
+    expandedNodes.push(...msgNodes.filter((n: any) => !isServiceOrMessage(n.id)));
+    expandedEdges.push(...msgEdges.filter((e: any) => !isDirectEdge(e)));
+  }
+
+  return { expandedNodes, expandedEdges };
+};
 
 type DagreGraph = any;
 
@@ -150,6 +223,14 @@ export const getNodesAndEdges = async ({
     // Emit group nodes for grouped receives
     for (const [groupName, groupData] of receivesPartition.grouped) {
       const groupNodeId = `message-group-${service.data.id}-${service.data.version}-${sanitizeGroupId(groupName)}-receives`;
+
+      const { expandedNodes, expandedEdges } = precomputeGroupExpansion(
+        groupData.messages,
+        groupData.pointers.map((p: any) => p?.from || []),
+        'receives',
+        { serviceNodeId, services, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
+      );
+
       nodes.push({
         id: groupNodeId,
         sourcePosition: 'right',
@@ -162,10 +243,12 @@ export const getNodesAndEdges = async ({
           messageCount: groupData.messages.length,
           messageTypes: [...new Set(groupData.messages.map((m: any) => m.collection))],
           messages: groupData.messages.map((msg: any, i: number) => ({
-            message: msg,
+            message: { ...msg, data: { ...msg.data, ...getOperationFields(msg.data) } },
             channels: groupData.pointers[i]?.from || [],
           })),
           service: { id: service.data.id, version: service.data.version },
+          expandedNodes,
+          expandedEdges,
         },
       });
 
@@ -174,7 +257,7 @@ export const getNodesAndEdges = async ({
           id: `${groupNodeId}-to-${serviceNodeId}`,
           source: groupNodeId,
           target: serviceNodeId,
-          label: `${groupData.messages.length} messages`,
+          label: `consumes ${groupData.messages.length}\nmessages`,
           type: 'multiline',
           markerEnd: {
             type: MarkerType.ArrowClosed,
@@ -304,6 +387,14 @@ export const getNodesAndEdges = async ({
     // Emit group nodes for grouped sends
     for (const [groupName, groupData] of sendsPartition.grouped) {
       const groupNodeId = `message-group-${service.data.id}-${service.data.version}-${sanitizeGroupId(groupName)}-sends`;
+
+      const { expandedNodes, expandedEdges } = precomputeGroupExpansion(
+        groupData.messages,
+        groupData.pointers.map((p: any) => p?.to || []),
+        'sends',
+        { serviceNodeId, services, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
+      );
+
       nodes.push({
         id: groupNodeId,
         sourcePosition: 'right',
@@ -316,10 +407,12 @@ export const getNodesAndEdges = async ({
           messageCount: groupData.messages.length,
           messageTypes: [...new Set(groupData.messages.map((m: any) => m.collection))],
           messages: groupData.messages.map((msg: any, i: number) => ({
-            message: msg,
+            message: { ...msg, data: { ...msg.data, ...getOperationFields(msg.data) } },
             channels: groupData.pointers[i]?.to || [],
           })),
           service: { id: service.data.id, version: service.data.version },
+          expandedNodes,
+          expandedEdges,
         },
       });
 
@@ -328,7 +421,7 @@ export const getNodesAndEdges = async ({
           id: `${serviceNodeId}-to-${groupNodeId}`,
           source: serviceNodeId,
           target: groupNodeId,
-          label: `${groupData.messages.length} messages`,
+          label: `publishes ${groupData.messages.length}\nmessages`,
           type: 'multiline',
           markerEnd: {
             type: MarkerType.ArrowClosed,

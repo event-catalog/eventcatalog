@@ -31,20 +31,23 @@ const HEADER_STYLE: React.CSSProperties = {
   overflow: "visible",
 };
 
-const ICON_CIRCLE_STYLE: React.CSSProperties = {
+const BADGE_STYLE: React.CSSProperties = {
   position: "absolute",
-  top: -14,
+  top: -10,
   left: 12,
-  width: 32,
-  height: 32,
-  borderRadius: "50%",
-  background: "#7c3aed",
-  border: "2px solid #a78bfa",
-  display: "flex",
+  display: "inline-flex",
   alignItems: "center",
-  justifyContent: "center",
-  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+  gap: 3,
+  padding: "2px 8px",
+  borderRadius: 4,
+  background: "#7c3aed",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
   zIndex: 10,
+  fontSize: 8,
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase" as const,
+  color: "white",
 };
 
 const HEADER_CONTENT_STYLE: React.CSSProperties = {
@@ -52,11 +55,11 @@ const HEADER_CONTENT_STYLE: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "space-between",
   height: "100%",
-  padding: "0 12px 0 52px",
+  padding: "0 12px 0 14px",
 };
 
 const GROUP_NAME_STYLE: React.CSSProperties = {
-  fontSize: 13,
+  fontSize: 11,
   fontWeight: 700,
   color: "var(--ec-group-text, #5b21b6)",
   letterSpacing: "0.04em",
@@ -72,17 +75,17 @@ const COUNT_STYLE: React.CSSProperties = {
 };
 
 const COLLAPSE_BUTTON_STYLE: React.CSSProperties = {
-  background: "rgba(139, 92, 246, 0.15)",
-  border: "1px solid rgba(139, 92, 246, 0.3)",
+  background: "#7c3aed",
+  border: "1px solid #a78bfa",
   borderRadius: 6,
-  padding: "4px 8px",
+  padding: "4px 10px",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   gap: 4,
   fontSize: 10,
   fontWeight: 600,
-  color: "#7c3aed",
+  color: "white",
 };
 
 export default memo(function MessageGroupExpandedNode({
@@ -95,16 +98,14 @@ export default memo(function MessageGroupExpandedNode({
   return (
     <div style={CONTAINER_STYLE}>
       <div style={HEADER_STYLE}>
-        <div style={ICON_CIRCLE_STYLE}>
-          <Layers size={16} strokeWidth={2.5} style={{ color: "white" }} />
+        <div style={BADGE_STYLE}>
+          <Layers size={10} strokeWidth={2.5} />
+          Group
         </div>
 
         <div style={HEADER_CONTENT_STYLE}>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <span style={GROUP_NAME_STYLE}>{groupName || "Message Group"}</span>
-            <span style={COUNT_STYLE}>
-              {messageCount} {messageCount === 1 ? "message" : "messages"}
-            </span>
+            <span style={GROUP_NAME_STYLE}>{groupName || "Group"}</span>
           </div>
 
           <button

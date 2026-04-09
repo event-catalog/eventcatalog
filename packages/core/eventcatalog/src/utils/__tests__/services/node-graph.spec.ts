@@ -11,6 +11,11 @@ import {
   mockGroupedService,
   mockGroupedEvents,
   mockGroupedCommands,
+  mockGroupedServiceWithChannels,
+  mockGroupedChannelEvents,
+  mockGroupedChannels,
+  mockShipmentConsumerService,
+  mockPickProducerService,
 } from './mocks';
 import type { CollectionKey } from 'astro:content';
 import { getCollection } from 'astro:content';
@@ -497,6 +502,175 @@ describe('Services NodeGraph', () => {
 
         const bothEdges = edges.filter((e: any) => e.id?.includes('-both'));
         expect(bothEdges).toHaveLength(0);
+      });
+
+      describe('group node expansion data (downstream channels, producers, consumers)', () => {
+        beforeEach(() => {
+          vi.mocked(getCollection).mockImplementation(((key: any) => {
+            switch (key) {
+              case 'services':
+                return Promise.resolve([mockGroupedServiceWithChannels, mockShipmentConsumerService, mockPickProducerService]);
+              case 'events':
+                return Promise.resolve(mockGroupedChannelEvents.filter((e) => e.collection === 'events'));
+              case 'commands':
+                return Promise.resolve(mockGroupedChannelEvents.filter((e) => e.collection === 'commands'));
+              case 'channels':
+                return Promise.resolve(mockGroupedChannels);
+              default:
+                return Promise.resolve([]);
+            }
+          }) as any);
+        });
+
+        it('group node data should include pre-computed expandedNodes and expandedEdges arrays', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const groupNodes = nodes.filter((n: any) => n.type === 'messageGroup');
+          expect(groupNodes.length).toBeGreaterThanOrEqual(1);
+
+          for (const groupNode of groupNodes) {
+            expect(Array.isArray(groupNode.data.expandedNodes)).toBe(true);
+            expect(Array.isArray(groupNode.data.expandedEdges)).toBe(true);
+          }
+        });
+
+        it('sends group expandedNodes should include the channel node when a message routes to a channel', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const shippingGroup = nodes.find(
+            (n: any) => n.type === 'messageGroup' && n.data.direction === 'sends' && n.data.groupName === 'Shipping'
+          );
+
+          const expandedNodeIds = shippingGroup.data.expandedNodes.map((n: any) => n.id);
+          expect(expandedNodeIds).toContain('ShippingChannel-1.0.0');
+        });
+
+        it('sends group expandedNodes should include consumer services downstream of the grouped messages', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const shippingGroup = nodes.find(
+            (n: any) => n.type === 'messageGroup' && n.data.direction === 'sends' && n.data.groupName === 'Shipping'
+          );
+
+          const expandedNodeIds = shippingGroup.data.expandedNodes.map((n: any) => n.id);
+          expect(expandedNodeIds).toContain('DeliveryService-1.0.0');
+        });
+
+        it('receives group expandedNodes should include the channel node when a message comes from a channel', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const pickingGroup = nodes.find(
+            (n: any) => n.type === 'messageGroup' && n.data.direction === 'receives' && n.data.groupName === 'Picking'
+          );
+
+          const expandedNodeIds = pickingGroup.data.expandedNodes.map((n: any) => n.id);
+          expect(expandedNodeIds).toContain('PickChannel-1.0.0');
+        });
+
+        it('receives group expandedNodes should include producer services upstream of the grouped messages', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const pickingGroup = nodes.find(
+            (n: any) => n.type === 'messageGroup' && n.data.direction === 'receives' && n.data.groupName === 'Picking'
+          );
+
+          const expandedNodeIds = pickingGroup.data.expandedNodes.map((n: any) => n.id);
+          expect(expandedNodeIds).toContain('WMSService-1.0.0');
+        });
+
+        it('sends group expandedEdges should include the edge from message to channel', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const shippingGroup = nodes.find(
+            (n: any) => n.type === 'messageGroup' && n.data.direction === 'sends' && n.data.groupName === 'Shipping'
+          );
+
+          expect(shippingGroup.data.expandedEdges).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                source: 'ShipmentDispatched-1.0.0',
+                target: 'ShippingChannel-1.0.0',
+              }),
+            ])
+          );
+        });
+
+        it('expandedNodes should never contain the service node itself', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const groupNodes = nodes.filter((n: any) => n.type === 'messageGroup');
+          for (const groupNode of groupNodes) {
+            const expandedNodeIds = groupNode.data.expandedNodes.map((n: any) => n.id);
+            expect(expandedNodeIds).not.toContain('WarehouseService-1.0.0');
+          }
+        });
+
+        it('expandedNodes should never contain the grouped message nodes themselves', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const shippingGroup = nodes.find(
+            (n: any) => n.type === 'messageGroup' && n.data.direction === 'sends' && n.data.groupName === 'Shipping'
+          );
+
+          const expandedNodeIds = shippingGroup.data.expandedNodes.map((n: any) => n.id);
+          expect(expandedNodeIds).not.toContain('ShipmentDispatched-1.0.0');
+          expect(expandedNodeIds).not.toContain('ShipmentFailed-1.0.0');
+        });
+
+        it('expandedEdges should never contain direct service-to-message edges', async () => {
+          const { nodes } = await getNodesAndEdges({ id: 'WarehouseService', version: '1.0.0' });
+
+          const groupNodes = nodes.filter((n: any) => n.type === 'messageGroup');
+          for (const groupNode of groupNodes) {
+            const messageIds = groupNode.data.messages.map((m: any) => `${m.message.data.id}-${m.message.data.version}`);
+            const directEdges = groupNode.data.expandedEdges.filter(
+              (e: any) =>
+                (e.source === 'WarehouseService-1.0.0' && messageIds.includes(e.target)) ||
+                (e.target === 'WarehouseService-1.0.0' && messageIds.includes(e.source))
+            );
+            expect(directEdges).toHaveLength(0);
+          }
+        });
+      });
+
+      it('group node message data should include pre-computed operation fields (method, path)', async () => {
+        const serviceWithOps = {
+          ...mockGroupedServiceWithChannels,
+          data: {
+            ...mockGroupedServiceWithChannels.data,
+            id: 'OpService',
+            version: '1.0.0',
+            sends: [{ id: 'ShipmentDispatched', version: '1.0.0', group: 'Ops' }],
+            receives: [],
+          },
+        };
+        const eventWithOps = {
+          data: {
+            id: 'ShipmentDispatched',
+            version: '1.0.0',
+            name: 'ShipmentDispatched',
+            operation: { method: 'POST', path: '/shipments' },
+          },
+          collection: 'events',
+        };
+
+        vi.mocked(getCollection).mockImplementation(((key: any) => {
+          switch (key) {
+            case 'services':
+              return Promise.resolve([serviceWithOps]);
+            case 'events':
+              return Promise.resolve([eventWithOps]);
+            default:
+              return Promise.resolve([]);
+          }
+        }) as any);
+
+        const { nodes } = await getNodesAndEdges({ id: 'OpService', version: '1.0.0' });
+        const groupNode = nodes.find((n: any) => n.type === 'messageGroup');
+
+        const msgData = groupNode.data.messages[0].message.data;
+        expect(msgData.method).toBe('POST');
+        expect(msgData.path).toBe('/shipments');
       });
 
       it('should render a group node even for a single-message group', async () => {
