@@ -1,5 +1,12 @@
 # @eventcatalog/visualiser
 
+## 3.17.1
+
+### Patch Changes
+
+- 80ff83d: fix security vulnerabilities by upgrading mermaid to 11.12.3 and @astrojs/rss to 4.0.18
+- 4d5a01b: Migrate deprecated useHandleConnections to useNodeConnections across all node components
+
 ## 3.17.0
 
 ### Minor Changes
