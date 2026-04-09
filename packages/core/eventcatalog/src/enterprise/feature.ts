@@ -12,7 +12,9 @@
 import fs from 'fs';
 import { join } from 'path';
 import config from '../../eventcatalog.config.js';
-import { isSSR } from '../utils/feature';
+
+// Inline isSSR to avoid circular dependency with ../utils/feature (which re-exports from this file)
+const isSSR = () => config?.output === 'server';
 
 // These functions check for valid, legally obtained access to premium features
 export const isEventCatalogStarterEnabled = () => process.env.EVENTCATALOG_STARTER === 'true';
