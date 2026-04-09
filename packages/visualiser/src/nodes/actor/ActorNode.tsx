@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { User } from "lucide-react";
-import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
+import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
 import { EventCatalogResource, Note } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import { HIDDEN_HANDLE_STYLE } from "../OwnerIndicator";
@@ -146,8 +146,8 @@ function PostItActor(props: ActorNode) {
 function DefaultActor(props: ActorNode) {
   const { name, summary, deprecated, draft, notes } = props?.data;
   const mode = props?.data?.mode || "simple";
-  const targetConnections = useHandleConnections({ type: "target" });
-  const sourceConnections = useHandleConnections({ type: "source" });
+  const targetConnections = useNodeConnections({ handleType: "target" });
+  const sourceConnections = useNodeConnections({ handleType: "source" });
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"

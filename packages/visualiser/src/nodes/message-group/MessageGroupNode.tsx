@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import { Layers, Zap, Terminal, HelpCircle, Maximize2 } from "lucide-react";
-import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
+import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
 import { HIDDEN_HANDLE_STYLE } from "../OwnerIndicator";
 import { useDarkMode } from "../shared-styles";
 
@@ -35,8 +35,8 @@ const CARD_STYLE: React.CSSProperties = {
 export default memo(function MessageGroupNode(props: MessageGroupNode) {
   const { groupName, messageCount } = props.data;
   const isDark = useDarkMode();
-  const targetConnections = useHandleConnections({ type: "target" });
-  const sourceConnections = useHandleConnections({ type: "source" });
+  const targetConnections = useNodeConnections({ handleType: "target" });
+  const sourceConnections = useNodeConnections({ handleType: "source" });
   const stackDepth = messageCount >= 3 ? 3 : messageCount;
 
   const typeBreakdown = useMemo(() => {

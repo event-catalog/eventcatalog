@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Database } from "lucide-react";
 import { HIDDEN_HANDLE_STYLE } from "../OwnerIndicator";
-import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
+import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
 import { useDarkMode } from "../shared-styles";
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
@@ -40,8 +40,8 @@ export type FieldNode = Node<FieldNodeData, "field">;
 export default memo(function Field(props: FieldNode) {
   const { name, type: fieldType } = props.data;
   const mode = props.data.mode || "simple";
-  const targetConnections = useHandleConnections({ type: "target" });
-  const sourceConnections = useHandleConnections({ type: "source" });
+  const targetConnections = useNodeConnections({ handleType: "target" });
+  const sourceConnections = useNodeConnections({ handleType: "source" });
   const isDark = useDarkMode();
 
   return (
