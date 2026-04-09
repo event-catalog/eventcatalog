@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 3.27.0
+
+### Minor Changes
+
+- 748c528: Expanding a message group node now renders the full downstream graph (channels, consumers, producers) matching the ungrouped view
+
+### Patch Changes
+
+- Updated dependencies [748c528]
+  - @eventcatalog/visualiser@3.17.0
+
 ## 3.26.16
 
 ### Patch Changes
