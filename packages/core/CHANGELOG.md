@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.27.3
+
+### Patch Changes
+
+- 0a4a5bd: Replace jsonpath with jsonpath-plus and bump dependencies (@asyncapi/react-component, @scalar/api-reference-react, hono)
+
 ## 3.27.2
 
 ### Patch Changes
