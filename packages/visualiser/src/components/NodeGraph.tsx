@@ -534,11 +534,13 @@ const NodeGraphBuilder = ({
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const scrollableContainerRef = useRef<HTMLElement | null>(null);
 
-  // Stable refs for nodes/edges - avoids recreating callbacks on every drag/state change
+  // Stable refs — avoids recreating callbacks on every drag/state change
   const nodesRef = useRef(nodes);
   nodesRef.current = nodes;
   const edgesRef = useRef(edges);
   edgesRef.current = edges;
+  const hideChannelsRef = useRef(hideChannels);
+  hideChannelsRef.current = hideChannels;
 
   const animateLayout = useCallback(() => {
     const wrapper = reactFlowWrapperRef.current;
@@ -914,7 +916,20 @@ const NodeGraphBuilder = ({
         // Downstream nodes/edges: pre-computed server-side (channels, consumers, producers).
         // Remap edge endpoints from original message IDs to child node IDs.
         // Deduplicate by ID — multiple grouped messages may share the same downstream path.
-        const downstreamNodes: Node[] = groupData.expandedNodes || [];
+        // When channels are hidden, filter out channel nodes and their edges.
+        const channelsHidden = hideChannelsRef.current;
+        const channelNodeIds = channelsHidden
+          ? new Set(
+              (groupData.expandedNodes || [])
+                .filter((n: any) => n.type === "channels")
+                .map((n: any) => n.id),
+            )
+          : new Set<string>();
+
+        const downstreamNodes: Node[] = (
+          groupData.expandedNodes || []
+        ).filter((n: any) => !channelNodeIds.has(n.id));
+
         const seenEdgeIds = new Set<string>();
         const downstreamEdges: Edge[] = (groupData.expandedEdges || [])
           .map((e: any) => ({
@@ -927,6 +942,9 @@ const NodeGraphBuilder = ({
           .filter((e: Edge) => {
             if (seenEdgeIds.has(e.id)) return false;
             seenEdgeIds.add(e.id);
+            // Drop edges that touch a hidden channel node
+            if (channelNodeIds.has(e.source) || channelNodeIds.has(e.target))
+              return false;
             return true;
           });
 
