@@ -56,6 +56,7 @@ export type SendsPointer = {
   version?: string;
   fields?: string[];
   to?: ChannelPointer[];
+  group?: string;
 };
 
 export type ReceivesPointer = {
@@ -63,6 +64,7 @@ export type ReceivesPointer = {
   version?: string;
   fields?: string[];
   from?: ChannelPointer[];
+  group?: string;
 };
 
 export interface ResourceGroup {

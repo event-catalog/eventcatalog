@@ -48,6 +48,7 @@ interface SendsPointer {
   version?: string;
   fields?: string[];
   to?: ChannelPointer[];
+  group?: string;
 }
 
 interface ReceivesPointer {
@@ -55,6 +56,7 @@ interface ReceivesPointer {
   version?: string;
   fields?: string[];
   from?: ChannelPointer[];
+  group?: string;
 }
 
 export type MessageType = 'event' | 'command' | 'query';

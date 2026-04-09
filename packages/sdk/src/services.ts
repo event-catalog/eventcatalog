@@ -398,7 +398,12 @@ export const getSpecificationFilesForService = (directory: string) => async (id:
 
 export const addMessageToService =
   (directory: string) =>
-  async (id: string, direction: string, event: { id: string; version: string; fields?: string[] }, version?: string) => {
+  async (
+    id: string,
+    direction: string,
+    event: { id: string; version: string; fields?: string[]; group?: string },
+    version?: string
+  ) => {
     let service: Service = await getService(directory)(id, version);
     const servicePath = await getResourcePath(directory, id, version);
     const extension = extname(servicePath?.fullPath || '');
