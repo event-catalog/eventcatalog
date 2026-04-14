@@ -1,0 +1,67 @@
+---
+id: Snowflake
+name: Snowflake
+version: 1.0.0
+summary: |
+  Cloud data warehouse used by FlowMart as the destination for all
+  analytical event streams. Owned and operated by Snowflake — modelled
+  here as an external system the E-Commerce domain ships data into.
+externalSystem: true
+repository:
+  url: https://github.com/snowflakedb/snowflake-connector-python
+receives:
+  - id: OrderConfirmed
+    version: 0.0.1
+  - id: PaymentComplete
+    version: 0.0.1
+  - id: ShipmentDelivered
+    version: 0.0.1
+  - id: UserSubscriptionStarted
+    version: 0.0.1
+  - id: InventoryAdjusted
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+[Snowflake](https://www.snowflake.com) is FlowMart's cloud data warehouse. Every business-critical event published by the E-Commerce domain is streamed into Snowflake where it powers analytics, reporting, and the [[data-product|order-analytics]] data product.
+
+It is **owned and operated by Snowflake**, not by our team — so it appears in the catalog as an external system. We connect to it via the Snowflake Streaming API and the official drivers.
+
+<NodeGraph />
+
+## Streaming Architecture
+
+Events are streamed into Snowflake using a per-domain Kafka → Snowpipe Streaming pipeline:
+
+- **Orders subdomain** → `RAW.ORDERS` schema
+- **Payment subdomain** → `RAW.PAYMENTS` schema
+- **Subscriptions subdomain** → `RAW.SUBSCRIPTIONS` schema
+
+dbt models then transform the raw event data into the curated marts that back our [[data-product|order-analytics]] data product.
+
+## Receives
+
+Snowflake is a **sink** in this catalog — it consumes events but does not publish any. The events streamed into Snowflake are:
+
+- [[event|OrderConfirmed]] — every confirmed order, used for revenue analytics and conversion funnels
+- [[event|PaymentComplete]] — completed payments, used for revenue recognition
+- [[event|ShipmentDelivered]] — delivery completion, used for fulfillment SLA tracking
+- [[event|UserSubscriptionStarted]] — new subscriptions, used for MRR/ARR reporting
+- [[event|InventoryAdjusted]] — inventory movement, used for supply-chain analytics
+
+## Account & Region
+
+| Property | Value |
+|---|---|
+| Account | `flowmart-prod.eu-west-1` |
+| Edition | Business Critical |
+| Region | AWS `eu-west-1` |
+| Warehouse | `ANALYTICS_WH` (auto-suspend 60s) |
+
+## Cost
+
+Snowflake credits are budgeted per-quarter and tracked in the FinOps dashboard. The largest consumer is the dbt build that runs every 15 minutes against the curated marts.
+
+<Footer />

@@ -456,6 +456,7 @@ const services = defineCollection({
       writesTo: z.array(pointer).optional(),
       readsFrom: z.array(pointer).optional(),
       flows: z.array(pointer).optional(),
+      externalSystem: z.boolean().optional(),
       detailsPanel: z
         .object({
           domains: detailPanelPropertySchema.optional(),

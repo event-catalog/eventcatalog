@@ -1,5 +1,12 @@
 ---
-import { QueueListIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon, CubeIcon } from '@heroicons/react/24/outline';
+import {
+  QueueListIcon,
+  RectangleGroupIcon,
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  CubeIcon,
+  GlobeAltIcon,
+} from '@heroicons/react/24/outline';
 import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { DatabaseIcon } from 'lucide-react';
@@ -30,6 +37,8 @@ const events = await getEvents();
 const queries = await getQueries();
 const commands = await getCommands();
 const services = await getServices();
+const internalServices = services.filter((s) => !s.data.externalSystem);
+const externalServices = services.filter((s) => s.data.externalSystem);
 const domains = await getDomains({ getAllVersions: false });
 const flows = await getFlows();
 const containers = await getContainers();
@@ -96,6 +105,16 @@ const typeConfig: Record<
       { id: 'isDeprecated', label: 'Is Deprecated' },
     ],
   },
+  'external-systems': {
+    label: 'External Systems',
+    propertyOptions: [
+      { id: 'hasSpecifications', label: 'Has Specifications' },
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'hasRepository', label: 'Has Repository' },
+      { id: 'hasDataDependencies', label: 'Has Data Dependencies' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
   flows: {
     label: 'Flows',
     propertyOptions: [
@@ -125,8 +144,10 @@ const typeConfig: Record<
 
 const currentTypeConfig = typeConfig[type] || typeConfig.events;
 
+// External systems reuse the user's `services.tableConfiguration` so customisations apply to both tabs
+const tableConfigurationKey = type === 'external-systems' ? 'services' : type;
 // @ts-ignore
-const tableConfiguration = config[type as keyof typeof config]?.tableConfiguration ?? { columns: {} };
+const tableConfiguration = config[tableConfigurationKey as keyof typeof config]?.tableConfiguration ?? { columns: {} };
 
 const tabs = [
   {
@@ -139,13 +160,22 @@ const tabs = [
     visible: domains.length > 0,
   },
   {
-    label: `Services (${services.length})`,
+    label: `Services (${internalServices.length})`,
     href: buildUrl('/discover/services'),
     isActive: type === 'services',
     icon: ServerIcon,
     activeColor: 'pink',
-    enabled: services.length > 0,
-    visible: services.length > 0,
+    enabled: internalServices.length > 0,
+    visible: internalServices.length > 0,
+  },
+  {
+    label: `External Systems (${externalServices.length})`,
+    href: buildUrl('/discover/external-systems'),
+    isActive: type === 'external-systems',
+    icon: GlobeAltIcon,
+    activeColor: 'purple',
+    enabled: externalServices.length > 0,
+    visible: externalServices.length > 0,
   },
   {
     label: `Data (${containers.length})`,
@@ -278,23 +308,24 @@ const allSubdomainIds = new Set(
   domains.flatMap((d: any) => (d.data?.domains || []).map((sd: any) => sd.data?.id || sd.id)).filter(Boolean)
 );
 
-// For services, enrich with domain information
-const enrichedData =
-  type === 'services'
-    ? await Promise.all(
-        data.map(async (service: any) => {
-          const serviceDomains = await getDomainsForService(service);
-          return {
-            ...service,
-            enrichedDomains: serviceDomains.map((d: any) => ({
-              id: d.data.id,
-              name: d.data.name,
-              version: d.data.version,
-            })),
-          };
-        })
-      )
-    : data;
+const isServiceLike = type === 'services' || type === 'external-systems';
+
+// For services and external systems, enrich with domain information
+const enrichedData = isServiceLike
+  ? await Promise.all(
+      data.map(async (service: any) => {
+        const serviceDomains = await getDomainsForService(service);
+        return {
+          ...service,
+          enrichedDomains: serviceDomains.map((d: any) => ({
+            id: d.data.id,
+            name: d.data.name,
+            version: d.data.version,
+          })),
+        };
+      })
+    )
+  : data;
 
 const tableData = enrichedData.map((d: any) => ({
   collection: d.collection,
@@ -303,10 +334,10 @@ const tableData = enrichedData.map((d: any) => ({
   hasServices: type === 'domains' ? (d.data?.services || []).length > 0 : false,
   isSubdomain: type === 'domains' ? allSubdomainIds.has(d.data.id) : false,
   // Service-specific properties
-  domains: type === 'services' ? d.enrichedDomains : undefined,
-  hasSpecifications: type === 'services' ? hasSpecifications(d) : false,
-  hasRepository: type === 'services' ? !!d.data?.repository?.url : false,
-  hasDataDependencies: type === 'services' ? (d.data?.writesTo || []).length > 0 || (d.data?.readsFrom || []).length > 0 : false,
+  domains: isServiceLike ? d.enrichedDomains : undefined,
+  hasSpecifications: isServiceLike ? hasSpecifications(d) : false,
+  hasRepository: isServiceLike ? !!d.data?.repository?.url : false,
+  hasDataDependencies: isServiceLike ? (d.data?.writesTo || []).length > 0 || (d.data?.readsFrom || []).length > 0 : false,
   // Data-product-specific properties
   hasInputs: type === 'data-products' ? (d.data?.inputs || []).length > 0 : false,
   hasOutputs: type === 'data-products' ? (d.data?.outputs || []).length > 0 : false,
@@ -371,8 +402,8 @@ const uniqueDomains = domains.map((d) => ({
   version: d.data.version,
 }));
 
-// Show domains filter only for services
-const showDomainsFilter = type === 'services';
+// Show domains filter only for services and external systems
+const showDomainsFilter = isServiceLike;
 
 const title = `${currentTypeConfig.label} (${data.length})`;
 ---

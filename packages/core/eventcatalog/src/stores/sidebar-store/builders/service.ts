@@ -63,10 +63,12 @@ export const buildServiceNode = (
   const diagramNavItems = buildDiagramNavItems(serviceDiagrams, context.diagrams);
   const hasDiagrams = diagramNavItems.length > 0;
 
+  const isExternalSystem = !!service.data.externalSystem;
+
   return {
     type: 'item',
     title: service.data.name,
-    badge: 'Service',
+    badge: isExternalSystem ? 'External System' : 'Service',
     summary: service.data.summary,
     pages: [
       buildQuickReferenceSection(

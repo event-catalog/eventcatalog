@@ -16,8 +16,11 @@ import { pluralizeMessageType } from '@utils/collections/messages';
 import { getSpecificationsForDomain } from '@utils/collections/domains';
 
 export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
-  const servicesInDomain = domain.data.services || [];
+  const allServicesInDomain = domain.data.services || [];
+  const servicesInDomain = allServicesInDomain.filter((service) => !(service as any).data?.externalSystem);
+  const externalSystemsInDomain = allServicesInDomain.filter((service) => (service as any).data?.externalSystem);
   const renderServices = servicesInDomain.length > 0 && shouldRenderSideBarSection(domain, 'services');
+  const renderExternalSystems = externalSystemsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'services');
 
   const dataProductsInDomain = domain.data['data-products'] || [];
   const renderDataProducts = dataProductsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'data-products');
@@ -178,6 +181,12 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         title: 'Services In Domain',
         icon: 'Server',
         pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
+      },
+      renderExternalSystems && {
+        type: 'group',
+        title: 'External Integrations',
+        icon: 'Globe',
+        pages: externalSystemsInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
       },
       renderDataProducts && {
         type: 'group',

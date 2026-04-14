@@ -748,6 +748,111 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    describe('external systems', () => {
+      it('renders an "External Integrations" section in a domain with services that have externalSystem: true, and excludes them from "Services In Domain"', async () => {
+        const { writeDomain, writeService } = utils(CATALOG_FOLDER);
+
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          services: [
+            { id: 'ShippingService', version: '0.0.1' },
+            { id: 'Stripe', version: '1.0.0' },
+          ],
+        });
+
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+
+        await writeService({
+          id: 'Stripe',
+          name: 'Stripe',
+          version: '1.0.0',
+          markdown: 'Stripe',
+          externalSystem: true,
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+
+        const servicesInDomainSection = getChildNodeByTitle('Services In Domain', domainNode.pages ?? []);
+        const externalIntegrationsSection = getChildNodeByTitle('External Integrations', domainNode.pages ?? []);
+
+        expect(servicesInDomainSection.pages).toEqual(['service:ShippingService:0.0.1']);
+        expect(externalIntegrationsSection).toEqual(
+          expect.objectContaining({
+            type: 'group',
+            title: 'External Integrations',
+            icon: 'Globe',
+            pages: ['service:Stripe:1.0.0'],
+          })
+        );
+      });
+
+      it('renders a separate "list:external-systems" root node and excludes externals from "list:services"', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+
+        await writeService({
+          id: 'Stripe',
+          name: 'Stripe',
+          version: '1.0.0',
+          markdown: 'Stripe',
+          externalSystem: true,
+        });
+
+        const navigationData = await getNestedSideBarData();
+
+        const servicesList = getNavigationConfigurationByKey('list:services', navigationData);
+        const externalSystemsList = getNavigationConfigurationByKey('list:external-systems', navigationData);
+
+        expect(servicesList.pages).toEqual(['service:ShippingService:0.0.1']);
+        expect(externalSystemsList).toEqual(
+          expect.objectContaining({
+            type: 'item',
+            title: 'External Systems',
+            icon: 'Globe',
+            pages: ['service:Stripe:1.0.0'],
+          })
+        );
+      });
+
+      it('renders the per-service nav item with badge "External System" when externalSystem is true', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+
+        await writeService({
+          id: 'Stripe',
+          name: 'Stripe',
+          version: '1.0.0',
+          markdown: 'Stripe',
+          externalSystem: true,
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:Stripe:1.0.0', navigationData);
+
+        expect(serviceNode).toEqual(
+          expect.objectContaining({
+            type: 'item',
+            title: 'Stripe',
+            badge: 'External System',
+          })
+        );
+      });
+    });
+
     describe('owners section', () => {
       it('is not listed if the domain does not have any owners', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);

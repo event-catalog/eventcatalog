@@ -1,0 +1,42 @@
+---
+id: Stripe
+name: Stripe
+version: 1.0.0
+summary: |
+  External payment processor used by the Payment domain to charge cards and
+  receive webhook events for charge outcomes.
+externalSystem: true
+repository:
+  url: https://github.com/stripe/stripe-node
+receives:
+  - id: ChargeCard
+    version: 0.0.1
+sends:
+  - id: StripeChargeSucceeded
+    version: 0.0.1
+  - id: StripeChargeFailed
+    version: 0.0.1
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+[Stripe](https://stripe.com) is the external payment processor we use to charge customer cards. It is owned and operated by Stripe, not by our team — it is modelled here as an **external system** so the catalog can show how our [[service|PaymentGatewayService]] integrates with it.
+
+The [[service|PaymentGatewayService]] sends [[command|ChargeCard]] requests to Stripe and consumes the resulting webhook events:
+
+- [[event|StripeChargeSucceeded]] — delivered when a charge completes
+- [[event|StripeChargeFailed]] — delivered when a charge is declined or errors
+
+<NodeGraph />
+
+## API Version
+
+We pin to Stripe API version `2024-06-20`. When Stripe releases a new API version we evaluate the changelog before bumping. The catalog version (`1.0.0`) tracks our integration contract, not the upstream Stripe API date.
+
+## Webhooks
+
+Stripe webhooks are delivered to `POST /webhooks/stripe` on the [[service|PaymentGatewayService]]. The signing secret is rotated quarterly and stored in AWS Secrets Manager.
+
+<Footer />

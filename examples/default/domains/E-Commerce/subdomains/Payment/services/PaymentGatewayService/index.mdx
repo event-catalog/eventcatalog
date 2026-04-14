@@ -28,8 +28,14 @@ receives:
       - paymentId
       - decision
       - riskScore
+  - id: StripeChargeSucceeded
+    version: 0.0.1
+  - id: StripeChargeFailed
+    version: 0.0.1
 sends:
   - id: PaymentFailed
+    version: 0.0.1
+  - id: ChargeCard
     version: 0.0.1
 owners:
   - dboyne

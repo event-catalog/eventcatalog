@@ -22,6 +22,7 @@ export type CollectionType =
   | 'commands'
   | 'queries'
   | 'services'
+  | 'external-systems'
   | 'domains'
   | 'flows'
   | 'containers'
