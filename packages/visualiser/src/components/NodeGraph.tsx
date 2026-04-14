@@ -1882,7 +1882,7 @@ const NodeGraphBuilder = ({
                   <button
                     onClick={handleQuickSaveLayout}
                     disabled={isSavingLayout}
-                    className="text-xs font-medium text-[rgb(var(--ec-accent-text))] bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle)/0.7)] px-2 py-1 rounded transition-colors disabled:opacity-50"
+                    className="text-xs font-medium text-white bg-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent-hover))] px-2 py-1 rounded transition-colors disabled:opacity-50"
                   >
                     {isSavingLayout ? "Saving..." : "Save"}
                   </button>
