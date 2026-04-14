@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.18.1
+
+### Patch Changes
+
+- 7dee222: fix(visualiser): center multi-line edge labels, add backgrounds to data-store edges, and make the "Layout changed" Save button theme-safe
+
 ## 3.18.0
 
 ### Minor Changes
