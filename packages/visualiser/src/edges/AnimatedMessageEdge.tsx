@@ -110,6 +110,7 @@ const AnimatedMessageEdge = memo(
       [lines],
     );
     const labelWidth = Math.max(longestLine.length * 6.5 + 16, 50);
+    const firstLineDy = `${-((lines.length - 1) * 1.2) / 2}em`;
 
     return (
       <>
@@ -150,7 +151,7 @@ const AnimatedMessageEdge = memo(
               <tspan
                 key={i}
                 x={labelX}
-                dy={i === 0 ? 0 : "1.2em"}
+                dy={i === 0 ? firstLineDy : "1.2em"}
                 style={i === 0 ? TSPAN_NORMAL_STYLE : TSPAN_ITALIC_STYLE}
               >
                 {line}
