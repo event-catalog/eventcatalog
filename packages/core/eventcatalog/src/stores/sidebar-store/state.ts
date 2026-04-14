@@ -374,11 +374,21 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     pages: domains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
   });
 
-  const servicesList = createLeaf(services, {
+  const internalServices = services.filter((service) => !service.data.externalSystem);
+  const externalServices = services.filter((service) => service.data.externalSystem);
+
+  const servicesList = createLeaf(internalServices, {
     type: 'item',
     title: 'Services',
     icon: 'Server',
-    pages: services.map((service) => `service:${service.data.id}:${service.data.version}`),
+    pages: internalServices.map((service) => `service:${service.data.id}:${service.data.version}`),
+  });
+
+  const externalSystemsList = createLeaf(externalServices, {
+    type: 'item',
+    title: 'External Systems',
+    icon: 'Globe',
+    pages: externalServices.map((service) => `service:${service.data.id}:${service.data.version}`),
   });
 
   const eventsList = createLeaf(events, {
@@ -480,6 +490,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allChildrenKeys = [
     'list:domains',
     'list:services',
+    'list:external-systems',
     'list:messages',
     'list:channels',
     'list:flows',
@@ -491,6 +502,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allChildrenNodes = [
     domainsList,
     servicesList,
+    externalSystemsList,
     messagesList,
     channelList,
     flowsList,
@@ -515,6 +527,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allNodes: Record<string, NavNode> = {
     ...(domainsList ? { 'list:domains': domainsList } : {}),
     ...(servicesList ? { 'list:services': servicesList } : {}),
+    ...(externalSystemsList ? { 'list:external-systems': externalSystemsList } : {}),
     ...(eventsList ? { 'list:events': eventsList } : {}),
     ...(commandsList ? { 'list:commands': commandsList } : {}),
     ...(queriesList ? { 'list:queries': queriesList } : {}),

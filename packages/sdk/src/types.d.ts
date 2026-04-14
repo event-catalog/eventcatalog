@@ -179,6 +179,7 @@ export interface Service extends BaseSchema {
   writesTo?: ResourcePointer[];
   readsFrom?: ResourcePointer[];
   flows?: ResourcePointer[];
+  externalSystem?: boolean;
   specifications?: Specifications | Specification[];
   detailsPanel?: {
     domains?: DetailPanelProperty;

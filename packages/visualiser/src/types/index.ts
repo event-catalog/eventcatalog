@@ -56,6 +56,7 @@ export type Service = {
   draft?: boolean;
   notes?: Note[];
   specifications?: unknown;
+  externalSystem?: boolean;
 };
 
 /**

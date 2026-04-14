@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import { ServerIcon } from "lucide-react";
+import { ServerIcon, Globe } from "lucide-react";
 import {
   OwnerIndicator,
   normalizeOwners,
@@ -161,8 +161,10 @@ const ServiceMessageFlow = memo(function ServiceMessageFlow({
 
 const GlowHandle = memo(function GlowHandle({
   side,
+  external,
 }: {
   side: "left" | "right";
+  external?: boolean;
 }) {
   return (
     <div
@@ -174,10 +176,14 @@ const GlowHandle = memo(function GlowHandle({
         width: 12,
         height: 12,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #ec4899, #be185d)",
+        background: external
+          ? "linear-gradient(135deg, #a855f7, #7e22ce)"
+          : "linear-gradient(135deg, #ec4899, #be185d)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-service-handle-pulse 2s ease-in-out infinite",
+        animation: external
+          ? "ec-external-handle-pulse 2s ease-in-out infinite"
+          : "ec-service-handle-pulse 2s ease-in-out infinite",
         pointerEvents: "none",
       }}
     />
@@ -188,6 +194,105 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 
+type PostItPalette = {
+  Icon: typeof ServerIcon;
+  label: string;
+  gradient: string;
+  draftBorder: string;
+  corner: string;
+  ring: string;
+  iconClass: string;
+  labelClass: string;
+  nameText: string;
+  nameTextDeprecated: string;
+  versionClass: string;
+  summaryClass: string;
+};
+
+const POST_IT_SERVICE: PostItPalette = {
+  Icon: ServerIcon,
+  label: "Service",
+  gradient: "linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 40%, #ec4899 100%)",
+  draftBorder: "rgba(236, 72, 153, 0.5)",
+  corner: "#db2777",
+  ring: "ring-2 ring-pink-400/60 ring-offset-1",
+  iconClass: "w-3 h-3 text-pink-900/50",
+  labelClass: "text-[8px] font-bold text-pink-900/50 uppercase tracking-widest",
+  nameText: "text-pink-950",
+  nameTextDeprecated: "text-pink-950/40 line-through",
+  versionClass: "text-[9px] text-pink-900/40 font-semibold mt-0.5",
+  summaryClass:
+    "mt-2 pt-1.5 border-t border-pink-900/10 text-[9px] text-pink-950/60 leading-relaxed overflow-hidden",
+};
+
+const POST_IT_EXTERNAL: PostItPalette = {
+  Icon: Globe,
+  label: "External System",
+  gradient: "linear-gradient(135deg, #e9d5ff 0%, #c084fc 40%, #a855f7 100%)",
+  draftBorder: "rgba(168, 85, 247, 0.5)",
+  corner: "#7e22ce",
+  ring: "ring-2 ring-purple-400/60 ring-offset-1",
+  iconClass: "w-3 h-3 text-purple-900/50",
+  labelClass:
+    "text-[8px] font-bold text-purple-900/50 uppercase tracking-widest",
+  nameText: "text-purple-950",
+  nameTextDeprecated: "text-purple-950/40 line-through",
+  versionClass: "text-[9px] text-purple-900/40 font-semibold mt-0.5",
+  summaryClass:
+    "mt-2 pt-1.5 border-t border-purple-900/10 text-[9px] text-purple-950/60 leading-relaxed overflow-hidden",
+};
+
+type DefaultPalette = {
+  Icon: typeof ServerIcon;
+  label: string;
+  ring: string;
+  borderSolid: string;
+  borderDraftDark: string;
+  borderDraftLight: string;
+  draftStripeDark: string;
+  draftStripeLight: string;
+  nodeBgVar: string;
+  shadowColor: string;
+  badgeBg: string;
+  ownerAccent: string;
+  ownerBorder: string;
+  ownerIcon: string;
+};
+
+const DEFAULT_SERVICE: DefaultPalette = {
+  Icon: ServerIcon,
+  label: "Service",
+  ring: "ring-2 ring-pink-400/60 ring-offset-2",
+  borderSolid: "border-pink-500",
+  borderDraftDark: "border-dashed border-pink-400",
+  borderDraftLight: "border-dashed border-pink-400/60",
+  draftStripeDark: "rgba(236,72,153,0.25)",
+  draftStripeLight: "rgba(236,72,153,0.15)",
+  nodeBgVar: "var(--ec-service-node-bg, rgb(var(--ec-card-bg)))",
+  shadowColor: "rgba(236, 72, 153, 0.15)",
+  badgeBg: "bg-pink-500",
+  ownerAccent: "bg-pink-400",
+  ownerBorder: "rgba(236,72,153,0.08)",
+  ownerIcon: "text-pink-300",
+};
+
+const DEFAULT_EXTERNAL: DefaultPalette = {
+  Icon: Globe,
+  label: "External System",
+  ring: "ring-2 ring-purple-400/60 ring-offset-2",
+  borderSolid: "border-purple-500",
+  borderDraftDark: "border-dashed border-purple-400",
+  borderDraftLight: "border-dashed border-purple-400/60",
+  draftStripeDark: "rgba(168,85,247,0.25)",
+  draftStripeLight: "rgba(168,85,247,0.15)",
+  nodeBgVar: "var(--ec-external-node-bg, rgb(var(--ec-card-bg)))",
+  shadowColor: "rgba(168, 85, 247, 0.15)",
+  badgeBg: "bg-purple-500",
+  ownerAccent: "bg-purple-400",
+  ownerBorder: "rgba(168,85,247,0.08)",
+  ownerIcon: "text-purple-300",
+};
+
 type ServiceNodeData = EventCatalogResource & {
   service: ServiceType;
 };
@@ -195,16 +300,25 @@ type ServiceNodeData = EventCatalogResource & {
 export type ServiceNode = Node<ServiceNodeData, "service">;
 
 function PostItService(props: ServiceNode) {
-  const { version, name, summary, deprecated, draft, notes, specifications } =
-    props.data.service;
+  const {
+    version,
+    name,
+    summary,
+    deprecated,
+    draft,
+    notes,
+    specifications,
+    externalSystem,
+  } = props.data.service;
   const mode = props.data.mode || "simple";
   const isDark = useDarkMode();
+  const p = externalSystem ? POST_IT_EXTERNAL : POST_IT_SERVICE;
 
   return (
     <div
       className={classNames(
         "relative min-w-44 max-w-56 min-h-[120px]",
-        props?.selected ? "ring-2 ring-pink-400/60 ring-offset-1" : "",
+        props?.selected ? p.ring : "",
       )}
     >
       <Handle
@@ -224,16 +338,14 @@ function PostItService(props: ServiceNode) {
       <div
         className="absolute inset-0"
         style={{
-          background: draft
-            ? "repeating-linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 40%, #ec4899 100%)"
-            : "linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 40%, #ec4899 100%)",
+          background: p.gradient,
           boxShadow:
             "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
           transform: "rotate(1deg)",
           border: deprecated
             ? "2px dashed rgba(239, 68, 68, 0.5)"
             : draft
-              ? "2px dashed rgba(236, 72, 153, 0.5)"
+              ? `2px dashed ${p.draftBorder}`
               : "none",
         }}
       >
@@ -248,24 +360,17 @@ function PostItService(props: ServiceNode) {
             height: 0,
             borderStyle: "solid",
             borderWidth: "18px 0 0 18px",
-            borderColor: "#db2777 transparent transparent transparent",
+            borderColor: `${p.corner} transparent transparent transparent`,
             opacity: 0.3,
           }}
         />
       </div>
 
-      {/* Content sits on top, unrotated */}
       <div className="relative px-3.5 py-3">
-        {/* Type label row */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
-            <ServerIcon
-              className="w-3 h-3 text-pink-900/50"
-              strokeWidth={2.5}
-            />
-            <span className="text-[8px] font-bold text-pink-900/50 uppercase tracking-widest">
-              Service
-            </span>
+            <p.Icon className={p.iconClass} strokeWidth={2.5} />
+            <span className={p.labelClass}>{p.label}</span>
           </div>
           {draft && (
             <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
@@ -279,27 +384,20 @@ function PostItService(props: ServiceNode) {
           )}
         </div>
 
-        {/* Name */}
         <div
           className={classNames(
             "text-[13px] font-bold leading-snug",
-            deprecated ? "text-pink-950/40 line-through" : "text-pink-950",
+            deprecated ? p.nameTextDeprecated : p.nameText,
           )}
         >
           {name}
         </div>
 
-        {/* Version */}
-        {version && (
-          <div className="text-[9px] text-pink-900/40 font-semibold mt-0.5">
-            v{version}
-          </div>
-        )}
+        {version && <div className={p.versionClass}>v{version}</div>}
 
-        {/* Summary */}
         {mode === "full" && summary && (
           <div
-            className="mt-2 pt-1.5 border-t border-pink-900/10 text-[9px] text-pink-950/60 leading-relaxed overflow-hidden"
+            className={p.summaryClass}
             style={LINE_CLAMP_STYLE}
             title={summary}
           >
@@ -307,7 +405,6 @@ function PostItService(props: ServiceNode) {
           </div>
         )}
 
-        {/* Spec badges */}
         {!!specifications && (
           <div className="mt-1.5 flex justify-end">
             <SpecBadges specifications={specifications} isDark={isDark} />
@@ -319,8 +416,16 @@ function PostItService(props: ServiceNode) {
 }
 
 function DefaultService(props: ServiceNode) {
-  const { version, name, summary, deprecated, draft, notes, specifications } =
-    props.data.service;
+  const {
+    version,
+    name,
+    summary,
+    deprecated,
+    draft,
+    notes,
+    specifications,
+    externalSystem,
+  } = props.data.service;
   const mode = props.data.mode || "simple";
   const owners = useMemo(
     () => normalizeOwners(props.data.service.owners),
@@ -333,24 +438,28 @@ function DefaultService(props: ServiceNode) {
     ? "rgba(239,68,68,0.25)"
     : "rgba(239,68,68,0.1)";
 
+  const p = externalSystem ? DEFAULT_EXTERNAL : DEFAULT_SERVICE;
+  const draftStripe = isDark ? p.draftStripeDark : p.draftStripeLight;
+  const borderDraft = isDark ? p.borderDraftDark : p.borderDraftLight;
+
   return (
     <div
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        props?.selected ? "ring-2 ring-pink-400/60 ring-offset-2" : "",
+        props?.selected ? p.ring : "",
         deprecated
           ? "border-dashed border-red-500"
           : draft
-            ? `border-dashed ${isDark ? "border-pink-400" : "border-pink-400/60"}`
-            : "border-pink-500",
+            ? borderDraft
+            : p.borderSolid,
       )}
       style={{
         background: deprecated
-          ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-service-node-bg, rgb(var(--ec-card-bg)))`
+          ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), ${p.nodeBgVar}`
           : draft
-            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(236,72,153,0.25)" : "rgba(236,72,153,0.15)"} 4px, ${isDark ? "rgba(236,72,153,0.25)" : "rgba(236,72,153,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(236,72,153,0.25)" : "rgba(236,72,153,0.15)"} 4px, ${isDark ? "rgba(236,72,153,0.25)" : "rgba(236,72,153,0.15)"} 4.5px), var(--ec-service-node-bg, rgb(var(--ec-card-bg)))`
-            : "var(--ec-service-node-bg, rgb(var(--ec-card-bg)))",
-        boxShadow: "0 2px 12px rgba(236, 72, 153, 0.15)",
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${draftStripe} 4px, ${draftStripe} 4.5px), ${p.nodeBgVar}`
+            : p.nodeBgVar,
+        boxShadow: `0 2px 12px ${p.shadowColor}`,
       }}
     >
       <Handle
@@ -366,25 +475,28 @@ function DefaultService(props: ServiceNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {targetConnections.length > 0 && (
+        <GlowHandle side="left" external={externalSystem} />
+      )}
+      {sourceConnections.length > 0 && (
+        <GlowHandle side="right" external={externalSystem} />
+      )}
 
-      {/* Badge positioned outside top-left corner */}
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
         <span
           className={classNames(
             "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
-            deprecated ? "bg-red-500" : "bg-pink-500",
+            deprecated ? "bg-red-500" : p.badgeBg,
           )}
         >
-          <ServerIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
-          Service{draft && " (Draft)"}
+          <p.Icon className="w-2.5 h-2.5" strokeWidth={2.5} />
+          {p.label}
+          {draft && " (Draft)"}
           {deprecated && " (Deprecated)"}
         </span>
       </div>
 
       <div className="px-3 pt-3.5 pb-2.5">
-        {/* Name + version */}
         <div className="flex items-baseline gap-1">
           <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
             {name}
@@ -396,7 +508,6 @@ function DefaultService(props: ServiceNode) {
           )}
         </div>
 
-        {/* Summary */}
         {mode === "full" && summary && (
           <div
             className="mt-1.5 text-[9px] text-[rgb(var(--ec-page-text-muted))] leading-relaxed overflow-hidden"
@@ -407,13 +518,12 @@ function DefaultService(props: ServiceNode) {
           </div>
         )}
 
-        {/* Owners + Spec badges row */}
         <div className="flex items-end justify-between gap-1">
           <OwnerIndicator
             owners={owners}
-            accentColor="bg-pink-400"
-            borderColor="rgba(236,72,153,0.08)"
-            iconClass="text-pink-300"
+            accentColor={p.ownerAccent}
+            borderColor={p.ownerBorder}
+            iconClass={p.ownerIcon}
           />
           {!!specifications && (
             <SpecBadges specifications={specifications} isDark={isDark} />

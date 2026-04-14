@@ -13,14 +13,28 @@ export class Page extends HybridPage {
     const { getServices } = await import('@utils/collections/services');
     const { getDataProducts } = await import('@utils/collections/data-products');
 
+    const getInternalServices = async () => (await getServices()).filter((s) => !s.data.externalSystem);
+    const getExternalServices = async () => (await getServices()).filter((s) => s.data.externalSystem);
+
     const loaders = {
       ...pageDataLoader,
       flows: getFlows,
-      services: getServices,
+      services: getInternalServices,
+      'external-systems': getExternalServices,
       'data-products': getDataProducts,
     };
 
-    const itemTypes = ['events', 'commands', 'queries', 'domains', 'services', 'flows', 'containers', 'data-products'] as const;
+    const itemTypes = [
+      'events',
+      'commands',
+      'queries',
+      'domains',
+      'services',
+      'external-systems',
+      'flows',
+      'containers',
+      'data-products',
+    ] as const;
     const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
     return allItems.flatMap((items, index) => ({
@@ -45,10 +59,14 @@ export class Page extends HybridPage {
     const { getServices } = await import('@utils/collections/services');
     const { getDataProducts } = await import('@utils/collections/data-products');
 
+    const getInternalServices = async () => (await getServices()).filter((s) => !s.data.externalSystem);
+    const getExternalServices = async () => (await getServices()).filter((s) => s.data.externalSystem);
+
     const loaders = {
       ...pageDataLoader,
       flows: getFlows,
-      services: getServices,
+      services: getInternalServices,
+      'external-systems': getExternalServices,
       'data-products': getDataProducts,
     };
 

@@ -104,7 +104,10 @@ const createActionsColumn = (collectionType: CollectionType, tableConfiguration:
       const item = info.row.original;
       const href = buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`);
       const nodeKey = `${item.collection}-${item.data.id}-${item.data.version}`;
-      const badgeLabel = collectionType.charAt(0).toUpperCase() + collectionType.slice(1, -1);
+      const badgeLabel =
+        collectionType === 'external-systems'
+          ? 'External System'
+          : collectionType.charAt(0).toUpperCase() + collectionType.slice(1, -1);
 
       return (
         <div className="flex items-center gap-0.5">
@@ -612,6 +615,7 @@ export const getDiscoverColumns = (collectionType: CollectionType, tableConfigur
     case 'queries':
       return getQueryColumns(tableConfiguration);
     case 'services':
+    case 'external-systems':
       return getServiceColumns(tableConfiguration);
     case 'domains':
       return getDomainColumns(tableConfiguration);

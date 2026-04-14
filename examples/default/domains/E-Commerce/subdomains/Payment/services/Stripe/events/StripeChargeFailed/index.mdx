@@ -1,0 +1,40 @@
+---
+id: StripeChargeFailed
+version: 0.0.1
+name: Stripe Charge Failed
+summary: Stripe webhook event delivered when a charge attempt fails
+badges:
+  - content: Webhook
+    backgroundColor: purple
+    textColor: white
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+`StripeChargeFailed` is the catalog representation of Stripe's `charge.failed` webhook. It is delivered to the [[service|PaymentGatewayService]] webhook endpoint when a card charge cannot be completed.
+
+## Example Payload
+
+```json
+{
+  "id": "evt_1NXyZ2eZvKYlo2C0def456",
+  "type": "charge.failed",
+  "data": {
+    "object": {
+      "id": "ch_3NXyZ2eZvKYlo2C00abc",
+      "amount": 4999,
+      "currency": "usd",
+      "status": "failed",
+      "failure_code": "card_declined",
+      "failure_message": "Your card was declined.",
+      "metadata": {
+        "paymentId": "pay_123456"
+      }
+    }
+  }
+}
+```
+
+<Footer />
