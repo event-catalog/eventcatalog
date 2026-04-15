@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.18.3
+
+### Patch Changes
+
+- 8c4bee8: Auto-disable message animation when the graph has more than 30 nodes and the user has no stored preference. Explicit `animated` prop, `?animate=` URL param, and localStorage choice still take precedence.
+
 ## 3.18.2
 
 ### Patch Changes
