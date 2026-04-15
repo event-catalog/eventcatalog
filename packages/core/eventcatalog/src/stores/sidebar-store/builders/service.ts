@@ -15,6 +15,7 @@ import {
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
+import { iconFieldsForResource } from '@utils/icon';
 
 export const buildServiceNode = (
   service: CollectionEntry<'services'>,
@@ -70,6 +71,7 @@ export const buildServiceNode = (
     title: service.data.name,
     badge: isExternalSystem ? 'External System' : 'Service',
     summary: service.data.summary,
+    ...iconFieldsForResource(service.data, isExternalSystem ? 'Globe' : 'Server'),
     pages: [
       buildQuickReferenceSection(
         [

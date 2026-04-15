@@ -14,6 +14,7 @@ import {
   EMPTY_ARRAY,
   useDarkMode,
 } from "../shared-styles";
+import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
@@ -40,6 +41,27 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 
+const CONTAINER_TYPE_LABELS: Record<string, string> = {
+  database: "Database",
+  cache: "Cache",
+  objectStore: "Object Store",
+  searchIndex: "Search Index",
+  dataWarehouse: "Data Warehouse",
+  dataLake: "Data Lake",
+  externalSaaS: "External SaaS",
+  other: "Other",
+};
+
+function getDataNodeTypeLabel(
+  containerType: string | undefined,
+  type: string | undefined,
+): string {
+  if (containerType) {
+    return CONTAINER_TYPE_LABELS[containerType] ?? containerType;
+  }
+  return type ?? "Database";
+}
+
 type DataNodeData = EventCatalogResource & {
   data: DataType;
 };
@@ -53,12 +75,13 @@ function PostItData(props: DataNode) {
     schemas = EMPTY_ARRAY,
     name,
     summary,
-    type = "Database",
     deprecated,
     draft,
     notes,
+    styles,
   } = props.data.data;
   const mode = props.data.mode || "simple";
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
 
   return (
     <div
@@ -136,13 +159,26 @@ function PostItData(props: DataNode) {
         </div>
 
         {/* Name */}
-        <div
-          className={classNames(
-            "text-[13px] font-bold leading-snug",
-            deprecated ? "text-blue-950/40 line-through" : "text-blue-950",
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-5 h-5 shrink-0 mt-0.5"
+                  : "w-4 h-4 shrink-0 -my-1"
+              }
+            />
           )}
-        >
-          {name}
+          <div
+            className={classNames(
+              "text-[13px] font-bold leading-snug min-w-0 truncate",
+              deprecated ? "text-blue-950/40 line-through" : "text-blue-950",
+            )}
+          >
+            {name}
+          </div>
         </div>
 
         {/* Version */}
@@ -174,13 +210,17 @@ function DefaultData(props: DataNode) {
     schemas = EMPTY_ARRAY,
     name,
     summary,
-    type = "Database",
+    type,
+    container_type,
     deprecated,
     draft,
     notes,
+    styles,
   } = props.data.data;
+  const typeLabel = getDataNodeTypeLabel(container_type, type);
 
   const mode = props.data.mode || "simple";
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
   const ownersNormalized = useMemo(() => normalizeOwners(owners), [owners]);
   const targetConnections = useNodeConnections({ handleType: "target" });
   const sourceConnections = useNodeConnections({ handleType: "source" });
@@ -238,27 +278,39 @@ function DefaultData(props: DataNode) {
           {deprecated && " (Deprecated)"}
         </span>
       </div>
-      {/* Container type badge top-right */}
-      {type && (
+      {typeLabel && (
         <span
           className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-blue-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
           style={{ position: "absolute", top: -8, right: 10 }}
         >
-          {type}
+          {typeLabel}
         </span>
       )}
 
       <div className="px-3 pt-3.5 pb-2.5">
         {/* Name + version */}
-        <div className="flex items-baseline gap-1">
-          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
-            {name}
-          </span>
-          {version && (
-            <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
-              (v{version})
-            </span>
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-5 h-5 shrink-0 mt-0.5"
+                  : "w-4 h-4 shrink-0 -my-1"
+              }
+            />
           )}
+          <div className="flex items-baseline gap-1 min-w-0">
+            <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+              {name}
+            </span>
+            {version && (
+              <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
+                (v{version})
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Summary */}

@@ -13,6 +13,7 @@ import {
   EMPTY_ARRAY,
   useDarkMode,
 } from "../shared-styles";
+import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 
 import { memo, useMemo } from "react";
 
@@ -129,9 +130,11 @@ function PostItChannel(props: ChannelNode) {
     protocols = EMPTY_ARRAY,
     notes,
     deliveryGuarantee,
+    styles,
   } = data.channel;
   const mode = props.data.mode || "simple";
   const guarantee = getGuarantee(deliveryGuarantee);
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
 
   return (
     <div
@@ -212,20 +215,33 @@ function PostItChannel(props: ChannelNode) {
         </div>
 
         {/* Name + version */}
-        <div className="flex items-baseline gap-1.5">
-          <div
-            className={classNames(
-              "text-[13px] font-bold leading-snug",
-              deprecated ? "text-gray-950/40 line-through" : "text-gray-950",
-            )}
-          >
-            {name}
-          </div>
-          {version && (
-            <span className="text-[9px] text-gray-900/30 font-medium shrink-0">
-              v{version}
-            </span>
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-5 h-5 shrink-0 mt-0.5"
+                  : "w-4 h-4 shrink-0 -my-1"
+              }
+            />
           )}
+          <div className="flex items-baseline gap-1.5 min-w-0">
+            <div
+              className={classNames(
+                "text-[13px] font-bold leading-snug truncate",
+                deprecated ? "text-gray-950/40 line-through" : "text-gray-950",
+              )}
+            >
+              {name}
+            </div>
+            {version && (
+              <span className="text-[9px] text-gray-900/30 font-medium shrink-0">
+                v{version}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Summary */}
@@ -279,8 +295,10 @@ function DefaultChannel(props: ChannelNode) {
     address,
     notes,
     deliveryGuarantee,
+    styles,
   } = data.channel;
   const mode = props.data.mode || "simple";
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
   const owners = useMemo(
     () => normalizeOwners(data.channel?.owners),
     [data.channel?.owners],
@@ -348,21 +366,34 @@ function DefaultChannel(props: ChannelNode) {
 
       <div className="px-3 pt-3.5 pb-2.5">
         {/* Name + version */}
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
-            {name}
-          </span>
-          {version && (
-            <span
-              className="text-[9px] font-normal shrink-0"
-              style={{
-                color: "rgb(var(--ec-page-text-muted))",
-                opacity: 0.5,
-              }}
-            >
-              v{version}
-            </span>
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-5 h-5 shrink-0 mt-0.5"
+                  : "w-4 h-4 shrink-0 -my-1"
+              }
+            />
           )}
+          <div className="flex items-baseline gap-1.5 min-w-0">
+            <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+              {name}
+            </span>
+            {version && (
+              <span
+                className="text-[9px] font-normal shrink-0"
+                style={{
+                  color: "rgb(var(--ec-page-text-muted))",
+                  opacity: 0.5,
+                }}
+              >
+                v{version}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Summary */}

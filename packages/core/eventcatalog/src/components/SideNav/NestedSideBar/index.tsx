@@ -15,6 +15,7 @@ import {
   type FavoriteItem,
 } from '@stores/favorites-store';
 import { getBadgeClasses } from './utils';
+import { resolveIconUrl } from '@utils/icon';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
 
@@ -887,7 +888,7 @@ export default function NestedSideBar() {
               <IconComponent className="w-4 h-4" />
             </span>
           )}
-          {item.leftIcon && <img src={item.leftIcon} alt="" className="w-4 h-4 flex-shrink-0" />}
+          {item.leftIcon && <img src={resolveIconUrl(item.leftIcon)} alt="" loading="lazy" className="w-4 h-4 flex-shrink-0" />}
           <span
             className={cn(
               'text-[13px] truncate',

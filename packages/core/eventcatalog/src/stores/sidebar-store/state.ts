@@ -23,6 +23,7 @@ import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
+import { iconFieldsForResource } from '@utils/icon';
 import { buildQuickReferenceSection, buildResourceDocsSection, shouldRenderSideBarSection } from './builders/shared';
 import { isChangelogEnabled } from '@utils/feature';
 
@@ -315,6 +316,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
         title: channel.data.name,
         badge: 'Channel',
         summary: channel.data.summary,
+        ...iconFieldsForResource(channel.data, 'ArrowRightLeft'),
         pages: [
           buildQuickReferenceSection(
             [

@@ -9,6 +9,7 @@ import {
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
 } from "./shared-styles";
+import { CustomIcon, isIconPath } from "../utils/custom-icon";
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
@@ -47,15 +48,20 @@ type DataProductNodeData = EventCatalogResource & {
     deprecated?: boolean;
     draft?: boolean;
     notes?: import("../types").Note[];
+    styles?: {
+      icon?: string;
+      node?: { color?: string; label?: string };
+    };
   };
 };
 
 export type DataProductNode = Node<DataProductNodeData, "data-product">;
 
 function PostItDataProduct(props: DataProductNode) {
-  const { version, name, summary, deprecated, draft, notes } =
+  const { version, name, summary, deprecated, draft, notes, styles } =
     props.data.dataProduct;
   const mode = props.data.mode || "simple";
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
 
   return (
     <div
@@ -133,13 +139,28 @@ function PostItDataProduct(props: DataProductNode) {
         </div>
 
         {/* Name */}
-        <div
-          className={classNames(
-            "text-[13px] font-bold leading-snug",
-            deprecated ? "text-indigo-950/40 line-through" : "text-indigo-950",
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-[26px] h-[26px] shrink-0"
+                  : "w-4 h-4 shrink-0 -my-1"
+              }
+            />
           )}
-        >
-          {name}
+          <div
+            className={classNames(
+              "text-[13px] font-bold leading-snug min-w-0 truncate",
+              deprecated
+                ? "text-indigo-950/40 line-through"
+                : "text-indigo-950",
+            )}
+          >
+            {name}
+          </div>
         </div>
 
         {/* Version */}
@@ -165,9 +186,10 @@ function PostItDataProduct(props: DataProductNode) {
 }
 
 function DefaultDataProduct(props: DataProductNode) {
-  const { version, name, summary, deprecated, draft, notes } =
+  const { version, name, summary, deprecated, draft, notes, styles } =
     props.data.dataProduct;
   const mode = props.data.mode || "simple";
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
   const targetConnections = useNodeConnections({ handleType: "target" });
   const sourceConnections = useNodeConnections({ handleType: "source" });
   const isDark = useDarkMode();
@@ -227,15 +249,28 @@ function DefaultDataProduct(props: DataProductNode) {
 
       <div className="px-3 pt-3.5 pb-2.5">
         {/* Name + version */}
-        <div className="flex items-baseline gap-1">
-          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
-            {name}
-          </span>
-          {version && (
-            <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
-              (v{version})
-            </span>
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-[26px] h-[26px] shrink-0"
+                  : "w-4 h-4 shrink-0 -my-1"
+              }
+            />
           )}
+          <div className="flex items-baseline gap-1 min-w-0">
+            <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+              {name}
+            </span>
+            {version && (
+              <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
+                (v{version})
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Summary */}

@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "savedAt": "2026-04-14T16:14:24.307Z",
+  "resourceKey": "services/OrdersService/0.0.3",
+  "positions": {
+    "InventoryAdjusted-1.2.3": {
+      "x": 525,
+      "y": 410
+    },
+    "OrdersService-0.0.3": {
+      "x": 1425,
+      "y": 505
+    },
+    "orders-service-sqs-channel-1.0.0": {
+      "x": 969.3058031959631,
+      "y": 244.86829268292684
+    },
+    "InventoryService-0.0.1": {
+      "x": 75,
+      "y": 299.192625005923
+    },
+    "orders-db-0.0.1": {
+      "x": 1875,
+      "y": 580
+    },
+    "order-metadata-store-0.0.1": {
+      "x": 1875,
+      "y": 750
+    },
+    "inventory-readmodel-0.0.1": {
+      "x": 975,
+      "y": 580
+    },
+    "OrderAmended-0.0.1": {
+      "x": 1875,
+      "y": 60
+    },
+    "orders-domain-eventbus-1.0.0": {
+      "x": 2325,
+      "y": 240
+    },
+    "InventoryService-0.0.2": {
+      "x": 2775,
+      "y": 325
+    },
+    "NotificationService-0.0.2": {
+      "x": 3225,
+      "y": 155
+    },
+    "notifications-queue-0.0.1": {
+      "x": 2775,
+      "y": 155
+    },
+    "OrderCancelled-0.0.1": {
+      "x": 1875,
+      "y": 230
+    },
+    "OrderConfirmed-0.0.1": {
+      "x": 1875,
+      "y": 410
+    },
+    "inventory-service-filter-by-orders-over-100-0.0.1": {
+      "x": 2325,
+      "y": 420
+    },
+    "ShippingService-0.0.1": {
+      "x": 2775,
+      "y": 580
+    },
+    "Snowflake-1.0.0": {
+      "x": 2325,
+      "y": 590
+    }
+  }
+}

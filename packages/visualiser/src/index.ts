@@ -15,7 +15,6 @@ export type {
   VisualizerLink,
   EventCatalogResource,
   Message,
-  Service,
   Channel,
   ExternalSystem,
   Data,
@@ -28,6 +27,9 @@ export type {
   GraphEdgeType,
   DslGraph,
 } from "./types";
+// Re-export Service type under a non-colliding name so the `Service` React
+// component value export from ./nodes survives the barrel merge.
+export type { Service as ServiceType } from "./types";
 
 // Components
 export * from "./components";

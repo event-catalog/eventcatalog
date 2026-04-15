@@ -35,6 +35,7 @@ import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails 
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { getIcon } from '@utils/badges';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
+import { isIconPath, resolveIconUrl } from '@utils/icon';
 import {
   isEventCatalogChatEnabled,
   isMarkdownDownloadEnabled,
@@ -62,6 +63,8 @@ const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) 
 const contentBadges = props.data.badges || [];
 const editUrl =
   props.data.editUrl || (config.editUrl && props?.filePath ? buildEditUrlForResource(config.editUrl, props?.filePath) : '');
+
+const headerIconSrc = isIconPath(props.data.styles?.icon) ? resolveIconUrl(props.data.styles!.icon!) : null;
 
 const getContentBadges = () =>
   contentBadges.map((badge: any) => ({
@@ -288,6 +291,15 @@ nodeGraphs.push({
           <div>
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-2">
+                {
+                  headerIconSrc && (
+                    <img
+                      src={headerIconSrc}
+                      alt={props.data.name}
+                      class="w-8 h-8 md:w-10 md:h-10 object-contain rounded-md shrink-0"
+                    />
+                  )
+                }
                 <h2
                   id="doc-page-header"
                   class={`text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))] ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}

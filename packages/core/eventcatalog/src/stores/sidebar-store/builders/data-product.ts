@@ -5,6 +5,7 @@ import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSect
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { getItemsFromCollectionByIdAndSemverOrLatest, sortVersioned } from '@utils/collections/util';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
+import { iconFieldsForResource } from '@utils/icon';
 
 type DataProductContext = Pick<
   ResourceGroupContext,
@@ -95,6 +96,7 @@ export const buildDataProductNode = (
     title: dataProduct.data.name,
     badge: 'Data Product',
     summary: dataProduct.data.summary,
+    ...iconFieldsForResource(dataProduct.data, 'Package'),
     pages: [
       buildQuickReferenceSection(
         [
