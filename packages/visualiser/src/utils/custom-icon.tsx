@@ -12,7 +12,7 @@ export function isIconPath(value: string | undefined): value is string {
 
 export function resolveIconUrl(value: string): string {
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  return buildUrl(value);
+  return buildUrl(value).replace(/\/$/, "");
 }
 
 export const CustomIcon = memo(function CustomIcon({
