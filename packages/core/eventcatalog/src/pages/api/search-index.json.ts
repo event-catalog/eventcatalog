@@ -9,6 +9,8 @@ interface SearchIndexItemCompact {
   b?: string;
   s?: string;
   h?: string;
+  i?: string;
+  li?: string;
 }
 
 const SKIPPED_PREFIXES = ['list:'];
@@ -27,6 +29,8 @@ export const GET: APIRoute = async () => {
       ...(node.badge ? { b: node.badge } : {}),
       ...(node.summary ? { s: node.summary } : {}),
       ...(node.href ? { h: node.href } : {}),
+      ...(node.icon ? { i: node.icon } : {}),
+      ...(node.leftIcon ? { li: node.leftIcon } : {}),
     });
 
     return acc;

@@ -12,6 +12,7 @@ import {
   buildResourceDocsSection,
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
+import { iconFieldsForResource } from '@utils/icon';
 
 export const buildMessageNode = (
   message: CollectionEntry<'events' | 'commands' | 'queries'>,
@@ -34,6 +35,13 @@ export const buildMessageNode = (
     queries: 'Query',
   };
   const badge = badgeMap[collection] || 'Message';
+
+  const iconMap: Record<string, string> = {
+    events: 'Zap',
+    commands: 'MessageSquare',
+    queries: 'Search',
+  };
+  const defaultIcon = iconMap[collection] || 'Mail';
 
   const hasSchema = message.data.schemaPath !== undefined;
   const renderVisualiser = isVisualiserEnabled();
@@ -59,6 +67,7 @@ export const buildMessageNode = (
     title: message.data.name,
     badge,
     summary: message.data.summary,
+    ...iconFieldsForResource(message.data, defaultIcon),
     pages: [
       buildQuickReferenceSection(
         [

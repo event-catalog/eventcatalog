@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -12,11 +12,11 @@ import {
   type Edge,
 } from '@xyflow/react';
 import {
-  Event as EventNode,
-  Command as CommandNode,
-  Query as QueryNode,
-  Service as ServiceNode,
-  Field as FieldNode,
+  Event as EventNodeComponent,
+  Command as CommandNodeComponent,
+  Query as QueryNodeComponent,
+  Service as ServiceNodeComponent,
+  Field as FieldNodeComponent,
 } from '@eventcatalog/visualiser';
 import { X, ChevronDown, ChevronRight, Search, AlertTriangle } from 'lucide-react';
 import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, ServerIcon } from '@heroicons/react/24/solid';
@@ -84,13 +84,16 @@ function wrapWithContextMenu(Component: React.ComponentType<any>) {
   return Wrapped;
 }
 
+// React 19 vs React 18 ReactNode type drift between @eventcatalog/visualiser
+// and the catalog means these MemoExoticComponents don't match ComponentType<any>
+// unless we widen once here.
 const nodeTypes = {
-  service: wrapWithContextMenu(ServiceNode),
-  event: wrapWithContextMenu(EventNode),
-  command: wrapWithContextMenu(CommandNode),
-  query: wrapWithContextMenu(QueryNode),
-  field: FieldNode,
-};
+  service: wrapWithContextMenu(ServiceNodeComponent as unknown as React.ComponentType<any>),
+  event: wrapWithContextMenu(EventNodeComponent as unknown as React.ComponentType<any>),
+  command: wrapWithContextMenu(CommandNodeComponent as unknown as React.ComponentType<any>),
+  query: wrapWithContextMenu(QueryNodeComponent as unknown as React.ComponentType<any>),
+  field: FieldNodeComponent as unknown as React.ComponentType<any>,
+} as unknown as import('@xyflow/react').NodeTypes;
 
 const getIconForMessageType = (type: string) => {
   switch (type) {

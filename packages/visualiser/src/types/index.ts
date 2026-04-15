@@ -31,6 +31,13 @@ export type Message = {
   path?: string;
   /** HTTP status codes (e.g. [200, 401, 500]) */
   statusCodes?: number[];
+  styles?: {
+    icon?: string;
+    node?: {
+      color?: string;
+      label?: string;
+    };
+  };
 };
 
 /**
@@ -57,6 +64,13 @@ export type Service = {
   notes?: Note[];
   specifications?: unknown;
   externalSystem?: boolean;
+  styles?: {
+    icon?: string;
+    node?: {
+      color?: string;
+      label?: string;
+    };
+  };
 };
 
 /**
@@ -75,6 +89,13 @@ export type Channel = {
   notes?: Note[];
   /** Delivery guarantee (e.g. at-most-once, at-least-once, exactly-once) */
   deliveryGuarantee?: string;
+  styles?: {
+    icon?: string;
+    node?: {
+      color?: string;
+      label?: string;
+    };
+  };
 };
 
 /**
@@ -96,10 +117,18 @@ export type Data = {
   summary: string;
   owners?: string[];
   type?: string;
+  container_type?: string;
   schemas?: string[];
   deprecated?: boolean;
   draft?: boolean;
   notes?: Note[];
+  styles?: {
+    icon?: string;
+    node?: {
+      color?: string;
+      label?: string;
+    };
+  };
 };
 
 /**

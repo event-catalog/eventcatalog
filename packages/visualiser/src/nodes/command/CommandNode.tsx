@@ -9,6 +9,7 @@ import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
 import { Message, EventCatalogResource } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import { MethodBadge, ApiPath, StatusCodes } from "../ApiInfo";
+import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 import {
   LINE_CLAMP_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
@@ -51,9 +52,10 @@ type CommandNodeData = EventCatalogResource & {
 export type CommandNode = Node<CommandNodeData, "command">;
 
 function PostItCommand(props: CommandNode) {
-  const { version, name, summary, deprecated, draft, notes } =
+  const { version, name, summary, deprecated, draft, notes, styles } =
     props.data.message;
   const mode = props.data.mode || "simple";
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
 
   return (
     <div
@@ -130,13 +132,26 @@ function PostItCommand(props: CommandNode) {
           )}
         </div>
 
-        <div
-          className={classNames(
-            "text-[13px] font-bold leading-snug",
-            deprecated ? "text-blue-950/40 line-through" : "text-blue-950",
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-5 h-5 shrink-0 mt-0.5"
+                  : "w-4 h-4 shrink-0 -my-1"
+              }
+            />
           )}
-        >
-          {name}
+          <div
+            className={classNames(
+              "text-[13px] font-bold leading-snug min-w-0 truncate",
+              deprecated ? "text-blue-950/40 line-through" : "text-blue-950",
+            )}
+          >
+            {name}
+          </div>
         </div>
 
         {version && (
@@ -171,9 +186,11 @@ function DefaultCommand(props: CommandNode) {
     method,
     path,
     statusCodes,
+    styles,
   } = props.data.message;
   const mode = props.data.mode || "simple";
   const hasApiInfo = !!(method || path);
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
   const owners = useMemo(
     () => normalizeOwners(props.data.message?.owners),
     [props.data.message?.owners],
@@ -255,15 +272,28 @@ function DefaultCommand(props: CommandNode) {
 
         {/* Name + version */}
         {!hasApiInfo && (
-          <div className="flex items-baseline gap-1">
-            <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
-              {name}
-            </span>
-            {version && (
-              <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
-                (v{version})
-              </span>
+          <div className="flex items-center gap-2">
+            {customIcon && (
+              <CustomIcon
+                src={customIcon}
+                alt={name}
+                className={
+                  mode === "full"
+                    ? "w-5 h-5 shrink-0 mt-0.5"
+                    : "w-4 h-4 shrink-0 -my-1"
+                }
+              />
             )}
+            <div className="flex items-baseline gap-1 min-w-0">
+              <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+                {name}
+              </span>
+              {version && (
+                <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
+                  (v{version})
+                </span>
+              )}
+            </div>
           </div>
         )}
 

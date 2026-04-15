@@ -26,6 +26,7 @@ import { StarIcon as StarIconSolid, CircleStackIcon } from '@heroicons/react/24/
 import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
 import { buildUrl } from '@utils/url-builder';
+import { resolveIconUrl } from '@utils/icon';
 
 const typeIcons: any = {
   Domain: RectangleGroupIcon,
@@ -103,6 +104,8 @@ interface SearchNode {
   badge?: string;
   summary?: string;
   href?: string;
+  icon?: string;
+  leftIcon?: string;
 }
 
 interface SearchNodeCompact {
@@ -111,6 +114,8 @@ interface SearchNodeCompact {
   b?: string;
   s?: string;
   h?: string;
+  i?: string;
+  li?: string;
 }
 
 interface SearchIndexPayload {
@@ -126,6 +131,8 @@ const normalizeSearchIndexPayload = (payload: SearchIndexPayload): SearchNode[] 
       badge: item.b,
       summary: item.s,
       href: item.h,
+      icon: item.i,
+      leftIcon: item.li,
     }));
   }
 
@@ -219,7 +226,14 @@ export default function SearchModal() {
     }
 
     const lowerQuery = query.toLowerCase();
-    return items.filter((item) => item.name.toLowerCase().includes(lowerQuery));
+    return items.filter((item) => {
+      if (item.name.toLowerCase().includes(lowerQuery)) return true;
+      // Key format is "type:id:version" (e.g. "service:OrdersService:0.0.3").
+      // Match against the id so users can find resources by their raw id too.
+      const keyParts = item.key?.split(':') ?? [];
+      const id = keyParts[1];
+      return !!id && id.toLowerCase().includes(lowerQuery);
+    });
   }, [items, query]);
 
   const filters = useMemo(() => {
@@ -312,7 +326,7 @@ export default function SearchModal() {
               url,
               type: fav.badge || node?.badge || 'Page',
               key: fav.nodeKey,
-              rawNode: node || { title: fav.title, badge: fav.badge, summary: undefined },
+              rawNode: node || { title: fav.title, badge: fav.badge, summary: undefined, icon: undefined, leftIcon: undefined },
               isFavorite: true,
             };
           })
@@ -463,7 +477,16 @@ export default function SearchModal() {
                                     colors
                                   )}
                                 >
-                                  <Icon className="h-6 w-6" aria-hidden="true" />
+                                  {item.rawNode?.leftIcon ? (
+                                    <img
+                                      src={resolveIconUrl(item.rawNode.leftIcon)}
+                                      alt=""
+                                      loading="lazy"
+                                      className="h-6 w-6 object-contain"
+                                    />
+                                  ) : (
+                                    <Icon className="h-6 w-6" aria-hidden="true" />
+                                  )}
                                 </div>
                                 <div className="ml-4 flex-auto min-w-0">
                                   <p

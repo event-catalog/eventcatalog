@@ -1,5 +1,6 @@
 import { memo, useMemo } from "react";
 import { ServerIcon, Globe } from "lucide-react";
+import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 import {
   OwnerIndicator,
   normalizeOwners,
@@ -309,10 +310,12 @@ function PostItService(props: ServiceNode) {
     notes,
     specifications,
     externalSystem,
+    styles,
   } = props.data.service;
   const mode = props.data.mode || "simple";
   const isDark = useDarkMode();
   const p = externalSystem ? POST_IT_EXTERNAL : POST_IT_SERVICE;
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
 
   return (
     <div
@@ -384,13 +387,26 @@ function PostItService(props: ServiceNode) {
           )}
         </div>
 
-        <div
-          className={classNames(
-            "text-[13px] font-bold leading-snug",
-            deprecated ? p.nameTextDeprecated : p.nameText,
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-[26px] h-[26px] shrink-0"
+                  : "w-6 h-6 shrink-0"
+              }
+            />
           )}
-        >
-          {name}
+          <div
+            className={classNames(
+              "text-[13px] font-bold leading-snug min-w-0 truncate",
+              deprecated ? p.nameTextDeprecated : p.nameText,
+            )}
+          >
+            {name}
+          </div>
         </div>
 
         {version && <div className={p.versionClass}>v{version}</div>}
@@ -425,8 +441,10 @@ function DefaultService(props: ServiceNode) {
     notes,
     specifications,
     externalSystem,
+    styles,
   } = props.data.service;
   const mode = props.data.mode || "simple";
+  const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
   const owners = useMemo(
     () => normalizeOwners(props.data.service.owners),
     [props.data.service.owners],
@@ -497,15 +515,28 @@ function DefaultService(props: ServiceNode) {
       </div>
 
       <div className="px-3 pt-3.5 pb-2.5">
-        <div className="flex items-baseline gap-1">
-          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
-            {name}
-          </span>
-          {version && (
-            <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
-              (v{version})
-            </span>
+        <div className="flex items-center gap-2">
+          {customIcon && (
+            <CustomIcon
+              src={customIcon}
+              alt={name}
+              className={
+                mode === "full"
+                  ? "w-[26px] h-[26px] shrink-0"
+                  : "w-4 h-4 shrink-0 -my-1"
+              }
+            />
           )}
+          <div className="flex items-baseline gap-1 min-w-0">
+            <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+              {name}
+            </span>
+            {version && (
+              <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
+                (v{version})
+              </span>
+            )}
+          </div>
         </div>
 
         {mode === "full" && summary && (

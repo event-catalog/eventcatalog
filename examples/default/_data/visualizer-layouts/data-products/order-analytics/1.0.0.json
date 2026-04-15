@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "savedAt": "2026-04-14T18:53:01.878Z",
+  "resourceKey": "data-products/order-analytics/1.0.0",
+  "positions": {
+    "OrderConfirmed-0.0.1": {
+      "x": 525,
+      "y": 60
+    },
+    "OrdersService-0.0.3": {
+      "x": 75,
+      "y": 60
+    },
+    "PaymentProcessed-1.0.0": {
+      "x": 525,
+      "y": 230
+    },
+    "PaymentService-0.0.1": {
+      "x": 75,
+      "y": 230
+    },
+    "FraudDetectionService-0.0.1": {
+      "x": 352.73238015138764,
+      "y": 404.0062237174096
+    },
+    "payment-cache-0.0.1": {
+      "x": 362.08023549201005,
+      "y": 611.3976450798991
+    },
+    "payment-domain-eventbus-1.0.0": {
+      "x": 468.9128679562658,
+      "y": 758.6957106812447
+    },
+    "order-analytics-1.0.0": {
+      "x": 975,
+      "y": 400
+    },
+    "OrderMetricsCalculated-1.0.0": {
+      "x": 1425,
+      "y": 60
+    },
+    "NotificationService-0.0.2": {
+      "x": 1425,
+      "y": 230
+    },
+    "orders-domain-eventbus-1.0.0": {
+      "x": 1425,
+      "y": 400
+    },
+    "orders-db-0.0.1": {
+      "x": 1425,
+      "y": 570
+    },
+    "payments-db-0.0.1": {
+      "x": 1425,
+      "y": 740
+    }
+  }
+}

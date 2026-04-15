@@ -11,6 +11,7 @@ import {
   buildResourceDocsSection,
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
+import { iconFieldsForResource } from '@utils/icon';
 
 export const buildContainerNode = (
   container: CollectionEntry<'containers'>,
@@ -61,6 +62,7 @@ export const buildContainerNode = (
     title: container.data.name,
     badge: 'Container',
     summary: container.data.summary,
+    ...iconFieldsForResource(container.data, 'Database'),
     pages: [
       buildQuickReferenceSection(
         [
