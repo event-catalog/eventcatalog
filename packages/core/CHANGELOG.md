@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.28.1
+
+### Patch Changes
+
+- 792458e: Add custom icon support to resources via `styles.icon`. Icons render on visualiser nodes, in the sidebar, on documentation page headers, and in the search modal. Accepts a path under the catalog's `public/` folder or an absolute URL. When no custom icon is set, resources now fall back to collection-appropriate default icons. Also maps container `container_type` to a human-readable label on data nodes.
+- Updated dependencies [792458e]
+  - @eventcatalog/visualiser@3.18.2
+
 ## 3.28.0
 
 ### Minor Changes
