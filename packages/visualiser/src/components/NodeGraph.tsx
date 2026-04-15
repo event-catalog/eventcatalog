@@ -89,6 +89,9 @@ import dagre from "dagre";
 // Minimum pixel change to detect layout modifications (avoids floating point comparison issues)
 const POSITION_CHANGE_THRESHOLD = 1;
 
+// Above this node count, auto-disable message animation when the user has no stored preference
+const LARGE_GRAPH_NODE_THRESHOLD = 30;
+
 // Static props for ReactFlow - defined outside component to avoid new references on every render
 const NODE_ORIGIN: [number, number] = [0.1, 0.1];
 const MINIMAP_STYLE = {
@@ -1056,7 +1059,7 @@ const NodeGraphBuilder = ({
   }, [fitView]);
 
   // animate messages, between views
-  // Priority: animated prop > URL parameter > localStorage
+  // Priority: animated prop > URL parameter > localStorage > auto (disabled for large graphs)
   useEffect(() => {
     if (animated !== undefined) {
       setAnimateMessages(animated);
@@ -1077,9 +1080,12 @@ const NodeGraphBuilder = ({
       );
       if (storedAnimateMessages !== null) {
         setAnimateMessages(storedAnimateMessages === "true");
+      } else {
+        // Auto-disable animation for large graphs to keep the canvas responsive
+        setAnimateMessages(initialNodes.length <= LARGE_GRAPH_NODE_THRESHOLD);
       }
     }
-  }, [animated]);
+  }, [animated, initialNodes.length]);
 
   useEffect(() => {
     setEdges((eds) =>
