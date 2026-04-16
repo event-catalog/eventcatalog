@@ -1,7 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { APIRoute } from 'astro';
 import fs from 'fs';
-import { isCustomDocsEnabled } from '@utils/feature';
+import { isCustomDocsEnabled, isResourceDocsEnabled, isLLMSTxtEnabled } from '@utils/feature';
 import { addSchemaToMarkdown } from '@utils/llms';
 
 type AllowedCollections =
@@ -30,8 +30,7 @@ const channels = await getCollection('channels');
 const flows = await getCollection('flows');
 const containers = await getCollection('containers');
 const customDocs = await getCollection('customPages');
-
-import { isLLMSTxtEnabled } from '@utils/feature';
+const resourceDocs = isResourceDocsEnabled() ? await getCollection('resourceDocs') : [];
 
 export const GET: APIRoute = async ({ params, request }) => {
   if (!isLLMSTxtEnabled()) {
@@ -54,6 +53,10 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   if (isCustomDocsEnabled()) {
     resources.push(...(customDocs as CollectionEntry<AllowedCollections>[]));
+  }
+
+  if (isResourceDocsEnabled()) {
+    resources.push(...(resourceDocs as CollectionEntry<AllowedCollections>[]));
   }
 
   const content = resources
