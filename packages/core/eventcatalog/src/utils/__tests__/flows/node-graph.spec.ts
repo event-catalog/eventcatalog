@@ -74,6 +74,7 @@ describe('Flows NodeGraph', () => {
             id: 'PaymentProcessed',
             version: '0.0.1',
           },
+          contextMenu: expect.any(Array),
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
@@ -117,6 +118,45 @@ describe('Flows NodeGraph', () => {
       expect(nodes).toEqual(expect.arrayContaining(expectedNodes));
 
       expect(edges).toEqual(expect.arrayContaining([expect.objectContaining(expectedEdges[0])]));
+    });
+
+    it('attaches a contextMenu to message step nodes so right-click shows the custom menu (issue #2216)', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
+
+      const messageNode = nodes.find((n: any) => n.id === 'step-3');
+      expect(messageNode).toBeDefined();
+      expect(messageNode?.data.contextMenu).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            label: 'Read documentation',
+            href: expect.stringContaining('/docs/events/PaymentProcessed/0.0.1'),
+          }),
+          expect.objectContaining({ label: 'Read changelog' }),
+        ])
+      );
+    });
+
+    it('attaches a contextMenu to service step nodes', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'CancelSubscription', version: '1.0.0' });
+
+      const serviceNode = nodes.find((n: any) => n.data?.service?.data?.id === 'SubscriptionService');
+      expect(serviceNode).toBeDefined();
+      expect(serviceNode?.data.contextMenu).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            label: 'Read documentation',
+            href: expect.stringContaining('/docs/services/SubscriptionService/0.0.1'),
+          }),
+        ])
+      );
+    });
+
+    it('does not attach a contextMenu to plain step nodes (no resource)', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
+
+      const plainStep = nodes.find((n: any) => n.id === 'step-1');
+      expect(plainStep).toBeDefined();
+      expect(plainStep?.data.contextMenu).toBeUndefined();
     });
 
     it('should resolves the correct node when it is a service with version as latest', async () => {
@@ -212,6 +252,7 @@ describe('Flows NodeGraph', () => {
                 id: 'PaymentProcessed',
                 version: '0.0.1',
               },
+              contextMenu: expect.any(Array),
             },
             position: { x: expect.any(Number), y: expect.any(Number) },
             type: 'events',

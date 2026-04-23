@@ -1,6 +1,13 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
-import { createDagreGraph, calculatedNodes, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from '@utils/node-graphs/utils/utils';
+import {
+  createDagreGraph,
+  calculatedNodes,
+  DEFAULT_NODE_WIDTH,
+  DEFAULT_NODE_HEIGHT,
+  buildContextMenuForResource,
+  buildContextMenuForService,
+} from '@utils/node-graphs/utils/utils';
 import { MarkerType } from '@xyflow/react';
 import type { Node as NodeType } from '@xyflow/react';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
@@ -101,9 +108,31 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       type: step.type,
     } as NodeType;
 
-    if (step.service) node.data.service = { ...step.service, ...step.service.data };
-    if (step.flow) node.data.flow = { ...step.flow, ...step.flow.data };
-    if (step.message) node.data.message = { ...step.message, ...step.message.data };
+    if (step.service) {
+      node.data.service = { ...step.service, ...step.service.data };
+      node.data.contextMenu = buildContextMenuForService({
+        id: step.service.data.id,
+        version: step.service.data.version,
+        specifications: step.service.data.specifications,
+        repository: step.service.data.repository,
+      });
+    }
+    if (step.flow) {
+      node.data.flow = { ...step.flow, ...step.flow.data };
+      node.data.contextMenu = buildContextMenuForResource({
+        collection: 'flows',
+        id: step.flow.data.id,
+        version: step.flow.data.version,
+      });
+    }
+    if (step.message) {
+      node.data.message = { ...step.message, ...step.message.data };
+      node.data.contextMenu = buildContextMenuForResource({
+        collection: step.message.collection,
+        id: step.message.data.id,
+        version: step.message.data.version,
+      });
+    }
     if (step.actor) {
       node.data.actor = { ...step.actor, ...step.actor.data };
       node.data = { ...node.data, ...step.actor };
