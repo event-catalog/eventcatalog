@@ -1,0 +1,20 @@
+---
+id: MixedSendsService
+version: 1.0.0
+name: Mixed Sends Service
+summary: |
+  Service that sends both a legacy-channel event and a query with no channel
+owners:
+  - inventory-management
+sends:
+  - id: OrderAmended
+    version: 0.0.1
+    to:
+      - id: eventbus
+        version: 1.0.0
+  - id: GetInventoryItem
+    version: 1.0.0
+receives: []
+---
+
+Service used to verify the migration preserves non-channel sends (e.g. queries).

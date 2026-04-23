@@ -59,6 +59,26 @@ describe('message-channels-to-service-channels', () => {
     expect(afterData.channels).toBeUndefined();
   });
 
+  it('preserves sends entries whose messages have no channels (e.g. queries) when other sends match messages-with-channels', async () => {
+    await messageChannelsToServiceChannels();
+
+    const mixedServiceFile = fs.readFileSync(
+      path.join(process.env.PROJECT_DIR!, 'services', 'MixedSendsService', 'index.mdx'),
+      'utf8'
+    );
+    const { data } = matter(mixedServiceFile);
+
+    expect(data.sends).toHaveLength(2);
+
+    const orderAmended = data.sends.find((s: any) => s.id === 'OrderAmended');
+    expect(orderAmended).toBeDefined();
+    expect(orderAmended.to).toEqual([{ id: 'eventbus', version: '1.0.0' }]);
+
+    const getInventoryItem = data.sends.find((s: any) => s.id === 'GetInventoryItem');
+    expect(getInventoryItem).toBeDefined();
+    expect(getInventoryItem.version).toBe('1.0.0');
+  });
+
   it('if messages have multiple channels defined, the migration script will move the channel configuration to the service that sends (to) or receives (from) the message', async () => {
     await messageChannelsToServiceChannels();
 
