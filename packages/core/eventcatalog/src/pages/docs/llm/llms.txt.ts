@@ -2,8 +2,9 @@ import { getCollection } from 'astro:content';
 import config from '@config';
 import type { APIRoute } from 'astro';
 
-import { isCustomDocsEnabled } from '@utils/feature';
+import { isCustomDocsEnabled, isResourceDocsEnabled } from '@utils/feature';
 import { getUbiquitousLanguage } from '@utils/collections/domains';
+import { getResourceDocs } from '@utils/collections/resource-docs';
 
 const events = await getCollection('events');
 const commands = await getCollection('commands');
@@ -22,6 +23,7 @@ const containers = await getCollection('containers');
 const entities = await getCollection('entities');
 
 const customDocs = await getCollection('customPages');
+const resourceDocsList = isResourceDocsEnabled() ? await getResourceDocs() : [];
 
 const ubiquitousLanguages: Record<string, { id: string; version: string; properties: any }[]> = {};
 
@@ -94,6 +96,36 @@ export const GET: APIRoute = async ({ params, request }) => {
   const formatCustomDoc = (item: any, route: string) =>
     `- [${item.data.title}](${baseUrl}/${route}/${item.id.replace('docs\/', '')}.mdx) - ${item.data.summary || ''}`;
 
+  const formatResourceDoc = (doc: any) => {
+    const { resourceCollection, resourceId, resourceVersion, type, id } = doc.data;
+    const title = doc.data.title || id || doc.id;
+    const docUrl = `${baseUrl}/docs/${resourceCollection}/${resourceId}/${resourceVersion}/${type}/${id}.mdx`;
+    return `- [${title}](${docUrl})${doc.data.summary ? ` - ${doc.data.summary}` : ''}`;
+  };
+
+  const renderResourceDocs = () => {
+    const grouped = new Map<string, { resourceCollection: string; resourceId: string; resourceVersion: string; docs: any[] }>();
+
+    for (const doc of resourceDocsList) {
+      const { resourceCollection, resourceId, resourceVersion } = doc.data;
+      const key = `${resourceCollection}:${resourceId}:${resourceVersion}`;
+      let group = grouped.get(key);
+      if (!group) {
+        group = { resourceCollection, resourceId, resourceVersion, docs: [] };
+        grouped.set(key, group);
+      }
+      group.docs.push(doc);
+    }
+
+    return Array.from(grouped.values())
+      .map((group) => {
+        const parentUrl = `${baseUrl}/docs/${group.resourceCollection}/${group.resourceId}/${group.resourceVersion}.mdx`;
+        const heading = `### [${group.resourceId}](${parentUrl}) (${group.resourceCollection})`;
+        return [heading, group.docs.map(formatResourceDoc).join('\n')].join('\n');
+      })
+      .join('\n\n');
+  };
+
   const content = [
     `# ${config.organizationName} EventCatalog Documentation\n`,
     `> ${config.tagline}\n`,
@@ -127,6 +159,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     ...(isCustomDocsEnabled()
       ? ['\n## Custom Docs', customDocs.map((item) => formatCustomDoc(item, 'docs/custom')).join('\n')]
       : []),
+    ...(isResourceDocsEnabled() && resourceDocsList.length > 0 ? ['\n## Resource Docs', renderResourceDocs()] : []),
   ].join('\n');
 
   return new Response(content, {
