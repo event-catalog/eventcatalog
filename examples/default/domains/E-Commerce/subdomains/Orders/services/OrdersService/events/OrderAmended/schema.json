@@ -1,7 +1,7 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "OrderAmendedEvent",
-    "type": "object",
+    "type": ["object", "null"],
     "properties": {
       "orderId": {
         "type": "string",
@@ -9,9 +9,24 @@
         "description": "The unique identifier of the order that was amended."
       },
       "userId": {
-        "type": "string",
+        "type": ["string", "null"],
         "format": "uuid",
         "description": "The unique identifier of the user who placed the order."
+      },
+      "customer": {
+        "type": ["object", "null"],
+        "description": "The customer details associated with the amended order. May be null for guest checkouts.",
+        "properties": {
+          "name": {
+            "type": ["string", "null"],
+            "description": "The customer's full name."
+          },
+          "id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "The customer's unique identifier."
+          }
+        }
       },
       "amendedItems": {
         "type": "array",
@@ -68,4 +83,3 @@
     "required": ["orderId", "userId", "amendedItems", "orderStatus", "totalAmount", "timestamp"],
     "additionalProperties": false
   }
-  

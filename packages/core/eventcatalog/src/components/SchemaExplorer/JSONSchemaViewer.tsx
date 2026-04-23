@@ -19,6 +19,18 @@ interface SchemaPropertyProps {
   expand: boolean;
 }
 
+// JSON Schema allows `type` to be a string or an array of strings (e.g. ["object", "null"]).
+// These helpers normalise both forms so the rest of the viewer can treat type checks uniformly.
+function hasType(type: any, candidate: string): boolean {
+  if (Array.isArray(type)) return type.includes(candidate);
+  return type === candidate;
+}
+
+function formatType(type: any): string {
+  if (Array.isArray(type)) return type.join(' | ');
+  return type ?? '';
+}
+
 // Helper function to count properties recursively
 function countProperties(obj: any): number {
   if (!obj || typeof obj !== 'object') return 0;
@@ -196,7 +208,7 @@ function processSchema(schema: any, rootSchema?: any): any {
   }
 
   // Process array items
-  if (schema.type === 'array' && schema.items) {
+  if (hasType(schema.type, 'array') && schema.items) {
     schema = { ...schema, items: processSchema(schema.items, root) };
   }
 
@@ -269,11 +281,11 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
     setIsExpanded(expand);
   }, [expand]);
 
-  const hasNestedProperties = details.type === 'object' && details.properties && Object.keys(details.properties).length > 0;
-  const hasArrayItems = details.type === 'array' && details.items;
+  const hasNestedProperties = hasType(details.type, 'object') && details.properties && Object.keys(details.properties).length > 0;
+  const hasArrayItems = hasType(details.type, 'array') && details.items;
   const hasArrayItemProperties =
     hasArrayItems &&
-    ((details.items.type === 'object' && details.items.properties) ||
+    ((hasType(details.items.type, 'object') && details.items.properties) ||
       details.items.allOf ||
       details.items.oneOf ||
       details.items.anyOf ||
@@ -307,8 +319,8 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
             <div>
               <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">{name}</span>
               <span className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs">
-                {hasVariants ? (details.variantType === 'anyOf' ? 'anyOf' : 'oneOf') : details.type}
-                {details.type === 'array' && details.items?.type ? `[${details.items.type}]` : ''}
+                {hasVariants ? (details.variantType === 'anyOf' ? 'anyOf' : 'oneOf') : formatType(details.type)}
+                {hasType(details.type, 'array') && details.items?.type ? `[${formatType(details.items.type)}]` : ''}
                 {details.format ? `<${details.format}>` : ''}
                 {details._refPath && (
                   <span className="text-blue-600 dark:text-blue-400 ml-1">→ {details._refName || details._refPath}</span>
@@ -513,9 +525,9 @@ export default function JSONSchemaViewer({
     let display = processedSchema;
     let isArray = false;
 
-    if (processedSchema.type === 'array' && processedSchema.items) {
+    if (hasType(processedSchema.type, 'array') && processedSchema.items) {
       isArray = true;
-      if (processedSchema.items.type === 'object' && processedSchema.items.properties) {
+      if (hasType(processedSchema.items.type, 'object') && processedSchema.items.properties) {
         display = {
           ...processedSchema.items,
           description: processedSchema.description || processedSchema.items.description,
@@ -838,7 +850,9 @@ export default function JSONSchemaViewer({
             <div className="text-[rgb(var(--ec-page-text-muted))] text-sm">
               <p>
                 This array contains items of type:{' '}
-                <span className="font-mono text-blue-600 dark:text-blue-400">{processedSchema.items?.type || 'unknown'}</span>
+                <span className="font-mono text-blue-600 dark:text-blue-400">
+                  {processedSchema.items?.type ? formatType(processedSchema.items.type) : 'unknown'}
+                </span>
               </p>
               {processedSchema.items?.description && (
                 <p className="text-xs mt-2 text-[rgb(var(--ec-page-text-muted))]">{processedSchema.items.description}</p>
