@@ -22,6 +22,12 @@ interface Props {
   renderAllEdges?: boolean;
 }
 
+interface Maps {
+  messageMap: Map<string, any[]>;
+  serviceMap: Map<string, any[]>;
+  flowMap: Map<string, any[]>;
+}
+
 const getServiceNode = (step: any, serviceMap: Map<string, any[]>) => {
   const service = findInMap(serviceMap, step.service.id, step.service.version);
   return {
@@ -49,53 +55,58 @@ const getMessageNode = (step: any, messageMap: Map<string, any[]>) => {
   };
 };
 
-export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
-  const graph = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 200 });
-  const nodes = [] as any,
-    edges = [] as any;
+// Rewrite every id/source/target in a precomputed sub-flow graph with a
+// namespace prefix so inlined copies don't collide with the parent. Nested
+// `data.expandedNodes` / `data.expandedEdges` payloads are rewritten too so
+// the namespace chain stays unique when the same sub-flow is inlined under
+// multiple parents.
+const prefixGraph = (graph: { nodes: any[]; edges: any[] }, prefix: string) => {
+  if (!prefix) return graph;
+  const nodes = graph.nodes.map((n) => {
+    const next: any = { ...n, id: `${prefix}${n.id}` };
+    if (n.data?.expandedNodes || n.data?.expandedEdges) {
+      const nested = prefixGraph({ nodes: n.data.expandedNodes ?? [], edges: n.data.expandedEdges ?? [] }, prefix);
+      next.data = { ...n.data, expandedNodes: nested.nodes, expandedEdges: nested.edges };
+    }
+    return next;
+  });
+  const edges = graph.edges.map((e) => ({
+    ...e,
+    id: `${prefix}${e.id}`,
+    source: `${prefix}${e.source}`,
+    target: `${prefix}${e.target}`,
+  }));
+  return { nodes, edges };
+};
 
-  // Fetch all collections in parallel
-  const [flows, events, commands, queries, services] = await Promise.all([
-    getCollection('flows'),
-    getCollection('events'),
-    getCollection('commands'),
-    getCollection('queries'),
-    getCollection('services'),
-  ]);
+// `subFlowCache` keys each flow's graph by `id@version` so an N-times
+// referenced sub-flow is built once. `visited` short-circuits cycles.
+const buildFlowGraphInternal = (
+  flow: any,
+  maps: Maps,
+  mode: 'simple' | 'full',
+  subFlowCache: Map<string, { nodes: any[]; edges: any[] }>,
+  visited: Set<string>
+) => {
+  const nodes: any[] = [];
+  const edges: any[] = [];
 
-  const flow = flows.find((flow) => flow.data.id === id && flow.data.version === version);
+  const steps = flow?.data?.steps || [];
+  const stepNodeId = (stepId: any) => `step-${stepId}`;
 
-  // Nothing found...
-  if (!flow) {
-    return {
-      nodes: [],
-      edges: [],
-    };
-  }
-
-  // Build maps for O(1) lookups
-  const messages = [...events, ...commands, ...queries];
-  const messageMap = createVersionedMap(messages);
-  const serviceMap = createVersionedMap(services);
-  const flowMap = createVersionedMap(flows);
-
-  const steps = flow?.data.steps || [];
-
-  //  Hydrate the steps with information they may need.
   const hydratedSteps = steps.map((step: any) => {
-    if (step.service) return getServiceNode(step, serviceMap);
-    if (step.flow) return getFlowNode(step, flowMap);
-    if (step.message) return getMessageNode(step, messageMap);
+    if (step.service) return getServiceNode(step, maps.serviceMap);
+    if (step.flow) return getFlowNode(step, maps.flowMap);
+    if (step.message) return getMessageNode(step, maps.messageMap);
     if (step.actor) return { ...step, type: 'actor', actor: step.actor };
     if (step.custom) return { ...step, type: 'custom', custom: step.custom };
     if (step.externalSystem) return { ...step, type: 'externalSystem', externalSystem: step.externalSystem };
     return { ...step, type: 'step' };
   });
 
-  // Create nodes
   hydratedSteps.forEach((step: any, index: number) => {
-    const node = {
-      id: `step-${step.id}`,
+    const node: NodeType = {
+      id: stepNodeId(step.id),
       sourcePosition: 'right',
       targetPosition: 'left',
       data: {
@@ -124,6 +135,21 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         id: step.flow.data.id,
         version: step.flow.data.version,
       });
+
+      // Guard cycles; inline the sub-flow's graph so the client can expand on click.
+      const subFlowKey = `${step.flow.data.id}@${step.flow.data.version}`;
+      if (!visited.has(subFlowKey)) {
+        let cached = subFlowCache.get(subFlowKey);
+        if (!cached) {
+          cached = buildFlowGraphInternal(step.flow, maps, mode, subFlowCache, new Set([...visited, subFlowKey]));
+          subFlowCache.set(subFlowKey, cached);
+        }
+        if (cached.nodes.length > 0) {
+          const { nodes: childNodes, edges: childEdges } = prefixGraph(cached, `${node.id}__`);
+          node.data.expandedNodes = childNodes;
+          node.data.expandedEdges = childEdges;
+        }
+      }
     }
     if (step.message) {
       node.data.message = { ...step.message, ...step.message.data };
@@ -142,12 +168,10 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     nodes.push(node);
   });
 
-  // Create Edges
-  hydratedSteps.forEach((step: any, index: number) => {
+  hydratedSteps.forEach((step: any) => {
     let paths = step.next_steps || [];
 
     if (step.next_step) {
-      // If its a string or number
       if (!step.next_step?.id) {
         paths = [{ id: step.next_step }];
       } else {
@@ -165,8 +189,8 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     paths.forEach((path: any) => {
       edges.push({
         id: `step-${step.id}-step-${path.id}`,
-        source: `step-${step.id}`,
-        target: `step-${path.id}`,
+        source: stepNodeId(step.id),
+        target: stepNodeId(path.id),
         type: 'flow-edge',
         label: path.label,
         animated: true,
@@ -184,6 +208,45 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     });
   });
 
+  return { nodes, edges };
+};
+
+export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
+  const graph = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 200 });
+
+  const [flows, events, commands, queries, services] = await Promise.all([
+    getCollection('flows'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('services'),
+  ]);
+
+  const flow = flows.find((flow) => flow.data.id === id && flow.data.version === version);
+
+  if (!flow) {
+    return {
+      nodes: [],
+      edges: [],
+    };
+  }
+
+  const messages = [...events, ...commands, ...queries];
+  const maps: Maps = {
+    messageMap: createVersionedMap(messages),
+    serviceMap: createVersionedMap(services),
+    flowMap: createVersionedMap(flows),
+  };
+
+  const subFlowCache = new Map<string, { nodes: any[]; edges: any[] }>();
+  const { nodes, edges } = buildFlowGraphInternal(
+    flow,
+    maps,
+    mode,
+    subFlowCache,
+    new Set([`${flow.data.id}@${flow.data.version}`])
+  );
+
   nodes.forEach((node: any) => {
     graph.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
   });
@@ -192,7 +255,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     graph.setEdge(edge.source, edge.target);
   });
 
-  // Render the diagram in memory getting hte X and Y
   dagre.layout(graph);
 
   return {

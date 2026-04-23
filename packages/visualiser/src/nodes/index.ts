@@ -58,6 +58,7 @@ import CustomNode from "./Custom";
 import DomainNode from "./Domain";
 import EntityNode from "./Entity";
 import FlowNode from "./Flow";
+import FlowExpandedNode from "./FlowExpandedNode";
 import GroupNode from "./GroupNode";
 import StepNode from "./Step";
 import UserNode from "./User";
@@ -70,6 +71,7 @@ export {
   DomainNode,
   EntityNode,
   FlowNode,
+  FlowExpandedNode,
   GroupNode,
   StepNode,
   UserNode,
@@ -117,6 +119,7 @@ export const nodeComponents = {
   domain: DomainNode,
   entity: EntityNode,
   flow: FlowNode,
+  flowExpanded: FlowExpandedNode,
   group: GroupNode,
   step: StepNode,
   user: UserNode,
