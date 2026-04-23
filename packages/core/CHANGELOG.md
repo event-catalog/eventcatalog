@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.29.1
+
+### Patch Changes
+
+- 32e6cbb: fix type error for resourceDocs in llms-full.txt route
+
 ## 3.29.0
 
 ### Minor Changes
