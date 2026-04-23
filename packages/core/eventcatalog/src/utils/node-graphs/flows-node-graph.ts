@@ -56,10 +56,20 @@ const getMessageNode = (step: any, messageMap: Map<string, any[]>) => {
 };
 
 // Rewrite every id/source/target in a precomputed sub-flow graph with a
-// namespace prefix so inlined copies don't collide with the parent.
+// namespace prefix so inlined copies don't collide with the parent. Nested
+// `data.expandedNodes` / `data.expandedEdges` payloads are rewritten too so
+// the namespace chain stays unique when the same sub-flow is inlined under
+// multiple parents.
 const prefixGraph = (graph: { nodes: any[]; edges: any[] }, prefix: string) => {
   if (!prefix) return graph;
-  const nodes = graph.nodes.map((n) => ({ ...n, id: `${prefix}${n.id}` }));
+  const nodes = graph.nodes.map((n) => {
+    const next: any = { ...n, id: `${prefix}${n.id}` };
+    if (n.data?.expandedNodes || n.data?.expandedEdges) {
+      const nested = prefixGraph({ nodes: n.data.expandedNodes ?? [], edges: n.data.expandedEdges ?? [] }, prefix);
+      next.data = { ...n.data, expandedNodes: nested.nodes, expandedEdges: nested.edges };
+    }
+    return next;
+  });
   const edges = graph.edges.map((e) => ({
     ...e,
     id: `${prefix}${e.id}`,

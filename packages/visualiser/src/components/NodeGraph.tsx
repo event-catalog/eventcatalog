@@ -772,40 +772,50 @@ const NodeGraphBuilder = ({
       const expandedNode = currentNodes.find((n) => n.id === groupNodeId);
       if (!expandedNode || !isExpandedWrapper(expandedNode.type)) return;
 
-      // Find the original collapsed node (either messageGroup or a flow-type node)
-      const originalNode = initialNodes.find(
-        (n: Node) =>
-          n.id === groupNodeId &&
-          (n.type === "messageGroup" ||
-            n.type === "flows" ||
-            n.type === "flow"),
-      );
+      // The wrapper carries the pre-expansion node and its edges — use that
+      // snapshot when present so nested wrappers (created mid-session and
+      // therefore absent from initialNodes) collapse correctly. Fall back to
+      // initialNodes for wrappers expanded on a top-level node.
+      const stashed = (expandedNode.data as any).__preExpansion as
+        | { node: Node; edges: Edge[] }
+        | undefined;
+      const originalNode =
+        stashed?.node ??
+        initialNodes.find(
+          (n: Node) =>
+            n.id === groupNodeId &&
+            (n.type === "messageGroup" ||
+              n.type === "flows" ||
+              n.type === "flow"),
+        );
       if (!originalNode) return;
+      const originalEdges =
+        stashed?.edges ??
+        initialEdges.filter(
+          (edge: Edge) =>
+            edge.source === groupNodeId || edge.target === groupNodeId,
+        );
 
-      // Find all child nodes belonging to this group
       const childNodeIds = new Set(
         currentNodes.filter((n) => n.parentId === groupNodeId).map((n) => n.id),
       );
 
-      // Collect downstream node IDs that were added on expand,
-      // but only those that didn't already exist in the original graph
+      // Downstream nodes added on expand are ones present in the original
+      // node's expandedNodes that aren't also in the pre-expansion graph.
       const originalData = originalNode.data as any;
-      const initialNodeIds = new Set(initialNodes.map((n: Node) => n.id));
+      const preExistingIds = new Set(
+        stashed
+          ? currentNodes.map((n: Node) => n.id)
+          : initialNodes.map((n: Node) => n.id),
+      );
       const downstreamNodeIds = new Set(
         ((originalData.expandedNodes as any[]) || [])
           .map((n: any) => n.id)
-          .filter((id: string) => !initialNodeIds.has(id)),
+          .filter((id: string) => !preExistingIds.has(id)),
       );
 
-      // Downstream edges are prefixed with groupNodeId__
       const isDownstreamEdge = (edge: Edge) =>
         edge.id.startsWith(`${groupNodeId}__`);
-
-      // Find original edges for the compact node from initialEdges
-      const originalEdges = initialEdges.filter(
-        (edge: Edge) =>
-          edge.source === groupNodeId || edge.target === groupNodeId,
-      );
 
       // Animate the layout transition
       animateLayout();
@@ -1004,16 +1014,23 @@ const NodeGraphBuilder = ({
         const containerWidth = 380;
         const containerHeight = childCount * 190 + 100; // 190px per child + header + padding
 
-        // Build the expanded group container node
+        // Capture the node and its edges as they are right now so collapse can
+        // restore them verbatim, even if this wrapper was itself created mid-
+        // session by an outer expansion (i.e. never lived in `initialNodes`).
+        const preExpansionEdges = edgesRef.current.filter(
+          (e) => e.source === groupNodeId || e.target === groupNodeId,
+        );
+
         const expandedContainerNode: Node = {
-          id: groupNodeId, // reuse the same ID
+          id: groupNodeId,
           type: "messageGroupExpanded",
-          position: node.position, // will be recalculated by dagre
+          position: node.position,
           data: {
             groupName: groupData.groupName,
             direction: groupData.direction,
             messageCount: childCount,
             onCollapse: groupNodeId,
+            __preExpansion: { node, edges: preExpansionEdges },
           },
           style: {
             width: containerWidth,
@@ -1212,6 +1229,13 @@ const NodeGraphBuilder = ({
           { padding: CHILD_PADDING, headerH: HEADER_H },
         );
 
+        // Capture the node and its edges as they are right now so collapse can
+        // restore them verbatim, even if this wrapper was itself created mid-
+        // session by an outer expansion (i.e. never lived in `initialNodes`).
+        const preExpansionEdges = edgesRef.current.filter(
+          (e) => e.source === flowNodeId || e.target === flowNodeId,
+        );
+
         const expandedContainerNode: Node = {
           id: flowNodeId,
           type: "flowExpanded",
@@ -1219,6 +1243,7 @@ const NodeGraphBuilder = ({
           data: {
             flowName: flowData.flow?.name || flowData.flow?.data?.name,
             version: flowData.flow?.version || flowData.flow?.data?.version,
+            __preExpansion: { node, edges: preExpansionEdges },
           },
           style: {
             width: containerWidth,

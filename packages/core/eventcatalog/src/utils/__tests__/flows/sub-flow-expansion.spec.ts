@@ -1,5 +1,5 @@
 import { expect, describe, it, vi } from 'vitest';
-import { mockFlowsWithSubFlow, mockFlowsWithCycle } from './mocks';
+import { mockFlowsWithSubFlow, mockFlowsWithCycle, mockFlowsNested } from './mocks';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -61,6 +61,32 @@ describe('Flows NodeGraph — sub-flow expansion precompute', () => {
       const edge = subNode?.data.expandedEdges[0];
       expect(edge.source).toBe('step-sub__step-inner_1');
       expect(edge.target).toBe('step-sub__step-inner_2');
+    });
+  });
+
+  it('prefixes nested expandedNodes recursively so deep sub-flows get unique ids', async () => {
+    await withFlowsMock(mockFlowsNested, async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'OuterFlow', version: '1.0.0' });
+
+      const middleRef = nodes.find((n: any) => n.id === 'step-outer_mid');
+      expect(middleRef).toBeDefined();
+
+      const middleChild = middleRef?.data.expandedNodes[0];
+      expect(middleChild.id).toBe('step-outer_mid__step-middle_leaf');
+
+      // The leaf sub-flow's expansion payload, nested inside MiddleFlow, must
+      // also carry the outer prefix so its ids stay unique across parents.
+      const leafChildren = middleChild.data.expandedNodes;
+      const leafIds = leafChildren.map((c: any) => c.id);
+      expect(leafIds).toEqual(
+        expect.arrayContaining([
+          'step-outer_mid__step-middle_leaf__step-leaf_step_1',
+          'step-outer_mid__step-middle_leaf__step-leaf_step_2',
+        ])
+      );
+      const leafEdges = middleChild.data.expandedEdges;
+      expect(leafEdges[0].source).toBe('step-outer_mid__step-middle_leaf__step-leaf_step_1');
+      expect(leafEdges[0].target).toBe('step-outer_mid__step-middle_leaf__step-leaf_step_2');
     });
   });
 

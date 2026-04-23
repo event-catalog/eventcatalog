@@ -148,6 +148,72 @@ export const mockFlowsWithSubFlow = [
   },
 ];
 
+// Three-level nesting: Outer → Middle → Leaf. Used to verify that a deep
+// sub-flow's precomputed expandedNodes/expandedEdges get their ids prefixed
+// recursively when the graph is inlined under the outer parent.
+export const mockFlowsNested = [
+  {
+    id: 'Outer/index.mdx',
+    slug: 'outer',
+    body: '',
+    collection: 'flows',
+    data: {
+      id: 'OuterFlow',
+      name: 'Outer Flow',
+      version: '1.0.0',
+      steps: [
+        {
+          id: 'outer_mid',
+          title: 'Call Middle',
+          flow: { id: 'MiddleFlow', version: '1.0.0' },
+        },
+      ],
+    },
+  },
+  {
+    id: 'Middle/index.mdx',
+    slug: 'middle',
+    body: '',
+    collection: 'flows',
+    data: {
+      id: 'MiddleFlow',
+      name: 'Middle Flow',
+      version: '1.0.0',
+      steps: [
+        {
+          id: 'middle_leaf',
+          title: 'Call Leaf',
+          flow: { id: 'LeafFlow', version: '1.0.0' },
+        },
+      ],
+    },
+  },
+  {
+    id: 'Leaf/index.mdx',
+    slug: 'leaf',
+    body: '',
+    collection: 'flows',
+    data: {
+      id: 'LeafFlow',
+      name: 'Leaf Flow',
+      version: '1.0.0',
+      steps: [
+        {
+          id: 'leaf_step_1',
+          type: 'node',
+          title: 'Leaf Step 1',
+          next_step: { id: 'leaf_step_2' },
+        },
+        {
+          id: 'leaf_step_2',
+          type: 'node',
+          title: 'Leaf Step 2',
+        },
+      ],
+    },
+  },
+];
+
 // Cycle: A references B, B references A. Expansion must terminate.
 export const mockFlowsWithCycle = [
   {
