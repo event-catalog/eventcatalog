@@ -121,7 +121,14 @@ export default memo(function StepWalkthrough({
       const startNodes = nodes.filter(
         (node: CustomNode) => incomingEdgeMap.get(node.id) === 0,
       );
-      if (startNodes.length > 0 && !startNodeId) {
+
+      // Recompute the start node whenever the cached id no longer exists in
+      // the current node set. This happens when the graph structure changes
+      // — for example when a sub-flow is expanded and its wrapper node gets
+      // replaced by children.
+      const cachedStartStillValid =
+        startNodeId && nodes.some((n: CustomNode) => n.id === startNodeId);
+      if (startNodes.length > 0 && !cachedStartStillValid) {
         const firstStartNode = startNodes[0];
         setStartNodeId(firstStartNode.id);
       }
@@ -130,6 +137,20 @@ export default memo(function StepWalkthrough({
 
   useEffect(() => {
     if (currentNodeId) {
+      // If the current node no longer exists (e.g. user expanded a sub-flow
+      // and the wrapper the walkthrough was pointing at just got replaced),
+      // reset so the user can restart from the new start node.
+      const currentExists = nodes.some(
+        (n: CustomNode) => n.id === currentNodeId,
+      );
+      if (!currentExists) {
+        setCurrentNodeId(null);
+        setCurrentStepIndex(-1);
+        setPathHistory([]);
+        setAvailablePaths([]);
+        return;
+      }
+
       // Find available paths from current node
       const outgoingEdges = edges.filter(
         (edge: Edge) => edge.source === currentNodeId,

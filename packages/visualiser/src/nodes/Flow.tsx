@@ -1,5 +1,6 @@
 import { memo, useMemo } from "react";
 import { Handle } from "@xyflow/react";
+import { Maximize2 } from "lucide-react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { usePortalContainer } from "../context/PortalContainerContext";
 import { buildUrl } from "../utils/url-builder";
@@ -53,6 +54,9 @@ export default memo(function FlowNode({
   targetPosition,
 }: any) {
   const { mode, flow } = data as Data;
+  const canExpand =
+    Array.isArray((data as any)?.expandedNodes) &&
+    (data as any).expandedNodes.length > 0;
 
   const { id, version, owners = EMPTY_ARRAY, name, styles } = flow.data;
   const { node: { color = "teal", label } = {}, icon = "QueueListIcon" } =
@@ -67,70 +71,96 @@ export default memo(function FlowNode({
     <ContextMenu.Root>
       <ContextMenu.Trigger>
         <div
-          className={classNames(
-            `rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-${color}-400`,
-          )}
-          style={NODE_WIDTH_STYLE}
+          className="relative"
+          style={{ isolation: "isolate", ...NODE_WIDTH_STYLE }}
         >
+          {/* Stacked shadow layers behind the card signal a sub-flow the user can expand. */}
+          {canExpand && (
+            <>
+              <div
+                className={`absolute inset-0 rounded-md border border-${color}-400 bg-[rgb(var(--ec-card-bg))]`}
+                style={{ transform: "translate(6px, 6px)", opacity: 0.5 }}
+                aria-hidden
+              />
+              <div
+                className={`absolute inset-0 rounded-md border border-${color}-400 bg-[rgb(var(--ec-card-bg))]`}
+                style={{ transform: "translate(3px, 3px)", opacity: 0.7 }}
+                aria-hidden
+              />
+            </>
+          )}
           <div
             className={classNames(
-              `bg-gradient-to-b from-${color}-500 to-${color}-700 relative flex flex-col items-center w-5 justify-between rounded-l-sm text-${color}-100`,
-              `border-r-[1px] border-${color}-500`,
+              `relative rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-${color}-400`,
             )}
+            style={NODE_WIDTH_STYLE}
           >
-            {Icon && <Icon className="w-4 h-4 opacity-90 text-white mt-1" />}
-            {mode === "full" && (
-              <span
-                className={`text-center text-[${fontSize}] text-white font-bold uppercase mb-4`}
-                style={ROTATED_LABEL_STYLE}
-              >
-                {nodeLabel}
-              </span>
-            )}
-          </div>
-          <div className="p-1 flex-1">
-            {targetPosition && (
-              <Handle type="target" position={targetPosition} />
-            )}
-            {sourcePosition && (
-              <Handle type="source" position={sourcePosition} />
-            )}
             <div
               className={classNames(
-                mode === "full"
-                  ? `border-b border-[rgb(var(--ec-page-border))]`
-                  : "",
+                `bg-gradient-to-b from-${color}-500 to-${color}-700 relative flex flex-col items-center w-5 justify-between rounded-l-sm text-${color}-100`,
+                `border-r-[1px] border-${color}-500`,
               )}
             >
-              <span className="text-xs font-bold block pt-0.5 pb-0.5">
-                {name}
-              </span>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-light block pt-0.5 pb-0.5 ">
-                  v{version}
+              {Icon && <Icon className="w-4 h-4 opacity-90 text-white mt-1" />}
+              {mode === "full" && (
+                <span
+                  className={`text-center text-[${fontSize}] text-white font-bold uppercase mb-4`}
+                  style={ROTATED_LABEL_STYLE}
+                >
+                  {nodeLabel}
                 </span>
-                {mode === "simple" && (
-                  <span className="text-[10px] text-[rgb(var(--ec-page-text-muted))] font-light block pt-0.5 pb-0.5 ">
-                    {nodeLabel}
-                  </span>
-                )}
-              </div>
+              )}
             </div>
-            {mode === "full" && (
-              <div className="divide-y divide-[rgb(var(--ec-page-border))] ">
-                <div className="leading-3 py-1">
-                  <span className="text-[8px] font-light">
-                    {flow.data.summary}
+            <div className="p-1 flex-1">
+              {targetPosition && (
+                <Handle type="target" position={targetPosition} />
+              )}
+              {sourcePosition && (
+                <Handle type="source" position={sourcePosition} />
+              )}
+              <div
+                className={classNames(
+                  mode === "full"
+                    ? `border-b border-[rgb(var(--ec-page-border))]`
+                    : "",
+                )}
+              >
+                <span className="text-xs font-bold block pt-0.5 pb-0.5">
+                  {name}
+                </span>
+                <div className="flex justify-between">
+                  <span className="text-[10px] font-light block pt-0.5 pb-0.5 ">
+                    v{version}
                   </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-4 py-1">
-                  <span className="text-xs" style={TINY_FONT_STYLE}>
-                    Owners: {owners.length}
-                  </span>
+                  {mode === "simple" && (
+                    <span className="text-[10px] text-[rgb(var(--ec-page-text-muted))] font-light block pt-0.5 pb-0.5 ">
+                      {nodeLabel}
+                    </span>
+                  )}
                 </div>
               </div>
-            )}
+              {mode === "full" && (
+                <div className="divide-y divide-[rgb(var(--ec-page-border))] ">
+                  <div className="leading-3 py-1">
+                    <span className="text-[8px] font-light">
+                      {flow.data.summary}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-4 py-1">
+                    <span className="text-xs" style={TINY_FONT_STYLE}>
+                      Owners: {owners.length}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {canExpand && (
+                <div className="mt-1 flex items-center gap-1 text-[8px] text-[rgb(var(--ec-page-text-muted))]">
+                  <Maximize2 className="w-2.5 h-2.5" />
+                  Click to explore
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </ContextMenu.Trigger>

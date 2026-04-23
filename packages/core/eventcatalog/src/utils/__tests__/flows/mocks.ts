@@ -86,6 +86,108 @@ export const mockFlow = [
   },
 ];
 
+// Parent flow that references SubFlow as a step, plus the SubFlow itself, for
+// testing inline sub-flow expansion precomputation.
+export const mockFlowsWithSubFlow = [
+  {
+    id: 'Parent/index.mdx',
+    slug: 'parent',
+    body: '',
+    collection: 'flows',
+    data: {
+      id: 'ParentFlow',
+      name: 'Parent Flow',
+      version: '1.0.0',
+      steps: [
+        {
+          id: 'start',
+          type: 'node',
+          title: 'Start',
+          next_step: { id: 'sub', label: 'Run sub-flow' },
+        },
+        {
+          id: 'sub',
+          title: 'Sub Flow Reference',
+          flow: {
+            id: 'SubFlow',
+            version: '1.0.0',
+          },
+          next_step: { id: 'end', label: 'Finish' },
+        },
+        {
+          id: 'end',
+          type: 'node',
+          title: 'End',
+        },
+      ],
+    },
+  },
+  {
+    id: 'Sub/index.mdx',
+    slug: 'sub',
+    body: '',
+    collection: 'flows',
+    data: {
+      id: 'SubFlow',
+      name: 'Sub Flow',
+      version: '1.0.0',
+      steps: [
+        {
+          id: 'inner_1',
+          type: 'node',
+          title: 'Inner Step 1',
+          next_step: { id: 'inner_2' },
+        },
+        {
+          id: 'inner_2',
+          type: 'node',
+          title: 'Inner Step 2',
+        },
+      ],
+    },
+  },
+];
+
+// Cycle: A references B, B references A. Expansion must terminate.
+export const mockFlowsWithCycle = [
+  {
+    id: 'A/index.mdx',
+    slug: 'a',
+    body: '',
+    collection: 'flows',
+    data: {
+      id: 'FlowA',
+      name: 'Flow A',
+      version: '1.0.0',
+      steps: [
+        {
+          id: 'a_call_b',
+          title: 'Call B',
+          flow: { id: 'FlowB', version: '1.0.0' },
+        },
+      ],
+    },
+  },
+  {
+    id: 'B/index.mdx',
+    slug: 'b',
+    body: '',
+    collection: 'flows',
+    data: {
+      id: 'FlowB',
+      name: 'Flow B',
+      version: '1.0.0',
+      steps: [
+        {
+          id: 'b_call_a',
+          title: 'Call A',
+          flow: { id: 'FlowA', version: '1.0.0' },
+        },
+      ],
+    },
+  },
+];
+
 export const mockFlowByIds = [
   {
     id: 'Payment/PaymentProcessed/index.mdx',

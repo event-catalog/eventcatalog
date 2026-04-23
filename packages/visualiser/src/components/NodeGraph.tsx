@@ -53,6 +53,7 @@ import { Note as NoteNode } from "../nodes/note";
 import { Field as FieldNode } from "../nodes/field";
 // Core nodes (default exports from flat files)
 import FlowNode from "../nodes/Flow";
+import FlowExpandedNode from "../nodes/FlowExpandedNode";
 import EntityNode from "../nodes/Entity";
 import UserNode from "../nodes/User";
 import StepNode from "../nodes/Step";
@@ -101,10 +102,20 @@ const MINIMAP_STYLE = {
 } as const;
 const LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH = {
   marginBottom: "20px",
-  marginLeft: "410px",
+  marginLeft: "420px",
 } as const;
 const LAYOUT_CHANGE_PANEL_STYLE_DEFAULT = { marginLeft: "60px" } as const;
 const LEGEND_PANEL_STYLE_WITH_MINIMAP = { marginRight: "230px" } as const;
+
+// Expanded wrapper containers are structural only — they host grouped/inlined
+// child nodes and never represent a business step themselves. Centralised so
+// the walkthrough, click handler, and collapse handler agree on the set.
+const EXPANDED_WRAPPER_TYPES = new Set([
+  "flowExpanded",
+  "messageGroupExpanded",
+]);
+const isExpandedWrapper = (type: string | undefined) =>
+  type != null && EXPANDED_WRAPPER_TYPES.has(type);
 
 type LegendEntry = { count: number; colorClass: string; groupId?: string };
 
@@ -382,6 +393,7 @@ const NodeGraphBuilder = ({
       field: wrapWithContextMenu(FieldNode),
       messageGroup: MessageGroupNode,
       messageGroupExpanded: MessageGroupExpandedNode,
+      flowExpanded: FlowExpandedNode,
     } as unknown as NodeTypes;
   }, []);
   const edgeTypes = useMemo(
@@ -545,6 +557,35 @@ const NodeGraphBuilder = ({
   const hideChannelsRef = useRef(hideChannels);
   hideChannelsRef.current = hideChannels;
 
+  // The walkthrough treats expanded wrapper containers as structural rather
+  // than walkable steps. Stitched predecessor/successor edges added at expand
+  // time already connect real outer steps to the sub-flow's children, so
+  // dropping wrapper edges doesn't break traversal.
+  const wrapperNodeIds = useMemo(() => {
+    const ids = new Set<string>();
+    nodes.forEach((n) => {
+      if (isExpandedWrapper(n.type)) ids.add(n.id);
+    });
+    return ids;
+  }, [nodes]);
+  const walkthroughNodes = useMemo(
+    () =>
+      wrapperNodeIds.size === 0
+        ? nodes
+        : nodes.filter((n) => !wrapperNodeIds.has(n.id)),
+    [nodes, wrapperNodeIds],
+  );
+  const walkthroughEdges = useMemo(
+    () =>
+      wrapperNodeIds.size === 0
+        ? edges
+        : edges.filter(
+            (e) =>
+              !wrapperNodeIds.has(e.source) && !wrapperNodeIds.has(e.target),
+          ),
+    [edges, wrapperNodeIds],
+  );
+
   const animateLayout = useCallback(() => {
     const wrapper = reactFlowWrapperRef.current;
     if (!wrapper) return;
@@ -598,8 +639,16 @@ const NodeGraphBuilder = ({
     // Apply dagre positions to top-level nodes
     const positioned = nextNodes.map((node) => {
       if (node.parentId) {
-        // Position children centered within their parent container
         const parent = nextNodes.find((n) => n.id === node.parentId);
+
+        // Sub-flow expansion: children keep the LR positions already computed
+        // when the sub-flow was expanded. Leave them alone so the inner graph
+        // renders in true graph order, not a vertical stack.
+        if (parent?.type === "flowExpanded") {
+          return node;
+        }
+
+        // Message groups: simple vertical stack, centred within the container.
         const parentWidth = (parent?.style?.width as number) || 380;
         const childWidth = 240; // initial estimate, refined by post-render measurement
         const xOffset = Math.max(20, (parentWidth - childWidth) / 2);
@@ -623,12 +672,90 @@ const NodeGraphBuilder = ({
     return positioned;
   }, []);
 
+  // Lay a sub-flow's internal nodes out with dagre LR and return positioned
+  // children, a per-id position map, and the tightest container bounding box
+  // so the wrapper can size itself to fit. `sizeOf` supplies per-child width
+  // and height — callers pass either estimated constants (initial layout) or
+  // measured DOM dimensions (post-paint).
+  const layoutSubFlowChildren = useCallback(
+    (
+      children: Node[],
+      edges: Edge[],
+      sizeOf: (n: Node) => { w: number; h: number },
+      opts: {
+        padding: number;
+        headerH: number;
+        fallbackW?: number;
+        fallbackH?: number;
+      },
+    ) => {
+      const { padding, headerH, fallbackW = 240, fallbackH = 120 } = opts;
+
+      const g = new dagre.graphlib.Graph();
+      g.setGraph({ rankdir: "LR", ranksep: 360, nodesep: 200 });
+      g.setDefaultEdgeLabel(() => ({}));
+      const childIds = new Set(children.map((c) => c.id));
+      children.forEach((c) => {
+        const { w, h } = sizeOf(c);
+        g.setNode(c.id, { width: w, height: h });
+      });
+      edges.forEach((e) => {
+        if (childIds.has(e.source) && childIds.has(e.target)) {
+          g.setEdge(e.source, e.target);
+        }
+      });
+      dagre.layout(g);
+
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      const positions = new Map<string, { x: number; y: number }>();
+      children.forEach((c) => {
+        const pos = g.node(c.id);
+        if (!pos) return;
+        const x = pos.x - pos.width / 2;
+        const y = pos.y - pos.height / 2;
+        positions.set(c.id, { x, y });
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + pos.width);
+        maxY = Math.max(maxY, y + pos.height);
+      });
+
+      const offsetX = padding - (Number.isFinite(minX) ? minX : 0);
+      const offsetY = headerH + padding - (Number.isFinite(minY) ? minY : 0);
+      const positioned = children.map((c) => {
+        const p = positions.get(c.id);
+        if (!p) return c;
+        return { ...c, position: { x: p.x + offsetX, y: p.y + offsetY } };
+      });
+      // Translate positions too so callers that read the map see the final coords.
+      const finalPositions = new Map<string, { x: number; y: number }>();
+      positions.forEach((p, id) =>
+        finalPositions.set(id, { x: p.x + offsetX, y: p.y + offsetY }),
+      );
+
+      const width = Number.isFinite(minX)
+        ? maxX - minX + padding * 2
+        : fallbackW + padding * 2;
+      const height = Number.isFinite(minY)
+        ? maxY - minY + headerH + padding * 2
+        : fallbackH + headerH + padding * 2;
+
+      return { positioned, positions: finalPositions, width, height };
+    },
+    [],
+  );
+
   // Read from refs inside the callback to avoid nodes/edges in the dependency array.
   // This prevents the callback from being recreated on every drag tick (Rule 2).
   const handleCollapseGroup = useCallback(
     (e: React.MouseEvent) => {
       const target = e.target as HTMLElement;
-      const collapseBtn = target.closest(".ec-collapse-group-btn");
+      const collapseBtn = target.closest(
+        ".ec-collapse-group-btn, .ec-collapse-flow-btn",
+      );
       if (!collapseBtn) return;
       e.stopPropagation();
 
@@ -643,18 +770,22 @@ const NodeGraphBuilder = ({
 
       // Find the expanded container node to get its data
       const expandedNode = currentNodes.find((n) => n.id === groupNodeId);
-      if (!expandedNode || expandedNode.type !== "messageGroupExpanded") return;
+      if (!expandedNode || !isExpandedWrapper(expandedNode.type)) return;
+
+      // Find the original collapsed node (either messageGroup or a flow-type node)
+      const originalNode = initialNodes.find(
+        (n: Node) =>
+          n.id === groupNodeId &&
+          (n.type === "messageGroup" ||
+            n.type === "flows" ||
+            n.type === "flow"),
+      );
+      if (!originalNode) return;
 
       // Find all child nodes belonging to this group
       const childNodeIds = new Set(
         currentNodes.filter((n) => n.parentId === groupNodeId).map((n) => n.id),
       );
-
-      // Find the original messageGroup data from initialNodes
-      const originalNode = initialNodes.find(
-        (n: Node) => n.id === groupNodeId && n.type === "messageGroup",
-      );
-      if (!originalNode) return;
 
       // Collect downstream node IDs that were added on expand,
       // but only those that didn't already exist in the original graph
@@ -718,6 +849,12 @@ const NodeGraphBuilder = ({
         );
         return [...without, ...originalEdges];
       });
+
+      // Reframe the graph after the layout transition finishes so the user
+      // sees the collapsed result centred.
+      requestAnimationFrame(() => {
+        fitView({ duration: 400, padding: 0.2 });
+      });
     },
     [
       initialNodes,
@@ -726,6 +863,7 @@ const NodeGraphBuilder = ({
       setEdges,
       relayoutGraph,
       animateLayout,
+      fitView,
     ],
   );
 
@@ -836,18 +974,24 @@ const NodeGraphBuilder = ({
         return;
       }
 
-      // Disable focus mode for flow and entity visualizations
+      // Disable focus mode for flow and entity visualizations — but allow
+      // flow-type nodes that carry precomputed expandedNodes to continue
+      // through to the inline expand handler below.
       const isFlow = edgesRef.current.some(
         (edge: Edge) => edge.type === "flow-edge",
       );
       const isEntityVisualizer = nodesRef.current.some(
         (n: Node) => n.type === "entities",
       );
-      if (isFlow || isEntityVisualizer) return;
+      const isExpandableFlow =
+        (node.type === "flows" || node.type === "flow") &&
+        Array.isArray((node.data as any)?.expandedNodes) &&
+        (node.data as any).expandedNodes.length > 0;
+      if ((isFlow || isEntityVisualizer) && !isExpandableFlow) return;
 
       // Disable focus mode for domain and expanded group nodes
       if (node.type === "domain" || node.type === "domains") return;
-      if (node.type === "messageGroupExpanded") return;
+      if (isExpandedWrapper(node.type)) return;
 
       // Handle messageGroup click — expand inline
       if (node.type === "messageGroup") {
@@ -1030,6 +1174,191 @@ const NodeGraphBuilder = ({
               return { ...n, position: { x, y } };
             });
           });
+        });
+
+        requestAnimationFrame(() => {
+          fitView({ duration: 400, padding: 0.2 });
+        });
+
+        return;
+      }
+
+      // Handle flow-reference click — inline-expand the sub-flow
+      if (isExpandableFlow) {
+        const flowData = node.data as any;
+        const flowNodeId = node.id;
+        const subFlowNodes: any[] = flowData.expandedNodes || [];
+        const subFlowEdges: any[] = flowData.expandedEdges || [];
+
+        const initialChildNodes: Node[] = subFlowNodes.map((child) => ({
+          ...child,
+          parentId: flowNodeId,
+          extent: "parent" as const,
+          position: { x: 0, y: 0 },
+        }));
+
+        const CHILD_PADDING = 60;
+        const HEADER_H = 60;
+        const EST_W = 240;
+        const EST_H = 120;
+        const {
+          positioned: childNodes,
+          width: containerWidth,
+          height: containerHeight,
+        } = layoutSubFlowChildren(
+          initialChildNodes,
+          subFlowEdges as Edge[],
+          () => ({ w: EST_W, h: EST_H }),
+          { padding: CHILD_PADDING, headerH: HEADER_H },
+        );
+
+        const expandedContainerNode: Node = {
+          id: flowNodeId,
+          type: "flowExpanded",
+          position: node.position,
+          data: {
+            flowName: flowData.flow?.name || flowData.flow?.data?.name,
+            version: flowData.flow?.version || flowData.flow?.data?.version,
+          },
+          style: {
+            width: containerWidth,
+            height: containerHeight,
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            overflow: "visible",
+          },
+        };
+
+        const childIds = new Set(childNodes.map((n) => n.id));
+        const hasIncoming = new Set<string>();
+        const hasOutgoing = new Set<string>();
+        for (const e of subFlowEdges) {
+          if (childIds.has(e.target)) hasIncoming.add(e.target);
+          if (childIds.has(e.source)) hasOutgoing.add(e.source);
+        }
+        const entryChildIds = childNodes
+          .map((n) => n.id)
+          .filter((id) => !hasIncoming.has(id));
+        const terminalChildIds = childNodes
+          .map((n) => n.id)
+          .filter((id) => !hasOutgoing.has(id));
+
+        // Reroute the parent graph's edges across the sub-flow's boundary:
+        // each predecessor now targets every entry child; each successor
+        // sources from every terminal child.
+        const currentEdges = edgesRef.current;
+        const predecessorEdges = currentEdges.filter(
+          (e: Edge) => e.target === flowNodeId,
+        );
+        const successorEdges = currentEdges.filter(
+          (e: Edge) => e.source === flowNodeId,
+        );
+
+        const stitchedPredecessors: Edge[] = [];
+        for (const e of predecessorEdges) {
+          for (const entryId of entryChildIds.length > 0
+            ? entryChildIds
+            : [flowNodeId]) {
+            stitchedPredecessors.push({
+              ...e,
+              id: `${e.id}__to__${entryId}`,
+              target: entryId,
+            });
+          }
+        }
+        const stitchedSuccessors: Edge[] = [];
+        for (const e of successorEdges) {
+          for (const terminalId of terminalChildIds.length > 0
+            ? terminalChildIds
+            : [flowNodeId]) {
+            stitchedSuccessors.push({
+              ...e,
+              id: `${e.id}__from__${terminalId}`,
+              source: terminalId,
+            });
+          }
+        }
+
+        animateLayout();
+
+        setNodes((prev) => {
+          const without = prev.filter((n) => n.id !== flowNodeId);
+          const next = [...without, expandedContainerNode, ...childNodes];
+          const nextEdges = [
+            ...currentEdges.filter(
+              (e) => e.source !== flowNodeId && e.target !== flowNodeId,
+            ),
+            ...subFlowEdges,
+            ...stitchedPredecessors,
+            ...stitchedSuccessors,
+          ];
+          return relayoutGraph(next, nextEdges);
+        });
+        setEdges((prev) => {
+          const without = prev.filter(
+            (e) => e.source !== flowNodeId && e.target !== flowNodeId,
+          );
+          return [
+            ...without,
+            ...subFlowEdges,
+            ...stitchedPredecessors,
+            ...stitchedSuccessors,
+          ];
+        });
+
+        // Once React has painted, re-run the LR layout with measured node
+        // sizes so the container sizes itself to real content.
+        requestAnimationFrame(() => {
+          const currentChildren = nodesRef.current.filter(
+            (n) => n.parentId === flowNodeId,
+          );
+          if (currentChildren.length === 0) return;
+
+          const measurements = new Map<string, { w: number; h: number }>();
+          currentChildren.forEach((n) => {
+            const el = document.querySelector(
+              `[data-id="${n.id}"]`,
+            ) as HTMLElement | null;
+            measurements.set(n.id, {
+              w: el?.offsetWidth ?? EST_W,
+              h: el?.offsetHeight ?? EST_H,
+            });
+          });
+
+          const {
+            positions,
+            width: actualContainerW,
+            height: actualContainerH,
+          } = layoutSubFlowChildren(
+            currentChildren,
+            subFlowEdges as Edge[],
+            (n) => measurements.get(n.id) ?? { w: EST_W, h: EST_H },
+            { padding: CHILD_PADDING, headerH: HEADER_H },
+          );
+
+          setNodes((prev) =>
+            prev.map((n) => {
+              if (n.id === flowNodeId) {
+                return {
+                  ...n,
+                  style: {
+                    ...n.style,
+                    width: actualContainerW,
+                    height: actualContainerH,
+                  },
+                };
+              }
+              if (n.parentId !== flowNodeId) return n;
+              const p = positions.get(n.id);
+              if (!p) return n;
+              return { ...n, position: { x: p.x, y: p.y } };
+            }),
+          );
+        });
+
+        requestAnimationFrame(() => {
+          fitView({ duration: 400, padding: 0.2 });
         });
 
         return;
@@ -1863,8 +2192,8 @@ const NodeGraphBuilder = ({
             {isFlowVisualization && showFlowWalkthrough && (
               <Panel position="bottom-left">
                 <StepWalkthrough
-                  nodes={nodes}
-                  edges={edges}
+                  nodes={walkthroughNodes}
+                  edges={walkthroughEdges}
                   isFlowVisualization={isFlowVisualization}
                   onStepChange={handleStepChange}
                   mode={mode}
