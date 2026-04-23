@@ -16,7 +16,8 @@ type AllowedCollections =
   | 'channels'
   | 'entities'
   | 'flows'
-  | 'containers';
+  | 'containers'
+  | 'resourceDocs';
 
 const events = await getCollection('events');
 const commands = await getCollection('commands');
