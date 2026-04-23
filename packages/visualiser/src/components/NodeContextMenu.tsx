@@ -31,7 +31,7 @@ export default memo(function NodeContextMenu({
               )}
               <ContextMenu.Item
                 asChild
-                className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+                className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center text-gray-900 hover:text-gray-900 visited:text-gray-900 no-underline hover:no-underline visited:no-underline"
               >
                 <a
                   href={item.href}
