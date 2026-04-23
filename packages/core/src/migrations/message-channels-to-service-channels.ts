@@ -93,20 +93,16 @@ export default async (dir?: string) => {
       data.receives?.filter((receive: any) => messagesWithChannels.some((message: any) => message.id === receive.id)) ?? [];
 
     if (messagesTheServiceSendsThatNeedUpdating.length > 0 || messagesTheServiceReceivesThatNeedUpdating.length > 0) {
-      const newSends = messagesTheServiceSendsThatNeedUpdating.map((send: any) => ({
-        ...send,
-        to: messagesWithChannels
-          .map((message: any) => (message.id === send.id ? message.channels : []))
-          .flat()
-          .filter((channel: any) => channel !== null),
-      }));
-      const newReceives = messagesTheServiceReceivesThatNeedUpdating.map((receive: any) => ({
-        ...receive,
-        from: messagesWithChannels
-          .map((message: any) => (message.id === receive.id ? message.channels : []))
-          .flat()
-          .filter((channel: any) => channel !== null),
-      }));
+      const newSends = (data.sends ?? []).map((send: any) => {
+        const match = messagesWithChannels.find((message: any) => message.id === send.id);
+        if (!match) return send;
+        return { ...send, to: (match.channels ?? []).filter((channel: any) => channel !== null) };
+      });
+      const newReceives = (data.receives ?? []).map((receive: any) => {
+        const match = messagesWithChannels.find((message: any) => message.id === receive.id);
+        if (!match) return receive;
+        return { ...receive, from: (match.channels ?? []).filter((channel: any) => channel !== null) };
+      });
 
       const newData = {
         ...data,
