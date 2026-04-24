@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.29.2
+
+### Patch Changes
+
+- 6beef0c: Watcher now ignores transient `.lock` sidecar files and tolerates files that vanish between the event firing and the stat call, preventing ENOENT crashes during SDK atomic writes.
+
 ## 3.29.1
 
 ### Patch Changes
