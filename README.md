@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/event-catalog-eventcatalog-badge.png)](https://mseep.ai/app/event-catalog-eventcatalog)
+
 <div align="center">
 
 <img src="./images/banner.png" alt="EventCatalog overview" width="800" />
