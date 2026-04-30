@@ -1,22 +1,28 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { DocumentTextIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import {
-  BoltIcon,
-  ChatBubbleLeftIcon,
-  MagnifyingGlassIcon as MagnifyingGlassSolidIcon,
-  CodeBracketIcon,
-  DocumentCheckIcon,
-} from '@heroicons/react/24/solid';
+import { AdjustmentsHorizontalIcon, DocumentTextIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import type { CollectionMessageTypes } from '@types';
-
-// Specification file types (OpenAPI, AsyncAPI, GraphQL)
-const SPEC_TYPES = ['openapi', 'asyncapi', 'graphql'];
-const HIDDEN_FORMAT_FILTERS = new Set(['graphql', 'gql', 'yaml', 'yml']);
 import semver from 'semver';
 import SchemaListItem from './SchemaListItem';
 import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
 import type { SchemaItem } from './types';
+
+// Specification file types (OpenAPI, AsyncAPI, GraphQL)
+const SPEC_TYPES = ['openapi', 'asyncapi', 'graphql'];
+const HIDDEN_FORMAT_FILTERS = new Set(['graphql', 'gql', 'yaml', 'yml']);
+const SCHEMA_TYPE_LABELS: Record<string, string> = {
+  json: 'JSON Schema',
+  asyncapi: 'AsyncAPI',
+  openapi: 'OpenAPI',
+  graphql: 'GraphQL',
+  avro: 'Avro',
+  avsc: 'Avro',
+  proto: 'Protobuf',
+  yaml: 'YAML',
+  yml: 'YAML',
+  xml: 'XML',
+  xsd: 'XML Schema',
+};
 
 /** Resolve the spec filename for a schema item, with consistent fallback. */
 function getSpecFile(item: SchemaItem): string {
@@ -42,15 +48,14 @@ interface SchemaExplorerProps {
 
 export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: SchemaExplorerProps) {
   const [searchQuery, setSearchQuery] = useState(() => {
-    // Load from localStorage
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('schemaRegistrySearchQuery');
       return stored !== null ? stored : '';
     }
     return '';
   });
+
   const [selectedTypes, setSelectedTypes] = useState<Set<CollectionMessageTypes | 'specifications' | 'data-contracts'>>(() => {
-    // Load from localStorage
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('schemaRegistrySelectedTypes');
       if (stored) {
@@ -64,22 +69,30 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     }
     return new Set();
   });
+
   const [selectedSchemaType, setSelectedSchemaType] = useState<'all' | string>(() => {
-    // Load from localStorage
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('schemaRegistrySelectedSchemaType');
       return stored !== null ? stored : 'all';
     }
     return 'all';
   });
+
+  const [showFormatFilters, setShowFormatFilters] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('schemaRegistrySelectedSchemaType');
+      return stored !== null && stored !== 'all';
+    }
+    return false;
+  });
+
   const [selectedMessage, setSelectedMessage] = useState<SchemaItem | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const selectedItemRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const ITEMS_PER_PAGE = 50;
 
-  // Function to update URL with query params
   const updateUrlParams = (message: SchemaItem) => {
     if (typeof window === 'undefined') return;
 
@@ -88,7 +101,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     params.set('version', message.data.version);
     params.set('collection', message.collection);
 
-    // For services, add spec type and filename to disambiguate multiple specs
     if (message.collection === 'services') {
       params.set('specType', message.specType || 'unknown');
       const specFile = getSpecFile(message);
@@ -101,12 +113,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     window.history.pushState({}, '', newUrl);
   };
 
-  // Group messages by ID (and spec type for services) and get all versions
   const messagesByIdAndVersions = useMemo(() => {
     const grouped = new Map<string, SchemaItem[]>();
+
     schemas.forEach((message) => {
       const groupKey = getGroupKey(message);
-
       const existing = grouped.get(groupKey);
       if (existing) {
         existing.push(message);
@@ -115,42 +126,36 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
       }
     });
 
-    // Sort versions for each ID (descending - latest first)
     grouped.forEach((versions, id) => {
       versions.sort((a, b) => {
         const aVersion = a.data.version;
         const bVersion = b.data.version;
-
-        // Try to use semver for comparison
         const aValid = semver.valid(semver.coerce(aVersion));
         const bValid = semver.valid(semver.coerce(bVersion));
 
         if (aValid && bValid) {
-          return semver.rcompare(aValid, bValid); // descending order
+          return semver.rcompare(aValid, bValid);
         }
 
-        // Fall back to numeric comparison
         const aNum = parseFloat(aVersion);
         const bNum = parseFloat(bVersion);
         if (!isNaN(aNum) && !isNaN(bNum)) {
           return bNum - aNum;
         }
 
-        // Final fallback to string comparison
         return bVersion.localeCompare(aVersion);
       });
+
       grouped.set(id, versions);
     });
 
     return grouped;
   }, [schemas]);
 
-  // Get latest version for each message (for sidebar display)
   const latestMessages = useMemo(() => {
     return Array.from(messagesByIdAndVersions.values()).map((versions) => versions[0]);
   }, [messagesByIdAndVersions]);
 
-  // Get unique schema types (exclude types that aren't useful as standalone filters)
   const schemaTypes = useMemo(() => {
     const types = new Set<string>();
     latestMessages.forEach((msg) => {
@@ -161,22 +166,17 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     return Array.from(types).sort();
   }, [latestMessages]);
 
-  // Filter messages (using latest versions only)
   const filteredMessages = useMemo(() => {
     let result = [...latestMessages];
 
-    // Filter by message types (multi-select)
     if (selectedTypes.size > 0) {
       result = result.filter((msg) => {
-        // Check if message matches any selected collection type
         if (selectedTypes.has(msg.collection as CollectionMessageTypes)) {
           return true;
         }
-        // Check if 'specifications' is selected and this is a spec file
         if (selectedTypes.has('specifications') && SPEC_TYPES.includes(msg.schemaExtension?.toLowerCase() || '')) {
           return true;
         }
-        // Check if 'data-contracts' is selected and this is a data product contract
         if (selectedTypes.has('data-contracts') && msg.collection === 'data-products') {
           return true;
         }
@@ -184,12 +184,10 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
       });
     }
 
-    // Filter by schema type
     if (selectedSchemaType !== 'all') {
       result = result.filter((msg) => msg.schemaExtension?.toLowerCase() === selectedSchemaType);
     }
 
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -200,7 +198,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
       );
     }
 
-    // Sort by name alphabetically
     result.sort((a, b) => {
       const nameA = a.data.name?.toLowerCase() || '';
       const nameB = b.data.name?.toLowerCase() || '';
@@ -210,7 +207,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     return result;
   }, [latestMessages, searchQuery, selectedTypes, selectedSchemaType]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredMessages.length / ITEMS_PER_PAGE);
   const paginatedMessages = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -221,7 +217,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     setCurrentPage(1);
   }, [searchQuery, selectedTypes, selectedSchemaType]);
 
-  // Load from query string on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -233,13 +228,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     const specFilename = params.get('specFilename');
 
     if (id && version) {
-      // Find the matching message
       const matchingMessage = schemas.find((msg) => {
         const idMatch = msg.data.id === id;
         const versionMatch = msg.data.version === version;
         const collectionMatch = !collection || msg.collection === collection;
 
-        // For services, also match spec type and filename
         if (msg.collection === 'services') {
           const specTypeMatch = !specType || msg.specType === specType;
           const msgSpecFile = getSpecFile(msg);
@@ -254,7 +247,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         setSelectedMessage(matchingMessage);
         setSelectedVersion(matchingMessage.data.version);
 
-        // Scroll to the selected item after a brief delay to ensure DOM is ready
         setTimeout(() => {
           if (selectedItemRef.current) {
             selectedItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -264,7 +256,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     }
   }, [schemas]);
 
-  // Auto-select first message when filters change (only if no query params)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -278,24 +269,19 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     }
   }, [filteredMessages, selectedMessage]);
 
-  // Get the message to display (based on selected version)
   const displayMessage = useMemo(() => {
     if (!selectedMessage) return null;
 
     const groupKey = getGroupKey(selectedMessage);
-
     const versions = messagesByIdAndVersions.get(groupKey);
-    if (!versions) return selectedMessage;
 
-    // If no version selected, use the latest (which is the first in the sorted array)
+    if (!versions) return selectedMessage;
     if (!selectedVersion) return versions[0];
 
-    // Find the message with the selected version
     const versionedMessage = versions.find((v) => v.data.version === selectedVersion);
     return versionedMessage || versions[0];
   }, [selectedMessage, selectedVersion, messagesByIdAndVersions]);
 
-  // Save filter states to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('schemaRegistrySearchQuery', searchQuery);
@@ -314,7 +300,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     }
   }, [selectedSchemaType]);
 
-  // Keyboard shortcut for search (Cmd+K or Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -322,11 +307,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         searchInputRef.current?.focus();
       }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Get available versions for the selected message
   const availableVersions = useMemo(() => {
     if (!displayMessage) return [];
     const groupKey = getGroupKey(displayMessage);
@@ -337,14 +322,12 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
 
   const handleVersionChange = (newVersion: string) => {
     setSelectedVersion(newVersion);
-    // Update URL with new version
     const versionedMessage = availableVersions.find((v) => v.data.version === newVersion);
     if (versionedMessage) {
       updateUrlParams(versionedMessage);
     }
   };
 
-  // Calculate stats
   const stats = useMemo(() => {
     return {
       total: latestMessages.length,
@@ -356,7 +339,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     };
   }, [latestMessages]);
 
-  // Toggle type selection (multi-select)
   const toggleType = (type: CollectionMessageTypes | 'specifications' | 'data-contracts') => {
     setSelectedTypes((prev) => {
       const next = new Set(prev);
@@ -369,26 +351,35 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     });
   };
 
-  // Clear all type filters
   const clearTypeFilters = () => {
     setSelectedTypes(new Set());
   };
 
-  const hasActiveFilters = searchQuery || selectedTypes.size > 0 || selectedSchemaType !== 'all';
+  const hasActiveFilters = searchQuery.length > 0 || selectedTypes.size > 0 || selectedSchemaType !== 'all';
+  const activeFilterCount = (selectedTypes.size > 0 ? 1 : 0) + (selectedSchemaType !== 'all' ? 1 : 0);
+  const collectionTabs = [
+    { key: 'all', label: 'All', count: stats.total },
+    { key: 'events', label: 'Events', count: stats.events },
+    { key: 'commands', label: 'Commands', count: stats.commands },
+    { key: 'queries', label: 'Queries', count: stats.queries },
+    { key: 'specifications', label: 'Specs', count: stats.specifications },
+    { key: 'data-contracts', label: 'Contracts', count: stats.dataContracts },
+  ].filter((tab) => tab.count > 0);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <style
         dangerouslySetInnerHTML={{
           __html: '[data-theme="dark"] .schema-icon { filter: brightness(1.8) saturate(0.8); }',
         }}
       />
-      <div className="flex-1 flex gap-0 overflow-hidden">
-        {/* Left: Schema List */}
-        <div className="w-[320px] flex-shrink-0 flex flex-col bg-[rgb(var(--ec-page-bg))] bg-gradient-to-bl from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.08)] border-r border-[rgb(var(--ec-page-border))] overflow-hidden">
-          {/* Search */}
-          <div className="flex-shrink-0 px-2 pt-2 pb-1.5">
-            <div className="relative">
+      <div className="flex flex-1 min-h-0 gap-0 overflow-hidden">
+        <div
+          className="fixed top-0 z-20 flex h-screen flex-col overflow-hidden border-r border-[rgb(var(--ec-page-border))] bg-linear-to-b from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.06)]"
+          style={{ left: 'var(--ec-vertical-nav-width)', width: 'var(--ec-schema-sidebar-width, 360px)' }}
+        >
+          <div className="flex h-[60px] flex-shrink-0 items-center justify-between gap-2 border-b border-[rgb(var(--ec-page-border))] px-4">
+            <div className="relative min-w-0 flex-1">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <MagnifyingGlassIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
               </div>
@@ -398,177 +389,144 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                 placeholder="Search schemas..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-lg border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] py-2 pl-9 pr-8 text-sm text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:border-[rgb(var(--ec-accent))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] transition-all"
+                className="w-full rounded-lg border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] py-2 pl-9 pr-3 text-[12px] text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] transition-all focus:border-[rgb(var(--ec-accent))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
               />
-              {searchQuery ? (
-                <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                  <XMarkIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))]" />
-                </button>
-              ) : (
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
-                  <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-page-text-muted))]">
-                    <span className="text-[11px]">&#8984;</span>K
-                  </kbd>
-                </div>
-              )}
             </div>
+
+            {schemaTypes.length > 0 && (
+              <button
+                onClick={() => setShowFormatFilters((prev) => !prev)}
+                aria-pressed={showFormatFilters || selectedSchemaType !== 'all'}
+                className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
+                  showFormatFilters || selectedSchemaType !== 'all'
+                    ? 'border-[rgb(var(--ec-accent)/0.5)] bg-[rgb(var(--ec-accent))] text-white shadow-[0_10px_28px_rgb(var(--ec-accent)/0.3)]'
+                    : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-text-muted)/0.45)] hover:text-[rgb(var(--ec-page-text))]'
+                }`}
+              >
+                <AdjustmentsHorizontalIcon className="h-4.5 w-4.5" />
+                {activeFilterCount > 0 && (
+                  <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-[rgb(var(--ec-page-bg))] bg-[rgb(var(--ec-page-text))] px-1 text-[10px] font-semibold tabular-nums text-[rgb(var(--ec-page-bg))]">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
 
-          {/* Format Pills */}
-          {schemaTypes.length > 0 && (
-            <div className="flex-shrink-0 px-2.5 pb-2">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  onClick={() => setSelectedSchemaType('all')}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-all ${
-                    selectedSchemaType === 'all'
-                      ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent)/0.08)]'
-                      : 'border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-text-muted))]'
-                  }`}
-                >
-                  All formats
-                </button>
-                {schemaTypes.map((type) => {
-                  const labels: Record<string, string> = {
-                    json: 'JSON Schema',
-                    asyncapi: 'AsyncAPI',
-                    openapi: 'OpenAPI',
-                    graphql: 'GraphQL',
-                    avro: 'Avro',
-                    avsc: 'Avro',
-                    proto: 'Protobuf',
-                    yaml: 'YAML',
-                    yml: 'YAML',
-                    xml: 'XML',
-                    xsd: 'XML Schema',
-                  };
-                  return (
+          {(showFormatFilters || selectedSchemaType !== 'all' || selectedTypes.size > 0) && (
+            <div className="flex-shrink-0 border-b border-[rgb(var(--ec-page-border))] px-4 py-3">
+              <div className="rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] p-3">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[rgb(var(--ec-page-text-muted))]">
+                    Filters
+                  </span>
+                  {hasActiveFilters && (
                     <button
-                      key={type}
-                      onClick={() => setSelectedSchemaType(selectedSchemaType === type ? 'all' : type)}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-medium border transition-all ${
-                        selectedSchemaType === type
-                          ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent)/0.08)]'
-                          : 'border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-text-muted))]'
-                      }`}
+                      onClick={() => {
+                        setSearchQuery('');
+                        clearTypeFilters();
+                        setSelectedSchemaType('all');
+                      }}
+                      className="text-[11px] font-medium text-[rgb(var(--ec-accent))] hover:opacity-80"
                     >
-                      {labels[type] || type.charAt(0).toUpperCase() + type.slice(1)}
+                      Reset
                     </button>
-                  );
-                })}
+                  )}
+                </div>
+
+                <div>
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-page-text-muted))]">
+                    Type
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {collectionTabs.map((tab) => {
+                      const isAll = tab.key === 'all';
+                      const isActive = isAll ? selectedTypes.size === 0 : selectedTypes.has(tab.key as CollectionMessageTypes);
+
+                      return (
+                        <button
+                          key={tab.key}
+                          onClick={() => {
+                            if (isAll) {
+                              clearTypeFilters();
+                              return;
+                            }
+                            toggleType(tab.key as CollectionMessageTypes | 'specifications' | 'data-contracts');
+                          }}
+                          className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-medium transition-all ${
+                            isActive
+                              ? 'border-[rgb(var(--ec-accent)/0.5)] bg-[rgb(var(--ec-accent)/0.16)] text-[rgb(var(--ec-page-text))] shadow-[0_0_0_1px_rgb(var(--ec-accent)/0.2)]'
+                              : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-text-muted)/0.3)] hover:text-[rgb(var(--ec-page-text))]'
+                          }`}
+                        >
+                          <span>{tab.label}</span>
+                          <span
+                            className={`rounded-sm px-1 py-0.5 text-[8px] font-semibold tabular-nums ${
+                              isActive
+                                ? 'bg-[rgb(var(--ec-accent)/0.18)] text-[rgb(var(--ec-page-text))]'
+                                : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))]'
+                            }`}
+                          >
+                            {tab.count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {schemaTypes.length > 0 && (
+                  <div className="mt-3">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-page-text-muted))]">
+                        Format
+                      </span>
+                      {selectedSchemaType !== 'all' && (
+                        <button
+                          onClick={() => setSelectedSchemaType('all')}
+                          className="text-[10px] font-medium text-[rgb(var(--ec-accent))] hover:opacity-80"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        onClick={() => setSelectedSchemaType('all')}
+                        className={`rounded-md border px-2 py-1 text-[10px] font-medium transition-all ${
+                          selectedSchemaType === 'all'
+                            ? 'border-[rgb(var(--ec-accent)/0.45)] bg-[rgb(var(--ec-accent)/0.16)] text-[rgb(var(--ec-page-text))]'
+                            : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
+                        }`}
+                      >
+                        All formats
+                      </button>
+                      {schemaTypes.map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setSelectedSchemaType(selectedSchemaType === type ? 'all' : type)}
+                          className={`rounded-md border px-2 py-1 text-[10px] font-medium transition-all ${
+                            selectedSchemaType === type
+                              ? 'border-[rgb(var(--ec-accent)/0.45)] bg-[rgb(var(--ec-accent)/0.16)] text-[rgb(var(--ec-page-text))]'
+                              : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
+                          }`}
+                        >
+                          {SCHEMA_TYPE_LABELS[type] || type.charAt(0).toUpperCase() + type.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Collection Type Tabs */}
-          <div className="flex-shrink-0 px-2.5 border-b border-[rgb(var(--ec-page-border))]">
-            <div className="flex items-center gap-3 overflow-x-auto">
-              <button
-                onClick={() => {
-                  clearTypeFilters();
-                }}
-                className={`inline-flex items-center gap-1.5 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  selectedTypes.size === 0
-                    ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
-                    : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
-                }`}
-              >
-                All
-                <span className="tabular-nums text-[11px] text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded-md">
-                  {stats.total}
-                </span>
-              </button>
-              {stats.events > 0 && (
-                <button
-                  onClick={() => toggleType('events')}
-                  className={`inline-flex items-center gap-1.5 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                    selectedTypes.has('events')
-                      ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
-                      : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                >
-                  <BoltIcon className="h-3 w-3 text-orange-400" />
-                  Events
-                  <span className="tabular-nums text-[11px] text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded-md">
-                    {stats.events}
-                  </span>
-                </button>
-              )}
-              {stats.commands > 0 && (
-                <button
-                  onClick={() => toggleType('commands')}
-                  className={`inline-flex items-center gap-1.5 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                    selectedTypes.has('commands')
-                      ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
-                      : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                >
-                  <ChatBubbleLeftIcon className="h-3 w-3 text-blue-400" />
-                  Commands
-                  <span className="tabular-nums text-[11px] text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded-md">
-                    {stats.commands}
-                  </span>
-                </button>
-              )}
-              {stats.queries > 0 && (
-                <button
-                  onClick={() => toggleType('queries')}
-                  className={`inline-flex items-center gap-1.5 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                    selectedTypes.has('queries')
-                      ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
-                      : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                >
-                  <MagnifyingGlassSolidIcon className="h-3 w-3 text-green-400" />
-                  Queries
-                  <span className="tabular-nums text-[11px] text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded-md">
-                    {stats.queries}
-                  </span>
-                </button>
-              )}
-              {stats.specifications > 0 && (
-                <button
-                  onClick={() => toggleType('specifications')}
-                  className={`inline-flex items-center gap-1.5 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                    selectedTypes.has('specifications')
-                      ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
-                      : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                >
-                  <CodeBracketIcon className="h-3 w-3 text-[rgb(var(--ec-accent)/0.7)]" />
-                  Specs
-                  <span className="tabular-nums text-[11px] text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded-md">
-                    {stats.specifications}
-                  </span>
-                </button>
-              )}
-              {stats.dataContracts > 0 && (
-                <button
-                  onClick={() => toggleType('data-contracts')}
-                  className={`inline-flex items-center gap-1.5 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                    selectedTypes.has('data-contracts')
-                      ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
-                      : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                >
-                  <DocumentCheckIcon className="h-3 w-3 text-purple-400" />
-                  Contracts
-                  <span className="tabular-nums text-[11px] text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded-md">
-                    {stats.dataContracts}
-                  </span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Schema List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto px-3 py-3">
             {paginatedMessages.length > 0 ? (
-              <div className="divide-y divide-[rgb(var(--ec-page-border)/0.5)]">
+              <div className="space-y-3">
                 {paginatedMessages.map((message) => {
                   const groupKey = getGroupKey(message);
                   const isSelected = selectedGroupKey === groupKey;
-
                   const versions = messagesByIdAndVersions.get(groupKey) || [message];
 
                   return (
@@ -588,12 +546,12 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[rgb(var(--ec-content-hover))] mb-4">
+              <div className="flex h-full flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-[rgb(var(--ec-page-border))] p-8 text-center">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgb(var(--ec-content-hover))]">
                   <MagnifyingGlassIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" />
                 </div>
-                <h3 className="text-sm font-semibold text-[rgb(var(--ec-page-text))] mb-1">No schemas found</h3>
-                <p className="text-sm text-[rgb(var(--ec-page-text-muted))] mb-4 max-w-[220px] leading-relaxed">
+                <h3 className="mb-1 text-sm font-semibold text-[rgb(var(--ec-page-text))]">No schemas found</h3>
+                <p className="mb-4 max-w-[220px] text-sm leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
                   {searchQuery ? `No results for "${searchQuery}"` : 'Try adjusting your filters'}
                 </p>
                 {hasActiveFilters && (
@@ -612,12 +570,13 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
             )}
           </div>
 
-          {/* Pagination */}
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
 
-        {/* Right: Schema Details */}
-        <div className="flex-1 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] overflow-hidden">
+        <div
+          className="flex-1 min-h-0 min-w-0 overflow-hidden bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]"
+          style={{ marginLeft: 'var(--ec-schema-sidebar-width, 360px)' }}
+        >
           {displayMessage ? (
             <SchemaDetailsPanel
               message={displayMessage}
@@ -627,13 +586,13 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
               apiAccessEnabled={apiAccessEnabled}
             />
           ) : (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center max-w-xs">
-                <div className="flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-2xl bg-[rgb(var(--ec-content-hover))]">
+            <div className="flex h-full items-center justify-center">
+              <div className="max-w-xs text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[rgb(var(--ec-content-hover))]">
                   <DocumentTextIcon className="h-7 w-7 text-[rgb(var(--ec-icon-color))]" />
                 </div>
-                <h3 className="text-base font-semibold text-[rgb(var(--ec-page-text))] mb-1">Select a schema</h3>
-                <p className="text-sm text-[rgb(var(--ec-page-text-muted))] leading-relaxed">
+                <h3 className="mb-1 text-base font-semibold text-[rgb(var(--ec-page-text))]">Select a schema</h3>
+                <p className="text-sm leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
                   Choose a schema from the list to view details, compare versions, and access raw code
                 </p>
               </div>

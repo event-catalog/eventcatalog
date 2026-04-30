@@ -10,26 +10,28 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex-shrink-0 border-t border-[rgb(var(--ec-page-border))] px-3.5 py-2">
-      <div className="flex items-center justify-between">
+    <div className="flex-shrink-0 border-t border-[rgb(var(--ec-page-border))] px-5 py-4">
+      <div className="flex items-center justify-center gap-4">
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed rounded-md hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] transition-colors hover:text-[rgb(var(--ec-page-text))] disabled:cursor-not-allowed disabled:opacity-30"
+          aria-label="Previous page"
         >
-          <ChevronLeftIcon className="h-3.5 w-3.5" />
-          Prev
+          <ChevronLeftIcon className="h-4 w-4" />
         </button>
-        <span className="text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))]">
-          {currentPage} / {totalPages}
+
+        <span className="min-w-[5.5rem] text-center text-[12px] font-medium tabular-nums text-[rgb(var(--ec-page-text-muted))]">
+          {currentPage} of {totalPages}
         </span>
+
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed rounded-md hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] transition-colors hover:text-[rgb(var(--ec-page-text))] disabled:cursor-not-allowed disabled:opacity-30"
+          aria-label="Next page"
         >
-          Next
-          <ChevronRightIcon className="h-3.5 w-3.5" />
+          <ChevronRightIcon className="h-4 w-4" />
         </button>
       </div>
     </div>

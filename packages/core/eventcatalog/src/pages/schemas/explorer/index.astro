@@ -13,13 +13,15 @@ const apiAccessEnabled = isEventCatalogScaleEnabled();
 ---
 
 <VerticalSideBarLayout title="Schema Explorer - EventCatalog" showNestedSideBar={false}>
-  <main class="flex docs-layout h-[calc(100vh-var(--header-height,0px)-64px)] bg-[rgb(var(--ec-page-bg))]">
-    <div class="flex docs-layout w-full h-full">
-      <div class="w-full flex flex-col h-full">
-        <div class="w-full max-w-none! h-full flex flex-col overflow-hidden">
-          <SchemaExplorer client:load schemas={schemas as any} apiAccessEnabled={apiAccessEnabled} />
-        </div>
-      </div>
-    </div>
+  <style is:global>
+    #eventcatalog-header {
+      left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-schema-sidebar-width, 360px)) !important;
+    }
+  </style>
+  <main
+    class="min-h-0 overflow-hidden bg-[rgb(var(--ec-page-bg))]"
+    style={`--ec-schema-sidebar-width: 360px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);`}
+  >
+    <SchemaExplorer client:load schemas={schemas as any} apiAccessEnabled={apiAccessEnabled} />
   </main>
 </VerticalSideBarLayout>

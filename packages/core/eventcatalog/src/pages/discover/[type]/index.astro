@@ -1,18 +1,6 @@
 ---
-import {
-  QueueListIcon,
-  RectangleGroupIcon,
-  BoltIcon,
-  ChatBubbleLeftIcon,
-  CubeIcon,
-  GlobeAltIcon,
-} from '@heroicons/react/24/outline';
-import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
-import { DatabaseIcon } from 'lucide-react';
 import { getCommands } from '@utils/collections/commands';
 import { getDomains, getDomainsForService } from '@utils/collections/domains';
-import { getFlows } from '@utils/collections/flows';
 import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
 import { getQueries } from '@utils/collections/queries';
@@ -21,7 +9,6 @@ import { getDataProducts } from '@utils/collections/data-products';
 import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
 import { getChannels } from '@utils/collections/channels';
-import { buildUrl } from '@utils/url-builder';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { DiscoverTable, type DiscoverTableData, type CollectionType } from '@components/Tables/Discover';
 import config from '@config';
@@ -32,15 +19,11 @@ export const getStaticPaths = Page.getStaticPaths;
 
 const { type, data } = await Page.getData(Astro);
 
-// Fetch all collections for tabs
 const events = await getEvents();
 const queries = await getQueries();
 const commands = await getCommands();
 const services = await getServices();
-const internalServices = services.filter((s) => !s.data.externalSystem);
-const externalServices = services.filter((s) => s.data.externalSystem);
 const domains = await getDomains({ getAllVersions: false });
-const flows = await getFlows();
 const containers = await getContainers();
 const dataProducts = await getDataProducts();
 const channels = await getChannels();
@@ -56,11 +39,13 @@ const typeConfig: Record<
   string,
   {
     label: string;
+    description: string;
     propertyOptions: Array<{ id: string; label: string }>;
   }
 > = {
   events: {
     label: 'Events',
+    description: 'Explore the events flowing through your catalog and understand who produces and consumes them.',
     propertyOptions: [
       { id: 'hasProducers', label: 'Has Producers' },
       { id: 'hasConsumers', label: 'Has Consumers' },
@@ -70,6 +55,7 @@ const typeConfig: Record<
   },
   commands: {
     label: 'Commands',
+    description: 'Browse the commands in your catalog and see which services issue and respond to them.',
     propertyOptions: [
       { id: 'hasProducers', label: 'Has Producers' },
       { id: 'hasConsumers', label: 'Has Consumers' },
@@ -79,6 +65,7 @@ const typeConfig: Record<
   },
   queries: {
     label: 'Queries',
+    description: 'Explore the queries available across your catalog and trace the services connected to them.',
     propertyOptions: [
       { id: 'hasProducers', label: 'Has Producers' },
       { id: 'hasConsumers', label: 'Has Consumers' },
@@ -88,6 +75,7 @@ const typeConfig: Record<
   },
   domains: {
     label: 'Domains',
+    description: 'Organize and explore the business domains that shape your architecture.',
     propertyOptions: [
       { id: 'hasServices', label: 'Has Services' },
       { id: 'hasOwners', label: 'Has Owners' },
@@ -97,6 +85,7 @@ const typeConfig: Record<
   },
   services: {
     label: 'Services',
+    description: 'Browse the internal services in your catalog and inspect the capabilities they expose.',
     propertyOptions: [
       { id: 'hasSpecifications', label: 'Has Specifications' },
       { id: 'hasOwners', label: 'Has Owners' },
@@ -107,6 +96,7 @@ const typeConfig: Record<
   },
   'external-systems': {
     label: 'External Systems',
+    description: 'Explore the external systems connected to your architecture and the contracts around them.',
     propertyOptions: [
       { id: 'hasSpecifications', label: 'Has Specifications' },
       { id: 'hasOwners', label: 'Has Owners' },
@@ -117,6 +107,7 @@ const typeConfig: Record<
   },
   flows: {
     label: 'Flows',
+    description: 'Inspect the business and technical flows that connect resources across your catalog.',
     propertyOptions: [
       { id: 'hasOwners', label: 'Has Owners' },
       { id: 'isDeprecated', label: 'Is Deprecated' },
@@ -124,6 +115,7 @@ const typeConfig: Record<
   },
   containers: {
     label: 'Data',
+    description: 'Explore the data stores and containers that services read from and write to.',
     propertyOptions: [
       { id: 'hasOwners', label: 'Has Owners' },
       { id: 'hasWriters', label: 'Has Writers' },
@@ -133,6 +125,7 @@ const typeConfig: Record<
   },
   'data-products': {
     label: 'Data Products',
+    description: 'Browse your data products and understand the inputs, outputs, and ownership behind them.',
     propertyOptions: [
       { id: 'hasOwners', label: 'Has Owners' },
       { id: 'hasInputs', label: 'Has Inputs' },
@@ -148,90 +141,6 @@ const currentTypeConfig = typeConfig[type] || typeConfig.events;
 const tableConfigurationKey = type === 'external-systems' ? 'services' : type;
 // @ts-ignore
 const tableConfiguration = config[tableConfigurationKey as keyof typeof config]?.tableConfiguration ?? { columns: {} };
-
-const tabs = [
-  {
-    label: `Domains (${domains.length})`,
-    href: buildUrl('/discover/domains'),
-    isActive: type === 'domains',
-    icon: RectangleGroupIcon,
-    activeColor: 'yellow',
-    enabled: domains.length > 0,
-    visible: domains.length > 0,
-  },
-  {
-    label: `Services (${internalServices.length})`,
-    href: buildUrl('/discover/services'),
-    isActive: type === 'services',
-    icon: ServerIcon,
-    activeColor: 'pink',
-    enabled: internalServices.length > 0,
-    visible: internalServices.length > 0,
-  },
-  {
-    label: `External Systems (${externalServices.length})`,
-    href: buildUrl('/discover/external-systems'),
-    isActive: type === 'external-systems',
-    icon: GlobeAltIcon,
-    activeColor: 'purple',
-    enabled: externalServices.length > 0,
-    visible: externalServices.length > 0,
-  },
-  {
-    label: `Data (${containers.length})`,
-    href: buildUrl('/discover/containers'),
-    isActive: type === 'containers',
-    icon: DatabaseIcon,
-    activeColor: 'blue',
-    enabled: containers.length > 0,
-    visible: containers.length > 0,
-  },
-  {
-    label: `Data Products (${dataProducts.length})`,
-    href: buildUrl('/discover/data-products'),
-    isActive: type === 'data-products',
-    icon: CubeIcon,
-    activeColor: 'cyan',
-    enabled: dataProducts.length > 0,
-    visible: dataProducts.length > 0,
-  },
-  {
-    label: `Events (${events.length})`,
-    href: buildUrl('/discover/events'),
-    isActive: type === 'events',
-    icon: BoltIcon,
-    activeColor: 'orange',
-    enabled: events.length > 0,
-    visible: events.length > 0,
-  },
-  {
-    label: `Queries (${queries.length})`,
-    href: buildUrl('/discover/queries'),
-    isActive: type === 'queries',
-    icon: MagnifyingGlassIcon,
-    activeColor: 'green',
-    enabled: queries.length > 0,
-    visible: queries.length > 0,
-  },
-  {
-    label: `Commands (${commands.length})`,
-    href: buildUrl('/discover/commands'),
-    isActive: type === 'commands',
-    icon: ChatBubbleLeftIcon,
-    activeColor: 'blue',
-    enabled: commands.length > 0,
-    visible: commands.length > 0,
-  },
-  {
-    label: `Flows (${flows.length})`,
-    href: buildUrl('/discover/flows'),
-    isActive: type === 'flows',
-    icon: QueueListIcon,
-    activeColor: 'teal',
-    enabled: flows.length > 0,
-    visible: flows.length > 0,
-  },
-];
 
 // Map data to match the expected structure for the table
 function mapToItem(i: any) {
@@ -346,6 +255,7 @@ const tableData = enrichedData.map((d: any) => ({
     id: d.data.id,
     name: d.data.name,
     summary: d.data?.summary,
+    icon: d.data?.styles?.icon,
     version: d.data.version,
     latestVersion: d.data?.latestVersion,
     draft: d.data?.draft,
@@ -409,42 +319,21 @@ const title = `${currentTypeConfig.label} (${data.length})`;
 ---
 
 <VerticalSideBarLayout title={`Explore | ${title}`} showNestedSideBar={false}>
-  <main class="ml-0 bg-[rgb(var(--ec-page-bg))] h-content flex flex-col overflow-hidden">
-    <div id="discover-collection-tabs">
-      <div class="hidden sm:block">
-        <div class="border-b border-[rgb(var(--ec-page-border))]">
-          <nav class="flex space-x-8 -mb-0.5 pl-6" aria-label="Tabs">
-            {
-              tabs
-                .filter((tab) => tab.visible)
-                .map((tab) => (
-                  <a
-                    href={tab.href}
-                    class:list={[
-                      'group inline-flex items-center py-4 px-1 text-sm font-light text-[rgb(var(--ec-page-text))]',
-                      tab.isActive && 'border-b-[2px] border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-accent))]',
-                      !tab.isActive && 'opacity-70 hover:opacity-100',
-                      !tab.enabled && 'disabled',
-                    ]}
-                    aria-current="page"
-                  >
-                    <tab.icon
-                      className={`w-6 h-6 -ml-0.5 mr-2 ${tab.isActive ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-icon-color))]'}`}
-                    />
-                    <span>{tab.label}</span>
-                  </a>
-                ))
-            }
-          </nav>
-        </div>
-      </div>
-    </div>
-
-    <div class="flex-1 overflow-hidden">
+  <style is:global>
+    #eventcatalog-header {
+      left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-discover-sidebar-width, 320px)) !important;
+    }
+  </style>
+  <main
+    class="ml-0 flex h-full min-h-0 flex-col overflow-hidden bg-[rgb(var(--ec-page-bg))]"
+    style={`--ec-discover-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);`}
+  >
+    <div class="flex-1 min-h-0 overflow-hidden">
       <DiscoverTable
         data={tableData as DiscoverTableData[]}
         collectionType={type as CollectionType}
         collectionLabel={currentTypeConfig.label}
+        collectionDescription={currentTypeConfig.description}
         domains={uniqueDomains}
         owners={uniqueOwners as Array<{ id: string; name: string; type?: 'user' | 'team' }>}
         producers={uniqueProducers}
@@ -459,11 +348,3 @@ const title = `${currentTypeConfig.label} (${data.length})`;
     </div>
   </main>
 </VerticalSideBarLayout>
-
-<style>
-  a.disabled {
-    pointer-events: none;
-    cursor: default;
-    opacity: 0.25;
-  }
-</style>

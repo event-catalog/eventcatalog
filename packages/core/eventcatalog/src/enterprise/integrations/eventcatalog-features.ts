@@ -77,14 +77,6 @@ export default function eventCatalogIntegration(): AstroIntegration {
           configureAuthentication(params);
         }
 
-        // If non paying user, add the plans route into the project
-        if (!isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled()) {
-          params.injectRoute({
-            pattern: '/plans',
-            entrypoint: path.join(catalogDirectory, 'src/enterprise/plans/index.astro'),
-          });
-        }
-
         // Custom documentation routes (Starter/Scale plan)
         if (isCustomDocsEnabled()) {
           params.injectRoute({

@@ -118,7 +118,7 @@ export default function DiffViewer({ diffs, onOpenFullscreen, apiAccessEnabled =
   if (diffs.length === 0) return null;
 
   return (
-    <div className="h-full overflow-auto p-5">
+    <div className="h-full overflow-auto p-2">
       {isDark && <style dangerouslySetInnerHTML={{ __html: DIFF_DARK_STYLES }} />}
       <div className="mb-5 flex items-start justify-between">
         <div className="flex-1">

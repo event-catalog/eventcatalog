@@ -246,15 +246,15 @@ export const Table = <T extends TCollectionTypes>({
 
   return (
     <div>
-      <div className="rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden">
-        <table className="min-w-full divide-y divide-[rgb(var(--ec-page-border))]">
-          <thead className="bg-[rgb(var(--ec-content-hover))] sticky top-0 z-10">
+      <div className="overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border)/0.72)] dark:border-white/10 bg-[rgb(var(--ec-dropdown-bg)/0.66)]">
+        <table className="min-w-full divide-y divide-[rgb(var(--ec-page-border)/0.62)] dark:divide-white/10">
+          <thead className="sticky top-0 z-10 bg-[rgb(var(--ec-content-hover)/0.45)]">
             {table.getHeaderGroups().map((headerGroup, index) => (
               <tr key={`${headerGroup}-${index}`}>
                 {headerGroup.headers.map((header) => (
                   <th
                     key={`${header.id}`}
-                    className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider"
+                    className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider"
                   >
                     <div className="flex flex-col gap-2">
                       <div>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</div>
@@ -269,10 +269,13 @@ export const Table = <T extends TCollectionTypes>({
             ))}
           </thead>
 
-          <tbody className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] divide-y divide-[rgb(var(--ec-page-border))]">
+          <tbody className="divide-y divide-[rgb(var(--ec-page-border)/0.5)] dark:divide-white/8">
             {hasResults ? (
               table.getRowModel().rows.map((row, index) => (
-                <tr key={`${row.id}-${index}`} className="hover:bg-[rgb(var(--ec-content-hover))] transition-colors">
+                <tr
+                  key={`${row.id}-${index}`}
+                  className="group bg-transparent transition-colors hover:bg-[rgb(var(--ec-content-hover)/0.38)]"
+                >
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
@@ -299,8 +302,8 @@ export const Table = <T extends TCollectionTypes>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-1 py-4">
-        <div className="text-sm text-[rgb(var(--ec-page-text-muted))]">
+      <div className="flex items-center justify-between border-t border-[rgb(var(--ec-page-border))] px-1 py-3">
+        <div className="text-xs text-[rgb(var(--ec-page-text-muted))]">
           {totalResults > 0 && (
             <span>
               Showing <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getRowModel().rows.length}</span> of{' '}
@@ -309,9 +312,9 @@ export const Table = <T extends TCollectionTypes>({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
+          <div className="flex items-center rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.35)]">
             <button
-              className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors rounded-l-lg"
+              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors rounded-l-lg"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
               title="First page"
@@ -319,20 +322,20 @@ export const Table = <T extends TCollectionTypes>({
               <ChevronsLeft className="w-4 h-4" />
             </button>
             <button
-              className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors border-l border-[rgb(var(--ec-page-border))]"
+              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors border-l border-[rgb(var(--ec-page-border))]"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
               title="Previous page"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] border-l border-r border-[rgb(var(--ec-page-border))] min-w-[100px] text-center">
-              Page{' '}
-              <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getState().pagination.pageIndex + 1}</span> of{' '}
-              <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getPageCount() || 1}</span>
+            <span className="min-w-[72px] px-3 py-1.5 text-center text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))] border-l border-r border-[rgb(var(--ec-page-border))]">
+              <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getState().pagination.pageIndex + 1}</span>
+              {' / '}
+              <span>{table.getPageCount() || 1}</span>
             </span>
             <button
-              className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors border-r border-[rgb(var(--ec-page-border))]"
+              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors border-r border-[rgb(var(--ec-page-border))]"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
               title="Next page"
@@ -340,7 +343,7 @@ export const Table = <T extends TCollectionTypes>({
               <ChevronRight className="w-4 h-4" />
             </button>
             <button
-              className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors rounded-r-lg"
+              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors rounded-r-lg"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
               title="Last page"
@@ -353,7 +356,7 @@ export const Table = <T extends TCollectionTypes>({
             onChange={(e) => {
               table.setPageSize(Number(e.target.value));
             }}
-            className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:border-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] transition-colors"
+            className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.35)] px-3 py-1.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.2)] transition-colors"
           >
             {[10, 20, 30, 40, 50].map((pageSize) => (
               <option key={pageSize} value={pageSize}>

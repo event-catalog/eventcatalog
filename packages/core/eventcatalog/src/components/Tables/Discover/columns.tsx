@@ -1,22 +1,12 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
-import {
-  ServerIcon,
-  BoltIcon,
-  ChatBubbleLeftIcon,
-  MagnifyingGlassIcon,
-  RectangleGroupIcon,
-  QueueListIcon,
-  DocumentTextIcon,
-  MapIcon,
-  CubeIcon,
-} from '@heroicons/react/24/solid';
-import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/24/outline';
-import { DatabaseIcon } from 'lucide-react';
-import * as Tooltip from '@radix-ui/react-tooltip';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { DocumentTextIcon, MapIcon } from '@heroicons/react/24/solid';
+import { ArrowDownIcon, ArrowUpIcon, EllipsisVerticalIcon, StarIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
-import FavoriteButton from '@components/FavoriteButton';
+import { isIconPath, resolveIconUrl } from '@utils/icon';
+import { useStore } from '@nanostores/react';
+import { favoritesStore, toggleFavorite, type FavoriteItem } from '../../../stores/favorites-store';
 import type { DiscoverTableData, CollectionType } from './DiscoverTable';
 import type { TableConfiguration } from '@types';
 
@@ -33,25 +23,6 @@ const colorClasses: Record<string, string> = {
   gray: 'text-gray-500',
   cyan: 'text-cyan-500',
 };
-
-// Reusable tooltip wrapper component
-const ActionTooltip = ({ children, label }: { children: React.ReactNode; label: string }) => (
-  <Tooltip.Provider delayDuration={200}>
-    <Tooltip.Root>
-      <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Content
-          className="bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))] rounded px-2 py-1 text-xs shadow-md z-50"
-          side="top"
-          sideOffset={5}
-        >
-          {label}
-          <Tooltip.Arrow className="fill-[rgb(var(--ec-page-text))]" />
-        </Tooltip.Content>
-      </Tooltip.Portal>
-    </Tooltip.Root>
-  </Tooltip.Provider>
-);
 
 const columnHelper = createColumnHelper<DiscoverTableData>();
 
@@ -95,6 +66,119 @@ const createBadgesColumn = (tableConfiguration: TableConfiguration) =>
     },
   });
 
+const ResourceNameCell = ({ item }: { item: DiscoverTableData }) => {
+  const isLatestVersion = item.data.version === item.data.latestVersion;
+  const { color, Icon } = getColorAndIconForCollection(item.collection);
+  const resourceIcon = item.data.icon;
+  const resourceIconUrl = isIconPath(resourceIcon) ? resolveIconUrl(resourceIcon) : null;
+
+  return (
+    <a
+      href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
+      className="group inline-flex items-center gap-2.5 hover:text-[rgb(var(--ec-accent))] transition-colors"
+    >
+      {resourceIconUrl ? (
+        <img src={resourceIconUrl} alt="" className="h-5 w-5 flex-shrink-0 rounded-sm object-contain" />
+      ) : (
+        <Icon className={`h-4 w-4 flex-shrink-0 ${colorClasses[color] || 'text-[rgb(var(--ec-icon-color))]'}`} />
+      )}
+      <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
+        {item.data.name}
+      </span>
+      {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
+    </a>
+  );
+};
+
+const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; collectionType: CollectionType }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const favorites = useStore(favoritesStore);
+  const href = buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`);
+  const visualiserHref = buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`);
+  const nodeKey = `${item.collection}-${item.data.id}-${item.data.version}`;
+  const badgeLabel =
+    collectionType === 'external-systems'
+      ? 'External System'
+      : collectionType.charAt(0).toUpperCase() + collectionType.slice(1, -1);
+  const isFavorite = favorites.some((fav) => fav.nodeKey === nodeKey);
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  const handleToggleFavorite = () => {
+    const favoriteItem: FavoriteItem = {
+      nodeKey,
+      path: [],
+      title: item.data.name,
+      badge: badgeLabel,
+      href,
+    };
+    toggleFavorite(favoriteItem);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative flex justify-end" ref={menuRef}>
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="rounded-md p-1.5 text-[rgb(var(--ec-icon-color))] transition-colors hover:bg-[rgb(var(--ec-content-hover)/0.5)] hover:text-[rgb(var(--ec-page-text))]"
+      >
+        <EllipsisVerticalIcon className="h-4 w-4" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-[calc(100%+0.35rem)] z-30 min-w-[280px] overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] shadow-xl">
+          <a
+            href={href}
+            className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+          >
+            <DocumentTextIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+            View documentation
+          </a>
+          <a
+            href={visualiserHref}
+            className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+          >
+            <MapIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+            View in visualiser
+          </a>
+          <button
+            type="button"
+            onClick={handleToggleFavorite}
+            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+          >
+            <StarIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+            {isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Shared actions column
 const createActionsColumn = (collectionType: CollectionType, tableConfiguration: TableConfiguration) =>
   columnHelper.accessor('data.name', {
@@ -102,38 +186,7 @@ const createActionsColumn = (collectionType: CollectionType, tableConfiguration:
     header: () => <span></span>,
     cell: (info) => {
       const item = info.row.original;
-      const href = buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`);
-      const nodeKey = `${item.collection}-${item.data.id}-${item.data.version}`;
-      const badgeLabel =
-        collectionType === 'external-systems'
-          ? 'External System'
-          : collectionType.charAt(0).toUpperCase() + collectionType.slice(1, -1);
-
-      return (
-        <div className="flex items-center gap-0.5">
-          <ActionTooltip label="View documentation">
-            <a
-              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.1)] rounded-md transition-colors"
-              href={href}
-            >
-              <DocumentTextIcon className="w-4 h-4" />
-            </a>
-          </ActionTooltip>
-          <ActionTooltip label="View in visualiser">
-            <a
-              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.1)] rounded-md transition-colors"
-              href={buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`)}
-            >
-              <MapIcon className="w-4 h-4" />
-            </a>
-          </ActionTooltip>
-          <ActionTooltip label="Add to favorites">
-            <span>
-              <FavoriteButton nodeKey={nodeKey} title={item.data.name} badge={badgeLabel} href={href} size="sm" />
-            </span>
-          </ActionTooltip>
-        </div>
-      );
+      return <RowActionsMenu item={item} collectionType={collectionType} />;
     },
     meta: {
       showFilter: false,
@@ -150,7 +203,7 @@ const createSummaryColumn = (tableConfiguration: TableConfiguration) =>
       const isDraft = info.row.original.data.draft;
       const displayText = `${summary || ''}${isDraft ? ' (Draft)' : ''}`;
       return (
-        <span className="text-sm text-[rgb(var(--ec-icon-color))] line-clamp-2" title={displayText}>
+        <span className="text-[0.8rem] text-[rgb(var(--ec-icon-color))] line-clamp-2" title={displayText}>
           {displayText}
         </span>
       );
@@ -193,7 +246,7 @@ const CollectionListCell = ({
         <a
           key={`${item.data.id}-${index}`}
           href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-1.5 text-xs hover:text-[rgb(var(--ec-accent))] transition-colors"
+          className="group inline-flex items-center gap-1.5 text-[0.8rem] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-accent))] transition-colors"
         >
           <item.Icon className={`h-3.5 w-3.5 ${colorClasses[item.color] || 'text-gray-500'} flex-shrink-0`} />
           <span className="truncate max-w-[120px]" title={item.data.name}>
@@ -220,22 +273,7 @@ export const getEventColumns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration?.columns?.name?.label || 'Event'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      const isLatestVersion = item.data.version === item.data.latestVersion;
-      return (
-        <a
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
-        >
-          <BoltIcon className="h-4 w-4 text-orange-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-            {item.data.name}
-          </span>
-          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        </a>
-      );
-    },
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
     meta: {
       filterVariant: 'name',
     },
@@ -268,22 +306,7 @@ export const getCommandColumns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration?.columns?.name?.label || 'Command'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      const isLatestVersion = item.data.version === item.data.latestVersion;
-      return (
-        <a
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
-        >
-          <ChatBubbleLeftIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-            {item.data.name}
-          </span>
-          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        </a>
-      );
-    },
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
     meta: {
       filterVariant: 'name',
     },
@@ -316,22 +339,7 @@ export const getQueryColumns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration?.columns?.name?.label || 'Query'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      const isLatestVersion = item.data.version === item.data.latestVersion;
-      return (
-        <a
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
-        >
-          <MagnifyingGlassIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-            {item.data.name}
-          </span>
-          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        </a>
-      );
-    },
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
     meta: {
       filterVariant: 'name',
     },
@@ -364,22 +372,7 @@ export const getServiceColumns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration?.columns?.name?.label || 'Service'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      const isLatestVersion = item.data.version === item.data.latestVersion;
-      return (
-        <a
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
-        >
-          <ServerIcon className="h-4 w-4 text-pink-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-            {item.data.name}
-          </span>
-          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        </a>
-      );
-    },
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
     meta: {
       filterVariant: 'name',
     },
@@ -422,22 +415,7 @@ export const getDomainColumns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration?.columns?.name?.label || 'Domain'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      const isLatestVersion = item.data.version === item.data.latestVersion;
-      return (
-        <a
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
-        >
-          <RectangleGroupIcon className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-            {item.data.name}
-          </span>
-          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        </a>
-      );
-    },
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
     meta: {
       filterVariant: 'name',
     },
@@ -462,22 +440,7 @@ export const getFlowColumns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration?.columns?.name?.label || 'Flow'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      const isLatestVersion = item.data.version === item.data.latestVersion;
-      return (
-        <a
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
-        >
-          <QueueListIcon className="h-4 w-4 text-teal-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-            {item.data.name}
-          </span>
-          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        </a>
-      );
-    },
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
     meta: {
       filterVariant: 'name',
     },
@@ -494,22 +457,7 @@ export const getContainerColumns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration?.columns?.name?.label || 'Data'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      const isLatestVersion = item.data.version === item.data.latestVersion;
-      return (
-        <a
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
-        >
-          <DatabaseIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-            {item.data.name}
-          </span>
-          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        </a>
-      );
-    },
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
     meta: {
       filterVariant: 'name',
     },
@@ -552,22 +500,7 @@ export const getDataProductColumns = (tableConfiguration: TableConfiguration) =>
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration?.columns?.name?.label || 'Data Product'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      const isLatestVersion = item.data.version === item.data.latestVersion;
-      return (
-        <a
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
-        >
-          <CubeIcon className="h-4 w-4 text-cyan-500 flex-shrink-0" />
-          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-            {item.data.name}
-          </span>
-          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-        </a>
-      );
-    },
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
     meta: {
       filterVariant: 'name',
     },

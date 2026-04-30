@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import * as Diff from 'diff';
 import { html } from 'diff2html';
 import 'diff2html/bundles/css/diff2html.min.css';
 import {
   ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
+  ChevronDownIcon,
   ClipboardDocumentIcon,
   TableCellsIcon,
   CodeBracketIcon,
@@ -50,6 +51,8 @@ export default function SchemaDetailsPanel({
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [isSchemaViewerModalOpen, setIsSchemaViewerModalOpen] = useState(false);
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
 
   const hasMultipleVersions = availableVersions.length > 1;
   const { color } = getCollectionStyles(message.collection);
@@ -58,6 +61,7 @@ export default function SchemaDetailsPanel({
   const owners = message.data.owners || [];
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
+  const filename = message.data.schemaPath?.split('/').pop() || `${message.data.id}.${ext || 'json'}`;
 
   // Generate diffs between all consecutive versions
   const allDiffs: VersionDiff[] = useMemo(() => {
@@ -155,6 +159,30 @@ export default function SchemaDetailsPanel({
   };
 
   const isCopied = copiedId === message.data.id;
+  const docsUrl = buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`);
+  const sidebarCardClass = 'rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg)/0.66)] px-4 py-4';
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!actionsMenuRef.current?.contains(event.target as Node)) {
+        setIsActionsOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsActionsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   const hasParsedSchema = !!parsedSchema || !!parsedAvroSchema;
   // Build tabs
@@ -174,28 +202,95 @@ export default function SchemaDetailsPanel({
   tabs.push({ id: 'api', label: 'API', icon: <GlobeAltIcon className="h-3.5 w-3.5" /> });
 
   return (
-    <div className="h-full flex bg-[rgb(var(--ec-page-bg))] overflow-hidden">
+    <div className="flex h-full min-h-0 bg-[rgb(var(--ec-page-bg))] overflow-hidden">
       {/* Left: header + tabs + content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
         {/* Compact header */}
         <div className="flex-shrink-0 px-6 pt-5 pb-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border)/0.5)]">
-              {iconSpec ? (
-                <img src={buildUrl(`/icons/${iconSpec}.svg`, true)} alt={`${ext} icon`} className="h-5 w-5 schema-icon" />
-              ) : (
-                <span className="text-xs font-bold font-mono text-[rgb(var(--ec-page-text-muted))]">{'{ }'}</span>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border)/0.5)]">
+                  {iconSpec ? (
+                    <img src={buildUrl(`/icons/${iconSpec}.svg`, true)} alt={`${ext} icon`} className="h-5 w-5 schema-icon" />
+                  ) : (
+                    <span className="text-xs font-bold font-mono text-[rgb(var(--ec-page-text-muted))]">{'{ }'}</span>
+                  )}
+                </div>
+                <h2 className="text-xl font-semibold text-[rgb(var(--ec-page-text))] truncate">{message.data.name}</h2>
+                <span className="flex-shrink-0 text-xs font-mono tabular-nums text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-md">
+                  v{message.data.version}
+                </span>
+                <span
+                  className={`flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-${color}-500/10 text-${color}-400 capitalize`}
+                >
+                  {message.collection}
+                </span>
+              </div>
+              {message.data.summary && (
+                <p className="mt-3 text-sm leading-relaxed text-[rgb(var(--ec-page-text-muted))]">{message.data.summary}</p>
               )}
             </div>
-            <h2 className="text-xl font-semibold text-[rgb(var(--ec-page-text))] truncate">{message.data.name}</h2>
-            <span className="flex-shrink-0 text-xs font-mono tabular-nums text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-md">
-              v{message.data.version}
-            </span>
-            <span
-              className={`flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-${color}-500/10 text-${color}-400 capitalize`}
-            >
-              {message.collection}
-            </span>
+
+            <div className="relative flex-shrink-0" ref={actionsMenuRef}>
+              <div className="inline-flex overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover))] shadow-xs">
+                <button
+                  type="button"
+                  onClick={() => setIsActionsOpen((prev) => !prev)}
+                  aria-expanded={isActionsOpen}
+                  aria-haspopup="menu"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.45)] hover:text-[rgb(var(--ec-accent))]"
+                >
+                  Actions
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsActionsOpen((prev) => !prev)}
+                  aria-expanded={isActionsOpen}
+                  aria-haspopup="menu"
+                  aria-label="Open actions menu"
+                  className="inline-flex items-center justify-center border-l border-[rgb(var(--ec-page-border))] px-2.5 py-2 text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.45)] hover:text-[rgb(var(--ec-page-text))]"
+                >
+                  <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform ${isActionsOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+
+              {isActionsOpen && (
+                <div className="absolute right-0 top-[calc(100%+0.5rem)] z-20 min-w-[220px] overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] shadow-xl">
+                  <a
+                    href={docsUrl}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+                  >
+                    <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+                    View documentation
+                  </a>
+                  <button
+                    onClick={() => {
+                      handleDownload();
+                      setIsActionsOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+                  >
+                    <ArrowDownTrayIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+                    Download schema
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleCopy();
+                      setIsActionsOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+                  >
+                    {isCopied ? (
+                      <CheckIcon className="h-3.5 w-3.5 text-green-400" />
+                    ) : (
+                      <ClipboardDocumentIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+                    )}
+                    {isCopied ? 'Copied to clipboard' : 'Copy schema to clipboard'}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -220,7 +315,7 @@ export default function SchemaDetailsPanel({
         </div>
 
         {/* Tab content */}
-        <div className="flex-1 overflow-hidden p-6">
+        <div className="flex-1 min-h-0 overflow-hidden p-6">
           {activeTab === 'examples' && examples.length > 0 ? (
             <ExamplesViewer examples={examples} />
           ) : activeTab === 'api' ? (
@@ -254,166 +349,140 @@ export default function SchemaDetailsPanel({
       </div>
 
       {/* Right sidebar - spans full height */}
-      <div className="flex-shrink-0 w-72 border-l border-[rgb(var(--ec-page-border))] overflow-y-auto">
-        {/* View docs link */}
-        <div className="p-5 border-b border-[rgb(var(--ec-page-border))]">
-          <a
-            href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:border-[rgb(var(--ec-accent)/0.3)] hover:text-[rgb(var(--ec-accent))] transition-all"
-          >
-            <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
-            View docs
-          </a>
-        </div>
-
-        {/* Details section */}
-        <div className="p-5 border-b border-[rgb(var(--ec-page-border))]">
-          <h3 className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider mb-4">Details</h3>
-          <dl className="space-y-3">
-            <div className="flex items-center justify-between">
-              <dt className="text-xs text-[rgb(var(--ec-page-text-muted))]">Format</dt>
-              <dd className="text-xs font-medium text-[rgb(var(--ec-page-text))]">
-                {getSchemaTypeLabel(message.schemaExtension)}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-xs text-[rgb(var(--ec-page-text-muted))]">Resource</dt>
-              <dd className={`text-xs font-medium text-${color}-400 capitalize`}>{message.collection}</dd>
-            </div>
-            {message.data.summary && (
-              <div>
-                <dt className="text-xs text-[rgb(var(--ec-page-text-muted))] mb-1">Summary</dt>
-                <dd className="text-xs text-[rgb(var(--ec-page-text))] leading-relaxed">{message.data.summary}</dd>
+      <div className="h-full w-80 flex-shrink-0 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] px-3 py-4">
+        <div className="space-y-3">
+          {/* Details section */}
+          <div className={sidebarCardClass}>
+            <h3 className="mb-4 text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">Details</h3>
+            <dl className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <dt className="text-xs text-[rgb(var(--ec-page-text-muted))]">Format</dt>
+                <dd className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">
+                  {getSchemaTypeLabel(message.schemaExtension)}
+                </dd>
               </div>
-            )}
-          </dl>
-        </div>
+              <div className="flex items-center justify-between">
+                <dt className="text-xs text-[rgb(var(--ec-page-text-muted))]">Resource</dt>
+                <dd className={`text-xs font-medium text-${color}-400 capitalize`}>{message.collection}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-xs text-[rgb(var(--ec-page-text-muted))]">Filename</dt>
+                <dd className="max-w-[11rem] truncate text-xs font-medium text-[rgb(var(--ec-page-text-muted))]" title={filename}>
+                  {filename}
+                </dd>
+              </div>
+            </dl>
+          </div>
 
-        {/* Producers section */}
-        {showProducersConsumers && producers.length > 0 && message.collection !== 'services' && (
-          <div className="px-5 py-3 border-b border-[rgb(var(--ec-page-border))]">
-            <h3 className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider mb-2">Producers</h3>
-            <div>
-              {producers.map((producer: Producer, idx: number) => {
-                const serviceName = extractServiceName(producer.id);
-                return (
-                  <a
-                    key={`${producer.id}-${idx}`}
-                    href={buildUrl(`/docs/services/${serviceName}/${producer.version}`)}
-                    className="flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))] transition-colors"
-                  >
-                    <ServerIcon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
-                    {serviceName}
-                  </a>
-                );
-              })}
+          {/* Versions section */}
+          <div className={sidebarCardClass}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">Versions</h3>
             </div>
-          </div>
-        )}
-
-        {/* Consumers section */}
-        {showProducersConsumers && consumers.length > 0 && message.collection !== 'services' && (
-          <div className="px-5 py-3 border-b border-[rgb(var(--ec-page-border))]">
-            <h3 className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider mb-2">Consumers</h3>
-            <div>
-              {consumers.map((consumer: Consumer, idx: number) => {
-                const serviceName = extractServiceName(consumer.id);
-                return (
-                  <a
-                    key={`${consumer.id}-${idx}`}
-                    href={buildUrl(`/docs/services/${serviceName}/${consumer.version}`)}
-                    className="flex items-center gap-2 px-2 py-1 rounded-md text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))] transition-colors"
-                  >
-                    <ServerIcon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
-                    {serviceName}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Versions section */}
-        <div className="p-5 border-b border-[rgb(var(--ec-page-border))]">
-          <h3 className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider mb-3">Versions</h3>
-          <div className="space-y-1">
-            {availableVersions
-              .filter((v, idx, arr) => arr.findIndex((a) => a.data.version === v.data.version) === idx)
-              .map((v, idx) => {
-                const isActive = v.data.version === message.data.version;
-                const isLatest = idx === 0;
-                return (
-                  <button
-                    key={`${v.data.version}-${idx}`}
-                    onClick={() => onVersionChange(v.data.version)}
-                    className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-left transition-colors ${
-                      isActive
-                        ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-page-text))]'
-                        : 'hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))]'
-                    }`}
-                  >
-                    <div
-                      className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                        isActive ? 'bg-[rgb(var(--ec-accent))]' : 'bg-[rgb(var(--ec-page-border))]'
-                      }`}
-                    />
-                    <span className="text-xs font-mono tabular-nums">v{v.data.version}</span>
-                    {isLatest && (
-                      <span className="text-[10px] font-medium text-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 rounded">
-                        latest
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-          </div>
-        </div>
-
-        {/* Owners section */}
-        {showOwners && owners.length > 0 && (
-          <div className="p-5 border-b border-[rgb(var(--ec-page-border))]">
-            <h3 className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider mb-3">Owners</h3>
             <div className="space-y-1">
-              {owners.map((owner: Owner, idx: number) => (
-                <a
-                  key={`${owner.id}-${idx}`}
-                  href={owner.href}
-                  className="block px-2 py-1.5 rounded-md text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))] transition-colors"
-                >
-                  {owner.name}
-                </a>
-              ))}
+              {availableVersions
+                .filter((v, idx, arr) => arr.findIndex((a) => a.data.version === v.data.version) === idx)
+                .map((v, idx) => {
+                  const isActive = v.data.version === message.data.version;
+                  const isLatest = idx === 0;
+                  return (
+                    <button
+                      key={`${v.data.version}-${idx}`}
+                      onClick={() => onVersionChange(v.data.version)}
+                      className={`w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors ${
+                        isActive
+                          ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-page-text))]'
+                          : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-bg)/0.55)]'
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          isActive ? 'bg-[rgb(var(--ec-accent))]' : 'bg-[rgb(var(--ec-page-border))]'
+                        }`}
+                      />
+                      <span className="text-xs font-mono tabular-nums">v{v.data.version}</span>
+                      {isLatest && (
+                        <span className="text-[10px] font-medium text-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 rounded">
+                          latest
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
             </div>
           </div>
-        )}
 
-        {/* Downloads section */}
-        <div className="p-5">
-          <h3 className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider mb-3">Downloads</h3>
-          <div className="space-y-2">
-            <button
-              onClick={handleDownload}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:border-[rgb(var(--ec-accent)/0.3)] transition-all"
-            >
-              <ArrowDownTrayIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
-              Download schema file
-            </button>
-            <button
-              onClick={handleCopy}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium border rounded-lg transition-all ${
-                isCopied
-                  ? 'bg-green-500/10 text-green-400 border-green-500/30'
-                  : 'text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent)/0.3)]'
-              }`}
-            >
-              {isCopied ? (
-                <CheckIcon className="h-3.5 w-3.5" />
-              ) : (
-                <ClipboardDocumentIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
-              )}
-              {isCopied ? 'Copied to clipboard' : 'Copy schema content'}
-            </button>
-          </div>
+          {/* Schema producers section */}
+          {showProducersConsumers && producers.length > 0 && message.collection !== 'services' && (
+            <div className={sidebarCardClass}>
+              <div className="mb-2.5 flex items-center justify-between gap-3">
+                <h3 className="text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">
+                  Schema Producers ({producers.length})
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {producers.map((producer: Producer, idx: number) => {
+                  const serviceName = extractServiceName(producer.id);
+                  return (
+                    <a
+                      key={`${producer.id}-${idx}`}
+                      href={buildUrl(`/docs/services/${serviceName}/${producer.version}`)}
+                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.55)] hover:text-[rgb(var(--ec-accent))]"
+                    >
+                      <ServerIcon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
+                      {serviceName}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Schema consumers section */}
+          {showProducersConsumers && consumers.length > 0 && message.collection !== 'services' && (
+            <div className={sidebarCardClass}>
+              <div className="mb-2.5 flex items-center justify-between gap-3">
+                <h3 className="text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">
+                  Schema Consumers ({consumers.length})
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {consumers.map((consumer: Consumer, idx: number) => {
+                  const serviceName = extractServiceName(consumer.id);
+                  return (
+                    <a
+                      key={`${consumer.id}-${idx}`}
+                      href={buildUrl(`/docs/services/${serviceName}/${consumer.version}`)}
+                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.55)] hover:text-[rgb(var(--ec-accent))]"
+                    >
+                      <ServerIcon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
+                      {serviceName}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Owners section */}
+          {showOwners && owners.length > 0 && (
+            <div className={sidebarCardClass}>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">Owners</h3>
+              </div>
+              <div className="space-y-1">
+                {owners.map((owner: Owner, idx: number) => (
+                  <a
+                    key={`${owner.id}-${idx}`}
+                    href={owner.href}
+                    className="block rounded-lg px-2 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.55)] hover:text-[rgb(var(--ec-accent))]"
+                  >
+                    {owner.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

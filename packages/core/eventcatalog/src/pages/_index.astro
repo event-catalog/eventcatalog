@@ -7,6 +7,8 @@ import { getCollection } from 'astro:content';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { BookOpenText, Workflow, TableProperties, BookUser, Code2, FileJson } from 'lucide-react';
 
+const { showNestedSideBar = true } = Astro.props;
+
 // Lightweight data fetch: only raw collections, no hydration.
 // The homepage only needs counts + one item per type for default URLs.
 const [allDomains, allServices, allEvents, allCommands, allQueries, allFlows] = await Promise.all([
@@ -142,11 +144,11 @@ const quickActions = [
 ];
 ---
 
-<VerticalSideBarLayout title="EventCatalog">
+<VerticalSideBarLayout title="EventCatalog" showNestedSideBar={showNestedSideBar}>
   <div class="min-h-screen font-inter">
     <!-- Hero Section -->
     <div class="relative">
-      <main class="px-6 lg:px-8 pt-10 pb-8 max-w-[85em]">
+      <main class="px-0 pt-7 pb-8 max-w-[85em]">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 class="text-2xl md:text-3xl font-bold mb-1 text-[rgb(var(--ec-page-text))] tracking-tight">
@@ -161,7 +163,7 @@ const quickActions = [
     </div>
 
     <!-- Main Content -->
-    <main class="px-6 lg:px-8 pb-8 max-w-[85em]">
+    <main class="px-0 pb-8 max-w-[85em]">
       <!-- Stat Cards -->
       <section class="mb-10">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">

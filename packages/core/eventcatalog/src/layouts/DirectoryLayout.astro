@@ -1,14 +1,7 @@
 ---
 import { Table, type TData, type TCollectionTypes } from '@components/Tables/Table';
-import { buildUrl } from '@utils/url-builder';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
-import { User, Users } from 'lucide-react';
-import { getUsers } from '@utils/collections/users';
-import { getTeams } from '@utils/collections/teams';
 import config from '@config';
-
-const users = await getUsers();
-const teams = await getTeams();
 
 export interface Props<T extends TCollectionTypes> {
   title: string;
@@ -18,91 +11,33 @@ export interface Props<T extends TCollectionTypes> {
 }
 
 const { title, subtitle, data, type } = Astro.props;
-const currentPath = Astro.url.pathname;
 
 const checkboxLatestId = 'latest-only';
 const checkboxDraftsId = 'drafts-only';
 
 // @ts-ignore
 const tableConfiguration = config[type as keyof typeof config]?.tableConfiguration ?? { columns: {} };
-
-const tabs = [
-  {
-    label: `Users (${users.length})`,
-    href: buildUrl('/directory/users'),
-    isActive: currentPath === '/directory/users',
-    icon: User,
-    activeColor: 'orange',
-    enabled: users.length > 0,
-    visible: users.length > 0,
-  },
-  {
-    label: `Teams (${teams.length})`,
-    href: buildUrl('/directory/teams'),
-    isActive: currentPath === '/directory/teams',
-    icon: Users,
-    activeColor: 'blue',
-    enabled: teams.length > 0,
-    visible: teams.length > 0,
-  },
-];
 ---
 
 <VerticalSideBarLayout title={`Explore | ${title}`} showNestedSideBar={false}>
-  <main class="ml-0 bg-[rgb(var(--ec-page-bg))]">
-    <div id="discover-collection-tabs">
-      <div class="hidden sm:block">
-        <div class="border-b border-[rgb(var(--ec-page-border))]">
-          <nav class="flex space-x-8 -mb-0.5 pl-6" aria-label="Tabs">
-            {
-              tabs
-                .filter((tab) => tab.visible)
-                .map((tab) => (
-                  <a
-                    href={tab.href}
-                    class:list={[
-                      'group inline-flex items-center py-4 px-1 text-sm font-light text-[rgb(var(--ec-page-text))]',
-                      tab.isActive && 'border-b-[2px] border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-accent))]',
-                      !tab.isActive && 'opacity-70 hover:opacity-100',
-                      !tab.enabled && 'disabled',
-                    ]}
-                    aria-current="page"
-                  >
-                    <tab.icon
-                      className={`w-6 h-6 -ml-0.5 mr-2 ${tab.isActive ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-icon-color))]'}`}
-                    />
-                    <span>{tab.label}</span>
-                  </a>
-                ))
-            }
-          </nav>
-        </div>
+  <main
+    class="ml-0 bg-[rgb(var(--ec-page-bg))]"
+    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);"
+  >
+    <div class="p-8 pb-20">
+      <div class="min-w-0">
+        <h1 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] capitalize md:text-4xl">{title}</h1>
+        <p class="max-w-3xl pt-2 text-base font-light text-[rgb(var(--ec-page-text-muted))]">{subtitle}</p>
       </div>
-    </div>
-
-    <!-- Table -->
-    <div class="pb-20 ml-6 md:pr-10">
-      <div>
-        <div class="sm:flex sm:items-end py-4 pb-4" id="discover-title">
-          <div class="sm:flex-auto space-y-2">
-            <h1 class="text-4xl font-semibold text-[rgb(var(--ec-page-text))] capitalize">{title}</h1>
-            <p class="text-md text-[rgb(var(--ec-page-text-muted))]">{subtitle}</p>
-          </div>
-        </div>
-        <div class="mt-4 flow-root">
-          <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-              <Table
-                checkboxLatestId={checkboxLatestId}
-                checkboxDraftsId={checkboxDraftsId}
-                data={data}
-                collection={type}
-                tableConfiguration={tableConfiguration}
-                client:load
-              />
-            </div>
-          </div>
-        </div>
+      <div class="mt-2 min-w-0">
+        <Table
+          checkboxLatestId={checkboxLatestId}
+          checkboxDraftsId={checkboxDraftsId}
+          data={data}
+          collection={type}
+          tableConfiguration={tableConfiguration}
+          client:load
+        />
       </div>
     </div>
   </main>
@@ -111,11 +46,5 @@ const tabs = [
 <style>
   .ec-align-top {
     vertical-align: top !important;
-  }
-
-  a.disabled {
-    pointer-events: none;
-    cursor: default;
-    opacity: 0.25;
   }
 </style>

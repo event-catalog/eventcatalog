@@ -16,9 +16,9 @@ const lang = getLanguageForHighlight(example.extension);
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={`Example: ${example.title} for ${data.name}`}>
-  <main class="flex sm:px-8 docs-layout h-full">
+  <main class="flex sm:px-8 docs-layout min-h-full">
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+      <div class="w-full lg:mr-2 pr-8 py-8">
         <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-4">
           <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))] mb-2">
             {example.title}
