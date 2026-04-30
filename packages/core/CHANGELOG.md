@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.30.0
+
+### Minor Changes
+
+- bd2b2e7: Refresh UI theme and layout: refined dark-mode palette, restyled header, sidebar, and code blocks (expressive-code), and updated default logo assets.
+
 ## 3.29.2
 
 ### Patch Changes
