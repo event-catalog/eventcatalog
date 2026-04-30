@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.2.6
+
+### Patch Changes
+
+- b732d09: Refresh logo.png across all project templates to use the new EventCatalog logo.
+
 ## 4.2.5
 
 ### Patch Changes
