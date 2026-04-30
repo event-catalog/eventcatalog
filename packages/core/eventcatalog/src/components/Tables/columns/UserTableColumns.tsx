@@ -4,17 +4,72 @@ import { filterByName, filterCollectionByName } from '../filters/custom-filters'
 import { buildUrl } from '@utils/url-builder';
 import type { TData } from '../Table';
 import type { CollectionUserTypes } from '@types';
-import { User, Users } from 'lucide-react';
-import type { CollectionEntry } from 'astro:content';
-import { ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import type { TableConfiguration } from '@types';
+import { getColorAndIconForCollection } from '@utils/collections/icons';
 const columnHelper = createColumnHelper<TData<CollectionUserTypes>>();
 
-const getMessageIconAndColor = (collection: string) => {
-  if (collection === 'events') return { Icon: BoltIcon, color: 'orange' };
-  if (collection === 'commands') return { Icon: ChatBubbleLeftIcon, color: 'blue' };
-  if (collection === 'queries') return { Icon: MagnifyingGlassIcon, color: 'green' };
-  return { Icon: ChatBubbleLeftIcon, color: 'gray' };
+const colorClasses: Record<string, string> = {
+  orange: 'text-orange-500',
+  blue: 'text-blue-500',
+  green: 'text-green-500',
+  pink: 'text-pink-500',
+  yellow: 'text-yellow-500',
+  teal: 'text-teal-500',
+  purple: 'text-purple-500',
+  red: 'text-red-500',
+  gray: 'text-gray-500',
+  cyan: 'text-cyan-500',
+};
+
+const CollectionListCell = ({
+  items,
+  emptyText,
+}: {
+  items: Array<{ collection: string; data: { id: string; name: string; version?: string } }> | undefined;
+  emptyText: string;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!items || items.length === 0) {
+    return <span className="text-xs text-[rgb(var(--ec-icon-color))]">{emptyText}</span>;
+  }
+
+  const visibleItems = isExpanded ? items : items.slice(0, 4);
+  const hiddenCount = items.length - 4;
+
+  return (
+    <div className="flex flex-col gap-1">
+      {visibleItems.map((item, index) => {
+        const { color, Icon } = getColorAndIconForCollection(item.collection);
+        const href =
+          item.collection === 'teams'
+            ? buildUrl(`/docs/teams/${item.data.id}`)
+            : buildUrl(`/docs/${item.collection}/${item.data.id}${item.data.version ? `/${item.data.version}` : ''}`);
+
+        return (
+          <a
+            key={`${item.data.id}-${index}`}
+            href={href}
+            className="group inline-flex items-center gap-1.5 text-[0.8rem] text-[rgb(var(--ec-icon-color))] transition-colors hover:text-[rgb(var(--ec-accent))]"
+          >
+            <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${colorClasses[color] || 'text-[rgb(var(--ec-icon-color))]'}`} />
+            <span className="max-w-[140px] truncate" title={item.data.name}>
+              {item.data.name}
+            </span>
+            {item.data.version && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
+          </a>
+        );
+      })}
+      {hiddenCount > 0 && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-xs text-[rgb(var(--ec-accent))] hover:underline text-left"
+        >
+          {isExpanded ? 'Show less' : `+${hiddenCount} more`}
+        </button>
+      )}
+    </div>
+  );
 };
 
 export const columns = (tableConfiguration: TableConfiguration) => [
@@ -24,16 +79,11 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     cell: (info) => {
       const user = info.row.original;
       return (
-        <a href={buildUrl(`/docs/${user.collection}/${user.data.id}`)} className="group inline-flex items-center">
-          <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent-subtle))] transition-colors">
-            <span className="flex items-center justify-center w-6 h-6 bg-[rgb(var(--ec-accent))] rounded-l-md">
-              <User className="h-3 w-3 text-white" />
-            </span>
-            <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
-              {user.data.name}
-              {user.data.role && <span className="text-[rgb(var(--ec-icon-color))] ml-1">({user.data.role})</span>}
-            </span>
-          </span>
+        <a
+          href={buildUrl(`/docs/${user.collection}/${user.data.id}`)}
+          className="group inline-flex items-center text-sm font-semibold text-[rgb(var(--ec-page-text))] transition-colors hover:text-[rgb(var(--ec-accent))]"
+        >
+          <span>{user.data.name}</span>
         </a>
       );
     },
@@ -42,6 +92,22 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       filteredItemHasVersion: false,
     },
     filterFn: filterByName,
+  }),
+
+  columnHelper.accessor('data.role', {
+    id: 'role',
+    header: () => <span>{tableConfiguration.columns?.role?.label || 'Role'}</span>,
+    cell: (info) => {
+      const role = info.getValue() as string | undefined;
+      return role ? (
+        <span className="text-[0.8rem] text-[rgb(var(--ec-icon-color))]">{role}</span>
+      ) : (
+        <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>
+      );
+    },
+    meta: {
+      showFilter: false,
+    },
   }),
 
   columnHelper.accessor(
@@ -57,57 +123,14 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       meta: {
         showFilter: false,
       },
-      cell: (info) => {
-        const messages = info.getValue() as Array<
-          CollectionEntry<'events'> | CollectionEntry<'commands'> | CollectionEntry<'queries'>
-        >;
-        const [isExpanded, setIsExpanded] = useState(false);
-
-        if (messages?.length === 0 || !messages)
-          return (
-            <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
-              No messages
-            </span>
-          );
-
-        const visibleItems = isExpanded ? messages : messages.slice(0, 4);
-        const hiddenCount = messages.length - 4;
-
-        return (
-          <div className="flex flex-col gap-1.5">
-            {visibleItems.map((message, index: number) => {
-              const { Icon, color } = getMessageIconAndColor(message.collection);
-              return (
-                <a
-                  key={`${message.data.id}-${index}`}
-                  href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-                  className="group inline-flex items-center"
-                >
-                  <span
-                    className={`inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-${color}-400 dark:hover:border-${color}-500 hover:bg-${color}-50 dark:hover:bg-${color}-500/10 transition-colors`}
-                  >
-                    <span className={`flex items-center justify-center w-6 h-6 bg-${color}-500 rounded-l-md`}>
-                      <Icon className="h-3 w-3 text-white" />
-                    </span>
-                    <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
-                      {message.data.name}
-                      <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{message.data.version}</span>
-                    </span>
-                  </span>
-                </a>
-              );
-            })}
-            {hiddenCount > 0 && (
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
-              >
-                {isExpanded ? 'Show less' : `+${hiddenCount} more`}
-              </button>
-            )}
-          </div>
-        );
-      },
+      cell: (info) => (
+        <CollectionListCell
+          items={
+            info.getValue() as Array<{ collection: string; data: { id: string; name: string; version?: string } }> | undefined
+          }
+          emptyText="No messages"
+        />
+      ),
     }
   ),
 
@@ -118,50 +141,12 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       filterVariant: 'collection',
       collectionFilterKey: 'ownedServices',
     },
-    cell: (info) => {
-      const services = info.getValue();
-      const [isExpanded, setIsExpanded] = useState(false);
-
-      if (services?.length === 0 || !services)
-        return (
-          <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
-            No services
-          </span>
-        );
-
-      const visibleItems = isExpanded ? services : services.slice(0, 4);
-      const hiddenCount = services.length - 4;
-
-      return (
-        <div className="flex flex-col gap-1.5">
-          {visibleItems.map((service: CollectionEntry<'services'>, index: number) => (
-            <a
-              key={`${service.data.id}-${index}`}
-              href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
-              className="group inline-flex items-center"
-            >
-              <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-pink-400 dark:hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors">
-                <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
-                  <ServerIcon className="h-3 w-3 text-white" />
-                </span>
-                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
-                  {service.data.name}
-                  <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{service.data.version}</span>
-                </span>
-              </span>
-            </a>
-          ))}
-          {hiddenCount > 0 && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
-            >
-              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
-            </button>
-          )}
-        </div>
-      );
-    },
+    cell: (info) => (
+      <CollectionListCell
+        items={info.getValue() as Array<{ collection: string; data: { id: string; name: string; version?: string } }> | undefined}
+        emptyText="No services"
+      />
+    ),
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('ownedServices'),
   }),
@@ -174,69 +159,13 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       collectionFilterKey: 'associatedTeams',
       filteredItemHasVersion: false,
     },
-    cell: (info) => {
-      const teams = info.getValue();
-      const [isExpanded, setIsExpanded] = useState(false);
-
-      if (teams?.length === 0 || !teams)
-        return (
-          <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
-            No teams
-          </span>
-        );
-
-      const visibleItems = isExpanded ? teams : teams.slice(0, 4);
-      const hiddenCount = teams.length - 4;
-
-      return (
-        <div className="flex flex-col gap-1.5">
-          {visibleItems.map((team: CollectionEntry<'teams'>, index: number) => (
-            <a
-              key={`${team.data.id}-${index}`}
-              href={buildUrl(`/docs/teams/${team.data.id}`)}
-              className="group inline-flex items-center"
-            >
-              <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-pink-400 dark:hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors">
-                <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
-                  <Users className="h-3 w-3 text-white" />
-                </span>
-                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
-                  {team.data.name}
-                </span>
-              </span>
-            </a>
-          ))}
-          {hiddenCount > 0 && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
-            >
-              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
-            </button>
-          )}
-        </div>
-      );
-    },
+    cell: (info) => (
+      <CollectionListCell
+        items={info.getValue() as Array<{ collection: string; data: { id: string; name: string; version?: string } }> | undefined}
+        emptyText="No teams"
+      />
+    ),
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('associatedTeams'),
-  }),
-
-  columnHelper.accessor('data.name', {
-    header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
-    cell: (info) => {
-      const item = info.row.original;
-      return (
-        <a
-          className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] transition-colors whitespace-nowrap"
-          href={buildUrl(`/docs/${item.collection}/${item.data.id}`)}
-        >
-          View profile
-        </a>
-      );
-    },
-    id: 'actions',
-    meta: {
-      showFilter: false,
-    },
   }),
 ];

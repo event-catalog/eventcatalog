@@ -32,12 +32,12 @@ const badges = [
 
 <VerticalSideBarLayout title={pageTitle} description={ubiquitousLanguage.summary}>
   <main
-    class="flex sm:px-8 docs-layout h-full max-w-7xl bg-[rgb(var(--ec-page-bg))]"
+    class="flex sm:px-8 docs-layout min-h-full max-w-7xl bg-[rgb(var(--ec-page-bg))]"
     data-pagefind-body
     data-pagefind-meta={`title:${pageTitle}`}
   >
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 min-h-[50em]">
+      <div class="w-full lg:mr-2 pr-8 py-8 min-h-[50em]">
         {/* Breadcrumb */}
         <nav class="mb-4 flex items-center space-x-2 text-sm text-[rgb(var(--ec-page-text-muted))]" aria-label="Breadcrumb">
           <a

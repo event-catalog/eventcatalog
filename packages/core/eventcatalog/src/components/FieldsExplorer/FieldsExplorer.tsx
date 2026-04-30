@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Lock, X } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { ChevronLeft, ChevronRight, Lock, Search, X, AlertTriangle } from 'lucide-react';
 import FieldFilters from './FieldFilters';
 import FieldsTable from './FieldsTable';
 import type { FieldResult } from './FieldsTable';
@@ -398,104 +398,157 @@ export default function FieldsExplorer({ isScaleEnabled = false }: FieldsExplore
       }
     : null;
 
+  const conflictingFieldCount = useMemo(() => {
+    return new Set(fields.filter((field) => field.conflicts && field.conflicts.length > 1).map((field) => field.path)).size;
+  }, [fields]);
+
   return (
-    <div className="flex h-full">
-      {/* Filter Sidebar */}
-      <div className="w-[320px] flex-shrink-0 flex flex-col bg-[rgb(var(--ec-page-bg))] bg-gradient-to-bl from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.08)] border-r border-[rgb(var(--ec-page-border))]">
-        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4">
-          <FieldFilters
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedFormats={selectedFormats}
-            onFormatsChange={setSelectedFormats}
-            selectedMessageTypes={selectedMessageTypes}
-            onMessageTypesChange={setSelectedMessageTypes}
-            sharedOnly={sharedOnly}
-            onSharedOnlyChange={setSharedOnly}
-            conflictingOnly={conflictingOnly}
-            onConflictingOnlyChange={setConflictingOnly}
-            facets={filterFacets}
-            isScaleEnabled={isScaleEnabled}
-          />
-        </div>
-      </div>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="flex flex-1 min-h-0 gap-0 overflow-hidden">
+        {/* Filter Sidebar */}
+        <div
+          className="fixed top-0 z-20 flex h-screen w-[320px] flex-shrink-0 flex-col overflow-hidden border-r border-[rgb(var(--ec-page-border))] bg-linear-to-bl from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.08)]"
+          style={{ left: 'var(--ec-vertical-nav-width)', width: 'var(--ec-fields-sidebar-width, 320px)' }}
+        >
+          <div className="flex h-[60px] flex-shrink-0 items-center border-b border-[rgb(var(--ec-page-border))] px-4">
+            <div className="relative min-w-0 flex-1">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search fields..."
+                className="block w-full rounded-md border-0 bg-[rgb(var(--ec-header-bg))] py-1.5 pl-10 pr-8 text-[rgb(var(--ec-header-text))] shadow-xs ring-1 ring-inset ring-[rgb(var(--ec-dropdown-border))] placeholder:text-[rgb(var(--ec-icon-color))] font-light sm:text-sm sm:leading-6 focus:outline-hidden focus:ring-1 focus:ring-inset focus:ring-[rgb(var(--ec-accent))]"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))]"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
 
-      {/* Main Content */}
-      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4">
-          <h2 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">
-            Fields <span className="text-sm text-[rgb(var(--ec-page-text-muted))] font-normal ml-1">({total})</span>
-          </h2>
-        </div>
-
-        {/* Error state */}
-        {error && (
-          <div className="mx-6 mb-4 px-4 py-3 rounded-lg border border-red-300 bg-red-50 text-red-700 text-sm">{error}</div>
-        )}
-
-        {/* Table */}
-        <FieldsTable fields={fields} onSelectField={handleSelectField} isLoading={isLoading} isScaleEnabled={isScaleEnabled} />
-
-        {/* Pagination */}
-        <div className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-t border-[rgb(var(--ec-page-border))]">
-          <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
-            {total > 0 && (
-              <>
-                <span className="font-medium text-[rgb(var(--ec-page-text))]">{fields.length}</span> of{' '}
-                <span className="font-medium text-[rgb(var(--ec-page-text))]">{total}</span> fields
-              </>
-            )}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              onClick={handlePrevPage}
-              disabled={currentPageIndex === 0}
-              title="Previous page"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))] min-w-[40px] text-center">
-              <span className="font-medium text-[rgb(var(--ec-page-text))]">{currentPageIndex + 1}</span>
-            </span>
-            <button
-              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              onClick={handleNextPage}
-              disabled={!cursor}
-              title="Next page"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+          <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4">
+            <FieldFilters
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedFormats={selectedFormats}
+              onFormatsChange={setSelectedFormats}
+              selectedMessageTypes={selectedMessageTypes}
+              onMessageTypesChange={setSelectedMessageTypes}
+              sharedOnly={sharedOnly}
+              onSharedOnlyChange={setSharedOnly}
+              conflictingOnly={conflictingOnly}
+              onConflictingOnlyChange={setConflictingOnly}
+              facets={filterFacets}
+              isScaleEnabled={isScaleEnabled}
+            />
           </div>
         </div>
-      </div>
 
-      {/* Field Detail Modal with Node Graph */}
-      {selectedField && !isScaleEnabled && (
-        <FieldLineageUpgradeModal fieldPath={selectedField.path} onClose={() => setSelectedField(null)} />
-      )}
-      {selectedField && isScaleEnabled && (
-        <FieldNodeGraph
-          fieldPath={selectedField.path}
-          fieldType={selectedField.type}
-          fieldDescription={selectedField.description}
-          fieldRequired={selectedField.required}
-          fieldConflicts={selectedField.conflicts}
-          occurrences={selectedField.occurrences.map((f) => ({
-            messageId: f.messageId,
-            messageVersion: f.messageVersion,
-            messageType: f.messageType,
-            messageName: f.messageName,
-            messageSummary: f.messageSummary,
-            messageOwners: f.messageOwners,
-            fieldType: f.type,
-            producers: f.producers,
-            consumers: f.consumers,
-          }))}
-          onClose={() => setSelectedField(null)}
-        />
-      )}
+        {/* Main Content */}
+        <div
+          className="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden bg-[rgb(var(--ec-page-bg))]"
+          style={{ marginLeft: 'var(--ec-fields-sidebar-width, 320px)' }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4">
+            <h2 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">
+              Fields <span className="text-sm text-[rgb(var(--ec-page-text-muted))] font-normal ml-1">({total})</span>
+            </h2>
+          </div>
+
+          {/* Error state */}
+          {error && (
+            <div className="mx-6 mb-4 px-4 py-3 rounded-lg border border-red-300 bg-red-50 text-red-700 text-sm">{error}</div>
+          )}
+
+          {conflictingFieldCount > 0 && (
+            <div className="mx-6 mb-4 rounded-lg border border-amber-500/25 bg-amber-500/8 px-4 py-3 text-sm text-[rgb(var(--ec-page-text))]">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+                <div>
+                  <p className="font-medium text-[rgb(var(--ec-page-text))]">
+                    {conflictingFieldCount} conflicting {conflictingFieldCount === 1 ? 'property' : 'properties'} found
+                  </p>
+                  <p className="mt-1 text-[0.8rem] text-[rgb(var(--ec-page-text-muted))]">
+                    These properties are used with more than one type across the current results.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Table */}
+          <FieldsTable fields={fields} onSelectField={handleSelectField} isLoading={isLoading} isScaleEnabled={isScaleEnabled} />
+
+          {/* Pagination */}
+          <div className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-t border-[rgb(var(--ec-page-border))]">
+            <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
+              {total > 0 && (
+                <>
+                  <span className="font-medium text-[rgb(var(--ec-page-text))]">{fields.length}</span> of{' '}
+                  <span className="font-medium text-[rgb(var(--ec-page-text))]">{total}</span> fields
+                </>
+              )}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                onClick={handlePrevPage}
+                disabled={currentPageIndex === 0}
+                title="Previous page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))] min-w-[60px] text-center">
+                <span className="font-medium text-[rgb(var(--ec-page-text))]">{currentPageIndex + 1}</span>
+                {' / '}
+                <span>{Math.max(cursorHistory.length + (cursor ? 2 : 1), currentPageIndex + 1)}</span>
+              </span>
+              <button
+                className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                onClick={handleNextPage}
+                disabled={!cursor}
+                title="Next page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Field Detail Modal with Node Graph */}
+        {selectedField && !isScaleEnabled && (
+          <FieldLineageUpgradeModal fieldPath={selectedField.path} onClose={() => setSelectedField(null)} />
+        )}
+        {selectedField && isScaleEnabled && (
+          <FieldNodeGraph
+            fieldPath={selectedField.path}
+            fieldType={selectedField.type}
+            fieldDescription={selectedField.description}
+            fieldRequired={selectedField.required}
+            fieldConflicts={selectedField.conflicts}
+            occurrences={selectedField.occurrences.map((f) => ({
+              messageId: f.messageId,
+              messageVersion: f.messageVersion,
+              messageType: f.messageType,
+              messageName: f.messageName,
+              messageSummary: f.messageSummary,
+              messageOwners: f.messageOwners,
+              fieldType: f.type,
+              producers: f.producers,
+              consumers: f.consumers,
+            }))}
+            onClose={() => setSelectedField(null)}
+          />
+        )}
+      </div>
     </div>
   );
 }

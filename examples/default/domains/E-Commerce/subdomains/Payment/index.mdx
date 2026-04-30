@@ -1,11 +1,12 @@
 ---
 id: Payment
-name: Payment
+name: Payment H2
 version: 0.0.1
-summary: |
-  Domain that contains payment related services and messages for processing financial transactions.
+summary: >
+  Domain that contains payment related services and messages for processing
+  financial transactions.
 owners:
-    - dboyne
+  - dboyne
 specifications:
   - type: asyncapi
     path: asyncapi.yaml
@@ -33,37 +34,41 @@ flows:
 data-products:
   - id: payment-analytics
 badges:
-    - content: Subdomain
-      backgroundColor: blue
-      textColor: blue
-      icon: BoltIcon
+  - content: Subdomain
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
 ---
-
 ## Overview
 
-The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is part of the [[domain|E-Commerce]] domain and manages entities like [[entity|Payment]], [[entity|Transaction]], and [[entity|Invoice]]. The domain ensures secure, reliable, and efficient processing of all payment-related activities.
+The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is part of the [[domain|E-Commerce]] domain and manages entities like [[Payment]], [[Transaction]], and [[Invoice]]. The domain ensures secure, reliable, and efficient processing of all payment-related activities.
 
 ## Services
 
 ### PaymentService
+
 The [[service|PaymentService]] is the core payment orchestration service that coordinates payment workflows and maintains payment state. It publishes [[event|PaymentProcessed]] events.
 
 ### FraudDetectionService
+
 The [[service|FraudDetectionService]] analyzes transactions in real-time to detect fraudulent activity using machine learning models and rule-based systems. It publishes [[event|FraudDetected]] and [[event|FraudCheckCompleted]] events.
 
 ### PaymentGatewayService
+
 The [[service|PaymentGatewayService]] manages integrations with external payment processors (Stripe, PayPal, etc.) and handles the [[command|ProcessPayment]] command.
 
 ## Cross-Domain Integration
 
 The Payment domain integrates with:
 
-- **[[domain|Subscriptions]]**: Processes recurring payments for subscriptions
-- **[[domain|Orders]]**: Handles payments for customer orders via the [[flow|PaymentFlow]]
+- [[domain|Subscriptions]]: Processes recurring payments for subscriptions
+- [[domain|Orders]]: Handles payments for customer orders via the [[flow|PaymentFlow]]
 - **Inventory**: Updates based on successful payments
 
 ## Bounded context
 
 <NodeGraph mode="full" />
+
+
 
 <MessageTable format="all" limit={6} />

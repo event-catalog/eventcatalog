@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react';
-import { Search, X, Filter } from 'lucide-react';
 import { FilterDropdown, CheckboxItem } from '../Tables/Discover/FilterComponents';
 
 export interface FieldFiltersProps {
@@ -21,8 +19,6 @@ export interface FieldFiltersProps {
 }
 
 export default function FieldFilters({
-  searchQuery,
-  onSearchChange,
   selectedFormats,
   onFormatsChange,
   selectedMessageTypes,
@@ -34,21 +30,6 @@ export default function FieldFilters({
   facets,
   isScaleEnabled = false,
 }: FieldFiltersProps) {
-  const [localSearch, setLocalSearch] = useState(searchQuery);
-
-  // Sync external changes
-  useEffect(() => {
-    setLocalSearch(searchQuery);
-  }, [searchQuery]);
-
-  // Debounce search input
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      onSearchChange(localSearch);
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [localSearch]);
-
   const toggleFormat = (value: string) => {
     if (selectedFormats.includes(value)) {
       onFormatsChange(selectedFormats.filter((f) => f !== value));
@@ -73,45 +54,14 @@ export default function FieldFilters({
     onMessageTypesChange([]);
     onSharedOnlyChange(false);
     onConflictingOnlyChange(false);
-    setLocalSearch('');
-    onSearchChange('');
   };
 
   return (
-    <div className="space-y-4">
-      {/* Search Input */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
-        <input
-          type="text"
-          value={localSearch}
-          onChange={(e) => setLocalSearch(e.target.value)}
-          placeholder="Search fields..."
-          className="w-full pl-9 pr-8 py-2 text-sm bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-dropdown-border))] rounded-lg placeholder:text-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] focus:border-[rgb(var(--ec-accent))] transition-colors"
-        />
-        {localSearch && (
-          <button
-            onClick={() => {
-              setLocalSearch('');
-              onSearchChange('');
-            }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))]"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
-
-      {/* Filter Section Header */}
-      <div className="flex items-center gap-2">
-        <Filter className="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))]" />
-        <h3 className="text-[11px] font-bold uppercase tracking-widest text-[rgb(var(--ec-page-text))]">Filters</h3>
-      </div>
-
+    <div className="space-y-6">
       {/* Schema Format Filter */}
       {facets && facets.formats.length > 0 && (
         <div>
-          <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Schema Format</label>
+          <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Schema format</label>
           <FilterDropdown
             label="Select formats..."
             selectedItems={selectedFormats}
@@ -134,7 +84,7 @@ export default function FieldFilters({
       {/* Message Type Filter */}
       {facets && facets.messageTypes.length > 0 && (
         <div>
-          <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Message Type</label>
+          <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Message type</label>
           <FilterDropdown
             label="Select message types..."
             selectedItems={selectedMessageTypes}

@@ -43,6 +43,7 @@ export interface DiscoverTableData {
     id: string;
     name: string;
     summary?: string;
+    icon?: string;
     version: string;
     latestVersion?: string;
     draft?: boolean | { title?: string; message: string };
@@ -73,6 +74,7 @@ export interface DiscoverTableProps<T extends DiscoverTableData> {
   data: T[];
   collectionType: CollectionType;
   collectionLabel: string;
+  collectionDescription?: string;
   domains?: Array<{ id: string; name: string; version: string }>;
   owners?: Array<{ id: string; name: string; type?: 'user' | 'team' }>;
   producers?: Array<{ id: string; name: string }>;
@@ -89,6 +91,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
   data: initialData,
   collectionType,
   collectionLabel,
+  collectionDescription,
   domains = [],
   owners = [],
   producers = [],
@@ -427,9 +430,16 @@ export function DiscoverTable<T extends DiscoverTableData>({
   const selectedPropertyLabels = selectedProperties.map((id) => propertyOptions.find((p) => p.id === id)?.label || id);
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full min-h-0" style={{ ['--ec-discover-sidebar-width' as any]: '320px' }}>
       {/* Filter Sidebar */}
-      <div className="w-[320px] flex-shrink-0 flex flex-col bg-[rgb(var(--ec-page-bg))] bg-gradient-to-bl from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.08)] border-r border-[rgb(var(--ec-page-border))]">
+      <div
+        className="fixed left-[var(--ec-vertical-nav-width)] top-0 z-20 flex h-screen w-[320px] flex-shrink-0 flex-col border-r border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-page-bg))]"
+        style={{ width: 'var(--ec-discover-sidebar-width, 320px)' }}
+      >
+        <div className="flex h-[60px] flex-shrink-0 items-center border-b border-[rgb(var(--ec-page-border))] px-4">
+          <h2 className="text-[13px] font-semibold text-[rgb(var(--ec-page-text))]">{collectionLabel} Filters</h2>
+        </div>
+
         {/* Filter sections */}
         <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 space-y-6">
           {/* Message Filters Section */}
@@ -495,10 +505,6 @@ export function DiscoverTable<T extends DiscoverTableData>({
 
           {/* Catalog Filters Section */}
           <div className="space-y-3">
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-[rgb(var(--ec-page-text))] pb-2">
-              Catalog Filters
-            </h3>
-
             {/* Domains Filter */}
             {showDomainsFilter && domains.length > 0 && (
               <div>
@@ -666,13 +672,21 @@ export function DiscoverTable<T extends DiscoverTableData>({
       </div>
 
       {/* Main Table */}
-      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+      <div
+        className="flex-1 min-w-0 flex flex-col overflow-hidden"
+        style={{ marginLeft: 'var(--ec-discover-sidebar-width, 320px)' }}
+      >
         {/* Table Header */}
-        <div className="flex items-center justify-between px-6 py-4">
-          <h2 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">
-            {collectionLabel}{' '}
-            <span className="text-sm text-[rgb(var(--ec-page-text-muted))] font-normal ml-1">({totalResults})</span>
-          </h2>
+        <div className="flex items-end justify-between gap-6 px-6 py-5">
+          <div className="min-w-0">
+            <h2 className="text-2xl font-semibold text-[rgb(var(--ec-page-text))] md:text-4xl">
+              {collectionLabel}{' '}
+              <span className="ml-1 text-lg font-normal text-[rgb(var(--ec-page-text-muted))] md:text-3xl">({totalResults})</span>
+            </h2>
+            {collectionDescription && (
+              <p className="max-w-3xl pt-2 text-base font-light text-[rgb(var(--ec-page-text-muted))]">{collectionDescription}</p>
+            )}
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
             <input
@@ -680,7 +694,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               value={tableFilter}
               onChange={(e) => setTableFilter(e.target.value)}
               placeholder="Filter..."
-              className="pl-9 pr-3 py-1.5 text-sm w-48 bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-input-text))] border border-[rgb(var(--ec-dropdown-border))] rounded-lg placeholder:text-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] focus:border-[rgb(var(--ec-accent))] transition-colors"
+              className="w-64 rounded-lg border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] py-2 pl-9 pr-3 text-sm text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-icon-color))] transition-colors focus:border-[rgb(var(--ec-accent))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
             />
             {tableFilter && (
               <button
@@ -694,55 +708,60 @@ export function DiscoverTable<T extends DiscoverTableData>({
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-auto px-6">
-          <table className="min-w-full divide-y divide-[rgb(var(--ec-page-border))]">
-            <thead className="sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup, index) => (
-                <tr key={`${headerGroup}-${index}`}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={`${header.id}`}
-                      className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider"
-                    >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-
-            <tbody className="divide-y divide-[rgb(var(--ec-page-border)/0.5)]">
-              {hasResults ? (
-                table.getRowModel().rows.map((row, index) => (
-                  <tr key={`${row.id}-${index}`} className="group hover:bg-[rgb(var(--ec-content-hover))] transition-colors">
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className={`px-4 py-3 text-sm text-[rgb(var(--ec-page-text))] ${cell.column.columnDef.meta?.className || ''}`}
+        <div className="min-h-0 flex-1 overflow-auto px-6 pb-5">
+          <div className="overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border)/0.72)] dark:border-white/10 bg-[rgb(var(--ec-dropdown-bg)/0.66)]">
+            <table className="min-w-full divide-y divide-[rgb(var(--ec-page-border)/0.62)] dark:divide-white/10">
+              <thead className="sticky top-0 z-10 bg-[rgb(var(--ec-content-hover)/0.45)]">
+                {table.getHeaderGroups().map((headerGroup, index) => (
+                  <tr key={`${headerGroup}-${index}`}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={`${header.id}`}
+                        className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider"
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </th>
                     ))}
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={table.getAllColumns().length} className="px-4 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
-                      <SearchX className="w-10 h-10 text-[rgb(var(--ec-icon-color))] mb-3 opacity-50" />
-                      <p className="text-sm font-medium text-[rgb(var(--ec-page-text-muted))]">No results found</p>
-                      <p className="text-xs text-[rgb(var(--ec-icon-color))] mt-1">Try adjusting your search or filters</p>
-                      {activeFilterCount > 0 && (
-                        <button onClick={clearAllFilters} className="mt-3 text-sm text-[rgb(var(--ec-accent))] hover:underline">
-                          Clear all filters
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                ))}
+              </thead>
+
+              <tbody className="divide-y divide-[rgb(var(--ec-page-border)/0.5)] dark:divide-white/8">
+                {hasResults ? (
+                  table.getRowModel().rows.map((row, index) => (
+                    <tr
+                      key={`${row.id}-${index}`}
+                      className="group bg-transparent transition-colors hover:bg-[rgb(var(--ec-content-hover)/0.38)]"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className={`px-4 py-3 text-sm text-[rgb(var(--ec-page-text))] ${cell.column.columnDef.meta?.className || ''}`}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={table.getAllColumns().length} className="px-4 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
+                        <SearchX className="w-10 h-10 text-[rgb(var(--ec-icon-color))] mb-3 opacity-50" />
+                        <p className="text-sm font-medium text-[rgb(var(--ec-page-text-muted))]">No results found</p>
+                        <p className="text-xs text-[rgb(var(--ec-icon-color))] mt-1">Try adjusting your search or filters</p>
+                        {activeFilterCount > 0 && (
+                          <button onClick={clearAllFilters} className="mt-3 text-sm text-[rgb(var(--ec-accent))] hover:underline">
+                            Clear all filters
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Pagination */}

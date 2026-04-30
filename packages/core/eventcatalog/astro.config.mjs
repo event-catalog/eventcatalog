@@ -30,7 +30,7 @@ const compress = config.compress ?? false;
 
 
 const expressiveCodeConfig = {
-  themes: ['andromeeda'],
+  themes: ['github-light', 'github-dark'],
   defaultProps: {
     wrap: true,
   },

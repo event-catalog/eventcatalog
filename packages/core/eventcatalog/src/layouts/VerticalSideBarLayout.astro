@@ -4,20 +4,32 @@ interface Props {
   sidebar?: boolean;
   description?: string;
   showNestedSideBar?: boolean;
+  showHeader?: boolean;
 }
 
 import {
   TableProperties,
   BotMessageSquare,
-  Users,
   BookOpen,
-  Sparkles,
-  Rocket,
   FileText,
   SquareDashedMousePointerIcon,
-  Braces,
+  FileCode,
   Waypoints,
+  PanelLeftClose,
+  Database,
+  UserRound,
+  UsersRound,
 } from 'lucide-react';
+import {
+  RectangleGroupIcon,
+  GlobeAltIcon,
+  CubeIcon,
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  MagnifyingGlassIcon,
+  QueueListIcon,
+} from '@heroicons/react/24/outline';
+import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
@@ -52,23 +64,10 @@ import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
 
-import {
-  isEventCatalogUpgradeEnabled,
-  isEmbedEnabled,
-  isCustomStylesEnabled,
-  isEventCatalogScaleEnabled,
-  isSSR,
-} from '@utils/feature';
-import { getUsers } from '@utils/collections/users';
-import { getTeams } from '@utils/collections/teams';
+import { isEmbedEnabled, isCustomStylesEnabled, isEventCatalogScaleEnabled, isCustomDocsEnabled, isSSR } from '@utils/feature';
 
 const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 const customDocs = await getCollection('customPages');
-
-// Get users and teams for directory navigation
-const users = await getUsers();
-const teams = await getTeams();
-const directoryDefaultUrl = users.length > 0 ? '/directory/users' : teams.length > 0 ? '/directory/teams' : '/directory/users';
 
 let events: any[] = [];
 let commands: any[] = [];
@@ -131,7 +130,7 @@ const userSideBarConfiguration = config.sidebar || [];
 const navigationItems = [
   {
     id: '/',
-    label: 'Documentation',
+    label: 'Catalog',
     icon: BookOpen,
     href: buildUrl(config.landingPage || '/'),
     current:
@@ -144,16 +143,18 @@ const navigationItems = [
         !currentPath.includes('/schemas/fields')),
   },
   {
-    id: '/discover',
-    label: 'Explore',
-    icon: TableProperties,
-    href: buildUrl('/discover/domains'),
-    current: currentPath.includes('/discover/'),
+    id: '/docs/custom',
+    label: 'Documentation',
+    icon: FileText,
+    href: getDefaultUrl('docs/custom', '/docs/custom'),
+    current: currentPath.includes('/docs/custom'),
+    isPremium: true,
+    visible: isCustomDocsEnabled(),
   },
   {
     id: '/schemas/explorer',
-    label: 'Schema Explorer',
-    icon: Braces,
+    label: 'Schemas',
+    icon: FileCode,
     href: buildUrl('/schemas/explorer'),
     current: currentPath.includes('/schemas/explorer') && !currentPath.includes('/schemas/fields'),
   },
@@ -161,23 +162,17 @@ const navigationItems = [
     ? [
         {
           id: '/schemas/fields',
-          label: 'Schema Fields',
+          label: 'Schema Insights',
           icon: Waypoints,
           href: buildUrl('/schemas/fields'),
           current: currentPath.includes('/schemas/fields'),
         },
       ]
     : []),
-  {
-    id: '/directory',
-    label: 'Users & Teams',
-    icon: Users,
-    href: buildUrl(directoryDefaultUrl),
-    current: currentPath.includes('/directory'),
-  },
 ].filter((item) => {
   const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
-  return userSideBarOption ? userSideBarOption.visible : true;
+  const defaultVisible = item.visible ?? true;
+  return userSideBarOption ? userSideBarOption.visible : defaultVisible;
 });
 
 const studioNavigationItem = [
@@ -193,29 +188,115 @@ const studioNavigationItem = [
   return userSideBarOption ? userSideBarOption.visible : true;
 });
 
-const premiumFeatures = [
+const premiumFeatures: Array<{
+  id: string;
+  label: string;
+  icon: any;
+  href: string;
+  current: boolean;
+  isPremium?: boolean;
+}> = [];
+
+const browseItems = [
   {
-    id: '/docs/custom',
-    label: 'Custom Documentation',
-    icon: FileText,
-    href: getDefaultUrl('docs/custom', '/docs/custom'),
-    current: currentPath.includes('/docs/custom'),
-    isPremium: true,
+    label: 'Domains',
+    icon: RectangleGroupIcon,
+    href: buildUrl('/discover/domains'),
+    current: currentPath === buildUrl('/discover/domains'),
   },
-].filter((item) => {
-  const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
-  return userSideBarOption ? userSideBarOption.visible : true;
-});
+  {
+    label: 'Services',
+    icon: ServerIcon,
+    href: buildUrl('/discover/services'),
+    current: currentPath === buildUrl('/discover/services'),
+  },
+  {
+    label: 'External Systems',
+    icon: GlobeAltIcon,
+    href: buildUrl('/discover/external-systems'),
+    current: currentPath === buildUrl('/discover/external-systems'),
+  },
+  {
+    label: 'Events',
+    icon: BoltIcon,
+    href: buildUrl('/discover/events'),
+    current: currentPath === buildUrl('/discover/events'),
+  },
+  {
+    label: 'Commands',
+    icon: ChatBubbleLeftIcon,
+    href: buildUrl('/discover/commands'),
+    current: currentPath === buildUrl('/discover/commands'),
+  },
+  {
+    label: 'Queries',
+    icon: MagnifyingGlassIcon,
+    href: buildUrl('/discover/queries'),
+    current: currentPath === buildUrl('/discover/queries'),
+  },
+  {
+    label: 'Flows',
+    icon: QueueListIcon,
+    href: buildUrl('/discover/flows'),
+    current: currentPath === buildUrl('/discover/flows'),
+  },
+  {
+    label: 'Data Stores',
+    icon: Database,
+    href: buildUrl('/discover/containers'),
+    current: currentPath === buildUrl('/discover/containers'),
+  },
+  {
+    label: 'Data Products',
+    icon: CubeIcon,
+    href: buildUrl('/discover/data-products'),
+    current: currentPath === buildUrl('/discover/data-products'),
+  },
+];
+
+const organizationItems = [
+  {
+    label: 'Teams',
+    icon: UsersRound,
+    href: buildUrl('/directory/teams'),
+    current: currentPath === buildUrl('/directory/teams'),
+  },
+  {
+    label: 'Users',
+    icon: UserRound,
+    href: buildUrl('/directory/users'),
+    current: currentPath === buildUrl('/directory/users'),
+  },
+];
 
 const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...premiumFeatures].find((item) => item.current);
-const { title, description, showNestedSideBar = true } = Astro.props;
+const { title, description, showNestedSideBar = true, showHeader = true } = Astro.props;
 
 const canPageBeEmbedded = isEmbedEnabled();
 ---
 
 <BaseLayout title={`EventCatalog | ${title}`} description={description} ogTitle={title}>
   <Fragment slot="head">
+    <script is:inline>
+      (() => {
+        try {
+          const savedState = localStorage.getItem('eventcatalog-vertical-nav-collapsed');
+          const isCollapsed = savedState === null ? true : savedState === 'true';
+          document.documentElement.setAttribute('data-vertical-nav-collapsed', isCollapsed ? 'true' : 'false');
+        } catch (error) {
+          document.documentElement.setAttribute('data-vertical-nav-collapsed', 'true');
+        }
+      })();
+    </script>
     <style is:global>
+      :root {
+        --ec-vertical-nav-width: 14rem;
+      }
+
+      :root[data-vertical-nav-collapsed='true'] {
+        --ec-vertical-nav-width: 3rem;
+      }
+
       html,
       body {
         background-color: rgb(var(--ec-page-bg));
@@ -230,8 +311,110 @@ const canPageBeEmbedded = isEmbedEnabled();
         min-height: 100vh;
         min-height: 100dvh;
         background-color: rgb(var(--ec-page-bg));
+        --ec-sidebar-panel-width: 17rem;
+        display: flex;
+        flex-direction: column;
       }
 
+      .app-content-wrapper {
+        --ec-app-content-padding-left: 5rem;
+        --ec-app-content-padding-right: 5rem;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: var(--ec-app-content-padding-left);
+        padding-right: var(--ec-app-content-padding-right);
+      }
+      .app-shell {
+        min-height: calc(100vh - 4rem);
+        flex: 1;
+      }
+      .app-shell--rail-only {
+        margin-left: var(--ec-vertical-nav-width);
+      }
+      .app-shell--with-sidebar {
+        margin-left: calc(var(--ec-vertical-nav-width) + var(--ec-sidebar-panel-width));
+      }
+      .vertical-nav-rail {
+        width: var(--ec-vertical-nav-width);
+        border-right: 1px solid rgb(var(--ec-sidebar-border) / 1);
+        background: linear-gradient(
+          180deg,
+          rgb(var(--ec-accent) / 0.1) 0%,
+          rgb(var(--ec-sidebar-bg-gradient)) 16%,
+          rgb(var(--ec-sidebar-bg)) 48%,
+          rgb(var(--ec-sidebar-bg)) 100%
+        );
+        box-shadow:
+          inset -1px 0 0 rgb(var(--ec-page-border) / 0.45),
+          0 24px 44px -34px rgb(var(--ec-page-text) / 0.28);
+        overflow: hidden;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-text,
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-item-label,
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .rail-section-label,
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-count-pill,
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-label,
+      .vertical-nav-rail[data-collapsed='true'] .nav-brand-text,
+      .vertical-nav-rail[data-collapsed='true'] .nav-item-label,
+      .vertical-nav-rail[data-collapsed='true'] .rail-section-label,
+      .vertical-nav-rail[data-collapsed='true'] .nav-count-pill,
+      .vertical-nav-rail[data-collapsed='true'] .nav-label {
+        display: none;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-link,
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail [data-role='nav-item'],
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-secondary-item,
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail #vertical-nav-toggle,
+      .vertical-nav-rail[data-collapsed='true'] .nav-brand-link,
+      .vertical-nav-rail[data-collapsed='true'] [data-role='nav-item'],
+      .vertical-nav-rail[data-collapsed='true'] .nav-secondary-item,
+      .vertical-nav-rail[data-collapsed='true'] #vertical-nav-toggle {
+        justify-content: center;
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-link,
+      .vertical-nav-rail[data-collapsed='true'] .nav-brand-link {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail nav,
+      .vertical-nav-rail[data-collapsed='true'] nav {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .rail-divider,
+      .vertical-nav-rail[data-collapsed='true'] .rail-divider {
+        margin-left: 0.25rem;
+        margin-right: 0.25rem;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-premium-icon,
+      .vertical-nav-rail[data-collapsed='true'] .nav-premium-icon {
+        margin-left: 0;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-collapse-icon,
+      .vertical-nav-rail[data-collapsed='true'] .nav-collapse-icon {
+        transform: rotate(180deg);
+      }
+      .sidebar-panel {
+        width: var(--ec-sidebar-panel-width);
+        min-width: var(--ec-sidebar-panel-width);
+        height: 100vh;
+        border-right: 1px solid rgb(var(--ec-content-border));
+        background: rgb(var(--ec-page-bg));
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: var(--ec-vertical-nav-width);
+        z-index: 20;
+        overflow-y: auto;
+      }
+      .content-panel {
+        min-width: 0;
+        flex: 1;
+        min-height: calc(100vh - 4rem);
+      }
       .sidebar-transition {
         transition-property: width, transform;
         transition-duration: 300ms;
@@ -283,119 +466,154 @@ const canPageBeEmbedded = isEmbedEnabled();
   {/* Load search data even when sidebar is hidden */}
   <SearchDataLoader />
   <main id="eventcatalog-application" class="relative">
-    <div transition:persist="site-header">
-      <Header />
-    </div>
-    <div class="flex">
+    {
+      showHeader && (
+        <div transition:persist="site-header">
+          <Header showNestedSideBar={showNestedSideBar} />
+        </div>
+      )
+    }
+    <div class={`app-shell ${showNestedSideBar ? 'app-shell--with-sidebar' : 'app-shell--rail-only'}`}>
       <aside class="flex" id="eventcatalog-vertical-nav">
         <div
-          class="fixed flex flex-col items-center w-14 h-screen py-3 bg-[rgb(var(--ec-sidebar-bg))] bg-gradient-to-t from-[rgb(var(--ec-accent)/0.08)] to-[rgb(var(--ec-sidebar-bg))] border-r border-[rgb(var(--ec-sidebar-border))] z-20 shadow-md justify-between"
+          id="vertical-nav-rail"
+          data-collapsed="true"
+          transition:persist="vertical-nav-rail"
+          class="vertical-nav-rail fixed top-0 left-0 flex flex-col h-screen z-30 transition-[width] duration-200"
         >
-          <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
-            <div class="flex flex-col items-center flex-1 space-y-6">
-              {
-                navigationItems.map((item) => {
-                  return (
-                    <a
-                      id={item.id}
-                      data-role="nav-item"
-                      href={item.href}
-                      aria-label={item.label}
-                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${
-                        item.current
-                          ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]'
-                          : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'
-                      }`}
-                    >
-                      <div class="has-tooltip">
-                        <span
-                          class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
-                          aria-hidden="true"
-                        >
-                          {item.label}
-                        </span>
-                        <item.icon className="h-6 w-6" aria-hidden="true" />
-                      </div>
-                    </a>
-                  );
-                })
-              }
+          <a
+            href={buildUrl(config.landingPage || '/')}
+            aria-label="Home"
+            class="nav-brand-link flex items-center gap-2.5 px-4 h-[3.75rem] border-b border-[rgb(var(--ec-sidebar-border)/0.7)] flex-shrink-0"
+          >
+            <img
+              src={config?.logo?.src ? buildUrl('/' + config.logo.src.replace(/^\/+/, ''), true) : buildUrl('/logo.svg', true)}
+              alt={config?.logo?.alt || 'EventCatalog'}
+              class="w-6 h-6 flex-shrink-0"
+            />
+            <span class="nav-brand-text text-[15px] font-semibold text-[rgb(var(--ec-page-text))] tracking-tight">
+              {config?.logo?.text || config?.organizationName || 'EventCatalog'}
+            </span>
+          </a>
 
-              <hr class="w-8 border-t border-[rgb(var(--ec-sidebar-border))]" />
-
-              {
-                premiumFeatures.map((item) => (
+          <nav class="flex flex-col flex-1 overflow-y-auto px-3 py-4 gap-1">
+            {
+              navigationItems.map((item) => {
+                return (
                   <a
                     id={item.id}
                     data-role="nav-item"
                     href={item.href}
                     aria-label={item.label}
-                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg mb-8 relative ${
+                    class={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
                       item.current
-                        ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]'
-                        : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'
+                        ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent-text))] shadow-sm'
+                        : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
                     }`}
+                    title={item.label}
                   >
-                    <div class="has-tooltip">
-                      <span
-                        class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 flex items-center gap-1 whitespace-nowrap"
-                        aria-hidden="true"
-                      >
-                        <Sparkles className="h-3 w-3" aria-hidden="true" /> {item.label}
-                      </span>
-                      <item.icon className="h-6 w-6" aria-hidden="true" />
-                      <div
-                        class="absolute -top-1 -right-1 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full p-0.5 shadow-lg"
-                        aria-hidden="true"
-                      >
-                        <Sparkles className="h-2 w-2 text-white" aria-hidden="true" />
-                      </div>
-                    </div>
+                    <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    <span class="nav-item-label">{item.label}</span>
                   </a>
-                ))
-              }
+                );
+              })
+            }
+
+            <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
+
+            <div
+              class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text))]"
+            >
+              Browse
             </div>
 
             {
-              isEventCatalogUpgradeEnabled() && (
-                <div class="mb-4">
-                  <a
-                    id="/pro"
-                    data-role="nav-item"
-                    href={buildUrl('/plans')}
-                    aria-label="Upgrade EventCatalog"
-                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'bg-[rgb(var(--ec-sidebar-bg-gradient))] hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'}`}
-                  >
-                    <div class="has-tooltip">
-                      <span
-                        class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
-                        aria-hidden="true"
-                      >
-                        Upgrade EventCatalog
-                      </span>
-                      <Rocket className="h-6 w-6" aria-hidden="true" />
-                    </div>
-                  </a>
-                </div>
-              )
+              browseItems.map((item) => (
+                <a
+                  href={item.href}
+                  data-role="secondary-nav-item"
+                  aria-label={item.label}
+                  class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
+                    item.current
+                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent-text))] shadow-sm'
+                      : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
+                  }`}
+                  title={item.label}
+                >
+                  <item.icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                  <span class="nav-item-label">{item.label}</span>
+                </a>
+              ))
+            }
+
+            <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
+
+            <div
+              class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text))]"
+            >
+              Organization
+            </div>
+
+            {
+              organizationItems.map((item) => (
+                <a
+                  href={item.href}
+                  data-role="secondary-nav-item"
+                  aria-label={item.label}
+                  class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
+                    item.current
+                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent-text))] shadow-sm'
+                      : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
+                  }`}
+                  title={item.label}
+                >
+                  <item.icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                  <span class="nav-item-label">{item.label}</span>
+                </a>
+              ))
+            }
+
+            {premiumFeatures.length > 0 && <hr class="rail-divider my-2 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />}
+
+            {
+              premiumFeatures.map((item) => (
+                <a
+                  id={item.id}
+                  data-role="nav-item"
+                  href={item.href}
+                  aria-label={item.label}
+                  class={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
+                    item.current
+                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent-text))] shadow-sm'
+                      : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
+                  }`}
+                  title={item.label}
+                >
+                  <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                  <span class="nav-item-label">{item.label}</span>
+                </a>
+              ))
             }
           </nav>
-        </div>
 
-        {
-          showNestedSideBar && (
-            <SideNav
-              id="sidebar"
-              class={`sidebar-transition h-content bg-[rgb(var(--ec-sidebar-bg))] bg-gradient-to-bl from-[rgb(var(--ec-sidebar-bg))] via-[rgb(var(--ec-sidebar-bg))] to-[rgb(var(--ec-accent)/0.08)] border-r border-[rgb(var(--ec-sidebar-border))] w-[320px] ml-14`}
-            />
-          )
-        }
+          <div class="border-t border-[rgb(var(--ec-sidebar-border)/0.7)] px-3 py-3 flex-shrink-0">
+            <button
+              id="vertical-nav-toggle"
+              type="button"
+              aria-label="Collapse sidebar"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-[13px] font-medium text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))] transition-all duration-150 w-full"
+            >
+              <PanelLeftClose className="h-4 w-4 flex-shrink-0 nav-collapse-icon" aria-hidden="true" />
+              <span class="nav-label">Collapse</span>
+            </button>
+          </div>
+        </div>
       </aside>
-      <main
-        class={`sidebar-transition w-full max-h-content overflow-y-auto bg-[rgb(var(--ec-page-bg))] ${showNestedSideBar ? 'ml-0' : 'ml-14'}`}
-        id="content"
-      >
-        <slot />
+      {showNestedSideBar && <SideNav id="sidebar" class={`sidebar-panel sidebar-transition`} />}
+      <main class="content-panel sidebar-transition w-full bg-[rgb(var(--ec-page-bg))]" id="content">
+        <div class="app-content-wrapper">
+          <slot />
+        </div>
       </main>
 
       <!-- Create a overlay that tells people to purchase backstage plugin if they want to embed the page -->
@@ -418,14 +636,126 @@ const canPageBeEmbedded = isEmbedEnabled();
 </BaseLayout>
 
 <ClientRouter />
-<script define:vars={{ navigationItems, currentNavigationItem, canPageBeEmbedded }}>
+<script
+  define:vars={{
+    navigationItems,
+    currentNavigationItem,
+    canPageBeEmbedded,
+  }}
+>
+  const VERTICAL_NAV_STORAGE_KEY = 'eventcatalog-vertical-nav-collapsed';
+  const ACTIVE_NAV_CLASSES = [
+    'border-[rgb(var(--ec-accent)/0.2)]',
+    'bg-[rgb(var(--ec-page-bg)/0.88)]',
+    'text-[rgb(var(--ec-accent-text))]',
+    'shadow-sm',
+  ];
+  const INACTIVE_NAV_CLASSES = [
+    'border-transparent',
+    'text-[rgb(var(--ec-sidebar-text))]',
+    'hover:border-[rgb(var(--ec-sidebar-border)/0.65)]',
+    'hover:bg-[rgb(var(--ec-page-bg)/0.78)]',
+    'hover:text-[rgb(var(--ec-page-text))]',
+  ];
+
+  const isNavItemCurrent = (id, pathname) => {
+    if (id === '/') {
+      return (
+        pathname === '/' ||
+        (pathname.includes('/docs') && !pathname.includes('/docs/custom')) ||
+        pathname.includes('/architecture/') ||
+        pathname.includes('/visualiser') ||
+        (pathname.includes('/schemas') && !pathname.includes('/schemas/explorer') && !pathname.includes('/schemas/fields'))
+      );
+    }
+
+    if (id === '/schemas/explorer') {
+      return pathname.includes('/schemas/explorer') && !pathname.includes('/schemas/fields');
+    }
+
+    if (id === '/schemas/fields') {
+      return pathname.includes('/schemas/fields');
+    }
+
+    if (id === '/studio') {
+      return pathname.includes('/studio');
+    }
+
+    if (id === '/docs/custom') {
+      return pathname.includes('/docs/custom');
+    }
+
+    return false;
+  };
+
+  const syncNavItemStates = () => {
+    const pathname = window.location.pathname;
+    const navItems = document.querySelectorAll('[data-role="nav-item"]');
+    const secondaryNavItems = document.querySelectorAll('[data-role="secondary-nav-item"]');
+
+    navItems.forEach((item) => {
+      const id = item.getAttribute('id');
+      const isCurrent = id ? isNavItemCurrent(id, pathname) : false;
+
+      if (isCurrent) {
+        item.classList.remove(...INACTIVE_NAV_CLASSES);
+        item.classList.add(...ACTIVE_NAV_CLASSES);
+      } else {
+        item.classList.remove(...ACTIVE_NAV_CLASSES);
+        item.classList.add(...INACTIVE_NAV_CLASSES);
+      }
+    });
+
+    secondaryNavItems.forEach((item) => {
+      const href = item.getAttribute('href');
+      const targetPath = href ? new URL(href, window.location.origin).pathname : null;
+      const isCurrent = targetPath ? pathname === targetPath : false;
+
+      if (isCurrent) {
+        item.classList.remove(...INACTIVE_NAV_CLASSES);
+        item.classList.add(...ACTIVE_NAV_CLASSES);
+      } else {
+        item.classList.remove(...ACTIVE_NAV_CLASSES);
+        item.classList.add(...INACTIVE_NAV_CLASSES);
+      }
+    });
+  };
+
+  const getPersistedVerticalNavCollapsedState = () => {
+    try {
+      const savedState = localStorage.getItem(VERTICAL_NAV_STORAGE_KEY);
+      return savedState === null ? true : savedState === 'true';
+    } catch (error) {
+      return true;
+    }
+  };
+
+  const applyPersistedVerticalNavState = () => {
+    const isCollapsed = getPersistedVerticalNavCollapsedState();
+    document.documentElement.setAttribute('data-vertical-nav-collapsed', isCollapsed ? 'true' : 'false');
+
+    const verticalNavRail = document.getElementById('vertical-nav-rail');
+    if (verticalNavRail) {
+      verticalNavRail.setAttribute('data-collapsed', isCollapsed ? 'true' : 'false');
+    }
+  };
+
+  // Apply immediately when this script executes so transitions don't briefly re-open the rail.
+  applyPersistedVerticalNavState();
+
+  // Re-apply around Astro view transitions because the incoming document can momentarily drop the root attribute.
+  document.addEventListener('astro:before-preparation', applyPersistedVerticalNavState);
+  document.addEventListener('astro:after-swap', applyPersistedVerticalNavState);
+
   // Listen for Astro transititions
   document.addEventListener('astro:page-load', () => {
+    applyPersistedVerticalNavState();
     document.dispatchEvent(new CustomEvent('contentLoaded'));
   });
 
   // Listen for DOM loaded
   document.addEventListener('DOMContentLoaded', () => {
+    applyPersistedVerticalNavState();
     document.dispatchEvent(new CustomEvent('contentLoaded'));
   });
 
@@ -435,6 +765,36 @@ const canPageBeEmbedded = isEmbedEnabled();
     const params = Object.fromEntries(urlSearchParams.entries());
     const embeded = params.embed === 'true' ? true : false;
     const content = document.getElementById('content');
+    const shell = document.querySelector('.app-shell');
+    const app = document.getElementById('eventcatalog-application');
+    const verticalNavRail = document.getElementById('vertical-nav-rail');
+    const verticalNavToggle = document.getElementById('vertical-nav-toggle');
+    const navToggleLabel = verticalNavToggle?.querySelector('.nav-label');
+    const collapseIcon = verticalNavToggle?.querySelector('.nav-collapse-icon');
+
+    const setVerticalNavCollapsedState = (collapsed) => {
+      if (!app || !verticalNavRail || !verticalNavToggle || !navToggleLabel) return;
+      const railTextElements = verticalNavRail.querySelectorAll(
+        '.nav-brand-text, .nav-item-label, .rail-section-label, .nav-count-pill, .nav-label'
+      );
+
+      document.documentElement.setAttribute('data-vertical-nav-collapsed', collapsed ? 'true' : 'false');
+      verticalNavRail.setAttribute('data-collapsed', collapsed ? 'true' : 'false');
+      verticalNavToggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+      verticalNavToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      navToggleLabel.textContent = collapsed ? 'Expand' : 'Collapse';
+      railTextElements.forEach((element) => {
+        if (collapsed) {
+          element.setAttribute('hidden', '');
+        } else {
+          element.removeAttribute('hidden');
+        }
+      });
+
+      if (collapseIcon) {
+        collapseIcon.setAttribute('title', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+      }
+    };
 
     if (embeded && !canPageBeEmbedded) {
       const overlay = document.getElementById('embed-overlay');
@@ -458,23 +818,45 @@ const canPageBeEmbedded = isEmbedEnabled();
         if (element) element.style.display = 'none';
       });
 
-      content.classList.remove('ml-14');
-      content.classList.remove('max-h-content');
+      document.body.style.overflow = '';
+      app.style.overflow = '';
+      if (shell) shell.style.marginLeft = '0';
       return;
     }
+
+    if (shell) {
+      shell.style.marginLeft = '';
+    }
+
+    setVerticalNavCollapsedState(getPersistedVerticalNavCollapsedState());
+
+    syncNavItemStates();
 
     const navItems = document.querySelectorAll('[data-role="nav-item"]');
 
     // Navigation items simply navigate to their href - no toggle logic
     navItems.forEach((item) => {
-      item.addEventListener('click', (e) => {
+      item.onclick = (e) => {
         const id = item.getAttribute('id');
         const navItem = navigationItems.find((navItem) => navItem.id === id);
 
         if (navItem && navItem.href) {
           window.location.href = navItem.href;
         }
-      });
+      };
     });
+
+    if (verticalNavToggle) {
+      verticalNavToggle.onclick = () => {
+        const isCollapsed = verticalNavRail?.getAttribute('data-collapsed') === 'true';
+        const nextState = !isCollapsed;
+
+        setVerticalNavCollapsedState(nextState);
+
+        try {
+          localStorage.setItem(VERTICAL_NAV_STORAGE_KEY, String(nextState));
+        } catch (error) {}
+      };
+    }
   });
 </script>

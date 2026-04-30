@@ -23,20 +23,18 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main
-    class="flex sm:px-6 docs-layout h-full bg-[rgb(var(--ec-page-bg))]"
+    class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]"
     data-pagefind-body
     data-pagefind-meta={`title:${pageTitle}`}
   >
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto pt-6 pb-8 min-h-[50em]">
+      <div class="w-full lg:mr-2 pr-24 py-8 min-h-[50em]">
         {/* Title Section */}
         <div class="relative border-b border-[rgb(var(--ec-page-border))] mb-6 pb-6">
           <div class="xl:flex xl:items-start xl:justify-between">
             <div class="min-w-0 flex-1">
-              <h1 class="text-xl font-bold leading-7 text-[rgb(var(--ec-page-text))] sm:text-2xl xl:text-3xl">
-                Ubiquitous Language
-              </h1>
-              <p class="mt-2 text-sm text-[rgb(var(--ec-page-text-muted))]">
+              <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">Ubiquitous Language</h1>
+              <p class="pt-2 text-base text-[rgb(var(--ec-page-text-muted))] font-light">
                 Browse and discover ubiquitous language terms in the {props.data.name} domain{
                   subdomains.length > 0 ? ' and its subdomains' : ''
                 }

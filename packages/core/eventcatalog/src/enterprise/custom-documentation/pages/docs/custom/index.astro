@@ -2,10 +2,9 @@
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { render } from 'astro:content';
 import config from '@config';
-import { AlignLeftIcon } from 'lucide-react';
+import { AlignLeftIcon, UserIcon, UsersIcon } from 'lucide-react';
 
 import mdxComponents from '@components/MDX/components';
-import OwnersList from '@components/Lists/OwnersList';
 
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
@@ -87,153 +86,188 @@ const getCustomDocBadgeClasses = (badge: any) => {
 ---
 
 <VerticalSideBarLayout title={doc.title || 'Documentation'} showNestedSideBar={false}>
-  <div class="flex w-full" data-pagefind-body data-pagefind-meta={`title:${doc.title}`}>
+  <div class="custom-docs-shell flex w-full" data-pagefind-body data-pagefind-meta={`title:${doc.title}`}>
     <!-- Left Sidebar Navigation -->
     <aside
-      class="sidebar-transition overflow-y-auto bg-[rgb(var(--ec-page-bg))] border-r border-[rgb(var(--ec-page-border))] w-80 fixed top-16 bottom-0 z-10"
+      class="sidebar-transition fixed top-0 bottom-0 left-[var(--ec-vertical-nav-width,14rem)] z-10 w-[var(--ec-custom-docs-sidebar-width,20rem)] overflow-hidden border-r border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))]"
     >
-      <CustomDocsNav />
+      <div class="h-full">
+        <CustomDocsNav />
+      </div>
     </aside>
 
-    <!-- Main Content Area - Independent scrolling -->
-    <main
-      class="sidebar-transition w-full max-h-content ml-[22em] md:ml-[21em] lg:mr-2 2xl:mr-2 2xl:ml-[22em] pr-2 overflow-y-auto"
-    >
-      <div class="max-w-none mx-auto px-4 py-10">
-        <div class="border-b border-[rgb(var(--ec-page-border))] flex justify-between items-start md:pb-6">
-          <div>
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{doc.title}</h2>
-            <p class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{doc.summary}</p>
-            {
-              badges && (
-                <div class="flex flex-wrap pt-4">
-                  {badges.map((badge: any) => {
+    <div class="sidebar-transition flex w-full min-w-0" style="margin-left: var(--ec-custom-docs-sidebar-width, 20rem);">
+      <main class="min-w-0 flex-1">
+        <div
+          class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]"
+          style="padding-left: var(--ec-app-content-padding-left, 5rem);"
+        >
+          <div class="border-b border-[rgb(var(--ec-page-border))] flex justify-between items-start md:pb-2">
+            <div>
+              <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{doc.title}</h2>
+              <p class="text-base pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{doc.summary}</p>
+              {
+                badges && (
+                  <div class="flex flex-wrap gap-3 py-4">
+                    {badges.map((badge: any) => {
+                      return (
+                        <a href={badge.url || '#'}>
+                          <span id={badge.id || ''} class={`${getCustomDocBadgeClasses(badge)} mr-2`}>
+                            {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                            {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
+                            <span>{badge.content}</span>
+                          </span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                )
+              }
+            </div>
+          </div>
+          <div class="prose prose-md py-4 w-full text-[15px]">
+            <Content components={{ ...mdxComponents(props) }} />
+          </div>
+
+          {
+            nodeGraphs.length > 0 &&
+              nodeGraphs.map((nodeGraph: any) => {
+                const collection = resourceToCollectionMap[nodeGraph.type as keyof typeof resourceToCollectionMap];
+                return (
+                  <NodeGraph
+                    id={nodeGraph.id}
+                    version={nodeGraph.version}
+                    collection={collection}
+                    title={nodeGraph.title}
+                    mode="simple"
+                    linksToVisualiser={true}
+                    href={
+                      isVisualiserEnabled()
+                        ? {
+                            label: 'Open in Visualiser',
+                            url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
+                          }
+                        : undefined
+                    }
+                  />
+                );
+              })
+          }
+
+          <!-- Previous / Next Navigation -->
+          <div class="py-8 border-t border-[rgb(var(--ec-page-border))] mt-8">
+            <div class="flex flex-col sm:flex-row justify-between w-full gap-4">
+              {
+                prev && (
+                  <a
+                    href={buildUrl(`/docs/custom/${prev.slug}`)}
+                    class="group flex flex-col border border-[rgb(var(--ec-page-border))] rounded-lg p-4 hover:border-[rgb(var(--ec-content-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors w-full sm:w-1/2"
+                  >
+                    <span class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-1">Previous</span>
+                    <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">
+                      {prev.label}
+                    </span>
+                  </a>
+                )
+              }
+
+              {!prev && <div class="w-full sm:w-1/2" />}
+
+              {
+                next && (
+                  <a
+                    href={buildUrl(`/docs/custom/${next.slug}`)}
+                    class="group flex flex-col items-end text-right border border-[rgb(var(--ec-page-border))] rounded-lg p-4 hover:border-[rgb(var(--ec-content-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors w-full sm:w-1/2"
+                  >
+                    <span class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-1">Next</span>
+                    <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">
+                      {next.label}
+                    </span>
+                  </a>
+                )
+              }
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Sidebar TOC -->
+      <aside
+        id="eventcatalog-docs-sidebar"
+        class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-10 bg-[rgb(var(--ec-page-bg))]"
+      >
+        <div class="mt-8 space-y-8">
+          {
+            headings.length > 0 && (
+              <div>
+                <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2 mb-4">
+                  <AlignLeftIcon className="w-4 h-4" />
+                  On this page
+                </h3>
+                <nav class="text-xs border-l border-[rgb(var(--ec-page-border))]">
+                  {headings.map((heading) => {
+                    const level = heading.depth > 2 ? heading.depth : 1;
+                    if (heading.depth > 3) {
+                      return null;
+                    }
                     return (
-                      <a href={badge.url || '#'} class="pb-2">
-                        <span id={badge.id || ''} class={`${getCustomDocBadgeClasses(badge)} mr-2`}>
-                          {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
-                          {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
-                          <span>{badge.content}</span>
-                        </span>
+                      <a
+                        href={`#${heading.slug}`}
+                        class="block py-1.5 pr-2.5 leading-5 text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-border))] hover:text-[rgb(var(--ec-page-text))] border-l-2 border-transparent -ml-px transition-all duration-200"
+                        style={`padding-left: ${level * 0.75}rem`}
+                      >
+                        {heading.text}
                       </a>
                     );
                   })}
-                </div>
-              )
-            }
-          </div>
-        </div>
-        <div class="flex-auto prose py-8 max-w-none">
-          <Content components={{ ...mdxComponents(props) }} />
-        </div>
-
-        {
-          nodeGraphs.length > 0 &&
-            nodeGraphs.map((nodeGraph: any) => {
-              const collection = resourceToCollectionMap[nodeGraph.type as keyof typeof resourceToCollectionMap];
-              return (
-                <NodeGraph
-                  id={nodeGraph.id}
-                  version={nodeGraph.version}
-                  collection={collection}
-                  title={nodeGraph.title}
-                  mode="simple"
-                  linksToVisualiser={true}
-                  href={
-                    isVisualiserEnabled()
-                      ? {
-                          label: 'Open in Visualiser',
-                          url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
-                        }
-                      : undefined
-                  }
-                />
-              );
-            })
-        }
-
-        <!-- Previous / Next Navigation -->
-        <div class="py-8 border-t border-[rgb(var(--ec-page-border))] mt-8">
-          <div class="flex flex-col sm:flex-row justify-between w-full gap-4">
-            {
-              prev && (
-                <a
-                  href={buildUrl(`/docs/custom/${prev.slug}`)}
-                  class="group flex flex-col border border-[rgb(var(--ec-page-border))] rounded-lg p-4 hover:border-[rgb(var(--ec-content-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors w-full sm:w-1/2"
-                >
-                  <span class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-1">Previous</span>
-                  <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">
-                    {prev.label}
-                  </span>
-                </a>
-              )
-            }
-
-            {!prev && <div class="w-full sm:w-1/2" />}
-
-            {
-              next && (
-                <a
-                  href={buildUrl(`/docs/custom/${next.slug}`)}
-                  class="group flex flex-col items-end text-right border border-[rgb(var(--ec-page-border))] rounded-lg p-4 hover:border-[rgb(var(--ec-content-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors w-full sm:w-1/2"
-                >
-                  <span class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-1">Next</span>
-                  <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">
-                    {next.label}
-                  </span>
-                </a>
-              )
-            }
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- Right Sidebar TOC -->
-    <aside
-      class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] p-6 flex-shrink-0 py-2"
-    >
-      <div class="py-4">
-        <div>
+                </nav>
+              </div>
+            )
+          }
           {
             ownersList.length > 0 && (
-              <OwnersList
-                title={`Document Owners (${ownersList.length})`}
-                emptyMessage={`This page does not have any documented owners.`}
-                owners={ownersList}
-                client:load
-              />
+              <div>
+                <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize mb-4">
+                  {`Document Owners (${ownersList.length})`}
+                </h3>
+                <div class="space-y-2">
+                  {ownersList.map((owner) => (
+                    <a
+                      href={owner.href}
+                      class="flex items-center gap-2 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+                    >
+                      {owner.type === 'users' ? (
+                        <UserIcon className="h-4 w-4 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
+                      ) : (
+                        <UsersIcon className="h-4 w-4 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
+                      )}
+                      <span class="truncate">{owner.label}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
             )
           }
         </div>
-        <h3 class="text-sm text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2">
-          <AlignLeftIcon className="w-4 h-4" />
-          On this page
-        </h3>
-        <nav class="space-y-1 text-sm py-4">
-          {
-            headings.map((heading) => {
-              if (heading.depth > 3) {
-                return null;
-              }
-              return (
-                <a
-                  href={`#${heading.slug}`}
-                  class={`block text-[12px] py-0.5 ${heading.depth === 1 ? 'font-light' : ''} text-[rgb(var(--ec-page-text-muted))] hover:text-primary-600`}
-                  style={`padding-left: ${(heading.depth - 1) * 8}px`}
-                >
-                  {heading.text}
-                </a>
-              );
-            })
-          }
-        </nav>
-      </div>
-    </aside>
+      </aside>
+    </div>
   </div>
 </VerticalSideBarLayout>
 
 <style is:global>
+  :root {
+    --ec-custom-docs-sidebar-width: 20rem;
+  }
+
+  #eventcatalog-header {
+    left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-custom-docs-sidebar-width, 20rem)) !important;
+  }
+
+  .custom-docs-shell {
+    margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1);
+    margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);
+  }
+
   .mermaid svg {
     margin: 1em auto 2em;
   }
@@ -248,6 +282,10 @@ const getCustomDocBadgeClasses = (badge: any) => {
   /* TOC active state - uses accent CSS variable */
   .toc-active-text {
     color: rgb(var(--ec-accent));
+  }
+
+  .toc-active-border {
+    border-color: rgb(var(--ec-accent));
   }
 </style>
 
@@ -275,16 +313,16 @@ const getCustomDocBadgeClasses = (badge: any) => {
       // Function to highlight a TOC item
       function highlightTocItem(id: string) {
         // Remove active class from all links
-        document.querySelectorAll('.active-toc-item').forEach((link) => {
-          link.classList.remove('active-toc-item', 'toc-active-text', 'font-light');
-          link.classList.add('text-gray-400');
+        document.querySelectorAll('#eventcatalog-docs-sidebar .active-toc-item').forEach((link) => {
+          link.classList.remove('active-toc-item', 'toc-active-text', 'font-medium', 'toc-active-border');
+          link.classList.add('border-transparent');
         });
 
         // Add active class to current link
-        const tocLink = document.querySelector(`nav a[href="#${id}"]`);
+        const tocLink = document.querySelector(`#eventcatalog-docs-sidebar nav a[href="#${id}"]`);
         if (tocLink) {
-          tocLink.classList.add('active-toc-item', 'toc-active-text', 'font-light');
-          tocLink.classList.remove('text-gray-400');
+          tocLink.classList.add('active-toc-item', 'toc-active-text', 'font-medium', 'toc-active-border');
+          tocLink.classList.remove('border-transparent');
 
           // Scroll the highlighted item into view with a small delay to ensure DOM updates first
           setTimeout(() => {
@@ -343,7 +381,7 @@ const getCustomDocBadgeClasses = (badge: any) => {
       }
 
       // Add click event listeners to all TOC links
-      const tocLinks = document.querySelectorAll('nav a[href^="#"]');
+      const tocLinks = document.querySelectorAll('#eventcatalog-docs-sidebar nav a[href^="#"]');
       tocLinks.forEach((link) => {
         link.addEventListener('click', (e) => {
           // Get the ID from the href attribute

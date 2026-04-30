@@ -7,13 +7,15 @@ export const prerender = false;
 ---
 
 <VerticalSideBarLayout title="Fields Explorer - EventCatalog" showNestedSideBar={false}>
-  <main class="flex docs-layout h-[calc(100vh-var(--header-height,0px)-64px)] bg-[rgb(var(--ec-page-bg))]">
-    <div class="flex docs-layout w-full h-full">
-      <div class="w-full flex flex-col h-full">
-        <div class="w-full max-w-none! h-full flex flex-col overflow-hidden">
-          <FieldsExplorer client:load isScaleEnabled={isEventCatalogScaleEnabled()} />
-        </div>
-      </div>
-    </div>
+  <style is:global>
+    #eventcatalog-header {
+      left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-fields-sidebar-width, 320px)) !important;
+    }
+  </style>
+  <main
+    class="min-h-0 overflow-hidden bg-[rgb(var(--ec-page-bg))]"
+    style="--ec-fields-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+  >
+    <FieldsExplorer client:load isScaleEnabled={isEventCatalogScaleEnabled()} />
   </main>
 </VerticalSideBarLayout>

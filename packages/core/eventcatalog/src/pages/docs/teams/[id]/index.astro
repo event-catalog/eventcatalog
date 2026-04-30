@@ -63,9 +63,13 @@ const pageTitle = `Team | ${props.data.name}`;
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+  <main
+    class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]"
+    data-pagefind-body
+    data-pagefind-meta={`title:${pageTitle}`}
+  >
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+      <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
         <div class="border-b border-[rgb(var(--ec-page-border))] pb-6">
           <div class="flex justify-start">
             <div class="flex flex-col justify-between space-y-3">
@@ -146,8 +150,11 @@ const pageTitle = `Team | ${props.data.name}`;
           <Content components={components(props)} />
         </div>
       </div>
-      <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2" data-pagefind-ignore>
-        <div class="sticky top-28 left-0 h-full overflow-y-auto pr-6 py-4">
+      <aside
+        class="hidden xl:block sticky top-[5.5rem] self-start w-[280px] max-h-[calc(100vh-5.5rem)] overflow-y-auto py-2 flex-shrink-0 pr-10 bg-[rgb(var(--ec-page-bg))]"
+        data-pagefind-ignore
+      >
+        <div class="py-2">
           {
             ownedDomainsList.length > 0 && (
               <PillListFlat

@@ -53,8 +53,8 @@ const getColor = (collection: string) => {
 ---
 
 <VerticalSideBarLayout title={title} description={description}>
-  <div class="">
-    <div class="">
+  <div class="visualiser-full-bleed">
+    <div>
       <!-- <div class="hidden md:block">
         <aside class="sm:fixed grow w-56 xl:w-[19em] overflow-y-auto h-full z-10 pb-20" id="visualiser-navigation">
           <div class="w-full">
@@ -144,6 +144,11 @@ const getColor = (collection: string) => {
 </script>
 
 <style>
+  .visualiser-full-bleed {
+    margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1);
+    margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);
+  }
+
   #visualiser-navigation {
     transform: translateX(0);
   }

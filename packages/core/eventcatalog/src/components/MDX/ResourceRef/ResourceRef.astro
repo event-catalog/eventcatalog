@@ -248,15 +248,25 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
         <a
           href={href}
           class:list={[
-            'resource-ref-trigger underline decoration-dotted hover:decoration-solid underline-offset-2 font-medium transition-colors',
+            'resource-ref-trigger inline-flex items-center gap-1 px-1 -mx-1 rounded font-medium underline decoration-dotted decoration-2 underline-offset-[3px] transition-colors',
             isDeprecated
-              ? 'text-amber-600 decoration-amber-500/50'
-              : 'text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))]',
+              ? 'text-amber-700 dark:text-amber-400 decoration-amber-500/60'
+              : 'text-[rgb(var(--ec-accent-text))] decoration-[rgb(var(--ec-primary))] hover:bg-[rgb(var(--ec-accent-subtle))]',
           ]}
           data-tooltip-id={tooltipId}
         >
-          {resource?.data?.name || resourceId}
-          {isDeprecated && ' (deprecated)'}
+          <svg
+            class="w-3.5 h-3.5 flex-shrink-0 text-[rgb(var(--ec-primary))]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.75"
+            set:html={iconPath}
+          />
+          <span>
+            {resource?.data?.name || resourceId}
+            {isDeprecated && ' (deprecated)'}
+          </span>
         </a>
         <span
           id={tooltipId}

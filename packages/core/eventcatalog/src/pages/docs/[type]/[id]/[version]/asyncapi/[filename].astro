@@ -149,7 +149,11 @@ const pagefindAttributes =
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
-  <div {...pagefindAttributes} class="relative">
+  <div
+    {...pagefindAttributes}
+    class="relative"
+    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);"
+  >
     {
       // Currently, Pagefind does not index metadata (such as the title),
       // so we need to ensure it is included as text on the page.
@@ -173,7 +177,7 @@ const pagefindAttributes =
         </div>
       )
     }
-    <div id="asyncapi" class="not-prose md:pr-14" set:html={renderedComponent} />
+    <div id="asyncapi" class="not-prose" set:html={renderedComponent} />
   </div>
 </VerticalSideBarLayout>
 

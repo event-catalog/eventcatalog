@@ -9,6 +9,8 @@ import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
 import ThemeToggle from './ThemeToggle';
 
+const { showNestedSideBar = true } = Astro.props;
+
 let session = null;
 if (isAuthEnabled()) {
   session = await getSession(Astro.request);
@@ -25,26 +27,14 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 
 <nav
   id="eventcatalog-header"
-  class="fixed top-0 left-0 right-0 h-header bg-[rgb(var(--ec-header-bg))] border-b border-[rgb(var(--ec-header-border))] py-3 font-bold text-xl z-10 text-[rgb(var(--ec-header-text))]"
+  class="fixed top-0 right-0 h-[60px] bg-[rgb(var(--ec-header-bg))] border-b border-[rgb(var(--ec-header-border))] py-3 font-bold text-xl z-50 text-[rgb(var(--ec-header-text))]"
+  style={showNestedSideBar
+    ? 'left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-sidebar-panel-width, 20rem));'
+    : 'left: var(--ec-vertical-nav-width, 14rem);'}
 >
-  <div class="px-4 sm:px-4 lg:px-4">
+  <div class="px-6">
     <div class="flex justify-between items-center">
-      <div class="flex-shrink-0 flex items-center w-3/12 lg:w-[360px]">
-        <a href={buildUrl(catalog.landingPage || '/')} class="flex space-x-2 items-center group">
-          {
-            logo.src && logo.src !== '/' && (
-              <img alt={logo.alt} src={buildUrl(logo.src, true)} class="w-8 h-8 transition-transform group-hover:scale-105" />
-            )
-          }
-          {
-            logo.text && (
-              <span class="hidden sm:inline-block text-[1em] transition-colors group-hover:text-gray-600">{logo.text}</span>
-            )
-          }
-        </a>
-      </div>
-
-      <div class="hidden lg:flex flex-grow -ml-1 items-center">
+      <div class="hidden lg:flex flex-grow items-center">
         <div class="w-full max-w-xl">
           <Search />
         </div>
@@ -211,7 +201,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
   </div>
 </nav>
 
-<div id="eventcatalog-header-spacer" class="h-header"></div>
+<div id="eventcatalog-header-spacer" class="h-[60px]"></div>
 <!-- Spacer to prevent content from being hidden under the fixed header -->
 
 <script>

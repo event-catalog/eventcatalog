@@ -239,7 +239,7 @@ export function CopyPageMenu({
         <button
           type="button"
           onClick={handleDefaultAction}
-          className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-[rgb(var(--ec-dropdown-text))] bg-[rgb(var(--ec-dropdown-bg))] rounded-l-md hover:bg-[rgb(var(--ec-dropdown-hover))] focus:z-10 focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap px-4 py-1.5 text-sm font-medium text-[rgb(var(--ec-dropdown-text))] bg-[rgb(var(--ec-page-bg))] rounded-l-md hover:bg-[rgb(var(--ec-dropdown-hover))] focus:z-10 focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
         >
           <defaultAction.icon className="w-4 h-4" />
           {buttonText}
@@ -248,7 +248,7 @@ export function CopyPageMenu({
         <DropdownMenu.Trigger asChild>
           <button
             type="button"
-            className="inline-flex items-center justify-center px-1.5 py-1.5 text-sm font-medium text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-dropdown-bg))] rounded-r-md border-l border-[rgb(var(--ec-dropdown-border))] hover:bg-[rgb(var(--ec-dropdown-hover))] focus:z-10 focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
+            className="inline-flex items-center justify-center px-2.5 py-1.5 text-sm font-medium text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-page-bg))] rounded-r-md border-l border-[rgb(var(--ec-dropdown-border))] hover:bg-[rgb(var(--ec-dropdown-hover))] focus:z-10 focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
             aria-label="More options"
           >
             <ChevronDownIcon className="w-4 h-4" />

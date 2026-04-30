@@ -2,13 +2,21 @@
 
 ---
 
-<div class="accordian-group border border-gray-200 rounded-md shadow-xs accordion my-2">
+<div
+  class="accordion-group border border-[rgb(var(--ec-page-border))] rounded-lg overflow-hidden bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] my-3"
+>
   <slot />
 </div>
 
 <style is:global>
-  .accordian-group .accordion {
+  .accordion-group .accordion {
     border: none;
-    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+    background: transparent;
+  }
+  .accordion-group .accordion + .accordion {
+    border-top: 1px solid rgb(var(--ec-page-border));
   }
 </style>

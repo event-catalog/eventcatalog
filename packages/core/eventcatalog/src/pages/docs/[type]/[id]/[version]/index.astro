@@ -284,9 +284,9 @@ nodeGraphs.push({
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex docs-layout h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
-    <div class="flex docs-layout w-full pl-16">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 bg-[rgb(var(--ec-page-bg))]">
+  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
+    <div class="flex docs-layout w-full">
+      <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
         <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-2">
           <div>
             <div class="flex justify-between items-center">
@@ -332,6 +332,33 @@ nodeGraphs.push({
                 />
               </div>
             </div>
+
+            <h2 class="text-base pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
+            {
+              badges && (
+                <div class="flex flex-wrap gap-3 py-4">
+                  {badges.map((badge: any) => {
+                    return (
+                      <span
+                        id={badge.id || ''}
+                        class={`
+                          inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+                          bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
+                          text-[rgb(var(--ec-page-text))]
+                          shadow-xs
+                          ${badge.class ? badge.class : ''}
+                        `}
+                      >
+                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                        {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
+                        <span>{badge.content}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              )
+            }
+
             {
               isMarkedAsDeprecated && hasDeprecated && (
                 <Admonition
@@ -363,32 +390,6 @@ nodeGraphs.push({
                     {deprecatedMessage && <div class="prose prose-sm max-w-none" set:html={marked.parse(deprecatedMessage)} />}
                   </div>
                 </Admonition>
-              )
-            }
-
-            <h2 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
-            {
-              badges && (
-                <div class="flex flex-wrap gap-3 py-4">
-                  {badges.map((badge: any) => {
-                    return (
-                      <span
-                        id={badge.id || ''}
-                        class={`
-                          inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                          bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
-                          text-[rgb(var(--ec-page-text))]
-                          shadow-xs
-                          ${badge.class ? badge.class : ''}
-                        `}
-                      >
-                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
-                        {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
-                        <span>{badge.content}</span>
-                      </span>
-                    );
-                  })}
-                </div>
               )
             }
 
@@ -445,7 +446,7 @@ nodeGraphs.push({
           }
         </div>
 
-        <div class="prose prose-md py-4 w-full">
+        <div class="prose prose-md py-4 w-full text-[15px]">
           <Content components={components(props)} />
         </div>
         <div data-pagefind-ignore>
@@ -501,9 +502,9 @@ nodeGraphs.push({
       </div>
       <aside
         id="eventcatalog-docs-sidebar"
-        class="hidden xl:block sticky top-0 pb-10 w-[280px] overflow-y-auto py-2 flex-shrink-0 pr-10 bg-[rgb(var(--ec-page-bg))]"
+        class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-10 bg-[rgb(var(--ec-page-bg))]"
       >
-        <div class="mt-4 space-y-8">
+        <div class="mt-8 space-y-8">
           {
             headings.length > 0 && (
               <div>

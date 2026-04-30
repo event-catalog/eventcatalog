@@ -3,9 +3,10 @@ import { render } from 'astro:content';
 
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import components from '@components/MDX/components';
+import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import { buildUrl } from '@utils/url-builder';
 import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
-import { isResourceDocsEnabled } from '@utils/feature';
+import { isEventCatalogChatEnabled, isResourceDocsEnabled } from '@utils/feature';
 import { getIcon } from '@utils/badges';
 import { collectionToResourceMap } from '@utils/collections/util';
 
@@ -33,6 +34,8 @@ const docsBasePath = `/docs/${props.data.resourceCollection}/${props.data.resour
 const singularResourceName =
   collectionToResourceMap[props.data.resourceCollection as keyof typeof collectionToResourceMap] ??
   props.data.resourceCollection.slice(0, props.data.resourceCollection.length - 1);
+const chatEnabled = isEventCatalogChatEnabled();
+const chatQuery = `Tell me about the ${props.data.type} doc "${title}" for ${props.data.resourceId} (version ${props.data.version})`;
 
 const pagefindAttributes =
   props.data.version === props.data.latestVersion
@@ -44,35 +47,37 @@ const pagefindAttributes =
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex docs-layout h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
-    <div class="flex docs-layout w-full pl-16">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 bg-[rgb(var(--ec-page-bg))]">
-        <div class="border-b border-[rgb(var(--ec-page-border))] pb-4">
-          <p class="text-xs uppercase tracking-wide text-[rgb(var(--ec-page-text-muted))]">
-            <a
-              href={buildUrl(`/docs/${props.data.resourceCollection}/${props.data.resourceId}/${props.data.resourceVersion}`)}
-              class="hover:underline"
-            >
-              {singularResourceName}: {props.data.resourceId}
-            </a>
-          </p>
-          <div class="flex items-center gap-2 pt-1">
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{title}</h2>
-            <span
-              class="text-xs rounded-md px-2 py-1 bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] border border-[rgb(var(--ec-page-border))]"
-            >
-              v{props.data.version}
-              {props.data.version === props.data.latestVersion && ' (latest)'}
-            </span>
+  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
+    <div class="flex docs-layout w-full">
+      <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-2">
+          <div>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{title}</h2>
+              </div>
+              <div class="hidden lg:block">
+                <CopyAsMarkdown
+                  client:only="react"
+                  schemas={[]}
+                  chatQuery={chatQuery}
+                  chatEnabled={chatEnabled}
+                  editUrl=""
+                  markdownDownloadEnabled={true}
+                  rssFeedEnabled={false}
+                  preferChatAsDefault={false}
+                />
+              </div>
+            </div>
           </div>
           {
             props.data.summary && (
-              <p class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</p>
+              <p class="text-base pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</p>
             )
           }
           {
             badges.length > 0 && (
-              <div class="flex flex-wrap gap-3 pt-4">
+              <div class="flex flex-wrap gap-3 py-4">
                 {badges.map((badge: any) => (
                   <span
                     class={`
@@ -128,23 +133,26 @@ const pagefindAttributes =
           <Content components={components(props)} />
         </div>
       </div>
-      <aside class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] py-2">
-        <div class="sticky top-28 left-0 h-full overflow-y-auto px-6 py-4">
-          <h3 class="text-sm text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2">
+      <aside
+        class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-10 bg-[rgb(var(--ec-page-bg))]"
+      >
+        <div class="mt-8 space-y-8">
+          <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2 mb-4">
             <AlignLeftIcon className="w-4 h-4" />
             On this page
           </h3>
-          <nav class="space-y-1 text-sm py-4">
+          <nav class="text-xs border-l border-[rgb(var(--ec-page-border))]">
             {
               headings.map((heading) => {
+                const level = heading.depth > 2 ? heading.depth : 1;
                 if (heading.depth > 3) {
                   return null;
                 }
                 return (
                   <a
                     href={`#${heading.slug}`}
-                    class={`block text-[12px] py-0.5 ${heading.depth === 1 ? 'font-light' : ''} text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]`}
-                    style={`padding-left: ${(heading.depth - 1) * 8}px`}
+                    class={`block py-1.5 pr-2.5 leading-5 text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-border))] hover:text-[rgb(var(--ec-page-text))] border-l-2 border-transparent -ml-px transition-all duration-200`}
+                    style={`padding-left: ${level * 0.75}rem`}
                   >
                     {heading.text}
                   </a>
@@ -189,7 +197,99 @@ const pagefindAttributes =
     overflow: auto;
   }
 
+  .toc-active-text {
+    color: rgb(var(--ec-accent));
+  }
+
+  .toc-active-border {
+    border-color: rgb(var(--ec-accent));
+  }
+
   .version-item:hover {
     background: linear-gradient(to left, rgb(var(--ec-accent-gradient-from)), rgb(var(--ec-accent-gradient-to)));
   }
 </style>
+
+<script>
+  // @ts-nocheck
+  function setupObserver() {
+    try {
+      const observerOptions = {
+        rootMargin: '0px 0px -40% 0px',
+        threshold: 0.1,
+      };
+
+      let observerPaused = false;
+
+      function highlightTocItem(id) {
+        document.querySelectorAll('.active-toc-item').forEach((link) => {
+          link.classList.remove('active-toc-item', 'toc-active-text', 'font-medium', 'toc-active-border');
+          link.classList.add('border-transparent');
+        });
+
+        const tocLink = document.querySelector(`nav a[href="#${id}"]`);
+        if (tocLink) {
+          tocLink.classList.add('active-toc-item', 'toc-active-text', 'font-medium', 'toc-active-border');
+          tocLink.classList.remove('border-transparent');
+
+          setTimeout(() => {
+            tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+          }, 10);
+        }
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        if (observerPaused) return;
+
+        entries.forEach((entry) => {
+          const id = entry.target.getAttribute('id');
+          if (entry.isIntersecting && id) {
+            highlightTocItem(id);
+          }
+        });
+      }, observerOptions);
+
+      const prose = document.querySelector('.prose');
+      if (!prose) return;
+
+      const headings = prose.querySelectorAll('h1[id], h2[id], h3[id]');
+
+      if (headings.length > 0) {
+        headings.forEach((heading) => observer.observe(heading));
+      } else {
+        const allHeadings = prose.querySelectorAll('h1, h2, h3');
+        allHeadings.forEach((heading) => {
+          if (!heading.id) {
+            const text = heading.textContent || '';
+            heading.id = text
+              .toLowerCase()
+              .replace(/[^\w\s-]/g, '')
+              .replace(/\s+/g, '-');
+          }
+          observer.observe(heading);
+        });
+      }
+
+      const tocLinks = document.querySelectorAll('nav a[href^="#"]');
+      tocLinks.forEach((link) => {
+        link.addEventListener('click', () => {
+          const hrefAttr = link.getAttribute('href');
+          if (!hrefAttr) return;
+
+          const id = hrefAttr.substring(1);
+          highlightTocItem(id);
+
+          observerPaused = true;
+          setTimeout(() => {
+            observerPaused = false;
+          }, 1000);
+        });
+      });
+    } catch (error) {
+      console.error('Error setting up TOC observer:', error);
+    }
+  }
+
+  setupObserver();
+  document.addEventListener('astro:page-load', setupObserver);
+</script>

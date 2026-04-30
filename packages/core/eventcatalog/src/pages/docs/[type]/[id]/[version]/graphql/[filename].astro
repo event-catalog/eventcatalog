@@ -64,10 +64,10 @@ const pagefindAttributes =
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={`GraphQL schema for ${data.name}`}>
-  <main class="flex sm:px-8 docs-layout h-full" {...pagefindAttributes}>
+  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-4">
+      <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-2">
           <div>
             <div class="flex justify-between items-start">
               <div class="flex-1">
@@ -82,21 +82,24 @@ const pagefindAttributes =
             {
               badges && (
                 <div class="flex flex-wrap gap-3 py-4">
-                  {badges.map((badge: any) => (
-                    <span
-                      id={badge.id || ''}
-                      class={`
-                        inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                        bg-${badge.backgroundColor || 'gray'}-500/10 border border-${badge.backgroundColor || 'gray'}-500/20
-                        text-${badge.textColor || 'gray'}-500
-                        shadow-xs transition-all duration-200 ease-out
-                      `}
-                    >
-                      {badge.icon && <badge.icon className={`w-4 h-4 flex-shrink-0`} />}
-                      {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
-                      <span>{badge.content}</span>
-                    </span>
-                  ))}
+                  {badges.map((badge: any) => {
+                    return (
+                      <span
+                        id={badge.id || ''}
+                        class={`
+                          inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+                          bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
+                          text-[rgb(var(--ec-page-text))]
+                          shadow-xs
+                          ${badge.class ? badge.class : ''}
+                        `}
+                      >
+                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                        {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
+                        <span>{badge.content}</span>
+                      </span>
+                    );
+                  })}
                 </div>
               )
             }

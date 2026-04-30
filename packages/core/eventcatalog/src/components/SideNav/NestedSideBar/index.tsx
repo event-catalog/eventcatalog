@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ChevronRight, ChevronLeft, ChevronDown, Home, Star, FileQuestion } from 'lucide-react';
 import type { NavNode, ChildRef } from '@stores/sidebar-store/state';
-import SearchBar from './SearchBar';
 import { saveState, loadState, saveCollapsedSections, loadCollapsedSections } from './storage';
 import { useStore } from '@nanostores/react';
 import { sidebarStore } from '@stores/sidebar-store';
@@ -61,7 +60,6 @@ export default function NestedSideBar() {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [showPathPreview, setShowPathPreview] = useState(false);
   const [showFullPath, setShowFullPath] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
 
   // Build a lookup map for faster URL navigation
   // Map format: "type:id" -> "nodeKey"
@@ -503,13 +501,13 @@ export default function NestedSideBar() {
   // Show loading state if no data yet
   if (!data || roots.length === 0) {
     return (
-      <aside className="w-[315px] h-full flex flex-col font-sans">
+      <aside className="w-full min-h-full flex-1 flex flex-col font-sans bg-[rgb(var(--ec-page-bg))]">
         {/* Search skeleton */}
-        <div className="px-3 py-3 border-b border-[rgb(var(--ec-content-border))]">
-          <div className="h-9 bg-[rgb(var(--ec-content-hover))] rounded-lg animate-pulse" />
+        <div className="px-4 py-3 border-b border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-page-bg))]">
+          <div className="h-10 bg-[rgb(var(--ec-content-hover))] rounded-xl animate-pulse" />
         </div>
         {/* Content skeleton */}
-        <div className="p-3 space-y-3">
+        <div className="p-4 space-y-3">
           {/* Group header skeleton */}
           <div className="flex items-center gap-2 px-2 py-1.5">
             <div className="w-3.5 h-3.5 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
@@ -666,32 +664,6 @@ export default function NestedSideBar() {
   const isTopLevel = navigationStack.length === 1;
 
   /**
-   * Navigate to a search result
-   */
-  const navigateToSearchResult = (nodeKey: string, node: NavNode) => {
-    // If it's a leaf node with href, navigate directly
-    if (node.href && (!node.pages || node.pages.length === 0)) {
-      window.location.href = node.href;
-      return;
-    }
-
-    // If it has children, drill down to it
-    if (node.pages && node.pages.length > 0) {
-      setSlideDirection('forward');
-      setAnimationKey((prev) => prev + 1);
-      setNavigationStack([
-        { key: null, entries: roots, title: 'Documentation' },
-        { key: nodeKey, entries: node.pages, title: node.title, badge: node.badge },
-      ]);
-    }
-
-    setIsSearching(false);
-    // Reset hover states
-    setShowPathPreview(false);
-    setShowFullPath(false);
-  };
-
-  /**
    * Render a list of child refs (resolving keys as needed)
    */
   const renderEntries = (refs: ChildRef[]) => {
@@ -779,8 +751,8 @@ export default function NestedSideBar() {
             className={cn(
               'tracking-tight',
               isSubtleGroup
-                ? 'text-[12px] text-[rgb(var(--ec-content-text-muted))] font-medium'
-                : 'text-[13px] text-[rgb(var(--ec-content-text))] font-semibold'
+                ? 'text-[11px] text-[rgb(var(--ec-content-text-muted))] font-medium'
+                : 'text-[12px] text-[rgb(var(--ec-content-text))] font-semibold'
             )}
           >
             {group.title}
@@ -891,7 +863,7 @@ export default function NestedSideBar() {
           {item.leftIcon && <img src={resolveIconUrl(item.leftIcon)} alt="" loading="lazy" className="w-4 h-4 flex-shrink-0" />}
           <span
             className={cn(
-              'text-[13px] truncate',
+              'text-[12px] truncate',
               isActive
                 ? 'text-[rgb(var(--ec-accent-text))] font-medium'
                 : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
@@ -924,10 +896,10 @@ export default function NestedSideBar() {
     );
 
     const baseClasses =
-      'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
+      'group flex items-center justify-between w-full px-3 py-2 border border-transparent cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
     const activeClasses = isActive
-      ? 'bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] rounded-none!'
+      ? 'border-[rgb(var(--ec-accent)/0.16)] bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] shadow-sm'
       : '';
 
     // Leaf item with href → render as link
@@ -966,251 +938,252 @@ export default function NestedSideBar() {
   };
 
   return (
-    <aside className="w-[315px] h-full flex flex-col font-sans">
-      {/* Search */}
-      <SearchBar nodes={nodes} onSelectResult={navigateToSearchResult} onSearchChange={setIsSearching} />
+    <aside className="w-full min-h-full flex-1 flex flex-col font-sans bg-[rgb(var(--ec-page-bg))]">
+      {isTopLevel && (
+        <div className="px-4 py-[13.5px] bg-[rgb(var(--ec-page-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
+          <div className="flex items-center w-full px-2 py-1.5">
+            <span className="text-[12px] font-semibold text-[rgb(var(--ec-content-text))] truncate">All resources</span>
+          </div>
+        </div>
+      )}
 
-      {/* Back Navigation and Nav Content - hidden when showing search results */}
-      {!isSearching && (
-        <>
-          {!isTopLevel && (
-            <div
-              className="px-3 py-2 bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
-              onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
-              onMouseLeave={() => {
-                setShowPathPreview(false);
-                setShowFullPath(false);
-              }}
+      {!isTopLevel && (
+        <div
+          className="px-4 py-[13.5px] bg-[rgb(var(--ec-page-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
+          onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
+          onMouseLeave={() => {
+            setShowPathPreview(false);
+            setShowFullPath(false);
+          }}
+        >
+          <button
+            onClick={navigateBack}
+            disabled={isTopLevel}
+            className={cn(
+              'flex items-center gap-2 w-full px-2 py-1.5 -mx-2 rounded-md transition-colors',
+              !isTopLevel && 'hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer',
+              isTopLevel && 'cursor-default'
+            )}
+          >
+            <span
+              className={cn(
+                'flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] transition-all',
+                isTopLevel && 'opacity-0',
+                !isTopLevel && 'group-hover:-translate-x-0.5'
+              )}
             >
-              <button
-                onClick={navigateBack}
-                disabled={isTopLevel}
+              <ChevronLeft className="w-4 h-4" />
+            </span>
+            <span className="text-[12px] font-semibold text-[rgb(var(--ec-content-text))] truncate">{currentLevel.title}</span>
+            {currentLevel.badge && (
+              <span
                 className={cn(
-                  'flex items-center gap-2 w-full px-2 py-1.5 -mx-2 rounded-md transition-colors',
-                  !isTopLevel && 'hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer',
-                  isTopLevel && 'cursor-default'
+                  'ml-auto px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded',
+                  getBadgeClasses(currentLevel.badge)
                 )}
               >
-                <span
-                  className={cn(
-                    'flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] transition-all',
-                    isTopLevel && 'opacity-0',
-                    !isTopLevel && 'group-hover:-translate-x-0.5'
-                  )}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </span>
-                <span className="text-sm font-semibold text-[rgb(var(--ec-content-text))] truncate">{currentLevel.title}</span>
-                {currentLevel.badge && (
-                  <span
-                    className={cn(
-                      'ml-auto px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide rounded',
-                      getBadgeClasses(currentLevel.badge)
-                    )}
-                  >
-                    {currentLevel.badge}
-                  </span>
-                )}
-              </button>
+                {currentLevel.badge}
+              </span>
+            )}
+          </button>
 
-              {/* Path Preview Dropdown */}
-              {showPathPreview && navigationStack.length > 1 && (
-                <div className="absolute left-0 right-0 top-full bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))] shadow-lg z-20">
-                  <div className="px-3 py-2">
-                    <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide mb-2">
-                      Navigation Path
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      {(() => {
-                        const SHOW_FIRST = 2; // Show first N items
-                        const SHOW_LAST = 2; // Show last N items (including current)
-                        const totalItems = navigationStack.length;
-                        const hiddenCount = totalItems - SHOW_FIRST - SHOW_LAST;
-                        const shouldTruncate = hiddenCount > 0 && !showFullPath;
-
-                        const renderPathItem = (level: NavigationLevel, index: number, displayIndex: number) => {
-                          const isCurrentLevel = index === navigationStack.length - 1;
-                          return (
-                            <button
-                              key={`path-${index}`}
-                              onClick={() => navigateToLevel(index)}
-                              disabled={isCurrentLevel}
-                              className={cn(
-                                'flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors',
-                                !isCurrentLevel && 'hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer',
-                                isCurrentLevel && 'bg-[rgb(var(--ec-content-hover))] cursor-default'
-                              )}
-                              style={{ paddingLeft: `${displayIndex * 12 + 8}px` }}
-                            >
-                              {index === 0 ? (
-                                <Home className="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))] flex-shrink-0" />
-                              ) : (
-                                <ChevronRight className="w-3.5 h-3.5 text-[rgb(var(--ec-content-text-muted))] flex-shrink-0" />
-                              )}
-                              <span
-                                className={cn(
-                                  'text-sm truncate',
-                                  isCurrentLevel
-                                    ? 'font-medium text-[rgb(var(--ec-content-text))]'
-                                    : 'text-[rgb(var(--ec-content-text-secondary))]'
-                                )}
-                              >
-                                {level.title}
-                              </span>
-                              {level.badge && (
-                                <span
-                                  className={cn(
-                                    'ml-auto px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded flex-shrink-0',
-                                    getBadgeClasses(level.badge)
-                                  )}
-                                >
-                                  {level.badge}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        };
-
-                        if (shouldTruncate) {
-                          return (
-                            <>
-                              {/* First N items */}
-                              {navigationStack.slice(0, SHOW_FIRST).map((level, index) => renderPathItem(level, index, index))}
-
-                              {/* Collapsed middle section */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowFullPath(true);
-                                }}
-                                className="flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer"
-                                style={{ paddingLeft: `${SHOW_FIRST * 12 + 8}px` }}
-                              >
-                                <span className="flex items-center justify-center w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))]">
-                                  <span className="text-xs">•••</span>
-                                </span>
-                                <span className="text-sm text-[rgb(var(--ec-content-text-muted))]">
-                                  {hiddenCount} more level{hiddenCount > 1 ? 's' : ''}
-                                </span>
-                                <ChevronDown className="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))] ml-auto" />
-                              </button>
-
-                              {/* Last N items */}
-                              {navigationStack.slice(-SHOW_LAST).map((level, sliceIndex) => {
-                                const actualIndex = totalItems - SHOW_LAST + sliceIndex;
-                                return renderPathItem(level, actualIndex, SHOW_FIRST + 1 + sliceIndex);
-                              })}
-                            </>
-                          );
-                        }
-
-                        // Show full path
-                        return navigationStack.map((level, index) => renderPathItem(level, index, index));
-                      })()}
-                    </div>
-                  </div>
+          {/* Path Preview Dropdown */}
+          {showPathPreview && navigationStack.length > 1 && (
+            <div className="absolute left-0 right-0 top-full bg-[rgb(var(--ec-page-bg))] border-b border-[rgb(var(--ec-content-border))] shadow-lg z-20">
+              <div className="px-4 py-3">
+                <div className="text-[9px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide mb-2">
+                  Navigation Path
                 </div>
-              )}
-            </div>
-          )}
+                <div className="flex flex-col gap-0.5">
+                  {(() => {
+                    const SHOW_FIRST = 2; // Show first N items
+                    const SHOW_LAST = 2; // Show last N items (including current)
+                    const totalItems = navigationStack.length;
+                    const hiddenCount = totalItems - SHOW_FIRST - SHOW_LAST;
+                    const shouldTruncate = hiddenCount > 0 && !showFullPath;
 
-          {/* Navigation Content */}
-          <nav
-            key={animationKey}
-            className={cn('flex-1 overflow-y-auto overflow-x-hidden p-3', getAnimationClass())}
-            style={{
-              scrollbarWidth: 'thin',
-              scrollbarColor: 'rgb(var(--ec-content-border)) transparent',
-            }}
-          >
-            {/* Favorites Section */}
-            {favorites.length > 0 && isTopLevel && (
-              <div className="mb-6">
-                <div className="flex items-center px-2 py-1.5">
-                  <Star className="w-3.5 h-3.5 mr-2 text-amber-400 fill-current" />
-                  <span className="text-sm text-[rgb(var(--ec-content-text))] font-semibold">Favorites</span>
-                </div>
-                <div className="flex flex-col gap-0.5 border-l ml-3.5 border-amber-200">
-                  {favorites.map((fav, index) => {
-                    const node = resolveRef(fav.nodeKey);
-                    const isActive = fav.href && currentPath === fav.href;
-
-                    return (
-                      <button
-                        key={`fav-${index}`}
-                        onClick={() => navigateToFavorite(fav)}
-                        className={cn(
-                          'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-500/10 active:bg-amber-500/20',
-                          isActive && 'bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] rounded-none!'
-                        )}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    const renderPathItem = (level: NavigationLevel, index: number, displayIndex: number) => {
+                      const isCurrentLevel = index === navigationStack.length - 1;
+                      return (
+                        <button
+                          key={`path-${index}`}
+                          onClick={() => navigateToLevel(index)}
+                          disabled={isCurrentLevel}
+                          className={cn(
+                            'flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors',
+                            !isCurrentLevel && 'hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer',
+                            isCurrentLevel && 'bg-[rgb(var(--ec-content-hover))] cursor-default'
+                          )}
+                          style={{ paddingLeft: `${displayIndex * 12 + 8}px` }}
+                        >
+                          {index === 0 ? (
+                            <Home className="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))] flex-shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-3.5 h-3.5 text-[rgb(var(--ec-content-text-muted))] flex-shrink-0" />
+                          )}
                           <span
                             className={cn(
-                              'text-[14px] truncate',
-                              isActive
-                                ? 'text-[rgb(var(--ec-accent-text))] font-medium'
-                                : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
+                              'text-[12px] truncate',
+                              isCurrentLevel
+                                ? 'font-medium text-[rgb(var(--ec-content-text))]'
+                                : 'text-[rgb(var(--ec-content-text-secondary))]'
                             )}
                           >
-                            {fav.title}
+                            {level.title}
                           </span>
-                        </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {fav.badge && (
+                          {level.badge && (
                             <span
                               className={cn(
-                                'px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded',
-                                getBadgeClasses(fav.badge)
+                                'ml-auto px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-wide rounded flex-shrink-0',
+                                getBadgeClasses(level.badge)
                               )}
                             >
-                              {fav.badge}
+                              {level.badge}
                             </span>
                           )}
-                          <div
+                        </button>
+                      );
+                    };
+
+                    if (shouldTruncate) {
+                      return (
+                        <>
+                          {/* First N items */}
+                          {navigationStack.slice(0, SHOW_FIRST).map((level, index) => renderPathItem(level, index, index))}
+
+                          {/* Collapsed middle section */}
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (node) {
-                                toggleFavorite(fav.nodeKey, node);
-                              } else {
-                                // Node no longer exists, remove directly using nodeKey
-                                removeFavoriteAction(fav.nodeKey);
-                              }
+                              setShowFullPath(true);
                             }}
-                            className="flex items-center justify-center w-5 h-5 text-amber-400 hover:text-amber-500 rounded transition-colors cursor-pointer"
+                            className="flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer"
+                            style={{ paddingLeft: `${SHOW_FIRST * 12 + 8}px` }}
                           >
-                            <Star className="w-3.5 h-3.5 fill-current" />
-                          </div>
-                          {node?.pages && node.pages.length > 0 && (
-                            <span className="flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-content-text))]">
-                              <ChevronRight className="w-4 h-4" />
+                            <span className="flex items-center justify-center w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))]">
+                              <span className="text-xs">•••</span>
                             </span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
+                            <span className="text-[12px] text-[rgb(var(--ec-content-text-muted))]">
+                              {hiddenCount} more level{hiddenCount > 1 ? 's' : ''}
+                            </span>
+                            <ChevronDown className="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))] ml-auto" />
+                          </button>
+
+                          {/* Last N items */}
+                          {navigationStack.slice(-SHOW_LAST).map((level, sliceIndex) => {
+                            const actualIndex = totalItems - SHOW_LAST + sliceIndex;
+                            return renderPathItem(level, actualIndex, SHOW_FIRST + 1 + sliceIndex);
+                          })}
+                        </>
+                      );
+                    }
+
+                    // Show full path
+                    return navigationStack.map((level, index) => renderPathItem(level, index, index));
+                  })()}
                 </div>
               </div>
-            )}
-
-            {/* Empty State */}
-            {currentLevel.entries.length === 0 && favorites.length === 0 && (
-              <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-                <div className="mb-4 p-3 rounded-full bg-[rgb(var(--ec-group-icon-bg))]">
-                  <FileQuestion className="w-8 h-8 text-[rgb(var(--ec-icon-color))]" />
-                </div>
-                <h3 className="text-sm font-semibold text-[rgb(var(--ec-content-text))] mb-2">Your catalog is empty</h3>
-                <p className="text-xs text-[rgb(var(--ec-content-text-muted))] leading-relaxed max-w-[240px]">
-                  Navigation will appear here when you add resources to your EventCatalog.
-                </p>
-              </div>
-            )}
-
-            {currentLevel.entries.length > 0 && renderEntries(currentLevel.entries)}
-          </nav>
-        </>
+            </div>
+          )}
+        </div>
       )}
+
+      {/* Navigation Content */}
+      <nav
+        key={animationKey}
+        className={cn('flex-1 overflow-y-auto overflow-x-hidden p-4 px-2', getAnimationClass())}
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgb(var(--ec-content-border)) transparent',
+        }}
+      >
+        {/* Favorites Section */}
+        {favorites.length > 0 && isTopLevel && (
+          <div className="mb-6">
+            <div className="flex items-center px-2 py-1.5">
+              <Star className="w-3.5 h-3.5 mr-2 text-amber-400 fill-current" />
+              <span className="text-[12px] text-[rgb(var(--ec-content-text))] font-semibold">Favorites</span>
+            </div>
+            <div className="flex flex-col gap-0.5 border-l ml-3.5 border-amber-200">
+              {favorites.map((fav, index) => {
+                const node = resolveRef(fav.nodeKey);
+                const isActive = fav.href && currentPath === fav.href;
+
+                return (
+                  <button
+                    key={`fav-${index}`}
+                    onClick={() => navigateToFavorite(fav)}
+                    className={cn(
+                      'group flex items-center justify-between w-full px-3 py-2 border border-transparent cursor-pointer text-left transition-colors hover:bg-amber-500/10 active:bg-amber-500/20',
+                      isActive &&
+                        'border-[rgb(var(--ec-accent)/0.16)] bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] shadow-sm'
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <span
+                        className={cn(
+                          'text-[12px] truncate',
+                          isActive
+                            ? 'text-[rgb(var(--ec-accent-text))] font-medium'
+                            : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
+                        )}
+                      >
+                        {fav.title}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {fav.badge && (
+                        <span
+                          className={cn(
+                            'px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-wide rounded',
+                            getBadgeClasses(fav.badge)
+                          )}
+                        >
+                          {fav.badge}
+                        </span>
+                      )}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (node) {
+                            toggleFavorite(fav.nodeKey, node);
+                          } else {
+                            // Node no longer exists, remove directly using nodeKey
+                            removeFavoriteAction(fav.nodeKey);
+                          }
+                        }}
+                        className="flex items-center justify-center w-5 h-5 text-amber-400 hover:text-amber-500 rounded transition-colors cursor-pointer"
+                      >
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                      </div>
+                      {node?.pages && node.pages.length > 0 && (
+                        <span className="flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-content-text))]">
+                          <ChevronRight className="w-4 h-4" />
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {currentLevel.entries.length === 0 && favorites.length === 0 && (
+          <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+            <div className="mb-4 p-3 rounded-full bg-[rgb(var(--ec-group-icon-bg))]">
+              <FileQuestion className="w-8 h-8 text-[rgb(var(--ec-icon-color))]" />
+            </div>
+            <h3 className="text-[12px] font-semibold text-[rgb(var(--ec-content-text))] mb-2">Your catalog is empty</h3>
+            <p className="text-[11px] text-[rgb(var(--ec-content-text-muted))] leading-relaxed max-w-[240px]">
+              Navigation will appear here when you add resources to your EventCatalog.
+            </p>
+          </div>
+        )}
+
+        {currentLevel.entries.length > 0 && renderEntries(currentLevel.entries)}
+      </nav>
 
       {/* Animation keyframes */}
       <style>{`

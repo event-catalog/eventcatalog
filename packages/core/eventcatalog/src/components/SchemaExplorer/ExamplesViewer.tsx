@@ -73,9 +73,9 @@ export default function ExamplesViewer({ examples }: ExamplesViewerProps) {
       {/* Right: code + usage */}
       <div className="flex-1 flex flex-col min-w-0 overflow-auto">
         {/* Code window */}
-        <div className="flex flex-col rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden bg-[rgb(var(--ec-code-bg))]">
+        <div className="flex flex-col rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden bg-[rgb(var(--ec-dropdown-bg)/0.66)]">
           {/* Window title bar */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-[rgb(var(--ec-content-hover))] border-b border-[rgb(var(--ec-page-border))]">
+          <div className="flex items-center justify-between border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] px-4 py-2.5">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
@@ -121,8 +121,8 @@ export default function ExamplesViewer({ examples }: ExamplesViewerProps) {
         {/* Usage section */}
         {selected.usage && (
           <div className="flex-shrink-0 mt-3">
-            <div className="rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden bg-[rgb(var(--ec-code-bg))]">
-              <div className="flex items-center justify-between px-4 py-2 bg-[rgb(var(--ec-content-hover))] border-b border-[rgb(var(--ec-page-border))]">
+            <div className="rounded-lg border border-[rgb(var(--ec-page-border))] overflow-hidden bg-[rgb(var(--ec-dropdown-bg)/0.66)]">
+              <div className="flex items-center justify-between border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] px-4 py-2">
                 <span className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Usage</span>
                 <button
                   onClick={() => handleCopy(selected.usage!, `usage-${selected.fileName}`)}

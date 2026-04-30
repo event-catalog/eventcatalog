@@ -181,7 +181,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
   return (
     <>
       {/* Search Input */}
-      <div className="px-3 py-2 bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))]">
+      <div className="px-4 py-3 bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))]">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--ec-input-placeholder))]" />
@@ -190,7 +190,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
               placeholder="Search resources..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-9! pr-8! py-2! text-sm! bg-[rgb(var(--ec-input-bg))]! border! border-[rgb(var(--ec-input-border))]! rounded-lg! focus:outline-hidden! focus:ring-2! focus:ring-[rgb(var(--ec-accent))]! focus:border-transparent! text-[rgb(var(--ec-input-text))]! placeholder:text-[rgb(var(--ec-input-placeholder))]!"
+              className="w-full pl-9! pr-8! py-2.5! text-sm! bg-[rgb(var(--ec-input-bg))]! border! border-[rgb(var(--ec-input-border))]! rounded-xl! focus:outline-hidden! focus:ring-2! focus:ring-[rgb(var(--ec-accent))]! focus:border-transparent! text-[rgb(var(--ec-input-text))]! placeholder:text-[rgb(var(--ec-input-placeholder))]!"
             />
             {searchQuery && (
               <button
@@ -207,7 +207,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
             <button
               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
               className={cn(
-                'flex items-center justify-center w-10 h-10 rounded-lg border transition-colors',
+                'flex items-center justify-center w-10 h-10 rounded-xl border transition-colors',
                 searchFilters.size > 0
                   ? 'bg-[rgb(var(--ec-accent)/0.1)] border-[rgb(var(--ec-accent)/0.3)] text-[rgb(var(--ec-accent))]'
                   : 'bg-[rgb(var(--ec-input-bg))] border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] hover:bg-[rgb(var(--ec-content-hover))]'
