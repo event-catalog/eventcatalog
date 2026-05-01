@@ -19,6 +19,7 @@ import {
   Database,
   UserRound,
   UsersRound,
+  Settings,
 } from 'lucide-react';
 import {
   RectangleGroupIcon,
@@ -269,6 +270,15 @@ const organizationItems = [
   },
 ];
 
+const settingsItems = [
+  {
+    label: 'Settings',
+    icon: Settings,
+    href: buildUrl('/settings/general'),
+    current: currentPath.startsWith(buildUrl('/settings')),
+  },
+];
+
 const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...premiumFeatures].find((item) => item.current);
 const { title, description, showNestedSideBar = true, showHeader = true } = Astro.props;
 
@@ -336,17 +346,9 @@ const canPageBeEmbedded = isEmbedEnabled();
       }
       .vertical-nav-rail {
         width: var(--ec-vertical-nav-width);
-        border-right: 1px solid rgb(var(--ec-sidebar-border) / 1);
-        background: linear-gradient(
-          180deg,
-          rgb(var(--ec-accent) / 0.1) 0%,
-          rgb(var(--ec-sidebar-bg-gradient)) 16%,
-          rgb(var(--ec-sidebar-bg)) 48%,
-          rgb(var(--ec-sidebar-bg)) 100%
-        );
-        box-shadow:
-          inset -1px 0 0 rgb(var(--ec-page-border) / 0.45),
-          0 24px 44px -34px rgb(var(--ec-page-text) / 0.28);
+        border-right: 1px solid rgb(var(--ec-page-border));
+        background-color: rgb(var(--ec-page-bg));
+        box-shadow: 0 24px 44px -34px rgb(var(--ec-page-text) / 0.28);
         overflow: hidden;
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-text,
@@ -401,7 +403,7 @@ const canPageBeEmbedded = isEmbedEnabled();
         min-width: var(--ec-sidebar-panel-width);
         height: 100vh;
         border-right: 1px solid rgb(var(--ec-content-border));
-        background: rgb(var(--ec-page-bg));
+        background: rgb(var(--ec-rail-bg));
         display: flex;
         flex-direction: column;
         position: fixed;
@@ -507,7 +509,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                     aria-label={item.label}
                     class={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
                       item.current
-                        ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent-text))] shadow-sm'
+                        ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
                         : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
                     }`}
                     title={item.label}
@@ -522,7 +524,7 @@ const canPageBeEmbedded = isEmbedEnabled();
             <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
 
             <div
-              class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text))]"
+              class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text)/0.5)]"
             >
               Browse
             </div>
@@ -535,7 +537,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                   aria-label={item.label}
                   class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
                     item.current
-                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent-text))] shadow-sm'
+                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
                       : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
                   }`}
                   title={item.label}
@@ -549,7 +551,7 @@ const canPageBeEmbedded = isEmbedEnabled();
             <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
 
             <div
-              class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text))]"
+              class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text)/0.5)]"
             >
               Organization
             </div>
@@ -562,7 +564,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                   aria-label={item.label}
                   class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
                     item.current
-                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent-text))] shadow-sm'
+                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
                       : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
                   }`}
                   title={item.label}
@@ -584,7 +586,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                   aria-label={item.label}
                   class={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
                     item.current
-                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent-text))] shadow-sm'
+                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
                       : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
                   }`}
                   title={item.label}
@@ -594,6 +596,28 @@ const canPageBeEmbedded = isEmbedEnabled();
                 </a>
               ))
             }
+
+            <div class="mt-auto pt-3">
+              <hr class="rail-divider mb-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
+              {
+                settingsItems.map((item) => (
+                  <a
+                    href={item.href}
+                    data-role="secondary-nav-item"
+                    aria-label={item.label}
+                    class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
+                      item.current
+                        ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
+                        : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
+                    }`}
+                    title={item.label}
+                  >
+                    <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                    <span class="nav-item-label">{item.label}</span>
+                  </a>
+                ))
+              }
+            </div>
           </nav>
 
           <div class="border-t border-[rgb(var(--ec-sidebar-border)/0.7)] px-3 py-3 flex-shrink-0">
@@ -609,11 +633,26 @@ const canPageBeEmbedded = isEmbedEnabled();
           </div>
         </div>
       </aside>
-      {showNestedSideBar && <SideNav id="sidebar" class={`sidebar-panel sidebar-transition`} />}
+      {
+        showNestedSideBar &&
+          (Astro.slots.has('sidebar-content') ? (
+            <aside id="sidebar" class="sidebar-panel sidebar-transition">
+              <slot name="sidebar-content" />
+            </aside>
+          ) : (
+            <SideNav id="sidebar" class={`sidebar-panel sidebar-transition`} />
+          ))
+      }
       <main class="content-panel sidebar-transition w-full bg-[rgb(var(--ec-page-bg))]" id="content">
-        <div class="app-content-wrapper">
-          <slot />
-        </div>
+        {
+          Astro.slots.has('sidebar-content') ? (
+            <slot />
+          ) : (
+            <div class="app-content-wrapper">
+              <slot />
+            </div>
+          )
+        }
       </main>
 
       <!-- Create a overlay that tells people to purchase backstage plugin if they want to embed the page -->
@@ -647,7 +686,7 @@ const canPageBeEmbedded = isEmbedEnabled();
   const ACTIVE_NAV_CLASSES = [
     'border-[rgb(var(--ec-accent)/0.2)]',
     'bg-[rgb(var(--ec-page-bg)/0.88)]',
-    'text-[rgb(var(--ec-accent-text))]',
+    'text-[rgb(var(--ec-accent))]',
     'shadow-sm',
   ];
   const INACTIVE_NAV_CLASSES = [

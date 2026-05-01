@@ -204,14 +204,14 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
 
   return (
     <nav ref={navRef} className="flex h-full min-h-0 flex-col text-[rgb(var(--ec-page-text))]">
-      <div className="flex-shrink-0 border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-3 py-3.5">
-        <div className="flex gap-2">
+      <div className="flex h-[60px] flex-shrink-0 items-center border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-rail-bg))] px-3">
+        <div className="flex w-full gap-2">
           <input
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder="Quick search..."
-            className="flex-1 p-2 px-2 text-sm rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] h-[30px]"
+            className="flex-1 min-w-0 p-2 px-2 text-sm rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-icon-color))] h-[30px] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))]"
           />
           <button
             onClick={toggleExpandCollapse}
@@ -228,7 +228,7 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="space-y-2 divide-y divide-[rgb(var(--ec-page-border))] pb-4 pt-2">
+        <div className="space-y-2 pb-4 pt-2">
           {hasNoResults ? (
             <NoResultsFound searchTerm={debouncedSearchTerm} />
           ) : (

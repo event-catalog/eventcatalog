@@ -99,7 +99,7 @@ export const authMiddleware: MiddlewareHandler = async (context, next) => {
   const systemRoutes = ['/.well-known/', '/favicon.ico', '/robots.txt', '/sitemap.xml', '/_astro/', '/__astro'];
   let publicRoutes = ['/auth/login', '/auth/signout', '/auth/error', '/api/auth'];
 
-  const llmsRoutes = ['/docs/llm/llms.txt', '/docs/llm/llms-services.txt', '/docs/llm/llms-full.txt'];
+  const llmsRoutes = ['/docs/llm/llms.txt', '/docs/llm/llms-full.txt'];
 
   if (isLLMSTextEnabled) {
     publicRoutes = [...publicRoutes, ...llmsRoutes];

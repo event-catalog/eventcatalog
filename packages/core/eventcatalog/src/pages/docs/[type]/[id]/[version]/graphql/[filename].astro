@@ -80,7 +80,7 @@ const pagefindAttributes =
             </div>
 
             {
-              badges && (
+              badges && badges.length > 0 && (
                 <div class="flex flex-wrap gap-3 py-4">
                   {badges.map((badge: any) => {
                     return (

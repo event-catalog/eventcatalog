@@ -1,0 +1,116 @@
+---
+import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
+import { buildUrl } from '@utils/url-builder';
+import { Settings, Server, Bot, FileText, CreditCard } from 'lucide-react';
+
+export type SettingsSection = 'general' | 'mcp' | 'assistant' | 'llm-access' | 'billing';
+
+interface Props {
+  title: string;
+  active: SettingsSection;
+}
+
+const { title, active } = Astro.props;
+
+interface SectionItem {
+  id: SettingsSection;
+  label: string;
+  href: string;
+  icon: any;
+}
+
+interface SectionGroup {
+  label: string;
+  items: SectionItem[];
+}
+
+const groups: SectionGroup[] = [
+  {
+    label: 'Project Settings',
+    items: [
+      {
+        id: 'general',
+        label: 'General',
+        href: buildUrl('/settings/general'),
+        icon: Settings,
+      },
+    ],
+  },
+  {
+    label: 'AI Settings',
+    items: [
+      {
+        id: 'mcp',
+        label: 'MCP',
+        href: buildUrl('/settings/mcp'),
+        icon: Server,
+      },
+      {
+        id: 'assistant',
+        label: 'Agent',
+        href: buildUrl('/settings/assistant'),
+        icon: Bot,
+      },
+      {
+        id: 'llm-access',
+        label: 'LLM Access',
+        href: buildUrl('/settings/llm-access'),
+        icon: FileText,
+      },
+    ],
+  },
+  {
+    label: 'Workspace',
+    items: [
+      {
+        id: 'billing',
+        label: 'Billing',
+        href: buildUrl('/settings/billing'),
+        icon: CreditCard,
+      },
+    ],
+  },
+];
+---
+
+<VerticalSideBarLayout title={`${title} | Settings`} showNestedSideBar={true}>
+  <Fragment slot="sidebar-content">
+    <div class="settings-rail flex h-full flex-col bg-[rgb(var(--ec-rail-bg))]">
+      <nav class="flex flex-1 flex-col gap-4 overflow-y-auto px-3 pt-6 pb-4">
+        {
+          groups.map((group) => (
+            <div class="space-y-1">
+              <p class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)]">
+                {group.label}
+              </p>
+              <div class="flex flex-col gap-1">
+                {group.items.map((item) => {
+                  const isActive = item.id === active;
+                  return (
+                    <a
+                      href={item.href}
+                      aria-current={isActive ? 'page' : undefined}
+                      class:list={[
+                        'nav-secondary-item flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium transition-colors duration-150',
+                        isActive
+                          ? 'font-semibold text-[rgb(var(--ec-page-text))]'
+                          : 'text-[rgb(var(--ec-sidebar-text))] hover:text-[rgb(var(--ec-page-text))]',
+                      ]}
+                    >
+                      <item.icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                      <span class="nav-item-label">{item.label}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        }
+      </nav>
+    </div>
+  </Fragment>
+
+  <div class="settings-page w-full px-8 py-8">
+    <slot />
+  </div>
+</VerticalSideBarLayout>

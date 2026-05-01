@@ -77,7 +77,7 @@ const badges = [
             <p class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{ubiquitousLanguage.summary}</p>
             <!-- Add badge -->
             {
-              badges && (
+              badges && badges.length > 0 && (
                 <div class="flex flex-wrap gap-3 py-4">
                   {badges.map((badge: any) => {
                     return (

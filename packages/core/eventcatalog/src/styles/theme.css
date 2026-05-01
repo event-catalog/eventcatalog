@@ -17,19 +17,19 @@
   /* Header */
   --ec-header-bg: 255 255 255; /* #ffffff */
   --ec-header-text: 15 23 42; /* #0f172a (slate-900) */
-  --ec-header-border: 226 232 240; /* #e2e8f0 (slate-200) */
+  --ec-header-border: 229 229 229; /* #e5e5e5 (neutral-200) */
 
   /* Primary brand color */
-  --ec-primary: 168 85 247; /* #a855f7 */
-  --ec-primary-hover: 147 51 234; /* #9333ea */
+  --ec-primary: 126 34 206; /* #7e22ce (purple-700) */
+  --ec-primary-hover: 107 33 168; /* #6b21a8 (purple-800) */
 
   /* Accent colors - used for selections, highlights, interactive elements */
-  --ec-accent: 168 85 247; /* #a855f7 (purple-500) */
-  --ec-accent-hover: 147 51 234; /* #9333ea (purple-600) */
-  --ec-accent-subtle: 243 232 255; /* #f3e8ff (purple-100) */
-  --ec-accent-text: 107 33 168; /* #6b21a8 (purple-800) */
-  --ec-accent-gradient-from: 168 85 247; /* #a855f7 (purple-500) */
-  --ec-accent-gradient-to: 126 34 206; /* #7e22ce (purple-700) */
+  --ec-accent: 126 34 206; /* #7e22ce (purple-700) */
+  --ec-accent-hover: 107 33 168; /* #6b21a8 (purple-800) */
+  --ec-accent-subtle: 233 213 255; /* #e9d5ff (purple-200) */
+  --ec-accent-text: 88 28 135; /* #581c87 (purple-900) */
+  --ec-accent-gradient-from: 126 34 206; /* #7e22ce (purple-700) */
+  --ec-accent-gradient-to: 88 28 135; /* #581c87 (purple-900) */
 
   /* Buttons */
   --ec-button-bg: 15 23 42; /* #0f172a */
@@ -49,18 +49,23 @@
   /* Sidebar / Vertical Nav (icon bar) */
   --ec-sidebar-bg: 255 255 255; /* #ffffff */
   --ec-sidebar-bg-gradient: 248 250 252; /* #f8fafc (slate-50) */
-  --ec-sidebar-border: 226 232 240; /* #e2e8f0 (slate-200) */
+  --ec-sidebar-border: 229 229 229; /* #e5e5e5 (neutral-200) */
   --ec-sidebar-text: 71 85 105; /* #475569 (slate-600) */
   --ec-sidebar-active-bg: 15 23 42; /* #0f172a */
   --ec-sidebar-active-text: 255 255 255; /* #ffffff */
   --ec-sidebar-hover-bg: 15 23 42; /* #0f172a - black on hover like active */
+
+  /* Rail / inset-panel surface (5% off the sidebar bg). Use for navigation rails,
+     filter panels, and any inset surface that should sit slightly off the page. */
+  --ec-rail-bg: 250 250 250; /* #fafafa - 2% darker than white */
+  --ec-rail-active-bg: 218 218 218; /* ~10% darker than rail bg */
 
   /* Nested sidebar content */
   --ec-content-bg: 255 255 255; /* #ffffff */
   --ec-content-text: 15 23 42; /* #0f172a (slate-900) */
   --ec-content-text-muted: 100 116 139; /* #64748b (slate-500) */
   --ec-content-text-secondary: 71 85 105; /* #475569 (slate-600) */
-  --ec-content-border: 226 232 240; /* #e2e8f0 (slate-200) */
+  --ec-content-border: 229 229 229; /* #e5e5e5 (neutral-200) */
   --ec-content-hover: 248 250 252; /* #f8fafc (slate-50) */
   --ec-content-active: 245 243 255; /* #f5f3ff (violet-50) */
 
@@ -71,14 +76,14 @@
   --ec-input-placeholder: 148 163 184; /* #94a3b8 (slate-400) */
 
   /* Group headers */
-  --ec-group-icon-bg: 241 245 249; /* #f1f5f9 (slate-100) */
-  --ec-group-icon-text: 71 85 105; /* #475569 (slate-600) */
+  --ec-group-icon-bg: 233 213 255; /* #e9d5ff (purple-200) */
+  --ec-group-icon-text: 88 28 135; /* #581c87 (purple-900) */
 
   /* Main content/docs area */
   --ec-page-bg: 255 255 255; /* #ffffff */
   --ec-page-text: 15 23 42; /* #0f172a */
   --ec-page-text-muted: 100 116 139; /* #64748b */
-  --ec-page-border: 226 232 240; /* #e2e8f0 */
+  --ec-page-border: 229 229 229; /* #e5e5e5 (neutral-200) */
 
   /* Card/elevated surfaces */
   --ec-card-bg: 255 255 255; /* #ffffff */
@@ -119,19 +124,19 @@
   /* Header - deep black with cool border */
   --ec-header-bg: 9 13 13; /* #090d0d */
   --ec-header-text: 240 246 252; /* #f0f6fc - soft white */
-  --ec-header-border: 24 27 32; /* #181b20 - subtle border */
+  --ec-header-border: 38 41 47; /* #26292f - lifted ~20% */
 
   /* Primary brand color */
-  --ec-primary: 168 85 247; /* #a855f7 (purple-500) */
-  --ec-primary-hover: 147 51 234; /* #9333ea (purple-600) */
+  --ec-primary: 147 51 234; /* #9333ea (purple-600) */
+  --ec-primary-hover: 126 34 206; /* #7e22ce (purple-700) */
 
   /* Accent colors - used for selections, highlights, interactive elements */
-  --ec-accent: 168 85 247; /* #a855f7 (purple-500) */
-  --ec-accent-hover: 147 51 234; /* #9333ea (purple-600) */
+  --ec-accent: 147 51 234; /* #9333ea (purple-600) */
+  --ec-accent-hover: 126 34 206; /* #7e22ce (purple-700) */
   --ec-accent-subtle: 88 28 135 / 0.3; /* purple-900/30 */
-  --ec-accent-text: 216 180 254; /* #d8b4fe (purple-300) */
-  --ec-accent-gradient-from: 168 85 247; /* #a855f7 (purple-500) */
-  --ec-accent-gradient-to: 147 51 234; /* #9333ea (purple-600) */
+  --ec-accent-text: 192 132 252; /* #c084fc (purple-400) */
+  --ec-accent-gradient-from: 147 51 234; /* #9333ea (purple-600) */
+  --ec-accent-gradient-to: 126 34 206; /* #7e22ce (purple-700) */
 
   /* Buttons - accent color for better visibility */
   --ec-button-bg: 147 51 234; /* #9333ea - purple-600 */
@@ -149,20 +154,24 @@
   --ec-icon-hover: 240 246 252; /* #f0f6fc */
 
   /* Sidebar / Vertical Nav (icon bar) */
-  --ec-sidebar-bg: 21 21 26; /* #15151a */
-  --ec-sidebar-bg-gradient: 21 21 26; /* #15151a */
-  --ec-sidebar-border: 33 38 45; /* #21262d */
+  --ec-sidebar-bg: 9 13 13; /* #090d0d - matches page bg */
+  --ec-sidebar-bg-gradient: 9 13 13; /* #090d0d */
+  --ec-sidebar-border: 51 57 65; /* #333941 - lifted ~20% */
   --ec-sidebar-text: 139 148 158; /* #8b949e */
   --ec-sidebar-active-bg: 48 54 61; /* #30363d - subtle highlight */
   --ec-sidebar-active-text: 240 246 252; /* #f0f6fc */
   --ec-sidebar-hover-bg: 33 38 45; /* #21262d */
 
+  /* Rail / inset-panel surface (~2% lifted from the page bg) */
+  --ec-rail-bg: 15 19 19; /* ~2% lighter than #090d0d */
+  --ec-rail-active-bg: 35 38 38; /* ~10% lifted off rail bg */
+
   /* Nested sidebar content */
-  --ec-content-bg: 21 21 26; /* #15151a - lifted surface for nested sidebar */
+  --ec-content-bg: 9 13 13; /* #090d0d - matches page bg */
   --ec-content-text: 201 209 217; /* #c9d1d9 - softer than pure white */
   --ec-content-text-muted: 139 148 158; /* #8b949e */
   --ec-content-text-secondary: 170 178 186; /* #aab2ba - sidebar children text */
-  --ec-content-border: 33 38 45; /* #21262d */
+  --ec-content-border: 51 57 65; /* #333941 - lifted ~20% */
   --ec-content-hover: 22 27 34; /* #161b22 */
   --ec-content-active: 33 38 45; /* #21262d */
 
@@ -174,13 +183,13 @@
 
   /* Group headers */
   --ec-group-icon-bg: 33 38 45; /* #21262d */
-  --ec-group-icon-text: 201 209 217; /* #c9d1d9 */
+  --ec-group-icon-text: 192 132 252; /* #c084fc (purple-400) */
 
   /* Main content/docs area - base dark surface */
   --ec-page-bg: 9 13 13; /* #090d0d */
   --ec-page-text: 240 246 252; /* #f0f6fc */
   --ec-page-text-muted: 163 172 182; /* #a3acb6 */
-  --ec-page-border: 24 27 32; /* #181b20 - more subtle */
+  --ec-page-border: 38 41 47; /* #26292f - lifted ~20% */
 
   /* Card/elevated surfaces - for depth */
   --ec-card-bg: 22 27 34; /* #161b22 */

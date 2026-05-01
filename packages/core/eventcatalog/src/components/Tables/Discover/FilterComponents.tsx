@@ -45,7 +45,7 @@ export const FilterDropdown = ({ label, selectedItems, onClear, onRemoveItem, ch
             setIsOpen(!isOpen);
           }
         }}
-        className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg border transition-colors cursor-pointer ${
+        className={`w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg border transition-colors cursor-pointer ${
           hasSelection || isOpen
             ? 'border-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent)/0.05)]'
             : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] hover:border-[rgb(var(--ec-icon-color))]'
@@ -152,7 +152,7 @@ export const CheckboxItem = ({ label, checked, onChange, count, icon }: Checkbox
     </div>
     {icon && <span className="flex-shrink-0 text-[rgb(var(--ec-icon-color))]">{icon}</span>}
     <span
-      className={`text-sm flex-1 truncate ${checked ? 'font-medium text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'}`}
+      className={`text-xs flex-1 truncate ${checked ? 'font-medium text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'}`}
     >
       {label}
     </span>

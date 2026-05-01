@@ -99,7 +99,7 @@ export default defineConfig({
        * the eventcatalog.config, as the config use packages that only run in node environments,
        * such as `node:path`.
        */
-      '__EC_TRAILING_SLASH__': config.trailingSlash || false,
+      '__EC_TRAILING_SLASH__': JSON.stringify(config.trailingSlash === true),
       '__EC_BASE__': JSON.stringify(base),
     },
     server: {

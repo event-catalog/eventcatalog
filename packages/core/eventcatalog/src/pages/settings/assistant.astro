@@ -1,0 +1,37 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import SettingsLayout from '@layouts/SettingsLayout.astro';
+import { AssistantSettingsForm } from '@components/Settings/AssistantSettingsForm';
+import { isDevMode, isSSR, isEventCatalogStarterEnabled, isEventCatalogScaleEnabled } from '@utils/feature';
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+
+const canEdit = isDevMode();
+
+const initial = {
+  llmsTxtEnabled: config?.llmsTxt?.enabled ?? true,
+  chatEnabled: config?.chat?.enabled ?? false,
+};
+
+const projectRoot = process.env.PROJECT_DIR ?? process.cwd();
+const hasChatConfigFile = fs.existsSync(path.join(projectRoot, 'eventcatalog.chat.js'));
+const hasPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+const inSSR = isSSR();
+const chatAvailable = hasPlan && hasChatConfigFile && inSSR;
+
+const apiBase = buildUrl('/api/settings');
+---
+
+<SettingsLayout title="Assistant Agent" active="assistant">
+  <AssistantSettingsForm
+    client:load
+    canEdit={canEdit}
+    initial={initial}
+    chatAvailable={chatAvailable}
+    hasPlan={hasPlan}
+    inSSR={inSSR}
+    hasChatConfigFile={hasChatConfigFile}
+    apiBase={apiBase}
+  />
+</SettingsLayout>

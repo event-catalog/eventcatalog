@@ -79,7 +79,7 @@ describe('api/schemas.txt', () => {
     expect(response.status).toBe(200);
 
     const responseBody = await response.text();
-    expect(responseBody).toEqual(`# FlowMart EventCatalog Schemas
+    expect(responseBody).toEqual(`# Acme Inc EventCatalog Schemas
 List of schemas for events, commands, queries, and services in EventCatalog.
 
 ## Events

@@ -7,7 +7,9 @@ const cleanUrl = (url: string) => {
 // Custom URL builder as Astro does not support this stuff out the box
 export const buildUrl = (url: string, ignoreTrailingSlash = false, urlAlreadyIncludesBaseUrl = false) => {
   // Should a trailingSlash be added to urls?
-  const trailingSlash = __EC_TRAILING_SLASH__;
+  // typeof guard protects against the rare case where Vite's `define` substitution
+  // didn't run (stale dev cache, edge SSR paths) — leaking the identifier to runtime would crash callers.
+  const trailingSlash = typeof __EC_TRAILING_SLASH__ !== 'undefined' ? __EC_TRAILING_SLASH__ : false;
 
   let newUrl = url;
 
@@ -53,7 +55,7 @@ export const buildEditUrlForResource = (editUrl: string, filePath: string) => {
 
 // Takes a given url and returns the .mdx url
 export const toMarkdownUrl = (url: string) => {
-  const trailingSlash = __EC_TRAILING_SLASH__;
+  const trailingSlash = typeof __EC_TRAILING_SLASH__ !== 'undefined' ? __EC_TRAILING_SLASH__ : false;
 
   if (trailingSlash) {
     const urlWithoutTrailingSlash = url.replace(/\/$/, '');

@@ -28,13 +28,13 @@ function startsWithProtocol(str: string) {
   <a
     href={startsWithProtocol(href) ? href : buildUrl(href)}
     target={openWindow ? '_blank' : '_self'}
-    class="tile-card block relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl p-8 h-48 transition-all duration-300 ease-out hover:border-[rgb(var(--ec-accent)/0.5)] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 overflow-hidden"
+    class="tile-card block relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl h-48 transition-all duration-300 ease-out hover:border-[rgb(var(--ec-accent)/0.5)] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 overflow-hidden"
   >
-    <!-- Icon centered in card with grid background -->
-    <div class="relative h-full flex items-center justify-center">
-      <!-- Squared paper grid behind icon -->
-      <div class="tile-grid absolute inset-0 opacity-15"></div>
+    <!-- Squared paper grid spans the full card -->
+    <div class="tile-grid absolute inset-0"></div>
 
+    <!-- Icon centered in card -->
+    <div class="relative h-full flex items-center justify-center p-8">
       {IconComponent && <IconComponent className="tile-icon relative w-16 h-16 stroke-1" />}
     </div>
   </a>
@@ -59,9 +59,12 @@ function startsWithProtocol(str: string) {
 
   .tile-grid {
     background-image:
-      linear-gradient(rgb(var(--ec-accent) / 0.2) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(var(--ec-accent) / 0.2) 1px, transparent 1px);
-    background-size: 16px 16px;
+      linear-gradient(rgb(var(--ec-accent) / 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--ec-accent) / 0.1) 1px, transparent 1px);
+    background-size: 28px 28px;
+    /* Soft edge fade — full-width grid that softens just at the borders */
+    -webkit-mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
+    mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
   }
 
   .tile-icon {

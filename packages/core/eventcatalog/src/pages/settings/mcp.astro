@@ -1,0 +1,14 @@
+---
+import SettingsLayout from '@layouts/SettingsLayout.astro';
+import { McpSettingsForm } from '@components/Settings/McpSettingsForm';
+import { isSSR, isEventCatalogScaleEnabled } from '@utils/feature';
+import { buildUrl } from '@utils/url-builder';
+
+const hasScalePlan = isEventCatalogScaleEnabled();
+const inSSR = isSSR();
+const mcpUrl = buildUrl('/docs/mcp');
+---
+
+<SettingsLayout title="MCP" active="mcp">
+  <McpSettingsForm client:load hasScalePlan={hasScalePlan} inSSR={inSSR} mcpUrl={mcpUrl} />
+</SettingsLayout>

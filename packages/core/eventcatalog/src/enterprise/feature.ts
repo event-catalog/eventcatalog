@@ -44,7 +44,8 @@ export const isEventCatalogChatEnabled = () => {
   const isFeatureEnabledFromPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
   const directory = process.env.PROJECT_DIR || process.cwd();
   const hasChatConfigurationFile = fs.existsSync(join(directory, 'eventcatalog.chat.js'));
-  return isFeatureEnabledFromPlan && hasChatConfigurationFile && isSSR();
+  const isEnabledInConfig = config?.chat?.enabled ?? true;
+  return isFeatureEnabledFromPlan && hasChatConfigurationFile && isSSR() && isEnabledInConfig;
 };
 
 export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
