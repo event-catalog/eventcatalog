@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findMatchingRule, matchesPattern } from '../enterprise/auth/middleware/middleware-auth';
+import { findMatchingRule, getPublicRoutes, matchesPattern } from '../enterprise/auth/middleware/middleware-auth';
 
 describe('middleware-auth', () => {
   describe('matchesPattern', () => {
@@ -124,6 +124,18 @@ describe('middleware-auth', () => {
       expect(findMatchingRule(rules, '/users/profile')).toBe(exactMatch);
       expect(findMatchingRule(rules, '/users/123')).toBe(singleWildcard);
       expect(findMatchingRule(rules, '/users/123/settings')).toBe(doubleWildcard);
+    });
+  });
+
+  describe('getPublicRoutes', () => {
+    it('includes schemas.txt when llms text access is enabled', () => {
+      expect(getPublicRoutes(true)).toContain('/docs/llm/schemas.txt');
+    });
+
+    it('does not expose llms routes when llms text access is disabled', () => {
+      expect(getPublicRoutes(false)).not.toContain('/docs/llm/schemas.txt');
+      expect(getPublicRoutes(false)).not.toContain('/docs/llm/llms.txt');
+      expect(getPublicRoutes(false)).not.toContain('/docs/llm/llms-full.txt');
     });
   });
 });
