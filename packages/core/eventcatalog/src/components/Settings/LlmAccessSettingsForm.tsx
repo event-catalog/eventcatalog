@@ -12,10 +12,19 @@ interface Props {
   hasScalePlan: boolean;
   apiBase: string;
   llmsTxtUrl: string;
+  llmsFullTxtUrl: string;
   schemasTxtUrl: string;
 }
 
-export const LlmAccessSettingsForm = ({ canEdit, initial, hasScalePlan, apiBase, llmsTxtUrl, schemasTxtUrl }: Props) => {
+export const LlmAccessSettingsForm = ({
+  canEdit,
+  initial,
+  hasScalePlan,
+  apiBase,
+  llmsTxtUrl,
+  llmsFullTxtUrl,
+  schemasTxtUrl,
+}: Props) => {
   const [llmsTxtEnabled, setLlmsTxtEnabled] = useState(initial.llmsTxtEnabled);
   const [pristine, setPristine] = useState(initial.llmsTxtEnabled);
   const [saving, setSaving] = useState(false);
@@ -92,7 +101,7 @@ export const LlmAccessSettingsForm = ({ canEdit, initial, hasScalePlan, apiBase,
           disabled={!canEdit}
           onChange={setLlmsTxtEnabled}
         />
-        {llmsTxtEnabled && <LlmsTxtPreview url={llmsTxtUrl} />}
+        {llmsTxtEnabled && <LlmsTxtPreview url={llmsTxtUrl} fullUrl={llmsFullTxtUrl} />}
       </Row>
 
       <Row
@@ -114,10 +123,10 @@ export const LlmAccessSettingsForm = ({ canEdit, initial, hasScalePlan, apiBase,
   );
 };
 
-const LlmsTxtPreview = ({ url }: { url: string }) => {
+const LlmsTxtPreview = ({ url, fullUrl }: { url: string; fullUrl: string }) => {
   const variants = [
-    { label: 'Index', path: '/docs/llm/llms.txt' },
-    { label: 'Full', path: '/docs/llm/llms-full.txt' },
+    { label: 'Index', path: url },
+    { label: 'Full', path: fullUrl },
   ];
   return (
     <div className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.4)] px-4 py-3">
