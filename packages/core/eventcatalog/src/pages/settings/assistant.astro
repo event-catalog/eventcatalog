@@ -11,7 +11,7 @@ const canEdit = isDevMode();
 
 const initial = {
   llmsTxtEnabled: config?.llmsTxt?.enabled ?? true,
-  chatEnabled: config?.chat?.enabled ?? false,
+  chatEnabled: config?.chat?.enabled ?? true,
 };
 
 const projectRoot = process.env.PROJECT_DIR ?? process.cwd();

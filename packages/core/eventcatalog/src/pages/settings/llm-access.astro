@@ -9,13 +9,14 @@ const canEdit = isDevMode();
 
 const initial = {
   llmsTxtEnabled: config?.llmsTxt?.enabled ?? true,
-  chatEnabled: config?.chat?.enabled ?? false,
+  chatEnabled: config?.chat?.enabled ?? true,
 };
 
 const hasScalePlan = isEventCatalogScaleEnabled();
 
 const apiBase = buildUrl('/api/settings');
 const llmsTxtUrl = buildUrl('/docs/llm/llms.txt');
+const llmsFullTxtUrl = buildUrl('/docs/llm/llms-full.txt');
 const schemasTxtUrl = buildUrl('/docs/llm/schemas.txt');
 ---
 
@@ -27,6 +28,7 @@ const schemasTxtUrl = buildUrl('/docs/llm/schemas.txt');
     hasScalePlan={hasScalePlan}
     apiBase={apiBase}
     llmsTxtUrl={llmsTxtUrl}
+    llmsFullTxtUrl={llmsFullTxtUrl}
     schemasTxtUrl={schemasTxtUrl}
   />
 </SettingsLayout>
