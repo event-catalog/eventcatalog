@@ -4,7 +4,7 @@ import path from 'node:path';
 import { isDevMode } from '@utils/feature';
 import { writeConfigUpdate } from '@utils/eventcatalog-config/config-writer';
 
-export const prerender = false;
+export const prerender = !isDevMode();
 
 const MAX_BYTES = 2 * 1024 * 1024;
 const ALLOWED: Record<string, string> = {

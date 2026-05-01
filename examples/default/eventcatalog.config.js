@@ -13,10 +13,11 @@ export default {
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
   outDir: 'dist',
+
   // output: 'server',
 
   logo: {
-    // src: '/logo.png',
+    src: '/logo.png',
     text: 'Acme Inc'
   },
 
@@ -24,7 +25,7 @@ export default {
   trailingSlash: false,
 
   // Theme: 'default', 'ocean', 'sapphire', 'sunset', 'forest', or custom (defined in eventcatalog.styles.css)
-  theme: 'default',
+  theme: 'sunset',
 
   mermaid: {
     enableSupportForElkLayout: true,
@@ -134,7 +135,12 @@ export default {
       shortName: 'Prod'
     },
   ],
+
   llmsTxt: {
     enabled: true
+  },
+
+  chat: {
+    enabled: false
   }
 };

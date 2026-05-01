@@ -41,11 +41,15 @@ export default defineConfig({
   base,
   server: { port: config.port || 3000, host: host },
 
-  output: config.output || 'static',
+  // In dev mode (EVENTCATALOG_DEV_MODE=true) we need 'server' output so that
+  // routes which opt into SSR via `export const prerender = false` (e.g. the
+  // /api/settings/* editing endpoints) are actually invoked instead of being
+  // statically prerendered. Production builds keep the user's configured output.
+  output: config.output || (process.env.EVENTCATALOG_DEV_MODE === 'true' ? 'server' : 'static'),
 
-  adapter: config.output === 'server' ? node({
-    mode: 'standalone'
-  }) : undefined,
+  adapter: config.output === 'server' || process.env.EVENTCATALOG_DEV_MODE === 'true'
+    ? node({ mode: 'standalone' })
+    : undefined,
 
   outDir: config.outDir ? join(projectDirectory, config.outDir) : join(projectDirectory, 'dist'),
 

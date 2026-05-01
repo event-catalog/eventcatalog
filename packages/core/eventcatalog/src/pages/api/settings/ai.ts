@@ -8,7 +8,7 @@ import {
   type ConfigUpdate,
 } from '@utils/eventcatalog-config/config-writer';
 
-export const prerender = false;
+export const prerender = !isDevMode();
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
