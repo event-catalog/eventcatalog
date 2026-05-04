@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 3.31.0
+
+### Minor Changes
+
+- 1ef52e1: Add settings UI, refresh homepage and theme styling, introduce `chat.enabled` config flag, and add new `--ec-rail-bg` / `--ec-rail-active-bg` CSS variables for sidebar rail theming.
+
+### Patch Changes
+
+- 68992a2: Refresh resource page header with accent label, refine Copy page split button, and tighten dropdown spacing
+
 ## 3.30.0
 
 ### Minor Changes
