@@ -27,6 +27,8 @@ const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
 const host = config.host || false;
 const compress = config.compress ?? false;
+const isDevMode = process.env.EVENTCATALOG_DEV_MODE === 'true';
+const effectiveOutput = isDevMode ? 'server' : (config.output || 'static');
 
 
 const expressiveCodeConfig = {
@@ -41,11 +43,13 @@ export default defineConfig({
   base,
   server: { port: config.port || 3000, host: host },
 
-  output: config.output || 'static',
+  // In dev mode (EVENTCATALOG_DEV_MODE=true) we need 'server' output so that
+  // routes which opt into SSR via `export const prerender = false` (e.g. the
+  // /api/settings/* editing endpoints) are actually invoked instead of being
+  // statically prerendered. Production builds keep the user's configured output.
+  output: effectiveOutput,
 
-  adapter: config.output === 'server' ? node({
-    mode: 'standalone'
-  }) : undefined,
+  adapter: effectiveOutput === 'server' ? node({ mode: 'standalone' }) : undefined,
 
   outDir: config.outDir ? join(projectDirectory, config.outDir) : join(projectDirectory, 'dist'),
 
@@ -83,7 +87,7 @@ export default defineConfig({
       ],
       gfm: true,
     }),
-    config.output !== 'server' && compress && (await import("astro-compress")).default({
+    effectiveOutput !== 'server' && compress && (await import("astro-compress")).default({
       Logger: 0,
       CSS: false,
     }),
@@ -99,7 +103,7 @@ export default defineConfig({
        * the eventcatalog.config, as the config use packages that only run in node environments,
        * such as `node:path`.
        */
-      '__EC_TRAILING_SLASH__': config.trailingSlash || false,
+      '__EC_TRAILING_SLASH__': JSON.stringify(config.trailingSlash === true),
       '__EC_BASE__': JSON.stringify(base),
     },
     server: {

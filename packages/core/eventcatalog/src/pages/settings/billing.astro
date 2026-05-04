@@ -1,0 +1,17 @@
+---
+import SettingsLayout from '@layouts/SettingsLayout.astro';
+import { BillingSettingsForm, type PlanId } from '@components/Settings/BillingSettingsForm';
+import { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled } from '@utils/feature';
+
+// Detect which plan is active. Enterprise has no env flag of its own — it includes
+// Scale features, so an explicit Enterprise toggle would need a separate flag.
+// For now, treat anything Scale-licensed as Scale; Enterprise users will still see
+// upgrade copy on the Scale card but the Plans grid is the canonical source.
+let currentPlan: PlanId = 'community';
+if (isEventCatalogScaleEnabled()) currentPlan = 'scale';
+else if (isEventCatalogStarterEnabled()) currentPlan = 'starter';
+---
+
+<SettingsLayout title="Billing" active="billing">
+  <BillingSettingsForm client:load currentPlan={currentPlan} />
+</SettingsLayout>

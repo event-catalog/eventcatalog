@@ -32,7 +32,7 @@ export const projectDirBase = (() => {
 
 const withIgnoredBuildArtifacts = (patterns: string | string[]) => {
   if (process.env.IGNORE_BUILD_ARTIFACTS === 'true') {
-    return [...patterns, '!dist/**'];
+    return Array.isArray(patterns) ? [...patterns, '!dist/**'] : [patterns, '!dist/**'];
   }
   return patterns;
 };

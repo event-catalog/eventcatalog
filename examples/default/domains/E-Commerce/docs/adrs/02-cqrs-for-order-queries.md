@@ -1,5 +1,5 @@
 ---
-title: ADR-002 Use CQRS for Order Queries
+title: Use CQRS for Order Queries
 summary: Separate read and write models for order data to optimise query performance
 ---
 

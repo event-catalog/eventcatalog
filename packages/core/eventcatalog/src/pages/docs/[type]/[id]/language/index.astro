@@ -47,7 +47,7 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                   type="text"
                   id="searchInput"
                   placeholder="Search terms..."
-                  class="w-full px-4 py-2.5 pl-10 border border-[rgb(var(--ec-input-border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))] text-sm bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] transition-colors"
+                  class="block w-full rounded-md border-0 py-1.5 pr-4 pl-10 text-sm font-light text-[rgb(var(--ec-header-text))] bg-[rgb(var(--ec-header-bg))] shadow-xs ring-1 ring-inset ring-[rgb(var(--ec-dropdown-border))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:outline-none"
                 />
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-4 w-4 text-[rgb(var(--ec-icon-color))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,14 +58,6 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 </div>
-              </div>
-              <div class="mt-2 text-right">
-                <span
-                  class="inline-flex items-center px-2 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-md"
-                  id="resultsCount"
-                >
-                  {/* This will be updated by JavaScript */}
-                </span>
               </div>
             </div>
           </div>
@@ -323,15 +315,11 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
     function initializeSearch() {
       const searchInput = document.getElementById('searchInput');
       const domainSections = document.querySelectorAll('[data-domain-section]');
-      const resultsCount = document.getElementById('resultsCount');
 
       function updateResults() {
         //@ts-ignore
         const searchTerm = searchInput?.value.toLowerCase() || '';
-        let totalVisibleTerms = 0;
-        let totalTerms = 0;
 
-        // Handle search for each domain section
         domainSections.forEach((section) => {
           const domainId = section.getAttribute('data-domain-section');
           const domainCards = section.querySelectorAll('.term-card');
@@ -339,19 +327,14 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
           let domainVisibleCount = 0;
 
           domainCards.forEach((card) => {
-            totalTerms++;
             const title = card.querySelector('h4')?.textContent?.toLowerCase() || '';
             const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
             const matches = searchTerm === '' || title.includes(searchTerm) || description.includes(searchTerm);
 
             card.classList.toggle('hidden', !matches);
-            if (matches) {
-              domainVisibleCount++;
-              totalVisibleTerms++;
-            }
+            if (matches) domainVisibleCount++;
           });
 
-          // Show/hide domain-specific no results message
           if (domainNoResults) {
             if (searchTerm.trim() === '') {
               domainNoResults.classList.add('hidden');
@@ -360,16 +343,9 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
             }
           }
         });
-
-        // Update results count
-        if (resultsCount) {
-          resultsCount.textContent = `Showing ${totalVisibleTerms} terms`;
-        }
       }
 
       searchInput?.addEventListener('input', updateResults);
-
-      // Initialize results count
       updateResults();
     }
 

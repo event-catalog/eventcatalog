@@ -2,7 +2,7 @@ import { getCollection } from 'astro:content';
 import config from '@config';
 import type { APIRoute } from 'astro';
 
-import { isCustomDocsEnabled, isResourceDocsEnabled } from '@utils/feature';
+import { isCustomDocsEnabled, isResourceDocsEnabled, isLLMSTxtEnabled } from '@utils/feature';
 import { getUbiquitousLanguage } from '@utils/collections/domains';
 import { getResourceDocs } from '@utils/collections/resource-docs';
 
@@ -82,6 +82,10 @@ const renderEntities = (baseUrl: string) => {
 };
 
 export const GET: APIRoute = async ({ params, request }) => {
+  if (!isLLMSTxtEnabled()) {
+    return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
+  }
+
   const url = new URL(request.url);
   const baseUrl = process.env.LLMS_TXT_BASE_URL || `${url.origin}`;
 

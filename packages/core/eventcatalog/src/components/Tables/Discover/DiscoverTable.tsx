@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronLeft, ChevronRight, SearchX, X, Search, Users } from 'lucide-react';
 import { UserIcon } from '@heroicons/react/24/outline';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { TableConfiguration } from '@types';
 import { isSameVersion } from '@utils/collections/version-compare';
 import { FilterDropdown, CheckboxItem } from './FilterComponents';
@@ -110,6 +110,18 @@ export function DiscoverTable<T extends DiscoverTableData>({
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [tableFilter, setTableFilter] = useState('');
+  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+  const PAGE_SIZE_STORAGE_KEY = 'eventcatalog-discover-page-size';
+  const [pageSize, setPageSize] = useState<number>(() => {
+    if (typeof window === 'undefined') return 10;
+    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+    return PAGE_SIZE_OPTIONS.includes(stored) ? stored : 10;
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(pageSize));
+    }
+  }, [pageSize]);
   const [showOnlyLatest, setShowOnlyLatest] = useState(true);
   const [onlyShowDrafts, setOnlyShowDrafts] = useState(false);
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
@@ -304,7 +316,14 @@ export function DiscoverTable<T extends DiscoverTableData>({
       columnFilters,
       columnVisibility,
     },
+    initialState: {
+      pagination: { pageIndex: 0, pageSize },
+    },
   });
+
+  useEffect(() => {
+    table.setPageSize(pageSize);
+  }, [pageSize, table]);
 
   const totalResults = table.getPrePaginationRowModel().rows.length;
   const hasResults = table.getRowModel().rows.length > 0;
@@ -433,11 +452,13 @@ export function DiscoverTable<T extends DiscoverTableData>({
     <div className="flex h-full min-h-0" style={{ ['--ec-discover-sidebar-width' as any]: '320px' }}>
       {/* Filter Sidebar */}
       <div
-        className="fixed left-[var(--ec-vertical-nav-width)] top-0 z-20 flex h-screen w-[320px] flex-shrink-0 flex-col border-r border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-page-bg))]"
+        className="fixed left-[var(--ec-vertical-nav-width)] top-0 z-20 flex h-screen w-[320px] flex-shrink-0 flex-col border-r border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-rail-bg))]"
         style={{ width: 'var(--ec-discover-sidebar-width, 320px)' }}
       >
         <div className="flex h-[60px] flex-shrink-0 items-center border-b border-[rgb(var(--ec-page-border))] px-4">
-          <h2 className="text-[13px] font-semibold text-[rgb(var(--ec-page-text))]">{collectionLabel} Filters</h2>
+          <h2 className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)]">
+            {collectionLabel} Filters
+          </h2>
         </div>
 
         {/* Filter sections */}
@@ -445,10 +466,6 @@ export function DiscoverTable<T extends DiscoverTableData>({
           {/* Message Filters Section */}
           {(showProducersFilter || showConsumersFilter) && (filteredProducers.length > 0 || filteredConsumers.length > 0) && (
             <div className="space-y-3">
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-[rgb(var(--ec-page-text))] pb-2">
-                Message Filters
-              </h3>
-
               {/* Producers Filter */}
               {showProducersFilter && filteredProducers.length > 0 && (
                 <div>
@@ -679,10 +696,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
         {/* Table Header */}
         <div className="flex items-end justify-between gap-6 px-6 py-5">
           <div className="min-w-0">
-            <h2 className="text-2xl font-semibold text-[rgb(var(--ec-page-text))] md:text-4xl">
-              {collectionLabel}{' '}
-              <span className="ml-1 text-lg font-normal text-[rgb(var(--ec-page-text-muted))] md:text-3xl">({totalResults})</span>
-            </h2>
+            <h2 className="text-2xl font-semibold text-[rgb(var(--ec-page-text))] md:text-4xl">{collectionLabel}</h2>
             {collectionDescription && (
               <p className="max-w-3xl pt-2 text-base font-light text-[rgb(var(--ec-page-text-muted))]">{collectionDescription}</p>
             )}
@@ -694,7 +708,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
               value={tableFilter}
               onChange={(e) => setTableFilter(e.target.value)}
               placeholder="Filter..."
-              className="w-64 rounded-lg border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] py-2 pl-9 pr-3 text-sm text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-icon-color))] transition-colors focus:border-[rgb(var(--ec-accent))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
+              className="w-64 rounded-md border-0 bg-[rgb(var(--ec-page-bg))] py-1.5 pl-9 pr-3 text-sm font-light text-[rgb(var(--ec-header-text))] shadow-xs ring-1 ring-inset ring-[rgb(var(--ec-dropdown-border))] placeholder:text-[rgb(var(--ec-icon-color))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
             />
             {tableFilter && (
               <button
@@ -766,14 +780,29 @@ export function DiscoverTable<T extends DiscoverTableData>({
 
         {/* Pagination */}
         <div className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-t border-[rgb(var(--ec-page-border))]">
-          <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
+          <div className="flex items-center gap-3 text-xs text-[rgb(var(--ec-page-text-muted))]">
             {totalResults > 0 && (
-              <>
+              <span>
                 <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getRowModel().rows.length}</span> of{' '}
                 <span className="font-medium text-[rgb(var(--ec-page-text))]">{totalResults}</span> results
-              </>
+              </span>
             )}
-          </span>
+            {totalResults > 0 && <span aria-hidden className="h-3 w-px bg-[rgb(var(--ec-page-border))]" />}
+            <label className="flex items-center gap-1.5">
+              <span>Per page</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="cursor-pointer rounded bg-transparent px-1 py-0.5 font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] focus:bg-[rgb(var(--ec-content-hover))] focus:outline-none"
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <div className="flex items-center gap-1.5">
             <button
               className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"

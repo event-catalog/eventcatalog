@@ -1,0 +1,34 @@
+---
+import SettingsLayout from '@layouts/SettingsLayout.astro';
+import { LlmAccessSettingsForm } from '@components/Settings/LlmAccessSettingsForm';
+import { isDevMode, isEventCatalogScaleEnabled } from '@utils/feature';
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+
+const canEdit = isDevMode();
+
+const initial = {
+  llmsTxtEnabled: config?.llmsTxt?.enabled ?? true,
+  chatEnabled: config?.chat?.enabled ?? true,
+};
+
+const hasScalePlan = isEventCatalogScaleEnabled();
+
+const apiBase = buildUrl('/api/settings');
+const llmsTxtUrl = buildUrl('/docs/llm/llms.txt');
+const llmsFullTxtUrl = buildUrl('/docs/llm/llms-full.txt');
+const schemasTxtUrl = buildUrl('/docs/llm/schemas.txt');
+---
+
+<SettingsLayout title="LLM Access" active="llm-access">
+  <LlmAccessSettingsForm
+    client:load
+    canEdit={canEdit}
+    initial={initial}
+    hasScalePlan={hasScalePlan}
+    apiBase={apiBase}
+    llmsTxtUrl={llmsTxtUrl}
+    llmsFullTxtUrl={llmsFullTxtUrl}
+    schemasTxtUrl={schemasTxtUrl}
+  />
+</SettingsLayout>

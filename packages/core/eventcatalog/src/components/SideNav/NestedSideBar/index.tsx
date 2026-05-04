@@ -501,9 +501,9 @@ export default function NestedSideBar() {
   // Show loading state if no data yet
   if (!data || roots.length === 0) {
     return (
-      <aside className="w-full min-h-full flex-1 flex flex-col font-sans bg-[rgb(var(--ec-page-bg))]">
+      <aside className="w-full min-h-full flex-1 flex flex-col font-sans bg-[rgb(var(--ec-rail-bg))]">
         {/* Search skeleton */}
-        <div className="px-4 py-3 border-b border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-page-bg))]">
+        <div className="px-4 py-3 border-b border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-rail-bg))]">
           <div className="h-10 bg-[rgb(var(--ec-content-hover))] rounded-xl animate-pulse" />
         </div>
         {/* Content skeleton */}
@@ -749,10 +749,9 @@ export default function NestedSideBar() {
           )}
           <span
             className={cn(
-              'tracking-tight',
               isSubtleGroup
-                ? 'text-[11px] text-[rgb(var(--ec-content-text-muted))] font-medium'
-                : 'text-[12px] text-[rgb(var(--ec-content-text))] font-semibold'
+                ? 'text-[10px] font-semibold uppercase tracking-[0.12em] text-[rgb(var(--ec-content-text-muted))]'
+                : 'text-[12px] font-semibold tracking-tight text-[rgb(var(--ec-content-text))]'
             )}
           >
             {group.title}
@@ -771,7 +770,7 @@ export default function NestedSideBar() {
     );
 
     return (
-      <div key={`group-${groupKey || index}`} className={cn(isSubtleGroup ? 'mb-3 last:mb-1' : 'mb-5 last:mb-2')}>
+      <div key={`group-${groupKey || index}`} className={cn(isSubtleGroup ? 'mb-2 last:mb-1' : 'mb-5 last:mb-2')}>
         {canCollapse ? (
           <button
             onClick={() => toggleSectionCollapse(groupId)}
@@ -793,7 +792,7 @@ export default function NestedSideBar() {
           <div
             className={cn(
               'flex flex-col gap-0.5 border-[rgb(var(--ec-content-border))]',
-              isSubtleGroup ? 'border-l ml-3 mt-0.5' : shouldFlattenSubtleChildren ? 'mt-1' : 'border-l ml-4 mt-1'
+              isSubtleGroup ? 'mt-0.5' : shouldFlattenSubtleChildren ? 'mt-1' : 'border-l ml-4 mt-1'
             )}
           >
             {visibleChildren.map((childRef, childIndex) => {
@@ -896,11 +895,9 @@ export default function NestedSideBar() {
     );
 
     const baseClasses =
-      'group flex items-center justify-between w-full px-3 py-2 border border-transparent cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
+      'group flex items-center justify-between w-full px-3 py-1.5 border border-transparent cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
-    const activeClasses = isActive
-      ? 'border-[rgb(var(--ec-accent)/0.16)] bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle))] shadow-sm'
-      : '';
+    const activeClasses = isActive ? 'bg-[rgb(var(--ec-rail-active-bg))] hover:bg-[rgb(var(--ec-rail-active-bg))]' : '';
 
     // Leaf item with href → render as link
     if (item.href && !itemHasChildren) {
@@ -938,18 +935,18 @@ export default function NestedSideBar() {
   };
 
   return (
-    <aside className="w-full min-h-full flex-1 flex flex-col font-sans bg-[rgb(var(--ec-page-bg))]">
+    <aside className="w-full min-h-full flex-1 flex flex-col font-sans bg-[rgb(var(--ec-rail-bg))]">
       {isTopLevel && (
-        <div className="px-4 py-[13.5px] bg-[rgb(var(--ec-page-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
-          <div className="flex items-center w-full px-2 py-1.5">
-            <span className="text-[12px] font-semibold text-[rgb(var(--ec-content-text))] truncate">All resources</span>
-          </div>
+        <div className="flex h-[60px] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
+          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)] truncate">
+            All resources
+          </span>
         </div>
       )}
 
       {!isTopLevel && (
         <div
-          className="px-4 py-[13.5px] bg-[rgb(var(--ec-page-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
+          className="flex h-[60px] items-center px-4 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
           onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
           onMouseLeave={() => {
             setShowPathPreview(false);
@@ -974,7 +971,9 @@ export default function NestedSideBar() {
             >
               <ChevronLeft className="w-4 h-4" />
             </span>
-            <span className="text-[12px] font-semibold text-[rgb(var(--ec-content-text))] truncate">{currentLevel.title}</span>
+            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text))] truncate">
+              {currentLevel.title}
+            </span>
             {currentLevel.badge && (
               <span
                 className={cn(

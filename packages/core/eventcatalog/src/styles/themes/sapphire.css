@@ -49,6 +49,10 @@
   --ec-sidebar-active-text: 255 255 255; /* #ffffff */
   --ec-sidebar-hover-bg: 37 99 235; /* #2563eb blue-600 */
 
+  /* Rail / inset-panel surface (5% off the sidebar bg) */
+  --ec-rail-bg: 250 250 250; /* #fafafa - 2% darker than white */
+  --ec-rail-active-bg: 218 218 218; /* ~10% darker than rail bg */
+
   /* Nested sidebar content */
   --ec-content-bg: 255 255 255; /* #ffffff */
   --ec-content-text: 15 23 42; /* #0f172a */
@@ -105,8 +109,8 @@
 
 /* Sapphire Dark Mode */
 :root[data-catalog-theme="sapphire"][data-theme="dark"] {
-  /* Header - slightly elevated for visual hierarchy */
-  --ec-header-bg: 15 23 42; /* #0f172a slate-900 */
+  /* Header - matches page bg for unified look */
+  --ec-header-bg: 2 6 23; /* #020617 slate-950 - matches page bg */
   --ec-header-text: 226 232 240; /* #e2e8f0 */
   --ec-header-border: 30 41 59; /* #1e293b slate-800 */
 
@@ -141,6 +145,10 @@
   --ec-sidebar-active-bg: 59 130 246; /* #3b82f6 blue-500 */
   --ec-sidebar-active-text: 255 255 255; /* #ffffff */
   --ec-sidebar-hover-bg: 30 41 59; /* #1e293b */
+
+  /* Rail / inset-panel surface (5% lifted from the sidebar bg) */
+  --ec-rail-bg: 7 11 28; /* ~2% lighter than #020617 */
+  --ec-rail-active-bg: 33 37 54; /* ~10% lifted off rail bg */
 
   /* Nested sidebar content */
   --ec-content-bg: 2 6 23; /* #020617 */

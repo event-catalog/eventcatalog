@@ -49,6 +49,10 @@
   --ec-sidebar-active-text: 255 255 255; /* #ffffff */
   --ec-sidebar-hover-bg: 13 148 136; /* #0d9488 teal-600 - same as active for consistency */
 
+  /* Rail / inset-panel surface (5% off the sidebar bg) */
+  --ec-rail-bg: 250 250 250; /* #fafafa - 2% darker than white */
+  --ec-rail-active-bg: 218 218 218; /* ~10% darker than rail bg */
+
   /* Nested sidebar content */
   --ec-content-bg: 255 255 255; /* #ffffff */
   --ec-content-text: 15 23 42; /* #0f172a */
@@ -110,8 +114,8 @@
    * Creates a seamless, immersive dark experience
    */
 
-  /* Header - slightly elevated from page for visual hierarchy */
-  --ec-header-bg: 15 23 42; /* #0f172a slate-900 - subtle lift */
+  /* Header - matches page bg for unified look */
+  --ec-header-bg: 2 6 23; /* #020617 slate-950 - matches page bg */
   --ec-header-text: 226 232 240; /* #e2e8f0 */
   --ec-header-border: 30 41 59; /* #1e293b */
 
@@ -146,6 +150,10 @@
   --ec-sidebar-active-bg: 20 184 166; /* #14b8a6 teal-500 */
   --ec-sidebar-active-text: 2 6 23; /* #020617 */
   --ec-sidebar-hover-bg: 30 41 59; /* #1e293b */
+
+  /* Rail / inset-panel surface (5% lifted from the sidebar bg) */
+  --ec-rail-bg: 7 11 28; /* ~2% lighter than #020617 */
+  --ec-rail-active-bg: 33 37 54; /* ~10% lifted off rail bg */
 
   /* Nested sidebar content - same as page bg */
   --ec-content-bg: 2 6 23; /* #020617 */

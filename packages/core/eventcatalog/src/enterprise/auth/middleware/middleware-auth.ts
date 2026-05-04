@@ -80,6 +80,16 @@ export function findMatchingRule(rules: Record<string, () => boolean>, pathname:
   return matches.length > 0 ? matches[0].rule : null;
 }
 
+export function getPublicRoutes(isLLMSTextEnabled: boolean) {
+  const publicRoutes = ['/auth/login', '/auth/signout', '/auth/error', '/api/auth'];
+
+  if (!isLLMSTextEnabled) {
+    return publicRoutes;
+  }
+
+  return [...publicRoutes, '/docs/llm/llms.txt', '/docs/llm/llms-full.txt', '/docs/llm/schemas.txt'];
+}
+
 export const authMiddleware: MiddlewareHandler = async (context, next) => {
   const { request, redirect, locals } = context;
   const url = new URL(request.url);
@@ -97,13 +107,7 @@ export const authMiddleware: MiddlewareHandler = async (context, next) => {
 
   // Skip system/browser requests
   const systemRoutes = ['/.well-known/', '/favicon.ico', '/robots.txt', '/sitemap.xml', '/_astro/', '/__astro'];
-  let publicRoutes = ['/auth/login', '/auth/signout', '/auth/error', '/api/auth'];
-
-  const llmsRoutes = ['/docs/llm/llms.txt', '/docs/llm/llms-services.txt', '/docs/llm/llms-full.txt'];
-
-  if (isLLMSTextEnabled) {
-    publicRoutes = [...publicRoutes, ...llmsRoutes];
-  }
+  const publicRoutes = getPublicRoutes(isLLMSTextEnabled);
 
   if (
     pathname.startsWith('/_') ||

@@ -1,0 +1,32 @@
+---
+import SettingsLayout from '@layouts/SettingsLayout.astro';
+import { GeneralSettingsForm } from '@components/Settings/GeneralSettingsForm';
+import { isDevMode } from '@utils/feature';
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+
+const canEdit = isDevMode();
+
+const initial = {
+  title: config?.title ?? '',
+  tagline: config?.tagline,
+  organizationName: config?.organizationName,
+  homepageLink: config?.homepageLink,
+  editUrl: config?.editUrl,
+  repositoryUrl: config?.repositoryUrl,
+  logo: config?.logo
+    ? {
+        alt: config.logo.alt,
+        text: config.logo.text,
+        src: config.logo.src,
+      }
+    : undefined,
+  theme: config?.theme || 'default',
+};
+
+const apiBase = buildUrl('/api/settings');
+---
+
+<SettingsLayout title="General" active="general">
+  <GeneralSettingsForm client:load canEdit={canEdit} initial={initial} apiBase={apiBase} />
+</SettingsLayout>

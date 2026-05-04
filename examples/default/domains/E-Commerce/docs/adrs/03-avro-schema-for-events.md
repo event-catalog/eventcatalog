@@ -1,5 +1,5 @@
 ---
-title: ADR-003 Use Avro Schemas for Event Serialisation
+title: Use Avro Schemas for Event Serialisation
 summary: Standardise on Apache Avro for event schema definitions and serialisation
 ---
 

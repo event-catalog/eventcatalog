@@ -1,5 +1,5 @@
 ---
-title: ADR-001 Adopt Event-Driven Architecture
+title: Adopt Event-Driven Architecture
 summary: Decision to adopt an event-driven architecture for inter-service communication
 ---
 

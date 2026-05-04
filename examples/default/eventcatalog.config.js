@@ -6,31 +6,37 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 /** @type {import('../../bin/eventcatalog.config').Config} */
 export default {
   cId: '8027010c-f3d6-417a-8234-e2f46087fc56',
-  title: 'FlowMart',
-  tagline: 'Here you can find all the information you need to know about our events and services (demo catalog).',
-  organizationName: 'FlowMart',
+  title: 'Acme Inc',
+  tagline: 'Architecture and product documentation for our organization. ',
+  organizationName: 'Acme Inc',
   homepageLink: 'https://eventcatalog.dev',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
   outDir: 'dist',
+
   // output: 'server',
+
   logo: {
-    alt: 'FlowMart',
-    // src: '/logo.png',
-    text: 'FlowMart',
+    src: '/logo.png',
+    text: 'Acme Inc'
   },
+
   base: '/',
   trailingSlash: false,
+
   // Theme: 'default', 'ocean', 'sapphire', 'sunset', 'forest', or custom (defined in eventcatalog.styles.css)
-  theme: 'default',
+  theme: 'sunset',
+
   mermaid: {
     enableSupportForElkLayout: true,
     iconPacks: ['logos'],
   },
+
   rss: {
     enabled: true,
     limit: 15,
   },
+
   navigation: {
     pages: [
       {
@@ -53,6 +59,7 @@ export default {
       'list:all',
     ]
   },
+
   customDocs: {
     sidebar: [
       {
@@ -101,11 +108,13 @@ export default {
       }
     ]
   },
+
   visualiser: {
     channels: {
       renderMode: 'flat'
     }
   },
+
   environments: [
     {
       name: 'Development',
@@ -125,5 +134,13 @@ export default {
       description: 'Production environment',
       shortName: 'Prod'
     },
-  ]
+  ],
+
+  llmsTxt: {
+    enabled: true
+  },
+
+  chat: {
+    enabled: false
+  }
 };

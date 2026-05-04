@@ -2,7 +2,7 @@
 
 // This is used for CI on vercel. Must copy files before building.
 import { join } from 'node:path';
-import { execSync, spawn } from 'node:child_process';
+import { execFileSync, execSync, spawn } from 'node:child_process';
 const __dirname = import.meta.dirname;
 
 const args = process.argv.slice(2);
@@ -10,6 +10,7 @@ const catalog = args[0] || 'default';
 
 const catalogDir = join(__dirname, '../eventcatalog/');
 const projectDIR = join(__dirname, `../../../examples/${catalog}`);
+const cliEntryPoint = join(__dirname, '../bin/eventcatalog.js');
 
 const shouldFilterAstroLine = (line) => {
   return line.includes('[glob-loader]') || /The collection.*does not exist/.test(line);
@@ -75,14 +76,27 @@ const run = async () => {
   // Build cli (workspace deps already built by turbo before this script runs)
   execSync('pnpm run build:bin', { stdio: 'inherit' });
 
+  const runCatalogCli = (command, env = {}) => {
+    execFileSync(process.execPath, [cliEntryPoint, command], {
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NODE_ENV: 'CI',
+        PROJECT_DIR: projectDIR,
+        CATALOG_DIR: catalogDir,
+        EVENTCATALOG_SCALE_LICENSE_KEY: '',
+        EVENTCATALOG_STARTER_LICENSE_KEY: '',
+        EVENTCATALOG_LICENSE_KEY_BACKSTAGE: '',
+        ...env,
+      },
+    });
+  };
+
   // Run the generator
-  execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . generate`, {
-    stdio: 'inherit',
-  });
+  runCatalogCli('generate');
 
   // Build catalog
-  execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . build`, {
-    stdio: 'inherit',
+  runCatalogCli('build', {
     IGNORE_BUILD_ARTIFACTS: 'true',
   });
 
@@ -94,6 +108,7 @@ const run = async () => {
       PATH: process.env.PATH,
       CATALOG_DIR: catalogDir,
       PROJECT_DIR: projectDIR,
+      IGNORE_BUILD_ARTIFACTS: 'true',
       NODE_OPTIONS: '--max-old-space-size=8192',
     },
   });
