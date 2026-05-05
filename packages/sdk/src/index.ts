@@ -112,7 +112,20 @@ import { dumpCatalog, getEventCatalogConfigurationFile } from './eventcatalog';
 import { createSnapshot, diffSnapshots, listSnapshots } from './snapshots';
 import { writeChangelog, appendChangelog, getChangelog, rmChangelog } from './changelogs';
 import { getEntity, getEntities, writeEntity, rmEntity, rmEntityById, versionEntity, entityHasVersion } from './entities';
-import { getFlow, getFlows } from './flows';
+import {
+  addFileToFlow,
+  flowHasVersion,
+  getFlow,
+  getFlows,
+  rmFlow,
+  rmFlowById,
+  versionFlow,
+  writeFlow,
+  writeFlowToDomain,
+  writeFlowToService,
+  writeVersionedFlow,
+} from './flows';
+export { FlowBuilder } from './flow-builder';
 
 import {
   getDataStore,
@@ -152,6 +165,7 @@ import {
 // Export the types
 export type * from './types';
 export type * from './snapshot-types';
+export type * from './flow-builder';
 
 /**
  * Init the SDK for EventCatalog
@@ -1193,6 +1207,73 @@ export default (path: string) => {
      * @returns Flow[]|Undefined
      */
     getFlows: getFlows(join(path)),
+    /**
+     * Adds a flow to EventCatalog
+     *
+     * @param flow - The flow to write
+     * @param options - Optional options to write the flow
+     *
+     */
+    writeFlow: writeFlow(join(path, 'flows')),
+    /**
+     * Adds a versioned flow to EventCatalog
+     *
+     * @param flow - The flow to write
+     *
+     */
+    writeVersionedFlow: writeVersionedFlow(join(path, 'flows')),
+    /**
+     * Adds a flow to a domain in EventCatalog
+     *
+     * @param flow - The flow to write to the domain
+     * @param domain - The domain and its id to write the flow to
+     * @param options - Optional options to write the flow
+     *
+     */
+    writeFlowToDomain: writeFlowToDomain(join(path, 'domains')),
+    /**
+     * Adds a flow to a service in EventCatalog
+     *
+     * @param flow - The flow to write to the service
+     * @param service - The service and its id to write the flow to
+     * @param options - Optional options to write the flow
+     *
+     */
+    writeFlowToService: writeFlowToService(join(path, 'services')),
+    /**
+     * Remove a flow from EventCatalog (modeled on the standard POSIX rm utility)
+     *
+     * @param path - The path to your flow, e.g. `/PaymentFlow`
+     *
+     */
+    rmFlow: rmFlow(join(path, 'flows')),
+    /**
+     * Remove a flow by a flow id
+     *
+     * @param id - The id of the flow you want to remove
+     *
+     */
+    rmFlowById: rmFlowById(join(path)),
+    /**
+     * Moves a given flow id to the version directory
+     * @param id - The id of the flow to version
+     */
+    versionFlow: versionFlow(join(path)),
+    /**
+     * Check to see if a flow version exists
+     * @param id - The id of the flow
+     * @param version - The version of the flow (supports semver)
+     * @returns
+     */
+    flowHasVersion: flowHasVersion(join(path)),
+    /**
+     * Adds a file to the given flow
+     * @param id - The id of the flow to add the file to
+     * @param file - File contents to add including the content and the file name
+     * @param version - Optional version of the flow to add the file to
+     * @returns
+     */
+    addFileToFlow: addFileToFlow(join(path)),
 
     /**
      * ================================
