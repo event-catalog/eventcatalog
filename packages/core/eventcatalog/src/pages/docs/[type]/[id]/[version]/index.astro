@@ -272,6 +272,20 @@ const nodeGraphPropsForPage = nodeGraphs.find((nodeGraph: any) => nodeGraph.id =
 
 const shouldRenderVersionList =
   shouldRenderSideBarSection(props, 'versions') && props.data.versions && props.data.versions.length > 1;
+const httpOperation =
+  ['commands', 'queries'].includes(props.collection) && props.data.operation?.path ? props.data.operation : undefined;
+const httpMethodColors: Record<string, { background: string; color: string }> = {
+  GET: { background: 'rgba(34,197,94,0.15)', color: '#22c55e' },
+  POST: { background: 'rgba(59,130,246,0.15)', color: '#3b82f6' },
+  PUT: { background: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
+  PATCH: { background: 'rgba(245,158,11,0.15)', color: '#f59e0b' },
+  DELETE: { background: 'rgba(239,68,68,0.15)', color: '#ef4444' },
+  OPTIONS: { background: 'rgba(139,92,246,0.15)', color: '#8b5cf6' },
+  HEAD: { background: 'rgba(107,114,128,0.15)', color: '#6b7280' },
+};
+const httpMethodStyle = httpOperation?.method
+  ? httpMethodColors[httpOperation.method.toUpperCase()] || { background: '#6b7280', color: '#ffffff' }
+  : undefined;
 
 // This will render the graph for this page
 nodeGraphs.push({
@@ -343,6 +357,26 @@ nodeGraphs.push({
             </div>
 
             <h2 class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
+            {
+              httpOperation && (
+                <div class="pt-4">
+                  <div
+                    class="inline-flex max-w-full items-start gap-2 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover))] px-3 py-2 text-sm text-[rgb(var(--ec-page-text))]"
+                    aria-label="HTTP path"
+                  >
+                    {httpOperation.method && (
+                      <span
+                        class="mt-0.5 shrink-0 rounded-md px-2 py-0.5 font-mono text-xs font-semibold"
+                        style={`background: ${httpMethodStyle?.background}; color: ${httpMethodStyle?.color};`}
+                      >
+                        {httpOperation.method}
+                      </span>
+                    )}
+                    <code class="break-all font-mono text-[rgb(var(--ec-page-text))]">{httpOperation.path}</code>
+                  </div>
+                </div>
+              )
+            }
             {
               badges && (
                 <div class="flex flex-wrap gap-3 pt-6 pb-2">

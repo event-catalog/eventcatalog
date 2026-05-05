@@ -35,6 +35,9 @@ packages/core/eventcatalog/public/pagefind
 
 git-push.sh
 
+# local-only Claude skill (Discord webhook automation)
+.claude/skills/release-discord-summary/
+
 /test-results/
 /playwright-report/
 /blob-report/
