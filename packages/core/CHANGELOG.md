@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.31.2
+
+### Patch Changes
+
+- 705f82b: feat(core): improved AvroSchemaViewer nested type resolution and enum handling
+
 ## 3.31.1
 
 ### Patch Changes
