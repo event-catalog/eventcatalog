@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.31.1
+
+### Patch Changes
+
+- 2c3e3d8: Refresh settings copy: simplify the read-only banner guidance, tighten the MCP/Assistant SSR-required messaging, and let `build:cd` honour license keys provided via the environment.
+
 ## 3.31.0
 
 ### Minor Changes
