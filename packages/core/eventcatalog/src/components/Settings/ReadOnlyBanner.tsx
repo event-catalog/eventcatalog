@@ -9,8 +9,9 @@ export const ReadOnlyBanner = () => (
     <div className="space-y-1">
       <p className="font-medium">Read-only</p>
       <p className="text-[rgb(var(--ec-page-text-muted))]">
-        Run <code className="rounded bg-[rgb(var(--ec-page-bg)/0.78)] px-1 py-0.5 font-mono text-xs">npx eventcatalog dev</code>{' '}
-        in your catalog directory to edit these settings.
+        To edit these settings, run EventCatalog locally or update them in your{' '}
+        <code className="rounded bg-[rgb(var(--ec-page-bg)/0.78)] px-1 py-0.5 font-mono text-xs">eventcatalog.config.js</code>{' '}
+        file.
       </p>
     </div>
   </div>

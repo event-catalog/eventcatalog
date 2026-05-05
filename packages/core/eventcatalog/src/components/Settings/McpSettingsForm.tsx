@@ -72,10 +72,7 @@ const McpNeedsSSR = () => (
           </span>
         </div>
         <p className="mt-1 text-[12px] leading-snug text-[rgb(var(--ec-page-text-muted))]">
-          Your catalog needs to run as a live server before AI agents can connect to it.
-        </p>
-        <p className="mt-1 text-[12px] leading-snug text-[rgb(var(--ec-page-text-muted))]">
-          Switch your catalog to server mode and you’re good to go — the setup guide walks through it.
+          The MCP Server requires your catalog to run in server (SSR) mode. Follow the setup guide to switch.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <a
