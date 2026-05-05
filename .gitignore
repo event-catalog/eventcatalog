@@ -62,6 +62,8 @@ examples/e-commerce
 .claude/agents/eventcatalog-blog-writer.md
 pr-descriptions/
 .claude/commands/ship.md
+.claude/skills/release-discord-summary/SKILL.md
+.claude/skills/release-discord-summary/scripts/post-to-discord.sh
 
 
 PRD.md

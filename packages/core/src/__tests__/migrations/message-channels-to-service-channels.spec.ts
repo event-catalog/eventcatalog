@@ -11,11 +11,38 @@ import matter from 'gray-matter';
 
 describe('message-channels-to-service-channels', () => {
   beforeEach(() => {
+    delete process.env.EVENTCATALOG_DISABLE_CHANNEL_MIGRATION;
     process.env.PROJECT_DIR = path.join(__dirname, 'catalog');
     // Clear the catalog directory
     fs.rmSync(path.join(process.env.PROJECT_DIR!), { recursive: true });
     // Copy test data from previous version of the catalog to a new catalog
     fs.cpSync(path.join(__dirname, 'message-channels-examples'), path.join(process.env.PROJECT_DIR!), { recursive: true });
+  });
+
+  it('does not update catalog files when EVENTCATALOG_DISABLE_CHANNEL_MIGRATION is true', async () => {
+    process.env.EVENTCATALOG_DISABLE_CHANNEL_MIGRATION = 'true';
+
+    const servicePath = path.join(process.env.PROJECT_DIR!, 'services', 'InventoryService', 'index.mdx');
+    const messagePath = path.join(
+      process.env.PROJECT_DIR!,
+      'services',
+      'InventoryService',
+      'events',
+      'OrderAmended',
+      'index.mdx'
+    );
+
+    const serviceBeforeMigration = fs.readFileSync(servicePath, 'utf8');
+    const messageBeforeMigration = fs.readFileSync(messagePath, 'utf8');
+
+    const result = await messageChannelsToServiceChannels();
+
+    expect(result).toEqual({
+      status: 'skipped',
+      message: 'Channel migration disabled by EVENTCATALOG_DISABLE_CHANNEL_MIGRATION',
+    });
+    expect(fs.readFileSync(servicePath, 'utf8')).toBe(serviceBeforeMigration);
+    expect(fs.readFileSync(messagePath, 'utf8')).toBe(messageBeforeMigration);
   });
 
   it('if messages are found in the catalog that use channels, the migration script will move the channel configuration to the service that sends (to) or receives (from) the message', async () => {
