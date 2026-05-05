@@ -152,10 +152,7 @@ const AssistantNeedsSSR = () => (
           </span>
         </div>
         <p className="mt-1 text-[12px] leading-snug text-[rgb(var(--ec-page-text-muted))]">
-          Your catalog needs to run as a live server before the Agent can chat.
-        </p>
-        <p className="mt-1 text-[12px] leading-snug text-[rgb(var(--ec-page-text-muted))]">
-          Switch your catalog to server mode and you’re good to go — the configuration guide walks through it.
+          The Agent requires your catalog to run in server (SSR) mode. Follow the configuration guide to switch.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <a

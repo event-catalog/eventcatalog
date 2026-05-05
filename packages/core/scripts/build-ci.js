@@ -84,9 +84,6 @@ const run = async () => {
         NODE_ENV: 'CI',
         PROJECT_DIR: projectDIR,
         CATALOG_DIR: catalogDir,
-        EVENTCATALOG_SCALE_LICENSE_KEY: '',
-        EVENTCATALOG_STARTER_LICENSE_KEY: '',
-        EVENTCATALOG_LICENSE_KEY_BACKSTAGE: '',
         ...env,
       },
     });
