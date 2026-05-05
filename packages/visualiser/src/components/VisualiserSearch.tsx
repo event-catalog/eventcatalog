@@ -8,47 +8,155 @@ import {
   memo,
 } from "react";
 import type { Node } from "@xyflow/react";
+import {
+  Blocks,
+  Database,
+  Layers,
+  ListTree,
+  MessageSquare,
+  Search as SearchIcon,
+  Server,
+  User,
+  Workflow,
+  Zap,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 // Define interfaces for different node data structures
-interface MessageData {
-  name: string;
-  version?: string;
-}
-
-interface ServiceData {
-  name: string;
-  version?: string;
-}
-
-interface DomainData {
-  name: string;
-  version?: string;
-}
-
-interface EntityData {
-  name: string;
-  version?: string;
-}
-
-interface NodeDataContent extends Record<string, unknown> {
-  message?: {
-    data: MessageData;
-  };
-  service?: {
-    data: ServiceData;
-  };
-  domain?: {
-    data: DomainData;
-  };
-  entity?: {
-    data: EntityData;
-  };
+interface ResourceData {
+  id?: string;
   name?: string;
   version?: string;
 }
 
+type MessageData = ResourceData;
+
+type ServiceData = ResourceData;
+
+type DomainData = ResourceData;
+
+type EntityData = ResourceData;
+
+interface NodeDataContent extends Record<string, unknown> {
+  message?: { data?: MessageData } & MessageData;
+  service?: { data?: ServiceData } & ServiceData;
+  domain?: { data?: DomainData } & DomainData;
+  entity?: { data?: EntityData } & EntityData;
+  channel?: { data?: ResourceData } & ResourceData;
+  dataProduct?: { data?: ResourceData } & ResourceData;
+  data?: ResourceData;
+  name?: string;
+  version?: string;
+  groupName?: string;
+  messages?: Array<{
+    message?: {
+      collection?: string;
+      data?: MessageData & { id?: string };
+    };
+  }>;
+}
+
 // Extend the Node type with our custom data structure
 type CustomNode = Node<NodeDataContent>;
+
+type SearchSuggestion = {
+  key: string;
+  node: CustomNode;
+  label: string;
+  searchText: string;
+  type: string;
+  resourceKey: string;
+  groupName?: string;
+  isGroupedMessage?: boolean;
+};
+
+type NodeTypeMeta = {
+  label: string;
+  Icon: LucideIcon;
+  iconClass: string;
+  badgeClass: string;
+};
+
+const formatVersionedName = (name: string, version?: string) => {
+  if (version) {
+    const nameWithoutVersion = name.replace(
+      new RegExp(`-v?${version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`),
+      "",
+    );
+    return `${nameWithoutVersion} (v${version})`;
+  }
+
+  const versionMatch = name.match(
+    /^(.+)-v?(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)$/,
+  );
+  if (!versionMatch) return name;
+
+  return `${versionMatch[1]} (v${versionMatch[2]})`;
+};
+
+const normalizeCollectionType = (type: string) => {
+  const aliases: Record<string, string> = {
+    event: "events",
+    command: "commands",
+    query: "queries",
+    service: "services",
+    domain: "domains",
+    channel: "channels",
+    entity: "entities",
+  };
+
+  return aliases[type] || type;
+};
+
+const splitVersionedName = (name: string, version?: string) => {
+  if (version) {
+    return {
+      id: name.replace(
+        new RegExp(`-v?${version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`),
+        "",
+      ),
+      version,
+    };
+  }
+
+  const versionMatch = name.match(
+    /^(.+)-v?(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)$/,
+  );
+  if (!versionMatch) return { id: name, version: undefined };
+
+  return { id: versionMatch[1], version: versionMatch[2] };
+};
+
+const getResourceKey = ({
+  type,
+  id,
+  name,
+  version,
+}: {
+  type: string;
+  id?: string;
+  name: string;
+  version?: string;
+}) => {
+  const parsed = splitVersionedName(id || name, version);
+  return `${normalizeCollectionType(type)}:${parsed.id}:${parsed.version || ""}`.toLowerCase();
+};
+
+const getNodeResourceData = (
+  data: NodeDataContent,
+  key:
+    | "message"
+    | "service"
+    | "domain"
+    | "entity"
+    | "channel"
+    | "dataProduct"
+    | "data",
+) => {
+  const resource = data?.[key];
+  if (!resource || typeof resource !== "object") return undefined;
+  return "data" in resource && resource.data ? resource.data : resource;
+};
 
 interface VisualiserSearchProps {
   nodes: CustomNode[];
@@ -66,13 +174,15 @@ const VisualiserSearch = memo(
     ({ nodes, onNodeSelect, onClear, onPaneClick: _onPaneClick }, ref) => {
       const [searchQuery, setSearchQuery] = useState("");
       const [filteredSuggestions, setFilteredSuggestions] = useState<
-        CustomNode[]
+        SearchSuggestion[]
       >([]);
       const [showSuggestions, setShowSuggestions] = useState(false);
       const [selectedSuggestionIndex, setSelectedSuggestionIndex] =
         useState(-1);
       const searchInputRef = useRef<HTMLInputElement>(null);
       const containerRef = useRef<HTMLDivElement>(null);
+      const suggestionsListRef = useRef<HTMLDivElement>(null);
+      const suggestionItemRefs = useRef<Array<HTMLDivElement | null>>([]);
 
       const hideSuggestions = useCallback(() => {
         setShowSuggestions(false);
@@ -94,41 +204,291 @@ const VisualiserSearch = memo(
         if (node.type === "messageGroupExpanded") {
           return (node.data as any)?.groupName || node.id;
         }
+        const message = getNodeResourceData(node.data, "message");
+        const service = getNodeResourceData(node.data, "service");
+        const domain = getNodeResourceData(node.data, "domain");
+        const entity = getNodeResourceData(node.data, "entity");
+        const channel = getNodeResourceData(node.data, "channel");
+        const dataProduct = getNodeResourceData(node.data, "dataProduct");
+        const data = getNodeResourceData(node.data, "data");
         const name =
-          node.data?.message?.data?.name ||
-          node.data?.service?.data?.name ||
-          node.data?.domain?.data?.name ||
-          node.data?.entity?.data?.name ||
+          message?.name ||
+          message?.id ||
+          service?.name ||
+          service?.id ||
+          domain?.name ||
+          domain?.id ||
+          entity?.name ||
+          entity?.id ||
+          channel?.name ||
+          channel?.id ||
+          dataProduct?.name ||
+          dataProduct?.id ||
+          data?.name ||
+          data?.id ||
           node.data?.name ||
           node.id;
         const version =
-          node.data?.message?.data?.version ||
-          node.data?.service?.data?.version ||
-          node.data?.domain?.data?.version ||
-          node.data?.entity?.data?.version ||
+          message?.version ||
+          service?.version ||
+          domain?.version ||
+          entity?.version ||
+          channel?.version ||
+          dataProduct?.version ||
+          data?.version ||
           node.data?.version;
-        return version ? `${name} (v${version})` : name;
+        return formatVersionedName(name, version);
       }, []);
 
-      const getNodeTypeColorClass = useCallback((nodeType: string) => {
-        const colorClasses: { [key: string]: string } = {
-          events: "bg-orange-600 text-white",
-          services: "bg-pink-600 text-white",
-          flows: "bg-teal-600 text-white",
-          commands: "bg-blue-600 text-white",
-          queries: "bg-green-600 text-white",
-          channels: "bg-gray-600 text-white",
-          domains: "bg-yellow-500 text-white",
-          externalSystem: "bg-pink-600 text-white",
-          actor: "bg-yellow-500 text-white",
-          step: "bg-gray-700 text-white",
-          user: "bg-yellow-500 text-white",
-          custom: "bg-gray-500 text-white",
-          field: "bg-cyan-600 text-white",
-          messageGroup: "bg-violet-600 text-white",
-          messageGroupExpanded: "bg-violet-600 text-white",
+      const getNodeResourceKey = useCallback(
+        (node: CustomNode, label: string) => {
+          if (
+            node.type === "messageGroup" ||
+            node.type === "messageGroupExpanded"
+          ) {
+            return `${node.type}:${node.id}`.toLowerCase();
+          }
+
+          const data = node.data as any;
+          const resource =
+            getNodeResourceData(data, "message") ||
+            getNodeResourceData(data, "service") ||
+            getNodeResourceData(data, "domain") ||
+            getNodeResourceData(data, "entity") ||
+            getNodeResourceData(data, "channel") ||
+            getNodeResourceData(data, "dataProduct") ||
+            data?.data ||
+            data;
+
+          return getResourceKey({
+            type: node.type || "unknown",
+            id: resource?.id,
+            name: resource?.name || resource?.id || label || node.id,
+            version: resource?.version || data?.version,
+          });
+        },
+        [],
+      );
+
+      const dedupeSearchSuggestions = useCallback(
+        (suggestions: SearchSuggestion[]) => {
+          const uniqueSuggestions: SearchSuggestion[] = [];
+          const indexByResourceKey = new Map<string, number>();
+
+          suggestions.forEach((suggestion) => {
+            const existingIndex = indexByResourceKey.get(
+              suggestion.resourceKey,
+            );
+
+            if (existingIndex === undefined) {
+              indexByResourceKey.set(
+                suggestion.resourceKey,
+                uniqueSuggestions.length,
+              );
+              uniqueSuggestions.push(suggestion);
+              return;
+            }
+
+            if (
+              suggestion.isGroupedMessage &&
+              !uniqueSuggestions[existingIndex].isGroupedMessage
+            ) {
+              uniqueSuggestions[existingIndex] = suggestion;
+            }
+          });
+
+          return uniqueSuggestions;
+        },
+        [],
+      );
+
+      const getSearchSuggestions = useCallback(
+        (nodesToIndex: CustomNode[]): SearchSuggestion[] => {
+          const suggestions = nodesToIndex.flatMap((node) => {
+            const nodeName = getNodeDisplayName(node);
+            const suggestions: SearchSuggestion[] = [
+              {
+                key: node.id,
+                node,
+                label: nodeName,
+                searchText: nodeName,
+                type: node.type || "unknown",
+                resourceKey: getNodeResourceKey(node, nodeName),
+              },
+            ];
+
+            if (node.type !== "messageGroup") return suggestions;
+
+            const groupName = node.data?.groupName || nodeName;
+            const groupedMessages = node.data?.messages || [];
+            groupedMessages.forEach((item, index) => {
+              const message = item.message;
+              const messageName = message?.data?.name || message?.data?.id;
+              if (!messageName) return;
+
+              const version = message?.data?.version;
+              const label = formatVersionedName(messageName, version);
+
+              suggestions.push({
+                key: `${node.id}:${message?.data?.id || messageName}:${version || index}`,
+                node,
+                label,
+                searchText: `${label} ${groupName}`,
+                type: message?.collection || "message",
+                resourceKey: getResourceKey({
+                  type: message?.collection || "message",
+                  id: message?.data?.id,
+                  name: messageName,
+                  version,
+                }),
+                groupName,
+                isGroupedMessage: true,
+              });
+            });
+
+            return suggestions;
+          });
+
+          return dedupeSearchSuggestions(suggestions);
+        },
+        [dedupeSearchSuggestions, getNodeDisplayName, getNodeResourceKey],
+      );
+
+      const getNodeTypeMeta = useCallback((nodeType: string): NodeTypeMeta => {
+        const meta: Record<string, NodeTypeMeta> = {
+          events: {
+            label: "Event",
+            Icon: Zap,
+            iconClass: "border-orange-500/25 bg-orange-500/10 text-orange-500",
+            badgeClass:
+              "border-orange-500/25 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+          },
+          event: {
+            label: "Event",
+            Icon: Zap,
+            iconClass: "border-orange-500/25 bg-orange-500/10 text-orange-500",
+            badgeClass:
+              "border-orange-500/25 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+          },
+          commands: {
+            label: "Command",
+            Icon: MessageSquare,
+            iconClass: "border-blue-500/25 bg-blue-500/10 text-blue-500",
+            badgeClass:
+              "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+          },
+          command: {
+            label: "Command",
+            Icon: MessageSquare,
+            iconClass: "border-blue-500/25 bg-blue-500/10 text-blue-500",
+            badgeClass:
+              "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+          },
+          queries: {
+            label: "Query",
+            Icon: SearchIcon,
+            iconClass: "border-green-500/25 bg-green-500/10 text-green-500",
+            badgeClass:
+              "border-green-500/25 bg-green-500/10 text-green-700 dark:text-green-300",
+          },
+          query: {
+            label: "Query",
+            Icon: SearchIcon,
+            iconClass: "border-green-500/25 bg-green-500/10 text-green-500",
+            badgeClass:
+              "border-green-500/25 bg-green-500/10 text-green-700 dark:text-green-300",
+          },
+          services: {
+            label: "Service",
+            Icon: Server,
+            iconClass: "border-pink-500/25 bg-pink-500/10 text-pink-500",
+            badgeClass:
+              "border-pink-500/25 bg-pink-500/10 text-pink-700 dark:text-pink-300",
+          },
+          domains: {
+            label: "Domain",
+            Icon: Blocks,
+            iconClass:
+              "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+            badgeClass:
+              "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+          },
+          flows: {
+            label: "Flow",
+            Icon: Workflow,
+            iconClass: "border-teal-500/25 bg-teal-500/10 text-teal-500",
+            badgeClass:
+              "border-teal-500/25 bg-teal-500/10 text-teal-700 dark:text-teal-300",
+          },
+          channels: {
+            label: "Channel",
+            Icon: ListTree,
+            iconClass: "border-gray-500/25 bg-gray-500/10 text-gray-500",
+            badgeClass:
+              "border-gray-500/25 bg-gray-500/10 text-gray-700 dark:text-gray-300",
+          },
+          data: {
+            label: "Data",
+            Icon: Database,
+            iconClass: "border-blue-500/25 bg-blue-500/10 text-blue-500",
+            badgeClass:
+              "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+          },
+          entities: {
+            label: "Entity",
+            Icon: Database,
+            iconClass: "border-blue-500/25 bg-blue-500/10 text-blue-500",
+            badgeClass:
+              "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+          },
+          externalSystem: {
+            label: "External",
+            Icon: Server,
+            iconClass: "border-pink-500/25 bg-pink-500/10 text-pink-500",
+            badgeClass:
+              "border-pink-500/25 bg-pink-500/10 text-pink-700 dark:text-pink-300",
+          },
+          actor: {
+            label: "Actor",
+            Icon: User,
+            iconClass:
+              "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+            badgeClass:
+              "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+          },
+          user: {
+            label: "User",
+            Icon: User,
+            iconClass:
+              "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+            badgeClass:
+              "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+          },
+          messageGroup: {
+            label: "Group",
+            Icon: Layers,
+            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            badgeClass:
+              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+          },
+          messageGroupExpanded: {
+            label: "Group",
+            Icon: Layers,
+            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            badgeClass:
+              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+          },
         };
-        return colorClasses[nodeType] || "bg-gray-100 text-gray-700";
+
+        return (
+          meta[nodeType] || {
+            label: nodeType,
+            Icon: Layers,
+            iconClass: "border-gray-500/25 bg-gray-500/10 text-gray-500",
+            badgeClass:
+              "border-gray-500/25 bg-gray-500/10 text-gray-700 dark:text-gray-300",
+          }
+        );
       }, []);
 
       const handleSearchChange = useCallback(
@@ -137,59 +497,73 @@ const VisualiserSearch = memo(
           setSearchQuery(query);
 
           if (query.length > 0) {
-            const filtered = nodes.filter((node) => {
-              const nodeName = getNodeDisplayName(node);
-              return nodeName.toLowerCase().includes(query.toLowerCase());
-            });
+            const search = query.toLowerCase();
+            const filtered = getSearchSuggestions(nodes).filter((suggestion) =>
+              suggestion.searchText.toLowerCase().includes(search),
+            );
             setFilteredSuggestions(filtered);
             setShowSuggestions(true);
             setSelectedSuggestionIndex(-1);
           } else {
-            setFilteredSuggestions(nodes);
+            setFilteredSuggestions(getSearchSuggestions(nodes));
             setShowSuggestions(true);
             setSelectedSuggestionIndex(-1);
           }
         },
-        [nodes, getNodeDisplayName],
+        [nodes, getSearchSuggestions],
       );
 
       const handleSearchFocus = useCallback(() => {
-        if (searchQuery.length === 0) {
-          setFilteredSuggestions(nodes);
-        }
+        const suggestions = getSearchSuggestions(nodes);
+        const search = searchQuery.toLowerCase();
+        setFilteredSuggestions(
+          searchQuery.length === 0
+            ? suggestions
+            : suggestions.filter((suggestion) =>
+                suggestion.searchText.toLowerCase().includes(search),
+              ),
+        );
         setShowSuggestions(true);
         setSelectedSuggestionIndex(-1);
-      }, [nodes, searchQuery]);
+      }, [nodes, searchQuery, getSearchSuggestions]);
 
       const handleSuggestionClick = useCallback(
-        (node: CustomNode) => {
-          setSearchQuery(getNodeDisplayName(node));
+        (suggestion: SearchSuggestion) => {
+          setSearchQuery("");
+          setFilteredSuggestions([]);
           setShowSuggestions(false);
-          onNodeSelect(node);
+          setSelectedSuggestionIndex(-1);
+          onNodeSelect(suggestion.node);
         },
-        [onNodeSelect, getNodeDisplayName],
+        [onNodeSelect],
       );
 
       const handleSearchKeyDown = useCallback(
         (event: React.KeyboardEvent<HTMLInputElement>) => {
-          if (!showSuggestions || filteredSuggestions.length === 0) return;
-
           switch (event.key) {
             case "ArrowDown":
               event.preventDefault();
+              if (filteredSuggestions.length === 0) return;
+              setShowSuggestions(true);
               setSelectedSuggestionIndex((prev) =>
                 prev < filteredSuggestions.length - 1 ? prev + 1 : 0,
               );
               break;
             case "ArrowUp":
               event.preventDefault();
+              if (filteredSuggestions.length === 0) return;
+              setShowSuggestions(true);
               setSelectedSuggestionIndex((prev) =>
                 prev > 0 ? prev - 1 : filteredSuggestions.length - 1,
               );
               break;
             case "Enter":
               event.preventDefault();
-              if (selectedSuggestionIndex >= 0) {
+              if (
+                showSuggestions &&
+                selectedSuggestionIndex >= 0 &&
+                selectedSuggestionIndex < filteredSuggestions.length
+              ) {
                 handleSuggestionClick(
                   filteredSuggestions[selectedSuggestionIndex],
                 );
@@ -219,6 +593,36 @@ const VisualiserSearch = memo(
           searchInputRef.current.focus();
         }
       }, [onClear]);
+
+      useEffect(() => {
+        suggestionItemRefs.current = suggestionItemRefs.current.slice(
+          0,
+          filteredSuggestions.length,
+        );
+      }, [filteredSuggestions.length]);
+
+      useEffect(() => {
+        if (!showSuggestions || selectedSuggestionIndex < 0) return;
+
+        const list = suggestionsListRef.current;
+        const item = suggestionItemRefs.current[selectedSuggestionIndex];
+        if (!list || !item) return;
+
+        const itemTop = item.offsetTop;
+        const itemBottom = itemTop + item.offsetHeight;
+        const visibleTop = list.scrollTop;
+        const visibleBottom = visibleTop + list.clientHeight;
+
+        if (itemTop < visibleTop) {
+          list.scrollTop = itemTop;
+        } else if (itemBottom > visibleBottom) {
+          list.scrollTop = itemBottom - list.clientHeight;
+        }
+      }, [
+        showSuggestions,
+        selectedSuggestionIndex,
+        filteredSuggestions.length,
+      ]);
 
       // Close suggestions when clicking outside
       useEffect(() => {
@@ -274,27 +678,47 @@ const VisualiserSearch = memo(
             )}
           </div>
           {showSuggestions && filteredSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-              {filteredSuggestions.map((node, index) => {
-                const nodeName = getNodeDisplayName(node);
-                const nodeType = node.type || "unknown";
+            <div
+              ref={suggestionsListRef}
+              className="absolute top-full left-0 right-0 mt-1 bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-lg z-50 max-h-60 overflow-y-auto"
+            >
+              {filteredSuggestions.map((suggestion, index) => {
+                const nodeTypeMeta = getNodeTypeMeta(suggestion.type);
+                const Icon = nodeTypeMeta.Icon;
+                const isSelected = index === selectedSuggestionIndex;
                 return (
                   <div
-                    key={node.id}
-                    onClick={() => handleSuggestionClick(node)}
-                    className={`px-4 py-2 cursor-pointer flex items-center justify-between hover:bg-[rgb(var(--ec-page-border)/0.5)] ${
-                      index === selectedSuggestionIndex
-                        ? "bg-[rgb(var(--ec-accent-subtle))]"
-                        : ""
+                    key={`${suggestion.key}:${index}`}
+                    ref={(element) => {
+                      suggestionItemRefs.current[index] = element;
+                    }}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                    className={`px-3 py-2 cursor-pointer flex items-start gap-3 ${
+                      isSelected
+                        ? "bg-[rgb(var(--ec-accent-subtle))] outline outline-1 -outline-offset-1 outline-[rgb(var(--ec-accent))]"
+                        : "hover:bg-[rgb(var(--ec-page-border)/0.5)]"
                     }`}
                   >
-                    <span className="text-sm font-medium text-[rgb(var(--ec-page-text))]">
-                      {nodeName}
+                    <span
+                      className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border ${nodeTypeMeta.iconClass}`}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-[rgb(var(--ec-page-text))]">
+                        {suggestion.label}
+                      </span>
+                      {suggestion.isGroupedMessage && suggestion.groupName && (
+                        <span className="mt-0.5 block truncate text-xs text-[rgb(var(--ec-page-text-muted))]">
+                          in {suggestion.groupName}
+                        </span>
+                      )}
                     </span>
                     <span
-                      className={`text-xs capitalize px-2 py-1 rounded ${getNodeTypeColorClass(nodeType)}`}
+                      className={`mt-0.5 flex-shrink-0 rounded border px-2 py-0.5 text-xs font-medium ${nodeTypeMeta.badgeClass}`}
                     >
-                      {nodeType}
+                      {nodeTypeMeta.label}
                     </span>
                   </div>
                 );

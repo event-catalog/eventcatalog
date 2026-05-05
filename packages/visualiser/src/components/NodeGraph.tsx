@@ -81,6 +81,11 @@ import NodeContextMenu from "./NodeContextMenu";
 import { convertToMermaid } from "../utils/export-mermaid";
 import { copyToClipboard } from "../utils/clipboard";
 import { layoutGraph } from "../utils/layout";
+import { packNodesAroundBounds } from "../utils/local-packing";
+import {
+  buildMessageGroupExpansionNodes,
+  getExpandedMessageGroupNode,
+} from "../utils/message-group-expansion";
 import { AllNotesModal, getNotesFromNode } from "./NotesToolbarButton";
 import { setBuildUrlFn } from "../utils/url-builder";
 import { PortalContainerProvider } from "../context/PortalContainerContext";
@@ -407,7 +412,8 @@ const NodeGraphBuilder = ({
   );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const { fitView, getNodes } = useReactFlow();
+  const { fitView, getNodes, getIntersectingNodes, getZoom, setCenter } =
+    useReactFlow();
 
   // Sync when parent passes new nodes/edges (e.g. playground re-parse)
   useEffect(() => {
@@ -593,84 +599,150 @@ const NodeGraphBuilder = ({
     setTimeout(() => wrapper.classList.remove("ec-animating-layout"), 400);
   }, []);
 
-  const relayoutGraph = useCallback((nextNodes: Node[], nextEdges: Edge[]) => {
-    const g = new dagre.graphlib.Graph({ compound: true });
-    g.setGraph({ rankdir: "LR", ranksep: 300, nodesep: 50 });
-    g.setDefaultEdgeLabel(() => ({}));
+  const relayoutGraph = useCallback(
+    (
+      nextNodes: Node[],
+      nextEdges: Edge[],
+      anchor?: { id: string; position: { x: number; y: number } },
+    ) => {
+      const g = new dagre.graphlib.Graph({ compound: true });
+      g.setGraph({ rankdir: "LR", ranksep: 300, nodesep: 50 });
+      g.setDefaultEdgeLabel(() => ({}));
 
-    // Add nodes to dagre — skip children (they're positioned relative to parent)
-    nextNodes.forEach((node) => {
-      if (node.parentId) return;
-      const w =
-        (node.style?.width as number) ||
-        (node.type === "messageGroupExpanded" ? 380 : 150);
-      const h =
-        (node.style?.height as number) ||
-        (node.type === "messageGroupExpanded" ? 0 : 120);
+      // Add nodes to dagre — skip children (they're positioned relative to parent)
+      nextNodes.forEach((node) => {
+        if (node.parentId) return;
+        const w =
+          (node.style?.width as number) ||
+          (node.type === "messageGroupExpanded" ? 380 : 150);
+        const h =
+          (node.style?.height as number) ||
+          (node.type === "messageGroupExpanded" ? 0 : 120);
 
-      // For expanded groups, calculate height from child count
-      if (node.type === "messageGroupExpanded") {
-        const children = nextNodes.filter((n) => n.parentId === node.id);
-        const childHeight = children.length * 190 + 100; // 190px per child + padding
-        g.setNode(node.id, { width: w, height: childHeight });
-      } else {
-        g.setNode(node.id, { width: w, height: h });
-      }
-    });
+        // For expanded groups, calculate height from child count
+        if (node.type === "messageGroupExpanded") {
+          const children = nextNodes.filter((n) => n.parentId === node.id);
+          const childHeight = children.length * 190 + 100; // 190px per child + padding
+          g.setNode(node.id, { width: w, height: childHeight });
+        } else {
+          g.setNode(node.id, { width: w, height: h });
+        }
+      });
 
-    // Add edges — only between top-level nodes or from top-level to parent of child
-    nextEdges.forEach((edge) => {
-      const sourceNode = nextNodes.find((n) => n.id === edge.source);
-      const targetNode = nextNodes.find((n) => n.id === edge.target);
-      const sourceTop = sourceNode?.parentId || edge.source;
-      const targetTop = targetNode?.parentId || edge.target;
-      // Only add edge if both endpoints are in the dagre graph
-      if (
-        g.hasNode(sourceTop) &&
-        g.hasNode(targetTop) &&
-        sourceTop !== targetTop
-      ) {
-        g.setEdge(sourceTop, targetTop);
-      }
-    });
+      // Add edges — only between top-level nodes or from top-level to parent of child
+      nextEdges.forEach((edge) => {
+        const sourceNode = nextNodes.find((n) => n.id === edge.source);
+        const targetNode = nextNodes.find((n) => n.id === edge.target);
+        const sourceTop = sourceNode?.parentId || edge.source;
+        const targetTop = targetNode?.parentId || edge.target;
+        // Only add edge if both endpoints are in the dagre graph
+        if (
+          g.hasNode(sourceTop) &&
+          g.hasNode(targetTop) &&
+          sourceTop !== targetTop
+        ) {
+          g.setEdge(sourceTop, targetTop);
+        }
+      });
 
-    dagre.layout(g);
+      dagre.layout(g);
 
-    // Apply dagre positions to top-level nodes
-    const positioned = nextNodes.map((node) => {
-      if (node.parentId) {
-        const parent = nextNodes.find((n) => n.id === node.parentId);
+      // Apply dagre positions to top-level nodes
+      const positioned = nextNodes.map((node) => {
+        if (node.parentId) {
+          const parent = nextNodes.find((n) => n.id === node.parentId);
 
-        // Sub-flow expansion: children keep the LR positions already computed
-        // when the sub-flow was expanded. Leave them alone so the inner graph
-        // renders in true graph order, not a vertical stack.
-        if (parent?.type === "flowExpanded") {
-          return node;
+          // Sub-flow expansion: children keep the LR positions already computed
+          // when the sub-flow was expanded. Leave them alone so the inner graph
+          // renders in true graph order, not a vertical stack.
+          if (parent?.type === "flowExpanded") {
+            return node;
+          }
+
+          // Message groups: simple vertical stack, centred within the container.
+          const parentWidth = (parent?.style?.width as number) || 380;
+          const childWidth = 240; // initial estimate, refined by post-render measurement
+          const xOffset = Math.max(20, (parentWidth - childWidth) / 2);
+          const siblings = nextNodes.filter(
+            (n) => n.parentId === node.parentId,
+          );
+          const index = siblings.indexOf(node);
+          return {
+            ...node,
+            position: { x: xOffset, y: 70 + index * 190 },
+          };
         }
 
-        // Message groups: simple vertical stack, centred within the container.
-        const parentWidth = (parent?.style?.width as number) || 380;
-        const childWidth = 240; // initial estimate, refined by post-render measurement
-        const xOffset = Math.max(20, (parentWidth - childWidth) / 2);
-        const siblings = nextNodes.filter((n) => n.parentId === node.parentId);
-        const index = siblings.indexOf(node);
+        const pos = g.node(node.id);
+        if (!pos) return node;
+        // dagre returns center positions — convert to top-left for ReactFlow
         return {
           ...node,
-          position: { x: xOffset, y: 70 + index * 190 },
+          position: { x: pos.x - pos.width / 2, y: pos.y - pos.height / 2 },
         };
-      }
+      });
 
-      const pos = g.node(node.id);
-      if (!pos) return node;
-      // dagre returns center positions — convert to top-left for ReactFlow
-      return {
-        ...node,
-        position: { x: pos.x - pos.width / 2, y: pos.y - pos.height / 2 },
+      if (!anchor) return positioned;
+
+      const positionedAnchor = positioned.find((node) => node.id === anchor.id);
+      if (!positionedAnchor) return positioned;
+
+      const offset = {
+        x: anchor.position.x - positionedAnchor.position.x,
+        y: anchor.position.y - positionedAnchor.position.y,
       };
-    });
 
-    return positioned;
-  }, []);
+      return positioned.map((node) => {
+        if (node.parentId) return node;
+        return {
+          ...node,
+          position: {
+            x: node.position.x + offset.x,
+            y: node.position.y + offset.y,
+          },
+        };
+      });
+    },
+    [],
+  );
+
+  const makeRoomForRenderedExpandedGroup = useCallback(
+    (
+      groupNodeId: string,
+      groupBounds: { x: number; y: number; width: number; height: number },
+    ) => {
+      const padding = 80;
+      const protectedBounds = {
+        x: groupBounds.x - padding,
+        y: groupBounds.y - padding,
+        width: groupBounds.width + padding * 2,
+        height: groupBounds.height + padding * 2,
+      };
+      const intersectingIds = new Set(
+        getIntersectingNodes(protectedBounds, true)
+          .filter((node) => node.id !== groupNodeId && !node.parentId)
+          .map((node) => node.id),
+      );
+
+      if (intersectingIds.size === 0) return;
+
+      setNodes((currentNodes) => {
+        const plannedPositions = packNodesAroundBounds({
+          nodes: currentNodes,
+          movableNodeIds: intersectingIds,
+          protectedBounds,
+          groupNodeId,
+        });
+
+        return currentNodes.map((node) => {
+          const plannedPosition = plannedPositions.get(node.id);
+          if (!plannedPosition) return node;
+          return { ...node, position: plannedPosition };
+        });
+      });
+    },
+    [getIntersectingNodes, setNodes],
+  );
 
   // Lay a sub-flow's internal nodes out with dagre LR and return positioned
   // children, a per-id position map, and the tightest container bounding box
@@ -777,7 +849,12 @@ const NodeGraphBuilder = ({
       // collapse correctly. Fall back to initialNodes for wrappers expanded
       // on a top-level node that was there from page load.
       const stashed = (expandedNode.data as any).__preExpansion as
-        | { node: Node; edges: Edge[]; nodeIds: string[] }
+        | {
+            node: Node;
+            edges: Edge[];
+            nodeIds: string[];
+            nodePositions?: Record<string, { x: number; y: number }>;
+          }
         | undefined;
       const originalNode =
         stashed?.node ??
@@ -842,14 +919,27 @@ const NodeGraphBuilder = ({
           referencedByEdges.add(edge.target);
         }
 
-        const without = prev.filter(
-          (n) =>
-            n.id !== groupNodeId &&
-            !childNodeIds.has(n.id) &&
-            !(downstreamNodeIds.has(n.id) && !referencedByEdges.has(n.id)),
-        );
-        const next = [...without, originalNode];
-        return relayoutGraph(next, nextEdges);
+        const without = prev
+          .filter(
+            (n) =>
+              n.id !== groupNodeId &&
+              !childNodeIds.has(n.id) &&
+              !(downstreamNodeIds.has(n.id) && !referencedByEdges.has(n.id)),
+          )
+          .map((n) => {
+            const stashedPosition = stashed?.nodePositions?.[n.id];
+            if (!stashedPosition || n.parentId) return n;
+            return { ...n, position: stashedPosition };
+          });
+        const next = [
+          ...without,
+          {
+            ...originalNode,
+            position:
+              stashed?.nodePositions?.[groupNodeId] ?? expandedNode.position,
+          },
+        ];
+        return next;
       });
       setEdges((prev) => {
         const without = prev.filter(
@@ -860,12 +950,6 @@ const NodeGraphBuilder = ({
         );
         return [...without, ...originalEdges];
       });
-
-      // Reframe the graph after the layout transition finishes so the user
-      // sees the collapsed result centred.
-      requestAnimationFrame(() => {
-        fitView({ duration: 400, padding: 0.2 });
-      });
     },
     [
       initialNodes,
@@ -874,7 +958,6 @@ const NodeGraphBuilder = ({
       setEdges,
       relayoutGraph,
       animateLayout,
-      fitView,
     ],
   );
 
@@ -979,12 +1062,6 @@ const NodeGraphBuilder = ({
         return;
       }
 
-      // Legacy behavior for linksToVisualiser (deprecated - use onNodeClick instead)
-      if (linksToVisualiser && onNavigate) {
-        // Consumer should handle navigation - but onNodeClick wasn't provided
-        return;
-      }
-
       // Disable focus mode for flow and entity visualizations — but allow
       // flow-type nodes that carry precomputed expandedNodes to continue
       // through to the inline expand handler below.
@@ -1008,6 +1085,32 @@ const NodeGraphBuilder = ({
       if (node.type === "messageGroup") {
         const groupData = node.data as any;
         const groupNodeId = node.id;
+        const currentGroupNode = getExpandedMessageGroupNode(
+          nodesRef.current,
+          groupNodeId,
+        );
+        if (currentGroupNode?.type === "messageGroupExpanded") {
+          const measured = (currentGroupNode as any)?.measured;
+          const width =
+            measured?.width ??
+            (currentGroupNode.style?.width as number | undefined) ??
+            380;
+          const height =
+            measured?.height ??
+            (currentGroupNode.style?.height as number | undefined) ??
+            300;
+
+          setCenter(
+            currentGroupNode.position.x + width / 2,
+            currentGroupNode.position.y + height / 2,
+            {
+              duration: 300,
+              zoom: Math.min(Math.max(getZoom(), 0.55), 1),
+            },
+          );
+          return;
+        }
+
         const serviceNodeId = `${groupData.service.id}-${groupData.service.version}`;
 
         // Calculate expanded container dimensions based on message count
@@ -1023,6 +1126,9 @@ const NodeGraphBuilder = ({
           (e) => e.source === groupNodeId || e.target === groupNodeId,
         );
         const preExpansionNodeIds = nodesRef.current.map((n) => n.id);
+        const preExpansionNodePositions = Object.fromEntries(
+          nodesRef.current.map((n) => [n.id, { ...n.position }]),
+        );
 
         const expandedContainerNode: Node = {
           id: groupNodeId,
@@ -1037,6 +1143,7 @@ const NodeGraphBuilder = ({
               node,
               edges: preExpansionEdges,
               nodeIds: preExpansionNodeIds,
+              nodePositions: preExpansionNodePositions,
             },
           },
           style: {
@@ -1124,25 +1231,22 @@ const NodeGraphBuilder = ({
 
         // Swap: remove compact node + its edge, add expanded container + children + downstream + edges
         setNodes((prev) => {
-          const without = prev.filter((n) => n.id !== groupNodeId);
-          // Deduplicate: downstream nodes that already exist in the graph should not be added again
-          const existingIds = new Set(without.map((n) => n.id));
-          const newDownstream = downstreamNodes.filter(
-            (n) => !existingIds.has(n.id),
-          );
-          const next = [
-            ...without,
+          const downstreamX =
+            groupData.direction === "sends"
+              ? node.position.x + containerWidth + 260
+              : node.position.x - 420;
+          const downstreamY = node.position.y + 40;
+          return buildMessageGroupExpansionNodes({
+            currentNodes: prev,
+            groupNodeId,
             expandedContainerNode,
-            ...childNodes,
-            ...newDownstream,
-          ];
-          return relayoutGraph(next, [
-            ...edgesRef.current.filter(
-              (e) => e.source !== groupNodeId && e.target !== groupNodeId,
-            ),
-            ...childEdges,
-            ...downstreamEdges,
-          ]);
+            childNodes,
+            downstreamNodes,
+            getDownstreamPosition: (_downstreamNode, index) => ({
+              x: downstreamX,
+              y: downstreamY + index * 190,
+            }),
+          }) as Node[];
         });
         setEdges((prev) => {
           const without = prev.filter(
@@ -1153,6 +1257,13 @@ const NodeGraphBuilder = ({
 
         // After React renders the new nodes, measure actual sizes, resize container, and distribute evenly
         requestAnimationFrame(() => {
+          let actualContainerBounds = {
+            x: node.position.x,
+            y: node.position.y,
+            width: containerWidth,
+            height: containerHeight,
+          };
+
           setNodes((prev) => {
             const children = prev.filter((n) => n.parentId === groupNodeId);
             if (children.length === 0) return prev;
@@ -1178,9 +1289,22 @@ const NodeGraphBuilder = ({
             const actualContainerH = headerH + totalChildH + padding * 2;
 
             let currentY = headerH + padding;
+            actualContainerBounds = {
+              x: node.position.x,
+              y: node.position.y,
+              width: containerWidth,
+              height: actualContainerH,
+            };
+
             return prev.map((n) => {
               // Resize the container to fit actual content
               if (n.id === groupNodeId) {
+                actualContainerBounds = {
+                  x: n.position.x,
+                  y: n.position.y,
+                  width: containerWidth,
+                  height: actualContainerH,
+                };
                 return {
                   ...n,
                   style: {
@@ -1198,10 +1322,31 @@ const NodeGraphBuilder = ({
               return { ...n, position: { x, y } };
             });
           });
-        });
 
-        requestAnimationFrame(() => {
-          fitView({ duration: 400, padding: 0.2 });
+          requestAnimationFrame(() => {
+            const groupNode = getNodes().find((n) => n.id === groupNodeId);
+            const measured = (groupNode as any)?.measured;
+            const width =
+              measured?.width ??
+              (groupNode?.style?.width as number | undefined) ??
+              containerWidth;
+            const height =
+              measured?.height ??
+              (groupNode?.style?.height as number | undefined) ??
+              actualContainerBounds.height;
+            const bounds = {
+              x: groupNode?.position.x ?? actualContainerBounds.x,
+              y: groupNode?.position.y ?? actualContainerBounds.y,
+              width,
+              height,
+            };
+
+            makeRoomForRenderedExpandedGroup(groupNodeId, bounds);
+            setCenter(bounds.x + width / 2, bounds.y + height / 2, {
+              duration: 450,
+              zoom: Math.min(Math.max(getZoom(), 0.55), 1),
+            });
+          });
         });
 
         return;
@@ -1402,11 +1547,26 @@ const NodeGraphBuilder = ({
         return;
       }
 
+      // Legacy behavior for linksToVisualiser (deprecated - use onNodeClick instead).
+      // Keep this after inline expand handlers so embedded overview graphs can
+      // still expand message groups/sub-flows without opening focus mode.
+      if (linksToVisualiser && onNavigate) {
+        return;
+      }
+
       // Open focus mode modal
       setFocusedNodeId(node.id);
       setFocusModeOpen(true);
     },
-    [onNodeClick, linksToVisualiser, onNavigate],
+    [
+      onNodeClick,
+      linksToVisualiser,
+      onNavigate,
+      makeRoomForRenderedExpandedGroup,
+      getNodes,
+      getZoom,
+      setCenter,
+    ],
   );
 
   const toggleAnimateMessages = useCallback(() => {
@@ -1701,14 +1861,16 @@ const NodeGraphBuilder = ({
 
   const handleLegendClick = useCallback(
     (collectionType: string, groupId?: string) => {
+      const isLegendTarget = (node: Node<any>) => {
+        if (groupId) {
+          return node.data.group && node.data.group?.id === groupId;
+        }
+        return node.type === collectionType;
+      };
+
       const updatedNodes = nodes.map((node: Node<any>) => {
-        // Check if the groupId is set first
-        if (groupId && node.data.group && node.data.group?.id === groupId) {
+        if (isLegendTarget(node)) {
           return { ...node, style: { ...node.style, opacity: 1 } };
-        } else {
-          if (node.type === collectionType) {
-            return { ...node, style: { ...node.style, opacity: 1 } };
-          }
         }
         return { ...node, style: { ...node.style, opacity: 0.1 } };
       });
@@ -1726,10 +1888,13 @@ const NodeGraphBuilder = ({
       setNodes(updatedNodes);
       setEdges(updatedEdges);
 
+      const targetNodes = updatedNodes.filter(isLegendTarget);
+      if (targetNodes.length === 0) return;
+
       fitView({
         padding: 0.2,
         duration: 800,
-        nodes: updatedNodes.filter((node) => node.type === collectionType),
+        nodes: targetNodes,
       });
     },
     [nodes, edges, setNodes, setEdges, fitView],
