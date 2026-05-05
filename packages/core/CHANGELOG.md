@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.31.4
+
+### Patch Changes
+
+- 7d6da5c: Add `EVENTCATALOG_DISABLE_CHANNEL_MIGRATION` env var to opt out of the message → service channel migration on startup.
+
 ## 3.31.3
 
 ### Patch Changes
