@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.31.3
+
+### Patch Changes
+
+- c948f87: Show HTTP method and path on command and query documentation pages when defined via the `operation` frontmatter.
+
 ## 3.31.2
 
 ### Patch Changes
