@@ -4,7 +4,17 @@ import os from 'node:os';
 import matter from 'gray-matter';
 import path from 'node:path';
 
+const DISABLE_CHANNEL_MIGRATION_ENV = 'EVENTCATALOG_DISABLE_CHANNEL_MIGRATION';
+
+const isChannelMigrationDisabled = () => {
+  return ['true', '1', 'yes'].includes((process.env[DISABLE_CHANNEL_MIGRATION_ENV] ?? '').toLowerCase());
+};
+
 export default async (dir?: string) => {
+  if (isChannelMigrationDisabled()) {
+    return { status: 'skipped', message: `Channel migration disabled by ${DISABLE_CHANNEL_MIGRATION_ENV}` };
+  }
+
   const PROJECT_DIR = path.join(dir || process.env.PROJECT_DIR!);
 
   const messages = await glob(
