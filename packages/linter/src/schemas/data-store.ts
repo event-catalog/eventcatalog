@@ -3,7 +3,17 @@ import { baseSchema } from './common';
 
 export const dataStoreSchema = z
   .object({
-    container_type: z.enum(['database', 'cache', 'objectStore', 'searchIndex', 'dataWarehouse', 'dataLake', 'externalSaaS']),
+    container_type: z.enum([
+      'database',
+      'cache',
+      'objectStore',
+      'searchIndex',
+      'dataWarehouse',
+      'dataLake',
+      'messageBus',
+      'workflowEngine',
+      'externalSaaS',
+    ]),
     technology: z.string().optional(),
     authoritative: z.boolean().optional(),
     access_mode: z.enum(['read', 'write', 'readWrite', 'appendOnly']),

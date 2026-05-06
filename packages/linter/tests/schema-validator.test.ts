@@ -286,5 +286,18 @@ describe('validateSchema', () => {
       const errors = validateSchema(parsedFile);
       expect(errors.length).toBeGreaterThan(0);
     });
+
+    it.each(['messageBus', 'workflowEngine'] as const)('should accept container_type "%s"', (container_type) => {
+      const parsedFile = createParsedFile('dataStore', {
+        id: 'kafka-cluster',
+        name: 'Kafka Cluster',
+        version: '1.0.0',
+        container_type,
+        access_mode: 'readWrite',
+        classification: 'internal',
+      });
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
   });
 });

@@ -114,7 +114,8 @@ ContainerTypeStmt:
 
 ContainerTypeEnum returns string:
   'database' | 'cache' | 'objectStore' | 'searchIndex' |
-  'dataWarehouse' | 'dataLake' | 'externalSaaS' | 'other';
+  'dataWarehouse' | 'dataLake' | 'messageBus' | 'workflowEngine' |
+  'externalSaaS' | 'other';
 
 TechnologyStmt:
   'technology' value=STRING;

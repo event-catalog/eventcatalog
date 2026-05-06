@@ -379,7 +379,17 @@ export interface Flow extends BaseSchema {
 }
 
 export interface Container extends BaseSchema {
-  container_type: 'database' | 'cache' | 'objectStore' | 'searchIndex' | 'dataWarehouse' | 'dataLake' | 'externalSaaS' | 'other';
+  container_type:
+    | 'database'
+    | 'cache'
+    | 'objectStore'
+    | 'searchIndex'
+    | 'dataWarehouse'
+    | 'dataLake'
+    | 'messageBus'
+    | 'workflowEngine'
+    | 'externalSaaS'
+    | 'other';
   technology?: string;
   authoritative?: boolean;
   access_mode?: string;

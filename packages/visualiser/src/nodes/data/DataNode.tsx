@@ -48,6 +48,8 @@ const CONTAINER_TYPE_LABELS: Record<string, string> = {
   searchIndex: "Search Index",
   dataWarehouse: "Data Warehouse",
   dataLake: "Data Lake",
+  messageBus: "Message Bus",
+  workflowEngine: "Workflow Engine",
   externalSaaS: "External SaaS",
   other: "Other",
 };

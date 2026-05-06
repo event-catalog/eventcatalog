@@ -326,7 +326,7 @@ export const CONTEXT_SUGGESTIONS: Record<string, Suggestion[]> = {
       label: "container-type",
       detail: "Type of container",
       insertText:
-        "container-type ${1|database,cache,objectStore,searchIndex,dataWarehouse,dataLake,externalSaaS,other|}",
+        "container-type ${1|database,cache,objectStore,searchIndex,dataWarehouse,dataLake,messageBus,workflowEngine,externalSaaS,other|}",
     },
     {
       label: "technology",

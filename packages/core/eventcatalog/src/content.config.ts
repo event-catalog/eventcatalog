@@ -483,6 +483,8 @@ const containerTypeEnum = z.enum([
   'searchIndex',
   'dataWarehouse',
   'dataLake',
+  'messageBus',
+  'workflowEngine',
   'externalSaaS',
   // Fallback
   'other',
