@@ -14,7 +14,7 @@ export default {
   port: 3000,
   outDir: 'dist',
 
-  output: 'server',
+  // output: 'server',
 
   logo: {
     src: '/logo.png',
