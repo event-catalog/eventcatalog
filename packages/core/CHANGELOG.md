@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.32.2
+
+### Patch Changes
+
+- fcdd9e2: Add `<Prompt />` MDX component and refresh admonition styling for a more compact, modern look.
+
 ## 3.32.1
 
 ### Patch Changes
