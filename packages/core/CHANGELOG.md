@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.33.0
+
+### Minor Changes
+
+- 4206935: Add a Visibility MDX component for audience-specific docs in the UI and markdown endpoints.
+
 ## 3.32.2
 
 ### Patch Changes
