@@ -10,6 +10,7 @@ import Tile from '@components/MDX/Tiles/Tile.astro';
 import Steps from '@components/MDX/Steps/Steps.astro';
 import Step from '@components/MDX/Steps/Step.astro';
 import Admonition from '@components/MDX/Admonition';
+import Prompt from '@components/MDX/Prompt/Prompt.astro';
 import OpenAPI from '@components/MDX/OpenAPI/OpenAPI.astro';
 import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI.astro';
 import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInformation';
@@ -53,6 +54,7 @@ const components = (props: any) => {
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     EntityMap: (mdxProp: any) => jsx(EntityMap, { ...props, ...mdxProp }),
     OpenAPI,
+    Prompt: (mdxProp: any) => jsx(Prompt, { ...props, ...mdxProp }),
     ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
     ResourceLink: (mdxProp: any) => jsx(ResourceLink, { ...props, ...mdxProp }),
     ResourceRef: (mdxProp: any) => jsx(ResourceRef, { ...props, ...mdxProp }),
