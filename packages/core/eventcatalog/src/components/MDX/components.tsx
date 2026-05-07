@@ -35,6 +35,7 @@ import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
 import { jsx } from 'astro/jsx-runtime';
 import RemoteSchema from '@components/MDX/RemoteSchema.astro';
+import Visibility from '@components/MDX/Visibility';
 
 const components = (props: any) => {
   return {
@@ -66,6 +67,7 @@ const components = (props: any) => {
     Tabs,
     Tile,
     Tiles,
+    Visibility,
     Miro: (mdxProp: any) => jsx(Miro, { ...props, ...mdxProp }),
     Lucid: (mdxProp: any) => jsx(Lucid, { ...props, ...mdxProp }),
     DrawIO: (mdxProp: any) => jsx(DrawIO, { ...props, ...mdxProp }),

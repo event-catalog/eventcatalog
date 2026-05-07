@@ -2,7 +2,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import type { APIRoute } from 'astro';
 import fs from 'fs';
 import { isCustomDocsEnabled, isResourceDocsEnabled, isLLMSTxtEnabled } from '@utils/feature';
-import { addSchemaToMarkdown } from '@utils/llms';
+import { addSchemaToMarkdown, filterMarkdownForAgents } from '@utils/llms';
 
 type AllowedCollections =
   | 'events'
@@ -74,7 +74,7 @@ export const GET: APIRoute = async ({ params, request }) => {
         // just skip the resource if it has no schema
       }
 
-      return file;
+      return filterMarkdownForAgents(file);
     })
     .join('\n');
 

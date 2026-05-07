@@ -23,4 +23,12 @@ import Footer from '@catalog/components/footer.astro';
 
 The GetInventoryList message is a query used to retrieve a comprehensive list of all available inventory items within a system. It is designed to return detailed information about each item, such as product names, quantities, availability status, and potentially additional metadata like categories or locations. This query is typically utilized by systems or services that require a real-time view of current stock, ensuring that downstream applications or users have accurate and up-to-date information for decision-making or operational purposes. The GetInventoryList is ideal for use cases such as order processing, stock management, or reporting, providing visibility into the full range of inventory data.
 
+<Visibility for="humans">
+Use the **Schema** and **Visualiser** actions on this page to inspect the inventory query contract and its relationships.
+</Visibility>
+
+<Visibility for="agents">
+When helping agents reason about this query, treat `GET /inventory` as a read-only inventory lookup. Prefer linking this query to inventory reporting, order placement, and stock reservation workflows.
+</Visibility>
+
 <NodeGraph />

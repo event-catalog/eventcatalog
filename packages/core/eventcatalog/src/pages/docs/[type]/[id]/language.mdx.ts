@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 import config from '@config';
 import fs from 'fs';
 import { isLLMSTxtEnabled } from '@utils/feature';
+import { filterMarkdownForAgents } from '@utils/llms';
 
 export async function getStaticPaths() {
   const domains = await getDomains({ getAllVersions: false });
@@ -30,11 +31,17 @@ export const GET: APIRoute = async ({ params, props }) => {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
 
-  const ubiquitousLanguages = await getUbiquitousLanguage(props as CollectionEntry<'domains'>);
+  const domains = await getDomains({ getAllVersions: false });
+  const domain = props?.data ? (props as CollectionEntry<'domains'>) : domains.find((item) => item.data.id === params.id);
+  if (!domain) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  const ubiquitousLanguages = await getUbiquitousLanguage(domain as CollectionEntry<'domains'>);
   const ubiquitousLanguage = ubiquitousLanguages[0];
 
   if (ubiquitousLanguage?.filePath) {
-    let file = fs.readFileSync(ubiquitousLanguage.filePath, 'utf8');
+    let file = filterMarkdownForAgents(fs.readFileSync(ubiquitousLanguage.filePath, 'utf8'));
 
     return new Response(file, { status: 200 });
   }

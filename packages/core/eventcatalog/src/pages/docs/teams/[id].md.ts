@@ -7,6 +7,7 @@ import { getCollection } from 'astro:content';
 import config from '@config';
 import fs from 'fs';
 import { isLLMSTxtEnabled } from '@utils/feature';
+import { filterMarkdownForAgents } from '@utils/llms';
 
 const teams = await getCollection('teams');
 
@@ -28,8 +29,9 @@ export const GET: APIRoute = async ({ params, props }) => {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
 
-  if (props?.content?.filePath) {
-    const file = fs.readFileSync(props.content.filePath, 'utf8');
+  const content = props?.content ?? teams.find((team) => team.data.id === params.id);
+  if (content?.filePath) {
+    const file = filterMarkdownForAgents(fs.readFileSync(content.filePath, 'utf8'));
     return new Response(file, { status: 200 });
   }
 
