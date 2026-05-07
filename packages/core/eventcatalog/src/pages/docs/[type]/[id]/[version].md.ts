@@ -8,6 +8,7 @@ import { getEntities } from '@utils/collections/entities';
 import config from '@config';
 import fs from 'fs';
 import { isLLMSTxtEnabled } from '@utils/feature';
+import { filterMarkdownForAgents } from '@utils/llms';
 
 const events = await getCollection('events');
 const commands = await getCollection('commands');
@@ -18,23 +19,30 @@ const flows = await getCollection('flows');
 const channels = await getCollection('channels');
 const containers = await getCollection('containers');
 const entities = await getEntities();
+
+const collections = {
+  events,
+  commands,
+  queries,
+  services,
+  domains,
+  flows,
+  channels,
+  containers,
+  entities,
+};
+
+const findContent = (params: Record<string, string | undefined>) => {
+  const collection = collections[params.type as keyof typeof collections];
+  return collection?.find((item: any) => item.data.id === params.id && item.data.version === params.version);
+};
+
 export async function getStaticPaths() {
   // Just return empty array if LLMs are not enabled
   if (!isLLMSTxtEnabled()) {
     return [];
   }
 
-  const collections = {
-    events,
-    commands,
-    queries,
-    services,
-    domains,
-    flows,
-    channels,
-    containers,
-    entities,
-  };
   const paths = Object.keys(collections).map((type) => {
     return collections[type as keyof typeof collections].map((item: { data: { id: string; version: string } }) => ({
       params: { type, id: item.data.id, version: item.data.version },
@@ -51,8 +59,9 @@ export const GET: APIRoute = async ({ params, props }) => {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
 
-  if (props?.content?.filePath) {
-    const file = fs.readFileSync(props.content.filePath, 'utf8');
+  const content = props?.content ?? findContent(params);
+  if (content?.filePath) {
+    const file = filterMarkdownForAgents(fs.readFileSync(content.filePath, 'utf8'));
     return new Response(file, { status: 200 });
   }
 

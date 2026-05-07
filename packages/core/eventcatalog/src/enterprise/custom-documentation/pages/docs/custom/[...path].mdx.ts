@@ -6,9 +6,11 @@ import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import fs from 'fs';
 import { isLLMSTxtEnabled } from '@utils/feature';
+import { filterMarkdownForAgents } from '@utils/llms';
+
+const docs = await getCollection('customPages');
 
 export const getStaticPaths = (async () => {
-  const docs = await getCollection('customPages');
   const paths = docs.map((doc) => ({
     params: { path: doc.id.replace('docs/', '') },
     props: doc,
@@ -23,8 +25,10 @@ export const GET: APIRoute = async ({ params, props }) => {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
 
-  if (props.filePath) {
-    const file = fs.readFileSync(props.filePath, 'utf8');
+  const docPath = Array.isArray(params.path) ? params.path.join('/') : params.path;
+  const content = props?.filePath ? props : docs.find((doc) => doc.id.replace('docs/', '') === docPath);
+  if (content?.filePath) {
+    const file = filterMarkdownForAgents(fs.readFileSync(content.filePath, 'utf8'));
     return new Response(file, { status: 200 });
   }
 
