@@ -37,25 +37,38 @@ never use em-dash.
 
 4. **Strategic Page Placement**: Prefer updating existing pages when the content fits logically. Only create new pages when the feature is substantial enough to warrant its own documentation or doesn't fit naturally into existing pages.
 
+## Documentation Location
+
+All documentation lives in **`eventcatalog/website-2`** (a sibling directory to this repo, at `../../website-2` relative to the eventcatalog package, or `/Users/dboyne/Dev/eventcatalog/website-2`). Docs are Docusaurus markdown/MDX under `website-2/docs/`. **Never edit the legacy `website/` directory.**
+
 ## Workflow
 
-### Step 1: Understand the Changes
+### Step 1: Determine the Release Version
+
+The version that the new feature ships in is required for the `<AddedIn />` component. Resolve it in this order:
+
+1. If the user told you the release type (patch / minor / major) or an explicit version, use that.
+2. Otherwise read the current version from `packages/core/package.json` in this repo and bump it according to the release type the user specified. If the user did not specify, ask before writing docs — do not guess.
+3. Convention: bug fixes = patch, new feature/additive = minor, breaking = major.
+
+### Step 2: Understand the Changes
 - Use `git diff HEAD~1` to see what changed in the most recent commit
 - If more context is needed, examine additional commits with `git log --oneline -10` and `git diff <commit>..HEAD`
 - Read the changed files thoroughly to understand the feature's purpose and implementation
+- Note: only `@eventcatalog/core` changes need user-facing docs. SDK / CLI / playground / language-server changes generally do not belong in `website-2/docs`.
 
-### Step 2: Survey Existing Documentation
-- Explore the `/website` directory to understand the documentation structure
+### Step 3: Survey Existing Documentation
+- Explore `eventcatalog/website-2/docs` to understand the documentation structure
 - Read existing documentation pages to absorb the writing style, tone, and formatting patterns
 - Identify pages that cover related topics where new content might fit
 - Note the markdown conventions, heading structures, and code example patterns used
 
-### Step 3: Plan Documentation Updates
+### Step 4: Plan Documentation Updates
 - List which existing pages should be updated and why
 - Determine if a new page is necessary (only for substantial, standalone features)
 - Outline what content needs to be added or modified
 
-### Step 4: Write Documentation
+### Step 5: Write Documentation
 - Match the existing documentation's:
   - Tone (professional but approachable, clear and concise)
   - Heading hierarchy and structure
@@ -64,11 +77,13 @@ never use em-dash.
 - Include practical code examples when relevant
 - Explain both the 'what' and the 'why' of features
 - Link to related documentation pages when appropriate
+- Apply the `<AddedIn />` component (see section below) to any new or changed feature
 
-### Step 5: Validate Changes
+### Step 6: Validate Changes
 - Ensure new content flows naturally with existing content
 - Verify all code examples are accurate and follow project conventions
 - Check that formatting is consistent with other pages
+- Confirm every documented addition is annotated with the correct `<AddedIn />` version
 
 ## Documentation Location Guidelines
 
@@ -77,6 +92,36 @@ never use em-dash.
 - **New features**: Consider if they extend an existing feature (update that page) or are entirely new (may warrant new page)
 - **Bug fixes**: Usually don't require documentation unless they change behavior
 - **API changes**: Update API reference documentation
+
+## The `<AddedIn />` Component
+
+Every new feature or notable change you document **must** be marked with `<AddedIn />` so readers know which release introduced it.
+
+### Import (once per file)
+
+```mdx
+import AddedIn from '@site/src/components/MDX/AddedIn';
+```
+
+If the page already imports it, do not duplicate the import.
+
+### Usage
+
+Place the tag directly under the feature heading it applies to, before any prose:
+
+```mdx
+## Customize the landing page
+
+<AddedIn version="2.37.1" />
+
+EventCatalog provides a landing page for...
+```
+
+- Use the full release version (e.g. `2.37.1`, `3.15.0`), never `latest` or a range.
+- For a brand new page, place a single `<AddedIn />` near the top, under the page title intro.
+- For an existing page that gains a new section/option, scope the `<AddedIn />` to that section only — do not bump the page-level marker.
+- A single page can contain multiple `<AddedIn />` tags at different versions; that is expected and correct.
+- Bug fixes generally do not need `<AddedIn />` (and usually don't need docs).
 
 ## IMAGES
 

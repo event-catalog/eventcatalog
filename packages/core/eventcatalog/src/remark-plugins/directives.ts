@@ -5,29 +5,48 @@ export function remarkDirectives() {
   return (tree: any) => {
     visit(tree, (node) => {
       if (node.type === 'containerDirective') {
+        // Subtle, tinted backgrounds with a coloured left bar and icon.
+        // Body text inherits the page's normal text colour for readability.
         const blockTypes = {
-          info: 'bg-blue-50 dark:bg-blue-950/50 border-l-4 border-blue-500 text-blue-700 dark:text-blue-200',
-          warning: 'bg-yellow-50 dark:bg-yellow-950/50 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-200',
-          danger: 'bg-red-50 dark:bg-red-950/50 border-l-4 border-red-500 text-red-700 dark:text-red-200',
-          tip: 'bg-green-50 dark:bg-green-950/50 border-l-4 border-green-500 text-green-700 dark:text-green-200',
-          note: 'bg-gray-50 dark:bg-gray-950/50 border-l-4 border-gray-500 text-gray-700 dark:text-gray-200',
+          info: 'ec-admonition ec-admonition--info bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-900/60',
+          warning:
+            'ec-admonition ec-admonition--warning bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/60',
+          danger:
+            'ec-admonition ec-admonition--danger bg-red-50/60 dark:bg-red-950/30 border border-red-200/70 dark:border-red-900/60',
+          tip: 'ec-admonition ec-admonition--tip bg-emerald-50/60 dark:bg-emerald-900/40 border border-emerald-200/70 dark:border-emerald-700/80',
+          note: 'ec-admonition ec-admonition--note bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200/70 dark:border-slate-700/60',
         };
 
-        // Lucide icon paths
+        // Distinct Lucide icons per intent (warning vs danger no longer share).
         const iconPaths = {
-          info: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-          warning:
-            'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
-          danger:
-            'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
-          tip: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
-          note: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+          // Info — circle with "i"
+          info: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 8h.01M11 12h1v4h1',
+          // Warning — triangle with !
+          warning: 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4 M12 17h.01',
+          // Danger — octagon with !
+          danger: 'M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86L7.86 2z M12 8v4 M12 16h.01',
+          // Tip — lightbulb
+          tip: 'M9 18h6 M10 22h4 M12 2a7 7 0 0 0-4 12.74V17h8v-2.26A7 7 0 0 0 12 2z',
+          // Note — pencil-line
+          note: 'M12 20h9 M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z',
         };
+
+        // Coloured icon + title classes (intent accent colours).
+        const accentTextClasses = {
+          info: 'text-blue-700 dark:text-blue-300',
+          warning: 'text-amber-700 dark:text-amber-300',
+          danger: 'text-red-700 dark:text-red-300',
+          tip: 'text-emerald-700 dark:text-emerald-300',
+          note: 'text-slate-600 dark:text-slate-300',
+        };
+
+        const intent = node.name as keyof typeof blockTypes;
+        const accentClass = accentTextClasses[intent] || accentTextClasses.note;
 
         node.data = node.data || {};
         node.data.hName = 'div';
         node.data.hProperties = {
-          class: `rounded-lg p-4 my-4 ${blockTypes[node.name as keyof typeof blockTypes] || ''}`,
+          class: `rounded-md px-3 py-2.5 my-4 text-[0.85rem] leading-relaxed ${blockTypes[intent] || ''}`,
         };
 
         // Check if there's a custom title (label) provided via :::note[Custom Title]
@@ -62,26 +81,26 @@ export function remarkDirectives() {
           data: {
             hName: 'div',
             hProperties: {
-              class: 'flex items-center gap-2 font-semibold mb-2',
+              class: `flex items-center gap-1.5 mb-1 ${accentClass}`,
             },
           },
           children: [
-            // Lucide Icon SVG
+            // Lucide Icon SVG (smaller, accent-coloured)
             {
               type: 'element',
               data: {
                 hName: 'svg',
                 hProperties: {
                   xmlns: 'http://www.w3.org/2000/svg',
-                  width: '26',
-                  height: '26',
+                  width: '14',
+                  height: '14',
                   viewBox: '0 0 24 24',
                   fill: 'none',
                   stroke: 'currentColor',
-                  strokeWidth: '2',
+                  strokeWidth: '2.25',
                   strokeLinecap: 'round',
                   strokeLinejoin: 'round',
-                  class: 'lucide',
+                  class: 'lucide shrink-0',
                 },
               },
               children: [
@@ -96,13 +115,13 @@ export function remarkDirectives() {
                 },
               ],
             },
-            // Title (with support for markdown)
+            // Title — small, uppercase, tracked
             {
               type: 'element',
               data: {
                 hName: 'span',
                 hProperties: {
-                  class: '',
+                  class: 'text-[0.7rem] font-semibold uppercase tracking-wider',
                 },
               },
               children: titleChildren,
@@ -116,7 +135,8 @@ export function remarkDirectives() {
           data: {
             hName: 'div',
             hProperties: {
-              class: 'prose prose-md dark:prose-invert w-full max-w-none! prose-p:my-1 prose-p:text-inherit',
+              class:
+                'prose prose-sm dark:prose-invert w-full max-w-none! prose-p:my-0.5 prose-p:text-inherit prose-p:text-[0.85rem] prose-p:leading-relaxed prose-code:text-[0.8rem]',
             },
           },
           children: contentChildren,

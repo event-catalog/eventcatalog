@@ -1,0 +1,173 @@
+---
+import { LUCIDE_ICON_MAP } from '@utils/icon-map';
+
+type ActionType = 'copy' | 'cursor';
+
+interface Props {
+  description: string;
+  actions?: ActionType[];
+  icon?: string;
+}
+
+const { description, actions = ['copy'], icon } = Astro.props;
+
+const showCopy = actions.includes('copy');
+const showCursor = actions.includes('cursor');
+
+const toPascalCase = (input: string): string =>
+  input
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+
+const Icon = icon ? (LUCIDE_ICON_MAP[toPascalCase(icon)] ?? null) : null;
+
+// Render the slotted content to a string so we can use it as the prompt text
+// (for clipboard + the Cursor deep link).
+const slotHtml = await Astro.slots.render('default');
+const promptText = (slotHtml ?? '')
+  .replace(/<[^>]+>/g, '')
+  .replace(/&nbsp;/g, ' ')
+  .replace(/&amp;/g, '&')
+  .replace(/&lt;/g, '<')
+  .replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"')
+  .replace(/&#39;/g, "'")
+  .trim();
+
+const cursorUrl = `https://cursor.com/link/prompt?text=${encodeURIComponent(promptText)}`;
+---
+
+<ec-prompt
+  class="not-prose my-4 block rounded-xl border border-[rgb(var(--ec-page-border))] bg-gray-50 dark:bg-[rgb(var(--ec-rail-bg))]"
+  data-prompt-text={promptText}
+>
+  <div class="flex items-center gap-2.5 px-4 py-3">
+    {Icon && <Icon className="w-4 h-4 shrink-0 text-[rgb(var(--ec-page-text-muted))]" />}
+    <div class="flex-1 min-w-0">
+      <div class="text-sm font-medium text-[rgb(var(--ec-page-text))] leading-snug">{description}</div>
+    </div>
+    <div class="flex items-center gap-1.5 shrink-0">
+      {
+        showCopy && (
+          <button
+            type="button"
+            data-prompt-copy
+            data-copied="false"
+            aria-label="Copy prompt"
+            aria-live="polite"
+            class="ec-prompt-copy inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md border transition-all duration-150 border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] data-[copied=true]:border-emerald-500/70 data-[copied=true]:bg-emerald-50 data-[copied=true]:text-emerald-700 dark:data-[copied=true]:bg-emerald-950/50 dark:data-[copied=true]:text-emerald-300 dark:data-[copied=true]:border-emerald-500/60"
+          >
+            <span data-prompt-copy-idle class="inline-flex items-center gap-1.5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              <span>Copy</span>
+            </span>
+            <span data-prompt-copy-done class="inline-flex items-center gap-1.5" style="display:none;">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Copied!</span>
+            </span>
+          </button>
+        )
+      }
+      {
+        showCursor && (
+          <a
+            href={cursorUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open in Cursor"
+            class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md border border-black bg-black !text-white hover:bg-black/85 transition-colors no-underline"
+          >
+            <svg
+              height="1em"
+              width="1em"
+              viewBox="0 0 16 16"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              class="w-3 h-3 shrink-0"
+            >
+              <path
+                fill="currentColor"
+                d="M14.4734 3.9527L8.31773 0.398522C8.22052 0.342485 8.11029 0.312988 7.99809 0.312988C7.88589 0.312988 7.77566 0.342485 7.67846 0.398522L1.52355 3.9527C1.44182 3.99989 1.37394 4.06773 1.32671 4.14942C1.27948 4.23112 1.25457 4.32379 1.25446 4.41816V11.584C1.25457 11.6783 1.27948 11.771 1.32671 11.8527C1.37394 11.9344 1.44182 12.0022 1.52355 12.0494L7.67918 15.6036C7.77636 15.6597 7.8866 15.6893 7.99882 15.6893C8.11103 15.6893 8.22127 15.6597 8.31846 15.6036L14.4741 12.0502C14.5558 12.003 14.6237 11.9351 14.6709 11.8534C14.7182 11.7717 14.7431 11.6791 14.7432 11.5847V4.41743C14.7431 4.32307 14.7182 4.23039 14.6709 4.14869C14.6237 4.067 14.5558 3.99916 14.4741 3.95198L14.4734 3.9527ZM14.0872 4.70543L8.14464 14.9978C8.10464 15.0669 7.99846 15.0385 7.99846 14.9578V8.21889C7.99841 8.15254 7.98092 8.08738 7.94773 8.02993C7.91454 7.97249 7.86682 7.92478 7.80936 7.89161L1.97373 4.52361C1.90391 4.48289 1.93227 4.3767 2.013 4.3767H13.8966C14.0661 4.3767 14.1715 4.55925 14.0872 4.70543Z"
+              />
+            </svg>
+            <span>Open in Cursor</span>
+          </a>
+        )
+      }
+    </div>
+  </div>
+  <div hidden><slot /></div>
+</ec-prompt>
+
+<script>
+  if (!customElements.get('ec-prompt')) {
+    class ECPromptElement extends HTMLElement {
+      private resetTimer: number | null = null;
+      private button: HTMLButtonElement | null = null;
+      private boundHandler = this.handleCopy.bind(this);
+
+      connectedCallback() {
+        this.button = this.querySelector<HTMLButtonElement>('[data-prompt-copy]');
+        this.button?.addEventListener('click', this.boundHandler);
+      }
+
+      disconnectedCallback() {
+        this.button?.removeEventListener('click', this.boundHandler);
+        if (this.resetTimer != null) {
+          window.clearTimeout(this.resetTimer);
+          this.resetTimer = null;
+        }
+      }
+
+      private async handleCopy() {
+        const text = this.dataset.promptText ?? '';
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          return;
+        }
+        this.setCopied(true);
+        if (this.resetTimer != null) window.clearTimeout(this.resetTimer);
+        this.resetTimer = window.setTimeout(() => this.setCopied(false), 1500);
+      }
+
+      private setCopied(copied: boolean) {
+        if (!this.button) return;
+        this.button.dataset.copied = copied ? 'true' : 'false';
+        this.button.setAttribute('aria-label', copied ? 'Copied to clipboard' : 'Copy prompt');
+        const idle = this.button.querySelector<HTMLElement>('[data-prompt-copy-idle]');
+        const done = this.button.querySelector<HTMLElement>('[data-prompt-copy-done]');
+        if (idle) idle.style.display = copied ? 'none' : '';
+        if (done) done.style.display = copied ? '' : 'none';
+      }
+    }
+    customElements.define('ec-prompt', ECPromptElement);
+  }
+</script>
