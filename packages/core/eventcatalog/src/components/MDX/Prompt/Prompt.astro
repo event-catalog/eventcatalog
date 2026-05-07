@@ -1,5 +1,5 @@
 ---
-import * as LucideIcons from 'lucide-react';
+import { LUCIDE_ICON_MAP } from '@utils/icon-map';
 
 type ActionType = 'copy' | 'cursor';
 
@@ -21,15 +21,7 @@ const toPascalCase = (input: string): string =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join('');
 
-const Icon = (() => {
-  if (!icon) return null;
-  const pascal = toPascalCase(icon);
-  const found = (LucideIcons as Record<string, unknown>)[pascal];
-  if (typeof found === 'function' || (typeof found === 'object' && found !== null)) {
-    return found as any;
-  }
-  return null;
-})();
+const Icon = icon ? (LUCIDE_ICON_MAP[toPascalCase(icon)] ?? null) : null;
 
 // Render the slotted content to a string so we can use it as the prompt text
 // (for clipboard + the Cursor deep link).
