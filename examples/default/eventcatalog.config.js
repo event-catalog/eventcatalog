@@ -14,18 +14,19 @@ export default {
   port: 3000,
   outDir: 'dist',
 
-  // output: 'server',
+  output: 'server',
 
   logo: {
     src: '/logo.png',
     text: 'Acme Inc'
   },
+  
 
   base: '/',
   trailingSlash: false,
 
   // Theme: 'default', 'ocean', 'sapphire', 'sunset', 'forest', or custom (defined in eventcatalog.styles.css)
-  theme: 'sunset',
+  theme: 'default',
 
   mermaid: {
     enableSupportForElkLayout: true,
@@ -141,6 +142,6 @@ export default {
   },
 
   chat: {
-    enabled: false
+    enabled: true
   }
 };

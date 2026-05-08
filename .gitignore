@@ -75,7 +75,7 @@ notes/*
 PERFORMANCE-ANALYSIS.md
 
 
-.agents/skills/copy*
+.agents/
 ec-test/
 
 docs/superpowers/*
