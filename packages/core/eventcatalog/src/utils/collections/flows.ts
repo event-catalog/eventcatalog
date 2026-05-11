@@ -24,13 +24,14 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
   }
 
   // 1. Fetch collections in parallel
-  const [allFlows, allEvents, allCommands] = await Promise.all([
+  const [allFlows, allEvents, allCommands, allQueries] = await Promise.all([
     getCollection('flows'),
     getCollection('events'),
     getCollection('commands'),
+    getCollection('queries'),
   ]);
 
-  const allMessages = [...allEvents, ...allCommands];
+  const allMessages = [...allEvents, ...allCommands, ...allQueries];
 
   // 2. Build optimized maps
   const flowMap = createVersionedMap(allFlows);

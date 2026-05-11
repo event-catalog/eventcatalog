@@ -17,11 +17,14 @@ import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 import { iconFieldsForResource } from '@utils/icon';
 
+const uniqueRefs = (refs: string[]) => [...new Set(refs)];
+
 export const buildServiceNode = (
   service: CollectionEntry<'services'>,
   owners: any[],
   context: ResourceGroupContext,
-  serviceChannels: CollectionEntry<'channels'>[] = []
+  serviceChannels: CollectionEntry<'channels'>[] = [],
+  flowRefs: string[] = []
 ): NavNode => {
   const sendsMessages = service.data.sends || [];
   const receivesMessages = service.data.receives || [];
@@ -36,7 +39,11 @@ export const buildServiceNode = (
   const dataStoresInService = uniqueBy([...(service.data.writesTo || []), ...(service.data.readsFrom || [])], 'id');
 
   const serviceFlows = service.data.flows || [];
-  const hasFlows = serviceFlows.length > 0;
+  const serviceFlowRefs = uniqueRefs([
+    ...serviceFlows.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+    ...flowRefs,
+  ]);
+  const hasFlows = serviceFlowRefs.length > 0;
 
   const hasAttachments = service.data.attachments && service.data.attachments.length > 0;
 
@@ -197,7 +204,7 @@ export const buildServiceNode = (
         type: 'group',
         title: 'Flows',
         icon: 'Waypoints',
-        pages: serviceFlows.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+        pages: serviceFlowRefs,
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(service.data.repository as { url: string; language: string }),

@@ -10,6 +10,7 @@ import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
 import { getDiagrams } from '@utils/collections/diagrams';
 import { getDataProducts } from '@utils/collections/data-products';
+import { getEntities } from '@utils/collections/entities';
 import { getResourceDocCategories, getResourceDocs } from '@utils/collections/resource-docs';
 import { buildUrl } from '@utils/url-builder';
 import type { NavigationData, NavNode, ChildRef } from './builders/shared';
@@ -32,6 +33,92 @@ export type { NavigationData, NavNode, ChildRef };
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 let memoryCache: NavigationData | null = null;
 
+type MessageEntry = CollectionEntry<'events' | 'commands' | 'queries'>;
+type ServiceEntry = CollectionEntry<'services'>;
+
+const getMessageNodeKey = (message: MessageEntry) =>
+  `${pluralizeMessageType(message)}:${message.data.id}:${message.data.version}`;
+
+const uniqueRefs = (refs: string[]) => [...new Set(refs)];
+
+const buildFlowReferencesByMessage = ({
+  flows,
+  events,
+  commands,
+  queries,
+}: {
+  flows: CollectionEntry<'flows'>[];
+  events: CollectionEntry<'events'>[];
+  commands: CollectionEntry<'commands'>[];
+  queries: CollectionEntry<'queries'>[];
+}) => {
+  const eventMap = createVersionedMap(events);
+  const commandMap = createVersionedMap(commands);
+  const queryMap = createVersionedMap(queries);
+  const flowRefsByMessage = new Map<string, string[]>();
+
+  const addFlowRef = (message: MessageEntry, flow: CollectionEntry<'flows'>) => {
+    const messageKey = getMessageNodeKey(message);
+    const flowKey = `flow:${flow.data.id}:${flow.data.version}`;
+    flowRefsByMessage.set(messageKey, uniqueRefs([...(flowRefsByMessage.get(messageKey) || []), flowKey]));
+  };
+
+  const resolveMessagePointer = (pointer: { id: string; version?: string }): MessageEntry | undefined => {
+    return (
+      findInMap(eventMap, pointer.id, pointer.version) ||
+      findInMap(commandMap, pointer.id, pointer.version) ||
+      findInMap(queryMap, pointer.id, pointer.version)
+    );
+  };
+
+  for (const flow of flows) {
+    for (const step of flow.data.steps || []) {
+      if (!step.message) continue;
+
+      const hydratedMessage = Array.isArray(step.message) ? step.message[0] : undefined;
+      if (hydratedMessage?.collection && hydratedMessage?.data) {
+        addFlowRef(hydratedMessage as MessageEntry, flow);
+        continue;
+      }
+
+      if (Array.isArray(step.message)) continue;
+
+      const message = resolveMessagePointer(step.message);
+      if (message) addFlowRef(message, flow);
+    }
+  }
+
+  return flowRefsByMessage;
+};
+
+const buildFlowReferencesByService = ({
+  flows,
+  services,
+}: {
+  flows: CollectionEntry<'flows'>[];
+  services: CollectionEntry<'services'>[];
+}) => {
+  const serviceMap = createVersionedMap(services);
+  const flowRefsByService = new Map<string, string[]>();
+
+  const addFlowRef = (service: ServiceEntry, flow: CollectionEntry<'flows'>) => {
+    const serviceKey = `service:${service.data.id}:${service.data.version}`;
+    const flowKey = `flow:${flow.data.id}:${flow.data.version}`;
+    flowRefsByService.set(serviceKey, uniqueRefs([...(flowRefsByService.get(serviceKey) || []), flowKey]));
+  };
+
+  for (const flow of flows) {
+    for (const step of flow.data.steps || []) {
+      if (!step.service) continue;
+
+      const service = findInMap(serviceMap, step.service.id, step.service.version);
+      if (service) addFlowRef(service, flow);
+    }
+  }
+
+  return flowRefsByService;
+};
+
 /**
  * Get the navigation data for the sidebar
  */
@@ -52,6 +139,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     channels,
     diagrams,
     dataProducts,
+    entities,
     resourceDocs,
     resourceDocCategories,
   ] = await Promise.all([
@@ -66,6 +154,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getChannels({ getAllVersions: false }),
     getDiagrams({ getAllVersions: false }),
     getDataProducts({ getAllVersions: false }),
+    getEntities({ getAllVersions: false }),
     getResourceDocs(),
     getResourceDocCategories(),
   ]);
@@ -86,6 +175,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     containers,
     diagrams,
     dataProducts,
+    entities,
     resourceDocs,
     resourceDocCategories,
   };
@@ -190,11 +280,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     }
   }
 
+  const flowRefsByService = buildFlowReferencesByService({ flows, services });
+
   const serviceNodes = servicesWithOwners.reduce(
     (acc, { service, owners }) => {
       const versionedKey = `service:${service.data.id}:${service.data.version}`;
       const serviceChannels = serviceChannelsMap.get(`${service.data.id}:${service.data.version}`) || [];
-      acc[versionedKey] = buildServiceNode(service, owners, context, serviceChannels);
+      acc[versionedKey] = buildServiceNode(service, owners, context, serviceChannels, flowRefsByService.get(versionedKey) || []);
       if (service.data.latestVersion === service.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`service:${service.data.id}`] = versionedKey;
@@ -217,12 +309,14 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     }
   }
 
+  const flowRefsByMessage = buildFlowReferencesByMessage({ flows, events, commands, queries });
+
   const messageNodes = messagesWithOwners.reduce(
     (acc, { message, owners }) => {
       const type = pluralizeMessageType(message as any);
       const versionedKey = `${type}:${message.data.id}:${message.data.version}`;
       const hasFieldUsage = messagesWithFieldUsage.has(message.data.id);
-      acc[versionedKey] = buildMessageNode(message, owners, context, hasFieldUsage);
+      acc[versionedKey] = buildMessageNode(message, owners, context, hasFieldUsage, flowRefsByMessage.get(versionedKey) || []);
       if (message.data.latestVersion === message.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`${type}:${message.data.id}`] = versionedKey;
@@ -270,6 +364,25 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       acc[versionedKey] = buildDataProductNode(dataProduct, owners, dataProductContext);
       if (dataProduct.data.latestVersion === dataProduct.data.version) {
         acc[`data-product:${dataProduct.data.id}`] = versionedKey;
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode | string>
+  );
+
+  const entityNodes = entities.reduce(
+    (acc, entity) => {
+      const versionedKey = `entity:${entity.data.id}:${entity.data.version}`;
+      acc[versionedKey] = {
+        type: 'item',
+        title: entity.data.name,
+        badge: 'Entity',
+        summary: entity.data.summary,
+        icon: 'Box',
+        href: buildUrl(`/docs/entities/${entity.data.id}/${entity.data.version}`),
+      };
+      if (entity.data.latestVersion === entity.data.version) {
+        acc[`entity:${entity.data.id}`] = versionedKey;
       }
       return acc;
     },
@@ -435,6 +548,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     pages: dataProducts.map((dataProduct) => `data-product:${dataProduct.data.id}:${dataProduct.data.version}`),
   });
 
+  const entitiesList = createLeaf(entities, {
+    type: 'item',
+    title: 'Entities',
+    icon: 'Box',
+    pages: entities.map((entity) => `entity:${entity.data.id}:${entity.data.version}`),
+  });
+
   const designsList = createLeaf(designs, {
     type: 'item',
     title: 'Designs',
@@ -498,6 +618,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     'list:flows',
     'list:containers',
     'list:data-products',
+    'list:entities',
     'list:designs',
     'list:people',
   ];
@@ -510,6 +631,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     flowsList,
     containersList,
     dataProductsList,
+    entitiesList,
     designsList,
     peopleList,
   ];
@@ -537,6 +659,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...(flowsList ? { 'list:flows': flowsList } : {}),
     ...(containersList ? { 'list:containers': containersList } : {}),
     ...(dataProductsList ? { 'list:data-products': dataProductsList } : {}),
+    ...(entitiesList ? { 'list:entities': entitiesList } : {}),
     ...(designsList ? { 'list:designs': designsList } : {}),
     ...(teamsList ? { 'list:teams': teamsList } : {}),
     ...(usersList ? { 'list:users': usersList } : {}),
@@ -572,6 +695,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...channelNodes,
     ...containerNodes,
     ...dataProductNodes,
+    ...entityNodes,
     ...flowNodes,
     ...userNodes,
     ...teamNodes,

@@ -239,6 +239,35 @@ describe('getNestedSideBarData', () => {
       const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
       expect(browseNode.pages).toEqual(['list:domains', 'list:services']);
     });
+
+    it('lists entities as searchable browse resources when they are in the catalog', async () => {
+      const { writeEntity } = utils(CATALOG_FOLDER);
+
+      await writeEntity({
+        id: 'Order',
+        name: 'Order',
+        version: '0.0.1',
+        summary: 'Order aggregate',
+        markdown: 'Order',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
+      const entitiesList = getNavigationConfigurationByKey('list:entities', navigationData);
+      const entityNode = getNavigationConfigurationByKey('entity:Order:0.0.1', navigationData);
+
+      expect(browseNode.pages).toContain('list:entities');
+      expect(entitiesList.pages).toEqual(['entity:Order:0.0.1']);
+      expect(entityNode).toEqual(
+        expect.objectContaining({
+          type: 'item',
+          title: 'Order',
+          badge: 'Entity',
+          summary: 'Order aggregate',
+          href: '/docs/entities/Order/0.0.1',
+        })
+      );
+    });
   });
 
   describe('domain navigation item', () => {
@@ -1742,6 +1771,81 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    describe('flows section', () => {
+      it('is not listed if the service has no flows and no flows reference the service', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', serviceNode.pages ?? []);
+        expect(flowsSection).toBeUndefined();
+      });
+
+      it('lists flows that reference the service in flow steps', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '0.0.1',
+          markdown: 'Payment Service',
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [{ id: 'payment-service', title: 'Payment service', service: { id: 'PaymentService' } }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:PaymentService:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', serviceNode.pages ?? []);
+
+        expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+      });
+
+      it('merges explicit service flows with flows that reference the service and removes duplicates', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '0.0.1',
+          markdown: 'Payment Service',
+          flows: [{ id: 'CheckoutFlow', version: '0.0.1' }, { id: 'FraudFlow' }],
+        });
+
+        mockFlows.push(
+          {
+            id: 'CheckoutFlow',
+            name: 'Checkout Flow',
+            version: '0.0.1',
+            markdown: 'Checkout Flow',
+            steps: [{ id: 'payment-service', title: 'Payment service', service: { id: 'PaymentService' } }],
+          },
+          {
+            id: 'FraudFlow',
+            name: 'Fraud Flow',
+            version: '0.0.1',
+            markdown: 'Fraud Flow',
+            steps: [],
+          }
+        );
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:PaymentService:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', serviceNode.pages ?? []);
+
+        expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1', 'flow:FraudFlow:0.0.1']);
+      });
+    });
+
     describe('owners section', () => {
       it('is not listed if the service does not have any owners', async () => {
         const { writeService } = utils(CATALOG_FOLDER);
@@ -2284,6 +2388,95 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         const consumersSection = getChildNodeByTitle('Consumers', messageNode.pages ?? []);
         expect(consumersSection.pages).toEqual(['service:ShippingService:0.0.1']);
+      });
+    });
+
+    describe('flows section', () => {
+      it('is not listed if no flows reference the message', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', messageNode.pages ?? []);
+        expect(flowsSection).toBeUndefined();
+      });
+
+      it('lists flows that reference event, command, and query messages', async () => {
+        const { writeEvent, writeCommand, writeQuery } = utils(CATALOG_FOLDER);
+
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+        await writeCommand({
+          id: 'ReserveInventory',
+          name: 'Reserve Inventory',
+          version: '0.0.1',
+          markdown: 'Reserve Inventory',
+        });
+        await writeQuery({
+          id: 'GetPaymentStatus',
+          name: 'Get Payment Status',
+          version: '0.0.1',
+          markdown: 'Get Payment Status',
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [
+            { id: 'payment-processed', title: 'Payment processed', message: { id: 'PaymentProcessed' } },
+            { id: 'reserve-inventory', title: 'Reserve inventory', message: { id: 'ReserveInventory', version: '0.0.1' } },
+            { id: 'get-payment-status', title: 'Get payment status', message: { id: 'GetPaymentStatus' } },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const eventNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const commandNode = getNavigationConfigurationByKey('command:ReserveInventory:0.0.1', navigationData);
+        const queryNode = getNavigationConfigurationByKey('query:GetPaymentStatus:0.0.1', navigationData);
+
+        expect(getChildNodeByTitle('Flows', eventNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+        expect(getChildNodeByTitle('Flows', commandNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+        expect(getChildNodeByTitle('Flows', queryNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+      });
+
+      it('deduplicates flows when multiple steps reference the same message', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [
+            { id: 'payment-processed-1', title: 'Payment processed', message: { id: 'PaymentProcessed' } },
+            { id: 'payment-processed-2', title: 'Payment processed again', message: { id: 'PaymentProcessed' } },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', messageNode.pages ?? []);
+
+        expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
       });
     });
 
@@ -3101,6 +3294,91 @@ describe('getNestedSideBarData', () => {
         title: 'Changelog',
         href: '/docs/channels/PaymentChannel/0.0.1/changelog',
       });
+    });
+  });
+
+  describe('flow navigation items', () => {
+    it('lists messages, services, and flows referenced by flow steps', async () => {
+      const { writeEvent, writeCommand, writeQuery, writeService } = utils(CATALOG_FOLDER);
+
+      await writeEvent({
+        id: 'PaymentRequested',
+        name: 'Payment Requested',
+        version: '0.0.1',
+        markdown: 'Payment Requested',
+      });
+      await writeCommand({
+        id: 'ReserveInventory',
+        name: 'Reserve Inventory',
+        version: '0.0.1',
+        markdown: 'Reserve Inventory',
+      });
+      await writeQuery({
+        id: 'GetPaymentStatus',
+        name: 'Get Payment Status',
+        version: '0.0.1',
+        markdown: 'Get Payment Status',
+      });
+      await writeService({
+        id: 'PaymentService',
+        name: 'Payment Service',
+        version: '0.0.1',
+        markdown: 'Payment Service',
+      });
+
+      mockFlows.push(
+        {
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [
+            { id: 'payment-requested', title: 'Payment requested', message: { id: 'PaymentRequested' } },
+            { id: 'reserve-inventory', title: 'Reserve inventory', message: { id: 'ReserveInventory', version: '0.0.1' } },
+            { id: 'get-payment-status', title: 'Get payment status', message: { id: 'GetPaymentStatus' } },
+            { id: 'payment-service', title: 'Payment service', service: { id: 'PaymentService' } },
+            { id: 'fraud-flow', title: 'Fraud flow', flow: { id: 'FraudFlow' } },
+          ],
+        },
+        {
+          id: 'FraudFlow',
+          name: 'Fraud Flow',
+          version: '0.0.1',
+          markdown: 'Fraud Flow',
+          steps: [],
+        }
+      );
+
+      const navigationData = await getNestedSideBarData();
+      const flowNode = getNavigationConfigurationByKey('flow:CheckoutFlow:0.0.1', navigationData);
+      const messagesSection = getChildNodeByTitle('Messages', flowNode.pages ?? []);
+      const servicesSection = getChildNodeByTitle('Services', flowNode.pages ?? []);
+      const subflowsSection = getChildNodeByTitle('Subflows', flowNode.pages ?? []);
+
+      expect(messagesSection.pages).toEqual([
+        'event:PaymentRequested:0.0.1',
+        'command:ReserveInventory:0.0.1',
+        'query:GetPaymentStatus:0.0.1',
+      ]);
+      expect(servicesSection.pages).toEqual(['service:PaymentService:0.0.1']);
+      expect(subflowsSection.pages).toEqual(['flow:FraudFlow:0.0.1']);
+    });
+
+    it('does not list reference sections when a flow has no resource step references', async () => {
+      mockFlows.push({
+        id: 'ManualFlow',
+        name: 'Manual Flow',
+        version: '0.0.1',
+        markdown: 'Manual Flow',
+        steps: [{ id: 'start', title: 'Start' }],
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const flowNode = getNavigationConfigurationByKey('flow:ManualFlow:0.0.1', navigationData);
+
+      expect(getChildNodeByTitle('Messages', flowNode.pages ?? [])).toBeUndefined();
+      expect(getChildNodeByTitle('Services', flowNode.pages ?? [])).toBeUndefined();
+      expect(getChildNodeByTitle('Subflows', flowNode.pages ?? [])).toBeUndefined();
     });
   });
 

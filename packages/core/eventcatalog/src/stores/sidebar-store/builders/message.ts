@@ -18,7 +18,8 @@ export const buildMessageNode = (
   message: CollectionEntry<'events' | 'commands' | 'queries'>,
   owners: any[],
   context: ResourceGroupContext,
-  hasFieldUsage: boolean = false
+  hasFieldUsage: boolean = false,
+  flowRefs: string[] = []
 ): NavNode => {
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
@@ -26,6 +27,7 @@ export const buildMessageNode = (
 
   const renderProducers = producers.length > 0 && shouldRenderSideBarSection(message, 'producers');
   const renderConsumers = consumers.length > 0 && shouldRenderSideBarSection(message, 'consumers');
+  const renderFlows = flowRefs.length > 0 && shouldRenderSideBarSection(message, 'flows');
   const renderRepository = message.data.repository && shouldRenderSideBarSection(message, 'repository');
 
   // Determine badge based on collection type
@@ -131,6 +133,13 @@ export const buildMessageNode = (
         icon: 'Server',
         pages: consumers.map((consumer) => `service:${(consumer as any).data.id}:${(consumer as any).data.version}`),
         visible: consumers.length > 0,
+      },
+      renderFlows && {
+        type: 'group',
+        title: 'Flows',
+        icon: 'Waypoints',
+        pages: flowRefs,
+        visible: flowRefs.length > 0,
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(message.data.repository as { url: string; language: string }),
