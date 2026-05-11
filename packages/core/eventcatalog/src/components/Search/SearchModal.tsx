@@ -27,6 +27,7 @@ import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
 import { buildUrl } from '@utils/url-builder';
 import { resolveIconUrl } from '@utils/icon';
+import { getUrlForSearchItem } from './search-utils';
 
 const typeIcons: any = {
   Domain: RectangleGroupIcon,
@@ -43,6 +44,8 @@ const typeIcons: any = {
   AsyncAPI: DocumentTextIcon,
   Design: Square2StackIcon,
   Container: CircleStackIcon,
+  'Data Product': CubeIcon,
+  Flow: QueueListIcon,
   default: DocumentTextIcon,
 };
 
@@ -62,41 +65,14 @@ const typeColors: any = {
   AsyncAPI: 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 ring-violet-200 dark:ring-violet-500/30',
   Design: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
   Container: 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 ring-indigo-200 dark:ring-indigo-500/30',
+  'Data Product': 'text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 ring-sky-200 dark:ring-sky-500/30',
+  Flow: 'text-fuchsia-500 dark:text-fuchsia-400 bg-fuchsia-50 dark:bg-fuchsia-500/10 ring-fuchsia-200 dark:ring-fuchsia-500/30',
   default: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
 };
 
 function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ');
 }
-
-// Helper to construct URL from key if href is missing
-const getUrlForItem = (node: any, key: string) => {
-  const parts = key.split(':');
-  if (parts.length < 2) return null; // Need at least type:id
-
-  const type = parts[0];
-  const id = parts[1];
-  const version = parts[2]; // May be undefined
-
-  // Skip list items and other special keys
-  if (type === 'list') return null;
-
-  // Only show items that have a version to avoid duplicates
-  if (!version) return null;
-
-  // If node has href, use it, otherwise construct from key
-  if (node.href) return node.href;
-
-  // Pluralize type for URL if needed
-  let pluralType = type;
-  if (['event', 'command', 'domain', 'service', 'flow', 'container', 'channel'].includes(type)) {
-    pluralType = type + 's';
-  } else if (type === 'query') {
-    pluralType = 'queries';
-  }
-
-  return buildUrl(`/docs/${pluralType}/${id}/${version}`);
-};
 
 interface SearchNode {
   key: string;
@@ -203,7 +179,7 @@ export default function SearchModal() {
   const items = useMemo(() => {
     return searchNodes
       .map((node) => {
-        const url = getUrlForItem(node as any, node.key);
+        const url = getUrlForSearchItem(node as any, node.key);
         if (!url) return null;
 
         return {
@@ -252,8 +228,11 @@ export default function SearchModal() {
       Message: 0,
       Team: 0,
       Container: 0,
+      Entity: 0,
       Design: 0,
       Channel: 0,
+      Flow: 0,
+      'Data Product': 0,
     };
 
     itemsToCount.forEach((item) => {
@@ -277,8 +256,12 @@ export default function SearchModal() {
     if (counts.Domain > 0) dynamicFilters.push({ id: 'Domain', name: `Domains (${counts.Domain})` });
     if (counts.Service > 0) dynamicFilters.push({ id: 'Service', name: `Services (${counts.Service})` });
     if (counts.Message > 0) dynamicFilters.push({ id: 'Message', name: `Messages (${counts.Message})` });
-    if (counts.Container > 0) dynamicFilters.push({ id: 'Container', name: `Containers (${counts.Container})` });
+    if (counts.Container > 0) dynamicFilters.push({ id: 'Container', name: `Data Stores (${counts.Container})` });
+    if (counts.Entity > 0) dynamicFilters.push({ id: 'Entity', name: `Entities (${counts.Entity})` });
     if (counts.Channel > 0) dynamicFilters.push({ id: 'Channel', name: `Channels (${counts.Channel})` });
+    if (counts.Flow > 0) dynamicFilters.push({ id: 'Flow', name: `Flows (${counts.Flow})` });
+    if (counts['Data Product'] > 0)
+      dynamicFilters.push({ id: 'Data Product', name: `Data Products (${counts['Data Product']})` });
     if (counts.Design > 0) dynamicFilters.push({ id: 'Design', name: `Designs (${counts.Design})` });
     if (counts.Team > 0) dynamicFilters.push({ id: 'Team', name: `Teams & Users (${counts.Team})` });
 
@@ -317,7 +300,7 @@ export default function SearchModal() {
           .slice(0, 5)
           .map((fav) => {
             const node = searchNodeLookup.get(fav.nodeKey);
-            const url = node ? getUrlForItem(node as any, fav.nodeKey) : fav.href;
+            const url = node ? getUrlForSearchItem(node as any, fav.nodeKey) : fav.href;
             if (!url) return null;
 
             return {
@@ -411,7 +394,13 @@ export default function SearchModal() {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar border-b border-[rgb(var(--ec-page-border))]">
+                <div
+                  className="flex items-center gap-2 px-4 pt-3 pb-3.5 overflow-x-auto overscroll-x-contain border-b border-[rgb(var(--ec-page-border))]"
+                  style={{
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgb(var(--ec-page-border)) transparent',
+                  }}
+                >
                   {filters.map((tab) => (
                     <button
                       key={tab.id}
@@ -566,7 +555,7 @@ export default function SearchModal() {
                     <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
                     <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search for anything</p>
                     <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
-                      Search for domains, services, events, commands, queries and more.
+                      Search for domains, services, events, commands, queries, data stores, data products, flows and more.
                     </p>
                   </div>
                 )}

@@ -16,6 +16,8 @@ import {
   SquareMousePointer,
   ListOrdered,
   ArrowLeftRight,
+  Package,
+  Box,
 } from 'lucide-react';
 import type { NavNode } from '@stores/sidebar-store/state';
 import { getBadgeClasses } from './utils';
@@ -83,8 +85,10 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
     { key: 'channel', label: 'Channels', badge: 'Channel', icon: ArrowLeftRight },
     { key: 'command', label: 'Commands', badge: 'Command', icon: MessageSquare },
     { key: 'container', label: 'Data Stores', badge: 'Container', icon: Database },
+    { key: 'data-product', label: 'Data Products', badge: 'Data Product', icon: Package },
     { key: 'design', label: 'Designs', badge: 'Design', icon: SquareMousePointer },
     { key: 'domain', label: 'Domains', badge: 'Domain', icon: Boxes },
+    { key: 'entity', label: 'Entities', badge: 'Entity', icon: Box },
     { key: 'event', label: 'Events', badge: 'Event', icon: Zap },
     { key: 'flow', label: 'Flows', badge: 'Flow', icon: Waypoints },
     { key: 'query', label: 'Queries', badge: 'Query', icon: SearchIcon },
@@ -116,9 +120,11 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
       Command: 'command',
       Query: 'query',
       Container: 'container',
+      'Data Product': 'data-product',
       Flow: 'flow',
       Design: 'design',
       Channel: 'channel',
+      Entity: 'entity',
     };
 
     // Use the memoized array instead of Object.entries(nodes)
@@ -135,7 +141,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
 
       const keyParts = key.split(':');
       if (keyParts.length >= 3) {
-        const id = keyParts[2].toLowerCase();
+        const id = keyParts[1].toLowerCase();
         if (id.includes(query)) {
           results.push({ nodeKey: key, node, matchType: 'id' });
         }
