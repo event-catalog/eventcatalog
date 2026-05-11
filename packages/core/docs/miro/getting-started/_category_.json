@@ -1,0 +1,11 @@
+{
+  "label": "Getting Started",
+  "position": 1,
+  "collapsible": false,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Getting Started with the Miro App",
+    "description": "Install and connect EventCatalog to Miro"
+  }
+}

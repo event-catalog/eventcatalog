@@ -1,0 +1,12 @@
+{
+  "label": "Upgrading",
+  "position": 13,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "starting-a-new-project/getting-started",
+    "title": "Starting a new project",
+    "description": "Learn how to install EventCatalog."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "label": "Amazon EventBridge Plugin",
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "amazon-eventbridge",
+    "title": "Amazon EventBridge",
+    "description": "Amazon EventBridge integration documentation for EventCatalog"
+  }
+}

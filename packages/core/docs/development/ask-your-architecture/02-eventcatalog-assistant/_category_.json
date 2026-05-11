@@ -1,0 +1,11 @@
+{
+  "label": "EventCatalog Assistant",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/development/guides/eventcatalog-assistant",
+    "description": "EventCatalog Assistant"
+  }
+}

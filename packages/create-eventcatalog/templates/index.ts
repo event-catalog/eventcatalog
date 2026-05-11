@@ -16,6 +16,16 @@ export const getTemplateFile = ({ template, mode, file }: GetTemplateFileArgs): 
   return path.join(__dirname, template, mode, file);
 };
 
+const AGENT_RULES = `<!-- BEGIN:eventcatalog-agent-rules -->
+# EventCatalog: ALWAYS read docs before coding
+
+Before any EventCatalog work, find and read the relevant doc in \`node_modules/@eventcatalog/core/dist/docs/\`. Your training data may be outdated. The bundled docs are the source of truth.
+
+<!-- END:eventcatalog-agent-rules -->
+`;
+
+const CLAUDE_RULES = '@AGENTS.md\n';
+
 /**
  * Install a Next.js internal template to a given `root` directory.
  */
@@ -131,6 +141,9 @@ export const installTemplate = async ({
       }
     },
   });
+
+  fs.writeFileSync(path.join(root, 'AGENTS.md'), AGENT_RULES);
+  fs.writeFileSync(path.join(root, 'CLAUDE.md'), CLAUDE_RULES);
 
   const cId = v4();
 

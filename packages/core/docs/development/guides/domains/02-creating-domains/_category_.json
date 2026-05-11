@@ -1,0 +1,11 @@
+{
+  "label": "Creating domains",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/",
+    "description": "A collection of guides to help you understand domains and how they work with EventCatalog."
+  }
+}

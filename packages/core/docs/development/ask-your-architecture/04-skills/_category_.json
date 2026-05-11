@@ -1,0 +1,11 @@
+{
+  "label": "Skills",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/development/ask-your-architecture/skills",
+    "description": "Pre-built AI skills for generating EventCatalog documentation"
+  }
+}

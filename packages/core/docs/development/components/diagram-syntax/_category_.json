@@ -1,0 +1,12 @@
+{
+  "label": "Diagram syntax",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "components/diagram-syntax",
+    "title": "Diagram syntax",
+    "description": "Use diagram languages and tools inside EventCatalog documentation."
+  }
+}

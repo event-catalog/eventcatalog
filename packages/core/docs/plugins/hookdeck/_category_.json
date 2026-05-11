@@ -1,0 +1,11 @@
+{
+  "label": "Hookdeck Plugin",
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "hookdeck",
+    "title": "Hookdeck",
+    "description": "Hookdeck integration with EventCatalog"
+  }
+}

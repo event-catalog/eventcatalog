@@ -1,0 +1,11 @@
+{
+  "label": "Domains",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/domains",
+    "description": "A collection of guides to help you understand domains and how they work with EventCatalog."
+  }
+}

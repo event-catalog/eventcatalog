@@ -1,0 +1,12 @@
+{
+  "label": "AsyncAPI Plugin",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "asyncapi",
+    "title": "AsyncAPI",
+    "description": "AsyncAPI integration documentation for EventCatalog"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "label": "OpenAPI Plugin",
+  "collapsible": true,
+  "position": 3,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "openapi",
+    "title": "OpenAPI",
+    "description": "OpenAPI integration documentation for EventCatalog"
+  }
+}

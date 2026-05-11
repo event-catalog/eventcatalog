@@ -1,0 +1,11 @@
+{
+  "label": "Commands",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/commands",
+    "description": "A collection of guides to help you understand commands and how they work with EventCatalog."
+  }
+}

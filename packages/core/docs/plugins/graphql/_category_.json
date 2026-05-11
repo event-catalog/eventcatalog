@@ -1,0 +1,12 @@
+{
+  "label": "GraphQL Plugin",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "graphql",
+    "title": "GraphQL",
+    "description": "GraphQL integration documentation for EventCatalog"
+  }
+}

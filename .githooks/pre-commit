@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+node scripts/sync-core-docs.mjs
+git add packages/core/docs

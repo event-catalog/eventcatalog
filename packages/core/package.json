@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "dev": "astro dev",
-    "build:bin": "tsup",
+    "build:bin": "tsup && node scripts/copy-docs-to-dist.mjs",
     "prepublishOnly": "pnpm run build:bin",
     "test": "cross-env DISABLE_EVENTCATALOG_CACHE=true vitest",
     "test:ci": "node scripts/ci/test.js",

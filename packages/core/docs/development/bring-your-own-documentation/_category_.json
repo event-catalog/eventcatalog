@@ -1,0 +1,12 @@
+{
+  "label": "Bring your own documentation",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "bring-your-own-documentation",
+    "title": "Bring your own documentation",
+    "description": "Bring your own documentation to EventCatalog. Add global custom pages or attach docs directly to individual resources."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "label": "EventCatalog MCP Server",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "development/developer-tools/mcp-server",
+    "title": "MCP Server",
+    "description": "This section contains tutorials for the EventCatalog MCP Server."
+  }
+}

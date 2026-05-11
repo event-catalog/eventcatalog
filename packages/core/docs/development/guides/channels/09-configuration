@@ -1,0 +1,39 @@
+---
+sidebar_position: 9
+keywords:
+    - configuration
+    - channels
+sidebar_label: Visualizer Configuration
+title: Visualizer Configuration
+description: Configuration for the visualizer
+---
+
+import AddedIn from '@site/src/components/MDX/AddedIn';
+
+<AddedIn version="2.42.0" />
+
+By default EventCatalog will render multiple nodes for your channels in the visualizer. This is to give you a better understanding of the relationship between your messages and channels.
+
+If you prefer to only see a single node for your channels you can change the [rendering mode in the visualizer settings](/docs/api/config#visualiser).
+
+
+## Visualizer configuration
+
+The visualizer configuration is set in the `eventcatalog.config.js` file.
+
+```js
+module.exports = {
+  visualiser: {
+    channels: {
+      // The render mode for channels in the visualiser
+      // supports `flat` or `single`
+      renderMode: 'single'
+    }
+  }
+}
+```
+
+### `flat` and `single` view examples
+
+![Flat Example](./img/flat-single-view.png)
+

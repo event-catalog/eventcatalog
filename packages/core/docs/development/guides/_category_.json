@@ -1,0 +1,11 @@
+{
+  "label": "Documenting your architecture",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "guides",
+    "description": "A collection of guides for EventCatalog."
+  }
+}

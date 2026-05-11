@@ -1,0 +1,11 @@
+{
+  "label": "Teams & Users",
+  "position": 11,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/owners",
+    "description": "A collection of guides to help you understand owners and how they work with EventCatalog."
+  }
+}

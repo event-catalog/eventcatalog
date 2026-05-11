@@ -1,0 +1,11 @@
+{
+  "label": "Resource-level documentation",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "guides/bring-your-own-documentation/resource-docs",
+    "description": "Attach documentation pages directly to any resource in your catalog."
+  }
+}

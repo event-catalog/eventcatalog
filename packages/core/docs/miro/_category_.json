@@ -1,0 +1,12 @@
+{
+  "label": "Miro",
+  "position": 4,
+  "collapsible": false,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "miro",
+    "title": "EventCatalog Miro App",
+    "description": "Visualize your EventCatalog resources on Miro boards"
+  }
+}
