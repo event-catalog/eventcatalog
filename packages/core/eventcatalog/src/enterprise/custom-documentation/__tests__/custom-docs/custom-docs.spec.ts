@@ -122,27 +122,31 @@ vi.mock('node:fs', () => ({
   },
 }));
 
+const nestedMockDocs = [
+  ...mockDocs,
+  {
+    id: 'docs/nested-docs/getting-started/01-intro',
+    data: { title: 'Introduction to Getting Started', slug: '/nested-docs/getting-started/01-intro' },
+  },
+  {
+    id: 'docs/nested-docs/getting-started/02-setup',
+    data: { title: 'Setup Guide', slug: '/nested-docs/getting-started/02-setup' },
+  },
+  {
+    id: 'docs/nested-docs/advanced',
+    data: { title: 'Advanced Topics', slug: '/nested-docs/advanced' },
+  },
+];
+
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
     getEntry: (key: CollectionKey, id: string) => {
-      // Add mock entries for nested directory structure
-      const nestedMockDocs = [
-        ...mockDocs,
-        {
-          id: 'docs/nested-docs/getting-started/01-intro',
-          data: { title: 'Introduction to Getting Started', slug: '/nested-docs/getting-started/01-intro' },
-        },
-        {
-          id: 'docs/nested-docs/getting-started/02-setup',
-          data: { title: 'Setup Guide', slug: '/nested-docs/getting-started/02-setup' },
-        },
-        {
-          id: 'docs/nested-docs/advanced',
-          data: { title: 'Advanced Topics', slug: '/nested-docs/advanced' },
-        },
-      ];
       return Promise.resolve(nestedMockDocs.find((doc) => doc.id === id));
+    },
+    getCollection: (key: CollectionKey) => {
+      if (key === 'customPages') return Promise.resolve(nestedMockDocs);
+      return Promise.resolve([]);
     },
   };
 });

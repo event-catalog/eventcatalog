@@ -60,6 +60,10 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve([]);
       }
     },
+    getCollection: (key: CollectionKey) => {
+      if (key === 'customPages') return Promise.resolve(mockDocs);
+      return Promise.resolve([]);
+    },
   };
 });
 
