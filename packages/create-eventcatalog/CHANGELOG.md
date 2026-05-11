@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.2.8
+
+### Patch Changes
+
+- c6a2625: Simplify E-Commerce domain template by removing target architecture section
+
 ## 4.2.7
 
 ### Patch Changes
