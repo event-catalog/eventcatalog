@@ -1,0 +1,11 @@
+{
+  "label": "AWS Glue Schema Registry Plugin",
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "aws-glue-schema-registry",
+    "title": "AWS Glue Schema Registry",
+    "description": "AWS Glue Schema Registry integration documentation for EventCatalog"
+  }
+}

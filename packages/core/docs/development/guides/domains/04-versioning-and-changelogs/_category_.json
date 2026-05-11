@@ -1,0 +1,10 @@
+{
+  "label": "Versioning & changelogs",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/domains/versioning-and-changelogs"
+  }
+}

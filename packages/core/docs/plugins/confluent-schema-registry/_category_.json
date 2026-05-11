@@ -1,0 +1,12 @@
+{
+  "label": "Confluent Schema Registry Plugin",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "confluent-schema-registry",
+    "title": "Confluent Schema Registry",
+    "description": "Confluent Schema Registry integration for EventCatalog"
+  }
+}

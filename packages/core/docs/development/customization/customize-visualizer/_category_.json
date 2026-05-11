@@ -1,0 +1,11 @@
+{
+  "label": "Customize Visualizer",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/customize-visualizer",
+    "description": "A collection of guides to help you customize the visualizer in your catalog."
+  }
+}

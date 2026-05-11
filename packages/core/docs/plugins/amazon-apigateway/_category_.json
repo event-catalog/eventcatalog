@@ -1,0 +1,11 @@
+{
+  "label": "Amazon API Gateway Plugin",
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "amazon-apigateway",
+    "title": "Amazon API Gateway",
+    "description": "Amazon API Gateway integration documentation for EventCatalog"
+  }
+}

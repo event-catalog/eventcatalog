@@ -1,0 +1,11 @@
+{
+  "label": "Authentication",
+  "position": 10,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/development/guides/auth",
+    "description": "Authentication for EventCatalog"
+  }
+}

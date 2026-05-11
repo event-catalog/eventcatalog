@@ -1,0 +1,12 @@
+{
+  "label": "Components",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "components/list",
+    "title": "Components",
+    "description": "Reference for EventCatalog MDX components."
+  }
+}

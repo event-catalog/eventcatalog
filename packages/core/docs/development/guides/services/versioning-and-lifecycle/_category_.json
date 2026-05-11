@@ -1,0 +1,11 @@
+{
+  "label": "Versioning & lifecycle",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/versioning-and-lifecycle",
+    "description": "A collection of guides to help you understand entities and how they work with EventCatalog."
+  }
+}

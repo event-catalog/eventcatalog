@@ -1,0 +1,11 @@
+{
+  "label": "EventCatalog Federation",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/eventcatalog-federation",
+    "description": "Merge multiple EventCatalog instances into a single catalog."
+  }
+}

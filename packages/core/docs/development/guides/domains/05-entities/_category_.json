@@ -1,0 +1,11 @@
+{
+  "label": "Creating domain entities",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/domains/entities",
+    "description": "A collection of guides to help you understand entities and how they work with EventCatalog."
+  }
+}

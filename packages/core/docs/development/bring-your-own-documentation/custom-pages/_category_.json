@@ -1,0 +1,11 @@
+{
+  "label": "Global documentation",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "guides/bring-your-own-documentation/custom-pages",
+    "description": "Add catalog-wide custom documentation pages to your catalog."
+  }
+}

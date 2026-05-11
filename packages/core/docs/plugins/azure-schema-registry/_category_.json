@@ -1,0 +1,12 @@
+{
+  "label": "Azure Schema Registry Plugin",
+  "position": 6,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "azure-schema-registry",
+    "title": "Azure Schema Registry",
+    "description": "Azure Schema Registry integration for EventCatalog"
+  }
+}

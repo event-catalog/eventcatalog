@@ -1,0 +1,11 @@
+{
+  "label": "Providers",
+  "position": 15,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/development/authentication/providers",
+    "description": "Authentication for EventCatalog"
+  }
+}

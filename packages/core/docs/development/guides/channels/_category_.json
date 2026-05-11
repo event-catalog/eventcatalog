@@ -1,0 +1,11 @@
+{
+  "label": "Channels",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/channels",
+    "description": "A collection of guides to help you understand channels and how they work with EventCatalog."
+  }
+}

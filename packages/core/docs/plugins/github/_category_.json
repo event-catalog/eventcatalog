@@ -1,0 +1,12 @@
+{
+  "label": "GitHub Plugin",
+  "position": 6,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "github",
+    "title": "GitHub",
+    "description": "GitHub integration for EventCatalog"
+  }
+}
