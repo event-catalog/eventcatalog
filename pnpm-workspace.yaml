@@ -1,2 +1,11 @@
 packages:
   - "packages/*"
+
+minimumReleaseAgeExclude:
+  - "astro"
+  - "@astrojs/check"
+  - "@astrojs/markdown-remark"
+  - "@astrojs/mdx"
+  - "@astrojs/node"
+  - "@astrojs/react"
+  - "@astrojs/telemetry"
