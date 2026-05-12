@@ -19,6 +19,11 @@ export default {
   // Change to make the base url of the site different, by default https://{website}.com/docs,
   // changing to /company would be https://{website}.com/company/docs,
   base: '/',
+  // Resource search is the default lightweight search. Change this to { type: 'indexed' }
+  // to enable full-content search. Indexed search requires running a build to generate the index.
+  search: {
+    type: 'resource',
+  },
   // Customize the navigation for your docs sidebar.
   // read more at https://eventcatalog.dev/docs/development/customization/customize-sidebars/documentation-sidebar
   navigation: {

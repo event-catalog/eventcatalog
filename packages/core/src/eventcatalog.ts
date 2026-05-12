@@ -13,12 +13,13 @@ import { catalogToAstro } from './catalog-to-astro-content-directory';
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import { isOutputServer } from './features';
+import { getProjectOutDir, isAuthEnabled, isIndexedSearchEnabled, isOutputServer } from './features';
 import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
+import { buildSearchIndex } from './search-indexer';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -129,6 +130,67 @@ const createAstroDevLineFilter = () => {
 
   return (line: string) => {
     return shouldFilterAstroLine(line) || line.includes('[router]');
+  };
+};
+
+const buildDevSearchIndex = async ({ config }: { config: Awaited<ReturnType<typeof getEventCatalogConfigFile>> }) => {
+  const result = await buildSearchIndex({
+    projectDir: dir,
+    outDir: path.join(core, 'public'),
+    searchOutputPath: path.join(core, 'public', 'pagefind'),
+    config,
+    isServer: false,
+  });
+
+  logger.info(`Indexed ${result.records} page(s) into ${path.relative(core, result.outputPath)}`, 'search');
+};
+
+const warnIfIndexedSearchUsesAuth = async () => {
+  if (!(await isAuthEnabled())) {
+    return;
+  }
+
+  logger.info(
+    'Indexed search creates client-readable search files. Make sure your deployment protects /pagefind assets if your catalog is private.',
+    'search'
+  );
+};
+
+const createDevSearchIndexWatcher = ({ config }: { config: Awaited<ReturnType<typeof getEventCatalogConfigFile>> }) => {
+  let timeout: NodeJS.Timeout | undefined;
+  let isBuilding = false;
+  let queued = false;
+
+  const run = async () => {
+    if (isBuilding) {
+      queued = true;
+      return;
+    }
+
+    isBuilding = true;
+    try {
+      await buildDevSearchIndex({ config });
+    } catch (err: any) {
+      logger.info(`Failed to rebuild indexed search: ${err.message}`, 'search');
+    } finally {
+      isBuilding = false;
+      if (queued) {
+        queued = false;
+        run();
+      }
+    }
+  };
+
+  return (_err: Error | null, events: { path: string; type: string }[]) => {
+    if (!events.some((event) => event.path.endsWith('.md') || event.path.endsWith('.mdx'))) {
+      return;
+    }
+
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+
+    timeout = setTimeout(run, 500);
   };
 };
 
@@ -338,6 +400,7 @@ program
 
     // Move files like public directory to the root of the eventcatalog-core directory
     await catalogToAstro(dir, core);
+    const config = await getEventCatalogConfigFile(dir);
 
     // Check if backstage is enabled
     const canEmbedPages = await isFeatureEnabled(
@@ -362,12 +425,20 @@ program
       }
     }
 
+    const shouldBuildIndexedSearch = await isIndexedSearchEnabled();
+    if (shouldBuildIndexedSearch) {
+      await warnIfIndexedSearchUsesAuth();
+
+      logger.info('Building indexed search for local development...', 'search');
+      await buildDevSearchIndex({ config });
+    }
+
     // is there an eventcatalog update to install?
     checkForUpdate();
 
     let watchUnsub;
     try {
-      watchUnsub = await watch(dir, core);
+      watchUnsub = await watch(dir, core, shouldBuildIndexedSearch ? createDevSearchIndexWatcher({ config }) : undefined);
 
       const args = command.args.join(' ').trim();
 
@@ -478,6 +549,22 @@ program
       },
       shouldFilterLine: createAstroLineFilter(),
     });
+
+    if (await isIndexedSearchEnabled()) {
+      await warnIfIndexedSearchUsesAuth();
+
+      const config = await getEventCatalogConfigFile(dir);
+      const outDir = path.resolve(dir, await getProjectOutDir());
+
+      logger.info('Building indexed search...', 'search');
+      const result = await buildSearchIndex({
+        projectDir: dir,
+        outDir,
+        config,
+        isServer,
+      });
+      logger.info(`Indexed ${result.records} page(s) into ${path.relative(dir, result.outputPath)}`, 'search');
+    }
   });
 
 const previewCatalog = ({

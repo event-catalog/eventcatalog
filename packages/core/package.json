@@ -108,6 +108,7 @@
     "mdast-util-find-and-replace": "^3.0.2",
     "mermaid": "^11.12.3",
     "nanostores": "^1.1.0",
+    "pagefind": "^1.5.2",
     "pako": "^2.1.0",
     "picocolors": "^1.1.1",
     "react": "^18.3.1",

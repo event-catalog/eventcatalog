@@ -1,21 +1,20 @@
-
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import { searchForWorkspaceRoot } from 'vite';
-import { mermaid } from "./src/remark-plugins/mermaid"
-import { plantuml } from "./src/remark-plugins/plantuml"
+import { mermaid } from './src/remark-plugins/mermaid';
+import { plantuml } from './src/remark-plugins/plantuml';
 import { join } from 'node:path';
 import remarkDirective from 'remark-directive';
-import { remarkDirectives } from "./src/remark-plugins/directives"
-import { remarkResourceRef } from "./src/remark-plugins/resource-ref"
+import { remarkDirectives } from './src/remark-plugins/directives';
+import { remarkResourceRef } from './src/remark-plugins/resource-ref';
 import node from '@astrojs/node';
-import remarkComment from 'remark-comment'
+import remarkComment from 'remark-comment';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
-import rehypeExpressiveCode from 'rehype-expressive-code'
+import rehypeExpressiveCode from 'rehype-expressive-code';
 
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
@@ -28,8 +27,8 @@ const base = config.base || '/';
 const host = config.host || false;
 const compress = config.compress ?? false;
 const isDevMode = process.env.EVENTCATALOG_DEV_MODE === 'true';
-const effectiveOutput = isDevMode ? 'server' : (config.output || 'static');
-
+const effectiveOutput = isDevMode ? 'server' : config.output || 'static';
+const searchType = config.search?.type || 'resource';
 
 const expressiveCodeConfig = {
   themes: ['github-light', 'github-dark'],
@@ -57,9 +56,7 @@ export default defineConfig({
   site: config.homepageLink || 'https://eventcatalog.dev/',
 
   // https://docs.astro.build/en/reference/configuration-reference/#trailingslash
-  trailingSlash: config.trailingSlash === true ? "always" : "ignore",
-
-
+  trailingSlash: config.trailingSlash === true ? 'always' : 'ignore',
 
   // just turn this off for all users (for now...)
   devToolbar: { enabled: false },
@@ -73,9 +70,12 @@ export default defineConfig({
       optimize: config.mdxOptimize || false,
       remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml, remarkResourceRef],
       rehypePlugins: [
-        [rehypeExpressiveCode, {
+        [
+          rehypeExpressiveCode,
+          {
             ...expressiveCodeConfig,
-        }],
+          },
+        ],
         rehypeSlug,
         [
           rehypeAutolinkHeadings,
@@ -87,10 +87,12 @@ export default defineConfig({
       ],
       gfm: true,
     }),
-    effectiveOutput !== 'server' && compress && (await import("astro-compress")).default({
-      Logger: 0,
-      CSS: false,
-    }),
+    effectiveOutput !== 'server' &&
+      compress &&
+      (await import('astro-compress')).default({
+        Logger: 0,
+        CSS: false,
+      }),
     ecstudioWatcher(),
     eventCatalogIntegration(),
   ].filter(Boolean),
@@ -99,20 +101,17 @@ export default defineConfig({
     define: {
       /**
        * Trailing slash is exposed as global variable here principally for `@utils/url-builder`.
-       * The utility is used by client components and because of that it can't direct import 
+       * The utility is used by client components and because of that it can't direct import
        * the eventcatalog.config, as the config use packages that only run in node environments,
        * such as `node:path`.
        */
-      '__EC_TRAILING_SLASH__': JSON.stringify(config.trailingSlash === true),
-      '__EC_BASE__': JSON.stringify(base),
+      __EC_TRAILING_SLASH__: JSON.stringify(config.trailingSlash === true),
+      __EC_BASE__: JSON.stringify(base),
+      __EC_SEARCH_TYPE__: JSON.stringify(searchType),
     },
     server: {
       fs: {
-        allow: [
-          '..',
-          './node_modules/@fontsource',
-          searchForWorkspaceRoot(process.cwd()),
-        ]
+        allow: ['..', './node_modules/@fontsource', searchForWorkspaceRoot(process.cwd())],
       },
       // Prevent stale FSEvents from triggering a config-dependency restart on first run.
       // During startup, catalogToAstro copies eventcatalog.config.js into .eventcatalog-core
@@ -138,10 +137,7 @@ export default defineConfig({
           './src/components/Header.astro',
           './src/components/SideNav/SideNav.astro',
         ],
-        clientFiles: [
-          './src/components/SideNav/NestedSideBar/index.tsx',
-          './src/components/Search/SearchModal.tsx',
-        ],
+        clientFiles: ['./src/components/SideNav/NestedSideBar/index.tsx', './src/components/Search/SearchModal.tsx'],
       },
     },
     worker: {
@@ -150,7 +146,7 @@ export default defineConfig({
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,
-      }
+      },
     },
     ssr: {
       noExternal: ['@xyflow/react'],
@@ -177,5 +173,5 @@ export default defineConfig({
         jsx: 'automatic',
       },
     },
-  }
+  },
 });
