@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.36.1
+
+### Patch Changes
+
+- 9cf2a80: Polish search result highlight styling and refresh default template branding.
+
 ## 3.36.0
 
 ### Minor Changes
