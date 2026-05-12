@@ -6,16 +6,8 @@ export type Theme = 'light' | 'dark';
 
 export const themeStore = atom<Theme>('dark');
 
-// Get system preference
-const getSystemTheme = (): Theme => {
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light';
-    }
-  }
+// Default theme when the user has not explicitly chosen one.
+const getDefaultTheme = (): Theme => {
   return 'dark';
 };
 
@@ -36,15 +28,14 @@ const initStore = () => {
         themeStore.set(stored);
         applyTheme(stored);
       } else {
-        // No stored preference, use system preference
-        const systemTheme = getSystemTheme();
-        themeStore.set(systemTheme);
-        applyTheme(systemTheme);
+        // No stored preference, use the catalog default
+        const defaultTheme = getDefaultTheme();
+        themeStore.set(defaultTheme);
+        applyTheme(defaultTheme);
       }
     } catch (e) {
       console.warn('Failed to load theme:', e);
-      const systemTheme = getSystemTheme();
-      applyTheme(systemTheme);
+      applyTheme(getDefaultTheme());
     }
   }
 };
