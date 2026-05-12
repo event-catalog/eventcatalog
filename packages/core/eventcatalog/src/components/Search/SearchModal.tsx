@@ -91,6 +91,9 @@ function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ');
 }
 
+const searchResultHighlightClassName =
+  '[&_mark]:bg-transparent [&_mark]:p-0 [&_mark]:font-semibold [&_mark]:text-[rgb(var(--ec-accent))]';
+
 interface SearchNodeCompact {
   k: string;
   t: string;
@@ -555,7 +558,8 @@ export default function SearchModal() {
                                 <div className="ml-4 flex-auto min-w-0">
                                   <p
                                     className={classNames(
-                                      'text-sm font-medium [&_mark]:bg-transparent [&_mark]:p-0 [&_mark]:text-[rgb(var(--ec-accent-text))]',
+                                      'text-sm font-medium',
+                                      searchResultHighlightClassName,
                                       active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'
                                     )}
                                     dangerouslySetInnerHTML={{ __html: highlightQuery(item.name, query) }}
@@ -581,7 +585,7 @@ export default function SearchModal() {
                                         {!item.rawNode.matchedExcerpt && '• '}
                                         {item.rawNode.matchedExcerpt ? (
                                           <span
-                                            className="[&_mark]:bg-transparent [&_mark]:p-0 [&_mark]:font-medium [&_mark]:text-[rgb(var(--ec-accent-text))]"
+                                            className={searchResultHighlightClassName}
                                             dangerouslySetInnerHTML={{ __html: item.rawNode.matchedExcerpt }}
                                           />
                                         ) : (

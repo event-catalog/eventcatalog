@@ -1,6 +1,6 @@
 /** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */
 export default {
-  title: 'EventCatalog',
+  title: 'Acme Inc',
   tagline:
     'This internal platform provides a comprehensive view of our event-driven architecture across all systems. Use this portal to discover existing domains, explore services and their dependencies, and understand the message contracts that connect our infrastructure',
   organizationName: '<organizationName>',
@@ -26,9 +26,9 @@ export default {
   },
   // Customize the logo, add your logo to public/ folder
   logo: {
-    alt: 'EventCatalog Logo',
+    alt: 'Acme Inc Logo',
     src: '/logo.png',
-    text: 'EventCatalog',
+    text: 'Acme Inc',
   },
   // This lets you copy markdown contents from EventCatalog to your clipboard
   // Including schemas for your events and services

@@ -400,6 +400,28 @@ module.exports = {
 | ------ | ---- | ------- | ----------- |
 | `chat.enabled` | `boolean` | `true` | Enables or disables the AI chat feature. Set to `false` to hide the chat UI and prevent chat requests even when all other prerequisites are met. |
 
+### `search` {#search}
+
+<AddedIn version="3.36.0" />
+
+- Type: `object`
+
+Configure the search mode for your catalog.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  search: {
+    type: 'resource', // default
+  },
+};
+```
+
+| Option | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `search.type` | `'resource'` \| `'indexed'` | `'resource'` | `'resource'` searches resource metadata only. `'indexed'` enables full-content search powered by [Pagefind](https://pagefind.app/) and builds a static index at build time. |
+
+See the [Search customization](/docs/development/customization/search) guide for details and trade-offs.
+
 ### `changelog` {#changelog}
 
 - Type: `object`

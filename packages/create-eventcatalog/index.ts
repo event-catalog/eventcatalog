@@ -153,7 +153,7 @@ async function run(): Promise<void> {
       type: 'text',
       name: 'organizationName',
       message: 'What is your organization name?',
-      initial: 'EventCatalog Ltd',
+      initial: 'Acme Inc',
     });
 
     if (typeof res.organizationName === 'string') {
