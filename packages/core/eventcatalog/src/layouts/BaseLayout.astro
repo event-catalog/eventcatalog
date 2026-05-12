@@ -20,17 +20,14 @@ const catalogTheme = config.theme || 'default';
     <!-- Inline script to prevent flash of wrong theme -->
     <script is:inline define:vars={{ catalogTheme }}>
       (function () {
-        function getSystemTheme() {
-          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return 'dark';
-          }
-          return 'light';
+        function getDefaultTheme() {
+          return 'dark';
         }
 
         function applyTheme() {
-          // Check localStorage first, fall back to system preference
+          // Check localStorage first, fall back to dark mode
           const stored = localStorage.getItem('eventcatalog-theme');
-          const theme = stored === 'light' || stored === 'dark' ? stored : getSystemTheme();
+          const theme = stored === 'light' || stored === 'dark' ? stored : getDefaultTheme();
           document.documentElement.setAttribute('data-theme', theme);
           // Also ensure catalog theme is set (for page transitions)
           document.documentElement.setAttribute('data-catalog-theme', catalogTheme);

@@ -76,6 +76,8 @@ type IntegrationsConfig = {
   debug?: boolean;
 };
 
+type CatalogTheme = 'default' | 'ocean' | 'sapphire' | 'sunset' | 'forest' | (string & {});
+
 // Any Scalar Configuration for the OpenAPI Component.
 type ScalarConfiguration = any;
 
@@ -96,9 +98,12 @@ export interface Config {
    * Theme for the catalog UI.
    * - 'default': Default purple/slate theme
    * - 'ocean': Deep blue/teal ocean-inspired theme
+   * - 'sapphire': Blue/violet theme
+   * - 'sunset': Orange/pink sunset-inspired theme
+   * - 'forest': Green forest-inspired theme
    * @default 'default'
    */
-  theme?: 'default' | 'ocean';
+  theme?: CatalogTheme;
   auth?: AuthConfig;
   rss?: {
     enabled: boolean;
