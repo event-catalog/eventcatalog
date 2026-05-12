@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.1
+
+### Patch Changes
+
+- 9cf2a80: Polish search result highlight styling and refresh default template branding.
+
 ## 4.3.0
 
 ### Minor Changes
