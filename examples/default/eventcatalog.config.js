@@ -26,7 +26,7 @@ export default {
   trailingSlash: false,
 
   // Theme: 'default', 'ocean', 'sapphire', 'sunset', 'forest', or custom (defined in eventcatalog.styles.css)
-  theme: 'default',
+  theme: 'sunset',
 
   mermaid: {
     enableSupportForElkLayout: true,
@@ -36,6 +36,10 @@ export default {
   rss: {
     enabled: true,
     limit: 15,
+  },
+
+  search: {
+    type: 'indexed'
   },
 
   navigation: {
