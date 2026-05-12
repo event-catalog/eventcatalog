@@ -4,14 +4,19 @@ const THEME_KEY = 'eventcatalog-theme';
 
 export type Theme = 'light' | 'dark';
 
-export const themeStore = atom<Theme>('light');
+export const themeStore = atom<Theme>('dark');
 
 // Get system preference
 const getSystemTheme = (): Theme => {
   if (typeof window !== 'undefined' && window.matchMedia) {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light';
+    }
   }
-  return 'light';
+  return 'dark';
 };
 
 // Apply theme to document via data-theme attribute

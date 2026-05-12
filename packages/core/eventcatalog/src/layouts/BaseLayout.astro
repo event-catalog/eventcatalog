@@ -21,10 +21,15 @@ const catalogTheme = config.theme || 'default';
     <script is:inline define:vars={{ catalogTheme }}>
       (function () {
         function getSystemTheme() {
-          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return 'dark';
+          if (window.matchMedia) {
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              return 'dark';
+            }
+            if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+              return 'light';
+            }
           }
-          return 'light';
+          return 'dark';
         }
 
         function applyTheme() {
