@@ -104,6 +104,14 @@ export interface Config {
     enabled: boolean;
     limit: number;
   };
+  search?: {
+    /**
+     * - 'resource': Fast default search across catalog resources.
+     * - 'indexed': Opt-in full-content search index generated at build time.
+     * @default 'resource'
+     */
+    type?: 'resource' | 'indexed';
+  };
   llmsTxt?: {
     enabled: boolean;
   };

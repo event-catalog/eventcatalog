@@ -27,7 +27,18 @@ import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
 import { buildUrl } from '@utils/url-builder';
 import { resolveIconUrl } from '@utils/icon';
-import { getUrlForSearchItem } from './search-utils';
+import {
+  applyActiveFilter,
+  getSearchFilters,
+  getUrlForSearchItem,
+  highlightQuery,
+  mapPagefindResultsToSearchItems,
+  type SearchItem,
+  type SearchNode,
+} from './search-utils';
+
+const INDEXED_RESULT_LOAD_LIMIT = 50;
+const SEARCH_RESULT_DISPLAY_LIMIT = 25;
 
 const typeIcons: any = {
   Domain: RectangleGroupIcon,
@@ -46,6 +57,9 @@ const typeIcons: any = {
   Container: CircleStackIcon,
   'Data Product': CubeIcon,
   Flow: QueueListIcon,
+  'Custom Doc': DocumentTextIcon,
+  'Resource Doc': DocumentTextIcon,
+  Changelog: DocumentTextIcon,
   default: DocumentTextIcon,
 };
 
@@ -67,21 +81,14 @@ const typeColors: any = {
   Container: 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 ring-indigo-200 dark:ring-indigo-500/30',
   'Data Product': 'text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 ring-sky-200 dark:ring-sky-500/30',
   Flow: 'text-fuchsia-500 dark:text-fuchsia-400 bg-fuchsia-50 dark:bg-fuchsia-500/10 ring-fuchsia-200 dark:ring-fuchsia-500/30',
+  'Custom Doc': 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
+  'Resource Doc': 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
+  Changelog: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
   default: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
 };
 
 function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ');
-}
-
-interface SearchNode {
-  key: string;
-  title: string;
-  badge?: string;
-  summary?: string;
-  href?: string;
-  icon?: string;
-  leftIcon?: string;
 }
 
 interface SearchNodeCompact {
@@ -97,6 +104,12 @@ interface SearchNodeCompact {
 interface SearchIndexPayload {
   i?: SearchNodeCompact[];
   items?: SearchNode[];
+}
+
+interface PagefindModule {
+  init: () => Promise<void>;
+  options?: (options: Record<string, unknown>) => Promise<void>;
+  debouncedSearch: (term: string) => Promise<{ results: Array<{ id: string; score?: number; data: () => Promise<any> }> } | null>;
 }
 
 const normalizeSearchIndexPayload = (payload: SearchIndexPayload): SearchNode[] => {
@@ -115,11 +128,21 @@ const normalizeSearchIndexPayload = (payload: SearchIndexPayload): SearchNode[] 
   return payload.items || [];
 };
 
+const loadPagefindModule = (url: string) => {
+  const nativeImport = new Function('url', 'return import(url)') as (url: string) => Promise<PagefindModule>;
+  return nativeImport(url);
+};
+
 export default function SearchModal() {
+  const searchType = typeof __EC_SEARCH_TYPE__ !== 'undefined' ? __EC_SEARCH_TYPE__ : 'resource';
+  const isIndexedSearch = searchType === 'indexed';
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchNodes, setSearchNodes] = useState<SearchNode[]>([]);
+  const [indexedItems, setIndexedItems] = useState<SearchItem[]>([]);
+  const [pagefind, setPagefind] = useState<PagefindModule | null>(null);
+  const [isSearchingIndexed, setIsSearchingIndexed] = useState(false);
   const [isLoadingSearchIndex, setIsLoadingSearchIndex] = useState(false);
   const [searchIndexLoadError, setSearchIndexLoadError] = useState<string | null>(null);
   const favorites = useStore(favoritesStore);
@@ -141,7 +164,7 @@ export default function SearchModal() {
   }, []);
 
   useEffect(() => {
-    if (!open || searchNodes.length > 0 || isLoadingSearchIndex) {
+    if (isIndexedSearch || !open || searchNodes.length > 0 || isLoadingSearchIndex) {
       return;
     }
 
@@ -166,7 +189,46 @@ export default function SearchModal() {
       .finally(() => {
         setIsLoadingSearchIndex(false);
       });
-  }, [open, searchNodes.length, isLoadingSearchIndex]);
+  }, [isIndexedSearch, open, searchNodes.length, isLoadingSearchIndex]);
+
+  useEffect(() => {
+    if (!isIndexedSearch || !open || pagefind || isLoadingSearchIndex) {
+      return;
+    }
+
+    setIsLoadingSearchIndex(true);
+    setSearchIndexLoadError(null);
+
+    const pagefindUrl = buildUrl('/pagefind/pagefind.js', true);
+
+    loadPagefindModule(pagefindUrl)
+      .then(async (module: PagefindModule) => {
+        await module.options?.({
+          excerptLength: 30,
+          ranking: {
+            metaWeights: {
+              title: 5.0,
+              id: 4.0,
+              summary: 2.0,
+              type: 1.5,
+            },
+          },
+        });
+        await module.init();
+        setPagefind(module);
+      })
+      .catch((error) => {
+        console.error(error);
+        setSearchIndexLoadError(
+          import.meta.env.DEV
+            ? 'The local indexed search files could not be loaded. Restart the catalog dev server to rebuild the index.'
+            : 'Indexed search is enabled, but the generated search index could not be loaded. Run `eventcatalog build` to create it.'
+        );
+      })
+      .finally(() => {
+        setIsLoadingSearchIndex(false);
+      });
+  }, [isIndexedSearch, open, pagefind, isLoadingSearchIndex]);
 
   const closeModal = () => {
     if ((window as any).searchModalState) {
@@ -194,8 +256,55 @@ export default function SearchModal() {
       .filter((item): item is NonNullable<typeof item> => item !== null);
   }, [searchNodes]);
 
+  useEffect(() => {
+    if (!isIndexedSearch || !pagefind || query.trim() === '') {
+      setIndexedItems([]);
+      setIsSearchingIndexed(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsSearchingIndexed(true);
+
+    const timeout = window.setTimeout(async () => {
+      try {
+        const search = await pagefind.debouncedSearch(query);
+        if (cancelled || !search?.results) {
+          return;
+        }
+
+        const results = await mapPagefindResultsToSearchItems({
+          results: search.results,
+          query,
+          limit: INDEXED_RESULT_LOAD_LIMIT,
+        });
+
+        if (!cancelled) {
+          setIndexedItems(results);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setSearchIndexLoadError(error instanceof Error ? error.message : 'Unable to search the indexed catalog');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsSearchingIndexed(false);
+        }
+      }
+    }, 120);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [isIndexedSearch, pagefind, query]);
+
   // Get searchable items (items that match the query but not filtered by type yet)
   const searchableItems = useMemo(() => {
+    if (isIndexedSearch) {
+      return indexedItems;
+    }
+
     if (query === '') {
       // When no query, show all items for filter counts
       return items;
@@ -208,65 +317,19 @@ export default function SearchModal() {
       // Match against the id so users can find resources by their raw id too.
       const keyParts = item.key?.split(':') ?? [];
       const id = keyParts[1];
-      return !!id && id.toLowerCase().includes(lowerQuery);
+      if (id?.toLowerCase().includes(lowerQuery)) return true;
+      return !!item.rawNode.summary && item.rawNode.summary.toLowerCase().includes(lowerQuery);
     });
-  }, [items, query]);
+  }, [indexedItems, isIndexedSearch, items, query]);
 
   const filters = useMemo(() => {
-    // Calculate counts based on current search results (searchableItems)
-    if (!searchableItems.length && query !== '') {
-      // If searching and no results, still show filters but with 0 counts
-      return [{ id: 'all', name: 'All (0)' }];
-    }
-
-    const itemsToCount = query === '' ? items : searchableItems;
-
-    const counts: Record<string, number> = {
-      all: itemsToCount.length,
-      Domain: 0,
-      Service: 0,
-      Message: 0,
-      Team: 0,
-      Container: 0,
-      Entity: 0,
-      Design: 0,
-      Channel: 0,
-      Flow: 0,
-      'Data Product': 0,
-    };
-
-    itemsToCount.forEach((item) => {
-      // Count specific types
-      if (counts[item.type] !== undefined) {
-        counts[item.type]++;
-      }
-
-      // Group counts
-      if (['Event', 'Command', 'Query'].includes(item.type)) {
-        counts.Message++;
-      }
-      if (['Team', 'User'].includes(item.type)) {
-        counts.Team++;
-      }
+    return getSearchFilters({
+      items: query === '' ? items : searchableItems,
+      query,
     });
-
-    const dynamicFilters = [{ id: 'all', name: `All (${counts.all})` }];
-
-    // Only show filters that have results when searching
-    if (counts.Domain > 0) dynamicFilters.push({ id: 'Domain', name: `Domains (${counts.Domain})` });
-    if (counts.Service > 0) dynamicFilters.push({ id: 'Service', name: `Services (${counts.Service})` });
-    if (counts.Message > 0) dynamicFilters.push({ id: 'Message', name: `Messages (${counts.Message})` });
-    if (counts.Container > 0) dynamicFilters.push({ id: 'Container', name: `Data Stores (${counts.Container})` });
-    if (counts.Entity > 0) dynamicFilters.push({ id: 'Entity', name: `Entities (${counts.Entity})` });
-    if (counts.Channel > 0) dynamicFilters.push({ id: 'Channel', name: `Channels (${counts.Channel})` });
-    if (counts.Flow > 0) dynamicFilters.push({ id: 'Flow', name: `Flows (${counts.Flow})` });
-    if (counts['Data Product'] > 0)
-      dynamicFilters.push({ id: 'Data Product', name: `Data Products (${counts['Data Product']})` });
-    if (counts.Design > 0) dynamicFilters.push({ id: 'Design', name: `Designs (${counts.Design})` });
-    if (counts.Team > 0) dynamicFilters.push({ id: 'Team', name: `Teams & Users (${counts.Team})` });
-
-    return dynamicFilters;
   }, [searchableItems, items, query]);
+
+  const showFilterTabs = filters.some((filter) => filter.count > 0);
 
   // Reset active filter if it no longer has results
   useEffect(() => {
@@ -278,6 +341,8 @@ export default function SearchModal() {
   const handleToggleFavorite = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!item.key) return;
 
     toggleFavoriteAction({
       nodeKey: item.key,
@@ -293,6 +358,14 @@ export default function SearchModal() {
   }, [searchNodes]);
 
   const filteredItems = useMemo(() => {
+    if (isIndexedSearch) {
+      if (query === '') {
+        return [];
+      }
+
+      return applyActiveFilter(searchableItems, activeFilter).slice(0, SEARCH_RESULT_DISPLAY_LIMIT);
+    }
+
     if (query === '') {
       // Show favorites when search is empty
       if (favorites.length > 0 && activeFilter === 'all') {
@@ -318,22 +391,8 @@ export default function SearchModal() {
       return [];
     }
 
-    // Start with searchable items (already filtered by query)
-    let result = searchableItems;
-
-    // Apply type filter
-    if (activeFilter !== 'all') {
-      if (activeFilter === 'Message') {
-        result = result.filter((item) => ['Event', 'Command', 'Query'].includes(item.type));
-      } else if (activeFilter === 'Team') {
-        result = result.filter((item) => ['Team', 'User'].includes(item.type));
-      } else {
-        result = result.filter((item) => item.type === activeFilter);
-      }
-    }
-
-    return result.slice(0, 50); // Limit results for performance
-  }, [searchableItems, query, activeFilter, favorites, searchNodeLookup]);
+    return applyActiveFilter(searchableItems, activeFilter).slice(0, SEARCH_RESULT_DISPLAY_LIMIT);
+  }, [isIndexedSearch, searchableItems, query, activeFilter, favorites, searchNodeLookup]);
 
   return (
     <Transition.Root
@@ -384,58 +443,74 @@ export default function SearchModal() {
                   />
                   <Combobox.Input
                     ref={inputRef}
-                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-0 sm:text-sm focus:outline-hidden"
+                    className={classNames(
+                      'h-12 w-full border-0 bg-transparent pl-11 text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-0 sm:text-sm focus:outline-hidden',
+                      query.trim() !== '' && filteredItems.length > 0 ? 'pr-20' : 'pr-4'
+                    )}
                     placeholder="Search..."
                     onChange={(event) => setQuery(event.target.value)}
                     value={query}
                     autoFocus
                     autoComplete="off"
                   />
+                  {query.trim() !== '' && filteredItems.length > 0 && (
+                    <kbd className="pointer-events-none absolute right-4 top-2.5 rounded-lg bg-[rgb(var(--ec-content-hover))] px-2.5 py-1 text-xs font-semibold text-[rgb(var(--ec-page-text-muted))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]">
+                      ESC
+                    </kbd>
+                  )}
                 </div>
 
                 {/* Filter Tabs */}
-                <div
-                  className="flex items-center gap-2 px-4 pt-3 pb-3.5 overflow-x-auto overscroll-x-contain border-b border-[rgb(var(--ec-page-border))]"
-                  style={{
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'rgb(var(--ec-page-border)) transparent',
-                  }}
-                >
-                  {filters.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveFilter(tab.id)}
-                      className={classNames(
-                        'px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap',
-                        activeFilter === tab.id
-                          ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))]'
-                          : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-active))]'
-                      )}
-                    >
-                      {tab.name}
-                    </button>
-                  ))}
-                </div>
+                {showFilterTabs && (
+                  <div
+                    className="flex items-center gap-2 px-4 pt-3 pb-3.5 overflow-x-auto overscroll-x-contain border-b border-[rgb(var(--ec-page-border))]"
+                    style={{
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: 'rgb(var(--ec-page-border)) transparent',
+                    }}
+                  >
+                    {filters.map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveFilter(tab.id)}
+                        className={classNames(
+                          'px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap',
+                          activeFilter === tab.id
+                            ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))]'
+                            : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-active))]'
+                        )}
+                      >
+                        {tab.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {isLoadingSearchIndex && (
                   <div className="py-10 px-6 text-center text-sm sm:px-14">
                     <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))] animate-pulse" />
                     <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Loading search index…</p>
-                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">Preparing resources for search.</p>
+                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
+                      {isIndexedSearch ? 'Preparing indexed search.' : 'Preparing resources for search.'}
+                    </p>
                   </div>
                 )}
 
                 {searchIndexLoadError && !isLoadingSearchIndex && (
-                  <div className="py-10 px-6 text-center text-sm sm:px-14">
-                    <ExclamationCircleIcon className="mx-auto h-6 w-6 text-red-500" />
-                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search unavailable</p>
-                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">{searchIndexLoadError}</p>
+                  <div className="px-6 py-12 text-center text-sm sm:px-14">
+                    <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]">
+                      <ExclamationCircleIcon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">
+                      {isIndexedSearch ? 'Indexed search is not ready' : 'Search is not ready'}
+                    </p>
+                    <p className="mx-auto mt-2 max-w-sm text-[rgb(var(--ec-page-text-muted))]">{searchIndexLoadError}</p>
                   </div>
                 )}
 
                 {!isLoadingSearchIndex && !searchIndexLoadError && filteredItems.length > 0 && (
                   <>
-                    {query === '' && favorites.length > 0 && (
+                    {!isIndexedSearch && query === '' && favorites.length > 0 && (
                       <div className="px-6 pt-3 pb-2">
                         <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">Favourites</p>
                       </div>
@@ -445,7 +520,7 @@ export default function SearchModal() {
                         const Icon = typeIcons[item.type] || typeIcons.default;
                         const colors = typeColors[item.type] || typeColors.default;
 
-                        const isFavorite = favorites.some((fav) => fav.nodeKey === item.key);
+                        const isFavorite = !!item.key && favorites.some((fav) => fav.nodeKey === item.key);
 
                         return (
                           <Combobox.Option
@@ -480,49 +555,60 @@ export default function SearchModal() {
                                 <div className="ml-4 flex-auto min-w-0">
                                   <p
                                     className={classNames(
-                                      'text-sm font-medium',
+                                      'text-sm font-medium [&_mark]:bg-transparent [&_mark]:p-0 [&_mark]:text-[rgb(var(--ec-accent-text))]',
                                       active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'
                                     )}
-                                  >
-                                    {item.name}
-                                  </p>
+                                    dangerouslySetInnerHTML={{ __html: highlightQuery(item.name, query) }}
+                                  />
                                   <div className="flex items-center gap-2">
-                                    <p
-                                      className={classNames(
-                                        'text-sm flex-shrink-0',
-                                        active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
-                                      )}
-                                    >
-                                      {item.type}
-                                    </p>
+                                    {!item.rawNode.matchedExcerpt && (
+                                      <p
+                                        className={classNames(
+                                          'text-xs flex-shrink-0',
+                                          active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
+                                        )}
+                                      >
+                                        {item.type}
+                                      </p>
+                                    )}
                                     {item.rawNode.summary && (
                                       <p
                                         className={classNames(
-                                          'text-sm truncate',
+                                          'text-xs truncate',
                                           active ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]'
                                         )}
                                       >
-                                        • {item.rawNode.summary}
+                                        {!item.rawNode.matchedExcerpt && '• '}
+                                        {item.rawNode.matchedExcerpt ? (
+                                          <span
+                                            className="[&_mark]:bg-transparent [&_mark]:p-0 [&_mark]:font-medium [&_mark]:text-[rgb(var(--ec-accent-text))]"
+                                            dangerouslySetInnerHTML={{ __html: item.rawNode.matchedExcerpt }}
+                                          />
+                                        ) : (
+                                          item.rawNode.summary
+                                        )}
                                       </p>
                                     )}
                                   </div>
                                 </div>
                                 <div className="flex items-center">
-                                  <button
-                                    onClick={(e) => handleToggleFavorite(e, item)}
-                                    onMouseDown={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                    }}
-                                    className={classNames(
-                                      'p-1 rounded-md transition-colors mr-2',
-                                      isFavorite
-                                        ? 'text-amber-400 hover:text-amber-500'
-                                        : 'text-[rgb(var(--ec-icon-color))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
-                                    )}
-                                  >
-                                    {isFavorite ? <StarIconSolid className="h-5 w-5" /> : <StarIcon className="h-5 w-5" />}
-                                  </button>
+                                  {!!item.key && (
+                                    <button
+                                      onClick={(e) => handleToggleFavorite(e, item)}
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                      }}
+                                      className={classNames(
+                                        'p-1 rounded-md transition-colors mr-2',
+                                        isFavorite
+                                          ? 'text-amber-400 hover:text-amber-500'
+                                          : 'text-[rgb(var(--ec-icon-color))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
+                                      )}
+                                    >
+                                      {isFavorite ? <StarIconSolid className="h-5 w-5" /> : <StarIcon className="h-5 w-5" />}
+                                    </button>
+                                  )}
                                   {active && (
                                     <ArrowRightIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" aria-hidden="true" />
                                   )}
@@ -538,14 +624,22 @@ export default function SearchModal() {
 
                 {!isLoadingSearchIndex && !searchIndexLoadError && query !== '' && filteredItems.length === 0 && (
                   <div className="py-14 px-6 text-center text-sm sm:px-14">
-                    <ExclamationCircleIcon
-                      type="outline"
-                      name="exclamation-circle"
-                      className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]"
-                    />
-                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">No results found</p>
+                    {isSearchingIndexed ? (
+                      <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))] animate-pulse" />
+                    ) : (
+                      <ExclamationCircleIcon
+                        type="outline"
+                        name="exclamation-circle"
+                        className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]"
+                      />
+                    )}
+                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">
+                      {isSearchingIndexed ? 'Searching…' : 'No results found'}
+                    </p>
                     <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
-                      No components found for this search term. Please try again.
+                      {isSearchingIndexed
+                        ? 'Searching the indexed catalog.'
+                        : 'No components found for this search term. Please try again.'}
                     </p>
                   </div>
                 )}
@@ -555,7 +649,9 @@ export default function SearchModal() {
                     <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
                     <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search for anything</p>
                     <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
-                      Search for domains, services, events, commands, queries, data stores, data products, flows and more.
+                      {isIndexedSearch
+                        ? 'Search indexed catalog content, custom docs, resources and more.'
+                        : 'Search for domains, services, events, commands, queries, data stores, data products, flows and more.'}
                     </p>
                   </div>
                 )}

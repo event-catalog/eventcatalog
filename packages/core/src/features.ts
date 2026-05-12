@@ -12,6 +12,11 @@ export const isOutputServer = async () => {
   return config?.output === 'server';
 };
 
+export const isIndexedSearchEnabled = async () => {
+  const config = await getEventCatalogConfigFile(process.env.PROJECT_DIR || '');
+  return config?.search?.type === 'indexed';
+};
+
 export const isAuthEnabled = async () => {
   const directory = process.env.PROJECT_DIR || process.cwd();
   const hasAuthConfig = fs.existsSync(join(directory, 'eventcatalog.auth.js'));
