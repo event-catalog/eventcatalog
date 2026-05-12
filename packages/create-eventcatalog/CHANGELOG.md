@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.0
+
+### Minor Changes
+
+- 61853ef: Add opt-in indexed full-content search powered by Pagefind. Enable by setting `search: { type: 'indexed' }` in `eventcatalog.config.js` to index markdown content across resources, custom docs, resource docs and changelogs. Resource search remains the default.
+
 ## 4.2.8
 
 ### Patch Changes
