@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.36.2
+
+### Patch Changes
+
+- cf1647c: Default theme to dark when the user has no system preference set.
+
 ## 3.36.1
 
 ### Patch Changes

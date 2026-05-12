@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.2
+
+### Patch Changes
+
+- cf1647c: Set `theme: 'sunset'` as the default theme across all project templates.
+
 ## 4.3.1
 
 ### Patch Changes
