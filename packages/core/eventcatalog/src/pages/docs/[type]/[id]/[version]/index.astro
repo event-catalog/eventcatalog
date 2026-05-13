@@ -349,10 +349,7 @@ if (!hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                     )
                   }
                   <div class="flex items-center gap-2">
-                    <h2
-                      id="doc-page-header"
-                      class={`text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))] ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
-                    >
+                    <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
                       {props.data.name}
                       {props.data.latestVersion !== props.data.version && <span>(v{props.data.version})</span>}
                     </h2>
@@ -485,35 +482,19 @@ if (!hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
         <div data-pagefind-ignore>
           {
             props.data.version !== props.data.latestVersion && (
-              <div class="rounded-md bg-[rgb(var(--ec-accent-subtle))] p-4 not-prose my-4">
-                <div class="flex">
-                  <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-[rgb(var(--ec-accent))]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path
-                        fill-rule="evenodd"
-                        d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div class="ml-3">
-                    <h3 class="text-sm font-medium text-[rgb(var(--ec-accent-text))]">New version found</h3>
-                    <div class="mt-2 text-sm text-[rgb(var(--ec-accent-text))]">
-                      <p>
-                        You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
-                        <strong>{props.data.name}</strong>.{' '}
-                        <a
-                          class="underline hover:text-primary block pt-2"
-                          href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
-                        >
-                          The latest version of this {props.collection.slice(0, props.collection.length - 1)} is
-                          <span>v{props.data.latestVersion}</span> &rarr;
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <Admonition type="warning" title="New version found">
+                <p>
+                  You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
+                  <strong>{props.data.name}</strong>.{' '}
+                  <a
+                    class="underline block pt-2"
+                    href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
+                  >
+                    The latest version of this {props.collection.slice(0, props.collection.length - 1)} is
+                    <span>v{props.data.latestVersion}</span> &rarr;
+                  </a>
+                </p>
+              </Admonition>
             )
           }
         </div>
