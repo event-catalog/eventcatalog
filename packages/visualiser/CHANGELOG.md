@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.20.1
+
+### Patch Changes
+
+- 8f32dc1: Enhance custom flow nodes with richer styling and metadata: color palettes, icons, type badges, summary text, key/value properties, and optional context menu links.
+
 ## 3.20.0
 
 ### Minor Changes
