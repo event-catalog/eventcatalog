@@ -2137,6 +2137,13 @@ const NodeGraphBuilder = ({
     () => edges.some((edge: Edge) => edge.type === "flow-edge"),
     [edges],
   );
+  const isCompactMenuButton = !title;
+  const menuButtonClassName = isCompactMenuButton
+    ? "h-9 w-9 p-0 bg-[rgb(var(--ec-card-bg))] hover:bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center justify-center transition-colors duration-150 hover:border-[rgb(var(--ec-accent)/0.3)] group"
+    : "py-2.5 px-4 bg-[rgb(var(--ec-card-bg))] hover:bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center gap-3 transition-colors duration-150 hover:border-[rgb(var(--ec-accent)/0.3)] group whitespace-nowrap";
+  const menuIconClassName = isCompactMenuButton
+    ? "h-4 w-4 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150"
+    : "h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150";
 
   return (
     <div
@@ -2160,7 +2167,7 @@ const NodeGraphBuilder = ({
                 <DropdownMenu.Root>
                   <DropdownMenu.Trigger asChild>
                     <button
-                      className="py-2.5 px-4 bg-[rgb(var(--ec-page-bg))] hover:bg-[rgb(var(--ec-accent-subtle)/0.4)] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center gap-3 transition-all duration-200 hover:border-[rgb(var(--ec-accent)/0.3)] group whitespace-nowrap"
+                      className={menuButtonClassName}
                       aria-label="Open menu"
                     >
                       {title && (
@@ -2168,7 +2175,7 @@ const NodeGraphBuilder = ({
                           {title}
                         </span>
                       )}
-                      <MoreVertical className="h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150" />
+                      <MoreVertical className={menuIconClassName} />
                     </button>
                   </DropdownMenu.Trigger>
                   <DropdownMenu.Portal container={reactFlowWrapperRef.current}>
@@ -2265,7 +2272,7 @@ const NodeGraphBuilder = ({
                   <DropdownMenu.Root>
                     <DropdownMenu.Trigger asChild>
                       <button
-                        className="py-2.5 px-4 bg-[rgb(var(--ec-page-bg))] hover:bg-[rgb(var(--ec-accent-subtle)/0.4)] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center gap-3 transition-all duration-200 hover:border-[rgb(var(--ec-accent)/0.3)] group whitespace-nowrap"
+                        className={menuButtonClassName}
                         aria-label="Open menu"
                       >
                         {title && (
@@ -2273,7 +2280,7 @@ const NodeGraphBuilder = ({
                             {title}
                           </span>
                         )}
-                        <MoreVertical className="h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150" />
+                        <MoreVertical className={menuIconClassName} />
                       </button>
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal

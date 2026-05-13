@@ -43,7 +43,7 @@ import {
   isRSSEnabled,
   isExportPDFEnabled,
 } from '@utils/feature';
-import { getMDXComponentsByName } from '@utils/markdown';
+import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
 
 import type { CollectionTypes } from '@types';
 
@@ -265,10 +265,40 @@ const generatePromptForResource = (props: any) => {
 };
 
 // Handle node graphs in the markdown
-let nodeGraphs = getMDXComponentsByName(props.body || '', 'NodeGraph') || [];
+const currentPageNodeGraph = {
+  id: props.data.id,
+  version: props.data.version,
+  type: collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap],
+};
+
+let nodeGraphs =
+  getMDXComponentsByName(props.body || '', 'NodeGraph')?.map((nodeGraph: any) => {
+    const graph = nodeGraph.id === undefined ? { ...currentPageNodeGraph, ...nodeGraph } : nodeGraph;
+
+    return {
+      ...graph,
+      search: parseMdxBooleanProp(nodeGraph.search, true),
+      legend: parseMdxBooleanProp(nodeGraph.legend, true),
+    };
+  }) || [];
+const flowEmbeds = getMDXComponentsByName(props.body || '', 'Flow') || [];
 
 // Get props for the node graph (when no id is passed, we assume its the current page)
-const nodeGraphPropsForPage = nodeGraphs.find((nodeGraph: any) => nodeGraph.id === undefined) || ({} as any);
+const hasCurrentFlowEmbed =
+  props.collection === 'flows' &&
+  flowEmbeds.some((flowEmbed: any) => {
+    const flowId = flowEmbed.id;
+    const flowVersion = flowEmbed.version || 'latest';
+
+    return flowId === props.data.id && (flowVersion === 'latest' || flowVersion === props.data.version);
+  });
+const hasCurrentPageNodeGraph = nodeGraphs.some((nodeGraph: any) => {
+  return (
+    nodeGraph.id === currentPageNodeGraph.id &&
+    nodeGraph.version === currentPageNodeGraph.version &&
+    nodeGraph.type === currentPageNodeGraph.type
+  );
+});
 
 const shouldRenderVersionList =
   shouldRenderSideBarSection(props, 'versions') && props.data.versions && props.data.versions.length > 1;
@@ -287,15 +317,14 @@ const httpMethodStyle = httpOperation?.method
   ? httpMethodColors[httpOperation.method.toUpperCase()] || { background: '#6b7280', color: '#ffffff' }
   : undefined;
 
-// This will render the graph for this page
-nodeGraphs.push({
-  id: props.data.id,
-  version: props.data.version,
-  type: collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap],
-  ...nodeGraphPropsForPage,
-  search: nodeGraphPropsForPage?.search ? nodeGraphPropsForPage.search === 'true' : true,
-  legend: nodeGraphPropsForPage?.legend ? nodeGraphPropsForPage.legend === 'true' : true,
-});
+// This will render the graph for this page. Flow pages can already render their graph explicitly via <Flow />.
+if (!hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
+  nodeGraphs.push({
+    ...currentPageNodeGraph,
+    search: true,
+    legend: true,
+  });
+}
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>

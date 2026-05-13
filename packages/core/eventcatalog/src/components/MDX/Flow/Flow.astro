@@ -6,10 +6,15 @@ import AstroNodeGraph from '../NodeGraph/AstroNodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { isVisualiserEnabled, isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
+import { randomUUID } from 'node:crypto';
+import { parseMdxBooleanProp } from '@utils/markdown';
 
 const isChatEnabled = isEventCatalogChatEnabled();
 
-const { id, version = 'latest', maxHeight, includeKey = true, mode = 'simple', walkthrough = true, search = true } = Astro.props;
+const { id, version = 'latest', maxHeight, mode = 'simple' } = Astro.props;
+const includeKey = parseMdxBooleanProp(Astro.props.legend ?? Astro.props.includeKey, true);
+const search = parseMdxBooleanProp(Astro.props.search, false);
+const walkthrough = parseMdxBooleanProp(Astro.props.walkthrough, false);
 
 // Find the flow for the given id and version
 const flows = await getFlows();
@@ -28,6 +33,7 @@ const { nodes, edges } = await getNodesAndEdges({
 const resourceKey = buildResourceKey('flows', id, flow.data.version);
 const savedLayout = await loadSavedLayout(resourceKey);
 const nodesWithLayout = applyLayoutToNodes(nodes, savedLayout);
+const portalId = `${id}-${flow.data.version}-flow-${randomUUID()}-portal`;
 ---
 
 {
@@ -45,7 +51,7 @@ const nodesWithLayout = applyLayoutToNodes(nodes, savedLayout);
 
 <div
   class="h-[30em] my-6 mb-12 w-full relative border border-[rgb(var(--ec-page-border))] rounded-md"
-  id={`${id}-portal`}
+  id={portalId}
   style={{
     maxHeight: maxHeight ? `${maxHeight}em` : `30em`,
   }}
@@ -57,12 +63,10 @@ const nodesWithLayout = applyLayoutToNodes(nodes, savedLayout);
     id={id}
     nodes={nodesWithLayout}
     edges={edges}
-    hrefLabel={'View in visualizer'}
-    href={isVisualiserEnabled() ? `/visualiser/flows/${id}/${version}` : undefined}
-    linkTo={'visualiser'}
+    mode={mode}
     includeKey={includeKey}
-    footerLabel=`Flow diagram - ${flow.data.name} - v(${flow.data.version})`
     client:only="react"
+    portalId={portalId}
     showFlowWalkthrough={walkthrough}
     showSearch={search}
     isChatEnabled={isChatEnabled}

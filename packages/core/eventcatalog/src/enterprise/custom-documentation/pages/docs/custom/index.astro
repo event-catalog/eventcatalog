@@ -9,7 +9,7 @@ import mdxComponents from '@components/MDX/components';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import { resourceToCollectionMap } from '@utils/collections/util';
-import { getMDXComponentsByName } from '@utils/markdown';
+import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
 import { getAdjacentPages, getNavigationItems } from '@enterprise/custom-documentation/utils/custom-docs';
 import CustomDocsNav from '@enterprise/custom-documentation/components/CustomDocsNav/CustomDocsNav.astro';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
@@ -22,7 +22,10 @@ const doc = props.data;
 const { Content, headings } = await render(props as any);
 const currentSlug = props.id;
 
-const nodeGraphs = getMDXComponentsByName(props.body, 'NodeGraph') || [];
+const nodeGraphs =
+  getMDXComponentsByName(props.body, 'NodeGraph')?.filter((nodeGraph: any) => {
+    return nodeGraph.id && nodeGraph.version && nodeGraph.type;
+  }) || [];
 
 const { prev, next } = await getAdjacentPages(currentSlug);
 
@@ -152,8 +155,10 @@ const editUrl =
                     version={nodeGraph.version}
                     collection={collection}
                     title={nodeGraph.title}
-                    mode="simple"
+                    mode={nodeGraph.mode || 'simple'}
                     linksToVisualiser={true}
+                    showSearch={parseMdxBooleanProp(nodeGraph.search, true)}
+                    showLegend={parseMdxBooleanProp(nodeGraph.legend, true)}
                     href={
                       isVisualiserEnabled()
                         ? {
