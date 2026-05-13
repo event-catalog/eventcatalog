@@ -83,7 +83,7 @@ export const LlmAccessSettingsForm = ({
 
       <Row
         title="llms.txt"
-        description="Generate llms.txt files so tools like Claude, ChatGPT, and Cursor can read your catalog at /docs/llm/llms.txt."
+        description="Generate llms.txt files so tools like Claude, ChatGPT, and Cursor can read your catalog at /llms.txt."
         canEdit={canEdit}
         dirty={dirty}
         saving={saving}
@@ -93,9 +93,7 @@ export const LlmAccessSettingsForm = ({
           icon={<Bot className="h-4 w-4" aria-hidden />}
           label={llmsTxtEnabled ? 'Enabled' : 'Disabled'}
           hint={
-            llmsTxtEnabled
-              ? 'AI tools can read your catalog at /docs/llm/llms.txt.'
-              : 'AI tools will not be able to read your catalog.'
+            llmsTxtEnabled ? 'AI tools can read your catalog at /llms.txt.' : 'AI tools will not be able to read your catalog.'
           }
           checked={llmsTxtEnabled}
           disabled={!canEdit}

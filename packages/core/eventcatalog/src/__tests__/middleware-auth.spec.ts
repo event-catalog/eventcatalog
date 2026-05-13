@@ -128,11 +128,18 @@ describe('middleware-auth', () => {
   });
 
   describe('getPublicRoutes', () => {
+    it('includes root llms.txt routes when llms text access is enabled', () => {
+      expect(getPublicRoutes(true)).toContain('/llms.txt');
+      expect(getPublicRoutes(true)).toContain('/llms-full.txt');
+    });
+
     it('includes schemas.txt when llms text access is enabled', () => {
       expect(getPublicRoutes(true)).toContain('/docs/llm/schemas.txt');
     });
 
     it('does not expose llms routes when llms text access is disabled', () => {
+      expect(getPublicRoutes(false)).not.toContain('/llms.txt');
+      expect(getPublicRoutes(false)).not.toContain('/llms-full.txt');
       expect(getPublicRoutes(false)).not.toContain('/docs/llm/schemas.txt');
       expect(getPublicRoutes(false)).not.toContain('/docs/llm/llms.txt');
       expect(getPublicRoutes(false)).not.toContain('/docs/llm/llms-full.txt');
