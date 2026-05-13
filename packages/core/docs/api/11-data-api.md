@@ -235,7 +235,12 @@ Options:
 | `changelog` | `object` | No | An object with a `visible` property to show/hide the changelog button |  
 | `owners` | `object` | No | An object with a `visible` property to show/hide the owners section |  
 | `attachments` | `object` | No | An object with a `visible` property to show/hide the attachments section |  
-| `repository` | `object` | No | An object with a `visible` property to show/hide the repository section |  
+| `repository` | `object` | No | An object with a `visible` property to show/hide the repository section |
+| `flows` | `object` | No | An object with a `visible` property to show/hide the flows section |
+
+**`flows`** <AddedIn version="3.36.3" />
+
+Shows which flows reference this data store as a step. Flows are surfaced automatically when a [flow step](/docs/development/guides/flows/flow-nodes) uses the `container` node type to reference this resource.
 
 ### `attachments` {#attachments}
 

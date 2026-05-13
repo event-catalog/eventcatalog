@@ -261,7 +261,45 @@ Flows allow you to create [service nodes](/docs/services). Services link to your
 
 _[See example of Message node in a workflow](https://demo.eventcatalog.dev/visualiser/flows/CancelSubscription/0.0.1)._
 
+#### Container Nodes
 
+<AddedIn version="3.36.3" />
+
+Flows allow you to create [container (data store) nodes](/docs/development/guides/data/introduction). Containers link to your defined data stores in EventCatalog. The container's sidebar will automatically show a "Flows" section linking back to any flow that references it.
+
+```md title="Example"
+---
+  steps:
+    - id: "orders_db"
+      title: "Orders DB"
+      container:
+        id: "orders-db"
+        version: "1.0.0"
+      next_step:
+        id: "next_step"
+        label: "Persist order records"
+---
+```
+
+#### Data Product Nodes
+
+<AddedIn version="3.36.3" />
+
+Flows allow you to create [data product nodes](/docs/development/guides/data-products/introduction). Data products link to your defined data products in EventCatalog. The data product's sidebar will automatically show a "Flows" section linking back to any flow that references it.
+
+```md title="Example"
+---
+  steps:
+    - id: "order_analytics"
+      title: "Order Analytics"
+      dataProduct:
+        id: "order-analytics"
+        version: "1.0.0"
+      next_step:
+        id: "next_step"
+        label: "Prepare fulfillment KPIs"
+---
+```
 
 ## Optional fields {#optional-fields}
 

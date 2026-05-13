@@ -13,9 +13,7 @@ import AddedIn from '@site/src/components/MDX/AddedIn';
 
 Flow nodes are the building blocks of flows. They are used to represent the different steps in a flow.
 
-With flow nodes you can reference your services, events, commands and queries, external systems, users (actors) or even create your own custom nodes.
-
-EventCatalog (> 2.34.2) you can also reference flows as a node type.
+With flow nodes you can reference your services, events, commands and queries, external systems, users (actors), data stores (containers), data products, or create your own custom nodes.
 
 ## Common step properties
 
@@ -31,7 +29,7 @@ Every flow step (regardless of node type) supports these properties:
 | `next_steps` | [Step reference](#connecting-steps)[] | No | Multiple next steps for branching (cannot be used with `next_step`) |
 
 :::tip Type exclusivity rule
-Each step can only use **one** node type property. You cannot combine `message`, `service`, `flow`, `actor`, `custom`, or `externalSystem` on the same step.
+Each step can only use **one** node type property. You cannot combine `message`, `service`, `flow`, `container`, `dataProduct`, `actor`, `custom`, or `externalSystem` on the same step.
 :::
 
 ## Connecting steps {#connecting-steps}
@@ -67,6 +65,8 @@ next_steps:
 - [message](#message) — Represents an event, command or query resource in EventCatalog
 - [service](#service) — Represents a service resource in EventCatalog
 - [flow](#flow) — Represents a flow in EventCatalog (added in EventCatalog 2.34.2)
+- [container](#container) — Represents a data store (container) resource in EventCatalog
+- [dataProduct](#dataproduct) — Represents a data product resource in EventCatalog
 - [custom](#custom) — A custom node type with configurable title, summary, icon, properties and more
 
 
@@ -199,6 +199,60 @@ steps:
 <AddedIn version="3.29.0" />
 
 Click a flow node in the visualiser to expand the referenced flow's steps inline. Use the Collapse button in the expanded node's header to restore the single-node view. The graph recentres automatically on both expand and collapse, and expanded steps join the parent flow's step walkthrough navigation.
+
+---
+
+### container
+
+<AddedIn version="3.36.3" />
+
+Represents and refers to a data store (container) resource in EventCatalog. When a flow references a container, the container's sidebar automatically shows a "Flows" section linking back to the referencing flow.
+
+#### Container properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `id` | `string` | **Yes** | The id of the container in your catalog |
+| `version` | `string` | No | The version to reference (defaults to `latest`) |
+
+```yml
+steps:
+  - id: "orders_db"
+    title: "Orders DB"
+    container:
+      id: "orders-db"
+      version: "1.0.0"
+    next_step:
+      id: "next_step"
+      label: "Persist order records"
+```
+
+---
+
+### dataProduct
+
+<AddedIn version="3.36.3" />
+
+Represents and refers to a data product resource in EventCatalog. When a flow references a data product, the data product's sidebar automatically shows a "Flows" section linking back to the referencing flow.
+
+#### Data product properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `id` | `string` | **Yes** | The id of the data product in your catalog |
+| `version` | `string` | No | The version to reference (defaults to `latest`) |
+
+```yml
+steps:
+  - id: "order_analytics"
+    title: "Order Analytics"
+    dataProduct:
+      id: "order-analytics"
+      version: "1.0.0"
+    next_step:
+      id: "next_step"
+      label: "Prepare fulfillment KPIs"
+```
 
 ---
 

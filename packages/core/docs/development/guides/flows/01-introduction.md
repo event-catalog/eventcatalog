@@ -12,7 +12,7 @@ import AddedIn from '@site/src/components/MDX/AddedIn';
 
 <AddedIn version="2.5.0" />
 
-Flows are a way to document business workflows in your organization. You can reuse your documented resources (e.g services, messages, data stores) in your flows.
+Flows are a way to document business workflows in your organization. You can reuse your documented resources (e.g services, messages, data stores, data products) in your flows.
 
 An example of a flow would be when a user makes a payment to an e-commence system, this interaction triggers many parts of the architecture (services, external services, commands, queries and events):
 

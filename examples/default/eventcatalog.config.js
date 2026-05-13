@@ -13,9 +13,6 @@ export default {
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
   outDir: 'dist',
-
-  output: 'server',
-
   logo: {
     src: '/logo.png',
     text: 'Acme Inc'
@@ -142,10 +139,6 @@ export default {
   ],
 
   llmsTxt: {
-    enabled: true
-  },
-
-  chat: {
     enabled: true
   }
 };
