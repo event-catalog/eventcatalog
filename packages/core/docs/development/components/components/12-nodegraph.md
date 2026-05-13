@@ -25,12 +25,15 @@ The `<NodeGraph/>` component is supported in domains, services, and all messages
 ![Example output](./img/nodegraph.png)
 
 #### Props
+
+<AddedIn version="3.36.3" />
+
 | Name                    | Type      | Default           | Description                                                       |
 | ----------------------- | --------- | ----------------- | ----------------------------------------------------------------- |
-| `maxHeight` (optional)             | `string`  | 30           | Max height to set the nodegraph in your document|
-| `search` (optional)             | `boolean`  | true           | Show or hide the search bar in the nodegraph _(Added in v2.50.3)_ |
-| `legend` (optional)             | `boolean`  | true           | Show or hide the legend in the nodegraph _(Added in v2.50.3)_ |
-| `mode` (optional)             | `string` ("simple" or "full")  | "simple"           | `simple` will render the nodegraph in a simplfied view not rendering descriptions. Full will render the nodegraph in a full view, rendering descriptions and other information _(Added in v2.50.3)_|
+| `maxHeight` (optional)             | `string`  | `30`           | Max height to set the nodegraph in your document|
+| `search` (optional)             | `boolean`  | `true`           | Show or hide the search bar. Accepts `true`/`false` or `"true"`/`"false"`. |
+| `legend` (optional)             | `boolean`  | `true`           | Show or hide the legend. Accepts `true`/`false` or `"true"`/`"false"`. |
+| `mode` (optional)             | `string` ("simple" or "full")  | `"simple"`           | `simple` renders a simplified view without descriptions. `full` renders descriptions and other information.|
 
 
 ## Interactive controls

@@ -14,20 +14,29 @@ Embed flows into your pages.
 **Example**
 
 ```jsx /domains/MyDomain/index.mdx
-<Flow id="CancelSubscription" version="latest" includeKey={false} />
+<Flow id="CancelSubscription" version="latest" legend={false} />
 ```
 
 ### Output
 ![Example output](./img/flows.png)
 
 ### Props
+
+<AddedIn version="3.36.3" />
+
 | Name                    | Type      | Default           | Description                                                       |
 | ----------------------- | --------- | ----------------- | ----------------------------------------------------------------- |
 | `id` (required)                 | `string`  | (empty)           | Flow id to render in your page                               |
-| `version` (optional)             | `string`  | "latest"           | Version of the flow to render. Supports exact version and semver versions (e.g 1.0.x, ^1.3.5, latest)|
-| `includeKey` (optional)             | `boolean`  | true           | Renders the diagram key on the UI |
-| `search` (optional)             | `boolean`  | true           | Show or hide the search bar in the flow _(Added in v2.50.3)_ |
-| `mode` (optional)             | `string` ("simple" or "full")  | "simple"           | `simple` will render the flow in a simplfied view not rendering descriptions. Full will render the flow in a full view, rendering descriptions and other information _(Added in v2.50.3)_|
+| `version` (optional)             | `string`  | `"latest"`           | Version of the flow to render. Supports exact version and semver versions (e.g 1.0.x, ^1.3.5, latest)|
+| `legend` (optional)             | `boolean`  | `true`           | Show or hide the diagram key. Accepts `true`/`false` or `"true"`/`"false"`. `includeKey` is still accepted as an alias. |
+| `search` (optional)             | `boolean`  | `false`           | Show or hide the search bar in the flow. Accepts `true`/`false` or `"true"`/`"false"`. |
+| `walkthrough` (optional)             | `boolean`  | `false`           | Show or hide the step walkthrough controls. Accepts `true`/`false` or `"true"`/`"false"`. |
+| `mode` (optional)             | `string` ("simple" or "full")  | `"simple"`           | `simple` renders the flow in a simplified view without descriptions. `full` renders descriptions and other information.|
+
+:::tip Multiple embeds per page
+You can embed multiple `<Flow />` components on the same page and each one renders independently.
+:::
+
 
 ## Interactive controls
 

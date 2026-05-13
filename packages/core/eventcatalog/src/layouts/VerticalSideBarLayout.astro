@@ -150,7 +150,7 @@ const navigationItems = [
     href: getDefaultUrl('docs/custom', '/docs/custom'),
     current: currentPath.includes('/docs/custom'),
     isPremium: true,
-    visible: isCustomDocsEnabled(),
+    visible: isCustomDocsEnabled() && customDocs.length > 0,
   },
   {
     id: '/schemas/explorer',
