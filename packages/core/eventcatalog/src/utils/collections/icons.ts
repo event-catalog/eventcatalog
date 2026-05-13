@@ -13,6 +13,7 @@ import {
   CubeIcon,
 } from '@heroicons/react/24/outline';
 import { BookText, Box, DatabaseIcon } from 'lucide-react';
+import { getColorForCollection } from '@utils/collection-colors';
 
 export const getIconForCollection = (collection: string) => {
   switch (collection) {
@@ -53,33 +54,5 @@ export const getIconForCollection = (collection: string) => {
 
 export const getColorAndIconForCollection = (collection: string) => {
   const icon = getIconForCollection(collection);
-
-  switch (collection) {
-    case 'events':
-      return { color: 'orange', Icon: icon };
-    case 'commands':
-      return { color: 'blue', Icon: icon };
-    case 'queries':
-      return { color: 'green', Icon: icon };
-    case 'flows':
-      return { color: 'teal', Icon: icon };
-    case 'teams':
-      return { color: 'red', Icon: icon };
-    case 'users':
-      return { color: 'gray', Icon: icon };
-    case 'channels':
-      return { color: 'purple', Icon: icon };
-    case 'ubiquitousLanguages':
-      return { color: 'green', Icon: icon };
-    case 'entities':
-      return { color: 'purple', Icon: icon };
-    case 'domains':
-      return { color: 'yellow', Icon: icon };
-    case 'services':
-      return { color: 'pink', Icon: icon };
-    case 'data-products':
-      return { color: 'cyan', Icon: icon };
-    default:
-      return { color: 'gray', Icon: icon };
-  }
+  return { color: getColorForCollection(collection), Icon: icon };
 };

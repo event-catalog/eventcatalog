@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SearchX, Copy, Check, AlertTriangle } from 'lucide-react';
 import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { buildUrl } from '@utils/url-builder';
+import { getCollectionTextColorClass } from '@utils/collection-colors';
 
 export interface FieldResult {
   path: string;
@@ -28,13 +29,6 @@ export interface FieldsTableProps {
   isScaleEnabled?: boolean;
 }
 
-const colorClasses: Record<string, string> = {
-  orange: 'text-orange-500',
-  blue: 'text-blue-500',
-  green: 'text-green-500',
-  gray: 'text-gray-500',
-};
-
 const getColorAndIconForMessageType = (type: string) => {
   switch (type) {
     case 'event':
@@ -58,7 +52,7 @@ function MessageBadge({ id, name, version, type }: { id: string; name?: string; 
       onClick={(e) => e.stopPropagation()}
       className="group/msg inline-flex items-center gap-1.5 text-[0.8rem] text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-accent))] transition-colors"
     >
-      <Icon className={`h-3.5 w-3.5 ${colorClasses[color] || 'text-gray-500'} flex-shrink-0`} />
+      <Icon className={`h-3.5 w-3.5 ${getCollectionTextColorClass(color)} flex-shrink-0`} />
       <span className="truncate max-w-[160px] text-[rgb(var(--ec-page-text-muted))] group-hover/msg:text-[rgb(var(--ec-accent))]">
         {name || id}
       </span>

@@ -1,4 +1,5 @@
 import { getColorAndIconForCollection } from '@utils/collections/icons';
+import { getCollectionTextColorClass } from '@utils/collection-colors';
 import { buildUrl } from '@utils/url-builder';
 import { useState, useMemo, useCallback, memo } from 'react';
 
@@ -41,7 +42,7 @@ const ResourceRow = memo(
         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-[rgb(var(--ec-page-text))] sm:pl-6 relative">
           <a href={url} className="absolute inset-0 z-10" aria-label={`View details for ${resource.name}`} />
           <div className="flex items-center gap-2 relative">
-            <Icon className={`h-5 w-5 text-${color}-500`} />
+            <Icon className={`h-5 w-5 ${getCollectionTextColorClass(color)}`} />
             <span className="group-hover:text-[rgb(var(--ec-accent))] break-all">{resource.name}</span>
           </div>
         </td>

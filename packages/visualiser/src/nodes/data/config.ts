@@ -6,7 +6,7 @@ import { SERVICE, CHANNEL, ACTOR } from "../node-types";
 export default {
   type: "data",
   icon: Database,
-  color: "blue",
+  color: "indigo",
   targetCanConnectTo: [...SERVICE, ...CHANNEL, "external-system", ...ACTOR],
   sourceCanConnectTo: [...SERVICE, ...CHANNEL, "external-system", ...ACTOR],
   validateConnection: (connection: Connection) => {

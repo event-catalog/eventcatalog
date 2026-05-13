@@ -21,8 +21,8 @@ export const columns = (tableConfiguration: TableConfiguration) => [
           href={buildUrl(`/docs/${containerRaw.collection}/${containerRaw.data.id}/${containerRaw.data.version}`)}
           className="group inline-flex items-center"
         >
-          <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors">
-            <span className="flex items-center justify-center w-6 h-6 bg-blue-500 rounded-l-md">
+          <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
+            <span className="flex items-center justify-center w-6 h-6 bg-indigo-500 rounded-l-md">
               <DatabaseIcon className="h-3 w-3 text-white" />
             </span>
             <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
