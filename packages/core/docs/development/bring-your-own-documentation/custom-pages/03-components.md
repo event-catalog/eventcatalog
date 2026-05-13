@@ -36,6 +36,10 @@ This is my custom documentation page, here is a NodeGraph:
 Rest of my markdown content...
 ```
 
+:::note Required props
+In custom documentation pages, `id`, `version`, and `type` are all required. A `<NodeGraph />` missing any of these props is silently ignored.
+:::
+
 #### NodeGraph props
 
 | Prop | Type | Required | Description |
@@ -43,4 +47,7 @@ Rest of my markdown content...
 | `id` | string | Yes | The id of the resource (domain, service, or message) |
 | `version` | string | Yes | The version of the resource |
 | `type` | string | Yes | The type of the resource (domain, service, command, event, query) |
+| `search` | boolean | No | Show or hide the search bar. Accepts `true`/`false` or `"true"`/`"false"`. Defaults to `true`. |
+| `legend` | boolean | No | Show or hide the legend. Accepts `true`/`false` or `"true"`/`"false"`. Defaults to `true`. |
+| `mode` | string | No | `"simple"` or `"full"`. Defaults to `"simple"`. |
 
