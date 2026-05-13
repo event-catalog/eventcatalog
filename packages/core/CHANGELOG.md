@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.39.0
+
+### Minor Changes
+
+- 8d7b6b1: feat(search): show matched excerpts in search results to highlight where the query matched in resource descriptions
+
 ## 3.38.0
 
 ### Minor Changes
