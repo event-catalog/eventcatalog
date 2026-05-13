@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { findMatchingRule, getPublicRoutes, matchesPattern } from '../enterprise/auth/middleware/middleware-auth';
 
+// Note:
 describe('middleware-auth', () => {
   describe('matchesPattern', () => {
     it('should match exact paths', () => {
