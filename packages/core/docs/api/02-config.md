@@ -669,7 +669,7 @@ After RSS is enabled, EventCatalog serves feeds at these paths:
 
 <AddedIn version="2.20.0" />
 
-Enable tools like Claude, ChatGPT, GitHub Copilot, and Cursor to quickly understand your EventCatalog.
+Enable tools like Claude, ChatGPT, GitHub Copilot, and Cursor to quickly understand your EventCatalog. When enabled, your catalog is accessible at `/llms.txt` and `/llms-full.txt`.
 
 ```js title="eventcatalog.config.js"
 {
