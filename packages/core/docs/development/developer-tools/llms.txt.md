@@ -1,7 +1,9 @@
 ---
 sidebar_position: 3
 keywords:
-- mermaid
+- llms.txt
+- AI
+- LLM
 sidebar_label: llms.txt
 title: LLMS.txt
 description: Understanding how to use LLMS.txt with EventCatalog and your LLMs
@@ -21,9 +23,11 @@ The file is automatically generated and maintained as part of your documentation
 
 ### llms.txt and llms-full.txt
 
-The `llms.txt` file includes your EventCatalog resources in a simple format. Lists your resources with a summary for each of them.
+The `llms.txt` file includes your EventCatalog resources in a simple format, listing each resource with a short summary.
 
-The `llms-full.txt` file includes your EventCatalog resources in a more detailed format. All the contents of your Catalog resources are included in the file.
+The `llms-full.txt` file includes your EventCatalog resources in a more detailed format — all the contents of your catalog resources are included in the file.
+
+Both files cover events, commands, queries, services, domains, flows, channels, teams, users, entities, data products, and ubiquitous languages.
 
 ### Enable in EventCatalog
 
@@ -37,11 +41,18 @@ llmsTxt: {
 },
 ```
 
-Once you enable llms.txt you can query both the urls:
- - `https://<your-catalog-url>/docs/llm/llms.txt`
-    - Demo: https://demo.eventcatalog.dev/docs/llm/llms.txt
- - `https://<your-catalog-url>/docs/llm/llms-full.txt`
-    - Demo: https://demo.eventcatalog.dev/docs/llm/llms-full.txt
+### Access the files
+
+<AddedIn version="3.37.0" />
+
+The recommended URLs for AI tools are at the catalog root:
+
+ - `https://<your-catalog-url>/llms.txt`
+    - Demo: https://demo.eventcatalog.dev/llms.txt
+ - `https://<your-catalog-url>/llms-full.txt`
+    - Demo: https://demo.eventcatalog.dev/llms-full.txt
+
+The legacy paths `/docs/llm/llms.txt` and `/docs/llm/llms-full.txt` still work for backward compatibility.
 
 ### How to use LLMS.txt?
 

@@ -385,7 +385,14 @@ export default function SearchModal() {
               url,
               type: fav.badge || node?.badge || 'Page',
               key: fav.nodeKey,
-              rawNode: node || { title: fav.title, badge: fav.badge, summary: undefined, icon: undefined, leftIcon: undefined },
+              rawNode: node || {
+                title: fav.title,
+                badge: fav.badge,
+                summary: undefined,
+                icon: undefined,
+                leftIcon: undefined,
+                matchedExcerpt: undefined,
+              },
               isFavorite: true,
             };
           })

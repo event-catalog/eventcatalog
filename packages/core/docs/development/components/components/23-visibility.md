@@ -36,7 +36,7 @@ import AddedIn from '@site/src/components/MDX/AddedIn';
 
 In the browser UI, only `for="humans"` blocks render. The `for="agents"` block returns nothing and is never visible to human readers.
 
-When an AI agent or LLM fetches the raw markdown for a resource — via the `.md` / `.mdx` endpoints, the `/docs/llm/llms-full.txt` feed, custom docs, team/user pages, language pages, or diagram pages — the `for="humans"` blocks are stripped and only `for="agents"` content remains.
+When an AI agent or LLM fetches the raw markdown for a resource — via the `.md` / `.mdx` endpoints, the `/llms-full.txt` feed, custom docs, team/user pages, language pages, or diagram pages — the `for="humans"` blocks are stripped and only `for="agents"` content remains.
 
 This means the same file can give a human reader UI-oriented guidance ("click the Schema tab") while giving an agent structured, machine-actionable context ("treat this as a read-only lookup") without any duplication.
 

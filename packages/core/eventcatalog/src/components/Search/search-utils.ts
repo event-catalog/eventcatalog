@@ -8,6 +8,7 @@ export interface SearchNode {
   href?: string;
   icon?: string;
   leftIcon?: string;
+  matchedExcerpt?: string;
 }
 
 export interface SearchItem {
