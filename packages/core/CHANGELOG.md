@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.39.1
+
+### Patch Changes
+
+- 4627289: force patch
+
 ## 3.39.0
 
 ### Minor Changes
