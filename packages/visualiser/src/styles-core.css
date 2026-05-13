@@ -113,6 +113,7 @@
   --ec-dp-node-bg: #f7f5ff;
   --ec-external-node-bg: #faf5ff;
   --ec-actor-node-bg: #fffdf5;
+  --ec-custom-node-bg: #f8fbff;
   --ec-message-group-node-bg: #f9f5ff;
   --ec-deprecated-stripe: rgba(239, 68, 68, 0.3);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -145,6 +146,7 @@
   --ec-dp-node-bg: rgb(40, 46, 56);
   --ec-external-node-bg: rgb(40, 46, 56);
   --ec-actor-node-bg: rgb(40, 46, 56);
+  --ec-custom-node-bg: rgb(40, 46, 56);
   --ec-message-group-node-bg: rgb(40, 46, 56);
   --ec-deprecated-stripe: rgba(239, 68, 68, 0.25);
   --ec-input-bg: 22, 27, 34;

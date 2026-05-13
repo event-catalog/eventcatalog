@@ -18,8 +18,6 @@ steps:
       properties:
         subscription_id: "sub_12345678"
         renewal_type: "Automatic"
-        billing_cycle: "Monthly"
-        next_billing_date: "2024-08-01"
       menu:
         - label: "View scheduler configuration"
           url: "https://docs.example.com/scheduler"
@@ -211,7 +209,6 @@ steps:
       properties:
         max_attempts: 3
         backoff_interval: "24 hours"
-        current_attempt: 1
     next_steps:
       - id: "payment_initiated"
         label: "Retry payment"

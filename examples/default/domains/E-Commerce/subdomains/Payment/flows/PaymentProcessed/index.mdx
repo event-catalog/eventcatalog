@@ -41,7 +41,15 @@ steps:
           label: Notify customer
     - id: "payment_failed"
       title: Payment Failed
-      type: node
+      custom:
+        title: Payment Failure
+        color: red
+        icon: ExclamationTriangleIcon
+        type: Exception
+        summary: Payment processor rejected or failed the payment attempt
+        properties:
+          failure_window: 15 minutes
+          retry_policy: Exponential backoff
       next_steps:
         - id: "failure_notification"
           label: Notify customer of failure
@@ -57,16 +65,46 @@ steps:
         label: Complete order
     - id: "send_custom_notification"
       title: Customer Notified of Payment
-      type: node
+      custom:
+        title: Payment Receipt Notification
+        color: green
+        icon: EnvelopeIcon
+        type: Notification
+        summary: Sends the customer a receipt and order confirmation after successful payment
+        properties:
+          channel: Email
+          template: payment-receipt
       next_step:
         id: "payment_complete"
         label: Complete order
     - id: "failure_notification"
       title: Customer Notified of Failure
-      type: node
+      custom:
+        title: Payment Failure Notification
+        color: yellow
+        icon: BellAlertIcon
+        type: Notification
+        summary: Notifies the customer that the payment failed and gives recovery options
+        properties:
+          channel: Email
+          template: payment-failed
     - id: "retry_payment"
       title: Retry Payment
-      type: node
+      custom:
+        title: Retry Orchestration
+        color: orange
+        icon: ArrowPathIcon
+        type: Processor
+        summary: Coordinates retry attempts for transient payment failures
+        url: https://docs.example.com/payments/retry-policy
+        properties:
+          max_attempts: 3
+          retry_delay: 10 minutes
+        menu:
+          - label: View retry policy
+            url: https://docs.example.com/payments/retry-policy
+          - label: Open failed payments dashboard
+            url: https://analytics.example.com/payments/failures
       next_step:
         id: "payment_initiated"
         label: Retry payment process
@@ -79,7 +117,15 @@ steps:
         label: Order completed
     - id: "order-complete"
       title: Order Completed
-      type: node
+      custom:
+        title: Order Fulfillment Trigger
+        color: blue
+        icon: TruckIcon
+        type: Fulfillment
+        summary: Marks payment completion as ready for downstream fulfillment workflows
+        properties:
+          downstream_flow: Shipping
+          fulfillment_sla: 24 hours
 ---
 
 ### Flow of feature
