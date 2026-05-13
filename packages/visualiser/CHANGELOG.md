@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.20.2
+
+### Patch Changes
+
+- 1c9c217: Add support for `container` and `dataProduct` steps in flows. Flows can now reference data stores (containers) and data products directly as steps, rendered in the flow node graph and sidebar. SDK adds `addDataStoreStep`, `addContainerStep`, and `addDataProductStep` builders.
+
 ## 3.20.1
 
 ### Patch Changes
