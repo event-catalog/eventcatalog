@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.36.5
+
+### Patch Changes
+
+- 6d9f8dc: Apply theme variables to custom documentation pages so they respect light/dark mode, and hide the custom docs sidebar nav item when no custom docs are configured.
+
 ## 3.36.4
 
 ### Patch Changes
