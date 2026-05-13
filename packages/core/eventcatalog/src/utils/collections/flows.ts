@@ -24,11 +24,13 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
   }
 
   // 1. Fetch collections in parallel
-  const [allFlows, allEvents, allCommands, allQueries] = await Promise.all([
+  const [allFlows, allEvents, allCommands, allQueries, allContainers, allDataProducts] = await Promise.all([
     getCollection('flows'),
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
+    getCollection('containers'),
+    getCollection('data-products'),
   ]);
 
   const allMessages = [...allEvents, ...allCommands, ...allQueries];
@@ -36,6 +38,8 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
   // 2. Build optimized maps
   const flowMap = createVersionedMap(allFlows);
   const messageMap = createVersionedMap(allMessages);
+  const containerMap = createVersionedMap(allContainers);
+  const dataProductMap = createVersionedMap(allDataProducts);
 
   // 3. Filter flows
   const targetFlows = allFlows.filter((flow) => {
@@ -54,6 +58,30 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
     const steps = flow.data.steps || [];
 
     const hydrateSteps = steps.map((step) => {
+      if (step.container) {
+        const pointer = step.container;
+        if (!pointer) return { ...step, type: 'node' };
+        const container = findInMap(containerMap, pointer.id, pointer.version);
+
+        return {
+          ...step,
+          type: 'container',
+          container: container ? [container] : [],
+        };
+      }
+
+      if (step.dataProduct) {
+        const pointer = step.dataProduct;
+        if (!pointer) return { ...step, type: 'node' };
+        const dataProduct = findInMap(dataProductMap, pointer.id, pointer.version);
+
+        return {
+          ...step,
+          type: 'data-products',
+          dataProduct: dataProduct ? [dataProduct] : [],
+        };
+      }
+
       if (!step.message) return { ...step, type: 'node' }; // Preserve existing step data for non-messages
 
       const message = findInMap(messageMap, step.message.id, step.message.version);

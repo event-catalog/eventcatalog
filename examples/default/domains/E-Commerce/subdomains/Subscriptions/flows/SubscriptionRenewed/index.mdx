@@ -24,14 +24,30 @@ steps:
         - label: "Subscription timing documentation"
           url: "https://docs.example.com/subscription-timing"
     next_step:
+      id: "get_subscription_status"
+      label: "Load renewal candidate"
+
+  - id: "get_subscription_status"
+    title: "Get subscription status query"
+    message:
+      id: "GetSubscriptionStatus"
+    next_step:
       id: "check_subscription_status"
-      label: "Verify subscription status"
+      label: "Evaluate subscription"
 
   - id: "check_subscription_status"
     title: "Check Subscription Status"
     service:
       id: "SubscriptionService"
       version: "0.0.1"
+    next_step:
+      id: "subscriptions_db"
+      label: "Read subscription state"
+
+  - id: "subscriptions_db"
+    title: "Subscriptions DB"
+    container:
+      id: "subscriptions-db"
     next_steps:
       - id: "payment_approval_check"
         label: "Subscription active, proceed to payment"
@@ -56,6 +72,14 @@ steps:
 
   - id: "send_renewal_notification"
     title: "Send Renewal Notification"
+    container:
+      id: "notifications-queue"
+    next_step:
+      id: "notification_service_renewal"
+      label: "Queue renewal email"
+
+  - id: "notification_service_renewal"
+    title: "Notification Service"
     service:
       id: "NotificationService"
       version: "0.0.2"
@@ -176,11 +200,37 @@ steps:
       id: "PaymentInitiated"
       version: "0.0.1"
     next_step:
+      id: "payment_cache"
+      label: "Create idempotent payment session"
+
+  - id: "payment_cache"
+    title: "Payment Cache"
+    container:
+      id: "payment-cache"
+    next_step:
+      id: "process_payment"
+      label: "Prepare charge"
+
+  - id: "process_payment"
+    title: "Process payment command"
+    message:
+      id: "ProcessPayment"
+      version: "0.0.1"
+    next_step:
+      id: "payment_gateway_service"
+      label: "Authorize recurring charge"
+
+  - id: "payment_gateway_service"
+    title: "Payment Gateway Service"
+    service:
+      id: "PaymentGatewayService"
+      version: "0.0.1"
+    next_step:
       id: "payment_gateway"
-      label: "Send to payment gateway"
+      label: "Send to payment provider"
 
   - id: "payment_gateway"
-    title: "Payment Gateway"
+    title: "Stripe"
     externalSystem:
       name: "Stripe"
       summary: "3rd party payment processor"
@@ -193,7 +243,9 @@ steps:
 
   - id: "payment_failed"
     title: "Payment Failed"
-    type: "node"
+    message:
+      id: "PaymentFailed"
+      version: "0.0.1"
     next_step:
       id: "retry_payment"
       label: "Retry payment"
@@ -221,6 +273,14 @@ steps:
       id: "PaymentProcessed"
       version: "1.0.0"
     next_step:
+      id: "payments_db"
+      label: "Persist renewal payment"
+
+  - id: "payments_db"
+    title: "Payments DB"
+    container:
+      id: "payments-db"
+    next_step:
       id: "update_subscription_status"
       label: "Update subscription"
 
@@ -235,6 +295,14 @@ steps:
 
   - id: "send_renewal_confirmation"
     title: "Send Renewal Confirmation"
+    container:
+      id: "notifications-queue"
+    next_step:
+      id: "notification_service_confirmation"
+      label: "Queue renewal confirmation"
+
+  - id: "notification_service_confirmation"
+    title: "Notification Service"
     service:
       id: "NotificationService"
       version: "0.0.2"
@@ -276,7 +344,6 @@ steps:
   - id: "flow_ends"
     title: "Flow Completed"
     type: "node"
-
 ---
 
 ## Subscription Renewal Flow
@@ -287,11 +354,11 @@ This flow documents the process of automatic subscription renewals, including ha
 
 ### Key Components
 
-* **Automatic Renewal Process**: Triggered by a scheduled timer when the subscription renewal period is reached
-* **Payment Processing**: Integration with payment gateway and handling of payment failures
-* **Customer Notifications**: Various notifications sent throughout the process
-* **Grace Period Handling**: Special handling when payments fail with a grace period before subscription suspension
-* **Usage Analytics**: Analysis of customer usage patterns to identify upgrade opportunities
+- **Automatic Renewal Process**: Triggered by a scheduled timer when the subscription renewal period is reached
+- **Payment Processing**: Integration with payment gateway and handling of payment failures
+- **Customer Notifications**: Various notifications sent throughout the process
+- **Grace Period Handling**: Special handling when payments fail with a grace period before subscription suspension
+- **Usage Analytics**: Analysis of customer usage patterns to identify upgrade opportunities
 
 ### Business Rules
 

@@ -190,6 +190,7 @@ export interface Service extends BaseSchema {
     repository?: DetailPanelProperty;
     owners?: DetailPanelProperty;
     changelog?: DetailPanelProperty;
+    flows?: DetailPanelProperty;
   };
 }
 
@@ -327,6 +328,7 @@ export interface DataProduct extends BaseSchema {
     repository?: DetailPanelProperty;
     owners?: DetailPanelProperty;
     changelog?: DetailPanelProperty;
+    flows?: DetailPanelProperty;
   };
 }
 
@@ -345,6 +347,8 @@ export interface FlowStep {
   message?: ResourcePointer;
   service?: ResourcePointer;
   flow?: ResourcePointer;
+  container?: ResourcePointer;
+  dataProduct?: ResourcePointer;
   actor?: {
     name: string;
     summary?: string;

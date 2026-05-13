@@ -6,33 +6,23 @@ summary: "Flow for when a user has cancelled a subscription"
 owners:
   - subscriptions-management
 steps:
-  - id: "cancel_subscription_initiated"
-    title: "Cancels Subscription"
-    summary: "User cancels their subscription"
+  - id: "customer_requests_cancellation"
+    title: "Customer requests cancellation"
     actor:
-      name: "User"
+      name: "Customer"
+      summary: "Customer opens account settings and asks to cancel"
     next_step:
       id: "cancel_subscription_request"
-      label: "Initiate subscription cancellation"
+      label: "Submit cancellation"
 
   - id: "cancel_subscription_request"
-    title: "Cancel Subscription"
+    title: "Cancel subscription command"
     message:
       id: "CancelSubscription"
       version: "0.0.1"
     next_step:
       id: "subscription_service"
-      label: "Proceed to subscription service"
-
-  - id: "stripe_integration"
-    title: "Stripe"
-    externalSystem:
-      name: "Stripe"
-      summary: "3rd party payment system"
-      url: "https://stripe.com/"
-    next_step:
-      id: "subscription_service"
-      label: "Return to subscription service"
+      label: "Validate cancellation"
 
   - id: "subscription_service"
     title: "Subscription Service"
@@ -40,31 +30,168 @@ steps:
       id: "SubscriptionService"
       version: "0.0.1"
     next_steps:
-      - id: "stripe_integration"
-        label: "Cancel subscription via Stripe"
-      - id: "subscription_cancelled"
-        label: "Successful cancellation"
+      - id: "subscriptions_db"
+        label: "Load subscription state"
+      - id: "retention_offer"
+        label: "Eligible for retention offer"
       - id: "subscription_rejected"
-        label: "Failed cancellation"
+        label: "Cancellation not allowed"
+
+  - id: "subscriptions_db"
+    title: "Subscriptions DB"
+    container:
+      id: "subscriptions-db"
+    next_step:
+      id: "billing_service"
+      label: "Stop future billing"
+
+  - id: "retention_offer"
+    title: "Retention offer"
+    custom:
+      title: "Save Offer Decision"
+      color: "purple"
+      icon: "SparklesIcon"
+      type: "Decision"
+      summary: "Decides whether to offer a discount, pause, or support handoff"
+      properties:
+        offer_window: "7 days"
+        max_discount: "25 percent"
+    next_steps:
+      - id: "customer_accepts_offer"
+        label: "Customer accepts offer"
+      - id: "billing_service"
+        label: "Customer still cancels"
+
+  - id: "customer_accepts_offer"
+    title: "Customer accepts save offer"
+    actor:
+      name: "Customer"
+      summary: "Customer keeps the subscription after reviewing the offer"
+    next_step:
+      id: "save_offer_applied"
+      label: "Keep subscription active"
+
+  - id: "save_offer_applied"
+    title: "Save offer applied"
+    custom:
+      title: "Retention Offer Applied"
+      color: "green"
+      icon: "CheckCircleIcon"
+      type: "Business Milestone"
+      summary: "The customer accepted the retention offer and the subscription remains active"
+      properties:
+        outcome: "retained"
+        billing_change: "discount applied"
+
+  - id: "billing_service"
+    title: "Billing Service"
+    service:
+      id: "BillingService"
+      version: "0.0.1"
+    next_step:
+      id: "stripe_integration"
+      label: "Cancel processor agreement"
+
+  - id: "stripe_integration"
+    title: "Stripe"
+    externalSystem:
+      name: "Stripe"
+      summary: "External billing and payment processor"
+      url: "https://stripe.com/"
+    next_steps:
+      - id: "processor_cancellation_confirmed"
+        label: "Processor cancelled"
+      - id: "processor_cancellation_failed"
+        label: "Processor failed"
+
+  - id: "processor_cancellation_confirmed"
+    title: "Processor cancellation confirmed"
+    custom:
+      title: "Billing Agreement Closed"
+      color: "green"
+      icon: "CheckCircleIcon"
+      type: "Checkpoint"
+      summary: "Stripe has stopped future subscription charges"
+      properties:
+        provider: "Stripe"
+        action: "cancel_at_period_end"
+    next_step:
+      id: "subscription_cancelled"
+      label: "Publish cancellation"
 
   - id: "subscription_cancelled"
-    title: "Subscription has been Cancelled"
+    title: "Subscription cancelled event"
     message:
       id: "UserSubscriptionCancelled"
       version: "0.0.1"
     next_step:
-      id: "notification_service"
-      label: "Email customer"
+      id: "notifications_queue"
+      label: "Queue customer notification"
 
-  - id: "subscription_rejected"
-    title: "Subscription cancellation has been rejected"
+  - id: "notifications_queue"
+    title: "Notifications Queue"
+    container:
+      id: "notifications-queue"
+    next_step:
+      id: "notification_service"
+      label: "Send confirmation"
 
   - id: "notification_service"
     title: "Notifications Service"
     service:
       id: "NotificationService"
       version: "0.0.2"
+    next_step:
+      id: "cancellation_complete"
+      label: "Customer notified"
 
+  - id: "cancellation_complete"
+    title: "Cancellation complete"
+    custom:
+      title: "Customer Access Updated"
+      color: "blue"
+      icon: "ArchiveBoxIcon"
+      type: "Business Milestone"
+      summary: "Subscription is cancelled and access is aligned to the entitlement policy"
+      properties:
+        access_until: "period end"
+        audit_event: "subscription.cancelled"
+
+  - id: "processor_cancellation_failed"
+    title: "Processor cancellation failed"
+    custom:
+      title: "Billing Provider Error"
+      color: "red"
+      icon: "ExclamationTriangleIcon"
+      type: "Exception"
+      summary: "Cancellation could not be confirmed with the payment provider"
+      properties:
+        retry_policy: "manual review"
+        severity: "high"
+    next_step:
+      id: "subscription_rejected"
+      label: "Reject request"
+
+  - id: "subscription_rejected"
+    title: "Subscription cancellation rejected"
+    custom:
+      title: "Cancellation Rejected"
+      color: "yellow"
+      icon: "NoSymbolIcon"
+      type: "Policy"
+      summary: "The request cannot be completed because the account is locked or billing state is inconsistent"
+      properties:
+        owner: "Customer support"
+        next_action: "contact customer"
+    next_step:
+      id: "rejection_notification"
+      label: "Notify customer"
+
+  - id: "rejection_notification"
+    title: "Cancellation rejected notification"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
 ---
 
 <NodeGraph />

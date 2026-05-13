@@ -1,0 +1,164 @@
+---
+id: ShipmentCreationFlow
+name: "Shipment Creation Flow"
+version: "1.0.0"
+summary: "Flow for creating a shipment once payment and inventory reservation are complete"
+owners:
+  - fulfillment-team
+steps:
+  - id: "payment_complete"
+    title: "Payment complete event"
+    message:
+      id: "PaymentComplete"
+    next_step:
+      id: "create_shipment"
+      label: "Create shipment"
+
+  - id: "create_shipment"
+    title: "Create shipment command"
+    message:
+      id: "CreateShipment"
+      version: "0.0.1"
+    next_step:
+      id: "shipping_service"
+      label: "Prepare fulfillment"
+
+  - id: "shipping_service"
+    title: "Shipping Service"
+    service:
+      id: "ShippingService"
+      version: "0.0.1"
+    next_step:
+      id: "carrier_selection"
+      label: "Select carrier"
+
+  - id: "carrier_selection"
+    title: "Carrier selection"
+    custom:
+      title: "Carrier Selection"
+      color: "blue"
+      icon: "TruckIcon"
+      type: "Decision"
+      summary: "Chooses the carrier based on destination, SLA, item size, and cost"
+      properties:
+        default_sla: "2 days"
+        fallback_carrier: "Royal Mail"
+    next_step:
+      id: "carrier_api"
+      label: "Book shipment"
+
+  - id: "carrier_api"
+    title: "Carrier API"
+    externalSystem:
+      name: "Carrier API"
+      summary: "External parcel carrier integration"
+      url: "https://carrier.example.com/"
+    next_steps:
+      - id: "shipment_created"
+        label: "Shipment booked"
+      - id: "shipment_booking_failed"
+        label: "Booking failed"
+
+  - id: "shipment_created"
+    title: "Shipment created event"
+    message:
+      id: "ShipmentCreated"
+      version: "0.0.1"
+    next_step:
+      id: "tracking_notification_queue"
+      label: "Queue tracking email"
+
+  - id: "tracking_notification_queue"
+    title: "Notifications Queue"
+    container:
+      id: "notifications-queue"
+    next_step:
+      id: "notification_service"
+      label: "Send tracking notification"
+
+  - id: "notification_service"
+    title: "Notification Service"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+    next_step:
+      id: "shipment_dispatched"
+      label: "Dispatch parcel"
+
+  - id: "shipment_dispatched"
+    title: "Shipment dispatched event"
+    message:
+      id: "ShipmentDispatched"
+      version: "0.0.1"
+    next_step:
+      id: "update_shipment_status"
+      label: "Track shipment"
+
+  - id: "update_shipment_status"
+    title: "Update shipment status command"
+    message:
+      id: "UpdateShipmentStatus"
+      version: "0.0.1"
+    next_steps:
+      - id: "shipment_in_transit"
+        label: "Carrier scan received"
+      - id: "delivery_failed"
+        label: "Delivery failed"
+
+  - id: "shipment_in_transit"
+    title: "Shipment in transit event"
+    message:
+      id: "ShipmentInTransit"
+      version: "0.0.1"
+    next_step:
+      id: "shipment_delivered"
+      label: "Delivered"
+
+  - id: "shipment_delivered"
+    title: "Shipment delivered event"
+    message:
+      id: "ShipmentDelivered"
+      version: "0.0.1"
+    next_step:
+      id: "order_fulfillment_metrics"
+      label: "Update fulfillment KPIs"
+
+  - id: "order_fulfillment_metrics"
+    title: "Order Fulfillment Metrics"
+    dataProduct:
+      id: "order-fulfillment-metrics"
+
+  - id: "delivery_failed"
+    title: "Delivery failed event"
+    message:
+      id: "DeliveryFailed"
+    next_step:
+      id: "delivery_exception"
+      label: "Handle exception"
+
+  - id: "delivery_exception"
+    title: "Delivery exception"
+    custom:
+      title: "Delivery Exception"
+      color: "red"
+      icon: "ExclamationTriangleIcon"
+      type: "Exception"
+      summary: "Support or carrier operations must resolve a failed delivery attempt"
+      properties:
+        owner: "Fulfillment operations"
+        customer_visible: "true"
+
+  - id: "shipment_booking_failed"
+    title: "Shipment booking failed"
+    custom:
+      title: "Carrier Booking Failed"
+      color: "orange"
+      icon: "ArrowPathIcon"
+      type: "Retry"
+      summary: "Carrier booking failed and the shipment must be retried or moved to another carrier"
+      properties:
+        retry_attempts: 3
+        fallback: "manual fulfillment"
+---
+
+<NodeGraph />

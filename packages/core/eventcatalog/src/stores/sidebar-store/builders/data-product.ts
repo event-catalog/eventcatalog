@@ -60,13 +60,15 @@ const resolvePointerToRef = (pointer: { id: string; version?: string }, context:
 export const buildDataProductNode = (
   dataProduct: CollectionEntry<'data-products'>,
   owners: any[],
-  context: DataProductContext
+  context: DataProductContext,
+  flowRefs: string[] = []
 ): NavNode => {
   const inputs = dataProduct.data.inputs || [];
   const outputs = dataProduct.data.outputs || [];
 
   const renderVisualiser = isVisualiserEnabled();
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(dataProduct, 'owners');
+  const renderFlows = flowRefs.length > 0 && shouldRenderSideBarSection(dataProduct, 'flows');
   const docsSection = buildResourceDocsSection(
     'data-products',
     dataProduct.data.id,
@@ -138,6 +140,13 @@ export const buildDataProductNode = (
         title: 'Data Contracts',
         icon: 'FileCheck',
         pages: dataContracts,
+      },
+      renderFlows && {
+        type: 'group',
+        title: 'Flows',
+        icon: 'Waypoints',
+        pages: flowRefs,
+        visible: flowRefs.length > 0,
       },
       renderOwners && buildOwnersSection(owners),
     ].filter(Boolean) as ChildRef[],

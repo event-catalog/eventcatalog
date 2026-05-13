@@ -1,0 +1,205 @@
+---
+id: SubscriptionPaymentFailureFlow
+name: "Subscription Payment Failure Flow"
+version: "1.0.0"
+summary: "Flow for handling failed recurring subscription payments and recovery"
+owners:
+  - subscriptions-management
+steps:
+  - id: "subscription_payment_due"
+    title: "Subscription payment due event"
+    message:
+      id: "SubscriptionPaymentDue"
+      version: "0.0.1"
+    next_step:
+      id: "billing_service"
+      label: "Attempt renewal charge"
+
+  - id: "billing_service"
+    title: "Billing Service"
+    service:
+      id: "BillingService"
+      version: "0.0.1"
+    next_step:
+      id: "process_payment"
+      label: "Process recurring payment"
+
+  - id: "process_payment"
+    title: "Process payment command"
+    message:
+      id: "ProcessPayment"
+      version: "0.0.1"
+    next_step:
+      id: "payment_gateway_service"
+      label: "Authorize payment"
+
+  - id: "payment_gateway_service"
+    title: "Payment Gateway Service"
+    service:
+      id: "PaymentGatewayService"
+      version: "0.0.1"
+    next_step:
+      id: "stripe"
+      label: "Charge saved payment method"
+
+  - id: "stripe"
+    title: "Stripe"
+    externalSystem:
+      name: "Stripe"
+      summary: "External payment processor for recurring card charges"
+      url: "https://stripe.com/"
+    next_steps:
+      - id: "payment_processed"
+        label: "Payment succeeds"
+      - id: "payment_failed"
+        label: "Payment fails"
+
+  - id: "payment_processed"
+    title: "Payment processed event"
+    message:
+      id: "PaymentProcessed"
+      version: "1.0.0"
+    next_step:
+      id: "invoice_generated"
+      label: "Generate invoice"
+
+  - id: "invoice_generated"
+    title: "Invoice generated event"
+    message:
+      id: "InvoiceGenerated"
+      version: "0.0.1"
+    next_step:
+      id: "subscriptions_db_success"
+      label: "Mark billing cycle paid"
+
+  - id: "subscriptions_db_success"
+    title: "Subscriptions DB"
+    container:
+      id: "subscriptions-db"
+    next_step:
+      id: "payment_recovered"
+      label: "Complete renewal"
+
+  - id: "payment_recovered"
+    title: "Subscription payment recovered"
+    custom:
+      title: "Renewal Paid"
+      color: "green"
+      icon: "CheckCircleIcon"
+      type: "Business Milestone"
+      summary: "The billing cycle is paid and subscription access remains active"
+      properties:
+        subscription_status: "active"
+        entitlement_change: "none"
+    next_step:
+      id: "subscription_metrics"
+      label: "Update subscription KPIs"
+
+  - id: "payment_failed"
+    title: "Payment failed event"
+    message:
+      id: "PaymentFailed"
+      version: "0.0.1"
+    next_step:
+      id: "retry_policy"
+      label: "Start dunning"
+
+  - id: "retry_policy"
+    title: "Retry policy"
+    custom:
+      title: "Dunning Retry Policy"
+      color: "orange"
+      icon: "ArrowPathIcon"
+      type: "Timer"
+      summary: "Schedules payment retries and controls when the subscription enters grace period"
+      properties:
+        attempts: 3
+        cadence: "1 day, 3 days, 7 days"
+    next_steps:
+      - id: "process_payment"
+        label: "Retry payment"
+      - id: "grace_period"
+        label: "Retries exhausted"
+
+  - id: "grace_period"
+    title: "Grace period"
+    custom:
+      title: "Subscription Grace Period"
+      color: "yellow"
+      icon: "ShieldExclamationIcon"
+      type: "Policy"
+      summary: "Keeps access active for a short period while the customer updates payment details"
+      properties:
+        duration: "7 days"
+        access_level: "limited"
+    next_step:
+      id: "notification_queue"
+      label: "Ask customer to update payment"
+
+  - id: "notification_queue"
+    title: "Notifications Queue"
+    container:
+      id: "notifications-queue"
+    next_step:
+      id: "notification_service"
+      label: "Send dunning notification"
+
+  - id: "notification_service"
+    title: "Notification Service"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+    next_step:
+      id: "customer_updates_payment"
+      label: "Wait for customer action"
+
+  - id: "customer_updates_payment"
+    title: "Customer updates payment"
+    actor:
+      name: "Customer"
+      summary: "Customer updates or replaces their payment method"
+    next_steps:
+      - id: "process_payment"
+        label: "Retry with new payment method"
+      - id: "suspend_subscription"
+        label: "No payment update"
+
+  - id: "suspend_subscription"
+    title: "Suspend subscription"
+    service:
+      id: "SubscriptionService"
+      version: "0.0.1"
+    next_step:
+      id: "subscriptions_db_failed"
+      label: "Persist suspension"
+
+  - id: "subscriptions_db_failed"
+    title: "Subscriptions DB"
+    container:
+      id: "subscriptions-db"
+    next_step:
+      id: "subscription_suspended"
+      label: "Access suspended"
+
+  - id: "subscription_suspended"
+    title: "Subscription suspended"
+    custom:
+      title: "Subscription Suspended"
+      color: "red"
+      icon: "PauseCircleIcon"
+      type: "Business Milestone"
+      summary: "The subscription is suspended after failed payment recovery attempts"
+      properties:
+        subscription_status: "suspended"
+        access_level: "restricted"
+    next_step:
+      id: "subscription_metrics"
+      label: "Update churn metrics"
+
+  - id: "subscription_metrics"
+    title: "Subscription Metrics"
+    dataProduct:
+      id: "subscription-metrics"
+---
+
+<NodeGraph />
