@@ -9,6 +9,7 @@ type AllowedCollections =
   | 'commands'
   | 'queries'
   | 'services'
+  | 'data-products'
   | 'domains'
   | 'teams'
   | 'users'
@@ -17,12 +18,14 @@ type AllowedCollections =
   | 'entities'
   | 'flows'
   | 'containers'
+  | 'ubiquitousLanguages'
   | 'resourceDocs';
 
 const events = await getCollection('events');
 const commands = await getCollection('commands');
 const queries = await getCollection('queries');
 const services = await getCollection('services');
+const dataProducts = await getCollection('data-products');
 const domains = await getCollection('domains');
 const teams = await getCollection('teams');
 const users = await getCollection('users');
@@ -30,6 +33,7 @@ const entities = await getCollection('entities');
 const channels = await getCollection('channels');
 const flows = await getCollection('flows');
 const containers = await getCollection('containers');
+const ubiquitousLanguages = await getCollection('ubiquitousLanguages');
 const customDocs = await getCollection('customPages');
 const resourceDocs = isResourceDocsEnabled() ? await getCollection('resourceDocs') : [];
 
@@ -43,6 +47,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     ...commands,
     ...queries,
     ...services,
+    ...dataProducts,
     ...domains,
     ...teams,
     ...users,
@@ -50,6 +55,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     ...channels,
     ...containers,
     ...flows,
+    ...ubiquitousLanguages,
   ];
 
   if (isCustomDocsEnabled()) {

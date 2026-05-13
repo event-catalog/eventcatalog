@@ -14,6 +14,7 @@ const events = await getCollection('events');
 const commands = await getCollection('commands');
 const queries = await getCollection('queries');
 const services = await getCollection('services');
+const dataProducts = await getCollection('data-products');
 const domains = await getCollection('domains');
 const flows = await getCollection('flows');
 const channels = await getCollection('channels');
@@ -25,6 +26,7 @@ const collections = {
   commands,
   queries,
   services,
+  'data-products': dataProducts,
   domains,
   flows,
   channels,

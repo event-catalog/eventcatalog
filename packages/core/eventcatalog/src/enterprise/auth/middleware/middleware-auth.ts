@@ -87,7 +87,14 @@ export function getPublicRoutes(isLLMSTextEnabled: boolean) {
     return publicRoutes;
   }
 
-  return [...publicRoutes, '/docs/llm/llms.txt', '/docs/llm/llms-full.txt', '/docs/llm/schemas.txt'];
+  return [
+    ...publicRoutes,
+    '/llms.txt',
+    '/llms-full.txt',
+    '/docs/llm/llms.txt',
+    '/docs/llm/llms-full.txt',
+    '/docs/llm/schemas.txt',
+  ];
 }
 
 export const authMiddleware: MiddlewareHandler = async (context, next) => {
