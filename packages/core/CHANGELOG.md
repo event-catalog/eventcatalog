@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.36.4
+
+### Patch Changes
+
+- 3fd03c0: Improve `<Flow />` and `<NodeGraph />` MDX embeds: support boolean MDX props for `search`, `legend`, and `walkthrough`; avoid duplicate page node graph when a `<Flow />` or `<NodeGraph />` is already embedded; use unique portal IDs per flow embed; render a compact NodeGraph menu button when no title is provided.
+- Updated dependencies [3fd03c0]
+  - @eventcatalog/visualiser@3.20.3
+
 ## 3.36.3
 
 ### Patch Changes
