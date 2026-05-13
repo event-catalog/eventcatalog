@@ -6,20 +6,8 @@ import type { TData } from '../Table';
 import type { CollectionUserTypes } from '@types';
 import type { TableConfiguration } from '@types';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
+import { getCollectionTextColorClass } from '@utils/collection-colors';
 const columnHelper = createColumnHelper<TData<CollectionUserTypes>>();
-
-const colorClasses: Record<string, string> = {
-  orange: 'text-orange-500',
-  blue: 'text-blue-500',
-  green: 'text-green-500',
-  pink: 'text-pink-500',
-  yellow: 'text-yellow-500',
-  teal: 'text-teal-500',
-  purple: 'text-purple-500',
-  red: 'text-red-500',
-  gray: 'text-gray-500',
-  cyan: 'text-cyan-500',
-};
 
 const CollectionListCell = ({
   items,
@@ -49,7 +37,9 @@ const CollectionListCell = ({
             href={href}
             className="group inline-flex items-center gap-1.5 text-[0.8rem] text-[rgb(var(--ec-icon-color))] transition-colors hover:text-[rgb(var(--ec-accent))]"
           >
-            <Icon className={`h-3.5 w-3.5 flex-shrink-0 ${colorClasses[color] || 'text-[rgb(var(--ec-icon-color))]'}`} />
+            <Icon
+              className={`h-3.5 w-3.5 flex-shrink-0 ${getCollectionTextColorClass(color, 'text-[rgb(var(--ec-icon-color))]')}`}
+            />
             <span className="max-w-[140px] truncate" title={item.data.name}>
               {item.data.name}
             </span>

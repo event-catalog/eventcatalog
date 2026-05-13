@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
+import { getCollectionTextColorClass } from '@utils/collection-colors';
 import { createBadgesColumn } from './SharedColumns';
 import FavoriteButton from '@components/FavoriteButton';
 import type { TData } from '../Table';
@@ -95,7 +96,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
               href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
               className="group inline-flex items-center gap-1.5 text-xs hover:text-[rgb(var(--ec-accent))] transition-colors"
             >
-              <consumer.Icon className={`h-3.5 w-3.5 text-${consumer.color}-500 flex-shrink-0`} />
+              <consumer.Icon className={`h-3.5 w-3.5 ${getCollectionTextColorClass(consumer.color)} flex-shrink-0`} />
               <span className="truncate max-w-[120px]" title={consumer.data.name}>
                 {consumer.data.name}
               </span>
@@ -154,7 +155,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
               href={buildUrl(`/docs/${sender.collection}/${sender.data.id}/${sender.data.version}`)}
               className="group inline-flex items-center gap-1.5 text-xs hover:text-[rgb(var(--ec-accent))] transition-colors"
             >
-              <sender.Icon className={`h-3.5 w-3.5 text-${sender.color}-500 flex-shrink-0`} />
+              <sender.Icon className={`h-3.5 w-3.5 ${getCollectionTextColorClass(sender.color)} flex-shrink-0`} />
               <span className="truncate max-w-[120px]" title={sender.data.name}>
                 {sender.data.name}
               </span>

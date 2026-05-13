@@ -2,9 +2,11 @@
 import { buildUrl } from '@utils/url-builder';
 import { getItemsFromCollectionByIdAndSemverOrLatest, resourceToCollectionMap } from '@utils/collections/util';
 import { getCollection } from 'astro:content';
+import { getResourceReferenceStyle } from '@utils/resource-reference-colors';
 
 const { id, version, type } = Astro.props;
 const collection = resourceToCollectionMap[type as keyof typeof resourceToCollectionMap];
+const resourceReferenceStyle = getResourceReferenceStyle(type);
 
 let slotHTML = await Astro.slots.render('default');
 let href = '#';
@@ -43,7 +45,11 @@ try {
 
 {
   !linkHasError && (
-    <a href={href} class="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))]">
+    <a
+      href={href}
+      class="rounded px-1 -mx-1 text-[var(--ec-resource-ref-color)] hover:bg-[var(--ec-resource-ref-bg)] transition-colors"
+      style={resourceReferenceStyle}
+    >
       {slotHTML}
     </a>
   )

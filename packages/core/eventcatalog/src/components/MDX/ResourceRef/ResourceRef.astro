@@ -14,6 +14,8 @@ import {
 } from '@utils/collections/util';
 import { getCollection } from 'astro:content';
 import { getServiceSpecifications, getSpecUrl, getSpecLabel } from '@components/Grids/specification-utils';
+import { getResourceReferenceStyle } from '@utils/resource-reference-colors';
+import { isIconPath, resolveIconUrl } from '@utils/icon';
 
 interface Props {
   type:
@@ -29,7 +31,8 @@ interface Props {
     | 'container'
     | 'user'
     | 'team'
-    | 'doc';
+    | 'doc'
+    | 'data-product';
   version?: string;
 }
 
@@ -56,22 +59,21 @@ const normalizedResourceId = normalizeCustomDocPath(resourceId).toLowerCase();
 // Map type to collection name
 const collection = resourceToCollectionMap[type as keyof typeof resourceToCollectionMap];
 
-// Type-specific styling using CSS variables from theme.css
-// Maps to --ec-badge-{type}-text variables for consistency
-const typeStyles: Record<string, { borderColor: string; label: string }> = {
-  entity: { borderColor: 'var(--ec-badge-query-text)', label: 'Entity' }, // purple
-  service: { borderColor: 'var(--ec-badge-service-text)', label: 'Service' }, // pink
-  event: { borderColor: 'var(--ec-badge-event-text)', label: 'Event' }, // amber/orange
-  command: { borderColor: 'var(--ec-badge-command-text)', label: 'Command' }, // pink
-  query: { borderColor: 'var(--ec-badge-query-text)', label: 'Query' }, // purple
-  domain: { borderColor: 'var(--ec-badge-domain-text)', label: 'Domain' }, // yellow
-  flow: { borderColor: 'var(--ec-badge-design-text)', label: 'Flow' }, // teal
-  channel: { borderColor: 'var(--ec-badge-channel-text)', label: 'Channel' }, // indigo
-  diagram: { borderColor: 'var(--ec-badge-default-text)', label: 'Diagram' }, // gray
-  container: { borderColor: 'var(--ec-badge-default-text)', label: 'Container' }, // gray
-  user: { borderColor: 'var(--ec-badge-default-text)', label: 'User' }, // gray
-  team: { borderColor: 'var(--ec-badge-default-text)', label: 'Team' }, // gray
-  doc: { borderColor: 'var(--ec-badge-default-text)', label: 'Doc' }, // gray
+const typeLabels: Record<string, string> = {
+  entity: 'Entity',
+  service: 'Service',
+  event: 'Event',
+  command: 'Command',
+  query: 'Query',
+  domain: 'Domain',
+  flow: 'Flow',
+  channel: 'Channel',
+  diagram: 'Diagram',
+  container: 'Container',
+  user: 'User',
+  team: 'Team',
+  doc: 'Custom Doc',
+  'data-product': 'Data Product',
 };
 
 // SVG icons for each type (from heroicons outline)
@@ -97,11 +99,14 @@ const typeIcons: Record<string, string> = {
     '<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />', // Database
   user: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />', // User
   team: '<path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />', // UserGroup
-  doc: '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-8.25a2.25 2.25 0 00-2.25-2.25h-10.5A2.25 2.25 0 004.5 6v12a2.25 2.25 0 002.25 2.25h5.25M16.5 18.75h6m-3-3v6" />', // Document with plus
+  doc: '<path stroke-linecap="round" stroke-linejoin="round" d="M14 2v4a2 2 0 002 2h4" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M10 9H8" /><path stroke-linecap="round" stroke-linejoin="round" d="M16 13H8" /><path stroke-linecap="round" stroke-linejoin="round" d="M16 17H8" />', // FileText
+  'data-product':
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25M21 7.5v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />', // Cube
 };
 
-const style = typeStyles[type] || typeStyles.entity;
+const label = typeLabels[type] || typeLabels.entity;
 const iconPath = typeIcons[type] || typeIcons.entity;
+const resourceReferenceStyle = getResourceReferenceStyle(type);
 
 let resource: any = null;
 let href = '#';
@@ -172,6 +177,7 @@ const hasVisualizer = ['domain', 'service', 'event', 'query', 'command', 'contai
 // Check deprecation status
 const deprecation = resource ? getDeprecatedDetails(resource) : null;
 const isDeprecated = deprecation?.isMarkedAsDeprecated || false;
+const resourceIconUrl = isIconPath(resource?.data?.styles?.icon) ? resolveIconUrl(resource.data.styles.icon) : null;
 
 // Get owners (first 2)
 const owners = resource?.data?.owners?.slice(0, 2) || [];
@@ -234,7 +240,7 @@ const hasSpecifications = specifications.length > 0;
 const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
 ---
 
-<span class="resource-ref-wrapper inline">
+<span class="resource-ref-wrapper inline relative">
   {
     hasError ? (
       <span
@@ -249,14 +255,13 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
           href={href}
           class:list={[
             'resource-ref-trigger inline-flex items-center gap-1 px-1 -mx-1 rounded font-medium underline decoration-dotted decoration-2 underline-offset-[3px] transition-colors',
-            isDeprecated
-              ? 'text-amber-700 dark:text-amber-400 decoration-amber-500/60'
-              : 'text-[rgb(var(--ec-accent-text))] decoration-[rgb(var(--ec-primary))] hover:bg-[rgb(var(--ec-accent-subtle))]',
+            'text-[var(--ec-resource-ref-color)] decoration-[var(--ec-resource-ref-color)] hover:bg-[var(--ec-resource-ref-bg)]',
           ]}
+          style={resourceReferenceStyle}
           data-tooltip-id={tooltipId}
         >
           <svg
-            class="w-3.5 h-3.5 flex-shrink-0 text-[rgb(var(--ec-primary))]"
+            class="w-3.5 h-3.5 flex-shrink-0 text-[var(--ec-resource-ref-color)]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -271,7 +276,7 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
         <span
           id={tooltipId}
           class="resource-ref-tooltip fixed w-80 bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] border-l-[3px] rounded-r-lg rounded-l-none shadow-lg shadow-black/8 z-[9999] text-left overflow-hidden opacity-0 pointer-events-none transition-all duration-150 scale-95 origin-top-left"
-          style={`border-left-color: rgb(${style.borderColor});`}
+          style={`${resourceReferenceStyle}; border-left-color: var(--ec-resource-ref-color);`}
         >
           {/* Deprecation banner */}
           {isDeprecated && (
@@ -289,29 +294,41 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
 
           <span class="block p-3">
             {/* Header: Name with icon top-right */}
-            <span class="flex justify-between items-start mb-2">
-              <span class="flex flex-col">
-                <span class="flex items-baseline gap-2">
-                  <span class="font-semibold text-[rgb(var(--ec-page-text))] text-[0.95rem] leading-tight">
-                    {resource?.data?.name || resourceId}
-                  </span>
-                  <span class="text-[0.65rem] text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide">{style.label}</span>
+            <span class="grid grid-cols-[minmax(0,1fr)_1.25rem] items-start gap-3 border-b border-[rgb(var(--ec-page-border))] pb-2 mb-3">
+              <span class="flex min-w-0 flex-col">
+                <span class="font-semibold text-[rgb(var(--ec-page-text))] text-[0.95rem] leading-tight">
+                  {resource?.data?.name || resourceId}
                 </span>
-                {isVersionedResource && (
-                  <span class="text-[0.7rem] font-mono text-[rgb(var(--ec-page-text-muted))] mt-0.5">
-                    v{resource?.data?.version}
-                  </span>
+                <span class="mt-0.5 flex items-center gap-1.5 text-[0.7rem] text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide">
+                  <span class="text-[0.65rem] text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide">{label}</span>
+                  {isVersionedResource && (
+                    <>
+                      <span aria-hidden="true">•</span>
+                      <span class="font-mono normal-case">v{resource?.data?.version}</span>
+                    </>
+                  )}
+                </span>
+              </span>
+              <span class="flex h-[24px] w-[24px] items-start justify-end mr-4">
+                {resourceIconUrl ? (
+                  <img
+                    src={resourceIconUrl}
+                    alt=""
+                    class="not-prose m-0 block  h-[24px] w-[24px] object-contain"
+                    loading="lazy"
+                  />
+                ) : (
+                  <svg
+                    class="h-5 w-5"
+                    style="color: var(--ec-resource-ref-color);"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    set:html={iconPath}
+                  />
                 )}
               </span>
-              <svg
-                class="w-5 h-5 flex-shrink-0"
-                style={`color: rgb(${style.borderColor});`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.5"
-                set:html={iconPath}
-              />
             </span>
 
             {/* Summary */}
@@ -413,7 +430,7 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
             ) : null}
 
             {/* Actions */}
-            <span class="flex items-center justify-between pt-2 border-t border-[rgb(var(--ec-page-border))] text-[0.7rem]">
+            <span class="flex items-center justify-between pt-1 text-[0.7rem]">
               <span class="flex items-center gap-3">
                 {type === 'flow' && (
                   <a
@@ -450,7 +467,11 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                   </a>
                 )}
               </span>
-              <a href={href} class="text-[rgb(var(--ec-accent))] hover:underline font-medium">
+              <a
+                href={href}
+                class="text-[var(--ec-resource-ref-color)] hover:underline font-medium"
+                style="color: var(--ec-resource-ref-color);"
+              >
                 {type === 'diagram' ? 'View diagram' : type === 'doc' ? 'View doc' : 'View docs'}
               </a>
             </span>

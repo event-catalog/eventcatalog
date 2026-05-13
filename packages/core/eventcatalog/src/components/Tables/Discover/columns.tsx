@@ -4,25 +4,12 @@ import { DocumentTextIcon, MapIcon } from '@heroicons/react/24/solid';
 import { ArrowDownIcon, ArrowUpIcon, EllipsisVerticalIcon, StarIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
+import { getCollectionTextColorClass } from '@utils/collection-colors';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
 import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite, type FavoriteItem } from '../../../stores/favorites-store';
 import type { DiscoverTableData, CollectionType } from './DiscoverTable';
 import type { TableConfiguration } from '@types';
-
-// Color mapping to ensure Tailwind classes are included in the build
-const colorClasses: Record<string, string> = {
-  orange: 'text-orange-500',
-  blue: 'text-blue-500',
-  green: 'text-green-500',
-  pink: 'text-pink-500',
-  yellow: 'text-yellow-500',
-  teal: 'text-teal-500',
-  purple: 'text-purple-500',
-  red: 'text-red-500',
-  gray: 'text-gray-500',
-  cyan: 'text-cyan-500',
-};
 
 const columnHelper = createColumnHelper<DiscoverTableData>();
 
@@ -80,7 +67,7 @@ const ResourceNameCell = ({ item }: { item: DiscoverTableData }) => {
       {resourceIconUrl ? (
         <img src={resourceIconUrl} alt="" className="h-5 w-5 flex-shrink-0 rounded-sm object-contain" />
       ) : (
-        <Icon className={`h-4 w-4 flex-shrink-0 ${colorClasses[color] || 'text-[rgb(var(--ec-icon-color))]'}`} />
+        <Icon className={`h-4 w-4 flex-shrink-0 ${getCollectionTextColorClass(color, 'text-[rgb(var(--ec-icon-color))]')}`} />
       )}
       <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
         {item.data.name}
@@ -248,7 +235,7 @@ const CollectionListCell = ({
           href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
           className="group inline-flex items-center gap-1.5 text-[0.8rem] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-accent))] transition-colors"
         >
-          <item.Icon className={`h-3.5 w-3.5 ${colorClasses[item.color] || 'text-gray-500'} flex-shrink-0`} />
+          <item.Icon className={`h-3.5 w-3.5 ${getCollectionTextColorClass(item.color)} flex-shrink-0`} />
           <span className="truncate max-w-[120px]" title={item.data.name}>
             {item.data.name}
           </span>
