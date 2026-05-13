@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.21.0
+
+### Minor Changes
+
+- 6d7151b: Unify resource reference colors across tables, MDX components, and the sidebar via a shared collection-colors utility. Add data-product support to ResourceRef with rich tooltip styling, custom icon support, and updated visualiser data node palette.
+
 ## 3.20.3
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # @eventcatalog/core
 
+## 3.37.0
+
+### Minor Changes
+
+- 6d7151b: Unify resource reference colors across tables, MDX components, and the sidebar via a shared collection-colors utility. Add data-product support to ResourceRef with rich tooltip styling, custom icon support, and updated visualiser data node palette.
+
+### Patch Changes
+
+- 6d7151b: Apply theme variables to custom documentation pages so they respect light/dark mode, and hide the custom docs sidebar nav item when no custom docs are configured.
+- 84fc314: Refresh Admonition component with refined styling and reuse it for the "new version found" callouts on doc pages.
+- Updated dependencies [6d7151b]
+  - @eventcatalog/visualiser@3.21.0
+
 ## 3.36.5
 
 ### Patch Changes
