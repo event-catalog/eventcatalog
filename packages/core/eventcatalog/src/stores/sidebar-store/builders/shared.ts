@@ -61,6 +61,7 @@ export type ResourceGroupContext = {
   queries: CollectionEntry<'queries'>[];
   flows: CollectionEntry<'flows'>[];
   containers: CollectionEntry<'containers'>[];
+  dataProducts: CollectionEntry<'data-products'>[];
   diagrams: CollectionEntry<'diagrams'>[];
   resourceDocs: ResourceDocEntry[];
   resourceDocCategories: ResourceDocCategoryEntry[];

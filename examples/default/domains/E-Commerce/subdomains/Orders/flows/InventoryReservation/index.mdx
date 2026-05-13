@@ -1,0 +1,128 @@
+---
+id: InventoryReservationFlow
+name: "Inventory Reservation Flow"
+version: "1.0.0"
+summary: "Flow for reserving stock after an order has been confirmed"
+owners:
+  - inventory-team
+steps:
+  - id: "order_confirmed"
+    title: "Order confirmed event"
+    message:
+      id: "OrderConfirmed"
+      version: "0.0.1"
+    next_step:
+      id: "inventory_service"
+      label: "Reserve stock"
+
+  - id: "inventory_service"
+    title: "Inventory Service"
+    service:
+      id: "InventoryService"
+    next_step:
+      id: "inventory_status_query"
+      label: "Check available stock"
+
+  - id: "inventory_status_query"
+    title: "Get inventory status query"
+    message:
+      id: "GetInventoryStatus"
+      version: "0.0.1"
+    next_step:
+      id: "inventory_readmodel"
+      label: "Read stock projection"
+
+  - id: "inventory_readmodel"
+    title: "Inventory Read Model"
+    container:
+      id: "inventory-readmodel"
+    next_steps:
+      - id: "reservation_policy"
+        label: "Stock available"
+      - id: "out_of_stock"
+        label: "Insufficient stock"
+
+  - id: "reservation_policy"
+    title: "Reservation policy"
+    custom:
+      title: "Reservation Policy"
+      color: "purple"
+      icon: "QueueListIcon"
+      type: "Decision"
+      summary: "Allocates stock by warehouse, channel priority, and promised delivery date"
+      properties:
+        hold_duration: "15 minutes"
+        allocation_strategy: "nearest warehouse first"
+    next_step:
+      id: "update_inventory"
+      label: "Reserve units"
+
+  - id: "update_inventory"
+    title: "Update inventory command"
+    message:
+      id: "UpdateInventory"
+      version: "0.0.3"
+    next_step:
+      id: "inventory_db"
+      label: "Persist reservation"
+
+  - id: "inventory_db"
+    title: "Inventory DB"
+    container:
+      id: "inventory-db"
+    next_step:
+      id: "inventory_adjusted"
+      label: "Publish adjustment"
+
+  - id: "inventory_adjusted"
+    title: "Inventory adjusted event"
+    message:
+      id: "InventoryAdjusted"
+      version: "1.0.1"
+    next_step:
+      id: "reservation_complete"
+      label: "Reservation complete"
+
+  - id: "reservation_complete"
+    title: "Reservation complete"
+    custom:
+      title: "Stock Reserved"
+      color: "green"
+      icon: "CheckCircleIcon"
+      type: "Business Milestone"
+      summary: "Stock is held for the order and downstream fulfillment can continue"
+      properties:
+        reservation_status: "held"
+        expiry_policy: "release on payment timeout"
+
+  - id: "out_of_stock"
+    title: "Out of stock event"
+    message:
+      id: "OutOfStock"
+    next_step:
+      id: "reorder_policy"
+      label: "Evaluate recovery"
+
+  - id: "reorder_policy"
+    title: "Reorder policy"
+    custom:
+      title: "Out-of-stock Recovery"
+      color: "yellow"
+      icon: "ArrowPathIcon"
+      type: "Policy"
+      summary: "Decides whether to split shipment, backorder, substitute, or cancel"
+      properties:
+        backorder_window: "3 days"
+        owner: "Inventory operations"
+    next_step:
+      id: "notify_customer"
+      label: "Notify customer"
+
+  - id: "notify_customer"
+    title: "Notification Service"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+---
+
+<NodeGraph />

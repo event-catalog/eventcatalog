@@ -126,6 +126,7 @@ import {
   writeVersionedFlow,
 } from './flows';
 export { FlowBuilder } from './flow-builder';
+export type * from './flow-builder';
 
 import {
   getDataStore,

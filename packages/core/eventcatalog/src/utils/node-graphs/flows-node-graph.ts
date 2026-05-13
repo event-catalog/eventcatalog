@@ -26,6 +26,8 @@ interface Maps {
   messageMap: Map<string, any[]>;
   serviceMap: Map<string, any[]>;
   flowMap: Map<string, any[]>;
+  containerMap: Map<string, any[]>;
+  dataProductMap: Map<string, any[]>;
 }
 
 const getServiceNode = (step: any, serviceMap: Map<string, any[]>) => {
@@ -43,6 +45,26 @@ const getFlowNode = (step: any, flowMap: Map<string, any[]>) => {
     ...step,
     type: flow ? flow.collection : 'step',
     flow,
+  };
+};
+
+const getContainerNode = (step: any, containerMap: Map<string, any[]>) => {
+  const pointer = step.container;
+  const container = findInMap(containerMap, pointer.id, pointer.version);
+  return {
+    ...step,
+    type: container ? 'data' : 'step',
+    container,
+  };
+};
+
+const getDataProductNode = (step: any, dataProductMap: Map<string, any[]>) => {
+  const pointer = step.dataProduct;
+  const dataProduct = findInMap(dataProductMap, pointer.id, pointer.version);
+  return {
+    ...step,
+    type: dataProduct ? 'data-products' : 'step',
+    dataProduct,
   };
 };
 
@@ -97,6 +119,8 @@ const buildFlowGraphInternal = (
   const hydratedSteps = steps.map((step: any) => {
     if (step.service) return getServiceNode(step, maps.serviceMap);
     if (step.flow) return getFlowNode(step, maps.flowMap);
+    if (step.container) return getContainerNode(step, maps.containerMap);
+    if (step.dataProduct) return getDataProductNode(step, maps.dataProductMap);
     if (step.message) return getMessageNode(step, maps.messageMap);
     if (step.actor) return { ...step, type: 'actor', actor: step.actor };
     if (step.custom) return { ...step, type: 'custom', custom: step.custom };
@@ -159,6 +183,23 @@ const buildFlowGraphInternal = (
         version: step.message.data.version,
       });
     }
+    if (step.container?.data) {
+      node.data.data = { ...step.container.data };
+      node.data.container = { ...step.container, ...step.container.data };
+      node.data.contextMenu = buildContextMenuForResource({
+        collection: 'containers',
+        id: step.container.data.id,
+        version: step.container.data.version,
+      });
+    }
+    if (step.dataProduct?.data) {
+      node.data.dataProduct = { ...step.dataProduct, ...step.dataProduct.data };
+      node.data.contextMenu = buildContextMenuForResource({
+        collection: 'data-products',
+        id: step.dataProduct.data.id,
+        version: step.dataProduct.data.version,
+      });
+    }
     if (step.actor) {
       node.data.actor = { ...step.actor, ...step.actor.data };
       node.data = { ...node.data, ...step.actor };
@@ -214,12 +255,14 @@ const buildFlowGraphInternal = (
 export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
   const graph = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 200 });
 
-  const [flows, events, commands, queries, services] = await Promise.all([
+  const [flows, events, commands, queries, services, containers, dataProducts] = await Promise.all([
     getCollection('flows'),
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
     getCollection('services'),
+    getCollection('containers'),
+    getCollection('data-products'),
   ]);
 
   const flow = flows.find((flow) => flow.data.id === id && flow.data.version === version);
@@ -236,6 +279,8 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     messageMap: createVersionedMap(messages),
     serviceMap: createVersionedMap(services),
     flowMap: createVersionedMap(flows),
+    containerMap: createVersionedMap(containers),
+    dataProductMap: createVersionedMap(dataProducts),
   };
 
   const subFlowCache = new Map<string, { nodes: any[]; edges: any[] }>();

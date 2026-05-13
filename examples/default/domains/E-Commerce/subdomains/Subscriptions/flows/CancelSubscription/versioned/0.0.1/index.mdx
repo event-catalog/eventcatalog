@@ -7,22 +7,41 @@ owners:
   - subscriptions-management
 steps:
   - id: "cancel_subscription_initiated"
-    title: "Cancels Subscription"
-    summary: "User cancels their subscription"
+    title: "Customer starts cancellation"
     actor:
-      name: "User"
+      name: "Customer"
+      summary: "Customer requests cancellation from account settings"
     next_step:
       id: "cancel_subscription_request"
       label: "Initiate subscription cancellation"
 
   - id: "cancel_subscription_request"
-    title: "Cancel Subscription"
+    title: "Cancel subscription command"
     message:
       id: "CancelSubscription"
       version: "0.0.1"
     next_step:
       id: "subscription_service"
       label: "Proceed to subscription service"
+
+  - id: "subscription_service"
+    title: "Subscription Service"
+    service:
+      id: "SubscriptionService"
+      version: "0.0.1"
+    next_step:
+      id: "subscriptions_db"
+      label: "Load subscription"
+
+  - id: "subscriptions_db"
+    title: "Subscriptions DB"
+    container:
+      id: "subscriptions-db"
+    next_steps:
+      - id: "stripe_integration"
+        label: "Cancel subscription via Stripe"
+      - id: "subscription_rejected"
+        label: "Subscription cannot be cancelled"
 
   - id: "stripe_integration"
     title: "Stripe"
@@ -31,21 +50,43 @@ steps:
       summary: "3rd party payment system"
       url: "https://stripe.com/"
     next_step:
-      id: "subscription_service"
-      label: "Return to subscription service"
+      id: "subscription_cancelled"
+      label: "Return cancellation confirmation"
 
-  - id: "subscription_service"
-    title: "Subscription Service"
-    service:
-      id: "SubscriptionService"
+  - id: "subscription_cancelled"
+    title: "Subscription cancelled event"
+    message:
+      id: "UserSubscriptionCancelled"
       version: "0.0.1"
-    next_steps:
-      - id: "stripe_integration"
-        label: "Cancel subscription via Stripe"
-      - id: "subscription_cancelled"
-        label: "Successful cancellation"
-      - id: "subscription_rejected"
-        label: "Failed cancellation"
+    next_step:
+      id: "notifications_queue"
+      label: "Queue notification"
+
+  - id: "notifications_queue"
+    title: "Notifications Queue"
+    container:
+      id: "notifications-queue"
+    next_step:
+      id: "notification_service"
+      label: "Notify customer"
+
+  - id: "notification_service"
+    title: "Notification Service"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+
+  - id: "subscription_rejected"
+    title: "Cancellation rejected"
+    custom:
+      title: "Cancellation Rejected"
+      color: "yellow"
+      icon: "NoSymbolIcon"
+      type: "Policy"
+      summary: "Cancellation could not be completed because billing state needs review"
+      properties:
+        owner: "Customer support"
+        next_action: "manual review"
 ---
 
 <NodeGraph />

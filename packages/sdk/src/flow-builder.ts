@@ -49,6 +49,28 @@ export type FlowServiceStepInput = FlowStepInput & {
 };
 
 /**
+ * Payload for a flow step that references a data store/container.
+ */
+export type FlowDataStoreStepInput = FlowStepInput & {
+  container?: {
+    id: string;
+    version?: string;
+  };
+  version?: string;
+};
+
+/**
+ * Payload for a flow step that references a data product.
+ */
+export type FlowDataProductStepInput = FlowStepInput & {
+  dataProduct?: {
+    id: string;
+    version?: string;
+  };
+  version?: string;
+};
+
+/**
  * Payload for a flow step that represents a user or actor.
  */
 export type FlowActorStepInput = FlowStepInput & {
@@ -112,6 +134,8 @@ const cloneStep = (step: FlowStep): FlowStep => ({
   ...(step.message ? { message: { ...step.message } } : {}),
   ...(step.service ? { service: { ...step.service } } : {}),
   ...(step.flow ? { flow: { ...step.flow } } : {}),
+  ...(step.container ? { container: { ...step.container } } : {}),
+  ...(step.dataProduct ? { dataProduct: { ...step.dataProduct } } : {}),
   ...(step.actor ? { actor: { ...step.actor } } : {}),
   ...(step.custom
     ? {
@@ -330,6 +354,96 @@ export class FlowBuilder<TMessageId extends string = string> {
         title: step.title || String(step.id),
         ...(step.summary ? { summary: step.summary } : {}),
         service: { ...service, ...(step.version && !service.version ? { version: step.version } : {}) },
+      },
+      step.nextSteps
+    );
+  }
+
+  /**
+   * Add a data store step.
+   *
+   * Data store steps reference container resources in EventCatalog. If a
+   * version is not provided, EventCatalog resolves the latest matching
+   * container version when rendering the flow.
+   *
+   * @param step - The data store step payload.
+   *
+   * @example
+   * ```ts
+   * FlowBuilder.create({
+   *   id: 'OrderFlow',
+   *   name: 'Order Flow',
+   *   version: '1.0.0',
+   *   markdown: '',
+   * })
+   *   .addDataStoreStep({
+   *     id: 'OrdersDB',
+   *     container: { id: 'OrdersDB', version: '1.0.0' },
+   *   });
+   * ```
+   */
+  addDataStoreStep(step: FlowDataStoreStepInput) {
+    const fallbackContainer = {
+      id: String(step.id),
+      ...(step.version ? { version: step.version } : {}),
+    };
+    const container = step.container ?? fallbackContainer;
+
+    return this.addStepWithNext(
+      {
+        id: step.id,
+        title: step.title || String(step.id),
+        ...(step.summary ? { summary: step.summary } : {}),
+        container: { ...container, ...(step.version && !container.version ? { version: step.version } : {}) },
+      },
+      step.nextSteps
+    );
+  }
+
+  /**
+   * Add a container step.
+   *
+   * Alias for `addDataStoreStep`.
+   */
+  addContainerStep(step: FlowDataStoreStepInput) {
+    return this.addDataStoreStep(step);
+  }
+
+  /**
+   * Add a data product step.
+   *
+   * If a version is not provided, EventCatalog resolves the latest matching
+   * data product version when rendering the flow.
+   *
+   * @param step - The data product step payload.
+   *
+   * @example
+   * ```ts
+   * FlowBuilder.create({
+   *   id: 'OrderFlow',
+   *   name: 'Order Flow',
+   *   version: '1.0.0',
+   *   markdown: '',
+   * })
+   *   .addDataProductStep({
+   *     id: 'OrderAnalytics',
+   *     dataProduct: { id: 'OrderAnalytics', version: '1.0.0' },
+   *   });
+   * ```
+   */
+  addDataProductStep(step: FlowDataProductStepInput) {
+    const fallbackDataProduct = {
+      id: String(step.id),
+      ...(step.version ? { version: step.version } : {}),
+    };
+    const dataProduct = step.dataProduct ?? fallbackDataProduct;
+
+    return this.addStepWithNext(
+      {
+        id: step.id,
+        title: step.title || String(step.id),
+        ...(step.summary ? { summary: step.summary } : {}),
+        dataProduct: { ...dataProduct, ...(step.version && !dataProduct.version ? { version: step.version } : {}) },
       },
       step.nextSteps
     );

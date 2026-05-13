@@ -3041,6 +3041,107 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    describe('flows section', () => {
+      it('is not listed if no flows reference the container', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', containerNode.pages ?? []);
+        expect(flowsSection).toBeUndefined();
+      });
+
+      it('lists flows that reference the container in flow steps', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [{ id: 'payments-db', title: 'Payments DB', container: { id: 'PaymentDataStore' } }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', containerNode.pages ?? []);
+
+        expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+      });
+
+      it('deduplicates flows when multiple steps reference the same container', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [
+            { id: 'payments-db-read', title: 'Read Payments DB', container: { id: 'PaymentDataStore' } },
+            { id: 'payments-db-write', title: 'Write Payments DB', container: { id: 'PaymentDataStore', version: '0.0.1' } },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', containerNode.pages ?? []);
+
+        expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+      });
+
+      it('is not listed if the container is configured not to render the section', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+          detailsPanel: {
+            // @ts-ignore
+            flows: {
+              visible: false,
+            },
+          },
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [{ id: 'payments-db', title: 'Payments DB', container: { id: 'PaymentDataStore' } }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', containerNode.pages ?? []);
+        expect(flowsSection).toBeUndefined();
+      });
+    });
+
     describe('owners section', () => {
       it('is not listed if the container does not have any owners', async () => {
         const { writeDataStore } = utils(CATALOG_FOLDER);
@@ -3297,9 +3398,111 @@ describe('getNestedSideBarData', () => {
     });
   });
 
+  describe('data product navigation items', () => {
+    describe('flows section', () => {
+      it('is not listed if no flows reference the data product', async () => {
+        const { writeDataProduct } = utils(CATALOG_FOLDER);
+        await writeDataProduct({
+          id: 'PaymentAnalytics',
+          name: 'Payment Analytics',
+          version: '0.0.1',
+          markdown: 'Payment Analytics',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', dataProductNode.pages ?? []);
+        expect(flowsSection).toBeUndefined();
+      });
+
+      it('lists flows that reference the data product in flow steps', async () => {
+        const { writeDataProduct } = utils(CATALOG_FOLDER);
+        await writeDataProduct({
+          id: 'PaymentAnalytics',
+          name: 'Payment Analytics',
+          version: '0.0.1',
+          markdown: 'Payment Analytics',
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [{ id: 'payment-analytics', title: 'Payment Analytics', dataProduct: { id: 'PaymentAnalytics' } }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', dataProductNode.pages ?? []);
+
+        expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+      });
+
+      it('deduplicates flows when multiple steps reference the same data product', async () => {
+        const { writeDataProduct } = utils(CATALOG_FOLDER);
+        await writeDataProduct({
+          id: 'PaymentAnalytics',
+          name: 'Payment Analytics',
+          version: '0.0.1',
+          markdown: 'Payment Analytics',
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [
+            { id: 'payment-analytics-ingest', title: 'Ingest Payment Analytics', dataProduct: { id: 'PaymentAnalytics' } },
+            {
+              id: 'payment-analytics-read',
+              title: 'Read Payment Analytics',
+              dataProduct: { id: 'PaymentAnalytics', version: '0.0.1' },
+            },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', dataProductNode.pages ?? []);
+
+        expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+      });
+
+      it('is not listed if the data product is configured not to render the section', async () => {
+        const { writeDataProduct } = utils(CATALOG_FOLDER);
+        await writeDataProduct({
+          id: 'PaymentAnalytics',
+          name: 'Payment Analytics',
+          version: '0.0.1',
+          markdown: 'Payment Analytics',
+          detailsPanel: {
+            flows: {
+              visible: false,
+            },
+          },
+        });
+
+        mockFlows.push({
+          id: 'CheckoutFlow',
+          name: 'Checkout Flow',
+          version: '0.0.1',
+          markdown: 'Checkout Flow',
+          steps: [{ id: 'payment-analytics', title: 'Payment Analytics', dataProduct: { id: 'PaymentAnalytics' } }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', dataProductNode.pages ?? []);
+        expect(flowsSection).toBeUndefined();
+      });
+    });
+  });
+
   describe('flow navigation items', () => {
-    it('lists messages, services, and flows referenced by flow steps', async () => {
-      const { writeEvent, writeCommand, writeQuery, writeService } = utils(CATALOG_FOLDER);
+    it('lists messages, services, flows, data stores, and data products referenced by flow steps', async () => {
+      const { writeEvent, writeCommand, writeQuery, writeService, writeDataStore, writeDataProduct } = utils(CATALOG_FOLDER);
 
       await writeEvent({
         id: 'PaymentRequested',
@@ -3325,6 +3528,19 @@ describe('getNestedSideBarData', () => {
         version: '0.0.1',
         markdown: 'Payment Service',
       });
+      await writeDataStore({
+        id: 'PaymentsDB',
+        name: 'Payments DB',
+        version: '0.0.1',
+        markdown: 'Payments DB',
+        container_type: 'database',
+      });
+      await writeDataProduct({
+        id: 'PaymentAnalytics',
+        name: 'Payment Analytics',
+        version: '0.0.1',
+        markdown: 'Payment Analytics',
+      });
 
       mockFlows.push(
         {
@@ -3338,6 +3554,8 @@ describe('getNestedSideBarData', () => {
             { id: 'get-payment-status', title: 'Get payment status', message: { id: 'GetPaymentStatus' } },
             { id: 'payment-service', title: 'Payment service', service: { id: 'PaymentService' } },
             { id: 'fraud-flow', title: 'Fraud flow', flow: { id: 'FraudFlow' } },
+            { id: 'payments-db', title: 'Payments DB', container: { id: 'PaymentsDB' } },
+            { id: 'payment-analytics', title: 'Payment Analytics', dataProduct: { id: 'PaymentAnalytics' } },
           ],
         },
         {
@@ -3354,6 +3572,8 @@ describe('getNestedSideBarData', () => {
       const messagesSection = getChildNodeByTitle('Messages', flowNode.pages ?? []);
       const servicesSection = getChildNodeByTitle('Services', flowNode.pages ?? []);
       const subflowsSection = getChildNodeByTitle('Subflows', flowNode.pages ?? []);
+      const dataStoresSection = getChildNodeByTitle('Data Stores', flowNode.pages ?? []);
+      const dataProductsSection = getChildNodeByTitle('Data Products', flowNode.pages ?? []);
 
       expect(messagesSection.pages).toEqual([
         'event:PaymentRequested:0.0.1',
@@ -3362,6 +3582,8 @@ describe('getNestedSideBarData', () => {
       ]);
       expect(servicesSection.pages).toEqual(['service:PaymentService:0.0.1']);
       expect(subflowsSection.pages).toEqual(['flow:FraudFlow:0.0.1']);
+      expect(dataStoresSection.pages).toEqual(['container:PaymentsDB:0.0.1']);
+      expect(dataProductsSection.pages).toEqual(['data-product:PaymentAnalytics:0.0.1']);
     });
 
     it('does not list reference sections when a flow has no resource step references', async () => {
@@ -3379,6 +3601,8 @@ describe('getNestedSideBarData', () => {
       expect(getChildNodeByTitle('Messages', flowNode.pages ?? [])).toBeUndefined();
       expect(getChildNodeByTitle('Services', flowNode.pages ?? [])).toBeUndefined();
       expect(getChildNodeByTitle('Subflows', flowNode.pages ?? [])).toBeUndefined();
+      expect(getChildNodeByTitle('Data Stores', flowNode.pages ?? [])).toBeUndefined();
+      expect(getChildNodeByTitle('Data Products', flowNode.pages ?? [])).toBeUndefined();
     });
   });
 

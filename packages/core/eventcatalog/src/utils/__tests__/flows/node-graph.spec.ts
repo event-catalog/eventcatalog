@@ -1,6 +1,6 @@
 import { getNodesAndEdges } from '../../node-graphs/flows-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockEvents, mockFlow, mockFlowByIds, mockServices } from './mocks';
+import { mockContainers, mockDataProducts, mockEvents, mockFlow, mockFlowByIds, mockServices } from './mocks';
 import { getCollection } from 'astro:content';
 let expectedNodes: any;
 
@@ -17,6 +17,12 @@ vi.mock('astro:content', async (importOriginal) => {
       }
       if (key === 'services') {
         return Promise.resolve(mockServices);
+      }
+      if (key === 'containers') {
+        return Promise.resolve(mockContainers);
+      }
+      if (key === 'data-products') {
+        return Promise.resolve(mockDataProducts);
       }
       return Promise.resolve([]);
     },
@@ -151,6 +157,59 @@ describe('Flows NodeGraph', () => {
       );
     });
 
+    it('resolves container step nodes to the latest container version when no version is given', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'DataStoreFlow', version: '1.0.0' });
+
+      const containerNode = nodes.find((n: any) => n.id === 'step-orders-db');
+
+      expect(containerNode).toEqual(
+        expect.objectContaining({
+          type: 'data',
+          data: expect.objectContaining({
+            data: expect.objectContaining({
+              id: 'OrdersDB',
+              version: '1.0.0',
+              container_type: 'database',
+            }),
+            container: expect.objectContaining({
+              id: 'OrdersDB',
+              version: '1.0.0',
+            }),
+            contextMenu: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Read documentation',
+                href: expect.stringContaining('/docs/containers/OrdersDB/1.0.0'),
+              }),
+            ]),
+          }),
+        })
+      );
+    });
+
+    it('resolves data product step nodes to the latest data product version when no version is given', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'DataProductFlow', version: '1.0.0' });
+
+      const dataProductNode = nodes.find((n: any) => n.id === 'step-order-analytics');
+
+      expect(dataProductNode).toEqual(
+        expect.objectContaining({
+          type: 'data-products',
+          data: expect.objectContaining({
+            dataProduct: expect.objectContaining({
+              id: 'OrderAnalytics',
+              version: '1.0.0',
+            }),
+            contextMenu: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Read documentation',
+                href: expect.stringContaining('/docs/data-products/OrderAnalytics/1.0.0'),
+              }),
+            ]),
+          }),
+        })
+      );
+    });
+
     it('does not attach a contextMenu to plain step nodes (no resource)', async () => {
       const { nodes } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
 
@@ -196,6 +255,12 @@ describe('Flows NodeGraph', () => {
               }
               if (key === 'services') {
                 return Promise.resolve(mockServices);
+              }
+              if (key === 'containers') {
+                return Promise.resolve(mockContainers);
+              }
+              if (key === 'data-products') {
+                return Promise.resolve(mockDataProducts);
               }
               return Promise.resolve([]);
             },

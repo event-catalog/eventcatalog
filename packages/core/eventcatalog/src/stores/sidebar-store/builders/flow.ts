@@ -56,6 +56,8 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
   const queryMap = createVersionedMap(context.queries);
   const serviceMap = createVersionedMap(context.services);
   const flowMap = createVersionedMap(context.flows);
+  const containerMap = createVersionedMap(context.containers);
+  const dataProductMap = createVersionedMap(context.dataProducts);
   const messageRefs = uniqueRefs(
     steps.map((step) => resolveMessageStep(step, { eventMap, commandMap, queryMap })).filter(Boolean) as string[]
   );
@@ -70,6 +72,30 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
       .map((step) => (step.flow ? resolvePointer(flowMap, step.flow) : undefined))
       .filter(Boolean)
       .map((referencedFlow) => `flow:${referencedFlow!.data.id}:${referencedFlow!.data.version}`)
+  );
+  const containerRefs = uniqueRefs(
+    steps
+      .map((step: any) => {
+        const hydratedContainer = Array.isArray(step.container) ? step.container[0] : undefined;
+        if (hydratedContainer?.collection && hydratedContainer?.data) return hydratedContainer;
+
+        const pointer = Array.isArray(step.container) ? undefined : step.container;
+        return pointer ? resolvePointer(containerMap, pointer) : undefined;
+      })
+      .filter(Boolean)
+      .map((container) => `container:${container!.data.id}:${container!.data.version}`)
+  );
+  const dataProductRefs = uniqueRefs(
+    steps
+      .map((step: any) => {
+        const hydratedDataProduct = Array.isArray(step.dataProduct) ? step.dataProduct[0] : undefined;
+        if (hydratedDataProduct?.collection && hydratedDataProduct?.data) return hydratedDataProduct;
+
+        const pointer = Array.isArray(step.dataProduct) ? undefined : step.dataProduct;
+        return pointer ? resolvePointer(dataProductMap, pointer) : undefined;
+      })
+      .filter(Boolean)
+      .map((dataProduct) => `data-product:${dataProduct!.data.id}:${dataProduct!.data.version}`)
   );
 
   return {
@@ -119,6 +145,18 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
         title: 'Subflows',
         icon: 'Waypoints',
         pages: flowRefs,
+      },
+      containerRefs.length > 0 && {
+        type: 'group',
+        title: 'Data Stores',
+        icon: 'Database',
+        pages: containerRefs,
+      },
+      dataProductRefs.length > 0 && {
+        type: 'group',
+        title: 'Data Products',
+        icon: 'Package',
+        pages: dataProductRefs,
       },
     ].filter(Boolean) as ChildRef[],
   };

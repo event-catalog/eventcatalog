@@ -467,6 +467,46 @@ describe('buildDataProductNode', () => {
     });
   });
 
+  describe('flows section', () => {
+    it('renders Flows section when flow references are provided', () => {
+      const dataProduct = createMockDataProduct();
+
+      const result = buildDataProductNode(dataProduct, [], emptyContext, ['flow:CheckoutFlow:1.0.0']);
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+
+      expect(flowsSection).toMatchObject({
+        type: 'group',
+        title: 'Flows',
+        icon: 'Waypoints',
+        pages: ['flow:CheckoutFlow:1.0.0'],
+      });
+    });
+
+    it('does not render Flows section when no flow references are provided', () => {
+      const dataProduct = createMockDataProduct();
+
+      const result = buildDataProductNode(dataProduct, [], emptyContext);
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+
+      expect(flowsSection).toBeUndefined();
+    });
+
+    it('does not render Flows section when the data product details panel hides it', () => {
+      const dataProduct = createMockDataProduct({
+        detailsPanel: {
+          flows: {
+            visible: false,
+          },
+        },
+      });
+
+      const result = buildDataProductNode(dataProduct, [], emptyContext, ['flow:CheckoutFlow:1.0.0']);
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+
+      expect(flowsSection).toBeUndefined();
+    });
+  });
+
   describe('owners', () => {
     it('includes Owners section when owners are provided', () => {
       const dataProduct = createMockDataProduct({ owners: [{ id: 'user1' }] });

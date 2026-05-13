@@ -266,6 +266,8 @@ const flows = defineCollection({
             message: pointer.optional(),
             service: pointer.optional(),
             flow: pointer.optional(),
+            container: pointer.optional(),
+            dataProduct: pointer.optional(),
 
             actor: z
               .object({
@@ -308,7 +310,15 @@ const flows = defineCollection({
             if (data.next_step && data.next_steps) return false;
 
             // Either one or non types can be present
-            const typesUsed = [data.message, data.service, data.flow, data.actor, data.custom].filter((v) => v).length;
+            const typesUsed = [
+              data.message,
+              data.service,
+              data.flow,
+              data.container,
+              data.dataProduct,
+              data.actor,
+              data.custom,
+            ].filter((v) => v).length;
             return typesUsed === 0 || typesUsed === 1;
           })
       ),
@@ -425,6 +435,18 @@ const dataProducts = defineCollection({
     .object({
       inputs: z.array(pointer).optional(),
       outputs: z.array(dataProductOutputPointer).optional(),
+      detailsPanel: z
+        .object({
+          domains: detailPanelPropertySchema.optional(),
+          inputs: detailPanelPropertySchema.optional(),
+          outputs: detailPanelPropertySchema.optional(),
+          versions: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+          flows: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
     })
     .extend(baseSchema.shape),
 });
@@ -517,6 +539,7 @@ const containers = defineCollection({
           changelog: detailPanelPropertySchema.optional(),
           attachments: detailPanelPropertySchema.optional(),
           services: detailPanelPropertySchema.optional(),
+          flows: detailPanelPropertySchema.optional(),
         })
         .optional(),
       services: z.array(reference('services')).optional(),

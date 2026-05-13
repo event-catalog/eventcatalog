@@ -16,7 +16,8 @@ import { iconFieldsForResource } from '@utils/icon';
 export const buildContainerNode = (
   container: CollectionEntry<'containers'>,
   owners: any[],
-  context: ResourceGroupContext
+  context: ResourceGroupContext,
+  flowRefs: string[] = []
 ): NavNode => {
   const servicesWritingToContainer = container.data.servicesThatWriteToContainer || [];
   const servicesReadingFromContainer = container.data.servicesThatReadFromContainer || [];
@@ -36,6 +37,7 @@ export const buildContainerNode = (
     ...dataProductsReadingFromContainer.map((dp: any) => `data-product:${dp.data.id}:${dp.data.version}`),
   ];
   const renderReads = allReads.length > 0 && shouldRenderSideBarSection(container, 'services');
+  const renderFlows = flowRefs.length > 0 && shouldRenderSideBarSection(container, 'flows');
 
   const renderVisualiser = isVisualiserEnabled();
 
@@ -107,6 +109,13 @@ export const buildContainerNode = (
         title: 'Reads',
         icon: 'ArrowDownToLine',
         pages: allReads,
+      },
+      renderFlows && {
+        type: 'group',
+        title: 'Flows',
+        icon: 'Waypoints',
+        pages: flowRefs,
+        visible: flowRefs.length > 0,
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(container.data.repository as { url: string; language: string }),

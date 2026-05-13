@@ -757,9 +757,19 @@ describe('FlowBuilder', () => {
         id: 'PaymentService',
         version: '0.0.2',
         nextSteps: [
-          { id: 'PaymentProcessed', label: 'Payment processed' },
+          { id: 'PaymentsDB', label: 'Store payment' },
           { id: 'Stripe', label: 'Authorize payment' },
         ],
+      })
+      .addDataStoreStep({
+        id: 'PaymentsDB',
+        version: '1.0.0',
+        nextSteps: [{ id: 'RevenueAnalytics', label: 'Update analytics' }],
+      })
+      .addDataProductStep({
+        id: 'RevenueAnalytics',
+        version: '1.0.0',
+        nextSteps: [{ id: 'PaymentProcessed', label: 'Payment processed' }],
       })
       .addMessageStep({
         id: 'PaymentProcessed',
@@ -810,9 +820,21 @@ describe('FlowBuilder', () => {
           title: 'PaymentService',
           service: { id: 'PaymentService', version: '0.0.2' },
           next_steps: [
-            { id: 'PaymentProcessed', label: 'Payment processed' },
+            { id: 'PaymentsDB', label: 'Store payment' },
             { id: 'Stripe', label: 'Authorize payment' },
           ],
+        },
+        {
+          id: 'PaymentsDB',
+          title: 'PaymentsDB',
+          container: { id: 'PaymentsDB', version: '1.0.0' },
+          next_step: { id: 'RevenueAnalytics', label: 'Update analytics' },
+        },
+        {
+          id: 'RevenueAnalytics',
+          title: 'RevenueAnalytics',
+          dataProduct: { id: 'RevenueAnalytics', version: '1.0.0' },
+          next_step: { id: 'PaymentProcessed', label: 'Payment processed' },
         },
         {
           id: 'PaymentProcessed',
@@ -936,7 +958,7 @@ describe('FlowBuilder', () => {
     ]);
   });
 
-  it('builds message, service, external system, flow, actor, and custom details from explicit payloads', () => {
+  it('builds message, service, data store, data product, external system, flow, actor, and custom details from explicit payloads', () => {
     const flow = FlowBuilder.create({
       id: 'OrderFlow',
       name: 'Order Flow',
@@ -952,6 +974,16 @@ describe('FlowBuilder', () => {
         id: 'OrderServiceStep',
         title: 'Order Service',
         service: { id: 'OrderService', version: '1.0.0' },
+      })
+      .addDataStoreStep({
+        id: 'OrdersDBStep',
+        title: 'Orders DB',
+        container: { id: 'OrdersDB', version: '1.0.0' },
+      })
+      .addDataProductStep({
+        id: 'OrderAnalyticsStep',
+        title: 'Order Analytics',
+        dataProduct: { id: 'OrderAnalytics', version: '1.0.0' },
       })
       .addExternalSystemStep({
         id: 'SAPStep',
@@ -987,6 +1019,16 @@ describe('FlowBuilder', () => {
         service: { id: 'OrderService', version: '1.0.0' },
       },
       {
+        id: 'OrdersDBStep',
+        title: 'Orders DB',
+        container: { id: 'OrdersDB', version: '1.0.0' },
+      },
+      {
+        id: 'OrderAnalyticsStep',
+        title: 'Order Analytics',
+        dataProduct: { id: 'OrderAnalytics', version: '1.0.0' },
+      },
+      {
         id: 'SAPStep',
         title: 'SAP',
         externalSystem: { name: 'SAP', summary: 'ERP', url: 'https://example.com/sap' },
@@ -1005,6 +1047,44 @@ describe('FlowBuilder', () => {
         id: 'CustomStep',
         title: 'Custom',
         custom: { title: 'Custom Node', type: 'manual' },
+      },
+    ]);
+  });
+
+  it('builds a data store step from the step id when no explicit data store payload is provided', () => {
+    const flow = FlowBuilder.create({
+      id: 'OrderFlow',
+      name: 'Order Flow',
+      version: '1.0.0',
+      markdown: '# Order Flow',
+    })
+      .addDataStoreStep({ id: 'OrdersDB' })
+      .build();
+
+    expect(flow.steps).toEqual([
+      {
+        id: 'OrdersDB',
+        title: 'OrdersDB',
+        container: { id: 'OrdersDB' },
+      },
+    ]);
+  });
+
+  it('builds a data product step from the step id when no explicit data product payload is provided', () => {
+    const flow = FlowBuilder.create({
+      id: 'OrderFlow',
+      name: 'Order Flow',
+      version: '1.0.0',
+      markdown: '# Order Flow',
+    })
+      .addDataProductStep({ id: 'OrderAnalytics' })
+      .build();
+
+    expect(flow.steps).toEqual([
+      {
+        id: 'OrderAnalytics',
+        title: 'OrderAnalytics',
+        dataProduct: { id: 'OrderAnalytics' },
       },
     ]);
   });

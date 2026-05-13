@@ -191,6 +191,7 @@ export type NodeType =
   | "externalSystem"
   | "external-system"
   | "data"
+  | "container"
   | "view"
   | "actor"
   | "data-product"

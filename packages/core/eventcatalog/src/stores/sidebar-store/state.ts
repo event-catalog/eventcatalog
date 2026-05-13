@@ -35,6 +35,8 @@ let memoryCache: NavigationData | null = null;
 
 type MessageEntry = CollectionEntry<'events' | 'commands' | 'queries'>;
 type ServiceEntry = CollectionEntry<'services'>;
+type ContainerEntry = CollectionEntry<'containers'>;
+type DataProductEntry = CollectionEntry<'data-products'>;
 
 const getMessageNodeKey = (message: MessageEntry) =>
   `${pluralizeMessageType(message)}:${message.data.id}:${message.data.version}`;
@@ -117,6 +119,78 @@ const buildFlowReferencesByService = ({
   }
 
   return flowRefsByService;
+};
+
+const buildFlowReferencesByContainer = ({
+  flows,
+  containers,
+}: {
+  flows: CollectionEntry<'flows'>[];
+  containers: CollectionEntry<'containers'>[];
+}) => {
+  const containerMap = createVersionedMap(containers);
+  const flowRefsByContainer = new Map<string, string[]>();
+
+  const addFlowRef = (container: ContainerEntry, flow: CollectionEntry<'flows'>) => {
+    const containerKey = `container:${container.data.id}:${container.data.version}`;
+    const flowKey = `flow:${flow.data.id}:${flow.data.version}`;
+    flowRefsByContainer.set(containerKey, uniqueRefs([...(flowRefsByContainer.get(containerKey) || []), flowKey]));
+  };
+
+  for (const flow of flows) {
+    for (const step of flow.data.steps || []) {
+      if (!step.container) continue;
+
+      const hydratedContainer = Array.isArray(step.container) ? step.container[0] : undefined;
+      if (hydratedContainer?.collection && hydratedContainer?.data) {
+        addFlowRef(hydratedContainer as ContainerEntry, flow);
+        continue;
+      }
+
+      if (Array.isArray(step.container)) continue;
+
+      const container = findInMap(containerMap, step.container.id, step.container.version);
+      if (container) addFlowRef(container as ContainerEntry, flow);
+    }
+  }
+
+  return flowRefsByContainer;
+};
+
+const buildFlowReferencesByDataProduct = ({
+  flows,
+  dataProducts,
+}: {
+  flows: CollectionEntry<'flows'>[];
+  dataProducts: CollectionEntry<'data-products'>[];
+}) => {
+  const dataProductMap = createVersionedMap(dataProducts);
+  const flowRefsByDataProduct = new Map<string, string[]>();
+
+  const addFlowRef = (dataProduct: DataProductEntry, flow: CollectionEntry<'flows'>) => {
+    const dataProductKey = `data-product:${dataProduct.data.id}:${dataProduct.data.version}`;
+    const flowKey = `flow:${flow.data.id}:${flow.data.version}`;
+    flowRefsByDataProduct.set(dataProductKey, uniqueRefs([...(flowRefsByDataProduct.get(dataProductKey) || []), flowKey]));
+  };
+
+  for (const flow of flows) {
+    for (const step of flow.data.steps || []) {
+      if (!step.dataProduct) continue;
+
+      const hydratedDataProduct = Array.isArray(step.dataProduct) ? step.dataProduct[0] : undefined;
+      if (hydratedDataProduct?.collection && hydratedDataProduct?.data) {
+        addFlowRef(hydratedDataProduct as DataProductEntry, flow);
+        continue;
+      }
+
+      if (Array.isArray(step.dataProduct)) continue;
+
+      const dataProduct = findInMap(dataProductMap, step.dataProduct.id, step.dataProduct.version);
+      if (dataProduct) addFlowRef(dataProduct as DataProductEntry, flow);
+    }
+  }
+
+  return flowRefsByDataProduct;
 };
 
 /**
@@ -326,10 +400,12 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  const flowRefsByContainer = buildFlowReferencesByContainer({ flows, containers });
+
   const containerNodes = containerWithOwners.reduce(
     (acc, { container, owners }) => {
       const versionedKey = `container:${container.data.id}:${container.data.version}`;
-      acc[versionedKey] = buildContainerNode(container, owners, context);
+      acc[versionedKey] = buildContainerNode(container, owners, context, flowRefsByContainer.get(versionedKey) || []);
       if (container.data.latestVersion === container.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`container:${container.data.id}`] = versionedKey;
@@ -358,10 +434,17 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     resourceDocCategories,
   };
 
+  const flowRefsByDataProduct = buildFlowReferencesByDataProduct({ flows, dataProducts });
+
   const dataProductNodes = dataProductWithOwners.reduce(
     (acc, { dataProduct, owners }) => {
       const versionedKey = `data-product:${dataProduct.data.id}:${dataProduct.data.version}`;
-      acc[versionedKey] = buildDataProductNode(dataProduct, owners, dataProductContext);
+      acc[versionedKey] = buildDataProductNode(
+        dataProduct,
+        owners,
+        dataProductContext,
+        flowRefsByDataProduct.get(versionedKey) || []
+      );
       if (dataProduct.data.latestVersion === dataProduct.data.version) {
         acc[`data-product:${dataProduct.data.id}`] = versionedKey;
       }

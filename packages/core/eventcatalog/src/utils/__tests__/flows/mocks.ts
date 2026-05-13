@@ -28,6 +28,50 @@ export const mockServices = [
   },
 ];
 
+export const mockContainers = [
+  {
+    slug: 'orders-db',
+    collection: 'containers',
+    data: {
+      id: 'OrdersDB',
+      name: 'Orders DB',
+      version: '1.0.0',
+      container_type: 'database',
+    },
+  },
+  {
+    slug: 'orders-db/versioned/0.0.1',
+    collection: 'containers',
+    data: {
+      id: 'OrdersDB',
+      name: 'Orders DB',
+      version: '0.0.1',
+      container_type: 'database',
+    },
+  },
+];
+
+export const mockDataProducts = [
+  {
+    slug: 'order-analytics',
+    collection: 'data-products',
+    data: {
+      id: 'OrderAnalytics',
+      name: 'Order Analytics',
+      version: '1.0.0',
+    },
+  },
+  {
+    slug: 'order-analytics/versioned/0.0.1',
+    collection: 'data-products',
+    data: {
+      id: 'OrderAnalytics',
+      name: 'Order Analytics',
+      version: '0.0.1',
+    },
+  },
+];
+
 export const mockFlow = [
   {
     id: 'Payment/PaymentProcessed/index.mdx',
@@ -82,6 +126,72 @@ export const mockFlow = [
       summary: 'Business flow for processing payments in an e-commerce platform',
       version: '1.0.0',
       type: 'node',
+    },
+  },
+  {
+    id: 'Orders/DataStoreFlow/index.mdx',
+    slug: 'orders/datastoreflow',
+    body: '',
+    collection: 'flows',
+    data: {
+      steps: [
+        {
+          id: 'orders-service',
+          title: 'Orders Service',
+          service: {
+            id: 'SubscriptionService',
+            version: 'latest',
+          },
+          next_step: {
+            id: 'orders-db',
+            label: 'Stores order data',
+          },
+        },
+        {
+          id: 'orders-db',
+          title: 'Orders DB',
+          container: {
+            id: 'OrdersDB',
+          },
+        },
+      ],
+      id: 'DataStoreFlow',
+      name: 'Data Store Flow',
+      summary: 'Flow that includes a data store',
+      version: '1.0.0',
+    },
+  },
+  {
+    id: 'Orders/DataProductFlow/index.mdx',
+    slug: 'orders/dataproductflow',
+    body: '',
+    collection: 'flows',
+    data: {
+      steps: [
+        {
+          id: 'orders-service',
+          title: 'Orders Service',
+          service: {
+            id: 'SubscriptionService',
+            version: 'latest',
+          },
+          next_step: {
+            id: 'order-analytics',
+            label: 'Publishes analytics-ready facts',
+          },
+        },
+        {
+          id: 'order-analytics',
+          title: 'Order Analytics',
+          dataProduct: {
+            id: 'OrderAnalytics',
+          },
+        },
+      ],
+      id: 'DataProductFlow',
+      name: 'Data Product Flow',
+      summary: 'Flow that includes a data product',
+      version: '1.0.0',
     },
   },
 ];
@@ -296,6 +406,66 @@ export const mockFlowByIds = [
       summary: 'Business flow for processing payments in an e-commerce platform',
       version: '1.0.0',
       type: 'node',
+    },
+  },
+  {
+    id: 'Orders/DataStoreFlow/index.mdx',
+    slug: 'orders/datastoreflow',
+    body: '',
+    collection: 'flows',
+    data: {
+      steps: [
+        {
+          id: 'orders-service',
+          title: 'Orders Service',
+          service: {
+            id: 'SubscriptionService',
+            version: 'latest',
+          },
+          next_step: 'orders-db',
+        },
+        {
+          id: 'orders-db',
+          title: 'Orders DB',
+          container: {
+            id: 'OrdersDB',
+          },
+        },
+      ],
+      id: 'DataStoreFlow',
+      name: 'Data Store Flow',
+      summary: 'Flow that includes a data store',
+      version: '1.0.0',
+    },
+  },
+  {
+    id: 'Orders/DataProductFlow/index.mdx',
+    slug: 'orders/dataproductflow',
+    body: '',
+    collection: 'flows',
+    data: {
+      steps: [
+        {
+          id: 'orders-service',
+          title: 'Orders Service',
+          service: {
+            id: 'SubscriptionService',
+            version: 'latest',
+          },
+          next_step: 'order-analytics',
+        },
+        {
+          id: 'order-analytics',
+          title: 'Order Analytics',
+          dataProduct: {
+            id: 'OrderAnalytics',
+          },
+        },
+      ],
+      id: 'DataProductFlow',
+      name: 'Data Product Flow',
+      summary: 'Flow that includes a data product',
+      version: '1.0.0',
     },
   },
   {
