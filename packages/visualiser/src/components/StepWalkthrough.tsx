@@ -78,7 +78,6 @@ export default memo(function StepWalkthrough({
   edges,
   isFlowVisualization,
   onStepChange,
-  mode = "full",
 }: StepWalkthroughProps) {
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
   const [pathHistory, setPathHistory] = useState<string[]>([]);
@@ -229,7 +228,7 @@ export default memo(function StepWalkthrough({
     onStepChange(null, [], true); // Pass true to indicate full reset with zoom out
   }, [onStepChange]);
 
-  if (!isFlowVisualization || nodes.length === 0 || mode !== "full") {
+  if (!isFlowVisualization || nodes.length === 0) {
     return null;
   }
 
