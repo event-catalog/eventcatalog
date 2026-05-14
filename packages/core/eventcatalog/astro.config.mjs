@@ -40,7 +40,15 @@ const expressiveCodeConfig = {
 // https://astro.build/config
 export default defineConfig({
   base,
-  server: { port: config.port || 3000, host: host },
+  server: { 
+    port: config.port || 3000,
+    host: host,
+    // Add allowed hosts if its set
+    ...(config.server?.allowedHosts ? { allowedHosts: config.server?.allowedHosts } : {}),
+  },
+
+  // If security is set
+  ...(config.security ? { security: config.security } : {}),
 
   // In dev mode (EVENTCATALOG_DEV_MODE=true) we need 'server' output so that
   // routes which opt into SSR via `export const prerender = false` (e.g. the
