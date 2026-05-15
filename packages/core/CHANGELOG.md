@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.39.2
+
+### Patch Changes
+
+- 2a5f49a: Support `security` and `server.allowedHosts` configuration options in `eventcatalog.config.js`, forwarding them to the underlying Astro config.
+
 ## 3.39.1
 
 ### Patch Changes
