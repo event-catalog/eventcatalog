@@ -49,10 +49,11 @@ const getMessageIcon = (collection: string) => {
 const EntityBadge = memo(({ entity }: { entity: any }) => {
   const id = entity?.data?.id || entity?.id;
   const name = entity?.data?.name || entity?.name || id;
+  const version = entity?.data?.version || entity?.version || 'latest';
 
   return (
     <a
-      href={buildUrl(`/docs/entities/${id}`)}
+      href={buildUrl(`/docs/entities/${id}/${version}`)}
       className="inline-flex items-center gap-2 px-3 py-2 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-sm font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-xs"
     >
       <BoxIcon className="h-4 w-4 text-[rgb(var(--ec-accent))]" />

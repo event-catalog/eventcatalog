@@ -175,6 +175,30 @@ module.exports = {
 };
 ```
 
+### `security` {#security}
+
+<AddedIn version="3.39.2" />
+
+- Type: `Record<"checkOrigin", boolean> | undefined`
+- Default: `{checkOrigin: true}`
+
+Enables security measures for an EventCatalog website.
+
+These features only exist for pages rendered on demand (SSR) using server mode or pages that opt out of prerendering in static mode.
+
+By default, EventCatalog will automatically check that the “origin” header matches the URL sent by each request in on-demand rendered pages. You can disable this behavior by setting checkOrigin to false:
+
+You can read more on the Astro documentation [here](https://docs.astro.build/en/reference/configuration-reference/#security).
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  output: "server",
+  security: {
+    checkOrigin: false
+  }
+};
+```
+
 ### `generators` {#generators}
 
 - Type: `Generator[]`
@@ -389,6 +413,7 @@ The `chat` property requires a Starter or Scale plan and `output: 'server'` to t
 
 ```js title="eventcatalog.config.js"
 module.exports = {
+  output: 'server',
   chat: {
     // Set to false to disable the AI chat feature entirely
     enabled: false,

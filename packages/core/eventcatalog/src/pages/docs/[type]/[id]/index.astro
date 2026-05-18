@@ -1,49 +1,12 @@
 ---
 import Seo from '@components/Seo.astro';
 import { buildUrl } from '@utils/url-builder';
-import { getEvents } from '@utils/collections/events';
-import { getEntities } from '@utils/collections/entities';
-import { getCommands } from '@utils/collections/commands';
-import { getServices } from '@utils/collections/services';
-import { getDomains } from '@utils/collections/domains';
-import type { CollectionEntry } from 'astro:content';
-import type { CollectionTypes } from '@types';
-import { getChannels } from '@utils/collections/channels';
+import { Page } from './_index.data';
 
-export async function getStaticPaths() {
-  const [events, commands, services, domains, channels, entities] = await Promise.all([
-    getEvents(),
-    getCommands(),
-    getServices(),
-    getDomains(),
-    getChannels(),
-    getEntities(),
-  ]);
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
-    return collection.map((item) => ({
-      params: {
-        type: item.collection,
-        id: item.data.id,
-      },
-      props: {
-        type: item.collection,
-        ...item,
-      },
-    }));
-  };
-
-  return [
-    ...buildPages(domains),
-    ...buildPages(events),
-    ...buildPages(services),
-    ...buildPages(commands),
-    ...buildPages(channels),
-    ...buildPages(entities),
-  ];
-}
-
-const props = Astro.props;
+const props = await Page.getData(Astro);
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 

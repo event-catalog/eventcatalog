@@ -14,7 +14,7 @@ import AddedIn from '@site/src/components/MDX/AddedIn';
 <AddedIn version="3.3.0" />
 
 :::info EventCatalog Scale Feature
-Diagram comparison is available exclusively with the [EventCatalog Scale](/docs/development/deployment/licenses) license. This feature enables side-by-side visualization of different diagram versions.
+Diagram comparison is available exclusively with the [EventCatalog Scale](/docs/development/license-keys/plans) license. This feature enables side-by-side visualization of different diagram versions.
 :::
 
 The diagram comparison feature allows you to view two versions of a diagram side-by-side, making it easy to understand architectural changes and evolution over time.
