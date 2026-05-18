@@ -22,7 +22,7 @@ export class Page extends HybridPage {
       return [];
     }
 
-    const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
+    const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]({ getAllVersions: false })));
 
     return allItems.flatMap((items, index) =>
       items.map((item) => ({
@@ -45,8 +45,8 @@ export class Page extends HybridPage {
       return null;
     }
 
-    const items = await pageDataLoader[type as PageTypes]();
-    const item = items.find((entry) => entry.data.id === id && entry.data.version === entry.data.latestVersion);
+    const items = await pageDataLoader[type as PageTypes]({ getAllVersions: false });
+    const item = items.find((entry) => entry.data.id === id);
 
     if (!item) {
       return null;

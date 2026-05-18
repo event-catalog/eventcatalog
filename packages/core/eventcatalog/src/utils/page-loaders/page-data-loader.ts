@@ -11,16 +11,19 @@ import { getDiagrams } from '@utils/collections/diagrams';
 import type { CollectionEntry } from 'astro:content';
 import { getDataProducts } from '@utils/collections/data-products';
 
-export const pageDataLoader: Record<PageTypes, () => Promise<CollectionEntry<CollectionTypes>[]>> = {
-  events: getEvents,
-  commands: getCommands,
-  queries: getQueries,
-  services: getServices,
-  domains: getDomains,
-  channels: getChannels,
-  flows: getFlows,
-  entities: getEntities,
-  containers: getContainers,
-  diagrams: getDiagrams,
-  'data-products': getDataProducts,
-};
+type PageDataLoaderOptions = { getAllVersions?: boolean };
+
+export const pageDataLoader: Record<PageTypes, (options?: PageDataLoaderOptions) => Promise<CollectionEntry<CollectionTypes>[]>> =
+  {
+    events: getEvents,
+    commands: getCommands,
+    queries: getQueries,
+    services: getServices,
+    domains: getDomains,
+    channels: getChannels,
+    flows: getFlows,
+    entities: getEntities,
+    containers: getContainers,
+    diagrams: getDiagrams,
+    'data-products': getDataProducts,
+  };
