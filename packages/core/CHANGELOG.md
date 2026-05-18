@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.39.5
+
+### Patch Changes
+
+- 380b151: Support hiding individual sidebar items (Browse, Organization, Settings) via `sidebar` config in `eventcatalog.config.js`. Section headers and dividers now hide when all items in that section are hidden. Legacy group ids (`/docs`, `/discover`, `/directory`, `/settings`) still work as aliases.
+
 ## 3.39.4
 
 ### Patch Changes
