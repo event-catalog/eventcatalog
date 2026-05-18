@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.39.4
+
+### Patch Changes
+
+- 108ed91: Support user-defined named badge colors (slate, gray, red, blue, etc.) via CSS variables, and render resource and schema badges with a neutral, theme-aware style.
+
 ## 3.39.3
 
 ### Patch Changes
