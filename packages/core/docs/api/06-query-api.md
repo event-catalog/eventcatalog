@@ -139,17 +139,47 @@ An array of user ids that own the query.
 
 ### `badges` {#badges}
 
+<AddedIn version="3.39.4" />
+
 An array of badges that get rendered on the page.
 
 ```md title="Example"
 ---
   badges:
     - content: My badge
-      backgroundColor: blue
-      textColor: blue
+      backgroundColor: green
+      textColor: green
       # Optional icon to display (from https://heroicons.com/)
       # Or the name of the broker (e.g Kafka, EventBridge, etc)
       icon: BoltIcon
+---
+```
+
+#### Use named colors
+
+Set `backgroundColor` or `textColor` to a named palette token for automatic light/dark mode adaptation.
+
+Supported names: `slate`, `gray`, `zinc`, `neutral`, `stone`, `red`, `orange`, `amber`, `yellow`, `lime`, `green`, `emerald`, `teal`, `cyan`, `sky`, `blue`, `indigo`, `violet`, `purple`, `fuchsia`, `pink`, `rose`.
+
+```md title="Named color example"
+---
+  badges:
+    - content: Critical
+      backgroundColor: red
+      textColor: red
+---
+```
+
+#### Use any CSS color
+
+You can also pass any valid CSS color value directly: hex (`#ff0000`), `rgb()`, `hsl()`, `oklch()`, or a CSS variable (`var(--my-color)`).
+
+```md title="CSS color example"
+---
+  badges:
+    - content: Custom
+      backgroundColor: "#6366f1"
+      textColor: "#ffffff"
 ---
 ```
 
