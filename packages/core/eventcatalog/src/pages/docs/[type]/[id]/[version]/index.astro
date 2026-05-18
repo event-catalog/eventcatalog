@@ -34,6 +34,7 @@ import { getSpecificationsForService } from '@utils/collections/services';
 import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails } from '@utils/collections/util';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { getIcon } from '@utils/badges';
+import { getBadgeStyle } from '@utils/badge-styles';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
 import {
@@ -72,102 +73,71 @@ const getContentBadges = () =>
     icon: badge.icon ? getIcon(badge.icon) : null,
   }));
 
+const createResourceBadge = (content: string, icon: any) => ({ content, icon, textColor: 'gray' });
+
 const getBadge = () => {
   if (props.collection === 'services') {
-    return [{ backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon }];
+    return [createResourceBadge('Service', ServerIcon)];
   }
   if (props.collection === 'events') {
-    return [{ backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon }];
+    return [createResourceBadge('Event', BoltIcon)];
   }
   if (props.collection === 'commands') {
-    return [{ backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon }];
+    return [createResourceBadge('Command', ChatBubbleLeftIcon)];
   }
   if (props.collection === 'queries') {
-    return [{ backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon }];
+    return [createResourceBadge('Query', MagnifyingGlassIcon)];
   }
   if (props.collection === 'domains') {
-    return [
-      {
-        backgroundColor: 'yellow',
-        textColor: 'yellow',
-        content: 'Domain',
-        icon: RectangleGroupIcon,
-      },
-    ];
+    return [createResourceBadge('Domain', RectangleGroupIcon)];
   }
 
   if (props.collection === 'flows') {
-    return [{ backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon }];
+    return [createResourceBadge('Flow', QueueListIcon)];
   }
 
   if (props.collection === 'channels') {
-    return [{ backgroundColor: 'teal', textColor: 'teal', content: 'Channel', icon: ArrowsRightLeftIcon }];
+    return [createResourceBadge('Channel', ArrowsRightLeftIcon)];
   }
 
   if (props.collection === 'containers') {
     const badges = [];
     const content = props.data.container_type?.charAt(0).toUpperCase() + props.data.container_type?.slice(1) || 'Database';
 
-    badges.push({ backgroundColor: 'blue', textColor: 'blue', content: content, icon: DatabaseIcon });
+    badges.push(createResourceBadge(content, DatabaseIcon));
 
     if (props.data?.technology) {
-      badges.push({
-        backgroundColor: 'indigo',
-        textColor: 'indigo',
-        content: `${props.data.technology}`,
-        icon: DatabaseZapIcon,
-      });
+      badges.push(createResourceBadge(`${props.data.technology}`, DatabaseZapIcon));
     }
 
     if (props.data?.residency) {
-      badges.push({
-        backgroundColor: 'red',
-        textColor: 'red',
-        content: `Residency: ${props.data.residency}`,
-        icon: MapIcon,
-      });
+      badges.push(createResourceBadge(`Residency: ${props.data.residency}`, MapIcon));
     }
 
     if (props.data?.retention) {
-      badges.push({
-        backgroundColor: 'green',
-        textColor: 'green',
-        content: `Retention: ${props.data.retention}`,
-        icon: ClockIcon,
-      });
+      badges.push(createResourceBadge(`Retention: ${props.data.retention}`, ClockIcon));
     }
 
     if (props.data?.access_mode) {
-      badges.push({
-        backgroundColor: 'green',
-        textColor: 'green',
-        content: `Access Mode: ${props.data.access_mode}`,
-        icon: ShieldCheckIcon,
-      });
+      badges.push(createResourceBadge(`Access Mode: ${props.data.access_mode}`, ShieldCheckIcon));
     }
 
     return badges;
   }
 
   if (props.collection === 'entities') {
-    const entityBadges = [{ backgroundColor: 'purple', textColor: 'purple', content: 'Entity', icon: Box, class: 'text-gray' }];
+    const entityBadges = [createResourceBadge('Entity', Box)];
     if (props.data.aggregateRoot) {
-      entityBadges.push({
-        backgroundColor: 'purple',
-        textColor: 'purple',
-        content: '(Aggregate Root)',
-        icon: Boxes,
-        class: 'text-gray',
-      });
+      entityBadges.push(createResourceBadge('(Aggregate Root)', Boxes));
     }
     return entityBadges;
   }
 
   if (props.collection === 'data-products') {
-    return [{ backgroundColor: 'indigo', textColor: 'indigo', content: 'Data Product', icon: Package }];
+    return [createResourceBadge('Data Product', Package)];
   }
 
-  return [{ backgroundColor: 'teal', textColor: 'teal', content: '', icon: QueueListIcon, class: 'text-gray' }];
+  return [createResourceBadge('', QueueListIcon)];
 };
 
 const getSpecificationBadges = () => {
@@ -412,13 +382,14 @@ if (!hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                         id={badge.id || ''}
                         class={`
                           inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                          bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
+                          ${badge.backgroundColor ? 'bg-[rgb(var(--ec-content-hover))]' : 'bg-transparent'} border border-[rgb(var(--ec-page-border))]
                           text-[rgb(var(--ec-page-text))]
                           shadow-xs
                           ${badge.class ? badge.class : ''}
                         `}
+                        style={getBadgeStyle(badge)}
                       >
-                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0" />}
                         {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
                         <span>{badge.content}</span>
                       </span>

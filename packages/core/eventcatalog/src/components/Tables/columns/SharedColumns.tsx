@@ -1,5 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { useState } from 'react';
+import { getBadgeReactStyle } from '@utils/badge-styles';
 import { filterByBadge } from '../filters/custom-filters';
 import type { TCollectionTypes, TData } from '../Table';
 import type { TableConfiguration } from '@types';
@@ -27,6 +28,7 @@ export const createBadgesColumn = <T extends { data: Pick<TData<U>['data'], 'bad
             <span
               key={`${badge.id}-${index}`}
               className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md border border-[rgb(var(--ec-accent)/0.5)] text-[rgb(var(--ec-page-text))] bg-transparent"
+              style={getBadgeReactStyle(badge)}
               title={badge.content}
             >
               {badge.content}
