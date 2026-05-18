@@ -114,6 +114,52 @@
   --ec-badge-data-product-text: 30 64 175; /* blue-800 */
   --ec-badge-default-bg: 243 244 246; /* gray-100 */
   --ec-badge-default-text: 75 85 99; /* gray-600 */
+
+  /* User-defined badge colors - light mode */
+  --ec-badge-color-slate-background: 248 250 252;
+  --ec-badge-color-slate-text: 71 85 105;
+  --ec-badge-color-gray-background: 249 250 251;
+  --ec-badge-color-gray-text: 75 85 99;
+  --ec-badge-color-zinc-background: 250 250 250;
+  --ec-badge-color-zinc-text: 82 82 91;
+  --ec-badge-color-neutral-background: 250 250 250;
+  --ec-badge-color-neutral-text: 82 82 82;
+  --ec-badge-color-stone-background: 250 250 249;
+  --ec-badge-color-stone-text: 87 83 78;
+  --ec-badge-color-red-background: 254 242 242;
+  --ec-badge-color-red-text: 185 28 28;
+  --ec-badge-color-orange-background: 255 247 237;
+  --ec-badge-color-orange-text: 194 65 12;
+  --ec-badge-color-amber-background: 255 251 235;
+  --ec-badge-color-amber-text: 180 83 9;
+  --ec-badge-color-yellow-background: 254 252 232;
+  --ec-badge-color-yellow-text: 161 98 7;
+  --ec-badge-color-lime-background: 247 254 231;
+  --ec-badge-color-lime-text: 77 124 15;
+  --ec-badge-color-green-background: 240 253 244;
+  --ec-badge-color-green-text: 21 128 61;
+  --ec-badge-color-emerald-background: 236 253 245;
+  --ec-badge-color-emerald-text: 4 120 87;
+  --ec-badge-color-teal-background: 240 253 250;
+  --ec-badge-color-teal-text: 15 118 110;
+  --ec-badge-color-cyan-background: 236 254 255;
+  --ec-badge-color-cyan-text: 14 116 144;
+  --ec-badge-color-sky-background: 240 249 255;
+  --ec-badge-color-sky-text: 3 105 161;
+  --ec-badge-color-blue-background: 239 246 255;
+  --ec-badge-color-blue-text: 29 78 216;
+  --ec-badge-color-indigo-background: 238 242 255;
+  --ec-badge-color-indigo-text: 67 56 202;
+  --ec-badge-color-violet-background: 245 243 255;
+  --ec-badge-color-violet-text: 109 40 217;
+  --ec-badge-color-purple-background: 250 245 255;
+  --ec-badge-color-purple-text: 126 34 206;
+  --ec-badge-color-fuchsia-background: 253 244 255;
+  --ec-badge-color-fuchsia-text: 162 28 175;
+  --ec-badge-color-pink-background: 253 242 248;
+  --ec-badge-color-pink-text: 190 24 93;
+  --ec-badge-color-rose-background: 255 241 242;
+  --ec-badge-color-rose-text: 190 18 60;
 }
 
 /* Dark theme */
@@ -222,6 +268,52 @@
   --ec-badge-data-product-text: 147 197 253; /* blue-300 */
   --ec-badge-default-bg: 63 63 70 / 0.3; /* zinc-700/30 */
   --ec-badge-default-text: 212 212 216; /* zinc-300 */
+
+  /* User-defined badge colors - dark mode */
+  --ec-badge-color-slate-background: 51 65 85 / 0.28;
+  --ec-badge-color-slate-text: 203 213 225;
+  --ec-badge-color-gray-background: 55 65 81 / 0.28;
+  --ec-badge-color-gray-text: 209 213 219;
+  --ec-badge-color-zinc-background: 63 63 70 / 0.28;
+  --ec-badge-color-zinc-text: 212 212 216;
+  --ec-badge-color-neutral-background: 64 64 64 / 0.28;
+  --ec-badge-color-neutral-text: 212 212 212;
+  --ec-badge-color-stone-background: 68 64 60 / 0.28;
+  --ec-badge-color-stone-text: 214 211 209;
+  --ec-badge-color-red-background: 127 29 29 / 0.28;
+  --ec-badge-color-red-text: 252 165 165;
+  --ec-badge-color-orange-background: 124 45 18 / 0.28;
+  --ec-badge-color-orange-text: 253 186 116;
+  --ec-badge-color-amber-background: 120 53 15 / 0.28;
+  --ec-badge-color-amber-text: 252 211 77;
+  --ec-badge-color-yellow-background: 113 63 18 / 0.28;
+  --ec-badge-color-yellow-text: 253 224 71;
+  --ec-badge-color-lime-background: 54 83 20 / 0.28;
+  --ec-badge-color-lime-text: 190 242 100;
+  --ec-badge-color-green-background: 20 83 45 / 0.28;
+  --ec-badge-color-green-text: 134 239 172;
+  --ec-badge-color-emerald-background: 6 78 59 / 0.28;
+  --ec-badge-color-emerald-text: 110 231 183;
+  --ec-badge-color-teal-background: 17 94 89 / 0.28;
+  --ec-badge-color-teal-text: 94 234 212;
+  --ec-badge-color-cyan-background: 21 94 117 / 0.28;
+  --ec-badge-color-cyan-text: 103 232 249;
+  --ec-badge-color-sky-background: 12 74 110 / 0.28;
+  --ec-badge-color-sky-text: 125 211 252;
+  --ec-badge-color-blue-background: 30 64 175 / 0.28;
+  --ec-badge-color-blue-text: 147 197 253;
+  --ec-badge-color-indigo-background: 49 46 129 / 0.28;
+  --ec-badge-color-indigo-text: 165 180 252;
+  --ec-badge-color-violet-background: 76 29 149 / 0.28;
+  --ec-badge-color-violet-text: 196 181 253;
+  --ec-badge-color-purple-background: 88 28 135 / 0.28;
+  --ec-badge-color-purple-text: 216 180 254;
+  --ec-badge-color-fuchsia-background: 112 26 117 / 0.28;
+  --ec-badge-color-fuchsia-text: 240 171 252;
+  --ec-badge-color-pink-background: 131 24 67 / 0.28;
+  --ec-badge-color-pink-text: 249 168 212;
+  --ec-badge-color-rose-background: 136 19 55 / 0.28;
+  --ec-badge-color-rose-text: 253 164 175;
 }
 
 /* Dark mode prose overrides for documentation content */

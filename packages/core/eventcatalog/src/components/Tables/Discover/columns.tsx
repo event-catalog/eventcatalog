@@ -5,6 +5,7 @@ import { ArrowDownIcon, ArrowUpIcon, EllipsisVerticalIcon, StarIcon } from '@her
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
 import { getCollectionTextColorClass } from '@utils/collection-colors';
+import { getBadgeReactStyle } from '@utils/badge-styles';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
 import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite, type FavoriteItem } from '../../../stores/favorites-store';
@@ -28,6 +29,7 @@ const BadgesCell = ({ badges }: { badges: Array<{ content: string; backgroundCol
         <span
           key={`${badge.content}-${index}`}
           className="inline-flex items-center px-2 py-0.5 text-[11px] font-normal rounded-md max-w-[140px] truncate border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] bg-transparent"
+          style={getBadgeReactStyle(badge)}
           title={badge.content}
         >
           {badge.content}

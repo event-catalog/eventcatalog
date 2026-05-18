@@ -204,6 +204,8 @@ owners:
 
 ### `badges`
 
+<AddedIn version="3.39.4" />
+
 - Type: `array`
 
 Array of badges to display on the data product page.
@@ -225,8 +227,18 @@ Badge properties:
 | Property | Type | Required | Description |
 | -------- | ---- | -------- | ----------- |
 | `content` | `string` | Yes | Text content of the badge |
-| `backgroundColor` | `string` | Yes | Background color |
-| `textColor` | `string` | Yes | Text color |
+| `backgroundColor` | `string` | Yes | Background color (named token or CSS value) |
+| `textColor` | `string` | Yes | Text color (named token or CSS value) |
+
+#### Use named colors
+
+Set `backgroundColor` or `textColor` to a named palette token for automatic light/dark mode adaptation.
+
+Supported names: `slate`, `gray`, `zinc`, `neutral`, `stone`, `red`, `orange`, `amber`, `yellow`, `lime`, `green`, `emerald`, `teal`, `cyan`, `sky`, `blue`, `indigo`, `violet`, `purple`, `fuchsia`, `pink`, `rose`.
+
+#### Use any CSS color
+
+You can also pass any valid CSS color value directly: hex (`#ff0000`), `rgb()`, `hsl()`, `oklch()`, or a CSS variable (`var(--my-color)`).
 
 ### `repository`
 

@@ -9,6 +9,7 @@ import { buildUrl } from '@utils/url-builder';
 import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
 import { isEventCatalogChatEnabled, isResourceDocsEnabled } from '@utils/feature';
 import { getIcon } from '@utils/badges';
+import { getBadgeStyle } from '@utils/badge-styles';
 import { collectionToResourceMap } from '@utils/collections/util';
 
 import { Page } from './_index.data';
@@ -83,13 +84,12 @@ const pagefindAttributes =
                   <span
                     class={`
                       inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                      bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
+                      ${badge.backgroundColor ? 'bg-[rgb(var(--ec-content-hover))]' : 'bg-transparent'} border border-[rgb(var(--ec-page-border))]
                       text-[rgb(var(--ec-page-text))]
                     `}
+                    style={getBadgeStyle(badge)}
                   >
-                    {badge.iconComponent && (
-                      <badge.iconComponent className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />
-                    )}
+                    {badge.iconComponent && <badge.iconComponent className="w-4 h-4 flex-shrink-0" />}
                     <span>{badge.content}</span>
                   </span>
                 ))}

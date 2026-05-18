@@ -15,6 +15,7 @@ import mdxComponents from '@components/MDX/components';
 import 'diff2html/bundles/css/diff2html.min.css';
 
 import { buildUrl } from '@utils/url-builder';
+import { getBadgeStyle } from '@utils/badge-styles';
 import { getPreviousVersion } from '@utils/collections/util';
 import { getDiffsForCurrentAndPreviousVersion } from '@utils/file-diffs';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
@@ -71,27 +72,29 @@ const logListPromise = logsToRender.map(async (log, index) => {
 
 const logList = await Promise.all(logListPromise);
 
+const createResourceBadge = (content: string, icon: any) => ({ content, icon, textColor: 'gray' });
+
 const getBadge = () => {
   if (props.collection === 'services') {
-    return { badgeType: 'service', content: 'Service', icon: ServerIcon };
+    return createResourceBadge('Service', ServerIcon);
   }
   if (props.collection === 'events') {
-    return { badgeType: 'event', content: 'Event', icon: BoltIcon };
+    return createResourceBadge('Event', BoltIcon);
   }
   if (props.collection === 'commands') {
-    return { badgeType: 'command', content: 'Command', icon: ChatBubbleLeftIcon };
+    return createResourceBadge('Command', ChatBubbleLeftIcon);
   }
   if (props.collection === 'queries') {
-    return { badgeType: 'query', content: 'Query', icon: MagnifyingGlassIcon };
+    return createResourceBadge('Query', MagnifyingGlassIcon);
   }
   if (props.collection === 'domains') {
-    return { badgeType: 'domain', content: 'Domain', icon: RectangleGroupIcon };
+    return createResourceBadge('Domain', RectangleGroupIcon);
   }
   if (props.collection === 'containers') {
-    return { badgeType: 'default', content: 'Container', icon: DatabaseIcon };
+    return createResourceBadge('Container', DatabaseIcon);
   }
   if (props.collection === 'flows') {
-    return { badgeType: 'design', content: 'Flow', icon: QueueListIcon };
+    return createResourceBadge('Flow', QueueListIcon);
   }
 };
 
@@ -141,8 +144,8 @@ const badges = [getBadge()];
             <div class="flex flex-wrap py-2 pt-4">
               {badges.map((badge: any) => (
                 <span
-                  class="text-sm font-medium px-2 py-1 rounded-md mr-2 space-x-1 flex items-center"
-                  style={`background-color: rgb(var(--ec-badge-${badge.badgeType}-bg)); color: rgb(var(--ec-badge-${badge.badgeType}-text));`}
+                  class="text-sm font-medium px-2 py-1 rounded-md mr-2 space-x-1 flex items-center bg-transparent border border-[rgb(var(--ec-page-border))]"
+                  style={getBadgeStyle(badge)}
                 >
                   {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1" />}
                   <span>{badge.content}</span>
@@ -192,7 +195,10 @@ const badges = [getBadge()];
                   {log.badges && (
                     <div class="flex flex-wrap">
                       {log.badges.map((badge: any) => (
-                        <span class="text-sm font-medium px-2 py-1 rounded-md mr-2 space-x-1 flex items-center bg-[rgb(var(--ec-badge-default-bg))] text-[rgb(var(--ec-badge-default-text))]">
+                        <span
+                          class="text-sm font-medium px-2 py-1 rounded-md mr-2 space-x-1 flex items-center bg-[rgb(var(--ec-badge-default-bg))] text-[rgb(var(--ec-badge-default-text))]"
+                          style={getBadgeStyle(badge)}
+                        >
                           {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1" />}
                           <span>{badge.content}</span>
                         </span>
