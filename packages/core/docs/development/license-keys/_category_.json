@@ -1,0 +1,12 @@
+{
+  "label": "License Keys",
+  "position": 11,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "development/license-keys",
+    "title": "License Keys",
+    "description": "How to get and use license keys for EventCatalog plans (Starter, Scale) and integrations (OpenAPI, AsyncAPI, and more)."
+  }
+}
