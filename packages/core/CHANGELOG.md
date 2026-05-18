@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.39.3
+
+### Patch Changes
+
+- 8fcd552: Fix domain architecture entity links to include versions and avoid unversioned docs prefetch crashes.
+
 ## 3.39.2
 
 ### Patch Changes
