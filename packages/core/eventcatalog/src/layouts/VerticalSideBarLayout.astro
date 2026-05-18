@@ -64,6 +64,7 @@ import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
+import { filterSidebarItems } from '@utils/sidebar-visibility';
 
 import { isEmbedEnabled, isCustomStylesEnabled, isEventCatalogScaleEnabled, isCustomDocsEnabled, isSSR } from '@utils/feature';
 
@@ -128,66 +129,66 @@ const getDefaultUrl = (route: string, defaultValue: string) => {
 
 const userSideBarConfiguration = config.sidebar || [];
 
-const navigationItems = [
-  {
-    id: '/',
-    label: 'Catalog',
-    icon: BookOpen,
-    href: buildUrl(config.landingPage || '/'),
-    current:
-      currentPath === '/' ||
-      (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
-      currentPath.includes('/architecture/') ||
-      currentPath.includes('/visualiser') ||
-      (currentPath.includes('/schemas') &&
-        !currentPath.includes('/schemas/explorer') &&
-        !currentPath.includes('/schemas/fields')),
-  },
-  {
-    id: '/docs/custom',
-    label: 'Documentation',
-    icon: FileText,
-    href: getDefaultUrl('docs/custom', '/docs/custom'),
-    current: currentPath.includes('/docs/custom'),
-    isPremium: true,
-    visible: isCustomDocsEnabled() && customDocs.length > 0,
-  },
-  {
-    id: '/schemas/explorer',
-    label: 'Schemas',
-    icon: FileCode,
-    href: buildUrl('/schemas/explorer'),
-    current: currentPath.includes('/schemas/explorer') && !currentPath.includes('/schemas/fields'),
-  },
-  ...(isSSR()
-    ? [
-        {
-          id: '/schemas/fields',
-          label: 'Schema Insights',
-          icon: Waypoints,
-          href: buildUrl('/schemas/fields'),
-          current: currentPath.includes('/schemas/fields'),
-        },
-      ]
-    : []),
-].filter((item) => {
-  const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
-  const defaultVisible = item.visible ?? true;
-  return userSideBarOption ? userSideBarOption.visible : defaultVisible;
-});
+const navigationItems = filterSidebarItems(
+  [
+    {
+      id: '/',
+      label: 'Catalog',
+      icon: BookOpen,
+      href: buildUrl(config.landingPage || '/'),
+      current:
+        currentPath === '/' ||
+        (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
+        currentPath.includes('/architecture/') ||
+        currentPath.includes('/visualiser') ||
+        (currentPath.includes('/schemas') &&
+          !currentPath.includes('/schemas/explorer') &&
+          !currentPath.includes('/schemas/fields')),
+    },
+    {
+      id: '/docs/custom',
+      aliases: ['/docs'],
+      label: 'Documentation',
+      icon: FileText,
+      href: getDefaultUrl('docs/custom', '/docs/custom'),
+      current: currentPath.includes('/docs/custom'),
+      isPremium: true,
+      visible: isCustomDocsEnabled() && customDocs.length > 0,
+    },
+    {
+      id: '/schemas/explorer',
+      label: 'Schemas',
+      icon: FileCode,
+      href: buildUrl('/schemas/explorer'),
+      current: currentPath.includes('/schemas/explorer') && !currentPath.includes('/schemas/fields'),
+    },
+    ...(isSSR()
+      ? [
+          {
+            id: '/schemas/fields',
+            label: 'Schema Insights',
+            icon: Waypoints,
+            href: buildUrl('/schemas/fields'),
+            current: currentPath.includes('/schemas/fields'),
+          },
+        ]
+      : []),
+  ],
+  userSideBarConfiguration
+);
 
-const studioNavigationItem = [
-  {
-    id: '/studio',
-    label: 'EventCatalog Studio',
-    icon: SquareDashedMousePointerIcon,
-    href: buildUrl('/studio'),
-    current: currentPath.includes('/studio'),
-  },
-].filter((item) => {
-  const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
-  return userSideBarOption ? userSideBarOption.visible : true;
-});
+const studioNavigationItem = filterSidebarItems(
+  [
+    {
+      id: '/studio',
+      label: 'EventCatalog Studio',
+      icon: SquareDashedMousePointerIcon,
+      href: buildUrl('/studio'),
+      current: currentPath.includes('/studio'),
+    },
+  ],
+  userSideBarConfiguration
+);
 
 const premiumFeatures: Array<{
   id: string;
@@ -198,86 +199,119 @@ const premiumFeatures: Array<{
   isPremium?: boolean;
 }> = [];
 
-const browseItems = [
-  {
-    label: 'Domains',
-    icon: RectangleGroupIcon,
-    href: buildUrl('/discover/domains'),
-    current: currentPath === buildUrl('/discover/domains'),
-  },
-  {
-    label: 'Services',
-    icon: ServerIcon,
-    href: buildUrl('/discover/services'),
-    current: currentPath === buildUrl('/discover/services'),
-  },
-  {
-    label: 'External Systems',
-    icon: GlobeAltIcon,
-    href: buildUrl('/discover/external-systems'),
-    current: currentPath === buildUrl('/discover/external-systems'),
-  },
-  {
-    label: 'Events',
-    icon: BoltIcon,
-    href: buildUrl('/discover/events'),
-    current: currentPath === buildUrl('/discover/events'),
-  },
-  {
-    label: 'Commands',
-    icon: ChatBubbleLeftIcon,
-    href: buildUrl('/discover/commands'),
-    current: currentPath === buildUrl('/discover/commands'),
-  },
-  {
-    label: 'Queries',
-    icon: MagnifyingGlassIcon,
-    href: buildUrl('/discover/queries'),
-    current: currentPath === buildUrl('/discover/queries'),
-  },
-  {
-    label: 'Flows',
-    icon: QueueListIcon,
-    href: buildUrl('/discover/flows'),
-    current: currentPath === buildUrl('/discover/flows'),
-  },
-  {
-    label: 'Data Stores',
-    icon: Database,
-    href: buildUrl('/discover/containers'),
-    current: currentPath === buildUrl('/discover/containers'),
-  },
-  {
-    label: 'Data Products',
-    icon: CubeIcon,
-    href: buildUrl('/discover/data-products'),
-    current: currentPath === buildUrl('/discover/data-products'),
-  },
-];
+const browseItems = filterSidebarItems(
+  [
+    {
+      id: '/discover/domains',
+      aliases: ['/discover'],
+      label: 'Domains',
+      icon: RectangleGroupIcon,
+      href: buildUrl('/discover/domains'),
+      current: currentPath === buildUrl('/discover/domains'),
+    },
+    {
+      id: '/discover/services',
+      aliases: ['/discover'],
+      label: 'Services',
+      icon: ServerIcon,
+      href: buildUrl('/discover/services'),
+      current: currentPath === buildUrl('/discover/services'),
+    },
+    {
+      id: '/discover/external-systems',
+      aliases: ['/discover'],
+      label: 'External Systems',
+      icon: GlobeAltIcon,
+      href: buildUrl('/discover/external-systems'),
+      current: currentPath === buildUrl('/discover/external-systems'),
+    },
+    {
+      id: '/discover/events',
+      aliases: ['/discover'],
+      label: 'Events',
+      icon: BoltIcon,
+      href: buildUrl('/discover/events'),
+      current: currentPath === buildUrl('/discover/events'),
+    },
+    {
+      id: '/discover/commands',
+      aliases: ['/discover'],
+      label: 'Commands',
+      icon: ChatBubbleLeftIcon,
+      href: buildUrl('/discover/commands'),
+      current: currentPath === buildUrl('/discover/commands'),
+    },
+    {
+      id: '/discover/queries',
+      aliases: ['/discover'],
+      label: 'Queries',
+      icon: MagnifyingGlassIcon,
+      href: buildUrl('/discover/queries'),
+      current: currentPath === buildUrl('/discover/queries'),
+    },
+    {
+      id: '/discover/flows',
+      aliases: ['/discover'],
+      label: 'Flows',
+      icon: QueueListIcon,
+      href: buildUrl('/discover/flows'),
+      current: currentPath === buildUrl('/discover/flows'),
+    },
+    {
+      id: '/discover/containers',
+      aliases: ['/discover'],
+      label: 'Data Stores',
+      icon: Database,
+      href: buildUrl('/discover/containers'),
+      current: currentPath === buildUrl('/discover/containers'),
+    },
+    {
+      id: '/discover/data-products',
+      aliases: ['/discover'],
+      label: 'Data Products',
+      icon: CubeIcon,
+      href: buildUrl('/discover/data-products'),
+      current: currentPath === buildUrl('/discover/data-products'),
+    },
+  ],
+  userSideBarConfiguration
+);
 
-const organizationItems = [
-  {
-    label: 'Teams',
-    icon: UsersRound,
-    href: buildUrl('/directory/teams'),
-    current: currentPath === buildUrl('/directory/teams'),
-  },
-  {
-    label: 'Users',
-    icon: UserRound,
-    href: buildUrl('/directory/users'),
-    current: currentPath === buildUrl('/directory/users'),
-  },
-];
+const organizationItems = filterSidebarItems(
+  [
+    {
+      id: '/directory/teams',
+      aliases: ['/directory'],
+      label: 'Teams',
+      icon: UsersRound,
+      href: buildUrl('/directory/teams'),
+      current: currentPath === buildUrl('/directory/teams'),
+    },
+    {
+      id: '/directory/users',
+      aliases: ['/directory'],
+      label: 'Users',
+      icon: UserRound,
+      href: buildUrl('/directory/users'),
+      current: currentPath === buildUrl('/directory/users'),
+    },
+  ],
+  userSideBarConfiguration
+);
 
-const settingsItems = [
-  {
-    label: 'Settings',
-    icon: Settings,
-    href: buildUrl('/settings/general'),
-    current: currentPath.startsWith(buildUrl('/settings')),
-  },
-];
+const settingsItems = filterSidebarItems(
+  [
+    {
+      id: '/settings/general',
+      aliases: ['/settings'],
+      label: 'Settings',
+      icon: Settings,
+      href: buildUrl('/settings/general'),
+      current: currentPath.startsWith(buildUrl('/settings')),
+    },
+  ],
+  userSideBarConfiguration
+);
 
 const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...premiumFeatures].find((item) => item.current);
 const { title, description, showNestedSideBar = true, showHeader = true } = Astro.props;
@@ -521,58 +555,64 @@ const canPageBeEmbedded = isEmbedEnabled();
               })
             }
 
-            <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
-
-            <div
-              class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text)/0.5)]"
-            >
-              Browse
-            </div>
-
             {
-              browseItems.map((item) => (
-                <a
-                  href={item.href}
-                  data-role="secondary-nav-item"
-                  aria-label={item.label}
-                  class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
-                    item.current
-                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
-                      : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                  title={item.label}
-                >
-                  <item.icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-                  <span class="nav-item-label">{item.label}</span>
-                </a>
-              ))
+              browseItems.length > 0 && (
+                <Fragment>
+                  <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
+
+                  <div class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text)/0.5)]">
+                    Browse
+                  </div>
+
+                  {browseItems.map((item) => (
+                    <a
+                      id={item.id}
+                      href={item.href}
+                      data-role="secondary-nav-item"
+                      aria-label={item.label}
+                      class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
+                        item.current
+                          ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
+                          : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
+                      }`}
+                      title={item.label}
+                    >
+                      <item.icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                      <span class="nav-item-label">{item.label}</span>
+                    </a>
+                  ))}
+                </Fragment>
+              )
             }
 
-            <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
-
-            <div
-              class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text)/0.5)]"
-            >
-              Organization
-            </div>
-
             {
-              organizationItems.map((item) => (
-                <a
-                  href={item.href}
-                  data-role="secondary-nav-item"
-                  aria-label={item.label}
-                  class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
-                    item.current
-                      ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
-                      : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                  title={item.label}
-                >
-                  <item.icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-                  <span class="nav-item-label">{item.label}</span>
-                </a>
-              ))
+              organizationItems.length > 0 && (
+                <Fragment>
+                  <hr class="rail-divider my-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
+
+                  <div class="rail-section-label px-3 pb-1 text-[0.65rem] font-semibold tracking-[0.18em] uppercase text-[rgb(var(--ec-sidebar-text)/0.5)]">
+                    Organization
+                  </div>
+
+                  {organizationItems.map((item) => (
+                    <a
+                      id={item.id}
+                      href={item.href}
+                      data-role="secondary-nav-item"
+                      aria-label={item.label}
+                      class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
+                        item.current
+                          ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
+                          : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
+                      }`}
+                      title={item.label}
+                    >
+                      <item.icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                      <span class="nav-item-label">{item.label}</span>
+                    </a>
+                  ))}
+                </Fragment>
+              )
             }
 
             {premiumFeatures.length > 0 && <hr class="rail-divider my-2 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />}
@@ -598,24 +638,29 @@ const canPageBeEmbedded = isEmbedEnabled();
             }
 
             <div class="mt-auto pt-3">
-              <hr class="rail-divider mb-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
               {
-                settingsItems.map((item) => (
-                  <a
-                    href={item.href}
-                    data-role="secondary-nav-item"
-                    aria-label={item.label}
-                    class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
-                      item.current
-                        ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
-                        : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
-                    }`}
-                    title={item.label}
-                  >
-                    <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                    <span class="nav-item-label">{item.label}</span>
-                  </a>
-                ))
+                settingsItems.length > 0 && (
+                  <Fragment>
+                    <hr class="rail-divider mb-3 border-t border-[rgb(var(--ec-sidebar-border)/0.7)]" />
+                    {settingsItems.map((item) => (
+                      <a
+                        id={item.id}
+                        href={item.href}
+                        data-role="secondary-nav-item"
+                        aria-label={item.label}
+                        class={`nav-secondary-item flex items-center gap-3 px-3 py-2.5 rounded-xl border text-[13px] font-medium transition-all duration-150 ${
+                          item.current
+                            ? 'border-[rgb(var(--ec-accent)/0.2)] bg-[rgb(var(--ec-page-bg)/0.88)] text-[rgb(var(--ec-accent))] shadow-sm'
+                            : 'border-transparent text-[rgb(var(--ec-sidebar-text))] hover:border-[rgb(var(--ec-sidebar-border)/0.65)] hover:bg-[rgb(var(--ec-page-bg)/0.78)] hover:text-[rgb(var(--ec-page-text))]'
+                        }`}
+                        title={item.label}
+                      >
+                        <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                        <span class="nav-item-label">{item.label}</span>
+                      </a>
+                    ))}
+                  </Fragment>
+                )
               }
             </div>
           </nav>
