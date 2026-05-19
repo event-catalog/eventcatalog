@@ -48,6 +48,7 @@ export const installTemplate = async ({
     private: true,
     scripts: {
       dev: 'eventcatalog dev',
+      editor: 'npx @eventcatalog/editor@latest',
       build: 'eventcatalog build',
       start: 'eventcatalog start',
       preview: 'eventcatalog preview',

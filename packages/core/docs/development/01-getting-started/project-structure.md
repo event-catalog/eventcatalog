@@ -11,6 +11,8 @@ import ProjectTree from '@site/src/components/MDX/ProjectTree';
 
 An EventCatalog project is a folder of Markdown files that describe and model your architecture.
 
+You can edit these files directly, or use the optional [EventCatalog Editor](/docs/editor/overview) to create, preview, review, and commit catalog content through a visual workflow.
+
 Each resource in your catalog, such as a domain, service, event, command, query, team, or diagram, is represented by a file or folder in your project. EventCatalog reads those files and turns them into a catalog.
 
 You can also bring your own documentation into EventCatalog, such as architecture decision records, guides, onboarding material, or runbooks. Learn more about [bringing your own documentation](/docs/development/bring-your-own-documentation/introduction).
