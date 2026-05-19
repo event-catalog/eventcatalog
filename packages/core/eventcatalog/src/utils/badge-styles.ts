@@ -8,7 +8,9 @@ type Badge = {
   url?: string;
 };
 
-const ABSOLUTE_OR_PROTOCOL_RELATIVE_URL_PATTERN = /^(?:[a-z][a-z\d+\-.]*:|\/\/)/i;
+const URL_SCHEME_PATTERN = /^[a-z][a-z\d+\-.]*:/i;
+const PROTOCOL_RELATIVE_URL_PATTERN = /^\/\//;
+const SAFE_BADGE_URL_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
 
 const isAlreadyBasePrefixed = (url: string) => {
   const baseUrl = import.meta.env.BASE_URL;
@@ -223,7 +225,11 @@ export const getBadgeHref = (badge: Badge) => {
 
   const url = badge.url.trim();
   if (!url) return undefined;
-  if (ABSOLUTE_OR_PROTOCOL_RELATIVE_URL_PATTERN.test(url) || url.startsWith('#') || url.startsWith('?')) return url;
+  if (url.startsWith('#') || url.startsWith('?') || PROTOCOL_RELATIVE_URL_PATTERN.test(url)) return url;
+
+  const scheme = URL_SCHEME_PATTERN.exec(url)?.[0].toLowerCase();
+  if (scheme) return SAFE_BADGE_URL_SCHEMES.has(scheme) ? url : undefined;
+
   if (isAlreadyBasePrefixed(url)) return url;
   if (url.startsWith('/')) return buildUrl(url);
 

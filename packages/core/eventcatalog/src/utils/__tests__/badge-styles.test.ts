@@ -14,8 +14,17 @@ describe('getBadgeHref', () => {
     expect(getBadgeHref({ url: '/domains/Payments' })).toBe('/domains/Payments');
   });
 
-  it('keeps absolute badge urls unchanged', () => {
+  it('keeps safe absolute badge urls unchanged', () => {
     expect(getBadgeHref({ url: 'https://example.com/docs' })).toBe('https://example.com/docs');
+    expect(getBadgeHref({ url: 'http://example.com/docs' })).toBe('http://example.com/docs');
+    expect(getBadgeHref({ url: 'mailto:hello@example.com' })).toBe('mailto:hello@example.com');
+    expect(getBadgeHref({ url: 'tel:+441234567890' })).toBe('tel:+441234567890');
+  });
+
+  it('rejects unsafe absolute badge url schemes', () => {
+    expect(getBadgeHref({ url: 'javascript:alert(1)' })).toBeUndefined();
+    expect(getBadgeHref({ url: 'data:text/html,<script>alert(1)</script>' })).toBeUndefined();
+    expect(getBadgeHref({ url: 'vbscript:msgbox(1)' })).toBeUndefined();
   });
 
   it('does not rebuild badge urls that already include the catalog base url', () => {
