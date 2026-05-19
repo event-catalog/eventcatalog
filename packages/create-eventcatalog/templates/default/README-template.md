@@ -1,55 +1,63 @@
-# My Event Catalog
+# Welcome to EventCatalog
 
-Welcome to your new catalog, powered by [EventCatalog](https://www.eventcatalog.dev) — the open-source documentation tool for event-driven architectures.
+[EventCatalog](https://www.eventcatalog.dev/) is your architecture catalog for distributed systems. Use it to document, govern, and discover your services, domains, APIs, events, commands, queries, schemas, teams, and flows in one place.
 
-## Getting Started
+## Start the Catalog
 
 ```sh
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your catalog.
+Open [http://localhost:3000](http://localhost:3000) to view your catalog.
 
-You can start editing your catalog by adding **domains**, **services**, and **messages** to this project. Each resource is a folder with an `index.md` file containing frontmatter metadata and markdown content.
+Using `pnpm` or `yarn`? Run the same scripts with the package manager you chose when creating this project.
 
-## What Can You Do?
+## Edit Your Catalog
 
-- **Document services** — define producers and consumers with their schemas
-- **Map events, commands & queries** — capture every message flowing through your system
-- **Organize with domains** — group resources into bounded contexts
-- **Visualize your architecture** — auto-generated diagrams of your services and message flows
-- **Version everything** — track how your architecture evolves over time
-- **Use AI to explore & document** — connect AI tools directly to your catalog
+Your catalog is docs-as-code. Resources live in folders with an `index.mdx` file for frontmatter metadata and Markdown content.
 
-## Use AI with Your Catalog
+Good places to start:
 
-### Skills
+- `domains/` - bounded contexts, business capabilities, and ownership
+- `domains/<domain>/services/` - services, APIs, and message producers or consumers
+- `events/`, `commands/`, and `queries/` - the messages flowing through your system
+- `teams/` and `users/` - who owns each part of the architecture
 
-Let AI agents document your architecture for you. Install [EventCatalog Skills](https://github.com/event-catalog/skills):
+Prefer a visual workflow? Run `npm run editor` to open the [EventCatalog Editor](https://www.eventcatalog.dev/docs/editor/overview) and browse, create, or update catalog resources through a GitHub-backed UI.
+
+## Make Your First Change
+
+1. Add or edit a domain, service, or message.
+2. Run `npm run dev` and check the generated pages and diagrams.
+3. Commit the MDX and schema files to Git.
+
+## Keep It in Sync
+
+Use `npm run generate` with [EventCatalog integrations](https://www.eventcatalog.dev/integrations) to import architecture data from OpenAPI, AsyncAPI, schema registries, EventBridge, GitHub, internal systems, and more.
+
+Run generators locally while you work, or in CI so your catalog stays aligned with the systems it describes.
+
+## Use AI with Architecture Context
+
+EventCatalog gives AI tools structured context about your domains, services, messages, schemas, owners, and flows.
+
+- Connect Claude, Cursor, VS Code, Windsurf, or another MCP-compatible tool with the [EventCatalog MCP Server](https://www.eventcatalog.dev/docs/development/guides/ai/using-mcp-server).
+- Install [EventCatalog Skills](https://github.com/event-catalog/skills) to help agents document services, create domain models, and map business flows:
 
 ```sh
 npx skills add event-catalog/skills
 ```
 
-Skills can generate service documentation, create domain models, and map business flows — all through natural language.
+## Learn by Task
 
-### MCP Server
+- [Create a domain](https://www.eventcatalog.dev/docs/development/guides/domains)
+- [Document a service](https://www.eventcatalog.dev/docs/development/guides/services)
+- [Add events, commands, and queries](https://www.eventcatalog.dev/docs/development/guides/messages/adding-messages)
+- [Use the EventCatalog Editor](https://www.eventcatalog.dev/docs/editor/overview)
+- [Generate from integrations](https://www.eventcatalog.dev/integrations)
+- [Manage your catalog with the SDK](https://www.eventcatalog.dev/docs/development/sdk)
+- [Join the community](https://discord.gg/3rjaZMmrAm)
 
-Connect your catalog to Claude, Cursor, Windsurf, or any MCP-compatible AI tool using the [EventCatalog MCP Server](https://www.eventcatalog.dev/docs/development/guides/ai/using-mcp-server). Ask questions about your architecture and get instant answers.
-
-## Automate Your Catalog
-
-Keep your catalog in sync with your architecture using [EventCatalog integrations](https://www.eventcatalog.dev/integrations). Import services, messages, and schemas from sources like AsyncAPI, OpenAPI, Schema Registries, and more — so your documentation is always up to date.
-
-## Learn More
-
-- [Documentation](https://www.eventcatalog.dev/docs/development/getting-started/introduction) — understand how EventCatalog works
-- [Adding Services](https://www.eventcatalog.dev/docs/development/guides/services) — document your first service
-- [Adding Messages](https://www.eventcatalog.dev/docs/development/guides/messages/adding-messages) — create events, commands, and queries
-- [Adding Domains](https://www.eventcatalog.dev/docs/development/guides/domains) — organize into bounded contexts
-- [SDK](https://www.eventcatalog.dev/docs/development/sdk) — manage your catalog programmatically
-- [Discord](https://discord.gg/3rjaZMmrAm) — join the community
-
-## Found a problem?
+## Found a Problem?
 
 Open an issue on [GitHub](https://github.com/event-catalog/eventcatalog/issues).

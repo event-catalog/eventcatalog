@@ -1,0 +1,11 @@
+{
+  "label": "Explanation",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Editor explanation",
+    "description": "Conceptual guides that explain how EventCatalog Editor fits with files, Markdown, MDX, Git, and beta access."
+  }
+}

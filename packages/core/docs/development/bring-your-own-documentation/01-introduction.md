@@ -9,6 +9,8 @@ description: Bring your own documentation to EventCatalog
 
 EventCatalog allows you to centralise architecture documentation alongside your domains, services, and events — keeping knowledge and context in one place.
 
+You can write this documentation with Markdown and MDX, or use the optional [EventCatalog Editor](/docs/editor/overview) for a visual editing workflow.
+
 Common use cases include:
 
 - Architecture decision records (ADRs)

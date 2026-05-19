@@ -29,6 +29,13 @@ EventCatalog is a [docs-as-code](https://www.writethedocs.org/guide/docs-as-code
 
 EventCatalog does not force you to use a specific broker, schema format, or stack. You can use it with any broker, schema format, or stack and can fit into any workflow you have. EventCatalog fits your workflow, not the other way around.
 
+### Visual editing
+
+You can also use [EventCatalog Editor](/docs/editor/overview) to maintain your catalog through a local visual workflow.
+
+The editor runs on top of your EventCatalog project, writes changes back to the same local files, and gives you a Git-backed way to review and publish changes. This helps developers, architects, analysts, and product owners contribute to the catalog without needing to work directly in Markdown files.
+
+
 ## Ready to build?
 
 Now that you understand the fundamentals, [get started with EventCatalog](/docs/development/getting-started/installation).

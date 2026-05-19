@@ -1,0 +1,11 @@
+{
+  "label": "How-to guides",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Editor how-to guides",
+    "description": "Task-focused guides for running EventCatalog Editor and working with catalog changes."
+  }
+}

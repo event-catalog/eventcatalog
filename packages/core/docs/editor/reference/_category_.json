@@ -1,0 +1,11 @@
+{
+  "label": "Reference",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Editor reference",
+    "description": "Lookup information for EventCatalog Editor commands, supported resources, content support, and troubleshooting."
+  }
+}

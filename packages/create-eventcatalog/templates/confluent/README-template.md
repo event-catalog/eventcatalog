@@ -1,28 +1,55 @@
-# My Confluent Event Catalog
+# Welcome to EventCatalog
 
-Welcome to your new Confluent Event Catalog!
+[EventCatalog](https://www.eventcatalog.dev/) is your architecture catalog for distributed systems. This template adds the Confluent Schema Registry generator so you can import schemas and topics, then document how they connect to your domains, services, and teams.
 
-Getting started:
+## Generate Your Catalog
 
-1. Edit the `.env` file to configure your environment variables.
-1. Run Confluent Cloud locally, or configure your `schemaRegistryUrl` in the `eventcatalog.config.js` file
-1. Run `npm run generate` to import your schemas from confluent schema registry.
-1. Run `npm run dev` to start the development server.
-1. Go to localhost:3000 to view your catalog.
+1. Edit `.env` with your Confluent settings.
+2. Run Confluent locally, or configure `schemaRegistryUrl` in `eventcatalog.config.js`.
+3. Import your schemas:
 
-### What else can you do?
+```sh
+npm run generate
+```
 
-With the Confluent Schema Registry integration you can :
+4. Start the catalog:
 
-- Document your schemas, topics
-- Assign your schemas to producers and consumers
-- Assign resources to users and teams in your organization
+```sh
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view your catalog.
+
+## Edit Your Catalog
+
+Your generated resources are docs-as-code. You can enrich them with ownership, domain context, Markdown, examples, and relationships that are not always available in the schema registry.
+
+Prefer a visual workflow? Run `npm run editor` to open the [EventCatalog Editor](https://www.eventcatalog.dev/docs/editor/overview) and browse, create, or update catalog resources through a GitHub-backed UI.
+
+## Keep It in Sync
+
+Run `npm run generate` whenever your schemas or topics change. You can also run the generator in CI so your catalog stays aligned with Confluent.
+
+With this integration you can:
+
+- Document schemas and topics
+- Assign schemas to producers and consumers
+- Connect resources to users and teams
 - Visualize your Kafka architecture
-- Add semantic meaning to your schemas and topics
-- And much more!
+- Add semantic meaning to schemas and topics
 
-The easiest way to get started and dive deeper is to read the [Event Catalog documentation](https://eventcatalog.dev/docs/plugins/confluent-schema-registry/intro).
+## Use AI with Architecture Context
 
-### Found a problem?
+EventCatalog gives AI tools structured context about your domains, services, messages, schemas, owners, and flows. Connect an MCP-compatible tool with the [EventCatalog MCP Server](https://www.eventcatalog.dev/docs/development/guides/ai/using-mcp-server).
 
-If you found a problem or have a feature request, please open an issue on [GitHub](https://github.com/event-catalog/generators).
+## Learn by Task
+
+- [Confluent Schema Registry integration docs](https://eventcatalog.dev/docs/plugins/confluent-schema-registry/intro)
+- [Use the EventCatalog Editor](https://www.eventcatalog.dev/docs/editor/overview)
+- [Document a service](https://www.eventcatalog.dev/docs/development/guides/services)
+- [Add events, commands, and queries](https://www.eventcatalog.dev/docs/development/guides/messages/adding-messages)
+- [Join the community](https://discord.gg/3rjaZMmrAm)
+
+## Found a Problem?
+
+Open an issue on [GitHub](https://github.com/event-catalog/generators).

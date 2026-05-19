@@ -98,12 +98,15 @@ export async function createApp({
 
   // Next steps
   console.log();
-  console.log(`  ${chalk.cyan.bold('next')}  You're all set! Explore your project!`);
+  console.log(`  You're all set! Explore your catalog!`);
   console.log();
-  console.log(`  Enter your project directory using ${chalk.cyan('cd ' + cdpath)}`);
-  console.log(`  Run ${chalk.cyan(`${packageManager} run dev`)} to start the dev server. ${chalk.dim('CTRL+C to stop.')}`);
+  console.log(`    ${chalk.dim('■')} ${chalk.cyan('cd ' + cdpath)}`);
+  console.log(`    ${chalk.dim('■')} Run ${chalk.cyan(`${packageManager} run dev`)} to start the dev server.`);
   console.log();
   console.log(`  ${chalk.dim('Star us on GitHub:')} ${chalk.underline('https://github.com/event-catalog/eventcatalog')}`);
   console.log(`  ${chalk.dim('Join our Discord:')}  ${chalk.underline('https://eventcatalog.dev/discord')}`);
+  console.log();
+  console.log(`  ${chalk.dim('Want a better editing experience?')}`);
+  console.log(`  Run ${chalk.cyan(`${packageManager} run editor`)} to open EventCatalog Editor.`);
   console.log();
 }

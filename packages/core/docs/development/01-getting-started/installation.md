@@ -94,6 +94,14 @@ Look at my directory and generate EventCatalog documentation from information yo
 
 The generated files can be edited like any other EventCatalog documentation. Learn more about [EventCatalog skills](/docs/development/ask-your-architecture/skills/introduction).
 
+## Optional: Use EventCatalog Editor
+
+You can edit your catalog files directly in Markdown, or use [EventCatalog Editor](/docs/editor/overview) for a local visual editing workflow.
+
+The editor runs on top of your EventCatalog project, writes changes back to your local files, and gives you a Git-backed way to review and publish changes. This is useful when architects, developers, analysts, or product owners need to help maintain the catalog without working directly in Markdown.
+
+To use the editor, you need Git installed and editor access through [EventCatalog Cloud](https://eventcatalog.cloud). Learn how to [run EventCatalog Editor locally](/docs/editor/how-to/run-locally).
+
 ## Next steps
 
 - [Understand the project structure](/docs/development/getting-started/project-structure)
