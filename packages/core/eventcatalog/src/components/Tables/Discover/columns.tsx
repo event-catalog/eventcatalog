@@ -1,11 +1,17 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DocumentTextIcon, MapIcon } from '@heroicons/react/24/solid';
-import { ArrowDownIcon, ArrowUpIcon, EllipsisVerticalIcon, StarIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowDownIcon,
+  ArrowTopRightOnSquareIcon,
+  ArrowUpIcon,
+  EllipsisVerticalIcon,
+  StarIcon,
+} from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
 import { getCollectionTextColorClass } from '@utils/collection-colors';
-import { getBadgeReactStyle } from '@utils/badge-styles';
+import { getBadgeHref, getBadgeReactStyle } from '@utils/badge-styles';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
 import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite, type FavoriteItem } from '../../../stores/favorites-store';
@@ -15,7 +21,11 @@ import type { TableConfiguration } from '@types';
 const columnHelper = createColumnHelper<DiscoverTableData>();
 
 // Badge cell component (proper React component to use hooks)
-const BadgesCell = ({ badges }: { badges: Array<{ content: string; backgroundColor?: string; textColor?: string }> }) => {
+const BadgesCell = ({
+  badges,
+}: {
+  badges: Array<{ content: string; backgroundColor?: string; textColor?: string; url?: string }>;
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!badges || badges.length === 0) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
@@ -25,16 +35,28 @@ const BadgesCell = ({ badges }: { badges: Array<{ content: string; backgroundCol
 
   return (
     <div className="flex flex-col gap-1 items-start">
-      {visibleItems.map((badge, index) => (
-        <span
-          key={`${badge.content}-${index}`}
-          className="inline-flex items-center px-2 py-0.5 text-[11px] font-normal rounded-md max-w-[140px] truncate border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] bg-transparent"
-          style={getBadgeReactStyle(badge)}
-          title={badge.content}
-        >
-          {badge.content}
-        </span>
-      ))}
+      {visibleItems.map((badge, index) => {
+        const href = getBadgeHref(badge);
+        const className =
+          'inline-flex items-center px-2 py-0.5 text-[11px] font-normal rounded-md max-w-[140px] truncate border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] bg-transparent';
+
+        return href ? (
+          <a
+            key={`${badge.content}-${index}`}
+            href={href}
+            className={className}
+            style={getBadgeReactStyle(badge)}
+            title={badge.content}
+          >
+            <span className="truncate">{badge.content}</span>
+            <ArrowTopRightOnSquareIcon className="ml-1 h-3 w-3 shrink-0 opacity-70" aria-hidden="true" />
+          </a>
+        ) : (
+          <span key={`${badge.content}-${index}`} className={className} style={getBadgeReactStyle(badge)} title={badge.content}>
+            {badge.content}
+          </span>
+        );
+      })}
       {hiddenCount > 0 && (
         <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-[rgb(var(--ec-accent))] hover:underline">
           {isExpanded ? 'less' : `+${hiddenCount}`}

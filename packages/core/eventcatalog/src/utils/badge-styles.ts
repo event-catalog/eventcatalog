@@ -1,8 +1,23 @@
+import { buildUrl } from './url-builder';
+
 type BadgeColorKind = 'background' | 'text';
 
 type Badge = {
   backgroundColor?: string;
   textColor?: string;
+  url?: string;
+};
+
+const URL_SCHEME_PATTERN = /^[a-z][a-z\d+\-.]*:/i;
+const PROTOCOL_RELATIVE_URL_PATTERN = /^\/\//;
+const SAFE_BADGE_URL_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+
+const isAlreadyBasePrefixed = (url: string) => {
+  const baseUrl = import.meta.env.BASE_URL;
+  if (!baseUrl || baseUrl === '/') return false;
+
+  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  return url === normalizedBaseUrl || url.startsWith(`${normalizedBaseUrl}/`);
 };
 
 const NAMED_BADGE_COLOR_KEYS = new Set([
@@ -203,4 +218,20 @@ export const getBadgeReactStyle = (badge: Badge) => {
     ...(backgroundColor ? { backgroundColor } : {}),
     ...(color ? { color } : {}),
   };
+};
+
+export const getBadgeHref = (badge: Badge) => {
+  if (!badge.url) return undefined;
+
+  const url = badge.url.trim();
+  if (!url) return undefined;
+  if (url.startsWith('#') || url.startsWith('?') || PROTOCOL_RELATIVE_URL_PATTERN.test(url)) return url;
+
+  const scheme = URL_SCHEME_PATTERN.exec(url)?.[0].toLowerCase();
+  if (scheme) return SAFE_BADGE_URL_SCHEMES.has(scheme) ? url : undefined;
+
+  if (isAlreadyBasePrefixed(url)) return url;
+  if (url.startsWith('/')) return buildUrl(url);
+
+  return url;
 };

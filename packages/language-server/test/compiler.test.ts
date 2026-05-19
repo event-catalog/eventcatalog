@@ -186,7 +186,7 @@ describe("compile", () => {
     const program = await parseProgram(`
       service OrderService {
         version 1.0.0
-        @badge("Core", bg: "#3b82f6", text: "#fff")
+        @badge("Core", bg: "#3b82f6", text: "#fff", url: "/domains/Payments")
       }
     `);
 
@@ -200,6 +200,7 @@ describe("compile", () => {
     expect(svcOutput!.content).toContain('content: "Core"');
     expect(svcOutput!.content).toContain('backgroundColor: "#3b82f6"');
     expect(svcOutput!.content).toContain('textColor: "#fff"');
+    expect(svcOutput!.content).toContain('url: "/domains/Payments"');
   });
 
   it("compiles @note annotation into notes array", async () => {

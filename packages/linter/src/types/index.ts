@@ -3,7 +3,7 @@ export interface Badge {
   backgroundColor: string;
   textColor: string;
   icon?: string;
-  link?: string;
+  url?: string;
 }
 
 export interface Specification {

@@ -360,6 +360,22 @@ You can also pass any valid CSS color value directly: hex (`#ff0000`), `rgb()`, 
 ---
 ```
 
+#### Link to external URLs
+
+<AddedIn version="3.39.6" />
+
+Add a `url` to a badge to make it render as a clickable link with an external-link icon. When `url` is omitted, the badge renders as a plain label.
+
+```md title="Link badge example"
+---
+  badges:
+    - content: View Runbook
+      url: https://runbooks.example.com/my-flow
+      backgroundColor: blue
+      textColor: white
+---
+```
+
 ### `editUrl` {#editUrl}
 
 <AddedIn version="2.49.4" />

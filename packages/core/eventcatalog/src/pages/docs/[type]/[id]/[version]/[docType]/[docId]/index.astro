@@ -5,11 +5,11 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Admonition from '@components/MDX/Admonition';
 import components from '@components/MDX/components';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
+import Badge from '@components/Badge.astro';
 import { buildUrl } from '@utils/url-builder';
 import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
 import { isEventCatalogChatEnabled, isResourceDocsEnabled } from '@utils/feature';
 import { getIcon } from '@utils/badges';
-import { getBadgeStyle } from '@utils/badge-styles';
 import { collectionToResourceMap } from '@utils/collections/util';
 
 import { Page } from './_index.data';
@@ -73,19 +73,7 @@ const pagefindAttributes =
             {
               badges.length > 0 && (
                 <div class="flex flex-wrap gap-3 py-4">
-                  {badges.map((badge: any) => (
-                    <span
-                      class={`
-                        inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                        ${badge.backgroundColor ? 'bg-[rgb(var(--ec-content-hover))]' : 'bg-transparent'} border border-[rgb(var(--ec-page-border))]
-                        text-[rgb(var(--ec-page-text))]
-                      `}
-                      style={getBadgeStyle(badge)}
-                    >
-                      {badge.iconComponent && <badge.iconComponent className="w-4 h-4 flex-shrink-0" />}
-                      <span>{badge.content}</span>
-                    </span>
-                  ))}
+                  {badges.map((badge: any) => <Badge badge={badge} />)}
                 </div>
               )
             }

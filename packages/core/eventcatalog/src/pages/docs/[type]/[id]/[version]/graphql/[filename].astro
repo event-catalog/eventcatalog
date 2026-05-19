@@ -7,8 +7,8 @@ import Footer from '@layouts/Footer.astro';
 import { Page } from './_[filename].data';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
-import { getBadgeStyle } from '@utils/badge-styles';
 import Admonition from '@components/MDX/Admonition';
+import Badge from '@components/Badge.astro';
 
 import { ServerIcon } from '@heroicons/react/24/outline';
 
@@ -83,23 +83,7 @@ const pagefindAttributes =
               badges && badges.length > 0 && (
                 <div class="flex flex-wrap gap-3 py-4">
                   {badges.map((badge: any) => {
-                    return (
-                      <span
-                        id={badge.id || ''}
-                        class={`
-                          inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                          ${badge.backgroundColor ? 'bg-[rgb(var(--ec-content-hover))]' : 'bg-transparent'} border border-[rgb(var(--ec-page-border))]
-                          text-[rgb(var(--ec-page-text))]
-                          shadow-xs
-                          ${badge.class ? badge.class : ''}
-                        `}
-                        style={getBadgeStyle(badge)}
-                      >
-                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0" />}
-                        {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
-                        <span>{badge.content}</span>
-                      </span>
-                    );
+                    return <Badge badge={badge} />;
                   })}
                 </div>
               )

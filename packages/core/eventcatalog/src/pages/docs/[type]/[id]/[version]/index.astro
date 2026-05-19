@@ -15,6 +15,7 @@ import Admonition from '@components/MDX/Admonition';
 import VersionList from '@components/Lists/VersionList.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import FavoriteButton from '@components/FavoriteButton';
+import Badge from '@components/Badge.astro';
 import { shouldRenderSideBarSection } from '@stores/sidebar-store/builders/shared';
 
 import {
@@ -34,7 +35,6 @@ import { getSpecificationsForService } from '@utils/collections/services';
 import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails } from '@utils/collections/util';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { getIcon } from '@utils/badges';
-import { getBadgeStyle } from '@utils/badge-styles';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
 import {
@@ -377,23 +377,7 @@ if (!hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
               badges && (
                 <div class="flex flex-wrap gap-3 pt-6 pb-2">
                   {badges.map((badge: any) => {
-                    return (
-                      <span
-                        id={badge.id || ''}
-                        class={`
-                          inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                          ${badge.backgroundColor ? 'bg-[rgb(var(--ec-content-hover))]' : 'bg-transparent'} border border-[rgb(var(--ec-page-border))]
-                          text-[rgb(var(--ec-page-text))]
-                          shadow-xs
-                          ${badge.class ? badge.class : ''}
-                        `}
-                        style={getBadgeStyle(badge)}
-                      >
-                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0" />}
-                        {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
-                        <span>{badge.content}</span>
-                      </span>
-                    );
+                    return <Badge badge={badge} />;
                   })}
                 </div>
               )

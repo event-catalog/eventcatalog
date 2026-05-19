@@ -340,6 +340,7 @@ pnpm run format       # Formats all packages
 - The example catalog at `/examples/default` is used when running `pnpm run start:catalog`
 - SSR mode is required for AI Chat and MCP Server features
 - Use `DISABLE_EVENTCATALOG_CACHE=true` env var to disable caching during development
+- When making changes in this repository, check whether the same change or a compatible follow-up is needed in the editor repository at `eventcatalog/eventcatalog-editor`. If no editor change is needed, mention that explicitly in the final response.
 - Run `pnpm run format` before committing changes
 - Never verify the build, the developer will do this themselves
 - SDK test files may get modified during test runs - restore with `git restore packages/sdk/src/test/`
