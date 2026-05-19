@@ -39,6 +39,15 @@ export default {
     type: 'indexed'
   },
 
+  cloud: {
+    analytics: {
+      enabled: true,
+      trackingId: 'ec_pSHjUPcG_IC-rA33',
+      writeKey: 'ecwk_DDxi5JHmfKahvl7kbNvGcfeMgNOpfMTU',
+      endpoint: 'https://eventcatalog-analytics.dave-c96.workers.dev/v1/analytics/ingest',
+    }
+  },
+
   navigation: {
     pages: [
       {
