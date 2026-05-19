@@ -80,3 +80,4 @@ ec-test/
 
 docs/superpowers/*
 .worktrees/
+.pnpm-store/

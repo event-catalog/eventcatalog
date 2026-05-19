@@ -10,6 +10,14 @@ type Badge = {
 
 const ABSOLUTE_OR_PROTOCOL_RELATIVE_URL_PATTERN = /^(?:[a-z][a-z\d+\-.]*:|\/\/)/i;
 
+const isAlreadyBasePrefixed = (url: string) => {
+  const baseUrl = import.meta.env.BASE_URL;
+  if (!baseUrl || baseUrl === '/') return false;
+
+  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  return url === normalizedBaseUrl || url.startsWith(`${normalizedBaseUrl}/`);
+};
+
 const NAMED_BADGE_COLOR_KEYS = new Set([
   'slate',
   'gray',
@@ -216,6 +224,7 @@ export const getBadgeHref = (badge: Badge) => {
   const url = badge.url.trim();
   if (!url) return undefined;
   if (ABSOLUTE_OR_PROTOCOL_RELATIVE_URL_PATTERN.test(url) || url.startsWith('#') || url.startsWith('?')) return url;
+  if (isAlreadyBasePrefixed(url)) return url;
   if (url.startsWith('/')) return buildUrl(url);
 
   return url;
