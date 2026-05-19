@@ -52,6 +52,7 @@ export interface DiscoverTableData {
       content: string;
       backgroundColor?: string;
       textColor?: string;
+      url?: string;
     }>;
     producers?: Array<any>;
     consumers?: Array<any>;

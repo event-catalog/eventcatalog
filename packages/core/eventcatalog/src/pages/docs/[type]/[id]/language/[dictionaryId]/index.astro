@@ -1,5 +1,6 @@
 ---
 import RectangleGroupIcon from '@heroicons/react/24/outline/RectangleGroupIcon';
+import Badge from '@components/Badge.astro';
 import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { buildUrl } from '@utils/url-builder';
@@ -80,17 +81,7 @@ const badges = [
               badges && badges.length > 0 && (
                 <div class="flex flex-wrap gap-3 py-4">
                   {badges.map((badge: any) => {
-                    return (
-                      <span
-                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                          bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
-                          text-[rgb(var(--ec-page-text))] shadow-xs"
-                      >
-                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
-                        {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
-                        <span>{badge.content}</span>
-                      </span>
-                    );
+                    return <Badge badge={badge} />;
                   })}
                 </div>
               )

@@ -1,9 +1,14 @@
+import { buildUrl } from './url-builder';
+
 type BadgeColorKind = 'background' | 'text';
 
 type Badge = {
   backgroundColor?: string;
   textColor?: string;
+  url?: string;
 };
+
+const ABSOLUTE_OR_PROTOCOL_RELATIVE_URL_PATTERN = /^(?:[a-z][a-z\d+\-.]*:|\/\/)/i;
 
 const NAMED_BADGE_COLOR_KEYS = new Set([
   'slate',
@@ -203,4 +208,15 @@ export const getBadgeReactStyle = (badge: Badge) => {
     ...(backgroundColor ? { backgroundColor } : {}),
     ...(color ? { color } : {}),
   };
+};
+
+export const getBadgeHref = (badge: Badge) => {
+  if (!badge.url) return undefined;
+
+  const url = badge.url.trim();
+  if (!url) return undefined;
+  if (ABSOLUTE_OR_PROTOCOL_RELATIVE_URL_PATTERN.test(url) || url.startsWith('#') || url.startsWith('?')) return url;
+  if (url.startsWith('/')) return buildUrl(url);
+
+  return url;
 };

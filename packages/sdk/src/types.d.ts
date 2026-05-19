@@ -252,6 +252,7 @@ export interface Badge {
   backgroundColor: string;
   textColor: string;
   icon?: string;
+  url?: string;
 }
 
 export interface Changelog {

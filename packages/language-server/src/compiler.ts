@@ -276,6 +276,10 @@ function mapAnnotations(annotations: Annotation[]): Record<string, unknown> {
           (a) => isNamedAnnotationArg(a) && a.key === "text",
         ) as NamedAnnotationArg | undefined;
         if (textArg) badge.textColor = String(getAnnotationArgValue(textArg));
+        const urlArg = ann.args.find(
+          (a) => isNamedAnnotationArg(a) && a.key === "url",
+        ) as NamedAnnotationArg | undefined;
+        if (urlArg) badge.url = String(getAnnotationArgValue(urlArg));
         (result.badges as Record<string, string>[]).push(badge);
         break;
       }

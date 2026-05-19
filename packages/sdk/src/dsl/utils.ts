@@ -30,7 +30,7 @@ interface BaseResource {
   version: string;
   summary?: string;
   owners?: string[];
-  badges?: { content: string; backgroundColor: string; textColor: string }[];
+  badges?: { content: string; backgroundColor: string; textColor: string; url?: string }[];
   deprecated?: boolean | { date?: string; message?: string };
   draft?: boolean | { title?: string; message?: string };
 }

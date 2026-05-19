@@ -5,6 +5,7 @@ export const badgeSchema = z.object({
   backgroundColor: z.string(),
   textColor: z.string(),
   icon: z.string().optional(),
+  url: z.string().optional(),
 });
 
 export const ownerReferenceSchema = z

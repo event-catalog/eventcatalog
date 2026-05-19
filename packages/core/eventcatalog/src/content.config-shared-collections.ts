@@ -6,6 +6,7 @@ export const badge = z.object({
   backgroundColor: z.string(),
   textColor: z.string(),
   icon: z.string().optional(),
+  url: z.string().optional(),
 });
 
 // Create a union type for owners

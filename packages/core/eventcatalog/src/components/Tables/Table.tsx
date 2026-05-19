@@ -58,6 +58,7 @@ export type TData<T extends TCollectionTypes> = {
       backgroundColor: string;
       textColor: string;
       icon: any; // Where is it defined?
+      url?: string;
     }>;
     // ---------------------------------------------------------------------------
     // Domains

@@ -5,6 +5,7 @@ import config from '@config';
 import { AlignLeftIcon, UserIcon, UsersIcon } from 'lucide-react';
 
 import mdxComponents from '@components/MDX/components';
+import Badge from '@components/Badge.astro';
 
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
@@ -117,24 +118,7 @@ const editUrl =
                 badges && badges.length > 0 && (
                   <div class="flex flex-wrap gap-3 py-2">
                     {badges.map((badge: any) => {
-                      return (
-                        <a href={badge.url || '#'}>
-                          <span
-                            id={badge.id || ''}
-                            class={`
-                              inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                              bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
-                              text-[rgb(var(--ec-page-text))]
-                              shadow-xs
-                              ${badge.class ? badge.class : ''}
-                            `}
-                          >
-                            {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
-                            {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
-                            <span>{badge.content}</span>
-                          </span>
-                        </a>
-                      );
+                      return <Badge badge={badge} />;
                     })}
                   </div>
                 )
