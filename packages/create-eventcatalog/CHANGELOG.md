@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.3
+
+### Patch Changes
+
+- 1c080f5: Refresh README templates and CLI completion output, and add `editor` npm script that runs `@eventcatalog/editor`.
+
 ## 4.3.2
 
 ### Patch Changes
