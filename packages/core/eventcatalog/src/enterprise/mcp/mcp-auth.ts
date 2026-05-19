@@ -102,8 +102,9 @@ export async function validateMcpRequest(
   const metadataUrl = getMcpProtectedResourceMetadataUrl(request, authConfig);
   const requiredScopes = getMcpRequiredScopes(authConfig);
   const authHeader = request.headers.get('Authorization');
+  const bearerMatch = authHeader?.match(/^Bearer\s+(.*)$/i);
 
-  if (!authHeader?.startsWith('Bearer ')) {
+  if (!bearerMatch) {
     return {
       ok: false,
       status: 401,
@@ -114,7 +115,7 @@ export async function validateMcpRequest(
     };
   }
 
-  const token = authHeader.slice('Bearer '.length).trim();
+  const token = bearerMatch[1].trim();
 
   if (!token) {
     return {

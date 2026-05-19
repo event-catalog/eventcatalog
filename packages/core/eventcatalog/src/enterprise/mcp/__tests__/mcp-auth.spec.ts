@@ -78,6 +78,21 @@ describe('MCP Bearer token validation', () => {
     expect(result.ok).toBe(true);
   });
 
+  it('accepts the Bearer scheme regardless of case', async () => {
+    const token = createToken();
+    const lowercase = new Request('https://catalog.example.com/docs/mcp', {
+      method: 'POST',
+      headers: { Authorization: `bearer ${token}` },
+    });
+    const mixedCase = new Request('https://catalog.example.com/docs/mcp', {
+      method: 'POST',
+      headers: { Authorization: `BeArEr ${token}` },
+    });
+
+    expect((await validateMcpRequest(lowercase, authConfig)).ok).toBe(true);
+    expect((await validateMcpRequest(mixedCase, authConfig)).ok).toBe(true);
+  });
+
   it('rejects a token with the wrong audience', async () => {
     const token = createToken({ audience: 'https://api.github.com' });
     const result = await validateMcpRequest(createRequest(token), authConfig);
