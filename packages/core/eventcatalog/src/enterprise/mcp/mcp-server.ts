@@ -32,6 +32,7 @@ import {
   toolDescriptions,
 } from '@enterprise/tools/catalog-tools';
 import { getCollection } from 'astro:content';
+import { createMcpAuthErrorResponse, validateMcpRequest } from './mcp-auth';
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
@@ -462,6 +463,12 @@ const mcpResources = [
 
 // Health check endpoint
 app.get('/', async (c: Context) => {
+  const auth = await validateMcpRequest(c.req.raw);
+
+  if (!auth.ok) {
+    return createMcpAuthErrorResponse(auth);
+  }
+
   return c.json({
     name: 'EventCatalog MCP Server',
     version: '1.0.0',
@@ -475,6 +482,12 @@ app.get('/', async (c: Context) => {
 // MCP protocol endpoint - handles POST requests for MCP protocol
 app.post('/', async (c: Context) => {
   try {
+    const auth = await validateMcpRequest(c.req.raw);
+
+    if (!auth.ok) {
+      return createMcpAuthErrorResponse(auth);
+    }
+
     // Create fresh server and transport per request — the MCP SDK's
     // WebStandardStreamableHTTPServerTransport is single-use in stateless
     // mode: it sets _hasHandledRequest=true after the first call and throws

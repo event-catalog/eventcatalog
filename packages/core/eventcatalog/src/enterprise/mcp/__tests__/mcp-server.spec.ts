@@ -80,6 +80,7 @@ vi.mock('@utils/feature', () => ({
   isSSR: vi.fn(() => true),
   isEventCatalogScaleEnabled: vi.fn(() => true),
   isEventCatalogMCPEnabled: vi.fn(() => true),
+  isEventCatalogMCPAuthEnabled: vi.fn(() => false),
 }));
 
 // Mock getSchemasFromResource

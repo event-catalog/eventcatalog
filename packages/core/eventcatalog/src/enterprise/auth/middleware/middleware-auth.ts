@@ -6,7 +6,7 @@
 // src/middleware/auth.ts
 import type { MiddlewareHandler } from 'astro';
 import { getSession } from 'auth-astro/server';
-import { isAuthEnabled } from '@utils/feature';
+import { isAuthEnabled, isEventCatalogMCPAuthEnabled } from '@utils/feature';
 import jwt from 'jsonwebtoken';
 import { isLLMSTxtEnabled } from '@utils/feature';
 
@@ -97,6 +97,10 @@ export function getPublicRoutes(isLLMSTextEnabled: boolean) {
   ];
 }
 
+export function isMcpRoute(pathname: string) {
+  return pathname === '/docs/mcp' || pathname.startsWith('/docs/mcp/');
+}
+
 export const authMiddleware: MiddlewareHandler = async (context, next) => {
   const { request, redirect, locals } = context;
   const url = new URL(request.url);
@@ -118,6 +122,7 @@ export const authMiddleware: MiddlewareHandler = async (context, next) => {
 
   if (
     pathname.startsWith('/_') ||
+    (isEventCatalogMCPAuthEnabled() && isMcpRoute(pathname)) ||
     systemRoutes.some((route) => pathname.startsWith(route)) ||
     pathname.startsWith('/.well-known/') ||
     publicRoutes.some((route) => pathname.startsWith(route)) ||

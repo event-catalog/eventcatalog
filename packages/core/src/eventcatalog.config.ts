@@ -55,6 +55,49 @@ type AuthConfig = {
   enabled: boolean;
 };
 
+type McpAuthConfig = {
+  /**
+   * Require OAuth Bearer tokens for the built-in MCP server.
+   * EventCatalog acts as the MCP protected resource server; the
+   * configured authorization server remains responsible for login,
+   * consent, token issuance, and client registration.
+   */
+  enabled?: boolean;
+  /**
+   * Absolute URL for the MCP resource. Defaults to the request origin
+   * plus `/docs/mcp`, but production deployments behind proxies should
+   * set this explicitly.
+   */
+  resource?: string;
+  /**
+   * Optional absolute URL for the OAuth Protected Resource Metadata
+   * document. Defaults to `/.well-known/oauth-protected-resource`.
+   */
+  protectedResourceMetadataUrl?: string;
+  /** Authorization server issuer/base URLs advertised to MCP clients. */
+  authorizationServers?: string[];
+  /** Expected token issuer (`iss`). */
+  issuer?: string;
+  /** Expected token audience (`aud`). Defaults to `resource`. */
+  audience?: string | string[];
+  /** Scopes required to call the MCP server. */
+  requiredScopes?: string[];
+  /** JWKS endpoint used to validate asymmetric JWT access tokens. */
+  jwksUri?: string;
+  /** Inline public key for asymmetric JWT validation. */
+  publicKey?: string;
+  /** Environment variable containing the public key. */
+  publicKeyEnvVar?: string;
+  /** Inline shared secret for symmetric JWT validation. Prefer `sharedSecretEnvVar`. */
+  sharedSecret?: string;
+  /** Environment variable containing the shared secret. */
+  sharedSecretEnvVar?: string;
+};
+
+type McpConfig = {
+  auth?: McpAuthConfig;
+};
+
 type GA4Config = {
   measurementId: string;
 };
@@ -105,6 +148,7 @@ export interface Config {
    */
   theme?: CatalogTheme;
   auth?: AuthConfig;
+  mcp?: McpConfig;
   rss?: {
     enabled: boolean;
     limit: number;

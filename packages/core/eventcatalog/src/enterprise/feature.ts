@@ -66,6 +66,8 @@ export const isDiagramComparisonEnabled = () => isEventCatalogScaleEnabled();
 
 export const isEventCatalogMCPEnabled = () => isEventCatalogScaleEnabled() && isSSR();
 
+export const isEventCatalogMCPAuthEnabled = () => isEventCatalogMCPEnabled() && (config?.mcp?.auth?.enabled ?? false);
+
 export const isIntegrationsEnabled = () => isEventCatalogScaleEnabled();
 
 export const isExportPDFEnabled = () => true;
