@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.40.0
+
+### Minor Changes
+
+- 9fd1049: feat(core): add OAuth Bearer token authentication for the built-in MCP server. EventCatalog now acts as an MCP protected resource server and can require valid access tokens (JWT) on `/docs/mcp`, with protected resource metadata served at `/.well-known/oauth-protected-resource`.
+
 ## 3.39.6
 
 ### Patch Changes
