@@ -1,5 +1,13 @@
 # @eventcatalog/linter
 
+## 1.0.24
+
+### Patch Changes
+
+- 67940c4: Add optional `url` support to badges so they can render as clickable links.
+- Updated dependencies [67940c4]
+  - @eventcatalog/sdk@2.21.2
+
 ## 1.0.23
 
 ### Patch Changes
