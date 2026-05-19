@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findMatchingRule, getPublicRoutes, matchesPattern } from '../enterprise/auth/middleware/middleware-auth';
+import { findMatchingRule, getPublicRoutes, isMcpRoute, matchesPattern } from '../enterprise/auth/middleware/middleware-auth';
 
 // Note:
 describe('middleware-auth', () => {
@@ -144,6 +144,20 @@ describe('middleware-auth', () => {
       expect(getPublicRoutes(false)).not.toContain('/docs/llm/schemas.txt');
       expect(getPublicRoutes(false)).not.toContain('/docs/llm/llms.txt');
       expect(getPublicRoutes(false)).not.toContain('/docs/llm/llms-full.txt');
+    });
+  });
+
+  describe('isMcpRoute', () => {
+    it('matches the MCP endpoint and child paths only', () => {
+      expect(isMcpRoute('/docs/mcp')).toBe(true);
+      expect(isMcpRoute('/docs/mcp/')).toBe(true);
+      expect(isMcpRoute('/docs/mcp/messages')).toBe(true);
+    });
+
+    it('does not match routes that only share the same prefix', () => {
+      expect(isMcpRoute('/docs/mcp-anything')).toBe(false);
+      expect(isMcpRoute('/docs/mcpany')).toBe(false);
+      expect(isMcpRoute('/docs/mcp.v1')).toBe(false);
     });
   });
 });

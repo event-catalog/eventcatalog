@@ -12,6 +12,7 @@ import {
   isEventCatalogScaleEnabled,
   isEventCatalogStarterEnabled,
   isEventCatalogMCPEnabled,
+  isEventCatalogMCPAuthEnabled,
   isFullCatalogAPIEnabled,
   isDevMode,
   isIntegrationsEnabled,
@@ -69,6 +70,17 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/docs/mcp/[...path]',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/mcp/mcp-server.ts'),
+          });
+        }
+
+        if (isEventCatalogMCPAuthEnabled()) {
+          params.injectRoute({
+            pattern: '/.well-known/oauth-protected-resource',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/mcp/oauth-protected-resource.ts'),
+          });
+          params.injectRoute({
+            pattern: '/.well-known/oauth-protected-resource/[...path]',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/mcp/oauth-protected-resource.ts'),
           });
         }
 
