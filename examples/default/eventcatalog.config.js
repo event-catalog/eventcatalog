@@ -38,7 +38,6 @@ export default {
   search: {
     type: 'indexed'
   },
-
   navigation: {
     pages: [
       {

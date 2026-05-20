@@ -111,6 +111,18 @@ type PostHogConfig = {
   apiHost?: string;
 };
 
+type EventCatalogCloudAnalyticsConfig = {
+  enabled: boolean;
+  trackingId: string;
+  writeKey?: string;
+  endpoint?: string;
+  debug?: boolean;
+};
+
+type EventCatalogCloudConfig = {
+  analytics?: EventCatalogCloudAnalyticsConfig;
+};
+
 type IntegrationsConfig = {
   ga4?: GA4Config;
   gtm?: GTMConfig;
@@ -260,6 +272,7 @@ export interface Config {
   queries?: {
     tableConfiguration?: TableConfiguration;
   };
+  cloud?: EventCatalogCloudConfig;
   integrations?: IntegrationsConfig;
   scalarConfiguration?: ScalarConfiguration;
 }

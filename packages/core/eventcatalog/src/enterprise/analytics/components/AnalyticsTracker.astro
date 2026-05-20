@@ -3,10 +3,12 @@ import config from '@config';
 import { isIntegrationsEnabled } from '@utils/feature';
 
 const integrations = config.integrations;
+const cloudAnalytics = config.cloud?.analytics;
 const enabled = isIntegrationsEnabled() && integrations;
 const hasProviders = enabled && (integrations?.ga4 || integrations?.gtm || integrations?.posthog);
 const debug = integrations?.debug ?? false;
-const shouldRender = enabled && (hasProviders || debug);
+const isCloudAnalyticsEnabled = cloudAnalytics?.enabled === true && !!cloudAnalytics?.trackingId;
+const shouldRender = isCloudAnalyticsEnabled || (enabled && (hasProviders || debug));
 
 const base = (config.base || '/').replace(/\/$/, '');
 const baseJson = JSON.stringify(base);
