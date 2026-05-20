@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.40.1
+
+### Patch Changes
+
+- 005ee19: Update the default cloud analytics ingest endpoint to https://api.ecingest.dev/v1/analytics/ingest
+
 ## 3.40.0
 
 ### Minor Changes
