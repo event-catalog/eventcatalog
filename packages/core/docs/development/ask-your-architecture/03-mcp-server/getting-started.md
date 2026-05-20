@@ -45,6 +45,78 @@ Visit the endpoint in your browser to verify. It returns available tools and res
 }
 ```
 
+### Protect with OAuth
+
+<AddedIn version="3.40.0" />
+
+The built-in MCP server can be protected with OAuth Bearer tokens, following the MCP authorization specification for HTTP transports.
+
+EventCatalog acts as the OAuth protected resource server for `/docs/mcp`. Your identity provider or authorization server remains responsible for user login, consent, client registration, `/authorize`, `/oauth/token`, and token refresh.
+
+Configure MCP authorization in `eventcatalog.config.js`:
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  output: 'server',
+  mcp: {
+    auth: {
+      enabled: true,
+      resource: 'https://your-eventcatalog.com/docs/mcp',
+      authorizationServers: ['https://auth.example.com'],
+      issuer: 'https://auth.example.com',
+      audience: 'https://your-eventcatalog.com/docs/mcp',
+      requiredScopes: ['catalog:read'],
+      jwksUri: 'https://auth.example.com/.well-known/jwks.json',
+    },
+  },
+};
+```
+
+When enabled, EventCatalog serves protected resource metadata at `/.well-known/oauth-protected-resource`. Unauthenticated MCP clients receive a `401 Unauthorized` response with a `WWW-Authenticate` header pointing at that document. MCP clients then obtain an access token from the advertised authorization server and call `/docs/mcp` with:
+
+```http
+Authorization: Bearer <access-token>
+```
+
+The access token must be valid, unexpired, issued by the configured issuer, intended for the configured audience, and include all required scopes.
+
+#### Key signing options
+
+Choose one of the following strategies for token validation:
+
+| Strategy | Config fields |
+|---|---|
+| JWKS endpoint (recommended) | `jwksUri` |
+| Inline asymmetric public key | `publicKey` or `publicKeyEnvVar` |
+| Symmetric shared secret | `sharedSecret` or `sharedSecretEnvVar` |
+
+Prefer `publicKeyEnvVar` or `sharedSecretEnvVar` over inline values to avoid committing secrets to source control.
+
+#### All options
+
+| Field | Required | Description |
+|---|---|---|
+| `enabled` | Yes | Enables OAuth Bearer token validation |
+| `resource` | No | Absolute URL of the MCP resource. Set this explicitly when behind a proxy |
+| `protectedResourceMetadataUrl` | No | URL for the protected resource metadata document. Defaults to `/.well-known/oauth-protected-resource` |
+| `authorizationServers` | No | Authorization server URLs advertised to MCP clients |
+| `issuer` | No | Expected token issuer (`iss` claim) |
+| `audience` | No | Expected token audience (`aud` claim). Defaults to `resource` |
+| `requiredScopes` | No | Scopes every token must include |
+| `jwksUri` | No | JWKS endpoint for asymmetric JWT validation |
+| `publicKey` | No | Inline public key for asymmetric JWT validation |
+| `publicKeyEnvVar` | No | Environment variable containing the public key |
+| `sharedSecret` | No | Inline shared secret for symmetric JWT validation |
+| `sharedSecretEnvVar` | No | Environment variable containing the shared secret |
+
+:::note Existing website authentication
+The `auth.enabled` and `eventcatalog.auth.js` settings protect the EventCatalog website with browser sessions. MCP authorization is separate because MCP clients authenticate with Bearer tokens, not browser cookies.
+:::
+
+:::tip Authorization server discovery
+EventCatalog serves `/.well-known/oauth-protected-resource` for MCP client discovery. It does not serve `/.well-known/oauth-authorization-server`, `/authorize`, or `/oauth/token` -- those endpoints must be provided by the authorization server listed in `authorizationServers`. If your MCP client expects those endpoints on the catalog host, proxy the authorization server behind that host with your load balancer or reverse proxy.
+:::
+
 ### Connect clients
 
 <details>

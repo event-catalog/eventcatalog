@@ -11,7 +11,7 @@ const getFeatures = async (configFile) => {
   };
 };
 
-const CLOUD_ANALYTICS_ENDPOINT = 'https://eventcatalog.cloud/v1/analytics/ingest';
+const CLOUD_ANALYTICS_ENDPOINT = 'https://api.ecingest.dev/v1/analytics/ingest';
 
 const toCloudResourceCounts = (counts) => ({
   domains: counts.domains || 0,

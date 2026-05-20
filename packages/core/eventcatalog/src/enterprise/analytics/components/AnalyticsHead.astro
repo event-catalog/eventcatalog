@@ -8,7 +8,7 @@ const enabled = isIntegrationsEnabled() && integrations;
 const hasProviders = enabled && (integrations?.ga4 || integrations?.gtm || integrations?.posthog);
 const debug = integrations?.debug ?? false;
 const cloudDebug = cloudAnalytics?.debug ?? debug;
-const cloudAnalyticsEndpoint = cloudAnalytics?.endpoint || 'https://eventcatalog.cloud/v1/analytics/ingest';
+const cloudAnalyticsEndpoint = cloudAnalytics?.endpoint || 'https://api.ecingest.dev/v1/analytics/ingest';
 const isCloudAnalyticsEnabled = cloudAnalytics?.enabled === true && !!cloudAnalytics?.trackingId;
 // Render the manager if there are providers OR if debug mode is on (so users can verify the pipeline)
 const shouldRender = isCloudAnalyticsEnabled || (enabled && (hasProviders || debug));

@@ -229,6 +229,7 @@ Badge properties:
 | `content` | `string` | Yes | Text content of the badge |
 | `backgroundColor` | `string` | Yes | Background color (named token or CSS value) |
 | `textColor` | `string` | Yes | Text color (named token or CSS value) |
+| `url` | `string` | No | When set, the badge renders as a clickable link with an external-link icon |
 
 #### Use named colors
 
@@ -239,6 +240,22 @@ Supported names: `slate`, `gray`, `zinc`, `neutral`, `stone`, `red`, `orange`, `
 #### Use any CSS color
 
 You can also pass any valid CSS color value directly: hex (`#ff0000`), `rgb()`, `hsl()`, `oklch()`, or a CSS variable (`var(--my-color)`).
+
+#### Link to external URLs
+
+<AddedIn version="3.39.6" />
+
+Add a `url` to a badge to make it render as a clickable link with an external-link icon. When `url` is omitted, the badge renders as a plain label.
+
+```md title="Link badge example"
+---
+badges:
+  - content: View Runbook
+    url: https://runbooks.example.com/my-data-product
+    backgroundColor: blue
+    textColor: white
+---
+```
 
 ### `repository`
 
