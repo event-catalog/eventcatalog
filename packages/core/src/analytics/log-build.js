@@ -56,7 +56,7 @@ const reportCloudResourceInventory = async (configFile, resourceCounts) => {
  * @param {string} projectDir
  */
 const main = async (projectDir, { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isBackstagePluginEnabled }) => {
-  if (process.env.NODE_ENV === 'CI') return;
+  // if (process.env.NODE_ENV === 'CI') return;
   try {
     await verifyRequiredFieldsAreInCatalogConfigFile(projectDir);
     const configFile = await getEventCatalogConfigFile(projectDir);
