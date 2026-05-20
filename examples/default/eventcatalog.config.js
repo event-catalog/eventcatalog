@@ -61,6 +61,14 @@ export default {
     ]
   },
 
+  cloud: {
+    analytics: {
+      enabled: true,
+      trackingId: 'ec_870UCliDP86IFBow',
+      writeKey: process.env.EVENTCATALOG_ANALYTICS_WRITE_KEY,
+    },
+  },
+
   customDocs: {
     sidebar: [
       {
