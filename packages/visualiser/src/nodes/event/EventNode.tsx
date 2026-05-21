@@ -15,6 +15,7 @@ import {
   useDarkMode,
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
+import { TruncatedResourceName } from "../TruncatedResourceName";
 
 const GlowHandle = memo(function GlowHandle({
   side,
@@ -145,7 +146,10 @@ function PostItEvent(props: EventNode) {
               }
             />
           )}
-          <div
+          <TruncatedResourceName
+            as="div"
+            value={name}
+            tooltipBorderColor="#f97316"
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
               deprecated
@@ -154,7 +158,7 @@ function PostItEvent(props: EventNode) {
             )}
           >
             {name}
-          </div>
+          </TruncatedResourceName>
         </div>
 
         {/* Version */}
@@ -287,9 +291,13 @@ function DefaultEvent(props: EventNode) {
               />
             )}
             <div className="flex items-baseline gap-1 min-w-0">
-              <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+              <TruncatedResourceName
+                value={name}
+                tooltipBorderColor="#f97316"
+                className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
+              >
                 {name}
-              </span>
+              </TruncatedResourceName>
               {version && (
                 <span
                   className="text-[10px] font-normal shrink-0"

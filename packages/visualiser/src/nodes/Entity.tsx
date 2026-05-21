@@ -9,6 +9,7 @@ import {
   HANDLE_RIGHT_OFFSET_STYLE,
   EMPTY_ARRAY,
 } from "./shared-styles";
+import { TruncatedResourceName } from "./TruncatedResourceName";
 
 interface EntityData {
   id: string;
@@ -93,15 +94,19 @@ export default memo(function EntityNode({
               externalToDomain ? "bg-amber-500/20" : "bg-blue-500/15",
             )}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               {Icon && (
                 <Icon className="w-4 h-4 text-[rgb(var(--ec-page-text-muted))]" />
               )}
-              <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">
+              <TruncatedResourceName
+                value={name}
+                tooltipBorderColor={externalToDomain ? "#f59e0b" : "#60a5fa"}
+                className="font-semibold text-[rgb(var(--ec-page-text))] text-sm truncate"
+              >
                 {name}
-              </span>
+              </TruncatedResourceName>
               {aggregateRoot && (
-                <span className="text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-medium">
+                <span className="text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-medium shrink-0">
                   AR
                 </span>
               )}

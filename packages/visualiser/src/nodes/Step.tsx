@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 import { NODE_WIDTH_STYLE, ROTATED_LABEL_STYLE } from "./shared-styles";
+import { TruncatedResourceName } from "./TruncatedResourceName";
 
 interface Data {
   title: string;
@@ -49,7 +50,7 @@ export default memo(function StepNode({
           </span>
         )}
       </div>
-      <div className="p-1 flex-1">
+      <div className="p-1 flex-1 min-w-0">
         <Handle
           type="target"
           position={targetPosition || Position.Left}
@@ -62,8 +63,15 @@ export default memo(function StepNode({
         />
 
         {!summary && (
-          <div className="h-full flex items-center">
-            <span className="text-sm font-bold block pb-0.5">{title}</span>
+          <div className="h-full flex items-center min-w-0">
+            <TruncatedResourceName
+              as="div"
+              value={title}
+              tooltipBorderColor="#60a5fa"
+              className="text-sm font-bold truncate pb-0.5"
+            >
+              {title}
+            </TruncatedResourceName>
           </div>
         )}
 
@@ -76,7 +84,14 @@ export default memo(function StepNode({
                   : "",
               )}
             >
-              <span className="text-xs font-bold block pb-0.5">{title}</span>
+              <TruncatedResourceName
+                as="div"
+                value={title}
+                tooltipBorderColor="#60a5fa"
+                className="text-xs font-bold truncate pb-0.5"
+              >
+                {title}
+              </TruncatedResourceName>
             </div>
             {mode === "full" && (
               <div className="divide-y divide-[rgb(var(--ec-page-border))] ">

@@ -12,6 +12,7 @@ import {
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
 } from "../shared-styles";
+import { TruncatedResourceName } from "../TruncatedResourceName";
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
@@ -126,14 +127,17 @@ function PostItExternalSystem(props: ExternalSystemNode) {
           )}
         </div>
 
-        <div
+        <TruncatedResourceName
+          as="div"
+          value={name}
+          tooltipBorderColor="#a855f7"
           className={classNames(
-            "text-[13px] font-bold leading-snug",
+            "text-[13px] font-bold leading-snug truncate",
             deprecated ? "text-purple-950/40 line-through" : "text-purple-950",
           )}
         >
           {name}
-        </div>
+        </TruncatedResourceName>
 
         {version && (
           <div className="text-[9px] text-purple-900/40 font-semibold mt-0.5">
@@ -218,10 +222,14 @@ function DefaultExternalSystem(props: ExternalSystemNode) {
 
       <div className="px-3 pt-3.5 pb-2.5">
         {/* Name + version */}
-        <div className="flex items-baseline gap-1">
-          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
+        <div className="flex items-baseline gap-1 min-w-0">
+          <TruncatedResourceName
+            value={name}
+            tooltipBorderColor="#a855f7"
+            className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
+          >
             {name}
-          </span>
+          </TruncatedResourceName>
           {version && (
             <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
               (v{version})

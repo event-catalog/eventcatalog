@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Workflow, Minimize2 } from "lucide-react";
+import { TruncatedResourceName } from "./TruncatedResourceName";
 
 export type FlowExpandedNodeData = {
   flowName?: string;
@@ -59,6 +60,7 @@ const HEADER_CONTENT_STYLE: React.CSSProperties = {
   justifyContent: "space-between",
   height: "100%",
   padding: "0 12px 0 14px",
+  gap: 12,
 };
 
 const FLOW_NAME_STYLE: React.CSSProperties = {
@@ -107,8 +109,22 @@ export default memo(function FlowExpandedNode({
         </div>
 
         <div style={HEADER_CONTENT_STYLE}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <span style={FLOW_NAME_STYLE}>{flowName || "Flow"}</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              minWidth: 0,
+              flex: 1,
+            }}
+          >
+            <TruncatedResourceName
+              value={flowName || "Flow"}
+              tooltipBorderColor="#14b8a6"
+              className="truncate"
+              style={FLOW_NAME_STYLE}
+            >
+              {flowName || "Flow"}
+            </TruncatedResourceName>
             {version && <span style={VERSION_STYLE}>v{version}</span>}
           </div>
 

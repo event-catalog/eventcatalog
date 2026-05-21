@@ -15,6 +15,7 @@ import {
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
 } from "../shared-styles";
+import { TruncatedResourceName } from "../TruncatedResourceName";
 
 const SPEC_LABELS: Record<string, string> = {
   openapi: "OpenAPI",
@@ -208,6 +209,7 @@ type PostItPalette = {
   nameTextDeprecated: string;
   versionClass: string;
   summaryClass: string;
+  tooltipBorderColor: string;
 };
 
 const POST_IT_SERVICE: PostItPalette = {
@@ -224,6 +226,7 @@ const POST_IT_SERVICE: PostItPalette = {
   versionClass: "text-[9px] text-pink-900/40 font-semibold mt-0.5",
   summaryClass:
     "mt-2 pt-1.5 border-t border-pink-900/10 text-[9px] text-pink-950/60 leading-relaxed overflow-hidden",
+  tooltipBorderColor: "#ec4899",
 };
 
 const POST_IT_EXTERNAL: PostItPalette = {
@@ -241,6 +244,7 @@ const POST_IT_EXTERNAL: PostItPalette = {
   versionClass: "text-[9px] text-purple-900/40 font-semibold mt-0.5",
   summaryClass:
     "mt-2 pt-1.5 border-t border-purple-900/10 text-[9px] text-purple-950/60 leading-relaxed overflow-hidden",
+  tooltipBorderColor: "#a855f7",
 };
 
 type DefaultPalette = {
@@ -258,6 +262,7 @@ type DefaultPalette = {
   ownerAccent: string;
   ownerBorder: string;
   ownerIcon: string;
+  tooltipBorderColor: string;
 };
 
 const DEFAULT_SERVICE: DefaultPalette = {
@@ -275,6 +280,7 @@ const DEFAULT_SERVICE: DefaultPalette = {
   ownerAccent: "bg-pink-400",
   ownerBorder: "rgba(236,72,153,0.08)",
   ownerIcon: "text-pink-300",
+  tooltipBorderColor: "#ec4899",
 };
 
 const DEFAULT_EXTERNAL: DefaultPalette = {
@@ -292,6 +298,7 @@ const DEFAULT_EXTERNAL: DefaultPalette = {
   ownerAccent: "bg-purple-400",
   ownerBorder: "rgba(168,85,247,0.08)",
   ownerIcon: "text-purple-300",
+  tooltipBorderColor: "#a855f7",
 };
 
 type ServiceNodeData = EventCatalogResource & {
@@ -399,14 +406,17 @@ function PostItService(props: ServiceNode) {
               }
             />
           )}
-          <div
+          <TruncatedResourceName
+            as="div"
+            value={name}
+            tooltipBorderColor={p.tooltipBorderColor}
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
               deprecated ? p.nameTextDeprecated : p.nameText,
             )}
           >
             {name}
-          </div>
+          </TruncatedResourceName>
         </div>
 
         {version && <div className={p.versionClass}>v{version}</div>}
@@ -528,9 +538,13 @@ function DefaultService(props: ServiceNode) {
             />
           )}
           <div className="flex items-baseline gap-1 min-w-0">
-            <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+            <TruncatedResourceName
+              value={name}
+              tooltipBorderColor={p.tooltipBorderColor}
+              className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
+            >
               {name}
-            </span>
+            </TruncatedResourceName>
             {version && (
               <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
                 (v{version})

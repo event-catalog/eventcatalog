@@ -4,6 +4,7 @@ import * as Icons from "@heroicons/react/24/solid";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 import { EMPTY_ARRAY, EMPTY_OBJECT, LINE_CLAMP_STYLE } from "./shared-styles";
+import { TruncatedResourceName } from "./TruncatedResourceName";
 import { usePortalContainer } from "../context/PortalContainerContext";
 
 type MenuItem = {
@@ -298,9 +299,13 @@ export default memo(function CustomNode({ data, selected }: any) {
 
           <div className="px-3 pt-3.5 pb-2.5">
             <div className="flex items-center gap-2">
-              <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+              <TruncatedResourceName
+                value={title}
+                tooltipBorderColor={palette.pillBorder}
+                className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
+              >
                 {title}
-              </span>
+              </TruncatedResourceName>
             </div>
 
             {mode === "full" && summary && (

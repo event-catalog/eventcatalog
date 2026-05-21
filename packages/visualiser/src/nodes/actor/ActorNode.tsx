@@ -9,6 +9,7 @@ import {
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
 } from "../shared-styles";
+import { TruncatedResourceName } from "../TruncatedResourceName";
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
@@ -120,14 +121,17 @@ function PostItActor(props: ActorNode) {
           )}
         </div>
 
-        <div
+        <TruncatedResourceName
+          as="div"
+          value={name}
+          tooltipBorderColor="#eab308"
           className={classNames(
-            "text-[13px] font-bold leading-snug",
+            "text-[13px] font-bold leading-snug truncate",
             deprecated ? "text-yellow-950/40 line-through" : "text-yellow-950",
           )}
         >
           {name}
-        </div>
+        </TruncatedResourceName>
 
         {mode === "full" && summary && (
           <div
@@ -205,9 +209,14 @@ function DefaultActor(props: ActorNode) {
 
       <div className="px-3 pt-3.5 pb-2.5">
         {/* Name */}
-        <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
+        <TruncatedResourceName
+          as="div"
+          value={name}
+          tooltipBorderColor="#eab308"
+          className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
+        >
           {name}
-        </span>
+        </TruncatedResourceName>
 
         {/* Summary */}
         {mode === "full" && summary && (

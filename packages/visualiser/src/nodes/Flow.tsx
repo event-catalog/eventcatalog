@@ -11,6 +11,7 @@ import {
   TINY_FONT_STYLE,
   EMPTY_ARRAY,
 } from "./shared-styles";
+import { TruncatedResourceName } from "./TruncatedResourceName";
 
 interface FlowData {
   id: string;
@@ -111,7 +112,7 @@ export default memo(function FlowNode({
                 </span>
               )}
             </div>
-            <div className="p-1 flex-1">
+            <div className="p-1 flex-1 min-w-0">
               {targetPosition && (
                 <Handle type="target" position={targetPosition} />
               )}
@@ -125,9 +126,14 @@ export default memo(function FlowNode({
                     : "",
                 )}
               >
-                <span className="text-xs font-bold block pt-0.5 pb-0.5">
+                <TruncatedResourceName
+                  as="div"
+                  value={name}
+                  tooltipBorderColor="#14b8a6"
+                  className="text-xs font-bold truncate pt-0.5 pb-0.5"
+                >
                   {name}
-                </span>
+                </TruncatedResourceName>
                 <div className="flex justify-between">
                   <span className="text-[10px] font-light block pt-0.5 pb-0.5 ">
                     v{version}
