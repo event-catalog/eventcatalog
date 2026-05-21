@@ -7,7 +7,7 @@
   },
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
-  "version": "3.40.1",
+  "version": "3.40.2",
   "publishConfig": {
     "access": "public"
   },
