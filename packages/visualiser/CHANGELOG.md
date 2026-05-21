@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.21.1
+
+### Patch Changes
+
+- 8db08c5: Visualiser nodes now show a tooltip with the full resource name on hover when the name is truncated.
+
 ## 3.21.0
 
 ### Minor Changes
