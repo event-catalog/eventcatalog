@@ -14,6 +14,13 @@
   "bin": {
     "eventcatalog": "bin/eventcatalog.js"
   },
+  "typesVersions": {
+    "*": {
+      "bin/eventcatalog.config": [
+        "bin/eventcatalog.config.d.ts"
+      ]
+    }
+  },
   "files": [
     "eventcatalog/",
     "!eventcatalog/**/__tests__/",

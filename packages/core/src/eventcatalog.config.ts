@@ -40,6 +40,7 @@ type TableConfiguration = {
   columns: {
     [key: string]: {
       visible?: boolean;
+      label?: string;
     };
   };
 };
@@ -50,6 +51,10 @@ type PagesConfiguration = {
   icon?: string;
   pages?: string[];
 };
+
+type NavigationPage = string | PagesConfiguration;
+
+type GeneratorConfig = string | Record<string, unknown> | [string, Record<string, unknown>];
 
 type AuthConfig = {
   enabled: boolean;
@@ -137,18 +142,26 @@ type CatalogTheme = 'default' | 'ocean' | 'sapphire' | 'sunset' | 'forest' | (st
 type ScalarConfiguration = any;
 
 export interface Config {
+  cId: string;
   title: string;
-  tagline: false;
   organizationName: string;
-  homepageLink: string;
-  editUrl: string;
+  tagline?: string | false;
+  homepageLink?: string;
+  editUrl?: string;
   repositoryUrl?: string;
   landingPage?: string;
   base?: string;
-  port?: string;
-  host?: string;
+  port?: string | number;
+  outDir?: string;
+  host?: string | boolean;
   trailingSlash?: boolean;
   output?: 'server' | 'static';
+  server?: {
+    allowedHosts?: string[] | true;
+  };
+  security?: {
+    checkOrigin?: boolean;
+  };
   /**
    * Theme for the catalog UI.
    * - 'default': Default purple/slate theme
@@ -162,8 +175,8 @@ export interface Config {
   auth?: AuthConfig;
   mcp?: McpConfig;
   rss?: {
-    enabled: boolean;
-    limit: number;
+    enabled?: boolean;
+    limit?: number;
   };
   search?: {
     /**
@@ -189,9 +202,9 @@ export interface Config {
   compress?: boolean;
   sidebar?: SideBarConfig[];
   navigation?: {
-    pages: PagesConfiguration[];
+    pages: NavigationPage[];
   };
-  docs: {
+  docs?: {
     sidebar: {
       type?: 'TREE_VIEW' | 'LIST_VIEW';
       showOrphanedMessages?: boolean;
@@ -208,7 +221,7 @@ export interface Config {
     iconPacks?: string[];
   };
   chat?: {
-    enabled: boolean;
+    enabled?: boolean;
     provider?: 'openai' | 'anthropic' | 'google';
     model?: string;
     max_tokens?: number;
@@ -226,7 +239,7 @@ export interface Config {
     /**
      * Enable or disable the /api/catalog endpoint that dumps the entire catalog as JSON.
      * Disabling this can significantly reduce memory usage during builds for large catalogs (1000+ files).
-     * @default false
+     * @default true
      */
     fullCatalogAPIEnabled?: boolean;
   };
@@ -275,4 +288,5 @@ export interface Config {
   cloud?: EventCatalogCloudConfig;
   integrations?: IntegrationsConfig;
   scalarConfiguration?: ScalarConfiguration;
+  generators?: GeneratorConfig[];
 }
