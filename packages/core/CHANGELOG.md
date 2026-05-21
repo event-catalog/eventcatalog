@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.40.2
+
+### Patch Changes
+
+- 4f61ed4: Fix editor autocomplete for `eventcatalog.config.js` by publishing the config type declaration at the documented import path.
+
 ## 3.40.1
 
 ### Patch Changes
