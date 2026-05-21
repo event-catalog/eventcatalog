@@ -224,6 +224,10 @@
   cursor: pointer;
 }
 
+.react-flow__node:hover .ec-truncated-resource-name-tooltip {
+  display: block;
+}
+
 /* Smooth transition when expanding/collapsing message groups */
 .ec-animating-layout .react-flow__node {
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);

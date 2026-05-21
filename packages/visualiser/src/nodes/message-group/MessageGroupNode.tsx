@@ -3,6 +3,7 @@ import { Layers, Zap, Terminal, HelpCircle, Maximize2 } from "lucide-react";
 import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
 import { HIDDEN_HANDLE_STYLE } from "../OwnerIndicator";
 import { useDarkMode } from "../shared-styles";
+import { TruncatedResourceName } from "../TruncatedResourceName";
 
 export type MessageGroupNodeData = {
   mode?: string;
@@ -140,9 +141,14 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
         </div>
 
         <div className="px-3 pt-3.5 pb-2.5">
-          <div className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
+          <TruncatedResourceName
+            as="div"
+            value={groupName}
+            tooltipBorderColor="#8b5cf6"
+            className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
+          >
             {groupName}
-          </div>
+          </TruncatedResourceName>
 
           <div className="mt-1.5 flex items-center gap-2">
             <span

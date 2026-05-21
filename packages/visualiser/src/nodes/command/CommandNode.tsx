@@ -15,6 +15,7 @@ import {
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
 } from "../shared-styles";
+import { TruncatedResourceName } from "../TruncatedResourceName";
 
 const GlowHandle = memo(function GlowHandle({
   side,
@@ -144,14 +145,17 @@ function PostItCommand(props: CommandNode) {
               }
             />
           )}
-          <div
+          <TruncatedResourceName
+            as="div"
+            value={name}
+            tooltipBorderColor="#3b82f6"
             className={classNames(
               "text-[13px] font-bold leading-snug min-w-0 truncate",
               deprecated ? "text-blue-950/40 line-through" : "text-blue-950",
             )}
           >
             {name}
-          </div>
+          </TruncatedResourceName>
         </div>
 
         {version && (
@@ -285,9 +289,13 @@ function DefaultCommand(props: CommandNode) {
               />
             )}
             <div className="flex items-baseline gap-1 min-w-0">
-              <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+              <TruncatedResourceName
+                value={name}
+                tooltipBorderColor="#3b82f6"
+                className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
+              >
                 {name}
-              </span>
+              </TruncatedResourceName>
               {version && (
                 <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
                   (v{version})

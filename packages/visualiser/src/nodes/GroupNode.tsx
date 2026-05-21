@@ -1,6 +1,7 @@
 import { memo } from "react";
 import type { NodeProps } from "@xyflow/react";
 import { BoxesIcon } from "lucide-react";
+import { TruncatedResourceName } from "./TruncatedResourceName";
 
 export type GroupNodeData = {
   mode: string;
@@ -65,12 +66,14 @@ const GROUP_BANNER_CONTENT_STYLE = {
   justifyContent: "center" as const,
   height: "100%",
   padding: "0 40px",
+  minWidth: 0,
 } as const;
 
 const GROUP_BANNER_INNER_STYLE = {
   display: "flex",
   alignItems: "center" as const,
   gap: 8,
+  minWidth: 0,
 } as const;
 
 const GROUP_DOMAIN_NAME_STYLE = {
@@ -115,9 +118,14 @@ export default memo(function GroupNode({ data }: NodeProps) {
         {/* Banner text content */}
         <div style={GROUP_BANNER_CONTENT_STYLE}>
           <div style={GROUP_BANNER_INNER_STYLE}>
-            <span style={GROUP_DOMAIN_NAME_STYLE}>
+            <TruncatedResourceName
+              value={domain?.name || "Domain"}
+              tooltipBorderColor="#7c3aed"
+              className="truncate"
+              style={GROUP_DOMAIN_NAME_STYLE}
+            >
               {domain?.name || "Domain"}
-            </span>
+            </TruncatedResourceName>
             {domain?.version && (
               <span style={GROUP_VERSION_STYLE}>v{domain.version}</span>
             )}

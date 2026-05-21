@@ -14,6 +14,7 @@ import {
   useDarkMode,
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
+import { TruncatedResourceName } from "../TruncatedResourceName";
 
 import { memo, useMemo } from "react";
 
@@ -228,14 +229,17 @@ function PostItChannel(props: ChannelNode) {
             />
           )}
           <div className="flex items-baseline gap-1.5 min-w-0">
-            <div
+            <TruncatedResourceName
+              as="div"
+              value={name}
+              tooltipBorderColor="#6b7280"
               className={classNames(
                 "text-[13px] font-bold leading-snug truncate",
                 deprecated ? "text-gray-950/40 line-through" : "text-gray-950",
               )}
             >
               {name}
-            </div>
+            </TruncatedResourceName>
             {version && (
               <span className="text-[9px] text-gray-900/30 font-medium shrink-0">
                 v{version}
@@ -379,9 +383,13 @@ function DefaultChannel(props: ChannelNode) {
             />
           )}
           <div className="flex items-baseline gap-1.5 min-w-0">
-            <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate">
+            <TruncatedResourceName
+              value={name}
+              tooltipBorderColor="#6b7280"
+              className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))] truncate"
+            >
               {name}
-            </span>
+            </TruncatedResourceName>
             {version && (
               <span
                 className="text-[9px] font-normal shrink-0"

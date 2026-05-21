@@ -31,6 +31,7 @@ const AVAILABLE_COLORS = {
     text: "text-yellow-900",
     placeholder: "placeholder-yellow-600",
     selectedRing: "ring-yellow-500",
+    tooltipBorderColor: "#facc15",
   },
   blue: {
     bg: "bg-blue-200",
@@ -38,6 +39,7 @@ const AVAILABLE_COLORS = {
     text: "text-blue-900",
     placeholder: "placeholder-blue-600",
     selectedRing: "ring-blue-500",
+    tooltipBorderColor: "#60a5fa",
   },
   green: {
     bg: "bg-green-200",
@@ -45,6 +47,7 @@ const AVAILABLE_COLORS = {
     text: "text-green-900",
     placeholder: "placeholder-green-600",
     selectedRing: "ring-green-500",
+    tooltipBorderColor: "#4ade80",
   },
   pink: {
     bg: "bg-pink-200",
@@ -52,6 +55,7 @@ const AVAILABLE_COLORS = {
     text: "text-pink-900",
     placeholder: "placeholder-pink-600",
     selectedRing: "ring-pink-500",
+    tooltipBorderColor: "#f472b6",
   },
   purple: {
     bg: "bg-purple-200",
@@ -59,6 +63,7 @@ const AVAILABLE_COLORS = {
     text: "text-purple-900",
     placeholder: "placeholder-purple-600",
     selectedRing: "ring-purple-500",
+    tooltipBorderColor: "#c084fc",
   },
   gray: {
     bg: "bg-gray-200",
@@ -66,6 +71,7 @@ const AVAILABLE_COLORS = {
     text: "text-gray-900",
     placeholder: "placeholder-gray-600",
     selectedRing: "ring-gray-500",
+    tooltipBorderColor: "#9ca3af",
   },
 } as const;
 
@@ -86,7 +92,9 @@ export default memo(function NoteNodeComponent({
   const [currentText, setCurrentText] = useState(
     data.text || "Double-click to edit...",
   );
+  const [isTextOverflowing, setIsTextOverflowing] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const displayRef = useRef<HTMLDivElement>(null);
 
   const currentColorName = (data.color as ColorName) || "yellow";
   const colorClasses =
@@ -135,6 +143,26 @@ export default memo(function NoteNodeComponent({
       textAreaRef.current.select();
     }
   }, [isEditing]);
+
+  useEffect(() => {
+    const element = displayRef.current;
+    if (!element || isEditing) return;
+
+    const updateOverflow = () => {
+      setIsTextOverflowing(element.scrollHeight > element.clientHeight);
+    };
+
+    updateOverflow();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateOverflow);
+      return () => window.removeEventListener("resize", updateOverflow);
+    }
+
+    const observer = new ResizeObserver(updateOverflow);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [currentText, isEditing]);
 
   const handleDoubleClick = useCallback(() => {
     if (!readOnly) {
@@ -248,12 +276,32 @@ export default memo(function NoteNodeComponent({
             placeholder="Enter text..."
           />
         ) : (
-          <div
-            className="whitespace-pre-wrap break-words w-full h-full overflow-y-auto custom-scrollbar text-[10px]"
-            dangerouslySetInnerHTML={{
-              __html: formatText(currentText),
-            }}
-          />
+          <>
+            <div
+              ref={displayRef}
+              className="whitespace-pre-wrap break-words w-full h-full overflow-y-auto custom-scrollbar text-[10px]"
+              dangerouslySetInnerHTML={{
+                __html: formatText(currentText),
+              }}
+            />
+            {isTextOverflowing && (
+              <div
+                className="pointer-events-none absolute left-1/2 bottom-full z-[9999] mb-4 hidden w-max max-w-[320px] -translate-x-1/2 rounded-md border bg-slate-950 px-2.5 py-1.5 text-[11px] font-medium leading-snug text-white shadow-lg group-hover:block"
+                style={{ borderColor: colorClasses.tooltipBorderColor }}
+              >
+                <span className="block whitespace-pre-wrap break-words">
+                  {currentText}
+                </span>
+                <span
+                  className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b border-r bg-slate-950"
+                  style={{
+                    borderBottomColor: colorClasses.tooltipBorderColor,
+                    borderRightColor: colorClasses.tooltipBorderColor,
+                  }}
+                />
+              </div>
+            )}
+          </>
         )}
 
         {/* PostIt folded corner effect */}

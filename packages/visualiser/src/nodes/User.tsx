@@ -2,6 +2,7 @@ import { memo } from "react";
 import { UserIcon } from "@heroicons/react/20/solid";
 import { Handle } from "@xyflow/react";
 import { NODE_WIDTH_STYLE, ROTATED_LABEL_STYLE } from "./shared-styles";
+import { TruncatedResourceName } from "./TruncatedResourceName";
 
 interface Data {
   title: string;
@@ -37,6 +38,7 @@ export default memo(function UserNode({
   } = data as Data;
 
   const { summary, actor: { name } = {} } = step;
+  const displayName = name || step.name || step.title || "Actor";
 
   return (
     <div
@@ -62,15 +64,20 @@ export default memo(function UserNode({
           </span>
         )}
       </div>
-      <div className="p-1 flex-1">
+      <div className="p-1 flex-1 min-w-0">
         {targetPosition && <Handle type="target" position={targetPosition} />}
         {sourcePosition && <Handle type="source" position={sourcePosition} />}
 
         {(!summary || mode !== "full") && (
-          <div className="h-full ">
-            <span className="text-sm font-bold block pb-0.5 w-full">
-              {name}
-            </span>
+          <div className="h-full min-w-0">
+            <TruncatedResourceName
+              as="div"
+              value={displayName}
+              tooltipBorderColor="#eab308"
+              className="text-sm font-bold truncate pb-0.5"
+            >
+              {displayName}
+            </TruncatedResourceName>
             {mode === "simple" && (
               <div className="w-full text-right">
                 <span className=" w-full text-[10px] text-[rgb(var(--ec-page-text-muted))] font-light block pt-0.5 pb-0.5 ">
@@ -90,7 +97,14 @@ export default memo(function UserNode({
                   : "",
               )}
             >
-              <span className="text-xs font-bold block pb-0.5">{name}</span>
+              <TruncatedResourceName
+                as="div"
+                value={displayName}
+                tooltipBorderColor="#eab308"
+                className="text-xs font-bold truncate pb-0.5"
+              >
+                {displayName}
+              </TruncatedResourceName>
             </div>
             {mode === "full" && (
               <div className="divide-y divide-[rgb(var(--ec-page-border))] ">

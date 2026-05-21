@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Layers, Minimize2 } from "lucide-react";
+import { TruncatedResourceName } from "../TruncatedResourceName";
 
 export type MessageGroupExpandedNodeData = {
   groupName: string;
@@ -56,6 +57,7 @@ const HEADER_CONTENT_STYLE: React.CSSProperties = {
   justifyContent: "space-between",
   height: "100%",
   padding: "0 12px 0 14px",
+  gap: 12,
 };
 
 const GROUP_NAME_STYLE: React.CSSProperties = {
@@ -104,8 +106,22 @@ export default memo(function MessageGroupExpandedNode({
         </div>
 
         <div style={HEADER_CONTENT_STYLE}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <span style={GROUP_NAME_STYLE}>{groupName || "Group"}</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              minWidth: 0,
+              flex: 1,
+            }}
+          >
+            <TruncatedResourceName
+              value={groupName || "Group"}
+              tooltipBorderColor="#8b5cf6"
+              className="truncate"
+              style={GROUP_NAME_STYLE}
+            >
+              {groupName || "Group"}
+            </TruncatedResourceName>
           </div>
 
           <button
