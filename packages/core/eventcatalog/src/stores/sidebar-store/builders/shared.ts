@@ -54,6 +54,7 @@ export const uniqueBy = <T>(array: T[], key: keyof T): T[] => {
 };
 
 export type ResourceGroupContext = {
+  agents?: CollectionEntry<'agents'>[];
   services: CollectionEntry<'services'>[];
   domains: CollectionEntry<'domains'>[];
   events: CollectionEntry<'events'>[];
@@ -210,14 +211,16 @@ const buildResourceGroupSection = (resourceGroup: ResourceGroup, context: Resour
   // If no version is provided, we need to get the latest version
   const resourcesWithVersions = resourcesWithTypes.map((item) => {
     let collection: any[] = [];
+    const itemType = item.type as string;
 
-    if (item.type === 'service') collection = context.services;
-    else if (item.type === 'domain') collection = context.domains;
-    else if (item.type === 'event') collection = context.events;
-    else if (item.type === 'command') collection = context.commands;
-    else if (item.type === 'query') collection = context.queries;
-    else if (item.type === 'flow') collection = context.flows;
-    else if (item.type === 'container') collection = context.containers;
+    if (itemType === 'agent') collection = context.agents || [];
+    else if (itemType === 'service') collection = context.services;
+    else if (itemType === 'domain') collection = context.domains;
+    else if (itemType === 'event') collection = context.events;
+    else if (itemType === 'command') collection = context.commands;
+    else if (itemType === 'query') collection = context.queries;
+    else if (itemType === 'flow') collection = context.flows;
+    else if (itemType === 'container') collection = context.containers;
 
     if (item.version === undefined || item.version === 'latest') {
       return { ...item, version: getLatestVersionInCollectionById(collection, item.id as string) };

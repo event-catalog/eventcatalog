@@ -6,6 +6,7 @@ import {
   Locate,
   ChevronRight,
   ServerIcon,
+  Bot,
   Zap,
   MessageSquare,
   Search,
@@ -33,6 +34,8 @@ const NODE_TYPE_META: Record<
 > = {
   service: { icon: ServerIcon, color: "#ec4899", label: "Service" },
   services: { icon: ServerIcon, color: "#ec4899", label: "Service" },
+  agent: { icon: Bot, color: "#0ea5e9", label: "Agent" },
+  agents: { icon: Bot, color: "#0ea5e9", label: "Agent" },
   event: { icon: Zap, color: "#f97316", label: "Event" },
   events: { icon: Zap, color: "#f97316", label: "Event" },
   command: { icon: MessageSquare, color: "#3b82f6", label: "Command" },

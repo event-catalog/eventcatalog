@@ -1,0 +1,53 @@
+---
+id: SubscriptionRecoveryAgent
+name: Subscription Recovery Agent
+version: 0.0.1
+summary: Coordinates dunning, entitlement risk, and customer messaging when recurring payments fail.
+owners:
+  - dboyne
+  - subscriptions-management
+model:
+  provider: Anthropic
+  name: claude-3.5-haiku
+  version: "2024-10-22"
+repository:
+  language: TypeScript
+  url: https://github.com/eventcatalog/subscription-recovery-agent
+tools:
+  - name: Dunning strategy planner
+    type: mcp
+    icon: /icons/tools/hubspot.svg
+    url: https://mcp.example.com/subscriptions/dunning-strategy
+    description: Selects retry cadence, grace period messaging, and escalation path from account value and failure reason.
+  - name: Entitlement risk lookup
+    type: mcp
+    icon: /icons/tools/datadog.svg
+    url: https://mcp.example.com/subscriptions/entitlement-risk
+    description: Checks active entitlements, usage health, account age, and churn risk before recommending suspension.
+receives:
+  - id: SubscriptionPaymentDue
+  - id: PaymentFailed
+  - id: UserSubscriptionCancelled
+readsFrom:
+  - id: subscriptions-db
+flows:
+  - id: SubscriptionPaymentFailureFlow
+---
+
+The Subscription Recovery Agent supports recurring revenue operations by recommending the next best recovery action when payment collection fails.
+
+It receives [[event|SubscriptionPaymentDue]], [[event|PaymentFailed]], and [[event|UserSubscriptionCancelled]] so billing and support teams can keep the customer active when recovery is still likely.
+
+## Tools
+
+<AgentTools />
+
+## Responsibilities
+
+- Recommend retry timing and grace-period actions for failed renewals.
+- Explain entitlement impact before a subscription is suspended.
+- Draft customer-facing payment recovery messages for the notification queue.
+
+## Collaborators
+
+The agent works with [[service|BillingService]], [[service|SubscriptionService]], [[service|PaymentGatewayService]], and [[service|NotificationService]] during the [[flow|SubscriptionPaymentFailureFlow]].

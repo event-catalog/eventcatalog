@@ -35,6 +35,9 @@ border-gray-400 from-gray-500 to-gray-700 text-gray-100 border-gray-500 from-gra
 <!-- indigo -->
 border-indigo-400 from-indigo-500 to-indigo-700 text-indigo-100 border-indigo-500 from-indigo-400 to-indigo-600 border-indigo
 
+<!-- sky -->
+border-sky-400 from-sky-500 to-sky-700 text-sky-100 border-sky-500 from-sky-400 to-sky-600 border-sky bg-sky-500 bg-sky-600 text-sky-300 text-sky-500 text-sky-700 ring-sky-400
+
 <!-- cyan -->
 border-cyan-400 from-cyan-500 to-cyan-700 text-cyan-100 border-cyan-500 from-cyan-400 to-cyan-600 border-cyan
 

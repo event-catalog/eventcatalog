@@ -1,6 +1,6 @@
 import { getNodesAndEdges } from '../../node-graphs/flows-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockContainers, mockDataProducts, mockEvents, mockFlow, mockFlowByIds, mockServices } from './mocks';
+import { mockAgents, mockContainers, mockDataProducts, mockEvents, mockFlow, mockFlowByIds, mockServices } from './mocks';
 import { getCollection } from 'astro:content';
 let expectedNodes: any;
 
@@ -17,6 +17,9 @@ vi.mock('astro:content', async (importOriginal) => {
       }
       if (key === 'services') {
         return Promise.resolve(mockServices);
+      }
+      if (key === 'agents') {
+        return Promise.resolve(mockAgents);
       }
       if (key === 'containers') {
         return Promise.resolve(mockContainers);
@@ -157,6 +160,30 @@ describe('Flows NodeGraph', () => {
       );
     });
 
+    it('resolves agent step nodes and attaches an agent context menu', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'DataProductFlow', version: '1.0.0' });
+
+      const agentNode = nodes.find((n: any) => n.id === 'step-fraud-review');
+
+      expect(agentNode).toEqual(
+        expect.objectContaining({
+          type: 'agents',
+          data: expect.objectContaining({
+            agent: expect.objectContaining({
+              id: 'FraudReviewAgent',
+              version: '1.0.0',
+            }),
+            contextMenu: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Read documentation',
+                href: expect.stringContaining('/docs/agents/FraudReviewAgent/1.0.0'),
+              }),
+            ]),
+          }),
+        })
+      );
+    });
+
     it('resolves container step nodes to the latest container version when no version is given', async () => {
       const { nodes } = await getNodesAndEdges({ id: 'DataStoreFlow', version: '1.0.0' });
 
@@ -255,6 +282,9 @@ describe('Flows NodeGraph', () => {
               }
               if (key === 'services') {
                 return Promise.resolve(mockServices);
+              }
+              if (key === 'agents') {
+                return Promise.resolve(mockAgents);
               }
               if (key === 'containers') {
                 return Promise.resolve(mockContainers);

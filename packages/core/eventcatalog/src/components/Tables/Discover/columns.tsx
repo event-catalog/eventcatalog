@@ -20,6 +20,42 @@ import type { TableConfiguration } from '@types';
 
 const columnHelper = createColumnHelper<DiscoverTableData>();
 
+const getAgentProviderIconUrls = (provider?: string) => {
+  if (!provider) return null;
+  const providerIconName = provider
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
+  const hasThemedIcon = ['openai', 'anthropic'].includes(providerIconName);
+
+  return hasThemedIcon
+    ? {
+        light: resolveIconUrl(`/icons/agent/${providerIconName}-light.svg`),
+        dark: resolveIconUrl(`/icons/agent/${providerIconName}-dark.svg`),
+      }
+    : {
+        default: resolveIconUrl(`/icons/agent/${providerIconName}.svg`),
+      };
+};
+
+const AgentProviderIcon = ({ provider, className }: { provider: string; className: string }) => {
+  const providerIconUrls = getAgentProviderIconUrls(provider);
+  if (!providerIconUrls) return null;
+
+  if ('light' in providerIconUrls && 'dark' in providerIconUrls) {
+    return (
+      <>
+        <img src={providerIconUrls.light} alt="" className={`${className} dark:hidden`} loading="lazy" />
+        <img src={providerIconUrls.dark} alt="" className={`hidden ${className} dark:inline-block`} loading="lazy" />
+      </>
+    );
+  }
+
+  return <img src={providerIconUrls.default} alt="" className={className} loading="lazy" />;
+};
+
 // Badge cell component (proper React component to use hooks)
 const BadgesCell = ({
   badges,
@@ -107,6 +143,7 @@ const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; col
   const favorites = useStore(favoritesStore);
   const href = buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`);
   const visualiserHref = buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`);
+  const hasVisualiser = true;
   const nodeKey = `${item.collection}-${item.data.id}-${item.data.version}`;
   const badgeLabel =
     collectionType === 'external-systems'
@@ -169,13 +206,15 @@ const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; col
             <DocumentTextIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
             View documentation
           </a>
-          <a
-            href={visualiserHref}
-            className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
-          >
-            <MapIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
-            View in visualiser
-          </a>
+          {hasVisualiser && (
+            <a
+              href={visualiserHref}
+              className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+            >
+              <MapIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+              View in visualiser
+            </a>
+          )}
           <button
             type="button"
             onClick={handleToggleFavorite}
@@ -276,6 +315,82 @@ const CollectionListCell = ({
     </div>
   );
 };
+
+// ============================================================================
+// AGENT COLUMNS
+// ============================================================================
+export const getAgentColumns = (tableConfiguration: TableConfiguration) => [
+  columnHelper.accessor('data.name', {
+    id: 'name',
+    header: () => <span>{tableConfiguration?.columns?.name?.label || 'Agent'}</span>,
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
+    meta: {
+      filterVariant: 'name',
+    },
+  }),
+  createSummaryColumn(tableConfiguration),
+  columnHelper.accessor((row) => row.data.model?.provider, {
+    id: 'provider',
+    header: () => <span>{tableConfiguration?.columns?.provider?.label || 'Provider'}</span>,
+    cell: (info) => {
+      const provider = info.getValue() as string | undefined;
+      if (!provider) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+      return (
+        <span className="inline-flex items-center gap-2" title={provider} aria-label={provider}>
+          <AgentProviderIcon provider={provider} className="h-3 w-3 flex-shrink-0 rounded-sm object-contain" />
+          <span className="text-[0.8rem] font-medium text-[rgb(var(--ec-page-text))]">{provider}</span>
+        </span>
+      );
+    },
+    meta: {
+      showFilter: false,
+    },
+  }),
+  columnHelper.accessor('data.model', {
+    id: 'model',
+    header: () => <span>{tableConfiguration?.columns?.model?.label || 'Model'}</span>,
+    cell: (info) => {
+      const model = info.getValue() as any;
+      if (!model?.name) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+      return (
+        <div className="flex flex-col gap-0.5 text-[0.8rem]">
+          <span className="font-medium text-[rgb(var(--ec-page-text))]">{model.name}</span>
+        </div>
+      );
+    },
+    meta: {
+      showFilter: false,
+    },
+  }),
+  columnHelper.accessor('data.receives', {
+    id: 'receives',
+    header: () => (
+      <span className="flex items-center gap-1">
+        <ArrowDownIcon className="w-3.5 h-3.5" />
+        Receives
+      </span>
+    ),
+    cell: (info) => <CollectionListCell items={info.getValue()} />,
+    meta: {
+      showFilter: false,
+    },
+  }),
+  columnHelper.accessor('data.sends', {
+    id: 'sends',
+    header: () => (
+      <span className="flex items-center gap-1">
+        <ArrowUpIcon className="w-3.5 h-3.5" />
+        Sends
+      </span>
+    ),
+    cell: (info) => <CollectionListCell items={info.getValue()} />,
+    meta: {
+      showFilter: false,
+    },
+  }),
+  createBadgesColumn(tableConfiguration),
+  createActionsColumn('agents', tableConfiguration),
+];
 
 // ============================================================================
 // EVENT COLUMNS
@@ -440,6 +555,14 @@ export const getDomainColumns = (tableConfiguration: TableConfiguration) => [
       showFilter: false,
     },
   }),
+  columnHelper.accessor('data.agents', {
+    id: 'agents',
+    header: () => <span>Agents</span>,
+    cell: (info) => <CollectionListCell items={info.getValue()} />,
+    meta: {
+      showFilter: false,
+    },
+  }),
   createBadgesColumn(tableConfiguration),
   createActionsColumn('domains', tableConfiguration),
 ];
@@ -552,6 +675,8 @@ export const getDataProductColumns = (tableConfiguration: TableConfiguration) =>
 // ============================================================================
 export const getDiscoverColumns = (collectionType: CollectionType, tableConfiguration: TableConfiguration) => {
   switch (collectionType) {
+    case 'agents':
+      return getAgentColumns(tableConfiguration);
     case 'events':
       return getEventColumns(tableConfiguration);
     case 'commands':

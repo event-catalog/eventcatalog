@@ -14,10 +14,12 @@ import { UserIcon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
 import type { TableConfiguration } from '@types';
 import { isSameVersion } from '@utils/collections/version-compare';
+import { resolveIconUrl } from '@utils/icon';
 import { FilterDropdown, CheckboxItem } from './FilterComponents';
 import { getDiscoverColumns } from './columns';
 
 export type CollectionType =
+  | 'agents'
   | 'events'
   | 'commands'
   | 'queries'
@@ -37,6 +39,8 @@ export interface DiscoverTableData {
   hasRepository?: boolean;
   isDeprecated?: boolean;
   hasDataDependencies?: boolean;
+  hasTools?: boolean;
+  hasModel?: boolean;
   hasInputs?: boolean;
   hasOutputs?: boolean;
   data: {
@@ -58,6 +62,9 @@ export interface DiscoverTableData {
     consumers?: Array<any>;
     receives?: Array<any>;
     sends?: Array<any>;
+    tools?: Array<any>;
+    model?: any;
+    agents?: Array<any>;
     services?: Array<any>;
     servicesThatWriteToContainer?: Array<any>;
     servicesThatReadFromContainer?: Array<any>;
@@ -80,6 +87,8 @@ export interface DiscoverTableProps<T extends DiscoverTableData> {
   owners?: Array<{ id: string; name: string; type?: 'user' | 'team' }>;
   producers?: Array<{ id: string; name: string }>;
   consumers?: Array<{ id: string; name: string }>;
+  agentProviders?: Array<{ id: string; name: string }>;
+  agentModels?: Array<{ id: string; name: string }>;
   propertyOptions?: PropertyOption[];
   tableConfiguration?: TableConfiguration;
   showDomainsFilter?: boolean;
@@ -87,6 +96,44 @@ export interface DiscoverTableProps<T extends DiscoverTableData> {
   showProducersFilter?: boolean;
   showConsumersFilter?: boolean;
 }
+
+const getAgentModelId = (model: any) => [model?.name, model?.version].filter(Boolean).join(':');
+
+const getAgentProviderIconUrls = (provider?: string) => {
+  if (!provider) return null;
+  const providerIconName = provider
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
+  const hasThemedIcon = ['openai', 'anthropic'].includes(providerIconName);
+
+  return hasThemedIcon
+    ? {
+        light: resolveIconUrl(`/icons/agent/${providerIconName}-light.svg`),
+        dark: resolveIconUrl(`/icons/agent/${providerIconName}-dark.svg`),
+      }
+    : {
+        default: resolveIconUrl(`/icons/agent/${providerIconName}.svg`),
+      };
+};
+
+const AgentProviderIcon = ({ provider, className }: { provider: string; className: string }) => {
+  const providerIconUrls = getAgentProviderIconUrls(provider);
+  if (!providerIconUrls) return null;
+
+  if ('light' in providerIconUrls && 'dark' in providerIconUrls) {
+    return (
+      <>
+        <img src={providerIconUrls.light} alt="" className={`${className} dark:hidden`} loading="lazy" />
+        <img src={providerIconUrls.dark} alt="" className={`hidden ${className} dark:inline-block`} loading="lazy" />
+      </>
+    );
+  }
+
+  return <img src={providerIconUrls.default} alt="" className={className} loading="lazy" />;
+};
 
 export function DiscoverTable<T extends DiscoverTableData>({
   data: initialData,
@@ -97,6 +144,8 @@ export function DiscoverTable<T extends DiscoverTableData>({
   owners = [],
   producers = [],
   consumers = [],
+  agentProviders = [],
+  agentModels = [],
   propertyOptions = [],
   tableConfiguration,
   showDomainsFilter = true,
@@ -129,6 +178,8 @@ export function DiscoverTable<T extends DiscoverTableData>({
   const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
   const [selectedProducers, setSelectedProducers] = useState<string[]>([]);
   const [selectedConsumers, setSelectedConsumers] = useState<string[]>([]);
+  const [selectedAgentProviders, setSelectedAgentProviders] = useState<string[]>([]);
+  const [selectedAgentModels, setSelectedAgentModels] = useState<string[]>([]);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
 
@@ -210,6 +261,22 @@ export function DiscoverTable<T extends DiscoverTableData>({
         }
       }
 
+      // Agent provider filter
+      if (selectedAgentProviders.length > 0) {
+        const provider = row.data.model?.provider;
+        if (!provider || !selectedAgentProviders.includes(provider)) {
+          return false;
+        }
+      }
+
+      // Agent model filter
+      if (selectedAgentModels.length > 0) {
+        const modelId = getAgentModelId(row.data.model);
+        if (!modelId || !selectedAgentModels.includes(modelId)) {
+          return false;
+        }
+      }
+
       // Badge filter
       if (selectedBadges.length > 0) {
         const itemBadges = row.data?.badges || [];
@@ -227,6 +294,8 @@ export function DiscoverTable<T extends DiscoverTableData>({
           if (prop === 'hasOwners' && !row.hasOwners) return false;
           if (prop === 'hasRepository' && !row.hasRepository) return false;
           if (prop === 'hasDataDependencies' && !row.hasDataDependencies) return false;
+          if (prop === 'hasModel' && !row.hasModel) return false;
+          if (prop === 'hasTools' && !row.hasTools) return false;
           if (prop === 'isDeprecated' && !row.isDeprecated) return false;
 
           // Message-specific checks
@@ -292,6 +361,8 @@ export function DiscoverTable<T extends DiscoverTableData>({
     selectedOwners,
     selectedProducers,
     selectedConsumers,
+    selectedAgentProviders,
+    selectedAgentModels,
     selectedBadges,
     selectedProperties,
     tableFilter,
@@ -379,6 +450,24 @@ export function DiscoverTable<T extends DiscoverTableData>({
     return counts;
   }, [initialData]);
 
+  const agentProviderCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    initialData.forEach((item) => {
+      const provider = item.data.model?.provider;
+      if (provider) counts[provider] = (counts[provider] || 0) + 1;
+    });
+    return counts;
+  }, [initialData]);
+
+  const agentModelCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    initialData.forEach((item) => {
+      const modelId = getAgentModelId(item.data.model);
+      if (modelId) counts[modelId] = (counts[modelId] || 0) + 1;
+    });
+    return counts;
+  }, [initialData]);
+
   const toggleDomain = (domainId: string) => {
     setSelectedDomains((prev) => (prev.includes(domainId) ? prev.filter((id) => id !== domainId) : [...prev, domainId]));
   };
@@ -395,6 +484,16 @@ export function DiscoverTable<T extends DiscoverTableData>({
     setSelectedConsumers((prev) => (prev.includes(consumerId) ? prev.filter((id) => id !== consumerId) : [...prev, consumerId]));
   };
 
+  const toggleAgentProvider = (providerId: string) => {
+    setSelectedAgentProviders((prev) =>
+      prev.includes(providerId) ? prev.filter((id) => id !== providerId) : [...prev, providerId]
+    );
+  };
+
+  const toggleAgentModel = (modelId: string) => {
+    setSelectedAgentModels((prev) => (prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]));
+  };
+
   const toggleBadge = (badgeContent: string) => {
     setSelectedBadges((prev) => (prev.includes(badgeContent) ? prev.filter((b) => b !== badgeContent) : [...prev, badgeContent]));
   };
@@ -408,6 +507,8 @@ export function DiscoverTable<T extends DiscoverTableData>({
     setSelectedOwners([]);
     setSelectedProducers([]);
     setSelectedConsumers([]);
+    setSelectedAgentProviders([]);
+    setSelectedAgentModels([]);
     setSelectedBadges([]);
     setSelectedProperties([]);
     setShowOnlyLatest(true);
@@ -421,6 +522,8 @@ export function DiscoverTable<T extends DiscoverTableData>({
     selectedOwners.length +
     selectedProducers.length +
     selectedConsumers.length +
+    selectedAgentProviders.length +
+    selectedAgentModels.length +
     selectedBadges.length +
     selectedProperties.length +
     (!showOnlyLatest ? 1 : 0) +
@@ -438,9 +541,16 @@ export function DiscoverTable<T extends DiscoverTableData>({
   // Get selected consumer names for display
   const selectedConsumerNames = selectedConsumers.map((id) => consumers.find((c) => c.id === id)?.name || id);
 
+  const selectedAgentProviderNames = selectedAgentProviders.map(
+    (id) => agentProviders.find((provider) => provider.id === id)?.name || id
+  );
+  const selectedAgentModelNames = selectedAgentModels.map((id) => agentModels.find((model) => model.id === id)?.name || id);
+
   // Filter producers/consumers to only show those with count > 0
   const filteredProducers = producers.filter((p) => (producerCounts[p.id] || 0) > 0);
   const filteredConsumers = consumers.filter((c) => (consumerCounts[c.id] || 0) > 0);
+  const filteredAgentProviders = agentProviders.filter((provider) => (agentProviderCounts[provider.id] || 0) > 0);
+  const filteredAgentModels = agentModels.filter((model) => (agentModelCounts[model.id] || 0) > 0);
 
   // Split owners into users and teams for the filter dropdown
   const ownerUsers = owners.filter((o) => o.type !== 'team');
@@ -523,6 +633,61 @@ export function DiscoverTable<T extends DiscoverTableData>({
 
           {/* Catalog Filters Section */}
           <div className="space-y-3">
+            {collectionType === 'agents' && (filteredAgentProviders.length > 0 || filteredAgentModels.length > 0) && (
+              <>
+                {filteredAgentProviders.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Provider</label>
+                    <FilterDropdown
+                      label="Select providers..."
+                      selectedItems={selectedAgentProviderNames}
+                      onClear={() => setSelectedAgentProviders([])}
+                      onRemoveItem={(name) => {
+                        const provider = filteredAgentProviders.find((p) => p.name === name);
+                        if (provider) toggleAgentProvider(provider.id);
+                      }}
+                    >
+                      {filteredAgentProviders.map((provider) => (
+                        <CheckboxItem
+                          key={provider.id}
+                          label={provider.name}
+                          checked={selectedAgentProviders.includes(provider.id)}
+                          onChange={() => toggleAgentProvider(provider.id)}
+                          count={agentProviderCounts[provider.id] || 0}
+                          icon={<AgentProviderIcon provider={provider.name} className="h-3 w-3 rounded-sm object-contain" />}
+                        />
+                      ))}
+                    </FilterDropdown>
+                  </div>
+                )}
+
+                {filteredAgentModels.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Model</label>
+                    <FilterDropdown
+                      label="Select models..."
+                      selectedItems={selectedAgentModelNames}
+                      onClear={() => setSelectedAgentModels([])}
+                      onRemoveItem={(name) => {
+                        const model = filteredAgentModels.find((m) => m.name === name);
+                        if (model) toggleAgentModel(model.id);
+                      }}
+                    >
+                      {filteredAgentModels.map((model) => (
+                        <CheckboxItem
+                          key={model.id}
+                          label={model.name}
+                          checked={selectedAgentModels.includes(model.id)}
+                          onChange={() => toggleAgentModel(model.id)}
+                          count={agentModelCounts[model.id] || 0}
+                        />
+                      ))}
+                    </FilterDropdown>
+                  </div>
+                )}
+              </>
+            )}
+
             {/* Domains Filter */}
             {showDomainsFilter && domains.length > 0 && (
               <div>

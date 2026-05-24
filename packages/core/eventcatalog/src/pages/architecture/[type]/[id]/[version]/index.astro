@@ -17,7 +17,6 @@ const pageTitle = `${props.type} | ${props.data.name}`.replace(/^\w/, (c) => c.t
 
 const type = props.type;
 
-// Get specifications for services
 const specifications = type === 'services' ? getSpecificationsForService(props) : [];
 ---
 
@@ -26,7 +25,11 @@ const specifications = type === 'services' ? getSpecificationsForService(props) 
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
         {type === 'domains' && <DomainGrid domain={domain} client:load />}
-        {type === 'services' && <MessageGrid service={props} specifications={specifications} client:load />}
+        {
+          (type === 'agents' || type === 'services') && (
+            <MessageGrid service={props} specifications={specifications} client:load />
+          )
+        }
       </div>
     </div>
   </main>

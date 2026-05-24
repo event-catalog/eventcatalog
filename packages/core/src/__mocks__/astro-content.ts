@@ -7,6 +7,7 @@ export const getCollection = async (key: string, filter?: (entry: any) => boolea
 };
 
 export type CollectionKey =
+  | 'agents'
   | 'events'
   | 'services'
   | 'commands'

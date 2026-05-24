@@ -10,6 +10,7 @@ const CATALOG_FOLDER = path.join(__dirname, 'catalog');
 const mockFlows: any[] = [];
 const mockResourceDocs: any[] = [];
 const mockResourceDocCategories: any[] = [];
+const mockAgents: any[] = [];
 
 declare global {
   interface Window {
@@ -59,6 +60,8 @@ vi.mock('astro:content', async (importOriginal) => {
           const { getServices } = utils(CATALOG_FOLDER);
           const services = (await getServices()) ?? [];
           return Promise.resolve(services.map((service) => toAstroCollection(service, 'services')));
+        case 'agents':
+          return Promise.resolve(mockAgents.map((agent) => toAstroCollection(agent, 'agents')));
         case 'entities':
           const { getEntities } = utils(CATALOG_FOLDER);
           const entities = (await getEntities()) ?? [];
@@ -156,6 +159,7 @@ describe('getNestedSideBarData', () => {
     mockFlows.length = 0;
     mockResourceDocs.length = 0;
     mockResourceDocCategories.length = 0;
+    mockAgents.length = 0;
     fs.rmSync(CATALOG_FOLDER, { recursive: true, force: true });
     fs.mkdirSync(CATALOG_FOLDER, { recursive: true });
     // Remove any navigation data from teh config
@@ -2011,6 +2015,33 @@ describe('getNestedSideBarData', () => {
     });
   });
 
+  describe('agent navigation items', () => {
+    describe('Architecture section', () => {
+      it('lists the visualizer map but not an architecture overview page', async () => {
+        mockAgents.push({
+          id: 'FraudReviewAgent',
+          name: 'Fraud Review Agent',
+          version: '0.0.1',
+          markdown: 'Fraud Review Agent',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const agentNode = getNavigationConfigurationByKey('agent:FraudReviewAgent:0.0.1', navigationData);
+
+        expect(agentNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Overview',
+          href: '/architecture/agents/FraudReviewAgent/0.0.1',
+        });
+        expect(agentNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Map',
+          href: '/visualiser/agents/FraudReviewAgent/0.0.1',
+        });
+      });
+    });
+  });
+
   describe('message navigation items', () => {
     it('users can reference the latest version of a resource without passing in the version', async () => {
       const { writeEvent } = utils(CATALOG_FOLDER);
@@ -2321,6 +2352,29 @@ describe('getNestedSideBarData', () => {
         const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.pages ?? []);
         expect(producesMessagesSection.pages).toEqual(['service:PaymentService:0.0.1']);
       });
+
+      it('lists agent producers with agent sidebar references', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+
+        mockAgents.push({
+          id: 'FraudReviewAgent',
+          name: 'Fraud Review Agent',
+          version: '0.0.1',
+          sends: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        });
+
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.pages ?? []);
+        expect(producesMessagesSection.pages).toEqual(['agent:FraudReviewAgent:0.0.1']);
+      });
     });
 
     describe('consumers section', () => {
@@ -2388,6 +2442,29 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         const consumersSection = getChildNodeByTitle('Consumers', messageNode.pages ?? []);
         expect(consumersSection.pages).toEqual(['service:ShippingService:0.0.1']);
+      });
+
+      it('lists agent consumers with agent sidebar references', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+
+        mockAgents.push({
+          id: 'FraudReviewAgent',
+          name: 'Fraud Review Agent',
+          version: '0.0.1',
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        });
+
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const consumersSection = getChildNodeByTitle('Consumers', messageNode.pages ?? []);
+        expect(consumersSection.pages).toEqual(['agent:FraudReviewAgent:0.0.1']);
       });
     });
 
@@ -3541,6 +3618,12 @@ describe('getNestedSideBarData', () => {
         version: '0.0.1',
         markdown: 'Payment Analytics',
       });
+      mockAgents.push({
+        id: 'FraudReviewAgent',
+        name: 'Fraud Review Agent',
+        version: '0.0.1',
+        markdown: 'Fraud Review Agent',
+      });
 
       mockFlows.push(
         {
@@ -3553,6 +3636,7 @@ describe('getNestedSideBarData', () => {
             { id: 'reserve-inventory', title: 'Reserve inventory', message: { id: 'ReserveInventory', version: '0.0.1' } },
             { id: 'get-payment-status', title: 'Get payment status', message: { id: 'GetPaymentStatus' } },
             { id: 'payment-service', title: 'Payment service', service: { id: 'PaymentService' } },
+            { id: 'fraud-review-agent', title: 'Fraud review agent', agent: { id: 'FraudReviewAgent' } },
             { id: 'fraud-flow', title: 'Fraud flow', flow: { id: 'FraudFlow' } },
             { id: 'payments-db', title: 'Payments DB', container: { id: 'PaymentsDB' } },
             { id: 'payment-analytics', title: 'Payment Analytics', dataProduct: { id: 'PaymentAnalytics' } },
@@ -3571,6 +3655,7 @@ describe('getNestedSideBarData', () => {
       const flowNode = getNavigationConfigurationByKey('flow:CheckoutFlow:0.0.1', navigationData);
       const messagesSection = getChildNodeByTitle('Messages', flowNode.pages ?? []);
       const servicesSection = getChildNodeByTitle('Services', flowNode.pages ?? []);
+      const agentsSection = getChildNodeByTitle('Agents', flowNode.pages ?? []);
       const subflowsSection = getChildNodeByTitle('Subflows', flowNode.pages ?? []);
       const dataStoresSection = getChildNodeByTitle('Data Stores', flowNode.pages ?? []);
       const dataProductsSection = getChildNodeByTitle('Data Products', flowNode.pages ?? []);
@@ -3581,9 +3666,14 @@ describe('getNestedSideBarData', () => {
         'query:GetPaymentStatus:0.0.1',
       ]);
       expect(servicesSection.pages).toEqual(['service:PaymentService:0.0.1']);
+      expect(agentsSection.pages).toEqual(['agent:FraudReviewAgent:0.0.1']);
       expect(subflowsSection.pages).toEqual(['flow:FraudFlow:0.0.1']);
       expect(dataStoresSection.pages).toEqual(['container:PaymentsDB:0.0.1']);
       expect(dataProductsSection.pages).toEqual(['data-product:PaymentAnalytics:0.0.1']);
+
+      const agentNode = getNavigationConfigurationByKey('agent:FraudReviewAgent:0.0.1', navigationData);
+      const agentFlowsSection = getChildNodeByTitle('Flows', agentNode.pages ?? []);
+      expect(agentFlowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
     });
 
     it('does not list reference sections when a flow has no resource step references', async () => {
@@ -3600,6 +3690,7 @@ describe('getNestedSideBarData', () => {
 
       expect(getChildNodeByTitle('Messages', flowNode.pages ?? [])).toBeUndefined();
       expect(getChildNodeByTitle('Services', flowNode.pages ?? [])).toBeUndefined();
+      expect(getChildNodeByTitle('Agents', flowNode.pages ?? [])).toBeUndefined();
       expect(getChildNodeByTitle('Subflows', flowNode.pages ?? [])).toBeUndefined();
       expect(getChildNodeByTitle('Data Stores', flowNode.pages ?? [])).toBeUndefined();
       expect(getChildNodeByTitle('Data Products', flowNode.pages ?? [])).toBeUndefined();

@@ -73,4 +73,17 @@ describe('remarkResourceRef', () => {
     expect(getAttributeValue(refs[0], 'version')).toBe('1.2.3');
     expect(refs[0].children[0].value).toBe('OrdersService');
   });
+
+  it('transforms agent resource references', () => {
+    const tree = createTree('See [[agent|FraudReviewAgent@0.0.1]].');
+
+    remarkResourceRef()(tree);
+
+    const refs = getResourceRefs(tree);
+
+    expect(refs).toHaveLength(1);
+    expect(getAttributeValue(refs[0], 'type')).toBe('agent');
+    expect(getAttributeValue(refs[0], 'version')).toBe('0.0.1');
+    expect(refs[0].children[0].value).toBe('FraudReviewAgent');
+  });
 });

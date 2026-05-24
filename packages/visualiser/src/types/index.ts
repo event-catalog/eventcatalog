@@ -74,6 +74,52 @@ export type Service = {
 };
 
 /**
+ * Agent type
+ */
+export type Agent = {
+  name: string;
+  version: string;
+  summary: string;
+  owners?: string[];
+  sends?: string[];
+  receives?: string[];
+  deprecated?: boolean;
+  draft?: boolean;
+  notes?: Note[];
+  model?: {
+    provider?: string;
+    name?: string;
+    version?: string;
+  };
+  tools?: Array<{
+    name: string;
+    type: string;
+    icon?: string;
+    url?: string;
+    description?: string;
+  }>;
+  styles?: {
+    icon?: string;
+    node?: {
+      color?: string;
+      label?: string;
+    };
+  };
+};
+
+/**
+ * Tool used by an agent
+ */
+export type AgentTool = {
+  id?: string;
+  name: string;
+  type: string;
+  icon?: string;
+  url?: string;
+  description?: string;
+};
+
+/**
  * Channel type
  */
 export type Channel = {
@@ -169,6 +215,10 @@ export interface BaseNodeData {
  * Node types supported by the visualizer
  */
 export type NodeType =
+  | "agent"
+  | "agents"
+  | "agentTool"
+  | "agent-tool"
   | "service"
   | "services"
   | "event"
@@ -289,6 +339,9 @@ export interface GraphNode {
   id: string;
   type:
     | "domain"
+    | "agent"
+    | "agent-tool"
+    | "agentTool"
     | "service"
     | "event"
     | "command"
@@ -322,6 +375,7 @@ export type GraphEdgeType =
   | "owns"
   | "member-of"
   | "routes-to"
+  | "calls"
   | "flow-step";
 
 export interface GraphEdge {

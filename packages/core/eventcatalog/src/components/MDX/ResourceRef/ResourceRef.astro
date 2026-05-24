@@ -19,6 +19,7 @@ import { isIconPath, resolveIconUrl } from '@utils/icon';
 
 interface Props {
   type:
+    | 'agent'
     | 'entity'
     | 'service'
     | 'event'
@@ -60,6 +61,7 @@ const normalizedResourceId = normalizeCustomDocPath(resourceId).toLowerCase();
 const collection = resourceToCollectionMap[type as keyof typeof resourceToCollectionMap];
 
 const typeLabels: Record<string, string> = {
+  agent: 'Agent',
   entity: 'Entity',
   service: 'Service',
   event: 'Event',
@@ -78,6 +80,8 @@ const typeLabels: Record<string, string> = {
 
 // SVG icons for each type (from heroicons outline)
 const typeIcons: Record<string, string> = {
+  agent:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6V3m-4.5 7.5h9m-9 3h9M7.5 18h9A2.5 2.5 0 0019 15.5v-5A2.5 2.5 0 0016.5 8h-9A2.5 2.5 0 005 10.5v5A2.5 2.5 0 007.5 18zM9 21h6" />',
   entity:
     '<path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />', // Box/cube
   service:
@@ -172,7 +176,7 @@ const truncatedSummary = summary.length > maxSummaryLength ? summary.slice(0, ma
 const isVersionedResource = type !== 'doc';
 
 // Only these types have visualizers
-const hasVisualizer = ['domain', 'service', 'event', 'query', 'command', 'container'].includes(type);
+const hasVisualizer = ['agent', 'domain', 'service', 'event', 'query', 'command', 'container'].includes(type);
 
 // Check deprecation status
 const deprecation = resource ? getDeprecatedDetails(resource) : null;
@@ -193,7 +197,8 @@ const repositoryUrl = resource?.data?.repository?.url;
 const maxMessages = 3;
 const sends = resource?.data?.sends || [];
 const receives = resource?.data?.receives || [];
-const isService = type === 'service';
+const isService = type === 'service' || type === 'agent';
+const supportsSpecifications = type === 'service';
 
 // Helper to resolve message version and collection - use specified version or fetch from collection
 const resolveMessage = async (msg: any): Promise<{ version: string | null; collection: string | null }> => {
@@ -233,7 +238,7 @@ const receivesWithVersions = await Promise.all(
 );
 
 // Get specifications for services
-const specifications = isService ? getServiceSpecifications(resource?.data) : [];
+const specifications = supportsSpecifications ? getServiceSpecifications(resource?.data) : [];
 const hasSpecifications = specifications.length > 0;
 
 // Generate unique ID for this instance

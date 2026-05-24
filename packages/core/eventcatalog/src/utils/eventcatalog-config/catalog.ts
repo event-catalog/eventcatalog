@@ -10,6 +10,7 @@ const getConfigValue = (obj: any, key: string, defaultValue: any) => {
 export const isCollectionVisibleInCatalog = (collection: string) => {
   const sidebarConfig = config?.default?.docs?.sidebar || {};
   const collections = [
+    'agents',
     'events',
     'commands',
     'queries',

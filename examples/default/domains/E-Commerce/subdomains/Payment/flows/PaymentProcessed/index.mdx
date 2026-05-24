@@ -248,15 +248,9 @@ steps:
 
   - id: "manual_review"
     title: "Manual review"
-    custom:
-      title: "Fraud Review Queue"
-      color: "red"
-      icon: "ShieldExclamationIcon"
-      type: "Human Review"
-      summary: "Operations team reviews high-risk payments before capture"
-      properties:
-        sla: "30 minutes"
-        team: "Risk operations"
+    agent:
+      id: "FraudReviewAgent"
+      version: "0.0.1"
 ---
 
 ### Flow of feature

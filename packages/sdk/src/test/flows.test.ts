@@ -735,7 +735,7 @@ describe('Flows SDK', () => {
 });
 
 describe('FlowBuilder', () => {
-  it('builds a flow with generic, message, service, actor, external system, sub-flow, and custom steps', () => {
+  it('builds a flow with generic, message, agent, service, actor, external system, sub-flow, and custom steps', () => {
     const flow = FlowBuilder.create({
       id: 'PaymentFlow',
       name: 'Payment Flow',
@@ -760,6 +760,10 @@ describe('FlowBuilder', () => {
           { id: 'PaymentsDB', label: 'Store payment' },
           { id: 'Stripe', label: 'Authorize payment' },
         ],
+      })
+      .addAgentStep({
+        id: 'FraudReviewAgent',
+        version: '1.0.0',
       })
       .addDataStoreStep({
         id: 'PaymentsDB',
@@ -823,6 +827,11 @@ describe('FlowBuilder', () => {
             { id: 'PaymentsDB', label: 'Store payment' },
             { id: 'Stripe', label: 'Authorize payment' },
           ],
+        },
+        {
+          id: 'FraudReviewAgent',
+          title: 'FraudReviewAgent',
+          agent: { id: 'FraudReviewAgent', version: '1.0.0' },
         },
         {
           id: 'PaymentsDB',

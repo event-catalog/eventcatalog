@@ -29,7 +29,7 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
-import { Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon, AlignLeft, Package } from 'lucide-react';
+import { Bot, Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon, AlignLeft, Package } from 'lucide-react';
 
 import { getSpecificationsForService } from '@utils/collections/services';
 import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails } from '@utils/collections/util';
@@ -73,9 +73,54 @@ const getContentBadges = () =>
     icon: badge.icon ? getIcon(badge.icon) : null,
   }));
 
-const createResourceBadge = (content: string, icon: any) => ({ content, icon, textColor: 'gray' });
+const createResourceBadge = (content: string, icon: any): any => ({ content, icon, textColor: 'gray' });
+
+const getAgentProviderIconURL = (provider: string) => {
+  const providerIconName = provider
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
+  return buildUrl(`/icons/agent/${providerIconName}.svg`, true);
+};
+
+const getAgentProviderIconURLs = (provider: string) => {
+  const providerIconName = provider
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
+  const hasThemedIcon = ['openai', 'anthropic'].includes(providerIconName);
+
+  return hasThemedIcon
+    ? {
+        iconURLLight: buildUrl(`/icons/agent/${providerIconName}-light.svg`, true),
+        iconURLDark: buildUrl(`/icons/agent/${providerIconName}-dark.svg`, true),
+      }
+    : {
+        iconURL: getAgentProviderIconURL(provider),
+      };
+};
 
 const getBadge = () => {
+  if (props.collection === 'agents') {
+    const badges = [createResourceBadge('Agent', Bot)];
+    if (props.data?.model?.provider) {
+      badges.push({
+        content: props.data.model.provider,
+        ...getAgentProviderIconURLs(props.data.model.provider),
+        textColor: 'gray',
+      });
+    }
+    const modelBadge = props.data?.model?.name;
+    if (modelBadge) {
+      badges.push(createResourceBadge(modelBadge, Bot));
+    }
+    return badges;
+  }
+
   if (props.collection === 'services') {
     return [createResourceBadge('Service', ServerIcon)];
   }

@@ -1,6 +1,6 @@
 import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts } from './mocks';
+import { mockAgents, mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts } from './mocks';
 import { getNodesAndEdges } from '@utils/node-graphs/domains-node-graph';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -13,6 +13,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockDomains);
         case 'services':
           return Promise.resolve(mockServices);
+        case 'agents':
+          return Promise.resolve(mockAgents);
         case 'events':
           return Promise.resolve(mockEvents);
         case 'commands':
@@ -120,10 +122,10 @@ describe('Domains NodeGraph', () => {
 
       expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedEventNode)]));
 
-      // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated)
-      expect(nodes.length).toEqual(13);
-      // 8 original edges + 2 from data product (input edge + output edge)
-      expect(edges.length).toEqual(12);
+      // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated) + agent consumer
+      expect(nodes.length).toEqual(14);
+      // 8 original edges + 2 from data product (input edge + output edge) + agent consumer edge
+      expect(edges.length).toEqual(13);
     });
 
     it('should return nodes and edges for data products in a domain', async () => {
@@ -173,6 +175,66 @@ describe('Domains NodeGraph', () => {
 
       expect(dataProductInputEdge).toBeDefined();
       expect(dataProductOutputEdge).toBeDefined();
+    });
+
+    it('should return nodes and edges for agents in a domain', async () => {
+      // @ts-ignore
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Automation', version: '0.0.1' });
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'FraudReviewAgent-1.0.0',
+            type: 'agents',
+            data: expect.objectContaining({
+              mode: 'simple',
+              agent: expect.objectContaining({
+                id: 'FraudReviewAgent',
+                version: '1.0.0',
+              }),
+            }),
+            position: { x: expect.any(Number), y: expect.any(Number) },
+          }),
+          expect.objectContaining({
+            id: 'OrderPlaced-0.0.1',
+            type: 'events',
+            data: expect.objectContaining({ message: expect.objectContaining({ id: 'OrderPlaced' }) }),
+          }),
+          expect.objectContaining({
+            id: 'FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
+            type: 'agentTool',
+            data: expect.objectContaining({
+              agentTool: expect.objectContaining({
+                name: 'Risk profile lookup',
+                type: 'mcp',
+                icon: '/icons/tools/datadog.svg',
+              }),
+            }),
+          }),
+        ])
+      );
+
+      expect(edges).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'OrderPlaced-0.0.1-FraudReviewAgent-1.0.0',
+            source: 'OrderPlaced-0.0.1',
+            target: 'FraudReviewAgent-1.0.0',
+          }),
+          expect.objectContaining({
+            id: 'FraudReviewAgent-1.0.0-PaymentFailed-1.0.0',
+            source: 'FraudReviewAgent-1.0.0',
+            target: 'PaymentFailed-1.0.0',
+          }),
+          expect.objectContaining({
+            id: 'FraudReviewAgent-1.0.0-FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
+            source: 'FraudReviewAgent-1.0.0',
+            target: 'FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
+            label: 'calls tool',
+            type: 'step',
+          }),
+        ])
+      );
     });
 
     // it.only('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {

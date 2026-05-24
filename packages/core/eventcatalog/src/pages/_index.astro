@@ -29,8 +29,6 @@ const queries = allQueries.filter(isCurrentVersion);
 const messages = [...events, ...commands, ...queries];
 const flows = allFlows.filter(isCurrentVersion);
 
-const totalResources = domains.length + services.length + messages.length + flows.length;
-
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.version}`);
   if (services.length > 0) return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.version}`);
@@ -106,7 +104,7 @@ const exploreCards: ExploreCard[] = [
   },
   {
     title: 'Discover',
-    description: 'Search every event, service, and team across the catalog.',
+    description: 'Search every event, service, agent, and team across the catalog.',
     icon: TableProperties,
     href: buildUrl('/discover/events'),
     tone: '94 234 212', // teal-300

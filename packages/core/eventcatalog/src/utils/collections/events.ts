@@ -26,8 +26,9 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
   }
 
   // 1. Fetch collections in parallel
-  const [allEvents, allServices, allChannels, allDataProducts] = await Promise.all([
+  const [allEvents, allAgents, allServices, allChannels, allDataProducts] = await Promise.all([
     getCollection('events'),
+    getCollection('agents'),
     getCollection('services'),
     getCollection('channels'),
     getCollection('data-products'),
@@ -35,7 +36,7 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
 
   // 2. Build optimized maps
   const eventMap = createVersionedMap(allEvents);
-  const pcIndex = buildProducerConsumerIndex(allServices, allDataProducts);
+  const pcIndex = buildProducerConsumerIndex(allAgents, allServices, allDataProducts);
 
   // Build channel lookup map: channelId → channel entries
   const channelById = new Map<string, typeof allChannels>();

@@ -1,5 +1,6 @@
 ---
 import AstroNodeGraph from './AstroNodeGraph';
+import { getNodesAndEdges as getNodesAndEdgesForAgent } from '@utils/node-graphs/agents-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
 import {
   getNodesAndEdgesForCommands,
@@ -59,6 +60,7 @@ let nodes = [],
   edges = [];
 
 const getNodesAndEdgesFunctions = {
+  agents: getNodesAndEdgesForAgent,
   services: getNodesAndEdgesForService,
   events: getNodesAndEdgesForEvents,
   commands: getNodesAndEdgesForCommands,

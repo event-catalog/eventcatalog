@@ -4,6 +4,7 @@ import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { isSSR } from '@utils/feature';
 
 const itemTypes: PageTypes[] = [
+  'agents',
   'events',
   'commands',
   'queries',

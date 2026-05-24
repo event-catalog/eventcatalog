@@ -12,6 +12,7 @@ import { isResourceDocsEnabled } from '../feature';
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
 export type ResourceCollection =
+  | 'agents'
   | 'domains'
   | 'services'
   | 'events'
@@ -167,6 +168,7 @@ const inferResourceFromFilePath = (filePath: string): InferredResource | null =>
   };
 
   const segmentMappings: Array<{ segment: string; collection: ResourceCollection }> = [
+    { segment: 'agents', collection: 'agents' },
     { segment: 'events', collection: 'events' },
     { segment: 'commands', collection: 'commands' },
     { segment: 'queries', collection: 'queries' },
@@ -270,8 +272,9 @@ const getResourceLookups = async (): Promise<Record<ResourceCollection, Resource
   }
 
   const lookupPromise = (async () => {
-    const [domains, services, events, commands, queries, flows, containers, channels, entities, dataProducts] = await Promise.all(
-      [
+    const [agents, domains, services, events, commands, queries, flows, containers, channels, entities, dataProducts] =
+      await Promise.all([
+        getCollection('agents'),
         getCollection('domains'),
         getCollection('services'),
         getCollection('events'),
@@ -282,10 +285,10 @@ const getResourceLookups = async (): Promise<Record<ResourceCollection, Resource
         getCollection('channels'),
         getCollection('entities'),
         getCollection('data-products'),
-      ]
-    );
+      ]);
 
     return {
+      agents: buildLookup(agents),
       domains: buildLookup(domains),
       services: buildLookup(services),
       events: buildLookup(events),

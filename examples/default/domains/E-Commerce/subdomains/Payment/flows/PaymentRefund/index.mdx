@@ -12,6 +12,15 @@ steps:
       name: "Support agent"
       summary: "Support reviews a customer request and starts the refund"
     next_step:
+      id: "refund_policy_agent"
+      label: "Review policy and risk"
+
+  - id: "refund_policy_agent"
+    title: "Refund Policy Agent"
+    agent:
+      id: "RefundPolicyAgent"
+      version: "0.0.1"
+    next_step:
       id: "refund_policy"
       label: "Check refund eligibility"
 

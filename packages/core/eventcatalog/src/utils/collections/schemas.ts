@@ -10,13 +10,13 @@ export type Schema = {
   format: string;
 };
 
-const getPublicPath = (resource: CollectionEntry<PageTypes>): string | undefined => {
+const getPublicPath = (resource: CollectionEntry<PageTypes> | any): string | undefined => {
   if (!resource.filePath) return undefined;
   const folderName = getFolderNameFromFilePath(resource.filePath);
   return path.join('/generated', resource.collection, folderName);
 };
 
-export const getSchemaURL = (resource: CollectionEntry<PageTypes>) => {
+export const getSchemaURL = (resource: CollectionEntry<PageTypes> | any) => {
   const publicPath = getPublicPath(resource);
   const schemaFilePath = resource?.data?.schemaPath;
 
@@ -45,7 +45,7 @@ export const getSchemaFormatFromURL = (url: string) => {
   return format;
 };
 
-export const getSchemasFromResource = (resource: CollectionEntry<PageTypes>): Schema[] => {
+export const getSchemasFromResource = (resource: CollectionEntry<PageTypes> | any): Schema[] => {
   const schemaPublicPath = getSchemaURL(resource);
 
   if (!schemaPublicPath) {
@@ -53,7 +53,7 @@ export const getSchemasFromResource = (resource: CollectionEntry<PageTypes>): Sc
   }
 
   if (resource.collection === 'services') {
-    const specifications = resource?.data?.specifications;
+    const specifications = (resource?.data as any)?.specifications;
     const asyncapiPath = Array.isArray(specifications)
       ? specifications.find((spec) => spec.type === 'asyncapi')?.path
       : specifications?.asyncapiPath;

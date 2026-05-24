@@ -252,7 +252,7 @@ describe('Pagination Utilities', () => {
 // ============================================
 
 describe('getResources', () => {
-  it.each(['events', 'services', 'commands', 'queries', 'flows', 'domains', 'channels', 'entities'] as const)(
+  it.each(['events', 'agents', 'services', 'commands', 'queries', 'flows', 'domains', 'channels', 'entities'] as const)(
     'returns paginated resources from %s collection',
     async (collection) => {
       const result = await getResources({ collection });
@@ -316,6 +316,20 @@ describe('getResource', () => {
     }
   });
 
+  it('returns an agent resource by id and version', async () => {
+    const result = await getResource({
+      collection: 'agents',
+      id: 'FraudReviewAgent',
+      version: '1.0.0',
+    });
+    expect(result).toBeDefined();
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.data.id).toBe('FraudReviewAgent');
+      expect(result.data.model.provider).toBe('OpenAI');
+    }
+  });
+
   it('returns error when resource not found', async () => {
     const result = await getResource({
       collection: 'events',
@@ -344,6 +358,19 @@ describe('getMessagesProducedOrConsumedByResource', () => {
       resourceId: 'OrderService',
       resourceVersion: '1.0.0',
       resourceCollection: 'services',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.data.sends).toBeDefined();
+      expect(result.data.receives).toBeDefined();
+    }
+  });
+
+  it('returns an agent resource with sends and receives properties', async () => {
+    const result = await getMessagesProducedOrConsumedByResource({
+      resourceId: 'FraudReviewAgent',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'agents',
     });
     expect('error' in result).toBe(false);
     if (!('error' in result)) {
@@ -418,6 +445,22 @@ describe('getProducersOfMessage', () => {
     }
   });
 
+  it('finds agents that send messages', async () => {
+    const result = await getProducersOfMessage({
+      messageId: 'InventoryUpdated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(
+        result.producers.some(
+          (p: ProducerConsumer & { collection?: string }) => p.id === 'FraudReviewAgent' && p.collection === 'agents'
+        )
+      ).toBe(true);
+    }
+  });
+
   it('returns error when message not found', async () => {
     const result = await getProducersOfMessage({
       messageId: 'NonExistent',
@@ -473,6 +516,22 @@ describe('getConsumersOfMessage', () => {
     }
   });
 
+  it('finds agents that receive messages', async () => {
+    const result = await getConsumersOfMessage({
+      messageId: 'PaymentProcessed',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(
+        result.consumers.some(
+          (c: ProducerConsumer & { collection?: string }) => c.id === 'FraudReviewAgent' && c.collection === 'agents'
+        )
+      ).toBe(true);
+    }
+  });
+
   it('returns error when message not found', async () => {
     const result = await getConsumersOfMessage({
       messageId: 'NonExistent',
@@ -494,7 +553,9 @@ describe('analyzeChangeImpact', () => {
     if (!('error' in result)) {
       expect(result.impact.producerCount).toBeGreaterThanOrEqual(0);
       expect(result.impact.consumerCount).toBeGreaterThanOrEqual(0);
+      expect(result.impact.totalResourcesAffected).toBeGreaterThanOrEqual(0);
       expect(result.impact.totalServicesAffected).toBeGreaterThanOrEqual(0);
+      expect(result.impact.totalAgentsAffected).toBeGreaterThanOrEqual(0);
     }
   });
 
@@ -549,6 +610,23 @@ describe('analyzeChangeImpact', () => {
     }
   });
 
+  it('includes affected agents', async () => {
+    const result = await analyzeChangeImpact({
+      messageId: 'PaymentProcessed',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.impact.totalAgentsAffected).toBeGreaterThan(0);
+      expect(
+        result.consumers.some(
+          (c: ProducerConsumer & { collection?: string }) => c.id === 'FraudReviewAgent' && c.collection === 'agents'
+        )
+      ).toBe(true);
+    }
+  });
+
   it('returns error when message not found', async () => {
     const result = await analyzeChangeImpact({
       messageId: 'NonExistent',
@@ -571,6 +649,14 @@ describe('findResourcesByOwner', () => {
       expect(result.totalCount).toBeGreaterThan(0);
       expect(result.resources.some((r: ResourceResult) => r.collection === 'events')).toBe(true);
       expect(result.resources.some((r: ResourceResult) => r.collection === 'services')).toBe(true);
+    }
+  });
+
+  it('finds agents owned by a team or user', async () => {
+    const result = await findResourcesByOwner({ ownerId: 'risk-team' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'agents' && r.id === 'FraudReviewAgent')).toBe(true);
     }
   });
 
@@ -655,6 +741,22 @@ describe('findMessageBySchemaId', () => {
       expect(result.consumers).toBeDefined();
       expect(Array.isArray(result.producers)).toBe(true);
       expect(Array.isArray(result.consumers)).toBe(true);
+    }
+  });
+
+  it('includes agents in message producer and consumer lookups', async () => {
+    const result = await findMessageBySchemaId({
+      messageId: 'PaymentProcessed',
+      messageVersion: '1.0.0',
+      collection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(
+        result.consumers.some(
+          (c: ProducerConsumer & { collection?: string }) => c.id === 'FraudReviewAgent' && c.collection === 'agents'
+        )
+      ).toBe(true);
     }
   });
 
@@ -744,6 +846,19 @@ describe('explainBusinessFlow', () => {
       expect(Array.isArray(result.relatedServices)).toBe(true);
       // OrderService has flows: [{ id: 'OrderFlow' }]
       expect(result.relatedServices.some((s: ProducerConsumer) => s.id === 'OrderService')).toBe(true);
+    }
+  });
+
+  it('includes related agents', async () => {
+    const result = await explainBusinessFlow({
+      flowId: 'OrderFlow',
+      flowVersion: '1.0.0',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.relatedAgents).toBeDefined();
+      expect(Array.isArray(result.relatedAgents)).toBe(true);
+      expect(result.relatedAgents.some((a: ProducerConsumer) => a.id === 'FraudReviewAgent')).toBe(true);
     }
   });
 

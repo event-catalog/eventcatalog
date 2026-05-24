@@ -15,6 +15,10 @@ export interface ConnectedNodes {
 
 export const NODE_COLOR_CLASSES: Record<string, string> = {
   events: "bg-orange-600",
+  agent: "bg-sky-600",
+  agents: "bg-sky-600",
+  agentTool: "bg-violet-600",
+  "agent-tool": "bg-violet-600",
   services: "bg-pink-600",
   flows: "bg-teal-600",
   commands: "bg-blue-600",
@@ -34,6 +38,10 @@ export const NODE_COLOR_CLASSES: Record<string, string> = {
 
 export const NODE_TYPE_LABELS: Record<string, string> = {
   events: "Event",
+  agent: "Agent",
+  agents: "Agent",
+  agentTool: "Agent Tool",
+  "agent-tool": "Agent Tool",
   services: "Service",
   flows: "Flow",
   commands: "Command",
@@ -81,6 +89,7 @@ export function getConnectedNodes(
 
 // Entity keys that follow the standard data structure pattern
 const ENTITY_KEYS = [
+  "agent",
   "service",
   "message",
   "flow",
@@ -88,6 +97,7 @@ const ENTITY_KEYS = [
   "domain",
   "entity",
   "dataProduct",
+  "agentTool",
 ] as const;
 
 /**
@@ -140,6 +150,8 @@ export function getNodeDisplayInfo(node: Node): NodeDisplayInfo {
   const description =
     entity?.data?.summary ||
     entity?.data?.description ||
+    entity?.summary ||
+    entity?.description ||
     data.summary ||
     data.description ||
     "";
@@ -180,6 +192,7 @@ export function getNodeTypeLabel(nodeType: string): string {
 // Mapping from entity key to doc path
 const DOC_PATH_MAP: Record<string, string> = {
   service: "services",
+  agent: "agents",
   flow: "flows",
   channel: "channels",
   domain: "domains",

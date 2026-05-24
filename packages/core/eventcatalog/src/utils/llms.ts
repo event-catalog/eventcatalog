@@ -5,7 +5,7 @@ import { join } from 'path';
 import fs from 'fs';
 
 export const addSchemaToMarkdown = (collection: CollectionEntry<CollectionTypes>, file: string) => {
-  const resourceData = collection?.data;
+  const resourceData = collection?.data as any;
   const fileToResource = collection.filePath ?? '';
   let schemas: string[] = [];
 

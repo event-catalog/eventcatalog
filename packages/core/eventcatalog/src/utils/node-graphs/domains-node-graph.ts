@@ -8,11 +8,13 @@ import {
   createEdge,
 } from '@utils/node-graphs/utils/utils';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
+import { getNodesAndEdges as getAgentsNodeAndEdges } from './agents-node-graph';
 import { getNodesAndEdges as getDataProductsNodeAndEdges } from './data-products-node-graph';
 import merge from 'lodash.merge';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import type { Node } from '@xyflow/react';
 import { getProducersOfMessage } from '@utils/collections/services';
+import { getProducersOfMessage as getAgentProducersOfMessage } from '@utils/collections/agents';
 
 type DagreGraph = any;
 
@@ -27,9 +29,10 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
     edges = [] as any;
 
   // 1. Parallel Fetching
-  const [allDomains, services, events, commands, queries] = await Promise.all([
+  const [allDomains, services, agents, events, commands, queries] = await Promise.all([
     getCollection('domains'),
     getCollection('services'),
+    getCollection('agents'),
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
@@ -40,19 +43,23 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
 
   // 2. Build optimized maps
   const serviceMap = createVersionedMap(services);
+  const agentMap = createVersionedMap(agents);
   const messageMap = createVersionedMap(messages);
 
   domains.forEach((domain, index) => {
     const nodeId = generateIdForNode(domain);
     const rawServices = domain.data.services ?? [];
+    const rawAgents = domain.data.agents ?? [];
 
     // Optimized service resolution
     const domainServices = rawServices
       .map((service) => findInMap(serviceMap, service.id, service.version))
       .filter((e) => e !== undefined);
+    const domainAgents = rawAgents.map((agent) => findInMap(agentMap, agent.id, agent.version)).filter((e) => e !== undefined);
+    const domainResources = [...domainServices, ...domainAgents];
 
     // Calculate domain node size based on services
-    const servicesCount = domainServices.length;
+    const servicesCount = domainResources.length;
     const SERVICES_PER_ROW = 1;
     const SERVICE_WIDTH = 330;
     const SERVICE_HEIGHT = 120;
@@ -109,8 +116,8 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
     } as Node);
 
     // Position services in a grid within the domain
-    if (domainServices) {
-      domainServices.forEach((service, serviceIndex) => {
+    if (domainResources) {
+      domainResources.forEach((service, serviceIndex) => {
         const row = Math.floor(serviceIndex / SERVICES_PER_ROW);
         const col = serviceIndex % SERVICES_PER_ROW;
 
@@ -123,7 +130,7 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
           id: generateIdForNode(service),
           sourcePosition: 'right',
           targetPosition: 'left',
-          type: 'services',
+          type: service.collection,
           position: {
             x: xPosition,
             y: yPosition,
@@ -133,7 +140,7 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
           draggable: false,
           data: {
             mode: 'full',
-            service,
+            ...(service.collection === 'agents' ? { agent: service.data } : { service: service.data }),
           },
         });
 
@@ -150,10 +157,12 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
         // Based on original code, it iterates `receives`.
 
         for (const receive of receives) {
-          const producers = getProducersOfMessage(services, receive);
+          const producers = [...getAgentProducersOfMessage(agents, receive), ...getProducersOfMessage(services, receive)];
 
           for (const producer of producers) {
-            const isSameDomain = domainServices.some((domainService) => domainService.data.id === producer.data.id);
+            const isSameDomain = domainResources.some(
+              (domainService) => domainService.collection === producer.collection && domainService.data.id === producer.data.id
+            );
 
             if (!isSameDomain) {
               edges.push(
@@ -200,9 +209,10 @@ export const getNodesAndEdges = async ({
     edges = new Map();
 
   // 1. Parallel Fetching
-  const [domains, services, dataProducts] = await Promise.all([
+  const [domains, services, agents, dataProducts] = await Promise.all([
     getCollection('domains'),
     getCollection('services'),
+    getCollection('agents'),
     getCollection('data-products'),
   ]);
 
@@ -218,10 +228,12 @@ export const getNodesAndEdges = async ({
 
   // 2. Build optimized maps
   const serviceMap = createVersionedMap(services);
+  const agentMap = createVersionedMap(agents);
   const domainMap = createVersionedMap(domains);
   const dataProductMap = createVersionedMap(dataProducts);
 
   const rawServices = domain?.data.services || [];
+  const rawAgents = domain?.data.agents || [];
   const rawSubDomains = domain?.data.domains || [];
   const rawDataProducts = (domain?.data as any)['data-products'] || [];
 
@@ -230,6 +242,11 @@ export const getNodesAndEdges = async ({
     .map((service) => findInMap(serviceMap, service.id, service.version))
     .filter((s): s is any => !!s)
     .map((svc) => ({ id: svc.data.id, version: svc.data.version }));
+
+  const domainAgentsWithVersion = rawAgents
+    .map((agent) => findInMap(agentMap, agent.id, agent.version))
+    .filter((a): a is any => !!a)
+    .map((agent) => ({ id: agent.data.id, version: agent.data.version }));
 
   const domainSubDomainsWithVersion = rawSubDomains
     .map((subDomain) => findInMap(domainMap, subDomain.id, subDomain.version))
@@ -265,6 +282,22 @@ export const getNodesAndEdges = async ({
     });
     // @ts-ignore
     serviceEdges.forEach((e) => edges.set(e.id, e));
+  }
+
+  for (const agent of domainAgentsWithVersion) {
+    const { nodes: agentNodes, edges: agentEdges } = await getAgentsNodeAndEdges({
+      id: agent.id,
+      version: agent.version,
+      defaultFlow: flow,
+      mode,
+      renderAllEdges: true,
+      channelRenderMode,
+    });
+    agentNodes.forEach((n) => {
+      nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
+    });
+    // @ts-ignore
+    agentEdges.forEach((e) => edges.set(e.id, e));
   }
 
   for (const dataProduct of domainDataProductsWithVersion) {

@@ -23,6 +23,7 @@ import {
   ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid, CircleStackIcon } from '@heroicons/react/24/solid';
+import { Bot } from 'lucide-react';
 import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
 import { buildUrl } from '@utils/url-builder';
@@ -41,6 +42,7 @@ const INDEXED_RESULT_LOAD_LIMIT = 50;
 const SEARCH_RESULT_DISPLAY_LIMIT = 25;
 
 const typeIcons: any = {
+  Agent: Bot,
   Domain: RectangleGroupIcon,
   Service: ServerIcon,
   Event: BoltIcon,
@@ -64,6 +66,7 @@ const typeIcons: any = {
 };
 
 const typeColors: any = {
+  Agent: 'text-sky-500 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 ring-sky-200 dark:ring-sky-500/30',
   Domain: 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 ring-orange-200 dark:ring-orange-500/30',
   Service: 'text-pink-500 dark:text-pink-400 bg-pink-50 dark:bg-pink-500/10 ring-pink-200 dark:ring-pink-500/30',
   Event: 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 ring-orange-200 dark:ring-orange-500/30',

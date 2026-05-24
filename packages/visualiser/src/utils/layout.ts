@@ -12,6 +12,9 @@ const EMPTY_GROUP_HEIGHT = 80;
 
 const defaultSizes: Record<string, { w: number; h: number }> = {
   service: { w: 300, h: 140 },
+  agent: { w: 300, h: 140 },
+  "agent-tool": { w: 260, h: 120 },
+  agentTool: { w: 260, h: 120 },
   event: { w: 240, h: 140 },
   command: { w: 300, h: 120 },
   query: { w: 300, h: 120 },
@@ -61,6 +64,32 @@ export function buildNodeData(
   switch (node.type) {
     case "service":
       return { mode: "full", style, service: base };
+    case "agent":
+      return {
+        mode: "full",
+        style,
+        agent: {
+          ...base,
+          ...(node.metadata.model ? { model: node.metadata.model } : {}),
+          ...(Array.isArray(node.metadata.tools)
+            ? { tools: node.metadata.tools }
+            : {}),
+        },
+      };
+    case "agent-tool":
+    case "agentTool":
+      return {
+        mode: "full",
+        style,
+        agentTool: {
+          id: node.id,
+          name: node.label,
+          type: (node.metadata.type as string) || "",
+          icon: (node.metadata.icon as string) || "",
+          url: (node.metadata.url as string) || "",
+          description: (node.metadata.description as string) || "",
+        },
+      };
     case "event":
     case "command":
     case "query":
@@ -533,6 +562,7 @@ export function layoutGraph(
     .map((edge) => {
       const collection = getMessageCollection(edge, nodeById);
       const isFlowStep = edge.type === "flow-step";
+      const isCalls = edge.type === "calls";
       const isBidirectional = edge.type === "reads-writes";
       const arrowMarker = {
         type: MarkerType.ArrowClosed,
@@ -549,7 +579,7 @@ export function layoutGraph(
           : isFlowStep
             ? edge.label || undefined
             : edge.label || edge.type,
-        type: isFlowStep ? "flow-edge" : "animated",
+        type: isFlowStep ? "flow-edge" : isCalls ? "step" : "animated",
         markerEnd: arrowMarker,
         ...(isBidirectional ? { markerStart: arrowMarker } : {}),
         data: { edgeType: edge.type, message: { collection } },
@@ -617,6 +647,7 @@ function flatLayout(
   const layoutEdges: Edge[] = edges.map((edge) => {
     const collection = getMessageCollection(edge, nodeById);
     const isFlowStep = edge.type === "flow-step";
+    const isCalls = edge.type === "calls";
     const isBidirectional = edge.type === "reads-writes";
     const arrowMarker = {
       type: MarkerType.ArrowClosed,
@@ -633,7 +664,7 @@ function flatLayout(
         : isFlowStep
           ? edge.label || undefined
           : edge.label || edge.type,
-      type: isFlowStep ? "flow-edge" : "animated",
+      type: isFlowStep ? "flow-edge" : isCalls ? "step" : "animated",
       markerEnd: arrowMarker,
       ...(isBidirectional ? { markerStart: arrowMarker } : {}),
       data: { edgeType: edge.type, message: { collection } },

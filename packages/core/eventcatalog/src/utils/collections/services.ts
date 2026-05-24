@@ -161,7 +161,7 @@ export const getConsumersOfMessage = (services: Service[], message: CollectionEn
 };
 
 export const getSpecificationsForService = (service: CollectionEntry<CollectionTypes>) => {
-  return processSpecifications(service.data.specifications as any);
+  return processSpecifications((service.data as any).specifications as any);
 };
 // Get services for channel
 export const getProducersAndConsumersForChannel = async (channel: CollectionEntry<'channels'>) => {

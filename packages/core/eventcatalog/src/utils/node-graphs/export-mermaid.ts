@@ -17,6 +17,10 @@ export interface MermaidExportOptions {
  * Format: [prefix, suffix]
  */
 const NODE_SHAPE_MAP: Record<string, [string, string]> = {
+  agents: ['[[', ']]'],
+  agent: ['[[', ']]'],
+  agentTool: ['[', ']'],
+  'agent-tool': ['[', ']'],
   services: ['[[', ']]'], // stadium shape
   service: ['[[', ']]'],
   events: ['>', ']'], // flag/asymmetric shape (message-like)
@@ -50,6 +54,10 @@ const NODE_SHAPE_MAP: Record<string, [string, string]> = {
  * Mermaid class definitions for styling different node types
  */
 const NODE_STYLE_CLASSES: Record<string, string> = {
+  agents: 'fill:#0ea5e9,stroke:#0369a1,color:#fff',
+  agent: 'fill:#0ea5e9,stroke:#0369a1,color:#fff',
+  agentTool: 'fill:#8b5cf6,stroke:#6d28d9,color:#fff',
+  'agent-tool': 'fill:#8b5cf6,stroke:#6d28d9,color:#fff',
   services: 'fill:#ec4899,stroke:#be185d,color:#fff',
   service: 'fill:#ec4899,stroke:#be185d,color:#fff',
   events: 'fill:#f97316,stroke:#c2410c,color:#fff',
@@ -124,6 +132,18 @@ export function getNodeLabel(node: Node): string {
   if (!data) return node.id;
 
   // Handle different node types and their data structures
+  if (type === 'agents' || type === 'agent') {
+    const agent = (data as any).agent;
+    const name = agent?.name || agent?.id || node.id;
+    const version = agent?.data?.version || agent?.version;
+    return formatLabelWithVersion(name, version);
+  }
+
+  if (type === 'agentTool' || type === 'agent-tool') {
+    const agentTool = (data as any).agentTool;
+    return agentTool?.name || agentTool?.id || node.id;
+  }
+
   if (type === 'services' || type === 'service') {
     const service = (data as any).service;
     const name = service?.name || service?.id || node.id;

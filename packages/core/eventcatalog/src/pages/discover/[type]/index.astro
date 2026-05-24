@@ -1,6 +1,7 @@
 ---
 import { getCommands } from '@utils/collections/commands';
-import { getDomains, getDomainsForService } from '@utils/collections/domains';
+import { getAgents } from '@utils/collections/agents';
+import { getDomains, getDomainsForAgent, getDomainsForService } from '@utils/collections/domains';
 import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
 import { getQueries } from '@utils/collections/queries';
@@ -22,6 +23,7 @@ const { type, data } = await Page.getData(Astro);
 const events = await getEvents();
 const queries = await getQueries();
 const commands = await getCommands();
+const agents = await getAgents();
 const services = await getServices();
 const domains = await getDomains({ getAllVersions: false });
 const containers = await getContainers();
@@ -88,6 +90,18 @@ const typeConfig: Record<
     description: 'Browse the internal services in your catalog and inspect the capabilities they expose.',
     propertyOptions: [
       { id: 'hasSpecifications', label: 'Has Specifications' },
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'hasRepository', label: 'Has Repository' },
+      { id: 'hasDataDependencies', label: 'Has Data Dependencies' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+  agents: {
+    label: 'Agents',
+    description: 'Browse AI agents in your catalog and inspect the models, tools, and messages they use.',
+    propertyOptions: [
+      { id: 'hasModel', label: 'Has Model' },
+      { id: 'hasTools', label: 'Has Tools' },
       { id: 'hasOwners', label: 'Has Owners' },
       { id: 'hasRepository', label: 'Has Repository' },
       { id: 'hasDataDependencies', label: 'Has Data Dependencies' },
@@ -185,6 +199,7 @@ function hasSpecifications(service: any): boolean {
 
 // Build lookup maps for all collections (for resolving data product inputs/outputs)
 const allCollections = [
+  ...agents.map((a) => ({ ...a, collection: 'agents' })),
   ...services.map((s) => ({ ...s, collection: 'services' })),
   ...containers.map((c) => ({ ...c, collection: 'containers' })),
   ...channels.map((c) => ({ ...c, collection: 'channels' })),
@@ -217,16 +232,18 @@ const allSubdomainIds = new Set(
   domains.flatMap((d: any) => (d.data?.domains || []).map((sd: any) => sd.data?.id || sd.id)).filter(Boolean)
 );
 
+const isAgentLike = type === 'agents';
 const isServiceLike = type === 'services' || type === 'external-systems';
+const isServiceOrAgentLike = isServiceLike || isAgentLike;
 
-// For services and external systems, enrich with domain information
-const enrichedData = isServiceLike
+// For services, external systems, and agents, enrich with domain information
+const enrichedData = isServiceOrAgentLike
   ? await Promise.all(
-      data.map(async (service: any) => {
-        const serviceDomains = await getDomainsForService(service);
+      data.map(async (resource: any) => {
+        const resourceDomains = isAgentLike ? await getDomainsForAgent(resource) : await getDomainsForService(resource);
         return {
-          ...service,
-          enrichedDomains: serviceDomains.map((d: any) => ({
+          ...resource,
+          enrichedDomains: resourceDomains.map((d: any) => ({
             id: d.data.id,
             name: d.data.name,
             version: d.data.version,
@@ -243,10 +260,12 @@ const tableData = enrichedData.map((d: any) => ({
   hasServices: type === 'domains' ? (d.data?.services || []).length > 0 : false,
   isSubdomain: type === 'domains' ? allSubdomainIds.has(d.data.id) : false,
   // Service-specific properties
-  domains: isServiceLike ? d.enrichedDomains : undefined,
+  domains: isServiceOrAgentLike ? d.enrichedDomains : undefined,
   hasSpecifications: isServiceLike ? hasSpecifications(d) : false,
-  hasRepository: isServiceLike ? !!d.data?.repository?.url : false,
-  hasDataDependencies: isServiceLike ? (d.data?.writesTo || []).length > 0 || (d.data?.readsFrom || []).length > 0 : false,
+  hasRepository: isServiceOrAgentLike ? !!d.data?.repository?.url : false,
+  hasDataDependencies: isServiceOrAgentLike ? (d.data?.writesTo || []).length > 0 || (d.data?.readsFrom || []).length > 0 : false,
+  hasModel: type === 'agents' ? !!d.data?.model : false,
+  hasTools: type === 'agents' ? (d.data?.tools || []).length > 0 : false,
   // Data-product-specific properties
   hasInputs: type === 'data-products' ? (d.data?.inputs || []).length > 0 : false,
   hasOutputs: type === 'data-products' ? (d.data?.outputs || []).length > 0 : false,
@@ -264,6 +283,9 @@ const tableData = enrichedData.map((d: any) => ({
     consumers: d.data?.consumers?.map(mapToItem) ?? [],
     receives: d.data?.receives?.map(mapToItem) ?? [],
     sends: d.data?.sends?.map(mapToItem) ?? [],
+    model: d.data?.model,
+    tools: d.data?.tools ?? [],
+    agents: d.data?.agents?.map(mapToItem) ?? [],
     services: d.data?.services?.map(mapToItem) ?? [],
     servicesThatWriteToContainer: d.data?.servicesThatWriteToContainer?.map(mapToItem) ?? [],
     servicesThatReadFromContainer: d.data?.servicesThatReadFromContainer?.map(mapToItem) ?? [],
@@ -279,21 +301,22 @@ const uniqueOwners = Array.from(new Map(tableData.flatMap((d: any) => d.owners |
 
 // Get unique producers (services) for message types
 // Check for duplicate names and add version if needed
-const servicesByName = new Map<string, typeof services>();
-services.forEach((s) => {
-  const name = s.data.name;
-  if (!servicesByName.has(name)) servicesByName.set(name, []);
-  servicesByName.get(name)!.push(s);
+const producerResources = [...agents, ...services];
+const resourcesByName = new Map<string, typeof producerResources>();
+producerResources.forEach((resource) => {
+  const name = resource.data.name;
+  if (!resourcesByName.has(name)) resourcesByName.set(name, []);
+  resourcesByName.get(name)!.push(resource);
 });
 
-const uniqueProducers = services
-  .map((s) => {
-    const hasDuplicateName = (servicesByName.get(s.data.name)?.length ?? 0) > 1;
-    const isLatest = s.data.version === s.data.latestVersion;
-    const versionLabel = isLatest ? 'latest' : `v${s.data.version}`;
+const uniqueProducers = producerResources
+  .map((resource) => {
+    const hasDuplicateName = (resourcesByName.get(resource.data.name)?.length ?? 0) > 1;
+    const isLatest = resource.data.version === resource.data.latestVersion;
+    const versionLabel = isLatest ? 'latest' : `v${resource.data.version}`;
     return {
-      id: s.data.id,
-      name: hasDuplicateName ? `${s.data.name} (${versionLabel})` : s.data.name,
+      id: resource.data.id,
+      name: hasDuplicateName ? `${resource.data.name} (${versionLabel})` : resource.data.name,
     };
   })
   .sort((a, b) => a.name.localeCompare(b.name));
@@ -312,8 +335,29 @@ const uniqueDomains = domains.map((d) => ({
   version: d.data.version,
 }));
 
+const uniqueAgentProviders = Array.from(
+  new Map(
+    tableData
+      .map((d: any) => d.data?.model?.provider)
+      .filter(Boolean)
+      .map((provider: string) => [provider, { id: provider, name: provider }])
+  ).values()
+).sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+const uniqueAgentModels = Array.from(
+  new Map(
+    tableData
+      .map((d: any) => d.data?.model)
+      .filter((model: any) => model?.name)
+      .map((model: any) => {
+        const id = [model.name, model.version].filter(Boolean).join(':');
+        return [id, { id, name: model.name }];
+      })
+  ).values()
+).sort((a: any, b: any) => a.name.localeCompare(b.name));
+
 // Show domains filter only for services and external systems
-const showDomainsFilter = isServiceLike;
+const showDomainsFilter = isServiceOrAgentLike;
 
 const title = `${currentTypeConfig.label} (${data.length})`;
 ---
@@ -338,6 +382,8 @@ const title = `${currentTypeConfig.label} (${data.length})`;
         owners={uniqueOwners as Array<{ id: string; name: string; type?: 'user' | 'team' }>}
         producers={uniqueProducers}
         consumers={uniqueConsumers}
+        agentProviders={uniqueAgentProviders as Array<{ id: string; name: string }>}
+        agentModels={uniqueAgentModels as Array<{ id: string; name: string }>}
         propertyOptions={currentTypeConfig.propertyOptions}
         tableConfiguration={tableConfiguration}
         showDomainsFilter={showDomainsFilter}

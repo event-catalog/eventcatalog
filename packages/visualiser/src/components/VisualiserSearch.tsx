@@ -10,6 +10,7 @@ import {
 import type { Node } from "@xyflow/react";
 import {
   Blocks,
+  Bot,
   Database,
   Layers,
   ListTree,
@@ -18,6 +19,7 @@ import {
   Server,
   User,
   Workflow,
+  Wrench,
   Zap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -32,6 +34,8 @@ interface ResourceData {
 type MessageData = ResourceData;
 
 type ServiceData = ResourceData;
+type AgentData = ResourceData;
+type AgentToolData = ResourceData;
 
 type DomainData = ResourceData;
 
@@ -40,6 +44,8 @@ type EntityData = ResourceData;
 interface NodeDataContent extends Record<string, unknown> {
   message?: { data?: MessageData } & MessageData;
   service?: { data?: ServiceData } & ServiceData;
+  agent?: { data?: AgentData } & AgentData;
+  agentTool?: { data?: AgentToolData } & AgentToolData;
   domain?: { data?: DomainData } & DomainData;
   entity?: { data?: EntityData } & EntityData;
   channel?: { data?: ResourceData } & ResourceData;
@@ -99,6 +105,7 @@ const normalizeCollectionType = (type: string) => {
     event: "events",
     command: "commands",
     query: "queries",
+    agent: "agents",
     service: "services",
     domain: "domains",
     channel: "channels",
@@ -146,6 +153,8 @@ const getNodeResourceData = (
   data: NodeDataContent,
   key:
     | "message"
+    | "agent"
+    | "agentTool"
     | "service"
     | "domain"
     | "entity"
@@ -205,6 +214,8 @@ const VisualiserSearch = memo(
           return (node.data as any)?.groupName || node.id;
         }
         const message = getNodeResourceData(node.data, "message");
+        const agent = getNodeResourceData(node.data, "agent");
+        const agentTool = getNodeResourceData(node.data, "agentTool");
         const service = getNodeResourceData(node.data, "service");
         const domain = getNodeResourceData(node.data, "domain");
         const entity = getNodeResourceData(node.data, "entity");
@@ -214,6 +225,10 @@ const VisualiserSearch = memo(
         const name =
           message?.name ||
           message?.id ||
+          agent?.name ||
+          agent?.id ||
+          agentTool?.name ||
+          agentTool?.id ||
           service?.name ||
           service?.id ||
           domain?.name ||
@@ -230,6 +245,8 @@ const VisualiserSearch = memo(
           node.id;
         const version =
           message?.version ||
+          agent?.version ||
+          agentTool?.version ||
           service?.version ||
           domain?.version ||
           entity?.version ||
@@ -252,6 +269,8 @@ const VisualiserSearch = memo(
           const data = node.data as any;
           const resource =
             getNodeResourceData(data, "message") ||
+            getNodeResourceData(data, "agent") ||
+            getNodeResourceData(data, "agentTool") ||
             getNodeResourceData(data, "service") ||
             getNodeResourceData(data, "domain") ||
             getNodeResourceData(data, "entity") ||
@@ -404,6 +423,34 @@ const VisualiserSearch = memo(
             iconClass: "border-pink-500/25 bg-pink-500/10 text-pink-500",
             badgeClass:
               "border-pink-500/25 bg-pink-500/10 text-pink-700 dark:text-pink-300",
+          },
+          agents: {
+            label: "Agent",
+            Icon: Bot,
+            iconClass: "border-sky-500/25 bg-sky-500/10 text-sky-500",
+            badgeClass:
+              "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+          },
+          agent: {
+            label: "Agent",
+            Icon: Bot,
+            iconClass: "border-sky-500/25 bg-sky-500/10 text-sky-500",
+            badgeClass:
+              "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+          },
+          agentTool: {
+            label: "Agent Tool",
+            Icon: Wrench,
+            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            badgeClass:
+              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+          },
+          "agent-tool": {
+            label: "Agent Tool",
+            Icon: Wrench,
+            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            badgeClass:
+              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
           },
           domains: {
             label: "Domain",

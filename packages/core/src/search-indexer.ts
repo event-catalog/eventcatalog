@@ -24,6 +24,7 @@ type BuildSearchIndexOptions = {
 };
 
 const RESOURCE_COLLECTIONS: Record<string, { docsPath: string; type: string }> = {
+  agents: { docsPath: 'agents', type: 'Agent' },
   channels: { docsPath: 'channels', type: 'Channel' },
   commands: { docsPath: 'commands', type: 'Command' },
   containers: { docsPath: 'containers', type: 'Container' },

@@ -12,13 +12,15 @@ import {
   MapIcon,
   CubeIcon,
 } from '@heroicons/react/24/outline';
-import { BookText, Box, DatabaseIcon } from 'lucide-react';
+import { BookText, Bot, Box, DatabaseIcon } from 'lucide-react';
 import { getColorForCollection } from '@utils/collection-colors';
 
 export const getIconForCollection = (collection: string) => {
   switch (collection) {
     case 'domains':
       return RectangleGroupIcon;
+    case 'agents':
+      return Bot;
     case 'services':
       return ServerIcon;
     case 'events':

@@ -32,7 +32,8 @@ export const projectDirBase = (() => {
 
 const withIgnoredBuildArtifacts = (patterns: string | string[]) => {
   if (process.env.IGNORE_BUILD_ARTIFACTS === 'true') {
-    return Array.isArray(patterns) ? [...patterns, '!dist/**'] : [patterns, '!dist/**'];
+    const ignoredArtifacts = ['!dist/**', '!**/dist/**'];
+    return Array.isArray(patterns) ? [...patterns, ...ignoredArtifacts] : [patterns, ...ignoredArtifacts];
   }
   return patterns;
 };
@@ -97,7 +98,7 @@ const receivesPointer = z.object({
 const resourcePointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
-  type: z.enum(['service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team', 'container']),
+  type: z.enum(['agent', 'service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team', 'container']),
 });
 
 const changelogs = defineCollection({
@@ -133,20 +134,6 @@ const baseSchema = z.object({
   badges: z.array(badge).optional(),
   owners: z.array(ownerReference).optional(),
   schemaPath: z.string().optional(),
-  sidebar: z
-    .object({
-      label: z.string().optional(),
-      badge: z.string().optional(),
-      color: z.string().optional(),
-      backgroundColor: z.string().optional(),
-    })
-    .optional(),
-  repository: z
-    .object({
-      language: z.string().optional(),
-      url: z.string().optional(),
-    })
-    .optional(),
   specifications: z
     .union([
       z.object({
@@ -163,6 +150,20 @@ const baseSchema = z.object({
         })
       ),
     ])
+    .optional(),
+  sidebar: z
+    .object({
+      label: z.string().optional(),
+      badge: z.string().optional(),
+      color: z.string().optional(),
+      backgroundColor: z.string().optional(),
+    })
+    .optional(),
+  repository: z
+    .object({
+      language: z.string().optional(),
+      url: z.string().optional(),
+    })
     .optional(),
   hidden: z.boolean().optional(),
   editUrl: z.string().optional(),
@@ -226,6 +227,8 @@ const baseSchema = z.object({
     .optional(),
 });
 
+const agentBaseSchema = baseSchema.omit({ specifications: true });
+
 const flowStep = z
   .union([
     // Can be a string or a number just to reference a step
@@ -260,10 +263,11 @@ const flows = defineCollection({
         z
           .object({
             id: z.union([z.string(), z.number()]),
-            type: z.enum(['node', 'message', 'user', 'actor']).optional(),
+            type: z.enum(['node', 'message', 'agent', 'user', 'actor']).optional(),
             title: z.string(),
             summary: z.string().optional(),
             message: pointer.optional(),
+            agent: pointer.optional(),
             service: pointer.optional(),
             flow: pointer.optional(),
             container: pointer.optional(),
@@ -312,6 +316,7 @@ const flows = defineCollection({
             // Either one or non types can be present
             const typesUsed = [
               data.message,
+              data.agent,
               data.service,
               data.flow,
               data.container,
@@ -493,6 +498,55 @@ const services = defineCollection({
         })
         .optional(),
     })
+    .extend(agentBaseSchema.shape),
+});
+
+const agentTool = z.object({
+  name: z.string(),
+  type: z.string(),
+  icon: z.string().optional(),
+  url: z.string().optional(),
+  description: z.string().optional(),
+});
+
+const agentModel = z.object({
+  provider: z.string().optional(),
+  name: z.string().optional(),
+  version: z.string().optional(),
+});
+
+const agents = defineCollection({
+  loader: glob({
+    pattern: withIgnoredBuildArtifacts(['**/agents/*/index.(md|mdx)', '**/agents/*/versioned/*/index.(md|mdx)']),
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
+  schema: z
+    .object({
+      sends: z.array(sendsPointer).optional(),
+      receives: z.array(receivesPointer).optional(),
+      writesTo: z.array(pointer).optional(),
+      readsFrom: z.array(pointer).optional(),
+      flows: z.array(pointer).optional(),
+      model: agentModel.optional(),
+      tools: z.array(agentTool).optional(),
+      specifications: z.undefined().optional(),
+      detailsPanel: z
+        .object({
+          domains: detailPanelPropertySchema.optional(),
+          messages: detailPanelPropertySchema.optional(),
+          versions: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+          containers: detailPanelPropertySchema.optional(),
+          tools: detailPanelPropertySchema.optional(),
+          model: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
+    })
     .extend(baseSchema.shape),
 });
 
@@ -566,10 +620,10 @@ const resourceDocs = defineCollection({
     // Resource-level docs are restricted to known resource paths.
     // This avoids scanning external docs such as node_modules/**/docs.
     pattern: withIgnoredBuildArtifacts([
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/*.@(md|mdx)',
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/*.@(md|mdx)',
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/*.@(md|mdx)',
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/*.@(md|mdx)',
       'domains/**/docs/**/*.@(md|mdx)',
       'domains/**/docs/*.@(md|mdx)',
     ]),
@@ -581,10 +635,10 @@ const resourceDocs = defineCollection({
 const resourceDocCategories = defineCollection({
   loader: glob({
     pattern: withIgnoredBuildArtifacts([
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/category.json',
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/_category_.json',
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/category.json',
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/_category_.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/category.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/_category_.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/category.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/_category_.json',
       'domains/**/docs/**/category.json',
       'domains/**/docs/**/_category_.json',
       'domains/**/docs/category.json',
@@ -614,6 +668,7 @@ const domains = defineCollection({
   schema: z
     .object({
       services: z.array(pointer).optional(),
+      agents: z.array(pointer).optional(),
       domains: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
       'data-products': z.array(pointer).optional(),
@@ -775,6 +830,7 @@ const users = defineCollection({
     email: z.string().optional(),
     slackDirectMessageUrl: z.string().optional(),
     msTeamsDirectMessageUrl: z.string().optional(),
+    ownedAgents: z.array(reference('agents')).optional(),
     ownedDomains: z.array(reference('domains')).optional(),
     ownedServices: z.array(reference('services')).optional(),
     ownedEvents: z.array(reference('events')).optional(),
@@ -799,6 +855,7 @@ const teams = defineCollection({
     slackDirectMessageUrl: z.string().optional(),
     msTeamsDirectMessageUrl: z.string().optional(),
     members: z.array(reference('users')).optional(),
+    ownedAgents: z.array(reference('agents')).optional(),
     ownedCommands: z.array(reference('commands')).optional(),
     ownedQueries: z.array(reference('queries')).optional(),
     ownedDomains: z.array(reference('domains')).optional(),
@@ -857,6 +914,7 @@ export const collections = {
   commands,
   queries,
   services,
+  agents,
   channels,
   users,
   teams,

@@ -15,8 +15,9 @@ export const getTeams = async (): Promise<Team[]> => {
   }
 
   // 1. Fetch all collections in parallel
-  const [allTeams, allDomains, allServices, allEvents, allCommands, allQueries] = await Promise.all([
+  const [allTeams, allAgents, allDomains, allServices, allEvents, allCommands, allQueries] = await Promise.all([
     getCollection('teams'),
+    getCollection('agents'),
     getCollection('domains'),
     getCollection('services'),
     getCollection('events'),
@@ -45,6 +46,7 @@ export const getTeams = async (): Promise<Team[]> => {
     }
   };
 
+  addToIndex(allAgents);
   addToIndex(allDomains);
   addToIndex(allServices);
   addToIndex(allEvents);
@@ -57,6 +59,7 @@ export const getTeams = async (): Promise<Team[]> => {
     const ownedItems = ownershipMap.get(teamId) || [];
 
     // Categorize items
+    const ownedAgents = ownedItems.filter((i) => i.collection === 'agents') as CollectionEntry<'agents'>[];
     const ownedDomains = ownedItems.filter((i) => i.collection === 'domains') as CollectionEntry<'domains'>[];
     const ownedServices = ownedItems.filter((i) => i.collection === 'services') as CollectionEntry<'services'>[];
     const ownedEvents = ownedItems.filter((i) => i.collection === 'events') as CollectionEntry<'events'>[];
@@ -67,6 +70,7 @@ export const getTeams = async (): Promise<Team[]> => {
       ...team,
       data: {
         ...team.data,
+        ownedAgents,
         ownedDomains,
         ownedServices,
         ownedCommands,

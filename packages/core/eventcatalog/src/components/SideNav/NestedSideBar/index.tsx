@@ -218,6 +218,8 @@ export default function NestedSideBar() {
         { pattern: /^\/docs\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
         { pattern: /^\/visualiser\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
         { pattern: /^\/architecture\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
+        // Agents
+        { pattern: /^\/docs\/agents\/([^/]+)\/([^/]+)/, type: 'agent' },
         // Services
         { pattern: /^\/docs\/services\/([^/]+)\/([^/]+)/, type: 'service' },
         { pattern: /^\/architecture\/services\/([^/]+)\/([^/]+)/, type: 'service' },

@@ -173,6 +173,7 @@ export const findMatchingNodes = (
 };
 
 export const resourceToCollectionMap = {
+  agent: 'agents',
   service: 'services',
   event: 'events',
   command: 'commands',
@@ -189,6 +190,7 @@ export const resourceToCollectionMap = {
 } as const;
 
 export const collectionToResourceMap = {
+  agents: 'agent',
   services: 'service',
   events: 'event',
   commands: 'command',

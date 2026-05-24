@@ -121,4 +121,21 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('ownedServices'),
   }),
+
+  columnHelper.accessor('data.ownedAgents', {
+    id: 'ownedAgents',
+    header: () => <span>{tableConfiguration.columns?.ownedAgents?.label || 'Owned agents'}</span>,
+    meta: {
+      filterVariant: 'collection',
+      collectionFilterKey: 'ownedAgents',
+    },
+    cell: (info) => (
+      <CollectionListCell
+        items={info.getValue() as Array<{ collection: string; data: { id: string; name: string; version?: string } }> | undefined}
+        emptyText="No agents"
+      />
+    ),
+    footer: (info) => info.column.id,
+    filterFn: filterCollectionByName('ownedAgents'),
+  }),
 ];

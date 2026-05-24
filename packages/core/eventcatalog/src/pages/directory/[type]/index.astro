@@ -45,6 +45,8 @@ function mapToItem(i: any) {
           // @ts-ignore
           associatedTeams: d.data?.associatedTeams?.map(mapToItem) ?? [],
           // @ts-ignore
+          ownedAgents: d.data?.ownedAgents?.map(mapToItem) ?? [],
+          // @ts-ignore
           ownedCommands: d.data?.ownedCommands?.map(mapToItem) ?? [],
           // @ts-ignore
           ownedQueries: d.data?.ownedQueries?.map(mapToItem) ?? [],

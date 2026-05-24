@@ -39,6 +39,18 @@ export const mockDomains = [
       services: [{ id: 'MailService' }],
     },
   },
+  {
+    id: 'domains/Automation/index.mdx',
+    slug: 'domains/Automation',
+    collection: 'domains',
+    filePath: 'domains/Automation/index.mdx',
+    data: {
+      id: 'Automation',
+      name: 'Automation',
+      version: '0.0.1',
+      agents: [{ id: 'FraudReviewAgent', version: '1.0.0' }],
+    },
+  },
 ];
 
 export const mockServices = [
@@ -92,6 +104,30 @@ export const mockServices = [
     data: {
       id: 'ServiceWithoutDomains',
       version: '0.0.1',
+    },
+  },
+];
+
+export const mockAgents = [
+  {
+    id: 'agents/FraudReviewAgent/index.mdx',
+    slug: 'agents/FraudReviewAgent',
+    collection: 'agents',
+    data: {
+      id: 'FraudReviewAgent',
+      name: 'Fraud Review Agent',
+      version: '1.0.0',
+      tools: [
+        {
+          name: 'Risk profile lookup',
+          type: 'mcp',
+          icon: '/icons/tools/datadog.svg',
+          url: 'https://mcp.example.com/fraud/risk-profile',
+          description: 'Looks up fraud and payment risk signals.',
+        },
+      ],
+      receives: [{ id: 'OrderPlaced', version: '0.0.1' }],
+      sends: [{ id: 'PaymentFailed', version: '^1.0.0' }],
     },
   },
 ];

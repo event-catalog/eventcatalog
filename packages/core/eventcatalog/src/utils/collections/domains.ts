@@ -2,7 +2,7 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import type { CollectionMessageTypes } from '@types';
-import type { Service } from './types';
+import type { Agent, Service } from './types';
 import { createVersionedMap, findInMap, processSpecifications } from '@utils/collections/util';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
@@ -60,6 +60,45 @@ const hydrateServices = (
     });
 };
 
+const hydrateAgents = (
+  agentsList: any[],
+  agentMap: Map<string, any[]>,
+  messageMap: Map<string, any[]>,
+  containerMap: Map<string, any[]>
+) => {
+  return agentsList
+    .map((agent: { id: string; version: string | undefined }) => findInMap(agentMap, agent.id, agent.version))
+    .filter((a) => !!a)
+    .map((agent) => {
+      const sends = (agent.data.sends || [])
+        .map((msg: any) => findInMap(messageMap, msg.id, msg.version))
+        .filter((m: any) => !!m);
+
+      const receives = (agent.data.receives || [])
+        .map((msg: any) => findInMap(messageMap, msg.id, msg.version))
+        .filter((m: any) => !!m);
+
+      const readsFrom = (agent.data.readsFrom || [])
+        .map((c: any) => findInMap(containerMap, c.id, c.version))
+        .filter((c: any) => !!c);
+
+      const writesTo = (agent.data.writesTo || [])
+        .map((c: any) => findInMap(containerMap, c.id, c.version))
+        .filter((c: any) => !!c);
+
+      return {
+        ...agent,
+        data: {
+          ...agent.data,
+          sends: sends as any,
+          receives: receives as any,
+          readsFrom: readsFrom as any,
+          writesTo: writesTo as any,
+        },
+      };
+    });
+};
+
 // --- MAIN FUNCTION ---
 
 export const getDomains = async ({
@@ -78,18 +117,29 @@ export const getDomains = async ({
   }
 
   // 1. Fetch collections (always fetch messages to hydrate domain-level sends/receives)
-  const [allDomains, allServices, allEntities, allFlows, allEvents, allCommands, allQueries, allContainers, allDataProducts] =
-    await Promise.all([
-      getCollection('domains'),
-      getCollection('services'),
-      getCollection('entities'),
-      getCollection('flows'),
-      getCollection('events'),
-      getCollection('commands'),
-      getCollection('queries'),
-      getCollection('containers'),
-      getCollection('data-products'),
-    ]);
+  const [
+    allDomains,
+    allAgents,
+    allServices,
+    allEntities,
+    allFlows,
+    allEvents,
+    allCommands,
+    allQueries,
+    allContainers,
+    allDataProducts,
+  ] = await Promise.all([
+    getCollection('domains'),
+    getCollection('agents'),
+    getCollection('services'),
+    getCollection('entities'),
+    getCollection('flows'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('containers'),
+    getCollection('data-products'),
+  ]);
 
   const allMessages = [...allEvents, ...allCommands, ...allQueries];
   const messageMap = createVersionedMap(allMessages);
@@ -97,6 +147,7 @@ export const getDomains = async ({
 
   // 2. Build optimized maps
   const domainMap = createVersionedMap(allDomains);
+  const agentMap = createVersionedMap(allAgents);
   const serviceMap = createVersionedMap(allServices);
   const entityMap = createVersionedMap(allEntities);
   const flowMap = createVersionedMap(allFlows);
@@ -127,13 +178,18 @@ export const getDomains = async ({
         .map((subDomain: any) => {
           // Hydrate services for the subdomain
           let hydratedServices = subDomain.data.services || [];
+          let hydratedAgents = subDomain.data.agents || [];
           if (enrichServices) {
             hydratedServices = hydrateServices(subDomain.data.services || [], serviceMap, messageMap, containerMap);
+            hydratedAgents = hydrateAgents(subDomain.data.agents || [], agentMap, messageMap, containerMap);
           } else {
             // Just resolve the service objects without enrichment
             hydratedServices = (subDomain.data.services || [])
               .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
               .filter((s: any) => !!s);
+            hydratedAgents = (subDomain.data.agents || [])
+              .map((agent: { id: string; version: string | undefined }) => findInMap(agentMap, agent.id, agent.version))
+              .filter((a: any) => !!a);
           }
 
           // Hydrate data products for the subdomain
@@ -146,6 +202,7 @@ export const getDomains = async ({
             data: {
               ...subDomain.data,
               services: hydratedServices as any,
+              agents: hydratedAgents as any,
               'data-products': subdomainDataProducts as any,
             },
           };
@@ -173,23 +230,33 @@ export const getDomains = async ({
 
       // Resolve Services for Main Domain
       const servicesInDomain = domain.data.services || [];
+      const agentsInDomain = domain.data.agents || [];
 
       // Hydrate main domain services
       let hydratedMainServices = [];
+      let hydratedMainAgents = [];
       if (enrichServices) {
         hydratedMainServices = hydrateServices(servicesInDomain, serviceMap, messageMap, containerMap);
+        hydratedMainAgents = hydrateAgents(agentsInDomain, agentMap, messageMap, containerMap);
       } else {
         hydratedMainServices = servicesInDomain
           .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
           .filter((s) => !!s);
+        hydratedMainAgents = agentsInDomain
+          .map((agent: { id: string; version: string | undefined }) => findInMap(agentMap, agent.id, agent.version))
+          .filter((a) => !!a);
       }
 
       // Get already-hydrated subdomain services
       const hydratedSubdomainServices = subDomains.flatMap((subDomain: any) => subDomain.data.services || []);
+      const hydratedSubdomainAgents = subDomains.flatMap((subDomain: any) => subDomain.data.agents || []);
 
       const services = includeServicesInSubdomains
         ? [...(hydratedMainServices as any), ...(hydratedSubdomainServices as any)]
         : (hydratedMainServices as any);
+      const agents = includeServicesInSubdomains
+        ? [...(hydratedMainAgents as any), ...(hydratedSubdomainAgents as any)]
+        : (hydratedMainAgents as any);
 
       // Hydrate domain-level sends and receives
       const domainSends = (domain.data.sends || [])
@@ -204,6 +271,7 @@ export const getDomains = async ({
         ...domain,
         data: {
           ...domain.data,
+          agents: agents as any,
           services: services as any, // Cast to avoid deep type issues with enriched data
           domains: subDomains as any,
           entities: entities as any,
@@ -236,6 +304,7 @@ export const getMessagesForDomain = async (
 ): Promise<{ sends: CollectionEntry<CollectionMessageTypes>[]; receives: CollectionEntry<CollectionMessageTypes>[] }> => {
   // We already have the services from the domain
   const services = domain.data.services as unknown as CollectionEntry<'services'>[];
+  const agents = ((domain.data.agents as unknown as CollectionEntry<'agents'>[]) || []) as CollectionEntry<'agents'>[];
 
   const [events, commands, queries] = await Promise.all([
     getCollection('events'),
@@ -249,14 +318,16 @@ export const getMessagesForDomain = async (
   // Get service-level sends/receives
   const serviceSends = services.flatMap((service) => service.data.sends || []);
   const serviceReceives = services.flatMap((service) => service.data.receives || []);
+  const agentSends = agents.flatMap((agent) => agent.data.sends || []);
+  const agentReceives = agents.flatMap((agent) => agent.data.receives || []);
 
   // Get domain-level sends/receives (already hydrated if domain came from getDomains)
   const domainSends = domain.data.sends || [];
   const domainReceives = domain.data.receives || [];
 
   // Combine and deduplicate - domain-level messages take priority
-  const allSends = [...domainSends, ...serviceSends];
-  const allReceives = [...domainReceives, ...serviceReceives];
+  const allSends = [...domainSends, ...serviceSends, ...agentSends];
+  const allReceives = [...domainReceives, ...serviceReceives, ...agentReceives];
 
   const sendsMessages = allSends
     .map((send: any) => {
@@ -377,6 +448,14 @@ export const getDomainsForService = async (service: Service): Promise<Domain[]> 
   return domains.filter((d) => {
     const services = d.data.services as unknown as Service[];
     return services.some((s) => s.data.id === service.data.id);
+  });
+};
+
+export const getDomainsForAgent = async (agent: Agent): Promise<Domain[]> => {
+  const domains = await getDomains({ getAllVersions: false });
+  return domains.filter((d) => {
+    const agents = ((d.data.agents as unknown as Agent[]) || []) as Agent[];
+    return agents.some((a) => a.data.id === agent.data.id);
   });
 };
 

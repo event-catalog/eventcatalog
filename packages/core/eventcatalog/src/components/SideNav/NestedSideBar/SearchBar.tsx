@@ -18,6 +18,7 @@ import {
   ArrowLeftRight,
   Package,
   Box,
+  Bot,
 } from 'lucide-react';
 import type { NavNode } from '@stores/sidebar-store/state';
 import { getBadgeClasses } from './utils';
@@ -83,6 +84,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
 
   const filterTypes = [
     { key: 'channel', label: 'Channels', badge: 'Channel', icon: ArrowLeftRight },
+    { key: 'agent', label: 'Agents', badge: 'Agent', icon: Bot },
     { key: 'command', label: 'Commands', badge: 'Command', icon: MessageSquare },
     { key: 'container', label: 'Data Stores', badge: 'Container', icon: Database },
     { key: 'data-product', label: 'Data Products', badge: 'Data Product', icon: Package },
@@ -114,6 +116,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
     const results: SearchResult[] = [];
 
     const badgeToFilterKey: Record<string, string> = {
+      Agent: 'agent',
       Domain: 'domain',
       Service: 'service',
       Event: 'event',

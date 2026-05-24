@@ -11,6 +11,7 @@ import { isLLMSTxtEnabled } from '@utils/feature';
 import { filterMarkdownForAgents } from '@utils/llms';
 
 const events = await getCollection('events');
+const agents = await getCollection('agents');
 const commands = await getCollection('commands');
 const queries = await getCollection('queries');
 const services = await getCollection('services');
@@ -22,6 +23,7 @@ const containers = await getCollection('containers');
 const entities = await getEntities();
 
 const collections = {
+  agents,
   events,
   commands,
   queries,

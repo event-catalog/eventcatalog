@@ -20,6 +20,7 @@ interface HydrateProducersAndConsumersProps {
       latestVersion?: string;
     };
   };
+  agents?: CollectionEntry<'agents'>[];
   services: CollectionEntry<'services'>[];
   dataProducts: CollectionEntry<'data-products'>[];
   hydrate?: boolean;
@@ -31,6 +32,7 @@ interface HydrateProducersAndConsumersProps {
  */
 export const hydrateProducersAndConsumers = ({
   message,
+  agents = [],
   services = [],
   dataProducts = [],
   hydrate = true,
@@ -44,10 +46,22 @@ export const hydrateProducersAndConsumers = ({
     return satisfies(messageVersion, pointerVersion);
   };
 
-  const toResult = <T extends CollectionEntry<'services'> | CollectionEntry<'data-products'>>(resource: T) => {
+  const toResult = <T extends CollectionEntry<'agents'> | CollectionEntry<'services'> | CollectionEntry<'data-products'>>(
+    resource: T
+  ) => {
     if (!hydrate) return { id: resource.data.id, version: resource.data.version };
     return resource;
   };
+
+  // Agents that send this message (producers)
+  const agentProducers = agents
+    .filter((a) => a.data.sends?.some((p) => p.id === messageId && matchesVersion(p.version)))
+    .map(toResult);
+
+  // Agents that receive this message (consumers)
+  const agentConsumers = agents
+    .filter((a) => a.data.receives?.some((p) => p.id === messageId && matchesVersion(p.version)))
+    .map(toResult);
 
   // Services that send this message (producers)
   const serviceProducers = services
@@ -70,15 +84,15 @@ export const hydrateProducersAndConsumers = ({
     .map(toResult);
 
   return {
-    producers: [...serviceProducers, ...dataProductProducers],
-    consumers: [...serviceConsumers, ...dataProductConsumers],
+    producers: [...agentProducers, ...serviceProducers, ...dataProductProducers],
+    consumers: [...agentConsumers, ...serviceConsumers, ...dataProductConsumers],
   };
 };
 
 // --- Reverse Index for O(1) producer/consumer lookups ---
 
 interface IndexEntry {
-  resource: CollectionEntry<'services'> | CollectionEntry<'data-products'>;
+  resource: CollectionEntry<'agents'> | CollectionEntry<'services'> | CollectionEntry<'data-products'>;
   pointerVersion?: string;
 }
 
@@ -92,6 +106,7 @@ export interface ProducerConsumerIndex {
  * Call once before the enrichment loop, then use lookupProducersAndConsumers per message.
  */
 export const buildProducerConsumerIndex = (
+  agents: CollectionEntry<'agents'>[],
   services: CollectionEntry<'services'>[],
   dataProducts: CollectionEntry<'data-products'>[]
 ): ProducerConsumerIndex => {
@@ -106,6 +121,19 @@ export const buildProducerConsumerIndex = (
     }
     list.push(entry);
   };
+
+  for (const agent of agents || []) {
+    if (agent.data.sends) {
+      for (const p of agent.data.sends) {
+        addEntry(producers, p.id, { resource: agent, pointerVersion: p.version });
+      }
+    }
+    if (agent.data.receives) {
+      for (const p of agent.data.receives) {
+        addEntry(consumers, p.id, { resource: agent, pointerVersion: p.version });
+      }
+    }
+  }
 
   for (const service of services || []) {
     if (service.data.sends) {
@@ -162,7 +190,9 @@ export const lookupProducersAndConsumers = ({ message, index, hydrate = true }: 
     return satisfies(messageVersion, pointerVersion);
   };
 
-  const toResult = <T extends CollectionEntry<'services'> | CollectionEntry<'data-products'>>(resource: T) => {
+  const toResult = <T extends CollectionEntry<'agents'> | CollectionEntry<'services'> | CollectionEntry<'data-products'>>(
+    resource: T
+  ) => {
     if (!hydrate) return { id: resource.data.id, version: resource.data.version };
     return resource;
   };

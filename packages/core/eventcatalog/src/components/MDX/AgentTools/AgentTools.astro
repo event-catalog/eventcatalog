@@ -1,0 +1,132 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Admonition from '../Admonition';
+import { buildUrl } from '@utils/url-builder';
+
+type AgentTool = {
+  name: string;
+  type: string;
+  icon?: string;
+  url?: string;
+  description?: string;
+};
+
+export interface Props extends CollectionEntry<'agents'> {}
+
+const { data, collection } = Astro.props;
+const tools = (data?.tools || []) as AgentTool[];
+const isComponentEnabled = collection === 'agents';
+const mcpLogoLightUrl = buildUrl('/icons/protocols/mcp-light.svg', true);
+const mcpLogoDarkUrl = buildUrl('/icons/protocols/mcp-dark.svg', true);
+
+const getToolUrlLabel = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+    const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+    const compactPath =
+      pathParts.length > 1 ? `/.../${pathParts[pathParts.length - 1]}` : parsedUrl.pathname === '/' ? '' : parsedUrl.pathname;
+
+    return `${parsedUrl.hostname}${compactPath}`;
+  } catch {
+    return url;
+  }
+};
+
+const isMcpTool = (tool: AgentTool) => tool.type?.toLowerCase() === 'mcp';
+---
+
+{
+  !isComponentEnabled && (
+    <Admonition type="warning">
+      <div>
+        <span class="font-bold">
+          {`<AgentTools/>`} component is not supported for resources of type {collection}.
+        </span>
+        <span class="block">This component is only supported for agents.</span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  isComponentEnabled && tools.length > 0 ? (
+    <div class="overflow-x-auto relative not-prose">
+      <table class="w-full table-fixed text-sm text-left text-[rgb(var(--ec-page-text-muted))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xs">
+        <colgroup>
+          <col class="w-[26%]" />
+          <col class="w-[12%]" />
+          <col class="w-[44%]" />
+          <col class="w-[18%]" />
+        </colgroup>
+        <thead class="text-xs text-[rgb(var(--ec-page-text))] uppercase bg-[rgb(var(--ec-content-hover))]">
+          <tr>
+            <th scope="col" class="py-3 px-6">
+              Name
+            </th>
+            <th scope="col" class="py-3 px-6">
+              Type
+            </th>
+            <th scope="col" class="py-3 px-6 min-w-[250px]">
+              Description
+            </th>
+            <th scope="col" class="py-3 px-6">
+              URL
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {tools.map((tool) => (
+            <tr class="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border-b border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] align-top">
+              <td class="py-4 px-6 font-medium text-[rgb(var(--ec-page-text))]">{tool.name}</td>
+              <td class="py-4 px-6">
+                <span class="inline-flex items-center rounded-md bg-sky-500/10 px-2 py-1 text-xs font-medium uppercase text-sky-500 ring-1 ring-inset ring-sky-500/20">
+                  {isMcpTool(tool) && (
+                    <>
+                      <img
+                        src={mcpLogoLightUrl}
+                        alt=""
+                        class="mr-1.5 h-3 w-3 shrink-0 object-contain dark:hidden"
+                        loading="lazy"
+                      />
+                      <img
+                        src={mcpLogoDarkUrl}
+                        alt=""
+                        class="mr-1.5 hidden h-3 w-3 shrink-0 object-contain dark:inline-block"
+                        loading="lazy"
+                      />
+                    </>
+                  )}
+                  {isMcpTool(tool) ? 'MCP' : tool.type}
+                </span>
+              </td>
+              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
+                {tool.description || <span class="text-[rgb(var(--ec-icon-color))] italic">No description provided.</span>}
+              </td>
+              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
+                {tool.url ? (
+                  <a
+                    href={tool.url}
+                    class="inline-flex max-w-full items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent))]"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={tool.url}
+                  >
+                    <span class="truncate">{getToolUrlLabel(tool.url)}</span>
+                  </a>
+                ) : (
+                  <span class="text-[rgb(var(--ec-icon-color))]">-</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    isComponentEnabled && (
+      <Admonition type="note" title="No Tools Defined">
+        <p>There are no tools defined for this agent.</p>
+      </Admonition>
+    )
+  )
+}

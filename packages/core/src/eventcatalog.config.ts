@@ -211,6 +211,7 @@ export interface Config {
     };
   };
   dependencies?: {
+    agents?: ResourceDependency[];
     commands?: ResourceDependency[];
     events?: ResourceDependency[];
     services?: ResourceDependency[];
@@ -265,6 +266,9 @@ export interface Config {
     tableConfiguration?: TableConfiguration;
   };
   events?: {
+    tableConfiguration?: TableConfiguration;
+  };
+  agents?: {
     tableConfiguration?: TableConfiguration;
   };
   services?: {

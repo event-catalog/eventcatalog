@@ -16,6 +16,9 @@ import { pluralizeMessageType } from '@utils/collections/messages';
 import { getSpecificationsForDomain } from '@utils/collections/domains';
 
 export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
+  const agentsInDomain = domain.data.agents || [];
+  const renderAgents = agentsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'agents');
+
   const allServicesInDomain = domain.data.services || [];
   const servicesInDomain = allServicesInDomain.filter((service) => !(service as any).data?.externalSystem);
   const externalSystemsInDomain = allServicesInDomain.filter((service) => (service as any).data?.externalSystem);
@@ -181,6 +184,12 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         title: 'Services In Domain',
         icon: 'Server',
         pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
+      },
+      renderAgents && {
+        type: 'group',
+        title: 'Agents In Domain',
+        icon: 'Bot',
+        pages: agentsInDomain.map((agent) => `agent:${(agent as any).data.id}:${(agent as any).data.version}`),
       },
       renderExternalSystems && {
         type: 'group',
