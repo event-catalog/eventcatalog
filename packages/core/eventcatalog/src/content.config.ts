@@ -498,7 +498,7 @@ const services = defineCollection({
         })
         .optional(),
     })
-    .extend(agentBaseSchema.shape),
+    .extend(baseSchema.shape),
 });
 
 const agentTool = z.object({
