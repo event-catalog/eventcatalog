@@ -13,6 +13,7 @@ export class Page extends HybridPage {
     }
 
     const itemTypes: PageTypes[] = [
+      'agents',
       'events',
       'commands',
       'queries',

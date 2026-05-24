@@ -1,4 +1,5 @@
 export type CollectionTypes =
+  | 'agents'
   | 'commands'
   | 'events'
   | 'queries'
@@ -11,8 +12,9 @@ export type CollectionTypes =
   | 'diagrams'
   | 'data-products';
 export type CollectionMessageTypes = 'commands' | 'events' | 'queries';
-export type CollectionUserTypes = 'users';
+export type CollectionUserTypes = 'users' | 'teams';
 export type PageTypes =
+  | 'agents'
   | 'events'
   | 'commands'
   | 'queries'

@@ -5,6 +5,7 @@ import { getResourceReferenceColorName, getResourceReferenceStyle } from '@utils
 describe('resource-reference-colors', () => {
   it('maps resource types to the same colors used in the explore tables', () => {
     expect(getResourceReferenceColorName('service')).toBe('pink');
+    expect(getResourceReferenceColorName('agent')).toBe('sky');
     expect(getResourceReferenceColorName('event')).toBe('orange');
     expect(getResourceReferenceColorName('command')).toBe('blue');
     expect(getResourceReferenceColorName('query')).toBe('green');
@@ -36,6 +37,7 @@ describe('resource-reference-colors', () => {
 
   it('returns static Tailwind text classes for collection colors', () => {
     expect(getCollectionTextColorClass('indigo')).toBe('text-indigo-500');
+    expect(getCollectionTextColorClass('sky')).toBe('text-sky-500');
     expect(getCollectionTextColorClass('unknown', 'text-[rgb(var(--ec-icon-color))]')).toBe('text-[rgb(var(--ec-icon-color))]');
   });
 });

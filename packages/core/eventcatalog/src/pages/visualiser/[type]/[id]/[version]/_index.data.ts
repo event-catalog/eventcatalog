@@ -21,10 +21,11 @@ export class Page extends HybridPage {
     };
 
     const itemTypes: PageTypesWithFlows[] = [
+      'agents',
+      'services',
       'events',
       'commands',
       'queries',
-      'services',
       'domains',
       'flows',
       'containers',

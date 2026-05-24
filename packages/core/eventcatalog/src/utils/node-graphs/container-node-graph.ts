@@ -68,7 +68,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
         contextMenu: buildContextMenuForService({
           id: service.data.id,
           version: service.data.version,
-          specifications: service.data.specifications as { type: string; path: string }[],
+          specifications: (service.data as any).specifications as { type: string; path: string }[],
           repository: service.data.repository as { url: string },
         }),
       },
@@ -161,7 +161,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
         contextMenu: buildContextMenuForService({
           id: service.data.id,
           version: service.data.version,
-          specifications: service.data.specifications as { type: string; path: string }[],
+          specifications: (service.data as any).specifications as { type: string; path: string }[],
           repository: service.data.repository as { url: string },
         }),
       },

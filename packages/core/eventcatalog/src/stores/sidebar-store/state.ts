@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
+import { getAgents } from '@utils/collections/agents';
 import { getContainers } from '@utils/collections/containers';
 import { getDomains } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
@@ -14,6 +15,7 @@ import { getEntities } from '@utils/collections/entities';
 import { getResourceDocCategories, getResourceDocs } from '@utils/collections/resource-docs';
 import { buildUrl } from '@utils/url-builder';
 import type { NavigationData, NavNode, ChildRef } from './builders/shared';
+import { buildAgentNode } from './builders/agent';
 import { buildDomainNode } from './builders/domain';
 import { buildServiceNode } from './builders/service';
 import { buildMessageNode } from './builders/message';
@@ -34,6 +36,7 @@ const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 let memoryCache: NavigationData | null = null;
 
 type MessageEntry = CollectionEntry<'events' | 'commands' | 'queries'>;
+type AgentEntry = CollectionEntry<'agents'>;
 type ServiceEntry = CollectionEntry<'services'>;
 type ContainerEntry = CollectionEntry<'containers'>;
 type DataProductEntry = CollectionEntry<'data-products'>;
@@ -121,6 +124,42 @@ const buildFlowReferencesByService = ({
   return flowRefsByService;
 };
 
+const buildFlowReferencesByAgent = ({
+  flows,
+  agents,
+}: {
+  flows: CollectionEntry<'flows'>[];
+  agents: CollectionEntry<'agents'>[];
+}) => {
+  const agentMap = createVersionedMap(agents);
+  const flowRefsByAgent = new Map<string, string[]>();
+
+  const addFlowRef = (agent: AgentEntry, flow: CollectionEntry<'flows'>) => {
+    const agentKey = `agent:${agent.data.id}:${agent.data.version}`;
+    const flowKey = `flow:${flow.data.id}:${flow.data.version}`;
+    flowRefsByAgent.set(agentKey, uniqueRefs([...(flowRefsByAgent.get(agentKey) || []), flowKey]));
+  };
+
+  for (const flow of flows) {
+    for (const step of flow.data.steps || []) {
+      if (!(step as any).agent) continue;
+
+      const hydratedAgent = Array.isArray((step as any).agent) ? (step as any).agent[0] : undefined;
+      if (hydratedAgent?.collection && hydratedAgent?.data) {
+        addFlowRef(hydratedAgent as AgentEntry, flow);
+        continue;
+      }
+
+      if (Array.isArray((step as any).agent)) continue;
+
+      const agent = findInMap(agentMap, (step as any).agent.id, (step as any).agent.version);
+      if (agent) addFlowRef(agent, flow);
+    }
+  }
+
+  return flowRefsByAgent;
+};
+
 const buildFlowReferencesByContainer = ({
   flows,
   containers,
@@ -203,6 +242,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const [
     domains,
+    agents,
     services,
     { events, commands, queries },
     containers,
@@ -218,6 +258,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     resourceDocCategories,
   ] = await Promise.all([
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
+    getAgents({ getAllVersions: false }),
     getServices({ getAllVersions: false }),
     getMessages({ getAllVersions: false }),
     getContainers({ getAllVersions: false }),
@@ -240,6 +281,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const messages = [...events, ...commands, ...queries];
 
   const context = {
+    agents,
     services,
     domains,
     events,
@@ -265,6 +307,15 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
         domain,
         owners: filteredOwners,
       };
+    })
+  );
+
+  const agentsWithOwners = await Promise.all(
+    agents.map(async (agent) => {
+      const ownersInAgent = agent.data.owners || [];
+      const owners = await Promise.all(ownersInAgent.map((owner) => getOwner(owner)));
+      const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<(typeof owners)[0]>>;
+      return { agent, owners: filteredOwners };
     })
   );
 
@@ -318,6 +369,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  const rawAgents = await getCollection('agents');
+
   // Compute channels for each service from raw sends[].to / receives[].from pointers
   const rawServices = await getCollection('services');
   const channelMap = createVersionedMap(channels);
@@ -354,7 +407,54 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     }
   }
 
+  const agentChannelsMap = new Map<string, CollectionEntry<'channels'>[]>();
+
+  for (const agent of agents) {
+    const rawAgent = rawAgents.find((a) => a.data.id === agent.data.id && a.data.version === agent.data.version);
+    if (!rawAgent) continue;
+
+    const pointers: Array<{ id: string; version?: string }> = [];
+    for (const send of rawAgent.data.sends ?? []) {
+      for (const ch of send.to ?? []) {
+        pointers.push({ id: ch.id, version: ch.version });
+      }
+    }
+    for (const receive of rawAgent.data.receives ?? []) {
+      for (const ch of receive.from ?? []) {
+        pointers.push({ id: ch.id, version: ch.version });
+      }
+    }
+
+    const seen = new Set<string>();
+    const resolved: CollectionEntry<'channels'>[] = [];
+    for (const pointer of pointers) {
+      const key = `${pointer.id}-${pointer.version ?? 'latest'}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const match = findInMap(channelMap, pointer.id, pointer.version);
+      if (match) resolved.push(match as CollectionEntry<'channels'>);
+    }
+
+    if (resolved.length > 0) {
+      agentChannelsMap.set(`${agent.data.id}:${agent.data.version}`, resolved);
+    }
+  }
+
+  const flowRefsByAgent = buildFlowReferencesByAgent({ flows, agents });
   const flowRefsByService = buildFlowReferencesByService({ flows, services });
+
+  const agentNodes = agentsWithOwners.reduce(
+    (acc, { agent, owners }) => {
+      const versionedKey = `agent:${agent.data.id}:${agent.data.version}`;
+      const agentChannels = agentChannelsMap.get(`${agent.data.id}:${agent.data.version}`) || [];
+      acc[versionedKey] = buildAgentNode(agent, owners, context, agentChannels, flowRefsByAgent.get(versionedKey) || []);
+      if (agent.data.latestVersion === agent.data.version) {
+        acc[`agent:${agent.data.id}`] = versionedKey;
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode | string>
+  );
 
   const serviceNodes = servicesWithOwners.reduce(
     (acc, { service, owners }) => {
@@ -370,10 +470,18 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
-  // Build a set of message IDs that have field usage declared by any service.
-  // We use rawServices (from getCollection) because the hydrated services replace
+  // Build a set of message IDs that have field usage declared by any service or agent.
+  // We use raw collections because the hydrated resources replace
   // sends/receives pointers with resolved message entries, which strips the fields property.
   const messagesWithFieldUsage = new Set<string>();
+  for (const agent of rawAgents) {
+    for (const pointer of agent.data.sends || []) {
+      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
+    }
+    for (const pointer of agent.data.receives || []) {
+      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
+    }
+  }
   for (const service of rawServices) {
     for (const pointer of service.data.sends || []) {
       if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
@@ -572,6 +680,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     pages: domains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
   });
 
+  const agentsList = createLeaf(agents, {
+    type: 'item',
+    title: 'Agents',
+    icon: 'Bot',
+    pages: agents.map((agent) => `agent:${agent.data.id}:${agent.data.version}`),
+  });
+
   const internalServices = services.filter((service) => !service.data.externalSystem);
   const externalServices = services.filter((service) => service.data.externalSystem);
 
@@ -695,6 +810,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allChildrenKeys = [
     'list:domains',
     'list:services',
+    'list:agents',
     'list:external-systems',
     'list:messages',
     'list:channels',
@@ -708,6 +824,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allChildrenNodes = [
     domainsList,
     servicesList,
+    agentsList,
     externalSystemsList,
     messagesList,
     channelList,
@@ -734,6 +851,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allNodes: Record<string, NavNode> = {
     ...(domainsList ? { 'list:domains': domainsList } : {}),
     ...(servicesList ? { 'list:services': servicesList } : {}),
+    ...(agentsList ? { 'list:agents': agentsList } : {}),
     ...(externalSystemsList ? { 'list:external-systems': externalSystemsList } : {}),
     ...(eventsList ? { 'list:events': eventsList } : {}),
     ...(commandsList ? { 'list:commands': commandsList } : {}),
@@ -773,6 +891,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allGeneratedNodes = {
     ...rootDomainsNodes,
     ...domainNodes,
+    ...agentNodes,
     ...serviceNodes,
     ...messageNodes,
     ...channelNodes,

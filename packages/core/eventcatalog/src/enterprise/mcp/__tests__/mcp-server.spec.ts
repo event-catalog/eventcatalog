@@ -28,6 +28,7 @@ vi.mock('hono', () => {
               'eventcatalog://events',
               'eventcatalog://commands',
               'eventcatalog://queries',
+              'eventcatalog://agents',
               'eventcatalog://services',
               'eventcatalog://domains',
               'eventcatalog://flows',
@@ -230,6 +231,7 @@ describe('MCP Tool Registration', () => {
 
     expect(toolDescriptions.getResources).toBeDefined();
     expect(toolDescriptions.getResources).toContain('events');
+    expect(toolDescriptions.getResources).toContain('agents');
     expect(toolDescriptions.analyzeChangeImpact).toBeDefined();
     expect(toolDescriptions.analyzeChangeImpact).toContain('impact');
   });
@@ -241,6 +243,7 @@ describe('MCP Tool Registration', () => {
 
     // Test collection schema includes all types
     expect(collectionSchema.safeParse('events').success).toBe(true);
+    expect(collectionSchema.safeParse('agents').success).toBe(true);
     expect(collectionSchema.safeParse('services').success).toBe(true);
     expect(collectionSchema.safeParse('invalid').success).toBe(false);
 
@@ -251,6 +254,7 @@ describe('MCP Tool Registration', () => {
     expect(messageCollectionSchema.safeParse('services').success).toBe(false);
 
     // Test resource collection schema
+    expect(resourceCollectionSchema.safeParse('agents').success).toBe(true);
     expect(resourceCollectionSchema.safeParse('services').success).toBe(true);
     expect(resourceCollectionSchema.safeParse('events').success).toBe(true);
   });
@@ -301,6 +305,7 @@ describe('MCP Resources', () => {
       'eventcatalog://events',
       'eventcatalog://commands',
       'eventcatalog://queries',
+      'eventcatalog://agents',
       'eventcatalog://services',
       'eventcatalog://domains',
       'eventcatalog://flows',
@@ -319,7 +324,7 @@ describe('MCP Resources', () => {
     const body = await response.json();
 
     expect(body.resources).toBeDefined();
-    expect(body.resources.length).toBe(9);
+    expect(body.resources.length).toBe(10);
 
     for (const uri of expectedResources) {
       expect(body.resources).toContain(uri);

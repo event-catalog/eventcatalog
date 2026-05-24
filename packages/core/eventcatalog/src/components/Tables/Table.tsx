@@ -31,6 +31,7 @@ declare module '@tanstack/react-table' {
       | 'ownedCommands'
       | 'ownedQueries'
       | 'ownedEvents'
+      | 'ownedAgents'
       | 'ownedServices'
       | 'associatedTeams'
       | 'servicesThatWriteToContainer'
@@ -134,6 +135,7 @@ export type TData<T extends TCollectionTypes> = {
     role?: string;
     ownedCommands: any;
     ownedEvents: any;
+    ownedAgents: any;
     ownedServices: any;
     associatedTeams: any;
     ownedQueries: any;

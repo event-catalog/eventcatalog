@@ -1,0 +1,53 @@
+---
+id: InventoryRebalancingAgent
+name: Inventory Rebalancing Agent
+version: 0.0.1
+summary: Recommends inventory recovery actions when stock runs low, reservations fail, or demand moves between warehouses.
+owners:
+  - dboyne
+  - order-management
+model:
+  provider: Gemini
+  name: gemini-2.5-pro
+  version: "2025-06-17"
+repository:
+  language: TypeScript
+  url: https://github.com/eventcatalog/inventory-rebalancing-agent
+tools:
+  - name: Demand forecast lookup
+    type: mcp
+    icon: /icons/tools/snowflake.svg
+    url: https://mcp.example.com/inventory/demand-forecast
+    description: Retrieves SKU demand, promotion calendars, and regional sales velocity before recommending recovery actions.
+  - name: Warehouse transfer planner
+    type: mcp
+    icon: /icons/tools/slack.svg
+    url: https://mcp.example.com/inventory/transfer-plan
+    description: Coordinates transfer recommendations with warehouse operations channels before stock is rebalanced.
+receives:
+  - id: OutOfStock
+  - id: InventoryAdjusted
+readsFrom:
+  - id: inventory-readmodel
+  - id: inventory-db
+flows:
+  - id: InventoryReservationFlow
+---
+
+The Inventory Rebalancing Agent supports the [[domain|Orders]] domain when the catalog has demand but the warehouse network does not have stock in the right place.
+
+It receives [[event|OutOfStock]] and [[event|InventoryAdjusted]] so it can recommend whether operations should transfer stock, split a shipment, backorder the order, or notify the customer.
+
+## Tools
+
+<AgentTools />
+
+## Responsibilities
+
+- Explain why a SKU is constrained and which warehouse is causing the bottleneck.
+- Recommend transfer, backorder, substitution, or cancellation actions.
+- Give operations teams a short rationale that can be attached to the order case.
+
+## Collaborators
+
+The agent works with [[service|InventoryService]], [[service|OrdersService]], and [[service|NotificationService]] during the [[flow|InventoryReservationFlow]].

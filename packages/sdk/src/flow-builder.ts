@@ -38,6 +38,17 @@ export type FlowMessageStepInput<TMessageId extends string = string> = FlowStepI
 };
 
 /**
+ * Payload for a flow step that references an agent.
+ */
+export type FlowAgentStepInput = FlowStepInput & {
+  agent?: {
+    id: string;
+    version?: string;
+  };
+  version?: string;
+};
+
+/**
  * Payload for a flow step that references a service.
  */
 export type FlowServiceStepInput = FlowStepInput & {
@@ -132,6 +143,7 @@ export type FlowCustomStepInput = FlowStepInput & {
 const cloneStep = (step: FlowStep): FlowStep => ({
   ...step,
   ...(step.message ? { message: { ...step.message } } : {}),
+  ...(step.agent ? { agent: { ...step.agent } } : {}),
   ...(step.service ? { service: { ...step.service } } : {}),
   ...(step.flow ? { flow: { ...step.flow } } : {}),
   ...(step.container ? { container: { ...step.container } } : {}),
@@ -354,6 +366,42 @@ export class FlowBuilder<TMessageId extends string = string> {
         title: step.title || String(step.id),
         ...(step.summary ? { summary: step.summary } : {}),
         service: { ...service, ...(step.version && !service.version ? { version: step.version } : {}) },
+      },
+      step.nextSteps
+    );
+  }
+
+  /**
+   * Add an agent step.
+   *
+   * @param step - The agent step payload.
+   *
+   * @example
+   * ```ts
+   * FlowBuilder.create({
+   *   id: 'OrderFlow',
+   *   name: 'Order Flow',
+   *   version: '1.0.0',
+   *   markdown: '',
+   * })
+   *   .addAgentStep({
+   *     id: 'FraudReviewAgent',
+   *     agent: { id: 'FraudReviewAgent', version: '1.0.0' },
+   *   });
+   * ```
+   */
+  addAgentStep(step: FlowAgentStepInput) {
+    const agent = step.agent || {
+      id: String(step.id),
+      ...(step.version ? { version: step.version } : {}),
+    };
+
+    return this.addStepWithNext(
+      {
+        id: step.id,
+        title: step.title || String(step.id),
+        ...(step.summary ? { summary: step.summary } : {}),
+        agent: { ...agent, ...(step.version && !agent.version ? { version: step.version } : {}) },
       },
       step.nextSteps
     );

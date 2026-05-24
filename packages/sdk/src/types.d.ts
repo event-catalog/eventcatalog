@@ -342,10 +342,11 @@ enum DataClassification {
 
 export interface FlowStep {
   id: string | number;
-  type?: 'node' | 'message' | 'user' | 'actor';
+  type?: 'node' | 'message' | 'agent' | 'user' | 'actor';
   title: string;
   summary?: string;
   message?: ResourcePointer;
+  agent?: ResourcePointer;
   service?: ResourcePointer;
   flow?: ResourcePointer;
   container?: ResourcePointer;

@@ -5,6 +5,8 @@ import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getDomains } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
 
+const architecturePageTypes: PageTypes[] = ['services', 'domains'];
+
 /**
  * Documentation page class for all collection types with versioning
  */
@@ -14,8 +16,6 @@ export class Page extends HybridPage {
       return [];
     }
 
-    const itemTypes: PageTypes[] = ['services', 'domains'];
-
     const domains = await getDomains({ enrichServices: true });
     const services = await getServices();
 
@@ -24,12 +24,12 @@ export class Page extends HybridPage {
     return pageData.flatMap((items, index) =>
       items.map((item) => ({
         params: {
-          type: itemTypes[index],
+          type: architecturePageTypes[index],
           id: item.data.id,
           version: item.data.version,
         },
         props: {
-          type: itemTypes[index],
+          type: architecturePageTypes[index],
           ...item,
           // Not everything needs the body of the page itself.
           body: undefined,
@@ -41,7 +41,7 @@ export class Page extends HybridPage {
   protected static async fetchData(params: any) {
     const { type, id, version } = params;
 
-    if (!type || !id || !version) {
+    if (!type || !id || !version || !architecturePageTypes.includes(type)) {
       return null;
     }
 

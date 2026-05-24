@@ -106,6 +106,32 @@ export const mockEvents = [
 
 export const mockQueries = [];
 
+export const mockAgents = [
+  {
+    id: 'FraudReviewAgent',
+    collection: 'agents',
+    data: {
+      id: 'FraudReviewAgent',
+      version: '1.0.0',
+      receives: [
+        {
+          id: 'PaymentProcessed',
+          version: '0.0.1',
+        },
+      ],
+      tools: [
+        {
+          name: 'Risk profile lookup',
+          type: 'mcp',
+          icon: '/icons/tools/datadog.svg',
+          url: 'https://mcp.example.com/fraud/risk-profile',
+          description: 'Looks up fraud and payment risk signals.',
+        },
+      ],
+    },
+  },
+];
+
 export const mockServices = [
   {
     id: 'OrdersService',

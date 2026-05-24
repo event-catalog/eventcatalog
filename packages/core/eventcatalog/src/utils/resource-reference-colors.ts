@@ -2,6 +2,7 @@ import { getColorForCollection, tailwind500RgbByColor, type CollectionColor } fr
 import { resourceToCollectionMap } from './collections/util';
 
 export type ResourceReferenceType =
+  | 'agent'
   | 'entity'
   | 'service'
   | 'event'

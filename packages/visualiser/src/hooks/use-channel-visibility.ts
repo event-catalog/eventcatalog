@@ -86,9 +86,10 @@ export const useChannelVisibility = ({
           return [...acc, edge];
         }
 
-        // is target services?
+        // is target a service-like resource?
         const targetIsService =
-          rootSourceAndTarget?.target?.collection === "services";
+          rootSourceAndTarget?.target?.collection === "services" ||
+          rootSourceAndTarget?.target?.collection === "agents";
         const edgeLabel = targetIsService
           ? getEdgeLabelForMessageAsSource(rootSourceAndTarget.source as any)
           : getEdgeLabelForServiceAsTarget(rootSourceAndTarget.target as any);

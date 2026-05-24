@@ -191,6 +191,7 @@ export const getSearchFilters = ({ items, query }: { items: Array<{ type: string
 
   const counts: Record<string, number> = {
     all: items.length,
+    Agent: 0,
     Domain: 0,
     Service: 0,
     Message: 0,
@@ -228,6 +229,7 @@ export const getSearchFilters = ({ items, query }: { items: Array<{ type: string
   };
 
   addFilter('Domain', 'Domains');
+  addFilter('Agent', 'Agents');
   addFilter('Service', 'Services');
   addFilter('Message', 'Messages');
   addFilter('Container', 'Data Stores');

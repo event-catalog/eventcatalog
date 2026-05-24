@@ -59,6 +59,7 @@ import { getCommands } from '@utils/collections/commands';
 import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
+import { getAgents } from '@utils/collections/agents';
 import { getFlows } from '@utils/collections/flows';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
@@ -75,15 +76,17 @@ let events: any[] = [];
 let commands: any[] = [];
 let queries: any[] = [];
 let services: any[] = [];
+let agents: any[] = [];
 let domains: any[] = [];
 let flows: any[] = [];
 
 if (!catalogHasDefaultLandingPageForDocs) {
-  [events, commands, queries, services, domains, flows] = await Promise.all([
+  [events, commands, queries, services, agents, domains, flows] = await Promise.all([
     getEvents({ getAllVersions: false, hydrateServices: false }),
     getCommands({ getAllVersions: false, hydrateServices: false }),
     getQueries({ getAllVersions: false, hydrateServices: false }),
     getServices({ getAllVersions: false }),
+    getAgents({ getAllVersions: false }),
     getDomains({ getAllVersions: false }),
     getFlows({ getAllVersions: false }),
   ]);
@@ -106,6 +109,7 @@ const getDefaultUrl = (route: string, defaultValue: string) => {
   const collections = [
     { data: domains, key: 'domains' },
     { data: services, key: 'services' },
+    { data: agents, key: 'agents' },
     { data: events, key: 'events' },
     { data: commands, key: 'commands' },
     { data: queries, key: 'queries' },
@@ -272,6 +276,14 @@ const browseItems = filterSidebarItems(
       icon: CubeIcon,
       href: buildUrl('/discover/data-products'),
       current: currentPath === buildUrl('/discover/data-products'),
+    },
+    {
+      id: '/discover/agents',
+      aliases: ['/discover'],
+      label: 'Agents',
+      icon: BotMessageSquare,
+      href: buildUrl('/discover/agents'),
+      current: currentPath === buildUrl('/discover/agents'),
     },
   ],
   userSideBarConfiguration

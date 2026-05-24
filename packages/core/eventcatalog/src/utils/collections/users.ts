@@ -16,8 +16,9 @@ export const getUsers = async (): Promise<User[]> => {
   }
 
   // 1. Fetch all collections in parallel
-  const [allUsers, allDomains, allServices, allEvents, allCommands, allQueries, allTeams] = await Promise.all([
+  const [allUsers, allAgents, allDomains, allServices, allEvents, allCommands, allQueries, allTeams] = await Promise.all([
     getCollection('users'),
+    getCollection('agents'),
     getCollection('domains'),
     getCollection('services'),
     getCollection('events'),
@@ -52,6 +53,7 @@ export const getUsers = async (): Promise<User[]> => {
     }
   };
 
+  addToIndex(allAgents);
   addToIndex(allDomains);
   addToIndex(allServices);
   addToIndex(allEvents);
@@ -84,6 +86,7 @@ export const getUsers = async (): Promise<User[]> => {
     const allOwnedItems = Array.from(new Set([...directOwnedItems, ...teamOwnedItems]));
 
     // Categorize items
+    const ownedAgents = allOwnedItems.filter((i) => i.collection === 'agents') as CollectionEntry<'agents'>[];
     const ownedDomains = allOwnedItems.filter((i) => i.collection === 'domains') as CollectionEntry<'domains'>[];
     const ownedServices = allOwnedItems.filter((i) => i.collection === 'services') as CollectionEntry<'services'>[];
     const ownedEvents = allOwnedItems.filter((i) => i.collection === 'events') as CollectionEntry<'events'>[];
@@ -94,6 +97,7 @@ export const getUsers = async (): Promise<User[]> => {
       ...user,
       data: {
         ...user.data,
+        ownedAgents,
         ownedDomains,
         ownedServices,
         ownedEvents,

@@ -24,6 +24,7 @@ interface Props {
 
 interface Maps {
   messageMap: Map<string, any[]>;
+  agentMap: Map<string, any[]>;
   serviceMap: Map<string, any[]>;
   flowMap: Map<string, any[]>;
   containerMap: Map<string, any[]>;
@@ -36,6 +37,15 @@ const getServiceNode = (step: any, serviceMap: Map<string, any[]>) => {
     ...step,
     type: service ? service.collection : 'step',
     service,
+  };
+};
+
+const getAgentNode = (step: any, agentMap: Map<string, any[]>) => {
+  const agent = findInMap(agentMap, step.agent.id, step.agent.version);
+  return {
+    ...step,
+    type: agent ? agent.collection : 'step',
+    agent,
   };
 };
 
@@ -117,6 +127,7 @@ const buildFlowGraphInternal = (
   const stepNodeId = (stepId: any) => `step-${stepId}`;
 
   const hydratedSteps = steps.map((step: any) => {
+    if (step.agent) return getAgentNode(step, maps.agentMap);
     if (step.service) return getServiceNode(step, maps.serviceMap);
     if (step.flow) return getFlowNode(step, maps.flowMap);
     if (step.container) return getContainerNode(step, maps.containerMap);
@@ -143,6 +154,14 @@ const buildFlowGraphInternal = (
       type: step.type,
     } as NodeType;
 
+    if (step.agent) {
+      node.data.agent = { ...step.agent, ...step.agent.data };
+      node.data.contextMenu = buildContextMenuForResource({
+        collection: 'agents',
+        id: step.agent.data.id,
+        version: step.agent.data.version,
+      });
+    }
     if (step.service) {
       node.data.service = { ...step.service, ...step.service.data };
       node.data.contextMenu = buildContextMenuForService({
@@ -255,11 +274,12 @@ const buildFlowGraphInternal = (
 export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
   const graph = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 200 });
 
-  const [flows, events, commands, queries, services, containers, dataProducts] = await Promise.all([
+  const [flows, events, commands, queries, agents, services, containers, dataProducts] = await Promise.all([
     getCollection('flows'),
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
+    getCollection('agents'),
     getCollection('services'),
     getCollection('containers'),
     getCollection('data-products'),
@@ -277,6 +297,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const messages = [...events, ...commands, ...queries];
   const maps: Maps = {
     messageMap: createVersionedMap(messages),
+    agentMap: createVersionedMap(agents),
     serviceMap: createVersionedMap(services),
     flowMap: createVersionedMap(flows),
     containerMap: createVersionedMap(containers),

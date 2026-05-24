@@ -100,6 +100,15 @@ steps:
     message:
       id: "OutOfStock"
     next_step:
+      id: "inventory_rebalancing_agent"
+      label: "Plan stock recovery"
+
+  - id: "inventory_rebalancing_agent"
+    title: "Inventory Rebalancing Agent"
+    agent:
+      id: "InventoryRebalancingAgent"
+      version: "0.0.1"
+    next_step:
       id: "reorder_policy"
       label: "Evaluate recovery"
 

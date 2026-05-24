@@ -5,6 +5,7 @@ import { isCustomDocsEnabled, isResourceDocsEnabled, isLLMSTxtEnabled } from '@u
 import { addSchemaToMarkdown, filterMarkdownForAgents } from '@utils/llms';
 
 type AllowedCollections =
+  | 'agents'
   | 'events'
   | 'commands'
   | 'queries'
@@ -24,6 +25,7 @@ type AllowedCollections =
 const events = await getCollection('events');
 const commands = await getCollection('commands');
 const queries = await getCollection('queries');
+const agents = await getCollection('agents');
 const services = await getCollection('services');
 const dataProducts = await getCollection('data-products');
 const domains = await getCollection('domains');
@@ -46,6 +48,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     ...events,
     ...commands,
     ...queries,
+    ...agents,
     ...services,
     ...dataProducts,
     ...domains,

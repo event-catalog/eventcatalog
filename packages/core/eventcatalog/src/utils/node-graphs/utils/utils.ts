@@ -274,6 +274,36 @@ export const buildContextMenuForService = ({
   return items;
 };
 
+export const buildContextMenuForAgent = ({
+  id,
+  version,
+  repository,
+}: {
+  id: string;
+  version: string;
+  repository?: { url: string };
+}): ContextMenuItem[] => {
+  const items: ContextMenuItem[] = [{ label: 'Read documentation', href: buildUrl(`/docs/agents/${id}/${version}`) }];
+
+  if (repository?.url) {
+    items.push({
+      label: 'View code repository',
+      href: repository.url,
+      external: true,
+      separator: true,
+    });
+  }
+
+  items.push({
+    label: 'Read changelog',
+    href: buildUrl(`/docs/agents/${id}/${version}/changelog`),
+    external: true,
+    separator: !repository?.url,
+  });
+
+  return items;
+};
+
 export const buildContextMenuForResource = ({
   collection,
   id,

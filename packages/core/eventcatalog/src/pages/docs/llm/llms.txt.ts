@@ -10,6 +10,7 @@ const events = await getCollection('events');
 const commands = await getCollection('commands');
 const queries = await getCollection('queries');
 
+const agents = await getCollection('agents');
 const services = await getCollection('services');
 const dataProducts = await getCollection('data-products');
 const domains = await getCollection('domains');
@@ -140,6 +141,8 @@ export const GET: APIRoute = async ({ params, request }) => {
     commands.map((item) => formatVersionedItem(item, 'commands')).join(''),
     '\n## Queries',
     queries.map((item) => formatVersionedItem(item, 'queries')).join(''),
+    '\n## Agents',
+    agents.map((item) => formatVersionedItem(item, 'agents')).join(''),
     '\n## Services',
     services.map((item) => formatVersionedItem(item, 'services')).join(''),
     '\n## Data Products',

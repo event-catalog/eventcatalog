@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getDomains } from './domains';
 import { getServices } from './services';
+import { getAgents } from './agents';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 export type Flow = CollectionEntry<'flows'>;
@@ -24,11 +25,12 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
   }
 
   // 1. Fetch collections in parallel
-  const [allFlows, allEvents, allCommands, allQueries, allContainers, allDataProducts] = await Promise.all([
+  const [allFlows, allEvents, allCommands, allQueries, allAgents, allContainers, allDataProducts] = await Promise.all([
     getCollection('flows'),
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
+    getCollection('agents'),
     getCollection('containers'),
     getCollection('data-products'),
   ]);
@@ -38,6 +40,7 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
   // 2. Build optimized maps
   const flowMap = createVersionedMap(allFlows);
   const messageMap = createVersionedMap(allMessages);
+  const agentMap = createVersionedMap(allAgents);
   const containerMap = createVersionedMap(allContainers);
   const dataProductMap = createVersionedMap(allDataProducts);
 
@@ -82,6 +85,18 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
         };
       }
 
+      if (step.agent) {
+        const pointer = step.agent;
+        if (!pointer) return { ...step, type: 'node' };
+        const agent = findInMap(agentMap, pointer.id, pointer.version);
+
+        return {
+          ...step,
+          type: 'agents',
+          agent: agent ? [agent] : [],
+        };
+      }
+
       if (!step.message) return { ...step, type: 'node' }; // Preserve existing step data for non-messages
 
       const message = findInMap(messageMap, step.message.id, step.message.version);
@@ -116,16 +131,18 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
 };
 
 export const getFlowsNotInAnyResource = async (): Promise<Flow[]> => {
-  const [flows, domains, services] = await Promise.all([
+  const [flows, domains, services, agents] = await Promise.all([
     getFlows({ getAllVersions: false }),
     getDomains({ getAllVersions: false }),
     getServices({ getAllVersions: false }),
+    getAgents({ getAllVersions: false }),
   ]);
 
   const flowsNotInAnyResource = flows.filter((flow) => {
     const domainsForFlow = domains.filter((domain) => domain.data.flows?.some((f: any) => f.id === flow.id));
     const servicesForFlow = services.filter((service) => service.data.flows?.some((f: any) => f.id === flow.id));
-    return domainsForFlow.length === 0 && servicesForFlow.length === 0;
+    const agentsForFlow = agents.filter((agent) => agent.data.flows?.some((f: any) => f.id === flow.id));
+    return domainsForFlow.length === 0 && servicesForFlow.length === 0 && agentsForFlow.length === 0;
   });
   return flowsNotInAnyResource;
 };

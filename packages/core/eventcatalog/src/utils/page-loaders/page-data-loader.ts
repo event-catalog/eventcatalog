@@ -1,4 +1,5 @@
 import type { CollectionTypes, PageTypes } from '@types';
+import { getAgents } from '@utils/collections/agents';
 import { getChannels } from '@utils/collections/channels';
 import { getDomains } from '@utils/collections/domains';
 import { getCommands, getEvents } from '@utils/collections/messages';
@@ -15,6 +16,7 @@ type PageDataLoaderOptions = { getAllVersions?: boolean };
 
 export const pageDataLoader: Record<PageTypes, (options?: PageDataLoaderOptions) => Promise<CollectionEntry<CollectionTypes>[]>> =
   {
+    agents: getAgents,
     events: getEvents,
     commands: getCommands,
     queries: getQueries,

@@ -1,0 +1,52 @@
+---
+id: OrderSupportAgent
+name: Order Support Agent
+version: 0.0.1
+summary: Assists support teams by investigating customer order questions and suggesting the next best action.
+owners:
+  - dboyne
+  - order-management
+model:
+  provider: OpenAI
+  name: gpt-4.1-mini
+  version: "2025-04-14"
+repository:
+  language: TypeScript
+  url: https://github.com/eventcatalog/order-support-agent
+tools:
+  - name: Order lookup
+    type: mcp
+    icon: /icons/tools/snowflake.svg
+    url: https://mcp.example.com/orders/lookup
+    description: Retrieves order status, totals, shipment milestones, and recent order events from the operational read model.
+  - name: Support case notes
+    type: mcp
+    icon: /icons/tools/zendesk.svg
+    url: https://mcp.example.com/support/case-notes
+    description: Appends investigation notes, suggested customer replies, and follow-up actions to the support ticket.
+receives:
+  - id: OrderConfirmed
+  - id: OrderCancelled
+readsFrom:
+  - id: orders-db
+flows:
+  - id: PlaceOrderFlow
+---
+
+The Order Support Agent helps the support team answer order questions without manually checking every backing service. It receives [[event|OrderConfirmed]] and [[event|OrderCancelled]] so support context stays fresh as orders move through the lifecycle.
+
+It belongs to the [[domain|Orders]] domain and works alongside [[service|OrdersService]], [[service|NotificationService]], and [[service|ShippingService]].
+
+## Tools
+
+<AgentTools />
+
+## Responsibilities
+
+- Summarize the current state of an order for support staff.
+- Identify likely causes for cancellation, fulfillment, or delivery issues.
+- Suggest customer-facing response drafts based on the latest order and notification state.
+
+## Message Flow
+
+The agent receives [[event|OrderConfirmed]] and [[event|OrderCancelled]] so it can keep support context fresh when a support case is opened.

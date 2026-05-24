@@ -27,6 +27,7 @@ import { getQueries } from '@utils/collections/queries';
 import {
   createNode,
   buildContextMenuForMessage,
+  buildContextMenuForAgent,
   buildContextMenuForService,
   buildContextMenuForResource,
   getOperationFields,
@@ -34,11 +35,17 @@ import {
   DEFAULT_NODE_HEIGHT,
 } from './utils/utils';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
+import {
+  getConsumersOfMessage as getAgentConsumersOfMessage,
+  getProducersOfMessage as getAgentProducersOfMessage,
+} from '@utils/collections/agents';
 import { getNodesAndEdgesForChannelChain } from './channel-node-graph';
 import { getChannelChain, isChannelsConnected } from '@utils/collections/channels';
 import { getChannels } from '@utils/collections/channels';
 
 type DagreGraph = any;
+type RoutableResource = CollectionEntry<'agents'> | CollectionEntry<'services'>;
+type ProducerConsumerResource = RoutableResource | CollectionEntry<'data-products'>;
 
 interface Props {
   id: string;
@@ -49,6 +56,115 @@ interface Props {
   collection?: CollectionEntry<CollectionMessageTypes>[];
   channels?: CollectionEntry<'channels'>[];
 }
+
+const isAgent = (resource: ProducerConsumerResource | RoutableResource): resource is CollectionEntry<'agents'> =>
+  resource.collection === 'agents';
+const isDataProduct = (resource: ProducerConsumerResource): resource is CollectionEntry<'data-products'> =>
+  resource.collection === 'data-products';
+
+const getRoutableContextMenu = (resource: RoutableResource) => {
+  if (isAgent(resource)) {
+    return buildContextMenuForAgent({
+      id: resource.data.id,
+      version: resource.data.version,
+      repository: resource.data.repository as { url: string },
+    });
+  }
+
+  return buildContextMenuForService({
+    id: resource.data.id,
+    version: resource.data.version,
+    specifications: (resource.data as any).specifications,
+    repository: (resource.data as any).repository,
+  });
+};
+
+const getRoutableNodeData = (resource: RoutableResource, mode: 'simple' | 'full') => ({
+  title: resource.data.id,
+  mode,
+  ...(isAgent(resource) ? { agent: { ...resource.data } } : { service: { ...resource.data } }),
+  contextMenu: getRoutableContextMenu(resource),
+});
+
+const sanitizeToolId = (name: string) =>
+  name
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .toLowerCase();
+
+const generateIdForAgentToolNode = (agent: RoutableResource, tool: { name: string; type: string }) =>
+  `${generateIdForNode(agent)}-tool-${sanitizeToolId(`${tool.name}-${tool.type}`)}`;
+
+const appendAgentToolNodesAndEdges = ({
+  agent,
+  nodes,
+  edges,
+  mode,
+}: {
+  agent: RoutableResource;
+  nodes: Node[];
+  edges: Edge[];
+  mode: 'simple' | 'full';
+}) => {
+  if (!isAgent(agent)) return;
+
+  (agent.data.tools || []).forEach((tool) => {
+    const toolNodeId = generateIdForAgentToolNode(agent, tool);
+
+    nodes.push(
+      createNode({
+        id: toolNodeId,
+        type: 'agentTool',
+        data: {
+          mode,
+          agentTool: {
+            id: sanitizeToolId(`${tool.name}-${tool.type}`),
+            name: tool.name,
+            type: tool.type,
+            icon: tool.icon,
+            url: tool.url,
+            description: tool.description,
+          },
+          contextMenu: tool.url
+            ? [
+                {
+                  label: 'Open tool endpoint',
+                  href: tool.url,
+                  external: true,
+                },
+              ]
+            : undefined,
+        },
+        position: { x: 0, y: 0 },
+      })
+    );
+
+    edges.push(
+      createEdge({
+        id: `${generateIdForNode(agent)}-${toolNodeId}`,
+        source: generateIdForNode(agent),
+        target: toolNodeId,
+        label: 'calls tool',
+        type: 'step',
+        animated: false,
+        data: { animated: false },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#666',
+          width: 20,
+          height: 20,
+        },
+      })
+    );
+  });
+};
+
+const getDataProductNodeData = (resource: CollectionEntry<'data-products'>, mode: 'simple' | 'full') => ({
+  title: resource.data.id,
+  mode,
+  dataProduct: { ...resource.data },
+  contextMenu: buildContextMenuForResource({ collection: 'data-products', id: resource.data.id, version: resource.data.version }),
+});
 
 const getNodesAndEdges = async ({
   id,
@@ -101,40 +217,33 @@ const getNodesAndEdges = async ({
     type: message.collection,
   });
 
-  const producers = (message.data.producers as (CollectionEntry<'services'> | CollectionEntry<'data-products'>)[]) || [];
-  const consumers = (message.data.consumers as (CollectionEntry<'services'> | CollectionEntry<'data-products'>)[]) || [];
+  const producers = (message.data.producers as ProducerConsumerResource[]) || [];
+  const consumers = (message.data.consumers as ProducerConsumerResource[]) || [];
 
-  // Track nodes that are both sent and received (only for services)
-  const serviceProducers = producers.filter((p) => p.collection === 'services') as CollectionEntry<'services'>[];
-  const serviceConsumers = consumers.filter((c) => c.collection === 'services') as CollectionEntry<'services'>[];
-  const bothSentAndReceived = findMatchingNodes(serviceProducers, serviceConsumers);
+  // Track nodes that are both sent and received (only service-like resources)
+  const routableProducers = producers.filter(
+    (p) => p.collection === 'services' || p.collection === 'agents'
+  ) as RoutableResource[];
+  const routableConsumers = consumers.filter(
+    (c) => c.collection === 'services' || c.collection === 'agents'
+  ) as RoutableResource[];
+  const bothSentAndReceived = findMatchingNodes(routableProducers as any, routableConsumers as any);
 
   for (const producer of producers) {
-    const isDataProduct = producer.collection === 'data-products';
-
-    // Create the producer node with appropriate data structure
-    const producerContextMenu = isDataProduct
-      ? buildContextMenuForResource({ collection: 'data-products', id: producer.data.id, version: producer.data.version })
-      : buildContextMenuForService({
-          id: producer.data.id,
-          version: producer.data.version,
-          specifications: (producer.data as any).specifications,
-          repository: (producer.data as any).repository,
-        });
-
     nodes.push({
       id: generateIdForNode(producer),
-      type: isDataProduct ? 'data-products' : producer?.collection,
+      type: isDataProduct(producer) ? 'data-products' : producer.collection,
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: isDataProduct
-        ? { mode, dataProduct: { ...producer.data }, contextMenu: producerContextMenu }
-        : { mode, service: { ...producer.data }, contextMenu: producerContextMenu },
+      data: isDataProduct(producer) ? getDataProductNodeData(producer, mode) : getRoutableNodeData(producer, mode),
       position: { x: 250, y: 0 },
     });
+    if (!isDataProduct(producer)) {
+      appendAgentToolNodesAndEdges({ agent: producer, nodes, edges, mode });
+    }
 
     // Data products don't have channel configuration, so connect directly to the message
-    if (isDataProduct) {
+    if (isDataProduct(producer)) {
       const rootSourceAndTarget = {
         source: { id: generateIdForNode(producer), collection: producer.collection },
         target: { id: generateIdForNode(message), collection: message.collection },
@@ -156,11 +265,11 @@ const getNodesAndEdges = async ({
       continue;
     }
 
-    // Service-specific channel handling
-    const serviceProducer = producer as CollectionEntry<'services'>;
+    // Service/agent-specific channel handling
+    const routableProducer = producer as RoutableResource;
 
     // Is the producer sending this message to a channel?
-    const producerConfigurationForMessage = serviceProducer.data.sends?.find(
+    const producerConfigurationForMessage = routableProducer.data.sends?.find(
       (send) => send.id === message.data.id && versionMatches(send.version, message.data.version)
     );
     const producerChannelConfiguration = producerConfigurationForMessage?.to ?? [];
@@ -250,33 +359,22 @@ const getNodesAndEdges = async ({
     }
   }
 
-  // The messages the service sends
+  // The resources that consume the message
   for (const consumer of consumers) {
-    const isDataProduct = consumer.collection === 'data-products';
-
-    // Render the consumer node with appropriate data structure
-    const consumerContextMenu = isDataProduct
-      ? buildContextMenuForResource({ collection: 'data-products', id: consumer.data.id, version: consumer.data.version })
-      : buildContextMenuForService({
-          id: consumer.data.id,
-          version: consumer.data.version,
-          specifications: (consumer.data as any).specifications,
-          repository: (consumer.data as any).repository,
-        });
-
     nodes.push({
       id: generateIdForNode(consumer),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: isDataProduct
-        ? { title: consumer?.data.id, mode, dataProduct: { ...consumer.data }, contextMenu: consumerContextMenu }
-        : { title: consumer?.data.id, mode, service: { ...consumer.data }, contextMenu: consumerContextMenu },
+      data: isDataProduct(consumer) ? getDataProductNodeData(consumer, mode) : getRoutableNodeData(consumer, mode),
       position: { x: 0, y: 0 },
-      type: isDataProduct ? 'data-products' : consumer?.collection,
+      type: isDataProduct(consumer) ? 'data-products' : consumer.collection,
     });
+    if (!isDataProduct(consumer)) {
+      appendAgentToolNodesAndEdges({ agent: consumer, nodes, edges, mode });
+    }
 
     // Data products don't have channel configuration, so connect directly from the message
-    if (isDataProduct) {
+    if (isDataProduct(consumer)) {
       const rootSourceAndTarget = {
         source: { id: generateIdForNode(message), collection: message.collection },
         target: { id: generateIdForNode(consumer), collection: consumer.collection },
@@ -294,11 +392,11 @@ const getNodesAndEdges = async ({
       continue;
     }
 
-    // Service-specific channel handling
-    const serviceConsumer = consumer as CollectionEntry<'services'>;
+    // Service/agent-specific channel handling
+    const routableConsumer = consumer as RoutableResource;
 
     // Is the consumer receiving this message from a channel?
-    const consumerConfigurationForMessage = serviceConsumer.data.receives?.find(
+    const consumerConfigurationForMessage = routableConsumer.data.receives?.find(
       (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
     );
     const consumerChannelConfiguration = consumerConfigurationForMessage?.from ?? [];
@@ -342,8 +440,8 @@ const getNodesAndEdges = async ({
       }
 
       // Can any of the consumer channels be linked to any of the producer channels?
-      // Only consider service producers for channel linking (data products don't have sends/receives)
-      const producerChannels = serviceProducers
+      // Only consider service-like producers for channel linking (data products don't have sends/receives)
+      const producerChannels = routableProducers
         .map((producer) => {
           const config = producer.data.sends?.find(
             (send) => send.id === message.data.id && versionMatches(send.version, message.data.version)
@@ -352,7 +450,7 @@ const getNodesAndEdges = async ({
         })
         .flat();
       const consumerChannels =
-        serviceConsumer.data.receives?.find(
+        routableConsumer.data.receives?.find(
           (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
         )?.from ?? [];
 
@@ -520,6 +618,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
   message,
   targetChannels = [],
   services,
+  agents = [],
   channels,
   currentNodes = [],
   target,
@@ -529,9 +628,10 @@ export const getNodesAndEdgesForConsumedMessage = ({
   message: CollectionEntry<CollectionMessageTypes>;
   targetChannels?: { id: string; version: string }[];
   services: CollectionEntry<'services'>[];
+  agents?: CollectionEntry<'agents'>[];
   channels: CollectionEntry<'channels'>[];
   currentNodes: Node[];
-  target: CollectionEntry<'services'>;
+  target: RoutableResource;
   mode?: 'simple' | 'full';
   channelMap?: Map<string, CollectionEntry<'channels'>[]>;
 }) => {
@@ -573,19 +673,11 @@ export const getNodesAndEdgesForConsumedMessage = ({
     createNode({
       id: generateIdForNode(target),
       type: target.collection,
-      data: {
-        mode,
-        service: { ...target.data },
-        contextMenu: buildContextMenuForService({
-          id: target.data.id,
-          version: target.data.version,
-          specifications: target.data.specifications as { type: string; path: string }[],
-          repository: target.data.repository as { url: string },
-        }),
-      },
+      data: getRoutableNodeData(target, mode),
       position: { x: 0, y: 0 },
     })
   );
+  appendAgentToolNodesAndEdges({ agent: target, nodes, edges, mode });
 
   const targetMessageConfiguration = target.data.receives?.find(
     (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
@@ -596,7 +688,10 @@ export const getNodesAndEdgesForConsumedMessage = ({
     .filter((channel): channel is CollectionEntry<'channels'> => channel !== undefined);
 
   // Now we get the producers of the message and create nodes and edges for them
-  const producers = getProducersOfMessage(services, message);
+  const producers = [
+    ...getAgentProducersOfMessage(agents, message),
+    ...getProducersOfMessage(services, message),
+  ] as RoutableResource[];
 
   const hasProducers = producers.length > 0;
   const targetHasDefinedChannels = targetChannels.length > 0;
@@ -688,19 +783,11 @@ export const getNodesAndEdgesForConsumedMessage = ({
       createNode({
         id: producerId,
         type: producer.collection,
-        data: {
-          mode,
-          service: { ...producer.data },
-          contextMenu: buildContextMenuForService({
-            id: producer.data.id,
-            version: producer.data.version,
-            specifications: producer.data.specifications as { type: string; path: string }[],
-            repository: producer.data.repository as { url: string },
-          }),
-        },
+        data: getRoutableNodeData(producer, mode),
         position: { x: 0, y: 0 },
       })
     );
+    appendAgentToolNodesAndEdges({ agent: producer, nodes, edges, mode });
 
     // The message is always connected directly to the producer
     edges.push(
@@ -865,6 +952,7 @@ export const getNodesAndEdgesForProducedMessage = ({
   message,
   sourceChannels,
   services,
+  agents = [],
   channels,
   currentNodes = [],
   currentEdges = [],
@@ -875,10 +963,11 @@ export const getNodesAndEdgesForProducedMessage = ({
   message: CollectionEntry<CollectionMessageTypes>;
   sourceChannels?: { id: string; version: string }[];
   services: CollectionEntry<'services'>[];
+  agents?: CollectionEntry<'agents'>[];
   channels: CollectionEntry<'channels'>[];
   currentNodes: Node[];
   currentEdges: Edge[];
-  source: CollectionEntry<'services'>;
+  source: RoutableResource;
   mode?: 'simple' | 'full';
   channelMap?: Map<string, CollectionEntry<'channels'>[]>;
 }) => {
@@ -920,19 +1009,11 @@ export const getNodesAndEdgesForProducedMessage = ({
     createNode({
       id: generateIdForNode(source),
       type: source.collection,
-      data: {
-        mode,
-        service: { ...source.data },
-        contextMenu: buildContextMenuForService({
-          id: source.data.id,
-          version: source.data.version,
-          specifications: source.data.specifications as { type: string; path: string }[],
-          repository: source.data.repository as { url: string },
-        }),
-      },
+      data: getRoutableNodeData(source, mode),
       position: { x: 0, y: 0 },
     })
   );
+  appendAgentToolNodesAndEdges({ agent: source, nodes, edges, mode });
 
   // Render the edge from the producer to the message
   edges.push(
@@ -1006,13 +1087,17 @@ export const getNodesAndEdgesForProducedMessage = ({
     }
   }
 
-  // Now we get the producers of the message and create nodes and edges for them
-  const consumers = getConsumersOfMessage(services, message);
+  // Now we get the consumers of the message and create nodes and edges for them
+  const consumers = [
+    ...getAgentConsumersOfMessage(agents, message),
+    ...getConsumersOfMessage(services, message),
+  ] as RoutableResource[];
 
   // TODO: Make this a UI Switch in the future....
-  const latestConsumers = consumers.filter(
-    (consumer) => getLatestVersionInCollectionById(services, consumer.data.id) === consumer.data.version
-  );
+  const latestConsumers = consumers.filter((consumer) => {
+    const collection = consumer.collection === 'agents' ? agents : services;
+    return getLatestVersionInCollectionById(collection as any, consumer.data.id) === consumer.data.version;
+  });
 
   // Process the consumers for the message
   for (const consumer of latestConsumers) {
@@ -1023,19 +1108,11 @@ export const getNodesAndEdgesForProducedMessage = ({
       createNode({
         id: consumerId,
         type: consumer.collection,
-        data: {
-          mode,
-          service: { ...consumer.data },
-          contextMenu: buildContextMenuForService({
-            id: consumer.data.id,
-            version: consumer.data.version,
-            specifications: consumer.data.specifications as { type: string; path: string }[],
-            repository: consumer.data.repository as { url: string },
-          }),
-        },
+        data: getRoutableNodeData(consumer, mode),
         position: { x: 0, y: 0 },
       })
     );
+    appendAgentToolNodesAndEdges({ agent: consumer, nodes, edges, mode });
 
     // Check if the consumer is consuming the message from a channel
     const consumerConfigurationForMessage = consumer.data.receives?.find(

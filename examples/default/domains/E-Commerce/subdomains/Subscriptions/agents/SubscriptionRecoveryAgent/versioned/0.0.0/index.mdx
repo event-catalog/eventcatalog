@@ -1,0 +1,42 @@
+---
+id: SubscriptionRecoveryAgent
+name: Subscription Recovery Agent
+version: 0.0.0
+summary: Recommends a dunning strategy when recurring subscription payments fail.
+owners:
+  - dboyne
+  - subscriptions-management
+model:
+  provider: Anthropic
+  name: claude-3.5-haiku
+  version: "2024-10-22"
+repository:
+  language: TypeScript
+  url: https://github.com/eventcatalog/subscription-recovery-agent
+tools:
+  - name: Dunning strategy planner
+    type: mcp
+    icon: /icons/tools/hubspot.svg
+    url: https://mcp.example.com/subscriptions/dunning-strategy
+    description: Selects retry cadence, grace period messaging, and escalation path from account value and failure reason.
+receives:
+  - id: PaymentFailed
+readsFrom:
+  - id: subscriptions-db
+flows:
+  - id: SubscriptionPaymentFailureFlow
+---
+
+The first Subscription Recovery Agent focused on recommending payment-retry and customer-message timing after a renewal payment failed.
+
+It received [[event|PaymentFailed]] before the later version added subscription due-date and cancellation context for more complete recovery decisions.
+
+## Tools
+
+<AgentTools />
+
+## Responsibilities
+
+- Recommend retry timing for failed subscription payments.
+- Suggest grace-period messaging for customer notifications.
+- Highlight when a failed payment should be escalated to support.

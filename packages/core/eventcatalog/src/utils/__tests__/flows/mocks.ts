@@ -28,6 +28,18 @@ export const mockServices = [
   },
 ];
 
+export const mockAgents = [
+  {
+    slug: 'FraudReviewAgent',
+    collection: 'agents',
+    data: {
+      id: 'FraudReviewAgent',
+      name: 'Fraud Review Agent',
+      version: '1.0.0',
+    },
+  },
+];
+
 export const mockContainers = [
   {
     slug: 'orders-db',
@@ -185,6 +197,13 @@ export const mockFlow = [
           title: 'Order Analytics',
           dataProduct: {
             id: 'OrderAnalytics',
+          },
+        },
+        {
+          id: 'fraud-review',
+          title: 'Fraud Review',
+          agent: {
+            id: 'FraudReviewAgent',
           },
         },
       ],
@@ -459,6 +478,13 @@ export const mockFlowByIds = [
           title: 'Order Analytics',
           dataProduct: {
             id: 'OrderAnalytics',
+          },
+        },
+        {
+          id: 'fraud-review',
+          title: 'Fraud Review',
+          agent: {
+            id: 'FraudReviewAgent',
           },
         },
       ],

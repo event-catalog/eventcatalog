@@ -15,7 +15,7 @@ import type { CollectionEntry } from 'astro:content';
 import { getSpecUrl, getSpecIcon, getSpecLabel, getSpecColor, type Specification } from './specification-utils';
 
 interface MessageGridV2Props {
-  service: CollectionEntry<'services'>;
+  service: CollectionEntry<'agents'> | CollectionEntry<'services'>;
   embeded?: boolean;
   specifications?: Specification[];
 }
@@ -232,13 +232,16 @@ const CollapsibleContainerSection = memo(
 
 export default function MessageGridV2({ service, embeded = false, specifications = [] }: MessageGridV2Props) {
   const { sends = [], receives = [], writesTo = [], readsFrom = [] } = service.data;
+  const collection = service.collection || 'services';
+  const resourceLabel = collection === 'agents' ? 'agent' : 'service';
+  const hasVisualizer = true;
   const hasContainers = readsFrom.length > 0 || writesTo.length > 0;
   const hasMessages = receives.length > 0 || sends.length > 0;
   const hasSpecs = specifications.length > 0;
 
   return (
     <div className="w-full">
-      {/* Service Header - Doc style */}
+      {/* Resource Header - Doc style */}
       <div className="border-b border-[rgb(var(--ec-page-border))] md:pb-4">
         <div className="flex items-start justify-between">
           <div>
@@ -249,19 +252,21 @@ export default function MessageGridV2({ service, embeded = false, specifications
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <a
-              href={buildUrl(`/docs/services/${service.data.id}/${service.data.version}`)}
+              href={buildUrl(`/docs/${collection}/${service.data.id}/${service.data.version}`)}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-page-text-muted))] transition-all"
             >
               View docs
               <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
             </a>
-            <a
-              href={buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 dark:bg-zinc-700 rounded-lg hover:bg-zinc-900 dark:hover:bg-zinc-600 transition-all"
-            >
-              Visualizer
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-zinc-400" />
-            </a>
+            {hasVisualizer && (
+              <a
+                href={buildUrl(`/visualiser/${collection}/${service.data.id}/${service.data.version}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 dark:bg-zinc-700 rounded-lg hover:bg-zinc-900 dark:hover:bg-zinc-600 transition-all"
+              >
+                Visualizer
+                <ArrowTopRightOnSquareIcon className="h-4 w-4 text-zinc-400" />
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -349,7 +354,7 @@ export default function MessageGridV2({ service, embeded = false, specifications
               <ServerIcon className="h-8 w-8 text-[rgb(var(--ec-icon-color))]" />
             </div>
             <p className="text-[rgb(var(--ec-page-text-muted))]">
-              This service has no message flows, container relationships, or specifications defined.
+              This {resourceLabel} has no message flows or container relationships defined.
             </p>
           </div>
         )}

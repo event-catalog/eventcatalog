@@ -15,6 +15,7 @@ import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains'
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import fs from 'node:fs';
 import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForAgent } from '@utils/node-graphs/agents-node-graph';
 import {
   getNodesAndEdgesForCommands,
   getNodesAndEdgesForEvents,
@@ -101,6 +102,7 @@ export function paginate<T>(
 
 export const collectionSchema = z.enum([
   'events',
+  'agents',
   'services',
   'commands',
   'queries',
@@ -116,6 +118,7 @@ export const collectionSchema = z.enum([
 export const messageCollectionSchema = z.enum(['events', 'commands', 'queries']);
 
 export const resourceCollectionSchema = z.enum([
+  'agents',
   'services',
   'events',
   'commands',
@@ -131,6 +134,7 @@ export const visualiserCollectionSchema = z.enum([
   'events',
   'commands',
   'queries',
+  'agents',
   'services',
   'domains',
   'flows',
@@ -243,6 +247,7 @@ export async function findResourcesByOwner(params: { ownerId: string }) {
     'events',
     'commands',
     'queries',
+    'agents',
     'services',
     'domains',
     'flows',
@@ -279,10 +284,11 @@ export async function findResourcesByOwner(params: { ownerId: string }) {
 }
 
 /**
- * Get services that produce (send) a specific message
+ * Get resources that produce (send) a specific message
  */
 export async function getProducersOfMessage(params: { messageId: string; messageVersion: string; messageCollection: string }) {
-  const services = await getCollection('services');
+  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+  const routableResources = [...services, ...agents];
   const message = await getEntry(params.messageCollection as any, `${params.messageId}-${params.messageVersion}`);
 
   if (!message) {
@@ -291,8 +297,8 @@ export async function getProducersOfMessage(params: { messageId: string; message
     };
   }
 
-  const producers = services.filter((service) => {
-    const sends = (service.data as any).sends || [];
+  const producers = routableResources.filter((resource) => {
+    const sends = (resource.data as any).sends || [];
     return sends.some((send: any) => {
       const idMatch = send.id === params.messageId;
       if (!send.version || send.version === 'latest') return idMatch;
@@ -310,16 +316,18 @@ export async function getProducersOfMessage(params: { messageId: string; message
       id: (s.data as any).id,
       version: (s.data as any).version,
       name: (s.data as any).name || (s.data as any).id,
+      collection: s.collection,
     })),
     count: producers.length,
   };
 }
 
 /**
- * Get services that consume (receive) a specific message
+ * Get resources that consume (receive) a specific message
  */
 export async function getConsumersOfMessage(params: { messageId: string; messageVersion: string; messageCollection: string }) {
-  const services = await getCollection('services');
+  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+  const routableResources = [...services, ...agents];
   const message = await getEntry(params.messageCollection as any, `${params.messageId}-${params.messageVersion}`);
 
   if (!message) {
@@ -328,8 +336,8 @@ export async function getConsumersOfMessage(params: { messageId: string; message
     };
   }
 
-  const consumers = services.filter((service) => {
-    const receives = (service.data as any).receives || [];
+  const consumers = routableResources.filter((resource) => {
+    const receives = (resource.data as any).receives || [];
     return receives.some((receive: any) => {
       const idMatch = receive.id === params.messageId;
       if (!receive.version || receive.version === 'latest') return idMatch;
@@ -347,6 +355,7 @@ export async function getConsumersOfMessage(params: { messageId: string; message
       id: (s.data as any).id,
       version: (s.data as any).version,
       name: (s.data as any).name || (s.data as any).id,
+      collection: s.collection,
     })),
     count: consumers.length,
   };
@@ -357,7 +366,8 @@ export async function getConsumersOfMessage(params: { messageId: string; message
  * Returns all affected services (producers and consumers) and their owners
  */
 export async function analyzeChangeImpact(params: { messageId: string; messageVersion: string; messageCollection: string }) {
-  const services = await getCollection('services');
+  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+  const routableResources = [...services, ...agents];
   const message = await getEntry(params.messageCollection as any, `${params.messageId}-${params.messageVersion}`);
 
   if (!message) {
@@ -367,14 +377,14 @@ export async function analyzeChangeImpact(params: { messageId: string; messageVe
   }
 
   // Find producers
-  const producers = services.filter((service) => {
-    const sends = (service.data as any).sends || [];
+  const producers = routableResources.filter((resource) => {
+    const sends = (resource.data as any).sends || [];
     return sends.some((send: any) => send.id === params.messageId);
   });
 
   // Find consumers
-  const consumers = services.filter((service) => {
-    const receives = (service.data as any).receives || [];
+  const consumers = routableResources.filter((resource) => {
+    const receives = (resource.data as any).receives || [];
     return receives.some((receive: any) => receive.id === params.messageId);
   });
 
@@ -405,19 +415,27 @@ export async function analyzeChangeImpact(params: { messageId: string; messageVe
     impact: {
       producerCount: producers.length,
       consumerCount: consumers.length,
-      totalServicesAffected: new Set([...producers, ...consumers].map((s) => (s.data as any).id)).size,
+      totalResourcesAffected: new Set([...producers, ...consumers].map((s) => `${s.collection}:${(s.data as any).id}`)).size,
+      totalServicesAffected: new Set(
+        [...producers, ...consumers].filter((s) => s.collection === 'services').map((s) => (s.data as any).id)
+      ).size,
+      totalAgentsAffected: new Set(
+        [...producers, ...consumers].filter((s) => s.collection === 'agents').map((s) => (s.data as any).id)
+      ).size,
       teamsAffected: Array.from(affectedOwners),
     },
     producers: producers.map((s) => ({
       id: (s.data as any).id,
       version: (s.data as any).version,
       name: (s.data as any).name || (s.data as any).id,
+      collection: s.collection,
       owners: (s.data as any).owners || [],
     })),
     consumers: consumers.map((s) => ({
       id: (s.data as any).id,
       version: (s.data as any).version,
       name: (s.data as any).name || (s.data as any).id,
+      collection: s.collection,
       owners: (s.data as any).owners || [],
     })),
   };
@@ -434,10 +452,14 @@ export async function explainBusinessFlow(params: { flowId: string; flowVersion:
     return { error: `Flow not found: ${params.flowId}-${params.flowVersion}` };
   }
 
-  // Get related services that use this flow
-  const services = await getCollection('services');
+  // Get related services and agents that use this flow
+  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
   const relatedServices = services.filter((service) => {
     const flows = (service.data as any).flows || [];
+    return flows.some((f: any) => f.id === params.flowId);
+  });
+  const relatedAgents = agents.filter((agent) => {
+    const flows = (agent.data as any).flows || [];
     return flows.some((f: any) => f.id === params.flowId);
   });
 
@@ -457,6 +479,11 @@ export async function explainBusinessFlow(params: { flowId: string; flowVersion:
       id: (s.data as any).id,
       version: (s.data as any).version,
       name: (s.data as any).name || (s.data as any).id,
+    })),
+    relatedAgents: relatedAgents.map((a) => ({
+      id: (a.data as any).id,
+      version: (a.data as any).version,
+      name: (a.data as any).name || (a.data as any).id,
     })),
   };
 }
@@ -583,15 +610,16 @@ export async function findMessageBySchemaId(params: {
     const resource = matches[0];
     if (resource) {
       // Get producers and consumers
-      const services = await getCollection('services');
+      const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+      const routableResources = [...services, ...agents];
 
-      const producers = services.filter((service) => {
-        const sends = (service.data as any).sends || [];
+      const producers = routableResources.filter((resource) => {
+        const sends = (resource.data as any).sends || [];
         return sends.some((send: any) => send.id === params.messageId);
       });
 
-      const consumers = services.filter((service) => {
-        const receives = (service.data as any).receives || [];
+      const consumers = routableResources.filter((resource) => {
+        const receives = (resource.data as any).receives || [];
         return receives.some((receive: any) => receive.id === params.messageId);
       });
 
@@ -608,11 +636,13 @@ export async function findMessageBySchemaId(params: {
           id: (s.data as any).id,
           version: (s.data as any).version,
           name: (s.data as any).name || (s.data as any).id,
+          collection: s.collection,
         })),
         consumers: consumers.map((s) => ({
           id: (s.data as any).id,
           version: (s.data as any).version,
           name: (s.data as any).name || (s.data as any).id,
+          collection: s.collection,
         })),
       };
     }
@@ -854,6 +884,7 @@ export async function getDataProductOutputs(params: { dataProductId: string; dat
 // ============================================
 
 const getNodesAndEdgesFunctions = {
+  agents: getNodesAndEdgesForAgent,
   services: getNodesAndEdgesForService,
   events: getNodesAndEdgesForEvents,
   commands: getNodesAndEdgesForCommands,
@@ -926,19 +957,22 @@ export async function getArchitectureDiagramAsMermaid(params: {
 
 export const toolDescriptions = {
   getResources:
-    'Use this tool to get events, services, commands, queries, flows, domains, channels, entities from EventCatalog. Supports pagination via cursor and filtering by search term (searches name, id, and summary).',
+    'Use this tool to get events, agents, services, commands, queries, flows, domains, channels, entities from EventCatalog. Supports pagination via cursor and filtering by search term (searches name, id, and summary).',
   getResource: 'Use this tool to get a specific resource from EventCatalog by its id and version',
   getMessagesProducedOrConsumedByResource:
     'Use this tool to get the messages produced or consumed by a resource by its id and version. Look at the `sends` and `receives` properties to get the messages produced or consumed by the resource',
   getSchemaForResource:
     'Use this tool to get the schema or specifications (openapi or asyncapi or graphql) for a resource by its id and version',
-  findResourcesByOwner: 'Use this tool to find all resources (services, events, commands, etc.) owned by a specific team or user',
-  getProducersOfMessage: 'Use this tool to find which services produce (send) a specific message (event, command, or query)',
-  getConsumersOfMessage: 'Use this tool to find which services consume (receive) a specific message (event, command, or query)',
+  findResourcesByOwner:
+    'Use this tool to find all resources (agents, services, events, commands, etc.) owned by a specific team or user',
+  getProducersOfMessage:
+    'Use this tool to find which agents or services produce (send) a specific message (event, command, or query)',
+  getConsumersOfMessage:
+    'Use this tool to find which agents or services consume (receive) a specific message (event, command, or query)',
   analyzeChangeImpact:
-    'Use this tool to analyze the impact of changing a message. Returns all affected services (producers and consumers), the teams that own them, and the blast radius of the change',
+    'Use this tool to analyze the impact of changing a message. Returns all affected agents and services (producers and consumers), the teams that own them, and the blast radius of the change',
   explainBusinessFlow:
-    'Use this tool to get detailed information about a business flow (state machine). Returns the flow definition, steps, mermaid diagram if available, and related services',
+    'Use this tool to get detailed information about a business flow (state machine). Returns the flow definition, steps, mermaid diagram if available, and related agents and services',
   getTeams:
     'Use this tool to get all teams in EventCatalog. Teams are groups of users that own resources. Supports pagination via cursor.',
   getTeam: 'Use this tool to get a specific team by its id. Returns team details including members.',
@@ -954,5 +988,5 @@ export const toolDescriptions = {
   getDataProductOutputs:
     'Use this tool to get the outputs (resources produced) for a data product. Returns fully hydrated output resources with their id, version, name, summary, collection type, and data contracts (if defined). Data contracts include the contract name, path, format, type, and content.',
   getArchitectureDiagramAsMermaid:
-    'Use this tool to get the architecture diagram for a resource as Mermaid flowchart code. This shows how the resource connects to other resources (services, events, channels, etc.) in the architecture. The mermaid code can be rendered to visualize the architecture or used to understand relationships. Supported collections: events, commands, queries, services, domains, flows, containers, data-products.',
+    'Use this tool to get the architecture diagram for a resource as Mermaid flowchart code. This shows how the resource connects to other resources (agents, services, events, channels, etc.) in the architecture. The mermaid code can be rendered to visualize the architecture or used to understand relationships. Supported collections: events, commands, queries, agents, services, domains, flows, containers, data-products.',
 };

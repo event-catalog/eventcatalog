@@ -15,6 +15,7 @@ import OpenAPI from '@components/MDX/OpenAPI/OpenAPI.astro';
 import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI.astro';
 import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInformation';
 import Attachments from '@components/MDX/Attachments.astro';
+import AgentTools from '@components/MDX/AgentTools/AgentTools.astro';
 import MessageTable from '@components/MDX/MessageTable/MessageTable.astro';
 import ResourceGroupTable from '@components/MDX/ResourceGroupTable/ResourceGroupTable.astro';
 import EntityPropertiesTable from '@components/MDX/EntityPropertiesTable/EntityPropertiesTable.astro';
@@ -43,6 +44,7 @@ const components = (props: any) => {
     Accordion,
     AccordionGroup,
     Admonition,
+    AgentTools: (mdxProp: any) => jsx(AgentTools, { ...props, ...mdxProp }),
     AsyncAPI,
     ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
     Design: (mdxProp: any) => jsx(Design, { ...props, ...mdxProp }),

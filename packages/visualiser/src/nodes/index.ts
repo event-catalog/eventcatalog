@@ -7,6 +7,8 @@ import { Event, eventConfig } from "./event";
 import { Command } from "./command";
 import { Query } from "./query";
 import { Service } from "./service";
+import AgentNode from "./Agent";
+import AgentToolNode from "./AgentTool";
 import { Channel } from "./channel";
 import { Note } from "./note";
 import { Data, dataNodeConfig } from "./data";
@@ -27,6 +29,8 @@ export type { QueryNode } from "./query";
 
 export { Service };
 export type { ServiceNode } from "./service";
+
+export type { AgentToolNode as AgentToolNodeType } from "./AgentTool";
 
 export { Channel };
 export type { ChannelNode } from "./channel";
@@ -76,6 +80,8 @@ export {
   StepNode,
   UserNode,
   DataProductNode,
+  AgentNode,
+  AgentToolNode,
   ExternalSystem2Node,
   MessageGroupNode,
   MessageGroupExpandedNode,
@@ -91,6 +97,8 @@ export type { MessageGroupExpandedNodeData } from "./message-group";
 // Node type constants
 export {
   SERVICE,
+  AGENT,
+  AGENT_TOOL,
   EVENT,
   QUERY,
   COMMAND,
@@ -107,6 +115,9 @@ export const nodeComponents = {
   command: Command,
   query: Query,
   service: Service,
+  agent: AgentNode,
+  agentTool: AgentToolNode,
+  "agent-tool": AgentToolNode,
   channel: Channel,
   note: Note,
   externalSystem: ExternalSystem,

@@ -18,6 +18,8 @@ interface NodeDataWithResources {
   entity?: ResourceData;
   message?: ResourceData;
   flow?: ResourceData;
+  agent?: ResourceData;
+  agentTool?: ResourceData;
   service?: ResourceData;
   step?: ResourceData;
   user?: ResourceData;
@@ -34,6 +36,8 @@ export const exportNodeGraphForStudio = (
     "entity",
     "message",
     "flow",
+    "agent",
+    "agentTool",
     "service",
     "step",
     "user",

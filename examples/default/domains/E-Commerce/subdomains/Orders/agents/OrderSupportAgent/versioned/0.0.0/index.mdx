@@ -1,0 +1,42 @@
+---
+id: OrderSupportAgent
+name: Order Support Agent
+version: 0.0.0
+summary: Helps support agents answer common customer questions about confirmed orders.
+owners:
+  - dboyne
+  - order-management
+model:
+  provider: OpenAI
+  name: gpt-4.1-mini
+  version: "2025-04-14"
+repository:
+  language: TypeScript
+  url: https://github.com/eventcatalog/order-support-agent
+tools:
+  - name: Order lookup
+    type: mcp
+    icon: /icons/tools/snowflake.svg
+    url: https://mcp.example.com/orders/lookup
+    description: Retrieves order status, totals, shipment milestones, and recent order events from the operational read model.
+receives:
+  - id: OrderConfirmed
+readsFrom:
+  - id: orders-db
+flows:
+  - id: PlaceOrderFlow
+---
+
+The first Order Support Agent helped support teams answer basic order-status questions after an order was confirmed.
+
+It received [[event|OrderConfirmed]] and used the order lookup tool to summarize order state before the later version added cancellation handling and support case note updates.
+
+## Tools
+
+<AgentTools />
+
+## Responsibilities
+
+- Summarize the current state of a confirmed order.
+- Identify missing shipment or payment context that support teams need.
+- Suggest a short internal note for the support case.

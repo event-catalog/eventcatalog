@@ -1,0 +1,42 @@
+---
+id: InventoryRebalancingAgent
+name: Inventory Rebalancing Agent
+version: 0.0.0
+summary: Recommends manual recovery actions when an item goes out of stock.
+owners:
+  - dboyne
+  - order-management
+model:
+  provider: Gemini
+  name: gemini-2.5-flash
+  version: "2025-04-17"
+repository:
+  language: TypeScript
+  url: https://github.com/eventcatalog/inventory-rebalancing-agent
+tools:
+  - name: Demand forecast lookup
+    type: mcp
+    icon: /icons/tools/snowflake.svg
+    url: https://mcp.example.com/inventory/demand-forecast
+    description: Retrieves SKU demand, promotion calendars, and regional sales velocity before recommending recovery actions.
+receives:
+  - id: OutOfStock
+readsFrom:
+  - id: inventory-readmodel
+flows:
+  - id: InventoryReservationFlow
+---
+
+The first Inventory Rebalancing Agent helped operations teams decide what to do when an order could not be fulfilled from the expected warehouse.
+
+It received [[event|OutOfStock]] and recommended manual recovery actions before the later version added inventory-adjustment context and transfer planning.
+
+## Tools
+
+<AgentTools />
+
+## Responsibilities
+
+- Explain which SKUs are constrained and where demand is building.
+- Recommend transfer, substitution, or backorder actions.
+- Give operations teams a short rationale for the proposed recovery path.

@@ -132,6 +132,57 @@ export const mockServices = [
   },
 ];
 
+export const mockAgents = [
+  {
+    id: 'agents/Support/OrderSupportAgent/index.mdx',
+    slug: 'agents/Support/OrderSupportAgent',
+    collection: 'agents',
+    data: {
+      id: 'OrderSupportAgent',
+      version: '1.0.0',
+      name: 'Order Support Agent',
+      model: {
+        provider: 'OpenAI',
+        name: 'gpt-4.1-mini',
+        version: '2025-04-14',
+      },
+      tools: [
+        {
+          name: 'Order history lookup',
+          type: 'mcp',
+          icon: '/icons/tools/snowflake.svg',
+          url: 'https://mcp.example.com/orders/history',
+          description: 'Retrieves the customer order timeline for support investigations.',
+        },
+      ],
+      sends: [
+        {
+          id: 'OrderCreatedEvent',
+          version: '0.0.1',
+        },
+      ],
+      receives: [
+        {
+          id: 'PaymentProcessed',
+          version: '0.0.1',
+        },
+      ],
+      writesTo: [
+        {
+          id: 'OrderDatabase',
+          version: '1.0.0',
+        },
+      ],
+      readsFrom: [
+        {
+          id: 'PaymentDatabase',
+          version: '1.0.0',
+        },
+      ],
+    },
+  },
+];
+
 export const mockEvents = [
   {
     slug: 'OrderCreatedEvent',

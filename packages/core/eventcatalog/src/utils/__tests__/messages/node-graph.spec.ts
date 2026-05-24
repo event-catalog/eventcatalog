@@ -1,6 +1,6 @@
 import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockEvents, mockServices, mockChannels } from './mocks';
+import { mockEvents, mockServices, mockChannels, mockAgents } from './mocks';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import utils from '@eventcatalog/sdk';
@@ -26,6 +26,9 @@ vi.mock('astro:content', async (importOriginal) => {
       if (key === 'services') {
         return Promise.resolve(mockServices);
       }
+      if (key === 'agents') {
+        return Promise.resolve(mockAgents);
+      }
       if (key === 'channels') {
         return Promise.resolve(mockChannels);
       }
@@ -46,6 +49,57 @@ describe('Message NodeGraph', () => {
   });
 
   describe('getNodesAndEdgesForConsumedMessage', () => {
+    it('renders tools for agent consumers', async () => {
+      const message = mockEvents[0] as unknown as CollectionEntry<CollectionMessageTypes>;
+
+      const { nodes, edges } = await getNodesAndEdgesForProducedMessage({
+        message,
+        services: mockServices as any,
+        agents: mockAgents as any,
+        channels: mockChannels as any,
+        currentNodes: [],
+        currentEdges: [],
+        source: mockServices[2] as any,
+      });
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'FraudReviewAgent-1.0.0',
+            type: 'agents',
+          }),
+          expect.objectContaining({
+            id: 'FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
+            type: 'agentTool',
+            data: expect.objectContaining({
+              agentTool: expect.objectContaining({
+                name: 'Risk profile lookup',
+                type: 'mcp',
+                icon: '/icons/tools/datadog.svg',
+              }),
+            }),
+          }),
+        ])
+      );
+
+      expect(edges).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'PaymentProcessed-0.0.1-FraudReviewAgent-1.0.0',
+            source: 'PaymentProcessed-0.0.1',
+            target: 'FraudReviewAgent-1.0.0',
+          }),
+          expect.objectContaining({
+            id: 'FraudReviewAgent-1.0.0-FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
+            source: 'FraudReviewAgent-1.0.0',
+            target: 'FraudReviewAgent-1.0.0-tool-risk-profile-lookup-mcp',
+            label: 'calls tool',
+            type: 'step',
+          }),
+        ])
+      );
+    });
+
     describe('when the message is consumed by the consumer and the producer and consumer have no channels defined', () => {
       it('takes a given message, renders the producer and connects the message to the consumer directly', async () => {
         const message = mockEvents[0] as unknown as CollectionEntry<CollectionMessageTypes>;

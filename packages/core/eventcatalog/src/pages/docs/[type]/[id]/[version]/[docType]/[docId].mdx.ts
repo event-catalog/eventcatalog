@@ -9,6 +9,7 @@ import { getResourceDocs, getResourceDocsForResource, type ResourceCollection } 
 import { filterMarkdownForAgents } from '@utils/llms';
 
 const supportedResourceCollections = new Set<ResourceCollection>([
+  'agents',
   'domains',
   'services',
   'events',

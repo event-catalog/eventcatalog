@@ -9,6 +9,7 @@ export type CollectionColor =
   | 'red'
   | 'gray'
   | 'cyan'
+  | 'sky'
   | 'indigo';
 
 export const getColorForCollection = (collection: string): CollectionColor => {
@@ -33,6 +34,8 @@ export const getColorForCollection = (collection: string): CollectionColor => {
       return 'purple';
     case 'domains':
       return 'yellow';
+    case 'agents':
+      return 'sky';
     case 'services':
       return 'pink';
     case 'data-products':
@@ -55,6 +58,7 @@ export const tailwind500RgbByColor: Record<CollectionColor, string> = {
   red: '239 68 68',
   gray: '107 114 128',
   cyan: '6 182 212',
+  sky: '14 165 233',
   indigo: '99 102 241',
 };
 
@@ -69,6 +73,7 @@ export const collectionTextColorClassByColor: Record<CollectionColor, string> = 
   red: 'text-red-500',
   gray: 'text-gray-500',
   cyan: 'text-cyan-500',
+  sky: 'text-sky-500',
   indigo: 'text-indigo-500',
 };
 

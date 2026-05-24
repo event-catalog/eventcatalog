@@ -54,6 +54,7 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
   const eventMap = createVersionedMap(context.events);
   const commandMap = createVersionedMap(context.commands);
   const queryMap = createVersionedMap(context.queries);
+  const agentMap = createVersionedMap(context.agents || []);
   const serviceMap = createVersionedMap(context.services);
   const flowMap = createVersionedMap(context.flows);
   const containerMap = createVersionedMap(context.containers);
@@ -66,6 +67,18 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
       .map((step) => (step.service ? resolvePointer(serviceMap, step.service) : undefined))
       .filter(Boolean)
       .map((service) => `service:${service!.data.id}:${service!.data.version}`)
+  );
+  const agentRefs = uniqueRefs(
+    steps
+      .map((step: any) => {
+        const hydratedAgent = Array.isArray(step.agent) ? step.agent[0] : undefined;
+        if (hydratedAgent?.collection && hydratedAgent?.data) return hydratedAgent;
+
+        const pointer = Array.isArray(step.agent) ? undefined : step.agent;
+        return pointer ? resolvePointer(agentMap, pointer) : undefined;
+      })
+      .filter(Boolean)
+      .map((agent) => `agent:${agent!.data.id}:${agent!.data.version}`)
   );
   const flowRefs = uniqueRefs(
     steps
@@ -139,6 +152,12 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
         title: 'Services',
         icon: 'Server',
         pages: serviceRefs,
+      },
+      agentRefs.length > 0 && {
+        type: 'group',
+        title: 'Agents',
+        icon: 'Bot',
+        pages: agentRefs,
       },
       flowRefs.length > 0 && {
         type: 'group',

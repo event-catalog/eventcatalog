@@ -41,6 +41,8 @@ import { toPng } from "html-to-image";
 // Nodes and edges
 // Studio-2 nodes (named exports from directories)
 import { Service as ServiceNode } from "../nodes/service";
+import AgentNode from "../nodes/Agent";
+import AgentToolNode from "../nodes/AgentTool";
 import { Event as EventNode } from "../nodes/event";
 import { Query as QueryNode } from "../nodes/query";
 import { Command as CommandNode } from "../nodes/command";
@@ -368,6 +370,10 @@ const NodeGraphBuilder = ({
     return {
       service: wrapWithContextMenu(ServiceNode),
       services: wrapWithContextMenu(ServiceNode),
+      agent: wrapWithContextMenu(AgentNode),
+      agents: wrapWithContextMenu(AgentNode),
+      agentTool: wrapWithContextMenu(AgentToolNode),
+      "agent-tool": wrapWithContextMenu(AgentToolNode),
       flow: wrapWithContextMenu(FlowNode),
       flows: wrapWithContextMenu(FlowNode),
       event: wrapWithContextMenu(EventNode),
@@ -1616,17 +1622,30 @@ const NodeGraphBuilder = ({
 
   useEffect(() => {
     setEdges((eds) =>
-      eds.map((edge) => ({
-        ...edge,
-        animated: animateMessages,
-        type:
-          edge.type === "flow-edge" || edge.type === "multiline"
-            ? edge.type
+      eds.map((edge) => {
+        const preservesOwnRenderer =
+          edge.type === "flow-edge" ||
+          edge.type === "multiline" ||
+          edge.type === "default" ||
+          edge.type === "step" ||
+          edge.type === "smoothstep" ||
+          edge.data?.animated === false;
+
+        return {
+          ...edge,
+          animated: preservesOwnRenderer ? false : animateMessages,
+          type: preservesOwnRenderer
+            ? edge.type || "default"
             : animateMessages
               ? "animated"
               : "smoothstep",
-        data: { ...edge.data, animateMessages, animated: animateMessages },
-      })),
+          data: {
+            ...edge.data,
+            animateMessages: preservesOwnRenderer ? false : animateMessages,
+            animated: preservesOwnRenderer ? false : animateMessages,
+          },
+        };
+      }),
     );
   }, [animateMessages]);
 
@@ -1903,6 +1922,10 @@ const NodeGraphBuilder = ({
   const getNodesByCollectionWithColors = useCallback((nodes: Node<any>[]) => {
     const colorClasses = {
       events: "bg-orange-600",
+      agent: "bg-sky-600",
+      agents: "bg-sky-600",
+      agentTool: "bg-violet-600",
+      "agent-tool": "bg-violet-600",
       services: "bg-pink-600",
       flows: "bg-teal-600",
       commands: "bg-blue-600",

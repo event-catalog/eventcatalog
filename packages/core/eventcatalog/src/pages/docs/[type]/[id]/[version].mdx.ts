@@ -9,6 +9,7 @@ import fs from 'fs';
 import { addSchemaToMarkdown, filterMarkdownForAgents } from '@utils/llms';
 import { isLLMSTxtEnabled, isSSR } from '@utils/feature';
 const events = await getCollection('events');
+const agents = await getCollection('agents');
 const commands = await getCollection('commands');
 const queries = await getCollection('queries');
 const services = await getCollection('services');
@@ -22,6 +23,7 @@ const entities = await getCollection('entities');
 import utils from '@eventcatalog/sdk';
 
 const collections = {
+  agents,
   events,
   commands,
   queries,

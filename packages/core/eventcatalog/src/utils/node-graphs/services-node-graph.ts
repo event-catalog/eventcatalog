@@ -6,6 +6,7 @@ import {
   generatedIdForEdge,
   calculatedNodes,
   createEdge,
+  buildContextMenuForAgent,
   buildContextMenuForService,
   buildContextMenuForResource,
   versionMatches,
@@ -16,6 +17,16 @@ import {
 } from '@utils/node-graphs/utils/utils';
 
 const sanitizeGroupId = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+const sanitizeToolId = (name: string) =>
+  name
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .toLowerCase();
+
+const generateIdForAgentToolNode = (
+  agent: CollectionEntry<'agents'> | CollectionEntry<'services'>,
+  tool: { name: string; type: string }
+) => `${generateIdForNode(agent)}-tool-${sanitizeToolId(`${tool.name}-${tool.type}`)}`;
 
 import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
 import { MarkerType, type Node, type Edge } from '@xyflow/react';
@@ -35,6 +46,7 @@ const precomputeGroupExpansion = (
   opts: {
     serviceNodeId: string;
     services: any;
+    agents: any;
     service: any;
     mode: string;
     channels: any;
@@ -57,6 +69,7 @@ const precomputeGroupExpansion = (
             message: msg as any,
             targetChannels: channelRefs,
             services: opts.services,
+            agents: opts.agents,
             currentNodes: [...opts.existingNodes, ...expandedNodes],
             target: opts.service,
             mode: opts.mode,
@@ -67,6 +80,7 @@ const precomputeGroupExpansion = (
             message: msg as any,
             sourceChannels: channelRefs,
             services: opts.services,
+            agents: opts.agents,
             currentNodes: [...opts.existingNodes, ...expandedNodes],
             source: opts.service,
             currentEdges: [...opts.existingEdges, ...expandedEdges],
@@ -104,7 +118,31 @@ interface Props {
   renderAllEdges?: boolean;
   channelRenderMode?: 'single' | 'flat';
   renderMessages?: boolean;
+  collection?: 'agents' | 'services';
 }
+
+const getResourceContextMenu = (resource: CollectionEntry<'agents'> | CollectionEntry<'services'>) => {
+  if (resource.collection === 'agents') {
+    return buildContextMenuForAgent({
+      id: resource.data.id,
+      version: resource.data.version,
+      repository: resource.data.repository as { url: string },
+    });
+  }
+
+  return buildContextMenuForService({
+    id: resource.data.id,
+    version: resource.data.version,
+    specifications: (resource.data as any).specifications as { type: string; path: string }[],
+    repository: resource.data.repository as { url: string },
+  });
+};
+
+const getResourceNodeData = (resource: CollectionEntry<'agents'> | CollectionEntry<'services'>, mode: 'simple' | 'full') => ({
+  mode,
+  ...(resource.collection === 'agents' ? { agent: { ...resource.data } } : { service: { ...resource.data } }),
+  contextMenu: getResourceContextMenu(resource),
+});
 
 const getSendsMessageByMessageType = (messageType: string) => {
   switch (messageType) {
@@ -139,14 +177,16 @@ export const getNodesAndEdges = async ({
   renderAllEdges = false,
   channelRenderMode = 'flat',
   renderMessages = true,
+  collection = 'services',
 }: Props) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   let nodes = [] as any,
     edges = [] as any;
 
   // Fetch all collections in parallel
-  const [services, events, commands, queries, channels, containers] = await Promise.all([
+  const [services, agents, events, commands, queries, channels, containers] = await Promise.all([
     getCollection('services'),
+    getCollection('agents'),
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
@@ -154,7 +194,8 @@ export const getNodesAndEdges = async ({
     getCollection('containers'),
   ]);
 
-  const service = services.find((service) => service.data.id === id && service.data.version === version);
+  const resources = collection === 'agents' ? agents : services;
+  const service = resources.find((service) => service.data.id === id && service.data.version === version);
 
   // Nothing found...
   if (!service) {
@@ -174,6 +215,7 @@ export const getNodesAndEdges = async ({
   const sendsRaw = service?.data.sends || [];
   const writesToRaw = service?.data.writesTo || [];
   const readsFromRaw = service?.data.readsFrom || [];
+  const toolsRaw = collection === 'agents' ? (service?.data as any).tools || [] : [];
 
   const receivesHydrated = receivesRaw
     .map((message) => findInMap(messageMap, message.id, message.version))
@@ -233,7 +275,7 @@ export const getNodesAndEdges = async ({
         groupData.messages,
         groupData.messages.map((msg: any) => findPointerForMessage(msg)?.from || []),
         'receives',
-        { serviceNodeId, services, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
+        { serviceNodeId, services, agents, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
       );
 
       nodes.push({
@@ -285,6 +327,7 @@ export const getNodesAndEdges = async ({
         message: receive as any,
         targetChannels: targetChannels,
         services,
+        agents,
         currentNodes: nodes,
         target: service,
         mode,
@@ -302,16 +345,7 @@ export const getNodesAndEdges = async ({
     id: generateIdForNode(service),
     sourcePosition: 'right',
     targetPosition: 'left',
-    data: {
-      mode,
-      service: { ...service.data },
-      contextMenu: buildContextMenuForService({
-        id: service.data.id,
-        version: service.data.version,
-        specifications: service.data.specifications as { type: string; path: string }[],
-        repository: service.data.repository as { url: string },
-      }),
-    },
+    data: getResourceNodeData(service, mode),
     type: service.collection,
   });
 
@@ -348,6 +382,57 @@ export const getNodesAndEdges = async ({
       );
     }
   });
+
+  if (collection === 'agents') {
+    toolsRaw.forEach((tool) => {
+      const toolNodeId = generateIdForAgentToolNode(service, tool);
+
+      nodes.push({
+        id: toolNodeId,
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: {
+          mode,
+          agentTool: {
+            id: sanitizeToolId(`${tool.name}-${tool.type}`),
+            name: tool.name,
+            type: tool.type,
+            icon: tool.icon,
+            url: tool.url,
+            description: tool.description,
+          },
+          contextMenu: tool.url
+            ? [
+                {
+                  label: 'Open tool endpoint',
+                  href: tool.url,
+                  external: true,
+                },
+              ]
+            : undefined,
+        },
+        type: 'agentTool',
+      });
+
+      edges.push(
+        createEdge({
+          id: `${serviceNodeId}-${toolNodeId}`,
+          source: serviceNodeId,
+          target: toolNodeId,
+          label: 'calls tool',
+          type: 'step',
+          animated: false,
+          data: { animated: false },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: '#666',
+            width: 20,
+            height: 20,
+          },
+        })
+      );
+    });
+  }
 
   // Any containers the service reads from
   readsFrom.forEach((readFrom) => {
@@ -401,7 +486,7 @@ export const getNodesAndEdges = async ({
         groupData.messages,
         groupData.messages.map((msg: any) => findPointerForMessage(msg)?.to || []),
         'sends',
-        { serviceNodeId, services, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
+        { serviceNodeId, services, agents, service, mode, channels, channelMap, existingNodes: nodes, existingEdges: edges }
       );
 
       nodes.push({
@@ -453,6 +538,7 @@ export const getNodesAndEdges = async ({
         message: send as any,
         sourceChannels: sourceChannels,
         services,
+        agents,
         currentNodes: nodes,
         source: service,
         currentEdges: edges,
@@ -512,7 +598,11 @@ export const getNodesAndEdges = async ({
     });
   });
 
-  nodes.forEach((node: any) => {
+  const uniqueNodes = nodes.filter(
+    (node: any, index: number, self: any[]) => index === self.findIndex((n: any) => n.id === node.id)
+  );
+
+  uniqueNodes.forEach((node: any) => {
     flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
   });
 
@@ -527,13 +617,17 @@ export const getNodesAndEdges = async ({
   const uniqueEdges = edges.reduce((acc: any[], edge: any) => {
     const existingEdge = acc.find((e: any) => e.id === edge.id);
     if (existingEdge) {
-      // existingEdge.label = `${existingEdge.label} & ${edge.label}`;
-      // Add the custom colors to the existing edge which can be an array of strings
-      const value = Array.isArray(edge.data.customColor) ? edge.data.customColor : [edge.data.customColor];
-      const existingValue = Array.isArray(existingEdge.data.customColor)
-        ? existingEdge.data.customColor
-        : [existingEdge.data.customColor];
-      existingEdge.data.customColor = [...value, ...existingValue];
+      if (edge.data?.customColor || existingEdge.data?.customColor) {
+        // Add custom colors to the existing edge when grouped message paths converge.
+        const value = Array.isArray(edge.data?.customColor) ? edge.data.customColor : [edge.data?.customColor].filter(Boolean);
+        const existingValue = Array.isArray(existingEdge.data?.customColor)
+          ? existingEdge.data.customColor
+          : [existingEdge.data?.customColor].filter(Boolean);
+        existingEdge.data = {
+          ...existingEdge.data,
+          customColor: [...value, ...existingValue],
+        };
+      }
     } else {
       acc.push(edge);
     }
@@ -541,7 +635,7 @@ export const getNodesAndEdges = async ({
   }, []);
 
   return {
-    nodes: calculatedNodes(flow, nodes),
+    nodes: calculatedNodes(flow, uniqueNodes),
     edges: uniqueEdges,
   };
 };

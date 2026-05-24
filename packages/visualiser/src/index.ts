@@ -15,6 +15,8 @@ export type {
   VisualizerLink,
   EventCatalogResource,
   Message,
+  Agent,
+  AgentTool,
   Channel,
   ExternalSystem,
   Data,

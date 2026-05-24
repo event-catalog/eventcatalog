@@ -133,6 +133,33 @@ export const mockServices = [
 ];
 
 // ============================================
+// Mock Agents
+// ============================================
+export const mockAgents = [
+  {
+    id: 'FraudReviewAgent-1.0.0',
+    slug: 'agents/FraudReviewAgent',
+    collection: 'agents',
+    body: 'Fraud review agent description',
+    data: {
+      id: 'FraudReviewAgent',
+      name: 'Fraud Review Agent',
+      version: '1.0.0',
+      summary: 'Reviews risky payments',
+      owners: ['risk-team'],
+      receives: [{ id: 'PaymentProcessed', version: '1.0.0' }],
+      sends: [{ id: 'InventoryUpdated', version: '1.0.0' }],
+      flows: [{ id: 'OrderFlow' }],
+      model: {
+        provider: 'OpenAI',
+        name: 'gpt-4.1',
+        version: '2025-04-14',
+      },
+    },
+  },
+];
+
+// ============================================
 // Mock Commands
 // ============================================
 export const mockCommands = [
@@ -497,6 +524,7 @@ export const mockDiagrams = [
 // ============================================
 export const mockCollections: Record<string, any[]> = {
   events: mockEvents,
+  agents: mockAgents,
   services: mockServices,
   commands: mockCommands,
   queries: mockQueries,

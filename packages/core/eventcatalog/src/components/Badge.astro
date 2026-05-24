@@ -10,6 +10,8 @@ type Badge = {
   icon?: any;
   iconComponent?: any;
   iconURL?: string;
+  iconURLLight?: string;
+  iconURLDark?: string;
   class?: string;
   url?: string;
 };
@@ -22,6 +24,7 @@ type Props = {
 const { badge, className = '' } = Astro.props;
 const href = getBadgeHref(badge);
 const Icon = badge.icon || badge.iconComponent;
+const hasThemedIcon = badge.iconURLLight && badge.iconURLDark;
 const classes = `
   inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
   ${badge.backgroundColor ? 'bg-[rgb(var(--ec-content-hover))]' : 'bg-transparent'} border border-[rgb(var(--ec-page-border))]
@@ -36,14 +39,50 @@ const classes = `
   href ? (
     <a id={badge.id || undefined} href={href} class={classes} style={getBadgeStyle(badge)} title={badge.content}>
       {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
-      {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
+      {hasThemedIcon && (
+        <img
+          src={badge.iconURLLight}
+          class="w-4 h-4 flex-shrink-0 opacity-80 dark:hidden"
+          alt=""
+          onerror="this.style.display='none'"
+        />
+      )}
+      {hasThemedIcon && (
+        <img
+          src={badge.iconURLDark}
+          class="hidden w-4 h-4 flex-shrink-0 opacity-80 dark:inline-block"
+          alt=""
+          onerror="this.style.display='none'"
+        />
+      )}
+      {!hasThemedIcon && badge.iconURL && (
+        <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
+      )}
       <span>{badge.content}</span>
       <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5 flex-shrink-0 opacity-70" aria-hidden="true" />
     </a>
   ) : (
     <span id={badge.id || undefined} class={classes} style={getBadgeStyle(badge)} title={badge.content}>
       {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
-      {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
+      {hasThemedIcon && (
+        <img
+          src={badge.iconURLLight}
+          class="w-4 h-4 flex-shrink-0 opacity-80 dark:hidden"
+          alt=""
+          onerror="this.style.display='none'"
+        />
+      )}
+      {hasThemedIcon && (
+        <img
+          src={badge.iconURLDark}
+          class="hidden w-4 h-4 flex-shrink-0 opacity-80 dark:inline-block"
+          alt=""
+          onerror="this.style.display='none'"
+        />
+      )}
+      {!hasThemedIcon && badge.iconURL && (
+        <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
+      )}
       <span>{badge.content}</span>
     </span>
   )
