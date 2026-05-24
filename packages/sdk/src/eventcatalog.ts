@@ -92,6 +92,7 @@ export const dumpCatalog =
     const {
       getDomains,
       getServices,
+      getAgents,
       getEvents,
       getQueries,
       getCommands,
@@ -107,6 +108,7 @@ export const dumpCatalog =
 
     const domains = await getDomains();
     const services = await getServices();
+    const agents = await getAgents();
 
     const events = await getEvents();
     const commands = await getCommands();
@@ -121,6 +123,7 @@ export const dumpCatalog =
     const [
       hydratedDomains,
       hydratedServices,
+      hydratedAgents,
       hydratedEvents,
       hydratedQueries,
       hydratedCommands,
@@ -133,6 +136,7 @@ export const dumpCatalog =
     ] = await Promise.all([
       hydrateResource(directory, domains),
       hydrateResource(directory, services),
+      hydrateResource(directory, agents),
       hydrateResource(directory, events),
       hydrateResource(directory, queries),
       hydrateResource(directory, commands),
@@ -151,6 +155,7 @@ export const dumpCatalog =
       resources: {
         domains: filterCollection(hydratedDomains, { includeMarkdown }),
         services: filterCollection(hydratedServices, { includeMarkdown }),
+        agents: filterCollection(hydratedAgents, { includeMarkdown }),
         messages: {
           events: filterCollection(hydratedEvents, { includeMarkdown }),
           queries: filterCollection(hydratedQueries, { includeMarkdown }),

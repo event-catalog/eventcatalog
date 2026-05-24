@@ -174,6 +174,29 @@ export const writeQueryToService =
   };
 
 /**
+ * Write a query to an agent in EventCatalog.
+ */
+export const writeQueryToAgent =
+  (directory: string) =>
+  async (
+    query: Query,
+    agent: { id: string; version?: string },
+    options: { path?: string; format?: 'md' | 'mdx'; override?: boolean } = { path: '', format: 'mdx', override: false }
+  ) => {
+    const resourcePath = await getResourcePath(directory, agent.id, agent.version);
+    if (!resourcePath) {
+      throw new Error('Agent not found');
+    }
+
+    let pathForQuery =
+      agent.version && agent.version !== 'latest'
+        ? `${resourcePath.directory}/versioned/${agent.version}/queries`
+        : `${resourcePath.directory}/queries`;
+    pathForQuery = join(pathForQuery, query.id);
+    await writeResource(directory, { ...query }, { ...options, path: pathForQuery, type: 'query' });
+  };
+
+/**
  * Delete a query at it's given path.
  *
  * @example

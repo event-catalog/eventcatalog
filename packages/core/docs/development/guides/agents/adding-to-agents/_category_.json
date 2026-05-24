@@ -1,0 +1,10 @@
+{
+  "label": "Adding to agents",
+  "position": 7,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/adding-to-agents"
+  }
+}

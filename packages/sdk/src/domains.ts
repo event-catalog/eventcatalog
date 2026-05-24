@@ -81,7 +81,15 @@ export const getDomains =
   async (options?: { latestOnly?: boolean }): Promise<Domain[]> =>
     getResources(directory, {
       type: 'domains',
-      ignore: ['**/services/**', '**/events/**', '**/commands/**', '**/queries/**', '**/flows/**', '**/entities/**'],
+      ignore: [
+        '**/services/**',
+        '**/agents/**',
+        '**/events/**',
+        '**/commands/**',
+        '**/queries/**',
+        '**/flows/**',
+        '**/entities/**',
+      ],
       ...options,
     }) as Promise<Domain[]>;
 
@@ -152,6 +160,10 @@ export const writeDomain =
 
     if (Array.isArray(domain.services)) {
       resource.services = uniqueVersions(domain.services as { id: string; version: string }[]);
+    }
+
+    if (Array.isArray(domain.agents)) {
+      resource.agents = uniqueVersions(domain.agents as { id: string; version: string }[]);
     }
 
     if (Array.isArray(domain.domains)) {
@@ -375,6 +387,35 @@ export const addServiceToDomain =
 
     // Add service to the list
     domain.services.push(service);
+
+    const writeDir = await resolveDomainWriteDirectory(directory, id, version);
+    await rmDomainById(directory)(id, version, true);
+    await writeDomain(writeDir)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
+  };
+
+/**
+ * Add an agent to a domain by its id.
+ *
+ * Optionally specify a version to add the agent to a specific version of the domain.
+ */
+export const addAgentToDomain =
+  (directory: string) => async (id: string, agent: { id: string; version: string }, version?: string) => {
+    let domain: Domain = await getDomain(directory)(id, version);
+    const domainPath = await getResourcePath(directory, id, version);
+
+    const extension = path.extname(domainPath?.fullPath || '');
+
+    if (domain.agents === undefined) {
+      domain.agents = [];
+    }
+
+    const agentExistsInList = domain.agents.some((a) => a.id === agent.id && a.version === agent.version);
+
+    if (agentExistsInList) {
+      return;
+    }
+
+    domain.agents.push(agent);
 
     const writeDir = await resolveDomainWriteDirectory(directory, id, version);
     await rmDomainById(directory)(id, version, true);

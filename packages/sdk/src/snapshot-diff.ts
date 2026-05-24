@@ -40,6 +40,7 @@ const flattenResources = (snapshot: CatalogSnapshot): FlatResource[] => {
 
   addResources(snapshot.resources.domains, 'domain');
   addResources(snapshot.resources.services, 'service');
+  addResources(snapshot.resources.agents || [], 'agent');
   addResources(snapshot.resources.messages.events, 'event');
   addResources(snapshot.resources.messages.commands, 'command');
   addResources(snapshot.resources.messages.queries, 'query');
@@ -184,7 +185,7 @@ type RelationshipInfo = Omit<RelationshipChange, 'changeType'>;
 const extractRelationships = (snapshot: CatalogSnapshot): Map<string, RelationshipInfo> => {
   const relationships = new Map<string, RelationshipInfo>();
 
-  for (const service of snapshot.resources.services) {
+  for (const service of [...snapshot.resources.services, ...(snapshot.resources.agents || [])]) {
     for (const direction of ['sends', 'receives'] as const) {
       const pointers: ServicePointer[] = (service as Record<string, any>)[direction] || [];
       for (const pointer of pointers) {

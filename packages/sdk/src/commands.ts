@@ -175,6 +175,30 @@ export const writeCommandToService =
   };
 
 /**
+ * Write a command to an agent in EventCatalog.
+ */
+export const writeCommandToAgent =
+  (directory: string) =>
+  async (
+    command: Command,
+    agent: { id: string; version?: string },
+    options: { path?: string; format?: 'md' | 'mdx'; override?: boolean } = { path: '', format: 'mdx', override: false }
+  ) => {
+    const resourcePath = await getResourcePath(directory, agent.id, agent.version);
+    if (!resourcePath) {
+      throw new Error('Agent not found');
+    }
+
+    let pathForCommand =
+      agent.version && agent.version !== 'latest'
+        ? `${resourcePath.directory}/versioned/${agent.version}/commands`
+        : `${resourcePath.directory}/commands`;
+    pathForCommand = join(pathForCommand, command.id);
+
+    await writeResource(directory, { ...command }, { ...options, path: pathForCommand, type: 'command' });
+  };
+
+/**
  * Delete a command at it's given path.
  *
  * @example
