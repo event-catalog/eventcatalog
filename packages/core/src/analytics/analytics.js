@@ -1,4 +1,3 @@
-import axios from 'axios';
 import os from 'os';
 import { VERSION } from '../constants';
 
@@ -22,7 +21,10 @@ async function raiseEvent(eventData) {
   };
 
   try {
-    await axios.post(url, payload, { headers });
+    await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   } catch (error) {
     // swallow the error
   }
