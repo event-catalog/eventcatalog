@@ -275,7 +275,16 @@ export const addMessageToChannel =
       throw new Error(`Cannot find message ${id} in the catalog`);
     }
 
-    const path = existingResource.split(`/[\\/]+${collection}`)[0];
+    // Strip the trailing `<sep><collection>/.../index.mdx` segment to recover
+    // the parent directory. Previously this used a template *string* as the
+    // split argument, which made `.split()` look for the literal characters
+    // `/[\\/]+${collection}` — never present in real paths — so the split
+    // returned the whole input unchanged. The downstream `join(path,
+    // collection)` then nested a duplicate copy of the resource under
+    // `<orig>/<collection>/<id>/index.mdx`. Use the real regex so the split
+    // matches both POSIX and Windows separators, mirroring the equivalent
+    // pattern used in `services.ts`.
+    const path = existingResource.split(new RegExp(`[\\\\/]+${collection}`))[0];
     const pathToResource = join(path, collection);
 
     await rmMessageById(directory)(_message.id, _message.version, true);
