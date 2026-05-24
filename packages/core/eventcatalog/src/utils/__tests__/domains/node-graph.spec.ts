@@ -122,10 +122,10 @@ describe('Domains NodeGraph', () => {
 
       expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedEventNode)]));
 
-      // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated) + agent consumer
-      expect(nodes.length).toEqual(14);
-      // 8 original edges + 2 from data product (input edge + output edge) + agent consumer edge
-      expect(edges.length).toEqual(13);
+      // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated) + agent consumer + agent tool
+      expect(nodes.length).toEqual(15);
+      // 8 original edges + 2 from data product (input edge + output edge) + agent consumer edge + agent → tool edge
+      expect(edges.length).toEqual(14);
     });
 
     it('should return nodes and edges for data products in a domain', async () => {
