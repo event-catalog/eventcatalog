@@ -194,8 +194,44 @@ export interface Service extends BaseSchema {
   };
 }
 
+export type AgentTool = {
+  name: string;
+  type: string;
+  icon?: string;
+  url?: string;
+  description?: string;
+};
+
+export type AgentModel = {
+  provider?: string;
+  name?: string;
+  version?: string;
+};
+
+export interface Agent extends BaseSchema {
+  sends?: SendsPointer[];
+  receives?: ReceivesPointer[];
+  writesTo?: ResourcePointer[];
+  readsFrom?: ResourcePointer[];
+  flows?: ResourcePointer[];
+  model?: AgentModel;
+  tools?: AgentTool[];
+  detailsPanel?: {
+    domains?: DetailPanelProperty;
+    messages?: DetailPanelProperty;
+    versions?: DetailPanelProperty;
+    repository?: DetailPanelProperty;
+    owners?: DetailPanelProperty;
+    changelog?: DetailPanelProperty;
+    containers?: DetailPanelProperty;
+    tools?: DetailPanelProperty;
+    model?: DetailPanelProperty;
+  };
+}
+
 export interface Domain extends BaseSchema {
   services?: ResourcePointer[];
+  agents?: ResourcePointer[];
   domains?: ResourcePointer[];
   entities?: ResourcePointer[];
   dataProducts?: ResourcePointer[];
@@ -206,6 +242,7 @@ export interface Domain extends BaseSchema {
     parentDomains?: DetailPanelProperty;
     subdomains?: DetailPanelProperty;
     services?: DetailPanelProperty;
+    agents?: DetailPanelProperty;
     entities?: DetailPanelProperty;
     messages?: DetailPanelProperty;
     ubiquitousLanguage?: DetailPanelProperty;
@@ -407,6 +444,7 @@ export type EventCatalog = {
   resources: {
     domains?: ExportedResource<Domain>[];
     services?: ExportedResource<Service>[];
+    agents?: ExportedResource<Agent>[];
     messages?: {
       events?: ExportedResource<Event>[];
       queries?: ExportedResource<Query>[];

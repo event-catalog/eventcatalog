@@ -1,11 +1,14 @@
 import { dirname, join } from 'node:path';
 import fsSync from 'node:fs';
-import type { Message, Service } from './types';
+import type { Agent, Message, Service } from './types';
 import matter from 'gray-matter';
 import { getResource, getResourcePath, isLatestVersion } from './internal/resources';
 import { findFileById, getFiles } from './internal/utils';
 import { getServices } from './services';
+import { getAgents } from './agents';
 import { satisfies, validRange } from 'semver';
+
+type MessageParticipant = Service | Agent;
 
 /**
  * Returns a message from EventCatalog by a given schema path.
@@ -58,7 +61,7 @@ export const getMessageBySchemaPath =
   };
 
 /**
- * Returns the producers and consumers (services) for a given message.
+ * Returns the producers and consumers (services and agents) for a given message.
  *
  * @example
  * ```ts
@@ -66,7 +69,7 @@ export const getMessageBySchemaPath =
  *
  * const { getProducersAndConsumersForMessage } = utils('/path/to/eventcatalog');
  *
- * // Returns the producers and consumers (services) for a given message
+ * // Returns the producers and consumers (services and agents) for a given message
  * const { producers, consumers } = await getProducersAndConsumersForMessage('InventoryAdjusted', '0.0.1');
  */
 export const getProducersAndConsumersForMessage =
@@ -75,8 +78,11 @@ export const getProducersAndConsumersForMessage =
     id: string,
     version?: string,
     options?: { latestOnly?: boolean }
-  ): Promise<{ producers: Service[]; consumers: Service[] }> => {
-    const services = await getServices(directory)({ latestOnly: options?.latestOnly ?? true });
+  ): Promise<{ producers: MessageParticipant[]; consumers: MessageParticipant[] }> => {
+    const [services = [], agents = []] = await Promise.all([
+      getServices(directory)({ latestOnly: options?.latestOnly ?? true }),
+      getAgents(directory)({ latestOnly: options?.latestOnly ?? true }),
+    ]);
     const message = (await getResource(directory, id, version, { type: 'message' })) as Message;
     const isMessageLatestVersion = await isLatestVersion(directory, id, version);
 
@@ -84,14 +90,14 @@ export const getProducersAndConsumersForMessage =
       throw new Error(`Message resource with id '${id}' and version '${version}' not found.`);
     }
 
-    const producers: Service[] = [];
-    const consumers: Service[] = [];
+    const producers: MessageParticipant[] = [];
+    const consumers: MessageParticipant[] = [];
 
-    for (const service of services) {
-      const servicePublishesMessage = service.sends?.some((_message) => {
+    for (const participant of [...services, ...agents]) {
+      const participantPublishesMessage = participant.sends?.some((_message) => {
         if (_message.version) {
-          const isServiceUsingSemverRange = validRange(_message.version);
-          if (isServiceUsingSemverRange) {
+          const isParticipantUsingSemverRange = validRange(_message.version);
+          if (isParticipantUsingSemverRange) {
             return _message.id === message.id && satisfies(message.version, _message.version);
           } else {
             return _message.id === message.id && message.version === _message.version;
@@ -102,10 +108,10 @@ export const getProducersAndConsumersForMessage =
         }
         return false;
       });
-      const serviceSubscribesToMessage = service.receives?.some((_message) => {
+      const participantSubscribesToMessage = participant.receives?.some((_message) => {
         if (_message.version) {
-          const isServiceUsingSemverRange = validRange(_message.version);
-          if (isServiceUsingSemverRange) {
+          const isParticipantUsingSemverRange = validRange(_message.version);
+          if (isParticipantUsingSemverRange) {
             return _message.id === message.id && satisfies(message.version, _message.version);
           } else {
             return _message.id === message.id && message.version === _message.version;
@@ -117,11 +123,11 @@ export const getProducersAndConsumersForMessage =
         return false;
       });
 
-      if (servicePublishesMessage) {
-        producers.push(service);
+      if (participantPublishesMessage) {
+        producers.push(participant);
       }
-      if (serviceSubscribesToMessage) {
-        consumers.push(service);
+      if (participantSubscribesToMessage) {
+        consumers.push(participant);
       }
     }
 

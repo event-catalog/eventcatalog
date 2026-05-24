@@ -233,6 +233,39 @@ export const writeFlowToService =
   };
 
 /**
+ * Write a flow to an agent in EventCatalog.
+ *
+ * @example
+ * ```ts
+ * import utils from '@eventcatalog/utils';
+ *
+ * const { writeFlowToAgent } = utils('/path/to/eventcatalog');
+ *
+ * // Flow would be written to agents/FraudReviewAgent/flows/PaymentFlow
+ * await writeFlowToAgent({
+ *   id: 'PaymentFlow',
+ *   name: 'Payment Flow',
+ *   version: '0.0.1',
+ *   markdown: '# Payment Flow',
+ *   steps: [],
+ * }, { id: 'FraudReviewAgent' });
+ * ```
+ */
+export const writeFlowToAgent =
+  (directory: string) =>
+  async (
+    flow: Flow,
+    agent: { id: string; version?: string },
+    options: { path?: string; format?: 'md' | 'mdx'; override?: boolean } = { path: '', format: 'mdx', override: false }
+  ) => {
+    let pathForFlow =
+      agent.version && agent.version !== 'latest' ? `/${agent.id}/versioned/${agent.version}/flows` : `/${agent.id}/flows`;
+    pathForFlow = join(pathForFlow, flow.id);
+
+    await writeResource(directory, { ...flow }, { ...options, path: pathForFlow, type: 'flow' });
+  };
+
+/**
  * Delete a flow at its given path.
  *
  * @example

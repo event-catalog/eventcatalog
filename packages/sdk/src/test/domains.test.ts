@@ -19,6 +19,7 @@ const {
   getUbiquitousLanguageFromDomain,
   domainHasVersion,
   addServiceToDomain,
+  addAgentToDomain,
   addSubDomainToDomain,
   addEntityToDomain,
   addDataProductToDomain,
@@ -880,6 +881,41 @@ describe('Domain SDK', () => {
       // Verify the service was added
       const subdomain = await getDomain('Orders');
       expect(subdomain.services).toEqual([{ id: 'Order Service', version: '2.0.0' }]);
+    });
+  });
+
+  describe('addAgentToDomain', () => {
+    it('adds an agent to the domain', async () => {
+      await writeDomain({
+        id: 'Orders',
+        name: 'Orders Domain',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      await addAgentToDomain('Orders', { id: 'OrderSupportAgent', version: '1.0.0' });
+
+      const domain = await getDomain('Orders');
+
+      expect(domain.agents).toEqual([{ id: 'OrderSupportAgent', version: '1.0.0' }]);
+    });
+
+    it('does not add an agent to the domain if the agent is already on the list', async () => {
+      await writeDomain({
+        id: 'Orders',
+        name: 'Orders Domain',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+        agents: [{ id: 'OrderSupportAgent', version: '1.0.0' }],
+      });
+
+      await addAgentToDomain('Orders', { id: 'OrderSupportAgent', version: '1.0.0' });
+
+      const domain = await getDomain('Orders');
+
+      expect(domain.agents).toEqual([{ id: 'OrderSupportAgent', version: '1.0.0' }]);
     });
   });
 

@@ -14,7 +14,9 @@ const {
   addSchemaToCommand,
   getProducersAndConsumersForMessage,
   writeService,
+  writeAgent,
   addEventToService,
+  addEventToAgent,
   versionEvent,
   versionService,
   getConsumersOfSchema,
@@ -123,6 +125,68 @@ describe('Messages SDK', () => {
           receives: [
             {
               id: 'InventoryAdjusted',
+              version: '0.0.1',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('returns agents as producers and consumers for a given message', async () => {
+      await writeEvent({
+        id: 'OrderConfirmed',
+        name: 'Order Confirmed',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      await writeAgent({
+        id: 'InventoryRebalancingAgent',
+        name: 'Inventory Rebalancing Agent',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      await addEventToAgent('OrderSupportAgent', 'receives', { id: 'OrderConfirmed', version: '0.0.1' }, '0.0.1');
+      await addEventToAgent('InventoryRebalancingAgent', 'sends', { id: 'OrderConfirmed', version: '0.0.1' }, '0.0.1');
+
+      const { producers, consumers } = await getProducersAndConsumersForMessage('OrderConfirmed', '0.0.1');
+
+      expect(producers).toEqual([
+        {
+          id: 'InventoryRebalancingAgent',
+          name: 'Inventory Rebalancing Agent',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+          sends: [
+            {
+              id: 'OrderConfirmed',
+              version: '0.0.1',
+            },
+          ],
+        },
+      ]);
+      expect(consumers).toEqual([
+        {
+          id: 'OrderSupportAgent',
+          name: 'Order Support Agent',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+          receives: [
+            {
+              id: 'OrderConfirmed',
               version: '0.0.1',
             },
           ],
