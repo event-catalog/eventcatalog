@@ -14,6 +14,19 @@ import {
 } from './internal/resources';
 import { buildMessagePointer, findFileById, invalidateFileCache, uniqueVersions } from './internal/utils';
 
+const rewriteAgent = async (directory: string, id: string, agent: Agent, version?: string) => {
+  const agentPath = await getResourcePath(directory, id, version);
+
+  if (!agentPath) {
+    throw new Error(`Cannot find agent ${id} in the catalog`);
+  }
+
+  const extension = extname(agentPath.fullPath);
+
+  await rmAgentById(directory)(id, version, true);
+  await writeAgent(directory)(agent, { path: agentPath.directory, format: extension === '.md' ? 'md' : 'mdx' });
+};
+
 export const getAgent =
   (directory: string) =>
   async (id: string, version?: string): Promise<Agent> =>
@@ -110,8 +123,6 @@ export const addMessageToAgent =
     version?: string
   ) => {
     const agent: Agent = await getAgent(directory)(id, version);
-    const agentPath = await getResourcePath(directory, id, version);
-    const extension = extname(agentPath?.fullPath || '');
 
     if (direction === 'sends') {
       if (agent.sends === undefined) {
@@ -137,24 +148,12 @@ export const addMessageToAgent =
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }
 
-    const existingResource = await findFileById(directory, id, version);
-
-    if (!existingResource) {
-      throw new Error(`Cannot find agent ${id} in the catalog`);
-    }
-
-    const path = existingResource.split(/[\\/]+agents/)[0];
-    const pathToResource = join(path, 'agents');
-
-    await rmAgentById(directory)(id, version, true);
-    await writeAgent(pathToResource)(agent, { format: extension === '.md' ? 'md' : 'mdx' });
+    await rewriteAgent(directory, id, agent, version);
   };
 
 export const addDataStoreToAgent =
   (directory: string) => async (id: string, direction: string, dataStore: { id: string; version: string }, version?: string) => {
     const agent: Agent = await getAgent(directory)(id, version);
-    const agentPath = await getResourcePath(directory, id, version);
-    const extension = extname(agentPath?.fullPath || '');
 
     if (direction === 'writesTo') {
       if (agent.writesTo === undefined) {
@@ -176,24 +175,12 @@ export const addDataStoreToAgent =
       throw new Error(`Direction ${direction} is invalid, only 'writesTo' and 'readsFrom' are supported`);
     }
 
-    const existingResource = await findFileById(directory, id, version);
-
-    if (!existingResource) {
-      throw new Error(`Cannot find agent ${id} in the catalog`);
-    }
-
-    const path = existingResource.split(/[\\/]+agents/)[0];
-    const pathToResource = join(path, 'agents');
-
-    await rmAgentById(directory)(id, version, true);
-    await writeAgent(pathToResource)(agent, { format: extension === '.md' ? 'md' : 'mdx' });
+    await rewriteAgent(directory, id, agent, version);
   };
 
 export const addFlowToAgent =
   (directory: string) => async (id: string, flow: { id: string; version: string }, version?: string) => {
     const agent: Agent = await getAgent(directory)(id, version);
-    const agentPath = await getResourcePath(directory, id, version);
-    const extension = extname(agentPath?.fullPath || '');
 
     if (agent.flows === undefined) {
       agent.flows = [];
@@ -205,17 +192,7 @@ export const addFlowToAgent =
 
     agent.flows.push(flow);
 
-    const existingResource = await findFileById(directory, id, version);
-
-    if (!existingResource) {
-      throw new Error(`Cannot find agent ${id} in the catalog`);
-    }
-
-    const path = existingResource.split(/[\\/]+agents/)[0];
-    const pathToResource = join(path, 'agents');
-
-    await rmAgentById(directory)(id, version, true);
-    await writeAgent(pathToResource)(agent, { format: extension === '.md' ? 'md' : 'mdx' });
+    await rewriteAgent(directory, id, agent, version);
   };
 
 export const agentHasVersion = (directory: string) => async (id: string, version?: string) => {

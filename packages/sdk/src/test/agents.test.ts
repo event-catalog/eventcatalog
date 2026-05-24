@@ -492,6 +492,35 @@ describe('Agents SDK', () => {
       expect(agent.sends).toEqual([{ id: 'GetOrderSummary', version: '1.0.0' }]);
     });
 
+    it('preserves the versioned agent location when adding a message to a historical version', async () => {
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '0.0.1',
+        markdown: '# Order support agent v1',
+      });
+
+      await versionAgent('OrderSupportAgent');
+
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '1.0.0',
+        markdown: '# Order support agent v2',
+      });
+
+      await addEventToAgent('OrderSupportAgent', 'receives', { id: 'OrderConfirmed', version: '1.0.0' }, '0.0.1');
+
+      const versionedAgent = await getAgent('OrderSupportAgent', '0.0.1');
+      const latestAgent = await getAgent('OrderSupportAgent');
+
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent/versioned/0.0.1', 'index.mdx'))).toBe(true);
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent', 'index.mdx'))).toBe(true);
+      expect(versionedAgent.receives).toEqual([{ id: 'OrderConfirmed', version: '1.0.0' }]);
+      expect(latestAgent.version).toBe('1.0.0');
+      expect(latestAgent.receives).toBeUndefined();
+    });
+
     it('throws an error when the direction is invalid', async () => {
       await writeAgent({
         id: 'OrderSupportAgent',
@@ -536,6 +565,35 @@ describe('Agents SDK', () => {
 
       expect(agent.readsFrom).toEqual([{ id: 'orders-db', version: '1.0.0' }]);
     });
+
+    it('preserves the versioned agent location when adding a data store to a historical version', async () => {
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '0.0.1',
+        markdown: '# Order support agent v1',
+      });
+
+      await versionAgent('OrderSupportAgent');
+
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '1.0.0',
+        markdown: '# Order support agent v2',
+      });
+
+      await addDataStoreToAgent('OrderSupportAgent', 'readsFrom', { id: 'orders-db', version: '1.0.0' }, '0.0.1');
+
+      const versionedAgent = await getAgent('OrderSupportAgent', '0.0.1');
+      const latestAgent = await getAgent('OrderSupportAgent');
+
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent/versioned/0.0.1', 'index.mdx'))).toBe(true);
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent', 'index.mdx'))).toBe(true);
+      expect(versionedAgent.readsFrom).toEqual([{ id: 'orders-db', version: '1.0.0' }]);
+      expect(latestAgent.version).toBe('1.0.0');
+      expect(latestAgent.readsFrom).toBeUndefined();
+    });
   });
 
   describe('addFlowToAgent', () => {
@@ -552,6 +610,35 @@ describe('Agents SDK', () => {
       const agent = await getAgent('OrderSupportAgent');
 
       expect(agent.flows).toEqual([{ id: 'OrderSupportFlow', version: '1.0.0' }]);
+    });
+
+    it('preserves the versioned agent location when adding a flow to a historical version', async () => {
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '0.0.1',
+        markdown: '# Order support agent v1',
+      });
+
+      await versionAgent('OrderSupportAgent');
+
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '1.0.0',
+        markdown: '# Order support agent v2',
+      });
+
+      await addFlowToAgent('OrderSupportAgent', { id: 'OrderSupportFlow', version: '1.0.0' }, '0.0.1');
+
+      const versionedAgent = await getAgent('OrderSupportAgent', '0.0.1');
+      const latestAgent = await getAgent('OrderSupportAgent');
+
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent/versioned/0.0.1', 'index.mdx'))).toBe(true);
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent', 'index.mdx'))).toBe(true);
+      expect(versionedAgent.flows).toEqual([{ id: 'OrderSupportFlow', version: '1.0.0' }]);
+      expect(latestAgent.version).toBe('1.0.0');
+      expect(latestAgent.flows).toBeUndefined();
     });
   });
 
