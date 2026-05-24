@@ -1,5 +1,18 @@
 # @eventcatalog/core
 
+## 3.41.0
+
+### Minor Changes
+
+- 50b38f6: Add agents as a first-class resource type. Agents can now be documented alongside services, with support for AI model metadata, tools (MCP servers, APIs), and rendered as distinct nodes in the visualiser. Closes #2564.
+
+### Patch Changes
+
+- Updated dependencies [50b38f6]
+  - @eventcatalog/visualiser@3.22.0
+  - @eventcatalog/sdk@2.22.0
+  - @eventcatalog/linter@1.0.25
+
 ## 3.40.2
 
 ### Patch Changes

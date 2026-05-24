@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.22.0
+
+### Minor Changes
+
+- 50b38f6: Add agents as a first-class resource type. Agents can now be documented alongside services, with support for AI model metadata, tools (MCP servers, APIs), and rendered as distinct nodes in the visualiser. Closes #2564.
+
 ## 2.21.2
 
 ### Patch Changes
@@ -25,6 +31,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
