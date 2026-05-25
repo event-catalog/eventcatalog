@@ -215,7 +215,7 @@ export const getNodesAndEdges = async ({
   const sendsRaw = service?.data.sends || [];
   const writesToRaw = service?.data.writesTo || [];
   const readsFromRaw = service?.data.readsFrom || [];
-  const toolsRaw = collection === 'agents' ? (service?.data as any).tools || [] : [];
+  const toolsRaw: any[] = collection === 'agents' ? (service?.data as any).tools || [] : [];
 
   const receivesHydrated = receivesRaw
     .map((message) => findInMap(messageMap, message.id, message.version))
