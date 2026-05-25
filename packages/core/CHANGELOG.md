@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.41.4
+
+### Patch Changes
+
+- 1c2b7bf: fix(core): OpenAPI, AsyncAPI and GraphQL spec badges now respect dark mode theme
+
 ## 3.41.3
 
 ### Patch Changes
