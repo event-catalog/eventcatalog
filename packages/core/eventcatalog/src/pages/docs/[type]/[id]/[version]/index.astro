@@ -197,8 +197,6 @@ const getSpecificationBadges = () => {
   if (openapiSpecs.length > 0) {
     for (const spec of openapiSpecs) {
       badges.push({
-        backgroundColor: 'white',
-        textColor: 'gray',
         content: spec.name || 'OpenAPI Spec',
         iconURL: buildUrl('/icons/openapi.svg', true),
         class: 'text-[rgb(var(--ec-page-text))] hover:underline',
@@ -211,8 +209,6 @@ const getSpecificationBadges = () => {
   if (asyncapiSpecs.length > 0) {
     for (const spec of asyncapiSpecs) {
       badges.push({
-        backgroundColor: 'white',
-        textColor: 'gray',
         content: spec.name || 'AsyncAPI Spec',
         iconURL: buildUrl('/icons/asyncapi.svg', true),
         class: 'text-[rgb(var(--ec-page-text))] hover:underline',
@@ -227,8 +223,6 @@ const getSpecificationBadges = () => {
   if (graphQLSpecs.length > 0) {
     for (const spec of graphQLSpecs) {
       badges.push({
-        backgroundColor: 'white',
-        textColor: 'gray',
         content: spec.name || 'GraphQL Spec',
         iconURL: buildUrl('/icons/graphql.svg', true),
         class: 'text-[rgb(var(--ec-page-text))] hover:underline',
