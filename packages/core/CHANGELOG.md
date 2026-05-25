@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.41.3
+
+### Patch Changes
+
+- 13e2474: chore(deps): replace axios with native fetch in analytics
+- f86fd4c: Fix implicit any type on tool parameter in services node graph
+
 ## 3.41.2
 
 ### Patch Changes
