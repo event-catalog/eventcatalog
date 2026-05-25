@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.41.2
+
+### Patch Changes
+
+- c3b0958: fix node graph styling when rendered inside prose containers and prevent prose styles from affecting visualiser images
+- Updated dependencies [c3b0958]
+  - @eventcatalog/visualiser@3.22.1
+
 ## 3.41.1
 
 ### Patch Changes
