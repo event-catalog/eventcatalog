@@ -32,7 +32,7 @@ EventCatalog automatically publishes a Linkset at `/.well-known/api-catalog`. Ev
 Each entry contains:
 
 - **`anchor`** - the canonical URL of the service. EventCatalog reads the `servers[].url` field from OpenAPI or AsyncAPI specs and uses that. When no server URL is found it falls back to the EventCatalog documentation page.
-- **`service-desc`** - one link per specification file, pointing at `/.well-known/api-catalog/specifications/{collection}/{id}/{version}/{type}` with the correct media type (`application/yaml`, `application/json`, or `application/graphql`).
+- **`service-desc`** - one link per specification file, pointing at `/api-catalog/specifications/{collection}/{id}/{version}/{specification}` with the correct media type (`application/yaml`, `application/json`, or `application/graphql`).
 - **`service-doc`** - two links per resource: the markdown source and the rendered HTML page.
 
 Resources marked `hidden: true` are excluded from the linkset.
@@ -53,7 +53,7 @@ The `GET` response body is `application/linkset+json` profiled against RFC 9727:
       "anchor": "https://api.example.com/orders",
       "service-desc": [
         {
-          "href": "https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi",
+          "href": "https://catalog.example.com/api-catalog/specifications/services/OrderService/1.0.0/openapi-b3BlbmFwaS55bWw",
           "type": "application/yaml",
           "title": "Order Service OpenAPI"
         }
@@ -86,7 +86,7 @@ Link: <https://catalog.example.com/.well-known/api-catalog>; rel="api-catalog"
 The raw specification files referenced in `service-desc` are served from:
 
 ```
-GET /.well-known/api-catalog/specifications/{collection}/{id}/{version}/{type}
+GET /api-catalog/specifications/{collection}/{id}/{version}/{specification}
 ```
 
 | Segment | Values |
@@ -94,12 +94,12 @@ GET /.well-known/api-catalog/specifications/{collection}/{id}/{version}/{type}
 | `collection` | `services`, `domains` |
 | `id` | The resource `id` field |
 | `version` | The resource `version` field |
-| `type` | `openapi`, `asyncapi`, `graphql` |
+| `specification` | Stable specification identifier, formatted as `{type}-{base64url(path)}` |
 
 Example:
 
 ```
-GET /.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi
+GET /api-catalog/specifications/services/OrderService/1.0.0/openapi-b3BlbmFwaS55bWw
 Content-Type: application/yaml
 ```
 
