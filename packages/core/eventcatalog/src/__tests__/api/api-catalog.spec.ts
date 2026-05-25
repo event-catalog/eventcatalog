@@ -1,7 +1,7 @@
 import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { GET, HEAD } from '../../pages/.well-known/api-catalog.ts';
-import { GET as GETSpecification } from '../../pages/.well-known/api-catalog/specifications/[collection]/[id]/[version]/[specification].ts';
+import { GET as GETSpecification } from '../../pages/api-catalog/specifications/[collection]/[id]/[version]/[specification].ts';
 
 const mockIsEventCatalogMCPEnabled = vi.hoisted(() => vi.fn(() => true));
 
@@ -135,7 +135,7 @@ describe('/.well-known/api-catalog', () => {
           anchor: 'https://events.example.com/inventory',
           'service-desc': [
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/InventoryService/2.0.0/asyncapi-YXN5bmNhcGkuanNvbg',
+              href: 'https://catalog.example.com/api-catalog/specifications/services/InventoryService/2.0.0/asyncapi-YXN5bmNhcGkuanNvbg',
               type: 'application/json',
               title: 'Inventory Service AsyncAPI',
             },
@@ -157,17 +157,17 @@ describe('/.well-known/api-catalog', () => {
           anchor: 'https://api.example.com/orders',
           'service-desc': [
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi-b3BlbmFwaS55bWw',
+              href: 'https://catalog.example.com/api-catalog/specifications/services/OrderService/1.0.0/openapi-b3BlbmFwaS55bWw',
               type: 'application/yaml',
               title: 'Order Service OpenAPI',
             },
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi-YWRtaW4tb3BlbmFwaS55bWw',
+              href: 'https://catalog.example.com/api-catalog/specifications/services/OrderService/1.0.0/openapi-YWRtaW4tb3BlbmFwaS55bWw',
               type: 'application/yaml',
               title: 'Order Service Admin OpenAPI',
             },
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/graphql-c2NoZW1hLmdyYXBocWw',
+              href: 'https://catalog.example.com/api-catalog/specifications/services/OrderService/1.0.0/graphql-c2NoZW1hLmdyYXBocWw',
               type: 'application/graphql',
               title: 'Order Service GraphQL schema',
             },
@@ -189,7 +189,7 @@ describe('/.well-known/api-catalog', () => {
           anchor: 'https://api.example.com/billing',
           'service-desc': [
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/domains/Billing/1.0.0/openapi-YmlsbGluZy1vcGVuYXBpLnltbA',
+              href: 'https://catalog.example.com/api-catalog/specifications/domains/Billing/1.0.0/openapi-YmlsbGluZy1vcGVuYXBpLnltbA',
               type: 'application/yaml',
               title: 'Billing OpenAPI',
             },
@@ -235,7 +235,7 @@ describe('/.well-known/api-catalog', () => {
   it('serves raw service and domain specifications referenced by the API catalog', async () => {
     const response = await GETSpecification({
       request: new Request(
-        'https://catalog.example.com/.well-known/api-catalog/specifications/domains/Billing/1.0.0/openapi-YmlsbGluZy1vcGVuYXBpLnltbA'
+        'https://catalog.example.com/api-catalog/specifications/domains/Billing/1.0.0/openapi-YmlsbGluZy1vcGVuYXBpLnltbA'
       ),
       props: {},
       params: { collection: 'domains', id: 'Billing', version: '1.0.0', specification: 'openapi-YmlsbGluZy1vcGVuYXBpLnltbA' },
@@ -249,7 +249,7 @@ describe('/.well-known/api-catalog', () => {
   it('serves the exact matching specification when a resource has multiple specs of the same type', async () => {
     const response = await GETSpecification({
       request: new Request(
-        'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi-YWRtaW4tb3BlbmFwaS55bWw'
+        'https://catalog.example.com/api-catalog/specifications/services/OrderService/1.0.0/openapi-YWRtaW4tb3BlbmFwaS55bWw'
       ),
       props: {},
       params: {

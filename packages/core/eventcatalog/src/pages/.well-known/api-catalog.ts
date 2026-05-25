@@ -123,7 +123,7 @@ const toApiCatalogEntry = (request: Request, resource: ApiCatalogResource): ApiC
       href: absoluteUrl(
         request,
         buildUrl(
-          `/.well-known/api-catalog/specifications/${resource.collection}/${resource.data.id}/${resource.data.version}/${getSpecificationIdentifier(specification)}`,
+          `/api-catalog/specifications/${resource.collection}/${resource.data.id}/${resource.data.version}/${getSpecificationIdentifier(specification)}`,
           true
         )
       ),
