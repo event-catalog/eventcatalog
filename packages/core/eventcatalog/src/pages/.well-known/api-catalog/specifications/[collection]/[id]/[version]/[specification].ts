@@ -21,6 +21,10 @@ const getSpecificationMediaType = (specification: ProcessedSpecification) => {
   return 'text/plain';
 };
 
+const getSpecificationIdentifier = (specification: ProcessedSpecification) => {
+  return `${specification.type}-${Buffer.from(specification.path).toString('base64url')}`;
+};
+
 const getSpecificationsForResource = (
   resource:
     | Awaited<ReturnType<typeof getCollection<'services'>>>[number]
@@ -43,7 +47,7 @@ export async function getStaticPaths() {
         collection: resource.collection,
         id: resource.data.id,
         version: resource.data.version,
-        specification: specification.type,
+        specification: getSpecificationIdentifier(specification),
       },
       props: {
         rawSpecification: readResourceFile(resource, specification.path),
@@ -79,7 +83,9 @@ export const GET: APIRoute = async ({ params, props }) => {
     });
   }
 
-  const spec = getSpecificationsForResource(resource).find((item) => item.type === specification);
+  const spec = getSpecificationsForResource(resource).find(
+    (item) => getSpecificationIdentifier(item) === specification || item.type === specification
+  );
 
   if (!spec) {
     return new Response(JSON.stringify({ error: 'Specification not found' }), {

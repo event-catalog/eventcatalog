@@ -36,6 +36,10 @@ const getSpecificationMediaType = (specification: ProcessedSpecification) => {
   return 'text/plain';
 };
 
+const getSpecificationIdentifier = (specification: ProcessedSpecification) => {
+  return `${specification.type}-${Buffer.from(specification.path).toString('base64url')}`;
+};
+
 const parseSpecification = (rawSpecification: string, path: string): unknown => {
   if (path.endsWith('.json')) {
     return JSON.parse(rawSpecification);
@@ -119,7 +123,7 @@ const toApiCatalogEntry = (request: Request, resource: ApiCatalogResource): ApiC
       href: absoluteUrl(
         request,
         buildUrl(
-          `/.well-known/api-catalog/specifications/${resource.collection}/${resource.data.id}/${resource.data.version}/${specification.type}`,
+          `/.well-known/api-catalog/specifications/${resource.collection}/${resource.data.id}/${resource.data.version}/${getSpecificationIdentifier(specification)}`,
           true
         )
       ),

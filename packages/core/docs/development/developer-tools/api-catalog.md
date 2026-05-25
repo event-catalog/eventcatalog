@@ -8,7 +8,7 @@ keywords:
 - OpenAPI
 - AsyncAPI
 - GraphQL
-sidebar_label: api-catalog
+sidebar_label: api-catalog (RFC 9727)
 title: api-catalog
 description: Machine-readable catalog discovery endpoint for tools and agents
 ---

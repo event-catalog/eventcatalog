@@ -16,6 +16,7 @@ const mockServices = [
       summary: 'Order Service summary',
       specifications: [
         { type: 'openapi', path: 'openapi.yml' },
+        { type: 'openapi', path: 'admin-openapi.yml', name: 'Admin OpenAPI' },
         { type: 'graphql', path: 'schema.graphql', name: 'GraphQL schema' },
       ],
     },
@@ -90,6 +91,8 @@ vi.mock('@utils/resource-files', () => {
       switch (path) {
         case 'openapi.yml':
           return 'openapi: 3.1.0\nservers:\n  - url: https://api.example.com/orders\n';
+        case 'admin-openapi.yml':
+          return 'openapi: 3.1.0\nservers:\n  - url: https://admin-api.example.com/orders\n';
         case 'billing-openapi.yml':
           return 'openapi: 3.1.0\nservers:\n  - url: https://api.example.com/billing\n';
         case 'asyncapi.json':
@@ -132,7 +135,7 @@ describe('/.well-known/api-catalog', () => {
           anchor: 'https://events.example.com/inventory',
           'service-desc': [
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/InventoryService/2.0.0/asyncapi',
+              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/InventoryService/2.0.0/asyncapi-YXN5bmNhcGkuanNvbg',
               type: 'application/json',
               title: 'Inventory Service AsyncAPI',
             },
@@ -154,12 +157,17 @@ describe('/.well-known/api-catalog', () => {
           anchor: 'https://api.example.com/orders',
           'service-desc': [
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi',
+              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi-b3BlbmFwaS55bWw',
               type: 'application/yaml',
               title: 'Order Service OpenAPI',
             },
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/graphql',
+              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi-YWRtaW4tb3BlbmFwaS55bWw',
+              type: 'application/yaml',
+              title: 'Order Service Admin OpenAPI',
+            },
+            {
+              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/graphql-c2NoZW1hLmdyYXBocWw',
               type: 'application/graphql',
               title: 'Order Service GraphQL schema',
             },
@@ -181,7 +189,7 @@ describe('/.well-known/api-catalog', () => {
           anchor: 'https://api.example.com/billing',
           'service-desc': [
             {
-              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/domains/Billing/1.0.0/openapi',
+              href: 'https://catalog.example.com/.well-known/api-catalog/specifications/domains/Billing/1.0.0/openapi-YmlsbGluZy1vcGVuYXBpLnltbA',
               type: 'application/yaml',
               title: 'Billing OpenAPI',
             },
@@ -226,13 +234,34 @@ describe('/.well-known/api-catalog', () => {
 
   it('serves raw service and domain specifications referenced by the API catalog', async () => {
     const response = await GETSpecification({
-      request: new Request('https://catalog.example.com/.well-known/api-catalog/specifications/domains/Billing/1.0.0/openapi'),
+      request: new Request(
+        'https://catalog.example.com/.well-known/api-catalog/specifications/domains/Billing/1.0.0/openapi-YmlsbGluZy1vcGVuYXBpLnltbA'
+      ),
       props: {},
-      params: { collection: 'domains', id: 'Billing', version: '1.0.0', specification: 'openapi' },
+      params: { collection: 'domains', id: 'Billing', version: '1.0.0', specification: 'openapi-YmlsbGluZy1vcGVuYXBpLnltbA' },
     } as any);
 
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('application/yaml');
     expect(await response.text()).toBe('openapi: 3.1.0\nservers:\n  - url: https://api.example.com/billing\n');
+  });
+
+  it('serves the exact matching specification when a resource has multiple specs of the same type', async () => {
+    const response = await GETSpecification({
+      request: new Request(
+        'https://catalog.example.com/.well-known/api-catalog/specifications/services/OrderService/1.0.0/openapi-YWRtaW4tb3BlbmFwaS55bWw'
+      ),
+      props: {},
+      params: {
+        collection: 'services',
+        id: 'OrderService',
+        version: '1.0.0',
+        specification: 'openapi-YWRtaW4tb3BlbmFwaS55bWw',
+      },
+    } as any);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toBe('application/yaml');
+    expect(await response.text()).toBe('openapi: 3.1.0\nservers:\n  - url: https://admin-api.example.com/orders\n');
   });
 });
