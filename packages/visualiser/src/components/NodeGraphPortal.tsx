@@ -1,7 +1,7 @@
 const NodeGraphPortal = (props: any) => {
   return (
     <div
-      className="h-[30em] my-6 mb-12 w-full relative border border-gray-200 rounded-md"
+      className="not-prose h-[30em] my-6 mb-12 w-full relative border border-gray-200 rounded-md"
       id={`${props.id}-portal`}
       style={{
         maxHeight: props.maxHeight ? `${props.maxHeight}em` : `30em`,
