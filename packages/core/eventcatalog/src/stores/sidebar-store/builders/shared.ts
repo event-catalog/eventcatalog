@@ -121,13 +121,26 @@ const insertBeforeOwnersSection = (pages: ChildRef[], section: NavNode) => {
   return [...pages.slice(0, ownersSectionIndex), section, ...pages.slice(ownersSectionIndex)];
 };
 
+const getPagesForDecisionSection = (node: NavNode): ChildRef[] => {
+  if (node.pages && node.pages.length > 0) return node.pages;
+  if (!node.href) return [];
+
+  return [
+    {
+      type: 'item',
+      title: 'Overview',
+      href: node.href,
+    },
+  ];
+};
+
 export const withArchitectureDecisionsSection = (node: NavNode, resource: AdrResource, adrs: Adr[]): NavNode => {
   const section = buildArchitectureDecisionsSection(resource, adrs);
   if (!section || !shouldRenderSideBarSection(resource, 'architectureDecisions')) return node;
 
   return {
     ...node,
-    pages: insertBeforeOwnersSection(node.pages || [], section),
+    pages: insertBeforeOwnersSection(getPagesForDecisionSection(node), section),
   };
 };
 

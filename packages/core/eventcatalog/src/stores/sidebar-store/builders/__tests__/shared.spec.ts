@@ -38,4 +38,43 @@ describe('withArchitectureDecisionsSection', () => {
       'Code',
     ]);
   });
+
+  it('keeps an overview link when adding Decision Records to href-only nodes', () => {
+    const node: NavNode = {
+      type: 'item',
+      title: 'Dave',
+      href: '/docs/users/dave',
+    };
+
+    const resource = {
+      collection: 'users',
+      data: { id: 'dave' },
+    };
+
+    const adr = {
+      collection: 'adrs',
+      data: {
+        id: 'use-events-for-order-updates',
+        version: '1.0.0',
+        appliesTo: [{ type: 'user', id: 'dave' }],
+      },
+    };
+
+    const result = withArchitectureDecisionsSection(node, resource as any, [adr as any]);
+
+    expect(result.href).toBe('/docs/users/dave');
+    expect(result.pages).toEqual([
+      {
+        type: 'item',
+        title: 'Overview',
+        href: '/docs/users/dave',
+      },
+      {
+        type: 'group',
+        title: 'Decision Records',
+        icon: 'BookText',
+        pages: ['adr:use-events-for-order-updates:1.0.0'],
+      },
+    ]);
+  });
 });
