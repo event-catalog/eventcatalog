@@ -64,6 +64,7 @@ next_steps:
 - [externalSystem](#externalsystem) — Represents an external system in your flow diagram
 - [message](#message) — Represents an event, command or query resource in EventCatalog
 - [service](#service) — Represents a service resource in EventCatalog
+- [agent](#agent) — Represents an agent resource in EventCatalog (added in EventCatalog 3.41.0)
 - [flow](#flow) — Represents a flow in EventCatalog (added in EventCatalog 2.34.2)
 - [container](#container) — Represents a data store (container) resource in EventCatalog
 - [dataProduct](#dataproduct) — Represents a data product resource in EventCatalog
@@ -168,6 +169,35 @@ steps:
     service:
       id: "order-service"
       version: "0.0.1"
+```
+
+---
+
+### agent {#agent}
+
+<AddedIn version="3.41.0" />
+
+Represents and refers to an [agent](/docs/development/guides/agents/introduction) resource in EventCatalog. Agents render as purple/violet nodes in the visualiser so they are easy to distinguish from services. When a flow references an agent, the agent's page shows a back-link to the flow.
+
+#### Agent properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `id` | `string` | **Yes** | The id of the agent in your catalog |
+| `version` | `string` | No | The version to reference (defaults to `latest`) |
+
+```yml
+steps:
+  - id: "fraud_review"
+    title: "Fraud Review Agent"
+    agent:
+      id: "FraudReviewAgent"
+      version: "0.0.1"
+    next_steps:
+      - id: "payment_approved"
+        label: "Approved"
+      - id: "payment_declined"
+        label: "Declined"
 ```
 
 ---

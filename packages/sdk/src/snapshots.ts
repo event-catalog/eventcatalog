@@ -80,9 +80,10 @@ export const createSnapshot = (directory: string) => {
     const sdk = utils(directory);
 
     // Fetch all resources in parallel
-    const [domains, services, events, commands, queries, channels] = await Promise.all([
+    const [domains, services, agents, events, commands, queries, channels] = await Promise.all([
       sdk.getDomains(),
       sdk.getServices(),
+      sdk.getAgents(),
       sdk.getEvents(),
       sdk.getCommands(),
       sdk.getQueries(),
@@ -99,6 +100,7 @@ export const createSnapshot = (directory: string) => {
     // Strip to core fields only
     const snapshotDomains = stripToCore(domains);
     const snapshotServices = stripToCore(services);
+    const snapshotAgents = stripToCore(agents);
     const snapshotEvents = stripToCore(events);
     const snapshotCommands = stripToCore(commands);
     const snapshotQueries = stripToCore(queries);
@@ -116,6 +118,7 @@ export const createSnapshot = (directory: string) => {
       resources: {
         domains: snapshotDomains,
         services: snapshotServices,
+        agents: snapshotAgents,
         messages: {
           events: snapshotEvents,
           commands: snapshotCommands,

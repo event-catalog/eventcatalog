@@ -10,6 +10,7 @@ const {
   writeVersionedFlow,
   writeFlowToDomain,
   writeFlowToService,
+  writeFlowToAgent,
   getFlow,
   getFlows,
   rmFlow,
@@ -21,6 +22,8 @@ const {
   versionDomain,
   writeService,
   versionService,
+  writeAgent,
+  versionAgent,
 } = utils(CATALOG_PATH);
 
 beforeEach(() => {
@@ -183,6 +186,40 @@ describe('Flows SDK', () => {
         version: '1.0.0',
         summary: 'Order flow',
         markdown: '# Order flow',
+        steps: [],
+      });
+    });
+
+    it('returns a flow from within an agent', async () => {
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '0.0.1',
+        summary: 'Order support agent',
+        markdown: '# Order support agent',
+      });
+
+      await writeFlowToAgent(
+        {
+          id: 'OrderSupportFlow',
+          name: 'Order Support Flow',
+          version: '1.0.0',
+          summary: 'Order support flow',
+          markdown: '# Order support flow',
+          steps: [],
+        },
+        { id: 'OrderSupportAgent' }
+      );
+
+      const flow = await getFlow('OrderSupportFlow');
+
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent/flows/OrderSupportFlow', 'index.mdx'))).toBe(true);
+      expect(flow).toEqual({
+        id: 'OrderSupportFlow',
+        name: 'Order Support Flow',
+        version: '1.0.0',
+        summary: 'Order support flow',
+        markdown: '# Order support flow',
         steps: [],
       });
     });
@@ -592,6 +629,68 @@ describe('Flows SDK', () => {
       expect(fs.existsSync(path.join(CATALOG_PATH, 'services/OrdersService/versioned/0.0.1/flows/OrderFlow', 'index.mdx'))).toBe(
         true
       );
+    });
+  });
+
+  describe('writeFlowToAgent', () => {
+    it('writes a flow to an agent', async () => {
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '0.0.1',
+        summary: 'Order support agent',
+        markdown: '# Order support agent',
+      });
+
+      await writeFlowToAgent(
+        {
+          id: 'OrderSupportFlow',
+          name: 'Order Support Flow',
+          version: '1.0.0',
+          summary: 'Order support flow',
+          markdown: '# Order support flow',
+          steps: [],
+        },
+        { id: 'OrderSupportAgent' }
+      );
+
+      expect(fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent/flows/OrderSupportFlow', 'index.mdx'))).toBe(true);
+    });
+
+    it('writes a flow to a versioned agent', async () => {
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '0.0.1',
+        summary: 'Order support agent',
+        markdown: '# Order support agent',
+      });
+
+      await versionAgent('OrderSupportAgent');
+
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '1.0.0',
+        summary: 'Order support agent',
+        markdown: '# Order support agent',
+      });
+
+      await writeFlowToAgent(
+        {
+          id: 'OrderSupportFlow',
+          name: 'Order Support Flow',
+          version: '1.0.0',
+          summary: 'Order support flow',
+          markdown: '# Order support flow',
+          steps: [],
+        },
+        { id: 'OrderSupportAgent', version: '0.0.1' }
+      );
+
+      expect(
+        fs.existsSync(path.join(CATALOG_PATH, 'agents/OrderSupportAgent/versioned/0.0.1/flows/OrderSupportFlow', 'index.mdx'))
+      ).toBe(true);
     });
   });
 

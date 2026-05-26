@@ -673,6 +673,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jdebarochez",
+      "name": "Jean de Barochez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3436890?v=4",
+      "profile": "https://github.com/jdebarochez",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import os from 'os';
 import { VERSION } from '../constants';
 
@@ -22,7 +21,15 @@ async function raiseEvent(eventData) {
   };
 
   try {
-    await axios.post(url, payload, { headers });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to raise analytics event: ${response.status}`);
+    }
   } catch (error) {
     // swallow the error
   }

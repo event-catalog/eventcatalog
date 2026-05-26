@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.23.0
+
+### Minor Changes
+
+- 3ad00ad: Add SDK support for agent resources, including agent CRUD helpers, message/data-store/flow relationships, and flow/message writes under agents.
+
 ## 2.22.0
 
 ### Minor Changes

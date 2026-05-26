@@ -14,6 +14,7 @@ import {
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 import { getSpecificationsForDomain } from '@utils/collections/domains';
+import { iconFieldsForResource } from '@utils/icon';
 
 export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
   const agentsInDomain = domain.data.agents || [];
@@ -79,6 +80,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
     title: domain.data.name,
     badge: 'Domain',
     summary: domain.data.summary,
+    ...iconFieldsForResource(domain.data, 'Boxes'),
     pages: [
       buildQuickReferenceSection(
         [

@@ -19,13 +19,13 @@ interface Props {
   title?: string;
   description?: string;
   columns?: number;
-  data: {
-    attachments: Attachment[];
+  data?: {
+    attachments?: Attachment[];
   };
 }
 
 const { title = 'Attachments', description, columns = 2, ...props } = Astro.props;
-const { attachments } = props.data;
+const attachments = props.data?.attachments ?? [];
 
 function getIconForAttachment(attachment: AttachmentObject): ComponentType<{ className?: string }> | null {
   // If custom icon is provided, try to find it

@@ -123,6 +123,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.eventcatalog-visualizer img {
+  margin: 0;
+  background-color: transparent;
+}
+
 /*
  * Scoped dark mode overrides for the visualizer.
  * Higher specificity ensures these win over the consuming app's

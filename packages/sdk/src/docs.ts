@@ -27,6 +27,7 @@
  */
 export * from './domains';
 export * from './services';
+export * from './agents';
 export * from './events';
 export * from './commands';
 export * from './queries';

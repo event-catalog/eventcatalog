@@ -4,6 +4,7 @@ import {
   rmEvent,
   rmEventById,
   writeEvent,
+  writeEventToAgent,
   writeEventToService,
   versionEvent,
   getEvent,
@@ -19,6 +20,7 @@ import {
   rmCommand,
   rmCommandById,
   writeCommand,
+  writeCommandToAgent,
   writeCommandToService,
   versionCommand,
   getCommand,
@@ -34,6 +36,7 @@ import {
   rmQuery,
   rmQueryById,
   writeQuery,
+  writeQueryToAgent,
   writeQueryToService,
   versionQuery,
   getQuery,
@@ -65,6 +68,24 @@ import {
   addDataStoreToService,
 } from './services';
 import {
+  writeAgent,
+  writeAgentToDomain,
+  getAgent,
+  getAgents,
+  getAgentByPath,
+  writeVersionedAgent,
+  versionAgent,
+  rmAgent,
+  rmAgentById,
+  addFileToAgent,
+  addMessageToAgent,
+  addDataStoreToAgent,
+  addFlowToAgent,
+  agentHasVersion,
+  isAgent,
+  toAgent,
+} from './agents';
+import {
   writeDomain,
   getDomain,
   getDomains,
@@ -75,6 +96,7 @@ import {
   addUbiquitousLanguageToDomain,
   domainHasVersion,
   addServiceToDomain,
+  addAgentToDomain,
   addSubDomainToDomain,
   addEntityToDomain,
   addDataProductToDomain,
@@ -122,6 +144,7 @@ import {
   versionFlow,
   writeFlow,
   writeFlowToDomain,
+  writeFlowToAgent,
   writeFlowToService,
   writeVersionedFlow,
 } from './flows';
@@ -207,6 +230,15 @@ export default (path: string) => {
      */
     writeEventToService: writeEventToService(join(path)),
     /**
+     * Adds an event to an agent in EventCatalog
+     *
+     * @param event - The event to write to the agent
+     * @param agent - The agent and its id to write the event to
+     * @param options - Optional options to write the event
+     *
+     */
+    writeEventToAgent: writeEventToAgent(join(path)),
+    /**
      * Remove an event to EventCatalog (modeled on the standard POSIX rm utility)
      *
      * @param path - The path to your event, e.g. `/Inventory/InventoryAdjusted`
@@ -289,6 +321,15 @@ export default (path: string) => {
      *
      */
     writeCommandToService: writeCommandToService(join(path)),
+    /**
+     * Adds a command to an agent in EventCatalog
+     *
+     * @param command - The command to write to the agent
+     * @param agent - The agent and its id to write the command to
+     * @param options - Optional options to write the command
+     *
+     */
+    writeCommandToAgent: writeCommandToAgent(join(path)),
 
     /**
      * Remove an command to EventCatalog (modeled on the standard POSIX rm utility)
@@ -373,6 +414,15 @@ export default (path: string) => {
      *
      */
     writeQueryToService: writeQueryToService(join(path)),
+    /**
+     * Adds a query to an agent in EventCatalog
+     *
+     * @param query - The query to write to the agent
+     * @param agent - The agent and its id to write the query to
+     * @param options - Optional options to write the query
+     *
+     */
+    writeQueryToAgent: writeQueryToAgent(join(path)),
     /**
      * Remove an query to EventCatalog (modeled on the standard POSIX rm utility)
      *
@@ -748,6 +798,30 @@ export default (path: string) => {
 
     /**
      * ================================
+     *            Agents
+     * ================================
+     */
+    writeAgent: writeAgent(join(path, 'agents')),
+    writeVersionedAgent: writeVersionedAgent(join(path, 'agents')),
+    writeAgentToDomain: writeAgentToDomain(join(path, 'domains')),
+    getAgent: getAgent(join(path)),
+    getAgentByPath: getAgentByPath(join(path)),
+    getAgents: getAgents(join(path)),
+    versionAgent: versionAgent(join(path)),
+    rmAgent: rmAgent(join(path, 'agents')),
+    rmAgentById: rmAgentById(join(path)),
+    addFileToAgent: addFileToAgent(join(path)),
+    addEventToAgent: addMessageToAgent(join(path)),
+    addCommandToAgent: addMessageToAgent(join(path)),
+    addQueryToAgent: addMessageToAgent(join(path)),
+    addDataStoreToAgent: addDataStoreToAgent(join(path)),
+    addFlowToAgent: addFlowToAgent(join(path)),
+    agentHasVersion: agentHasVersion(join(path)),
+    isAgent: isAgent(join(path)),
+    toAgent: toAgent(join(path)),
+
+    /**
+     * ================================
      *            Domains
      * ================================
      */
@@ -834,6 +908,15 @@ export default (path: string) => {
      * @returns
      */
     addServiceToDomain: addServiceToDomain(join(path, 'domains')),
+
+    /**
+     * Adds a given agent to a domain
+     * @param id - The id of the domain
+     * @param agent - The id and version of the agent to add
+     * @param version - (Optional) The version of the domain to add the agent to
+     * @returns
+     */
+    addAgentToDomain: addAgentToDomain(join(path, 'domains')),
 
     /**
      * Adds a given subdomain to a domain
@@ -1095,24 +1178,24 @@ export default (path: string) => {
     getMessageBySchemaPath: getMessageBySchemaPath(join(path)),
 
     /**
-     * Returns the producers and consumers (services) for a given message
+     * Returns the producers and consumers (services and agents) for a given message
      * @param id - The id of the message to get the producers and consumers for
      * @param version - Optional version of the message
-     * @returns { producers: Service[], consumers: Service[] }
+     * @returns { producers: (Service|Agent)[], consumers: (Service|Agent)[] }
      */
     getProducersAndConsumersForMessage: getProducersAndConsumersForMessage(join(path)),
 
     /**
      * Returns the consumers of a given schema path
      * @param path - The path to the schema to get the consumers for
-     * @returns Service[]
+     * @returns (Service|Agent)[]
      */
     getConsumersOfSchema: getConsumersOfSchema(join(path)),
 
     /**
      * Returns the producers of a given schema path
      * @param path - The path to the schema to get the producers for
-     * @returns Service[]
+     * @returns (Service|Agent)[]
      */
     getProducersOfSchema: getProducersOfSchema(join(path)),
 
@@ -1241,6 +1324,15 @@ export default (path: string) => {
      *
      */
     writeFlowToService: writeFlowToService(join(path, 'services')),
+    /**
+     * Adds a flow to an agent in EventCatalog
+     *
+     * @param flow - The flow to write to the agent
+     * @param agent - The agent and its id to write the flow to
+     * @param options - Optional options to write the flow
+     *
+     */
+    writeFlowToAgent: writeFlowToAgent(join(path, 'agents')),
     /**
      * Remove a flow from EventCatalog (modeled on the standard POSIX rm utility)
      *

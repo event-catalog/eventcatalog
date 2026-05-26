@@ -88,3 +88,30 @@ When you view your domain in EventCatalog, the services will be visualized for y
 
 You can make as many changes as you want, but if you are adding/removing services you may want to consider versioning your domain. This allows you to keep historic changes, and let others understand why services are coming in/out of a particular domain.
 
+## Add agents to a domain
+
+<AddedIn version="3.41.0" />
+
+[Agents](/docs/development/guides/agents/introduction) can be attached to a domain the same way services can. Add an `agents` array to your domain's frontmatter:
+
+```md title="/domains/Payment/index.mdx (example)"
+---
+id: Payment
+name: Payment Domain
+version: 0.0.1
+services:
+  - id: PaymentService
+    version: 0.0.1
+agents:
+  - id: FraudReviewAgent
+    version: 0.0.1
+  # version is optional — latest is used if omitted
+  - id: AnotherAgent
+---
+
+<!-- Markdown content... -->
+
+```
+
+EventCatalog will show the agents in the domain sidebar and include them in the domain visualiser alongside services.
+

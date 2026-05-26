@@ -21,6 +21,8 @@ export const getIconForCollection = (collection: string) => {
       return RectangleGroupIcon;
     case 'agents':
       return Bot;
+    case 'adrs':
+      return BookText;
     case 'services':
       return ServerIcon;
     case 'events':

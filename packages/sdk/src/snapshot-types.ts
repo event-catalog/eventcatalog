@@ -7,6 +7,7 @@ export type SnapshotGitInfo = {
 export type SnapshotResources = {
   domains: Record<string, any>[];
   services: Record<string, any>[];
+  agents?: Record<string, any>[];
   messages: {
     events: Record<string, any>[];
     commands: Record<string, any>[];
@@ -42,7 +43,7 @@ export type SnapshotMeta = {
   git?: SnapshotGitInfo;
 };
 
-export type SnapshotResourceType = 'event' | 'command' | 'query' | 'service' | 'domain' | 'channel';
+export type SnapshotResourceType = 'event' | 'command' | 'query' | 'service' | 'agent' | 'domain' | 'channel';
 export type ResourceChangeType = 'added' | 'removed' | 'modified' | 'versioned';
 
 export type ResourceChange = {

@@ -221,6 +221,8 @@ export default function NestedSideBar() {
         // Agents
         { pattern: /^\/docs\/agents\/([^/]+)\/([^/]+)/, type: 'agent' },
         { pattern: /^\/visualiser\/agents\/([^/]+)\/([^/]+)/, type: 'agent' },
+        // Decision Records
+        { pattern: /^\/docs\/adrs\/([^/]+)\/([^/]+)/, type: 'adr' },
         // Services
         { pattern: /^\/docs\/services\/([^/]+)\/([^/]+)/, type: 'service' },
         { pattern: /^\/architecture\/services\/([^/]+)\/([^/]+)/, type: 'service' },
@@ -502,6 +504,13 @@ export default function NestedSideBar() {
     },
     [favorites]
   );
+
+  const urlsMatch = useCallback((left: string | undefined, right: string | undefined) => {
+    if (!left || !right) return false;
+    return stripBasePath(left).replace(/\/$/, '') === stripBasePath(right).replace(/\/$/, '');
+  }, []);
+
+  const activeNodeKey = useMemo(() => findNodeKeyByUrl(currentPath), [currentPath, findNodeKeyByUrl]);
 
   // Show loading state if no data yet
   if (!data || roots.length === 0) {
@@ -838,7 +847,7 @@ export default function NestedSideBar() {
    */
   const renderItem = (item: NavNode, itemKey: string | null, index: number) => {
     const itemHasChildren = hasChildren(item);
-    const isActive = item.href && currentPath === item.href;
+    const isActive = urlsMatch(item.href, currentPath) || (itemKey !== null && itemKey === activeNodeKey);
     const isFav = isFavorited(itemKey);
     const canFavorite = itemKey !== null; // Only items with keys can be favorited
 
@@ -925,7 +934,7 @@ export default function NestedSideBar() {
         key={`item-${itemKey || index}`}
         title={item.title}
         onClick={() => handleDrillDown(item, itemKey)}
-        className={cn(baseClasses, parentClasses)}
+        className={cn(baseClasses, parentClasses, activeClasses)}
       >
         {content}
       </button>

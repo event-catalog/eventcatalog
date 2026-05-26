@@ -1,5 +1,48 @@
 # @eventcatalog/core
 
+## 3.43.0
+
+### Minor Changes
+
+- c130c02: feat(core): add Architecture Decision Records (ADRs) as a first-class resource
+
+  ADRs are now a versioned resource type with their own collection, discover page, sidebar section, and relationships (supersedes/amends/related). ADRs can link to other resources via `appliesTo`, and linked ADRs surface on the resource sidebar under "Decision Records". Includes new example ADRs in the default catalog.
+
+## 3.42.0
+
+### Minor Changes
+
+- 31fcb40: Add RFC 9727 `.well-known/api-catalog` endpoint that publishes a machine-readable Linkset of services, domains, their specifications (OpenAPI, AsyncAPI, GraphQL), and the EventCatalog MCP server when enabled. Raw specifications are served from `/.well-known/api-catalog/specifications/{collection}/{id}/{version}/{specification}`.
+
+## 3.41.4
+
+### Patch Changes
+
+- 1c2b7bf: fix(core): OpenAPI, AsyncAPI and GraphQL spec badges now respect dark mode theme
+
+## 3.41.3
+
+### Patch Changes
+
+- 13e2474: chore(deps): replace axios with native fetch in analytics
+- f86fd4c: Fix implicit any type on tool parameter in services node graph
+
+## 3.41.2
+
+### Patch Changes
+
+- c3b0958: fix node graph styling when rendered inside prose containers and prevent prose styles from affecting visualiser images
+- Updated dependencies [c3b0958]
+  - @eventcatalog/visualiser@3.22.1
+
+## 3.41.1
+
+### Patch Changes
+
+- Updated dependencies [3ad00ad]
+  - @eventcatalog/sdk@2.23.0
+  - @eventcatalog/linter@1.0.26
+
 ## 3.41.0
 
 ### Minor Changes

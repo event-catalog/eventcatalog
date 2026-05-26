@@ -11,12 +11,14 @@ import { getContainers } from '@utils/collections/containers';
 import { getDiagrams } from '@utils/collections/diagrams';
 import type { CollectionEntry } from 'astro:content';
 import { getDataProducts } from '@utils/collections/data-products';
+import { getAdrs } from '@utils/collections/adrs';
 
 type PageDataLoaderOptions = { getAllVersions?: boolean };
 
 export const pageDataLoader: Record<PageTypes, (options?: PageDataLoaderOptions) => Promise<CollectionEntry<CollectionTypes>[]>> =
   {
     agents: getAgents,
+    adrs: getAdrs,
     events: getEvents,
     commands: getCommands,
     queries: getQueries,

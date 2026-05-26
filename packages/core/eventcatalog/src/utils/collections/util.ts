@@ -173,6 +173,7 @@ export const findMatchingNodes = (
 };
 
 export const resourceToCollectionMap = {
+  adr: 'adrs',
   agent: 'agents',
   service: 'services',
   event: 'events',
@@ -190,6 +191,7 @@ export const resourceToCollectionMap = {
 } as const;
 
 export const collectionToResourceMap = {
+  adrs: 'adr',
   agents: 'agent',
   services: 'service',
   events: 'event',
