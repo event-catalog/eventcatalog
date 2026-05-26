@@ -6,10 +6,12 @@ import {
   getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
   type ColumnFiltersState,
+  type SortingState,
 } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, SearchX, X, Search, Users } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, SearchX, X, Search, Users } from 'lucide-react';
 import { UserIcon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
 import type { TableConfiguration } from '@types';
@@ -17,12 +19,14 @@ import { isSameVersion } from '@utils/collections/version-compare';
 import { resolveIconUrl } from '@utils/icon';
 import { FilterDropdown, CheckboxItem } from './FilterComponents';
 import { getDiscoverColumns } from './columns';
+import { formatAdrStatus, type AdrStatus } from '@utils/collections/adr-constants';
 
 export type CollectionType =
   | 'agents'
   | 'events'
   | 'commands'
   | 'queries'
+  | 'adrs'
   | 'services'
   | 'external-systems'
   | 'domains'
@@ -41,6 +45,8 @@ export interface DiscoverTableData {
   hasDataDependencies?: boolean;
   hasTools?: boolean;
   hasModel?: boolean;
+  hasAppliesTo?: boolean;
+  hasDecisionMakers?: boolean;
   hasInputs?: boolean;
   hasOutputs?: boolean;
   data: {
@@ -58,6 +64,13 @@ export interface DiscoverTableData {
       textColor?: string;
       url?: string;
     }>;
+    status?: string;
+    date?: string | Date;
+    statusBadge?: {
+      content: string;
+      backgroundColor?: string;
+      textColor?: string;
+    };
     producers?: Array<any>;
     consumers?: Array<any>;
     receives?: Array<any>;
@@ -159,6 +172,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     [collectionType, tableConfiguration]
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [tableFilter, setTableFilter] = useState('');
   const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
   const PAGE_SIZE_STORAGE_KEY = 'eventcatalog-discover-page-size';
@@ -182,6 +196,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
   const [selectedAgentModels, setSelectedAgentModels] = useState<string[]>([]);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
   // Collect unique badges from all items
   const allBadges = useMemo(() => {
@@ -286,6 +301,14 @@ export function DiscoverTable<T extends DiscoverTableData>({
         }
       }
 
+      // ADR status filter
+      if (selectedStatuses.length > 0) {
+        const status = row.data.status;
+        if (!status || !selectedStatuses.includes(status)) {
+          return false;
+        }
+      }
+
       // Property filters
       if (selectedProperties.length > 0) {
         for (const prop of selectedProperties) {
@@ -364,6 +387,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     selectedAgentProviders,
     selectedAgentModels,
     selectedBadges,
+    selectedStatuses,
     selectedProperties,
     tableFilter,
   ]);
@@ -378,14 +402,17 @@ export function DiscoverTable<T extends DiscoverTableData>({
     data: filteredData,
     columns,
     onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     getPaginationRowModel: getPaginationRowModel(),
     state: {
       columnFilters,
+      sorting,
       columnVisibility,
     },
     initialState: {
@@ -468,6 +495,27 @@ export function DiscoverTable<T extends DiscoverTableData>({
     return counts;
   }, [initialData]);
 
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    initialData.forEach((item) => {
+      const status = item.data.status;
+      if (status) counts[status] = (counts[status] || 0) + 1;
+    });
+    return counts;
+  }, [initialData]);
+
+  const statusOptions = useMemo(
+    () =>
+      Object.keys(statusCounts)
+        .map((status) => ({
+          id: status,
+          name: formatAdrStatus(status as AdrStatus),
+          count: statusCounts[status],
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [statusCounts]
+  );
+
   const toggleDomain = (domainId: string) => {
     setSelectedDomains((prev) => (prev.includes(domainId) ? prev.filter((id) => id !== domainId) : [...prev, domainId]));
   };
@@ -498,6 +546,10 @@ export function DiscoverTable<T extends DiscoverTableData>({
     setSelectedBadges((prev) => (prev.includes(badgeContent) ? prev.filter((b) => b !== badgeContent) : [...prev, badgeContent]));
   };
 
+  const toggleStatus = (status: string) => {
+    setSelectedStatuses((prev) => (prev.includes(status) ? prev.filter((item) => item !== status) : [...prev, status]));
+  };
+
   const toggleProperty = (propertyId: string) => {
     setSelectedProperties((prev) => (prev.includes(propertyId) ? prev.filter((p) => p !== propertyId) : [...prev, propertyId]));
   };
@@ -510,6 +562,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     setSelectedAgentProviders([]);
     setSelectedAgentModels([]);
     setSelectedBadges([]);
+    setSelectedStatuses([]);
     setSelectedProperties([]);
     setShowOnlyLatest(true);
     setOnlyShowDrafts(false);
@@ -525,6 +578,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     selectedAgentProviders.length +
     selectedAgentModels.length +
     selectedBadges.length +
+    selectedStatuses.length +
     selectedProperties.length +
     (!showOnlyLatest ? 1 : 0) +
     (onlyShowDrafts ? 1 : 0);
@@ -545,6 +599,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     (id) => agentProviders.find((provider) => provider.id === id)?.name || id
   );
   const selectedAgentModelNames = selectedAgentModels.map((id) => agentModels.find((model) => model.id === id)?.name || id);
+  const selectedStatusNames = selectedStatuses.map((id) => statusOptions.find((status) => status.id === id)?.name || id);
 
   // Filter producers/consumers to only show those with count > 0
   const filteredProducers = producers.filter((p) => (producerCounts[p.id] || 0) > 0);
@@ -767,6 +822,32 @@ export function DiscoverTable<T extends DiscoverTableData>({
               </div>
             )}
 
+            {/* ADR Status Filter */}
+            {collectionType === 'adrs' && statusOptions.length > 0 && (
+              <div>
+                <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Status</label>
+                <FilterDropdown
+                  label="Select statuses..."
+                  selectedItems={selectedStatusNames}
+                  onClear={() => setSelectedStatuses([])}
+                  onRemoveItem={(name) => {
+                    const status = statusOptions.find((item) => item.name === name);
+                    if (status) toggleStatus(status.id);
+                  }}
+                >
+                  {statusOptions.map((status) => (
+                    <CheckboxItem
+                      key={status.id}
+                      label={status.name}
+                      checked={selectedStatuses.includes(status.id)}
+                      onChange={() => toggleStatus(status.id)}
+                      count={status.count}
+                    />
+                  ))}
+                </FilterDropdown>
+              </div>
+            )}
+
             {/* Badges Filter */}
             {allBadges.length > 0 && (
               <div>
@@ -899,7 +980,24 @@ export function DiscoverTable<T extends DiscoverTableData>({
                         key={`${header.id}`}
                         className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider"
                       >
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.isPlaceholder ? null : header.column.id === 'date' && header.column.getCanSort() ? (
+                          <button
+                            type="button"
+                            onClick={header.column.getToggleSortingHandler()}
+                            className="flex items-center gap-1.5 rounded-sm text-left uppercase tracking-wider hover:text-[rgb(var(--ec-page-text))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+                          >
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            {header.column.getIsSorted() === 'asc' ? (
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            ) : header.column.getIsSorted() === 'desc' ? (
+                              <ArrowDown className="h-3.5 w-3.5" />
+                            ) : (
+                              <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />
+                            )}
+                          </button>
+                        ) : (
+                          flexRender(header.column.columnDef.header, header.getContext())
+                        )}
                       </th>
                     ))}
                   </tr>

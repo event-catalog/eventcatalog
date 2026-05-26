@@ -4,6 +4,7 @@ import { glob } from 'astro/loaders';
 import { glob as globPackage } from 'glob';
 import { v4 as uuidv4 } from 'uuid';
 import { badge, ownerReference } from './content.config-shared-collections';
+import { ADR_STATUS_VALUES } from './utils/collections/adr-constants';
 import fs from 'fs';
 import path from 'path';
 
@@ -550,6 +551,65 @@ const agents = defineCollection({
     .extend(baseSchema.shape),
 });
 
+const adrStatus = z.enum(ADR_STATUS_VALUES);
+
+const adrPointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+});
+
+const adrResourcePointer = adrPointer.extend({
+  type: z.enum([
+    'agent',
+    'service',
+    'event',
+    'command',
+    'query',
+    'flow',
+    'channel',
+    'domain',
+    'user',
+    'team',
+    'container',
+    'entity',
+    'diagram',
+    'data-product',
+  ]),
+});
+
+const adrs = defineCollection({
+  loader: glob({
+    pattern: withIgnoredBuildArtifacts(['**/adrs/*/index.(md|mdx)', '**/adrs/*/versioned/*/index.(md|mdx)']),
+    base: projectDirBase,
+    generateId: ({ data }) => `${data.id}-${data.version}`,
+  }),
+  schema: z
+    .object({
+      status: adrStatus,
+      date: z.coerce.date(),
+      decisionMakers: z.array(ownerReference).optional(),
+      appliesTo: z.array(adrResourcePointer).optional(),
+      supersedes: z.array(adrPointer).optional(),
+      supersededBy: z.array(adrPointer).optional(),
+      amends: z.array(adrPointer).optional(),
+      amendedBy: z.array(adrPointer).optional(),
+      related: z.array(adrPointer).optional(),
+      detailsPanel: z
+        .object({
+          status: detailPanelPropertySchema.optional(),
+          date: detailPanelPropertySchema.optional(),
+          decisionMakers: detailPanelPropertySchema.optional(),
+          appliesTo: detailPanelPropertySchema.optional(),
+          relationships: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
+    })
+    .extend(baseSchema.shape),
+});
+
 // 1) Put this near your other enums/utilities
 const containerTypeEnum = z.enum([
   // Core
@@ -915,6 +975,7 @@ export const collections = {
   queries,
   services,
   agents,
+  adrs,
   channels,
   users,
   teams,

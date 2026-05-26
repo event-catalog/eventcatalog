@@ -1,6 +1,7 @@
 import type { ResourceGroup } from '@eventcatalog/sdk';
 import type { CollectionEntry } from 'astro:content';
 import { getLatestVersionInCollectionById } from '@utils/collections/util';
+import { getAdrNodeKey, getAdrsForResource, type Adr, type AdrResource } from '@utils/collections/adrs';
 import { buildUrl } from '@utils/url-builder';
 import {
   getGroupedResourceDocsByType,
@@ -61,9 +62,14 @@ export type ResourceGroupContext = {
   commands: CollectionEntry<'commands'>[];
   queries: CollectionEntry<'queries'>[];
   flows: CollectionEntry<'flows'>[];
+  channels?: CollectionEntry<'channels'>[];
   containers: CollectionEntry<'containers'>[];
+  entities?: CollectionEntry<'entities'>[];
   dataProducts: CollectionEntry<'data-products'>[];
   diagrams: CollectionEntry<'diagrams'>[];
+  adrs: Adr[];
+  users?: CollectionEntry<'users'>[];
+  teams?: CollectionEntry<'teams'>[];
   resourceDocs: ResourceDocEntry[];
   resourceDocCategories: ResourceDocCategoryEntry[];
 };
@@ -91,6 +97,37 @@ export const buildOwnersSection = (owners: any[]): NavNode | null => {
       href: buildUrl(`/docs/${owner?.collection}/${owner?.data.id}`),
     })),
     visible: true,
+  };
+};
+
+export const buildArchitectureDecisionsSection = (resource: AdrResource, adrs: Adr[]): NavNode | null => {
+  const relatedAdrs = getAdrsForResource(resource, adrs);
+  if (relatedAdrs.length === 0) return null;
+
+  return {
+    type: 'group',
+    title: 'Decision Records',
+    icon: 'BookText',
+    pages: relatedAdrs.map(getAdrNodeKey),
+  };
+};
+
+const isOwnersSection = (page: ChildRef) => typeof page !== 'string' && page.title === 'Owners';
+
+const insertBeforeOwnersSection = (pages: ChildRef[], section: NavNode) => {
+  const ownersSectionIndex = pages.findIndex(isOwnersSection);
+  if (ownersSectionIndex === -1) return [...pages, section];
+
+  return [...pages.slice(0, ownersSectionIndex), section, ...pages.slice(ownersSectionIndex)];
+};
+
+export const withArchitectureDecisionsSection = (node: NavNode, resource: AdrResource, adrs: Adr[]): NavNode => {
+  const section = buildArchitectureDecisionsSection(resource, adrs);
+  if (!section || !shouldRenderSideBarSection(resource, 'architectureDecisions')) return node;
+
+  return {
+    ...node,
+    pages: insertBeforeOwnersSection(node.pages || [], section),
   };
 };
 

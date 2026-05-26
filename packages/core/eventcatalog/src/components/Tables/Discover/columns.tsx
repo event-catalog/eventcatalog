@@ -17,6 +17,7 @@ import { useStore } from '@nanostores/react';
 import { favoritesStore, toggleFavorite, type FavoriteItem } from '../../../stores/favorites-store';
 import type { DiscoverTableData, CollectionType } from './DiscoverTable';
 import type { TableConfiguration } from '@types';
+import { formatAdrDate, isAdrCollection } from '@utils/collections/adr-constants';
 
 const columnHelper = createColumnHelper<DiscoverTableData>();
 
@@ -107,6 +108,7 @@ const createBadgesColumn = (tableConfiguration: TableConfiguration) =>
   columnHelper.accessor((row) => row.data.badges, {
     id: 'badges',
     header: () => <span>{tableConfiguration?.columns?.badges?.label || 'Badges'}</span>,
+    enableSorting: false,
     cell: (info) => <BadgesCell badges={info.getValue() || []} />,
     meta: {
       showFilter: false,
@@ -143,7 +145,7 @@ const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; col
   const favorites = useStore(favoritesStore);
   const href = buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`);
   const visualiserHref = buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`);
-  const hasVisualiser = true;
+  const hasVisualiser = !isAdrCollection(item.collection);
   const nodeKey = `${item.collection}-${item.data.id}-${item.data.version}`;
   const badgeLabel =
     collectionType === 'external-systems'
@@ -234,6 +236,7 @@ const createActionsColumn = (collectionType: CollectionType, tableConfiguration:
   columnHelper.accessor('data.name', {
     id: 'actions',
     header: () => <span></span>,
+    enableSorting: false,
     cell: (info) => {
       const item = info.row.original;
       return <RowActionsMenu item={item} collectionType={collectionType} />;
@@ -390,6 +393,53 @@ export const getAgentColumns = (tableConfiguration: TableConfiguration) => [
   }),
   createBadgesColumn(tableConfiguration),
   createActionsColumn('agents', tableConfiguration),
+];
+
+// ============================================================================
+// ADR COLUMNS
+// ============================================================================
+export const getAdrColumns = (tableConfiguration: TableConfiguration) => [
+  columnHelper.accessor('data.name', {
+    id: 'name',
+    header: () => <span>{tableConfiguration?.columns?.name?.label || 'Decision record'}</span>,
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
+    meta: {
+      filterVariant: 'name',
+    },
+  }),
+  createSummaryColumn(tableConfiguration),
+  columnHelper.accessor('data.statusBadge', {
+    id: 'status',
+    header: () => <span>{tableConfiguration?.columns?.status?.label || 'Status'}</span>,
+    enableSorting: false,
+    cell: (info) => {
+      const badge = info.getValue();
+      if (!badge) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+      return <BadgesCell badges={[badge]} />;
+    },
+    meta: {
+      showFilter: false,
+    },
+  }),
+  columnHelper.accessor('data.date', {
+    id: 'date',
+    header: () => <span>{tableConfiguration?.columns?.date?.label || 'Date'}</span>,
+    sortingFn: (rowA, rowB) => {
+      const left = rowA.original.data.date ? new Date(rowA.original.data.date).getTime() : 0;
+      const right = rowB.original.data.date ? new Date(rowB.original.data.date).getTime() : 0;
+      return left - right;
+    },
+    cell: (info) => {
+      const date = info.getValue();
+      if (!date) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
+      return <span className="text-[0.8rem] text-[rgb(var(--ec-page-text))]">{formatAdrDate(new Date(date))}</span>;
+    },
+    meta: {
+      showFilter: false,
+    },
+  }),
+  createBadgesColumn(tableConfiguration),
+  createActionsColumn('adrs', tableConfiguration),
 ];
 
 // ============================================================================
@@ -677,6 +727,8 @@ export const getDiscoverColumns = (collectionType: CollectionType, tableConfigur
   switch (collectionType) {
     case 'agents':
       return getAgentColumns(tableConfiguration);
+    case 'adrs':
+      return getAdrColumns(tableConfiguration);
     case 'events':
       return getEventColumns(tableConfiguration);
     case 'commands':

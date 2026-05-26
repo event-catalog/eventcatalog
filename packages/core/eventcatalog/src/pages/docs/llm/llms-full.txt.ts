@@ -72,6 +72,7 @@ export const GET: APIRoute = async ({ params, request }) => {
   const content = resources
     .map((item) => {
       if (!item.filePath) return '';
+      if (!fs.existsSync(item.filePath)) return '';
 
       let file = fs.readFileSync(item.filePath, 'utf8');
 

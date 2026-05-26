@@ -11,6 +11,7 @@ export class Page extends HybridPage {
   static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
     const { getFlows } = await import('@utils/collections/flows');
     const { getAgents } = await import('@utils/collections/agents');
+    const { getAdrs } = await import('@utils/collections/adrs');
     const { getServices } = await import('@utils/collections/services');
     const { getDataProducts } = await import('@utils/collections/data-products');
 
@@ -20,6 +21,7 @@ export class Page extends HybridPage {
     const loaders = {
       ...pageDataLoader,
       agents: getAgents,
+      adrs: getAdrs,
       flows: getFlows,
       services: getInternalServices,
       'external-systems': getExternalServices,
@@ -29,6 +31,7 @@ export class Page extends HybridPage {
     const itemTypes = [
       'events',
       'agents',
+      'adrs',
       'commands',
       'queries',
       'domains',
@@ -60,6 +63,7 @@ export class Page extends HybridPage {
 
     const { getFlows } = await import('@utils/collections/flows');
     const { getAgents } = await import('@utils/collections/agents');
+    const { getAdrs } = await import('@utils/collections/adrs');
     const { getServices } = await import('@utils/collections/services');
     const { getDataProducts } = await import('@utils/collections/data-products');
 
@@ -69,6 +73,7 @@ export class Page extends HybridPage {
     const loaders = {
       ...pageDataLoader,
       agents: getAgents,
+      adrs: getAdrs,
       flows: getFlows,
       services: getInternalServices,
       'external-systems': getExternalServices,

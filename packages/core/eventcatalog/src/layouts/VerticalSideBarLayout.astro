@@ -11,6 +11,7 @@ import {
   TableProperties,
   BotMessageSquare,
   BookOpen,
+  BookText,
   FileText,
   SquareDashedMousePointerIcon,
   FileCode,
@@ -61,15 +62,16 @@ import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
 import { getAgents } from '@utils/collections/agents';
 import { getFlows } from '@utils/collections/flows';
+import { getAdrs } from '@utils/collections/adrs';
+import { getContainers } from '@utils/collections/containers';
+import { getDataProducts } from '@utils/collections/data-products';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
-import { hasLandingPageForDocs } from '@utils/pages';
 import { filterSidebarItems } from '@utils/sidebar-visibility';
 
 import { isEmbedEnabled, isCustomStylesEnabled, isEventCatalogScaleEnabled, isCustomDocsEnabled, isSSR } from '@utils/feature';
 
-const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 const customDocs = await getCollection('customPages');
 
 let events: any[] = [];
@@ -77,20 +79,24 @@ let commands: any[] = [];
 let queries: any[] = [];
 let services: any[] = [];
 let agents: any[] = [];
+let adrs: any[] = [];
 let domains: any[] = [];
 let flows: any[] = [];
+let containers: any[] = [];
+let dataProducts: any[] = [];
 
-if (!catalogHasDefaultLandingPageForDocs) {
-  [events, commands, queries, services, agents, domains, flows] = await Promise.all([
-    getEvents({ getAllVersions: false, hydrateServices: false }),
-    getCommands({ getAllVersions: false, hydrateServices: false }),
-    getQueries({ getAllVersions: false, hydrateServices: false }),
-    getServices({ getAllVersions: false }),
-    getAgents({ getAllVersions: false }),
-    getDomains({ getAllVersions: false }),
-    getFlows({ getAllVersions: false }),
-  ]);
-}
+[events, commands, queries, services, agents, adrs, domains, flows, containers, dataProducts] = await Promise.all([
+  getEvents({ getAllVersions: false, hydrateServices: false }),
+  getCommands({ getAllVersions: false, hydrateServices: false }),
+  getQueries({ getAllVersions: false, hydrateServices: false }),
+  getServices({ getAllVersions: false }),
+  getAgents({ getAllVersions: false }),
+  getAdrs({ getAllVersions: false }),
+  getDomains({ getAllVersions: false }),
+  getFlows({ getAllVersions: false }),
+  getContainers({ getAllVersions: false }),
+  getDataProducts({ getAllVersions: false }),
+]);
 
 // Try and load any custom styles if they exist
 if (isCustomStylesEnabled()) {
@@ -203,71 +209,28 @@ const premiumFeatures: Array<{
   isPremium?: boolean;
 }> = [];
 
+const internalServices = services.filter((service) => !service.data.externalSystem);
+const externalSystems = services.filter((service) => service.data.externalSystem);
+
 const browseItems = filterSidebarItems(
   [
     {
-      id: '/discover/domains',
+      id: '/discover/agents',
       aliases: ['/discover'],
-      label: 'Domains',
-      icon: RectangleGroupIcon,
-      href: buildUrl('/discover/domains'),
-      current: currentPath === buildUrl('/discover/domains'),
+      label: 'Agents',
+      icon: BotMessageSquare,
+      href: buildUrl('/discover/agents'),
+      current: currentPath === buildUrl('/discover/agents'),
+      visible: agents.length > 0,
     },
     {
-      id: '/discover/services',
+      id: '/discover/adrs',
       aliases: ['/discover'],
-      label: 'Services',
-      icon: ServerIcon,
-      href: buildUrl('/discover/services'),
-      current: currentPath === buildUrl('/discover/services'),
-    },
-    {
-      id: '/discover/external-systems',
-      aliases: ['/discover'],
-      label: 'External Systems',
-      icon: GlobeAltIcon,
-      href: buildUrl('/discover/external-systems'),
-      current: currentPath === buildUrl('/discover/external-systems'),
-    },
-    {
-      id: '/discover/events',
-      aliases: ['/discover'],
-      label: 'Events',
-      icon: BoltIcon,
-      href: buildUrl('/discover/events'),
-      current: currentPath === buildUrl('/discover/events'),
-    },
-    {
-      id: '/discover/commands',
-      aliases: ['/discover'],
-      label: 'Commands',
-      icon: ChatBubbleLeftIcon,
-      href: buildUrl('/discover/commands'),
-      current: currentPath === buildUrl('/discover/commands'),
-    },
-    {
-      id: '/discover/queries',
-      aliases: ['/discover'],
-      label: 'Queries',
-      icon: MagnifyingGlassIcon,
-      href: buildUrl('/discover/queries'),
-      current: currentPath === buildUrl('/discover/queries'),
-    },
-    {
-      id: '/discover/flows',
-      aliases: ['/discover'],
-      label: 'Flows',
-      icon: QueueListIcon,
-      href: buildUrl('/discover/flows'),
-      current: currentPath === buildUrl('/discover/flows'),
-    },
-    {
-      id: '/discover/containers',
-      aliases: ['/discover'],
-      label: 'Data Stores',
-      icon: Database,
-      href: buildUrl('/discover/containers'),
-      current: currentPath === buildUrl('/discover/containers'),
+      label: 'Decision Records',
+      icon: BookText,
+      href: buildUrl('/discover/adrs'),
+      current: currentPath === buildUrl('/discover/adrs'),
+      visible: adrs.length > 0,
     },
     {
       id: '/discover/data-products',
@@ -276,18 +239,85 @@ const browseItems = filterSidebarItems(
       icon: CubeIcon,
       href: buildUrl('/discover/data-products'),
       current: currentPath === buildUrl('/discover/data-products'),
+      visible: dataProducts.length > 0,
     },
     {
-      id: '/discover/agents',
+      id: '/discover/containers',
       aliases: ['/discover'],
-      label: 'Agents',
-      icon: BotMessageSquare,
-      href: buildUrl('/discover/agents'),
-      current: currentPath === buildUrl('/discover/agents'),
+      label: 'Data Stores',
+      icon: Database,
+      href: buildUrl('/discover/containers'),
+      current: currentPath === buildUrl('/discover/containers'),
+      visible: containers.length > 0,
+    },
+    {
+      id: '/discover/domains',
+      aliases: ['/discover'],
+      label: 'Domains',
+      icon: RectangleGroupIcon,
+      href: buildUrl('/discover/domains'),
+      current: currentPath === buildUrl('/discover/domains'),
+      visible: domains.length > 0,
+    },
+    {
+      id: '/discover/services',
+      aliases: ['/discover'],
+      label: 'Services',
+      icon: ServerIcon,
+      href: buildUrl('/discover/services'),
+      current: currentPath === buildUrl('/discover/services'),
+      visible: internalServices.length > 0,
+    },
+    {
+      id: '/discover/external-systems',
+      aliases: ['/discover'],
+      label: 'External Systems',
+      icon: GlobeAltIcon,
+      href: buildUrl('/discover/external-systems'),
+      current: currentPath === buildUrl('/discover/external-systems'),
+      visible: externalSystems.length > 0,
+    },
+    {
+      id: '/discover/events',
+      aliases: ['/discover'],
+      label: 'Events',
+      icon: BoltIcon,
+      href: buildUrl('/discover/events'),
+      current: currentPath === buildUrl('/discover/events'),
+      visible: events.length > 0,
+    },
+    {
+      id: '/discover/commands',
+      aliases: ['/discover'],
+      label: 'Commands',
+      icon: ChatBubbleLeftIcon,
+      href: buildUrl('/discover/commands'),
+      current: currentPath === buildUrl('/discover/commands'),
+      visible: commands.length > 0,
+    },
+    {
+      id: '/discover/queries',
+      aliases: ['/discover'],
+      label: 'Queries',
+      icon: MagnifyingGlassIcon,
+      href: buildUrl('/discover/queries'),
+      current: currentPath === buildUrl('/discover/queries'),
+      visible: queries.length > 0,
+    },
+    {
+      id: '/discover/flows',
+      aliases: ['/discover'],
+      label: 'Flows',
+      icon: QueueListIcon,
+      href: buildUrl('/discover/flows'),
+      current: currentPath === buildUrl('/discover/flows'),
+      visible: flows.length > 0,
     },
   ],
   userSideBarConfiguration
-);
+)
+  .filter((item) => item.visible !== false)
+  .sort((a, b) => a.label.localeCompare(b.label));
 
 const organizationItems = filterSidebarItems(
   [
@@ -329,15 +359,25 @@ const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...p
 const { title, description, showNestedSideBar = true, showHeader = true } = Astro.props;
 
 const canPageBeEmbedded = isEmbedEnabled();
+const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/docs', true)];
 ---
 
 <BaseLayout title={`EventCatalog | ${title}`} description={description} ogTitle={title}>
   <Fragment slot="head">
-    <script is:inline>
+    <script is:inline define:vars={{ verticalNavAutoCollapsePaths }}>
       (() => {
+        const verticalNavStorageKey = 'eventcatalog-vertical-nav-collapsed';
+        const routeShouldAutoCollapseVerticalNav = (pathname) =>
+          verticalNavAutoCollapsePaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
         try {
-          const savedState = localStorage.getItem('eventcatalog-vertical-nav-collapsed');
-          const isCollapsed = savedState === null ? true : savedState === 'true';
+          const shouldAutoCollapse = routeShouldAutoCollapseVerticalNav(window.location.pathname);
+          if (shouldAutoCollapse) {
+            localStorage.setItem(verticalNavStorageKey, 'true');
+          }
+
+          const savedState = localStorage.getItem(verticalNavStorageKey);
+          const isCollapsed = shouldAutoCollapse ? true : savedState === null ? true : savedState === 'true';
           document.documentElement.setAttribute('data-vertical-nav-collapsed', isCollapsed ? 'true' : 'false');
         } catch (error) {
           document.documentElement.setAttribute('data-vertical-nav-collapsed', 'true');
@@ -737,6 +777,7 @@ const canPageBeEmbedded = isEmbedEnabled();
     navigationItems,
     currentNavigationItem,
     canPageBeEmbedded,
+    verticalNavAutoCollapsePaths,
   }}
 >
   const VERTICAL_NAV_STORAGE_KEY = 'eventcatalog-vertical-nav-collapsed';
@@ -817,7 +858,21 @@ const canPageBeEmbedded = isEmbedEnabled();
     });
   };
 
+  const routeShouldAutoCollapseVerticalNav = (pathname) =>
+    verticalNavAutoCollapsePaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
+  const persistVerticalNavCollapsedState = (collapsed) => {
+    try {
+      localStorage.setItem(VERTICAL_NAV_STORAGE_KEY, String(collapsed));
+    } catch (error) {}
+  };
+
   const getPersistedVerticalNavCollapsedState = () => {
+    if (routeShouldAutoCollapseVerticalNav(window.location.pathname)) {
+      persistVerticalNavCollapsedState(true);
+      return true;
+    }
+
     try {
       const savedState = localStorage.getItem(VERTICAL_NAV_STORAGE_KEY);
       return savedState === null ? true : savedState === 'true';
@@ -948,10 +1003,7 @@ const canPageBeEmbedded = isEmbedEnabled();
         const nextState = !isCollapsed;
 
         setVerticalNavCollapsedState(nextState);
-
-        try {
-          localStorage.setItem(VERTICAL_NAV_STORAGE_KEY, String(nextState));
-        } catch (error) {}
+        persistVerticalNavCollapsedState(nextState);
       };
     }
   });

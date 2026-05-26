@@ -4,6 +4,7 @@
  */
 
 import { getCollection, type CollectionEntry } from 'astro:content';
+import fs from 'node:fs';
 import path from 'node:path';
 import { coerce, rcompare } from 'semver';
 import { sortVersioned } from '../../utils/collections/util';
@@ -76,6 +77,16 @@ let memoryResourceLookupPromise: Promise<Record<ResourceCollection, ResourceLook
 
 const normalizePath = (value: string) => value.replace(/\\/g, '/').replace(/^\.\//, '');
 const normalizeTypeName = (value: string) => value.trim().toLowerCase();
+
+const isMissingGeneratedContentFile = (filePath: string) => {
+  const normalizedPath = normalizePath(filePath);
+
+  if (!path.isAbsolute(filePath) && !normalizedPath.startsWith('../')) {
+    return false;
+  }
+
+  return !fs.existsSync(filePath);
+};
 
 const inferOrderFromFilePath = (filePath: string): number | undefined => {
   const normalizedPath = normalizePath(filePath);
@@ -373,6 +384,10 @@ export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
         return null;
       }
 
+      if (isMissingGeneratedContentFile(doc.filePath)) {
+        return null;
+      }
+
       const resolvedResource = resolveResourceFromPath(doc.filePath, lookups);
       if (!resolvedResource) {
         return null;
@@ -480,6 +495,10 @@ export const getResourceDocCategories = async (): Promise<ResourceDocCategoryEnt
 
   for (const category of categories) {
     if (!category.filePath) {
+      continue;
+    }
+
+    if (isMissingGeneratedContentFile(category.filePath)) {
       continue;
     }
 

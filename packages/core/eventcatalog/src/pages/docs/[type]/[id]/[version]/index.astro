@@ -29,10 +29,31 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
-import { Bot, Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon, AlignLeft, Package } from 'lucide-react';
+import {
+  Bot,
+  Box,
+  Boxes,
+  SquarePenIcon,
+  DatabaseIcon,
+  DatabaseZapIcon,
+  ShieldCheckIcon,
+  AlignLeft,
+  Package,
+  BookText,
+  CalendarDays,
+} from 'lucide-react';
 
 import { getSpecificationsForService } from '@utils/collections/services';
 import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails } from '@utils/collections/util';
+import {
+  createAdrStatusBadge,
+  formatAdrDate,
+  getAdrRelationships,
+  getAdrs,
+  isAdrCollection,
+  isDeprecatedAdr,
+  isSupersededAdr,
+} from '@utils/collections/adrs';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { getIcon } from '@utils/badges';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
@@ -59,6 +80,10 @@ export const getStaticPaths = Page.getStaticPaths;
 const props = await Page.getData(Astro);
 
 const { Content, headings } = await render(props);
+const isAdrPage = isAdrCollection(props.collection);
+const allAdrs = isAdrPage ? await getAdrs({ getAllVersions: true }) : [];
+const adrRelationships = isAdrPage ? getAdrRelationships(props as any, allAdrs) : null;
+const supersededByAdrs = adrRelationships?.supersededBy || [];
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 const contentBadges = props.data.badges || [];
@@ -119,6 +144,14 @@ const getBadge = () => {
       badges.push(createResourceBadge(modelBadge, Bot));
     }
     return badges;
+  }
+
+  if (isAdrPage) {
+    return [
+      createResourceBadge('Decision Record', BookText),
+      createResourceBadge(formatAdrDate(props.data.date), CalendarDays),
+      createAdrStatusBadge(props.data.status),
+    ];
   }
 
   if (props.collection === 'services') {
@@ -258,6 +291,7 @@ const {
 let friendlyCollectionName = props.collection.slice(0, props.collection.length - 1);
 friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendlyCollectionName;
 friendlyCollectionName = friendlyCollectionName === 'entitie' ? 'entity' : friendlyCollectionName;
+friendlyCollectionName = friendlyCollectionName === 'adr' ? 'architecture decision' : friendlyCollectionName;
 
 const schemasForResource = getSchemasFromResource(props);
 
@@ -327,7 +361,7 @@ const httpMethodStyle = httpOperation?.method
   : undefined;
 
 // This will render the graph for this page. Flow pages can already render their graph explicitly via <Flow />.
-if (!hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
+if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
   nodeGraphs.push({
     ...currentPageNodeGraph,
     search: true,
@@ -419,6 +453,38 @@ if (!hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                     return <Badge badge={badge} />;
                   })}
                 </div>
+              )
+            }
+
+            {
+              isSupersededAdr(props) && (
+                <Admonition type="warning" title="This architecture decision has been superseded">
+                  <div>
+                    {supersededByAdrs.length > 0 ? (
+                      <p>
+                        You are looking at a previous architecture decision. It has been superseded by{' '}
+                        {supersededByAdrs.map((adr: any, index: number) => (
+                          <>
+                            <a class="underline" href={buildUrl(`/docs/adrs/${adr.data.id}/${adr.data.version}`)}>
+                              {adr.data.name}
+                            </a>
+                            {index < supersededByAdrs.length - 1 ? ', ' : '.'}
+                          </>
+                        ))}
+                      </p>
+                    ) : (
+                      <p>This architecture decision has been marked as superseded.</p>
+                    )}
+                  </div>
+                </Admonition>
+              )
+            }
+
+            {
+              isDeprecatedAdr(props) && (
+                <Admonition type="warning" title="This architecture decision has been deprecated">
+                  <p>This architecture decision has been marked as deprecated.</p>
+                </Admonition>
               )
             }
 

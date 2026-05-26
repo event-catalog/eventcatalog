@@ -194,7 +194,33 @@ describe('getNestedSideBarData', () => {
           type: 'item',
           title: 'Shipping',
           badge: 'Domain',
+          icon: 'Boxes',
           pages: expect.arrayContaining([buildDomainQuickReferenceSection(domain)]),
+        })
+      );
+    });
+
+    it('uses the domain style icon when one is configured', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+        styles: {
+          icon: '/icons/domain.svg',
+        },
+      });
+
+      const navigationData = await getNestedSideBarData();
+
+      expect(getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData)).toEqual(
+        expect.objectContaining({
+          type: 'item',
+          title: 'Shipping',
+          badge: 'Domain',
+          leftIcon: '/icons/domain.svg',
         })
       );
     });
@@ -242,6 +268,28 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
       const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
       expect(browseNode.pages).toEqual(['list:domains', 'list:services']);
+    });
+
+    it('orders browse resources by name', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+      await writeDomain({
+        id: 'Payments',
+        name: 'Payments',
+        version: '0.0.1',
+        markdown: 'Payments',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const domainsList = getNavigationConfigurationByKey('list:domains', navigationData);
+
+      expect(domainsList.pages).toEqual(['domain:Payments:0.0.1', 'domain:Shipping:0.0.1']);
     });
 
     it('lists entities as searchable browse resources when they are in the catalog', async () => {

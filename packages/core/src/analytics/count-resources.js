@@ -1,6 +1,7 @@
 import { glob } from 'glob';
 
 const RESOURCE_PATTERNS = {
+  adrs: ['**/adrs/*/index.@(md|mdx)'],
   agents: ['**/agents/*/index.@(md|mdx)'],
   events: ['**/events/*/index.@(md|mdx)'],
   commands: ['**/commands/*/index.@(md|mdx)'],

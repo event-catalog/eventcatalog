@@ -36,6 +36,8 @@ export const getColorForCollection = (collection: string): CollectionColor => {
       return 'yellow';
     case 'agents':
       return 'sky';
+    case 'adrs':
+      return 'purple';
     case 'services':
       return 'pink';
     case 'data-products':

@@ -14,6 +14,7 @@ const getFeatures = async (configFile) => {
 const CLOUD_ANALYTICS_ENDPOINT = 'https://api.ecingest.dev/v1/analytics/ingest';
 
 const toCloudResourceCounts = (counts) => ({
+  adrs: counts.adrs || 0,
   agents: counts.agents || 0,
   domains: counts.domains || 0,
   services: counts.services || 0,
