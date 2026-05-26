@@ -275,7 +275,7 @@ export const addMessageToChannel =
       throw new Error(`Cannot find message ${id} in the catalog`);
     }
 
-    const path = existingResource.split(`/[\\/]+${collection}`)[0];
+    const path = existingResource.split(new RegExp(`[\\\\/]+${collection}`))[0];
     const pathToResource = join(path, collection);
 
     await rmMessageById(directory)(_message.id, _message.version, true);
