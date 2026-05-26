@@ -1,5 +1,15 @@
 # @eventcatalog/sdk
 
+## 2.23.1
+
+### Patch Changes
+
+- 2801b3e: Fix `addMessageToChannel` (and its `addEventToChannel` / `addCommandToChannel` / `addQueryToChannel` bindings) corrupting catalog layout.
+
+  The function previously split the existing resource path with a template _string_ — `` `/[\\/]+${collection}` `` — instead of a real `RegExp`. The literal substring never matched real paths, so `.split()` returned the input unchanged and the resource was rewritten under `<catalog>/<collection>/<id>/index.mdx/<collection>/<id>/index.mdx`, with `index.mdx` becoming a directory.
+
+  The fix mirrors the regex form already used in `services.ts` (`new RegExp('[\\\\/]+' + collection)`), so the split matches both POSIX and Windows path separators. A regression test under `addEventToChannel` asserts that the canonical event path stays a file and the duplicate nested path does not exist.
+
 ## 2.23.0
 
 ### Minor Changes
@@ -37,6 +47,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
