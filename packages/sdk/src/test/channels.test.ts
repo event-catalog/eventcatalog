@@ -735,6 +735,44 @@ describe('Channels SDK', () => {
           })
         ).rejects.toThrowError('Message InventoryCreated with version 0.0.1 not found');
       });
+
+      it('does not create a duplicate nested copy of the event under its own index.mdx', async () => {
+        // Regression test for a path-split bug where the split argument was a
+        // template *string* (`/[\\/]+${collection}`) instead of a real regex.
+        // The literal substring never matched real paths, so split() returned
+        // the whole input and the resource ended up rewritten at
+        // <catalog>/events/<id>/index.mdx/events/<id>/index.mdx — i.e. with
+        // `index.mdx` as a directory. The fix uses a real RegExp matching
+        // both POSIX and Windows separators.
+        await writeChannel(mockChannel);
+        await writeEvent({
+          id: 'InventoryCreated',
+          name: 'Inventory Created',
+          version: '0.0.1',
+          summary: 'This is a summary',
+          markdown: '# Hello world',
+        });
+
+        await addEventToChannel('inventory.{env}.events', {
+          id: 'InventoryCreated',
+          version: '0.0.1',
+          parameters: { env: 'dev' },
+        });
+
+        const canonical = path.join(CATALOG_PATH, 'events', 'InventoryCreated', 'index.mdx');
+        const duplicateNested = path.join(
+          CATALOG_PATH,
+          'events',
+          'InventoryCreated',
+          'index.mdx',
+          'events',
+          'InventoryCreated',
+          'index.mdx'
+        );
+        const indexMdxStat = fs.statSync(canonical);
+        expect(indexMdxStat.isFile()).toBe(true);
+        expect(fs.existsSync(duplicateNested)).toBe(false);
+      });
     });
 
     describe('addCommandToChannel', () => {
