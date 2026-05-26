@@ -1,6 +1,7 @@
 ---
 import { getCommands } from '@utils/collections/commands';
 import { getAgents } from '@utils/collections/agents';
+import { createAdrStatusBadge, getAdrs } from '@utils/collections/adrs';
 import { getDomains, getDomainsForAgent, getDomainsForService } from '@utils/collections/domains';
 import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
@@ -24,6 +25,7 @@ const events = await getEvents();
 const queries = await getQueries();
 const commands = await getCommands();
 const agents = await getAgents();
+const adrs = await getAdrs();
 const services = await getServices();
 const domains = await getDomains({ getAllVersions: false });
 const containers = await getContainers();
@@ -106,6 +108,15 @@ const typeConfig: Record<
       { id: 'hasRepository', label: 'Has Repository' },
       { id: 'hasDataDependencies', label: 'Has Data Dependencies' },
       { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+  adrs: {
+    label: 'Decision Records',
+    description: 'Browse the decision records across your catalog and inspect their status and scope.',
+    propertyOptions: [
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'hasAppliesTo', label: 'Applies To Resources' },
+      { id: 'hasDecisionMakers', label: 'Has Decision Makers' },
     ],
   },
   'external-systems': {
@@ -200,6 +211,7 @@ function hasSpecifications(service: any): boolean {
 // Build lookup maps for all collections (for resolving data product inputs/outputs)
 const allCollections = [
   ...agents.map((a) => ({ ...a, collection: 'agents' })),
+  ...adrs.map((adr) => ({ ...adr, collection: 'adrs' })),
   ...services.map((s) => ({ ...s, collection: 'services' })),
   ...containers.map((c) => ({ ...c, collection: 'containers' })),
   ...channels.map((c) => ({ ...c, collection: 'channels' })),
@@ -266,6 +278,8 @@ const tableData = enrichedData.map((d: any) => ({
   hasDataDependencies: isServiceOrAgentLike ? (d.data?.writesTo || []).length > 0 || (d.data?.readsFrom || []).length > 0 : false,
   hasModel: type === 'agents' ? !!d.data?.model : false,
   hasTools: type === 'agents' ? (d.data?.tools || []).length > 0 : false,
+  hasAppliesTo: type === 'adrs' ? (d.data?.appliesTo || []).length > 0 : false,
+  hasDecisionMakers: type === 'adrs' ? (d.data?.decisionMakers || []).length > 0 : false,
   // Data-product-specific properties
   hasInputs: type === 'data-products' ? (d.data?.inputs || []).length > 0 : false,
   hasOutputs: type === 'data-products' ? (d.data?.outputs || []).length > 0 : false,
@@ -279,6 +293,9 @@ const tableData = enrichedData.map((d: any) => ({
     latestVersion: d.data?.latestVersion,
     draft: d.data?.draft,
     badges: d.data?.badges,
+    status: d.data?.status,
+    date: d.data?.date,
+    statusBadge: d.data?.status ? createAdrStatusBadge(d.data.status) : undefined,
     producers: d.data?.producers?.map(mapToItem) ?? [],
     consumers: d.data?.consumers?.map(mapToItem) ?? [],
     receives: d.data?.receives?.map(mapToItem) ?? [],

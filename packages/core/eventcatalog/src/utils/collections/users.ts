@@ -1,6 +1,7 @@
 import type { CollectionTypes } from '@types';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
+import { getAdrs } from './adrs';
 
 export type User = CollectionEntry<'users'>;
 
@@ -16,16 +17,19 @@ export const getUsers = async (): Promise<User[]> => {
   }
 
   // 1. Fetch all collections in parallel
-  const [allUsers, allAgents, allDomains, allServices, allEvents, allCommands, allQueries, allTeams] = await Promise.all([
-    getCollection('users'),
-    getCollection('agents'),
-    getCollection('domains'),
-    getCollection('services'),
-    getCollection('events'),
-    getCollection('commands'),
-    getCollection('queries'),
-    getCollection('teams'),
-  ]);
+  const [allUsers, allAgents, allDomains, allServices, allEvents, allCommands, allQueries, allTeams, allAdrs] = await Promise.all(
+    [
+      getCollection('users'),
+      getCollection('agents'),
+      getCollection('domains'),
+      getCollection('services'),
+      getCollection('events'),
+      getCollection('commands'),
+      getCollection('queries'),
+      getCollection('teams'),
+      getAdrs({ getAllVersions: false }),
+    ]
+  );
 
   // 2. Filter users
   const targetUsers = allUsers.filter((user) => user.data.hidden !== true);
@@ -59,6 +63,7 @@ export const getUsers = async (): Promise<User[]> => {
   addToIndex(allEvents);
   addToIndex(allCommands);
   addToIndex(allQueries);
+  addToIndex(allAdrs);
 
   // Team Membership Index: Map<UserID, Team[]>
   const teamMembershipMap = new Map<string, typeof visibleTeams>();
@@ -92,6 +97,7 @@ export const getUsers = async (): Promise<User[]> => {
     const ownedEvents = allOwnedItems.filter((i) => i.collection === 'events') as CollectionEntry<'events'>[];
     const ownedCommands = allOwnedItems.filter((i) => i.collection === 'commands') as CollectionEntry<'commands'>[];
     const ownedQueries = allOwnedItems.filter((i) => i.collection === 'queries') as CollectionEntry<'queries'>[];
+    const ownedAdrs = allOwnedItems.filter((i) => i.collection === 'adrs') as CollectionEntry<'adrs'>[];
 
     return {
       ...user,
@@ -103,6 +109,7 @@ export const getUsers = async (): Promise<User[]> => {
         ownedEvents,
         ownedCommands,
         ownedQueries,
+        ownedAdrs,
         associatedTeams,
       },
     };

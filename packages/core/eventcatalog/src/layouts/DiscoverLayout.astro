@@ -10,7 +10,8 @@ import { getServices } from '@utils/collections/services';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
 import { getContainers } from '@utils/collections/containers';
-import { DatabaseIcon } from 'lucide-react';
+import { BookText, DatabaseIcon } from 'lucide-react';
+import { getAdrs } from '@utils/collections/adrs';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 import Checkbox from '@components/Checkbox.astro';
@@ -23,6 +24,7 @@ const services = await getServices();
 const domains = await getDomains();
 const flows = await getFlows();
 const containers = await getContainers();
+const adrs = await getAdrs();
 export interface Props<T extends TCollectionTypes> {
   title: string;
   subtitle: string;
@@ -84,6 +86,15 @@ const tabs = [
     activeColor: 'yellow',
     enabled: domains.length > 0,
     visible: domains.length > 0,
+  },
+  {
+    label: `Decision Records (${adrs.length})`,
+    href: buildUrl('/discover/adrs'),
+    isActive: currentPath === '/discover/adrs',
+    icon: BookText,
+    activeColor: 'purple',
+    enabled: adrs.length > 0,
+    visible: adrs.length > 0,
   },
   {
     label: `Data (${containers.length})`,

@@ -24,6 +24,7 @@ type BuildSearchIndexOptions = {
 };
 
 const RESOURCE_COLLECTIONS: Record<string, { docsPath: string; type: string }> = {
+  adrs: { docsPath: 'adrs', type: 'Architecture Decision' },
   agents: { docsPath: 'agents', type: 'Agent' },
   channels: { docsPath: 'channels', type: 'Channel' },
   commands: { docsPath: 'commands', type: 'Command' },
@@ -115,6 +116,9 @@ const findResourceSegment = (segments: string[]) => {
 
   for (let index = 0; index < segments.length - 1; index++) {
     const segment = segments[index];
+    if (segments[index - 1] === 'docs') {
+      continue;
+    }
     if (RESOURCE_COLLECTIONS[segment] && segments[index + 1]) {
       match = { index, segment };
     }
@@ -318,6 +322,10 @@ export const collectSearchRecords = async ({
         summary: baseRecord.summary,
         version: baseRecord.version,
         owners: parsed.data.owners,
+        status: parsed.data.status,
+        date: parsed.data.date,
+        decisionMakers: parsed.data.decisionMakers,
+        appliesTo: parsed.data.appliesTo,
         badges: parsed.data.badges,
       });
 

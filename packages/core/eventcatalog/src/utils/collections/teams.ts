@@ -1,6 +1,7 @@
 import type { CollectionTypes } from '@types';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
+import { getAdrs } from './adrs';
 
 export type Team = CollectionEntry<'teams'>;
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
@@ -15,7 +16,7 @@ export const getTeams = async (): Promise<Team[]> => {
   }
 
   // 1. Fetch all collections in parallel
-  const [allTeams, allAgents, allDomains, allServices, allEvents, allCommands, allQueries] = await Promise.all([
+  const [allTeams, allAgents, allDomains, allServices, allEvents, allCommands, allQueries, allAdrs] = await Promise.all([
     getCollection('teams'),
     getCollection('agents'),
     getCollection('domains'),
@@ -23,6 +24,7 @@ export const getTeams = async (): Promise<Team[]> => {
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
+    getAdrs({ getAllVersions: false }),
   ]);
 
   // 2. Filter teams
@@ -52,6 +54,7 @@ export const getTeams = async (): Promise<Team[]> => {
   addToIndex(allEvents);
   addToIndex(allCommands);
   addToIndex(allQueries);
+  addToIndex(allAdrs);
 
   // 4. Enrich teams using the ownership index
   const processedTeams = targetTeams.map((team) => {
@@ -65,6 +68,7 @@ export const getTeams = async (): Promise<Team[]> => {
     const ownedEvents = ownedItems.filter((i) => i.collection === 'events') as CollectionEntry<'events'>[];
     const ownedCommands = ownedItems.filter((i) => i.collection === 'commands') as CollectionEntry<'commands'>[];
     const ownedQueries = ownedItems.filter((i) => i.collection === 'queries') as CollectionEntry<'queries'>[];
+    const ownedAdrs = ownedItems.filter((i) => i.collection === 'adrs') as CollectionEntry<'adrs'>[];
 
     return {
       ...team,
@@ -76,6 +80,7 @@ export const getTeams = async (): Promise<Team[]> => {
         ownedCommands,
         ownedQueries,
         ownedEvents,
+        ownedAdrs,
       },
     };
   });

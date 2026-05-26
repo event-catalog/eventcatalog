@@ -1,5 +1,6 @@
 export type CollectionTypes =
   | 'agents'
+  | 'adrs'
   | 'commands'
   | 'events'
   | 'queries'
@@ -15,6 +16,7 @@ export type CollectionMessageTypes = 'commands' | 'events' | 'queries';
 export type CollectionUserTypes = 'users' | 'teams';
 export type PageTypes =
   | 'agents'
+  | 'adrs'
   | 'events'
   | 'commands'
   | 'queries'

@@ -14,6 +14,7 @@ export class Page extends HybridPage {
 
     const itemTypes: PageTypes[] = [
       'agents',
+      'adrs',
       'events',
       'commands',
       'queries',

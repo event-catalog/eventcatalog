@@ -7,6 +7,7 @@ import type { CollectionEntry } from 'astro:content';
 import OwnersList from '@components/Lists/OwnersList';
 import PillListFlat from '@components/Lists/PillListFlat';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
+import { formatAdrStatus } from '@utils/collections/adrs';
 import { buildUrl } from '@utils/url-builder';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { Page } from './_index.data';
@@ -25,6 +26,7 @@ const services = props.data.ownedServices as CollectionEntry<'services'>[];
 const events = props.data.ownedEvents as CollectionEntry<'events'>[];
 const commands = props.data.ownedCommands as CollectionEntry<'commands'>[];
 const queries = props.data.ownedQueries as CollectionEntry<'queries'>[];
+const adrs = props.data.ownedAdrs as CollectionEntry<'adrs'>[];
 const teams = props.data.associatedTeams as CollectionEntry<'teams'>[];
 
 const ownedDomainsList = domains.map((p) => ({
@@ -55,6 +57,14 @@ const ownedMessageList = [...events, ...commands, ...queries].map((p) => ({
   collection: p.collection,
   tag: `v${p.data.version}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+}));
+
+const ownedAdrsList = adrs.map((p) => ({
+  label: `${p.data.name}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  collection: p.collection,
+  tag: `v${p.data.version}`,
+  description: formatAdrStatus(p.data.status),
 }));
 
 const associatedTeams = teams.map((o) => ({
@@ -136,7 +146,7 @@ const pageTitle = `User | ${props.data.name}`;
           </div>
         </div>
         <div class="border-b border-[rgb(var(--ec-page-border))] py-4" data-pagefind-ignore>
-          <dl class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <dl class="grid grid-cols-2 gap-3 sm:grid-cols-6">
             <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
               <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Domains</dt>
               <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedDomainsList.length}</dd>
@@ -152,6 +162,10 @@ const pageTitle = `User | ${props.data.name}`;
             <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
               <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Messages</dt>
               <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedMessageList.length}</dd>
+            </div>
+            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
+              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Decisions</dt>
+              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedAdrsList.length}</dd>
             </div>
             <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
               <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Teams</dt>
@@ -208,6 +222,17 @@ const pageTitle = `User | ${props.data.name}`;
                 title={`Owned messages (${ownedMessageList.length})`}
                 pills={ownedMessageList}
                 emptyMessage={`${props.data.name} does not own any messages.`}
+                client:load
+              />
+            )
+          }
+          {
+            ownedAdrsList.length > 0 && (
+              <PillListFlat
+                color="orange"
+                title={`Owned ADRs (${ownedAdrsList.length})`}
+                pills={ownedAdrsList}
+                emptyMessage={`${props.data.name} does not own any decision records.`}
                 client:load
               />
             )

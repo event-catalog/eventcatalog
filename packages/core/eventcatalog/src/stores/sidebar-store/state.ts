@@ -1,6 +1,8 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import { getAgents } from '@utils/collections/agents';
+import { getAdrAliasNodeKey, getAdrNodeKey, getAdrs, type Adr } from '@utils/collections/adrs';
+import { ADR_STATUS_VALUES, formatAdrStatus } from '@utils/collections/adr-constants';
 import { getContainers } from '@utils/collections/containers';
 import { getDomains } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
@@ -22,12 +24,18 @@ import { buildMessageNode } from './builders/message';
 import { buildContainerNode } from './builders/container';
 import { buildFlowNode } from './builders/flow';
 import { buildDataProductNode } from './builders/data-product';
+import { buildAdrNode } from './builders/adr';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { iconFieldsForResource } from '@utils/icon';
-import { buildQuickReferenceSection, buildResourceDocsSection, shouldRenderSideBarSection } from './builders/shared';
+import {
+  buildQuickReferenceSection,
+  buildResourceDocsSection,
+  shouldRenderSideBarSection,
+  withArchitectureDecisionsSection,
+} from './builders/shared';
 import { isChangelogEnabled } from '@utils/feature';
 
 export type { NavigationData, NavNode, ChildRef };
@@ -40,6 +48,35 @@ type AgentEntry = CollectionEntry<'agents'>;
 type ServiceEntry = CollectionEntry<'services'>;
 type ContainerEntry = CollectionEntry<'containers'>;
 type DataProductEntry = CollectionEntry<'data-products'>;
+
+const byResourceName = <T extends { data: { name?: string; id: string } }>(a: T, b: T) => {
+  const name = (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  if (name !== 0) return name;
+  return a.data.id.localeCompare(b.data.id);
+};
+
+const sortByResourceName = <T extends { data: { name?: string; id: string } }>(items: T[]) => [...items].sort(byResourceName);
+
+const byAdrDateDesc = (a: Adr, b: Adr) => {
+  const date = new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
+  if (date !== 0) return date;
+  return byResourceName(a, b);
+};
+
+const groupAdrsByStatus = (adrs: Adr[]): NavNode[] =>
+  ADR_STATUS_VALUES.reduce<NavNode[]>((groups, status) => {
+    const adrsForStatus = adrs.filter((adr) => adr.data.status === status);
+    if (adrsForStatus.length === 0) return groups;
+
+    groups.push({
+      type: 'group',
+      title: `${formatAdrStatus(status)} (${adrsForStatus.length})`,
+      subtle: true,
+      pages: [...adrsForStatus].sort(byAdrDateDesc).map(getAdrNodeKey),
+    });
+
+    return groups;
+  }, []);
 
 const getMessageNodeKey = (message: MessageEntry) =>
   `${pluralizeMessageType(message)}:${message.data.id}:${message.data.version}`;
@@ -254,6 +291,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     diagrams,
     dataProducts,
     entities,
+    adrs,
     resourceDocs,
     resourceDocCategories,
   ] = await Promise.all([
@@ -270,6 +308,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getDiagrams({ getAllVersions: false }),
     getDataProducts({ getAllVersions: false }),
     getEntities({ getAllVersions: false }),
+    getAdrs({ getAllVersions: false }),
     getResourceDocs(),
     getResourceDocCategories(),
   ]);
@@ -289,9 +328,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     queries,
     flows,
     containers,
+    channels,
     diagrams,
     dataProducts,
     entities,
+    adrs,
+    users,
+    teams,
     resourceDocs,
     resourceDocCategories,
   };
@@ -348,9 +391,25 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     })
   );
 
+  const adrsWithOwners = await Promise.all(
+    adrs.map(async (adr) => {
+      const owners = await Promise.all((adr.data.owners || []).map((owner) => getOwner(owner)));
+      const decisionMakers = await Promise.all((adr.data.decisionMakers || []).map((owner) => getOwner(owner)));
+      return {
+        adr,
+        owners: owners.filter((o) => o !== undefined),
+        decisionMakers: decisionMakers.filter((o) => o !== undefined),
+      };
+    })
+  );
+
   const flowNodes = flows.reduce(
     (acc, flow) => {
-      acc[`flow:${flow.data.id}:${flow.data.version}`] = buildFlowNode(flow, context);
+      acc[`flow:${flow.data.id}:${flow.data.version}`] = withArchitectureDecisionsSection(
+        buildFlowNode(flow, context),
+        flow,
+        adrs
+      );
       return acc;
     },
     {} as Record<string, NavNode>
@@ -359,7 +418,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const domainNodes = domainsWithOwners.reduce(
     (acc, { domain, owners }) => {
       const versionedKey = `domain:${domain.data.id}:${domain.data.version}`;
-      acc[versionedKey] = buildDomainNode(domain, owners, context);
+      acc[versionedKey] = withArchitectureDecisionsSection(buildDomainNode(domain, owners, context), domain, adrs);
       if (domain.data.latestVersion === domain.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`domain:${domain.data.id}`] = versionedKey;
@@ -447,7 +506,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     (acc, { agent, owners }) => {
       const versionedKey = `agent:${agent.data.id}:${agent.data.version}`;
       const agentChannels = agentChannelsMap.get(`${agent.data.id}:${agent.data.version}`) || [];
-      acc[versionedKey] = buildAgentNode(agent, owners, context, agentChannels, flowRefsByAgent.get(versionedKey) || []);
+      acc[versionedKey] = withArchitectureDecisionsSection(
+        buildAgentNode(agent, owners, context, agentChannels, flowRefsByAgent.get(versionedKey) || []),
+        agent,
+        adrs
+      );
       if (agent.data.latestVersion === agent.data.version) {
         acc[`agent:${agent.data.id}`] = versionedKey;
       }
@@ -460,7 +523,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     (acc, { service, owners }) => {
       const versionedKey = `service:${service.data.id}:${service.data.version}`;
       const serviceChannels = serviceChannelsMap.get(`${service.data.id}:${service.data.version}`) || [];
-      acc[versionedKey] = buildServiceNode(service, owners, context, serviceChannels, flowRefsByService.get(versionedKey) || []);
+      acc[versionedKey] = withArchitectureDecisionsSection(
+        buildServiceNode(service, owners, context, serviceChannels, flowRefsByService.get(versionedKey) || []),
+        service,
+        adrs
+      );
       if (service.data.latestVersion === service.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`service:${service.data.id}`] = versionedKey;
@@ -498,7 +565,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       const type = pluralizeMessageType(message as any);
       const versionedKey = `${type}:${message.data.id}:${message.data.version}`;
       const hasFieldUsage = messagesWithFieldUsage.has(message.data.id);
-      acc[versionedKey] = buildMessageNode(message, owners, context, hasFieldUsage, flowRefsByMessage.get(versionedKey) || []);
+      acc[versionedKey] = withArchitectureDecisionsSection(
+        buildMessageNode(message, owners, context, hasFieldUsage, flowRefsByMessage.get(versionedKey) || []),
+        message,
+        adrs
+      );
       if (message.data.latestVersion === message.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`${type}:${message.data.id}`] = versionedKey;
@@ -513,7 +584,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const containerNodes = containerWithOwners.reduce(
     (acc, { container, owners }) => {
       const versionedKey = `container:${container.data.id}:${container.data.version}`;
-      acc[versionedKey] = buildContainerNode(container, owners, context, flowRefsByContainer.get(versionedKey) || []);
+      acc[versionedKey] = withArchitectureDecisionsSection(
+        buildContainerNode(container, owners, context, flowRefsByContainer.get(versionedKey) || []),
+        container,
+        adrs
+      );
       if (container.data.latestVersion === container.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`container:${container.data.id}`] = versionedKey;
@@ -547,11 +622,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const dataProductNodes = dataProductWithOwners.reduce(
     (acc, { dataProduct, owners }) => {
       const versionedKey = `data-product:${dataProduct.data.id}:${dataProduct.data.version}`;
-      acc[versionedKey] = buildDataProductNode(
+      acc[versionedKey] = withArchitectureDecisionsSection(
+        buildDataProductNode(dataProduct, owners, dataProductContext, flowRefsByDataProduct.get(versionedKey) || []),
         dataProduct,
-        owners,
-        dataProductContext,
-        flowRefsByDataProduct.get(versionedKey) || []
+        adrs
       );
       if (dataProduct.data.latestVersion === dataProduct.data.version) {
         acc[`data-product:${dataProduct.data.id}`] = versionedKey;
@@ -561,17 +635,33 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  const adrNodes = adrsWithOwners.reduce(
+    (acc, { adr, owners, decisionMakers }) => {
+      const versionedKey = getAdrNodeKey(adr);
+      acc[versionedKey] = buildAdrNode(adr, owners, decisionMakers, context);
+      if (adr.data.latestVersion === adr.data.version) {
+        acc[getAdrAliasNodeKey(adr)] = versionedKey;
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode | string>
+  );
+
   const entityNodes = entities.reduce(
     (acc, entity) => {
       const versionedKey = `entity:${entity.data.id}:${entity.data.version}`;
-      acc[versionedKey] = {
-        type: 'item',
-        title: entity.data.name,
-        badge: 'Entity',
-        summary: entity.data.summary,
-        icon: 'Box',
-        href: buildUrl(`/docs/entities/${entity.data.id}/${entity.data.version}`),
-      };
+      acc[versionedKey] = withArchitectureDecisionsSection(
+        {
+          type: 'item',
+          title: entity.data.name,
+          badge: 'Entity',
+          summary: entity.data.summary,
+          icon: 'Box',
+          href: buildUrl(`/docs/entities/${entity.data.id}/${entity.data.version}`),
+        },
+        entity,
+        adrs
+      );
       if (entity.data.latestVersion === entity.data.version) {
         acc[`entity:${entity.data.id}`] = versionedKey;
       }
@@ -593,13 +683,38 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode>
   );
 
+  const diagramNodes = diagrams.reduce(
+    (acc, diagram) => {
+      const versionedKey = `diagram:${diagram.data.id}:${diagram.data.version}`;
+      acc[versionedKey] = withArchitectureDecisionsSection(
+        {
+          type: 'item',
+          title: diagram.data.name,
+          badge: 'Diagram',
+          href: buildUrl(`/diagrams/${diagram.data.id}/${diagram.data.version}`),
+        },
+        diagram,
+        adrs
+      );
+      if (diagram.data.latestVersion === diagram.data.version) {
+        acc[`diagram:${diagram.data.id}`] = versionedKey;
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode | string>
+  );
+
   const userNodes = users.reduce(
     (acc, user) => {
-      acc[`user:${user.data.id}`] = {
-        type: 'item',
-        title: user.data.name,
-        href: buildUrl(`/docs/users/${user.data.id}`),
-      };
+      acc[`user:${user.data.id}`] = withArchitectureDecisionsSection(
+        {
+          type: 'item',
+          title: user.data.name,
+          href: buildUrl(`/docs/users/${user.data.id}`),
+        },
+        user,
+        adrs
+      );
       return acc;
     },
     {} as Record<string, NavNode>
@@ -615,29 +730,33 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
         resourceDocs,
         resourceDocCategories
       );
-      acc[versionedKey] = {
-        type: 'item',
-        title: channel.data.name,
-        badge: 'Channel',
-        summary: channel.data.summary,
-        ...iconFieldsForResource(channel.data, 'ArrowRightLeft'),
-        pages: [
-          buildQuickReferenceSection(
-            [
-              {
-                title: 'Overview',
-                href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
-              },
-              isChangelogEnabled() &&
-                shouldRenderSideBarSection(channel, 'changelog') && {
-                  title: 'Changelog',
-                  href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}/changelog`),
+      acc[versionedKey] = withArchitectureDecisionsSection(
+        {
+          type: 'item',
+          title: channel.data.name,
+          badge: 'Channel',
+          summary: channel.data.summary,
+          ...iconFieldsForResource(channel.data, 'ArrowRightLeft'),
+          pages: [
+            buildQuickReferenceSection(
+              [
+                {
+                  title: 'Overview',
+                  href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
                 },
-            ].filter(Boolean) as { title: string; href: string }[]
-          ),
-          docsSection,
-        ].filter(Boolean) as ChildRef[],
-      };
+                isChangelogEnabled() &&
+                  shouldRenderSideBarSection(channel, 'changelog') && {
+                    title: 'Changelog',
+                    href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}/changelog`),
+                  },
+              ].filter(Boolean) as { title: string; href: string }[]
+            ),
+            docsSection,
+          ].filter(Boolean) as ChildRef[],
+        },
+        channel,
+        adrs
+      );
 
       if (channel.data.latestVersion === channel.data.version) {
         // Store reference to versioned key instead of duplicating the full node
@@ -650,11 +769,15 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const teamNodes = teams.reduce(
     (acc, team) => {
-      acc[`team:${team.data.id}`] = {
-        type: 'item',
-        title: team.data.name,
-        href: buildUrl(`/docs/teams/${team.data.id}`),
-      };
+      acc[`team:${team.data.id}`] = withArchitectureDecisionsSection(
+        {
+          type: 'item',
+          title: team.data.name,
+          href: buildUrl(`/docs/teams/${team.data.id}`),
+        },
+        team,
+        adrs
+      );
       return acc;
     },
     {} as Record<string, NavNode>
@@ -667,7 +790,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       type: 'group',
       title: 'Domains',
       icon: 'Boxes',
-      pages: rootDomains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
+      pages: sortByResourceName(rootDomains).map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
     };
   }
 
@@ -677,14 +800,21 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     type: 'item',
     title: 'Domains',
     icon: 'Boxes',
-    pages: domains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
+    pages: sortByResourceName(domains).map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
   });
 
   const agentsList = createLeaf(agents, {
     type: 'item',
     title: 'Agents',
     icon: 'Bot',
-    pages: agents.map((agent) => `agent:${agent.data.id}:${agent.data.version}`),
+    pages: sortByResourceName(agents).map((agent) => `agent:${agent.data.id}:${agent.data.version}`),
+  });
+
+  const adrsList = createLeaf(adrs, {
+    type: 'item',
+    title: 'Decision Records',
+    icon: 'BookText',
+    pages: groupAdrsByStatus(adrs),
   });
 
   const internalServices = services.filter((service) => !service.data.externalSystem);
@@ -694,91 +824,93 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     type: 'item',
     title: 'Services',
     icon: 'Server',
-    pages: internalServices.map((service) => `service:${service.data.id}:${service.data.version}`),
+    pages: sortByResourceName(internalServices).map((service) => `service:${service.data.id}:${service.data.version}`),
   });
 
   const externalSystemsList = createLeaf(externalServices, {
     type: 'item',
     title: 'External Systems',
     icon: 'Globe',
-    pages: externalServices.map((service) => `service:${service.data.id}:${service.data.version}`),
+    pages: sortByResourceName(externalServices).map((service) => `service:${service.data.id}:${service.data.version}`),
   });
 
   const eventsList = createLeaf(events, {
     type: 'group',
     title: 'Events',
     icon: 'Zap',
-    pages: events.map((event) => `event:${event.data.id}:${event.data.version}`),
+    pages: sortByResourceName(events).map((event) => `event:${event.data.id}:${event.data.version}`),
   });
 
   const commandsList = createLeaf(commands, {
     type: 'group',
     title: 'Commands',
     icon: 'Terminal',
-    pages: commands.map((command) => `command:${command.data.id}:${command.data.version}`),
+    pages: sortByResourceName(commands).map((command) => `command:${command.data.id}:${command.data.version}`),
   });
 
   const queriesList = createLeaf(queries, {
     type: 'group',
     title: 'Queries',
     icon: 'Search',
-    pages: queries.map((query) => `query:${query.data.id}:${query.data.version}`),
+    pages: sortByResourceName(queries).map((query) => `query:${query.data.id}:${query.data.version}`),
   });
 
   const flowsList = createLeaf(flows, {
     type: 'item',
     title: 'Flows',
     icon: 'Waypoints',
-    pages: flows.map((flow) => `flow:${flow.data.id}:${flow.data.version}`),
+    pages: sortByResourceName(flows).map((flow) => `flow:${flow.data.id}:${flow.data.version}`),
   });
 
   const containersList = createLeaf(containers, {
     type: 'item',
     title: 'Data Stores',
     icon: 'Database',
-    pages: containers.map((container) => `container:${container.data.id}:${container.data.version}`),
+    pages: sortByResourceName(containers).map((container) => `container:${container.data.id}:${container.data.version}`),
   });
 
   const dataProductsList = createLeaf(dataProducts, {
     type: 'item',
     title: 'Data Products',
     icon: 'Package',
-    pages: dataProducts.map((dataProduct) => `data-product:${dataProduct.data.id}:${dataProduct.data.version}`),
+    pages: sortByResourceName(dataProducts).map(
+      (dataProduct) => `data-product:${dataProduct.data.id}:${dataProduct.data.version}`
+    ),
   });
 
   const entitiesList = createLeaf(entities, {
     type: 'item',
     title: 'Entities',
     icon: 'Box',
-    pages: entities.map((entity) => `entity:${entity.data.id}:${entity.data.version}`),
+    pages: sortByResourceName(entities).map((entity) => `entity:${entity.data.id}:${entity.data.version}`),
   });
 
   const designsList = createLeaf(designs, {
     type: 'item',
     title: 'Designs',
     icon: 'SquareMousePointer',
-    pages: designs.map((design) => `design:${design.data.id}`),
+    pages: sortByResourceName(designs).map((design) => `design:${design.data.id}`),
   });
 
   const teamsList = createLeaf(teams, {
     type: 'group',
     title: 'Teams',
     icon: 'Users',
-    pages: teams.map((team) => `team:${team.data.id}`),
+    pages: sortByResourceName(teams).map((team) => `team:${team.data.id}`),
   });
 
   const usersList = createLeaf(users, {
     type: 'group',
     title: 'Users',
     icon: 'User',
-    pages: users.map((user) => `user:${user.data.id}`),
+    pages: sortByResourceName(users).map((user) => `user:${user.data.id}`),
   });
 
   const channelList = createLeaf(channels, {
     type: 'item',
     title: 'Channels',
     icon: 'ArrowRightLeft',
-    pages: channels.map((channel) => `channel:${channel.data.id}:${channel.data.version}`),
+    pages: sortByResourceName(channels).map((channel) => `channel:${channel.data.id}:${channel.data.version}`),
   });
 
   const messagesChildren = ['list:events', 'list:commands', 'list:queries'].filter(
@@ -811,6 +943,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     'list:domains',
     'list:services',
     'list:agents',
+    'list:adrs',
     'list:external-systems',
     'list:messages',
     'list:channels',
@@ -825,6 +958,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     domainsList,
     servicesList,
     agentsList,
+    adrsList,
     externalSystemsList,
     messagesList,
     channelList,
@@ -836,7 +970,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     peopleList,
   ];
 
-  const validAllChildren = allChildrenKeys.filter((_, idx) => allChildrenNodes[idx] !== undefined);
+  const validAllChildren = allChildrenKeys
+    .map((key, idx) => ({ key, node: allChildrenNodes[idx] }))
+    .filter((item): item is { key: string; node: NavNode } => item.node !== undefined)
+    .sort((a, b) => a.node.title.localeCompare(b.node.title))
+    .map((item) => item.key);
 
   let allList;
   if (validAllChildren.length > 0) {
@@ -852,6 +990,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...(domainsList ? { 'list:domains': domainsList } : {}),
     ...(servicesList ? { 'list:services': servicesList } : {}),
     ...(agentsList ? { 'list:agents': agentsList } : {}),
+    ...(adrsList ? { 'list:adrs': adrsList } : {}),
     ...(externalSystemsList ? { 'list:external-systems': externalSystemsList } : {}),
     ...(eventsList ? { 'list:events': eventsList } : {}),
     ...(commandsList ? { 'list:commands': commandsList } : {}),
@@ -892,6 +1031,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...rootDomainsNodes,
     ...domainNodes,
     ...agentNodes,
+    ...adrNodes,
     ...serviceNodes,
     ...messageNodes,
     ...channelNodes,
@@ -901,6 +1041,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...flowNodes,
     ...userNodes,
     ...teamNodes,
+    ...diagramNodes,
     ...designNodes,
     ...systemNode,
     ...allNodes,
