@@ -265,16 +265,25 @@ describe('userTeamDirectoryLoader', () => {
     );
   });
 
-  it('uses cached source entries on subsequent loads', async () => {
+  it('refreshes source entries on subsequent loads', async () => {
     isEventCatalogScaleEnabled.mockReturnValue(true);
     const context = createContext();
-    const loadUsers = vi.fn(async () => [
-      {
-        id: 'jane',
-        name: 'Jane Doe',
-        avatarUrl: 'https://example.com/jane.png',
-      },
-    ]);
+    const loadUsers = vi
+      .fn()
+      .mockResolvedValueOnce([
+        {
+          id: 'jane',
+          name: 'Jane Doe',
+          avatarUrl: 'https://example.com/jane.png',
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'jane',
+          name: 'Jane Updated',
+          avatarUrl: 'https://example.com/jane-updated.png',
+        },
+      ]);
     const loader = userTeamDirectoryLoader({
       collection: 'users',
       local: {
@@ -286,7 +295,6 @@ describe('userTeamDirectoryLoader', () => {
         {
           type: 'directory',
           name: 'test-source',
-          cacheKey: 'test-cache',
           loadUsers,
         },
       ],
@@ -296,8 +304,13 @@ describe('userTeamDirectoryLoader', () => {
     context.store.clear();
     await loader.load(context as never);
 
-    expect(loadUsers).toHaveBeenCalledTimes(1);
-    expect(consoleLog).toHaveBeenCalledWith(expect.stringContaining('Using cached users from directory source "test-source"'));
+    expect(loadUsers).toHaveBeenCalledTimes(2);
+    expect(context.store.get('jane')).toMatchObject({
+      data: {
+        name: 'Jane Updated',
+        avatarUrl: 'https://example.com/jane-updated.png',
+      },
+    });
   });
 
   it('writes synced source entries to the EventCatalog directory store', async () => {

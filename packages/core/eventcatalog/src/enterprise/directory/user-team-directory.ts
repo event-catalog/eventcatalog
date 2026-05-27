@@ -23,7 +23,6 @@ type DirectoryEntry = {
 type DirectorySource = {
   type: 'directory';
   name: string;
-  cacheKey?: string;
   loadUsers?: () => Promise<DirectoryEntry[]>;
   loadTeams?: () => Promise<DirectoryEntry[]>;
 };
@@ -82,7 +81,7 @@ export const userTeamDirectoryLoader = ({
 
       for (const source of sources) {
         logDirectoryInfo(`Loading ${collection} from directory source "${source.name}"`);
-        const entries = await loadSourceEntries({ source, collection, loadEntries, context });
+        const entries = await loadSourceEntries({ source, loadEntries });
         let syncedEntries = 0;
         let skippedEntries = 0;
 
@@ -139,36 +138,13 @@ export const userTeamDirectoryLoader = ({
 
 const loadSourceEntries = async ({
   source,
-  collection,
   loadEntries,
-  context,
 }: {
   source: DirectorySource;
-  collection: UserTeamCollection;
   loadEntries: 'loadUsers' | 'loadTeams';
-  context: Parameters<Loader['load']>[0];
 }) => {
-  const cacheKey = getSourceCacheKey(source, collection);
-  const cachedEntries = context.meta.get(cacheKey);
-
-  if (cachedEntries) {
-    try {
-      logDirectoryInfo(`Using cached ${collection} from directory source "${source.name}"`);
-      return JSON.parse(cachedEntries) as DirectoryEntry[];
-    } catch {
-      context.meta.delete(cacheKey);
-      context.logger.warn(`Ignoring invalid cache for ${collection} from directory source "${source.name}"`);
-    }
-  }
-
-  const entries = (await source[loadEntries]?.()) ?? [];
-  context.meta.set(cacheKey, JSON.stringify(entries));
-
-  return entries;
+  return (await source[loadEntries]?.()) ?? [];
 };
-
-const getSourceCacheKey = (source: DirectorySource, collection: UserTeamCollection) =>
-  `directory:${collection}:${source.cacheKey ?? source.name}`;
 
 const getSourceProvider = (source: DirectorySource) => source.name.split(':')[0] || source.name;
 

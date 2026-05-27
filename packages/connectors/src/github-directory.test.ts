@@ -9,18 +9,16 @@ describe("githubDirectory", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
-  it("loads teams and their members from a GitHub organization", async () => {
+  it("loads configured teams and their members from a GitHub organization", async () => {
     fetchMock
       .mockResolvedValueOnce(
-        jsonResponse([
-          {
-            id: 123,
-            name: "Platform",
-            slug: "platform",
-            description: "Platform team",
-            html_url: "https://github.com/orgs/acme/teams/platform",
-          },
-        ]),
+        jsonResponse({
+          id: 123,
+          name: "Platform",
+          slug: "platform",
+          description: "Platform team",
+          html_url: "https://github.com/orgs/acme/teams/platform",
+        }),
       )
       .mockResolvedValueOnce(
         jsonResponse([
@@ -36,6 +34,7 @@ describe("githubDirectory", () => {
     const source = githubDirectory({
       org: "acme",
       token: "github-token",
+      teams: ["platform"],
     });
 
     await expect(source.loadTeams?.()).resolves.toEqual([
@@ -84,7 +83,7 @@ describe("githubDirectory", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      "https://api.github.com/orgs/acme/teams?per_page=100",
+      "https://api.github.com/orgs/acme/teams/platform?per_page=100",
       expect.objectContaining({
         headers: expect.objectContaining({
           authorization: "Bearer github-token",
@@ -99,29 +98,30 @@ describe("githubDirectory", () => {
     );
   });
 
-  it("filters teams by slug and avoids loading members when users are disabled", async () => {
-    fetchMock.mockResolvedValueOnce(
-      jsonResponse([
-        {
+  it("loads only configured teams and avoids loading members when users are disabled", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
           id: 123,
           name: "Platform",
           slug: "platform",
           description: null,
           html_url: "https://github.com/orgs/acme/teams/platform",
-        },
-        {
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
           id: 789,
           name: "Product",
           slug: "product",
           description: null,
           html_url: "https://github.com/orgs/acme/teams/product",
-        },
-      ]),
-    );
+        }),
+      );
 
     const source = githubDirectory({
       org: "acme",
-      teams: ["platform"],
+      teams: ["platform", "product"],
       users: false,
     });
 
@@ -145,26 +145,63 @@ describe("githubDirectory", () => {
           url: "https://github.com/orgs/acme/teams/platform",
         },
       },
+      {
+        id: "product",
+        name: "Product",
+        summary: undefined,
+        markdown: [
+          ":::note",
+          "This team is synced from GitHub and is read-only in EventCatalog.",
+          "",
+          "Manage the team and its members in GitHub.",
+          "",
+          "[View team on GitHub](https://github.com/orgs/acme/teams/product)",
+          ":::",
+        ].join("\n"),
+        source: {
+          provider: "github",
+          id: "789",
+          url: "https://github.com/orgs/acme/teams/product",
+        },
+      },
     ]);
     await expect(source.loadUsers?.()).resolves.toEqual([]);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "https://api.github.com/orgs/acme/teams/platform?per_page=100",
+      expect.any(Object),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "https://api.github.com/orgs/acme/teams/product?per_page=100",
+      expect.any(Object),
+    );
   });
 
-  it("follows GitHub pagination links", async () => {
+  it("follows GitHub pagination links for team members", async () => {
     fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          id: 123,
+          name: "Platform",
+          slug: "platform",
+          description: null,
+          html_url: "https://github.com/orgs/acme/teams/platform",
+        }),
+      )
       .mockResolvedValueOnce(
         jsonResponse(
           [
             {
-              id: 123,
-              name: "Platform",
-              slug: "platform",
-              description: null,
-              html_url: "https://github.com/orgs/acme/teams/platform",
+              id: 456,
+              login: "jane",
+              avatar_url: "https://avatars.githubusercontent.com/u/456",
+              html_url: "https://github.com/jane",
             },
           ],
           {
-            link: '<https://api.github.com/orgs/acme/teams?page=2&per_page=100>; rel="next"',
+            link: '<https://api.github.com/orgs/acme/teams/platform/members?page=2&per_page=100>; rel="next"',
           },
         ),
       )
@@ -172,24 +209,33 @@ describe("githubDirectory", () => {
         jsonResponse([
           {
             id: 789,
-            name: "Product",
-            slug: "product",
-            description: null,
-            html_url: "https://github.com/orgs/acme/teams/product",
+            login: "john",
+            avatar_url: "https://avatars.githubusercontent.com/u/789",
+            html_url: "https://github.com/john",
           },
         ]),
       );
 
     const source = githubDirectory({
       org: "acme",
-      users: false,
+      teams: ["platform"],
     });
 
-    await expect(source.loadTeams?.()).resolves.toHaveLength(2);
+    await expect(source.loadUsers?.()).resolves.toHaveLength(2);
     expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      "https://api.github.com/orgs/acme/teams?page=2&per_page=100",
+      3,
+      "https://api.github.com/orgs/acme/teams/platform/members?page=2&per_page=100",
       expect.any(Object),
+    );
+  });
+
+  it("requires explicit team slugs", () => {
+    expect(() =>
+      githubDirectory({
+        org: "acme",
+      } as never),
+    ).toThrow(
+      'GitHub directory connector requires at least one team slug. Set teams: ["platform"].',
     );
   });
 
@@ -203,6 +249,7 @@ describe("githubDirectory", () => {
 
     const source = githubDirectory({
       org: "acme",
+      teams: ["platform"],
       users: false,
     });
 

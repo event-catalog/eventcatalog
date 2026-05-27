@@ -65,7 +65,6 @@ type DirectoryEntry = {
 type DirectorySource = {
   type: 'directory';
   name: string;
-  cacheKey?: string;
   loadUsers?: () => Promise<DirectoryEntry[]>;
   loadTeams?: () => Promise<DirectoryEntry[]>;
 };

@@ -11,7 +11,7 @@ export default {
     sources: [
       githubDirectory({
         org: "acme",
-        teams: true,
+        teams: ["platform", "architecture"],
         users: true,
         token: process.env.GITHUB_TOKEN,
       }),

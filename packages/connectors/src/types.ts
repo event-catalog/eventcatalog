@@ -59,8 +59,6 @@ export type DirectorySource = {
   type: "directory";
   /** Stable source identifier, usually `<provider>:<account-or-org>`. */
   name: string;
-  /** Optional stable cache key for this source configuration. */
-  cacheKey?: string;
   /** Load users from the external directory. */
   loadUsers?: () => Promise<DirectoryUser[]>;
   /** Load teams from the external directory. */

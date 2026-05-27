@@ -8,7 +8,7 @@ import {
 type GitHubDirectoryOptions = {
   org: string;
   token?: string;
-  teams?: true | string[];
+  teams: string[];
   users?: boolean;
   baseUrl?: string;
 };
@@ -38,6 +38,12 @@ const GITHUB_API_VERSION = "2022-11-28";
 export const githubDirectory = (
   options: GitHubDirectoryOptions,
 ): DirectorySource => {
+  if (!Array.isArray(options.teams) || options.teams.length === 0) {
+    throw new Error(
+      'GitHub directory connector requires at least one team slug. Set teams: ["platform"].',
+    );
+  }
+
   let cachedData: Promise<GitHubDirectoryData> | undefined;
 
   const load = () => {
@@ -48,7 +54,6 @@ export const githubDirectory = (
   return defineDirectorySource({
     type: "directory",
     name: `github:${options.org}`,
-    cacheKey: createGitHubDirectoryCacheKey(options),
     loadTeams: async () => {
       const data = await load();
       return data.teams;
@@ -58,17 +63,6 @@ export const githubDirectory = (
       return data.users;
     },
   });
-};
-
-const createGitHubDirectoryCacheKey = (options: GitHubDirectoryOptions) => {
-  const teams =
-    options.teams === true || options.teams === undefined
-      ? "all"
-      : [...options.teams].sort().join(",");
-  const users = options.users !== false ? "true" : "false";
-  const baseUrl = options.baseUrl ?? "https://api.github.com";
-
-  return `github:${baseUrl}:${options.org}:teams=${teams}:users=${users}`;
 };
 
 const loadGitHubDirectory = async (
@@ -106,28 +100,38 @@ const loadGitHubDirectory = async (
 const loadGitHubTeams = async (
   options: GitHubDirectoryOptions,
 ): Promise<DirectoryTeam[]> => {
-  const teams = await paginate<GitHubTeam>(
-    options,
-    `/orgs/${encodeURIComponent(options.org)}/teams`,
-  );
-  const configuredTeams =
-    options.teams === undefined || options.teams === true
-      ? undefined
-      : new Set(options.teams);
+  const teams: GitHubTeam[] = [];
 
-  return teams
-    .filter((team) => !configuredTeams || configuredTeams.has(team.slug))
-    .map((team) => ({
-      id: team.slug,
-      name: team.name,
-      summary: team.description ?? undefined,
-      markdown: createGitHubSyncedMarkdown("team", team.html_url),
-      source: {
-        provider: "github",
-        id: String(team.id),
-        url: team.html_url,
-      },
-    }));
+  for (const teamSlug of options.teams) {
+    teams.push(await loadGitHubTeam(options, teamSlug));
+  }
+
+  return teams.map((team) => ({
+    id: team.slug,
+    name: team.name,
+    summary: team.description ?? undefined,
+    markdown: createGitHubSyncedMarkdown("team", team.html_url),
+    source: {
+      provider: "github",
+      id: String(team.id),
+      url: team.html_url,
+    },
+  }));
+};
+
+const loadGitHubTeam = async (
+  options: GitHubDirectoryOptions,
+  teamSlug: string,
+) => {
+  const response = await githubRequest<GitHubTeam>(
+    options,
+    buildGitHubUrl(
+      options,
+      `/orgs/${encodeURIComponent(options.org)}/teams/${encodeURIComponent(teamSlug)}`,
+    ),
+  );
+
+  return response.data;
 };
 
 const loadGitHubTeamMembers = async (
