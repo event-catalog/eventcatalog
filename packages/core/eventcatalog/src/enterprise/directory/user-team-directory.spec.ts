@@ -119,6 +119,7 @@ describe('userTeamDirectoryLoader', () => {
               markdown: '# Jane',
               source: {
                 provider: 'github',
+                id: 'github-user-123',
                 url: 'https://github.com/jane',
               },
             },
@@ -137,6 +138,7 @@ describe('userTeamDirectoryLoader', () => {
         avatarUrl: 'https://example.com/jane.png',
         source: {
           provider: 'github',
+          id: 'github-user-123',
           url: 'https://github.com/jane',
         },
         readOnly: true,
@@ -150,6 +152,7 @@ describe('userTeamDirectoryLoader', () => {
         avatarUrl: 'https://example.com/jane.png',
         source: {
           provider: 'github',
+          id: 'github-user-123',
           url: 'https://github.com/jane',
         },
         readOnly: true,
@@ -171,6 +174,7 @@ describe('userTeamDirectoryLoader', () => {
         avatarUrl: 'https://example.com/jane.png',
         source: {
           provider: 'github',
+          id: 'github-user-123',
           url: 'https://github.com/jane',
         },
         readOnly: true,
@@ -336,6 +340,7 @@ describe('userTeamDirectoryLoader', () => {
               markdown: '# Core Maintainers',
               source: {
                 provider: 'github',
+                id: 'github-team-123',
                 url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
               },
             },
@@ -360,6 +365,7 @@ describe('userTeamDirectoryLoader', () => {
               readOnly: true,
               source: {
                 provider: 'github',
+                id: 'github-team-123',
                 url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
               },
             },
@@ -367,6 +373,86 @@ describe('userTeamDirectoryLoader', () => {
         },
       });
       expect(store.generatedAt).toEqual(expect.any(String));
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('deduplicates synced store entries when source-wins replaces an earlier directory source entry', async () => {
+    isEventCatalogScaleEnabled.mockReturnValue(true);
+    const context = createContext();
+    const tempDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-directory-store-'));
+    const storePath = path.join(tempDir, '.eventcatalog', 'store', 'directory.json');
+    const loader = userTeamDirectoryLoader({
+      collection: 'users',
+      local: {
+        pattern: 'users/*.(md|mdx)',
+        base: tempDir,
+      },
+      conflictStrategy: 'source-wins',
+      storePath,
+      sources: [
+        {
+          type: 'directory',
+          name: 'github:first',
+          loadUsers: async () => [
+            {
+              id: 'jane',
+              name: 'Jane From First Source',
+              markdown: 'First source Jane',
+              source: {
+                provider: 'github',
+                id: 'first-source-jane',
+              },
+            },
+          ],
+        },
+        {
+          type: 'directory',
+          name: 'github:second',
+          loadUsers: async () => [
+            {
+              id: 'jane',
+              name: 'Jane From Second Source',
+              markdown: 'Second source Jane',
+              source: {
+                provider: 'github',
+                id: 'second-source-jane',
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    try {
+      await loader.load(context as never);
+
+      const store = JSON.parse(await readFile(storePath, 'utf8'));
+      expect(store.resources.users).toEqual([
+        {
+          id: 'jane',
+          name: 'Jane From Second Source',
+          markdown: 'Second source Jane',
+          readOnly: true,
+          source: {
+            provider: 'github',
+            id: 'second-source-jane',
+          },
+        },
+      ]);
+      expect(context.store.get('jane')).toMatchObject({
+        data: {
+          id: 'jane',
+          name: 'Jane From Second Source',
+          source: {
+            provider: 'github',
+            id: 'second-source-jane',
+          },
+          readOnly: true,
+        },
+        body: 'Second source Jane',
+      });
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }

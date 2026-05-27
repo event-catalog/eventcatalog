@@ -41,9 +41,8 @@ type DirectoryStoreResource = DirectoryEntry & {
   id: string;
   markdown: string;
   readOnly: true;
-  source: {
+  source: NonNullable<DirectoryEntry['source']> & {
     provider: string;
-    url?: string;
   };
 };
 
@@ -77,7 +76,7 @@ export const userTeamDirectoryLoader = ({
       }
 
       const loadEntries = collection === 'users' ? 'loadUsers' : 'loadTeams';
-      const syncedDirectoryStoreResources: DirectoryStoreResource[] = [];
+      const syncedDirectoryStoreResources = new Map<string, DirectoryStoreResource>();
 
       for (const source of sources) {
         logDirectoryInfo(`Loading ${collection} from directory source "${source.name}"`);
@@ -108,7 +107,7 @@ export const userTeamDirectoryLoader = ({
             id: entry.id,
             data,
           });
-          syncedDirectoryStoreResources.push({
+          syncedDirectoryStoreResources.set(entry.id, {
             ...data,
             markdown: body,
             readOnly: true,
@@ -131,7 +130,7 @@ export const userTeamDirectoryLoader = ({
         );
       }
 
-      await directoryStore?.writeCollection(collection, syncedDirectoryStoreResources);
+      await directoryStore?.writeCollection(collection, Array.from(syncedDirectoryStoreResources.values()));
     },
   };
 };
@@ -152,8 +151,8 @@ const withDirectoryEntrySource = (entryData: Omit<DirectoryEntry, 'markdown'>, s
   const entrySource = entryData.source as DirectoryEntry['source'] | undefined;
   const provider = entrySource?.provider ?? getSourceProvider(source);
   const sourceData = {
+    ...entrySource,
     provider,
-    ...(entrySource?.url ? { url: entrySource.url } : {}),
   };
 
   return {
