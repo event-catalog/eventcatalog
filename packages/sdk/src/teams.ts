@@ -7,6 +7,11 @@ import { getFiles, invalidateFileCache } from './internal/utils';
 import { getResource } from './internal/resources';
 import path from 'node:path';
 import { getUser, getUsers } from './users';
+import {
+  mergeDirectoryStoreResources,
+  readDirectoryStoreResource,
+  readDirectoryStoreResources,
+} from './internal/directory-store';
 
 /**
  * Returns a team from EventCatalog.
@@ -28,7 +33,7 @@ export const getTeam =
   async (id: string): Promise<Team | undefined> => {
     const files = await getFiles(`${catalogDir}/${id}.{md,mdx}`);
 
-    if (files.length == 0) return undefined;
+    if (files.length == 0) return readDirectoryStoreResource<Team>(catalogDir, 'teams', id);
     const file = files[0];
 
     const { data, content } = matter.read(file);
@@ -58,9 +63,7 @@ export const getTeams =
   (catalogDir: string) =>
   async (options?: {}): Promise<Team[]> => {
     const files = await getFiles(`${catalogDir}/*.{md,mdx}`);
-    if (files.length === 0) return [];
-
-    return files.map((file) => {
+    const localTeams = files.map((file) => {
       const { data, content } = matter.read(file);
       return {
         ...data,
@@ -69,6 +72,8 @@ export const getTeams =
         markdown: content.trim(),
       } as Team;
     });
+
+    return mergeDirectoryStoreResources(localTeams, readDirectoryStoreResources<Team>(catalogDir, 'teams'));
   };
 
 /**

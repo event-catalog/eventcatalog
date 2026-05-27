@@ -94,6 +94,24 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.19)(jiti@2.6.1)(jsdom@27.0.0(postcss@8.5.9))(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
 
+  packages/connectors:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.10
+        version: 20.19.19
+      prettier:
+        specifier: ^3.3.3
+        version: 3.6.2
+      tsup:
+        specifier: ^8.1.0
+        version: 8.5.0(jiti@2.6.1)(postcss@8.5.9)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.19)(jiti@2.6.1)(jsdom@27.0.0(postcss@8.5.9))(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+
   packages/core:
     dependencies:
       '@ai-sdk/react':

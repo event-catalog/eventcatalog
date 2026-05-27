@@ -7,6 +7,7 @@ import type { CollectionEntry } from 'astro:content';
 import OwnersList from '@components/Lists/OwnersList';
 import PillListFlat from '@components/Lists/PillListFlat';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
+import { Github } from 'lucide-react';
 import { formatAdrStatus } from '@utils/collections/adrs';
 import { buildUrl } from '@utils/url-builder';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
@@ -75,6 +76,9 @@ const associatedTeams = teams.map((o) => ({
 }));
 
 const pageTitle = `User | ${props.data.name}`;
+const source = props.data.source;
+const sourceLabel = source?.provider === 'github' ? 'GitHub' : source?.provider;
+const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
@@ -139,6 +143,31 @@ const pageTitle = `User | ${props.data.name}`;
                       <img src={buildUrl('/icons/ms-teams.svg', true)} class="w-4 h-4" alt="Teams" />
                       <span>Teams</span>
                     </a>
+                  )
+                }
+                {
+                  source && sourceLabel && source.url && (
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={sourceTitle}
+                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+                    >
+                      {source.provider === 'github' && <Github className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
+                      <span>{sourceLabel}</span>
+                    </a>
+                  )
+                }
+                {
+                  source && sourceLabel && !source.url && (
+                    <span
+                      title={sourceTitle}
+                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))]"
+                    >
+                      {source.provider === 'github' && <Github className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
+                      <span>{sourceLabel}</span>
+                    </span>
                   )
                 }
               </div>

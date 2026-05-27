@@ -1,0 +1,49 @@
+{
+  "name": "@eventcatalog/connectors",
+  "version": "0.0.1",
+  "description": "Connectors for syncing external systems into EventCatalog Collections",
+  "scripts": {
+    "build": "tsup",
+    "build:bin": "tsup",
+    "test": "vitest --run",
+    "test:ci": "vitest --run",
+    "format": "prettier --write .",
+    "format:diff": "prettier --list-different ."
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "eventcatalog",
+    "connectors",
+    "github",
+    "directory"
+  ],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "prettier": "^3.3.3",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog"
+  }
+}

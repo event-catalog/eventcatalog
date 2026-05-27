@@ -56,6 +56,34 @@ type NavigationPage = string | PagesConfiguration;
 
 type GeneratorConfig = string | Record<string, unknown> | [string, Record<string, unknown>];
 
+type DirectoryEntry = {
+  id: string;
+  markdown?: string;
+  [key: string]: unknown;
+};
+
+type DirectorySource = {
+  type: 'directory';
+  name: string;
+  cacheKey?: string;
+  loadUsers?: () => Promise<DirectoryEntry[]>;
+  loadTeams?: () => Promise<DirectoryEntry[]>;
+};
+
+type DirectoryConfig = {
+  /**
+   * External sources that sync users and teams into EventCatalog.
+   * Requires EventCatalog Scale.
+   */
+  sources?: DirectorySource[];
+  /**
+   * Controls what happens when a local Markdown user/team and an external source
+   * return the same id.
+   * @default 'local-wins'
+   */
+  conflictStrategy?: 'local-wins' | 'source-wins' | 'error';
+};
+
 type AuthConfig = {
   enabled: boolean;
 };
@@ -217,6 +245,7 @@ export interface Config {
     services?: ResourceDependency[];
     domains?: ResourceDependency[];
   };
+  directory?: DirectoryConfig;
   mermaid?: {
     maxTextSize?: number;
     iconPacks?: string[];

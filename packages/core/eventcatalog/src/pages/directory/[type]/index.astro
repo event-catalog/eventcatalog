@@ -33,6 +33,8 @@ function mapToItem(i: any) {
           id: d.data.id,
           name: d.data.name,
           // @ts-ignore
+          source: d.data?.source,
+          // @ts-ignore
           role: d.data?.role,
           // @ts-ignore
           avatarUrl: d.data?.avatarUrl,

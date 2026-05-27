@@ -15,8 +15,8 @@ import {
   Event as EventNodeComponent,
   Command as CommandNodeComponent,
   Query as QueryNodeComponent,
-  Service as ServiceNodeComponent,
   Field as FieldNodeComponent,
+  nodeComponents,
 } from '@eventcatalog/visualiser';
 import { X, ChevronDown, ChevronRight, Search, AlertTriangle } from 'lucide-react';
 import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, ServerIcon } from '@heroicons/react/24/solid';
@@ -88,7 +88,7 @@ function wrapWithContextMenu(Component: React.ComponentType<any>) {
 // and the catalog means these MemoExoticComponents don't match ComponentType<any>
 // unless we widen once here.
 const nodeTypes = {
-  service: wrapWithContextMenu(ServiceNodeComponent as unknown as React.ComponentType<any>),
+  service: wrapWithContextMenu(nodeComponents.service as unknown as React.ComponentType<any>),
   event: wrapWithContextMenu(EventNodeComponent as unknown as React.ComponentType<any>),
   command: wrapWithContextMenu(CommandNodeComponent as unknown as React.ComponentType<any>),
   query: wrapWithContextMenu(QueryNodeComponent as unknown as React.ComponentType<any>),

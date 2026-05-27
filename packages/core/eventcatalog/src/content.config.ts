@@ -7,6 +7,8 @@ import { badge, ownerReference } from './content.config-shared-collections';
 import { ADR_STATUS_VALUES } from './utils/collections/adr-constants';
 import fs from 'fs';
 import path from 'path';
+import { userTeamDirectoryLoader } from './enterprise/directory/user-team-directory';
+import config from '@config';
 
 // Enterprise Collections
 import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './enterprise/collections';
@@ -100,6 +102,11 @@ const resourcePointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
   type: z.enum(['agent', 'service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team', 'container']),
+});
+
+const directoryEntrySource = z.object({
+  provider: z.string(),
+  url: z.string().optional(),
 });
 
 const changelogs = defineCollection({
@@ -876,10 +883,15 @@ const entities = defineCollection({
 });
 
 const users = defineCollection({
-  loader: glob({
-    pattern: withIgnoredBuildArtifacts('users/*.(md|mdx)'),
-    base: projectDirBase,
-    generateId: ({ data }) => data.id as string,
+  loader: userTeamDirectoryLoader({
+    collection: 'users',
+    sources: config.directory?.sources,
+    conflictStrategy: config.directory?.conflictStrategy,
+    local: {
+      pattern: withIgnoredBuildArtifacts('users/*.(md|mdx)'),
+      base: projectDirBase,
+      generateId: ({ data }) => data.id as string,
+    },
   }),
   schema: z.object({
     id: z.string(),
@@ -887,6 +899,8 @@ const users = defineCollection({
     avatarUrl: z.string(),
     role: z.string().optional(),
     hidden: z.boolean().optional(),
+    source: directoryEntrySource.optional(),
+    readOnly: z.boolean().optional(),
     email: z.string().optional(),
     slackDirectMessageUrl: z.string().optional(),
     msTeamsDirectMessageUrl: z.string().optional(),
@@ -901,10 +915,15 @@ const users = defineCollection({
 });
 
 const teams = defineCollection({
-  loader: glob({
-    pattern: withIgnoredBuildArtifacts('teams/*.(md|mdx)'),
-    base: projectDirBase,
-    generateId: ({ data }) => data.id as string,
+  loader: userTeamDirectoryLoader({
+    collection: 'teams',
+    sources: config.directory?.sources,
+    conflictStrategy: config.directory?.conflictStrategy,
+    local: {
+      pattern: withIgnoredBuildArtifacts('teams/*.(md|mdx)'),
+      base: projectDirBase,
+      generateId: ({ data }) => data.id as string,
+    },
   }),
   schema: z.object({
     id: z.string(),
@@ -912,6 +931,8 @@ const teams = defineCollection({
     summary: z.string().optional(),
     email: z.string().optional(),
     hidden: z.boolean().optional(),
+    source: directoryEntrySource.optional(),
+    readOnly: z.boolean().optional(),
     slackDirectMessageUrl: z.string().optional(),
     msTeamsDirectMessageUrl: z.string().optional(),
     members: z.array(reference('users')).optional(),

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 
 async function main() {
   const __dirname = import.meta.dirname;
@@ -10,6 +11,11 @@ async function main() {
 
   const catalogDir = join(__dirname, '../eventcatalog/');
   const projectDIR = join(__dirname, `../../../examples/${catalog}`);
+  const connectorsPackage = join(__dirname, '../../connectors/package.json');
+
+  if (existsSync(connectorsPackage)) {
+    execSync('pnpm --filter @eventcatalog/connectors run build:bin', { stdio: 'inherit' });
+  }
 
   execSync('pnpm run build:bin', { stdio: 'inherit' });
 

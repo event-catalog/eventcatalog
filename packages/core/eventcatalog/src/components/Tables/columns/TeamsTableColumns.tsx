@@ -7,6 +7,7 @@ import type { CollectionUserTypes } from '@types';
 import type { TableConfiguration } from '@types';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
 import { getCollectionTextColorClass } from '@utils/collection-colors';
+import { DirectorySourceCell } from './DirectorySourceColumn';
 const columnHelper = createColumnHelper<TData<CollectionUserTypes>>();
 
 const CollectionListCell = ({
@@ -79,6 +80,16 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       filteredItemHasVersion: false,
     },
     filterFn: filterByName,
+  }),
+
+  columnHelper.accessor('data.source', {
+    id: 'source',
+    header: () => <span>{tableConfiguration.columns?.source?.label || 'Source'}</span>,
+    cell: (info) => <DirectorySourceCell source={info.getValue() as { provider: string; url?: string } | undefined} />,
+    meta: {
+      showFilter: false,
+      className: 'w-[96px]',
+    },
   }),
 
   columnHelper.accessor(

@@ -37,6 +37,9 @@ const expressiveCodeConfig = {
   },
 };
 
+const markdownRemarkPlugins = [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml];
+const mdxRemarkPlugins = [...markdownRemarkPlugins, remarkResourceRef];
+
 // https://astro.build/config
 export default defineConfig({
   base,
@@ -66,6 +69,11 @@ export default defineConfig({
   // https://docs.astro.build/en/reference/configuration-reference/#trailingslash
   trailingSlash: config.trailingSlash === true ? 'always' : 'ignore',
 
+  markdown: {
+    remarkPlugins: markdownRemarkPlugins,
+    gfm: true,
+  },
+
   // just turn this off for all users (for now...)
   devToolbar: { enabled: false },
   integrations: [
@@ -76,7 +84,7 @@ export default defineConfig({
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
-      remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml, remarkResourceRef],
+      remarkPlugins: mdxRemarkPlugins,
       rehypePlugins: [
         [
           rehypeExpressiveCode,

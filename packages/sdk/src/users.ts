@@ -4,6 +4,11 @@ import { join } from 'node:path';
 import type { User } from './types';
 import matter from 'gray-matter';
 import { getFiles, invalidateFileCache } from './internal/utils';
+import {
+  mergeDirectoryStoreResources,
+  readDirectoryStoreResource,
+  readDirectoryStoreResources,
+} from './internal/directory-store';
 
 /**
  * Returns a user from EventCatalog.
@@ -25,7 +30,7 @@ export const getUser =
   async (id: string): Promise<User | undefined> => {
     const files = await getFiles(`${catalogDir}/${id}.{md,mdx}`);
 
-    if (files.length == 0) return undefined;
+    if (files.length == 0) return readDirectoryStoreResource<User>(catalogDir, 'users', id);
     const file = files[0];
 
     const { data, content } = matter.read(file);
@@ -56,9 +61,7 @@ export const getUsers =
   (catalogDir: string) =>
   async (options?: {}): Promise<User[]> => {
     const files = await getFiles(`${catalogDir}/users/*.{md,mdx}`);
-    if (files.length === 0) return [];
-
-    return files.map((file) => {
+    const localUsers = files.map((file) => {
       const { data, content } = matter.read(file);
       return {
         ...data,
@@ -68,6 +71,8 @@ export const getUsers =
         markdown: content.trim(),
       } as User;
     });
+
+    return mergeDirectoryStoreResources(localUsers, readDirectoryStoreResources<User>(catalogDir, 'users'));
   };
 
 /**
