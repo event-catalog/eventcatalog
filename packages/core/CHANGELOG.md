@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 3.44.0
+
+### Minor Changes
+
+- 6b7fc3c: Add directory connectors for syncing users and teams from external sources (e.g. GitHub organizations) into EventCatalog collections. Introduces the new `@eventcatalog/connectors` package and `directory.sources` configuration in `eventcatalog.config`.
+
+### Patch Changes
+
+- Updated dependencies [6b7fc3c]
+  - @eventcatalog/sdk@2.24.0
+  - @eventcatalog/linter@1.0.28
+
 ## 3.43.1
 
 ### Patch Changes
