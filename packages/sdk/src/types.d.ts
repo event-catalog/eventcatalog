@@ -261,8 +261,13 @@ export interface Team {
   summary?: string;
   email?: string;
   hidden?: boolean;
+  source?: {
+    provider: string;
+    url?: string;
+  };
+  readOnly?: boolean;
   slackDirectMessageUrl?: string;
-  members?: User[];
+  members?: User[] | string[];
   ownedCommands?: Command[];
   ownedServices?: Service[];
   ownedEvents?: Event[];
@@ -275,6 +280,11 @@ export interface User {
   avatarUrl: string;
   role?: string;
   hidden?: boolean;
+  source?: {
+    provider: string;
+    url?: string;
+  };
+  readOnly?: boolean;
   email?: string;
   slackDirectMessageUrl?: string;
   ownedServices?: Service[];

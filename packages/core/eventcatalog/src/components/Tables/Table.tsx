@@ -51,6 +51,10 @@ export type TData<T extends TCollectionTypes> = {
     name: string;
     summary: string;
     version: string;
+    source?: {
+      provider: string;
+      url?: string;
+    };
     latestVersion?: string; // Defined on getter collection utility
     draft?: boolean | { title?: string; message: string }; // Draft property from base schema
     badges?: Array<{

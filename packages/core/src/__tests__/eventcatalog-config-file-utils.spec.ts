@@ -108,6 +108,51 @@ describe('catalog-to-astro-content-directory', () => {
       const configFile = path.join(CATALOG_DIR, 'eventcatalog.config.mjs');
       expect(existsSync(configFile)).toBe(false);
     });
+
+    it('resolves packages imported by temporary config files from the project dependency tree', async () => {
+      const packageDirectory = path.join(CATALOG_DIR, 'node_modules', '@eventcatalog', 'connectors');
+      const configFile = path.join(CATALOG_DIR, 'eventcatalog.config.js');
+
+      await fs.mkdir(packageDirectory, { recursive: true });
+      await fs.writeFile(
+        path.join(packageDirectory, 'package.json'),
+        JSON.stringify({
+          name: '@eventcatalog/connectors',
+          type: 'module',
+          exports: './index.js',
+        })
+      );
+      await fs.writeFile(
+        path.join(packageDirectory, 'index.js'),
+        "export const githubDirectory = () => ({ type: 'directory', name: 'github:test' });"
+      );
+      await fs.writeFile(
+        configFile,
+        `
+          import { githubDirectory } from '@eventcatalog/connectors';
+
+          export default {
+            title: 'Package Import Test',
+            directory: {
+              sources: [githubDirectory()],
+            },
+          };
+        `
+      );
+
+      try {
+        const config = await getEventCatalogConfigFile(CATALOG_DIR);
+
+        expect(config).toEqual({
+          title: 'Package Import Test',
+          directory: {
+            sources: [{ type: 'directory', name: 'github:test' }],
+          },
+        });
+      } finally {
+        await fs.rm(path.join(CATALOG_DIR, 'node_modules'), { recursive: true, force: true });
+      }
+    });
   });
 
   describe('writeEventCatalogConfigFile', () => {

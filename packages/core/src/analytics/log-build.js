@@ -11,6 +11,32 @@ const getFeatures = async (configFile) => {
   };
 };
 
+const getDirectoryProvider = (source) => {
+  if (!source?.name || typeof source.name !== 'string') return 'unknown';
+  return source.name.split(':')[0] || 'unknown';
+};
+
+const serializeDirectorySources = (configFile) => {
+  const sources = configFile.directory?.sources;
+  if (!Array.isArray(sources) || sources.length === 0) return 'none';
+
+  const providerCounts = sources.reduce((counts, source) => {
+    const provider = getDirectoryProvider(source);
+    counts[provider] = (counts[provider] || 0) + 1;
+    return counts;
+  }, {});
+
+  const providers = Object.keys(providerCounts)
+    .sort()
+    .map((provider) => `${provider}:${providerCounts[provider]}`)
+    .join(',');
+
+  const hasUsers = sources.some((source) => typeof source?.loadUsers === 'function');
+  const hasTeams = sources.some((source) => typeof source?.loadTeams === 'function');
+
+  return `sources:${sources.length},providers:${providers},users:${hasUsers},teams:${hasTeams}`;
+};
+
 const CLOUD_ANALYTICS_ENDPOINT = 'https://api.ecingest.dev/v1/analytics/ingest';
 
 const toCloudResourceCounts = (counts) => ({
@@ -91,6 +117,7 @@ const main = async (projectDir, { isEventCatalogStarterEnabled, isEventCatalogSc
       features: Object.keys(features)
         .map((feature) => `${feature}:${features[feature]}`)
         .join(','),
+      directorySources: serializeDirectorySources(configFile),
       resources: serializeCounts(resourceCounts),
     });
   } catch (error) {

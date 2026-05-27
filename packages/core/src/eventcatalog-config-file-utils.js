@@ -1,4 +1,4 @@
-import { readFile, writeFile, rm, copyFile, mkdtemp } from 'node:fs/promises';
+import { readFile, writeFile, rm, copyFile, mkdtemp, symlink } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { v4 as uuidV4 } from 'uuid';
@@ -13,6 +13,48 @@ export async function cleanup(projectDirectory) {
   }
 }
 
+const findNodeModulesDirectory = (directory) => {
+  let currentDirectory = directory;
+
+  while (true) {
+    const nodeModulesDirectory = path.join(currentDirectory, 'node_modules');
+
+    if (existsSync(nodeModulesDirectory)) {
+      return nodeModulesDirectory;
+    }
+
+    const parentDirectory = path.dirname(currentDirectory);
+
+    if (parentDirectory === currentDirectory) {
+      return undefined;
+    }
+
+    currentDirectory = parentDirectory;
+  }
+};
+
+const linkNodeModulesIntoTempDirectory = async ({ projectDirectory, tempDir }) => {
+  const nodeModulesDirectory = findNodeModulesDirectory(projectDirectory);
+
+  if (!nodeModulesDirectory) {
+    return;
+  }
+
+  await symlink(nodeModulesDirectory, path.join(tempDir, 'node_modules'), 'dir');
+};
+
+const createTemporaryConfigDirectory = async (projectDirectory) => {
+  const nodeModulesDirectory = findNodeModulesDirectory(projectDirectory);
+
+  if (nodeModulesDirectory) {
+    return mkdtemp(path.join(nodeModulesDirectory, '.eventcatalog-config-'));
+  }
+
+  const tempDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-config-'));
+  await linkNodeModulesIntoTempDirectory({ projectDirectory, tempDir });
+  return tempDir;
+};
+
 export const getEventCatalogConfigFile = async (projectDirectory) => {
   let tempDir;
 
@@ -26,7 +68,7 @@ export const getEventCatalogConfigFile = async (projectDirectory) => {
       // Importing CommonJS config via ESM import requires an .mjs file.
       // Keep this temp copy outside the project directory so Astro/Vite
       // file watchers do not trigger a dev-server restart during startup.
-      tempDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-config-'));
+      tempDir = await createTemporaryConfigDirectory(projectDirectory);
       configFilePath = path.join(tempDir, 'eventcatalog.config.mjs');
       await copyFile(path.join(projectDirectory, 'eventcatalog.config.js'), configFilePath);
     }

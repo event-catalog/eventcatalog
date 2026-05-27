@@ -39,6 +39,47 @@ describe('Teams SDK', () => {
     it('returns undefined when the team is not found', async () => {
       await expect(await getTeam('unknown-team')).toEqual(undefined);
     });
+
+    it('returns a team from the EventCatalog directory store when no local file exists', async () => {
+      fs.mkdirSync(path.join(CATALOG_PATH, '.eventcatalog', 'store'), { recursive: true });
+      fs.writeFileSync(
+        path.join(CATALOG_PATH, '.eventcatalog', 'store', 'directory.json'),
+        JSON.stringify({
+          version: '1',
+          generatedAt: '2026-05-27T00:00:00.000Z',
+          resources: {
+            users: [],
+            teams: [
+              {
+                id: 'core-maintainers',
+                name: 'Core Maintainers',
+                members: ['github-user'],
+                markdown: 'This team is synced from GitHub',
+                readOnly: true,
+                source: {
+                  provider: 'github',
+                  url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
+                },
+              },
+            ],
+          },
+        })
+      );
+
+      const team = await getTeam('core-maintainers');
+
+      expect(team).toEqual({
+        id: 'core-maintainers',
+        name: 'Core Maintainers',
+        members: ['github-user'],
+        markdown: 'This team is synced from GitHub',
+        readOnly: true,
+        source: {
+          provider: 'github',
+          url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
+        },
+      });
+    });
   });
 
   describe('getTeams', () => {
@@ -67,6 +108,67 @@ describe('Teams SDK', () => {
           id: 'eventcatalog-core-team',
           name: 'Eventcatalog Core Team',
           markdown: 'This is the core team for Eventcatalog',
+        },
+      ]);
+    });
+
+    it('merges teams from the EventCatalog directory store after local teams', async () => {
+      await writeTeam({
+        id: 'local-team',
+        name: 'Local Team',
+        markdown: 'This is a local team',
+      });
+
+      fs.mkdirSync(path.join(CATALOG_PATH, '.eventcatalog', 'store'), { recursive: true });
+      fs.writeFileSync(
+        path.join(CATALOG_PATH, '.eventcatalog', 'store', 'directory.json'),
+        JSON.stringify({
+          version: '1',
+          generatedAt: '2026-05-27T00:00:00.000Z',
+          resources: {
+            users: [],
+            teams: [
+              {
+                id: 'local-team',
+                name: 'Directory Local Team',
+                markdown: 'This duplicate should be ignored',
+                readOnly: true,
+                source: {
+                  provider: 'github',
+                },
+              },
+              {
+                id: 'core-maintainers',
+                name: 'Core Maintainers',
+                markdown: 'This team is synced from GitHub',
+                readOnly: true,
+                source: {
+                  provider: 'github',
+                  url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
+                },
+              },
+            ],
+          },
+        })
+      );
+
+      const teams = await getTeams();
+
+      expect(teams).toEqual([
+        {
+          id: 'local-team',
+          name: 'Local Team',
+          markdown: 'This is a local team',
+        },
+        {
+          id: 'core-maintainers',
+          name: 'Core Maintainers',
+          markdown: 'This team is synced from GitHub',
+          readOnly: true,
+          source: {
+            provider: 'github',
+            url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
+          },
         },
       ]);
     });
@@ -126,7 +228,7 @@ describe('Teams SDK', () => {
       const team = await getTeam('eventcatalog-core-team');
 
       expect(fs.existsSync(path.join(CATALOG_PATH, 'teams', 'eventcatalog-core-team.mdx'))).toBe(true);
-      expect(team.name).toBe('Eventcatalog Core Team Overridden');
+      expect(team?.name).toBe('Eventcatalog Core Team Overridden');
     });
   });
 
@@ -199,6 +301,79 @@ describe('Teams SDK', () => {
       const owners = await getOwnersForResource('InventoryService');
 
       expect(owners).toEqual([]);
+    });
+
+    it('resolves owners from the EventCatalog directory store', async () => {
+      fs.mkdirSync(path.join(CATALOG_PATH, '.eventcatalog', 'store'), { recursive: true });
+      fs.writeFileSync(
+        path.join(CATALOG_PATH, '.eventcatalog', 'store', 'directory.json'),
+        JSON.stringify({
+          version: '1',
+          generatedAt: '2026-05-27T00:00:00.000Z',
+          resources: {
+            users: [
+              {
+                id: 'github-user',
+                name: 'github-user',
+                avatarUrl: 'https://example.com/avatar.png',
+                markdown: 'This user is synced from GitHub',
+                readOnly: true,
+                source: {
+                  provider: 'github',
+                  url: 'https://github.com/github-user',
+                },
+              },
+            ],
+            teams: [
+              {
+                id: 'core-maintainers',
+                name: 'Core Maintainers',
+                markdown: 'This team is synced from GitHub',
+                readOnly: true,
+                source: {
+                  provider: 'github',
+                  url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
+                },
+              },
+            ],
+          },
+        })
+      );
+
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: 'This is the inventory service',
+        owners: ['core-maintainers', 'github-user'],
+      });
+
+      const owners = await getOwnersForResource('InventoryService');
+
+      expect(owners).toEqual([
+        {
+          id: 'core-maintainers',
+          name: 'Core Maintainers',
+          markdown: 'This team is synced from GitHub',
+          readOnly: true,
+          source: {
+            provider: 'github',
+            url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
+          },
+        },
+        {
+          id: 'github-user',
+          name: 'github-user',
+          avatarUrl: 'https://example.com/avatar.png',
+          markdown: 'This user is synced from GitHub',
+          readOnly: true,
+          source: {
+            provider: 'github',
+            url: 'https://github.com/github-user',
+          },
+        },
+      ]);
     });
   });
 });

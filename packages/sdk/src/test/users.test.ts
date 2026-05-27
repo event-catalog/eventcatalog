@@ -41,6 +41,47 @@ describe('Users SDK', () => {
     it('returns undefined when the user is not found', async () => {
       await expect(await getUser('unknown-user')).toEqual(undefined);
     });
+
+    it('returns a user from the EventCatalog directory store when no local file exists', async () => {
+      fs.mkdirSync(path.join(CATALOG_PATH, '.eventcatalog', 'store'), { recursive: true });
+      fs.writeFileSync(
+        path.join(CATALOG_PATH, '.eventcatalog', 'store', 'directory.json'),
+        JSON.stringify({
+          version: '1',
+          generatedAt: '2026-05-27T00:00:00.000Z',
+          resources: {
+            users: [
+              {
+                id: 'github-user',
+                name: 'github-user',
+                avatarUrl: 'https://example.com/avatar.png',
+                markdown: 'This user is synced from GitHub',
+                readOnly: true,
+                source: {
+                  provider: 'github',
+                  url: 'https://github.com/github-user',
+                },
+              },
+            ],
+            teams: [],
+          },
+        })
+      );
+
+      const user = await getUser('github-user');
+
+      expect(user).toEqual({
+        id: 'github-user',
+        name: 'github-user',
+        avatarUrl: 'https://example.com/avatar.png',
+        markdown: 'This user is synced from GitHub',
+        readOnly: true,
+        source: {
+          provider: 'github',
+          url: 'https://github.com/github-user',
+        },
+      });
+    });
   });
 
   describe('getUsers', () => {
@@ -73,6 +114,72 @@ describe('Users SDK', () => {
           name: 'Eventcatalog Core User',
           markdown: 'This is the core user for Eventcatalog',
           avatarUrl: 'https://pbs.twimg.com/profile_images/1262283153563140096/DYRDqKg6_400x400.png',
+        },
+      ]);
+    });
+
+    it('merges users from the EventCatalog directory store after local users', async () => {
+      await writeUser({
+        id: 'local-user',
+        name: 'Local User',
+        markdown: 'This is a local user',
+        avatarUrl: 'https://example.com/local.png',
+      });
+
+      fs.mkdirSync(path.join(CATALOG_PATH, '.eventcatalog', 'store'), { recursive: true });
+      fs.writeFileSync(
+        path.join(CATALOG_PATH, '.eventcatalog', 'store', 'directory.json'),
+        JSON.stringify({
+          version: '1',
+          generatedAt: '2026-05-27T00:00:00.000Z',
+          resources: {
+            users: [
+              {
+                id: 'local-user',
+                name: 'Directory Local User',
+                avatarUrl: 'https://example.com/directory-local.png',
+                markdown: 'This duplicate should be ignored',
+                readOnly: true,
+                source: {
+                  provider: 'github',
+                },
+              },
+              {
+                id: 'github-user',
+                name: 'github-user',
+                avatarUrl: 'https://example.com/avatar.png',
+                markdown: 'This user is synced from GitHub',
+                readOnly: true,
+                source: {
+                  provider: 'github',
+                  url: 'https://github.com/github-user',
+                },
+              },
+            ],
+            teams: [],
+          },
+        })
+      );
+
+      const users = await getUsers();
+
+      expect(users).toEqual([
+        {
+          id: 'local-user',
+          name: 'Local User',
+          markdown: 'This is a local user',
+          avatarUrl: 'https://example.com/local.png',
+        },
+        {
+          id: 'github-user',
+          name: 'github-user',
+          avatarUrl: 'https://example.com/avatar.png',
+          markdown: 'This user is synced from GitHub',
+          readOnly: true,
+          source: {
+            provider: 'github',
+            url: 'https://github.com/github-user',
+          },
         },
       ]);
     });
