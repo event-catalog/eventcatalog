@@ -59,6 +59,7 @@ describe('Users SDK', () => {
                 readOnly: true,
                 source: {
                   provider: 'github',
+                  id: 'github-user-id',
                   url: 'https://github.com/github-user',
                 },
               },
@@ -78,6 +79,7 @@ describe('Users SDK', () => {
         readOnly: true,
         source: {
           provider: 'github',
+          id: 'github-user-id',
           url: 'https://github.com/github-user',
         },
       });
@@ -152,6 +154,7 @@ describe('Users SDK', () => {
                 readOnly: true,
                 source: {
                   provider: 'github',
+                  id: 'github-user-id',
                   url: 'https://github.com/github-user',
                 },
               },
@@ -178,6 +181,7 @@ describe('Users SDK', () => {
           readOnly: true,
           source: {
             provider: 'github',
+            id: 'github-user-id',
             url: 'https://github.com/github-user',
           },
         },
@@ -186,6 +190,22 @@ describe('Users SDK', () => {
   });
 
   describe('writeUser', () => {
+    it('writes a user without an avatarUrl', async () => {
+      await writeUser({
+        id: 'eventcatalog-core-user',
+        name: 'Eventcatalog Core User',
+        markdown: 'This is the core user for Eventcatalog',
+      });
+
+      const user = await getUser('eventcatalog-core-user');
+
+      expect(user).toEqual({
+        id: 'eventcatalog-core-user',
+        name: 'Eventcatalog Core User',
+        markdown: 'This is the core user for Eventcatalog',
+      });
+    });
+
     it('writes the given user to EventCatalog and assumes the path if one if not given', async () => {
       await writeUser({
         id: 'eventcatalog-core-user',

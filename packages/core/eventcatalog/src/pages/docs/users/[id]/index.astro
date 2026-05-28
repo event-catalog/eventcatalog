@@ -77,7 +77,11 @@ const associatedTeams = teams.map((o) => ({
 
 const pageTitle = `User | ${props.data.name}`;
 const source = props.data.source;
-const sourceLabel = source?.provider === 'github' ? 'GitHub' : source?.provider;
+const sourceLabels: Record<string, string> = {
+  github: 'GitHub',
+  'microsoft-entra': 'Microsoft Entra ID',
+};
+const sourceLabel = source?.provider ? (sourceLabels[source.provider] ?? source.provider) : undefined;
 const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
 ---
 
@@ -155,6 +159,7 @@ const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
                       class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                     >
                       {source.provider === 'github' && <Github className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
+                      {source.provider === 'microsoft-entra' && <img src={buildUrl('/icons/azure.svg', true)} class="w-4 h-4" alt="" />}
                       <span>{sourceLabel}</span>
                     </a>
                   )
@@ -166,6 +171,7 @@ const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
                       class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))]"
                     >
                       {source.provider === 'github' && <Github className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
+                      {source.provider === 'microsoft-entra' && <img src={buildUrl('/icons/azure.svg', true)} class="w-4 h-4" alt="" />}
                       <span>{sourceLabel}</span>
                     </span>
                   )

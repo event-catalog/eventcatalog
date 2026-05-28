@@ -32,7 +32,7 @@ id: dboyne
 # display name for the user
 name: David Boyne
 
-# URL path for a profile image
+# optional URL path for a profile image
 avatarUrl: "https://pbs.twimg.com/profile_images/1262283153563140096/DYRDqKg6_400x400.png"
 
 # users role in the company
@@ -67,4 +67,3 @@ It's entirely up to you what you want to add to your users markdown content but 
 
 - Context of the user. Who are they? 
 - Contact info for the user?
-
