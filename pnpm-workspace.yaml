@@ -4,6 +4,7 @@ packages:
 minimumReleaseAgeExclude:
   - "astro"
   - "@astrojs/check"
+  - "@astrojs/internal-helpers"
   - "@astrojs/markdown-remark"
   - "@astrojs/mdx"
   - "@astrojs/node"
