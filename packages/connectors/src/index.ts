@@ -1,4 +1,5 @@
 export { githubDirectory } from "./github-directory";
+export { microsoftEntraDirectory } from "./microsoft-entra-directory";
 export { defineDirectorySource } from "./types";
 export type {
   DirectoryEntrySource,

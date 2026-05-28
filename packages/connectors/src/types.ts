@@ -23,7 +23,7 @@ export type DirectoryEntrySource = {
 export type DirectoryUser = {
   id: string;
   name: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   role?: string;
   email?: string;
   markdown?: string;

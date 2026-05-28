@@ -58,6 +58,7 @@ describe('Teams SDK', () => {
                 readOnly: true,
                 source: {
                   provider: 'github',
+                  id: 'github-team-id',
                   url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
                 },
               },
@@ -76,6 +77,7 @@ describe('Teams SDK', () => {
         readOnly: true,
         source: {
           provider: 'github',
+          id: 'github-team-id',
           url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
         },
       });
@@ -144,6 +146,7 @@ describe('Teams SDK', () => {
                 readOnly: true,
                 source: {
                   provider: 'github',
+                  id: 'github-team-id',
                   url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
                 },
               },
@@ -167,6 +170,7 @@ describe('Teams SDK', () => {
           readOnly: true,
           source: {
             provider: 'github',
+            id: 'github-team-id',
             url: 'https://github.com/orgs/event-catalog/teams/core-maintainers',
           },
         },

@@ -106,6 +106,7 @@ const resourcePointer = z.object({
 
 const directoryEntrySource = z.object({
   provider: z.string(),
+  id: z.string().optional(),
   url: z.string().optional(),
 });
 
@@ -896,7 +897,7 @@ const users = defineCollection({
   schema: z.object({
     id: z.string(),
     name: z.string(),
-    avatarUrl: z.string(),
+    avatarUrl: z.string().optional(),
     role: z.string().optional(),
     hidden: z.boolean().optional(),
     source: directoryEntrySource.optional(),

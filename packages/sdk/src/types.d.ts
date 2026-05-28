@@ -263,6 +263,7 @@ export interface Team {
   hidden?: boolean;
   source?: {
     provider: string;
+    id?: string;
     url?: string;
   };
   readOnly?: boolean;
@@ -277,11 +278,12 @@ export interface Team {
 export interface User {
   id: string;
   name: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   role?: string;
   hidden?: boolean;
   source?: {
     provider: string;
+    id?: string;
     url?: string;
   };
   readOnly?: boolean;
