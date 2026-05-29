@@ -19,7 +19,7 @@ Document, visualize, and govern your domains, services, events and schemas — w
 <br/>
 
 <p align="center">
-  <img src="./images/overview-demo.gif" alt="EventCatalog overview" width="800" />
+  <img src="./images/visualizer-demo.gif" alt="Architecture visualiser" width="800" />
 </p>
 
 [Documentation](https://www.eventcatalog.dev/docs) | [Live Demo](https://demo.eventcatalog.dev) | [Discord](https://discord.gg/3rjaZMmrAm)
@@ -41,12 +41,12 @@ Looking for a guided walkthrough? Check out the [Getting Started](https://www.ev
 
 ## Core Features
 
-### Visualise your architecture
+### Document your architecture
 
-Interactive node graphs that map your entire system — services, events, commands, queries, domains, and how they connect.
+Document domains, services and messages across your architecture.
 
 <p align="center">
-  <img src="./images/visualizer-demo.gif" alt="Architecture visualiser" width="800" />
+  <img src="./images/overview-demo.gif" alt="EventCatalog overview" width="800" />
 </p>
 
 ### AI-powered discovery
