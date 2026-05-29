@@ -2,9 +2,9 @@
 
 <img src="./images/banner.png" alt="EventCatalog overview" width="800" />
 
-## The architecture catalog for distributed systems 
+## The discovery and governance layer for event-driven systems
 
-Discover your domains, services, events, and schemas — with AI-powered discovery, interactive visualizations, and 15+ generators for Kafka, EventBridge, RabbitMQ, and more.
+Document, visualize, and govern your domains, services, events and schemas — with AI-powered search, interactive visualizations, and 15+ generators for Kafka, EventBridge, RabbitMQ, and more.
 
 [![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
@@ -51,7 +51,7 @@ Interactive node graphs that map your entire system — services, events, comman
 
 ### AI-powered discovery
 
-Ask questions about your architecture and business in natural language. The built-in AI chat and MCP server let you and your tools explore your catalog.
+Ask questions about your architecture and business in natural language. The built-in AI chat and MCP server let you and your tools query your catalog.
 
 <p align="center">
   <img src="./images/ai-demo.gif" alt="AI-powered discovery" width="800" />
