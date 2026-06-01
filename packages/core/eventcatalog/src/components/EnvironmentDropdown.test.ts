@@ -55,4 +55,10 @@ describe('EnvironmentDropdown', () => {
       'https://example.com/prod/services/foo'
     );
   });
+
+  it('preserves the current path when the current environment is unknown', () => {
+    expect(buildEnvironmentUrl('https://example.com/prod', 'http://localhost:3000/services/foo')).toBe(
+      'https://example.com/prod/services/foo'
+    );
+  });
 });

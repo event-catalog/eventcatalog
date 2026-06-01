@@ -38,11 +38,12 @@ export const findCurrentEnvironment = (environments: Environment[], currentHref:
 export const buildEnvironmentUrl = (environmentUrl: string, currentHref: string, currentEnvironmentUrl?: string) => {
   const currentUrl = new URL(currentHref);
   const targetUrl = new URL(environmentUrl, currentUrl.href);
-  const currentEnvironmentUrlObject = currentEnvironmentUrl ? new URL(currentEnvironmentUrl, currentUrl.href) : currentUrl;
-  const currentBasePathname = stripTrailingSlash(currentEnvironmentUrlObject.pathname);
   const targetBasePathname = stripTrailingSlash(targetUrl.pathname);
+  const currentBasePathname = currentEnvironmentUrl
+    ? stripTrailingSlash(new URL(currentEnvironmentUrl, currentUrl.href).pathname)
+    : undefined;
   const pathWithinEnvironment =
-    startsWithPath(currentUrl.pathname, currentBasePathname) && currentBasePathname !== '/'
+    currentBasePathname && currentBasePathname !== '/' && startsWithPath(currentUrl.pathname, currentBasePathname)
       ? currentUrl.pathname.slice(currentBasePathname.length)
       : currentUrl.pathname;
 
