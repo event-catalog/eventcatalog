@@ -11,20 +11,56 @@ interface EnvironmentDropdownProps {
   environments: Environment[];
 }
 
+const stripTrailingSlash = (pathname: string) => pathname.replace(/\/$/, '') || '/';
+
+const startsWithPath = (pathname: string, basePathname: string) =>
+  basePathname === '/' || pathname === basePathname || pathname.startsWith(`${basePathname}/`);
+
+export const findCurrentEnvironment = (environments: Environment[], currentHref: string) => {
+  const currentUrl = new URL(currentHref);
+
+  return (
+    environments
+      .filter((env) => {
+        const envUrl = new URL(env.url, currentUrl.href);
+        const envPathname = stripTrailingSlash(envUrl.pathname);
+
+        return envUrl.origin === currentUrl.origin && startsWithPath(currentUrl.pathname, envPathname);
+      })
+      .sort(
+        (a, b) =>
+          stripTrailingSlash(new URL(b.url, currentUrl.href).pathname).length -
+          stripTrailingSlash(new URL(a.url, currentUrl.href).pathname).length
+      )[0] || null
+  );
+};
+
+export const buildEnvironmentUrl = (environmentUrl: string, currentHref: string, currentEnvironmentUrl?: string) => {
+  const currentUrl = new URL(currentHref);
+  const targetUrl = new URL(environmentUrl, currentUrl.href);
+  const targetBasePathname = stripTrailingSlash(targetUrl.pathname);
+  const currentBasePathname = currentEnvironmentUrl
+    ? stripTrailingSlash(new URL(currentEnvironmentUrl, currentUrl.href).pathname)
+    : undefined;
+  const pathWithinEnvironment =
+    currentBasePathname && currentBasePathname !== '/' && startsWithPath(currentUrl.pathname, currentBasePathname)
+      ? currentUrl.pathname.slice(currentBasePathname.length)
+      : currentUrl.pathname;
+
+  targetUrl.pathname = `${targetBasePathname}${pathWithinEnvironment}`.replace(/\/+/g, '/');
+  targetUrl.search = currentUrl.search;
+  targetUrl.hash = currentUrl.hash;
+
+  return targetUrl.toString();
+};
+
 export const EnvironmentDropdown: React.FC<EnvironmentDropdownProps> = ({ environments }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentEnvironment, setCurrentEnvironment] = useState<Environment | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check if current URL matches any environment
-    const currentUrl = window.location.origin;
-    const matchedEnv = environments.find((env) => {
-      // Normalize URLs for comparison
-      const envUrl = new URL(env.url).origin;
-      return envUrl === currentUrl;
-    });
-    setCurrentEnvironment(matchedEnv || null);
+    setCurrentEnvironment(findCurrentEnvironment(environments, window.location.href));
   }, [environments]);
 
   useEffect(() => {
@@ -99,11 +135,7 @@ export const EnvironmentDropdown: React.FC<EnvironmentDropdownProps> = ({ enviro
               href={env.url}
               onClick={(e) => {
                 e.preventDefault();
-                // Construct the full URL with the current path when clicked
-                const currentPath = window.location.pathname + window.location.search + window.location.hash;
-                const targetUrl = new URL(env.url);
-                targetUrl.pathname = currentPath;
-                window.location.href = targetUrl.toString();
+                window.location.href = buildEnvironmentUrl(env.url, window.location.href, currentEnvironment?.url);
               }}
               className={`block rounded-xl px-3 py-3 transition-colors ${
                 isCurrentEnv
