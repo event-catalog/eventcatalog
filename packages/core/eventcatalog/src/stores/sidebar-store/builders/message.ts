@@ -20,6 +20,27 @@ const getProducerConsumerPageRef = (resource: any) => {
   return `${resourceType}:${resource.data.id}:${resource.data.version}`;
 };
 
+const getSchemaReferenceFormat = (schema: { id?: string; ref?: string; file?: string; path?: string; format?: string }) => {
+  if (schema.format) return schema.format;
+
+  const schemaLocation = schema.file ?? schema.path ?? schema.ref ?? schema.id;
+  if (!schemaLocation || !schemaLocation.includes('.')) return undefined;
+
+  return getSchemaFormatFromURL(schemaLocation);
+};
+
+const getSchemaNavTitle = (message: CollectionEntry<'events' | 'commands' | 'queries'>) => {
+  if (message.data.schemaPath) {
+    return `Schema (${getSchemaFormatFromURL(message.data.schemaPath).toUpperCase()})`;
+  }
+
+  const schemas = message.data.schemas ?? [];
+  if (schemas.length > 1) return 'Schemas';
+
+  const format = schemas[0] ? getSchemaReferenceFormat(schemas[0]) : undefined;
+  return format ? `Schema (${format.toUpperCase()})` : 'Schema';
+};
+
 export const buildMessageNode = (
   message: CollectionEntry<'events' | 'commands' | 'queries'>,
   owners: any[],
@@ -51,7 +72,7 @@ export const buildMessageNode = (
   };
   const defaultIcon = iconMap[collection] || 'Mail';
 
-  const hasSchema = message.data.schemaPath !== undefined;
+  const hasSchema = message.data.schemaPath !== undefined || (message.data.schemas ?? []).length > 0;
   const renderVisualiser = isVisualiserEnabled();
   const docsSection = buildResourceDocsSection(
     collection as 'events' | 'commands' | 'queries',
@@ -116,7 +137,7 @@ export const buildMessageNode = (
         pages: [
           {
             type: 'item',
-            title: `Schema (${getSchemaFormatFromURL(message.data.schemaPath!).toUpperCase()})`,
+            title: getSchemaNavTitle(message),
             href: buildUrl(`/schemas/${collection}/${message.data.id}/${message.data.version}`),
           },
           hasFieldUsage && {

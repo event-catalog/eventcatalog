@@ -2185,6 +2185,49 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    describe('API & Contracts section', () => {
+      it('lists a schema link when the message declares schemas', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          schemas: [{ ref: 'git://contracts/events/PaymentProcessed.schema.json' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Schema (JSON)',
+          href: '/schemas/events/PaymentProcessed/0.0.1',
+        });
+      });
+
+      it('uses a generic schemas label when the message declares multiple schemas', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          schemas: [
+            { ref: 'git://contracts/events/PaymentProcessed.schema.json' },
+            { ref: 'git://contracts/events/PaymentProcessed.schema.avsc' },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Schemas',
+          href: '/schemas/events/PaymentProcessed/0.0.1',
+        });
+      });
+    });
+
     describe('architecture & design section', () => {
       it('the visualizer link is always listed in the navigation item', async () => {
         const { writeEvent } = utils(CATALOG_FOLDER);
@@ -2238,6 +2281,32 @@ describe('getNestedSideBarData', () => {
           version: '0.0.1',
           markdown: 'Payment Processed',
           schemaPath: 'schema.json',
+        });
+        await writeService({
+          id: 'ShippingService',
+          name: 'Shipping Service',
+          version: '0.0.1',
+          markdown: 'Shipping Service',
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1', fields: ['orderId', 'amount'] }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Field Usage',
+          href: '/docs/events/PaymentProcessed/0.0.1/field-lineage',
+        });
+      });
+
+      it('the field usage link is shown when the message declares schemas', async () => {
+        const { writeEvent, writeService } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          schemas: [{ ref: 'git://contracts/events/PaymentProcessed.schema.json' }],
         });
         await writeService({
           id: 'ShippingService',

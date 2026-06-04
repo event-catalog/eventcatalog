@@ -71,6 +71,7 @@ const channelPointer = z
 
 const schemaPointer = z.object({
   id: z.string().optional(),
+  ref: z.string().optional(),
   file: z.string().optional(),
   path: z.string().optional(),
   name: z.string().optional(),
@@ -1018,10 +1019,12 @@ const schemas = defineCollection({
       ]) as string[],
       base: projectDirBase,
     },
+    sources: config.schemas?.sources ?? [],
   }),
   schema: z
     .object({
       format: z.string(),
+      ref: z.string().optional(),
       content: z.string().optional(),
       file: z.string().optional(),
       filePath: z.string().optional(),
@@ -1038,8 +1041,10 @@ const schemas = defineCollection({
       }),
       source: z.object({
         provider: z.string(),
+        id: z.string().optional(),
         path: z.string().optional(),
         url: z.string().optional(),
+        ref: z.string().optional(),
       }),
       readOnly: z.boolean().optional(),
     })

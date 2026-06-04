@@ -71,3 +71,62 @@ export type DirectorySource = {
 export const defineDirectorySource = <TSource extends DirectorySource>(
   source: TSource,
 ) => source;
+
+/**
+ * Describes where a synced schema came from.
+ */
+export type SchemaEntrySource = {
+  /** Provider identifier, for example `git`, `github`, `confluent`, or `eventbridge`. */
+  provider: string;
+  /** Optional provider-specific identifier for the external schema. */
+  id?: string;
+  /** Optional URL back to the schema source. */
+  url?: string;
+  /** Optional version/ref/branch for versioned sources. */
+  ref?: string;
+  /** Optional path inside the source. */
+  path?: string;
+  [key: string]: unknown;
+};
+
+/**
+ * Schema returned by an external schema source.
+ */
+export type SchemaEntry = {
+  id: string;
+  name?: string;
+  format?: string;
+  content: string;
+  source: SchemaEntrySource;
+};
+
+export type SchemaResolveContext = {
+  /** Absolute path to the message file that referenced the schema. */
+  messageFilePath?: string;
+};
+
+/**
+ * Loads schemas from an external source.
+ *
+ * EventCatalog calls schema sources during content sync to resolve schema
+ * references from messages into generated schema collection entries.
+ */
+export type SchemaSource = {
+  type: "schemas";
+  /** Stable source identifier used in schema refs, for example `contracts`. */
+  name: string;
+  /** Returns true when this source can resolve the given schema ref. */
+  canResolve: (ref: string) => boolean;
+  /** Resolves a schema ref into schema content and source metadata. */
+  resolve: (
+    ref: string,
+    context?: SchemaResolveContext,
+  ) => Promise<SchemaEntry | undefined>;
+};
+
+/**
+ * Defines a custom schema source with type inference for connector authors.
+ */
+export const defineSchemaSource = <TSource extends SchemaSource>(
+  source: TSource,
+) => source;

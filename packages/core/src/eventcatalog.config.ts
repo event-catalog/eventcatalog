@@ -69,6 +69,28 @@ type DirectorySource = {
   loadTeams?: () => Promise<DirectoryEntry[]>;
 };
 
+type SchemaEntry = {
+  id: string;
+  name?: string;
+  format?: string;
+  content: string;
+  source: {
+    provider: string;
+    id?: string;
+    url?: string;
+    ref?: string;
+    path?: string;
+    [key: string]: unknown;
+  };
+};
+
+type SchemaSource = {
+  type: 'schemas';
+  name: string;
+  canResolve: (id: string) => boolean;
+  resolve: (id: string, context?: { messageFilePath?: string }) => Promise<SchemaEntry | undefined>;
+};
+
 type DirectoryConfig = {
   /**
    * External sources that sync users and teams into EventCatalog.
@@ -81,6 +103,13 @@ type DirectoryConfig = {
    * @default 'local-wins'
    */
   conflictStrategy?: 'local-wins' | 'source-wins' | 'error';
+};
+
+type SchemaConfig = {
+  /**
+   * External sources that resolve message schema references into the generated schemas collection.
+   */
+  sources?: SchemaSource[];
 };
 
 type AuthConfig = {
@@ -245,6 +274,7 @@ export interface Config {
     domains?: ResourceDependency[];
   };
   directory?: DirectoryConfig;
+  schemas?: SchemaConfig;
   mermaid?: {
     maxTextSize?: number;
     iconPacks?: string[];
