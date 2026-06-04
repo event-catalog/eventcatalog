@@ -148,9 +148,6 @@ importers:
       '@auth/core':
         specifier: ^0.37.4
         version: 0.37.4
-      '@eventcatalog/connectors':
-        specifier: workspace:*
-        version: link:../connectors
       '@eventcatalog/license':
         specifier: ^0.0.7
         version: 0.0.7
