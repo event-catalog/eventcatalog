@@ -93,7 +93,6 @@
     "auth-astro": "^4.2.0",
     "boxen": "^8.0.1",
     "commander": "^12.1.0",
-    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "dagre": "^0.8.5",
     "diff": "^8.0.3",
