@@ -93,6 +93,12 @@ export type MessageSchemaResource = {
   readOnly?: boolean;
 };
 
+type InternalMessageSchemaResource = MessageSchemaResource & {
+  _context?: {
+    messageFilePath?: string;
+  };
+};
+
 type SchemaLoaderOptions = {
   messages: {
     pattern: string[];
@@ -305,23 +311,23 @@ export const getMessageSchemasFromFrontmatter = ({
 };
 
 const resolveSchemaSource = async (
-  schema: MessageSchemaResource,
+  schema: InternalMessageSchemaResource,
   source: SchemaSource
-): Promise<MessageSchemaResource | undefined> => {
+): Promise<InternalMessageSchemaResource | undefined> => {
   if (schemaFileExists(schema)) return schema;
   if (schema.filePath) return undefined;
 
   let resolvedSchema: Awaited<ReturnType<SchemaSource['resolve']>>;
 
   try {
-    resolvedSchema = await source.resolve(schema.id);
+    resolvedSchema = await source.resolve(schema.id, schema._context);
   } catch (error) {
     throw new Error(buildSchemaSourceErrorMessage({ schema, source, error }));
   }
 
   if (!resolvedSchema) return undefined;
 
-  const resolvedMessageSchema: MessageSchemaResource = {
+  const resolvedMessageSchema: InternalMessageSchemaResource = {
     ...schema,
     format: schema.format !== 'unknown' ? schema.format : (resolvedSchema.format ?? 'unknown'),
     content: resolvedSchema.content,
@@ -335,14 +341,14 @@ const resolveSchemaSource = async (
   return resolvedMessageSchema;
 };
 
-const resolveSchemaSources = async (schemas: MessageSchemaResource[], sources: SchemaSource[] = []) => {
+const resolveSchemaSources = async (schemas: InternalMessageSchemaResource[], sources: SchemaSource[] = []) => {
   if (sources.length > 0 && !isEventCatalogScaleEnabled()) {
     throw new Error('Schema sources require EventCatalog Scale.');
   }
 
   const localSchemas = schemas.filter(schemaFileExists);
   const externalSchemas = schemas.filter((schema) => !schema.filePath);
-  const resolvedExternalSchemas: MessageSchemaResource[] = [];
+  const resolvedExternalSchemas: InternalMessageSchemaResource[] = [];
   const resolvedExternalSchemaIds = new Set<string>();
 
   for (const source of sources) {
@@ -354,7 +360,7 @@ const resolveSchemaSources = async (schemas: MessageSchemaResource[], sources: S
     );
 
     const resolvedSchemas = await Promise.all(sourceSchemas.map((schema) => resolveSchemaSource(schema, source)));
-    const syncedSchemas = resolvedSchemas.filter((schema): schema is MessageSchemaResource => schema !== undefined);
+    const syncedSchemas = resolvedSchemas.filter((schema): schema is InternalMessageSchemaResource => schema !== undefined);
 
     for (const schema of syncedSchemas) {
       resolvedExternalSchemaIds.add(schema.id);
@@ -395,18 +401,28 @@ const loadMessageSchemaResources = async ({ pattern, base }: SchemaLoaderOptions
       if (!collection) return [];
 
       const { data } = matter.read(file) as { data: MessageFrontmatter };
-      return getMessageSchemasFromFrontmatter({ data, collection, messageFilePath: file });
+      return getMessageSchemasFromFrontmatter({ data, collection, messageFilePath: file }).map((schema) => ({
+        ...schema,
+        _context: {
+          messageFilePath: file,
+        },
+      }));
     })
   );
 
   return schemas.flat();
 };
 
+const stripSchemaLoaderContext = (schema: InternalMessageSchemaResource): MessageSchemaResource => {
+  const { _context, ...publicSchema } = schema;
+  return publicSchema;
+};
+
 export const loadMessageSchemas = async (messages: SchemaLoaderOptions['messages'], sources: SchemaSource[] = []) => {
   const schemas = await loadMessageSchemaResources(messages);
   const resolvedSchemas = await resolveSchemaSources(schemas, sources);
 
-  return addLatestMetadata(resolvedSchemas);
+  return addLatestMetadata(resolvedSchemas.map(stripSchemaLoaderContext));
 };
 
 const getSchemaBody = async (schema: MessageSchemaResource) => {

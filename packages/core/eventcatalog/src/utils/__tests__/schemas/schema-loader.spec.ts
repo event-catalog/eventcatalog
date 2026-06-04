@@ -490,6 +490,53 @@ schemas:
     consoleLog.mockRestore();
   });
 
+  it('passes the referencing message file path to configured schema sources', async () => {
+    process.env.EVENTCATALOG_SCALE = 'true';
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+    const messageFilePath = path.join(messageDir, 'index.mdx');
+    const resolve = vi.fn(async (id: string) => ({
+      id,
+      content: '{}',
+      source: {
+        provider: 'git',
+      },
+    }));
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(
+      messageFilePath,
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - ref: git://contracts/events/OrderPlaced.schema.json
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas(
+      {
+        base: catalogDir,
+        pattern: ['**/events/*/index.{md,mdx}'],
+      },
+      [
+        {
+          type: 'schemas',
+          name: 'contracts',
+          canResolve: (id) => id.startsWith('git://contracts/'),
+          resolve,
+        },
+      ]
+    );
+
+    expect(resolve).toHaveBeenCalledWith('git://contracts/events/OrderPlaced.schema.json', { messageFilePath });
+    expect(schemas[0]).not.toHaveProperty('_context');
+    consoleLog.mockRestore();
+  });
+
   it('reports the message that referenced an external schema when the source cannot resolve it', async () => {
     process.env.EVENTCATALOG_SCALE = 'true';
     const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});

@@ -11,6 +11,7 @@ const mockFlows: any[] = [];
 const mockResourceDocs: any[] = [];
 const mockResourceDocCategories: any[] = [];
 const mockAgents: any[] = [];
+const mockSchemas: any[] = [];
 
 declare global {
   interface Window {
@@ -96,6 +97,8 @@ vi.mock('astro:content', async (importOriginal) => {
         case 'diagrams':
           // NO SDK Support for diagrams yet, so we just mock it out for now
           return Promise.resolve([]);
+        case 'schemas':
+          return Promise.resolve(mockSchemas.map((schema) => toAstroCollection(schema, 'schemas')));
         case 'channels':
           const { getChannels } = utils(CATALOG_FOLDER);
           const channels = (await getChannels()) ?? [];
@@ -160,6 +163,7 @@ describe('getNestedSideBarData', () => {
     mockResourceDocs.length = 0;
     mockResourceDocCategories.length = 0;
     mockAgents.length = 0;
+    mockSchemas.length = 0;
     fs.rmSync(CATALOG_FOLDER, { recursive: true, force: true });
     fs.mkdirSync(CATALOG_FOLDER, { recursive: true });
     // Remove any navigation data from teh config
@@ -2186,7 +2190,7 @@ describe('getNestedSideBarData', () => {
     });
 
     describe('API & Contracts section', () => {
-      it('lists a schema link when the message declares schemas', async () => {
+      it('lists a schema link when the message has a resolved schema entry', async () => {
         const { writeEvent } = utils(CATALOG_FOLDER);
         await writeEvent({
           id: 'PaymentProcessed',
@@ -2194,6 +2198,13 @@ describe('getNestedSideBarData', () => {
           version: '0.0.1',
           markdown: 'Payment Processed',
           schemas: [{ ref: 'git://contracts/events/PaymentProcessed.schema.json' }],
+        });
+        mockSchemas.push({
+          id: 'git://contracts/events/PaymentProcessed.schema.json',
+          ref: 'git://contracts/events/PaymentProcessed.schema.json',
+          format: 'jsonschema',
+          source: { provider: 'git', path: 'events/PaymentProcessed.schema.json' },
+          message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
         });
 
         const navigationData = await getNestedSideBarData();
@@ -2205,7 +2216,26 @@ describe('getNestedSideBarData', () => {
         });
       });
 
-      it('uses a generic schemas label when the message declares multiple schemas', async () => {
+      it('does not list a schema link when declared schemas are not resolved', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          schemas: [{ ref: 'git://contracts/events/Missing.schema.json' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Schema (JSON)',
+          href: '/schemas/events/PaymentProcessed/0.0.1',
+        });
+      });
+
+      it('uses a generic schemas label when the message has multiple resolved schemas', async () => {
         const { writeEvent } = utils(CATALOG_FOLDER);
         await writeEvent({
           id: 'PaymentProcessed',
@@ -2217,6 +2247,22 @@ describe('getNestedSideBarData', () => {
             { ref: 'git://contracts/events/PaymentProcessed.schema.avsc' },
           ],
         });
+        mockSchemas.push(
+          {
+            id: 'git://contracts/events/PaymentProcessed.schema.json',
+            ref: 'git://contracts/events/PaymentProcessed.schema.json',
+            format: 'jsonschema',
+            source: { provider: 'git', path: 'events/PaymentProcessed.schema.json' },
+            message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
+          },
+          {
+            id: 'git://contracts/events/PaymentProcessed.schema.avsc',
+            ref: 'git://contracts/events/PaymentProcessed.schema.avsc',
+            format: 'avro',
+            source: { provider: 'git', path: 'events/PaymentProcessed.schema.avsc' },
+            message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
+          }
+        );
 
         const navigationData = await getNestedSideBarData();
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
@@ -2282,6 +2328,13 @@ describe('getNestedSideBarData', () => {
           markdown: 'Payment Processed',
           schemaPath: 'schema.json',
         });
+        mockSchemas.push({
+          id: 'schema:events:PaymentProcessed:0.0.1:schema.json',
+          format: 'jsonschema',
+          file: 'schema.json',
+          source: { provider: 'file', path: 'schema.json' },
+          message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
+        });
         await writeService({
           id: 'ShippingService',
           name: 'Shipping Service',
@@ -2307,6 +2360,13 @@ describe('getNestedSideBarData', () => {
           version: '0.0.1',
           markdown: 'Payment Processed',
           schemas: [{ ref: 'git://contracts/events/PaymentProcessed.schema.json' }],
+        });
+        mockSchemas.push({
+          id: 'git://contracts/events/PaymentProcessed.schema.json',
+          ref: 'git://contracts/events/PaymentProcessed.schema.json',
+          format: 'jsonschema',
+          source: { provider: 'git', path: 'events/PaymentProcessed.schema.json' },
+          message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
         });
         await writeService({
           id: 'ShippingService',
@@ -2384,6 +2444,13 @@ describe('getNestedSideBarData', () => {
           version: '1.0.0',
           markdown: 'Inventory Adjusted',
           schemaPath: 'schema.json',
+        });
+        mockSchemas.push({
+          id: 'schema:events:InventoryAdjusted:1.0.0:schema.json',
+          format: 'jsonschema',
+          file: 'schema.json',
+          source: { provider: 'file', path: 'schema.json' },
+          message: { collection: 'events', id: 'InventoryAdjusted', version: '1.0.0' },
         });
         await writeService({
           id: 'InventoryService',

@@ -28,6 +28,8 @@ import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-gr
 import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
 import config from '@config';
 
+const MESSAGE_COLLECTIONS = new Set(['events', 'commands', 'queries']);
+
 // ============================================
 // Pagination utilities
 // ============================================
@@ -224,6 +226,27 @@ export async function getSchemaForResource(params: { resourceId: string; resourc
     return {
       error: `Resource not found with id ${params.resourceId} and version ${params.resourceVersion} and collection ${params.resourceCollection}`,
     };
+  }
+
+  if (MESSAGE_COLLECTIONS.has(params.resourceCollection)) {
+    const schemaEntries = await getCollection('schemas');
+    const schemas = schemaEntries.filter(
+      (schema) =>
+        schema.data.message.collection === params.resourceCollection &&
+        schema.data.message.id === params.resourceId &&
+        schema.data.message.version === params.resourceVersion
+    );
+
+    if (schemas.length > 0) {
+      return schemas.map((schema) => ({
+        id: schema.id,
+        name: schema.data.name,
+        ref: schema.data.ref,
+        format: schema.data.format,
+        source: schema.data.source,
+        code: schema.data.content || '',
+      }));
+    }
   }
 
   const schema = await getSchemasFromResource(resource);

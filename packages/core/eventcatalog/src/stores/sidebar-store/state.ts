@@ -292,6 +292,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     dataProducts,
     entities,
     adrs,
+    schemas,
     resourceDocs,
     resourceDocCategories,
   ] = await Promise.all([
@@ -309,6 +310,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getDataProducts({ getAllVersions: false }),
     getEntities({ getAllVersions: false }),
     getAdrs({ getAllVersions: false }),
+    getCollection('schemas'),
     getResourceDocs(),
     getResourceDocCategories(),
   ]);
@@ -330,6 +332,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     containers,
     channels,
     diagrams,
+    schemas,
     dataProducts,
     entities,
     adrs,

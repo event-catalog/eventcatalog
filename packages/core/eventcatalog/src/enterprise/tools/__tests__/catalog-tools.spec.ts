@@ -776,11 +776,34 @@ describe('getSchemaForResource', () => {
     vi.mocked(getSchemasFromResource).mockReset();
   });
 
-  it('returns schema with format and code', async () => {
+  it('returns message schemas from the generated schemas collection', async () => {
+    const result = await getSchemaForResource({
+      resourceId: 'OrderCreated',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'events',
+    });
+
+    expect(result).toEqual([
+      {
+        id: 'file://schemas/OrderCreated.schema.json',
+        name: 'OrderCreated.schema.json',
+        ref: 'file://schemas/OrderCreated.schema.json',
+        format: 'jsonschema',
+        source: {
+          provider: 'file',
+          path: 'schemas/OrderCreated.schema.json',
+        },
+        code: '{"type":"object","title":"OrderCreated"}',
+      },
+    ]);
+    expect(getSchemasFromResource).not.toHaveBeenCalled();
+  });
+
+  it('falls back to legacy resource schema files when no generated schema entry exists', async () => {
     vi.mocked(getSchemasFromResource).mockResolvedValue([{ url: '/path/to/schema.json', format: 'json-schema' }]);
 
     const result = await getSchemaForResource({
-      resourceId: 'OrderCreated',
+      resourceId: 'PaymentProcessed',
       resourceVersion: '1.0.0',
       resourceCollection: 'events',
     });
@@ -796,7 +819,7 @@ describe('getSchemaForResource', () => {
     vi.mocked(getSchemasFromResource).mockResolvedValue([]);
 
     const result = await getSchemaForResource({
-      resourceId: 'OrderCreated',
+      resourceId: 'PaymentProcessed',
       resourceVersion: '1.0.0',
       resourceCollection: 'events',
     });
