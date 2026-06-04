@@ -1,14 +1,13 @@
 import { getCollection } from 'astro:content';
 import config from '@config';
 import type { APIRoute } from 'astro';
-import type { CollectionEntry } from 'astro:content';
 import { getSpecificationsForService } from '@utils/collections/services';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
 
-const events = await getCollection('events');
-const commands = await getCollection('commands');
-const queries = await getCollection('queries');
+type MessageCollection = 'events' | 'commands' | 'queries';
+
 const services = await getCollection('services');
+const schemas = await getCollection('schemas');
 
 type ServiceWithSchema = {
   collection: string;
@@ -33,8 +32,19 @@ const servicesWithSchemasFlat = servicesWithSchemas.reduce<ServiceWithSchema[]>(
   ];
 }, []) as ServiceWithSchema[];
 
-const messageHasSchema = (message: CollectionEntry<'events' | 'commands' | 'queries'>) => {
-  return message.data.schemaPath;
+const getMessagesWithSchemas = (collection: MessageCollection) => {
+  const seenMessages = new Set<string>();
+
+  return schemas
+    .filter((schema) => schema.data.message.collection === collection)
+    .map((schema) => {
+      const key = `${schema.data.message.collection}:${schema.data.message.id}:${schema.data.message.version}`;
+      if (seenMessages.has(key)) return null;
+      seenMessages.add(key);
+
+      return schema;
+    })
+    .filter((schema): schema is NonNullable<typeof schema> => schema !== null);
 };
 
 export const GET: APIRoute = async ({ params, request }) => {
@@ -51,8 +61,9 @@ export const GET: APIRoute = async ({ params, request }) => {
   const url = new URL(request.url);
   const baseUrl = process.env.LLMS_TXT_BASE_URL || `${url.origin}`;
 
-  const formatVersionedItem = (item: any, type: string, extraParams?: string | string[]) => {
-    return `- [${item.data.name} - ${item.data.id} - ${item.data.version}](${baseUrl}/api/schemas/${type}/${item.data.id}/${item.data.version})} ${item.data.summary ? `- ${item.data.summary.trim()}` : ''}`;
+  const formatVersionedItem = (item: (typeof schemas)[number]) => {
+    const message = item.data.message;
+    return `- [${message.name || message.id} - ${message.id} - ${message.version}](${baseUrl}/api/schemas/${message.collection}/${message.id}/${message.version})} ${message.summary ? `- ${message.summary.trim()}` : ''}`;
   };
 
   const formatServiceWithSchema = (item: ServiceWithSchema) => {
@@ -63,19 +74,16 @@ export const GET: APIRoute = async ({ params, request }) => {
     `# ${config.organizationName} EventCatalog Schemas`,
     `List of schemas for events, commands, queries, and services in EventCatalog.`,
     '',
-    `## Events\n${events
-      .filter(messageHasSchema)
-      .map((item) => formatVersionedItem(item, 'events'))
+    `## Events\n${getMessagesWithSchemas('events')
+      .map((item) => formatVersionedItem(item))
       .join('\n')}`,
     '',
-    `## Commands\n${commands
-      .filter(messageHasSchema)
-      .map((item) => formatVersionedItem(item, 'commands'))
+    `## Commands\n${getMessagesWithSchemas('commands')
+      .map((item) => formatVersionedItem(item))
       .join('\n')}`,
     '',
-    `## Queries\n${queries
-      .filter(messageHasSchema)
-      .map((item) => formatVersionedItem(item, 'queries'))
+    `## Queries\n${getMessagesWithSchemas('queries')
+      .map((item) => formatVersionedItem(item))
       .join('\n')}`,
     '',
     `## Services\n${servicesWithSchemasFlat.map((item: any) => formatServiceWithSchema(item)).join('\n')}`,

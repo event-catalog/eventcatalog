@@ -10,6 +10,7 @@ import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 import { getExamplesForResource } from '@utils/collections/examples';
+import { getCollection } from 'astro:content';
 import path from 'path';
 
 // Helper function to enrich owners with full details
@@ -32,61 +33,84 @@ async function fetchAllSchemas() {
   const events = await getEvents({ getAllVersions: true });
   const commands = await getCommands({ getAllVersions: true });
   const queries = await getQueries({ getAllVersions: true });
+  const schemaEntries = await getCollection('schemas');
 
   // Fetch all services
   const services = await getServices({ getAllVersions: true });
 
   // Combine all messages
   const allMessages = [...events, ...commands, ...queries];
+  const messagesBySchemaReference = new Map(
+    allMessages.map((message) => [`${message.collection}:${message.data.id}:${message.data.version}`, message])
+  );
 
-  // Filter messages with schemas and read schema content - only keep essential data
+  // Read message schemas from the generated schemas collection.
   const messagesWithSchemas = await Promise.all(
-    allMessages
-      .filter((message) => message.data.schemaPath)
-      .filter((message) => resourceFileExists(message, message.data.schemaPath ?? ''))
-      .map(async (message) => {
+    schemaEntries.map(async (schema) => {
+      const message = messagesBySchemaReference.get(
+        `${schema.data.message.collection}:${schema.data.message.id}:${schema.data.message.version}`
+      );
+      const schemaPath = schema.data.file || schema.data.source.path || '';
+      const schemaExtension = path.extname(schemaPath).slice(1) || schema.data.format;
+
+      if (message) {
         try {
-          const schemaPath = message.data.schemaPath ?? '';
-          const schemaContent = readResourceFile(message, schemaPath) ?? '';
-          const schemaExtension = path.extname(schemaPath).slice(1);
-          const enrichedOwners = await enrichOwners(message.data.owners || []);
+          const enrichedOwners = await enrichOwners(schema.data.message.owners || []);
 
           return {
             collection: message.collection,
             data: {
               id: message.data.id,
-              name: message.data.name,
+              name: schema.data.message.name || message.data.name,
               version: message.data.version,
-              summary: message.data.summary,
-              schemaPath: message.data.schemaPath,
+              summary: schema.data.message.summary || message.data.summary,
+              schemaPath,
               producers: message.data.producers || [],
               consumers: message.data.consumers || [],
               owners: enrichedOwners,
             },
-            schemaContent,
+            schemaContent: schema.data.content || '',
             schemaExtension,
             examples: getExamplesForResource(message),
           };
         } catch (error) {
-          console.error(`Error reading schema for ${message.data.id}:`, error);
-          const enrichedOwners = await enrichOwners(message.data.owners || []);
+          console.error(`Error reading schema metadata for ${message.data.id}:`, error);
+          const enrichedOwners = await enrichOwners(schema.data.message.owners || []);
           return {
             collection: message.collection,
             data: {
               id: message.data.id,
-              name: message.data.name,
+              name: schema.data.message.name || schema.data.name || message.data.name,
               version: message.data.version,
-              summary: message.data.summary,
-              schemaPath: message.data.schemaPath,
+              summary: schema.data.message.summary || message.data.summary,
+              schemaPath,
               producers: message.data.producers || [],
               consumers: message.data.consumers || [],
               owners: enrichedOwners,
             },
-            schemaContent: '',
-            schemaExtension: 'json',
+            schemaContent: schema.data.content || '',
+            schemaExtension,
           };
         }
-      })
+      }
+
+      return {
+        collection: schema.data.message.collection,
+        data: {
+          id: schema.data.message.id,
+          name: schema.data.message.name || schema.data.name || schema.data.message.id,
+          version: schema.data.message.version,
+          summary: schema.data.message.summary,
+          schemaPath,
+          owners: await enrichOwners(schema.data.message.owners || []),
+          producers: [],
+          consumers: [],
+        },
+        schemaContent: schema.data.content || '',
+        schemaExtension,
+        examples: [],
+      };
+    })
   );
 
   // Filter services with specifications and read spec content - only keep essential data

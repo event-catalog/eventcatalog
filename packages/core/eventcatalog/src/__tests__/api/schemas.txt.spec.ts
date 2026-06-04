@@ -7,44 +7,6 @@ vi.mock('astro:content', async (importOriginal) => {
     ...(await importOriginal<typeof import('astro:content')>()),
     getCollection: (key: CollectionKey) => {
       switch (key) {
-        case 'events':
-          return Promise.resolve([
-            {
-              data: {
-                name: 'Order Placed',
-                id: 'OrderPlaced',
-                version: '1.0.0',
-                summary: 'Order Placed summary',
-                schemaPath: 'schema.json',
-              },
-            },
-            // No schema, does not return
-            { data: { name: 'Order Confirmed', id: 'OrderConfirmed', version: '1.0.0', summary: 'Order Confirmed summary' } },
-          ]);
-        case 'commands':
-          return Promise.resolve([
-            {
-              data: {
-                name: 'Create Order',
-                id: 'CreateOrder',
-                version: '1.0.0',
-                summary: 'Create Order summary',
-                schemaPath: 'schema.json',
-              },
-            },
-          ]);
-        case 'queries':
-          return Promise.resolve([
-            {
-              data: {
-                name: 'Get Order',
-                id: 'GetOrder',
-                version: '1.0.0',
-                summary: 'Get Order summary',
-                schemaPath: 'schema.json',
-              },
-            },
-          ]);
         case 'services':
           return Promise.resolve([
             {
@@ -63,6 +25,48 @@ vi.mock('astro:content', async (importOriginal) => {
             // No schema, does not return
             {
               data: { name: 'Inventory Service', id: 'InventoryService', version: '1.0.0', summary: 'Inventory Service summary' },
+            },
+          ]);
+        case 'schemas':
+          return Promise.resolve([
+            {
+              data: {
+                id: 'schema:events:OrderPlaced:1.0.0:schema.json',
+                message: {
+                  collection: 'events',
+                  id: 'OrderPlaced',
+                  name: 'Order Placed',
+                  version: '1.0.0',
+                  summary: 'Order Placed summary',
+                  owners: ['orders-team'],
+                },
+              },
+            },
+            {
+              data: {
+                id: 'schema:commands:CreateOrder:1.0.0:schema.json',
+                message: {
+                  collection: 'commands',
+                  id: 'CreateOrder',
+                  name: 'Create Order',
+                  version: '1.0.0',
+                  summary: 'Create Order summary',
+                  owners: ['orders-team'],
+                },
+              },
+            },
+            {
+              data: {
+                id: 'schema:queries:GetOrder:1.0.0:schema.json',
+                message: {
+                  collection: 'queries',
+                  id: 'GetOrder',
+                  name: 'Get Order',
+                  version: '1.0.0',
+                  summary: 'Get Order summary',
+                  owners: ['orders-team'],
+                },
+              },
             },
           ]);
         default:

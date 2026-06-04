@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { userTeamDirectoryLoader } from './enterprise/directory/user-team-directory';
 import config from '@config';
+import { schemaLoader } from './utils/collections/schema-loader';
 
 // Enterprise Collections
 import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './enterprise/collections';
@@ -67,6 +68,16 @@ const channelPointer = z
     parameters: z.record(z.string(), z.string()).optional(),
   })
   .extend(pointer.shape);
+
+const schemaPointer = z.object({
+  id: z.string().optional(),
+  file: z.string().optional(),
+  path: z.string().optional(),
+  name: z.string().optional(),
+  format: z.string().optional(),
+  environments: z.array(z.string()).optional(),
+  default: z.boolean().optional(),
+});
 
 const sendsPointer = z.object({
   id: z.string(),
@@ -375,6 +386,7 @@ const events = defineCollection({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
       channels: z.array(channelPointer).optional(),
+      schemas: z.array(schemaPointer).optional(),
       messageChannels: z.array(reference('channels')).optional(),
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
     })
@@ -397,6 +409,7 @@ const commands = defineCollection({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
       channels: z.array(channelPointer).optional(),
+      schemas: z.array(schemaPointer).optional(),
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
       messageChannels: z.array(reference('channels')).optional(),
     })
@@ -419,6 +432,7 @@ const queries = defineCollection({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
       channels: z.array(channelPointer).optional(),
+      schemas: z.array(schemaPointer).optional(),
       detailsPanel: messageDetailsPanelPropertySchema.optional(),
       messageChannels: z.array(reference('channels')).optional(),
     })
@@ -991,6 +1005,47 @@ const diagrams = defineCollection({
     .extend(baseSchema.shape),
 });
 
+const schemas = defineCollection({
+  loader: schemaLoader({
+    messages: {
+      pattern: withIgnoredBuildArtifacts([
+        '**/events/*/index.{md,mdx}',
+        '**/events/*/versioned/*/index.{md,mdx}',
+        '**/commands/*/index.{md,mdx}',
+        '**/commands/*/versioned/*/index.{md,mdx}',
+        '**/queries/*/index.{md,mdx}',
+        '**/queries/*/versioned/*/index.{md,mdx}',
+      ]) as string[],
+      base: projectDirBase,
+    },
+  }),
+  schema: z
+    .object({
+      format: z.string(),
+      content: z.string().optional(),
+      file: z.string().optional(),
+      filePath: z.string().optional(),
+      environments: z.array(z.string()).optional(),
+      default: z.boolean().optional(),
+      latest: z.boolean().optional(),
+      message: z.object({
+        collection: z.enum(['events', 'commands', 'queries']),
+        id: z.string(),
+        name: z.string().optional(),
+        version: z.string(),
+        summary: z.string().optional(),
+        owners: z.array(z.string()).optional(),
+      }),
+      source: z.object({
+        provider: z.string(),
+        path: z.string().optional(),
+        url: z.string().optional(),
+      }),
+      readOnly: z.boolean().optional(),
+    })
+    .extend(baseSchema.shape),
+});
+
 export const collections = {
   events,
   commands,
@@ -1024,4 +1079,7 @@ export const collections = {
 
   // Diagrams Collection
   diagrams,
+
+  // Generated from message schema references
+  schemas,
 };
