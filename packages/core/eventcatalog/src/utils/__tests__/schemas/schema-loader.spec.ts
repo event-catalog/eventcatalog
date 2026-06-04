@@ -172,6 +172,30 @@ schemaPath: schema.json
     });
   });
 
+  it('does not load schema entries when the referenced schema file is missing', async () => {
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(
+      path.join(messageDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemaPath: missing-schema.json
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas({
+      base: catalogDir,
+      pattern: ['**/events/*/index.{md,mdx}'],
+    });
+
+    expect(schemas).toEqual([]);
+  });
+
   it('marks schemas for the latest message version using semver ordering', async () => {
     const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
     const eventDir = path.join(catalogDir, 'events', 'OrderPlaced');

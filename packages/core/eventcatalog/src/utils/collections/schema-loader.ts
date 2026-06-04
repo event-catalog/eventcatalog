@@ -87,6 +87,9 @@ const buildGeneratedSchemaId = (message: { collection: MessageCollection; id: st
 
 const getSchemaFile = (reference: SchemaReference) => reference.file ?? reference.path;
 
+const schemaFileExists = (schema: MessageSchemaResource): schema is MessageSchemaResource & { filePath: string } =>
+  Boolean(schema.filePath && fsSync.existsSync(schema.filePath));
+
 const addLatestMetadata = (schemas: MessageSchemaResource[]) => {
   const schemasByMessage = schemas.reduce(
     (acc, schema) => {
@@ -190,16 +193,18 @@ export const loadMessageSchemas = async ({ pattern, base }: SchemaLoaderOptions[
     })
   );
 
-  return addLatestMetadata(schemas.flat());
+  return addLatestMetadata(schemas.flat().filter(schemaFileExists));
 };
 
 const getSchemaBody = async (schema: MessageSchemaResource) => {
-  if (!schema.filePath || !fsSync.existsSync(schema.filePath)) return '';
+  if (!schemaFileExists(schema)) return undefined;
   return fs.readFile(schema.filePath, 'utf8');
 };
 
 const setSchema = async (context: LoaderContext, schema: MessageSchemaResource) => {
   const body = await getSchemaBody(schema);
+  if (body === undefined) return;
+
   const schemaWithContent = {
     ...schema,
     content: body,
@@ -221,6 +226,7 @@ export const schemaLoader = ({ messages }: SchemaLoaderOptions): Loader => {
   return {
     name: 'eventcatalog-schema-loader',
     load: async (context) => {
+      context.store.clear();
       const schemas = await loadMessageSchemas(messages);
 
       for (const schema of schemas) {

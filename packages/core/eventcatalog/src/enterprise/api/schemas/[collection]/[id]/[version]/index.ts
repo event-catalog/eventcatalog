@@ -15,7 +15,10 @@ const findSchema = async (collection: string | undefined, id: string, version: s
   );
 
   if (version === 'latest') {
-    return matchingSchemas.find((schema) => schema.data.latest) ?? sortVersioned(matchingSchemas, (schema) => schema.data.message.version)[0];
+    return (
+      matchingSchemas.find((schema) => schema.data.latest) ??
+      sortVersioned(matchingSchemas, (schema) => schema.data.message.version)[0]
+    );
   }
 
   return matchingSchemas.find((schema) => schema.data.message.version === version);
