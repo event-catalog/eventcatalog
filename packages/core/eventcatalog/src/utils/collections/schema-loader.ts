@@ -133,6 +133,22 @@ const getSchemaFormat = (schemaPath: string) => {
 const buildGeneratedSchemaId = (message: { collection: MessageCollection; id: string; version: string }, schemaPath: string) =>
   `schema:${message.collection}:${message.id}:${message.version}:${schemaPath}`;
 
+const getSchemaCollectionId = ({
+  message,
+  reference,
+  schemaRef,
+  schemaFile,
+}: {
+  message: { collection: MessageCollection; id: string; version: string };
+  reference: SchemaReference;
+  schemaRef?: string;
+  schemaFile?: string;
+}) => {
+  if (schemaRef) return buildGeneratedSchemaId(message, schemaRef);
+  if (reference.id) return reference.id;
+  return buildGeneratedSchemaId(message, schemaFile as string);
+};
+
 const getSchemaFile = (reference: SchemaReference) => reference.file ?? reference.path;
 
 const getSchemaRef = (reference: SchemaReference) => {
@@ -198,6 +214,8 @@ const getErrorMessage = (error: unknown) => {
   return error instanceof Error ? error.message : String(error);
 };
 
+const getSchemaResolveRef = (schema: MessageSchemaResource) => schema.ref ?? schema.id;
+
 const buildSchemaSourceErrorMessage = ({
   schema,
   source,
@@ -214,7 +232,7 @@ const buildSchemaSourceErrorMessage = ({
     colors.red(colors.bold('[schemas] Failed to resolve schema')),
     '',
     `  Message: ${messageType} "${schema.message.id}" version "${schema.message.version}"`,
-    `  Schema:  ${schema.id}`,
+    `  Schema:  ${getSchemaResolveRef(schema)}`,
     `  Source:  ${source.name}`,
     '',
     colors.bold('Reason:'),
@@ -288,7 +306,7 @@ export const getMessageSchemasFromFrontmatter = ({
     const schemaRef = getSchemaRef(reference);
     const fileSchemaRef = isFileSchemaRef(schemaRef) ? getFileSchemaRefPath(schemaRef as string, messageFilePath) : undefined;
     const schemaFilePath = schemaFile ? path.resolve(path.dirname(messageFilePath), schemaFile) : fileSchemaRef?.filePath;
-    const schemaId = schemaRef ?? reference.id ?? buildGeneratedSchemaId(message, schemaFile as string);
+    const schemaId = getSchemaCollectionId({ message, reference, schemaRef, schemaFile });
     const schemaPathForFormat = schemaFile ?? fileSchemaRef?.filePath;
 
     return {
@@ -303,7 +321,7 @@ export const getMessageSchemasFromFrontmatter = ({
       default: reference.default,
       message,
       source: {
-        provider: schemaFile || fileSchemaRef ? 'file' : getSchemaProvider(schemaId),
+        provider: schemaFile || fileSchemaRef ? 'file' : getSchemaProvider(schemaRef ?? schemaId),
         path: schemaFile ?? fileSchemaRef?.sourcePath,
       },
     };
@@ -318,9 +336,10 @@ const resolveSchemaSource = async (
   if (schema.filePath) return undefined;
 
   let resolvedSchema: Awaited<ReturnType<SchemaSource['resolve']>>;
+  const schemaResolveRef = getSchemaResolveRef(schema);
 
   try {
-    resolvedSchema = await source.resolve(schema.id, schema._context);
+    resolvedSchema = await source.resolve(schemaResolveRef, schema._context);
   } catch (error) {
     throw new Error(buildSchemaSourceErrorMessage({ schema, source, error }));
   }
@@ -352,7 +371,7 @@ const resolveSchemaSources = async (schemas: InternalMessageSchemaResource[], so
   const resolvedExternalSchemaIds = new Set<string>();
 
   for (const source of sources) {
-    const sourceSchemas = externalSchemas.filter((schema) => source.canResolve(schema.id));
+    const sourceSchemas = externalSchemas.filter((schema) => source.canResolve(getSchemaResolveRef(schema)));
     if (sourceSchemas.length === 0) continue;
 
     logSchemaInfo(

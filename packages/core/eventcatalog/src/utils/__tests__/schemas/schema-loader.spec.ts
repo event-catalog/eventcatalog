@@ -149,7 +149,7 @@ describe('schema-loader', () => {
 
     expect(schemas).toEqual([
       {
-        id: 'git://contracts/events/ShipmentCancelled.schema.json',
+        id: 'schema:events:ShipmentCancelled:1.0.0:git://contracts/events/ShipmentCancelled.schema.json',
         ref: 'git://contracts/events/ShipmentCancelled.schema.json',
         name: undefined,
         version: '1.0.0',
@@ -187,7 +187,7 @@ describe('schema-loader', () => {
 
     expect(schemas).toMatchObject([
       {
-        id: 'git://contracts/events/ShipmentCancelled.schema.json',
+        id: 'schema:events:ShipmentCancelled:1.0.0:git://contracts/events/ShipmentCancelled.schema.json',
         ref: 'git://contracts/events/ShipmentCancelled.schema.json',
         source: {
           provider: 'git',
@@ -209,7 +209,7 @@ describe('schema-loader', () => {
 
     expect(schemas).toEqual([
       {
-        id: 'file://./schemas/OrderPlaced.schema.json',
+        id: 'schema:events:OrderPlaced:1.0.0:file://./schemas/OrderPlaced.schema.json',
         ref: 'file://./schemas/OrderPlaced.schema.json',
         name: 'OrderPlaced.schema.json',
         version: '1.0.0',
@@ -321,7 +321,7 @@ schemas:
 
     expect(schemas).toHaveLength(1);
     expect(schemas[0]).toMatchObject({
-      id: 'file://./schemas/OrderPlaced.schema.json',
+      id: 'schema:events:OrderPlaced:1.0.0:file://./schemas/OrderPlaced.schema.json',
       ref: 'file://./schemas/OrderPlaced.schema.json',
       name: 'OrderPlaced.schema.json',
       format: 'jsonschema',
@@ -362,7 +362,7 @@ schemas:
 
     expect(schemas).toHaveLength(1);
     expect(schemas[0]).toMatchObject({
-      id: schemaRef,
+      id: `schema:events:OrderPlaced:1.0.0:${schemaRef}`,
       ref: schemaRef,
       name: 'OrderPlaced.avsc',
       format: 'avro',
@@ -465,7 +465,8 @@ schemas:
 
     expect(schemas).toHaveLength(1);
     expect(schemas[0]).toMatchObject({
-      id: 'git://contracts/events/OrderPlaced.schema.json',
+      id: 'schema:events:OrderPlaced:1.0.0:git://contracts/events/OrderPlaced.schema.json',
+      ref: 'git://contracts/events/OrderPlaced.schema.json',
       name: 'OrderPlaced.schema.json',
       format: 'jsonschema',
       content: '{"type":"object"}',
@@ -487,6 +488,83 @@ schemas:
     });
     expect(consoleLog).toHaveBeenCalledWith(expect.stringContaining('Loading 1 schema from schema source "contracts"'));
     expect(consoleLog).toHaveBeenCalledWith(expect.stringContaining('Synced 1 schema from schema source "contracts"'));
+    consoleLog.mockRestore();
+  });
+
+  it('keeps distinct collection entries when multiple message versions reference the same external schema', async () => {
+    process.env.EVENTCATALOG_SCALE = 'true';
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const eventDir = path.join(catalogDir, 'events', 'UserCreated');
+    const versionedEventDir = path.join(eventDir, 'versioned', '2.0.0');
+
+    await mkdir(eventDir, { recursive: true });
+    await mkdir(versionedEventDir, { recursive: true });
+    await writeFile(
+      path.join(eventDir, 'index.mdx'),
+      `---
+id: UserCreated
+name: User created
+version: 1.0.0
+schemas:
+  - ref: git://contracts/common/User.schema.json
+---
+`
+    );
+    await writeFile(
+      path.join(versionedEventDir, 'index.mdx'),
+      `---
+id: UserCreated
+name: User created
+version: 2.0.0
+schemas:
+  - ref: git://contracts/common/User.schema.json
+---
+`
+    );
+
+    const resolve = vi.fn(async (id: string) => ({
+      id,
+      name: 'User.schema.json',
+      format: 'jsonschema',
+      content: '{"type":"object"}',
+      source: {
+        provider: 'git',
+        path: 'common/User.schema.json',
+      },
+    }));
+
+    const schemas = await loadMessageSchemas(
+      {
+        base: catalogDir,
+        pattern: ['**/events/*/index.{md,mdx}', '**/events/*/versioned/*/index.{md,mdx}'],
+      },
+      [
+        {
+          type: 'schemas',
+          name: 'contracts',
+          canResolve: (id) => id.startsWith('git://contracts/'),
+          resolve,
+        },
+      ]
+    );
+
+    expect(schemas).toHaveLength(2);
+    expect(schemas.map((schema) => schema.id).sort()).toEqual([
+      'schema:events:UserCreated:1.0.0:git://contracts/common/User.schema.json',
+      'schema:events:UserCreated:2.0.0:git://contracts/common/User.schema.json',
+    ]);
+    expect(schemas.map((schema) => schema.ref)).toEqual([
+      'git://contracts/common/User.schema.json',
+      'git://contracts/common/User.schema.json',
+    ]);
+    expect(schemas.map((schema) => schema.message.version).sort()).toEqual(['1.0.0', '2.0.0']);
+    expect(resolve).toHaveBeenCalledTimes(2);
+    expect(resolve).toHaveBeenNthCalledWith(
+      1,
+      'git://contracts/common/User.schema.json',
+      expect.objectContaining({ messageFilePath: expect.stringContaining('index.mdx') })
+    );
     consoleLog.mockRestore();
   });
 
