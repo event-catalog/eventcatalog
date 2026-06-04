@@ -5,62 +5,55 @@
 
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import path from 'node:path';
-import fs from 'node:fs';
-import utils from '@eventcatalog/sdk';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { sortVersioned } from '@utils/collections/util';
 
-export async function getStaticPaths() {
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
-  const messages = [...events, ...commands, ...queries];
+const findSchema = async (collection: string | undefined, id: string, version: string | undefined) => {
+  const schemas = await getCollection('schemas');
+  const matchingSchemas = schemas.filter(
+    (schema) => schema.data.message.collection === collection && schema.data.message.id === id
+  );
 
-  const messagesWithSchemas = messages
-    .filter((message) => message.data.schemaPath)
-    .filter((message) => fs.existsSync(path.join(path.dirname(message.filePath ?? ''), message.data.schemaPath ?? '')));
+  if (version === 'latest') {
+    return (
+      matchingSchemas.find((schema) => schema.data.latest) ??
+      sortVersioned(matchingSchemas, (schema) => schema.data.message.version)[0]
+    );
+  }
+
+  return matchingSchemas.find((schema) => schema.data.message.version === version);
+};
+
+export async function getStaticPaths() {
+  const schemas = await getCollection('schemas');
 
   // Generate paths for specific versions
-  const versionedPaths = messagesWithSchemas.map((message) => ({
-    params: { collection: message.collection, id: message.data.id, version: message.data.version },
+  const versionedPaths = schemas.map((schema) => ({
+    params: {
+      collection: schema.data.message.collection,
+      id: schema.data.message.id,
+      version: schema.data.message.version,
+    },
     props: {
-      pathToSchema: path.join(path.dirname(message.filePath ?? ''), message.data.schemaPath ?? ''),
-      schema: fs.readFileSync(path.join(path.dirname(message.filePath ?? ''), message.data.schemaPath ?? ''), 'utf8'),
-      extension: message.data.schemaPath?.split('.').pop(),
+      pathToSchema: schema.data.filePath,
+      schema: schema.data.content,
     },
   }));
 
-  // Group messages by collection and id to find latest versions
-  const groupedMessages = messagesWithSchemas.reduce(
-    (acc, message) => {
-      const key = `${message.collection}:${message.data.id}`;
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(message);
-      return acc;
-    },
-    {} as Record<string, typeof messagesWithSchemas>
-  );
-
   // Generate "latest" paths for each unique collection/id combination
-  const latestPaths = Object.values(groupedMessages).map((group) => {
-    // Sort by version (descending) and get the latest
-    const sorted = sortVersioned(group, (m) => m.data.version);
-    const latestMessage = sorted[0];
-    return {
-      params: { collection: latestMessage.collection, id: latestMessage.data.id, version: 'latest' },
-      props: {
-        pathToSchema: path.join(path.dirname(latestMessage.filePath ?? ''), latestMessage.data.schemaPath ?? ''),
-        schema: fs.readFileSync(
-          path.join(path.dirname(latestMessage.filePath ?? ''), latestMessage.data.schemaPath ?? ''),
-          'utf8'
-        ),
-        extension: latestMessage.data.schemaPath?.split('.').pop(),
+  const latestPaths = schemas
+    .filter((schema) => schema.data.latest)
+    .map((latestSchema) => ({
+      params: {
+        collection: latestSchema.data.message.collection,
+        id: latestSchema.data.message.id,
+        version: 'latest',
       },
-    };
-  });
+      props: {
+        pathToSchema: latestSchema.data.filePath,
+        schema: latestSchema.data.content,
+      },
+    }));
 
   return [...versionedPaths, ...latestPaths];
 }
@@ -83,14 +76,14 @@ export const GET: APIRoute = async ({ props, params }) => {
   }
 
   // In static mode, props are pre-computed by getStaticPaths
-  if (props.schema) {
+  if (props.schema !== undefined) {
     return new Response(props.schema, {
       headers: { 'Content-Type': 'text/plain' },
     });
   }
 
-  // In SSR mode, dynamically resolve the schema using the SDK
-  const { id, version } = params;
+  // In SSR mode, dynamically resolve the schema using the generated schema collection
+  const { collection, id, version } = params;
 
   if (!id) {
     return new Response(JSON.stringify({ error: 'Missing id parameter' }), {
@@ -99,17 +92,16 @@ export const GET: APIRoute = async ({ props, params }) => {
     });
   }
 
-  const { getSchemaForMessage } = utils(process.env.PROJECT_DIR || '');
-  const result = await getSchemaForMessage(id, version === 'latest' ? undefined : version);
+  const schema = await findSchema(collection, id, version);
 
-  if (!result) {
+  if (schema?.data.content === undefined) {
     return new Response(JSON.stringify({ error: 'Schema not found' }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  return new Response(result.schema, {
+  return new Response(schema.data.content, {
     headers: { 'Content-Type': 'text/plain' },
   });
 };

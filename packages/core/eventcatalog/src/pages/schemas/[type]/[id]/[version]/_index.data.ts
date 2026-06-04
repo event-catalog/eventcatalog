@@ -1,3 +1,4 @@
+import { getCollection } from 'astro:content';
 import { isSSR } from '@utils/feature';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import type { PageTypes } from '@types';
@@ -23,25 +24,41 @@ export class Page extends HybridPage {
       // 'entities',
       // 'containers',
     ];
-    const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
+    const [schemas, ...allItems] = await Promise.all([
+      getCollection('schemas'),
+      ...itemTypes.map((type) => pageDataLoader[type]()),
+    ]);
+    const itemsByKey = new Map(allItems.flat().map((item) => [`${item.collection}:${item.data.id}:${item.data.version}`, item]));
 
-    // We only care about any item that has data.schemaPath
-    const itemsWithSchema = allItems.flatMap((items) => items.filter((item) => item.data.schemaPath));
+    const seenMessageSchemas = new Set<string>();
+    const messageSchemas = schemas.filter((schema) => {
+      const key = `${schema.data.message.collection}:${schema.data.message.id}:${schema.data.message.version}`;
+      if (seenMessageSchemas.has(key)) return false;
+      seenMessageSchemas.add(key);
+      return true;
+    });
 
     // Generate paths for messages with schemas
-    const messagePaths = itemsWithSchema.map((item) => ({
-      params: {
-        type: item.collection,
-        id: item.data.id,
-        version: item.data.version,
-      },
-      props: {
-        type: item.collection,
-        ...item,
-        // Not everything needs the body of the page itself.
-        body: undefined,
-      },
-    }));
+    const messagePaths = messageSchemas
+      .map((schema) => {
+        const item = itemsByKey.get(`${schema.data.message.collection}:${schema.data.message.id}:${schema.data.message.version}`);
+        if (!item) return null;
+
+        return {
+          params: {
+            type: schema.data.message.collection,
+            id: schema.data.message.id,
+            version: schema.data.message.version,
+          },
+          props: {
+            type: schema.data.message.collection,
+            ...item,
+            // Not everything needs the body of the page itself.
+            body: undefined,
+          },
+        };
+      })
+      .filter((path): path is NonNullable<typeof path> => path !== null);
 
     // Generate paths for data products with contracts
     const dataProducts = await pageDataLoader['data-products']();

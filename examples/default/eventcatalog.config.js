@@ -30,6 +30,7 @@ export default {
     iconPacks: ['logos'],
   },
 
+
   rss: {
     enabled: true,
     limit: 15,

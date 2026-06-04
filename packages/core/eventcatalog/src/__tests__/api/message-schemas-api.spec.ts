@@ -1,42 +1,67 @@
 import type { CollectionKey } from 'astro:content';
-import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
+import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { getStaticPaths, GET } from '../../enterprise/api/schemas/[collection]/[id]/[version]/index.ts';
 import path from 'path';
 import fs from 'node:fs';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
-let mockEvents: any[] = [];
-let mockCommands: any[] = [];
-let mockQueries: any[] = [];
+let mockSchemas: any[] = [];
 
-let mockGetSchemaForMessage = vi.fn();
 let mockIsEventCatalogScaleEnabled = vi.fn();
 let mockIsSSR = vi.fn().mockReturnValue(false);
+
+const schemaContent = (fileName: string) => fs.readFileSync(path.join(__dirname, 'schemas', fileName), 'utf8');
+
+const schemaEntry = ({
+  collection,
+  id,
+  version,
+  file,
+  latest = true,
+}: {
+  collection: 'events' | 'commands' | 'queries';
+  id: string;
+  version: string;
+  file: string;
+  latest?: boolean;
+}) => ({
+  collection: 'schemas',
+  data: {
+    id: `schema:${collection}:${id}:${version}:${file}`,
+    name: `${id} schema`,
+    version,
+    format: file.split('.').pop() === 'avro' ? 'avro' : 'jsonschema',
+    content: schemaContent(file),
+    file,
+    filePath: path.join(__dirname, 'schemas', file),
+    latest,
+    message: {
+      collection,
+      id,
+      name: `${id} message`,
+      version,
+      summary: `${id} summary`,
+      owners: ['orders-team'],
+    },
+    source: {
+      provider: 'file',
+      path: file,
+    },
+  },
+});
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
     getCollection: (key: CollectionKey) => {
       switch (key) {
-        case 'events':
-          return Promise.resolve(mockEvents);
-        case 'commands':
-          return Promise.resolve(mockCommands);
-        case 'queries':
-          return Promise.resolve(mockQueries);
+        case 'schemas':
+          return Promise.resolve(mockSchemas);
         default:
           return Promise.resolve([]);
       }
     },
-  };
-});
-
-vi.mock('@eventcatalog/sdk', () => {
-  return {
-    default: () => ({
-      getSchemaForMessage: (...args: any[]) => mockGetSchemaForMessage(...args),
-    }),
   };
 });
 
@@ -49,44 +74,10 @@ vi.mock('@utils/feature', () => {
 
 describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
   beforeEach(() => {
-    mockEvents = [
-      {
-        collection: 'events',
-        filePath: path.join(__dirname, 'schemas', 'test-schema.json'),
-        data: {
-          name: 'Order Placed',
-          id: 'OrderPlaced',
-          version: '1.0.0',
-          summary: 'Order Placed summary',
-          schemaPath: 'test-schema.json',
-        },
-      },
-    ];
-    mockCommands = [
-      {
-        collection: 'commands',
-        filePath: path.join(__dirname, 'schemas', 'test-schema.avro'),
-        data: {
-          name: 'Create Order',
-          id: 'CreateOrder',
-          version: '1.0.0',
-          summary: 'Create Order summary',
-          schemaPath: 'test-schema.avro',
-        },
-      },
-    ];
-    mockQueries = [
-      {
-        collection: 'queries',
-        filePath: path.join(__dirname, 'schemas', 'test-schema.avro'),
-        data: {
-          name: 'Get Order',
-          id: 'GetOrder',
-          version: '1.0.0',
-          summary: 'Get Order summary',
-          schemaPath: 'test-schema.avro',
-        },
-      },
+    mockSchemas = [
+      schemaEntry({ collection: 'events', id: 'OrderPlaced', version: '1.0.0', file: 'test-schema.json' }),
+      schemaEntry({ collection: 'commands', id: 'CreateOrder', version: '1.0.0', file: 'test-schema.avro' }),
+      schemaEntry({ collection: 'queries', id: 'GetOrder', version: '1.0.0', file: 'test-schema.avro' }),
     ];
   });
 
@@ -115,36 +106,13 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
         path.join(__dirname, 'schemas', 'test-schema.avro'),
         path.join(__dirname, 'schemas', 'test-schema.avro'),
       ]);
-      expect(versionedPaths.map((path) => path.props.extension)).toEqual(['json', 'avro', 'avro']);
     });
 
     it('returns the latest version schema when multiple versions exist for the same message', async () => {
-      mockEvents = [
-        {
-          collection: 'events',
-          filePath: path.join(__dirname, 'schemas', 'test-schema.json'),
-          data: {
-            name: 'Order Placed',
-            id: 'OrderPlaced',
-            version: '1.0.0',
-            summary: 'Order Placed summary v1',
-            schemaPath: 'test-schema.json',
-          },
-        },
-        {
-          collection: 'events',
-          filePath: path.join(__dirname, 'schemas', 'test-schema.avro'),
-          data: {
-            name: 'Order Placed',
-            id: 'OrderPlaced',
-            version: '2.0.0',
-            summary: 'Order Placed summary v2',
-            schemaPath: 'test-schema.avro',
-          },
-        },
+      mockSchemas = [
+        schemaEntry({ collection: 'events', id: 'OrderPlaced', version: '1.0.0', file: 'test-schema.json', latest: false }),
+        schemaEntry({ collection: 'events', id: 'OrderPlaced', version: '2.0.0', file: 'test-schema.avro' }),
       ];
-      mockCommands = [];
-      mockQueries = [];
 
       const staticPaths = await getStaticPaths();
       // 2 versioned paths + 1 latest path
@@ -155,36 +123,13 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
       expect(latestPath?.params.id).toEqual('OrderPlaced');
       // Latest should point to v2.0.0's schema (test-schema.avro)
       expect(latestPath?.props.pathToSchema).toEqual(path.join(__dirname, 'schemas', 'test-schema.avro'));
-      expect(latestPath?.props.extension).toEqual('avro');
     });
 
     it('handles non-semver versions and returns the latest based on string comparison', async () => {
-      mockEvents = [
-        {
-          collection: 'events',
-          filePath: path.join(__dirname, 'schemas', 'test-schema.json'),
-          data: {
-            name: 'Order Placed',
-            id: 'OrderPlaced',
-            version: 'draft',
-            summary: 'Order Placed draft',
-            schemaPath: 'test-schema.json',
-          },
-        },
-        {
-          collection: 'events',
-          filePath: path.join(__dirname, 'schemas', 'test-schema.avro'),
-          data: {
-            name: 'Order Placed',
-            id: 'OrderPlaced',
-            version: 'v2',
-            summary: 'Order Placed v2',
-            schemaPath: 'test-schema.avro',
-          },
-        },
+      mockSchemas = [
+        schemaEntry({ collection: 'events', id: 'OrderPlaced', version: 'draft', file: 'test-schema.json', latest: false }),
+        schemaEntry({ collection: 'events', id: 'OrderPlaced', version: 'v2', file: 'test-schema.avro' }),
       ];
-      mockCommands = [];
-      mockQueries = [];
 
       const staticPaths = await getStaticPaths();
       // 2 versioned paths + 1 latest path
@@ -222,15 +167,12 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
 
   describe('GET (SSR mode)', () => {
     beforeEach(() => {
-      mockGetSchemaForMessage.mockReset();
       mockIsEventCatalogScaleEnabled.mockReturnValue(true);
       mockIsSSR.mockReturnValue(true);
     });
 
     it('resolves the schema dynamically when props are empty (SSR mode)', async () => {
       const schemaContent = fs.readFileSync(path.join(__dirname, 'schemas', 'test-schema.json'), 'utf8');
-
-      mockGetSchemaForMessage.mockResolvedValue({ schema: schemaContent, fileName: 'test-schema.json' });
 
       const response = await GET({
         request: new Request('http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0'),
@@ -240,13 +182,14 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
 
       expect(response.status).toBe(200);
       expect(await response.text()).toEqual(schemaContent);
-      expect(mockGetSchemaForMessage).toHaveBeenCalledWith('OrderPlaced', '1.0.0');
     });
 
-    it('passes undefined version to the SDK when version is "latest"', async () => {
-      const schemaContent = fs.readFileSync(path.join(__dirname, 'schemas', 'test-schema.json'), 'utf8');
-
-      mockGetSchemaForMessage.mockResolvedValue({ schema: schemaContent, fileName: 'test-schema.json' });
+    it('resolves the latest schema dynamically when version is "latest"', async () => {
+      const latestSchemaContent = fs.readFileSync(path.join(__dirname, 'schemas', 'test-schema.avro'), 'utf8');
+      mockSchemas = [
+        schemaEntry({ collection: 'events', id: 'OrderPlaced', version: '1.0.0', file: 'test-schema.json', latest: false }),
+        schemaEntry({ collection: 'events', id: 'OrderPlaced', version: '2.0.0', file: 'test-schema.avro' }),
+      ];
 
       const response = await GET({
         request: new Request('http://localhost:4321/api/schemas/events/OrderPlaced/latest'),
@@ -255,12 +198,10 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
       } as any);
 
       expect(response.status).toBe(200);
-      expect(mockGetSchemaForMessage).toHaveBeenCalledWith('OrderPlaced', undefined);
+      expect(await response.text()).toEqual(latestSchemaContent);
     });
 
     it('returns 404 when the schema is not found in SSR mode', async () => {
-      mockGetSchemaForMessage.mockResolvedValue(undefined);
-
       const response = await GET({
         request: new Request('http://localhost:4321/api/schemas/events/NonExistent/1.0.0'),
         props: {},

@@ -1,5 +1,6 @@
 ---
 import type { PageTypes } from '@types';
+import { getCollection } from 'astro:content';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { Page } from './_index.data';
 import SchemaPageViewer from '@components/SchemaExplorer/SchemaPageViewer';
@@ -76,32 +77,41 @@ if (isDataProduct && contractPath) {
   }
 } else {
   // Handle regular messages (events, commands, queries)
-  const allItems = await pageDataLoader[type]();
+  const [allItems, schemaEntries] = await Promise.all([pageDataLoader[type](), getCollection('schemas')]);
   const versions = allItems.filter((item) => item.data.id === data.id);
+  const schemasForMessage = schemaEntries.filter(
+    (schema) => schema.data.message.collection === type && schema.data.message.id === data.id
+  );
+
+  const getSchemaForVersion = (version: string) => {
+    const schemasForVersion = schemasForMessage.filter((schema) => schema.data.message.version === version);
+    return schemasForVersion.find((schema) => schema.data.default) ?? schemasForVersion[0];
+  };
 
   // Transform to SchemaItems
   const availableVersions = versions
-    .filter((message) => message.data.schemaPath && resourceFileExists(message, message.data.schemaPath))
     .map((message) => {
       try {
-        const schemaPath = message.data.schemaPath ?? '';
-        const schemaContent = readResourceFile(message, schemaPath) ?? '';
+        const schema = getSchemaForVersion(message.data.version);
+        if (!schema) return null;
+
+        const schemaPath = schema.data.file || schema.data.source.path || '';
         const schemaExtension = path.extname(schemaPath).slice(1);
 
         return {
           collection: message.collection,
           data: {
             id: message.data.id,
-            name: message.data.name,
+            name: schema.data.message.name || message.data.name,
             version: message.data.version,
-            summary: message.data.summary,
-            schemaPath: message.data.schemaPath,
+            summary: schema.data.message.summary || message.data.summary,
+            schemaPath,
             // @ts-ignore
             producers: message.data.producers || [],
             // @ts-ignore
             consumers: message.data.consumers || [],
           },
-          schemaContent,
+          schemaContent: schema.data.content || '',
           schemaExtension,
           examples: getExamplesForResource(message),
         } as SchemaItem;
