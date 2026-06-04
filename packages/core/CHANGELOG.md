@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.45.0
+
+### Minor Changes
+
+- 8870068: schemas are now a collection type in eventcatalog
+
 ## 3.44.2
 
 ### Patch Changes
