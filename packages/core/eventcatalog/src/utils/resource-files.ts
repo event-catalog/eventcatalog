@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { isSSR } from '@utils/feature';
+import { getContentDir } from '@utils/files';
 
 /**
  * Get the absolute base path for a resource item.
@@ -22,7 +23,7 @@ export function getResourceBasePath(item: { filePath?: string }): string {
 
   // In SSR mode, we need to resolve the relative path using PROJECT_DIR
   if (isSSR()) {
-    const PROJECT_DIR = process.env.PROJECT_DIR || '';
+    const PROJECT_DIR = getContentDir();
 
     if (PROJECT_DIR) {
       // Get the project folder name from PROJECT_DIR (e.g., "default" from ".../examples/default")

@@ -46,6 +46,31 @@ visualizer main {
 }`);
   });
 
+  it('reads resources from configured contentDir while --dir remains the project directory', async () => {
+    const contentPath = path.join(CATALOG_PATH, 'catalog-content');
+    fs.rmSync(contentPath, { recursive: true, force: true });
+    fs.mkdirSync(contentPath, { recursive: true });
+    fs.writeFileSync(
+      path.join(CATALOG_PATH, 'eventcatalog.config.js'),
+      `export default { contentDir: './catalog-content' };\n`,
+      'utf-8'
+    );
+
+    const { writeDomain } = createSDK(contentPath);
+    await writeDomain({ id: 'Orders', name: 'Orders', version: '1.0.0', markdown: '' });
+
+    const result = await exportResource({
+      resource: 'domain',
+      id: 'Orders',
+      stdout: true,
+      dir: CATALOG_PATH,
+    });
+
+    expect(result).toContain('domain Orders');
+
+    fs.rmSync(contentPath, { recursive: true, force: true });
+  });
+
   it('exports a command to stdout', async () => {
     await writeCommand({ id: 'CreateOrder', name: 'Create Order', version: '1.0.0', markdown: '' });
 

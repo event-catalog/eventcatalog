@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { importDSL } from '../../cli/import';
 import createSDK from '@eventcatalog/sdk';
 import { createCatalogHelper } from './helpers';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const { catalogPath, setup, writeEcFile } = createCatalogHelper('general');
 setup();
@@ -32,6 +34,35 @@ service OrderService {
     const sdk = createSDK(catalogPath);
     expect(await sdk.getEvent('OrderCreated', '1.0.0')).toBeDefined();
     expect(await sdk.getService('OrderService', '1.0.0')).toBeDefined();
+  });
+
+  it('writes resources to configured contentDir while --dir remains the project directory', async () => {
+    const contentPath = path.join(catalogPath, 'catalog-content');
+    fs.rmSync(contentPath, { recursive: true, force: true });
+    fs.mkdirSync(contentPath, { recursive: true });
+    fs.writeFileSync(
+      path.join(catalogPath, 'eventcatalog.config.js'),
+      `export default { contentDir: './catalog-content' };\n`,
+      'utf-8'
+    );
+
+    const ecFile = writeEcFile(
+      'content-dir.ec',
+      `domain Orders {
+  version 1.0.0
+  name "Orders"
+}`
+    );
+
+    await importDSL({ files: [ecFile], dir: catalogPath });
+
+    expect(fs.existsSync(path.join(contentPath, 'domains', 'Orders', 'index.mdx'))).toBe(true);
+    expect(fs.existsSync(path.join(catalogPath, 'domains', 'Orders', 'index.mdx'))).toBe(false);
+
+    const sdk = createSDK(contentPath);
+    expect(await sdk.getDomain('Orders', '1.0.0')).toBeDefined();
+
+    fs.rmSync(contentPath, { recursive: true, force: true });
   });
 
   it('imports from multiple .ec files', async () => {

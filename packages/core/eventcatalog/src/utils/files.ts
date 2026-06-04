@@ -1,12 +1,17 @@
 import path from 'node:path';
 
+export const getContentDir = () => process.env.CONTENT_DIR || process.env.PROJECT_DIR || '';
+
 /**
  * Resolves a file path relative to PROJECT_DIR, handling ../ paths correctly
  * @param filePath - The path to resolve
  * @param projectDir - The project directory to resolve relative to
  * @returns The resolved absolute path
  */
-export const resolveProjectPath = (filePath: string, projectDir: string = process.env.PROJECT_DIR || process.cwd()): string => {
+export const resolveProjectPath = (
+  filePath: string,
+  projectDir: string = getContentDir() || process.cwd()
+): string => {
   if (filePath.startsWith('../')) {
     const pathAfterDotDot = filePath.substring(3);
     const projectDirName = path.basename(projectDir);
@@ -40,7 +45,7 @@ export const resolveProjectPath = (filePath: string, projectDir: string = proces
  * @returns
  */
 export const getAbsoluteFilePathForAstroFile = (filePath: string, fileName?: string) => {
-  const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
+  const PROJECT_DIR = getContentDir() || process.cwd();
 
   if (fileName) {
     const resolvedFilePath = resolveProjectPath(filePath, PROJECT_DIR);

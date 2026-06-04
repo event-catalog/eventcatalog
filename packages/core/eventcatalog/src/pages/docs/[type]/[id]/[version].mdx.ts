@@ -8,6 +8,7 @@ import config from '@config';
 import fs from 'fs';
 import { addSchemaToMarkdown, filterMarkdownForAgents } from '@utils/llms';
 import { isLLMSTxtEnabled, isSSR } from '@utils/feature';
+import { getContentDir } from '@utils/files';
 const events = await getCollection('events');
 const agents = await getCollection('agents');
 const commands = await getCollection('commands');
@@ -77,8 +78,9 @@ export const GET: APIRoute = async ({ params, props }) => {
   }
 
   if (isSSR()) {
-    const { getResourcePath } = utils(process.env.PROJECT_DIR ?? '');
-    const filePath = await getResourcePath(process.env.PROJECT_DIR ?? '', params.id ?? '', params.version ?? '');
+    const contentDir = getContentDir();
+    const { getResourcePath } = utils(contentDir);
+    const filePath = await getResourcePath(contentDir, params.id ?? '', params.version ?? '');
     if (!filePath) {
       return new Response('Not found', { status: 404 });
     }
