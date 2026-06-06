@@ -1024,6 +1024,7 @@ const schemas = defineCollection({
   schema: z
     .object({
       format: z.string(),
+      schemaId: z.string().optional(),
       ref: z.string().optional(),
       content: z.string().optional(),
       file: z.string().optional(),

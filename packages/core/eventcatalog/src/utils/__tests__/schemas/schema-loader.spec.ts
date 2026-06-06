@@ -90,7 +90,8 @@ describe('schema-loader', () => {
 
     expect(schemas).toEqual([
       {
-        id: 'shipment-cancelled-prod',
+        id: 'schema:events:ShipmentCancelled:1.0.0:shipment-cancelled-prod',
+        schemaId: 'shipment-cancelled-prod',
         name: 'Production',
         version: '1.0.0',
         format: 'avro',
@@ -112,7 +113,8 @@ describe('schema-loader', () => {
         },
       },
       {
-        id: 'shipment-cancelled-uat',
+        id: 'schema:events:ShipmentCancelled:1.0.0:shipment-cancelled-uat',
+        schemaId: 'shipment-cancelled-uat',
         name: 'UAT',
         version: '1.0.0',
         format: 'avro',
@@ -151,7 +153,7 @@ describe('schema-loader', () => {
       {
         id: 'schema:events:ShipmentCancelled:1.0.0:git://contracts/events/ShipmentCancelled.schema.json',
         ref: 'git://contracts/events/ShipmentCancelled.schema.json',
-        name: undefined,
+        name: 'ShipmentCancelled.schema.json',
         version: '1.0.0',
         format: 'unknown',
         file: undefined,
@@ -334,6 +336,53 @@ schemas:
     });
   });
 
+  it('scopes explicit schema ids to the message version while preserving the user provided id', async () => {
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const eventDir = path.join(catalogDir, 'events', 'OrderPlaced');
+    const versionedEventDir = path.join(eventDir, 'versioned', '2.0.0');
+
+    await mkdir(eventDir, { recursive: true });
+    await mkdir(versionedEventDir, { recursive: true });
+    await writeFile(path.join(eventDir, 'schema.json'), '{"type":"object","title":"v1"}');
+    await writeFile(path.join(versionedEventDir, 'schema.json'), '{"type":"object","title":"v2"}');
+    await writeFile(
+      path.join(eventDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - id: prod
+    file: schema.json
+---
+`
+    );
+    await writeFile(
+      path.join(versionedEventDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 2.0.0
+schemas:
+  - id: prod
+    file: schema.json
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas({
+      base: catalogDir,
+      pattern: ['**/events/*/index.{md,mdx}', '**/events/*/versioned/*/index.{md,mdx}'],
+    });
+
+    expect(schemas).toHaveLength(2);
+    expect(schemas.map((schema) => schema.id).sort()).toEqual([
+      'schema:events:OrderPlaced:1.0.0:prod',
+      'schema:events:OrderPlaced:2.0.0:prod',
+    ]);
+    expect(schemas.map((schema) => schema.schemaId)).toEqual(['prod', 'prod']);
+  });
+
   it('loads absolute file schema refs without a configured schema source', async () => {
     const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
     const externalSchemaDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-registry-'));
@@ -488,6 +537,57 @@ schemas:
     });
     expect(consoleLog).toHaveBeenCalledWith(expect.stringContaining('Loading 1 schema from schema source "contracts"'));
     expect(consoleLog).toHaveBeenCalledWith(expect.stringContaining('Synced 1 schema from schema source "contracts"'));
+    consoleLog.mockRestore();
+  });
+
+  it('uses the schema ref basename when an external schema source does not return a name', async () => {
+    process.env.EVENTCATALOG_SCALE = 'true';
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(
+      path.join(messageDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - ref: git://contracts/events/OrderPlaced.schema.json
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas(
+      {
+        base: catalogDir,
+        pattern: ['**/events/*/index.{md,mdx}'],
+      },
+      [
+        {
+          type: 'schemas',
+          name: 'contracts',
+          canResolve: (id) => id.startsWith('git://contracts/'),
+          resolve: async (id) => ({
+            id,
+            format: 'jsonschema',
+            content: '{"type":"object"}',
+            source: {
+              provider: 'git',
+              id: 'contracts:events/OrderPlaced.schema.json',
+              path: 'schemas/events/OrderPlaced.schema.json',
+            },
+          }),
+        },
+      ]
+    );
+
+    expect(schemas[0]).toMatchObject({
+      name: 'OrderPlaced.schema.json',
+      content: '{"type":"object"}',
+      readOnly: true,
+    });
     consoleLog.mockRestore();
   });
 

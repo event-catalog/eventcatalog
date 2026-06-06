@@ -64,6 +64,7 @@ type MessageFrontmatter = {
 
 export type MessageSchemaResource = {
   id: string;
+  schemaId?: string;
   ref?: string;
   name?: string;
   version?: string;
@@ -145,7 +146,7 @@ const getSchemaCollectionId = ({
   schemaFile?: string;
 }) => {
   if (schemaRef) return buildGeneratedSchemaId(message, schemaRef);
-  if (reference.id) return reference.id;
+  if (reference.id) return buildGeneratedSchemaId(message, reference.id);
   return buildGeneratedSchemaId(message, schemaFile as string);
 };
 
@@ -155,6 +156,29 @@ const getSchemaRef = (reference: SchemaReference) => {
   if (reference.ref) return reference.ref;
   if (!getSchemaFile(reference)) return reference.id;
   return undefined;
+};
+
+const getSchemaDisplayName = ({
+  referenceName,
+  resolvedName,
+  schemaFile,
+  filePath,
+  schemaRef,
+  sourcePath,
+  schemaId,
+  messageName,
+}: {
+  referenceName?: string;
+  resolvedName?: string;
+  schemaFile?: string;
+  filePath?: string;
+  schemaRef?: string;
+  sourcePath?: string;
+  schemaId: string;
+  messageName?: string;
+}) => {
+  const pathLikeName = schemaFile ?? filePath ?? sourcePath ?? schemaRef ?? schemaId;
+  return referenceName ?? resolvedName ?? path.basename(pathLikeName) ?? messageName ?? 'Schema';
 };
 
 const schemaFileExists = (schema: MessageSchemaResource): schema is MessageSchemaResource & { filePath: string } =>
@@ -293,7 +317,6 @@ export const getMessageSchemasFromFrontmatter = ({
     (data.schemaPath
       ? [
           {
-            id: buildGeneratedSchemaId(message, data.schemaPath),
             file: data.schemaPath,
             name: 'Schema',
             default: true,
@@ -311,8 +334,16 @@ export const getMessageSchemasFromFrontmatter = ({
 
     return {
       id: schemaId,
+      ...(reference.id && !schemaRef ? { schemaId: reference.id } : {}),
       ...(schemaRef ? { ref: schemaRef } : {}),
-      name: reference.name ?? (schemaFile ? schemaId : fileSchemaRef ? path.basename(fileSchemaRef.filePath) : undefined),
+      name: getSchemaDisplayName({
+        referenceName: reference.name,
+        schemaFile,
+        filePath: fileSchemaRef?.filePath,
+        schemaRef,
+        schemaId,
+        messageName: data.name,
+      }),
       version: data.version,
       format: reference.format ?? (schemaPathForFormat ? getSchemaFormat(schemaPathForFormat) : 'unknown'),
       file: schemaFile,
@@ -354,8 +385,14 @@ const resolveSchemaSource = async (
     readOnly: true,
   };
 
-  const name = schema.name ?? resolvedSchema.name;
-  if (name) resolvedMessageSchema.name = name;
+  resolvedMessageSchema.name = getSchemaDisplayName({
+    referenceName: schema.name,
+    resolvedName: resolvedSchema.name,
+    schemaRef: schema.ref,
+    sourcePath: resolvedSchema.source.path,
+    schemaId: schema.id,
+    messageName: schema.message.name,
+  });
 
   return resolvedMessageSchema;
 };
