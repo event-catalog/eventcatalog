@@ -565,7 +565,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
         <div data-pagefind-ignore>
           <!-- @ts-ignore -->
           <!-- <SchemaViewer id={props.data.id} catalog={props.catalog} filePath={props.filePath} /> -->
-          <SchemaViewer id={props.data.id} filePath={props.filePath} />
+          <SchemaViewer id={props.data.id} version={props.data.version} collection={props.collection} filePath={props.filePath} />
 
           {
             nodeGraphs.length > 0 &&

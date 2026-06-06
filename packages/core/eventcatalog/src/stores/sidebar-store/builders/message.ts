@@ -15,9 +15,31 @@ import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { iconFieldsForResource } from '@utils/icon';
 import { collectionToResourceMap } from '@utils/collections/util';
 
+type MessageSchemaEntry = CollectionEntry<'schemas'>;
+
 const getProducerConsumerPageRef = (resource: any) => {
   const resourceType = collectionToResourceMap[resource.collection as keyof typeof collectionToResourceMap];
   return `${resourceType}:${resource.data.id}:${resource.data.version}`;
+};
+
+const getSchemasForMessage = (
+  message: CollectionEntry<'events' | 'commands' | 'queries'>,
+  schemas: MessageSchemaEntry[] = []
+) => {
+  return schemas.filter(
+    (schema) =>
+      schema.data.message.collection === message.collection &&
+      schema.data.message.id === message.data.id &&
+      schema.data.message.version === message.data.version
+  );
+};
+
+const getSchemaNavTitle = (schemas: MessageSchemaEntry[]) => {
+  if (schemas.length > 1) return 'Schemas';
+
+  const schemaPath = schemas[0]?.data.file || schemas[0]?.data.source.path || schemas[0]?.data.ref || schemas[0]?.id;
+  const format = schemaPath ? getSchemaFormatFromURL(schemaPath) : schemas[0]?.data.format;
+  return format ? `Schema (${format.toUpperCase()})` : 'Schema';
 };
 
 export const buildMessageNode = (
@@ -51,7 +73,8 @@ export const buildMessageNode = (
   };
   const defaultIcon = iconMap[collection] || 'Mail';
 
-  const hasSchema = message.data.schemaPath !== undefined;
+  const resolvedSchemas = getSchemasForMessage(message, context.schemas);
+  const hasSchema = resolvedSchemas.length > 0;
   const renderVisualiser = isVisualiserEnabled();
   const docsSection = buildResourceDocsSection(
     collection as 'events' | 'commands' | 'queries',
@@ -116,7 +139,7 @@ export const buildMessageNode = (
         pages: [
           {
             type: 'item',
-            title: `Schema (${getSchemaFormatFromURL(message.data.schemaPath!).toUpperCase()})`,
+            title: getSchemaNavTitle(resolvedSchemas),
             href: buildUrl(`/schemas/${collection}/${message.data.id}/${message.data.version}`),
           },
           hasFieldUsage && {

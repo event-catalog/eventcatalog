@@ -10,6 +10,7 @@ export interface BaseSchema {
   };
   owners?: string[];
   schemaPath?: string;
+  schemas?: SchemaPointer[];
   markdown: string;
   repository?: {
     language?: string;
@@ -49,6 +50,17 @@ export type ResourcePointer = {
   id: string;
   version?: string;
   type?: string;
+};
+
+export type SchemaPointer = {
+  id?: string;
+  ref?: string;
+  file?: string;
+  path?: string;
+  name?: string;
+  format?: string;
+  environments?: string[];
+  default?: boolean;
 };
 
 export type SendsPointer = {

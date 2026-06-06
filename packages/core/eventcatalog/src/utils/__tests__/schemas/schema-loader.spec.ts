@@ -1,10 +1,25 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { getMessageSchemasFromFrontmatter, loadMessageSchemas } from '@utils/collections/schema-loader';
 
+const originalScale = process.env.EVENTCATALOG_SCALE;
+
 describe('schema-loader', () => {
+  beforeEach(() => {
+    delete process.env.EVENTCATALOG_SCALE;
+  });
+
+  afterEach(() => {
+    if (originalScale === undefined) {
+      delete process.env.EVENTCATALOG_SCALE;
+      return;
+    }
+    process.env.EVENTCATALOG_SCALE = originalScale;
+  });
+
   it('normalizes legacy schemaPath into a generated message schema resource', () => {
     const schemas = getMessageSchemasFromFrontmatter({
       collection: 'commands',
@@ -75,7 +90,8 @@ describe('schema-loader', () => {
 
     expect(schemas).toEqual([
       {
-        id: 'shipment-cancelled-prod',
+        id: 'schema:events:ShipmentCancelled:1.0.0:shipment-cancelled-prod',
+        schemaId: 'shipment-cancelled-prod',
         name: 'Production',
         version: '1.0.0',
         format: 'avro',
@@ -97,7 +113,8 @@ describe('schema-loader', () => {
         },
       },
       {
-        id: 'shipment-cancelled-uat',
+        id: 'schema:events:ShipmentCancelled:1.0.0:shipment-cancelled-uat',
+        schemaId: 'shipment-cancelled-uat',
         name: 'UAT',
         version: '1.0.0',
         format: 'avro',
@@ -121,18 +138,102 @@ describe('schema-loader', () => {
     ]);
   });
 
-  it('does not create local schema resources for external schema references', () => {
+  it('normalizes external schema references without local file metadata', () => {
     const schemas = getMessageSchemasFromFrontmatter({
       collection: 'events',
       messageFilePath: '/catalog/events/ShipmentCancelled/index.mdx',
       data: {
         id: 'ShipmentCancelled',
         version: '1.0.0',
-        schemas: [{ id: 'schema-from-confluent', environments: ['prod'] }],
+        schemas: [{ ref: 'git://contracts/events/ShipmentCancelled.schema.json', environments: ['prod'] }],
       },
     });
 
-    expect(schemas).toEqual([]);
+    expect(schemas).toEqual([
+      {
+        id: 'schema:events:ShipmentCancelled:1.0.0:git://contracts/events/ShipmentCancelled.schema.json',
+        ref: 'git://contracts/events/ShipmentCancelled.schema.json',
+        name: 'ShipmentCancelled.schema.json',
+        version: '1.0.0',
+        format: 'unknown',
+        file: undefined,
+        filePath: undefined,
+        environments: ['prod'],
+        default: undefined,
+        message: {
+          collection: 'events',
+          id: 'ShipmentCancelled',
+          name: undefined,
+          version: '1.0.0',
+          summary: undefined,
+          owners: undefined,
+        },
+        source: {
+          provider: 'git',
+          path: undefined,
+        },
+      },
+    ]);
+  });
+
+  it('normalizes legacy external schema references that use id', () => {
+    const schemas = getMessageSchemasFromFrontmatter({
+      collection: 'events',
+      messageFilePath: '/catalog/events/ShipmentCancelled/index.mdx',
+      data: {
+        id: 'ShipmentCancelled',
+        version: '1.0.0',
+        schemas: [{ id: 'git://contracts/events/ShipmentCancelled.schema.json' }],
+      },
+    });
+
+    expect(schemas).toMatchObject([
+      {
+        id: 'schema:events:ShipmentCancelled:1.0.0:git://contracts/events/ShipmentCancelled.schema.json',
+        ref: 'git://contracts/events/ShipmentCancelled.schema.json',
+        source: {
+          provider: 'git',
+        },
+      },
+    ]);
+  });
+
+  it('normalizes file schema refs relative to the message file', () => {
+    const schemas = getMessageSchemasFromFrontmatter({
+      collection: 'events',
+      messageFilePath: '/catalog/events/OrderPlaced/index.mdx',
+      data: {
+        id: 'OrderPlaced',
+        version: '1.0.0',
+        schemas: [{ ref: 'file://./schemas/OrderPlaced.schema.json' }],
+      },
+    });
+
+    expect(schemas).toEqual([
+      {
+        id: 'schema:events:OrderPlaced:1.0.0:file://./schemas/OrderPlaced.schema.json',
+        ref: 'file://./schemas/OrderPlaced.schema.json',
+        name: 'OrderPlaced.schema.json',
+        version: '1.0.0',
+        format: 'jsonschema',
+        file: undefined,
+        filePath: '/catalog/events/OrderPlaced/schemas/OrderPlaced.schema.json',
+        environments: undefined,
+        default: undefined,
+        message: {
+          collection: 'events',
+          id: 'OrderPlaced',
+          name: undefined,
+          version: '1.0.0',
+          summary: undefined,
+          owners: undefined,
+        },
+        source: {
+          provider: 'file',
+          path: './schemas/OrderPlaced.schema.json',
+        },
+      },
+    ]);
   });
 
   it('loads colocated schemas from message files using raw glob patterns', async () => {
@@ -194,6 +295,479 @@ schemaPath: missing-schema.json
     });
 
     expect(schemas).toEqual([]);
+  });
+
+  it('loads relative file schema refs without a configured schema source', async () => {
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+    const schemaDir = path.join(messageDir, 'schemas');
+
+    await mkdir(schemaDir, { recursive: true });
+    await writeFile(path.join(schemaDir, 'OrderPlaced.schema.json'), '{"type":"object"}');
+    await writeFile(
+      path.join(messageDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - ref: file://./schemas/OrderPlaced.schema.json
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas({
+      base: catalogDir,
+      pattern: ['**/events/*/index.{md,mdx}'],
+    });
+
+    expect(schemas).toHaveLength(1);
+    expect(schemas[0]).toMatchObject({
+      id: 'schema:events:OrderPlaced:1.0.0:file://./schemas/OrderPlaced.schema.json',
+      ref: 'file://./schemas/OrderPlaced.schema.json',
+      name: 'OrderPlaced.schema.json',
+      format: 'jsonschema',
+      filePath: path.join(schemaDir, 'OrderPlaced.schema.json'),
+      latest: true,
+      source: {
+        provider: 'file',
+        path: './schemas/OrderPlaced.schema.json',
+      },
+    });
+  });
+
+  it('scopes explicit schema ids to the message version while preserving the user provided id', async () => {
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const eventDir = path.join(catalogDir, 'events', 'OrderPlaced');
+    const versionedEventDir = path.join(eventDir, 'versioned', '2.0.0');
+
+    await mkdir(eventDir, { recursive: true });
+    await mkdir(versionedEventDir, { recursive: true });
+    await writeFile(path.join(eventDir, 'schema.json'), '{"type":"object","title":"v1"}');
+    await writeFile(path.join(versionedEventDir, 'schema.json'), '{"type":"object","title":"v2"}');
+    await writeFile(
+      path.join(eventDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - id: prod
+    file: schema.json
+---
+`
+    );
+    await writeFile(
+      path.join(versionedEventDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 2.0.0
+schemas:
+  - id: prod
+    file: schema.json
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas({
+      base: catalogDir,
+      pattern: ['**/events/*/index.{md,mdx}', '**/events/*/versioned/*/index.{md,mdx}'],
+    });
+
+    expect(schemas).toHaveLength(2);
+    expect(schemas.map((schema) => schema.id).sort()).toEqual([
+      'schema:events:OrderPlaced:1.0.0:prod',
+      'schema:events:OrderPlaced:2.0.0:prod',
+    ]);
+    expect(schemas.map((schema) => schema.schemaId)).toEqual(['prod', 'prod']);
+  });
+
+  it('loads absolute file schema refs without a configured schema source', async () => {
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const externalSchemaDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-registry-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+    const schemaPath = path.join(externalSchemaDir, 'OrderPlaced.avsc');
+    const schemaRef = pathToFileURL(schemaPath).toString();
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(schemaPath, '{"type":"record"}');
+    await writeFile(
+      path.join(messageDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - ref: ${schemaRef}
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas({
+      base: catalogDir,
+      pattern: ['**/events/*/index.{md,mdx}'],
+    });
+
+    expect(schemas).toHaveLength(1);
+    expect(schemas[0]).toMatchObject({
+      id: `schema:events:OrderPlaced:1.0.0:${schemaRef}`,
+      ref: schemaRef,
+      name: 'OrderPlaced.avsc',
+      format: 'avro',
+      filePath: schemaPath,
+      latest: true,
+      source: {
+        provider: 'file',
+        path: schemaPath,
+      },
+    });
+  });
+
+  it('requires EventCatalog Scale when schema sources are configured', async () => {
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(
+      path.join(messageDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - ref: git://contracts/events/OrderPlaced.schema.json
+---
+`
+    );
+
+    await expect(
+      loadMessageSchemas(
+        {
+          base: catalogDir,
+          pattern: ['**/events/*/index.{md,mdx}'],
+        },
+        [
+          {
+            type: 'schemas',
+            name: 'contracts',
+            canResolve: (id) => id.startsWith('git://contracts/'),
+            resolve: async (id) => ({
+              id,
+              content: '{}',
+              source: {
+                provider: 'git',
+              },
+            }),
+          },
+        ]
+      )
+    ).rejects.toThrow('Schema sources require EventCatalog Scale.');
+  });
+
+  it('loads external schema entries from configured schema sources', async () => {
+    process.env.EVENTCATALOG_SCALE = 'true';
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(
+      path.join(messageDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - ref: git://contracts/events/OrderPlaced.schema.json
+    default: true
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas(
+      {
+        base: catalogDir,
+        pattern: ['**/events/*/index.{md,mdx}'],
+      },
+      [
+        {
+          type: 'schemas',
+          name: 'contracts',
+          canResolve: (id) => id.startsWith('git://contracts/'),
+          resolve: async (id) => ({
+            id,
+            name: 'OrderPlaced.schema.json',
+            format: 'jsonschema',
+            content: '{"type":"object"}',
+            source: {
+              provider: 'git',
+              id: 'contracts:events/OrderPlaced.schema.json',
+              url: 'https://github.com/acme/schema-contracts.git',
+              branch: 'main',
+              path: 'schemas/events/OrderPlaced.schema.json',
+            },
+          }),
+        },
+      ]
+    );
+
+    expect(schemas).toHaveLength(1);
+    expect(schemas[0]).toMatchObject({
+      id: 'schema:events:OrderPlaced:1.0.0:git://contracts/events/OrderPlaced.schema.json',
+      ref: 'git://contracts/events/OrderPlaced.schema.json',
+      name: 'OrderPlaced.schema.json',
+      format: 'jsonschema',
+      content: '{"type":"object"}',
+      default: true,
+      latest: true,
+      readOnly: true,
+      message: {
+        collection: 'events',
+        id: 'OrderPlaced',
+        version: '1.0.0',
+      },
+      source: {
+        provider: 'git',
+        id: 'contracts:events/OrderPlaced.schema.json',
+        url: 'https://github.com/acme/schema-contracts.git',
+        branch: 'main',
+        path: 'schemas/events/OrderPlaced.schema.json',
+      },
+    });
+    expect(consoleLog).toHaveBeenCalledWith(expect.stringContaining('Loading 1 schema from schema source "contracts"'));
+    expect(consoleLog).toHaveBeenCalledWith(expect.stringContaining('Synced 1 schema from schema source "contracts"'));
+    consoleLog.mockRestore();
+  });
+
+  it('uses the schema ref basename when an external schema source does not return a name', async () => {
+    process.env.EVENTCATALOG_SCALE = 'true';
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(
+      path.join(messageDir, 'index.mdx'),
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - ref: git://contracts/events/OrderPlaced.schema.json
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas(
+      {
+        base: catalogDir,
+        pattern: ['**/events/*/index.{md,mdx}'],
+      },
+      [
+        {
+          type: 'schemas',
+          name: 'contracts',
+          canResolve: (id) => id.startsWith('git://contracts/'),
+          resolve: async (id) => ({
+            id,
+            format: 'jsonschema',
+            content: '{"type":"object"}',
+            source: {
+              provider: 'git',
+              id: 'contracts:events/OrderPlaced.schema.json',
+              path: 'schemas/events/OrderPlaced.schema.json',
+            },
+          }),
+        },
+      ]
+    );
+
+    expect(schemas[0]).toMatchObject({
+      name: 'OrderPlaced.schema.json',
+      content: '{"type":"object"}',
+      readOnly: true,
+    });
+    consoleLog.mockRestore();
+  });
+
+  it('keeps distinct collection entries when multiple message versions reference the same external schema', async () => {
+    process.env.EVENTCATALOG_SCALE = 'true';
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const eventDir = path.join(catalogDir, 'events', 'UserCreated');
+    const versionedEventDir = path.join(eventDir, 'versioned', '2.0.0');
+
+    await mkdir(eventDir, { recursive: true });
+    await mkdir(versionedEventDir, { recursive: true });
+    await writeFile(
+      path.join(eventDir, 'index.mdx'),
+      `---
+id: UserCreated
+name: User created
+version: 1.0.0
+schemas:
+  - ref: git://contracts/common/User.schema.json
+---
+`
+    );
+    await writeFile(
+      path.join(versionedEventDir, 'index.mdx'),
+      `---
+id: UserCreated
+name: User created
+version: 2.0.0
+schemas:
+  - ref: git://contracts/common/User.schema.json
+---
+`
+    );
+
+    const resolve = vi.fn(async (id: string) => ({
+      id,
+      name: 'User.schema.json',
+      format: 'jsonschema',
+      content: '{"type":"object"}',
+      source: {
+        provider: 'git',
+        path: 'common/User.schema.json',
+      },
+    }));
+
+    const schemas = await loadMessageSchemas(
+      {
+        base: catalogDir,
+        pattern: ['**/events/*/index.{md,mdx}', '**/events/*/versioned/*/index.{md,mdx}'],
+      },
+      [
+        {
+          type: 'schemas',
+          name: 'contracts',
+          canResolve: (id) => id.startsWith('git://contracts/'),
+          resolve,
+        },
+      ]
+    );
+
+    expect(schemas).toHaveLength(2);
+    expect(schemas.map((schema) => schema.id).sort()).toEqual([
+      'schema:events:UserCreated:1.0.0:git://contracts/common/User.schema.json',
+      'schema:events:UserCreated:2.0.0:git://contracts/common/User.schema.json',
+    ]);
+    expect(schemas.map((schema) => schema.ref)).toEqual([
+      'git://contracts/common/User.schema.json',
+      'git://contracts/common/User.schema.json',
+    ]);
+    expect(schemas.map((schema) => schema.message.version).sort()).toEqual(['1.0.0', '2.0.0']);
+    expect(resolve).toHaveBeenCalledTimes(2);
+    expect(resolve).toHaveBeenNthCalledWith(
+      1,
+      'git://contracts/common/User.schema.json',
+      expect.objectContaining({ messageFilePath: expect.stringContaining('index.mdx') })
+    );
+    consoleLog.mockRestore();
+  });
+
+  it('passes the referencing message file path to configured schema sources', async () => {
+    process.env.EVENTCATALOG_SCALE = 'true';
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
+    const messageFilePath = path.join(messageDir, 'index.mdx');
+    const resolve = vi.fn(async (id: string) => ({
+      id,
+      content: '{}',
+      source: {
+        provider: 'git',
+      },
+    }));
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(
+      messageFilePath,
+      `---
+id: OrderPlaced
+name: Order placed
+version: 1.0.0
+schemas:
+  - ref: git://contracts/events/OrderPlaced.schema.json
+---
+`
+    );
+
+    const schemas = await loadMessageSchemas(
+      {
+        base: catalogDir,
+        pattern: ['**/events/*/index.{md,mdx}'],
+      },
+      [
+        {
+          type: 'schemas',
+          name: 'contracts',
+          canResolve: (id) => id.startsWith('git://contracts/'),
+          resolve,
+        },
+      ]
+    );
+
+    expect(resolve).toHaveBeenCalledWith('git://contracts/events/OrderPlaced.schema.json', { messageFilePath });
+    expect(schemas[0]).not.toHaveProperty('_context');
+    consoleLog.mockRestore();
+  });
+
+  it('reports the message that referenced an external schema when the source cannot resolve it', async () => {
+    process.env.EVENTCATALOG_SCALE = 'true';
+    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
+    const messageDir = path.join(catalogDir, 'events', 'DeliveryFailed');
+
+    await mkdir(messageDir, { recursive: true });
+    await writeFile(
+      path.join(messageDir, 'index.mdx'),
+      `---
+id: DeliveryFailed
+name: Delivery failed
+version: 1.0.0
+schemas:
+  - ref: git://contracts/events/Missing.schema.json
+---
+`
+    );
+
+    try {
+      await loadMessageSchemas(
+        {
+          base: catalogDir,
+          pattern: ['**/events/*/index.{md,mdx}'],
+        },
+        [
+          {
+            type: 'schemas',
+            name: 'contracts',
+            canResolve: (id) => id.startsWith('git://contracts/'),
+            resolve: async () => {
+              throw new Error(
+                'Git schema source "contracts" could not find schema file "schemas/events/Missing.schema.json" in "https://github.com/acme/schema-contracts.git" on branch "main".'
+              );
+            },
+          },
+        ]
+      );
+      throw new Error('Expected schema loading to fail.');
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error);
+      const message = (error as Error).message;
+      expect(message).toContain('[schemas] Failed to resolve schema');
+      expect(message).toContain('Message: event "DeliveryFailed" version "1.0.0"');
+      expect(message).toContain('Schema:  git://contracts/events/Missing.schema.json');
+      expect(message).toContain('Source:  contracts');
+      expect(message).toContain('Reason:');
+      expect(message).toContain(
+        'Git schema source "contracts" could not find schema file "schemas/events/Missing.schema.json" in "https://github.com/acme/schema-contracts.git" on branch "main".'
+      );
+    } finally {
+      consoleLog.mockRestore();
+    }
   });
 
   it('marks schemas for the latest message version using semver ordering', async () => {

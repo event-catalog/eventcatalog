@@ -67,6 +67,7 @@ export type ResourceGroupContext = {
   entities?: CollectionEntry<'entities'>[];
   dataProducts: CollectionEntry<'data-products'>[];
   diagrams: CollectionEntry<'diagrams'>[];
+  schemas?: CollectionEntry<'schemas'>[];
   adrs: Adr[];
   users?: CollectionEntry<'users'>[];
   teams?: CollectionEntry<'teams'>[];

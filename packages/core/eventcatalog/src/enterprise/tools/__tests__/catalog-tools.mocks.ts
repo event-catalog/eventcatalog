@@ -520,6 +520,37 @@ export const mockDiagrams = [
 ];
 
 // ============================================
+// Mock Schemas
+// ============================================
+export const mockSchemas = [
+  {
+    id: 'file://schemas/OrderCreated.schema.json',
+    collection: 'schemas',
+    body: '{"type":"object","title":"OrderCreated"}',
+    data: {
+      id: 'file://schemas/OrderCreated.schema.json',
+      ref: 'file://schemas/OrderCreated.schema.json',
+      name: 'OrderCreated.schema.json',
+      format: 'jsonschema',
+      content: '{"type":"object","title":"OrderCreated"}',
+      source: {
+        provider: 'file',
+        path: 'schemas/OrderCreated.schema.json',
+      },
+      message: {
+        collection: 'events',
+        id: 'OrderCreated',
+        name: 'Order Created',
+        version: '1.0.0',
+        summary: 'Fired when an order is created',
+        owners: ['order-team'],
+      },
+      latest: true,
+    },
+  },
+];
+
+// ============================================
 // Helper to get all mocks by collection
 // ============================================
 export const mockCollections: Record<string, any[]> = {
@@ -534,6 +565,7 @@ export const mockCollections: Record<string, any[]> = {
   entities: mockEntities,
   containers: mockContainers,
   diagrams: mockDiagrams,
+  schemas: mockSchemas,
   teams: mockTeams,
   users: mockUsers,
   ubiquitousLanguages: mockUbiquitousLanguages,

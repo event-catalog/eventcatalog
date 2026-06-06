@@ -4,18 +4,52 @@ import matter from 'gray-matter';
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import pc from 'picocolors';
+import { isEventCatalogScaleEnabled } from '../feature';
 import { sortVersioned } from './util';
+
+const colors = pc.createColors(true);
 
 type MessageCollection = 'events' | 'commands' | 'queries';
 
 type SchemaReference = {
   id?: string;
+  ref?: string;
   file?: string;
   path?: string;
   name?: string;
   format?: string;
   environments?: string[];
   default?: boolean;
+};
+
+type SchemaSourceEntry = {
+  provider: string;
+  id?: string;
+  path?: string;
+  url?: string;
+  ref?: string;
+  [key: string]: unknown;
+};
+
+type SchemaSource = {
+  type: 'schemas';
+  name: string;
+  canResolve: (ref: string) => boolean;
+  resolve: (
+    ref: string,
+    context?: { messageFilePath?: string }
+  ) => Promise<
+    | {
+        id: string;
+        name?: string;
+        format?: string;
+        content: string;
+        source: SchemaSourceEntry;
+      }
+    | undefined
+  >;
 };
 
 type MessageFrontmatter = {
@@ -30,6 +64,8 @@ type MessageFrontmatter = {
 
 export type MessageSchemaResource = {
   id: string;
+  schemaId?: string;
+  ref?: string;
   name?: string;
   version?: string;
   format: string;
@@ -48,8 +84,19 @@ export type MessageSchemaResource = {
     owners?: string[];
   };
   source: {
-    provider: 'file';
-    path: string;
+    provider: string;
+    id?: string;
+    path?: string;
+    url?: string;
+    ref?: string;
+    [key: string]: unknown;
+  };
+  readOnly?: boolean;
+};
+
+type InternalMessageSchemaResource = MessageSchemaResource & {
+  _context?: {
+    messageFilePath?: string;
   };
 };
 
@@ -58,11 +105,13 @@ type SchemaLoaderOptions = {
     pattern: string[];
     base?: string;
   };
+  sources?: SchemaSource[];
 };
 
 type LoaderContext = Parameters<Loader['load']>[0];
 
 const MESSAGE_COLLECTIONS: MessageCollection[] = ['events', 'commands', 'queries'];
+const FILE_SCHEMA_REF_PREFIX = 'file://';
 
 const normalizePath = (value: string) => value.replace(/\\/g, '/');
 
@@ -85,10 +134,136 @@ const getSchemaFormat = (schemaPath: string) => {
 const buildGeneratedSchemaId = (message: { collection: MessageCollection; id: string; version: string }, schemaPath: string) =>
   `schema:${message.collection}:${message.id}:${message.version}:${schemaPath}`;
 
+const getSchemaCollectionId = ({
+  message,
+  reference,
+  schemaRef,
+  schemaFile,
+}: {
+  message: { collection: MessageCollection; id: string; version: string };
+  reference: SchemaReference;
+  schemaRef?: string;
+  schemaFile?: string;
+}) => {
+  if (schemaRef) return buildGeneratedSchemaId(message, schemaRef);
+  if (reference.id) return buildGeneratedSchemaId(message, reference.id);
+  return buildGeneratedSchemaId(message, schemaFile as string);
+};
+
 const getSchemaFile = (reference: SchemaReference) => reference.file ?? reference.path;
+
+const getSchemaRef = (reference: SchemaReference) => {
+  if (reference.ref) return reference.ref;
+  if (!getSchemaFile(reference)) return reference.id;
+  return undefined;
+};
+
+const getSchemaDisplayName = ({
+  referenceName,
+  resolvedName,
+  schemaFile,
+  filePath,
+  schemaRef,
+  sourcePath,
+  schemaId,
+  messageName,
+}: {
+  referenceName?: string;
+  resolvedName?: string;
+  schemaFile?: string;
+  filePath?: string;
+  schemaRef?: string;
+  sourcePath?: string;
+  schemaId: string;
+  messageName?: string;
+}) => {
+  const pathLikeName = schemaFile ?? filePath ?? sourcePath ?? schemaRef ?? schemaId;
+  return referenceName ?? resolvedName ?? path.basename(pathLikeName) ?? messageName ?? 'Schema';
+};
 
 const schemaFileExists = (schema: MessageSchemaResource): schema is MessageSchemaResource & { filePath: string } =>
   Boolean(schema.filePath && fsSync.existsSync(schema.filePath));
+
+const getSchemaProvider = (id: string) => {
+  try {
+    const url = new URL(id);
+    return url.protocol.replace(':', '') || 'external';
+  } catch {
+    return 'external';
+  }
+};
+
+const isFileSchemaRef = (ref?: string) => ref?.startsWith(FILE_SCHEMA_REF_PREFIX);
+
+const getFileSchemaRefPath = (ref: string, messageFilePath: string) => {
+  if (ref.startsWith('file:///') || ref.startsWith('file://localhost/')) {
+    try {
+      const filePath = fileURLToPath(ref);
+      return {
+        filePath,
+        sourcePath: filePath,
+      };
+    } catch {
+      throw new Error(`Invalid file schema ref "${ref}". Expected file://<relative-path> or file:///absolute/path.`);
+    }
+  }
+
+  const sourcePath = decodeURIComponent(ref.slice(FILE_SCHEMA_REF_PREFIX.length));
+  if (!sourcePath) {
+    throw new Error(`Invalid file schema ref "${ref}". Expected file://<relative-path> or file:///absolute/path.`);
+  }
+
+  return {
+    filePath: path.resolve(path.dirname(messageFilePath), sourcePath),
+    sourcePath,
+  };
+};
+
+const getTimestamp = () => {
+  const now = new Date();
+  return now.toLocaleTimeString('en-US', { hour12: false });
+};
+
+const logSchemaInfo = (message: string) => {
+  console.log(`${colors.dim(getTimestamp())} ${colors.blue('[schemas]')} ${message}`);
+};
+
+const getMessageTypeLabel = (collection: MessageCollection) => {
+  if (collection === 'events') return 'event';
+  if (collection === 'commands') return 'command';
+  return 'query';
+};
+
+const getErrorMessage = (error: unknown) => {
+  return error instanceof Error ? error.message : String(error);
+};
+
+const getSchemaResolveRef = (schema: MessageSchemaResource) => schema.ref ?? schema.id;
+
+const buildSchemaSourceErrorMessage = ({
+  schema,
+  source,
+  error,
+}: {
+  schema: MessageSchemaResource;
+  source: SchemaSource;
+  error: unknown;
+}) => {
+  const messageType = getMessageTypeLabel(schema.message.collection);
+
+  return [
+    '',
+    colors.red(colors.bold('[schemas] Failed to resolve schema')),
+    '',
+    `  Message: ${messageType} "${schema.message.id}" version "${schema.message.version}"`,
+    `  Schema:  ${getSchemaResolveRef(schema)}`,
+    `  Source:  ${source.name}`,
+    '',
+    colors.bold('Reason:'),
+    `  ${getErrorMessage(error)}`,
+    '',
+  ].join('\n');
+};
 
 const addLatestMetadata = (schemas: MessageSchemaResource[]) => {
   const schemasByMessage = schemas.reduce(
@@ -138,11 +313,10 @@ export const getMessageSchemasFromFrontmatter = ({
   };
 
   const schemaReferences =
-    data.schemas?.filter((schema) => getSchemaFile(schema)) ??
+    data.schemas?.filter((schema) => getSchemaRef(schema) || getSchemaFile(schema)) ??
     (data.schemaPath
       ? [
           {
-            id: buildGeneratedSchemaId(message, data.schemaPath),
             file: data.schemaPath,
             name: 'Schema',
             default: true,
@@ -151,29 +325,123 @@ export const getMessageSchemasFromFrontmatter = ({
       : []);
 
   return schemaReferences.map((reference) => {
-    const schemaFile = getSchemaFile(reference) as string;
-    const schemaFilePath = path.resolve(path.dirname(messageFilePath), schemaFile);
-    const schemaId = reference.id ?? buildGeneratedSchemaId(message, schemaFile);
+    const schemaFile = getSchemaFile(reference);
+    const schemaRef = getSchemaRef(reference);
+    const fileSchemaRef = isFileSchemaRef(schemaRef) ? getFileSchemaRefPath(schemaRef as string, messageFilePath) : undefined;
+    const schemaFilePath = schemaFile ? path.resolve(path.dirname(messageFilePath), schemaFile) : fileSchemaRef?.filePath;
+    const schemaId = getSchemaCollectionId({ message, reference, schemaRef, schemaFile });
+    const schemaPathForFormat = schemaFile ?? fileSchemaRef?.filePath;
 
     return {
       id: schemaId,
-      name: reference.name ?? schemaId,
+      ...(reference.id && !schemaRef ? { schemaId: reference.id } : {}),
+      ...(schemaRef ? { ref: schemaRef } : {}),
+      name: getSchemaDisplayName({
+        referenceName: reference.name,
+        schemaFile,
+        filePath: fileSchemaRef?.filePath,
+        schemaRef,
+        schemaId,
+        messageName: data.name,
+      }),
       version: data.version,
-      format: reference.format ?? getSchemaFormat(schemaFile),
+      format: reference.format ?? (schemaPathForFormat ? getSchemaFormat(schemaPathForFormat) : 'unknown'),
       file: schemaFile,
       filePath: schemaFilePath,
       environments: reference.environments,
       default: reference.default,
       message,
       source: {
-        provider: 'file',
-        path: schemaFile,
+        provider: schemaFile || fileSchemaRef ? 'file' : getSchemaProvider(schemaRef ?? schemaId),
+        path: schemaFile ?? fileSchemaRef?.sourcePath,
       },
     };
   });
 };
 
-export const loadMessageSchemas = async ({ pattern, base }: SchemaLoaderOptions['messages']) => {
+const resolveSchemaSource = async (
+  schema: InternalMessageSchemaResource,
+  source: SchemaSource
+): Promise<InternalMessageSchemaResource | undefined> => {
+  if (schemaFileExists(schema)) return schema;
+  if (schema.filePath) return undefined;
+
+  let resolvedSchema: Awaited<ReturnType<SchemaSource['resolve']>>;
+  const schemaResolveRef = getSchemaResolveRef(schema);
+
+  try {
+    resolvedSchema = await source.resolve(schemaResolveRef, schema._context);
+  } catch (error) {
+    throw new Error(buildSchemaSourceErrorMessage({ schema, source, error }));
+  }
+
+  if (!resolvedSchema) return undefined;
+
+  const resolvedMessageSchema: InternalMessageSchemaResource = {
+    ...schema,
+    format: schema.format !== 'unknown' ? schema.format : (resolvedSchema.format ?? 'unknown'),
+    content: resolvedSchema.content,
+    source: resolvedSchema.source,
+    readOnly: true,
+  };
+
+  resolvedMessageSchema.name = getSchemaDisplayName({
+    referenceName: schema.name,
+    resolvedName: resolvedSchema.name,
+    schemaRef: schema.ref,
+    sourcePath: resolvedSchema.source.path,
+    schemaId: schema.id,
+    messageName: schema.message.name,
+  });
+
+  return resolvedMessageSchema;
+};
+
+const resolveSchemaSources = async (schemas: InternalMessageSchemaResource[], sources: SchemaSource[] = []) => {
+  if (sources.length > 0 && !isEventCatalogScaleEnabled()) {
+    throw new Error('Schema sources require EventCatalog Scale.');
+  }
+
+  const localSchemas = schemas.filter(schemaFileExists);
+  const externalSchemas = schemas.filter((schema) => !schema.filePath);
+  const resolvedExternalSchemas: InternalMessageSchemaResource[] = [];
+  const resolvedExternalSchemaIds = new Set<string>();
+
+  for (const source of sources) {
+    const sourceSchemas = externalSchemas.filter((schema) => source.canResolve(getSchemaResolveRef(schema)));
+    if (sourceSchemas.length === 0) continue;
+
+    logSchemaInfo(
+      `Loading ${sourceSchemas.length} schema${sourceSchemas.length === 1 ? '' : 's'} from schema source "${source.name}"`
+    );
+
+    const resolvedSchemas = await Promise.all(sourceSchemas.map((schema) => resolveSchemaSource(schema, source)));
+    const syncedSchemas = resolvedSchemas.filter((schema): schema is InternalMessageSchemaResource => schema !== undefined);
+
+    for (const schema of syncedSchemas) {
+      resolvedExternalSchemaIds.add(schema.id);
+      resolvedExternalSchemas.push(schema);
+    }
+
+    const skippedSchemas = sourceSchemas.length - syncedSchemas.length;
+    logSchemaInfo(
+      `Synced ${syncedSchemas.length} schema${syncedSchemas.length === 1 ? '' : 's'} from schema source "${source.name}"${
+        skippedSchemas > 0 ? ` (${skippedSchemas} skipped)` : ''
+      }`
+    );
+  }
+
+  return [
+    ...localSchemas,
+    ...resolvedExternalSchemas,
+    ...schemas.filter((schema) => schema.filePath && !schemaFileExists(schema)),
+  ].filter((schema) => {
+    if (schema.filePath) return schemaFileExists(schema);
+    return resolvedExternalSchemaIds.has(schema.id);
+  });
+};
+
+const loadMessageSchemaResources = async ({ pattern, base }: SchemaLoaderOptions['messages']) => {
   if (!base) return [];
 
   const files = await glob(pattern, {
@@ -189,14 +457,32 @@ export const loadMessageSchemas = async ({ pattern, base }: SchemaLoaderOptions[
       if (!collection) return [];
 
       const { data } = matter.read(file) as { data: MessageFrontmatter };
-      return getMessageSchemasFromFrontmatter({ data, collection, messageFilePath: file });
+      return getMessageSchemasFromFrontmatter({ data, collection, messageFilePath: file }).map((schema) => ({
+        ...schema,
+        _context: {
+          messageFilePath: file,
+        },
+      }));
     })
   );
 
-  return addLatestMetadata(schemas.flat().filter(schemaFileExists));
+  return schemas.flat();
+};
+
+const stripSchemaLoaderContext = (schema: InternalMessageSchemaResource): MessageSchemaResource => {
+  const { _context, ...publicSchema } = schema;
+  return publicSchema;
+};
+
+export const loadMessageSchemas = async (messages: SchemaLoaderOptions['messages'], sources: SchemaSource[] = []) => {
+  const schemas = await loadMessageSchemaResources(messages);
+  const resolvedSchemas = await resolveSchemaSources(schemas, sources);
+
+  return addLatestMetadata(resolvedSchemas.map(stripSchemaLoaderContext));
 };
 
 const getSchemaBody = async (schema: MessageSchemaResource) => {
+  if (schema.content !== undefined) return schema.content;
   if (!schemaFileExists(schema)) return undefined;
   return fs.readFile(schema.filePath, 'utf8');
 };
@@ -222,12 +508,12 @@ const setSchema = async (context: LoaderContext, schema: MessageSchemaResource) 
   });
 };
 
-export const schemaLoader = ({ messages }: SchemaLoaderOptions): Loader => {
+export const schemaLoader = ({ messages, sources = [] }: SchemaLoaderOptions): Loader => {
   return {
     name: 'eventcatalog-schema-loader',
     load: async (context) => {
       context.store.clear();
-      const schemas = await loadMessageSchemas(messages);
+      const schemas = await loadMessageSchemas(messages, sources);
 
       for (const schema of schemas) {
         await setSchema(context, schema);

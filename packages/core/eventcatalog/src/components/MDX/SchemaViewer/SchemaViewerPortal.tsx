@@ -5,7 +5,7 @@ const SchemaViewerPortal = (props: any) => {
 
   return (
     <div
-      id={`${props.id}-${props.file}-SchemaViewer-portal`}
+      data-schema-viewer-portal-id={props.id}
       data-expand={expandBool ? 'true' : 'false'}
       data-max-height={props.maxHeight}
       data-search={searchBool ? 'true' : 'false'}

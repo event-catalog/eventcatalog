@@ -1,13 +1,13 @@
 ---
-const { id, filePath } = Astro.props;
+const { id, filePath, collection, version } = Astro.props;
 import fs from 'node:fs/promises';
-import { existsSync } from 'fs';
-import yaml from 'js-yaml';
+import { getCollection } from 'astro:content';
 import JSONSchemaViewer from '@components/SchemaExplorer/JSONSchemaViewer';
 import AvroSchemaViewer from '@components/SchemaExplorer/AvroSchemaViewer';
 import Admonition from '../Admonition';
 import { getMDXComponentsByName } from '@utils/markdown';
-import { getAbsoluteFilePathForAstroFile, resolveProjectPath, isAvroSchema } from '@utils/files';
+import { resolveProjectPath } from '@utils/files';
+import { resolveSchemaViewer } from './schema-viewer-utils';
 
 let schemas = [];
 
@@ -15,45 +15,11 @@ try {
   const absoluteFilePath = resolveProjectPath(filePath);
   const file = await fs.readFile(absoluteFilePath, 'utf-8');
   const schemaViewers = getMDXComponentsByName(file, 'SchemaViewer');
+  const collectionSchemas = collection && version ? await getCollection('schemas') : [];
 
-  // Loop around all the possible SchemaViewers in the file.
-  const getAllComponents = schemaViewers.map(async (schemaViewerProps: any, index: number) => {
-    const schemaPath = getAbsoluteFilePathForAstroFile(filePath, schemaViewerProps.file);
-    const exists = existsSync(schemaPath);
-    let schema;
-    let render = true;
-    let isAvro = false;
-
-    if (exists) {
-      // Check if this is an Avro schema file
-      isAvro = isAvroSchema(schemaPath);
-
-      // Load the schema for the component
-      schema = await fs.readFile(schemaPath, 'utf-8');
-
-      if (schemaPath.endsWith('.yml') || schemaPath.endsWith('.yaml')) {
-        schema = yaml.load(schema);
-      } else {
-        schema = JSON.parse(schema);
-
-        // For non-Avro schemas, let JSON schema control if the component should be rendered
-        if (!isAvro && schema['x-eventcatalog-render-schema-viewer'] !== undefined) {
-          render = schema['x-eventcatalog-render-schema-viewer'];
-        }
-      }
-    }
-
-    return {
-      id: schemaViewerProps.id || id,
-      exists,
-      schema,
-      schemaPath,
-      isAvroSchema: isAvro,
-      ...schemaViewerProps,
-      render,
-      index,
-    };
-  });
+  const getAllComponents = schemaViewers.map((schemaViewerProps: any, index: number) =>
+    resolveSchemaViewer({ id, version, collection, filePath, schemaViewerProps, collectionSchemas, index })
+  );
 
   schemas = await Promise.all(getAllComponents);
 } catch (error) {
@@ -71,8 +37,10 @@ try {
           <div>
             {schema.exists && (
               <div
-                id={`${schema.id}-${schema.file}-SchemaViewer-client`}
+                id={`${schema.id}-${schema.index}-SchemaViewer-client`}
                 class="not-prose my-4"
+                data-schema-viewer-client-id={schema.id}
+                data-schema-viewer-index={schema.index}
                 data-expand={schema.expand ? 'true' : 'false'}
                 data-search={schema.search !== false ? 'true' : 'false'}
               >
@@ -105,7 +73,11 @@ try {
               <Admonition type="warning">
                 <div>
                   <span class="block font-bold">{`<SchemaViewer/>`} failed to load</span>
-                  <span class="block">Tried to load schema from {schema.schemaPath}, but no schema can be found</span>
+                  <span class="block">
+                    {schema.parseError
+                      ? `Tried to parse schema from ${schema.schemaPath}, but it failed: ${schema.parseError}`
+                      : `Tried to load schema from ${schema.schemaPath || schema.file || 'the message schema collection'}, but no schema can be found`}
+                  </span>
                 </div>
               </Admonition>
             )}
@@ -120,9 +92,9 @@ try {
   // and then we can move the SchemaViewerClient to that container?
 
   function moveSchemaViewerToPortal(schema) {
-    const portalId = `${schema.id}-${schema.file}-SchemaViewer-portal`;
-    const schemaViewerContainer = document.getElementById(portalId);
-    const schemaViewerClient = document.getElementById(`${schema.id}-${schema.file}-SchemaViewer-client`);
+    const schemaViewerContainers = document.querySelectorAll(`[data-schema-viewer-portal-id="${schema.id}"]`);
+    const schemaViewerContainer = schemaViewerContainers[schema.index];
+    const schemaViewerClient = document.getElementById(`${schema.id}-${schema.index}-SchemaViewer-client`);
 
     if (schemaViewerContainer && schemaViewerClient) {
       // Get attributes from the portal
