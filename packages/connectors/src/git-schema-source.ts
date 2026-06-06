@@ -16,8 +16,8 @@ type GitSchemaSourceOptions = {
   name: string;
   /** Git repository URL. Supports any URL your local git can clone. */
   url: string;
-  /** Branch, tag, or ref to clone. */
-  ref?: string;
+  /** Branch to clone. */
+  branch?: string;
   /** Optional directory inside the repository that contains schemas. */
   directory?: string;
   /** Optional HTTPS token. SSH auth is handled by the local git environment. */
@@ -111,7 +111,7 @@ export const gitSchemaSource = (
     throw new Error("Git schema source requires a repository url.");
   }
 
-  const ref = options.ref ?? "main";
+  const branch = options.branch ?? "main";
   const directory = options.directory ?? "";
   let checkoutPath: Promise<string> | undefined;
 
@@ -126,7 +126,7 @@ export const gitSchemaSource = (
           addTokenToHttpsUrl(options.url, options.token),
           target,
           {
-            "--branch": ref,
+            "--branch": branch,
             "--depth": 1,
             "--single-branch": null,
           },
@@ -160,7 +160,7 @@ export const gitSchemaSource = (
             .filter(Boolean)
             .join("/");
           throw new Error(
-            `Git schema source "${options.name}" could not find schema file "${schemaSourcePath}" in "${options.url}" at ref "${ref}".`,
+            `Git schema source "${options.name}" could not find schema file "${schemaSourcePath}" in "${options.url}" on branch "${branch}".`,
           );
         }
 
@@ -176,7 +176,7 @@ export const gitSchemaSource = (
           provider: "git",
           id: `${options.name}:${filePath}`,
           url: options.url,
-          ref,
+          branch,
           path: [directory, filePath].filter(Boolean).join("/"),
         },
       };

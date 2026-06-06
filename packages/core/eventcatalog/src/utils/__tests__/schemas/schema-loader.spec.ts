@@ -455,7 +455,7 @@ schemas:
               provider: 'git',
               id: 'contracts:events/OrderPlaced.schema.json',
               url: 'https://github.com/acme/schema-contracts.git',
-              ref: 'main',
+              branch: 'main',
               path: 'schemas/events/OrderPlaced.schema.json',
             },
           }),
@@ -482,7 +482,7 @@ schemas:
         provider: 'git',
         id: 'contracts:events/OrderPlaced.schema.json',
         url: 'https://github.com/acme/schema-contracts.git',
-        ref: 'main',
+        branch: 'main',
         path: 'schemas/events/OrderPlaced.schema.json',
       },
     });
@@ -647,7 +647,7 @@ schemas:
             canResolve: (id) => id.startsWith('git://contracts/'),
             resolve: async () => {
               throw new Error(
-                'Git schema source "contracts" could not find schema file "schemas/events/Missing.schema.json" in "https://github.com/acme/schema-contracts.git" at ref "main".'
+                'Git schema source "contracts" could not find schema file "schemas/events/Missing.schema.json" in "https://github.com/acme/schema-contracts.git" on branch "main".'
               );
             },
           },
@@ -663,7 +663,7 @@ schemas:
       expect(message).toContain('Source:  contracts');
       expect(message).toContain('Reason:');
       expect(message).toContain(
-        'Git schema source "contracts" could not find schema file "schemas/events/Missing.schema.json" in "https://github.com/acme/schema-contracts.git" at ref "main".'
+        'Git schema source "contracts" could not find schema file "schemas/events/Missing.schema.json" in "https://github.com/acme/schema-contracts.git" on branch "main".'
       );
     } finally {
       consoleLog.mockRestore();

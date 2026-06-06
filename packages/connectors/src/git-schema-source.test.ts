@@ -31,7 +31,7 @@ describe("gitSchemaSource", () => {
     const source = gitSchemaSource({
       name: "contracts",
       url: "https://github.com/acme/schema-contracts.git",
-      ref: "main",
+      branch: "main",
       directory: "schemas",
       token: "github-token",
     });
@@ -47,7 +47,7 @@ describe("gitSchemaSource", () => {
         provider: "git",
         id: "contracts:events/OrderPlaced.schema.json",
         url: "https://github.com/acme/schema-contracts.git",
-        ref: "main",
+        branch: "main",
         path: "schemas/events/OrderPlaced.schema.json",
       },
     });
@@ -111,14 +111,14 @@ describe("gitSchemaSource", () => {
     const source = gitSchemaSource({
       name: "contracts",
       url: "https://github.com/acme/schema-contracts.git",
-      ref: "main",
+      branch: "main",
       directory: "schemas",
     });
 
     await expect(
       source.resolve("git://contracts/events/Missing.schema.json"),
     ).rejects.toThrow(
-      'Git schema source "contracts" could not find schema file "schemas/events/Missing.schema.json" in "https://github.com/acme/schema-contracts.git" at ref "main".',
+      'Git schema source "contracts" could not find schema file "schemas/events/Missing.schema.json" in "https://github.com/acme/schema-contracts.git" on branch "main".',
     );
   });
 

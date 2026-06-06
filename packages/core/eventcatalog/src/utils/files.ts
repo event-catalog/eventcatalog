@@ -1,4 +1,4 @@
-import path from 'node:path';
+import * as path from 'node:path';
 
 /**
  * Resolves a file path relative to PROJECT_DIR, handling ../ paths correctly

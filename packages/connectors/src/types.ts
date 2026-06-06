@@ -84,6 +84,8 @@ export type SchemaEntrySource = {
   url?: string;
   /** Optional version/ref/branch for versioned sources. */
   ref?: string;
+  /** Optional branch for git-backed schema sources. */
+  branch?: string;
   /** Optional path inside the source. */
   path?: string;
   [key: string]: unknown;

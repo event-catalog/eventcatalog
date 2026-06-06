@@ -1045,6 +1045,7 @@ const schemas = defineCollection({
         path: z.string().optional(),
         url: z.string().optional(),
         ref: z.string().optional(),
+        branch: z.string().optional(),
       }),
       readOnly: z.boolean().optional(),
     })
