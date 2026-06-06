@@ -37,8 +37,10 @@ try {
           <div>
             {schema.exists && (
               <div
-                id={`${schema.id}-${schema.schemaKey}-SchemaViewer-client`}
+                id={`${schema.id}-${schema.index}-SchemaViewer-client`}
                 class="not-prose my-4"
+                data-schema-viewer-client-id={schema.id}
+                data-schema-viewer-index={schema.index}
                 data-expand={schema.expand ? 'true' : 'false'}
                 data-search={schema.search !== false ? 'true' : 'false'}
               >
@@ -90,9 +92,9 @@ try {
   // and then we can move the SchemaViewerClient to that container?
 
   function moveSchemaViewerToPortal(schema) {
-    const portalId = `${schema.id}-${schema.schemaKey}-SchemaViewer-portal`;
-    const schemaViewerContainer = document.getElementById(portalId);
-    const schemaViewerClient = document.getElementById(`${schema.id}-${schema.schemaKey}-SchemaViewer-client`);
+    const schemaViewerContainers = document.querySelectorAll(`[data-schema-viewer-portal-id="${schema.id}"]`);
+    const schemaViewerContainer = schemaViewerContainers[schema.index];
+    const schemaViewerClient = document.getElementById(`${schema.id}-${schema.index}-SchemaViewer-client`);
 
     if (schemaViewerContainer && schemaViewerClient) {
       // Get attributes from the portal
