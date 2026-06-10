@@ -19,6 +19,11 @@ import rehypeExpressiveCode from 'rehype-expressive-code';
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
+// Expressive Code options (including the non-serializable `themeCssSelector`
+// function) live in ec.config.mjs. The `expressiveCode()` integration loads that
+// file automatically; the rehype plugin used by mdx() below needs it passed
+// explicitly, so we import it here to keep a single source of truth.
+import expressiveCodeConfig from './ec.config.mjs';
 import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
 import eventCatalogIntegration from './src/enterprise/integrations/eventcatalog-features.ts';
 
@@ -29,15 +34,6 @@ const compress = config.compress ?? false;
 const isDevMode = process.env.EVENTCATALOG_DEV_MODE === 'true';
 const effectiveOutput = isDevMode ? 'server' : config.output || 'static';
 const searchType = config.search?.type || 'resource';
-
-const expressiveCodeConfig = {
-  themes: ['github-light', 'github-dark'],
-  useDarkModeMediaQuery: false,
-  themeCssSelector: (theme) => `[data-theme='${theme.type}']`,
-  defaultProps: {
-    wrap: true,
-  },
-};
 
 const markdownRemarkPlugins = [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml];
 const mdxRemarkPlugins = [...markdownRemarkPlugins, remarkResourceRef];
@@ -80,9 +76,8 @@ export default defineConfig({
   devToolbar: { enabled: false },
   integrations: [
     react(),
-    expressiveCode({
-      ...expressiveCodeConfig,
-    }),
+    // Options are loaded automatically from ec.config.mjs.
+    expressiveCode(),
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
