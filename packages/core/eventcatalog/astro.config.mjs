@@ -32,6 +32,8 @@ const searchType = config.search?.type || 'resource';
 
 const expressiveCodeConfig = {
   themes: ['github-light', 'github-dark'],
+  useDarkModeMediaQuery: false,
+  themeCssSelector: (theme) => `[data-theme='${theme.type}']`,
   defaultProps: {
     wrap: true,
   },
