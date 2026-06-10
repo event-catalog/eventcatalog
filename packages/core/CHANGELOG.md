@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.46.0
+
+### Minor Changes
+
+- 906b6e3: Fix unreadable code blocks in dark mode by making Expressive Code follow the EventCatalog theme toggle (`data-theme`) instead of the OS dark mode media query.
+
 ## 3.45.1
 
 ### Patch Changes
