@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/connectors",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Connectors for syncing external systems into EventCatalog Collections",
   "scripts": {
     "build": "tsup",
