@@ -320,9 +320,87 @@ describe('getNestedSideBarData', () => {
           title: 'Order',
           badge: 'Entity',
           summary: 'Order aggregate',
-          href: '/docs/entities/Order/0.0.1',
+          pages: expect.arrayContaining([
+            {
+              type: 'group',
+              title: 'Quick Reference',
+              icon: 'BookOpen',
+              pages: [
+                {
+                  type: 'item',
+                  title: 'Overview',
+                  href: '/docs/entities/Order/0.0.1',
+                },
+              ],
+            },
+          ]),
         })
       );
+    });
+  });
+
+  describe('entity navigation item', () => {
+    it('lists the domains and services that reference the entity', async () => {
+      const { writeDomain, writeEntity, writeService } = utils(CATALOG_FOLDER);
+
+      await writeEntity({
+        id: 'Order',
+        name: 'Order',
+        version: '0.0.1',
+        markdown: 'Order',
+      });
+
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+        entities: [{ id: 'Order', version: '0.0.1' }],
+      });
+
+      await writeService({
+        id: 'OrdersService',
+        name: 'OrdersService',
+        version: '0.0.1',
+        markdown: 'OrdersService',
+        entities: [{ id: 'Order', version: '0.0.1' }],
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const entityNode = getNavigationConfigurationByKey('entity:Order:0.0.1', navigationData);
+      const architectureSection = getChildNodeByTitle('Architecture', entityNode.pages ?? []);
+      const domainsSection = getChildNodeByTitle('Domains', entityNode.pages ?? []);
+      const servicesSection = getChildNodeByTitle('Services', entityNode.pages ?? []);
+
+      expect(architectureSection).toEqual({
+        type: 'group',
+        title: 'Architecture',
+        icon: 'Workflow',
+        pages: [
+          {
+            type: 'item',
+            title: 'Domain Entity Map',
+            href: '/visualiser/domains/Shipping/0.0.1/entity-map',
+          },
+          {
+            type: 'item',
+            title: 'Service Entity Map',
+            href: '/visualiser/services/OrdersService/0.0.1/entity-map',
+          },
+        ],
+      });
+      expect(domainsSection).toEqual({
+        type: 'group',
+        title: 'Domains',
+        icon: 'Boxes',
+        pages: ['domain:Shipping:0.0.1'],
+      });
+      expect(servicesSection).toEqual({
+        type: 'group',
+        title: 'Services',
+        icon: 'Server',
+        pages: ['service:OrdersService:0.0.1'],
+      });
     });
   });
 
