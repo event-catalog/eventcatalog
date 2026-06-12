@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.46.1
+
+### Patch Changes
+
+- fd3abbc: chor(core): clean up on catalogs packages
+- c4ad818: Remove decorative backticks from inline code in MDX docs and improve inline code styling
+
 ## 3.46.0
 
 ### Minor Changes
