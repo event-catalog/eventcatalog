@@ -1,0 +1,33 @@
+---
+id: WarehouseStockSnapshot
+version: 0.0.1
+name: Warehouse Stock Snapshot
+summary: Periodic snapshot of stock positions across an entire warehouse
+tags:
+  - inventory
+  - warehouse
+  - snapshot
+badges:
+  - content: New
+    backgroundColor: neutral
+    textColor: neutral
+schemaPath: schema.proto
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `WarehouseStockSnapshot` event is published every 15 minutes by the warehouse management system. It contains the stock position of every SKU in every zone of a warehouse, and is used to reconcile the central inventory ledger.
+
+## Schema
+
+<SchemaViewer title="WarehouseStockSnapshot Schema" file="schema.proto" />
+
+## Event Details
+
+- **Zones**: Each physical zone reports its own stock levels per SKU, including damaged and reserved units
+- **Count Confidence**: Indicates whether counts are system-calculated or verified by physical counts
+- **Sequence Number**: Monotonically increasing per warehouse so consumers can detect missed snapshots
+
+<Footer />

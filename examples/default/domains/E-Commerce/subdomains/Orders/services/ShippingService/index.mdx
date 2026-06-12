@@ -26,6 +26,8 @@ receives:
     from:
       - id: orders-domain-eventbus
 sends:
+  - id: ShipmentRouteUpdated
+    version: 0.0.1
   - id: ShipmentCreated
     fields:
       - shipmentId

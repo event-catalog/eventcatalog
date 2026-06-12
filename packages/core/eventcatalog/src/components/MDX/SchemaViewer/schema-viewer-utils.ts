@@ -1,7 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { load as loadYaml } from 'js-yaml';
-import { getAbsoluteFilePathForAstroFile, isAvroSchema } from '../../../utils/files';
+import { getAbsoluteFilePathForAstroFile, isAvroSchema, isProtobufSchema } from '../../../utils/files';
+import { parseProtobufSchema } from '../../../utils/protobuf-schema';
 
 type SchemaViewerProps = {
   id?: string;
@@ -48,13 +49,17 @@ const isYamlSchema = (schemaPath?: string, format?: string) =>
 const isAvroSchemaReference = (schemaPath?: string, format?: string) =>
   format === 'avro' || (schemaPath ? isAvroSchema(schemaPath) : false);
 
+const isProtobufSchemaReference = (schemaPath?: string, format?: string) =>
+  format === 'protobuf' || format === 'proto' || (schemaPath ? isProtobufSchema(schemaPath) : false);
+
 const parseSchemaContent = (content: string, schemaPath?: string, format?: string) => {
+  if (isProtobufSchemaReference(schemaPath, format)) return parseProtobufSchema(content);
   if (isYamlSchema(schemaPath, format)) return loadYaml(content);
   return JSON.parse(content);
 };
 
-const shouldRenderSchema = (schema: any, isAvro: boolean) => {
-  if (isAvro) return true;
+const shouldRenderSchema = (schema: any, alwaysRender: boolean) => {
+  if (alwaysRender) return true;
   return schema?.['x-eventcatalog-render-schema-viewer'] !== undefined ? schema['x-eventcatalog-render-schema-viewer'] : true;
 };
 
@@ -94,14 +99,20 @@ export const resolveSchemaViewer = async ({
   let schema;
   let render = true;
   let isAvro = false;
+  let isProtobuf = false;
   let schemaPath = localSchemaPath;
   let parseError;
 
   if (localSchemaExists && localSchemaPath) {
     isAvro = isAvroSchema(localSchemaPath);
+    isProtobuf = isProtobufSchema(localSchemaPath);
     const content = await readFile(localSchemaPath, 'utf-8');
-    schema = parseSchemaContent(content, localSchemaPath);
-    render = shouldRenderSchema(schema, isAvro);
+    try {
+      schema = parseSchemaContent(content, localSchemaPath);
+      render = shouldRenderSchema(schema, isAvro || isProtobuf);
+    } catch (error) {
+      parseError = error instanceof Error ? error.message : 'Unknown parsing error';
+    }
   } else if (!schemaViewerProps.file) {
     const collectionSchema = getCollectionSchemaForViewer({ collectionSchemas, collection, id, version });
     const content = collectionSchema?.data.content;
@@ -110,8 +121,9 @@ export const resolveSchemaViewer = async ({
     if (content) {
       try {
         isAvro = isAvroSchemaReference(schemaPath, collectionSchema?.data.format);
+        isProtobuf = isProtobufSchemaReference(schemaPath, collectionSchema?.data.format);
         schema = parseSchemaContent(content, schemaPath, collectionSchema?.data.format);
-        render = shouldRenderSchema(schema, isAvro);
+        render = shouldRenderSchema(schema, isAvro || isProtobuf);
       } catch (error) {
         parseError = error instanceof Error ? error.message : 'Unknown parsing error';
       }
@@ -120,11 +132,12 @@ export const resolveSchemaViewer = async ({
 
   return {
     id: schemaViewerProps.id || id,
-    exists: localSchemaExists || schema !== undefined,
+    exists: schema !== undefined,
     schema,
     schemaPath,
     schemaKey,
     isAvroSchema: isAvro,
+    isProtobufSchema: isProtobuf,
     parseError,
     ...schemaViewerProps,
     render,

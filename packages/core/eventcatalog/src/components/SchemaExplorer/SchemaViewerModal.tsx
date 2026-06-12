@@ -2,6 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { XMarkIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import JSONSchemaViewer from './JSONSchemaViewer';
 import AvroSchemaViewer from './AvroSchemaViewer';
+import ProtobufSchemaViewer from './ProtobufSchemaViewer';
 import type { SchemaItem } from './types';
 
 interface SchemaViewerModalProps {
@@ -10,6 +11,7 @@ interface SchemaViewerModalProps {
   message: SchemaItem;
   parsedSchema: any;
   parsedAvroSchema?: any;
+  parsedProtoSchema?: any;
 }
 
 export default function SchemaViewerModal({
@@ -18,10 +20,12 @@ export default function SchemaViewerModal({
   message,
   parsedSchema,
   parsedAvroSchema,
+  parsedProtoSchema,
 }: SchemaViewerModalProps) {
-  if (!parsedSchema && !parsedAvroSchema) return null;
+  if (!parsedSchema && !parsedAvroSchema && !parsedProtoSchema) return null;
 
   const isAvro = !!parsedAvroSchema;
+  const isProto = !!parsedProtoSchema;
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
@@ -35,7 +39,7 @@ export default function SchemaViewerModal({
               <div>
                 <Dialog.Title className="text-xl font-semibold text-[rgb(var(--ec-page-text))]">{message.data.name}</Dialog.Title>
                 <Dialog.Description className="text-sm text-[rgb(var(--ec-page-text-muted))] mt-1">
-                  v{message.data.version} · {isAvro ? 'Avro' : 'JSON'} Schema
+                  v{message.data.version} · {isAvro ? 'Avro' : isProto ? 'Protobuf' : 'JSON'} Schema
                 </Dialog.Description>
               </div>
             </div>
@@ -54,6 +58,8 @@ export default function SchemaViewerModal({
           <div className="flex-1 overflow-hidden p-6">
             {isAvro ? (
               <AvroSchemaViewer schema={parsedAvroSchema} expand={true} search={true} />
+            ) : isProto ? (
+              <ProtobufSchemaViewer schema={parsedProtoSchema} expand={true} search={true} />
             ) : (
               <JSONSchemaViewer schema={parsedSchema} expand={true} search={true} />
             )}

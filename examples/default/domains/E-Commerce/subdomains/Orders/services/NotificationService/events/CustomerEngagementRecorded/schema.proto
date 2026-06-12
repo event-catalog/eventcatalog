@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package com.ecommerce.notifications.engagement;
+
+// The channel a notification was delivered on.
+enum Channel {
+  CHANNEL_UNSPECIFIED = 0;
+  EMAIL = 1;
+  SMS = 2;
+  PUSH = 3;
+  IN_APP = 4;
+}
+
+/**
+ * Emitted when a customer interacts with a notification. Interactions form
+ * a tree: a customer can open an email, then click a link inside it, then
+ * dismiss the in-app banner that the link opened. Each node in the tree is
+ * an Interaction that may contain child interactions.
+ */
+message CustomerEngagementRecorded {
+  // Email-specific interaction details.
+  message EmailInteraction {
+    string subject_line_variant = 1; // A/B test variant of the subject line
+    string link_url = 2; // Populated for click interactions
+    bool opened_on_mobile = 3;
+  }
+
+  // Push notification interaction details.
+  message PushInteraction {
+    string device_platform = 1; // "ios" or "android"
+    string action_id = 2; // The action button pressed, if any
+  }
+
+  // SMS interaction details.
+  message SmsInteraction {
+    string short_link_token = 1; // Token from the shortened link the customer tapped
+  }
+
+  // A single interaction node. Children represent follow-up interactions
+  // triggered by this one, forming a tree of engagement.
+  message Interaction {
+    // What the customer did.
+    enum Kind {
+      KIND_UNSPECIFIED = 0;
+      DELIVERED = 1;
+      OPENED = 2;
+      CLICKED = 3;
+      DISMISSED = 4;
+      UNSUBSCRIBED = 5;
+    }
+
+    string interaction_id = 1;
+    Kind kind = 2;
+    Channel channel = 3;
+    string occurred_at = 4; // RFC 3339 timestamp of the interaction
+
+    // Channel-specific details for this interaction.
+    oneof details {
+      EmailInteraction email = 5;
+      PushInteraction push = 6;
+      SmsInteraction sms = 7;
+    }
+
+    repeated Interaction children = 8; // Follow-up interactions triggered by this one
+  }
+
+  string engagement_id = 1;
+  string customer_id = 2;
+  string notification_id = 3; // The notification that started this engagement
+  string campaign_id = 4; // Marketing campaign the notification belongs to, if any
+  Interaction root_interaction = 5; // The root of the interaction tree
+  uint32 total_interactions = 6; // Total nodes in the tree, for quick filtering
+  string recorded_at = 7;
+}
+
+// The engagement ingestion API exposed by the notification platform.
+// Service definitions are not rendered by the schema viewer but are kept
+// here to document the full contract.
+service EngagementIngestion {
+  rpc RecordEngagement (CustomerEngagementRecorded) returns (RecordEngagementResponse);
+}
+
+message RecordEngagementResponse {
+  bool accepted = 1;
+  string deduplication_key = 2; // Stable key consumers can use to deduplicate retries
+}

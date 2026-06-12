@@ -16,6 +16,8 @@ receives:
         parameters:
           env: staging
 sends:
+  - id: PaymentSettled
+    version: 0.0.1
   - id: PaymentProcessed
 writesTo:
   - id: payments-db

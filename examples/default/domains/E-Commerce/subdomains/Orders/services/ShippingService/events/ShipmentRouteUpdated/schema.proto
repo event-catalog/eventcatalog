@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package com.ecommerce.shipping.routing;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+// The transport mode used for a route segment.
+enum TransportMode {
+  TRANSPORT_MODE_UNSPECIFIED = 0;
+  ROAD = 1;
+  RAIL = 2;
+  AIR = 3; // Air freight, used for express international shipments
+  SEA = 4;
+  LAST_MILE_COURIER = 5;
+}
+
+// Why the route was recalculated.
+enum RouteChangeReason {
+  ROUTE_CHANGE_REASON_UNSPECIFIED = 0;
+  TRAFFIC_CONGESTION = 1;
+  WEATHER_EVENT = 2;
+  VEHICLE_BREAKDOWN = 3;
+  HUB_CAPACITY_EXCEEDED = 4;
+  CUSTOMER_ADDRESS_CHANGED = 5;
+}
+
+/**
+ * Emitted whenever the routing engine recalculates the route for an
+ * in-flight shipment. Consumers use this to update tracking pages and
+ * recalculate estimated delivery dates.
+ */
+message ShipmentRouteUpdated {
+  // A WGS84 coordinate pair.
+  message GeoPoint {
+    double latitude = 1; // Degrees north of the equator, negative for south
+    double longitude = 2; // Degrees east of the prime meridian, negative for west
+  }
+
+  // A stop along the route, such as a sorting hub or delivery depot.
+  message Waypoint {
+    string facility_id = 1; // Internal facility identifier, e.g. "HUB-FRA-04"
+    string name = 2;
+    GeoPoint location = 3;
+    google.protobuf.Timestamp estimated_arrival = 4;
+    google.protobuf.Timestamp estimated_departure = 5;
+    bool customs_clearance_required = 6; // True when the waypoint crosses a customs border
+  }
+
+  // A leg of the journey between two waypoints.
+  message RouteSegment {
+    // The vehicle assigned to carry the shipment on this segment.
+    message Vehicle {
+      // The operational status of the assigned vehicle.
+      enum Status {
+        STATUS_UNSPECIFIED = 0;
+        AVAILABLE = 1;
+        IN_TRANSIT = 2;
+        MAINTENANCE = 3;
+      }
+
+      string vehicle_id = 1;
+      string carrier_code = 2; // SCAC code of the operating carrier
+      Status status = 3;
+      uint32 capacity_kg = 4;
+    }
+
+    Waypoint origin = 1;
+    Waypoint destination = 2;
+    TransportMode mode = 3;
+    Vehicle assigned_vehicle = 4;
+    google.protobuf.Duration estimated_duration = 5;
+    double distance_km = 6;
+  }
+
+  string shipment_id = 1; // The shipment whose route changed
+  string order_id = 2;
+  uint32 route_version = 3; // Increments every time the route is recalculated
+  RouteChangeReason reason = 4;
+  repeated RouteSegment segments = 5; // Ordered legs from origin to final destination
+  google.protobuf.Timestamp previous_eta = 6;
+  google.protobuf.Timestamp updated_eta = 7;
+  bool customer_notification_required = 8; // True when the ETA moved by more than 24 hours
+  google.protobuf.Timestamp occurred_at = 9;
+}

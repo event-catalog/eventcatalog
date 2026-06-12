@@ -26,6 +26,8 @@ readsFrom:
   - id: inventory-readmodel
   - id: order-metadata-store
 sends:
+  - id: LegacyOrderArchived
+    version: 0.0.1
   - id: OrderAmended
     to:
       - id: orders-domain-eventbus

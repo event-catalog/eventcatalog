@@ -1,0 +1,33 @@
+---
+id: LegacyOrderArchived
+version: 0.0.1
+name: Legacy Order Archived
+summary: Emitted when an order older than seven years is moved to cold storage
+tags:
+  - orders
+  - archival
+  - compliance
+badges:
+  - content: New
+    backgroundColor: neutral
+    textColor: neutral
+schemaPath: schema.proto
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `LegacyOrderArchived` event is emitted by the nightly archival job when an order older than seven years is moved from the live order store to cold storage. The schema still uses **proto2** because the downstream archival pipeline has not been migrated, which means fields carry explicit `required` and `optional` labels.
+
+## Schema
+
+<SchemaViewer title="LegacyOrderArchived Schema" file="schema.proto" showRequired="true" />
+
+## Event Details
+
+- **Archive Location**: The cold storage bucket and object key where the order document now lives
+- **GDPR Erasure**: Indicates whether PII was stripped before archival
+- **Line Items**: A summary of line items is retained for audit purposes
+
+<Footer />
