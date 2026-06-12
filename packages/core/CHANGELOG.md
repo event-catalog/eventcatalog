@@ -1,5 +1,22 @@
 # @eventcatalog/core
 
+## 3.47.0
+
+### Minor Changes
+
+- f632dcf: feat(core): add Protobuf support to SchemaViewer and Schema Explorer
+
+  The `<SchemaViewer />` MDX component and the Schema Explorer now render
+  structured views for Protocol Buffers (`.proto`) schemas, like JSON Schema
+  and Avro. Includes a dependency-free proto2/proto3 parser that captures
+  doc comments, nested messages, enums, maps, and oneofs. Also fixes the
+  Schema Explorer filter panel not collapsing when filters are active.
+
+### Patch Changes
+
+- 728e94e: Hide the Ubiquitous Language sidebar link and language pages for domains (and their subdomains) that have no ubiquitous language terms defined
+- e18ed1b: Entity maps now visualise `array` properties that reference other entities. Array properties display their item type (e.g. `OrderItem[]`), draw a `hasMany` relationship edge to the referenced entity, and show a reference indicator in the visualiser.
+
 ## 3.46.1
 
 ### Patch Changes
