@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package com.ecommerce.inventory.warehouse;
+
+// The stock position of a single SKU within one warehouse zone.
+message StockLevel {
+  // How confident the system is in this count.
+  enum CountConfidence {
+    COUNT_CONFIDENCE_UNSPECIFIED = 0;
+    SYSTEM_CALCULATED = 1; // Derived from movements since the last physical count
+    CYCLE_COUNTED = 2; // Verified by a recent cycle count
+    FULL_AUDIT = 3; // Verified by a full physical audit
+  }
+
+  int64 on_hand = 1; // Units physically present in the zone
+  int64 reserved = 2; // Units allocated to open orders
+  int64 damaged = 3; // Units present but not sellable
+  int64 in_transit_inbound = 4; // Units expected from inbound purchase orders
+  CountConfidence confidence = 5;
+  string last_counted_at = 6; // RFC 3339 timestamp of the last physical count
+}
+
+// A physical zone within the warehouse, e.g. a pick face or bulk storage area.
+message Zone {
+  string zone_id = 1; // e.g. "PICK-A-03"
+  string description = 2;
+  double utilisation_percent = 3; // How full the zone is, 0-100
+
+  // Stock levels for each SKU stored in this zone, keyed by SKU code.
+  map<string, StockLevel> stock_by_sku = 4;
+}
+
+/**
+ * A periodic snapshot of stock positions across an entire warehouse.
+ * Published every 15 minutes by the warehouse management system and used
+ * to reconcile the central inventory ledger.
+ */
+message WarehouseStockSnapshot {
+  string snapshot_id = 1;
+  string warehouse_id = 2; // e.g. "WH-BER-01"
+  string region = 3;
+
+  repeated Zone zones = 4; // All zones included in this snapshot
+
+  // Aggregate totals per SKU across all zones, keyed by SKU code.
+  map<string, int64> totals_by_sku = 5;
+
+  // Free-form labels attached by the warehouse management system,
+  // e.g. "wms_version" -> "4.2.1".
+  map<string, string> labels = 6;
+
+  uint32 sequence_number = 7; // Monotonically increasing per warehouse
+  string captured_at = 8; // When the snapshot was taken
+}

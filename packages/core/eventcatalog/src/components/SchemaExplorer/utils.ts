@@ -7,6 +7,7 @@ export const ICON_SPECS: Record<string, string> = {
   avro: 'avro',
   avsc: 'avro',
   proto: 'proto',
+  protobuf: 'proto',
   json: 'json-schema',
 };
 
@@ -20,6 +21,7 @@ export function getFormatBadge(ext?: string): { label: string; color: string } {
     case 'avsc':
       return { label: 'avro', color: 'text-blue-400' };
     case 'proto':
+    case 'protobuf':
       return { label: 'proto', color: 'text-orange-400' };
     case 'yaml':
     case 'yml':
@@ -48,6 +50,7 @@ export const getLanguageForHighlight = (extension?: string): string => {
     case 'json':
       return 'json';
     case 'proto':
+    case 'protobuf':
       return 'protobuf';
     case 'xsd':
     case 'xml':
@@ -79,6 +82,7 @@ export const getSchemaTypeLabel = (extension?: string): string => {
     case 'avsc':
       return 'Avro';
     case 'proto':
+    case 'protobuf':
       return 'Protobuf';
     case 'xsd':
       return 'XML Schema';

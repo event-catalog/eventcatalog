@@ -35,6 +35,8 @@ receives:
       - warehouseId
   - id: DeleteInventory
 sends:
+  - id: WarehouseStockSnapshot
+    version: 0.0.1
   - id: InventoryAdjusted
     version: 1.0.0
     to:

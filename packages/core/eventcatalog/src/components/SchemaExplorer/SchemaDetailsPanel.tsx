@@ -25,6 +25,7 @@ import VersionHistoryModal from './VersionHistoryModal';
 import SchemaCodeModal from './SchemaCodeModal';
 import SchemaViewerModal from './SchemaViewerModal';
 import { copyToClipboard, downloadSchema, getSchemaTypeLabel, ICON_SPECS, extractServiceName } from './utils';
+import { parseProtobufSchema } from '@utils/protobuf-schema';
 import type { SchemaItem, VersionDiff, Owner, Producer, Consumer } from './types';
 
 interface SchemaDetailsPanelProps {
@@ -136,6 +137,21 @@ export default function SchemaDetailsPanel({
     }
   }, [message.schemaContent, message.schemaExtension]);
 
+  // Check if this is a Protobuf schema. The extension falls back to the schema
+  // format when the schema has no file path, so accept both 'proto' and 'protobuf'.
+  const parsedProtoSchema = useMemo(() => {
+    const extLower = message.schemaExtension?.toLowerCase();
+    const isProtoSchema =
+      (extLower === 'proto' || extLower === 'protobuf') && message.schemaContent && message.schemaContent.trim() !== '';
+    if (!isProtoSchema) return null;
+
+    try {
+      return parseProtobufSchema(message.schemaContent ?? '');
+    } catch {
+      return null;
+    }
+  }, [message.schemaContent, message.schemaExtension]);
+
   const handleCopy = async () => {
     if (!message.schemaContent) return;
     const success = await copyToClipboard(message.schemaContent);
@@ -184,7 +200,7 @@ export default function SchemaDetailsPanel({
     };
   }, []);
 
-  const hasParsedSchema = !!parsedSchema || !!parsedAvroSchema;
+  const hasParsedSchema = !!parsedSchema || !!parsedAvroSchema || !!parsedProtoSchema;
   // Build tabs
   const tabs: { id: string; label: string; icon: React.ReactNode }[] = [
     { id: 'code', label: 'Schema', icon: <CodeBracketIcon className="h-3.5 w-3.5" /> },
@@ -335,11 +351,12 @@ export default function SchemaDetailsPanel({
               viewMode={activeTab === 'schema' ? 'schema' : 'code'}
               parsedSchema={parsedSchema}
               parsedAvroSchema={parsedAvroSchema}
+              parsedProtoSchema={parsedProtoSchema}
               showRequired={true}
               onOpenFullscreen={
                 activeTab === 'code'
                   ? () => setIsCodeModalOpen(true)
-                  : activeTab === 'schema' && (parsedSchema || parsedAvroSchema)
+                  : activeTab === 'schema' && (parsedSchema || parsedAvroSchema || parsedProtoSchema)
                     ? () => setIsSchemaViewerModalOpen(true)
                     : undefined
               }
@@ -507,6 +524,7 @@ export default function SchemaDetailsPanel({
         message={message}
         parsedSchema={parsedSchema}
         parsedAvroSchema={parsedAvroSchema}
+        parsedProtoSchema={parsedProtoSchema}
       />
     </div>
   );

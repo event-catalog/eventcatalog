@@ -1,0 +1,33 @@
+---
+id: CustomerEngagementRecorded
+version: 0.0.1
+name: Customer Engagement Recorded
+summary: Emitted when a customer interacts with a notification across any channel
+tags:
+  - notifications
+  - engagement
+  - analytics
+badges:
+  - content: New
+    backgroundColor: neutral
+    textColor: neutral
+schemaPath: schema.proto
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `CustomerEngagementRecorded` event is emitted when a customer interacts with a notification. Interactions form a **tree**: a customer can open an email, click a link inside it, and then dismiss the in-app banner that the link opened. Each node in the tree is an `Interaction` that may contain child interactions, and carries channel-specific details for email, push, or SMS.
+
+## Schema
+
+<SchemaViewer title="CustomerEngagementRecorded Schema" file="schema.proto" />
+
+## Event Details
+
+- **Interaction Tree**: `root_interaction` is the root node; `children` contain follow-up interactions triggered by it
+- **Channel Details**: Each interaction carries exactly one of email, push, or SMS specific details
+- **Deduplication**: Consumers should deduplicate using `engagement_id`
+
+<Footer />

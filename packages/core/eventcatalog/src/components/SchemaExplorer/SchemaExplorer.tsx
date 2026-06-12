@@ -18,6 +18,7 @@ const SCHEMA_TYPE_LABELS: Record<string, string> = {
   avro: 'Avro',
   avsc: 'Avro',
   proto: 'Protobuf',
+  protobuf: 'Protobuf',
   yaml: 'YAML',
   yml: 'YAML',
   xml: 'XML',
@@ -80,8 +81,16 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
 
   const [showFormatFilters, setShowFormatFilters] = useState(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('schemaRegistrySelectedSchemaType');
-      return stored !== null && stored !== 'all';
+      const storedSchemaType = localStorage.getItem('schemaRegistrySelectedSchemaType');
+      if (storedSchemaType !== null && storedSchemaType !== 'all') return true;
+      const storedTypes = localStorage.getItem('schemaRegistrySelectedTypes');
+      if (storedTypes) {
+        try {
+          return JSON.parse(storedTypes).length > 0;
+        } catch {
+          return false;
+        }
+      }
     }
     return false;
   });
@@ -396,9 +405,9 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
             {schemaTypes.length > 0 && (
               <button
                 onClick={() => setShowFormatFilters((prev) => !prev)}
-                aria-pressed={showFormatFilters || selectedSchemaType !== 'all'}
+                aria-pressed={showFormatFilters}
                 className={`relative inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all ${
-                  showFormatFilters || selectedSchemaType !== 'all'
+                  showFormatFilters || activeFilterCount > 0
                     ? 'border-[rgb(var(--ec-accent)/0.5)] bg-[rgb(var(--ec-accent))] text-white shadow-[0_10px_28px_rgb(var(--ec-accent)/0.3)]'
                     : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-text-muted)/0.45)] hover:text-[rgb(var(--ec-page-text))]'
                 }`}
@@ -413,7 +422,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
             )}
           </div>
 
-          {(showFormatFilters || selectedSchemaType !== 'all' || selectedTypes.size > 0) && (
+          {showFormatFilters && (
             <div className="flex-shrink-0 border-b border-[rgb(var(--ec-page-border))] px-4 py-3">
               <div className="rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] p-3">
                 <div className="mb-3 flex items-center justify-between gap-3">

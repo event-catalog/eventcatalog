@@ -33,6 +33,69 @@ describe('resolveSchemaViewer', () => {
     expect(schema.schemaPath).toBe('git://contracts/events/OrderPlaced.schema.json');
   });
 
+  it('parses protobuf schemas from the schema collection', async () => {
+    const protoSchema = {
+      id: 'schema:events:FraudCheckCompleted:1.0.0:git://contracts/events/FraudCheckCompleted.proto',
+      data: {
+        ref: 'git://contracts/events/FraudCheckCompleted.proto',
+        format: 'protobuf',
+        content: 'syntax = "proto3";\nmessage FraudCheckCompleted {\n  string transaction_id = 1;\n}',
+        default: true,
+        message: {
+          collection: 'events',
+          id: 'FraudCheckCompleted',
+          version: '1.0.0',
+        },
+      },
+    };
+
+    const schema = await resolveSchemaViewer({
+      id: 'FraudCheckCompleted',
+      version: '1.0.0',
+      collection: 'events',
+      filePath: 'events/FraudCheckCompleted/index.mdx',
+      schemaViewerProps: {},
+      collectionSchemas: [protoSchema],
+      index: 0,
+    });
+
+    expect(schema.exists).toBe(true);
+    expect(schema.isProtobufSchema).toBe(true);
+    expect(schema.schema.syntax).toBe('proto3');
+    expect(schema.schema.messages[0].name).toBe('FraudCheckCompleted');
+    expect(schema.schema.messages[0].fields[0].name).toBe('transaction_id');
+  });
+
+  it('captures parse errors for invalid protobuf schemas', async () => {
+    const protoSchema = {
+      id: 'schema:events:FraudCheckCompleted:1.0.0:git://contracts/events/FraudCheckCompleted.proto',
+      data: {
+        ref: 'git://contracts/events/FraudCheckCompleted.proto',
+        format: 'protobuf',
+        content: '{"this": "is not protobuf"}',
+        default: true,
+        message: {
+          collection: 'events',
+          id: 'FraudCheckCompleted',
+          version: '1.0.0',
+        },
+      },
+    };
+
+    const schema = await resolveSchemaViewer({
+      id: 'FraudCheckCompleted',
+      version: '1.0.0',
+      collection: 'events',
+      filePath: 'events/FraudCheckCompleted/index.mdx',
+      schemaViewerProps: {},
+      collectionSchemas: [protoSchema],
+      index: 0,
+    });
+
+    expect(schema.exists).toBe(false);
+    expect(schema.parseError).toBeDefined();
+  });
+
   it('does not use the schema collection when a file is set and missing', async () => {
     const schema = await resolveSchemaViewer({
       id: 'OrderPlaced',

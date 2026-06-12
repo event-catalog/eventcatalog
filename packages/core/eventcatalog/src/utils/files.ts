@@ -59,3 +59,12 @@ export const getAbsoluteFilePathForAstroFile = (filePath: string, fileName?: str
 export const isAvroSchema = (filePath: string): boolean => {
   return filePath.endsWith('.avro') || filePath.endsWith('.avsc');
 };
+
+/**
+ * Checks if a file path is a Protocol Buffers schema based on its extension
+ * @param filePath - The file path to check
+ * @returns True if the file is a Protocol Buffers schema (.proto)
+ */
+export const isProtobufSchema = (filePath: string): boolean => {
+  return filePath.endsWith('.proto');
+};

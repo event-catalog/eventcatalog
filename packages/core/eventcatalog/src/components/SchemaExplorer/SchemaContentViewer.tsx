@@ -5,6 +5,7 @@ import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { buildUrl } from '@utils/url-builder';
 import JSONSchemaViewer from './JSONSchemaViewer';
 import AvroSchemaViewer from './AvroSchemaViewer';
+import ProtobufSchemaViewer from './ProtobufSchemaViewer';
 import { getLanguageForHighlight } from './utils';
 import type { SchemaItem } from './types';
 import { useDarkMode } from './useDarkMode';
@@ -16,6 +17,7 @@ interface SchemaContentViewerProps {
   viewMode: 'code' | 'schema' | 'diff';
   parsedSchema: any;
   parsedAvroSchema?: any;
+  parsedProtoSchema?: any;
   onOpenFullscreen?: () => void;
   showRequired?: boolean;
 }
@@ -27,6 +29,7 @@ export default function SchemaContentViewer({
   viewMode,
   parsedSchema,
   parsedAvroSchema,
+  parsedProtoSchema,
   showRequired = false,
   onOpenFullscreen,
 }: SchemaContentViewerProps) {
@@ -44,6 +47,9 @@ export default function SchemaContentViewer({
   if (viewMode === 'schema') {
     if (parsedAvroSchema) {
       return <AvroSchemaViewer schema={parsedAvroSchema} onOpenFullscreen={onOpenFullscreen} showRequired={showRequired} />;
+    }
+    if (parsedProtoSchema) {
+      return <ProtobufSchemaViewer schema={parsedProtoSchema} onOpenFullscreen={onOpenFullscreen} showRequired={showRequired} />;
     }
     if (parsedSchema) {
       return <JSONSchemaViewer schema={parsedSchema} onOpenFullscreen={onOpenFullscreen} />;
