@@ -137,10 +137,12 @@ export default function SchemaDetailsPanel({
     }
   }, [message.schemaContent, message.schemaExtension]);
 
-  // Check if this is a Protobuf schema
+  // Check if this is a Protobuf schema. The extension falls back to the schema
+  // format when the schema has no file path, so accept both 'proto' and 'protobuf'.
   const parsedProtoSchema = useMemo(() => {
+    const extLower = message.schemaExtension?.toLowerCase();
     const isProtoSchema =
-      message.schemaExtension?.toLowerCase() === 'proto' && message.schemaContent && message.schemaContent.trim() !== '';
+      (extLower === 'proto' || extLower === 'protobuf') && message.schemaContent && message.schemaContent.trim() !== '';
     if (!isProtoSchema) return null;
 
     try {

@@ -151,8 +151,11 @@ function tokenize(content: string): { tokens: Token[]; trailingComments: Map<num
       continue;
     }
 
-    if (isIdentifierStart(char)) {
-      let value = '';
+    // Identifiers, including fully-qualified type names with a leading dot
+    // (e.g. ".google.protobuf.Timestamp")
+    if (isIdentifierStart(char) || (char === '.' && isIdentifierStart(content[i + 1] || ''))) {
+      let value = char === '.' ? '.' : '';
+      if (char === '.') i++;
       while (i < content.length && isIdentifierChar(content[i])) {
         value += content[i];
         i++;

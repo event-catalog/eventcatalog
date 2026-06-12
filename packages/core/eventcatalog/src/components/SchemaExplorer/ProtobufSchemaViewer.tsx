@@ -42,14 +42,16 @@ function buildTypeRegistry(schema: ProtobufSchema): TypeRegistry {
 }
 
 // Resolve a field type name against the registry, trying the name as written,
-// without the package prefix, and by its last segment (e.g. "com.example.Order" -> "Order")
+// without the package prefix, and by its last segment (e.g. "com.example.Order" -> "Order").
+// Leading dots (fully-qualified references like ".com.example.Order") are stripped first.
 function resolveTypeName(typeName: string, packageName: string | undefined): string[] {
-  const candidates = [typeName];
-  if (packageName && typeName.startsWith(`${packageName}.`)) {
-    candidates.push(typeName.slice(packageName.length + 1));
+  const normalized = typeName.startsWith('.') ? typeName.slice(1) : typeName;
+  const candidates = [normalized];
+  if (packageName && normalized.startsWith(`${packageName}.`)) {
+    candidates.push(normalized.slice(packageName.length + 1));
   }
-  const lastSegment = typeName.split('.').pop();
-  if (lastSegment && lastSegment !== typeName) candidates.push(lastSegment);
+  const lastSegment = normalized.split('.').pop();
+  if (lastSegment && lastSegment !== normalized) candidates.push(lastSegment);
   return candidates;
 }
 

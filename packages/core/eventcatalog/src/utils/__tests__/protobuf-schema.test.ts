@@ -197,6 +197,27 @@ describe('parseProtobufSchema', () => {
     expect(order.fields[1].type).toBe('google.protobuf.Timestamp');
   });
 
+  it('parses fully-qualified type names with a leading dot', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      package com.example;
+
+      message Order {
+        .google.protobuf.Timestamp created_at = 1;
+        .com.example.LineItem item = 2;
+      }
+
+      message LineItem {
+        string sku = 1;
+      }
+    `);
+
+    const order = schema.messages[0];
+    expect(order.fields[0].type).toBe('.google.protobuf.Timestamp');
+    expect(order.fields[1].type).toBe('.com.example.LineItem');
+  });
+
   it('throws on empty content', () => {
     expect(() => parseProtobufSchema('')).toThrow('Protobuf schema is empty');
   });

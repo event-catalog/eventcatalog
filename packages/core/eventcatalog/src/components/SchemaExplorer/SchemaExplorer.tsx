@@ -18,6 +18,7 @@ const SCHEMA_TYPE_LABELS: Record<string, string> = {
   avro: 'Avro',
   avsc: 'Avro',
   proto: 'Protobuf',
+  protobuf: 'Protobuf',
   yaml: 'YAML',
   yml: 'YAML',
   xml: 'XML',
