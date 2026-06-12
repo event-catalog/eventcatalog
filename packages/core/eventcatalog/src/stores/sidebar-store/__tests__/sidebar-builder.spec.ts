@@ -12,6 +12,7 @@ const mockResourceDocs: any[] = [];
 const mockResourceDocCategories: any[] = [];
 const mockAgents: any[] = [];
 const mockSchemas: any[] = [];
+const mockUbiquitousLanguages: any[] = [];
 
 declare global {
   interface Window {
@@ -107,6 +108,10 @@ vi.mock('astro:content', async (importOriginal) => {
           const { getDataProducts } = utils(CATALOG_FOLDER);
           const dataProducts = (await getDataProducts()) ?? [];
           return Promise.resolve(dataProducts.map((dataProduct) => toAstroCollection(dataProduct, 'data-products')));
+        case 'ubiquitousLanguages':
+          return Promise.resolve(
+            mockUbiquitousLanguages.map((ubiquitousLanguage) => toAstroCollection(ubiquitousLanguage, 'ubiquitousLanguages'))
+          );
         case 'resourceDocs':
           return Promise.resolve(mockResourceDocs);
         case 'resourceDocCategories':
@@ -118,7 +123,7 @@ vi.mock('astro:content', async (importOriginal) => {
   };
 });
 
-const buildDomainQuickReferenceSection = (resource: any) => {
+const buildDomainQuickReferenceSection = (resource: any, includeUbiquitousLanguage = false) => {
   return {
     type: 'group',
     title: 'Quick Reference',
@@ -129,12 +134,12 @@ const buildDomainQuickReferenceSection = (resource: any) => {
         title: 'Overview',
         href: `/docs/${resource.collection}/${resource.data.id}/${resource.data.version}`,
       },
-      {
+      includeUbiquitousLanguage && {
         type: 'item',
         title: 'Ubiquitous Language',
         href: `/docs/domains/${resource.data.id}/language`,
       },
-    ],
+    ].filter(Boolean),
   };
 };
 
@@ -164,6 +169,7 @@ describe('getNestedSideBarData', () => {
     mockResourceDocCategories.length = 0;
     mockAgents.length = 0;
     mockSchemas.length = 0;
+    mockUbiquitousLanguages.length = 0;
     fs.rmSync(CATALOG_FOLDER, { recursive: true, force: true });
     fs.mkdirSync(CATALOG_FOLDER, { recursive: true });
     // Remove any navigation data from teh config
@@ -419,7 +425,7 @@ describe('getNestedSideBarData', () => {
     });
 
     describe('quick reference section', () => {
-      it('the overview link ubiquitous language link are always listed in the navigation item', async () => {
+      it('the overview link is always listed in the navigation item', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
 
         await writeDomain({
@@ -433,7 +439,51 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
 
         expect(domainNode).toHaveNavigationLink({ type: 'item', title: 'Overview', href: '/docs/domains/Shipping/0.0.1' });
+      });
+
+      it('the ubiquitous language link is listed when terms are defined', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+        mockUbiquitousLanguages.push({
+          dictionary: [
+            {
+              id: 'Shipment',
+              name: 'Shipment',
+              summary: 'Goods prepared for delivery',
+            },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+
         expect(domainNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Ubiquitous Language',
+          href: '/docs/domains/Shipping/language',
+        });
+      });
+
+      it('the ubiquitous language link is not listed when no terms are defined', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+
+        expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Ubiquitous Language',
           href: '/docs/domains/Shipping/language',
@@ -452,6 +502,15 @@ describe('getNestedSideBarData', () => {
               visible: false,
             },
           },
+        });
+        mockUbiquitousLanguages.push({
+          dictionary: [
+            {
+              id: 'Shipment',
+              name: 'Shipment',
+              summary: 'Goods prepared for delivery',
+            },
+          ],
         });
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);

@@ -367,6 +367,36 @@ export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousL
   return ubiquitousLanguages;
 };
 
+export const hasUbiquitousLanguageTerms = (ubiquitousLanguage: UbiquitousLanguage | null | undefined): boolean =>
+  (ubiquitousLanguage?.data?.dictionary?.length || 0) > 0;
+
+export const getUbiquitousLanguageFromCollection = (
+  domain: Domain,
+  ubiquitousLanguages: UbiquitousLanguage[]
+): UbiquitousLanguage[] => {
+  const domainFolder = path.dirname(domain.filePath || '');
+
+  return ubiquitousLanguages.filter((ubiquitousLanguage) => {
+    const ubiquitousLanguageFolder = path.dirname(ubiquitousLanguage.filePath || '');
+    return domainFolder === ubiquitousLanguageFolder;
+  });
+};
+
+export const hasUbiquitousLanguageTermsInCollection = (domain: Domain, ubiquitousLanguages: UbiquitousLanguage[]): boolean =>
+  getUbiquitousLanguageFromCollection(domain, ubiquitousLanguages).some(hasUbiquitousLanguageTerms);
+
+export const hasUbiquitousLanguageTermsWithSubdomainsInCollection = (
+  domain: Domain,
+  ubiquitousLanguages: UbiquitousLanguage[]
+): boolean => {
+  const subdomains = (domain.data.domains as unknown as Domain[]) || [];
+
+  return (
+    hasUbiquitousLanguageTermsInCollection(domain, ubiquitousLanguages) ||
+    subdomains.some((subdomain) => hasUbiquitousLanguageTermsInCollection(subdomain, ubiquitousLanguages))
+  );
+};
+
 export const getUbiquitousLanguageWithSubdomains = async (
   domain: Domain
 ): Promise<{
@@ -426,6 +456,15 @@ export const getUbiquitousLanguageWithSubdomains = async (
     subdomains: subdomainULs,
     duplicateTerms,
   };
+};
+
+export const hasUbiquitousLanguageTermsWithSubdomains = async (domain: Domain): Promise<boolean> => {
+  const { domain: domainUbiquitousLanguage, subdomains } = await getUbiquitousLanguageWithSubdomains(domain);
+
+  return (
+    hasUbiquitousLanguageTerms(domainUbiquitousLanguage) ||
+    subdomains.some(({ ubiquitousLanguage }) => hasUbiquitousLanguageTerms(ubiquitousLanguage))
+  );
 };
 
 export const getParentDomains = async (domain: Domain): Promise<Domain[]> => {
