@@ -25,6 +25,7 @@ import { buildContainerNode } from './builders/container';
 import { buildFlowNode } from './builders/flow';
 import { buildDataProductNode } from './builders/data-product';
 import { buildAdrNode } from './builders/adr';
+import { buildEntityNode } from './builders/entity';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
@@ -406,6 +407,14 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     })
   );
 
+  const entitiesWithOwners = await Promise.all(
+    entities.map(async (entity) => {
+      const owners = await Promise.all((entity.data.owners || []).map((owner) => getOwner(owner)));
+      const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<(typeof owners)[0]>>;
+      return { entity, owners: filteredOwners };
+    })
+  );
+
   const flowNodes = flows.reduce(
     (acc, flow) => {
       acc[`flow:${flow.data.id}:${flow.data.version}`] = withArchitectureDecisionsSection(
@@ -650,21 +659,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
-  const entityNodes = entities.reduce(
-    (acc, entity) => {
+  const entityNodes = entitiesWithOwners.reduce(
+    (acc, { entity, owners }) => {
       const versionedKey = `entity:${entity.data.id}:${entity.data.version}`;
-      acc[versionedKey] = withArchitectureDecisionsSection(
-        {
-          type: 'item',
-          title: entity.data.name,
-          badge: 'Entity',
-          summary: entity.data.summary,
-          icon: 'Box',
-          href: buildUrl(`/docs/entities/${entity.data.id}/${entity.data.version}`),
-        },
-        entity,
-        adrs
-      );
+      acc[versionedKey] = withArchitectureDecisionsSection(buildEntityNode(entity, owners, context), entity, adrs);
       if (entity.data.latestVersion === entity.data.version) {
         acc[`entity:${entity.data.id}`] = versionedKey;
       }

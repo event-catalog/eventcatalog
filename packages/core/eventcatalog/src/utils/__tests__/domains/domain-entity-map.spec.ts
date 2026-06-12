@@ -156,6 +156,79 @@ const mockEntities = [
       ],
     },
   },
+  // Warehouse entity with array item reference but no explicit references field
+  {
+    id: 'entities/Warehouse/index.mdx',
+    slug: 'entities/Warehouse',
+    collection: 'entities',
+    data: {
+      id: 'Warehouse',
+      name: 'Warehouse',
+      version: '1.0.0',
+      identifier: 'warehouseId',
+      properties: [
+        {
+          name: 'warehouseId',
+          type: 'UUID',
+          required: true,
+        },
+        {
+          name: 'bins',
+          type: 'array',
+          required: false,
+          items: {
+            type: 'Bin',
+          },
+        },
+      ],
+    },
+  },
+  // Product entity with an array of primitives
+  {
+    id: 'entities/Product/index.mdx',
+    slug: 'entities/Product',
+    collection: 'entities',
+    data: {
+      id: 'Product',
+      name: 'Product',
+      version: '1.0.0',
+      identifier: 'productId',
+      properties: [
+        {
+          name: 'productId',
+          type: 'UUID',
+          required: true,
+        },
+        {
+          name: 'imageUrls',
+          type: 'array',
+          required: false,
+          items: {
+            type: 'string',
+          },
+        },
+      ],
+    },
+  },
+  // Bin entity referenced by Warehouse.bins
+  {
+    id: 'entities/Bin/index.mdx',
+    slug: 'entities/Bin',
+    collection: 'entities',
+    data: {
+      id: 'Bin',
+      name: 'Bin',
+      version: '1.0.0',
+      identifier: 'binId',
+      properties: [
+        {
+          name: 'binId',
+          type: 'UUID',
+          required: true,
+        },
+      ],
+    },
+  },
   // Versioned Order entity
   {
     id: 'entities/Order/versioned/200/index.mdx',
@@ -225,6 +298,21 @@ const mockDomains = [
       id: 'Empty',
       name: 'Empty',
       version: '1.0.0',
+    },
+  },
+  // Domain with an entity that references another entity via array items.type only
+  {
+    id: 'domains/Warehousing-1.0.0',
+    slug: 'domains/Warehousing',
+    collection: 'domains',
+    data: {
+      id: 'Warehousing',
+      name: 'Warehousing',
+      version: '1.0.0',
+      entities: [
+        { id: 'Warehouse', version: '1.0.0' },
+        { id: 'Product', version: '1.0.0' },
+      ],
     },
   },
 ];
@@ -439,6 +527,41 @@ describe('Domain Entity Map NodeGraph', () => {
         targetHandle: 'paymentId-target', // Uses first property
         label: 'hasOne',
       });
+    });
+
+    it('creates a hasMany edge for array item entity types without explicit references', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Warehousing', version: '1.0.0' });
+
+      const warehouseNode = nodes.find((n: any) => n.data.entity.data.id === 'Warehouse');
+      const binNode = nodes.find((n: any) => n.data.entity.data.id === 'Bin');
+      const warehouseToBinEdge = edges.find((e: any) => e.source === 'Warehouse-1.0.0' && e.target === 'Bin-1.0.0');
+
+      expect(warehouseNode).toBeDefined();
+      expect(binNode).toMatchObject({
+        id: 'Bin-1.0.0',
+        type: 'entities',
+        data: {
+          label: 'Bin',
+          externalToDomain: true,
+        },
+      });
+      expect(warehouseToBinEdge).toMatchObject({
+        sourceHandle: 'bins-source',
+        targetHandle: 'binId-target',
+        label: 'hasMany',
+      });
+    });
+
+    it('does not create relationships for arrays of primitive types', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Warehousing', version: '1.0.0' });
+
+      const productNode = nodes.find((n: any) => n.data.entity.data.id === 'Product');
+      const stringNode = nodes.find((n: any) => n.data.entity.data.id === 'string');
+      const productEdges = edges.filter((e: any) => e.source === 'Product-1.0.0' || e.target === 'Product-1.0.0');
+
+      expect(productNode).toBeDefined();
+      expect(stringNode).toBeUndefined();
+      expect(productEdges).toHaveLength(0);
     });
 
     it('returns empty nodes and edges for domain with no entities', async () => {

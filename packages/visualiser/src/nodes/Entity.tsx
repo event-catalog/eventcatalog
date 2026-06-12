@@ -53,6 +53,14 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 
+export const getPropertyTypeLabel = (property: any) => {
+  if (property.type === "array" && property.items?.type) {
+    return `${property.items.type}[]`;
+  }
+
+  return property.type;
+};
+
 export default memo(function EntityNode({
   data,
   sourcePosition,
@@ -167,16 +175,19 @@ export default memo(function EntityNode({
                         )}
                       </div>
                       <span className="text-sm text-[rgb(var(--ec-page-text-muted))] font-mono">
-                        {property.type}
+                        {getPropertyTypeLabel(property)}
                       </span>
                     </div>
 
                     {/* Reference indicator */}
-                    {property.references && (
+                    {(property.references ||
+                      (property.type === "array" && property.items?.type)) && (
                       <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                         <div
                           className="w-2 h-2 bg-blue-500 rounded-full"
-                          title={`References ${property.references}`}
+                          title={`References ${
+                            property.references || property.items.type
+                          }`}
                         ></div>
                       </div>
                     )}
