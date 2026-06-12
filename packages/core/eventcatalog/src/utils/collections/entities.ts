@@ -2,6 +2,8 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import { createVersionedMap, satisfies } from './util';
 
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
+
 export type Entity = CollectionEntry<'entities'>;
 
 interface Props {
@@ -15,7 +17,7 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
   // console.time('✅ New getEntities');
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0) {
+  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0 && CACHE_ENABLED) {
     // console.timeEnd('✅ New getEntities');
     return memoryCache[cacheKey];
   }
