@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.47.1
+
+### Patch Changes
+
+- c80ad76: Improve type safety in SchemaViewer by typing the resolved schemas array and documenting supported SchemaViewer props
+
 ## 3.47.0
 
 ### Minor Changes
