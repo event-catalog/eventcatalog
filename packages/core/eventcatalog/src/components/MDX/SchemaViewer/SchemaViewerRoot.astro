@@ -10,7 +10,9 @@ import { getMDXComponentsByName } from '@utils/markdown';
 import { resolveProjectPath } from '@utils/files';
 import { resolveSchemaViewer } from './schema-viewer-utils';
 
-let schemas = [];
+type ResolvedSchemaViewer = Awaited<ReturnType<typeof resolveSchemaViewer>>;
+
+let schemas: ResolvedSchemaViewer[] = [];
 
 try {
   const absoluteFilePath = resolveProjectPath(filePath);

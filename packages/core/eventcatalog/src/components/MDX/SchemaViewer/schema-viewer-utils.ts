@@ -7,6 +7,11 @@ import { parseProtobufSchema } from '../../../utils/protobuf-schema';
 type SchemaViewerProps = {
   id?: string;
   file?: string;
+  title?: string;
+  maxHeight?: string;
+  expand?: boolean;
+  search?: boolean;
+  showRequired?: boolean;
   [key: string]: any;
 };
 
