@@ -6,6 +6,7 @@ import {
   getDomains,
   getDomainsForService,
   getParentDomains,
+  hasUbiquitousLanguageTermsWithSubdomains,
   getUbiquitousLanguage,
   getUbiquitousLanguageWithSubdomains,
 } from '../../collections/domains';
@@ -238,6 +239,52 @@ describe('Domains', () => {
       expect(result.domain).toBeNull();
       expect(result.subdomains).toHaveLength(0);
       expect(result.duplicateTerms.size).toBe(0);
+    });
+
+    it('should return true when a domain has ubiquitous language terms', async () => {
+      const domains = await getDomains();
+      const shippingDomain = domains.find((d) => d.data.id === 'Shipping');
+
+      const result = await hasUbiquitousLanguageTermsWithSubdomains(shippingDomain as Domain);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true when a subdomain has ubiquitous language terms', async () => {
+      const checkoutDomain = mockDomains.find((d) => d.data.id === 'Checkout') as unknown as Domain;
+      const mockDomainWithSubdomainLanguage = {
+        id: 'domains/Parent/index.mdx',
+        collection: 'domains',
+        filePath: 'domains/Parent/index.mdx',
+        data: {
+          id: 'Parent',
+          name: 'Parent',
+          version: '0.0.1',
+          domains: [checkoutDomain],
+        },
+      };
+
+      const result = await hasUbiquitousLanguageTermsWithSubdomains(mockDomainWithSubdomainLanguage as unknown as Domain);
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when a domain and its subdomains have no ubiquitous language terms', async () => {
+      const mockDomainWithoutLanguage = {
+        id: 'domains/Empty/index.mdx',
+        collection: 'domains',
+        filePath: 'domains/Empty/index.mdx',
+        data: {
+          id: 'Empty',
+          name: 'Empty',
+          version: '0.0.1',
+          domains: [],
+        },
+      };
+
+      const result = await hasUbiquitousLanguageTermsWithSubdomains(mockDomainWithoutLanguage as unknown as Domain);
+
+      expect(result).toBe(false);
     });
   });
 

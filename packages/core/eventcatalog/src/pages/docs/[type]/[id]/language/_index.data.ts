@@ -10,10 +10,19 @@ export class Page extends HybridPage {
       return [];
     }
 
-    const { getDomains } = await import('@utils/collections/domains');
+    const { getDomains, hasUbiquitousLanguageTermsWithSubdomains } = await import('@utils/collections/domains');
     const domains = await getDomains({ getAllVersions: false });
+    const domainsWithUbiquitousLanguage = await domains.reduce<Promise<typeof domains>>(async (acc, domain) => {
+      const accumulator = await acc;
 
-    return domains.map((item) => ({
+      if (await hasUbiquitousLanguageTermsWithSubdomains(domain)) {
+        return [...accumulator, domain];
+      }
+
+      return accumulator;
+    }, Promise.resolve([]));
+
+    return domainsWithUbiquitousLanguage.map((item) => ({
       params: {
         type: item.collection,
         id: item.data.id,
@@ -23,9 +32,15 @@ export class Page extends HybridPage {
   }
 
   protected static async fetchData(params: any) {
-    const { getDomains } = await import('@utils/collections/domains');
+    const { getDomains, hasUbiquitousLanguageTermsWithSubdomains } = await import('@utils/collections/domains');
     const domains = await getDomains({ getAllVersions: false });
-    return domains.find((d) => d.data.id === params.id && d.collection === params.type) || null;
+    const domain = domains.find((d) => d.data.id === params.id && d.collection === params.type);
+
+    if (!domain || !(await hasUbiquitousLanguageTermsWithSubdomains(domain))) {
+      return null;
+    }
+
+    return domain;
   }
 
   protected static createNotFoundResponse(): Response {

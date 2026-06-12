@@ -1,4 +1,4 @@
-import { getDomains, getUbiquitousLanguage } from '@utils/collections/domains';
+import { getDomains, getUbiquitousLanguage, hasUbiquitousLanguageTerms } from '@utils/collections/domains';
 import type { CollectionEntry } from 'astro:content';
 import type { APIRoute } from 'astro';
 import config from '@config';
@@ -9,8 +9,19 @@ import { filterMarkdownForAgents } from '@utils/llms';
 export async function getStaticPaths() {
   const domains = await getDomains({ getAllVersions: false });
 
-  const buildPages = (collection: CollectionEntry<'domains'>[]) => {
-    return collection.map((item) => ({
+  const buildPages = async (collection: CollectionEntry<'domains'>[]) => {
+    const collectionWithUbiquitousLanguage = await collection.reduce<Promise<CollectionEntry<'domains'>[]>>(async (acc, item) => {
+      const accumulator = await acc;
+      const ubiquitousLanguages = await getUbiquitousLanguage(item);
+
+      if (ubiquitousLanguages.some(hasUbiquitousLanguageTerms)) {
+        return [...accumulator, item];
+      }
+
+      return accumulator;
+    }, Promise.resolve([]));
+
+    return collectionWithUbiquitousLanguage.map((item) => ({
       params: {
         type: item.collection,
         id: item.data.id,
@@ -22,7 +33,7 @@ export async function getStaticPaths() {
     }));
   };
 
-  return [...buildPages(domains)];
+  return [...(await buildPages(domains))];
 }
 
 export const GET: APIRoute = async ({ params, props }) => {
@@ -40,7 +51,7 @@ export const GET: APIRoute = async ({ params, props }) => {
   const ubiquitousLanguages = await getUbiquitousLanguage(domain as CollectionEntry<'domains'>);
   const ubiquitousLanguage = ubiquitousLanguages[0];
 
-  if (ubiquitousLanguage?.filePath) {
+  if (ubiquitousLanguage?.filePath && hasUbiquitousLanguageTerms(ubiquitousLanguage)) {
     let file = filterMarkdownForAgents(fs.readFileSync(ubiquitousLanguage.filePath, 'utf8'));
 
     return new Response(file, { status: 200 });

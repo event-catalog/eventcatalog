@@ -13,7 +13,7 @@ import {
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
-import { getSpecificationsForDomain } from '@utils/collections/domains';
+import { getSpecificationsForDomain, hasUbiquitousLanguageTermsWithSubdomainsInCollection } from '@utils/collections/domains';
 import { iconFieldsForResource } from '@utils/icon';
 
 export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
@@ -41,7 +41,9 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const resourceGroups = domain.data.resourceGroups || [];
   const hasResourceGroups = resourceGroups.length > 0;
 
-  const renderUbiquitousLanguage = shouldRenderSideBarSection(domain, 'ubiquitousLanguage');
+  const renderUbiquitousLanguage =
+    hasUbiquitousLanguageTermsWithSubdomainsInCollection(domain, context.ubiquitousLanguages || []) &&
+    shouldRenderSideBarSection(domain, 'ubiquitousLanguage');
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(domain, 'owners');
 
   const renderVisualiser = isVisualiserEnabled();

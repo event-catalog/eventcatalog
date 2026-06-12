@@ -66,6 +66,7 @@ export type ResourceGroupContext = {
   containers: CollectionEntry<'containers'>[];
   entities?: CollectionEntry<'entities'>[];
   dataProducts: CollectionEntry<'data-products'>[];
+  ubiquitousLanguages?: CollectionEntry<'ubiquitousLanguages'>[];
   diagrams: CollectionEntry<'diagrams'>[];
   schemas?: CollectionEntry<'schemas'>[];
   adrs: Adr[];

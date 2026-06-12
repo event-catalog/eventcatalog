@@ -294,6 +294,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     entities,
     adrs,
     schemas,
+    ubiquitousLanguages,
     resourceDocs,
     resourceDocCategories,
   ] = await Promise.all([
@@ -312,6 +313,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getEntities({ getAllVersions: false }),
     getAdrs({ getAllVersions: false }),
     getCollection('schemas'),
+    getCollection('ubiquitousLanguages'),
     getResourceDocs(),
     getResourceDocCategories(),
   ]);
@@ -334,6 +336,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     channels,
     diagrams,
     schemas,
+    ubiquitousLanguages,
     dataProducts,
     entities,
     adrs,
