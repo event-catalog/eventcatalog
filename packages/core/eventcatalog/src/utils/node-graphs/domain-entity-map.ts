@@ -10,9 +10,9 @@ import { getServices, type Service } from '@utils/collections/services';
 
 const elk = new ELK();
 
-const getReferencedEntityId = (property: any) => {
+const getReferencedEntityId = (property: any, entityMap: Map<string, Entity[]>) => {
   if (property.references) return property.references;
-  if (property.type === 'array' && property.items?.type) return property.items.type;
+  if (property.type === 'array' && property.items?.type && entityMap.has(property.items.type)) return property.items.type;
   return undefined;
 };
 
@@ -35,6 +35,7 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
 
   // 1. Fetch all collections in parallel
   const [allDomains, allEntities, allServices] = await Promise.all([getDomains(), getEntities(), getServices()]);
+  const entityMap = createVersionedMap(allEntities);
 
   let resource = null;
 
@@ -54,7 +55,7 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
   }
 
   const entitiesWithReferences = resourceEntities.filter((entity: Entity) =>
-    entity.data.properties?.some((property: any) => getReferencedEntityId(property))
+    entity.data.properties?.some((property: any) => getReferencedEntityId(property, entityMap))
   );
   // Creates all the entity nodes for the domain
   for (const entity of resourceEntities) {
@@ -69,7 +70,7 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
 
   // Create entities that are referenced but not owned by this domain
   const listOfReferencedEntities = entitiesWithReferences
-    .map((entity: Entity) => entity.data.properties?.map((property: any) => getReferencedEntityId(property)))
+    .map((entity: Entity) => entity.data.properties?.map((property: any) => getReferencedEntityId(property, entityMap)))
     .flat()
     .filter((ref: any) => ref !== undefined);
 
@@ -79,8 +80,6 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
   // 2. Build optimized maps
   // Only build domain map if we have domains to search
   // Only build entity map if we have entities to search
-  const entityMap = createVersionedMap(allEntities);
-
   // Helper function to find which domain an entity belongs to
   // Optimized to use direct iteration over domains (domains usually contain entity arrays)
   // We can't easily map entity->domain without scanning domains first unless we build a reverse index.
@@ -135,10 +134,11 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
   // Go through any entities that are related to other entities
   for (const entity of entitiesWithReferences) {
     // Get a list of properties that reference other entities
-    const allReferencesForEntity = entity.data.properties?.filter((property: any) => getReferencedEntityId(property)) ?? [];
+    const allReferencesForEntity =
+      entity.data.properties?.filter((property: any) => getReferencedEntityId(property, entityMap)) ?? [];
 
     for (const referenceProperty of allReferencesForEntity) {
-      const referencedEntityId = getReferencedEntityId(referenceProperty);
+      const referencedEntityId = getReferencedEntityId(referenceProperty, entityMap);
 
       // Find the referenced entity by matching the references field with entity IDs
       // Look in both domain entities and external entities
@@ -200,10 +200,10 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
   // Separate entities with and without relationships (including external entities)
   const entitiesWithRelationships = allEntitiesInGraph.filter((entity) => {
     // Has outgoing references
-    const hasOutgoingRefs = entity.data.properties?.some((property: any) => getReferencedEntityId(property));
+    const hasOutgoingRefs = entity.data.properties?.some((property: any) => getReferencedEntityId(property, entityMap));
     // Has incoming references (is referenced by others)
     const hasIncomingRefs = entitiesWithReferences.some((e: any) =>
-      e.data.properties?.some((prop: any) => getReferencedEntityId(prop) === entity.data.id)
+      e.data.properties?.some((prop: any) => getReferencedEntityId(prop, entityMap) === entity.data.id)
     );
     return hasOutgoingRefs || hasIncomingRefs;
   });

@@ -183,6 +183,33 @@ const mockEntities = [
       ],
     },
   },
+  // Product entity with an array of primitives
+  {
+    id: 'entities/Product/index.mdx',
+    slug: 'entities/Product',
+    collection: 'entities',
+    data: {
+      id: 'Product',
+      name: 'Product',
+      version: '1.0.0',
+      identifier: 'productId',
+      properties: [
+        {
+          name: 'productId',
+          type: 'UUID',
+          required: true,
+        },
+        {
+          name: 'imageUrls',
+          type: 'array',
+          required: false,
+          items: {
+            type: 'string',
+          },
+        },
+      ],
+    },
+  },
   // Bin entity referenced by Warehouse.bins
   {
     id: 'entities/Bin/index.mdx',
@@ -282,7 +309,10 @@ const mockDomains = [
       id: 'Warehousing',
       name: 'Warehousing',
       version: '1.0.0',
-      entities: [{ id: 'Warehouse', version: '1.0.0' }],
+      entities: [
+        { id: 'Warehouse', version: '1.0.0' },
+        { id: 'Product', version: '1.0.0' },
+      ],
     },
   },
 ];
@@ -520,6 +550,18 @@ describe('Domain Entity Map NodeGraph', () => {
         targetHandle: 'binId-target',
         label: 'hasMany',
       });
+    });
+
+    it('does not create relationships for arrays of primitive types', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Warehousing', version: '1.0.0' });
+
+      const productNode = nodes.find((n: any) => n.data.entity.data.id === 'Product');
+      const stringNode = nodes.find((n: any) => n.data.entity.data.id === 'string');
+      const productEdges = edges.filter((e: any) => e.source === 'Product-1.0.0' || e.target === 'Product-1.0.0');
+
+      expect(productNode).toBeDefined();
+      expect(stringNode).toBeUndefined();
+      expect(productEdges).toHaveLength(0);
     });
 
     it('returns empty nodes and edges for domain with no entities', async () => {
