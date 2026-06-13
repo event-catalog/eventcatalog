@@ -79,6 +79,7 @@ export type EcKeywordNames =
     | "legend"
     | "member"
     | "message"
+    | "messageBus"
     | "ms-teams"
     | "name"
     | "objectStore"
@@ -127,6 +128,7 @@ export type EcKeywordNames =
     | "visible"
     | "visualizer"
     | "when"
+    | "workflowEngine"
     | "write"
     | "writes-to"
     | "{"
@@ -238,10 +240,10 @@ export function isContainerBodyItem(item: unknown): item is ContainerBodyItem {
     return reflection.isInstance(item, ContainerBodyItem);
 }
 
-export type ContainerTypeEnum = 'cache' | 'dataLake' | 'dataWarehouse' | 'database' | 'externalSaaS' | 'objectStore' | 'other' | 'searchIndex';
+export type ContainerTypeEnum = 'cache' | 'dataLake' | 'dataWarehouse' | 'database' | 'externalSaaS' | 'messageBus' | 'objectStore' | 'other' | 'searchIndex' | 'workflowEngine';
 
 export function isContainerTypeEnum(item: unknown): item is ContainerTypeEnum {
-    return item === 'database' || item === 'cache' || item === 'objectStore' || item === 'searchIndex' || item === 'dataWarehouse' || item === 'dataLake' || item === 'externalSaaS' || item === 'other';
+    return item === 'database' || item === 'cache' || item === 'objectStore' || item === 'searchIndex' || item === 'dataWarehouse' || item === 'dataLake' || item === 'messageBus' || item === 'workflowEngine' || item === 'externalSaaS' || item === 'other';
 }
 
 export type DataProductBodyItem = Annotation | DeprecatedStmt | DraftStmt | InputStmt | NameStmt | OutputStmt | OwnerStmt | SummaryStmt | VersionStmt;

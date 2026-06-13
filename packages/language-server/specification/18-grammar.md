@@ -109,7 +109,8 @@ container_body_item = container_type_prop | technology_prop
                     | service_ref_stmt | annotation ;
 container_type_prop   = "container-type" container_type_enum ;
 container_type_enum   = "database" | "cache" | "objectStore" | "searchIndex"
-                      | "dataWarehouse" | "dataLake" | "externalSaaS" | "other" ;
+                      | "dataWarehouse" | "dataLake" | "messageBus" | "workflowEngine"
+                      | "externalSaaS" | "other" ;
 technology_prop       = "technology" string_lit ;
 authoritative_prop    = "authoritative" bool_lit ;
 access_mode_prop      = "access-mode" ( "read" | "write" | "readWrite" | "appendOnly" ) ;

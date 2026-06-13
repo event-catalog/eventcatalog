@@ -50,16 +50,18 @@ service OrdersService {
 
 ## Container types
 
-| Type            | Use for                          |
-| --------------- | -------------------------------- |
-| `database`      | Relational or document databases |
-| `cache`         | Redis, Memcached, etc.           |
-| `objectStore`   | S3, GCS, Azure Blob              |
-| `searchIndex`   | Elasticsearch, OpenSearch        |
-| `dataWarehouse` | BigQuery, Snowflake, Redshift    |
-| `dataLake`      | Delta Lake, Iceberg              |
-| `externalSaaS`  | Third-party managed services     |
-| `other`         | Anything that doesn't fit above  |
+| Type             | Use for                                    |
+| ---------------- | ------------------------------------------ |
+| `database`       | Relational or document databases           |
+| `cache`          | Redis, Memcached, etc.                     |
+| `objectStore`    | S3, GCS, Azure Blob                        |
+| `searchIndex`    | Elasticsearch, OpenSearch                  |
+| `dataWarehouse`  | BigQuery, Snowflake, Redshift              |
+| `dataLake`       | Delta Lake, Iceberg                        |
+| `messageBus`     | Kafka, NATS, RabbitMQ, SQS/SNS, Pub/Sub    |
+| `workflowEngine` | Temporal, Airflow, Step Functions, Cadence |
+| `externalSaaS`   | Third-party managed services               |
+| `other`          | Anything that doesn't fit above            |
 
 ## Examples by type
 

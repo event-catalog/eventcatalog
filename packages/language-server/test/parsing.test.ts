@@ -406,6 +406,26 @@ describe("Container definition", () => {
       expect(utils.getDeprecated(container.body)).toBe(true);
     }
   });
+
+  it.each(["messageBus", "workflowEngine"])(
+    "parses a container with container-type %s",
+    async (containerType) => {
+      const doc = await parseProgram(`
+      container infra-${containerType} {
+        version 1.0.0
+        container-type ${containerType}
+      }
+    `);
+      const errors = doc.parseResult.parserErrors;
+      expect(errors).toHaveLength(0);
+
+      const container = doc.parseResult.value.definitions[0];
+      expect(isContainerDef(container)).toBe(true);
+      if (isContainerDef(container)) {
+        expect(utils.getContainerType(container.body)).toBe(containerType);
+      }
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------

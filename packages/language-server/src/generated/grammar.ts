@@ -1736,6 +1736,14 @@ export const EcGrammar = (): Grammar => loadedEcGrammar ?? (loadedEcGrammar = lo
           },
           {
             "$type": "Keyword",
+            "value": "messageBus"
+          },
+          {
+            "$type": "Keyword",
+            "value": "workflowEngine"
+          },
+          {
+            "$type": "Keyword",
             "value": "externalSaaS"
           },
           {
