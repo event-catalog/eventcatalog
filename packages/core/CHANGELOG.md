@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.47.2
+
+### Patch Changes
+
+- 82c5ca1: Enable the AI assistant on paid (Starter) plans, not just Scale, and update billing copy to reflect that MCP server and other advanced features remain Scale-only
+- 295a146: Add LikeC4 diagram support via the `<LikeC4View />` MDX component. EventCatalog now auto-detects `.c4` sources, loads the LikeC4 Vite plugin when present, and renders views from discovered LikeC4 projects.
+- 431e547: chore(core): update astro dependencies
+
 ## 3.47.1
 
 ### Patch Changes
