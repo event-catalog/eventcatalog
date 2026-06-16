@@ -103,7 +103,7 @@
     "gray-matter": "^4.0.3",
     "hono": "4.12.21",
     "html-to-image": "^1.11.11",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.2.0",
     "jsonpath-plus": "^10.4.0",
     "jsonwebtoken": "^9.0.2",
     "lodash.debounce": "^4.0.8",
