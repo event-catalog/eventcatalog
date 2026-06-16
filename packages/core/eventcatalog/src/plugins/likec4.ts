@@ -16,9 +16,9 @@ const likeC4InstallMessage = `LikeC4 diagrams were found, but LikeC4 is not inst
 
 Install LikeC4 in your EventCatalog project:
 
-  npm install --save-dev likec4@latest @likec4/icons@latest
-  pnpm add -D likec4@latest @likec4/icons@latest
-  yarn add -D likec4@latest @likec4/icons@latest`;
+  npm install --save-dev likec4@1.57.0 @likec4/icons@latest
+  pnpm add -D likec4@1.57.0 @likec4/icons@latest
+  yarn add -D likec4@1.57.0 @likec4/icons@latest`;
 
 export const eventCatalogLikeC4 = async (workspaceDir: string): Promise<Plugin[]> => {
   const enabled = hasLikeC4Sources(workspaceDir);

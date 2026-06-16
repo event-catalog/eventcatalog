@@ -30,6 +30,10 @@ const COLLECTION_KEYS = [
 export function mapCatalogToAstro({ filePath, astroDir, projectDir }) {
   const relativeFilePath = removeBasePath(filePath, projectDir);
 
+  if (isLikeC4Source(relativeFilePath)) {
+    return [];
+  }
+
   if (!isCatalogRelated(relativeFilePath)) {
     return [];
   }
@@ -58,6 +62,10 @@ function removeBasePath(fullPath, basePath) {
  */
 function isCollectionKey(key) {
   return COLLECTION_KEYS.includes(key);
+}
+
+function isLikeC4Source(filePath) {
+  return filePath.endsWith('.c4') || filePath.endsWith('.likec4');
 }
 
 /**
