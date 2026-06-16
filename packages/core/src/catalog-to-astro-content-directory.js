@@ -43,6 +43,18 @@ const copyFiles = async (source, target) => {
   }
 };
 
+const removeGeneratedLikeC4Sources = async (target) => {
+  const generatedDir = path.join(target, 'public', 'generated');
+  const files = await glob(path.join(generatedDir, '**/*.{c4,likec4}'), {
+    nodir: true,
+    windowsPathsNoEscape: os.platform() == 'win32',
+  });
+
+  for (const file of files) {
+    fs.rmSync(file);
+  }
+};
+
 export const catalogToAstro = async (source, astroDir) => {
   const astroContentDir = path.join(astroDir, 'src/content/');
 
@@ -60,5 +72,6 @@ export const catalogToAstro = async (source, astroDir) => {
     fs.writeFileSync(path.join(source, 'eventcatalog.styles.css'), '');
   }
 
+  await removeGeneratedLikeC4Sources(astroDir);
   await copyFiles(source, astroDir);
 };

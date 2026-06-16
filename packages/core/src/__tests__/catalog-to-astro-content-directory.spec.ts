@@ -19,6 +19,12 @@ describe('catalog-to-astro-content-directory', () => {
     // create src/content inside astro directory
     await fs.mkdir(ASTRO_CONTENT_DIRECTORY, { recursive: true });
     await fs.writeFile(path.join(ASTRO_CONTENT_DIRECTORY, 'config.ts'), 'export const config = {};');
+    await fs.writeFile(
+      path.join(CATALOG_DIR, 'events', 'OrderAmended', 'order-flow.c4'),
+      'views { view OrderFlow { include * } }'
+    );
+    await fs.mkdir(path.join(ASTRO_OUTPUT, 'public', 'generated', 'events', 'OrderAmended'), { recursive: true });
+    await fs.writeFile(path.join(ASTRO_OUTPUT, 'public', 'generated', 'events', 'OrderAmended', 'stale.c4'), 'stale');
 
     // Convert the catalog
     await catalogToAstro(CATALOG_DIR, ASTRO_OUTPUT);
@@ -26,6 +32,7 @@ describe('catalog-to-astro-content-directory', () => {
 
   afterAll(async () => {
     await fs.rm(TMP_DIRECTORY, { recursive: true });
+    await fs.rm(path.join(CATALOG_DIR, 'events', 'OrderAmended', 'order-flow.c4'), { force: true });
     // await fs.rm(path.join(__dirname, 'public'), { recursive: true });
     const defaultFile = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.defaults.js'), 'utf8');
     await fs.writeFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), defaultFile);
@@ -45,6 +52,11 @@ describe('catalog-to-astro-content-directory', () => {
 
     it('copies custom files from the public directory into the astro directory', async () => {
       expect(existsSync(path.join(ASTRO_OUTPUT, 'public', 'custom-file.txt'))).toBe(true);
+    });
+
+    it('does not copy LikeC4 source files into the public directory', async () => {
+      expect(existsSync(path.join(ASTRO_OUTPUT, 'public', 'generated', 'events', 'OrderAmended', 'order-flow.c4'))).toBe(false);
+      expect(existsSync(path.join(ASTRO_OUTPUT, 'public', 'generated', 'events', 'OrderAmended', 'stale.c4'))).toBe(false);
     });
   });
 
