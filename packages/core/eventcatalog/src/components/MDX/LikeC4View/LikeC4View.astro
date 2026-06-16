@@ -1,0 +1,13 @@
+---
+import LikeC4ViewWrapper from './LikeC4ViewWrapper';
+
+interface Props {
+  viewId: string;
+  project?: string;
+  height?: string;
+}
+
+const { viewId, project, height } = Astro.props;
+---
+
+<LikeC4ViewWrapper viewId={viewId} project={project} height={height} client:only="react" />

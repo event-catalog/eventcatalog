@@ -31,6 +31,7 @@ import FigJam from '@components/MDX/FigJam/FigJam.astro';
 import IcePanel from '@components/MDX/IcePanel/IcePanel.astro';
 import Design from '@components/MDX/Design/Design.astro';
 import MermaidFileLoader from '@components/MDX/MermaidFileLoader/MermaidFileLoader.astro';
+import LikeC4View from '@components/MDX/LikeC4View/LikeC4View.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -76,6 +77,7 @@ const components = (props: any) => {
     FigJam: (mdxProp: any) => jsx(FigJam, { ...props, ...mdxProp }),
     IcePanel: (mdxProp: any) => jsx(IcePanel, { ...props, ...mdxProp }),
     MermaidFileLoader: (mdxProp: any) => jsx(MermaidFileLoader, { ...props, ...mdxProp }),
+    LikeC4View: (mdxProp: any) => jsx(LikeC4View, { ...props, ...mdxProp }),
   };
 };
 
