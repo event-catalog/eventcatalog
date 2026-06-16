@@ -13,6 +13,7 @@ import node from '@astrojs/node';
 import remarkComment from 'remark-comment';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import { eventCatalogLikeC4 } from './src/plugins/likec4';
 
 import rehypeExpressiveCode from 'rehype-expressive-code';
 
@@ -41,7 +42,7 @@ const mdxRemarkPlugins = [...markdownRemarkPlugins, remarkResourceRef];
 // https://astro.build/config
 export default defineConfig({
   base,
-  server: { 
+  server: {
     port: config.port || 3000,
     host: host,
     // Add allowed hosts if its set
@@ -110,7 +111,7 @@ export default defineConfig({
     eventCatalogIntegration(),
   ].filter(Boolean),
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), ...(await eventCatalogLikeC4(projectDirectory))],
     define: {
       /**
        * Trailing slash is exposed as global variable here principally for `@utils/url-builder`.
@@ -124,7 +125,7 @@ export default defineConfig({
     },
     server: {
       fs: {
-        allow: ['..', './node_modules/@fontsource', searchForWorkspaceRoot(process.cwd())],
+        allow: ['..', './node_modules/@fontsource', projectDirectory, searchForWorkspaceRoot(process.cwd())],
       },
       // Prevent stale FSEvents from triggering a config-dependency restart on first run.
       // During startup, catalogToAstro copies eventcatalog.config.js into .eventcatalog-core
