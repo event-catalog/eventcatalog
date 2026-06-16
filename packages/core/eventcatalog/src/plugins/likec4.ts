@@ -40,7 +40,7 @@ export const eventCatalogLikeC4 = async (workspaceDir: string): Promise<Plugin[]
 
 const hasLikeC4Sources = (workspaceDir: string) => {
   return (
-    globSync('**/*.c4', {
+    globSync('**/*.{c4,likec4}', {
       cwd: workspaceDir,
       ignore: ['**/node_modules/**'],
     }).length > 0
@@ -67,7 +67,7 @@ const likeC4ProjectRegistry = (workspaceDir: string, enabled: boolean): Plugin =
   let discoveredProjects: string[] = [];
 
   const discoverProjects = async () => {
-    const configFiles = await glob('**/likec4.config.json', {
+    const configFiles = await glob('**/{likec4.config.json,.likec4rc}', {
       cwd: workspaceDir,
       ignore: ['**/node_modules/**'],
       absolute: true,
