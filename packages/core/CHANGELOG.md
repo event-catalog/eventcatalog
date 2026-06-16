@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.47.3
+
+### Patch Changes
+
+- 3378c82: Prevent LikeC4 source files from being copied into generated public assets.
+
 ## 3.47.2
 
 ### Patch Changes
