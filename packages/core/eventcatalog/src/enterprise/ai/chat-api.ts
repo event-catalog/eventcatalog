@@ -6,7 +6,7 @@
 import type { APIContext } from 'astro';
 import { convertToModelMessages, stepCountIs, streamText, tool, type LanguageModel, type ModelMessage, type UIMessage } from 'ai';
 import { join } from 'node:path';
-import { isEventCatalogScaleEnabled } from '@utils/feature';
+import { isEventCatalogScaleEnabled, isEventCatalogStarterEnabled } from '@utils/feature';
 import { getCollection, getEntry } from 'astro:content';
 import { z } from 'astro/zod';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
@@ -40,6 +40,8 @@ let hasChatConfiguration = false;
 let model: LanguageModel;
 let modelConfiguration: any;
 let extendedTools: any;
+
+const hasAssistantPlan = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 
 try {
   const providerConfiguration = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.chat.js'));
@@ -158,7 +160,7 @@ interface Message {
 }
 
 export const GET = async ({ request }: APIContext<{ question: string; messages: Message[]; additionalContext?: string }>) => {
-  if (!isEventCatalogScaleEnabled()) {
+  if (!hasAssistantPlan()) {
     return new Response(JSON.stringify({ error: 'Chat is not enabled' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
@@ -183,8 +185,8 @@ export const GET = async ({ request }: APIContext<{ question: string; messages: 
 export const POST = async ({ request }: APIContext<{ question: string; messages: Message[]; additionalContext?: string }>) => {
   const { messages }: { messages: UIMessage[] } = await request.json();
 
-  if (!isEventCatalogScaleEnabled()) {
-    return new Response(JSON.stringify({ error: 'Chat is not enabled, please upgrade to the scale plan to use this feature' }), {
+  if (!hasAssistantPlan()) {
+    return new Response(JSON.stringify({ error: 'Chat is not enabled, please upgrade to a paid plan to use this feature' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
     });
