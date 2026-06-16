@@ -5,6 +5,7 @@ import { createInterface } from 'node:readline';
 import matter from 'gray-matter';
 import createSDK from '@eventcatalog/sdk';
 import { DSL_MANAGED_KEYS_BY_TYPE } from './dsl-managed-keys';
+import { resolveContentDir } from './content-dir';
 
 export interface ImportOptions {
   files?: string[];
@@ -678,6 +679,8 @@ export async function importDSL(options: ImportOptions): Promise<string> {
     }
   }
 
+  const contentDir = await resolveContentDir(catalogDir);
+
   const parsed = await parseDSL(source, { nested });
   const outputs = parsed.outputs;
 
@@ -685,7 +688,7 @@ export async function importDSL(options: ImportOptions): Promise<string> {
     throw new Error('No resources found in DSL content');
   }
 
-  const sdk = createSDK(catalogDir);
+  const sdk = createSDK(contentDir);
   const result: ImportResult = { created: [], updated: [], versioned: [], errors: [] };
   const readerCache = new Map<string, Promise<any>>();
 

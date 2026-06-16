@@ -5,8 +5,8 @@ import matter from 'gray-matter';
 
 // Create a fake file for this dependency in the project directory ()
 
-export default async (catalogDir, core) => {
-  const catalogConfig = await getEventCatalogConfigFile(catalogDir);
+export default async (projectDir, contentDir, core) => {
+  const catalogConfig = await getEventCatalogConfigFile(projectDir);
 
   const dependencies = catalogConfig?.dependencies ?? null;
 
@@ -16,7 +16,7 @@ export default async (catalogDir, core) => {
   }
 
   // empty the dependencies directory if it exists
-  const dependenciesDir = path.join(catalogDir, 'dependencies');
+  const dependenciesDir = path.join(contentDir, 'dependencies');
 
   if (fs.existsSync(dependenciesDir)) {
     fs.rmSync(dependenciesDir, { recursive: true, force: true });

@@ -2,6 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import open from 'open';
 import createSDK from '@eventcatalog/sdk';
+import { resolveContentDir } from './content-dir';
 
 const RESOURCE_TYPES = ['event', 'command', 'query', 'service', 'domain'] as const;
 type ResourceType = (typeof RESOURCE_TYPES)[number];
@@ -222,7 +223,8 @@ function buildVisualizerBlock(dsl: string, name: string, filterTypes: ResourceTy
 export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): Promise<string> {
   const { hydrate = false, stdout = false, playground = false, output, dir } = options;
 
-  const sdk = createSDK(dir);
+  const contentDir = await resolveContentDir(dir);
+  const sdk = createSDK(contentDir);
   // Independent collection fetches/conversions can run in parallel.
   // Promise.all preserves RESOURCE_TYPES order in the resulting array.
   const dslParts = (
@@ -237,7 +239,7 @@ export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): P
   ).filter((dsl): dsl is string => Boolean(dsl));
 
   if (dslParts.length === 0) {
-    throw new Error(`No resources found in catalog at '${dir}'`);
+    throw new Error(`No resources found in catalog at '${contentDir}'`);
   }
 
   const combined = dslParts.join('\n\n');
@@ -275,13 +277,14 @@ export async function exportAll(options: ExportOptions): Promise<string> {
   assertSupportedExportType(resource, type);
 
   const plural = pluralize(type);
-  const sdk = createSDK(dir);
+  const contentDir = await resolveContentDir(dir);
+  const sdk = createSDK(contentDir);
 
   const fetcher = getCollectionFetcher(sdk, type);
   const allResources = (await fetcher({ latestOnly: true })) || [];
 
   if (allResources.length === 0) {
-    throw new Error(`No ${plural} found in catalog at '${dir}'`);
+    throw new Error(`No ${plural} found in catalog at '${contentDir}'`);
   }
 
   const rawDsl = await sdk.toDSL(allResources, { type, hydrate });
@@ -322,14 +325,15 @@ export async function exportResource(options: ExportOptions): Promise<string> {
   const type = normalizeResourceType(resource);
   assertSupportedExportType(resource, type);
 
-  const sdk = createSDK(dir);
+  const contentDir = await resolveContentDir(dir);
+  const sdk = createSDK(contentDir);
 
   const fetcher = getResourceFetcher(sdk, type);
   const data = await fetcher(id, version);
 
   if (!data) {
     const versionStr = version ? `@${version}` : ' (latest)';
-    throw new Error(`${resource} '${id}${versionStr}' not found in catalog at '${dir}'`);
+    throw new Error(`${resource} '${id}${versionStr}' not found in catalog at '${contentDir}'`);
   }
 
   const rawDsl = await sdk.toDSL(data, { type, hydrate });

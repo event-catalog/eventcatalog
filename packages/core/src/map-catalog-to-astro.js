@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-const COLLECTION_KEYS = [
+export const COLLECTION_KEYS = [
   'agents',
   'events',
   'commands',
@@ -13,6 +13,13 @@ const COLLECTION_KEYS = [
   'channels',
   'ubiquitousLanguages',
   'dependencies',
+  'adrs',
+  'containers',
+  'data-products',
+  'entities',
+  'diagrams',
+  'users',
+  'teams',
 ];
 
 /**

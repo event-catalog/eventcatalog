@@ -199,6 +199,7 @@ type ScalarConfiguration = any;
 
 export interface Config {
   cId: string;
+  contentDir?: string;
   title: string;
   organizationName: string;
   tagline?: string | false;

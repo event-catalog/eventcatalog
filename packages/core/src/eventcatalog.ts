@@ -20,6 +20,7 @@ import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
+import { resolveContentDirectory } from './content-directory.js';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -62,6 +63,11 @@ const resolveDevPort = async ({ projectDir }: { projectDir: string }): Promise<n
   }
 
   return 3000;
+};
+
+const getContentDir = async () => {
+  const config = await getEventCatalogConfigFile(dir);
+  return resolveContentDirectory({ projectDir: dir, config });
 };
 
 const startDevPrewarm = ({
@@ -133,9 +139,15 @@ const createAstroDevLineFilter = () => {
   };
 };
 
-const buildDevSearchIndex = async ({ config }: { config: Awaited<ReturnType<typeof getEventCatalogConfigFile>> }) => {
+const buildDevSearchIndex = async ({
+  config,
+  contentDir,
+}: {
+  config: Awaited<ReturnType<typeof getEventCatalogConfigFile>>;
+  contentDir: string;
+}) => {
   const result = await buildSearchIndex({
-    projectDir: dir,
+    projectDir: contentDir,
     outDir: path.join(core, 'public'),
     searchOutputPath: path.join(core, 'public', 'pagefind'),
     config,
@@ -156,7 +168,13 @@ const warnIfIndexedSearchUsesAuth = async () => {
   );
 };
 
-const createDevSearchIndexWatcher = ({ config }: { config: Awaited<ReturnType<typeof getEventCatalogConfigFile>> }) => {
+const createDevSearchIndexWatcher = ({
+  config,
+  contentDir,
+}: {
+  config: Awaited<ReturnType<typeof getEventCatalogConfigFile>>;
+  contentDir: string;
+}) => {
   let timeout: NodeJS.Timeout | undefined;
   let isBuilding = false;
   let queued = false;
@@ -169,7 +187,7 @@ const createDevSearchIndexWatcher = ({ config }: { config: Awaited<ReturnType<ty
 
     isBuilding = true;
     try {
-      await buildDevSearchIndex({ config });
+      await buildDevSearchIndex({ config, contentDir });
     } catch (err: any) {
       logger.info(`Failed to rebuild indexed search: ${err.message}`, 'search');
     } finally {
@@ -390,17 +408,22 @@ program
     // Otherwise, writing the config after the server starts triggers a Vite config dependency
     // change restart, which races with the initial dependency scan and floods the terminal with errors.
     await verifyRequiredFieldsAreInCatalogConfigFile(dir);
+    const config = await getEventCatalogConfigFile(dir);
+    const contentDir = resolveContentDirectory({ projectDir: dir, config });
+
+    if (options.debug) {
+      logger.info(`CONTENT_DIR: ${contentDir}`, 'debug');
+    }
 
     copyCore();
 
-    await resolveCatalogDependencies(dir, core);
+    await resolveCatalogDependencies(dir, contentDir, core);
 
     // Run any migrations for the catalog
-    await runMigrations(dir);
+    await runMigrations(contentDir);
 
     // Move files like public directory to the root of the eventcatalog-core directory
-    await catalogToAstro(dir, core);
-    const config = await getEventCatalogConfigFile(dir);
+    await catalogToAstro(dir, core, contentDir);
 
     // Check if backstage is enabled
     const canEmbedPages = await isFeatureEnabled(
@@ -414,7 +437,7 @@ program
     if (isServer) {
       try {
         logger.info('Building fields index...', 'fields');
-        const { warnings } = await buildFieldsIndex(dir, core);
+        const { warnings } = await buildFieldsIndex(contentDir, core);
         if (warnings.length > 0) {
           logger.info(`Fields index built with ${warnings.length} warning(s)`, 'fields');
         } else {
@@ -430,7 +453,7 @@ program
       await warnIfIndexedSearchUsesAuth();
 
       logger.info('Building indexed search for local development...', 'search');
-      await buildDevSearchIndex({ config });
+      await buildDevSearchIndex({ config, contentDir });
     }
 
     // is there an eventcatalog update to install?
@@ -438,7 +461,12 @@ program
 
     let watchUnsub;
     try {
-      watchUnsub = await watch(dir, core, shouldBuildIndexedSearch ? createDevSearchIndexWatcher({ config }) : undefined);
+      watchUnsub = await watch(
+        dir,
+        core,
+        shouldBuildIndexedSearch ? createDevSearchIndexWatcher({ config, contentDir }) : undefined,
+        contentDir
+      );
 
       const args = command.args.join(' ').trim();
 
@@ -458,6 +486,7 @@ program
         cwd: core,
         env: {
           PROJECT_DIR: dir,
+          CONTENT_DIR: contentDir,
           CATALOG_DIR: core,
           ENABLE_EMBED: String(canEmbedPages || isEventCatalogScale),
           EVENTCATALOG_STARTER: String(isEventCatalogStarter),
@@ -493,6 +522,8 @@ program
 
     // Verify required fields (e.g. cId) before copying to .eventcatalog-core
     await verifyRequiredFieldsAreInCatalogConfigFile(dir);
+    const config = await getEventCatalogConfigFile(dir);
+    const contentDir = resolveContentDirectory({ projectDir: dir, config });
 
     copyCore();
 
@@ -512,18 +543,18 @@ program
       isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
     });
 
-    await resolveCatalogDependencies(dir, core);
+    await resolveCatalogDependencies(dir, contentDir, core);
 
     // Run any migrations for the catalog
-    await runMigrations(dir);
+    await runMigrations(contentDir);
 
-    await catalogToAstro(dir, core);
+    await catalogToAstro(dir, core, contentDir);
 
     // Build fields index if running in SSR mode
     if (isServer) {
       try {
         logger.info('Building fields index...', 'fields');
-        const { warnings } = await buildFieldsIndex(dir, core);
+        const { warnings } = await buildFieldsIndex(contentDir, core);
         if (warnings.length > 0) {
           logger.info(`Fields index built with ${warnings.length} warning(s)`, 'fields');
         } else {
@@ -542,6 +573,7 @@ program
       cwd: core,
       env: {
         PROJECT_DIR: dir,
+        CONTENT_DIR: contentDir,
         CATALOG_DIR: core,
         ENABLE_EMBED: String(canEmbedPages),
         EVENTCATALOG_STARTER: String(isEventCatalogStarter),
@@ -553,12 +585,11 @@ program
     if (await isIndexedSearchEnabled()) {
       await warnIfIndexedSearchUsesAuth();
 
-      const config = await getEventCatalogConfigFile(dir);
       const outDir = path.resolve(dir, await getProjectOutDir());
 
       logger.info('Building indexed search...', 'search');
       const result = await buildSearchIndex({
-        projectDir: dir,
+        projectDir: contentDir,
         outDir,
         config,
         isServer,
@@ -569,17 +600,19 @@ program
 
 const previewCatalog = ({
   command,
+  contentDir,
   canEmbedPages = false,
   isEventCatalogStarter = false,
   isEventCatalogScale = false,
 }: {
   command: Command;
+  contentDir: string;
   canEmbedPages: boolean;
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
 }) => {
   execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} npx astro preview ${command.args.join(' ').trim()}`,
+    `cross-env PROJECT_DIR='${dir}' CONTENT_DIR='${contentDir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} npx astro preview ${command.args.join(' ').trim()}`,
     {
       cwd: core,
       stdio: 'inherit',
@@ -589,18 +622,20 @@ const previewCatalog = ({
 
 const startServerCatalog = ({
   command,
+  contentDir,
   canEmbedPages = false,
   isEventCatalogStarter = false,
   isEventCatalogScale = false,
 }: {
   command: Command;
+  contentDir: string;
   canEmbedPages: boolean;
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
 }) => {
   const serverEntryPath = path.join(dir, 'dist', 'server', 'entry.mjs');
   execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} node "${serverEntryPath}"`,
+    `cross-env PROJECT_DIR='${dir}' CONTENT_DIR='${contentDir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} node "${serverEntryPath}"`,
     {
       cwd: core,
       stdio: 'inherit',
@@ -626,8 +661,15 @@ program
     );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
+    const contentDir = await getContentDir();
 
-    previewCatalog({ command, canEmbedPages: canEmbedPages || isEventCatalogScale, isEventCatalogStarter, isEventCatalogScale });
+    previewCatalog({
+      command,
+      contentDir,
+      canEmbedPages: canEmbedPages || isEventCatalogScale,
+      isEventCatalogStarter,
+      isEventCatalogScale,
+    });
   });
 
 program
@@ -648,12 +690,14 @@ program
     );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
+    const contentDir = await getContentDir();
 
     const isServerOutput = await isOutputServer();
 
     if (isServerOutput) {
       startServerCatalog({
         command,
+        contentDir,
         canEmbedPages: canEmbedPages || isEventCatalogScale,
         isEventCatalogStarter,
         isEventCatalogScale,
@@ -661,6 +705,7 @@ program
     } else {
       previewCatalog({
         command,
+        contentDir,
         canEmbedPages: canEmbedPages || isEventCatalogScale,
         isEventCatalogStarter,
         isEventCatalogScale,
@@ -682,7 +727,8 @@ program
     }
 
     const { default: initSDK } = await import('@eventcatalog/sdk');
-    const sdk = initSDK(dir);
+    const contentDir = await getContentDir();
+    const sdk = initSDK(contentDir);
 
     const catalog = await sdk.dumpCatalog({ includeMarkdown: options.includeMarkdown });
 

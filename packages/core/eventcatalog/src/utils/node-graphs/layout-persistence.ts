@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { getContentDir } from '@utils/files';
 
 export interface SavedPosition {
   x: number;
@@ -30,12 +31,12 @@ export function buildResourceKey(collection: string, id: string, version?: strin
  * Uses path.join with spread segments for cross-platform compatibility (Windows/Mac/Linux)
  */
 export function getLayoutFilePath(resourceKey: string): string {
-  const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
+  const contentDir = getContentDir() || process.cwd();
   const cleanKey = resourceKey.replace(/^\//, '').replace(/\/$/, '');
   // Split path segments and rejoin with platform-specific separator
   const segments = cleanKey.split('/').filter(Boolean);
   const fileName = `${segments.pop()}.json`;
-  return path.join(PROJECT_DIR, '_data', 'visualizer-layouts', ...segments, fileName);
+  return path.join(contentDir, '_data', 'visualizer-layouts', ...segments, fileName);
 }
 
 /**
