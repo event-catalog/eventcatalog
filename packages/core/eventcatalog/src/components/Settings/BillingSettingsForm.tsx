@@ -129,7 +129,7 @@ export const BillingSettingsForm = ({ currentPlan }: Props) => {
     <div className="divide-y divide-[rgb(var(--ec-page-border))]">
       <Row
         title="Billing plan"
-        description="View and manage your billing plan. Upgrade unlocks the AI assistant, MCP server, and other Scale-only features."
+        description="View and manage your billing plan. Paid plans unlock the AI assistant, with MCP server and other advanced features available on Scale."
         canEdit={false}
         dirty={false}
       >
