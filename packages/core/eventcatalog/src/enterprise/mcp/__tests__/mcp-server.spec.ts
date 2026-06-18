@@ -31,6 +31,7 @@ vi.mock('hono', () => {
               'eventcatalog://agents',
               'eventcatalog://services',
               'eventcatalog://domains',
+              'eventcatalog://entities',
               'eventcatalog://flows',
               'eventcatalog://teams',
               'eventcatalog://users',
@@ -163,6 +164,7 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
       'findResourcesByOwner',
       'getProducersOfMessage',
       'getConsumersOfMessage',
+      'getC4Diagram',
       'analyzeChangeImpact',
       'explainBusinessFlow',
       'getTeams',
@@ -179,7 +181,7 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
     for (const tool of expectedTools) {
       expect(toolDescriptions[tool as keyof typeof toolDescriptions]).toBeDefined();
     }
-    expect(Object.keys(toolDescriptions).length).toBe(18);
+    expect(Object.keys(toolDescriptions).length).toBe(19);
   });
 });
 
@@ -308,6 +310,7 @@ describe('MCP Resources', () => {
       'eventcatalog://agents',
       'eventcatalog://services',
       'eventcatalog://domains',
+      'eventcatalog://entities',
       'eventcatalog://flows',
       'eventcatalog://teams',
       'eventcatalog://users',
@@ -324,7 +327,7 @@ describe('MCP Resources', () => {
     const body = await response.json();
 
     expect(body.resources).toBeDefined();
-    expect(body.resources.length).toBe(10);
+    expect(body.resources.length).toBe(11);
 
     for (const uri of expectedResources) {
       expect(body.resources).toContain(uri);

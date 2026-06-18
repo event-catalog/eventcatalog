@@ -779,6 +779,9 @@ describe('findResourcesByOwner', () => {
       expect(result.totalCount).toBeGreaterThan(0);
       expect(result.resources.some((r: ResourceResult) => r.collection === 'events')).toBe(true);
       expect(result.resources.some((r: ResourceResult) => r.collection === 'services')).toBe(true);
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'adrs')).toBe(true);
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'containers')).toBe(true);
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'diagrams')).toBe(true);
     }
   });
 

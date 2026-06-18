@@ -345,6 +345,9 @@ export async function findResourcesByOwner(params: { ownerId: string }) {
     'flows',
     'channels',
     'entities',
+    'adrs',
+    'containers',
+    'diagrams',
     'data-products',
   ] as const;
 

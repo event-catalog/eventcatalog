@@ -408,6 +408,12 @@ function createMcpServer() {
       collections: ['channels'] as const,
     },
     {
+      name: 'All Entities in EventCatalog',
+      uri: 'eventcatalog://entities',
+      description: 'All entities in EventCatalog',
+      collections: ['entities'] as const,
+    },
+    {
       name: 'All Containers  in EventCatalog',
       uri: 'eventcatalog://containers',
       description: 'All containers in EventCatalog',
@@ -493,6 +499,7 @@ const mcpResources = [
   'eventcatalog://adrs',
   'eventcatalog://services',
   'eventcatalog://domains',
+  'eventcatalog://entities',
   'eventcatalog://flows',
   'eventcatalog://teams',
   'eventcatalog://users',

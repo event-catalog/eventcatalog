@@ -497,6 +497,7 @@ export const mockContainers = [
       name: 'Order Database',
       version: '1.0.0',
       summary: 'Order data storage',
+      owners: ['order-team'],
     },
   },
 ];
@@ -515,6 +516,28 @@ export const mockDiagrams = [
       name: 'System Overview',
       version: '1.0.0',
       summary: 'High-level system diagram',
+      owners: ['order-team'],
+    },
+  },
+];
+
+// ============================================
+// Mock ADRs
+// ============================================
+export const mockAdrs = [
+  {
+    id: 'adr-001-1.0.0',
+    slug: 'adrs/adr-001',
+    collection: 'adrs',
+    body: 'ADR description',
+    data: {
+      id: 'adr-001',
+      name: 'Choose event-driven orders',
+      version: '1.0.0',
+      summary: 'Decision to use events for order workflows',
+      owners: ['order-team'],
+      status: 'accepted',
+      date: new Date('2025-01-01'),
     },
   },
 ];
@@ -563,6 +586,7 @@ export const mockCollections: Record<string, any[]> = {
   domains: mockDomains,
   channels: mockChannels,
   entities: mockEntities,
+  adrs: mockAdrs,
   containers: mockContainers,
   diagrams: mockDiagrams,
   schemas: mockSchemas,
