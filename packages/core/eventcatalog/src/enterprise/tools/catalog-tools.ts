@@ -27,8 +27,75 @@ import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
 import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
 import config from '@config';
+import { glob } from 'glob';
+import path from 'node:path';
 
 const MESSAGE_COLLECTIONS = new Set(['events', 'commands', 'queries']);
+const LIKEC4_SOURCE_PATTERN = '**/*.{c4,likec4}';
+
+type LikeC4View = {
+  id: string;
+  kind: 'element' | 'dynamic' | 'deployment';
+  filePath: string;
+  line: number;
+};
+
+type LikeC4SourceFile = {
+  path: string;
+  content: string;
+  views: LikeC4View[];
+};
+
+const toPosixPath = (filePath: string) => filePath.split(path.sep).join(path.posix.sep);
+
+const lineNumberAtIndex = (content: string, index: number) => content.slice(0, index).split(/\r\n|\r|\n/).length;
+
+const stripLikeC4Comments = (content: string) => content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+const parseLikeC4Views = (content: string, filePath: string): LikeC4View[] => {
+  const contentWithoutComments = stripLikeC4Comments(content);
+  const viewDeclarationPattern =
+    /\b(?:(dynamic|deployment)\s+)?view(?:\s+([A-Za-z_][\w.-]*))?(?:\s+of\s+[A-Za-z_][\w.-]*(?:\.[A-Za-z_][\w.-]*)*)?\s*\{/g;
+  const views: LikeC4View[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = viewDeclarationPattern.exec(contentWithoutComments)) !== null) {
+    const [, kind, id] = match;
+
+    if (!id) {
+      continue;
+    }
+
+    views.push({
+      id,
+      kind: kind === 'dynamic' || kind === 'deployment' ? kind : 'element',
+      filePath,
+      line: lineNumberAtIndex(contentWithoutComments, match.index),
+    });
+  }
+
+  return views;
+};
+
+const discoverLikeC4Sources = async (projectRoot: string): Promise<LikeC4SourceFile[]> => {
+  const sourceFiles = await glob(LIKEC4_SOURCE_PATTERN, {
+    cwd: projectRoot,
+    ignore: ['**/node_modules/**'],
+    nodir: true,
+  });
+
+  return sourceFiles
+    .map(toPosixPath)
+    .sort()
+    .map((sourceFile) => {
+      const content = fs.readFileSync(path.join(projectRoot, sourceFile), 'utf-8');
+      return {
+        path: sourceFile,
+        content,
+        views: parseLikeC4Views(content, sourceFile),
+      };
+    });
+};
 
 // ============================================
 // Pagination utilities
@@ -105,6 +172,7 @@ export function paginate<T>(
 export const collectionSchema = z.enum([
   'events',
   'agents',
+  'adrs',
   'services',
   'commands',
   'queries',
@@ -122,6 +190,7 @@ export const messageCollectionSchema = z.enum(['events', 'commands', 'queries'])
 export const resourceCollectionSchema = z.enum([
   'agents',
   'services',
+  'adrs',
   'events',
   'commands',
   'queries',
@@ -276,6 +345,9 @@ export async function findResourcesByOwner(params: { ownerId: string }) {
     'flows',
     'channels',
     'entities',
+    'adrs',
+    'containers',
+    'diagrams',
     'data-products',
   ] as const;
 
@@ -342,6 +414,46 @@ export async function getProducersOfMessage(params: { messageId: string; message
       collection: s.collection,
     })),
     count: producers.length,
+  };
+}
+
+export async function getC4Diagram(params: { viewId?: string }) {
+  const projectRoot = process.env.PROJECT_DIR || process.cwd();
+  const sources = await discoverLikeC4Sources(projectRoot);
+  const availableViews = sources.flatMap((source) => source.views);
+
+  if (sources.length === 0) {
+    return {
+      message: 'No LikeC4 source files found in this EventCatalog project',
+      sources: [],
+      totalSourceFiles: 0,
+      totalViews: 0,
+    };
+  }
+
+  if (!params.viewId) {
+    return {
+      message: 'LikeC4 source files found',
+      sources,
+      totalSourceFiles: sources.length,
+      totalViews: availableViews.length,
+    };
+  }
+
+  const matchingViews = availableViews.filter((view) => view.id === params.viewId);
+
+  if (matchingViews.length === 0) {
+    return {
+      error: `LikeC4 view not found: ${params.viewId}`,
+      availableViews,
+    };
+  }
+
+  return {
+    viewId: params.viewId,
+    matchingViews,
+    sources,
+    totalSourceFiles: sources.length,
   };
 }
 
@@ -992,6 +1104,8 @@ export const toolDescriptions = {
     'Use this tool to find which agents or services produce (send) a specific message (event, command, or query)',
   getConsumersOfMessage:
     'Use this tool to find which agents or services consume (receive) a specific message (event, command, or query)',
+  getC4Diagram:
+    'Use this tool to get the C4 diagram (or likeC4) in EventCatalog. These files usually have a .c4 extension on them',
   analyzeChangeImpact:
     'Use this tool to analyze the impact of changing a message. Returns all affected agents and services (producers and consumers), the teams that own them, and the blast radius of the change',
   explainBusinessFlow:
