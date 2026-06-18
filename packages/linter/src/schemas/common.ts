@@ -28,12 +28,14 @@ export const specificationSchema = z.union([
   z.object({
     openapiPath: z.string().optional(),
     asyncapiPath: z.string().optional(),
+    graphqlPath: z.string().optional(),
   }),
   z.array(
     z.object({
-      type: z.enum(['openapi', 'asyncapi']),
+      type: z.enum(['openapi', 'asyncapi', 'graphql']),
       path: z.string(),
       name: z.string().optional(),
+      headers: z.record(z.string()).optional(),
     })
   ),
 ]);
@@ -67,7 +69,23 @@ export const pointerSchema = z.object({
 export const resourcePointerSchema = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
-  type: z.enum(['service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team']),
+  type: z.enum([
+    'agent',
+    'service',
+    'event',
+    'command',
+    'query',
+    'flow',
+    'channel',
+    'domain',
+    'user',
+    'team',
+    'container',
+    'entity',
+    'diagram',
+    'data-product',
+    'adr',
+  ]),
 });
 
 export const channelPointerSchema = z
@@ -75,6 +93,40 @@ export const channelPointerSchema = z
     parameters: z.record(z.string()).optional(),
   })
   .merge(pointerSchema);
+
+export const detailPanelPropertySchema = z
+  .object({
+    visible: z.boolean().optional(),
+  })
+  .optional();
+
+export const sendsPointerSchema = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  fields: z.array(z.string()).optional(),
+  group: z.string().optional(),
+  to: z
+    .array(
+      channelPointerSchema.extend({
+        delivery_mode: z.enum(['push', 'pull', 'push-pull']).optional().default('push'),
+      })
+    )
+    .optional(),
+});
+
+export const receivesPointerSchema = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  fields: z.array(z.string()).optional(),
+  group: z.string().optional(),
+  from: z
+    .array(
+      channelPointerSchema.extend({
+        delivery_mode: z.enum(['push', 'pull', 'push-pull']).optional().default('push'),
+      })
+    )
+    .optional(),
+});
 
 export const resourceReferenceSchema = pointerSchema;
 
@@ -104,6 +156,8 @@ export const sidebarSchema = z
   .object({
     label: z.string().optional(),
     badge: z.string().optional(),
+    color: z.string().optional(),
+    backgroundColor: z.string().optional(),
   })
   .optional();
 
@@ -154,10 +208,26 @@ export const baseSchema = z.object({
   repository: repositorySchema.optional(),
   specifications: specificationSchema.optional(),
   hidden: z.boolean().optional(),
+  editUrl: z.string().optional(),
   resourceGroups: resourceGroupSchema,
   styles: stylesSchema,
   deprecated: deprecatedSchema.optional(),
   visualiser: z.boolean().optional(),
+  attachments: z
+    .array(
+      z.union([
+        z.string().url(),
+        z.object({
+          url: z.string().url(),
+          title: z.string().optional(),
+          type: z.string().optional(),
+          description: z.string().optional(),
+          icon: z.string().optional(),
+        }),
+      ])
+    )
+    .optional(),
+  diagrams: z.array(pointerSchema).optional(),
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
   catalog: catalogMetadataSchema,

@@ -10,6 +10,97 @@ interface ResourceIndex {
   };
 }
 
+const MESSAGE_TYPES: ResourceType[] = ['event', 'command', 'query'];
+
+const RESOURCE_TYPE_ALIASES: Partial<Record<ResourceType, ResourceType[]>> = {
+  container: ['container', 'dataStore'],
+  dataStore: ['container', 'dataStore'],
+};
+
+const normalizeResourceType = (type: unknown): ResourceType | undefined => {
+  if (typeof type !== 'string') return undefined;
+
+  const normalizedTypes: Record<string, ResourceType> = {
+    agent: 'agent',
+    agents: 'agent',
+    adr: 'adr',
+    adrs: 'adr',
+    service: 'service',
+    services: 'service',
+    event: 'event',
+    events: 'event',
+    command: 'command',
+    commands: 'command',
+    query: 'query',
+    queries: 'query',
+    flow: 'flow',
+    flows: 'flow',
+    channel: 'channel',
+    channels: 'channel',
+    domain: 'domain',
+    domains: 'domain',
+    user: 'user',
+    users: 'user',
+    team: 'team',
+    teams: 'team',
+    container: 'container',
+    containers: 'container',
+    dataStore: 'container',
+    dataStores: 'container',
+    'data-product': 'dataProduct',
+    'data-products': 'dataProduct',
+    dataProduct: 'dataProduct',
+    dataProducts: 'dataProduct',
+    entity: 'entity',
+    entities: 'entity',
+    diagram: 'diagram',
+    diagrams: 'diagram',
+  };
+
+  return normalizedTypes[type];
+};
+
+const getReference = (value: unknown): ResourceReference | undefined => {
+  if (typeof value === 'string') {
+    return { id: value };
+  }
+
+  if (!value || typeof value !== 'object') {
+    return undefined;
+  }
+
+  const ref = value as Record<string, unknown>;
+  if (typeof ref.id !== 'string') {
+    return undefined;
+  }
+
+  return {
+    id: ref.id,
+    version: typeof ref.version === 'string' ? ref.version : undefined,
+  };
+};
+
+const addReference = (references: ReferenceInfo[], value: unknown, possibleTypes: ResourceType[], field: string): void => {
+  const ref = getReference(value);
+  if (ref) {
+    references.push({ ref, possibleTypes, field });
+  }
+};
+
+const addReferences = (references: ReferenceInfo[], values: unknown, possibleTypes: ResourceType[], field: string): void => {
+  if (!Array.isArray(values)) return;
+  values.forEach((value) => {
+    addReference(references, value, possibleTypes, field);
+  });
+};
+
+const addTypedReference = (references: ReferenceInfo[], value: unknown, field: string): void => {
+  if (!value || typeof value !== 'object') return;
+  const resourceType = normalizeResourceType((value as Record<string, unknown>).type);
+  if (!resourceType) return;
+  addReference(references, value, [resourceType], field);
+};
+
 export const buildResourceIndex = (parsedFiles: ParsedFile[], dependencies?: CatalogDependencies): ResourceIndex => {
   const index: ResourceIndex = {};
 
@@ -61,7 +152,15 @@ export const buildResourceIndex = (parsedFiles: ParsedFile[], dependencies?: Cat
 };
 
 const checkResourceExists = (ref: ResourceReference, resourceType: ResourceType, index: ResourceIndex): boolean => {
-  const resourceVersions = index[resourceType]?.[ref.id];
+  const resourceTypes = RESOURCE_TYPE_ALIASES[resourceType] || [resourceType];
+  const resourceVersions = new Set<string>();
+
+  for (const type of resourceTypes) {
+    const versions = index[type]?.[ref.id];
+    if (versions) {
+      versions.forEach((version) => resourceVersions.add(version));
+    }
+  }
 
   if (!resourceVersions || resourceVersions.size === 0) {
     return false;
@@ -123,63 +222,79 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
   const { file, frontmatter } = parsedFile;
   const references: ReferenceInfo[] = [];
 
+  if (frontmatter.owners && Array.isArray(frontmatter.owners)) {
+    frontmatter.owners.forEach((owner: unknown, index: number) => {
+      if (owner && typeof owner === 'object' && 'collection' in owner) {
+        const ownerType = normalizeResourceType((owner as Record<string, unknown>).collection);
+        if (ownerType) {
+          addReference(references, owner, [ownerType], `owners[${index}]`);
+          return;
+        }
+      }
+      addReference(references, owner, ['user', 'team'], `owners[${index}]`);
+    });
+  }
+
+  addReferences(references, frontmatter.diagrams, ['diagram'], 'diagrams');
+
+  if (frontmatter.resourceGroups && Array.isArray(frontmatter.resourceGroups)) {
+    frontmatter.resourceGroups.forEach((group: unknown, groupIndex: number) => {
+      if (!group || typeof group !== 'object') return;
+      const items = (group as Record<string, unknown>).items;
+      if (!Array.isArray(items)) return;
+      items.forEach((item, itemIndex) =>
+        addTypedReference(references, item, `resourceGroups[${groupIndex}].items[${itemIndex}]`)
+      );
+    });
+  }
+
   if (file.resourceType === 'domain') {
-    if (frontmatter.services && Array.isArray(frontmatter.services)) {
-      frontmatter.services.forEach((ref: ResourceReference) => {
-        references.push({ ref, possibleTypes: ['service'], field: 'services' });
-      });
+    addReferences(references, frontmatter.services, ['service'], 'services');
+    addReferences(references, frontmatter.agents, ['agent'], 'agents');
+    addReferences(references, frontmatter.domains, ['domain'], 'domains');
+    addReferences(references, frontmatter.entities, ['entity'], 'entities');
+    addReferences(references, frontmatter['data-products'], ['dataProduct'], 'data-products');
+    addReferences(references, frontmatter.dataProducts, ['dataProduct'], 'dataProducts');
+    addReferences(references, frontmatter.flows, ['flow'], 'flows');
+    addReferences(references, frontmatter.sends, MESSAGE_TYPES, 'sends');
+    addReferences(references, frontmatter.receives, MESSAGE_TYPES, 'receives');
+  }
+
+  if (file.resourceType === 'service' || file.resourceType === 'agent') {
+    addReferences(references, frontmatter.sends, MESSAGE_TYPES, 'sends');
+    addReferences(references, frontmatter.receives, MESSAGE_TYPES, 'receives');
+    if (frontmatter.writesTo && Array.isArray(frontmatter.writesTo)) {
+      frontmatter.writesTo.forEach((ref: unknown) => addReference(references, ref, ['container'], 'writesTo'));
     }
-    if (frontmatter.domains && Array.isArray(frontmatter.domains)) {
-      frontmatter.domains.forEach((ref: ResourceReference) => {
-        references.push({ ref, possibleTypes: ['domain'], field: 'domains' });
-      });
+    if (frontmatter.readsFrom && Array.isArray(frontmatter.readsFrom)) {
+      frontmatter.readsFrom.forEach((ref: unknown) => addReference(references, ref, ['container'], 'readsFrom'));
     }
-    if (frontmatter.entities && Array.isArray(frontmatter.entities)) {
-      frontmatter.entities.forEach((ref: ResourceReference) => {
-        references.push({ ref, possibleTypes: ['entity'], field: 'entities' });
-      });
-    }
+    addReferences(references, frontmatter.flows, ['flow'], 'flows');
   }
 
   if (file.resourceType === 'service') {
-    if (frontmatter.sends && Array.isArray(frontmatter.sends)) {
-      frontmatter.sends.forEach((ref: ResourceReference) => {
-        references.push({ ref, possibleTypes: ['event', 'command', 'query'], field: 'sends' });
-      });
-    }
-    if (frontmatter.receives && Array.isArray(frontmatter.receives)) {
-      frontmatter.receives.forEach((ref: ResourceReference) => {
-        references.push({ ref, possibleTypes: ['event', 'command', 'query'], field: 'receives' });
-      });
-    }
-    if (frontmatter.entities && Array.isArray(frontmatter.entities)) {
-      frontmatter.entities.forEach((ref: ResourceReference) => {
-        references.push({ ref, possibleTypes: ['entity'], field: 'entities' });
-      });
-    }
-    if (frontmatter.writesTo && Array.isArray(frontmatter.writesTo)) {
-      frontmatter.writesTo.forEach((ref: ResourceReference) => {
-        references.push({ ref, possibleTypes: ['dataStore'], field: 'writesTo' });
-      });
-    }
-    if (frontmatter.readsFrom && Array.isArray(frontmatter.readsFrom)) {
-      frontmatter.readsFrom.forEach((ref: ResourceReference) => {
-        references.push({ ref, possibleTypes: ['dataStore'], field: 'readsFrom' });
-      });
-    }
+    addReferences(references, frontmatter.entities, ['entity'], 'entities');
   }
 
   if (file.resourceType === 'flow' && frontmatter.steps && Array.isArray(frontmatter.steps)) {
     frontmatter.steps.forEach((step: Record<string, unknown>, index: number) => {
       if (step.message) {
-        references.push({
-          ref: step.message as ResourceReference,
-          possibleTypes: ['event', 'command', 'query'],
-          field: `steps[${index}].message`,
-        });
+        addReference(references, step.message, MESSAGE_TYPES, `steps[${index}].message`);
       }
       if (step.service) {
-        references.push({ ref: step.service as ResourceReference, possibleTypes: ['service'], field: `steps[${index}].service` });
+        addReference(references, step.service, ['service'], `steps[${index}].service`);
+      }
+      if (step.agent) {
+        addReference(references, step.agent, ['agent'], `steps[${index}].agent`);
+      }
+      if (step.flow) {
+        addReference(references, step.flow, ['flow'], `steps[${index}].flow`);
+      }
+      if (step.container) {
+        addReference(references, step.container, ['container'], `steps[${index}].container`);
+      }
+      if (step.dataProduct) {
+        addReference(references, step.dataProduct, ['dataProduct'], `steps[${index}].dataProduct`);
       }
     });
   }
@@ -194,18 +309,94 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
         });
       }
     });
+    addReferences(references, frontmatter.services, ['service'], 'services');
+    addReferences(references, frontmatter.domains, ['domain'], 'domains');
   }
 
-  if (frontmatter.owners && Array.isArray(frontmatter.owners)) {
-    frontmatter.owners.forEach((owner: string) => {
-      references.push({ ref: { id: owner }, possibleTypes: ['user', 'team'], field: 'owners' });
-    });
+  if (MESSAGE_TYPES.includes(file.resourceType)) {
+    addReferences(references, frontmatter.producers, ['service'], 'producers');
+    addReferences(references, frontmatter.consumers, ['service'], 'consumers');
+    addReferences(references, frontmatter.channels, ['channel'], 'channels');
+    addReferences(references, frontmatter.messageChannels, ['channel'], 'messageChannels');
+  }
+
+  if (file.resourceType === 'channel') {
+    addReferences(references, frontmatter.channels, ['channel'], 'channels');
+    addReferences(references, frontmatter.routes, ['channel'], 'routes');
+    if (frontmatter.messages && Array.isArray(frontmatter.messages)) {
+      frontmatter.messages.forEach((message: unknown, index: number) => {
+        if (!message || typeof message !== 'object') return;
+        const messageType = normalizeResourceType((message as Record<string, unknown>).collection);
+        if (messageType && MESSAGE_TYPES.includes(messageType)) {
+          addReference(references, message, [messageType], `messages[${index}]`);
+        }
+      });
+    }
+  }
+
+  if (file.resourceType === 'container' || file.resourceType === 'dataStore') {
+    addReferences(references, frontmatter.services, ['service'], 'services');
+    addReferences(references, frontmatter.servicesThatWriteToContainer, ['service'], 'servicesThatWriteToContainer');
+    addReferences(references, frontmatter.servicesThatReadFromContainer, ['service'], 'servicesThatReadFromContainer');
+    addReferences(references, frontmatter.dataProductsThatWriteToContainer, ['dataProduct'], 'dataProductsThatWriteToContainer');
+    addReferences(
+      references,
+      frontmatter.dataProductsThatReadFromContainer,
+      ['dataProduct'],
+      'dataProductsThatReadFromContainer'
+    );
+  }
+
+  if (file.resourceType === 'dataProduct') {
+    const dataProductLinkTypes: ResourceType[] = [
+      'event',
+      'command',
+      'query',
+      'service',
+      'agent',
+      'container',
+      'channel',
+      'dataProduct',
+    ];
+    addReferences(references, frontmatter.inputs, dataProductLinkTypes, 'inputs');
+    addReferences(references, frontmatter.outputs, dataProductLinkTypes, 'outputs');
+  }
+
+  if (file.resourceType === 'adr') {
+    if (frontmatter.decisionMakers && Array.isArray(frontmatter.decisionMakers)) {
+      frontmatter.decisionMakers.forEach((owner: unknown, index: number) => {
+        addReference(references, owner, ['user', 'team'], `decisionMakers[${index}]`);
+      });
+    }
+    if (frontmatter.appliesTo && Array.isArray(frontmatter.appliesTo)) {
+      frontmatter.appliesTo.forEach((target: unknown, index: number) => {
+        addTypedReference(references, target, `appliesTo[${index}]`);
+      });
+    }
+    addReferences(references, frontmatter.supersedes, ['adr'], 'supersedes');
+    addReferences(references, frontmatter.supersededBy, ['adr'], 'supersededBy');
+    addReferences(references, frontmatter.amends, ['adr'], 'amends');
+    addReferences(references, frontmatter.amendedBy, ['adr'], 'amendedBy');
+    addReferences(references, frontmatter.related, ['adr'], 'related');
   }
 
   if (file.resourceType === 'team' && frontmatter.members && Array.isArray(frontmatter.members)) {
-    frontmatter.members.forEach((member: string) => {
-      references.push({ ref: { id: member }, possibleTypes: ['user'], field: 'members' });
+    frontmatter.members.forEach((member: unknown, index: number) => {
+      addReference(references, member, ['user'], `members[${index}]`);
     });
+  }
+
+  if (file.resourceType === 'user' || file.resourceType === 'team') {
+    addReferences(references, frontmatter.ownedAgents, ['agent'], 'ownedAgents');
+    addReferences(references, frontmatter.ownedDomains, ['domain'], 'ownedDomains');
+    addReferences(references, frontmatter.ownedServices, ['service'], 'ownedServices');
+    addReferences(references, frontmatter.ownedEvents, ['event'], 'ownedEvents');
+    addReferences(references, frontmatter.ownedCommands, ['command'], 'ownedCommands');
+    addReferences(references, frontmatter.ownedQueries, ['query'], 'ownedQueries');
+  }
+
+  if (file.resourceType === 'user') {
+    addReferences(references, frontmatter.associatedTeams, ['team'], 'associatedTeams');
   }
 
   return references;
@@ -216,7 +407,7 @@ const extractChannelReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
   const { file, frontmatter } = parsedFile;
   const references: ReferenceInfo[] = [];
 
-  if (file.resourceType !== 'service' && file.resourceType !== 'domain') {
+  if (file.resourceType !== 'service' && file.resourceType !== 'domain' && file.resourceType !== 'agent') {
     return references;
   }
 
@@ -273,10 +464,19 @@ export const validateReferences = (parsedFiles: ParsedFile[], dependencies?: Cat
         const typeStr = possibleTypes.length === 1 ? possibleTypes[0] : possibleTypes.join('/');
 
         let rule = 'refs/resource-exists';
-        if (field === 'owners') {
+        if (field === 'owners' || field.startsWith('owners[') || field.startsWith('decisionMakers[')) {
           rule = 'refs/owner-exists';
-        } else if (field === 'writesTo' || field === 'readsFrom') {
+        } else if (field === 'writesTo' || field === 'readsFrom' || field.includes('container') || field.includes('Container')) {
           rule = 'refs/container-exists';
+        } else if (
+          field.includes('channel') ||
+          field.includes('Channel') ||
+          field.includes('.to[') ||
+          field.includes('.from[') ||
+          field === 'routes' ||
+          field.startsWith('routes[')
+        ) {
+          rule = 'refs/channel-exists';
         } else if (ref.version) {
           rule = 'refs/valid-version-range';
         }
@@ -331,7 +531,7 @@ export const validateOrphanMessages = (parsedFiles: ParsedFile[], dependencies?:
   for (const parsedFile of parsedFiles) {
     const { file, frontmatter } = parsedFile;
 
-    if (file.resourceType === 'service' || file.resourceType === 'domain') {
+    if (file.resourceType === 'service' || file.resourceType === 'domain' || file.resourceType === 'agent') {
       if (frontmatter.sends && Array.isArray(frontmatter.sends)) {
         frontmatter.sends.forEach((ref: any) => {
           if (ref && ref.id) producedMessages.add(ref.id);
@@ -431,7 +631,7 @@ export const validateDeprecatedReferences = (parsedFiles: ParsedFile[]): Validat
 
     for (const { ref, possibleTypes, field } of references) {
       // Skip owner references for this check
-      if (field === 'owners' || field === 'members') continue;
+      if (field === 'owners' || field.startsWith('owners[') || field === 'members' || field.startsWith('members[')) continue;
 
       for (const type of possibleTypes) {
         if (isDeprecated(type, ref.id, ref.version)) {

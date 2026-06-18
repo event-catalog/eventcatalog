@@ -138,6 +138,37 @@ describe('validateSchema', () => {
       const errors = validateSchema(parsedFile);
       expect(errors).toHaveLength(0);
     });
+
+    it('should pass with agent, container, and data product flow steps', () => {
+      const parsedFile = createParsedFile('flow', {
+        id: 'refund-flow',
+        name: 'Refund Flow',
+        version: '1.0.0',
+        steps: [
+          {
+            id: 'agent',
+            type: 'agent',
+            title: 'Refund Agent',
+            agent: { id: 'refund-agent' },
+            next_step: 'container',
+          },
+          {
+            id: 'container',
+            title: 'Payments DB',
+            container: { id: 'payments-db' },
+            next_step: 'data-product',
+          },
+          {
+            id: 'data-product',
+            title: 'Payment Analytics',
+            dataProduct: { id: 'payment-analytics' },
+          },
+        ],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
   });
 
   describe('entity validation', () => {
@@ -285,6 +316,73 @@ describe('validateSchema', () => {
       });
       const errors = validateSchema(parsedFile);
       expect(errors.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('newer resource validation', () => {
+    it('should pass with valid agent frontmatter', () => {
+      const parsedFile = createParsedFile('agent', {
+        id: 'refund-agent',
+        name: 'Refund Agent',
+        version: '1.0.0',
+        receives: [{ id: 'RefundRequested' }],
+        readsFrom: [{ id: 'payments-db' }],
+        tools: [{ name: 'Payment lookup', type: 'mcp' }],
+        model: { provider: 'OpenAI', name: 'gpt-4.1-mini' },
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass with valid container frontmatter', () => {
+      const parsedFile = createParsedFile('container', {
+        id: 'payments-db',
+        name: 'Payments DB',
+        version: '1.0.0',
+        container_type: 'other',
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass with valid data product frontmatter', () => {
+      const parsedFile = createParsedFile('dataProduct', {
+        id: 'payment-analytics',
+        name: 'Payment Analytics',
+        version: '1.0.0',
+        inputs: [{ id: 'PaymentProcessed' }],
+        outputs: [{ id: 'payments-db', contract: { path: 'contract.json', name: 'Payments Contract' } }],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass with valid adr frontmatter', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-001',
+        name: 'Use events',
+        version: '1.0.0',
+        status: 'accepted',
+        date: '2026-05-26',
+        appliesTo: [{ type: 'service', id: 'OrderService' }],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass with valid diagram frontmatter', () => {
+      const parsedFile = createParsedFile('diagram', {
+        id: 'order-flow',
+        name: 'Order Flow',
+        version: '1.0.0',
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
     });
   });
 });

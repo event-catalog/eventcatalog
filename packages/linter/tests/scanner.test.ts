@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { extractResourceInfo } from '../src/scanner';
+import fs from 'fs/promises';
+import os from 'os';
+import path from 'path';
+import { extractResourceInfo, scanCatalogFiles } from '../src/scanner';
 
 describe('extractResourceInfo', () => {
   it('should extract simple resource id', () => {
@@ -43,5 +46,47 @@ describe('extractResourceInfo', () => {
   it('should extract team id from filename', () => {
     const result = extractResourceInfo('teams/platform-team.mdx', 'team');
     expect(result).toEqual({ id: 'platform-team' });
+  });
+
+  it('should extract nested container id', () => {
+    const result = extractResourceInfo('domains/sales/services/order-service/containers/orders-db/index.mdx', 'container');
+    expect(result).toEqual({ id: 'orders-db' });
+  });
+
+  it('should extract data product id from data-products folders', () => {
+    const result = extractResourceInfo('domains/sales/data-products/order-metrics/versioned/1.0.0/index.mdx', 'dataProduct');
+    expect(result).toEqual({ id: 'order-metrics', version: '1.0.0' });
+  });
+
+  it('should extract nested diagram id', () => {
+    const result = extractResourceInfo('domains/sales/diagrams/order-flow/versioned/1.0.0/index.mdx', 'diagram');
+    expect(result).toEqual({ id: 'order-flow', version: '1.0.0' });
+  });
+
+  it('should extract adr id', () => {
+    const result = extractResourceInfo('adrs/adr-001/index.md', 'adr');
+    expect(result).toEqual({ id: 'adr-001' });
+  });
+
+  it('should scan newer resource types', async () => {
+    const rootDir = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-linter-scanner-'));
+    const files = [
+      'domains/sales/agents/refund-agent/index.mdx',
+      'domains/sales/data-products/order-metrics/index.mdx',
+      'domains/sales/services/order-service/containers/orders-db/index.mdx',
+      'domains/sales/diagrams/order-flow/index.mdx',
+      'adrs/adr-001/index.md',
+    ];
+
+    await Promise.all(
+      files.map(async (file) => {
+        const filePath = path.join(rootDir, file);
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, '---\nid: test\nname: Test\nversion: 1.0.0\n---\n');
+      })
+    );
+
+    const catalogFiles = await scanCatalogFiles(rootDir);
+    expect(catalogFiles.map((file) => file.resourceType).sort()).toEqual(['adr', 'agent', 'container', 'dataProduct', 'diagram']);
   });
 });
