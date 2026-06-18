@@ -10,7 +10,14 @@ export interface CatalogFile {
   version?: string;
 }
 
-const RESOURCE_PATTERNS: Record<ResourceType, string[]> = {
+const RESOURCE_DIRECTORY_NAMES: Partial<Record<ResourceType, string>> = {
+  dataProduct: 'data-products',
+  dataStore: 'containers',
+  container: 'containers',
+  adr: 'adrs',
+};
+
+const RESOURCE_PATTERNS: Partial<Record<ResourceType, string[]>> = {
   domain: [
     'domains/*/index.{md,mdx}',
     'domains/*/versioned/*/index.{md,mdx}',
@@ -25,15 +32,19 @@ const RESOURCE_PATTERNS: Record<ResourceType, string[]> = {
     'services/*/index.{md,mdx}',
     'services/*/versioned/*/index.{md,mdx}',
   ],
+  agent: ['**/agents/*/index.{md,mdx}', '**/agents/*/versioned/*/index.{md,mdx}'],
+  adr: ['**/adrs/*/index.{md,mdx}', '**/adrs/*/versioned/*/index.{md,mdx}'],
   event: ['**/events/*/index.{md,mdx}', '**/events/*/versioned/*/index.{md,mdx}'],
   command: ['**/commands/*/index.{md,mdx}', '**/commands/*/versioned/*/index.{md,mdx}'],
   query: ['**/queries/*/index.{md,mdx}', '**/queries/*/versioned/*/index.{md,mdx}'],
-  channel: ['**/channels/*/index.{md,mdx}', '**/channels/*/versioned/*/index.{md,mdx}'],
-  flow: ['**/flows/*/index.{md,mdx}', '**/flows/*/versioned/*/index.{md,mdx}'],
+  channel: ['**/channels/**/index.{md,mdx}', '**/channels/**/versioned/*/index.{md,mdx}'],
+  flow: ['**/flows/**/index.{md,mdx}', '**/flows/**/versioned/*/index.{md,mdx}'],
   entity: ['**/entities/*/index.{md,mdx}', '**/entities/*/versioned/*/index.{md,mdx}'],
+  container: ['**/containers/**/index.{md,mdx}', '**/containers/**/versioned/*/index.{md,mdx}'],
+  dataProduct: ['**/data-products/*/index.{md,mdx}', '**/data-products/*/versioned/*/index.{md,mdx}'],
+  diagram: ['**/diagrams/**/index.{md,mdx}', '**/diagrams/**/versioned/*/index.{md,mdx}'],
   user: ['users/*.{md,mdx}'],
   team: ['teams/*.{md,mdx}'],
-  dataStore: ['**/containers/*/index.{md,mdx}', '**/containers/*/versioned/*/index.{md,mdx}'],
 };
 
 export const extractResourceInfo = (filePath: string, resourceType: ResourceType): { id: string; version?: string } => {
@@ -47,7 +58,7 @@ export const extractResourceInfo = (filePath: string, resourceType: ResourceType
   }
 
   // Find the resource type directory in the path
-  const resourceTypePattern = `${resourceType}s`;
+  const resourceTypePattern = RESOURCE_DIRECTORY_NAMES[resourceType] || `${resourceType}s`;
   const resourceTypeIndex = relativePath.findIndex((part) => part === resourceTypePattern);
 
   if (resourceTypeIndex === -1) {

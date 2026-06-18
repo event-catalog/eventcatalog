@@ -16,15 +16,19 @@ const flowStep = z
 const flowStepSchema = z
   .object({
     id: z.union([z.string(), z.number()]),
-    type: z.enum(['node', 'message', 'user', 'actor']).optional(),
+    type: z.enum(['node', 'message', 'agent', 'user', 'actor']).optional(),
     title: z.string(),
     summary: z.string().optional(),
     message: pointerSchema.optional(),
+    agent: pointerSchema.optional(),
     service: pointerSchema.optional(),
     flow: pointerSchema.optional(),
+    container: pointerSchema.optional(),
+    dataProduct: pointerSchema.optional(),
     actor: z
       .object({
         name: z.string(),
+        summary: z.string().optional(),
       })
       .optional(),
     custom: z
@@ -59,7 +63,16 @@ const flowStepSchema = z
   })
   .refine((data) => {
     if (data.next_step && data.next_steps) return false;
-    const typesUsed = [data.message, data.service, data.flow, data.actor, data.custom].filter((v) => v).length;
+    const typesUsed = [
+      data.message,
+      data.agent,
+      data.service,
+      data.flow,
+      data.container,
+      data.dataProduct,
+      data.actor,
+      data.custom,
+    ].filter((v) => v).length;
     return typesUsed === 0 || typesUsed === 1;
   });
 

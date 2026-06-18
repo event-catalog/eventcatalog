@@ -131,6 +131,24 @@ describe('buildResourceIndex', () => {
     // Should NOT have entries for the path-based IDs
     expect(index.flow['OrderFlow']).toBeUndefined();
   });
+
+  it('should build index for newer resource types', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('agent', 'RefundAgent', { id: 'refund-agent', version: '1.0.0' }),
+      createParsedFile('container', 'PaymentsDb', { id: 'payments-db', version: '1.0.0' }),
+      createParsedFile('dataProduct', 'PaymentAnalytics', { id: 'payment-analytics', version: '1.0.0' }),
+      createParsedFile('diagram', 'OrderFlow', { id: 'order-flow', version: '1.0.0' }),
+      createParsedFile('adr', 'ADR001', { id: 'adr-001', version: '1.0.0' }),
+    ];
+
+    const index = buildResourceIndex(parsedFiles);
+
+    expect(index.agent['refund-agent']).toBeDefined();
+    expect(index.container['payments-db']).toBeDefined();
+    expect(index.dataProduct['payment-analytics']).toBeDefined();
+    expect(index.diagram['order-flow']).toBeDefined();
+    expect(index.adr['adr-001']).toBeDefined();
+  });
 });
 
 describe('validateReferences', () => {
@@ -243,6 +261,57 @@ describe('validateReferences', () => {
     expect(errors).toHaveLength(0);
   });
 
+  it('should validate domain references to agents, data products, and flows', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('domain', 'sales', {
+        version: '1.0.0',
+        agents: [{ id: 'refund-agent' }],
+        'data-products': [{ id: 'payment-analytics' }],
+        flows: [{ id: 'refund-flow' }],
+      }),
+      createParsedFile('agent', 'refund-agent', { id: 'refund-agent', version: '1.0.0' }),
+      createParsedFile('dataProduct', 'payment-analytics', { id: 'payment-analytics', version: '1.0.0' }),
+      createParsedFile('flow', 'refund-flow', { id: 'refund-flow', version: '1.0.0' }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('should report missing domain references to agents and data products', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('domain', 'sales', {
+        version: '1.0.0',
+        agents: [{ id: 'missing-agent' }],
+        'data-products': [{ id: 'missing-product' }],
+      }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(2);
+    expect(errors.map((error) => error.message)).toEqual(
+      expect.arrayContaining([expect.stringContaining('missing-agent'), expect.stringContaining('missing-product')])
+    );
+  });
+
+  it('should validate data product input and output references across resource types', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('dataProduct', 'order-metrics', {
+        id: 'order-metrics',
+        version: '1.0.0',
+        inputs: [{ id: 'OrderConfirmed' }, { id: 'order-service' }, { id: 'orders-db' }],
+        outputs: [{ id: 'metrics-channel' }],
+      }),
+      createParsedFile('event', 'OrderConfirmed', { id: 'OrderConfirmed', version: '1.0.0' }),
+      createParsedFile('service', 'order-service', { id: 'order-service', version: '1.0.0' }),
+      createParsedFile('container', 'orders-db', { id: 'orders-db', version: '1.0.0' }),
+      createParsedFile('channel', 'metrics-channel', { id: 'metrics-channel', version: '1.0.0' }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(0);
+  });
+
   it('should use frontmatter.id for command references when different from file path', () => {
     const parsedFiles: ParsedFile[] = [
       createParsedFile('service', 'user-service', {
@@ -322,6 +391,46 @@ describe('validateReferences', () => {
     expect(errors).toHaveLength(0);
   });
 
+  it('should validate flow step references to agents, containers, and data products', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('flow', 'refund-flow', {
+        id: 'refund-flow',
+        version: '1.0.0',
+        steps: [
+          { id: 'agent', title: 'Refund Agent', agent: { id: 'refund-agent' } },
+          { id: 'container', title: 'Payments DB', container: { id: 'payments-db' } },
+          { id: 'data-product', title: 'Payment Analytics', dataProduct: { id: 'payment-analytics' } },
+        ],
+      }),
+      createParsedFile('agent', 'refund-agent', { id: 'refund-agent', version: '1.0.0' }),
+      createParsedFile('container', 'payments-db', { id: 'payments-db', version: '1.0.0' }),
+      createParsedFile('dataProduct', 'payment-analytics', { id: 'payment-analytics', version: '1.0.0' }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('should report missing flow step references to agents, containers, and data products', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('flow', 'refund-flow', {
+        id: 'refund-flow',
+        version: '1.0.0',
+        steps: [
+          { id: 'agent', title: 'Refund Agent', agent: { id: 'missing-agent' } },
+          { id: 'container', title: 'Payments DB', container: { id: 'missing-db' } },
+          { id: 'data-product', title: 'Payment Analytics', dataProduct: { id: 'missing-product' } },
+        ],
+      }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(3);
+    expect(errors.map((error) => error.field)).toEqual(
+      expect.arrayContaining(['steps[0].agent', 'steps[1].container', 'steps[2].dataProduct'])
+    );
+  });
+
   it('should use frontmatter.id for flow step service references when different from file path', () => {
     const parsedFiles: ParsedFile[] = [
       createParsedFile('flow', 'order-flow', {
@@ -353,6 +462,20 @@ describe('validateReferences', () => {
       }),
       createParsedFile('user', 'john-doe', {}),
       createParsedFile('team', 'platform-team', {}),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('should validate owner object references', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('service', 'order-service', {
+        id: 'order-service',
+        version: '1.0.0',
+        owners: [{ id: 'platform-team', collection: 'teams' }],
+      }),
+      createParsedFile('team', 'platform-team', { id: 'platform-team' }),
     ];
 
     const errors = validateReferences(parsedFiles);
@@ -414,6 +537,51 @@ describe('validateReferences', () => {
         }),
         createParsedFile('event', 'OutOfStock', { id: 'OutOfStock', version: '2.0.0' }),
         createParsedFile('event', 'OutOfStock', { id: 'OutOfStock', version: '1.5.0' }),
+      ];
+
+      const errors = validateReferences(parsedFiles);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should validate channel routes', () => {
+      const parsedFiles: ParsedFile[] = [
+        createParsedFile('channel', 'domain-bus', {
+          id: 'domain-bus',
+          version: '1.0.0',
+          routes: [{ id: 'orders-channel' }],
+        }),
+        createParsedFile('channel', 'orders-channel', { id: 'orders-channel', version: '1.0.0' }),
+      ];
+
+      const errors = validateReferences(parsedFiles);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should validate ADR typed resource references and relationships', () => {
+      const parsedFiles: ParsedFile[] = [
+        createParsedFile('adr', 'adr-002', {
+          id: 'adr-002',
+          version: '1.0.0',
+          appliesTo: [
+            { type: 'service', id: 'order-service' },
+            { type: 'data-product', id: 'order-metrics' },
+          ],
+          supersedes: [{ id: 'adr-001' }],
+        }),
+        createParsedFile('adr', 'adr-001', { id: 'adr-001', version: '1.0.0' }),
+        createParsedFile('service', 'order-service', { id: 'order-service', version: '1.0.0' }),
+        createParsedFile('dataProduct', 'order-metrics', { id: 'order-metrics', version: '1.0.0' }),
+      ];
+
+      const errors = validateReferences(parsedFiles);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should validate user and team owned agent references', () => {
+      const parsedFiles: ParsedFile[] = [
+        createParsedFile('user', 'dboyne', { id: 'dboyne', ownedAgents: [{ id: 'support-agent' }] }),
+        createParsedFile('team', 'platform', { id: 'platform', ownedAgents: [{ id: 'support-agent' }] }),
+        createParsedFile('agent', 'support-agent', { id: 'support-agent', version: '1.0.0' }),
       ];
 
       const errors = validateReferences(parsedFiles);

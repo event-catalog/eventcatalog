@@ -56,12 +56,17 @@ const PLURAL_TO_SINGULAR: Record<string, string> = {
   commands: 'command',
   queries: 'query',
   services: 'service',
+  agents: 'agent',
+  adrs: 'adr',
   domains: 'domain',
   entities: 'entity',
   channels: 'channel',
   flows: 'flow',
   users: 'user',
   teams: 'team',
+  containers: 'container',
+  'data-products': 'dataProduct',
+  diagrams: 'diagram',
 };
 
 export const loadEventCatalogConfig = (rootDir: string): CatalogDependencies => {
