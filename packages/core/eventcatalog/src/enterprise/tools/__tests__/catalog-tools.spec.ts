@@ -5,6 +5,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { CollectionKey } from 'astro:content';
+import fs from 'node:fs';
+import { glob } from 'glob';
 
 // Type definitions for test results
 type ProducerConsumer = { id: string; version: string; name: string };
@@ -102,6 +104,10 @@ vi.mock('node:fs', () => ({
   },
 }));
 
+vi.mock('glob', () => ({
+  glob: vi.fn(async () => []),
+}));
+
 import {
   encodeCursor,
   decodeCursor,
@@ -122,8 +128,15 @@ import {
   getUser,
   findMessageBySchemaId,
   explainUbiquitousLanguageTerms,
+  getC4Diagram,
 } from '../catalog-tools';
 import { getSchemasFromResource } from '@utils/collections/schemas';
+
+beforeEach(() => {
+  vi.mocked(glob).mockResolvedValue([]);
+  vi.mocked(fs.readFileSync).mockReturnValue('{"schema": "content"}');
+  delete process.env.PROJECT_DIR;
+});
 
 // ============================================
 // Pagination Utilities Tests
@@ -539,6 +552,123 @@ describe('getConsumersOfMessage', () => {
       messageCollection: 'events',
     });
     expect('error' in result).toBe(true);
+  });
+});
+
+describe('getC4Diagram', () => {
+  const projectRoot = '/catalog';
+  const sourceFiles = ['architecture/model.c4', 'architecture/views.c4', 'payments/model.c4', 'payments/views.c4'];
+  const fileContents: Record<string, string> = {
+    '/catalog/architecture/model.c4': `specification {
+  element actor
+  element system
+}
+
+model {
+  customer = actor 'Customer'
+  ordering = system 'Ordering service'
+}`,
+    '/catalog/architecture/views.c4': `views {
+  view OrderFlow {
+    include *
+  }
+
+  dynamic view Checkout {
+    customer -> ordering 'places order'
+  }
+}`,
+    '/catalog/payments/model.c4': `model {
+  payment = system 'Payment service'
+}`,
+    '/catalog/payments/views.c4': `views {
+  deployment view PaymentsOverview {
+    include *
+  }
+}`,
+  };
+
+  beforeEach(() => {
+    process.env.PROJECT_DIR = projectRoot;
+    vi.mocked(glob).mockImplementation(async (pattern) => {
+      if (pattern === '**/*.{c4,likec4}') {
+        return sourceFiles;
+      }
+
+      return [];
+    });
+    vi.mocked(fs.readFileSync).mockImplementation((filePath) => fileContents[String(filePath)] ?? '');
+  });
+
+  it('returns all LikeC4 source files when no viewId is provided', async () => {
+    const result = await getC4Diagram({});
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalSourceFiles).toBe(4);
+      expect(result.totalViews).toBe(3);
+      expect(result.sources.map((source: any) => source.path)).toEqual([
+        'architecture/model.c4',
+        'architecture/views.c4',
+        'payments/model.c4',
+        'payments/views.c4',
+      ]);
+      expect(result.sources[0].content).toContain("customer = actor 'Customer'");
+      expect(result.sources[1].views.map((view: any) => view.id)).toEqual(['OrderFlow', 'Checkout']);
+    }
+  });
+
+  it('returns all source files and the matching view when viewId is provided', async () => {
+    const result = await getC4Diagram({ viewId: 'OrderFlow' });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect((result as any).matchingViews[0]).toMatchObject({
+        id: 'OrderFlow',
+        kind: 'element',
+        filePath: 'architecture/views.c4',
+      });
+      expect(result.sources.map((source: any) => source.path)).toEqual([
+        'architecture/model.c4',
+        'architecture/views.c4',
+        'payments/model.c4',
+        'payments/views.c4',
+      ]);
+      expect(result.sources[0].content).toContain("customer = actor 'Customer'");
+    }
+  });
+
+  it('returns sources for another matching view', async () => {
+    const result = await getC4Diagram({ viewId: 'PaymentsOverview' });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect((result as any).matchingViews[0]).toMatchObject({
+        id: 'PaymentsOverview',
+        kind: 'deployment',
+      });
+    }
+  });
+
+  it('returns available views when the requested view cannot be found', async () => {
+    const result = await getC4Diagram({ viewId: 'MissingView' });
+
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('MissingView');
+      expect((result as any).availableViews.map((view: any) => view.id)).toContain('OrderFlow');
+    }
+  });
+
+  it('returns an empty result when no LikeC4 source files are found', async () => {
+    vi.mocked(glob).mockResolvedValue([]);
+
+    const result = await getC4Diagram({});
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalSourceFiles).toBe(0);
+      expect(result.sources).toEqual([]);
+    }
   });
 });
 

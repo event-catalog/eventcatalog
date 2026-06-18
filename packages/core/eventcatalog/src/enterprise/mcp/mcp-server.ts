@@ -30,6 +30,7 @@ import {
   resourceCollectionSchema,
   messageCollectionSchema,
   toolDescriptions,
+  getC4Diagram,
 } from '@enterprise/tools/catalog-tools';
 import { getCollection } from 'astro:content';
 import { createMcpAuthErrorResponse, validateMcpRequest } from './mcp-auth';
@@ -182,6 +183,17 @@ function createMcpServer() {
   );
 
   server.registerTool(
+    'getC4Diagram',
+    {
+      description: toolDescriptions.getC4Diagram,
+      inputSchema: z.object({
+        viewId: z.string().describe('The id of the LikeC4 view to return source files for').optional(),
+      }),
+    },
+    createToolHandler(getC4Diagram, 'Failed to get c4 diagram')
+  );
+
+  server.registerTool(
     'analyzeChangeImpact',
     {
       description: toolDescriptions.analyzeChangeImpact,
@@ -328,7 +340,18 @@ function createMcpServer() {
       name: 'All Resources in EventCatalog',
       uri: 'eventcatalog://all',
       description: 'All messages, agents, domains and services in EventCatalog',
-      collections: ['events', 'commands', 'queries', 'agents', 'services', 'domains', 'flows', 'channels', 'entities'] as const,
+      collections: [
+        'events',
+        'commands',
+        'queries',
+        'agents',
+        'services',
+        'domains',
+        'flows',
+        'channels',
+        'entities',
+        'adrs',
+      ] as const,
     },
     {
       name: 'All Events in EventCatalog',
@@ -359,6 +382,12 @@ function createMcpServer() {
       uri: 'eventcatalog://agents',
       description: 'All agents in EventCatalog',
       collections: ['agents'] as const,
+    },
+    {
+      name: 'All Architecture Decision Records (adrs) in EventCatalog',
+      uri: 'eventcatalog://adrs',
+      description: 'All architecture decision records in EventCatalog',
+      collections: ['adrs'] as const,
     },
     {
       name: 'All Domains in EventCatalog',
@@ -461,6 +490,7 @@ const mcpResources = [
   'eventcatalog://commands',
   'eventcatalog://queries',
   'eventcatalog://agents',
+  'eventcatalog://adrs',
   'eventcatalog://services',
   'eventcatalog://domains',
   'eventcatalog://flows',
@@ -478,7 +508,7 @@ app.get('/', async (c: Context) => {
 
   return c.json({
     name: 'EventCatalog MCP Server',
-    version: '1.0.0',
+    version: '1.1.0',
     status: 'running',
     tools: [...builtInTools, ...extendedToolNames],
     extendedTools: extendedToolNames.length > 0 ? extendedToolNames : undefined,
