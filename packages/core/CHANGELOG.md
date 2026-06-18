@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.48.0
+
+### Minor Changes
+
+- 984e0ee: Add `getC4Diagram` MCP tool to expose LikeC4 source files and view metadata, and add support for the `adrs` collection in MCP resources and tools
+
 ## 3.47.4
 
 ### Patch Changes
