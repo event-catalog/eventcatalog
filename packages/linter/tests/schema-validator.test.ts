@@ -287,4 +287,92 @@ describe('validateSchema', () => {
       expect(errors.length).toBeGreaterThan(0);
     });
   });
+
+  describe('adr validation', () => {
+    it('should pass with valid adr frontmatter', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-0001-use-event-sourcing',
+        name: 'Use event sourcing',
+        version: '1.0.0',
+        status: 'accepted',
+        date: '2026-06-18',
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass for every valid status value', () => {
+      for (const status of ['proposed', 'accepted', 'rejected', 'deprecated', 'superseded']) {
+        const parsedFile = createParsedFile('adr', {
+          id: 'adr-0001',
+          name: 'A decision',
+          version: '1.0.0',
+          status,
+          date: '2026-06-18',
+        });
+        expect(validateSchema(parsedFile)).toHaveLength(0);
+      }
+    });
+
+    it('should fail with a status outside the schema enum', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-0001',
+        name: 'A decision',
+        version: '1.0.0',
+        status: 'draft',
+        date: '2026-06-18',
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0].field).toBe('status');
+    });
+
+    it('should fail with missing required fields (status, date)', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-0001',
+        name: 'A decision',
+        version: '1.0.0',
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.length).toBeGreaterThan(0);
+    });
+
+    it('should pass with typed appliesTo, decisionMakers and relationships', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-0001',
+        name: 'A decision',
+        version: '1.0.0',
+        status: 'accepted',
+        date: '2026-06-18',
+        decisionMakers: ['jane-doe', { id: 'platform-team', collection: 'teams' }],
+        appliesTo: [
+          { type: 'service', id: 'orders-service' },
+          { type: 'domain', id: 'sales', version: '2.0.0' },
+          { type: 'container', id: 'orders-db' },
+        ],
+        supersedes: [{ id: 'adr-0000' }],
+        related: [{ id: 'adr-0002', version: '1.0.0' }],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should fail when an appliesTo entry has an unknown type', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-0001',
+        name: 'A decision',
+        version: '1.0.0',
+        status: 'accepted',
+        date: '2026-06-18',
+        appliesTo: [{ type: 'not-a-resource', id: 'orders-service' }],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.length).toBeGreaterThan(0);
+    });
+  });
 });

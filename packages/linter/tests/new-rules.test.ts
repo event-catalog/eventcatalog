@@ -513,6 +513,50 @@ describe('best-practices/schema-required', () => {
   });
 });
 
+describe('best-practices/owner-required', () => {
+  it('should not report for ADRs without owners (they use decisionMakers)', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile(
+        'adr',
+        'adr-0001',
+        {
+          id: 'adr-0001',
+          name: 'A decision',
+          version: '1.0.0',
+          summary: 'A decision record',
+          status: 'accepted',
+          date: '2026-06-18',
+          decisionMakers: ['jane-doe'],
+        },
+        'Some content'
+      ),
+    ];
+
+    const errors = validateBestPractices(parsedFiles);
+    const ownerErrors = errors.filter((e) => e.rule === 'best-practices/owner-required');
+    expect(ownerErrors).toHaveLength(0);
+  });
+
+  it('should still report for a service without owners', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile(
+        'service',
+        'order-service',
+        {
+          id: 'order-service',
+          version: '1.0.0',
+          summary: 'A service',
+        },
+        'Some content'
+      ),
+    ];
+
+    const errors = validateBestPractices(parsedFiles);
+    const ownerErrors = errors.filter((e) => e.rule === 'best-practices/owner-required');
+    expect(ownerErrors).toHaveLength(1);
+  });
+});
+
 describe('versions/no-deprecated-references', () => {
   it('should warn when referencing a deprecated resource', () => {
     const parsedFiles: ParsedFile[] = [

@@ -44,4 +44,19 @@ describe('extractResourceInfo', () => {
     const result = extractResourceInfo('teams/platform-team.mdx', 'team');
     expect(result).toEqual({ id: 'platform-team' });
   });
+
+  it('should extract adr id at the domain level', () => {
+    const result = extractResourceInfo('domains/sales/adrs/adr-0001/index.mdx', 'adr');
+    expect(result).toEqual({ id: 'adr-0001' });
+  });
+
+  it('should extract adr id at the service level', () => {
+    const result = extractResourceInfo('domains/sales/services/orders-service/adrs/adr-0001/index.mdx', 'adr');
+    expect(result).toEqual({ id: 'adr-0001' });
+  });
+
+  it('should extract adr id with versioned structure', () => {
+    const result = extractResourceInfo('domains/sales/adrs/adr-0001/versioned/2.0.0/index.mdx', 'adr');
+    expect(result).toEqual({ id: 'adr-0001', version: '2.0.0' });
+  });
 });

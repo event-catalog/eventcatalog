@@ -20,10 +20,12 @@ export const validateBestPractices = (parsedFiles: ParsedFile[]): ValidationErro
       });
     }
 
-    // Check for required owners (skip users and teams - they are owners, not owned)
+    // Check for required owners (skip users and teams - they are owners, not owned;
+    // skip ADRs - they declare ownership via `decisionMakers`, `owners` is optional)
     if (
       file.resourceType !== 'user' &&
       file.resourceType !== 'team' &&
+      file.resourceType !== 'adr' &&
       (!frontmatter.owners || !Array.isArray(frontmatter.owners) || frontmatter.owners.length === 0)
     ) {
       errors.push({

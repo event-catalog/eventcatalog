@@ -31,6 +31,7 @@ A comprehensive linter for EventCatalog that validates frontmatter schemas and r
 - 📊 **Entities**
 - 👤 **Users**
 - 👥 **Teams**
+- 📝 **ADRs** (Architecture Decision Records)
 
 ## 📦 Installation
 

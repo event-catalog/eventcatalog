@@ -8,6 +8,7 @@ export * from './entity';
 export * from './user';
 export * from './team';
 export * from './data-store';
+export * from './adr';
 
 import { domainSchema } from './domain';
 import { serviceSchema } from './service';
@@ -18,6 +19,7 @@ import { entitySchema } from './entity';
 import { userSchema } from './user';
 import { teamSchema } from './team';
 import { dataStoreSchema } from './data-store';
+import { adrSchema } from './adr';
 
 export const schemas = {
   domain: domainSchema,
@@ -31,6 +33,7 @@ export const schemas = {
   user: userSchema,
   team: teamSchema,
   dataStore: dataStoreSchema,
+  adr: adrSchema,
 } as const;
 
 export type ResourceType = keyof typeof schemas;
