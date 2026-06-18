@@ -1,5 +1,11 @@
 # @eventcatalog/linter
 
+## 1.1.0
+
+### Minor Changes
+
+- 956d324: Add linter support for agents, ADRs, containers, data products, and diagrams, expand reference validation across resource types, and update the LikeC4 install message to pin compatible versions.
+
 ## 1.0.29
 
 ### Patch Changes
