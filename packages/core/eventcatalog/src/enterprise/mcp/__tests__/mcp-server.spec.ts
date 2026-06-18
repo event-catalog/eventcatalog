@@ -155,7 +155,7 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
   it('should verify toolDescriptions contains all expected tools', async () => {
     const { toolDescriptions } = await import('@enterprise/tools/catalog-tools');
 
-    // 15 built-in tools from toolDescriptions
+    // 19 built-in tools from toolDescriptions
     const expectedTools = [
       'getResources',
       'getResource',
