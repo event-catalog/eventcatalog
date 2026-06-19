@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.48.1
+
+### Patch Changes
+
+- a57b658: Track changelog, auth, and environments features in build analytics
+
 ## 3.48.0
 
 ### Minor Changes
