@@ -1,4 +1,5 @@
 import { getCollection } from 'astro:content';
+import dagre from 'dagre';
 import {
   createDagreGraph,
   calculatedNodes,
@@ -194,6 +195,7 @@ interface NodesAndEdgesProps {
   mode: 'simple' | 'full';
   group?: boolean;
   channelRenderMode?: 'single' | 'flat';
+  layout?: boolean;
 }
 
 export const getNodesAndEdges = async ({
@@ -203,6 +205,7 @@ export const getNodesAndEdges = async ({
   mode = 'simple',
   group = false,
   channelRenderMode = 'flat',
+  layout = true,
 }: NodesAndEdgesProps) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 50, edgesep: 50 });
   let nodes = new Map(),
@@ -268,6 +271,7 @@ export const getNodesAndEdges = async ({
       mode,
       renderAllEdges: true,
       channelRenderMode,
+      layout: false,
     });
     serviceNodes.forEach((n) => {
       /**
@@ -292,6 +296,7 @@ export const getNodesAndEdges = async ({
       mode,
       renderAllEdges: true,
       channelRenderMode,
+      layout: false,
     });
     agentNodes.forEach((n) => {
       nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
@@ -306,6 +311,7 @@ export const getNodesAndEdges = async ({
       version: dataProduct.version,
       defaultFlow: flow,
       mode,
+      layout: false,
     });
     dataProductNodes.forEach((n: any) => {
       nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
@@ -322,6 +328,7 @@ export const getNodesAndEdges = async ({
       mode,
       group: true,
       channelRenderMode,
+      layout: false,
     });
     subDomainNodes.forEach((n) => {
       nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
@@ -336,6 +343,10 @@ export const getNodesAndEdges = async ({
     nodes.forEach((n) => {
       nodes.set(n.id, { ...n, data: { ...n.data, group: { type: 'Domain', value: domain?.data.name, id: domain?.data.id } } });
     });
+  }
+
+  if (layout) {
+    dagre.layout(flow);
   }
 
   return {
