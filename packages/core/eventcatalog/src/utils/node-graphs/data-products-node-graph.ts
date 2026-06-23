@@ -26,6 +26,7 @@ interface Props {
   version: string;
   defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
+  layout?: boolean;
 }
 
 const getNodePropertyFromCollectionType = (type: string) => {
@@ -34,7 +35,7 @@ const getNodePropertyFromCollectionType = (type: string) => {
   return collectionToResourceMap[type as keyof typeof collectionToResourceMap];
 };
 
-export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple' }: Props) => {
+export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', layout = true }: Props) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   let nodes = [] as any,
     edges = [] as any;
@@ -217,17 +218,19 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     flow.setEdge(edge.source, edge.target);
   });
 
-  // Render the diagram in memory getting the X and Y
-  dagre.layout(flow);
+  if (layout) {
+    // Render the diagram in memory getting the X and Y
+    dagre.layout(flow);
+  }
 
   // Find any duplicated edges, and merge them into one edge
-  const uniqueEdges = edges.reduce((acc: any[], edge: any) => {
-    const existingEdge = acc.find((e: any) => e.id === edge.id);
-    if (!existingEdge) {
-      acc.push(edge);
+  const uniqueEdgesById = new Map<string, any>();
+  edges.forEach((edge: any) => {
+    if (!uniqueEdgesById.has(edge.id)) {
+      uniqueEdgesById.set(edge.id, edge);
     }
-    return acc;
-  }, []);
+  });
+  const uniqueEdges = Array.from(uniqueEdgesById.values());
 
   return {
     nodes: calculatedNodes(flow, nodes),

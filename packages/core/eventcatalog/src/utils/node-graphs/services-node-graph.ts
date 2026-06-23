@@ -119,6 +119,7 @@ interface Props {
   channelRenderMode?: 'single' | 'flat';
   renderMessages?: boolean;
   collection?: 'agents' | 'services';
+  layout?: boolean;
 }
 
 const getResourceContextMenu = (resource: CollectionEntry<'agents'> | CollectionEntry<'services'>) => {
@@ -178,6 +179,7 @@ export const getNodesAndEdges = async ({
   channelRenderMode = 'flat',
   renderMessages = true,
   collection = 'services',
+  layout = true,
 }: Props) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   let nodes = [] as any,
@@ -598,9 +600,13 @@ export const getNodesAndEdges = async ({
     });
   });
 
-  const uniqueNodes = nodes.filter(
-    (node: any, index: number, self: any[]) => index === self.findIndex((n: any) => n.id === node.id)
-  );
+  const uniqueNodesById = new Map<string, any>();
+  nodes.forEach((node: any) => {
+    if (!uniqueNodesById.has(node.id)) {
+      uniqueNodesById.set(node.id, node);
+    }
+  });
+  const uniqueNodes = Array.from(uniqueNodesById.values());
 
   uniqueNodes.forEach((node: any) => {
     flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
@@ -610,12 +616,15 @@ export const getNodesAndEdges = async ({
     flow.setEdge(edge.source, edge.target);
   });
 
-  // Render the diagram in memory getting the X and Y
-  dagre.layout(flow);
+  if (layout) {
+    // Render the diagram in memory getting the X and Y
+    dagre.layout(flow);
+  }
 
   // Find any duplicated edges, and merge them into one edge
-  const uniqueEdges = edges.reduce((acc: any[], edge: any) => {
-    const existingEdge = acc.find((e: any) => e.id === edge.id);
+  const uniqueEdgesById = new Map<string, any>();
+  edges.forEach((edge: any) => {
+    const existingEdge = uniqueEdgesById.get(edge.id);
     if (existingEdge) {
       if (edge.data?.customColor || existingEdge.data?.customColor) {
         // Add custom colors to the existing edge when grouped message paths converge.
@@ -629,10 +638,10 @@ export const getNodesAndEdges = async ({
         };
       }
     } else {
-      acc.push(edge);
+      uniqueEdgesById.set(edge.id, edge);
     }
-    return acc;
-  }, []);
+  });
+  const uniqueEdges = Array.from(uniqueEdgesById.values());
 
   return {
     nodes: calculatedNodes(flow, uniqueNodes),
