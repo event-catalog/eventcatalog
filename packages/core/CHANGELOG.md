@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.48.2
+
+### Patch Changes
+
+- 38287a4: Sort ADRs in the sidebar by resource name instead of date
+
 ## 3.48.1
 
 ### Patch Changes
