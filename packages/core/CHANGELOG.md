@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.48.3
+
+### Patch Changes
+
+- 2bb0759: Improve node graph performance by deferring dagre layout when composing sub-graphs and using Map-based de-duplication for nodes and edges
+
 ## 3.48.2
 
 ### Patch Changes
