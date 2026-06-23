@@ -23,6 +23,9 @@
   },
   "files": [
     "eventcatalog/",
+    "!eventcatalog/.astro/",
+    "!eventcatalog/dist/",
+    "!eventcatalog/node_modules/",
     "!eventcatalog/**/__tests__/",
     "bin/",
     "dist/"

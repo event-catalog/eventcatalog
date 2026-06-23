@@ -291,12 +291,19 @@ const copyCore = () => {
   fs.cpSync(eventCatalogDir, core, {
     recursive: true,
     filter: (src) => {
-      // if(src.includes('node_modules')) {
-      //   return false;
-      // }
-      return true;
+      const relativePath = path.relative(eventCatalogDir, src);
+      const pathParts = relativePath.split(path.sep);
+
+      return !pathParts.some((part) => ['.astro', 'dist', 'node_modules'].includes(part));
     },
   });
+
+  const coreNodeModules = path.join(core, 'node_modules');
+  const installedCoreNodeModules = path.resolve(currentDir, '..', 'node_modules');
+
+  if (!fs.existsSync(coreNodeModules) && fs.existsSync(installedCoreNodeModules)) {
+    fs.symlinkSync(installedCoreNodeModules, coreNodeModules, process.platform === 'win32' ? 'junction' : 'dir');
+  }
 };
 
 const clearCore = () => {
@@ -463,6 +470,7 @@ program
           EVENTCATALOG_STARTER: String(isEventCatalogStarter),
           EVENTCATALOG_SCALE: String(isEventCatalogScale),
           EVENTCATALOG_DEV_MODE: 'true',
+          IGNORE_BUILD_ARTIFACTS: 'true',
           NODE_NO_WARNINGS: '1',
         },
         shouldFilterLine: createAstroDevLineFilter(),
@@ -546,6 +554,7 @@ program
         ENABLE_EMBED: String(canEmbedPages),
         EVENTCATALOG_STARTER: String(isEventCatalogStarter),
         EVENTCATALOG_SCALE: String(isEventCatalogScale),
+        IGNORE_BUILD_ARTIFACTS: 'true',
       },
       shouldFilterLine: createAstroLineFilter(),
     });
