@@ -58,12 +58,6 @@ const byResourceName = <T extends { data: { name?: string; id: string } }>(a: T,
 
 const sortByResourceName = <T extends { data: { name?: string; id: string } }>(items: T[]) => [...items].sort(byResourceName);
 
-const byAdrDateDesc = (a: Adr, b: Adr) => {
-  const date = new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
-  if (date !== 0) return date;
-  return byResourceName(a, b);
-};
-
 const groupAdrsByStatus = (adrs: Adr[]): NavNode[] =>
   ADR_STATUS_VALUES.reduce<NavNode[]>((groups, status) => {
     const adrsForStatus = adrs.filter((adr) => adr.data.status === status);
@@ -73,7 +67,7 @@ const groupAdrsByStatus = (adrs: Adr[]): NavNode[] =>
       type: 'group',
       title: `${formatAdrStatus(status)} (${adrsForStatus.length})`,
       subtle: true,
-      pages: [...adrsForStatus].sort(byAdrDateDesc).map(getAdrNodeKey),
+      pages: [...adrsForStatus].sort(byResourceName).map(getAdrNodeKey),
     });
 
     return groups;

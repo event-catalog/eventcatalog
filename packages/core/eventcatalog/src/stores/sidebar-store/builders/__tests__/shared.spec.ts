@@ -77,4 +77,47 @@ describe('withArchitectureDecisionsSection', () => {
       },
     ]);
   });
+
+  it('sorts Decision Records by name then id', () => {
+    const node: NavNode = {
+      type: 'item',
+      title: 'Orders Service',
+      href: '/docs/services/OrdersService/1.0.0',
+    };
+
+    const resource = {
+      collection: 'services',
+      data: { id: 'OrdersService', version: '1.0.0' },
+    };
+
+    const createAdr = (id: string, name?: string) => ({
+      collection: 'adrs',
+      data: {
+        id,
+        name,
+        version: '1.0.0',
+        appliesTo: [{ type: 'service', id: 'OrdersService', version: '1.0.0' }],
+      },
+    });
+
+    const result = withArchitectureDecisionsSection(
+      node,
+      resource as any,
+      [
+        createAdr('adr-003', 'Store payment authorization'),
+        createAdr('adr-002', 'Choose event format'),
+        createAdr('adr-001', 'Choose event format'),
+        createAdr('adr-004'),
+      ] as any
+    );
+
+    const decisionRecords = result.pages?.find((page) => typeof page !== 'string' && page.title === 'Decision Records');
+
+    expect(decisionRecords && typeof decisionRecords !== 'string' ? decisionRecords.pages : undefined).toEqual([
+      'adr:adr-004:1.0.0',
+      'adr:adr-001:1.0.0',
+      'adr:adr-002:1.0.0',
+      'adr:adr-003:1.0.0',
+    ]);
+  });
 });
