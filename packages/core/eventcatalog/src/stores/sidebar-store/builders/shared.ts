@@ -102,6 +102,12 @@ export const buildOwnersSection = (owners: any[]): NavNode | null => {
   };
 };
 
+const byAdrName = (a: Adr, b: Adr) => {
+  const name = (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  if (name !== 0) return name;
+  return a.data.id.localeCompare(b.data.id);
+};
+
 export const buildArchitectureDecisionsSection = (resource: AdrResource, adrs: Adr[]): NavNode | null => {
   const relatedAdrs = getAdrsForResource(resource, adrs);
   if (relatedAdrs.length === 0) return null;
@@ -110,7 +116,7 @@ export const buildArchitectureDecisionsSection = (resource: AdrResource, adrs: A
     type: 'group',
     title: 'Decision Records',
     icon: 'BookText',
-    pages: relatedAdrs.map(getAdrNodeKey),
+    pages: [...relatedAdrs].sort(byAdrName).map(getAdrNodeKey),
   };
 };
 
