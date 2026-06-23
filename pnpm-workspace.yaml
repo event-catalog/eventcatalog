@@ -6,7 +6,13 @@ minimumReleaseAgeExclude:
   - "@astrojs/check"
   - "@astrojs/internal-helpers"
   - "@astrojs/markdown-remark"
+  - "@astrojs/markdown-satteri"
   - "@astrojs/mdx"
   - "@astrojs/node"
   - "@astrojs/react"
   - "@astrojs/telemetry"
+  - "satteri"
+
+peerDependencyRules:
+  allowedVersions:
+    "astro-expressive-code>astro": "7"

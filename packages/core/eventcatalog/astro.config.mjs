@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
@@ -38,6 +39,22 @@ const searchType = config.search?.type || 'resource';
 
 const markdownRemarkPlugins = [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml];
 const mdxRemarkPlugins = [...markdownRemarkPlugins, remarkResourceRef];
+const mdxRehypePlugins = [
+  [
+    rehypeExpressiveCode,
+    {
+      ...expressiveCodeConfig,
+    },
+  ],
+  rehypeSlug,
+  [
+    rehypeAutolinkHeadings,
+    {
+      behavior: 'append',
+      properties: { className: ['anchor-link'] },
+    },
+  ],
+];
 
 // https://astro.build/config
 export default defineConfig({
@@ -69,8 +86,9 @@ export default defineConfig({
   trailingSlash: config.trailingSlash === true ? 'always' : 'ignore',
 
   markdown: {
-    remarkPlugins: markdownRemarkPlugins,
-    gfm: true,
+    processor: unified({
+      remarkPlugins: markdownRemarkPlugins,
+    }),
   },
 
   // just turn this off for all users (for now...)
@@ -82,24 +100,10 @@ export default defineConfig({
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
-      remarkPlugins: mdxRemarkPlugins,
-      rehypePlugins: [
-        [
-          rehypeExpressiveCode,
-          {
-            ...expressiveCodeConfig,
-          },
-        ],
-        rehypeSlug,
-        [
-          rehypeAutolinkHeadings,
-          {
-            behavior: 'append',
-            properties: { className: ['anchor-link'] },
-          },
-        ],
-      ],
-      gfm: true,
+      processor: unified({
+        remarkPlugins: mdxRemarkPlugins,
+        rehypePlugins: mdxRehypePlugins,
+      }),
     }),
     effectiveOutput !== 'server' &&
       compress &&
@@ -183,9 +187,6 @@ export default defineConfig({
         'react-dom',
         'semver',
       ],
-      esbuildOptions: {
-        jsx: 'automatic',
-      },
     },
   },
 });
