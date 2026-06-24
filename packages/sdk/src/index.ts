@@ -123,7 +123,7 @@ import {
   getSchemaForMessage,
 } from './messages';
 
-import { getResourcePath, getResourceFolderName } from './internal/resources';
+import { getResourcePath, getResourceFolderName, getResources } from './internal/resources';
 
 import { writeCustomDoc, getCustomDoc, getCustomDocs, rmCustomDoc } from './custom-docs';
 
@@ -1162,6 +1162,11 @@ export default (path: string) => {
      * Returns the folder name of a given resource
      */
     getResourceFolderName: getResourceFolderName,
+
+    /**
+     * Returns resources from the catalog for a given type
+     */
+    getResources: getResources,
 
     /**
      * ================================
