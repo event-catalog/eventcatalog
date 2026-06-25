@@ -87,6 +87,16 @@ const typeConfig: Record<
       { id: 'isDeprecated', label: 'Is Deprecated' },
     ],
   },
+  systems: {
+    label: 'Systems',
+    description: 'Explore the systems that group services and flows across your architecture, independently of domains.',
+    propertyOptions: [
+      { id: 'hasServices', label: 'Has Services' },
+      { id: 'hasFlows', label: 'Has Flows' },
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
   services: {
     label: 'Services',
     description: 'Browse the internal services in your catalog and inspect the capabilities they expose.',
@@ -269,7 +279,8 @@ const tableData = enrichedData.map((d: any) => ({
   collection: d.collection,
   owners: (d.data?.owners || []).map(mapOwner).filter(Boolean),
   hasOwners: (d.data?.owners || []).length > 0,
-  hasServices: type === 'domains' ? (d.data?.services || []).length > 0 : false,
+  hasServices: type === 'domains' || type === 'systems' ? (d.data?.services || []).length > 0 : false,
+  hasFlows: type === 'systems' ? (d.data?.flows || []).length > 0 : false,
   isSubdomain: type === 'domains' ? allSubdomainIds.has(d.data.id) : false,
   // Service-specific properties
   domains: isServiceOrAgentLike ? d.enrichedDomains : undefined,
@@ -304,6 +315,7 @@ const tableData = enrichedData.map((d: any) => ({
     tools: d.data?.tools ?? [],
     agents: d.data?.agents?.map(mapToItem) ?? [],
     services: d.data?.services?.map(mapToItem) ?? [],
+    flows: d.data?.flows?.map(mapToItem) ?? [],
     servicesThatWriteToContainer: d.data?.servicesThatWriteToContainer?.map(mapToItem) ?? [],
     servicesThatReadFromContainer: d.data?.servicesThatReadFromContainer?.map(mapToItem) ?? [],
     inputs: d.data?.inputs?.map(resolvePointer).filter(Boolean) ?? [],

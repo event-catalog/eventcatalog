@@ -35,6 +35,7 @@ export class Page extends HybridPage {
       'commands',
       'queries',
       'domains',
+      'systems',
       'services',
       'external-systems',
       'flows',

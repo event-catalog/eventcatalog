@@ -12,6 +12,7 @@ import {
   BotMessageSquare,
   BookOpen,
   BookText,
+  Group,
   FileText,
   SquareDashedMousePointerIcon,
   FileCode,
@@ -58,6 +59,7 @@ import { ClientRouter } from 'astro:transitions';
 
 import { getCommands } from '@utils/collections/commands';
 import { getDomains } from '@utils/collections/domains';
+import { getSystems } from '@utils/collections/systems';
 import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
 import { getAgents } from '@utils/collections/agents';
@@ -81,11 +83,12 @@ let services: any[] = [];
 let agents: any[] = [];
 let adrs: any[] = [];
 let domains: any[] = [];
+let systems: any[] = [];
 let flows: any[] = [];
 let containers: any[] = [];
 let dataProducts: any[] = [];
 
-[events, commands, queries, services, agents, adrs, domains, flows, containers, dataProducts] = await Promise.all([
+[events, commands, queries, services, agents, adrs, domains, systems, flows, containers, dataProducts] = await Promise.all([
   getEvents({ getAllVersions: false, hydrateServices: false }),
   getCommands({ getAllVersions: false, hydrateServices: false }),
   getQueries({ getAllVersions: false, hydrateServices: false }),
@@ -93,6 +96,7 @@ let dataProducts: any[] = [];
   getAgents({ getAllVersions: false }),
   getAdrs({ getAllVersions: false }),
   getDomains({ getAllVersions: false }),
+  getSystems({ getAllVersions: false }),
   getFlows({ getAllVersions: false }),
   getContainers({ getAllVersions: false }),
   getDataProducts({ getAllVersions: false }),
@@ -258,6 +262,15 @@ const browseItems = filterSidebarItems(
       href: buildUrl('/discover/domains'),
       current: currentPath === buildUrl('/discover/domains'),
       visible: domains.length > 0,
+    },
+    {
+      id: '/discover/systems',
+      aliases: ['/discover'],
+      label: 'Systems',
+      icon: Group,
+      href: buildUrl('/discover/systems'),
+      current: currentPath === buildUrl('/discover/systems'),
+      visible: systems.length > 0,
     },
     {
       id: '/discover/services',
