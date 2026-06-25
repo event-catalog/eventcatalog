@@ -467,7 +467,7 @@ describe('getNestedSideBarData', () => {
       });
     });
 
-    it('lists an Architecture section with a Map link for the system', async () => {
+    it('lists an Architecture section with Overview and Map links for the system', async () => {
       mockSystems.push({
         id: 'CoreMonolith',
         name: 'Core Monolith',
@@ -484,6 +484,11 @@ describe('getNestedSideBarData', () => {
         title: 'Architecture',
         icon: 'Workflow',
         pages: [
+          {
+            type: 'item',
+            title: 'Overview',
+            href: '/architecture/systems/CoreMonolith/1.0.0',
+          },
           {
             type: 'item',
             title: 'Map',

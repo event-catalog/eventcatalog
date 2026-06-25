@@ -1,6 +1,14 @@
 import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockDomains, mockServices, mockEvents, mockCommands, mockUbiquitousLanguages, mockDataProducts } from './mocks';
+import {
+  mockDomains,
+  mockServices,
+  mockEvents,
+  mockCommands,
+  mockUbiquitousLanguages,
+  mockDataProducts,
+  mockSystems,
+} from './mocks';
 import {
   domainHasEntities,
   getDomains,
@@ -28,6 +36,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockCommands);
         case 'data-products':
           return Promise.resolve(mockDataProducts);
+        case 'systems':
+          return Promise.resolve(mockSystems);
         case 'ubiquitousLanguages':
           let result = mockUbiquitousLanguages;
           if (filter) {
@@ -60,6 +70,20 @@ describe('Domains', () => {
       ];
 
       expect(domains).toEqual(expect.arrayContaining(expectedDomains.map((d) => expect.objectContaining(d))));
+    });
+
+    it('resolves a domains referenced systems and hydrates their services', async () => {
+      const domains = await getDomains();
+      const logistics = domains.find((d) => d.data.id === 'Logistics');
+
+      const systems = (logistics?.data as any).systems;
+      expect(systems).toHaveLength(1);
+      expect(systems[0].data.id).toEqual('FulfilmentSystem');
+
+      // The system's service pointers are hydrated into full service entries
+      expect(systems[0].data.services).toEqual([
+        expect.objectContaining({ data: expect.objectContaining({ id: 'LocationService' }) }),
+      ]);
     });
   });
 

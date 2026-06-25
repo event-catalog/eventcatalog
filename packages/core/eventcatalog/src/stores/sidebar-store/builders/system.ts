@@ -57,17 +57,22 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
         ].filter(Boolean) as { title: string; href: string }[]
       ),
       docsSection,
-      renderVisualiser && {
+      {
         type: 'group',
         title: 'Architecture',
         icon: 'Workflow',
         pages: [
           {
             type: 'item',
+            title: 'Overview',
+            href: buildUrl(`/architecture/systems/${system.data.id}/${system.data.version}`),
+          },
+          renderVisualiser && {
+            type: 'item',
             title: 'Map',
             href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}`),
           },
-        ] as ChildRef[],
+        ].filter(Boolean) as ChildRef[],
       },
       renderServices && {
         type: 'group',

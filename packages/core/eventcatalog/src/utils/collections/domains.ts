@@ -223,11 +223,27 @@ export const getDomains = async ({
         .map((flow: { id: string; version: string | undefined }) => findInMap(flowMap, flow.id, flow.version))
         .filter((f): f is CollectionEntry<'flows'> => !!f);
 
-      // Resolve Systems
+      // Resolve Systems (and hydrate each system's services so they can be
+      // rendered in the domain's architecture view, like subdomains)
       const systemsInDomain = domain.data.systems || [];
       const systems = systemsInDomain
         .map((system: { id: string; version: string | undefined }) => findInMap(systemMap, system.id, system.version))
-        .filter((s): s is CollectionEntry<'systems'> => !!s);
+        .filter((s): s is CollectionEntry<'systems'> => !!s)
+        .map((system: any) => {
+          const systemServices = enrichServices
+            ? hydrateServices(system.data.services || [], serviceMap, messageMap, containerMap)
+            : (system.data.services || [])
+                .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
+                .filter((s: any) => !!s);
+
+          return {
+            ...system,
+            data: {
+              ...system.data,
+              services: systemServices as any,
+            },
+          };
+        });
 
       // Resolve Data Products
       const dataProductsInDomain = domain.data['data-products'] || [];
