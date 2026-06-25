@@ -17,19 +17,19 @@ export const getUsers = async (): Promise<User[]> => {
   }
 
   // 1. Fetch all collections in parallel
-  const [allUsers, allAgents, allDomains, allServices, allEvents, allCommands, allQueries, allTeams, allAdrs] = await Promise.all(
-    [
+  const [allUsers, allAgents, allDomains, allSystems, allServices, allEvents, allCommands, allQueries, allTeams, allAdrs] =
+    await Promise.all([
       getCollection('users'),
       getCollection('agents'),
       getCollection('domains'),
+      getCollection('systems'),
       getCollection('services'),
       getCollection('events'),
       getCollection('commands'),
       getCollection('queries'),
       getCollection('teams'),
       getAdrs({ getAllVersions: false }),
-    ]
-  );
+    ]);
 
   // 2. Filter users
   const targetUsers = allUsers.filter((user) => user.data.hidden !== true);
@@ -59,6 +59,7 @@ export const getUsers = async (): Promise<User[]> => {
 
   addToIndex(allAgents);
   addToIndex(allDomains);
+  addToIndex(allSystems);
   addToIndex(allServices);
   addToIndex(allEvents);
   addToIndex(allCommands);
@@ -93,6 +94,7 @@ export const getUsers = async (): Promise<User[]> => {
     // Categorize items
     const ownedAgents = allOwnedItems.filter((i) => i.collection === 'agents') as CollectionEntry<'agents'>[];
     const ownedDomains = allOwnedItems.filter((i) => i.collection === 'domains') as CollectionEntry<'domains'>[];
+    const ownedSystems = allOwnedItems.filter((i) => i.collection === 'systems') as CollectionEntry<'systems'>[];
     const ownedServices = allOwnedItems.filter((i) => i.collection === 'services') as CollectionEntry<'services'>[];
     const ownedEvents = allOwnedItems.filter((i) => i.collection === 'events') as CollectionEntry<'events'>[];
     const ownedCommands = allOwnedItems.filter((i) => i.collection === 'commands') as CollectionEntry<'commands'>[];
@@ -105,6 +107,7 @@ export const getUsers = async (): Promise<User[]> => {
         ...user.data,
         ownedAgents,
         ownedDomains,
+        ownedSystems,
         ownedServices,
         ownedEvents,
         ownedCommands,

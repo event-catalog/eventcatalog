@@ -52,6 +52,32 @@ const teamOwnedAdr = {
   },
 };
 
+const userOwnedSystem = {
+  id: 'systems/CoreMonolith/index.mdx',
+  collection: 'systems',
+  filePath: 'systems/CoreMonolith/index.mdx',
+  data: {
+    id: 'CoreMonolith',
+    name: 'Core Monolith',
+    version: '1.0.0',
+    hidden: false,
+    owners: [{ id: 'dave' }],
+  },
+};
+
+const teamOwnedSystem = {
+  id: 'systems/PaymentsPlatform/index.mdx',
+  collection: 'systems',
+  filePath: 'systems/PaymentsPlatform/index.mdx',
+  data: {
+    id: 'PaymentsPlatform',
+    name: 'Payments Platform',
+    version: '1.0.0',
+    hidden: false,
+    owners: [{ id: 'platform' }],
+  },
+};
+
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
@@ -63,6 +89,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve([team]);
         case 'adrs':
           return Promise.resolve([userOwnedAdr, teamOwnedAdr]);
+        case 'systems':
+          return Promise.resolve([userOwnedSystem, teamOwnedSystem]);
         default:
           return Promise.resolve([]);
       }
@@ -85,5 +113,26 @@ describe('user and team ADR ownership', () => {
     const teams = await getTeams();
 
     expect((teams[0].data as any).ownedAdrs.map((adr: any) => adr.data.id)).toEqual(['adr-002']);
+  });
+});
+
+describe('user and team system ownership', () => {
+  it('includes directly owned and team-owned systems on user profiles', async () => {
+    const { getUsers } = await import('../../collections/users');
+
+    const users = await getUsers();
+
+    expect((users[0].data as any).ownedSystems.map((system: any) => system.data.id)).toEqual([
+      'CoreMonolith',
+      'PaymentsPlatform',
+    ]);
+  });
+
+  it('includes directly owned systems on team profiles', async () => {
+    const { getTeams } = await import('../../collections/teams');
+
+    const teams = await getTeams();
+
+    expect((teams[0].data as any).ownedSystems.map((system: any) => system.data.id)).toEqual(['PaymentsPlatform']);
   });
 });

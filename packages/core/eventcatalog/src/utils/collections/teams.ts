@@ -16,16 +16,18 @@ export const getTeams = async (): Promise<Team[]> => {
   }
 
   // 1. Fetch all collections in parallel
-  const [allTeams, allAgents, allDomains, allServices, allEvents, allCommands, allQueries, allAdrs] = await Promise.all([
-    getCollection('teams'),
-    getCollection('agents'),
-    getCollection('domains'),
-    getCollection('services'),
-    getCollection('events'),
-    getCollection('commands'),
-    getCollection('queries'),
-    getAdrs({ getAllVersions: false }),
-  ]);
+  const [allTeams, allAgents, allDomains, allSystems, allServices, allEvents, allCommands, allQueries, allAdrs] =
+    await Promise.all([
+      getCollection('teams'),
+      getCollection('agents'),
+      getCollection('domains'),
+      getCollection('systems'),
+      getCollection('services'),
+      getCollection('events'),
+      getCollection('commands'),
+      getCollection('queries'),
+      getAdrs({ getAllVersions: false }),
+    ]);
 
   // 2. Filter teams
   const targetTeams = allTeams.filter((team) => team.data.hidden !== true);
@@ -50,6 +52,7 @@ export const getTeams = async (): Promise<Team[]> => {
 
   addToIndex(allAgents);
   addToIndex(allDomains);
+  addToIndex(allSystems);
   addToIndex(allServices);
   addToIndex(allEvents);
   addToIndex(allCommands);
@@ -64,6 +67,7 @@ export const getTeams = async (): Promise<Team[]> => {
     // Categorize items
     const ownedAgents = ownedItems.filter((i) => i.collection === 'agents') as CollectionEntry<'agents'>[];
     const ownedDomains = ownedItems.filter((i) => i.collection === 'domains') as CollectionEntry<'domains'>[];
+    const ownedSystems = ownedItems.filter((i) => i.collection === 'systems') as CollectionEntry<'systems'>[];
     const ownedServices = ownedItems.filter((i) => i.collection === 'services') as CollectionEntry<'services'>[];
     const ownedEvents = ownedItems.filter((i) => i.collection === 'events') as CollectionEntry<'events'>[];
     const ownedCommands = ownedItems.filter((i) => i.collection === 'commands') as CollectionEntry<'commands'>[];
@@ -76,6 +80,7 @@ export const getTeams = async (): Promise<Team[]> => {
         ...team.data,
         ownedAgents,
         ownedDomains,
+        ownedSystems,
         ownedServices,
         ownedCommands,
         ownedQueries,
