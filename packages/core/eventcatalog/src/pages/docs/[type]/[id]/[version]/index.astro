@@ -33,6 +33,7 @@ import {
   Bot,
   Box,
   Boxes,
+  Group,
   SquarePenIcon,
   DatabaseIcon,
   DatabaseZapIcon,
@@ -168,6 +169,10 @@ const getBadge = () => {
   }
   if (props.collection === 'domains') {
     return [createResourceBadge('Domain', RectangleGroupIcon)];
+  }
+
+  if (props.collection === 'systems') {
+    return [createResourceBadge('System', Group)];
   }
 
   if (props.collection === 'flows') {

@@ -5,6 +5,7 @@ import { getAdrAliasNodeKey, getAdrNodeKey, getAdrs, type Adr } from '@utils/col
 import { ADR_STATUS_VALUES, formatAdrStatus } from '@utils/collections/adr-constants';
 import { getContainers } from '@utils/collections/containers';
 import { getDomains } from '@utils/collections/domains';
+import { getSystems } from '@utils/collections/systems';
 import { getServices } from '@utils/collections/services';
 import { getMessages, pluralizeMessageType } from '@utils/collections/messages';
 import { getOwner } from '@utils/collections/owners';
@@ -19,6 +20,7 @@ import { buildUrl } from '@utils/url-builder';
 import type { NavigationData, NavNode, ChildRef } from './builders/shared';
 import { buildAgentNode } from './builders/agent';
 import { buildDomainNode } from './builders/domain';
+import { buildSystemNode } from './builders/system';
 import { buildServiceNode } from './builders/service';
 import { buildMessageNode } from './builders/message';
 import { buildContainerNode } from './builders/container';
@@ -274,6 +276,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const [
     domains,
+    systems,
     agents,
     services,
     { events, commands, queries },
@@ -293,6 +296,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     resourceDocCategories,
   ] = await Promise.all([
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
+    getSystems({ getAllVersions: false }),
     getAgents({ getAllVersions: false }),
     getServices({ getAllVersions: false }),
     getMessages({ getAllVersions: false }),
@@ -389,6 +393,15 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       const owners = await Promise.all(ownersInContainer.map((owner) => getOwner(owner)));
       const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<(typeof owners)[0]>>;
       return { container, owners: filteredOwners };
+    })
+  );
+
+  const systemWithOwners = await Promise.all(
+    systems.map(async (system) => {
+      const ownersInSystem = system.data.owners || [];
+      const owners = await Promise.all(ownersInSystem.map((owner) => getOwner(owner)));
+      const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<(typeof owners)[0]>>;
+      return { system, owners: filteredOwners };
     })
   );
 
@@ -607,6 +620,19 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  const systemNodes = systemWithOwners.reduce(
+    (acc, { system, owners }) => {
+      const versionedKey = `system:${system.data.id}:${system.data.version}`;
+      acc[versionedKey] = withArchitectureDecisionsSection(buildSystemNode(system, owners, context), system, adrs);
+      if (system.data.latestVersion === system.data.version) {
+        // Store reference to versioned key instead of duplicating the full node
+        acc[`system:${system.data.id}`] = versionedKey;
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode | string>
+  );
+
   // Get owners for data products
   const dataProductWithOwners = await Promise.all(
     dataProducts.map(async (dataProduct) => {
@@ -801,6 +827,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     pages: sortByResourceName(domains).map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
   });
 
+  const systemsList = createLeaf(systems, {
+    type: 'item',
+    title: 'Systems',
+    icon: 'Group',
+    pages: sortByResourceName(systems).map((system) => `system:${system.data.id}:${system.data.version}`),
+  });
+
   const agentsList = createLeaf(agents, {
     type: 'item',
     title: 'Agents',
@@ -939,6 +972,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const allChildrenKeys = [
     'list:domains',
+    'list:systems',
     'list:services',
     'list:agents',
     'list:adrs',
@@ -954,6 +988,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   ];
   const allChildrenNodes = [
     domainsList,
+    systemsList,
     servicesList,
     agentsList,
     adrsList,
@@ -986,6 +1021,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const allNodes: Record<string, NavNode> = {
     ...(domainsList ? { 'list:domains': domainsList } : {}),
+    ...(systemsList ? { 'list:systems': systemsList } : {}),
     ...(servicesList ? { 'list:services': servicesList } : {}),
     ...(agentsList ? { 'list:agents': agentsList } : {}),
     ...(adrsList ? { 'list:adrs': adrsList } : {}),
@@ -1028,6 +1064,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allGeneratedNodes = {
     ...rootDomainsNodes,
     ...domainNodes,
+    ...systemNodes,
     ...agentNodes,
     ...adrNodes,
     ...serviceNodes,

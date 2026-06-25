@@ -2,6 +2,7 @@ import type { CollectionTypes, PageTypes } from '@types';
 import { getAgents } from '@utils/collections/agents';
 import { getChannels } from '@utils/collections/channels';
 import { getDomains } from '@utils/collections/domains';
+import { getSystems } from '@utils/collections/systems';
 import { getCommands, getEvents } from '@utils/collections/messages';
 import { getQueries } from '@utils/collections/queries';
 import { getServices } from '@utils/collections/services';
@@ -24,6 +25,7 @@ export const pageDataLoader: Record<PageTypes, (options?: PageDataLoaderOptions)
     queries: getQueries,
     services: getServices,
     domains: getDomains,
+    systems: getSystems,
     channels: getChannels,
     flows: getFlows,
     entities: getEntities,

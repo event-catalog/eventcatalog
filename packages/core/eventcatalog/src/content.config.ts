@@ -703,10 +703,10 @@ const resourceDocs = defineCollection({
     // Resource-level docs are restricted to known resource paths.
     // This avoids scanning external docs such as node_modules/**/docs.
     pattern: withIgnoredBuildArtifacts([
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/*.@(md|mdx)',
       'domains/**/docs/**/*.@(md|mdx)',
       'domains/**/docs/*.@(md|mdx)',
     ]),
@@ -718,10 +718,10 @@ const resourceDocs = defineCollection({
 const resourceDocCategories = defineCollection({
   loader: glob({
     pattern: withIgnoredBuildArtifacts([
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/category.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/_category_.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/category.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/_category_.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/category.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/_category_.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/category.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/_category_.json',
       'domains/**/docs/**/category.json',
       'domains/**/docs/**/_category_.json',
       'domains/**/docs/category.json',
@@ -768,6 +768,29 @@ const domains = defineCollection({
           ubiquitousLanguage: detailPanelPropertySchema.optional(),
           repository: detailPanelPropertySchema.optional(),
           versions: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+          attachments: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
+    })
+    .extend(baseSchema.shape),
+});
+
+const systems = defineCollection({
+  loader: glob({
+    pattern: withIgnoredBuildArtifacts(['**/systems/**/index.(md|mdx)', '**/systems/**/versioned/*/index.(md|mdx)']),
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
+  schema: z
+    .object({
+      detailsPanel: z
+        .object({
+          versions: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
           owners: detailPanelPropertySchema.optional(),
           changelog: detailPanelPropertySchema.optional(),
           attachments: detailPanelPropertySchema.optional(),
@@ -1064,6 +1087,7 @@ export const collections = {
   users,
   teams,
   domains,
+  systems,
   flows,
   pages,
   changelogs,

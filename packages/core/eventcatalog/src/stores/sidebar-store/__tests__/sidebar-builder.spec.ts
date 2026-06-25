@@ -8,6 +8,8 @@ import config from '@config';
 
 const CATALOG_FOLDER = path.join(__dirname, 'catalog');
 const mockFlows: any[] = [];
+// NO SDK support for systems yet, so we provide test fixtures directly.
+const mockSystems: any[] = [];
 const mockResourceDocs: any[] = [];
 const mockResourceDocCategories: any[] = [];
 const mockAgents: any[] = [];
@@ -95,6 +97,9 @@ vi.mock('astro:content', async (importOriginal) => {
         case 'flows':
           // NO SDK support for flows yet, so we provide test fixtures directly.
           return Promise.resolve(mockFlows.map((flow) => toAstroCollection(flow, 'flows')));
+        case 'systems':
+          // NO SDK support for systems yet, so we provide test fixtures directly.
+          return Promise.resolve(mockSystems.map((system) => toAstroCollection(system, 'systems')));
         case 'diagrams':
           // NO SDK Support for diagrams yet, so we just mock it out for now
           return Promise.resolve([]);
@@ -165,6 +170,7 @@ describe('getNestedSideBarData', () => {
     // @ts-ignore
     global.__EC_TRAILING_SLASH__ = false;
     mockFlows.length = 0;
+    mockSystems.length = 0;
     mockResourceDocs.length = 0;
     mockResourceDocCategories.length = 0;
     mockAgents.length = 0;
@@ -336,6 +342,45 @@ describe('getNestedSideBarData', () => {
                   type: 'item',
                   title: 'Overview',
                   href: '/docs/entities/Order/0.0.1',
+                },
+              ],
+            },
+          ]),
+        })
+      );
+    });
+
+    it('lists systems as searchable browse resources when they are in the catalog', async () => {
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
+      const systemsList = getNavigationConfigurationByKey('list:systems', navigationData);
+      const systemNode = getNavigationConfigurationByKey('system:CoreMonolith:1.0.0', navigationData);
+
+      expect(browseNode.pages).toContain('list:systems');
+      expect(systemsList.pages).toEqual(['system:CoreMonolith:1.0.0']);
+      expect(systemNode).toEqual(
+        expect.objectContaining({
+          type: 'item',
+          title: 'Core Monolith',
+          badge: 'System',
+          summary: 'The legacy core monolith',
+          pages: expect.arrayContaining([
+            {
+              type: 'group',
+              title: 'Quick Reference',
+              icon: 'BookOpen',
+              pages: [
+                {
+                  type: 'item',
+                  title: 'Overview',
+                  href: '/docs/systems/CoreMonolith/1.0.0',
                 },
               ],
             },
