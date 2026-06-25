@@ -1,0 +1,51 @@
+---
+id: monolith-db
+name: Monolith DB
+version: 1.0.0
+summary: The shared legacy database backing every module still inside the Core Monolith
+container_type: database
+technology: postgres@12
+authoritative: true
+access_mode: readWrite
+purpose: Shared system of record for the modules still living inside the monolith
+classification: confidential
+retention: 7y
+residency: eu-west-1
+owners:
+  - dboyne
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Monolith DB** is the single PostgreSQL database that every module inside the
+Core Monolith reads from and writes to. Orders, Payments, Subscriptions, Billing and
+Notifications all share this schema.
+
+This shared database is the primary obstacle to fully decomposing the monolith: because
+modules read each other's tables directly, extracting a single module cleanly requires
+untangling those cross-module foreign keys first.
+
+### What does it store?
+
+- **orders / order_lines** — owned by the Orders module
+- **payments / refunds** — owned by the Payments module
+- **subscriptions / plans** — owned by the Subscriptions module
+- **invoices / invoice_lines** — owned by the Billing module
+
+### Migration notes
+
+- Each extracted service should own its own database; tables are copied out and
+  back-filled before traffic is cut over.
+- Cross-module reads are being replaced with API calls or published events.
+- Treat new direct cross-module joins against this database as tech debt — they make
+  the next extraction harder.
+
+### Access patterns and guidance
+
+- Point lookups should always be indexed by the owning module's primary key.
+- Prefer read replicas for any reporting or analytics workload.
+- Do not add new tables here — new capabilities should land in an extracted service.

@@ -1,0 +1,40 @@
+---
+id: monolith-session-cache
+name: Monolith Session Cache
+version: 1.0.0
+summary: Redis cache holding user sessions and hot lookups for the Core Monolith
+container_type: cache
+technology: redis@7
+authoritative: false
+access_mode: readWrite
+purpose: Low-latency session storage and caching layer for the monolith
+classification: internal
+retention: 24h
+residency: eu-west-1
+owners:
+  - dboyne
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Monolith Session Cache** is a Redis instance the Core Monolith uses for
+short-lived state — primarily authenticated user sessions and a handful of hot
+read-through caches (e.g. product pricing and feature flags).
+
+It is **not authoritative**: everything here can be rebuilt from the
+[Monolith DB](/docs/containers/monolith-db) or upstream services. If the cache is
+flushed, the monolith degrades gracefully (slower, but correct).
+
+### What does it store?
+
+- **Sessions** — keyed by session token, expiring after 24h of inactivity.
+- **Pricing cache** — read-through cache of computed prices, short TTL.
+- **Feature flags** — cached evaluation results to avoid hammering the flag service.
+
+### Access patterns and guidance
+
+- Always set a TTL — nothing in this cache should live forever.
+- Never treat cached values as a source of truth; fall back to the database on a miss.
+- Keep payloads small; this cache is sized for latency, not bulk storage.
