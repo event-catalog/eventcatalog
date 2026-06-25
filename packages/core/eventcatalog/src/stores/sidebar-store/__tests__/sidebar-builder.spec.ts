@@ -388,6 +388,37 @@ describe('getNestedSideBarData', () => {
         })
       );
     });
+
+    it('lists the services that belong to a system', async () => {
+      const { writeService } = utils(CATALOG_FOLDER);
+
+      await writeService({
+        id: 'OrdersService',
+        name: 'Orders Service',
+        version: '1.0.0',
+        summary: 'Handles orders',
+        markdown: 'Orders Service',
+      });
+
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+        services: [{ id: 'OrdersService', version: '1.0.0' }],
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const systemNode = getNavigationConfigurationByKey('system:CoreMonolith:1.0.0', navigationData);
+
+      const servicesSection = (systemNode.pages as any[])?.find((p: any) => p.title === 'Services In System');
+      expect(servicesSection).toMatchObject({
+        type: 'group',
+        title: 'Services In System',
+        icon: 'Server',
+        pages: ['service:OrdersService:1.0.0'],
+      });
+    });
   });
 
   describe('entity navigation item', () => {

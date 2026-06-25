@@ -5,6 +5,10 @@ version: 1.0.0
 summary: The legacy core monolith that FlowMart is gradually decomposing into fine-grained services. A system groups the services that make up this larger transitional codebase, independently of which domains those services belong to.
 owners:
   - dboyne
+services:
+  - id: OrdersService
+  - id: PaymentService
+  - id: SubscriptionService
 ---
 
 ## Overview
@@ -16,6 +20,19 @@ catalog still belong to the monolith during the transition.
 
 Systems are **orthogonal to domains** — a single system can contain services
 from multiple domains, and a domain can span multiple systems.
+
+## Services in this system
+
+The Core Monolith currently groups the following services, which span several
+domains:
+
+- <ResourceLink id="OrdersService" type="service">Orders Service</ResourceLink> — order management (Orders domain)
+- <ResourceLink id="PaymentService" type="service">Payment Service</ResourceLink> — payment processing (Payment domain)
+- <ResourceLink id="SubscriptionService" type="service">Subscription Service</ResourceLink> — subscriptions (Subscriptions domain)
+
+Notice these services come from [[service|OrdersService]], [[service|PaymentService]]
+and [[service|SubscriptionService]] across different domains — that's the whole
+point of a system: it groups services regardless of their domain.
 
 ## Migration status
 

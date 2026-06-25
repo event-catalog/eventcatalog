@@ -28,6 +28,14 @@ const createMockSystem = (overrides: Partial<CollectionEntry<'systems'>['data']>
     },
   }) as CollectionEntry<'systems'>;
 
+const createMockService = (id: string, version: string): CollectionEntry<'services'> =>
+  ({
+    id: `services/${id}/index.mdx`,
+    slug: `services/${id}`,
+    collection: 'services',
+    data: { id, version, name: id },
+  }) as CollectionEntry<'services'>;
+
 const emptyContext = {
   events: [] as CollectionEntry<'events'>[],
   commands: [] as CollectionEntry<'commands'>[],
@@ -74,6 +82,43 @@ describe('buildSystemNode', () => {
       expect((quickRef as any)?.pages).not.toContainEqual(
         expect.objectContaining({ href: '/docs/systems/CoreMonolith/1.0.0/changelog' })
       );
+    });
+  });
+
+  describe('services', () => {
+    it('renders a Services In System group with resolved service refs', () => {
+      const system = createMockSystem({
+        services: [createMockService('OrdersService', '1.0.0'), createMockService('PaymentService', '2.0.0')] as any,
+      });
+
+      const result = buildSystemNode(system, [], emptyContext);
+      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services In System');
+
+      expect(servicesSection).toMatchObject({
+        type: 'group',
+        title: 'Services In System',
+        icon: 'Server',
+        pages: ['service:OrdersService:1.0.0', 'service:PaymentService:2.0.0'],
+      });
+    });
+
+    it('does not render a Services In System group when there are no services', () => {
+      const system = createMockSystem();
+      const result = buildSystemNode(system, [], emptyContext);
+
+      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services In System');
+      expect(servicesSection).toBeUndefined();
+    });
+
+    it('does not render a Services In System group when the details panel hides services', () => {
+      const system = createMockSystem({
+        services: [createMockService('OrdersService', '1.0.0')] as any,
+        detailsPanel: { services: { visible: false } },
+      } as any);
+
+      const result = buildSystemNode(system, [], emptyContext);
+      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services In System');
+      expect(servicesSection).toBeUndefined();
     });
   });
 

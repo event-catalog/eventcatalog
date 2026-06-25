@@ -13,6 +13,9 @@ import { isChangelogEnabled } from '@utils/feature';
 import { iconFieldsForResource } from '@utils/icon';
 
 export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[], context: ResourceGroupContext): NavNode => {
+  const servicesInSystem = system.data.services || [];
+  const renderServices = servicesInSystem.length > 0 && shouldRenderSideBarSection(system, 'services');
+
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(system, 'owners');
   const renderRepository = system.data.repository && shouldRenderSideBarSection(system, 'repository');
   const hasAttachments = system.data.attachments && system.data.attachments.length > 0;
@@ -46,6 +49,12 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
         ].filter(Boolean) as { title: string; href: string }[]
       ),
       docsSection,
+      renderServices && {
+        type: 'group',
+        title: 'Services In System',
+        icon: 'Server',
+        pages: servicesInSystem.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
+      },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(system.data.repository as { url: string; language: string }),
       hasAttachments && buildAttachmentsSection(system.data.attachments as any[]),

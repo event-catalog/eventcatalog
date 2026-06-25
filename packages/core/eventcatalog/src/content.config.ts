@@ -787,6 +787,7 @@ const systems = defineCollection({
   }),
   schema: z
     .object({
+      services: z.array(pointer).optional(),
       detailsPanel: z
         .object({
           versions: detailPanelPropertySchema.optional(),
@@ -794,6 +795,7 @@ const systems = defineCollection({
           owners: detailPanelPropertySchema.optional(),
           changelog: detailPanelPropertySchema.optional(),
           attachments: detailPanelPropertySchema.optional(),
+          services: detailPanelPropertySchema.optional(),
         })
         .optional(),
     })

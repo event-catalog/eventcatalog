@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import { createVersionedMap } from './util';
+import { createVersionedMap, findInMap } from './util';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 export type System = CollectionEntry<'systems'>;
@@ -19,10 +19,11 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
     return memoryCache[cacheKey];
   }
 
-  const allSystems = await getCollection('systems');
+  const [allSystems, allServices] = await Promise.all([getCollection('systems'), getCollection('services')]);
 
   // Build optimized map of id -> versions (sorted latest first)
   const systemMap = createVersionedMap(allSystems);
+  const serviceMap = createVersionedMap(allServices);
 
   // Filter systems
   const targetSystems = allSystems.filter((system) => {
@@ -37,12 +38,18 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
     const latestVersion = systemVersions[0]?.data.version || system.data.version;
     const versions = systemVersions.map((s) => s.data.version);
 
+    // Resolve service pointers to their full collection entries
+    const services = (system.data.services || [])
+      .map((service: { id: string; version?: string }) => findInMap(serviceMap, service.id, service.version))
+      .filter((s): s is NonNullable<typeof s> => !!s);
+
     return {
       ...system,
       data: {
         ...system.data,
         versions,
         latestVersion,
+        services: services as any,
       },
     };
   });
