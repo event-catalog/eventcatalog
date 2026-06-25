@@ -30,6 +30,7 @@ export class Page extends HybridPage {
       'flows',
       'containers',
       'data-products',
+      'systems',
     ];
     const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 

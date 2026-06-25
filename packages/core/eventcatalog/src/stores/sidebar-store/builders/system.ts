@@ -9,7 +9,7 @@ import {
   buildAttachmentsSection,
   buildResourceDocsSection,
 } from './shared';
-import { isChangelogEnabled } from '@utils/feature';
+import { isChangelogEnabled, isVisualiserEnabled } from '@utils/feature';
 import { iconFieldsForResource } from '@utils/icon';
 
 export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[], context: ResourceGroupContext): NavNode => {
@@ -19,6 +19,8 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(system, 'owners');
   const renderRepository = system.data.repository && shouldRenderSideBarSection(system, 'repository');
   const hasAttachments = system.data.attachments && system.data.attachments.length > 0;
+
+  const renderVisualiser = isVisualiserEnabled();
 
   const docsSection = buildResourceDocsSection(
     'systems',
@@ -49,6 +51,18 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
         ].filter(Boolean) as { title: string; href: string }[]
       ),
       docsSection,
+      renderVisualiser && {
+        type: 'group',
+        title: 'Architecture',
+        icon: 'Workflow',
+        pages: [
+          {
+            type: 'item',
+            title: 'Map',
+            href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}`),
+          },
+        ] as ChildRef[],
+      },
       renderServices && {
         type: 'group',
         title: 'Services In System',

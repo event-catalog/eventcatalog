@@ -419,6 +419,32 @@ describe('getNestedSideBarData', () => {
         pages: ['service:OrdersService:1.0.0'],
       });
     });
+
+    it('lists an Architecture section with a Map link for the system', async () => {
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const systemNode = getNavigationConfigurationByKey('system:CoreMonolith:1.0.0', navigationData);
+      const architectureSection = getChildNodeByTitle('Architecture', systemNode.pages ?? []);
+
+      expect(architectureSection).toEqual({
+        type: 'group',
+        title: 'Architecture',
+        icon: 'Workflow',
+        pages: [
+          {
+            type: 'item',
+            title: 'Map',
+            href: '/visualiser/systems/CoreMonolith/1.0.0',
+          },
+        ],
+      });
+    });
   });
 
   describe('entity navigation item', () => {
