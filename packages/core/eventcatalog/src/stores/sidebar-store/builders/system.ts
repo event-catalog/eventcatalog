@@ -19,6 +19,9 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
   const flowsInSystem = system.data.flows || [];
   const renderFlows = flowsInSystem.length > 0 && shouldRenderSideBarSection(system, 'flows');
 
+  const entitiesInSystem = system.data.entities || [];
+  const renderEntities = entitiesInSystem.length > 0 && shouldRenderSideBarSection(system, 'entities');
+
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(system, 'owners');
   const renderRepository = system.data.repository && shouldRenderSideBarSection(system, 'repository');
   const hasAttachments = system.data.attachments && system.data.attachments.length > 0;
@@ -77,6 +80,16 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
         title: 'Flows',
         icon: 'Waypoints',
         pages: flowsInSystem.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+      },
+      renderEntities && {
+        type: 'group',
+        title: 'Entities',
+        icon: 'Box',
+        pages: entitiesInSystem.map((entity) => ({
+          type: 'item',
+          title: (entity as any).data?.name || (entity as any).data.id,
+          href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
+        })),
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(system.data.repository as { url: string; language: string }),

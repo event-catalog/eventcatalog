@@ -474,6 +474,36 @@ describe('getNestedSideBarData', () => {
         pages: ['flow:CheckoutFlow:1.0.0'],
       });
     });
+
+    it('lists the entities that belong to a system', async () => {
+      const { writeEntity } = utils(CATALOG_FOLDER);
+
+      await writeEntity({
+        id: 'Order',
+        name: 'Order',
+        version: '1.0.0',
+        markdown: 'Order',
+      });
+
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+        entities: [{ id: 'Order', version: '1.0.0' }],
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const systemNode = getNavigationConfigurationByKey('system:CoreMonolith:1.0.0', navigationData);
+
+      const entitiesSection = getChildNodeByTitle('Entities', systemNode.pages ?? []);
+      expect(entitiesSection).toMatchObject({
+        type: 'group',
+        title: 'Entities',
+        icon: 'Box',
+        pages: [{ type: 'item', title: 'Order', href: '/docs/entities/Order/1.0.0' }],
+      });
+    });
   });
 
   describe('entity navigation item', () => {

@@ -44,6 +44,14 @@ const createMockFlow = (id: string, version: string): CollectionEntry<'flows'> =
     data: { id, version, name: id, steps: [] },
   }) as unknown as CollectionEntry<'flows'>;
 
+const createMockEntity = (id: string, version: string, name?: string): CollectionEntry<'entities'> =>
+  ({
+    id: `entities/${id}/index.mdx`,
+    slug: `entities/${id}`,
+    collection: 'entities',
+    data: { id, version, name: name ?? id },
+  }) as unknown as CollectionEntry<'entities'>;
+
 const emptyContext = {
   events: [] as CollectionEntry<'events'>[],
   commands: [] as CollectionEntry<'commands'>[],
@@ -164,6 +172,46 @@ describe('buildSystemNode', () => {
       const result = buildSystemNode(system, [], emptyContext);
       const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
       expect(flowsSection).toBeUndefined();
+    });
+  });
+
+  describe('entities', () => {
+    it('renders an Entities group with resolved entity refs', () => {
+      const system = createMockSystem({
+        entities: [createMockEntity('Order', '1.0.0', 'Order'), createMockEntity('Payment', '2.0.0', 'Payment')] as any,
+      });
+
+      const result = buildSystemNode(system, [], emptyContext);
+      const entitiesSection = (result.pages as any[])?.find((p: any) => p.title === 'Entities');
+
+      expect(entitiesSection).toMatchObject({
+        type: 'group',
+        title: 'Entities',
+        icon: 'Box',
+        pages: [
+          { type: 'item', title: 'Order', href: '/docs/entities/Order/1.0.0' },
+          { type: 'item', title: 'Payment', href: '/docs/entities/Payment/2.0.0' },
+        ],
+      });
+    });
+
+    it('does not render an Entities group when there are no entities', () => {
+      const system = createMockSystem();
+      const result = buildSystemNode(system, [], emptyContext);
+
+      const entitiesSection = (result.pages as any[])?.find((p: any) => p.title === 'Entities');
+      expect(entitiesSection).toBeUndefined();
+    });
+
+    it('does not render an Entities group when the details panel hides entities', () => {
+      const system = createMockSystem({
+        entities: [createMockEntity('Order', '1.0.0')] as any,
+        detailsPanel: { entities: { visible: false } },
+      } as any);
+
+      const result = buildSystemNode(system, [], emptyContext);
+      const entitiesSection = (result.pages as any[])?.find((p: any) => p.title === 'Entities');
+      expect(entitiesSection).toBeUndefined();
     });
   });
 
