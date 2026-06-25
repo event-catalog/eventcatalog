@@ -1,6 +1,6 @@
 import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockAgents, mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts } from './mocks';
+import { mockAgents, mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts, mockSystems } from './mocks';
 import { getNodesAndEdges } from '@utils/node-graphs/domains-node-graph';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -21,6 +21,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockCommands);
         case 'data-products':
           return Promise.resolve(mockDataProducts);
+        case 'systems':
+          return Promise.resolve(mockSystems);
         case 'queries':
         case 'containers':
         case 'channels':
@@ -126,6 +128,41 @@ describe('Domains NodeGraph', () => {
       expect(nodes.length).toEqual(15);
       // 8 original edges + 2 from data product (input edge + output edge) + agent consumer edge + agent → tool edge
       expect(edges.length).toEqual(14);
+    });
+
+    it('should return a list of nodes and edges when a domain references systems', async () => {
+      // @ts-ignore
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Logistics', version: '0.0.1' });
+
+      // Expect the service that belongs to the referenced system to be rendered,
+      // tagged with the system group so it renders inside the system's bounded context.
+      const expectedSystemServiceNode = {
+        id: 'LocationService-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: expect.objectContaining({
+          mode: 'simple',
+          service: expect.objectContaining({ id: 'LocationService', version: '0.0.1' }),
+          group: {
+            type: 'System',
+            value: 'Fulfilment System',
+            id: 'FulfilmentSystem',
+          },
+        }),
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'services',
+      };
+
+      // The message the system's service receives is also pulled into the graph.
+      const expectedEventNode = {
+        id: 'OrderPlaced-0.0.1',
+        type: 'events',
+        data: expect.objectContaining({ message: expect.objectContaining({ id: 'OrderPlaced' }) }),
+      };
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([expect.objectContaining(expectedSystemServiceNode), expect.objectContaining(expectedEventNode)])
+      );
     });
 
     it('should return nodes and edges for data products in a domain', async () => {

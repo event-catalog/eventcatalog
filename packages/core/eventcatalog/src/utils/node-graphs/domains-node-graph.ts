@@ -11,6 +11,7 @@ import {
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import { getNodesAndEdges as getAgentsNodeAndEdges } from './agents-node-graph';
 import { getNodesAndEdges as getDataProductsNodeAndEdges } from './data-products-node-graph';
+import { getNodesAndEdges as getSystemNodeAndEdges } from './systems-node-graph';
 import merge from 'lodash.merge';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import type { Node } from '@xyflow/react';
@@ -212,11 +213,12 @@ export const getNodesAndEdges = async ({
     edges = new Map();
 
   // 1. Parallel Fetching
-  const [domains, services, agents, dataProducts] = await Promise.all([
+  const [domains, services, agents, dataProducts, systems] = await Promise.all([
     getCollection('domains'),
     getCollection('services'),
     getCollection('agents'),
     getCollection('data-products'),
+    getCollection('systems'),
   ]);
 
   const domain = domains.find((service) => service.data.id === id && service.data.version === version);
@@ -234,11 +236,13 @@ export const getNodesAndEdges = async ({
   const agentMap = createVersionedMap(agents);
   const domainMap = createVersionedMap(domains);
   const dataProductMap = createVersionedMap(dataProducts);
+  const systemMap = createVersionedMap(systems);
 
   const rawServices = domain?.data.services || [];
   const rawAgents = domain?.data.agents || [];
   const rawSubDomains = domain?.data.domains || [];
   const rawDataProducts = (domain?.data as any)['data-products'] || [];
+  const rawSystems = (domain?.data as any).systems || [];
 
   // Optimized hydration
   const domainServicesWithVersion = rawServices
@@ -260,6 +264,11 @@ export const getNodesAndEdges = async ({
     .map((dataProduct: any) => findInMap(dataProductMap, dataProduct.id, dataProduct.version))
     .filter((dp: any): dp is any => !!dp)
     .map((dp: any) => ({ id: dp.data.id, version: dp.data.version }));
+
+  const domainSystemsWithVersion = rawSystems
+    .map((system: any) => findInMap(systemMap, system.id, system.version))
+    .filter((s: any): s is any => !!s)
+    .map((s: any) => ({ id: s.data.id, version: s.data.version }));
 
   // Get all the nodes for everything
 
@@ -335,6 +344,25 @@ export const getNodesAndEdges = async ({
     });
 
     subDomainEdges.forEach((e) => edges.set(e.id, e));
+  }
+
+  // A domain can reference one or more systems. Pull each system's services into
+  // the domain graph (grouped by system), the same way subdomains are merged in.
+  for (const system of domainSystemsWithVersion) {
+    const { nodes: systemNodes, edges: systemEdges } = await getSystemNodeAndEdges({
+      id: system.id,
+      version: system.version,
+      defaultFlow: flow,
+      mode,
+      group: true,
+      channelRenderMode,
+      layout: false,
+    });
+    systemNodes.forEach((n) => {
+      nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
+    });
+    // @ts-ignore
+    systemEdges.forEach((e) => edges.set(e.id, e));
   }
 
   // Add group node to the graph first before calculating positions

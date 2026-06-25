@@ -51,6 +51,33 @@ export const mockDomains = [
       agents: [{ id: 'FraudReviewAgent', version: '1.0.0' }],
     },
   },
+  {
+    id: 'domains/Logistics/index.mdx',
+    slug: 'domains/Logistics',
+    collection: 'domains',
+    filePath: 'domains/Logistics/index.mdx',
+    data: {
+      id: 'Logistics',
+      name: 'Logistics',
+      version: '0.0.1',
+      systems: [{ id: 'FulfilmentSystem', version: '1.0.0' }],
+    },
+  },
+];
+
+export const mockSystems = [
+  {
+    id: 'systems/FulfilmentSystem/index.mdx',
+    slug: 'systems/FulfilmentSystem',
+    collection: 'systems',
+    filePath: 'systems/FulfilmentSystem/index.mdx',
+    data: {
+      id: 'FulfilmentSystem',
+      name: 'Fulfilment System',
+      version: '1.0.0',
+      services: [{ id: 'LocationService', version: '0.0.1' }],
+    },
+  },
 ];
 
 export const mockServices = [
