@@ -58,6 +58,7 @@ export type ResourceGroupContext = {
   agents?: CollectionEntry<'agents'>[];
   services: CollectionEntry<'services'>[];
   domains: CollectionEntry<'domains'>[];
+  systems?: CollectionEntry<'systems'>[];
   events: CollectionEntry<'events'>[];
   commands: CollectionEntry<'commands'>[];
   queries: CollectionEntry<'queries'>[];

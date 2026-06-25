@@ -591,6 +591,7 @@ const adrResourcePointer = adrPointer.extend({
     'flow',
     'channel',
     'domain',
+    'system',
     'user',
     'team',
     'container',

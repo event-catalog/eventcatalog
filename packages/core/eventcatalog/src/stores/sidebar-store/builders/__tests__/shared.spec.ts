@@ -39,6 +39,36 @@ describe('withArchitectureDecisionsSection', () => {
     ]);
   });
 
+  it('adds Decision Records for a system when an ADR applies to it', () => {
+    const node: NavNode = {
+      type: 'item',
+      title: 'Core Monolith',
+      href: '/docs/systems/CoreMonolith/1.0.0',
+    };
+
+    const resource = {
+      collection: 'systems',
+      data: { id: 'CoreMonolith', version: '1.0.0' },
+    };
+
+    const adr = {
+      collection: 'adrs',
+      data: {
+        id: 'strangle-the-monolith',
+        version: '1.0.0',
+        appliesTo: [{ type: 'system', id: 'CoreMonolith', version: '1.0.0' }],
+      },
+    };
+
+    const result = withArchitectureDecisionsSection(node, resource as any, [adr as any]);
+
+    const decisionRecords = result.pages?.find((page) => typeof page !== 'string' && page.title === 'Decision Records');
+
+    expect(decisionRecords && typeof decisionRecords !== 'string' ? decisionRecords.pages : undefined).toEqual([
+      'adr:strangle-the-monolith:1.0.0',
+    ]);
+  });
+
   it('keeps an overview link when adding Decision Records to href-only nodes', () => {
     const node: NavNode = {
       type: 'item',

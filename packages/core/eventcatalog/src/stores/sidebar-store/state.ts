@@ -326,6 +326,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     agents,
     services,
     domains,
+    systems,
     events,
     commands,
     queries,
