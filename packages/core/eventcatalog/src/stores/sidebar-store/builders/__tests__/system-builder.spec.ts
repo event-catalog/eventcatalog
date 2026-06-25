@@ -36,6 +36,14 @@ const createMockService = (id: string, version: string): CollectionEntry<'servic
     data: { id, version, name: id },
   }) as CollectionEntry<'services'>;
 
+const createMockFlow = (id: string, version: string): CollectionEntry<'flows'> =>
+  ({
+    id: `flows/${id}/index.mdx`,
+    slug: `flows/${id}`,
+    collection: 'flows',
+    data: { id, version, name: id, steps: [] },
+  }) as unknown as CollectionEntry<'flows'>;
+
 const emptyContext = {
   events: [] as CollectionEntry<'events'>[],
   commands: [] as CollectionEntry<'commands'>[],
@@ -119,6 +127,43 @@ describe('buildSystemNode', () => {
       const result = buildSystemNode(system, [], emptyContext);
       const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services In System');
       expect(servicesSection).toBeUndefined();
+    });
+  });
+
+  describe('flows', () => {
+    it('renders a Flows group with resolved flow refs', () => {
+      const system = createMockSystem({
+        flows: [createMockFlow('OrderFlow', '1.0.0'), createMockFlow('PaymentFlow', '2.0.0')] as any,
+      });
+
+      const result = buildSystemNode(system, [], emptyContext);
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+
+      expect(flowsSection).toMatchObject({
+        type: 'group',
+        title: 'Flows',
+        icon: 'Waypoints',
+        pages: ['flow:OrderFlow:1.0.0', 'flow:PaymentFlow:2.0.0'],
+      });
+    });
+
+    it('does not render a Flows group when there are no flows', () => {
+      const system = createMockSystem();
+      const result = buildSystemNode(system, [], emptyContext);
+
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+      expect(flowsSection).toBeUndefined();
+    });
+
+    it('does not render a Flows group when the details panel hides flows', () => {
+      const system = createMockSystem({
+        flows: [createMockFlow('OrderFlow', '1.0.0')] as any,
+        detailsPanel: { flows: { visible: false } },
+      } as any);
+
+      const result = buildSystemNode(system, [], emptyContext);
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+      expect(flowsSection).toBeUndefined();
     });
   });
 

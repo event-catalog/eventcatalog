@@ -19,11 +19,16 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
     return memoryCache[cacheKey];
   }
 
-  const [allSystems, allServices] = await Promise.all([getCollection('systems'), getCollection('services')]);
+  const [allSystems, allServices, allFlows] = await Promise.all([
+    getCollection('systems'),
+    getCollection('services'),
+    getCollection('flows'),
+  ]);
 
   // Build optimized map of id -> versions (sorted latest first)
   const systemMap = createVersionedMap(allSystems);
   const serviceMap = createVersionedMap(allServices);
+  const flowMap = createVersionedMap(allFlows);
 
   // Filter systems
   const targetSystems = allSystems.filter((system) => {
@@ -43,6 +48,11 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
       .map((service: { id: string; version?: string }) => findInMap(serviceMap, service.id, service.version))
       .filter((s): s is NonNullable<typeof s> => !!s);
 
+    // Resolve flow pointers to their full collection entries
+    const flows = (system.data.flows || [])
+      .map((flow: { id: string; version?: string }) => findInMap(flowMap, flow.id, flow.version))
+      .filter((f): f is NonNullable<typeof f> => !!f);
+
     return {
       ...system,
       data: {
@@ -50,6 +60,7 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
         versions,
         latestVersion,
         services: services as any,
+        flows: flows as any,
       },
     };
   });

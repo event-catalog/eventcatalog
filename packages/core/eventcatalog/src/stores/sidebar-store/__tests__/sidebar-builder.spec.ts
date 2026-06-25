@@ -445,6 +445,35 @@ describe('getNestedSideBarData', () => {
         ],
       });
     });
+
+    it('lists the flows that belong to a system', async () => {
+      mockFlows.push({
+        id: 'CheckoutFlow',
+        name: 'Checkout Flow',
+        version: '1.0.0',
+        markdown: 'Checkout Flow',
+        steps: [],
+      });
+
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+        flows: [{ id: 'CheckoutFlow', version: '1.0.0' }],
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const systemNode = getNavigationConfigurationByKey('system:CoreMonolith:1.0.0', navigationData);
+
+      const flowsSection = getChildNodeByTitle('Flows', systemNode.pages ?? []);
+      expect(flowsSection).toMatchObject({
+        type: 'group',
+        title: 'Flows',
+        icon: 'Waypoints',
+        pages: ['flow:CheckoutFlow:1.0.0'],
+      });
+    });
   });
 
   describe('entity navigation item', () => {
