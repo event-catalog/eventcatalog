@@ -754,6 +754,7 @@ const domains = defineCollection({
       services: z.array(pointer).optional(),
       agents: z.array(pointer).optional(),
       domains: z.array(pointer).optional(),
+      systems: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
       'data-products': z.array(pointer).optional(),
       flows: z.array(pointer).optional(),
@@ -763,6 +764,7 @@ const domains = defineCollection({
         .object({
           parentDomains: detailPanelPropertySchema.optional(),
           subdomains: detailPanelPropertySchema.optional(),
+          systems: detailPanelPropertySchema.optional(),
           services: detailPanelPropertySchema.optional(),
           entities: detailPanelPropertySchema.optional(),
           messages: detailPanelPropertySchema.optional(),

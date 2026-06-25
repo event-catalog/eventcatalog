@@ -29,6 +29,9 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const dataProductsInDomain = domain.data['data-products'] || [];
   const renderDataProducts = dataProductsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'data-products');
 
+  const systemsInDomain = domain.data.systems || [];
+  const renderSystems = systemsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'systems');
+
   const subDomains = domain.data.domains || [];
   const renderSubDomains = subDomains.length > 0 && shouldRenderSideBarSection(domain, 'subdomains');
 
@@ -158,6 +161,12 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
             ),
           })),
         ],
+      },
+      renderSystems && {
+        type: 'group',
+        title: 'Systems',
+        icon: 'Group',
+        pages: systemsInDomain.map((system) => `system:${(system as any).data.id}:${(system as any).data.version}`),
       },
       renderSubDomains && {
         type: 'group',

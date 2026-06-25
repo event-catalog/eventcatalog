@@ -267,6 +267,53 @@ describe('getNestedSideBarData', () => {
       expect(rootDomainsToRender.pages).toEqual(['domain:Shipping:0.0.1']);
     });
 
+    it('lists the systems that belong to a domain above its subdomains', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+      });
+
+      // `systems` has no SDK support yet, so cast past the SDK's Domain type.
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+        systems: [{ id: 'CoreMonolith', version: '1.0.0' }],
+        domains: [{ id: 'Checkout', version: '0.0.1' }],
+      } as any);
+
+      // Subdomain
+      await writeDomain({
+        id: 'Checkout',
+        name: 'Checkout',
+        version: '0.0.1',
+        markdown: 'Checkout',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+      const pages = domainNode.pages ?? [];
+
+      const systemsSection = getChildNodeByTitle('Systems', pages);
+      expect(systemsSection).toMatchObject({
+        type: 'group',
+        title: 'Systems',
+        icon: 'Group',
+        pages: ['system:CoreMonolith:1.0.0'],
+      });
+
+      // Systems appear above Subdomains
+      const systemsIndex = pages.findIndex((page: any) => page?.title === 'Systems');
+      const subdomainsIndex = pages.findIndex((page: any) => page?.title === 'Subdomains');
+      expect(systemsIndex).toBeGreaterThanOrEqual(0);
+      expect(subdomainsIndex).toBeGreaterThan(systemsIndex);
+    });
+
     it('the browser section only lists resources that are in the catalog', async () => {
       const { writeDomain, writeService } = utils(CATALOG_FOLDER);
       await writeDomain({

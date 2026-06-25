@@ -123,6 +123,7 @@ export const getDomains = async ({
     allServices,
     allEntities,
     allFlows,
+    allSystems,
     allEvents,
     allCommands,
     allQueries,
@@ -134,6 +135,7 @@ export const getDomains = async ({
     getCollection('services'),
     getCollection('entities'),
     getCollection('flows'),
+    getCollection('systems'),
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
@@ -151,6 +153,7 @@ export const getDomains = async ({
   const serviceMap = createVersionedMap(allServices);
   const entityMap = createVersionedMap(allEntities);
   const flowMap = createVersionedMap(allFlows);
+  const systemMap = createVersionedMap(allSystems);
   const dataProductMap = createVersionedMap(allDataProducts);
 
   // 3. Filter the domains we actually want to process/return
@@ -220,6 +223,12 @@ export const getDomains = async ({
         .map((flow: { id: string; version: string | undefined }) => findInMap(flowMap, flow.id, flow.version))
         .filter((f): f is CollectionEntry<'flows'> => !!f);
 
+      // Resolve Systems
+      const systemsInDomain = domain.data.systems || [];
+      const systems = systemsInDomain
+        .map((system: { id: string; version: string | undefined }) => findInMap(systemMap, system.id, system.version))
+        .filter((s): s is CollectionEntry<'systems'> => !!s);
+
       // Resolve Data Products
       const dataProductsInDomain = domain.data['data-products'] || [];
       const dataProducts = dataProductsInDomain
@@ -274,6 +283,7 @@ export const getDomains = async ({
           agents: agents as any,
           services: services as any, // Cast to avoid deep type issues with enriched data
           domains: subDomains as any,
+          systems: systems as any,
           entities: entities as any,
           flows: flows as any,
           'data-products': dataProducts as any,
