@@ -71,7 +71,7 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
       },
       renderServices && {
         type: 'group',
-        title: 'Services In System',
+        title: 'Services',
         icon: 'Server',
         pages: servicesInSystem.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
       },

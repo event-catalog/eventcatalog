@@ -102,38 +102,38 @@ describe('buildSystemNode', () => {
   });
 
   describe('services', () => {
-    it('renders a Services In System group with resolved service refs', () => {
+    it('renders a Services group with resolved service refs', () => {
       const system = createMockSystem({
         services: [createMockService('OrdersService', '1.0.0'), createMockService('PaymentService', '2.0.0')] as any,
       });
 
       const result = buildSystemNode(system, [], emptyContext);
-      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services In System');
+      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services');
 
       expect(servicesSection).toMatchObject({
         type: 'group',
-        title: 'Services In System',
+        title: 'Services',
         icon: 'Server',
         pages: ['service:OrdersService:1.0.0', 'service:PaymentService:2.0.0'],
       });
     });
 
-    it('does not render a Services In System group when there are no services', () => {
+    it('does not render a Services group when there are no services', () => {
       const system = createMockSystem();
       const result = buildSystemNode(system, [], emptyContext);
 
-      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services In System');
+      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services');
       expect(servicesSection).toBeUndefined();
     });
 
-    it('does not render a Services In System group when the details panel hides services', () => {
+    it('does not render a Services group when the details panel hides services', () => {
       const system = createMockSystem({
         services: [createMockService('OrdersService', '1.0.0')] as any,
         detailsPanel: { services: { visible: false } },
       } as any);
 
       const result = buildSystemNode(system, [], emptyContext);
-      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services In System');
+      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services');
       expect(servicesSection).toBeUndefined();
     });
   });

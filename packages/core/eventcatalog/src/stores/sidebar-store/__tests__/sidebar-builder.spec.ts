@@ -458,10 +458,10 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
       const systemNode = getNavigationConfigurationByKey('system:CoreMonolith:1.0.0', navigationData);
 
-      const servicesSection = (systemNode.pages as any[])?.find((p: any) => p.title === 'Services In System');
+      const servicesSection = (systemNode.pages as any[])?.find((p: any) => p.title === 'Services');
       expect(servicesSection).toMatchObject({
         type: 'group',
-        title: 'Services In System',
+        title: 'Services',
         icon: 'Server',
         pages: ['service:OrdersService:1.0.0'],
       });
