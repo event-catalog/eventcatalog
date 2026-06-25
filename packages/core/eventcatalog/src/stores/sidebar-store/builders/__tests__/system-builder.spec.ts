@@ -52,6 +52,22 @@ const createMockEntity = (id: string, version: string, name?: string): Collectio
     data: { id, version, name: name ?? id },
   }) as unknown as CollectionEntry<'entities'>;
 
+const createMockContainer = (id: string, version: string): CollectionEntry<'containers'> =>
+  ({
+    id: `containers/${id}/index.mdx`,
+    slug: `containers/${id}`,
+    collection: 'containers',
+    data: { id, version, name: id },
+  }) as unknown as CollectionEntry<'containers'>;
+
+const createMockDiagram = (id: string, version: string, name?: string): CollectionEntry<'diagrams'> =>
+  ({
+    id: `diagrams/${id}/index.mdx`,
+    slug: `diagrams/${id}`,
+    collection: 'diagrams',
+    data: { id, version, name: name ?? id },
+  }) as unknown as CollectionEntry<'diagrams'>;
+
 const emptyContext = {
   events: [] as CollectionEntry<'events'>[],
   commands: [] as CollectionEntry<'commands'>[],
@@ -59,6 +75,7 @@ const emptyContext = {
   services: [] as CollectionEntry<'services'>[],
   containers: [] as CollectionEntry<'containers'>[],
   channels: [] as CollectionEntry<'channels'>[],
+  diagrams: [] as CollectionEntry<'diagrams'>[],
   resourceDocs: [],
   resourceDocCategories: [],
 } as any;
@@ -212,6 +229,84 @@ describe('buildSystemNode', () => {
       const result = buildSystemNode(system, [], emptyContext);
       const entitiesSection = (result.pages as any[])?.find((p: any) => p.title === 'Entities');
       expect(entitiesSection).toBeUndefined();
+    });
+  });
+
+  describe('data stores (containers)', () => {
+    it('renders a Data Stores group with resolved container node refs', () => {
+      const system = createMockSystem({
+        containers: [createMockContainer('orders-db', '1.0.0'), createMockContainer('payments-db', '2.0.0')] as any,
+      });
+
+      const result = buildSystemNode(system, [], emptyContext);
+      const dataStoresSection = (result.pages as any[])?.find((p: any) => p.title === 'Data Stores');
+
+      expect(dataStoresSection).toMatchObject({
+        type: 'group',
+        title: 'Data Stores',
+        icon: 'Database',
+        pages: ['container:orders-db:1.0.0', 'container:payments-db:2.0.0'],
+      });
+    });
+
+    it('does not render a Data Stores group when there are no containers', () => {
+      const system = createMockSystem();
+      const result = buildSystemNode(system, [], emptyContext);
+
+      const dataStoresSection = (result.pages as any[])?.find((p: any) => p.title === 'Data Stores');
+      expect(dataStoresSection).toBeUndefined();
+    });
+
+    it('does not render a Data Stores group when the details panel hides containers', () => {
+      const system = createMockSystem({
+        containers: [createMockContainer('orders-db', '1.0.0')] as any,
+        detailsPanel: { containers: { visible: false } },
+      } as any);
+
+      const result = buildSystemNode(system, [], emptyContext);
+      const dataStoresSection = (result.pages as any[])?.find((p: any) => p.title === 'Data Stores');
+      expect(dataStoresSection).toBeUndefined();
+    });
+  });
+
+  describe('diagrams', () => {
+    it('renders a Diagrams group with resolved diagram links', () => {
+      const system = createMockSystem({ diagrams: [{ id: 'target-architecture', version: '1.0.0' }] as any });
+      const context = { ...emptyContext, diagrams: [createMockDiagram('target-architecture', '1.0.0', 'Target Architecture')] };
+
+      const result = buildSystemNode(system, [], context);
+      const diagramsSection = (result.pages as any[])?.find((p: any) => p.title === 'Diagrams');
+
+      expect(diagramsSection).toMatchObject({
+        type: 'group',
+        title: 'Diagrams',
+        icon: 'FileImage',
+      });
+      expect((diagramsSection as any)?.pages).toContainEqual({
+        type: 'item',
+        title: 'Target Architecture',
+        href: '/diagrams/target-architecture/1.0.0',
+      });
+    });
+
+    it('does not render a Diagrams group when there are no diagrams', () => {
+      const system = createMockSystem();
+      const result = buildSystemNode(system, [], emptyContext);
+
+      const diagramsSection = (result.pages as any[])?.find((p: any) => p.title === 'Diagrams');
+      expect(diagramsSection).toBeUndefined();
+    });
+
+    it('does not render a Diagrams group when the details panel hides diagrams', () => {
+      const system = createMockSystem({
+        diagrams: [{ id: 'target-architecture', version: '1.0.0' }] as any,
+        detailsPanel: { diagrams: { visible: false } },
+      } as any);
+      const context = { ...emptyContext, diagrams: [createMockDiagram('target-architecture', '1.0.0')] };
+
+      const result = buildSystemNode(system, [], context);
+      const diagramsSection = (result.pages as any[])?.find((p: any) => p.title === 'Diagrams');
+      expect(diagramsSection).toBeUndefined();
     });
   });
 

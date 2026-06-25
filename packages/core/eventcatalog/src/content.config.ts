@@ -782,7 +782,26 @@ const domains = defineCollection({
 
 const systems = defineCollection({
   loader: glob({
-    pattern: withIgnoredBuildArtifacts(['**/systems/**/index.(md|mdx)', '**/systems/**/versioned/*/index.(md|mdx)']),
+    pattern: withIgnoredBuildArtifacts([
+      '**/systems/**/index.(md|mdx)',
+      '**/systems/**/versioned/*/index.(md|mdx)',
+      // Systems can contain nested resource folders (containers, diagrams, services, etc.).
+      // Those nested resources are loaded by their own collections — exclude their index files
+      // here so they are not mistaken for systems. Nested `systems/` folders are still allowed.
+      '!**/systems/**/agents/**',
+      '!**/systems/**/services/**',
+      '!**/systems/**/events/**',
+      '!**/systems/**/commands/**',
+      '!**/systems/**/queries/**',
+      '!**/systems/**/flows/**',
+      '!**/systems/**/channels/**',
+      '!**/systems/**/entities/**',
+      '!**/systems/**/containers/**',
+      '!**/systems/**/diagrams/**',
+      '!**/systems/**/data-products/**',
+      '!**/systems/**/adrs/**',
+      '!**/systems/**/docs/**',
+    ]),
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -793,6 +812,7 @@ const systems = defineCollection({
       services: z.array(pointer).optional(),
       flows: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
+      containers: z.array(pointer).optional(),
       detailsPanel: z
         .object({
           versions: detailPanelPropertySchema.optional(),
@@ -803,6 +823,8 @@ const systems = defineCollection({
           services: detailPanelPropertySchema.optional(),
           flows: detailPanelPropertySchema.optional(),
           entities: detailPanelPropertySchema.optional(),
+          containers: detailPanelPropertySchema.optional(),
+          diagrams: detailPanelPropertySchema.optional(),
         })
         .optional(),
     })

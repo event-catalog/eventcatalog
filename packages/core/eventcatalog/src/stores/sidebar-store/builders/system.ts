@@ -7,6 +7,7 @@ import {
   shouldRenderSideBarSection,
   buildRepositorySection,
   buildAttachmentsSection,
+  buildDiagramNavItems,
   buildResourceDocsSection,
 } from './shared';
 import { isChangelogEnabled, isVisualiserEnabled } from '@utils/feature';
@@ -21,6 +22,13 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
 
   const entitiesInSystem = system.data.entities || [];
   const renderEntities = entitiesInSystem.length > 0 && shouldRenderSideBarSection(system, 'entities');
+
+  const containersInSystem = system.data.containers || [];
+  const renderContainers = containersInSystem.length > 0 && shouldRenderSideBarSection(system, 'containers');
+
+  const systemDiagrams = system.data.diagrams || [];
+  const diagramNavItems = buildDiagramNavItems(systemDiagrams, context.diagrams);
+  const hasDiagrams = diagramNavItems.length > 0 && shouldRenderSideBarSection(system, 'diagrams');
 
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(system, 'owners');
   const renderRepository = system.data.repository && shouldRenderSideBarSection(system, 'repository');
@@ -74,6 +82,12 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
           },
         ].filter(Boolean) as ChildRef[],
       },
+      hasDiagrams && {
+        type: 'group',
+        title: 'Diagrams',
+        icon: 'FileImage',
+        pages: diagramNavItems,
+      },
       renderServices && {
         type: 'group',
         title: 'Services',
@@ -95,6 +109,14 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
           title: (entity as any).data?.name || (entity as any).data.id,
           href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
         })),
+      },
+      renderContainers && {
+        type: 'group',
+        title: 'Data Stores',
+        icon: 'Database',
+        pages: containersInSystem.map(
+          (container) => `container:${(container as any).data.id}:${(container as any).data.version}`
+        ),
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(system.data.repository as { url: string; language: string }),

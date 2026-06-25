@@ -19,11 +19,12 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
     return memoryCache[cacheKey];
   }
 
-  const [allSystems, allServices, allFlows, allEntities] = await Promise.all([
+  const [allSystems, allServices, allFlows, allEntities, allContainers] = await Promise.all([
     getCollection('systems'),
     getCollection('services'),
     getCollection('flows'),
     getCollection('entities'),
+    getCollection('containers'),
   ]);
 
   // Build optimized map of id -> versions (sorted latest first)
@@ -31,6 +32,7 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
   const serviceMap = createVersionedMap(allServices);
   const flowMap = createVersionedMap(allFlows);
   const entityMap = createVersionedMap(allEntities);
+  const containerMap = createVersionedMap(allContainers);
 
   // Filter systems
   const targetSystems = allSystems.filter((system) => {
@@ -60,6 +62,11 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
       .map((entity: { id: string; version?: string }) => findInMap(entityMap, entity.id, entity.version))
       .filter((e): e is NonNullable<typeof e> => !!e);
 
+    // Resolve container (data store) pointers to their full collection entries
+    const containers = (system.data.containers || [])
+      .map((container: { id: string; version?: string }) => findInMap(containerMap, container.id, container.version))
+      .filter((c): c is NonNullable<typeof c> => !!c);
+
     return {
       ...system,
       data: {
@@ -69,6 +76,7 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
         services: services as any,
         flows: flows as any,
         entities: entities as any,
+        containers: containers as any,
       },
     };
   });
