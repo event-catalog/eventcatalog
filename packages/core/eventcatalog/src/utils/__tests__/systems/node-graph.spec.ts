@@ -1,6 +1,6 @@
 import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockSystems, mockServices, mockEvents, mockCommands, mockQueries } from './mocks';
+import { mockSystems, mockServices, mockEvents, mockCommands, mockQueries, mockContainers } from './mocks';
 import { getNodesAndEdges } from '@utils/node-graphs/systems-node-graph';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -19,8 +19,10 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockCommands);
         case 'queries':
           return Promise.resolve(mockQueries);
-        case 'channels':
         case 'containers':
+          return Promise.resolve(mockContainers);
+        case 'channels':
+        case 'data-products':
           return Promise.resolve([]);
         default:
           return Promise.resolve([]);
@@ -100,6 +102,36 @@ describe('Systems NodeGraph', () => {
 
       expect(sendsEdge).toBeDefined();
       expect(receivesEdge).toBeDefined();
+    });
+
+    it('should render the data stores (containers) mapped to the system', async () => {
+      // @ts-ignore
+      const { nodes } = await getNodesAndEdges({ id: 'CoreMonolith', version: '1.0.0' });
+
+      const dataStoreNode = nodes.find((node: any) => node.id === 'OrdersDB-1.0.0');
+
+      expect(dataStoreNode).toEqual(
+        expect.objectContaining({
+          id: 'OrdersDB-1.0.0',
+          type: 'data',
+          data: expect.objectContaining({ data: expect.objectContaining({ id: 'OrdersDB' }) }),
+        })
+      );
+
+      // The data store is only rendered once even though it is reachable via both the
+      // service node-graph and the container node-graph (they are merged, not duplicated)
+      const dataStoreNodes = nodes.filter((node: any) => node.id === 'OrdersDB-1.0.0');
+      expect(dataStoreNodes).toHaveLength(1);
+    });
+
+    it('should connect the system services to the data stores they write to', async () => {
+      // @ts-ignore
+      const { edges } = await getNodesAndEdges({ id: 'CoreMonolith', version: '1.0.0' });
+
+      // OrderService writes to OrdersDB
+      const writesToEdge = edges.find((e: any) => e.source === 'OrderService-1.0.0' && e.target === 'OrdersDB-1.0.0');
+
+      expect(writesToEdge).toBeDefined();
     });
 
     it('should tag nodes with the system group when rendered as a group', async () => {

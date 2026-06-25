@@ -2,6 +2,7 @@ import { getCollection } from 'astro:content';
 import dagre from 'dagre';
 import { createDagreGraph, calculatedNodes } from '@utils/node-graphs/utils/utils';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
+import { getNodesAndEdges as getContainerNodeAndEdges } from './container-node-graph';
 import merge from 'lodash.merge';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 
@@ -31,7 +32,11 @@ export const getNodesAndEdges = async ({
     edges = new Map();
 
   // 1. Parallel Fetching
-  const [systems, services] = await Promise.all([getCollection('systems'), getCollection('services')]);
+  const [systems, services, containers] = await Promise.all([
+    getCollection('systems'),
+    getCollection('services'),
+    getCollection('containers'),
+  ]);
 
   const system = systems.find((s) => s.data.id === id && s.data.version === version);
 
@@ -45,6 +50,7 @@ export const getNodesAndEdges = async ({
 
   // 2. Build optimized maps
   const serviceMap = createVersionedMap(services);
+  const containerMap = createVersionedMap(containers);
 
   const rawServices = system?.data.services || [];
 
@@ -53,6 +59,12 @@ export const getNodesAndEdges = async ({
     .map((service) => findInMap(serviceMap, service.id, service.version))
     .filter((s): s is any => !!s)
     .map((svc) => ({ id: svc.data.id, version: svc.data.version }));
+
+  // Hydrate the data stores (containers) mapped directly to the system
+  const systemContainersWithVersion = (system?.data.containers || [])
+    .map((container) => findInMap(containerMap, container.id, container.version))
+    .filter((c): c is any => !!c)
+    .map((container) => ({ id: container.data.id, version: container.data.version }));
 
   // Grab the node-graph for each service in the system and merge them into one graph
   for (const service of systemServicesWithVersion) {
@@ -75,6 +87,26 @@ export const getNodesAndEdges = async ({
     });
     // @ts-ignore
     serviceEdges.forEach((e) => edges.set(e.id, e));
+  }
+
+  // Grab the node-graph for each data store (container) in the system and merge them into one graph.
+  // This renders the data store along with the services that read from / write to it, the same way
+  // services are merged above.
+  for (const container of systemContainersWithVersion) {
+    const { nodes: containerNodes, edges: containerEdges } = await getContainerNodeAndEdges({
+      id: container.id,
+      version: container.version,
+      defaultFlow: flow,
+      mode,
+      channelRenderMode,
+      layout: false,
+    });
+
+    containerNodes.forEach((n) => {
+      nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
+    });
+    // @ts-ignore
+    containerEdges.forEach((e) => edges.set(e.id, e));
   }
 
   // Add group node to the graph (used when a system is rendered inside another view)

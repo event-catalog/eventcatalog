@@ -24,9 +24,17 @@ interface Props {
   mode?: 'simple' | 'full';
   channelRenderMode?: 'flat' | 'single';
   collection?: CollectionEntry<'containers'>[];
+  layout?: boolean;
 }
 
-export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', channelRenderMode = 'flat' }: Props) => {
+export const getNodesAndEdges = async ({
+  id,
+  version,
+  defaultFlow,
+  mode = 'simple',
+  channelRenderMode = 'flat',
+  layout = true,
+}: Props) => {
   // 1. Fetch data
   const containers = await getContainers();
 
@@ -289,7 +297,9 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
   });
 
   // Render the diagram in memory getting hte X and Y
-  dagre.layout(flow);
+  if (layout) {
+    dagre.layout(flow);
+  }
 
   return {
     nodes: calculatedNodes(flow, nodes),

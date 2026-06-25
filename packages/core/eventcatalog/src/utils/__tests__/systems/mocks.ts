@@ -13,6 +13,8 @@ export const mockSystems = [
         { id: 'OrderService', version: '1.0.0' },
         { id: 'PaymentService', version: '1.0.0' },
       ],
+      // The data store (container) mapped directly to the system
+      containers: [{ id: 'OrdersDB', version: '1.0.0' }],
     },
   },
   {
@@ -37,6 +39,8 @@ export const mockServices = [
       id: 'OrderService',
       version: '1.0.0',
       sends: [{ id: 'OrderPlaced', version: '1.0.0' }],
+      // OrderService writes to the system's data store
+      writesTo: [{ id: 'OrdersDB', version: '1.0.0' }],
     },
   },
   {
@@ -67,4 +71,17 @@ export const mockEvents = [
 export const mockCommands = [];
 export const mockQueries = [];
 export const mockChannels = [];
-export const mockContainers = [];
+export const mockContainers = [
+  {
+    id: 'containers/OrdersDB/index.mdx',
+    slug: 'containers/OrdersDB',
+    collection: 'containers',
+    data: {
+      id: 'OrdersDB',
+      name: 'Orders DB',
+      version: '1.0.0',
+      container_type: 'database',
+      technology: 'postgres@14',
+    },
+  },
+];
