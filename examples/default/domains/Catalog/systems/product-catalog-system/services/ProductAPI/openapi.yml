@@ -1,0 +1,219 @@
+openapi: 3.0.3
+info:
+  title: Product API
+  version: 1.0.0
+  description: |
+    Public-facing API for the Product Catalog System. It is the entry point for
+    creating, updating, deleting and reading products. Every change is persisted
+    to the product database and recorded in the outbox so product change events
+    can be published to the rest of the business.
+  contact:
+    name: Product Platform
+    email: product-platform@acme.test
+servers:
+  - url: https://api.acme.test
+    description: Production
+tags:
+  - name: Products
+    description: Manage and read products in the catalog.
+paths:
+  /products:
+    post:
+      operationId: createProduct
+      summary: Create a product
+      description: Adds a new product to the catalog. On success a `ProductCreated` event is published.
+      tags:
+        - Products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: The product was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: The request body was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: A product with the same SKU already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /products/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    get:
+      operationId: getProduct
+      summary: Get a product
+      description: Returns the current state of a single product by its identifier.
+      tags:
+        - Products
+      responses:
+        '200':
+          description: The product was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: No product exists with that identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      operationId: updateProduct
+      summary: Update a product
+      description: Applies a partial update to an existing product. On success a `ProductUpdated` event is published.
+      tags:
+        - Products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: The product was updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: The request body was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No product exists with that identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      operationId: deleteProduct
+      summary: Delete a product
+      description: Removes a product from the catalog. On success a `ProductDeleted` event is published.
+      tags:
+        - Products
+      parameters:
+        - name: reason
+          in: query
+          required: false
+          description: Optional reason the product is being removed.
+          schema:
+            type: string
+            enum: [DISCONTINUED, DUPLICATE, MERCHANT_REQUEST, OTHER]
+      responses:
+        '204':
+          description: The product was deleted.
+        '404':
+          description: No product exists with that identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  parameters:
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      description: Unique identifier of the product.
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    Product:
+      type: object
+      required: [productId, sku, name, price, currency, status]
+      properties:
+        productId:
+          type: string
+          format: uuid
+        sku:
+          type: string
+          description: Stock keeping unit.
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+          description: Price in minor units (e.g. cents).
+          minimum: 0
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        category:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, ARCHIVED]
+    CreateProductRequest:
+      type: object
+      required: [sku, name, price, currency]
+      properties:
+        sku:
+          type: string
+          description: Stock keeping unit — must be unique.
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        price:
+          type: integer
+          description: Price in minor units (e.g. cents).
+          minimum: 0
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        category:
+          type: string
+        status:
+          type: string
+          description: Initial lifecycle status — defaults to DRAFT.
+          enum: [DRAFT, ACTIVE, ARCHIVED]
+    UpdateProductRequest:
+      type: object
+      description: Only the fields supplied are changed.
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        price:
+          type: integer
+          description: Price in minor units (e.g. cents).
+          minimum: 0
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        category:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, ARCHIVED]
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

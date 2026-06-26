@@ -27,7 +27,7 @@ How this system relates to the other systems and actors around it.
 
 <ContextDiagram />
 
-## System Diagram
+## Component Diagram
 
 The services, data stores, and messages that make up this system.
 

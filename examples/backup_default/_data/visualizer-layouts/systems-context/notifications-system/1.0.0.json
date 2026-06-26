@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "savedAt": "2026-06-26T07:45:00.688Z",
+  "resourceKey": "systems-context/notifications-system/1.0.0",
+  "positions": {
+    "notifications-system-1.0.0": {
+      "x": 135,
+      "y": 185
+    },
+    "identity-system-1.0.0": {
+      "x": 955.4535147392289,
+      "y": 206.68934240362805
+    },
+    "resend-1.0.0": {
+      "x": 685,
+      "y": 60
+    },
+    "actor-customer": {
+      "x": 685,
+      "y": 310
+    },
+    "actor-support-agent": {
+      "x": 685,
+      "y": 510
+    }
+  }
+}

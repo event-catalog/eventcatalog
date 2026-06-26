@@ -1,0 +1,20 @@
+---
+id: product-platform
+name: Product Platform
+summary: Owns the Product Catalog System — the source of truth for product data at Acme Inc.
+members:
+  - dboyne
+email: product-platform@acme.test
+slackDirectMessageUrl: https://acme.slack.com/channels/product-platform
+---
+
+## Overview
+
+The **Product Platform** team owns the [[system|product-catalog-system]]. They are responsible for how products are created, maintained and stored, and for reliably publishing product change events to the rest of the business.
+
+## Responsibilities
+
+- **Product API** — the public-facing API for creating, updating, deleting and reading products.
+- **Product Worker** — asynchronous catalog processing (enrichment, media, bulk imports).
+- **Product Search Publisher** — reliable, ordered delivery of product change events.
+- **Product Database** — the PostgreSQL system of record for all product data.

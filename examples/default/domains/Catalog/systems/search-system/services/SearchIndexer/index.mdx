@@ -1,0 +1,49 @@
+---
+id: search-indexer
+version: 1.0.0
+name: Search Indexer
+summary: |
+  Consumes product change events from the Product Catalog System and keeps the search index up to date so products are discoverable.
+styles:
+  icon: /icons/languages/go.svg
+owners:
+  - search-platform
+receives:
+  - id: product-created
+    version: 1.0.0
+  - id: product-updated
+    version: 1.0.0
+  - id: product-deleted
+    version: 1.0.0
+writesTo:
+  - id: search-index
+repository:
+  language: Go
+  url: 'https://github.com/acme/search-indexer'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Search Indexer** is how the Search System stays in sync with the catalog. It subscribes to [[event|product-created]], [[event|product-updated]] and [[event|product-deleted]] events published by the [[system|product-catalog-system]] and applies each change to the [[container|search-index]].
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Product change events consumed from the catalog" />
+</Tiles>
+
+### Responsibilities
+
+| Event | Action |
+|-------|--------|
+| [[event\|product-created]] | Add the new product to the [[container\|search-index]]. |
+| [[event\|product-updated]] | Re-index the changed product. |
+| [[event\|product-deleted]] | Remove the product from the index. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={4} />
+
+<Footer />

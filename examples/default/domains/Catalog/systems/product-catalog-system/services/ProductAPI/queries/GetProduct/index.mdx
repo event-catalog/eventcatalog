@@ -1,0 +1,32 @@
+---
+id: get-product
+name: Get Product
+version: 1.0.0
+summary: |
+  Query to fetch a single product by its identifier.
+owners:
+  - product-platform
+schemaPath: schema.json
+operation:
+  method: GET
+  path: /products/{productId}
+  statusCodes: ['200', '404']
+sidebar:
+  badge: 'GET'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`GetProduct` is handled by the [[service|product-api]]. It returns the current state of a single product, read directly from the [[container|product-database]]. Use the [[system|search-system]] when you need to search across many products instead.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "savedAt": "2026-06-26T07:26:30.094Z",
+  "resourceKey": "systems/core-monolith/1.0.0",
+  "positions": {
+    "system-group-core-monolith-1.0.0": {
+      "x": -25,
+      "y": -104
+    },
+    "InventoryAdjusted-1.2.3": {
+      "x": 610,
+      "y": 749
+    },
+    "OrdersService-0.0.3": {
+      "x": 1630,
+      "y": 834
+    },
+    "orders-service-sqs-channel-1.0.0": {
+      "x": 1120,
+      "y": 749
+    },
+    "InventoryService-0.0.1": {
+      "x": 245.18518518518522,
+      "y": 503.07407407407413
+    },
+    "orders-db-0.0.1": {
+      "x": 2140,
+      "y": 1284
+    },
+    "order-metadata-store-0.0.1": {
+      "x": 2140,
+      "y": 1454
+    },
+    "inventory-readmodel-0.0.1": {
+      "x": 1120,
+      "y": 919
+    },
+    "LegacyOrderArchived-0.0.1": {
+      "x": 2140,
+      "y": 164
+    },
+    "OrderAmended-0.0.1": {
+      "x": 2140,
+      "y": 334
+    },
+    "orders-domain-eventbus-1.0.0": {
+      "x": 2650,
+      "y": 504
+    },
+    "InventoryService-0.0.2": {
+      "x": 3160,
+      "y": 699
+    },
+    "NotificationService-0.0.2": {
+      "x": 3670,
+      "y": 334
+    },
+    "notifications-queue-0.0.1": {
+      "x": 3160,
+      "y": 334
+    },
+    "OrderCancelled-0.0.1": {
+      "x": 2140,
+      "y": 504
+    },
+    "OrderSupportAgent-0.0.1": {
+      "x": 2650,
+      "y": 749
+    },
+    "OrderSupportAgent-0.0.1-tool-order-lookup-mcp": {
+      "x": 3160,
+      "y": 919
+    },
+    "OrderSupportAgent-0.0.1-tool-support-case-notes-mcp": {
+      "x": 3160,
+      "y": 1089
+    },
+    "OrderConfirmed-0.0.1": {
+      "x": 2140,
+      "y": 944
+    },
+    "inventory-service-filter-by-orders-over-100-0.0.1": {
+      "x": 2650,
+      "y": 944
+    },
+    "ShippingService-0.0.1": {
+      "x": 3160,
+      "y": 504
+    },
+    "Snowflake-1.0.0": {
+      "x": 2650,
+      "y": 1114
+    },
+    "monolith-db-1.0.0": {
+      "x": 100,
+      "y": 919
+    },
+    "monolith-session-cache-1.0.0": {
+      "x": 100,
+      "y": 1089
+    },
+    "order-analytics-1.0.0": {
+      "x": 1630,
+      "y": 1479
+    },
+    "order-fulfillment-metrics-1.0.0": {
+      "x": 2650,
+      "y": 1284
+    }
+  }
+}

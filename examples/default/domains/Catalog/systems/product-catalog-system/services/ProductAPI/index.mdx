@@ -1,0 +1,59 @@
+---
+id: product-api
+version: 1.0.0
+name: Product API
+summary: |
+  The public-facing API for the product catalog. Handles commands to create, update and delete products, serves product reads, and is the entry point into the Product Catalog System.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - product-platform
+receives:
+  - id: create-product
+    version: 1.0.0
+  - id: update-product
+    version: 1.0.0
+  - id: delete-product
+    version: 1.0.0
+  - id: get-product
+    version: 1.0.0
+writesTo:
+  - id: product-database
+readsFrom:
+  - id: product-database
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/product-api'
+specifications:
+  - type: openapi
+    path: openapi.yml
+    name: Product API
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Product API** is the front door to the Product Catalog System. It validates incoming commands, persists product data to the [[container|product-database]], and records every change to the outbox. The [[service|product-search-publisher]] then turns those changes into the domain events the rest of the business consumes.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Commands and queries handled by this service" />
+  <Tile icon="CircleStackIcon" href="/docs/services/product-api/1.0.0" title="System of record" description="Reads from and writes to the product database" />
+</Tiles>
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Command handling | Validates and applies [[command\|create-product]], [[command\|update-product]] and [[command\|delete-product]]. |
+| Reads | Serves [[query\|get-product]] directly from the product database. |
+| Change capture | Records every product change to the outbox in the [[container\|product-database]] for the [[service\|product-search-publisher]] to publish. |
+| Persistence | Reads from and writes to the [[container\|product-database]] (system of record). |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />
