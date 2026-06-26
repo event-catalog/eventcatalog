@@ -1,0 +1,35 @@
+---
+id: subscriptions-platform
+name: Subscriptions Platform
+version: 1.0.0
+summary: Owns recurring billing and the subscription lifecycle — sign-up, renewals, invoicing, and cancellations.
+owners:
+  - dboyne
+services:
+  - id: SubscriptionService
+  - id: BillingService
+entities:
+  - id: BillingProfile
+flows:
+  - id: CancelSubscription
+    version: 1.0.0
+containers:
+  - id: subscriptions-db
+relationships:
+  - id: payments-platform
+    label: charges renewals via
+  - id: notifications-system
+    label: sends invoices via
+---
+
+## Overview
+
+The **Subscriptions Platform** groups the services that manage recurring revenue.
+`SubscriptionService` owns the lifecycle of a subscription (start, renew, cancel)
+while `BillingService` turns billing cycles into invoices and schedules payments.
+
+It is orthogonal to the domains those services live in — `SubscriptionService` and
+`BillingService` both sit in the **Subscriptions** subdomain, but the system view
+lets you reason about recurring billing as one capability.
+
+<NodeGraph />

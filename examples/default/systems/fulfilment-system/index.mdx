@@ -1,0 +1,22 @@
+---
+id: fulfilment-system
+name: Fulfilment System
+version: 1.0.0
+summary: Coordinates warehouse picking, packing, and shipping once an order is paid.
+owners:
+  - dboyne
+services:
+  - id: ShippingService
+  - id: InventoryService
+relationships:
+  - id: notifications-system
+    label: sends shipping updates via
+---
+
+## Overview
+
+The **Fulfilment System** takes paid orders and drives them through the
+warehouse and carrier network until they reach the customer. It notifies the
+customer of progress through the Notifications System.
+
+<NodeGraph />

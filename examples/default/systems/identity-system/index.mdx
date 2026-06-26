@@ -1,0 +1,18 @@
+---
+id: identity-system
+name: Identity System
+version: 1.0.0
+summary: The source of truth for customer accounts, authentication, and contact details.
+owners:
+  - dboyne
+services:
+  - id: RegistrationService
+---
+
+## Overview
+
+The **Identity System** owns customer accounts and authentication. It is a leaf
+in the System Context Diagram — lots of systems depend on it, but it depends on
+nothing else.
+
+<NodeGraph />

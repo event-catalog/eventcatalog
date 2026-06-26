@@ -5,6 +5,13 @@ version: 1.0.0
 summary: A system defined inside the E-Commerce domain. Systems can live in any folder, so you can co-locate them with the domain whose services they group — even though systems are orthogonal to domains.
 owners:
   - dboyne
+services:
+  - id: OrdersService
+relationships:
+  - id: core-monolith
+    label: reads catalog from
+  - id: payments-platform
+    label: authorizes payments via
 ---
 
 ## Overview

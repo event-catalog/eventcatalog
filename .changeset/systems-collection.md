@@ -1,5 +1,8 @@
 ---
 "@eventcatalog/core": minor
+"@eventcatalog/visualiser": minor
 ---
 
 Add support for a new `systems` collection. Systems are a versioned resource that can be defined in any folder (including inside domains), rendered as documentation pages, and listed in the sidebar with their own icon and color. Systems can group services, flows, entities, data stores (containers), and diagrams, have their own architecture overview page (`/architecture/systems/[id]`) listing their entities, services, external integrations, data stores, and flows, be visualised as an architecture map, be browsed and filtered on a dedicated discover page (`/discover/systems`), and be targeted by architecture decision records (`appliesTo: [{ type: 'system' }]`). Domains can reference one or more systems, which are listed in the domain sidebar, rendered as expandable sections on the domain's architecture page (listing the system's services, like subdomains, with external services shown under "External Integrations"), and merged into the domain's architecture map (each referenced system's services are grouped within the domain graph). Teams and users can own systems, which are surfaced on their profile pages.
+
+Systems can also declare `relationships` to other systems (each with an optional `version` and `label`), which power a new **System Context Diagram** visualiser (`/visualiser/systems/[id]/[version]/context`, linked from the system sidebar under Architecture). Starting from a system, the diagram walks its relationships outward to build the reachable neighbourhood of systems, rendering each as a node (showing its service, entity, and data store counts) connected by labelled edges. Clicking a system node opens that system's architecture map.

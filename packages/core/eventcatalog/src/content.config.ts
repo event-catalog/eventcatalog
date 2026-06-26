@@ -780,6 +780,15 @@ const domains = defineCollection({
     .extend(baseSchema.shape),
 });
 
+// A relationship from one system to another, used by the System Context Diagram.
+// Source-declared and one-directional. The `label` describes the edge; a relationship
+// without a label is treated as having no edge (it is skipped when drawing the diagram).
+const systemRelationshipPointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  label: z.string().optional(),
+});
+
 const systems = defineCollection({
   loader: glob({
     pattern: withIgnoredBuildArtifacts([
@@ -813,6 +822,7 @@ const systems = defineCollection({
       flows: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
       containers: z.array(pointer).optional(),
+      relationships: z.array(systemRelationshipPointer).optional(),
       detailsPanel: z
         .object({
           versions: detailPanelPropertySchema.optional(),

@@ -16,6 +16,7 @@ import { getDomainsCanvasData } from '@utils/node-graphs/domains-canvas';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-graphs/data-products-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForSystem } from '@utils/node-graphs/systems-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForSystemContext } from '@utils/node-graphs/system-context-node-graph';
 import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
@@ -122,6 +123,16 @@ if (collection === 'domain-context-map') {
 if (collection === 'domains-canvas') {
   const { domainNodes, messageNodes, edges: fetchedEdges } = await getDomainsCanvasData();
   nodes = [...domainNodes, ...messageNodes];
+  edges = fetchedEdges;
+}
+
+if (collection === 'systems-context') {
+  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForSystemContext({
+    id,
+    version,
+    mode,
+  });
+  nodes = fetchedNodes;
   edges = fetchedEdges;
 }
 

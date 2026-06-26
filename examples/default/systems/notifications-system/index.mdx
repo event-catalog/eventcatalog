@@ -1,0 +1,21 @@
+---
+id: notifications-system
+name: Notifications System
+version: 1.0.0
+summary: Delivers transactional email, SMS, and push notifications to customers.
+owners:
+  - dboyne
+services:
+  - id: NotificationService
+relationships:
+  - id: identity-system
+    label: looks up contact details via
+---
+
+## Overview
+
+The **Notifications System** is the single channel for reaching customers. Other
+systems hand it events to turn into emails, SMS, and push messages. It resolves
+customer contact details through the Identity System.
+
+<NodeGraph />

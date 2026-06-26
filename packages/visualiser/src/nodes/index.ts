@@ -60,6 +60,7 @@ export { OwnerIndicator, normalizeOwners } from "./OwnerIndicator";
 // Core nodes (single files) - import then re-export for nodeComponents
 import CustomNode from "./Custom";
 import DomainNode from "./Domain";
+import SystemNode from "./System";
 import EntityNode from "./Entity";
 import FlowNode from "./Flow";
 import FlowExpandedNode from "./FlowExpandedNode";
@@ -73,6 +74,7 @@ import { MessageGroupNode, MessageGroupExpandedNode } from "./message-group";
 export {
   CustomNode,
   DomainNode,
+  SystemNode,
   EntityNode,
   FlowNode,
   FlowExpandedNode,
@@ -128,6 +130,7 @@ export const nodeComponents = {
   // Core nodes are available via individual imports
   custom: CustomNode,
   domain: DomainNode,
+  system: SystemNode,
   entity: EntityNode,
   flow: FlowNode,
   flowExpanded: FlowExpandedNode,

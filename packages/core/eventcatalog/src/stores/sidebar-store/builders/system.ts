@@ -30,6 +30,11 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
   const diagramNavItems = buildDiagramNavItems(systemDiagrams, context.diagrams);
   const hasDiagrams = diagramNavItems.length > 0 && shouldRenderSideBarSection(system, 'diagrams');
 
+  // A system that declares relationships to other systems can be the starting point of a
+  // System Context Diagram. (Systems that are only referenced by others still get a context
+  // page; here we surface the link from systems that declare the relationships themselves.)
+  const hasRelationships = (system.data.relationships || []).length > 0;
+
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(system, 'owners');
   const renderRepository = system.data.repository && shouldRenderSideBarSection(system, 'repository');
   const hasAttachments = system.data.attachments && system.data.attachments.length > 0;
@@ -80,6 +85,12 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
             title: 'Map',
             href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}`),
           },
+          renderVisualiser &&
+            hasRelationships && {
+              type: 'item',
+              title: 'System Context Diagram',
+              href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}/context`),
+            },
         ].filter(Boolean) as ChildRef[],
       },
       hasDiagrams && {

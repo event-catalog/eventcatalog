@@ -60,6 +60,7 @@ import EntityNode from "../nodes/Entity";
 import UserNode from "../nodes/User";
 import StepNode from "../nodes/Step";
 import DomainNode from "../nodes/Domain";
+import SystemNode from "../nodes/System";
 import GroupNode from "../nodes/GroupNode";
 import CustomNode from "../nodes/Custom";
 import ExternalSystemNode2 from "../nodes/ExternalSystem2";
@@ -386,6 +387,8 @@ const NodeGraphBuilder = ({
       commands: wrapWithContextMenu(CommandNode),
       domain: wrapWithContextMenu(DomainNode),
       domains: wrapWithContextMenu(DomainNode),
+      system: wrapWithContextMenu(SystemNode),
+      systems: wrapWithContextMenu(SystemNode),
       step: StepNode,
       user: UserNode,
       custom: CustomNode,
@@ -1085,6 +1088,9 @@ const NodeGraphBuilder = ({
 
       // Disable focus mode for domain and expanded group nodes
       if (node.type === "domain" || node.type === "domains") return;
+      // System nodes navigate to their map on click (handled by the node itself),
+      // so don't open the focus-mode modal for them.
+      if (node.type === "system" || node.type === "systems") return;
       if (isExpandedWrapper(node.type)) return;
 
       // Handle messageGroup click — expand inline

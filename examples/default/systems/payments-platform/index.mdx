@@ -1,0 +1,33 @@
+---
+id: payments-platform
+name: Payments Platform
+version: 1.0.0
+summary: Handles payment authorization, capture, and settlement across the business.
+owners:
+  - dboyne
+services:
+  - id: PaymentService
+  - id: PaymentGatewayService
+  - id: FraudDetectionService
+entities:
+  - id: Payment
+flows:
+  - id: PaymentFlow
+    version: 1.0.0
+containers:
+  - id: payments-db
+  - id: payment-cache
+relationships:
+  - id: fulfilment-system
+    label: triggers fulfilment via
+  - id: identity-system
+    label: verifies customers via
+---
+
+## Overview
+
+The **Payments Platform** owns everything money-related — authorizing cards,
+capturing funds, and settling with the ledger. It sits downstream of checkout
+and upstream of fulfilment.
+
+<NodeGraph />

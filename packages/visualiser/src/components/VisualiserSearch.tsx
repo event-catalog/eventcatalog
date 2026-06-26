@@ -12,6 +12,7 @@ import {
   Blocks,
   Bot,
   Database,
+  Group,
   Layers,
   ListTree,
   MessageSquare,
@@ -47,6 +48,7 @@ interface NodeDataContent extends Record<string, unknown> {
   agent?: { data?: AgentData } & AgentData;
   agentTool?: { data?: AgentToolData } & AgentToolData;
   domain?: { data?: DomainData } & DomainData;
+  system?: { data?: ResourceData } & ResourceData;
   entity?: { data?: EntityData } & EntityData;
   channel?: { data?: ResourceData } & ResourceData;
   dataProduct?: { data?: ResourceData } & ResourceData;
@@ -157,6 +159,7 @@ const getNodeResourceData = (
     | "agentTool"
     | "service"
     | "domain"
+    | "system"
     | "entity"
     | "channel"
     | "dataProduct"
@@ -218,6 +221,7 @@ const VisualiserSearch = memo(
         const agentTool = getNodeResourceData(node.data, "agentTool");
         const service = getNodeResourceData(node.data, "service");
         const domain = getNodeResourceData(node.data, "domain");
+        const system = getNodeResourceData(node.data, "system");
         const entity = getNodeResourceData(node.data, "entity");
         const channel = getNodeResourceData(node.data, "channel");
         const dataProduct = getNodeResourceData(node.data, "dataProduct");
@@ -233,6 +237,8 @@ const VisualiserSearch = memo(
           service?.id ||
           domain?.name ||
           domain?.id ||
+          system?.name ||
+          system?.id ||
           entity?.name ||
           entity?.id ||
           channel?.name ||
@@ -249,6 +255,7 @@ const VisualiserSearch = memo(
           agentTool?.version ||
           service?.version ||
           domain?.version ||
+          system?.version ||
           entity?.version ||
           channel?.version ||
           dataProduct?.version ||
@@ -273,6 +280,7 @@ const VisualiserSearch = memo(
             getNodeResourceData(data, "agentTool") ||
             getNodeResourceData(data, "service") ||
             getNodeResourceData(data, "domain") ||
+            getNodeResourceData(data, "system") ||
             getNodeResourceData(data, "entity") ||
             getNodeResourceData(data, "channel") ||
             getNodeResourceData(data, "dataProduct") ||
@@ -459,6 +467,13 @@ const VisualiserSearch = memo(
               "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
             badgeClass:
               "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+          },
+          systems: {
+            label: "System",
+            Icon: Group,
+            iconClass: "border-violet-500/25 bg-violet-500/10 text-violet-500",
+            badgeClass:
+              "border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-300",
           },
           flows: {
             label: "Flow",

@@ -7,24 +7,15 @@ owners:
   - dboyne
 services:
   - id: OrdersService
-  - id: PaymentService
-  - id: SubscriptionService
 flows:
   - id: PlaceOrderFlow
     version: 1.0.0
-  - id: PaymentFlow
-    version: 1.0.0
-  - id: CancelSubscription
-    version: 1.0.0
 entities:
   - id: Order
-  - id: Payment
-  - id: BillingProfile
 containers:
   - id: monolith-db
   - id: monolith-session-cache
   - id: orders-db
-  - id: payments-db
 diagrams:
   - id: monolith-module-map
     version: 1.0.0
@@ -32,6 +23,11 @@ diagrams:
     version: 1.0.0
   - id: target-architecture
     version: 1.0.0
+relationships:
+  - id: payments-platform
+    label: delegates payments to
+  - id: notifications-system
+    label: emails customers via
 ---
 
 ## Overview
@@ -48,19 +44,21 @@ from multiple domains, and a domain can span multiple systems.
 
 ## Services in this system
 
-The Core Monolith currently groups the following services, which span several
-domains:
+The Core Monolith now groups only the services that have **not yet** been
+extracted into their own systems:
 
 - <ResourceLink id="OrdersService" type="service">Orders Service</ResourceLink> — order management (Orders domain)
-- <ResourceLink id="PaymentService" type="service">Payment Service</ResourceLink> — payment processing (Payment domain)
-- <ResourceLink id="SubscriptionService" type="service">Subscription Service</ResourceLink> — subscriptions (Subscriptions domain)
-
-Notice these services come from [[service|OrdersService]], [[service|PaymentService]]
-and [[service|SubscriptionService]] across different domains — that's the whole
-point of a system: it groups services regardless of their domain.
 
 ## Migration status
 
-We are incrementally extracting bounded contexts out of the monolith. Each
-extracted service keeps its domain membership while remaining part of this
-system until the migration completes.
+We are incrementally extracting bounded contexts out of the monolith using the
+[strangler-fig pattern](/visualiser/diagrams/strangler-fig-migration). Several
+capabilities have already been carved out into dedicated systems:
+
+- **Payments** → extracted into the [[system|payments-platform]] (Payment Service,
+  Payment Gateway, Fraud Detection)
+- **Subscriptions** → extracted into the [[system|subscriptions-platform]]
+  (Subscription Service, Billing Service)
+
+Orders remains in the monolith and is the next candidate for extraction. Each
+extracted service keeps its domain membership while moving into its new system.

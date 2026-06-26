@@ -218,6 +218,12 @@ export default function NestedSideBar() {
         { pattern: /^\/docs\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
         { pattern: /^\/visualiser\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
         { pattern: /^\/architecture\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
+        // Systems (key prefix is `system`, url segment is `systems`).
+        // The visualiser pattern also matches the System Context Diagram
+        // (/visualiser/systems/:id/:version/context) since it is not end-anchored.
+        { pattern: /^\/docs\/systems\/([^/]+)\/([^/]+)/, type: 'system' },
+        { pattern: /^\/visualiser\/systems\/([^/]+)\/([^/]+)/, type: 'system' },
+        { pattern: /^\/architecture\/systems\/([^/]+)\/([^/]+)/, type: 'system' },
         // Agents
         { pattern: /^\/docs\/agents\/([^/]+)\/([^/]+)/, type: 'agent' },
         { pattern: /^\/visualiser\/agents\/([^/]+)\/([^/]+)/, type: 'agent' },
