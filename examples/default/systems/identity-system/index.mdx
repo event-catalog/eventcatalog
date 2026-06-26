@@ -7,12 +7,31 @@ owners:
   - dboyne
 services:
   - id: RegistrationService
+actors:
+  - id: customer
+    name: Customer
+    label: logs into
+    direction: inbound
+  - id: support-agent
+    name: Support Agent
+    label: manages accounts in
+    direction: inbound
 ---
 
 ## Overview
 
-The **Identity System** owns customer accounts and authentication. It is a leaf
-in the System Context Diagram — lots of systems depend on it, but it depends on
-nothing else.
+The **Identity System** owns customer accounts and authentication. Customers log
+into it directly, and support agents manage accounts through it. Lots of systems
+depend on it, but it depends on nothing else.
+
+## Context Diagram
+
+How this system relates to the other systems and actors around it.
+
+<ContextDiagram />
+
+## System Diagram
+
+The services, data stores, and messages that make up this system.
 
 <NodeGraph />

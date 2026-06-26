@@ -828,11 +828,36 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     pages: sortByResourceName(domains).map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
   });
 
+  // Split systems by scope (defaults to internal). When there are systems of both
+  // scopes we show two sub-sections (Internal / External), each ordered by name;
+  // otherwise we keep a flat list so a single-scope catalog isn't over-nested.
+  const internalSystems = systems.filter((system) => (system.data.scope ?? 'internal') !== 'external');
+  const externalSystems = systems.filter((system) => system.data.scope === 'external');
+
+  const systemPageKeys = (items: typeof systems) =>
+    sortByResourceName(items).map((system) => `system:${system.data.id}:${system.data.version}`);
+
+  const internalSystemsList = createLeaf(internalSystems, {
+    type: 'group',
+    title: 'Internal',
+    icon: 'Group',
+    pages: systemPageKeys(internalSystems),
+  });
+
+  const externalSystemsScopedList = createLeaf(externalSystems, {
+    type: 'group',
+    title: 'External',
+    icon: 'Group',
+    pages: systemPageKeys(externalSystems),
+  });
+
+  const hasBothSystemScopes = internalSystems.length > 0 && externalSystems.length > 0;
+
   const systemsList = createLeaf(systems, {
     type: 'item',
     title: 'Systems',
     icon: 'Group',
-    pages: sortByResourceName(systems).map((system) => `system:${system.data.id}:${system.data.version}`),
+    pages: hasBothSystemScopes ? ['list:systems-internal', 'list:systems-external'] : systemPageKeys(systems),
   });
 
   const agentsList = createLeaf(agents, {
@@ -1023,6 +1048,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allNodes: Record<string, NavNode> = {
     ...(domainsList ? { 'list:domains': domainsList } : {}),
     ...(systemsList ? { 'list:systems': systemsList } : {}),
+    ...(internalSystemsList ? { 'list:systems-internal': internalSystemsList } : {}),
+    ...(externalSystemsScopedList ? { 'list:systems-external': externalSystemsScopedList } : {}),
     ...(servicesList ? { 'list:services': servicesList } : {}),
     ...(agentsList ? { 'list:agents': agentsList } : {}),
     ...(adrsList ? { 'list:adrs': adrsList } : {}),

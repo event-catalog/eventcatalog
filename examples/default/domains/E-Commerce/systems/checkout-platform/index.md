@@ -20,3 +20,15 @@ The **Checkout Platform** groups the services that power checkout. It is
 defined inside the E-Commerce domain folder to keep related resources together,
 but a system is not tied to a single domain — it can group services from
 multiple domains.
+
+## Context Diagram
+
+How this system relates to the other systems and actors around it.
+
+<ContextDiagram />
+
+## System Diagram
+
+The services, data stores, and messages that make up this system.
+
+<NodeGraph />

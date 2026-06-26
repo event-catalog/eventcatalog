@@ -4,10 +4,11 @@ import {
   Server as ServerIcon,
   Box as BoxIcon,
   Database as DatabaseIcon,
+  MessageSquare as MessageSquareIcon,
 } from "lucide-react";
-import { buildUrl } from "../utils/url-builder";
+import { buildUrl, navigateTo } from "../utils/url-builder";
 import { memo } from "react";
-import { LINE_CLAMP_STYLE } from "./shared-styles";
+import { LINE_CLAMP_STYLE, useDarkMode } from "./shared-styles";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 import { TruncatedResourceName } from "./TruncatedResourceName";
 
@@ -16,6 +17,9 @@ interface SystemData {
   version: string;
   name: string;
   summary?: string;
+  // "external" marks a third-party/SaaS system (e.g. Resend, Stripe). Such
+  // systems are shaded in the graph. Defaults to internal when absent.
+  scope?: "internal" | "external";
 }
 
 interface Data {
@@ -24,6 +28,8 @@ interface Data {
   servicesCount?: number;
   entitiesCount?: number;
   containersCount?: number;
+  // Total messages handled by the system's services (sends + receives).
+  messagesCount?: number;
 }
 
 function classNames(...classes: any) {
@@ -45,17 +51,33 @@ export default memo(function SystemNode({ data }: any) {
     servicesCount = 0,
     entitiesCount = 0,
     containersCount = 0,
+    messagesCount = 0,
   } = data as Data;
-  const { id, version, name, summary } = system;
+  const { id, version, name, summary, scope } = system;
+  const isExternal = scope === "external";
+  const isDark = useDarkMode();
 
   const stats = [
     { icon: ServerIcon, label: "Services", count: servicesCount },
+    { icon: MessageSquareIcon, label: "Messages", count: messagesCount },
     { icon: BoxIcon, label: "Entities", count: entitiesCount },
     { icon: DatabaseIcon, label: "Data Stores", count: containersCount },
   ].filter((stat) => stat.count > 0);
 
+  // External systems get a subtle gray fill so they read as outside the org,
+  // without the busier striped treatment.
+  const cardBackground = isExternal
+    ? isDark
+      ? "rgba(148,163,184,0.12)"
+      : "rgba(148,163,184,0.1)"
+    : "var(--ec-system-node-bg, rgb(var(--ec-card-bg)))";
+
   const goToMap = () => {
-    window.location.href = buildUrl(`/visualiser/systems/${id}/${version}`);
+    // Soft, animated navigation via the host's view-transition router when
+    // available (falls back to a hard nav). Both the System Context Diagram and
+    // the target system Map share a `transition:name="visualiser-graph"` portal,
+    // so this reads as drilling one level deeper into the system.
+    navigateTo(buildUrl(`/visualiser/systems/${id}/${version}`));
   };
 
   return (
@@ -67,8 +89,14 @@ export default memo(function SystemNode({ data }: any) {
         if (e.key === "Enter" || e.key === " ") goToMap();
       }}
       title={`Open the ${name} map`}
-      className="relative min-w-48 max-w-60 rounded-xl border-2 border-violet-500 overflow-visible cursor-pointer bg-[var(--ec-system-node-bg,rgb(var(--ec-card-bg)))]"
-      style={{ boxShadow: "0 2px 12px rgba(139, 92, 246, 0.15)" }}
+      className={classNames(
+        "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible cursor-pointer",
+        isExternal ? "border-dashed border-violet-400" : "border-violet-500",
+      )}
+      style={{
+        background: cardBackground,
+        boxShadow: "0 2px 12px rgba(139, 92, 246, 0.15)",
+      }}
     >
       <Handle
         type="target"
@@ -85,7 +113,7 @@ export default memo(function SystemNode({ data }: any) {
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
         <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-violet-500">
           <GroupIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
-          System
+          {isExternal ? "External System" : "System"}
         </span>
       </div>
 

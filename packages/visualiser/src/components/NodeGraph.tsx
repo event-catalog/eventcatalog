@@ -50,6 +50,8 @@ import { Channel as ChannelNode } from "../nodes/channel";
 import { Data as DataNode } from "../nodes/data";
 import { View as ViewNode } from "../nodes/view";
 import { Actor as ActorNode } from "../nodes/actor";
+import ContextActorNode from "../nodes/ContextActor";
+import SystemGroupNode from "../nodes/SystemGroupNode";
 import { ExternalSystem as ExternalSystemNode } from "../nodes/external-system";
 import { Note as NoteNode } from "../nodes/note";
 import { Field as FieldNode } from "../nodes/field";
@@ -187,6 +189,13 @@ interface Props {
   resourceKey?: string;
   /** Controls whether message flow animation is enabled. When set, overrides URL params and localStorage. */
   animated?: boolean;
+  /**
+   * When true, message-flow animation is unsupported for this graph: it is forced
+   * off (ignoring the `animated` prop, URL params and localStorage) and the
+   * "Simulate Messages" toggle is hidden. Used by graphs that aren't message
+   * flows, e.g. the system Context Diagram.
+   */
+  disableMessageAnimation?: boolean;
   /** When set, the graph will zoom to this node id. */
   focusNodeId?: string;
   /** Optional token to force repeated focus for the same node id. */
@@ -337,6 +346,7 @@ const NodeGraphBuilder = ({
   isDevMode = false,
   resourceKey,
   animated,
+  disableMessageAnimation = false,
   focusNodeId,
   focusRequestId,
   fitRequestId,
@@ -399,10 +409,12 @@ const NodeGraphBuilder = ({
       data: wrapWithContextMenu(DataNode),
       view: wrapWithContextMenu(ViewNode),
       actor: ActorNode,
+      "context-actor": ContextActorNode,
       container: wrapWithContextMenu(DataNode),
       "data-product": wrapWithContextMenu(DataProductNode),
       "data-products": wrapWithContextMenu(DataProductNode),
       group: GroupNode,
+      "system-group": SystemGroupNode,
       note: memo((props: any) => <NoteNode {...props} readOnly={true} />),
       field: wrapWithContextMenu(FieldNode),
       messageGroup: MessageGroupNode,
@@ -1091,6 +1103,10 @@ const NodeGraphBuilder = ({
       // System nodes navigate to their map on click (handled by the node itself),
       // so don't open the focus-mode modal for them.
       if (node.type === "system" || node.type === "systems") return;
+      // Context-diagram actor nodes are non-interactive — clicking does nothing.
+      if (node.type === "context-actor") return;
+      // The system-group boundary box on the System Diagram is just a container.
+      if (node.type === "system-group") return;
       if (isExpandedWrapper(node.type)) return;
 
       // Handle messageGroup click — expand inline
@@ -1598,8 +1614,15 @@ const NodeGraphBuilder = ({
   }, [fitView]);
 
   // animate messages, between views
-  // Priority: animated prop > URL parameter > localStorage > auto (disabled for large graphs)
+  // Priority: disableMessageAnimation > animated prop > URL parameter > localStorage > auto (disabled for large graphs)
   useEffect(() => {
+    // Some graphs (e.g. the Context Diagram) aren't message flows, so animation
+    // is unsupported — always off, ignoring every other source.
+    if (disableMessageAnimation) {
+      setAnimateMessages(false);
+      return;
+    }
+
     if (animated !== undefined) {
       setAnimateMessages(animated);
       return;
@@ -1624,7 +1647,7 @@ const NodeGraphBuilder = ({
         setAnimateMessages(initialNodes.length <= LARGE_GRAPH_NODE_THRESHOLD);
       }
     }
-  }, [animated, initialNodes.length]);
+  }, [animated, disableMessageAnimation, initialNodes.length]);
 
   useEffect(() => {
     setEdges((eds) =>
@@ -2220,6 +2243,7 @@ const NodeGraphBuilder = ({
                         setIsMermaidView={setIsMermaidView}
                         animateMessages={animateMessages}
                         toggleAnimateMessages={toggleAnimateMessages}
+                        hideAnimateMessages={disableMessageAnimation}
                         hideChannels={hideChannels}
                         toggleChannelsVisibility={toggleChannelsVisibility}
                         hasChannels={hasChannels}
@@ -2327,6 +2351,7 @@ const NodeGraphBuilder = ({
                           setIsMermaidView={setIsMermaidView}
                           animateMessages={animateMessages}
                           toggleAnimateMessages={toggleAnimateMessages}
+                          hideAnimateMessages={disableMessageAnimation}
                           hideChannels={hideChannels}
                           toggleChannelsVisibility={toggleChannelsVisibility}
                           hasChannels={hasChannels}
@@ -2594,6 +2619,13 @@ interface NodeGraphProps {
   resourceKey?: string;
   /** Controls whether message flow animation is enabled. When set, overrides URL params and localStorage. */
   animated?: boolean;
+  /**
+   * When true, message-flow animation is unsupported for this graph: it is forced
+   * off (ignoring the `animated` prop, URL params and localStorage) and the
+   * "Simulate Messages" toggle is hidden. Used by graphs that aren't message
+   * flows, e.g. the system Context Diagram.
+   */
+  disableMessageAnimation?: boolean;
   /** When set, the graph will zoom to this node id. */
   focusNodeId?: string;
   /** Optional token to force repeated focus for the same node id. */

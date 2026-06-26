@@ -28,6 +28,11 @@ relationships:
     label: delegates payments to
   - id: notifications-system
     label: emails customers via
+actors:
+  - id: customer
+    name: Customer
+    label: places orders through
+    direction: inbound
 ---
 
 ## Overview
@@ -36,6 +41,16 @@ The **Core Monolith** is FlowMart's original application. As part of our
 migration to microservices, the services that we carve out of the monolith are
 grouped under this system so the team can see, at a glance, which parts of the
 catalog still belong to the monolith during the transition.
+
+## Context Diagram
+
+How this system relates to the other systems and actors around it.
+
+<ContextDiagram />
+
+## System Diagram
+
+The services, data stores, and messages that make up this system.
 
 <NodeGraph />
 

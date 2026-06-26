@@ -331,6 +331,19 @@ let nodeGraphs =
   }) || [];
 const flowEmbeds = getMDXComponentsByName(props.body || '', 'Flow') || [];
 
+// Context Diagrams embedded via <ContextDiagram />. When no id is passed we assume
+// the current page (only valid on system pages). Each renders the systems-context
+// graph into its own portal so it doesn't collide with the page's System Diagram.
+const contextDiagrams =
+  props.collection === 'systems'
+    ? (getMDXComponentsByName(props.body || '', 'ContextDiagram') || []).map((diagram: any) => ({
+        id: diagram.id ?? props.data.id,
+        version: diagram.version ?? props.data.version,
+        search: parseMdxBooleanProp(diagram.search, true),
+        legend: parseMdxBooleanProp(diagram.legend, true),
+      }))
+    : [];
+
 // Get props for the node graph (when no id is passed, we assume its the current page)
 const hasCurrentFlowEmbed =
   props.collection === 'flows' &&
@@ -597,6 +610,29 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                   />
                 );
               })
+          }
+          {
+            contextDiagrams.length > 0 &&
+              contextDiagrams.map((diagram: any) => (
+                <NodeGraph
+                  id={diagram.id}
+                  version={diagram.version}
+                  collection="systems-context"
+                  mode="simple"
+                  linksToVisualiser={true}
+                  showSearch={diagram.search ?? true}
+                  showLegend={diagram.legend ?? true}
+                  portalId={`${diagram.id}-context-diagram-portal`}
+                  href={
+                    isVisualiserEnabled()
+                      ? {
+                          label: 'Open Context Diagram',
+                          url: buildUrl(`/visualiser/systems/${diagram.id}/${diagram.version}/context`),
+                        }
+                      : undefined
+                  }
+                />
+              ))
           }
         </div>
         <Footer />

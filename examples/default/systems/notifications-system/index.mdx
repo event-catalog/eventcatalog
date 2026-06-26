@@ -10,6 +10,13 @@ services:
 relationships:
   - id: identity-system
     label: looks up contact details via
+  - id: resend
+    label: delivers email via
+actors:
+  - id: customer
+    name: Customer
+    label: sends notifications to
+    direction: outbound
 ---
 
 ## Overview
@@ -17,5 +24,15 @@ relationships:
 The **Notifications System** is the single channel for reaching customers. Other
 systems hand it events to turn into emails, SMS, and push messages. It resolves
 customer contact details through the Identity System.
+
+## Context Diagram
+
+How this system relates to the other systems and actors around it.
+
+<ContextDiagram />
+
+## System Diagram
+
+The services, data stores, and messages that make up this system.
 
 <NodeGraph />

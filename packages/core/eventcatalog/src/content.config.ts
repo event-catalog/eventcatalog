@@ -789,6 +789,18 @@ const systemRelationshipPointer = z.object({
   label: z.string().optional(),
 });
 
+// An actor (a person/role) that interacts with a system on the Context Diagram.
+// Actors are inline (not a collection) — `id` is the actor's node id, used to
+// de-duplicate the same actor referenced from multiple systems.
+// `direction` controls the edge arrow: `inbound` = actor -> system (e.g. "logs into"),
+// `outbound` = system -> actor (e.g. "sends email to"). Defaults to inbound.
+const systemActorRelationship = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  label: z.string().optional(),
+  direction: z.enum(['inbound', 'outbound']).optional().default('inbound'),
+});
+
 const systems = defineCollection({
   loader: glob({
     pattern: withIgnoredBuildArtifacts([
@@ -818,11 +830,16 @@ const systems = defineCollection({
   }),
   schema: z
     .object({
+      // Whether the system belongs to your organisation (`internal`) or is a
+      // third-party/SaaS system you integrate with (`external`, e.g. "Resend",
+      // "Stripe"). External systems are shaded in the node-graph. Defaults to internal.
+      scope: z.enum(['internal', 'external']).optional().default('internal'),
       services: z.array(pointer).optional(),
       flows: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
       containers: z.array(pointer).optional(),
       relationships: z.array(systemRelationshipPointer).optional(),
+      actors: z.array(systemActorRelationship).optional(),
       detailsPanel: z
         .object({
           versions: detailPanelPropertySchema.optional(),

@@ -34,6 +34,7 @@ import MermaidFileLoader from '@components/MDX/MermaidFileLoader/MermaidFileLoad
 import LikeC4View from '@components/MDX/LikeC4View/LikeC4View.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
+import ContextDiagramPortal from '@components/MDX/ContextDiagram/ContextDiagramPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
 import { jsx } from 'astro/jsx-runtime';
 import RemoteSchema from '@components/MDX/RemoteSchema.astro';
@@ -56,6 +57,7 @@ const components = (props: any) => {
     MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
     EntityPropertiesTable: (mdxProp: any) => jsx(EntityPropertiesTable, { ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
+    ContextDiagram: (mdxProp: any) => jsx(ContextDiagramPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     EntityMap: (mdxProp: any) => jsx(EntityMap, { ...props, ...mdxProp }),
     OpenAPI,
     Prompt: (mdxProp: any) => jsx(Prompt, { ...props, ...mdxProp }),

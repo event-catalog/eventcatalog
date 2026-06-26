@@ -30,10 +30,10 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
   const diagramNavItems = buildDiagramNavItems(systemDiagrams, context.diagrams);
   const hasDiagrams = diagramNavItems.length > 0 && shouldRenderSideBarSection(system, 'diagrams');
 
-  // A system that declares relationships to other systems can be the starting point of a
-  // System Context Diagram. (Systems that are only referenced by others still get a context
-  // page; here we surface the link from systems that declare the relationships themselves.)
-  const hasRelationships = (system.data.relationships || []).length > 0;
+  // A system that declares relationships to other systems, or actors, can be the starting
+  // point of a Context Diagram. (Systems that are only referenced by others still get a
+  // context page; here we surface the link from systems that declare something themselves.)
+  const hasRelationships = (system.data.relationships || []).length > 0 || (system.data.actors || []).length > 0;
 
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(system, 'owners');
   const renderRepository = system.data.repository && shouldRenderSideBarSection(system, 'repository');
@@ -80,17 +80,17 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
             title: 'Overview',
             href: buildUrl(`/architecture/systems/${system.data.id}/${system.data.version}`),
           },
-          renderVisualiser && {
-            type: 'item',
-            title: 'Map',
-            href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}`),
-          },
           renderVisualiser &&
             hasRelationships && {
               type: 'item',
-              title: 'System Context Diagram',
+              title: 'Context Diagram',
               href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}/context`),
             },
+          renderVisualiser && {
+            type: 'item',
+            title: 'System Diagram',
+            href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}`),
+          },
         ].filter(Boolean) as ChildRef[],
       },
       hasDiagrams && {

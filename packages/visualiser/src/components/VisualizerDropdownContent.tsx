@@ -28,6 +28,8 @@ interface VisualizerDropdownContentProps {
   setIsMermaidView: (value: boolean) => void;
   animateMessages: boolean;
   toggleAnimateMessages: () => void;
+  /** Hide the "Simulate Messages" toggle entirely (e.g. on the Context Diagram). */
+  hideAnimateMessages?: boolean;
   hideChannels: boolean;
   toggleChannelsVisibility: () => void;
   hasChannels: boolean;
@@ -56,6 +58,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
       setIsMermaidView,
       animateMessages,
       toggleAnimateMessages,
+      hideAnimateMessages = false,
       hideChannels,
       toggleChannelsVisibility,
       hasChannels,
@@ -149,23 +152,29 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                   </div>
                 </DropdownMenu.CheckboxItem>
 
-                <DropdownMenu.Separator className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+                {!hideAnimateMessages && (
+                  <>
+                    <DropdownMenu.Separator className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
 
-                <DropdownMenu.CheckboxItem
-                  checked={animateMessages}
-                  onCheckedChange={toggleAnimateMessages}
-                  className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2"
-                >
-                  <Zap className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
-                  <span className="flex-1 font-normal">Simulate Messages</span>
-                  <div
-                    className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${animateMessages ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
-                  >
-                    <div
-                      className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-all duration-200 ${animateMessages ? "left-3.5" : "left-0.5"}`}
-                    />
-                  </div>
-                </DropdownMenu.CheckboxItem>
+                    <DropdownMenu.CheckboxItem
+                      checked={animateMessages}
+                      onCheckedChange={toggleAnimateMessages}
+                      className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2"
+                    >
+                      <Zap className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                      <span className="flex-1 font-normal">
+                        Simulate Messages
+                      </span>
+                      <div
+                        className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${animateMessages ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
+                      >
+                        <div
+                          className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-all duration-200 ${animateMessages ? "left-3.5" : "left-0.5"}`}
+                        />
+                      </div>
+                    </DropdownMenu.CheckboxItem>
+                  </>
+                )}
 
                 {hasChannels && (
                   <DropdownMenu.CheckboxItem

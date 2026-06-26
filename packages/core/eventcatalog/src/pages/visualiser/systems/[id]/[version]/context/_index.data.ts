@@ -3,16 +3,18 @@ import { isAuthEnabled, isVisualiserEnabled } from '@utils/feature';
 import { getSystems } from '@utils/collections/systems';
 
 /**
- * A system participates in the System Context Diagram if it declares relationships,
- * or if another system declares a relationship pointing at it. Systems with no
- * relationship on either side have nothing to show, so we don't generate a page for them.
+ * A system participates in the System Context Diagram if it declares relationships
+ * (to other systems) or actors, or if another system declares a relationship
+ * pointing at it. Systems with nothing on any side have nothing to show, so we
+ * don't generate a page for them.
  */
 const buildSystemsInContextGraph = (systems: Awaited<ReturnType<typeof getSystems>>) => {
   const referenced = new Set<string>();
 
   for (const system of systems) {
     const relationships = (system.data.relationships || []) as { id: string }[];
-    if (relationships.length > 0) referenced.add(system.data.id);
+    const actors = (system.data.actors || []) as { id: string }[];
+    if (relationships.length > 0 || actors.length > 0) referenced.add(system.data.id);
     for (const relationship of relationships) {
       referenced.add(relationship.id);
     }

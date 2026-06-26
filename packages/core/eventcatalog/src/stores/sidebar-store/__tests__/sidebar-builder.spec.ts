@@ -436,6 +436,54 @@ describe('getNestedSideBarData', () => {
       );
     });
 
+    it('keeps a flat systems list (no scope sub-sections) when all systems are internal', async () => {
+      mockSystems.push(
+        { id: 'CoreMonolith', name: 'Core Monolith', version: '1.0.0', summary: 'Internal by default' },
+        { id: 'Billing', name: 'Billing', version: '1.0.0', scope: 'internal', summary: 'Explicitly internal' }
+      );
+
+      const navigationData = await getNestedSideBarData();
+      const systemsList = getNavigationConfigurationByKey('list:systems', navigationData);
+
+      // No external systems → single flat list, ordered by name.
+      expect(systemsList.pages).toEqual(['system:Billing:1.0.0', 'system:CoreMonolith:1.0.0']);
+    });
+
+    it('splits the systems list into Internal and External sub-sections (each ordered by name)', async () => {
+      mockSystems.push(
+        { id: 'CoreMonolith', name: 'Core Monolith', version: '1.0.0', summary: 'Internal (default scope)' },
+        { id: 'Identity', name: 'Identity', version: '1.0.0', scope: 'internal', summary: 'Internal' },
+        { id: 'Resend', name: 'Resend', version: '1.0.0', scope: 'external', summary: 'External SaaS' },
+        { id: 'Stripe', name: 'Stripe', version: '1.0.0', scope: 'external', summary: 'External SaaS' }
+      );
+
+      const navigationData = await getNestedSideBarData();
+      const systemsList = getNavigationConfigurationByKey('list:systems', navigationData);
+      const internalList = getNavigationConfigurationByKey('list:systems-internal', navigationData);
+      const externalList = getNavigationConfigurationByKey('list:systems-external', navigationData);
+
+      // Top-level Systems item points at the two scope sub-sections.
+      expect(systemsList.pages).toEqual(['list:systems-internal', 'list:systems-external']);
+
+      // Internal section: systems with scope internal (or unset), ordered by name.
+      expect(internalList).toEqual(
+        expect.objectContaining({
+          type: 'group',
+          title: 'Internal',
+          pages: ['system:CoreMonolith:1.0.0', 'system:Identity:1.0.0'],
+        })
+      );
+
+      // External section: systems with scope external, ordered by name.
+      expect(externalList).toEqual(
+        expect.objectContaining({
+          type: 'group',
+          title: 'External',
+          pages: ['system:Resend:1.0.0', 'system:Stripe:1.0.0'],
+        })
+      );
+    });
+
     it('lists the services that belong to a system', async () => {
       const { writeService } = utils(CATALOG_FOLDER);
 
@@ -467,7 +515,7 @@ describe('getNestedSideBarData', () => {
       });
     });
 
-    it('lists an Architecture section with Overview and Map links for the system', async () => {
+    it('lists an Architecture section with Overview and System Diagram links for the system', async () => {
       mockSystems.push({
         id: 'CoreMonolith',
         name: 'Core Monolith',
@@ -491,7 +539,7 @@ describe('getNestedSideBarData', () => {
           },
           {
             type: 'item',
-            title: 'Map',
+            title: 'System Diagram',
             href: '/visualiser/systems/CoreMonolith/1.0.0',
           },
         ],

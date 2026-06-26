@@ -42,6 +42,12 @@ interface Props {
   showSearch?: boolean;
   showLegend?: boolean;
   zoomOnScroll?: boolean;
+  // Override the DOM portal the graph mounts into. Defaults to `${id}-portal`.
+  // Needed when more than one graph for the same resource is on the page
+  // (e.g. the System Diagram and the Context Diagram on a system page).
+  portalId?: string;
+  // Disable + hide the "Simulate Messages" animation (e.g. on the Context Diagram).
+  disableMessageAnimation?: boolean;
 }
 
 const {
@@ -56,6 +62,8 @@ const {
   showSearch = true,
   showLegend = true,
   zoomOnScroll = false,
+  portalId,
+  disableMessageAnimation,
 } = Astro.props;
 
 let nodes = [],
@@ -84,6 +92,8 @@ if (collection in getNodesAndEdgesFunctions) {
     version,
     mode,
     channelRenderMode: config.visualiser?.channels?.renderMode === 'single' ? 'single' : 'flat',
+    // The standalone System Diagram wraps the system's nodes in one parent boundary node.
+    wrapInSystemGroup: collection === 'systems',
   });
 
   nodes = fetchedNodes;
@@ -192,6 +202,8 @@ const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
     maxTextSize={config.mermaid?.maxTextSize}
     isDevMode={isDevMode()}
     resourceKey={resourceKey}
+    portalId={portalId}
+    disableMessageAnimation={disableMessageAnimation ?? collection === 'systems-context'}
   />
 </div>
 

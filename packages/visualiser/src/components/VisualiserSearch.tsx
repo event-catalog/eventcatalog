@@ -332,6 +332,11 @@ const VisualiserSearch = memo(
       const getSearchSuggestions = useCallback(
         (nodesToIndex: CustomNode[]): SearchSuggestion[] => {
           const suggestions = nodesToIndex.flatMap((node) => {
+            // Boundary/container nodes aren't searchable resources — e.g. the
+            // system-group wrapper on a System Diagram. Skip them so they don't
+            // appear in the "Search Nodes" filter.
+            if (node.type === "system-group") return [];
+
             const nodeName = getNodeDisplayName(node);
             const suggestions: SearchSuggestion[] = [
               {
@@ -511,6 +516,14 @@ const VisualiserSearch = memo(
               "border-pink-500/25 bg-pink-500/10 text-pink-700 dark:text-pink-300",
           },
           actor: {
+            label: "Actor",
+            Icon: User,
+            iconClass:
+              "border-yellow-500/25 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
+            badgeClass:
+              "border-yellow-500/25 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+          },
+          "context-actor": {
             label: "Actor",
             Icon: User,
             iconClass:

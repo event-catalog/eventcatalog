@@ -61,6 +61,8 @@ export { OwnerIndicator, normalizeOwners } from "./OwnerIndicator";
 import CustomNode from "./Custom";
 import DomainNode from "./Domain";
 import SystemNode from "./System";
+import ContextActorNode from "./ContextActor";
+import SystemGroupNode from "./SystemGroupNode";
 import EntityNode from "./Entity";
 import FlowNode from "./Flow";
 import FlowExpandedNode from "./FlowExpandedNode";
@@ -75,6 +77,8 @@ export {
   CustomNode,
   DomainNode,
   SystemNode,
+  ContextActorNode,
+  SystemGroupNode,
   EntityNode,
   FlowNode,
   FlowExpandedNode,
@@ -131,6 +135,8 @@ export const nodeComponents = {
   custom: CustomNode,
   domain: DomainNode,
   system: SystemNode,
+  "context-actor": ContextActorNode,
+  "system-group": SystemGroupNode,
   entity: EntityNode,
   flow: FlowNode,
   flowExpanded: FlowExpandedNode,
