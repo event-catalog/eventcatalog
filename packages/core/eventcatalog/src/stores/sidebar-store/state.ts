@@ -808,6 +808,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode>
   );
 
+  const visualiserEnabled = config?.visualiser?.enabled !== false;
   const rootDomainsNodes: Record<string, NavNode> = {};
 
   if (rootDomains.length > 0) {
@@ -818,6 +819,22 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       pages: sortByResourceName(rootDomains).map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
     };
   }
+
+  const topLevelDiagramsNode =
+    visualiserEnabled && systems.length > 0
+      ? {
+          type: 'group' as const,
+          title: 'Top level diagrams',
+          icon: 'Workflow',
+          pages: [
+            {
+              type: 'item' as const,
+              title: 'System Context Map',
+              href: buildUrl('/visualiser/system-context-map'),
+            },
+          ],
+        }
+      : undefined;
 
   const createLeaf = (items: any[], node: NavNode) => (items.length > 0 ? node : undefined);
 
@@ -1084,7 +1101,6 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   // System-level views (only show if visualiser is enabled and there are domains)
   const systemNode: Record<string, NavNode> = {};
-  const visualiserEnabled = config?.visualiser?.enabled !== false;
 
   if (visualiserEnabled && domains.length > 0) {
     systemNode['list:system'] = {
@@ -1097,22 +1113,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
           title: 'Domain Map',
           href: buildUrl('/visualiser/domain-integrations'),
         },
-        // Global context map across every system in the catalog.
-        ...(systems.length > 0
-          ? [
-              {
-                type: 'item' as const,
-                title: 'System Context Map',
-                href: buildUrl('/visualiser/system-context-map'),
-              },
-            ]
-          : []),
       ],
     };
   }
 
   const allGeneratedNodes = {
     ...rootDomainsNodes,
+    ...(topLevelDiagramsNode ? { 'list:top-level-diagrams': topLevelDiagramsNode } : {}),
     ...domainNodes,
     ...systemNodes,
     ...agentNodes,
@@ -1134,9 +1141,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   // only filter if child is string
   const defaultPages = ['list:top-level-domains', 'list:all'];
-  // Add system section if it exists
-  if (systemNode['list:system']) {
-    defaultPages.push('list:system');
+  if (topLevelDiagramsNode) {
+    defaultPages.splice(1, 0, 'list:top-level-diagrams');
   }
   const rootNavigationConfig = config?.navigation?.pages || defaultPages;
 

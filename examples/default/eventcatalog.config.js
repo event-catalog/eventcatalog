@@ -34,36 +34,36 @@ export default {
     limit: 15,
   },
 
-  navigation: {
-    pages: [
-      {
-        type: "group",
-        title: "Domains",
-        icon: "Boxes",
-        pages: [
-          "domain:catalog",
-          "domain:customer",
-          "domain:shopping",
-          "domain:ordering",
-          "domain:payments",
-          "domain:fulfilment",
-          "domain:reviews",
-        ],
-      },
-      {
-        type: "group",
-        title: "Top level diagrams",
-        icon: "Workflow",
-        pages: [
-          {
-            type: "item",
-            title: "System Context Map",
-            href: "/visualiser/system-context-map",
-          },
-        ],
-      },
-    ],
-  },
+  // navigation: {
+  //   pages: [
+  //     {
+  //       type: "group",
+  //       title: "Domains",
+  //       icon: "Boxes",
+  //       pages: [
+  //         "domain:catalog",
+  //         "domain:customer",
+  //         "domain:shopping",
+  //         "domain:ordering",
+  //         "domain:payments",
+  //         "domain:fulfilment",
+  //         "domain:reviews",
+  //       ],
+  //     },
+  //     {
+  //       type: "group",
+  //       title: "Top level diagrams",
+  //       icon: "Workflow",
+  //       pages: [
+  //         {
+  //           type: "item",
+  //           title: "System Context Map",
+  //           href: "/visualiser/system-context-map",
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
 
   customDocs: {
     sidebar: [

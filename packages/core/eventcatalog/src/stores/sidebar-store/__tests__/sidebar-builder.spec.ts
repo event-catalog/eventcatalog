@@ -230,6 +230,41 @@ describe('getNestedSideBarData', () => {
       expect(domainNode.leftIcon).toBeUndefined();
     });
 
+    it('renders top-level diagrams with the System Context Map below top-level domains', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const diagramsNode = getNavigationConfigurationByKey('list:top-level-diagrams', navigationData);
+
+      expect(navigationData.roots).toEqual(['list:top-level-domains', 'list:top-level-diagrams', 'list:all']);
+      expect(diagramsNode).toEqual({
+        type: 'group',
+        title: 'Top level diagrams',
+        icon: 'Workflow',
+        pages: [
+          {
+            type: 'item',
+            title: 'System Context Map',
+            href: '/visualiser/system-context-map',
+          },
+        ],
+      });
+    });
+
     it('uses the domain style icon when one is configured', async () => {
       const { writeDomain } = utils(CATALOG_FOLDER);
 
