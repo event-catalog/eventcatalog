@@ -14,5 +14,10 @@
     "@eventcatalog/visualiser": "3.22.1",
     "eventcatalog-dsl": "0.2.1"
   },
-  "changesets": []
+  "changesets": [
+    "discover-kind-navigation",
+    "swift-otters-dream",
+    "swift-otters-upgrade",
+    "systems-collection"
+  ]
 }
