@@ -102,7 +102,7 @@ jobs:
           name: eventcatalog-packages-artifact
       - name: Install @eventcatalog packages
         working-directory: examples/default/
-        run: npm install --prefer-offline ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz
+        run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz
       - name: Build EventCatalog
         working-directory: examples/default/
         run: npx eventcatalog build
