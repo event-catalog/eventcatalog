@@ -20,6 +20,7 @@ import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
+import { linkCoreNodeModules, resolveInstalledCoreNodeModules } from './core-node-modules';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -291,12 +292,17 @@ const copyCore = () => {
   fs.cpSync(eventCatalogDir, core, {
     recursive: true,
     filter: (src) => {
-      // if(src.includes('node_modules')) {
-      //   return false;
-      // }
-      return true;
+      const relativePath = path.relative(eventCatalogDir, src);
+      const pathParts = relativePath.split(path.sep);
+
+      return !pathParts.some((part) => ['.astro', 'dist', 'node_modules'].includes(part));
     },
   });
+
+  const coreNodeModules = path.join(core, 'node_modules');
+  const installedCoreNodeModules = resolveInstalledCoreNodeModules(currentDir);
+
+  linkCoreNodeModules({ coreNodeModules, installedCoreNodeModules });
 };
 
 const clearCore = () => {
@@ -463,6 +469,7 @@ program
           EVENTCATALOG_STARTER: String(isEventCatalogStarter),
           EVENTCATALOG_SCALE: String(isEventCatalogScale),
           EVENTCATALOG_DEV_MODE: 'true',
+          IGNORE_BUILD_ARTIFACTS: 'true',
           NODE_NO_WARNINGS: '1',
         },
         shouldFilterLine: createAstroDevLineFilter(),
@@ -546,6 +553,7 @@ program
         ENABLE_EMBED: String(canEmbedPages),
         EVENTCATALOG_STARTER: String(isEventCatalogStarter),
         EVENTCATALOG_SCALE: String(isEventCatalogScale),
+        IGNORE_BUILD_ARTIFACTS: 'true',
       },
       shouldFilterLine: createAstroLineFilter(),
     });
