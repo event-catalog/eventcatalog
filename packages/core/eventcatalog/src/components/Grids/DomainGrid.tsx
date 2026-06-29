@@ -12,9 +12,10 @@ import {
   ArrowLongRightIcon,
   ArrowLongLeftIcon,
   CubeIcon,
+  GlobeAltIcon,
 } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
-import { BoxIcon } from 'lucide-react';
+import { BoxIcon, Group as GroupIcon } from 'lucide-react';
 import { getSpecUrl, getSpecIcon, getSpecLabel, getServiceSpecifications } from './specification-utils';
 
 // ============================================
@@ -46,7 +47,7 @@ const getMessageIcon = (collection: string) => {
 // Sub-components
 // ============================================
 
-const EntityBadge = memo(({ entity }: { entity: any }) => {
+export const EntityBadge = memo(({ entity }: { entity: any }) => {
   const id = entity?.data?.id || entity?.id;
   const name = entity?.data?.name || entity?.name || id;
   const version = entity?.data?.version || entity?.version || 'latest';
@@ -116,6 +117,26 @@ const ContainerLink = memo(({ container, type }: { container: any; type: 'reads'
     >
       <CircleStackIcon className={`h-4 w-4 ${type === 'reads' ? 'text-amber-500' : 'text-violet-500'}`} />
       <span className="group-hover:underline">{name}</span>
+    </a>
+  );
+});
+
+// Standalone data store (container) link, used to list a system's data stores
+const DataStoreLink = memo(({ container }: { container: any }) => {
+  const data = container?.data || container;
+  const id = data?.id || container?.id;
+  const name = data?.name || id;
+  const version = data?.version || 'latest';
+  const technology = data?.technology;
+
+  return (
+    <a
+      href={buildUrl(`/docs/containers/${id}/${version}`)}
+      className="inline-flex items-center gap-2 px-3 py-2 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-sm font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-xs"
+    >
+      <CircleStackIcon className="h-4 w-4 text-amber-500" />
+      <span>{name}</span>
+      {technology && <span className="text-xs text-[rgb(var(--ec-icon-color))]">{technology}</span>}
     </a>
   );
 });
@@ -245,9 +266,9 @@ const ServiceExpandedContent = memo(
   }
 );
 
-const ServiceCard = memo(({ service }: { service: any }) => {
+export const ServiceCard = memo(({ service, defaultOpen = false }: { service: any; defaultOpen?: boolean }) => {
   const data = service?.data || service;
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
 
   if (!data?.id) return null;
 
@@ -363,9 +384,9 @@ const DataProductCard = memo(({ dataProduct }: { dataProduct: any }) => {
   );
 });
 
-const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
+const SubdomainSection = memo(({ subdomain, defaultOpen = false }: { subdomain: any; defaultOpen?: boolean }) => {
   const data = subdomain?.data || subdomain;
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
 
   if (!data?.id) return null;
 
@@ -489,6 +510,109 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
   );
 });
 
+const SystemSection = memo(({ system, defaultOpen = false }: { system: any; defaultOpen?: boolean }) => {
+  const data = system?.data || system;
+  const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
+
+  if (!data?.id) return null;
+
+  const services = data.services || [];
+  const containers = data.containers || [];
+
+  return (
+    <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl overflow-hidden shadow-xs">
+      {/* System Header - Clickable */}
+      <div
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[rgb(var(--ec-content-hover))] transition-colors ${!isCollapsed ? 'border-b border-[rgb(var(--ec-page-border))]' : ''}`}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-9 h-9 bg-violet-100 dark:bg-violet-500/20 rounded-lg">
+            <GroupIcon className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</h3>
+              <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] font-medium bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded border border-[rgb(var(--ec-page-border))]">
+                v{data.version}
+              </span>
+              {/* Show counts when collapsed */}
+              {isCollapsed && (services.length > 0 || containers.length > 0) && (
+                <span className="text-[11px] text-[rgb(var(--ec-icon-color))] ml-1">
+                  {[
+                    services.length > 0 && `${services.length} service${services.length > 1 ? 's' : ''}`,
+                    containers.length > 0 && `${containers.length} data store${containers.length > 1 ? 's' : ''}`,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              )}
+            </div>
+            <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] font-medium">System</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="p-2 text-[rgb(var(--ec-icon-color))]">
+            {isCollapsed ? <ChevronDownIcon className="h-5 w-5" /> : <ChevronUpIcon className="h-5 w-5" />}
+          </div>
+          <a
+            href={buildUrl(`/visualiser/systems/${data.id}/${data.version}`)}
+            onClick={(e) => e.stopPropagation()}
+            className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-violet-500 hover:bg-violet-500/10 rounded-lg transition-colors"
+            title="View system map"
+          >
+            <ArrowTopRightOnSquareIcon className="h-5 w-5" />
+          </a>
+        </div>
+      </div>
+
+      {!isCollapsed && (
+        <div className="p-5 space-y-5">
+          {services.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <ServerIcon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
+                <h4 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Services</h4>
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+                  {services.length}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {services.map((service: any) => {
+                  const serviceId = service?.data?.id || service?.id;
+                  return serviceId ? <ServiceCard key={serviceId} service={service} /> : null;
+                })}
+              </div>
+            </div>
+          )}
+
+          {containers.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <CircleStackIcon className="h-4 w-4 text-amber-500" />
+                <h4 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Data Stores</h4>
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+                  {containers.length}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {containers.map((container: any) => {
+                  const containerId = container?.data?.id || container?.id;
+                  return containerId ? <DataStoreLink key={containerId} container={container} /> : null;
+                })}
+              </div>
+            </div>
+          )}
+
+          {services.length === 0 && containers.length === 0 && (
+            <p className="text-sm text-[rgb(var(--ec-icon-color))] italic text-center py-4">Nothing in this system yet</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+});
+
 // ============================================
 // Main Component
 // ============================================
@@ -498,6 +622,7 @@ export default function DomainGrid({ domain }: DomainGridProps) {
   if (!data) return <div className="text-[rgb(var(--ec-page-text-muted))]">No domain data</div>;
 
   const subdomains = data.domains || [];
+  const systems = data.systems || [];
   const entities = data.entities || [];
   const services = data.services || [];
   const dataProducts = data['data-products'] || [];
@@ -535,6 +660,18 @@ export default function DomainGrid({ domain }: DomainGridProps) {
     [services, subdomainServiceIds]
   );
 
+  // Split top-level services into internal services and external integrations
+  // (mirrors the sidebar, where externalSystem services live under "External Integrations")
+  const topLevelInternalServices = useMemo(
+    () => topLevelServices.filter((s: any) => !(s?.data || s)?.externalSystem),
+    [topLevelServices]
+  );
+
+  const topLevelExternalServices = useMemo(
+    () => topLevelServices.filter((s: any) => (s?.data || s)?.externalSystem),
+    [topLevelServices]
+  );
+
   const topLevelDataProducts = useMemo(
     () =>
       dataProducts.filter((dp: any) => {
@@ -552,22 +689,6 @@ export default function DomainGrid({ domain }: DomainGridProps) {
           <div>
             <h2 className="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</h2>
             {data.summary && <p className="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{data.summary}</p>}
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <a
-              href={buildUrl(`/docs/domains/${data.id}/${data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-page-text-muted))] transition-all"
-            >
-              View docs
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
-            </a>
-            <a
-              href={buildUrl(`/visualiser/domains/${data.id}/${data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 dark:bg-zinc-700 rounded-lg hover:bg-zinc-900 dark:hover:bg-zinc-600 transition-all"
-            >
-              Visualizer
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-zinc-400" />
-            </a>
           </div>
         </div>
       </div>
@@ -593,25 +714,6 @@ export default function DomainGrid({ domain }: DomainGridProps) {
           </div>
         )}
 
-        {/* Top-level Services */}
-        {topLevelServices.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <ServerIcon className="h-5 w-5 text-pink-600 dark:text-pink-400" />
-              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Services</h3>
-              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
-                {topLevelServices.length}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {topLevelServices.map((service: any) => {
-                const serviceId = service?.data?.id || service?.id;
-                return serviceId ? <ServiceCard key={serviceId} service={service} /> : null;
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Subdomains */}
         {subdomains.length > 0 && (
           <div>
@@ -625,7 +727,64 @@ export default function DomainGrid({ domain }: DomainGridProps) {
             <div className="space-y-4">
               {subdomains.map((subdomain: any) => {
                 const subdomainId = subdomain?.data?.id || subdomain?.id;
-                return subdomainId ? <SubdomainSection key={subdomainId} subdomain={subdomain} /> : null;
+                return subdomainId ? <SubdomainSection key={subdomainId} subdomain={subdomain} defaultOpen /> : null;
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Systems */}
+        {systems.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <GroupIcon className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Systems</h3>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
+                {systems.length}
+              </span>
+            </div>
+            <div className="space-y-4">
+              {systems.map((system: any) => {
+                const systemId = system?.data?.id || system?.id;
+                return systemId ? <SystemSection key={systemId} system={system} defaultOpen /> : null;
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Top-level Services */}
+        {topLevelInternalServices.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <ServerIcon className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Services</h3>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
+                {topLevelInternalServices.length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {topLevelInternalServices.map((service: any) => {
+                const serviceId = service?.data?.id || service?.id;
+                return serviceId ? <ServiceCard key={serviceId} service={service} defaultOpen /> : null;
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* External Integrations (external systems) */}
+        {topLevelExternalServices.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <GlobeAltIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">External Integrations</h3>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
+                {topLevelExternalServices.length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {topLevelExternalServices.map((service: any) => {
+                const serviceId = service?.data?.id || service?.id;
+                return serviceId ? <ServiceCard key={serviceId} service={service} defaultOpen /> : null;
               })}
             </div>
           </div>
@@ -651,16 +810,20 @@ export default function DomainGrid({ domain }: DomainGridProps) {
         )}
 
         {/* Empty state */}
-        {entities.length === 0 && services.length === 0 && dataProducts.length === 0 && subdomains.length === 0 && (
-          <div className="text-center py-12">
-            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-[rgb(var(--ec-content-hover))] rounded-2xl">
-              <RectangleGroupIcon className="h-8 w-8 text-[rgb(var(--ec-icon-color))]" />
+        {entities.length === 0 &&
+          services.length === 0 &&
+          dataProducts.length === 0 &&
+          subdomains.length === 0 &&
+          systems.length === 0 && (
+            <div className="text-center py-12">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-[rgb(var(--ec-content-hover))] rounded-2xl">
+                <RectangleGroupIcon className="h-8 w-8 text-[rgb(var(--ec-icon-color))]" />
+              </div>
+              <p className="text-[rgb(var(--ec-page-text-muted))]">
+                This domain has no entities, services, data products, subdomains, or systems defined.
+              </p>
             </div>
-            <p className="text-[rgb(var(--ec-page-text-muted))]">
-              This domain has no entities, services, data products, or subdomains defined.
-            </p>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

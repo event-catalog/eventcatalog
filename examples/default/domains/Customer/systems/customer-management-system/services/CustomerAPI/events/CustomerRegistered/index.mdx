@@ -1,0 +1,29 @@
+---
+id: customer-registered
+name: Customer Registered
+version: 1.0.0
+summary: |
+  Published when a new customer has registered.
+owners:
+  - customer-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CustomerRegistered` is published by the [[service|customer-api]] whenever a new customer successfully registers. Downstream systems consume this event to onboard the customer.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

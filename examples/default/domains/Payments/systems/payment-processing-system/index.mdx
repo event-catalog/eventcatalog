@@ -1,0 +1,53 @@
+---
+id: payment-processing-system
+name: Payment Processing System
+version: 1.0.0
+summary: |
+  Internal system that orchestrates payment for orders. It authorizes payments, requests charges from the external payment processor, handles the outcome, and issues refunds.
+owners:
+  - payments-platform
+services:
+  - id: payment-api
+  - id: payment-worker
+containers:
+  - id: payment-database
+relationships:
+  - id: stripe
+    label: requests charges from
+  - id: fraud-detection
+    label: screens payments with
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Payment Processing System** is the internal heart of the Payments domain. When the Ordering domain sends [[command|authorize-payment]], the [[service|payment-api]] records the intent in the [[container|payment-database]] and the [[service|payment-worker]] requests a charge from the external [[system|stripe]] via [[event|payment-requested]]. Stripe reports the outcome back as [[event|payment-succeeded]] or [[event|payment-failed]], which the worker records. The system also issues refunds via [[event|refund-requested]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| [[service\|payment-api]] | Service | Receives authorization requests and records payment intent. |
+| [[service\|payment-worker]] | Service | Drives charges and refunds against Stripe and records outcomes. |
+| [[container\|payment-database]] | Data store | PostgreSQL system of record for payments and refunds. |
+
+## Messages this system publishes
+
+- [[event\|payment-requested]] — a charge has been requested from the payment processor.
+- [[event\|refund-requested]] — a refund has been requested from the payment processor.

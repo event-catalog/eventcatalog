@@ -1,0 +1,105 @@
+---
+id: order-cancellation
+name: Order Cancellation
+version: 1.0.0
+summary: |
+  How an order is cancelled — whether requested by the customer or triggered by a failure — and the events that tell the rest of the business to unwind it.
+owners:
+  - ordering-platform
+steps:
+  - id: cancellation_trigger
+    title: Cancellation requested
+    actor:
+      name: Shopper or System
+      summary: A customer asks to cancel, or a downstream failure (payment, inventory) forces a cancellation.
+    next_step:
+      id: cancel_order_command
+      label: Cancel order
+
+  - id: cancel_order_command
+    title: Cancel Order
+    message:
+      id: cancel-order
+      version: 1.0.0
+    next_step:
+      id: order_service
+      label: Handle cancellation
+
+  - id: order_service
+    title: Order Service
+    service:
+      id: order-service
+      version: 1.0.0
+    next_steps:
+      - id: eligibility_check
+        label: Check eligibility
+      - id: not_cancellable
+        label: Already completed
+
+  - id: eligibility_check
+    title: Cancellation policy check
+    custom:
+      title: Cancellation policy
+      color: blue
+      icon: ClipboardDocumentCheckIcon
+      type: Policy
+      summary: An order can only be cancelled before it is completed. Completed orders must go through returns instead.
+      properties:
+        rule: 'status must be CREATED'
+    next_step:
+      id: order_database
+      label: Mark cancelled
+
+  - id: order_database
+    title: Order Database
+    container:
+      id: order-database
+    next_step:
+      id: order_cancelled
+      label: Persist + publish
+
+  - id: order_cancelled
+    title: Order Cancelled
+    message:
+      id: order-cancelled
+      version: 1.0.0
+    next_step:
+      id: downstream_unwind
+      label: Unwind downstream
+
+  - id: downstream_unwind
+    title: Downstream unwind
+    custom:
+      title: Release and refund
+      color: orange
+      icon: ArrowUturnLeftIcon
+      type: Compensation
+      summary: Consumers of OrderCancelled release reserved inventory, void or refund the payment, and stop fulfilment.
+      properties:
+        consumers: 'inventory, payment, fulfilment'
+
+  - id: not_cancellable
+    title: Cannot cancel
+    custom:
+      title: Cannot cancel
+      color: red
+      icon: ExclamationTriangleIcon
+      type: Exception
+      summary: The order has already been completed and cannot be cancelled. The customer is directed to the returns process.
+      properties:
+        next_action: 'start a return'
+---
+
+## Overview
+
+**Order Cancellation** documents how the [[system|order-management-system]] cancels an order. Cancellation can be requested by a shopper or forced by a downstream failure during checkout. Only orders that have not yet completed can be cancelled.
+
+<NodeGraph />
+
+## How it works
+
+1. A [[command|cancel-order]] command reaches the [[service|order-service]].
+2. The service checks the cancellation policy — only `CREATED` orders are cancellable.
+3. If eligible, the order is marked cancelled in the [[container|order-database]] and [[event|order-cancelled]] is published.
+4. Downstream consumers react to [[event|order-cancelled]] to release inventory, refund payment and stop fulfilment.
+5. If the order is already completed, cancellation is rejected and the customer is sent to the returns process.

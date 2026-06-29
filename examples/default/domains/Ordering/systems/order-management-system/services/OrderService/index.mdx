@@ -1,0 +1,64 @@
+---
+id: order-service
+version: 1.0.0
+name: Order Service
+summary: |
+  The system of record for orders. Creates and cancels orders, serves order lookups, and publishes events as orders move through their lifecycle.
+styles:
+  icon: /icons/languages/java.svg
+owners:
+  - ordering-platform
+receives:
+  - id: create-order
+    version: 1.0.0
+  - id: cancel-order
+    version: 1.0.0
+  - id: get-order
+    version: 1.0.0
+sends:
+  - id: order-created
+    version: 1.0.0
+  - id: order-completed
+    version: 1.0.0
+  - id: order-cancelled
+    version: 1.0.0
+writesTo:
+  - id: order-database
+readsFrom:
+  - id: order-database
+repository:
+  language: Java
+  url: 'https://github.com/acme/order-service'
+specifications:
+  - type: asyncapi
+    path: asyncapi.yml
+    name: Order Service AsyncAPI
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Order Service** is the heart of the Order Management System. It receives [[command|create-order]] from the [[system|checkout-system]], persists orders to the [[container|order-database]], and serves order lookups via [[query|get-order]]. It also handles [[command|cancel-order]]. As orders move through their lifecycle it publishes [[event|order-created]], [[event|order-completed]] and [[event|order-cancelled]] events.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Order lifecycle events" />
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Order commands and queries" />
+</Tiles>
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Order creation | Handles [[command\|create-order]] from the Checkout System and persists the order. |
+| Order cancellation | Handles [[command\|cancel-order]] and compensates downstream where needed. |
+| Order lookups | Serves [[query\|get-order]] from the [[container\|order-database]]. |
+| Event publishing | Emits [[event\|order-created]], [[event\|order-completed]] and [[event\|order-cancelled]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

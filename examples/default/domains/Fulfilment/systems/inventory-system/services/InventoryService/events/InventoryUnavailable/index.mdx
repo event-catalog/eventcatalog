@@ -1,0 +1,29 @@
+---
+id: inventory-unavailable
+name: Inventory Unavailable
+version: 1.0.0
+summary: |
+  Published when stock could not be reserved for an order.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`InventoryUnavailable` is published by the [[service|inventory-service]] when stock for an order cannot be reserved. The Ordering domain's checkout saga uses it to fail checkout and cancel the order.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

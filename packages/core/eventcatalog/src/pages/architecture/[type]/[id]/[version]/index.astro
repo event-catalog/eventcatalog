@@ -1,5 +1,6 @@
 ---
 import DomainGrid from '@components/Grids/DomainGrid';
+import SystemGrid from '@components/Grids/SystemGrid';
 import MessageGrid from '@components/Grids/MessageGrid';
 import { getSpecificationsForService } from '@utils/collections/services';
 
@@ -25,6 +26,7 @@ const specifications = type === 'services' ? getSpecificationsForService(props) 
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
         {type === 'domains' && <DomainGrid domain={domain} client:load />}
+        {type === 'systems' && <SystemGrid system={props} client:load />}
         {
           (type === 'agents' || type === 'services') && (
             <MessageGrid service={props} specifications={specifications} client:load />

@@ -5,6 +5,9 @@ interface Props {
   description?: string;
   showNestedSideBar?: boolean;
   showHeader?: boolean;
+  // When true, the main content uses a reduced horizontal padding instead of the
+  // default 5rem. Used by wide pages such as the custom landing page.
+  reducedContentPadding?: boolean;
 }
 
 import {
@@ -12,6 +15,7 @@ import {
   BotMessageSquare,
   BookOpen,
   BookText,
+  Group,
   FileText,
   SquareDashedMousePointerIcon,
   FileCode,
@@ -58,6 +62,7 @@ import { ClientRouter } from 'astro:transitions';
 
 import { getCommands } from '@utils/collections/commands';
 import { getDomains } from '@utils/collections/domains';
+import { getSystems } from '@utils/collections/systems';
 import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
 import { getAgents } from '@utils/collections/agents';
@@ -81,11 +86,12 @@ let services: any[] = [];
 let agents: any[] = [];
 let adrs: any[] = [];
 let domains: any[] = [];
+let systems: any[] = [];
 let flows: any[] = [];
 let containers: any[] = [];
 let dataProducts: any[] = [];
 
-[events, commands, queries, services, agents, adrs, domains, flows, containers, dataProducts] = await Promise.all([
+[events, commands, queries, services, agents, adrs, domains, systems, flows, containers, dataProducts] = await Promise.all([
   getEvents({ getAllVersions: false, hydrateServices: false }),
   getCommands({ getAllVersions: false, hydrateServices: false }),
   getQueries({ getAllVersions: false, hydrateServices: false }),
@@ -93,6 +99,7 @@ let dataProducts: any[] = [];
   getAgents({ getAllVersions: false }),
   getAdrs({ getAllVersions: false }),
   getDomains({ getAllVersions: false }),
+  getSystems({ getAllVersions: false }),
   getFlows({ getAllVersions: false }),
   getContainers({ getAllVersions: false }),
   getDataProducts({ getAllVersions: false }),
@@ -260,6 +267,15 @@ const browseItems = filterSidebarItems(
       visible: domains.length > 0,
     },
     {
+      id: '/discover/systems',
+      aliases: ['/discover'],
+      label: 'Systems',
+      icon: Group,
+      href: buildUrl('/discover/systems'),
+      current: currentPath === buildUrl('/discover/systems'),
+      visible: systems.length > 0,
+    },
+    {
       id: '/discover/services',
       aliases: ['/discover'],
       label: 'Services',
@@ -356,7 +372,7 @@ const settingsItems = filterSidebarItems(
 );
 
 const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...premiumFeatures].find((item) => item.current);
-const { title, description, showNestedSideBar = true, showHeader = true } = Astro.props;
+const { title, description, showNestedSideBar = true, showHeader = true, reducedContentPadding = false } = Astro.props;
 
 const canPageBeEmbedded = isEmbedEnabled();
 const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/docs', true)];
@@ -419,6 +435,10 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         margin-right: auto;
         padding-left: var(--ec-app-content-padding-left);
         padding-right: var(--ec-app-content-padding-right);
+      }
+      .app-content-wrapper--reduced-padding {
+        --ec-app-content-padding-left: 2rem;
+        --ec-app-content-padding-right: 2rem;
       }
       .app-shell {
         min-height: calc(100vh - 4rem);
@@ -745,7 +765,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
           Astro.slots.has('sidebar-content') ? (
             <slot />
           ) : (
-            <div class="app-content-wrapper">
+            <div class={`app-content-wrapper ${reducedContentPadding ? 'app-content-wrapper--reduced-padding' : ''}`}>
               <slot />
             </div>
           )

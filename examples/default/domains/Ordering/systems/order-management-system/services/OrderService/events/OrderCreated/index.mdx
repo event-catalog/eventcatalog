@@ -1,0 +1,29 @@
+---
+id: order-created
+name: Order Created
+version: 1.0.0
+summary: |
+  Published when a new order has been created.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderCreated` is published by the [[service|order-service]] when a new order is created from a checked-out cart. Downstream systems consume this event to begin fulfilment, send confirmation to the customer, and update reporting.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

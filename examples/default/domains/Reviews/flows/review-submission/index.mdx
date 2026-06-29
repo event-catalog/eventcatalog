@@ -1,0 +1,120 @@
+---
+id: review-submission
+name: Review Submission
+version: 1.0.0
+summary: |
+  How a customer's product review travels from submission, through moderation, to being published and folded into the product's aggregate rating.
+owners:
+  - reviews-platform
+steps:
+  - id: customer_submits
+    title: Customer submits a review
+    actor:
+      name: Customer
+      summary: A customer writes a review and rating for a product they purchased.
+    next_step:
+      id: review_api
+      label: Submit review
+
+  - id: review_api
+    title: Review API
+    service:
+      id: review-api
+      version: 1.0.0
+    next_step:
+      id: review_database
+      label: Store review
+
+  - id: review_database
+    title: Review Database
+    container:
+      id: review-database
+    next_step:
+      id: review_submitted
+      label: Review stored
+
+  - id: review_submitted
+    title: Review Submitted
+    message:
+      id: review-submitted
+      version: 1.0.0
+    next_step:
+      id: moderation_worker
+      label: Screen review
+
+  - id: moderation_worker
+    title: Review Moderation Worker
+    service:
+      id: review-moderation-worker
+      version: 1.0.0
+    next_steps:
+      - id: review_published
+        label: Approved
+      - id: review_rejected
+        label: Rejected
+
+  - id: review_published
+    title: Review Published
+    message:
+      id: review-published
+      version: 1.0.0
+    next_step:
+      id: rating_aggregator
+      label: Update rating
+
+  - id: review_rejected
+    title: Review Rejected
+    message:
+      id: review-rejected
+      version: 1.0.0
+    next_step:
+      id: rejected_outcome
+      label: Not shown
+
+  - id: rating_aggregator
+    title: Rating Aggregator
+    service:
+      id: rating-aggregator
+      version: 1.0.0
+    next_step:
+      id: rating_cache
+      label: Write aggregate
+
+  - id: rating_cache
+    title: Rating Cache
+    container:
+      id: rating-cache
+    next_step:
+      id: published_outcome
+      label: Visible on storefront
+
+  - id: published_outcome
+    title: Review is live
+    custom:
+      title: Review is live
+      color: green
+      icon: StarIcon
+      type: Outcome
+      summary: The review is published and the product's aggregate rating is updated and served from the cache.
+
+  - id: rejected_outcome
+    title: Review rejected
+    custom:
+      title: Review rejected
+      color: red
+      icon: NoSymbolIcon
+      type: Outcome
+      summary: The review failed moderation. It is kept for audit but never shown on the storefront.
+---
+
+## Overview
+
+**Review Submission** documents the journey of a customer review from submission through moderation to publication. A review is only ever folded into a product's rating once it has been approved.
+
+<NodeGraph />
+
+## How it works
+
+1. A customer submits a review via the [[service|review-api]], which stores it in the [[container|review-database]] and publishes [[event|review-submitted]].
+2. The [[service|review-moderation-worker]] screens the review and publishes either [[event|review-published]] or [[event|review-rejected]].
+3. On approval, the [[service|rating-aggregator]] updates the product's aggregate rating in the [[container|rating-cache]] and the review goes live.

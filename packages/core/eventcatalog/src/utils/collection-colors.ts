@@ -10,7 +10,8 @@ export type CollectionColor =
   | 'gray'
   | 'cyan'
   | 'sky'
-  | 'indigo';
+  | 'indigo'
+  | 'violet';
 
 export const getColorForCollection = (collection: string): CollectionColor => {
   switch (collection) {
@@ -34,6 +35,8 @@ export const getColorForCollection = (collection: string): CollectionColor => {
       return 'purple';
     case 'domains':
       return 'yellow';
+    case 'systems':
+      return 'violet';
     case 'agents':
       return 'sky';
     case 'adrs':
@@ -62,6 +65,7 @@ export const tailwind500RgbByColor: Record<CollectionColor, string> = {
   cyan: '6 182 212',
   sky: '14 165 233',
   indigo: '99 102 241',
+  violet: '139 92 246',
 };
 
 export const collectionTextColorClassByColor: Record<CollectionColor, string> = {
@@ -77,6 +81,7 @@ export const collectionTextColorClassByColor: Record<CollectionColor, string> = 
   cyan: 'text-cyan-500',
   sky: 'text-sky-500',
   indigo: 'text-indigo-500',
+  violet: 'text-violet-500',
 };
 
 export const getCollectionTextColorClass = (color: string, fallback = 'text-gray-500'): string =>

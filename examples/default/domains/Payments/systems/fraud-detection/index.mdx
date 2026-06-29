@@ -1,0 +1,49 @@
+---
+id: fraud-detection
+name: Fraud Detection
+version: 1.0.0
+scope: external
+summary: |
+  External provider that screens payments for fraud. It consumes payment requests and returns a pass or fail verdict.
+owners:
+  - payments-platform
+services:
+  - id: fraud-api
+relationships:
+  - id: payment-processing-system
+    label: screens payments for
+badges:
+  - content: External
+    backgroundColor: yellow
+    textColor: yellow
+    icon: GlobeAltIcon
+---
+
+## Overview
+
+**Fraud Detection** is an external provider Acme Inc uses to screen payments for fraud. It is owned and operated by a third party — modelled here as an **external system** so the catalog shows how the [[system|payment-processing-system]] integrates with it.
+
+It consumes [[event|payment-requested]] and returns a verdict via [[event|fraud-check-passed]] or [[event|fraud-check-failed]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| [[service\|fraud-api]] | Service | Screens a payment for fraud and returns a pass/fail verdict. |
+
+## Messages this system publishes
+
+- [[event\|fraud-check-passed]] — a payment passed fraud screening.
+- [[event\|fraud-check-failed]] — a payment failed fraud screening.

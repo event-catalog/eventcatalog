@@ -1,0 +1,32 @@
+---
+id: register-customer
+name: Register Customer
+version: 1.0.0
+summary: |
+  Command to register a new customer.
+owners:
+  - customer-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /customers
+  statusCodes: ['201', '400', '409']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`RegisterCustomer` is handled by the [[service|customer-api]]. It validates the new customer, writes it to the [[container|customer-database]], and on success publishes a [[event|customer-registered]] event.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

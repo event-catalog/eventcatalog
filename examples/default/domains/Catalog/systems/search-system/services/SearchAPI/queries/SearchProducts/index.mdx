@@ -1,0 +1,32 @@
+---
+id: search-products
+name: Search Products
+version: 1.0.0
+summary: |
+  Query to search the catalog for products matching a term, with optional filters and pagination.
+owners:
+  - search-platform
+schemaPath: schema.json
+operation:
+  method: GET
+  path: /search/products
+  statusCodes: ['200', '400']
+sidebar:
+  badge: 'GET'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`SearchProducts` is handled by the [[service|search-api]]. It runs a full-text search over the [[container|search-index]] and returns a paginated list of matching products. Use this whenever you need to find products across the catalog, rather than fetching a single product by id with [[query|get-product]].
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

@@ -1,0 +1,35 @@
+---
+id: warehouse-database
+name: Warehouse Database
+version: 1.0.0
+summary: PostgreSQL database that stores picking jobs and their status.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for picking and packing jobs
+classification: internal
+retention: 1y
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Warehouse Database** stores the picking and packing jobs for the warehouse. The [[service|warehouse-service]] creates jobs and the [[service|picking-worker]] updates them as orders are picked.
+
+### What does it store?
+
+- **Picking Jobs** — one row per order being fulfilled: order, status and timestamps.
+- **Picking Job Items** — the items to pick for each job.
+
+### Schema
+
+<AccordionGroup>
+  <Accordion title="Warehouse Database schema">
+    <Schema file="schema.sql" lang="sql" title="schema.sql" />
+  </Accordion>
+</AccordionGroup>

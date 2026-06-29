@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReviewFlagged",
+  "type": "object",
+  "properties": {
+    "reviewId": { "type": "string", "format": "uuid" },
+    "productId": { "type": "string" },
+    "reason": { "type": "string", "enum": ["spam", "abuse", "off_topic", "inappropriate", "other"] },
+    "flagCount": { "type": "integer", "minimum": 1, "description": "Total flags this review has now received." },
+    "flaggedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["reviewId", "productId", "reason", "flaggedAt"]
+}

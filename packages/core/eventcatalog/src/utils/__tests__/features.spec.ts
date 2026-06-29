@@ -191,20 +191,9 @@ describe('features', () => {
   });
 
   describe('isCustomLandingPageEnabled', () => {
-    it('should return true when EVENTCATALOG_STARTER is true', () => {
+    it('should return true', () => {
       process.env.EVENTCATALOG_STARTER = 'true';
       expect(isCustomLandingPageEnabled()).toBe(true);
-    });
-
-    it('should return true when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(isCustomLandingPageEnabled()).toBe(true);
-    });
-
-    it('should return false when neither feature is enabled', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
-      expect(isCustomLandingPageEnabled()).toBe(false);
     });
   });
 

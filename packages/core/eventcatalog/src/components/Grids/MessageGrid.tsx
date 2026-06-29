@@ -2,7 +2,6 @@ import { memo, useState } from 'react';
 import {
   ServerIcon,
   CircleStackIcon,
-  ArrowTopRightOnSquareIcon,
   ArrowLongRightIcon,
   BoltIcon,
   ChatBubbleLeftIcon,
@@ -234,7 +233,6 @@ export default function MessageGridV2({ service, embeded = false, specifications
   const { sends = [], receives = [], writesTo = [], readsFrom = [] } = service.data;
   const collection = service.collection || 'services';
   const resourceLabel = collection === 'agents' ? 'agent' : 'service';
-  const hasVisualizer = true;
   const hasContainers = readsFrom.length > 0 || writesTo.length > 0;
   const hasMessages = receives.length > 0 || sends.length > 0;
   const hasSpecs = specifications.length > 0;
@@ -248,24 +246,6 @@ export default function MessageGridV2({ service, embeded = false, specifications
             <h2 className="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{service.data.name}</h2>
             {service.data.summary && (
               <p className="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{service.data.summary}</p>
-            )}
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <a
-              href={buildUrl(`/docs/${collection}/${service.data.id}/${service.data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-page-text-muted))] transition-all"
-            >
-              View docs
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
-            </a>
-            {hasVisualizer && (
-              <a
-                href={buildUrl(`/visualiser/${collection}/${service.data.id}/${service.data.version}`)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 dark:bg-zinc-700 rounded-lg hover:bg-zinc-900 dark:hover:bg-zinc-600 transition-all"
-              >
-                Visualizer
-                <ArrowTopRightOnSquareIcon className="h-4 w-4 text-zinc-400" />
-              </a>
             )}
           </div>
         </div>

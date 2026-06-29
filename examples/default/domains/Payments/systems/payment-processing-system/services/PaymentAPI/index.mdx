@@ -1,0 +1,46 @@
+---
+id: payment-api
+version: 1.0.0
+name: Payment API
+summary: |
+  Receives payment authorization requests from the Ordering domain and records the payment intent, kicking off the charge against the payment processor.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - payments-platform
+receives:
+  - id: authorize-payment
+    version: 1.0.0
+writesTo:
+  - id: payment-database
+readsFrom:
+  - id: payment-database
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/payment-api'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Payment API** is the entry point to the Payment Processing System. It receives [[command|authorize-payment]] from the Ordering domain, records the payment intent in the [[container|payment-database]], and leaves the [[service|payment-worker]] to drive the charge against [[system|stripe]].
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="The authorize-payment command from Ordering" />
+</Tiles>
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Authorization | Receives and validates [[command\|authorize-payment]]. |
+| Persistence | Records payment intent in the [[container\|payment-database]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

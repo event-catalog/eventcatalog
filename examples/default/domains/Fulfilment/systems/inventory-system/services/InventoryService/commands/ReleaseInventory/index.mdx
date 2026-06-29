@@ -1,0 +1,32 @@
+---
+id: release-inventory
+name: Release Inventory
+version: 1.0.0
+summary: |
+  Command to release a previously held inventory reservation.
+owners:
+  - fulfilment-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /reservations/{reservationId}/release
+  statusCodes: ['200', '404']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReleaseInventory` is handled by the [[service|inventory-service]]. It releases a reservation that is no longer needed — for example when checkout fails after stock was reserved, or an order is cancelled.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

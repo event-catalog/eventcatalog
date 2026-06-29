@@ -1,0 +1,39 @@
+---
+id: picking-worker
+version: 1.0.0
+name: Picking Worker
+summary: |
+  Works through picking jobs on the warehouse floor and signals when an order has been picked and packed.
+styles:
+  icon: /icons/languages/go.svg
+owners:
+  - fulfilment-platform
+sends:
+  - id: order-packed
+    version: 1.0.0
+readsFrom:
+  - id: warehouse-database
+writesTo:
+  - id: warehouse-database
+repository:
+  language: Go
+  url: 'https://github.com/acme/picking-worker'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Picking Worker** processes picking jobs created by the [[service|warehouse-service]]. As warehouse staff pick and pack each order, the worker updates the job in the [[container|warehouse-database]] and publishes [[event|order-packed]] when the order is complete.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} message`} description="The order-packed event" />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

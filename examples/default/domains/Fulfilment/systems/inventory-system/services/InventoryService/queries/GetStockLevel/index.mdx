@@ -1,0 +1,32 @@
+---
+id: get-stock-level
+name: Get Stock Level
+version: 1.0.0
+summary: |
+  Query to fetch the current available stock level for a product.
+owners:
+  - fulfilment-platform
+schemaPath: schema.json
+operation:
+  method: GET
+  path: /stock/{productId}
+  statusCodes: ['200', '404']
+sidebar:
+  badge: 'GET'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`GetStockLevel` is handled by the [[service|inventory-service]]. It returns the current available stock for a product, read directly from the [[container|inventory-database]].
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

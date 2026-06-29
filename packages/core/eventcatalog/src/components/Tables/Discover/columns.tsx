@@ -1,5 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { DocumentTextIcon, MapIcon } from '@heroicons/react/24/solid';
 import {
   ArrowDownIcon,
@@ -139,9 +140,14 @@ const ResourceNameCell = ({ item }: { item: DiscoverTableData }) => {
   );
 };
 
+const MENU_WIDTH = 280;
+const MENU_GAP = 6;
+
 const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; collectionType: CollectionType }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const favorites = useStore(favoritesStore);
   const href = buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`);
   const visualiserHref = buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`);
@@ -153,9 +159,35 @@ const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; col
       : collectionType.charAt(0).toUpperCase() + collectionType.slice(1, -1);
   const isFavorite = favorites.some((fav) => fav.nodeKey === nodeKey);
 
+  // The table lives inside scrollable, overflow-hidden containers, so the menu is
+  // rendered in a portal with fixed positioning to avoid being clipped.
+  const updatePosition = () => {
+    const button = buttonRef.current;
+    if (!button) return;
+    const rect = button.getBoundingClientRect();
+    const menuHeight = menuRef.current?.offsetHeight ?? 0;
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    // Flip above the trigger when there isn't enough room below it.
+    const openUpwards = menuHeight > 0 && spaceBelow < menuHeight + MENU_GAP && rect.top > spaceBelow;
+    const top = openUpwards ? rect.top - menuHeight - MENU_GAP : rect.bottom + MENU_GAP;
+    const left = Math.max(MENU_GAP, rect.right - MENU_WIDTH);
+
+    setMenuPosition({ top, left });
+  };
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    updatePosition();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   useEffect(() => {
+    if (!isOpen) return;
+
     const handlePointerDown = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!menuRef.current?.contains(target) && !buttonRef.current?.contains(target)) {
         setIsOpen(false);
       }
     };
@@ -166,14 +198,20 @@ const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; col
       }
     };
 
+    const handleReposition = () => updatePosition();
+
     document.addEventListener('mousedown', handlePointerDown);
     document.addEventListener('keydown', handleEscape);
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
 
     return () => {
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
     };
-  }, []);
+  }, [isOpen]);
 
   const handleToggleFavorite = () => {
     const favoriteItem: FavoriteItem = {
@@ -188,8 +226,9 @@ const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; col
   };
 
   return (
-    <div className="relative flex justify-end" ref={menuRef}>
+    <div className="relative flex justify-end">
       <button
+        ref={buttonRef}
         type="button"
         aria-haspopup="menu"
         aria-expanded={isOpen}
@@ -199,34 +238,48 @@ const RowActionsMenu = ({ item, collectionType }: { item: DiscoverTableData; col
         <EllipsisVerticalIcon className="h-4 w-4" />
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 top-[calc(100%+0.35rem)] z-30 min-w-[280px] overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] shadow-xl">
-          <a
-            href={href}
-            className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+      {isOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            style={{
+              position: 'fixed',
+              top: menuPosition?.top ?? -9999,
+              left: menuPosition?.left ?? -9999,
+              width: MENU_WIDTH,
+              visibility: menuPosition ? 'visible' : 'hidden',
+            }}
+            className="z-50 overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] shadow-xl"
           >
-            <DocumentTextIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
-            View documentation
-          </a>
-          {hasVisualiser && (
             <a
-              href={visualiserHref}
+              href={href}
               className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
             >
-              <MapIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
-              View in visualiser
+              <DocumentTextIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+              View documentation
             </a>
-          )}
-          <button
-            type="button"
-            onClick={handleToggleFavorite}
-            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
-          >
-            <StarIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
-            {isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          </button>
-        </div>
-      )}
+            {hasVisualiser && (
+              <a
+                href={visualiserHref}
+                className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+              >
+                <MapIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+                View in visualiser
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-accent))]"
+            >
+              <StarIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
+              {isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
@@ -618,6 +671,39 @@ export const getDomainColumns = (tableConfiguration: TableConfiguration) => [
 ];
 
 // ============================================================================
+// SYSTEM COLUMNS
+// ============================================================================
+export const getSystemColumns = (tableConfiguration: TableConfiguration) => [
+  columnHelper.accessor('data.name', {
+    id: 'name',
+    header: () => <span>{tableConfiguration?.columns?.name?.label || 'System'}</span>,
+    cell: (info) => <ResourceNameCell item={info.row.original} />,
+    meta: {
+      filterVariant: 'name',
+    },
+  }),
+  createSummaryColumn(tableConfiguration),
+  columnHelper.accessor('data.services', {
+    id: 'services',
+    header: () => <span>Services</span>,
+    cell: (info) => <CollectionListCell items={info.getValue()} />,
+    meta: {
+      showFilter: false,
+    },
+  }),
+  columnHelper.accessor('data.flows', {
+    id: 'flows',
+    header: () => <span>Flows</span>,
+    cell: (info) => <CollectionListCell items={info.getValue()} />,
+    meta: {
+      showFilter: false,
+    },
+  }),
+  createBadgesColumn(tableConfiguration),
+  createActionsColumn('systems', tableConfiguration),
+];
+
+// ============================================================================
 // FLOW COLUMNS
 // ============================================================================
 export const getFlowColumns = (tableConfiguration: TableConfiguration) => [
@@ -740,6 +826,8 @@ export const getDiscoverColumns = (collectionType: CollectionType, tableConfigur
       return getServiceColumns(tableConfiguration);
     case 'domains':
       return getDomainColumns(tableConfiguration);
+    case 'systems':
+      return getSystemColumns(tableConfiguration);
     case 'flows':
       return getFlowColumns(tableConfiguration);
     case 'containers':

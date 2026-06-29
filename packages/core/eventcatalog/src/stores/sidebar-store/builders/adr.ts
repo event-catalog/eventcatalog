@@ -27,6 +27,7 @@ const firstClassResourceCollections = [
   'flows',
   'channels',
   'domains',
+  'systems',
   'users',
   'teams',
   'containers',
@@ -50,6 +51,7 @@ const getResourcesForCollection = (collection: string, context: ResourceGroupCon
     flows: context.flows,
     channels: context.channels || [],
     domains: context.domains,
+    systems: context.systems || [],
     users: context.users || [],
     teams: context.teams || [],
     containers: context.containers,
@@ -113,7 +115,7 @@ export const buildAdrNode = (adr: Adr, owners: any[], decisionMakers: any[], con
     title: adr.data.name,
     badge: 'Decision record',
     summary: adr.data.summary,
-    icon: 'BookText',
+    icon: 'ClipboardList',
     pages: [
       buildQuickReferenceSection(
         [

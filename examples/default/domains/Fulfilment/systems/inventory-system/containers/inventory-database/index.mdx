@@ -1,0 +1,35 @@
+---
+id: inventory-database
+name: Inventory Database
+version: 1.0.0
+summary: PostgreSQL database that is the system of record for stock levels and reservations.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for stock levels and reservations
+classification: internal
+retention: 3y
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Inventory Database** is the authoritative store for stock levels at Acme Inc. The [[service|inventory-service]] reads from and writes to it as stock is reserved and released.
+
+### What does it store?
+
+- **Stock** — one row per product: available quantity and reserved quantity.
+- **Reservations** — one row per reservation: id, order, items and status.
+
+### Schema
+
+<AccordionGroup>
+  <Accordion title="Inventory Database schema">
+    <Schema file="schema.sql" lang="sql" title="schema.sql" />
+  </Accordion>
+</AccordionGroup>

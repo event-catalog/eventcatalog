@@ -1,0 +1,29 @@
+---
+id: product-deleted
+name: Product Deleted
+version: 1.0.0
+summary: |
+  Published when a product has been removed from the catalog.
+owners:
+  - product-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ProductDeleted` is published by the [[service|product-search-publisher]] when a product is removed from the catalog via the [[service|product-api]]. The [[system|search-system]] consumes this event to remove the product from the search index.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

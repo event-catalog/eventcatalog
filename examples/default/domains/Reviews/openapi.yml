@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: Review API
+  version: 1.0.0
+  description: |
+    Public-facing API for the Reviews & Ratings domain. It is the entry point for
+    submitting reviews, flagging reviews, voting reviews helpful, and reading the
+    published reviews and aggregate rating for a product.
+  contact:
+    name: Reviews Platform
+    email: reviews-platform@acme.test
+servers:
+  - url: https://api.acme.test
+    description: Production
+tags:
+  - name: Reviews
+    description: Submit, read and interact with product reviews.
+paths:
+  /products/{productId}/reviews:
+    get:
+      operationId: getProductReviews
+      summary: Get product reviews
+      description: Returns the published reviews and aggregate rating for a product.
+      tags:
+        - Reviews
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, highest, lowest, most_helpful]
+            default: newest
+      responses:
+        '200':
+          description: The published reviews and aggregate rating for the product.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductReviews'
+    post:
+      operationId: submitReview
+      summary: Submit a review
+      description: Submits a review for a product. On success a `ReviewSubmitted` event is published and the review awaits moderation.
+      tags:
+        - Reviews
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitReviewRequest'
+      responses:
+        '202':
+          description: The review was accepted and is awaiting moderation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: The request was invalid.
+  /reviews/{reviewId}/flags:
+    post:
+      operationId: flagReview
+      summary: Flag a review
+      description: Flags a published review for re-moderation. On success a `ReviewFlagged` event is published.
+      tags:
+        - Reviews
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlagReviewRequest'
+      responses:
+        '202':
+          description: The flag was recorded.
+  /reviews/{reviewId}/helpful:
+    post:
+      operationId: voteReviewHelpful
+      summary: Vote a review helpful
+      description: Marks a review as helpful (or removes the vote). On success a `ReviewHelpfulVoted` event is published.
+      tags:
+        - Reviews
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteReviewHelpfulRequest'
+      responses:
+        '200':
+          description: The helpful count was updated.
+components:
+  schemas:
+    Review:
+      type: object
+      properties:
+        reviewId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+        customerId:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+        body:
+          type: string
+        status:
+          type: string
+          enum: [submitted, published, rejected]
+        helpfulCount:
+          type: integer
+          minimum: 0
+        submittedAt:
+          type: string
+          format: date-time
+    ProductReviews:
+      type: object
+      properties:
+        productId:
+          type: string
+        averageRating:
+          type: number
+          minimum: 0
+          maximum: 5
+        reviewCount:
+          type: integer
+          minimum: 0
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+    SubmitReviewRequest:
+      type: object
+      required: [customerId, rating, body]
+      properties:
+        customerId:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+        body:
+          type: string
+    FlagReviewRequest:
+      type: object
+      required: [flaggedBy, reason]
+      properties:
+        flaggedBy:
+          type: string
+        reason:
+          type: string
+          enum: [spam, abuse, off_topic, inappropriate, other]
+        notes:
+          type: string
+    VoteReviewHelpfulRequest:
+      type: object
+      required: [customerId, vote]
+      properties:
+        customerId:
+          type: string
+        vote:
+          type: string
+          enum: [helpful, remove]

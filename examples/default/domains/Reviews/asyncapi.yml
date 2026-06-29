@@ -1,0 +1,181 @@
+asyncapi: 3.0.0
+
+info:
+  title: Review Moderation Worker
+  version: 1.0.0
+  description: |
+    The event-driven interface of the Review Moderation Worker.
+
+    The worker consumes submitted and flagged reviews, screens them for spam, abuse
+    and policy violations, and publishes the outcome (published or rejected).
+  contact:
+    name: Reviews Platform
+    email: reviews-platform@acme.test
+
+defaultContentType: application/json
+
+servers:
+  production:
+    host: broker.acme.test:9092
+    protocol: kafka
+    description: Production Kafka cluster.
+
+channels:
+  reviewIntake:
+    address: reviews.intake
+    title: Reviews to moderate
+    description: Reviews that need screening — newly submitted or flagged for re-moderation.
+    messages:
+      ReviewSubmitted:
+        $ref: '#/components/messages/ReviewSubmitted'
+      ReviewFlagged:
+        $ref: '#/components/messages/ReviewFlagged'
+
+  reviewOutcomes:
+    address: reviews.outcomes
+    title: Moderation outcomes
+    description: The decisions the worker publishes after screening a review.
+    messages:
+      ReviewPublished:
+        $ref: '#/components/messages/ReviewPublished'
+      ReviewRejected:
+        $ref: '#/components/messages/ReviewRejected'
+
+operations:
+  receiveReviewSubmitted:
+    action: receive
+    title: Review Submitted
+    summary: Screen a newly submitted review.
+    channel:
+      $ref: '#/channels/reviewIntake'
+    messages:
+      - $ref: '#/channels/reviewIntake/messages/ReviewSubmitted'
+
+  receiveReviewFlagged:
+    action: receive
+    title: Review Flagged
+    summary: Re-screen a previously published review that has been flagged.
+    channel:
+      $ref: '#/channels/reviewIntake'
+    messages:
+      - $ref: '#/channels/reviewIntake/messages/ReviewFlagged'
+
+  publishReviewPublished:
+    action: send
+    title: Review Published
+    summary: Published when a review passes moderation.
+    channel:
+      $ref: '#/channels/reviewOutcomes'
+    messages:
+      - $ref: '#/channels/reviewOutcomes/messages/ReviewPublished'
+
+  publishReviewRejected:
+    action: send
+    title: Review Rejected
+    summary: Published when a review fails moderation.
+    channel:
+      $ref: '#/channels/reviewOutcomes'
+    messages:
+      - $ref: '#/channels/reviewOutcomes/messages/ReviewRejected'
+
+components:
+  messages:
+    ReviewSubmitted:
+      name: ReviewSubmitted
+      title: Review Submitted
+      summary: A customer submitted a review; it awaits moderation.
+      payload:
+        $ref: '#/components/schemas/ReviewSubmitted'
+    ReviewFlagged:
+      name: ReviewFlagged
+      title: Review Flagged
+      summary: A published review was flagged and needs re-screening.
+      payload:
+        $ref: '#/components/schemas/ReviewFlagged'
+    ReviewPublished:
+      name: ReviewPublished
+      title: Review Published
+      summary: A review passed moderation and is visible on the storefront.
+      payload:
+        $ref: '#/components/schemas/ReviewPublished'
+    ReviewRejected:
+      name: ReviewRejected
+      title: Review Rejected
+      summary: A review failed moderation and will not be shown.
+      payload:
+        $ref: '#/components/schemas/ReviewRejected'
+
+  schemas:
+    ReviewSubmitted:
+      type: object
+      properties:
+        reviewId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+        customerId:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        title:
+          type: string
+        body:
+          type: string
+        submittedAt:
+          type: string
+          format: date-time
+      required: [reviewId, productId, customerId, rating, submittedAt]
+    ReviewFlagged:
+      type: object
+      properties:
+        reviewId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+        reason:
+          type: string
+          enum: [spam, abuse, off_topic, inappropriate, other]
+        flagCount:
+          type: integer
+          minimum: 1
+        flaggedAt:
+          type: string
+          format: date-time
+      required: [reviewId, productId, reason, flaggedAt]
+    ReviewPublished:
+      type: object
+      properties:
+        reviewId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+        customerId:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        publishedAt:
+          type: string
+          format: date-time
+      required: [reviewId, productId, rating, publishedAt]
+    ReviewRejected:
+      type: object
+      properties:
+        reviewId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+        reason:
+          type: string
+          enum: [spam, abuse, off_topic, policy_violation]
+        rejectedAt:
+          type: string
+          format: date-time
+      required: [reviewId, productId, reason, rejectedAt]

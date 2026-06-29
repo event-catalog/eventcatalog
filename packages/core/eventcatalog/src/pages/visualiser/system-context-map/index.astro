@@ -1,0 +1,41 @@
+---
+import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+import VisualiserLayout from '@layouts/VisualiserLayout.astro';
+import { ClientRouter } from 'astro:transitions';
+
+const id = 'system-context-map';
+---
+
+<VisualiserLayout title={`Visualiser | System context map`}>
+  <div class="p-2">
+    <div
+      class="h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
+      id={`${id}-portal`}
+      transition:name="visualiser-graph"
+    >
+    </div>
+    <NodeGraph
+      id={id}
+      collection="system-context-map"
+      title="System context map"
+      mode="full"
+      linkTo="visualiser"
+      version="1.0.0"
+      linksToVisualiser={false}
+    />
+  </div>
+  <ClientRouter />
+</VisualiserLayout>
+
+<script define:vars={{ id }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    const embeded = params.embed === 'true' ? true : false;
+    const viewport = document.getElementById(`${id}-portal`);
+
+    if (embeded && viewport) {
+      viewport.style.height = 'calc(100vh - 30px)';
+    }
+  });
+</script>

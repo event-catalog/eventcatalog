@@ -1,0 +1,49 @@
+---
+id: oauth-api
+version: 1.0.0
+name: OAuth API
+summary: |
+  OAuth-style authentication API for the Identity Provider. Verifies customer credentials and publishes an event when a customer successfully authenticates.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - customer-platform
+receives:
+  - id: authenticate-customer
+    version: 1.0.0
+sends:
+  - id: customer-authenticated
+    version: 1.0.0
+readsFrom:
+  - id: user-directory
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/oauth-api'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **OAuth API** is the authentication entry point for Acme Inc. It verifies credentials against the [[container|user-directory]] and, on a successful sign-in, publishes a [[event|customer-authenticated]] event so other systems can react.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} message`} description="Authentication events published on successful sign-in" />
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="Authentication requests handled by this service" />
+</Tiles>
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Authentication | Handles [[command\|authenticate-customer]] and verifies credentials. |
+| Event publishing | Emits [[event\|customer-authenticated]] on a successful sign-in. |
+| Credentials | Reads from the [[container\|user-directory]] — the source of truth for credentials. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={4} />
+
+<Footer />

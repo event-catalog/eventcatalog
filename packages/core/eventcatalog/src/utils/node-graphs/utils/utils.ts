@@ -325,6 +325,18 @@ export const buildContextMenuForResource = ({
 };
 
 /**
+ * Context menu for a system node on the System Diagram.
+ * Offers the system's documentation, its architecture map, and its own context view.
+ */
+export const buildContextMenuForSystem = ({ id, version }: { id: string; version: string }): ContextMenuItem[] => {
+  return [
+    { label: 'Read documentation', href: buildUrl(`/docs/systems/${id}/${version}`) },
+    { label: 'View map', href: buildUrl(`/visualiser/systems/${id}/${version}`) },
+    { label: 'View context', href: buildUrl(`/visualiser/systems/${id}/${version}/context`) },
+  ];
+};
+
+/**
  * Extracts operation fields (method, path, statusCodes) from a message's
  * `operation` frontmatter and returns them as top-level props the visualiser expects.
  */

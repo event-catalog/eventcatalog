@@ -472,11 +472,11 @@ describe('buildDataProductNode', () => {
       const dataProduct = createMockDataProduct();
 
       const result = buildDataProductNode(dataProduct, [], emptyContext, ['flow:CheckoutFlow:1.0.0']);
-      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Appears in flows');
 
       expect(flowsSection).toMatchObject({
         type: 'group',
-        title: 'Flows',
+        title: 'Appears in flows',
         icon: 'Waypoints',
         pages: ['flow:CheckoutFlow:1.0.0'],
       });
@@ -486,7 +486,7 @@ describe('buildDataProductNode', () => {
       const dataProduct = createMockDataProduct();
 
       const result = buildDataProductNode(dataProduct, [], emptyContext);
-      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Appears in flows');
 
       expect(flowsSection).toBeUndefined();
     });
@@ -501,7 +501,7 @@ describe('buildDataProductNode', () => {
       });
 
       const result = buildDataProductNode(dataProduct, [], emptyContext, ['flow:CheckoutFlow:1.0.0']);
-      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Appears in flows');
 
       expect(flowsSection).toBeUndefined();
     });

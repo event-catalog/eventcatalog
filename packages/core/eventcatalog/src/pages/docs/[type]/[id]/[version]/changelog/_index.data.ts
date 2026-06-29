@@ -14,7 +14,17 @@ export class Page extends HybridPage {
 
     const { pageDataLoader } = await import('@utils/page-loaders/page-data-loader');
 
-    const itemTypes: PageTypes[] = ['agents', 'events', 'commands', 'queries', 'services', 'domains', 'flows', 'containers'];
+    const itemTypes: PageTypes[] = [
+      'agents',
+      'events',
+      'commands',
+      'queries',
+      'services',
+      'domains',
+      'systems',
+      'flows',
+      'containers',
+    ];
     const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
     return allItems.flatMap((items, index) =>

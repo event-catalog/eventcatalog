@@ -1,0 +1,43 @@
+---
+id: checkout-api
+version: 1.0.0
+name: Checkout API
+summary: |
+  The entry point to the Checkout System. Receives the checkout command from the Shopping domain and starts the checkout flow.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - ordering-platform
+receives:
+  - id: checkout-cart
+    version: 1.0.0
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/checkout-api'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Checkout API** is the front door to the Checkout System. When the [[domain|shopping]] domain checks out a cart, this service receives the [[command|checkout-cart]] command, validates it, and hands the work to the [[service|checkout-orchestrator]] to run the checkout saga.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="The checkout command from Shopping" />
+  <Tile icon="RectangleGroupIcon" href="/docs/services/checkout-orchestrator/1.0.0" title="Delegates to the Orchestrator" description="The saga that runs checkout" />
+</Tiles>
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Checkout entry | Receives and validates [[command\|checkout-cart]] from the Shopping domain. |
+| Orchestration handoff | Starts a checkout saga in the [[service\|checkout-orchestrator]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

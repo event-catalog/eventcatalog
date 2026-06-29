@@ -18,6 +18,7 @@ import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graph
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-graphs/data-products-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForSystem } from '@utils/node-graphs/systems-node-graph';
 import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
 import config from '@config';
 import type { PageTypes } from '@types';
@@ -36,6 +37,7 @@ const getNodesAndEdgesFunctions = {
   flows: getNodesAndEdgesForFlows,
   containers: getNodesAndEdgesForContainer,
   'data-products': getNodesAndEdgesForDataProduct,
+  systems: getNodesAndEdgesForSystem,
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -59,6 +61,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     'flows',
     'containers',
     'data-products',
+    'systems',
   ];
 
   const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));

@@ -8,7 +8,7 @@ describe('withArchitectureDecisionsSection', () => {
       title: 'Orders Service',
       pages: [
         { type: 'group', title: 'Quick Reference', pages: [] },
-        { type: 'group', title: 'Flows', pages: [] },
+        { type: 'group', title: 'Appears in flows', pages: [] },
         { type: 'group', title: 'Owners', pages: [] },
         { type: 'group', title: 'Code', pages: [] },
       ],
@@ -32,10 +32,40 @@ describe('withArchitectureDecisionsSection', () => {
 
     expect(result.pages?.map((page) => (typeof page === 'string' ? page : page.title))).toEqual([
       'Quick Reference',
-      'Flows',
+      'Appears in flows',
       'Decision Records',
       'Owners',
       'Code',
+    ]);
+  });
+
+  it('adds Decision Records for a system when an ADR applies to it', () => {
+    const node: NavNode = {
+      type: 'item',
+      title: 'Core Monolith',
+      href: '/docs/systems/CoreMonolith/1.0.0',
+    };
+
+    const resource = {
+      collection: 'systems',
+      data: { id: 'CoreMonolith', version: '1.0.0' },
+    };
+
+    const adr = {
+      collection: 'adrs',
+      data: {
+        id: 'strangle-the-monolith',
+        version: '1.0.0',
+        appliesTo: [{ type: 'system', id: 'CoreMonolith', version: '1.0.0' }],
+      },
+    };
+
+    const result = withArchitectureDecisionsSection(node, resource as any, [adr as any]);
+
+    const decisionRecords = result.pages?.find((page) => typeof page !== 'string' && page.title === 'Decision Records');
+
+    expect(decisionRecords && typeof decisionRecords !== 'string' ? decisionRecords.pages : undefined).toEqual([
+      'adr:strangle-the-monolith:1.0.0',
     ]);
   });
 
@@ -72,7 +102,7 @@ describe('withArchitectureDecisionsSection', () => {
       {
         type: 'group',
         title: 'Decision Records',
-        icon: 'BookText',
+        icon: 'ClipboardList',
         pages: ['adr:use-events-for-order-updates:1.0.0'],
       },
     ]);

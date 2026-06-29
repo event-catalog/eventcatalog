@@ -5,6 +5,7 @@ import { getAdrAliasNodeKey, getAdrNodeKey, getAdrs, type Adr } from '@utils/col
 import { ADR_STATUS_VALUES, formatAdrStatus } from '@utils/collections/adr-constants';
 import { getContainers } from '@utils/collections/containers';
 import { getDomains } from '@utils/collections/domains';
+import { getSystems } from '@utils/collections/systems';
 import { getServices } from '@utils/collections/services';
 import { getMessages, pluralizeMessageType } from '@utils/collections/messages';
 import { getOwner } from '@utils/collections/owners';
@@ -19,6 +20,7 @@ import { buildUrl } from '@utils/url-builder';
 import type { NavigationData, NavNode, ChildRef } from './builders/shared';
 import { buildAgentNode } from './builders/agent';
 import { buildDomainNode } from './builders/domain';
+import { buildSystemNode } from './builders/system';
 import { buildServiceNode } from './builders/service';
 import { buildMessageNode } from './builders/message';
 import { buildContainerNode } from './builders/container';
@@ -274,6 +276,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const [
     domains,
+    systems,
     agents,
     services,
     { events, commands, queries },
@@ -293,6 +296,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     resourceDocCategories,
   ] = await Promise.all([
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
+    getSystems({ getAllVersions: false }),
     getAgents({ getAllVersions: false }),
     getServices({ getAllVersions: false }),
     getMessages({ getAllVersions: false }),
@@ -322,6 +326,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     agents,
     services,
     domains,
+    systems,
     events,
     commands,
     queries,
@@ -389,6 +394,15 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       const owners = await Promise.all(ownersInContainer.map((owner) => getOwner(owner)));
       const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<(typeof owners)[0]>>;
       return { container, owners: filteredOwners };
+    })
+  );
+
+  const systemWithOwners = await Promise.all(
+    systems.map(async (system) => {
+      const ownersInSystem = system.data.owners || [];
+      const owners = await Promise.all(ownersInSystem.map((owner) => getOwner(owner)));
+      const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<(typeof owners)[0]>>;
+      return { system, owners: filteredOwners };
     })
   );
 
@@ -607,6 +621,19 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
+  const systemNodes = systemWithOwners.reduce(
+    (acc, { system, owners }) => {
+      const versionedKey = `system:${system.data.id}:${system.data.version}`;
+      acc[versionedKey] = withArchitectureDecisionsSection(buildSystemNode(system, owners, context), system, adrs);
+      if (system.data.latestVersion === system.data.version) {
+        // Store reference to versioned key instead of duplicating the full node
+        acc[`system:${system.data.id}`] = versionedKey;
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode | string>
+  );
+
   // Get owners for data products
   const dataProductWithOwners = await Promise.all(
     dataProducts.map(async (dataProduct) => {
@@ -801,6 +828,38 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     pages: sortByResourceName(domains).map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
   });
 
+  // Split systems by scope (defaults to internal). When there are systems of both
+  // scopes we show two sub-sections (Internal / External), each ordered by name;
+  // otherwise we keep a flat list so a single-scope catalog isn't over-nested.
+  const internalSystems = systems.filter((system) => (system.data.scope ?? 'internal') !== 'external');
+  const externalSystems = systems.filter((system) => system.data.scope === 'external');
+
+  const systemPageKeys = (items: typeof systems) =>
+    sortByResourceName(items).map((system) => `system:${system.data.id}:${system.data.version}`);
+
+  const internalSystemsList = createLeaf(internalSystems, {
+    type: 'group',
+    title: 'Internal',
+    icon: 'Group',
+    pages: systemPageKeys(internalSystems),
+  });
+
+  const externalSystemsScopedList = createLeaf(externalSystems, {
+    type: 'group',
+    title: 'External',
+    icon: 'Group',
+    pages: systemPageKeys(externalSystems),
+  });
+
+  const hasBothSystemScopes = internalSystems.length > 0 && externalSystems.length > 0;
+
+  const systemsList = createLeaf(systems, {
+    type: 'item',
+    title: 'Systems',
+    icon: 'Group',
+    pages: hasBothSystemScopes ? ['list:systems-internal', 'list:systems-external'] : systemPageKeys(systems),
+  });
+
   const agentsList = createLeaf(agents, {
     type: 'item',
     title: 'Agents',
@@ -811,7 +870,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const adrsList = createLeaf(adrs, {
     type: 'item',
     title: 'Decision Records',
-    icon: 'BookText',
+    icon: 'ClipboardList',
     pages: groupAdrsByStatus(adrs),
   });
 
@@ -939,6 +998,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const allChildrenKeys = [
     'list:domains',
+    'list:systems',
     'list:services',
     'list:agents',
     'list:adrs',
@@ -954,6 +1014,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   ];
   const allChildrenNodes = [
     domainsList,
+    systemsList,
     servicesList,
     agentsList,
     adrsList,
@@ -968,10 +1029,22 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     peopleList,
   ];
 
+  // The Browse list leads with the resources people reach for most — Domains,
+  // Systems, Services then Messages — and falls back to A-Z for everything else.
+  const browseOrderPriority = ['list:domains', 'list:systems', 'list:services', 'list:messages'];
+  const browseRank = (key: string) => {
+    const index = browseOrderPriority.indexOf(key);
+    return index === -1 ? browseOrderPriority.length : index;
+  };
+
   const validAllChildren = allChildrenKeys
     .map((key, idx) => ({ key, node: allChildrenNodes[idx] }))
     .filter((item): item is { key: string; node: NavNode } => item.node !== undefined)
-    .sort((a, b) => a.node.title.localeCompare(b.node.title))
+    .sort((a, b) => {
+      const rankDifference = browseRank(a.key) - browseRank(b.key);
+      if (rankDifference !== 0) return rankDifference;
+      return a.node.title.localeCompare(b.node.title);
+    })
     .map((item) => item.key);
 
   let allList;
@@ -986,6 +1059,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const allNodes: Record<string, NavNode> = {
     ...(domainsList ? { 'list:domains': domainsList } : {}),
+    ...(systemsList ? { 'list:systems': systemsList } : {}),
+    ...(internalSystemsList ? { 'list:systems-internal': internalSystemsList } : {}),
+    ...(externalSystemsScopedList ? { 'list:systems-external': externalSystemsScopedList } : {}),
     ...(servicesList ? { 'list:services': servicesList } : {}),
     ...(agentsList ? { 'list:agents': agentsList } : {}),
     ...(adrsList ? { 'list:adrs': adrsList } : {}),
@@ -1021,6 +1097,16 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
           title: 'Domain Map',
           href: buildUrl('/visualiser/domain-integrations'),
         },
+        // Global context map across every system in the catalog.
+        ...(systems.length > 0
+          ? [
+              {
+                type: 'item' as const,
+                title: 'System Context Map',
+                href: buildUrl('/visualiser/system-context-map'),
+              },
+            ]
+          : []),
       ],
     };
   }
@@ -1028,6 +1114,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allGeneratedNodes = {
     ...rootDomainsNodes,
     ...domainNodes,
+    ...systemNodes,
     ...agentNodes,
     ...adrNodes,
     ...serviceNodes,

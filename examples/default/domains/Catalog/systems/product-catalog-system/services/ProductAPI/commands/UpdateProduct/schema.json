@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UpdateProduct",
+  "description": "Command to update an existing product. Only the fields supplied are changed.",
+  "type": "object",
+  "properties": {
+    "productId": {
+      "description": "Unique identifier of the product to update",
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "description": "New display name",
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "description": "New long-form description",
+      "type": "string"
+    },
+    "price": {
+      "description": "New price in minor units (e.g. cents)",
+      "type": "integer",
+      "minimum": 0
+    },
+    "currency": {
+      "description": "ISO 4217 currency code",
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "category": {
+      "description": "New category",
+      "type": "string"
+    },
+    "status": {
+      "description": "New lifecycle status",
+      "type": "string",
+      "enum": ["DRAFT", "ACTIVE", "ARCHIVED"]
+    }
+  },
+  "required": ["productId"]
+}

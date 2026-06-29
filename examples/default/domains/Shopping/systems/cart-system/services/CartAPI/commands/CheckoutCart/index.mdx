@@ -1,0 +1,32 @@
+---
+id: checkout-cart
+name: Checkout Cart
+version: 1.0.0
+summary: |
+  Command to check out a shopping cart.
+owners:
+  - shopping-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /carts/{cartId}/checkout
+  statusCodes: ['200', '400', '404', '409']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CheckoutCart` is handled by the [[service|cart-api]]. It finalises the cart — pricing it (including discounts from the [[system|promotion-system]]) — and on success publishes a [[event|cart-checked-out]] event.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

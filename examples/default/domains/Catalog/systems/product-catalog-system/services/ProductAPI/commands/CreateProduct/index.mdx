@@ -1,0 +1,32 @@
+---
+id: create-product
+name: Create Product
+version: 1.0.0
+summary: |
+  Command to add a new product to the catalog.
+owners:
+  - product-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /products
+  statusCodes: ['201', '400', '409']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CreateProduct` is handled by the [[service|product-api]]. It validates the incoming product, writes it to the [[container|product-database]], and on success publishes a [[event|product-created]] event.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

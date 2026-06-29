@@ -1,0 +1,41 @@
+---
+dictionary:
+  - id: Payment
+    name: Payment
+    summary: "A charge taken from a customer to pay for an order."
+    description: |
+      A payment is the central concept of the Payments domain. It is owned by the Payment Processing
+      System, which records every payment's status (REQUESTED, SUCCEEDED or FAILED). The actual money
+      movement happens at the external payment processor.
+    icon: CreditCard
+  - id: Authorization
+    name: Authorization
+    summary: "A hold placed on a customer's payment method, confirming funds are available before capture."
+    icon: ShieldCheck
+  - id: Capture
+    name: Capture
+    summary: "Taking the held funds from an authorized payment — turning an authorization into an actual charge."
+    icon: Banknote
+  - id: Refund
+    name: Refund
+    summary: "Returning money to a customer for a previous payment, in full or in part."
+    icon: Undo2
+  - id: Payment Processor
+    name: Payment Processor
+    summary: "The external provider (Stripe) that charges cards and issues refunds on Acme Inc's behalf."
+    description: |
+      The payment processor is a third party. Acme Inc never stores raw card details — it delegates
+      the actual charge and refund to the processor and reacts to the outcomes it reports back.
+    icon: Building2
+  - id: Fraud Screening
+    name: Fraud Screening
+    summary: "Checking a payment for signs of fraud before allowing the charge to proceed."
+    description: |
+      Fraud screening is performed by an external Fraud Detection provider. It returns a verdict —
+      passed or failed — that determines whether a payment is allowed or blocked.
+    icon: ShieldAlert
+  - id: Webhook
+    name: Webhook
+    summary: "A callback the payment processor sends to report the outcome of a charge or refund."
+    icon: Webhook
+---

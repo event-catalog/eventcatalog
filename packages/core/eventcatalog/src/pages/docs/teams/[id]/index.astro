@@ -25,6 +25,7 @@ const membersRaw = props.data.members || [];
 const members = (await Promise.all(membersRaw.map((m: CollectionEntry<'teams'>) => getEntry(m)))).filter(Boolean);
 
 const domains = props.data.ownedDomains as CollectionEntry<'domains'>[];
+const systems = props.data.ownedSystems as CollectionEntry<'systems'>[];
 const agents = props.data.ownedAgents as CollectionEntry<'agents'>[];
 const services = props.data.ownedServices as CollectionEntry<'services'>[];
 const events = props.data.ownedEvents as CollectionEntry<'events'>[];
@@ -42,6 +43,13 @@ const membersList = members.map((o) => ({
 }));
 
 const ownedDomainsList = domains.map((p) => ({
+  label: `${p.data.name}`,
+  collection: p.collection,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  tag: `v${p.data.version}`,
+}));
+
+const ownedSystemsList = systems.map((p) => ({
   label: `${p.data.name}`,
   collection: p.collection,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
@@ -175,10 +183,14 @@ const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
           </div>
         </div>
         <div class="border-b border-[rgb(var(--ec-page-border))] py-4" data-pagefind-ignore>
-          <dl class="grid grid-cols-2 gap-3 sm:grid-cols-6">
+          <dl class="grid grid-cols-2 gap-3 sm:grid-cols-7">
             <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
               <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Domains</dt>
               <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedDomainsList.length}</dd>
+            </div>
+            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
+              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Systems</dt>
+              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedSystemsList.length}</dd>
             </div>
             <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
               <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Services</dt>
@@ -218,6 +230,17 @@ const sourceTitle = sourceLabel ? `Synced from ${sourceLabel}` : undefined;
                 title={`Owned domains (${ownedDomainsList.length})`}
                 pills={ownedDomainsList}
                 emptyMessage={`${props.data.name} does not own any domains.`}
+                client:load
+              />
+            )
+          }
+          {
+            ownedSystemsList.length > 0 && (
+              <PillListFlat
+                color="pink"
+                title={`Owned systems (${ownedSystemsList.length})`}
+                pills={ownedSystemsList}
+                emptyMessage={`${props.data.name} does not own any systems.`}
                 client:load
               />
             )

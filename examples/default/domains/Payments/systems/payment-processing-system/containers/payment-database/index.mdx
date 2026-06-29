@@ -1,0 +1,39 @@
+---
+id: payment-database
+name: Payment Database
+version: 1.0.0
+summary: PostgreSQL database that is the system of record for payments and refunds.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for payments and refunds
+classification: confidential
+retention: 7y
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Payment Database** is the authoritative store for payments and refunds at Acme Inc. The [[service|payment-api]] and [[service|payment-worker]] read from and write to it as payments are authorized, charged and refunded.
+
+### What does it store?
+
+- **Payments** — one row per payment: id, order, amount, status and timestamps.
+- **Refunds** — one row per refund: id, payment, amount, status and timestamps.
+
+### Schema
+
+<AccordionGroup>
+  <Accordion title="Payment Database schema">
+    <Schema file="schema.sql" lang="sql" title="schema.sql" />
+  </Accordion>
+</AccordionGroup>
+
+### Retention
+
+Payments and refunds are financial records and are retained for **7 years** (see frontmatter) to meet accounting and audit requirements.

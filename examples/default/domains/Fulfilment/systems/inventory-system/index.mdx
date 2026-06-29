@@ -1,0 +1,49 @@
+---
+id: inventory-system
+name: Inventory System
+version: 1.0.0
+summary: |
+  Internal system that tracks stock and reserves it for orders. It is the source of truth for available inventory and confirms whether stock can be reserved.
+owners:
+  - fulfilment-platform
+services:
+  - id: inventory-service
+containers:
+  - id: inventory-database
+relationships:
+  - id: warehouse-system
+    label: provides stock for
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Inventory System** owns stock levels at Acme Inc. During checkout it receives [[command|reserve-inventory]] and confirms whether stock is available — replying with [[event|inventory-reserved]] or [[event|inventory-unavailable]]. It also handles [[command|release-inventory]] (when a reservation is no longer needed) and serves [[query|get-stock-level]] lookups from the [[container|inventory-database]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| [[service\|inventory-service]] | Service | Reserves and releases stock, serves stock-level queries, and publishes inventory events. |
+| [[container\|inventory-database]] | Data store | PostgreSQL system of record for stock levels and reservations. |
+
+## Messages this system publishes
+
+- [[event\|inventory-reserved]] — stock was successfully reserved for an order.
+- [[event\|inventory-unavailable]] — stock could not be reserved.

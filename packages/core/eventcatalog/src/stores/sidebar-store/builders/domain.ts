@@ -14,14 +14,17 @@ import {
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 import { getSpecificationsForDomain, hasUbiquitousLanguageTermsWithSubdomainsInCollection } from '@utils/collections/domains';
-import { iconFieldsForResource } from '@utils/icon';
+import { customIconFieldsForResource } from '@utils/icon';
+
+// Sort resolved collection entries A-Z by their display name (falling back to id).
+const byResourceName = (a: any, b: any) => (a.data?.name || a.data?.id || '').localeCompare(b.data?.name || b.data?.id || '');
 
 export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
   const agentsInDomain = domain.data.agents || [];
   const renderAgents = agentsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'agents');
 
   const allServicesInDomain = domain.data.services || [];
-  const servicesInDomain = allServicesInDomain.filter((service) => !(service as any).data?.externalSystem);
+  const servicesInDomain = allServicesInDomain.filter((service) => !(service as any).data?.externalSystem).sort(byResourceName);
   const externalSystemsInDomain = allServicesInDomain.filter((service) => (service as any).data?.externalSystem);
   const renderServices = servicesInDomain.length > 0 && shouldRenderSideBarSection(domain, 'services');
   const renderExternalSystems = externalSystemsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'services');
@@ -29,13 +32,25 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const dataProductsInDomain = domain.data['data-products'] || [];
   const renderDataProducts = dataProductsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'data-products');
 
+  const systemsInDomain = domain.data.systems || [];
+  const renderSystems = systemsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'systems');
+
+  // The domain's System Diagram only has something to show when at least one of
+  // its systems takes part in a context graph (declares relationships or actors). This
+  // mirrors the guard that generates the visualiser page, so we never link to a page
+  // that wasn't generated.
+  const hasSystemContext = systemsInDomain.some((system: any) => {
+    const data = system?.data || system;
+    return (data?.relationships || []).length > 0 || (data?.actors || []).length > 0;
+  });
+
   const subDomains = domain.data.domains || [];
   const renderSubDomains = subDomains.length > 0 && shouldRenderSideBarSection(domain, 'subdomains');
 
-  const entitiesInDomain = domain.data.entities || [];
+  const entitiesInDomain = [...(domain.data.entities || [])].sort(byResourceName);
   const renderEntities = entitiesInDomain.length > 0 && shouldRenderSideBarSection(domain, 'entities');
 
-  const domainFlows = domain.data.flows || [];
+  const domainFlows = [...(domain.data.flows || [])].sort(byResourceName);
   const hasFlows = domainFlows.length > 0;
 
   const resourceGroups = domain.data.resourceGroups || [];
@@ -62,7 +77,28 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   // Domain-level messages (sends/receives)
   const sendsMessages = domain.data.sends || [];
   const receivesMessages = domain.data.receives || [];
+  const sortedSendsMessages = [...sendsMessages].sort(byResourceName);
+  const sortedReceivesMessages = [...receivesMessages].sort(byResourceName);
   const renderMessages = shouldRenderSideBarSection(domain, 'messages');
+
+  // The Resources page/link only makes sense when the domain actually has resources
+  // attached (services, flows, entities or its own messages). Mirrors what the page renders.
+  const hasResources =
+    servicesInDomain.length > 0 ||
+    domainFlows.length > 0 ||
+    entitiesInDomain.length > 0 ||
+    sendsMessages.length > 0 ||
+    receivesMessages.length > 0;
+
+  // The Resource Diagram renders the domain's services, agents, data products and
+  // subdomains (see domains-node-graph). Only link to it when there's something to
+  // draw — otherwise the visualiser page is empty.
+  const hasResourceDiagram =
+    servicesInDomain.length > 0 ||
+    externalSystemsInDomain.length > 0 ||
+    agentsInDomain.length > 0 ||
+    dataProductsInDomain.length > 0 ||
+    subDomains.length > 0;
 
   // Diagrams
   const domainDiagrams = domain.data.diagrams || [];
@@ -82,11 +118,18 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
     title: domain.data.name,
     badge: 'Domain',
     summary: domain.data.summary,
-    ...iconFieldsForResource(domain.data, 'Boxes'),
+    // Domains use a custom icon when defined, otherwise none — the surrounding
+    // 'Domains' section header (and Domain badge) already convey the type, so the
+    // default Boxes glyph on every item is redundant.
+    ...customIconFieldsForResource(domain.data),
     pages: [
       buildQuickReferenceSection(
         [
           { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
+          hasResources && {
+            title: 'Domain Resources',
+            href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}/resources`),
+          },
           renderUbiquitousLanguage && {
             title: 'Ubiquitous Language',
             href: buildUrl(`/docs/domains/${domain.data.id}/language`),
@@ -109,15 +152,23 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
             title: 'Overview',
             href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
           },
-          renderVisualiser && {
-            type: 'item',
-            title: 'Map',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
-          },
+          renderSystems &&
+            renderVisualiser &&
+            hasSystemContext && {
+              type: 'item',
+              title: 'System Diagram',
+              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/systems-context`),
+            },
+          renderVisualiser &&
+            hasResourceDiagram && {
+              type: 'item',
+              title: 'Resource Diagram',
+              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
+            },
           renderEntities &&
             renderVisualiser && {
               type: 'item',
-              title: 'Entity Map',
+              title: 'Entity Diagram',
               href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
             },
         ].filter(Boolean) as ChildRef[],
@@ -159,36 +210,81 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
           })),
         ],
       },
+      renderSystems && {
+        type: 'group',
+        title: 'Systems',
+        icon: 'Group',
+        pages: systemsInDomain.map((system) => `system:${(system as any).data.id}:${(system as any).data.version}`),
+      },
       renderSubDomains && {
         type: 'group',
         title: 'Subdomains',
         icon: 'Boxes',
         pages: subDomains.map((domain) => `domain:${(domain as any).data.id}:${(domain as any).data.version}`),
       },
-      hasFlows && {
+      (renderServices ||
+        hasFlows ||
+        renderEntities ||
+        (renderMessages && (sendsMessages.length > 0 || receivesMessages.length > 0))) && {
         type: 'group',
-        title: 'Flows',
-        icon: 'Waypoints',
-        pages: domainFlows.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
-      },
-      renderEntities && {
-        type: 'group',
-        title: 'Entities',
-        icon: 'Box',
-        pages: entitiesInDomain.map((entity) => ({
-          type: 'item',
-          title: (entity as any).data?.name || (entity as any).data.id,
-          href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
-        })),
+        title: 'Resources',
+        icon: 'Boxes',
+        // Resource type subsections are ordered A-Z by their title, and the
+        // resources within each subsection are ordered A-Z by name (sorted above).
+        pages: (
+          [
+            renderServices && {
+              type: 'group',
+              title: 'Services',
+              subtle: true,
+              icon: 'Server',
+              pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
+            },
+            hasFlows && {
+              type: 'group',
+              title: 'Flows',
+              subtle: true,
+              icon: 'Waypoints',
+              pages: domainFlows.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+            },
+            renderEntities && {
+              type: 'group',
+              title: 'Entities',
+              subtle: true,
+              icon: 'Box',
+              pages: entitiesInDomain.map((entity) => ({
+                type: 'item',
+                title: (entity as any).data?.name || (entity as any).data.id,
+                href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
+              })),
+            },
+            renderMessages &&
+              sendsMessages.length > 0 && {
+                type: 'group',
+                title: 'Domain Events',
+                subtle: true,
+                icon: 'Mail',
+                pages: sortedSendsMessages.map(
+                  (message) =>
+                    `${pluralizeMessageType(message as any)}:${(message as any).data.id}:${(message as any).data.version}`
+                ),
+              },
+            renderMessages &&
+              receivesMessages.length > 0 && {
+                type: 'group',
+                title: 'External Events',
+                subtle: true,
+                icon: 'Mail',
+                pages: sortedReceivesMessages.map(
+                  (receive) =>
+                    `${pluralizeMessageType(receive as any)}:${(receive as any).data.id}:${(receive as any).data.version}`
+                ),
+              },
+          ].filter(Boolean) as NavNode[]
+        ).sort((a, b) => a.title.localeCompare(b.title)) as ChildRef[],
       },
 
       ...(hasResourceGroups ? buildResourceGroupSections(resourceGroups, context) : []),
-      renderServices && {
-        type: 'group',
-        title: 'Services In Domain',
-        icon: 'Server',
-        pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
-      },
       renderAgents && {
         type: 'group',
         title: 'Agents In Domain',
@@ -209,24 +305,6 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
           (dataProduct) => `data-product:${(dataProduct as any).data.id}:${(dataProduct as any).data.version}`
         ),
       },
-      sendsMessages.length > 0 &&
-        renderMessages && {
-          type: 'group',
-          title: 'Domain Events',
-          icon: 'Mail',
-          pages: sendsMessages.map(
-            (message) => `${pluralizeMessageType(message as any)}:${(message as any).data.id}:${(message as any).data.version}`
-          ),
-        },
-      receivesMessages.length > 0 &&
-        renderMessages && {
-          type: 'group',
-          title: 'External Events',
-          icon: 'Mail',
-          pages: receivesMessages.map(
-            (receive) => `${pluralizeMessageType(receive as any)}:${(receive as any).data.id}:${(receive as any).data.version}`
-          ),
-        },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(domain.data.repository as { url: string; language: string }),
       hasAttachments && buildAttachmentsSection(domain.data.attachments as any[]),

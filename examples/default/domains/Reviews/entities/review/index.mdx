@@ -1,0 +1,57 @@
+---
+id: review
+name: Review
+version: 1.0.0
+identifier: reviewId
+aggregateRoot: true
+summary: A customer's review and rating of a product, including its moderation lifecycle.
+owners:
+  - reviews-platform
+properties:
+  - name: reviewId
+    type: UUID
+    required: true
+    description: Unique identifier for the review.
+  - name: productId
+    type: string
+    required: true
+    description: The product being reviewed.
+  - name: customerId
+    type: string
+    required: true
+    description: The customer who wrote the review.
+  - name: rating
+    type: integer
+    required: true
+    description: Star rating from 1 to 5.
+  - name: title
+    type: string
+    required: false
+    description: Short headline for the review.
+  - name: body
+    type: string
+    required: true
+    description: The review text.
+  - name: status
+    type: string
+    required: true
+    description: Lifecycle status of the review.
+    enum:
+      - submitted
+      - published
+      - rejected
+  - name: submittedAt
+    type: datetime
+    required: true
+    description: When the review was submitted.
+---
+
+## Overview
+
+The **Review** is the core aggregate of the Reviews & Ratings domain. It captures a customer's rating and written feedback for a product, along with the moderation `status` that controls whether it is visible on the storefront.
+
+A review moves through three states:
+
+1. **submitted** — stored by the [[service|review-api]], awaiting moderation.
+2. **published** — passed moderation and visible (the [[service|rating-aggregator]] folds it into the product's rating).
+3. **rejected** — failed moderation and never shown, but kept for audit.

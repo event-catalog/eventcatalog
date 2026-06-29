@@ -1,0 +1,57 @@
+---
+id: checkout-system
+name: Checkout System
+version: 1.0.0
+summary: |
+  Internal system that orchestrates checkout. When a cart is checked out it reserves inventory, authorizes payment, and asks the Order Management System to create the order.
+owners:
+  - ordering-platform
+services:
+  - id: checkout-api
+  - id: checkout-orchestrator
+flows:
+  - id: checkout-saga
+    version: 1.0.0
+relationships:
+  - id: order-management-system
+    label: creates orders via
+actors:
+  - id: shopper
+    name: Shopper
+    label: confirms checkout
+    direction: inbound
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Checkout System** drives the checkout flow at Acme Inc. When the [[domain|shopping]] domain checks out a cart, the [[service|checkout-api]] receives the [[command|checkout-cart]] command and hands it to the [[service|checkout-orchestrator]]. The orchestrator runs the checkout saga — reserving inventory via [[command|reserve-inventory]], authorizing payment via [[command|authorize-payment]], and finally creating the order via [[command|create-order]] against the [[system|order-management-system]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| [[service\|checkout-api]] | Service | Entry point for checkout. Receives the checkout command and starts the flow. |
+| [[service\|checkout-orchestrator]] | Service | Runs the checkout saga — reserve inventory, authorize payment, create order. |
+
+## Messages this system sends
+
+- [[command\|reserve-inventory]] — reserve stock for the items in the cart.
+- [[command\|authorize-payment]] — authorize payment for the order total.
+- [[command\|create-order]] — create the order in the Order Management System.

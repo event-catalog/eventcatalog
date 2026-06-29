@@ -17,6 +17,7 @@ const queries = await getCollection('queries');
 const services = await getCollection('services');
 const dataProducts = await getCollection('data-products');
 const domains = await getCollection('domains');
+const systems = await getCollection('systems');
 const flows = await getCollection('flows');
 const channels = await getCollection('channels');
 const containers = await getCollection('containers');
@@ -30,6 +31,7 @@ const collections = {
   services,
   'data-products': dataProducts,
   domains,
+  systems,
   flows,
   channels,
   containers,

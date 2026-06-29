@@ -1,0 +1,32 @@
+---
+id: authenticate-customer
+name: Authenticate Customer
+version: 1.0.0
+summary: |
+  Command to authenticate a customer with their credentials.
+owners:
+  - customer-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /oauth/token
+  statusCodes: ['200', '400', '401']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`AuthenticateCustomer` is handled by the [[service|oauth-api]]. It verifies the supplied credentials against the [[container|user-directory]] and, on success, returns an access token and publishes a [[event|customer-authenticated]] event.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

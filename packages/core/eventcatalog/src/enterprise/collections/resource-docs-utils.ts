@@ -15,6 +15,7 @@ const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 export type ResourceCollection =
   | 'agents'
   | 'domains'
+  | 'systems'
   | 'services'
   | 'events'
   | 'commands'
@@ -283,10 +284,11 @@ const getResourceLookups = async (): Promise<Record<ResourceCollection, Resource
   }
 
   const lookupPromise = (async () => {
-    const [agents, domains, services, events, commands, queries, flows, containers, channels, entities, dataProducts] =
+    const [agents, domains, systems, services, events, commands, queries, flows, containers, channels, entities, dataProducts] =
       await Promise.all([
         getCollection('agents'),
         getCollection('domains'),
+        getCollection('systems'),
         getCollection('services'),
         getCollection('events'),
         getCollection('commands'),
@@ -301,6 +303,7 @@ const getResourceLookups = async (): Promise<Record<ResourceCollection, Resource
     return {
       agents: buildLookup(agents),
       domains: buildLookup(domains),
+      systems: buildLookup(systems),
       services: buildLookup(services),
       events: buildLookup(events),
       commands: buildLookup(commands),

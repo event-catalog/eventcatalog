@@ -1,0 +1,29 @@
+---
+id: review-helpful-voted
+name: Review Helpful Voted
+version: 1.0.0
+summary: |
+  Published when a review's helpful count changes as a result of a customer vote.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReviewHelpfulVoted` is published by the [[service|review-api]] whenever a review's helpful count changes. It lets other surfaces (such as the storefront) keep "most helpful" ordering fresh.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

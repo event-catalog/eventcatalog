@@ -1,0 +1,138 @@
+openapi: 3.0.3
+info:
+  title: Search API
+  version: 1.0.0
+  description: |
+    Public-facing API for the Search System. Serves fast, relevant product
+    search by reading from the search index, which is kept in sync with the
+    product catalog.
+  contact:
+    name: Search Platform
+    email: search-platform@acme.test
+servers:
+  - url: https://api.acme.test
+    description: Production
+paths:
+  /search/products:
+    get:
+      operationId: searchProducts
+      summary: Search the catalog for products
+      description: |
+        Runs a full-text search over the product index and returns a paginated
+        list of matching products. Supports optional filters and pagination.
+      tags:
+        - Search
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Free-text search term.
+          schema:
+            type: string
+            minLength: 1
+          example: wireless headphones
+        - name: category
+          in: query
+          required: false
+          description: Restrict results to a single category.
+          schema:
+            type: string
+          example: audio
+        - name: status
+          in: query
+          required: false
+          description: Restrict results to products with this lifecycle status.
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, ARCHIVED]
+        - name: minPrice
+          in: query
+          required: false
+          description: Minimum price in minor units (e.g. cents).
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxPrice
+          in: query
+          required: false
+          description: Maximum price in minor units (e.g. cents).
+          schema:
+            type: integer
+            minimum: 0
+        - name: page
+          in: query
+          required: false
+          description: 1-based page number.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          description: Number of results per page.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of matching products.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResults'
+        '400':
+          description: The request was invalid (e.g. a missing or empty query).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    SearchResults:
+      type: object
+      required: [total, page, pageSize, results]
+      properties:
+        total:
+          type: integer
+          description: Total number of products matching the query.
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSearchResult'
+    ProductSearchResult:
+      type: object
+      required: [productId, sku, name]
+      properties:
+        productId:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        price:
+          type: integer
+          description: Price in minor units (e.g. cents).
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        score:
+          type: number
+          description: Relevance score for this result.
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

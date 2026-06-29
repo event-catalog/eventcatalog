@@ -35,6 +35,21 @@ import {
   CheckIcon,
   ClipboardIcon,
   MoreVertical,
+  Zap,
+  Bot,
+  Wrench,
+  ServerIcon,
+  Workflow,
+  MessageSquare,
+  Search as SearchIcon,
+  ArrowLeftRight,
+  Group as GroupIcon,
+  Globe,
+  User,
+  Database,
+  Boxes,
+  Box,
+  type LucideIcon,
 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { toPng } from "html-to-image";
@@ -50,6 +65,8 @@ import { Channel as ChannelNode } from "../nodes/channel";
 import { Data as DataNode } from "../nodes/data";
 import { View as ViewNode } from "../nodes/view";
 import { Actor as ActorNode } from "../nodes/actor";
+import ContextActorNode from "../nodes/ContextActor";
+import SystemGroupNode from "../nodes/SystemGroupNode";
 import { ExternalSystem as ExternalSystemNode } from "../nodes/external-system";
 import { Note as NoteNode } from "../nodes/note";
 import { Field as FieldNode } from "../nodes/field";
@@ -60,6 +77,7 @@ import EntityNode from "../nodes/Entity";
 import UserNode from "../nodes/User";
 import StepNode from "../nodes/Step";
 import DomainNode from "../nodes/Domain";
+import SystemNode from "../nodes/System";
 import GroupNode from "../nodes/GroupNode";
 import CustomNode from "../nodes/Custom";
 import ExternalSystemNode2 from "../nodes/ExternalSystem2";
@@ -126,6 +144,38 @@ const isExpandedWrapper = (type: string | undefined) =>
 
 type LegendEntry = { count: number; colorClass: string; groupId?: string };
 
+// Friendly labels for legend keys that differ from their raw node type.
+const LEGEND_LABELS: Record<string, string> = {
+  "context-actor": "Actors",
+};
+
+const getLegendLabel = (key: string) => LEGEND_LABELS[key] ?? key;
+
+// Icon + text colour per legend key, mirroring each collection's node styling.
+// When a key has no icon mapped, the legend falls back to its coloured square.
+const LEGEND_ICONS: Record<string, { Icon: LucideIcon; colorClass: string }> = {
+  events: { Icon: Zap, colorClass: "text-orange-600" },
+  agent: { Icon: Bot, colorClass: "text-sky-600" },
+  agents: { Icon: Bot, colorClass: "text-sky-600" },
+  agentTool: { Icon: Wrench, colorClass: "text-violet-600" },
+  "agent-tool": { Icon: Wrench, colorClass: "text-violet-600" },
+  services: { Icon: ServerIcon, colorClass: "text-pink-600" },
+  flows: { Icon: Workflow, colorClass: "text-teal-600" },
+  commands: { Icon: MessageSquare, colorClass: "text-blue-600" },
+  queries: { Icon: SearchIcon, colorClass: "text-green-600" },
+  channels: { Icon: ArrowLeftRight, colorClass: "text-gray-600" },
+  externalSystem: { Icon: Globe, colorClass: "text-pink-600" },
+  systems: { Icon: GroupIcon, colorClass: "text-purple-600" },
+  system: { Icon: GroupIcon, colorClass: "text-purple-600" },
+  actor: { Icon: User, colorClass: "text-yellow-500" },
+  "context-actor": { Icon: User, colorClass: "text-yellow-500" },
+  data: { Icon: Database, colorClass: "text-blue-600" },
+  "data-products": { Icon: Boxes, colorClass: "text-indigo-600" },
+  field: { Icon: Box, colorClass: "text-cyan-600" },
+};
+
+const getLegendIcon = (key: string) => LEGEND_ICONS[key];
+
 const LegendPanel = memo(function LegendPanel({
   legend,
   showMinimap,
@@ -143,18 +193,29 @@ const LegendPanel = memo(function LegendPanel({
       <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] font-light px-4 text-[12px] shadow-md py-1 rounded-md">
         <ul className="m-0 p-0 ">
           {Object.entries(legend).map(
-            ([key, { count, colorClass, groupId }]) => (
-              <li
-                key={key}
-                className="flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] hover:underline"
-                onClick={() => onLegendClick(key, groupId)}
-              >
-                <span className={`w-2 h-2 block ${colorClass}`} />
-                <span className="block capitalize">
-                  {key} ({count})
-                </span>
-              </li>
-            ),
+            ([key, { count, colorClass, groupId }]) => {
+              const legendIcon = getLegendIcon(key);
+              return (
+                <li
+                  key={key}
+                  className="flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] hover:underline"
+                  onClick={() => onLegendClick(key, groupId)}
+                >
+                  {legendIcon ? (
+                    <legendIcon.Icon
+                      className={`w-3 h-3 shrink-0 ${legendIcon.colorClass}`}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <span className={`w-2 h-2 block ${colorClass}`} />
+                  )}
+                  <span className="block capitalize">
+                    {getLegendLabel(key)} ({count})
+                  </span>
+                </li>
+              );
+            },
           )}
         </ul>
       </div>
@@ -186,6 +247,13 @@ interface Props {
   resourceKey?: string;
   /** Controls whether message flow animation is enabled. When set, overrides URL params and localStorage. */
   animated?: boolean;
+  /**
+   * When true, message-flow animation is unsupported for this graph: it is forced
+   * off (ignoring the `animated` prop, URL params and localStorage) and the
+   * "Simulate Messages" toggle is hidden. Used by graphs that aren't message
+   * flows, e.g. the System Diagram.
+   */
+  disableMessageAnimation?: boolean;
   /** When set, the graph will zoom to this node id. */
   focusNodeId?: string;
   /** Optional token to force repeated focus for the same node id. */
@@ -336,6 +404,7 @@ const NodeGraphBuilder = ({
   isDevMode = false,
   resourceKey,
   animated,
+  disableMessageAnimation = false,
   focusNodeId,
   focusRequestId,
   fitRequestId,
@@ -386,6 +455,8 @@ const NodeGraphBuilder = ({
       commands: wrapWithContextMenu(CommandNode),
       domain: wrapWithContextMenu(DomainNode),
       domains: wrapWithContextMenu(DomainNode),
+      system: wrapWithContextMenu(SystemNode),
+      systems: wrapWithContextMenu(SystemNode),
       step: StepNode,
       user: UserNode,
       custom: CustomNode,
@@ -396,10 +467,12 @@ const NodeGraphBuilder = ({
       data: wrapWithContextMenu(DataNode),
       view: wrapWithContextMenu(ViewNode),
       actor: ActorNode,
+      "context-actor": ContextActorNode,
       container: wrapWithContextMenu(DataNode),
       "data-product": wrapWithContextMenu(DataProductNode),
       "data-products": wrapWithContextMenu(DataProductNode),
       group: GroupNode,
+      "system-group": SystemGroupNode,
       note: memo((props: any) => <NoteNode {...props} readOnly={true} />),
       field: wrapWithContextMenu(FieldNode),
       messageGroup: MessageGroupNode,
@@ -1085,6 +1158,13 @@ const NodeGraphBuilder = ({
 
       // Disable focus mode for domain and expanded group nodes
       if (node.type === "domain" || node.type === "domains") return;
+      // System nodes navigate to their map on click (handled by the node itself),
+      // so don't open the focus-mode modal for them.
+      if (node.type === "system" || node.type === "systems") return;
+      // Context-diagram actor nodes are non-interactive — clicking does nothing.
+      if (node.type === "context-actor") return;
+      // The system-group boundary box on the System Diagram is just a container.
+      if (node.type === "system-group") return;
       if (isExpandedWrapper(node.type)) return;
 
       // Handle messageGroup click — expand inline
@@ -1592,8 +1672,15 @@ const NodeGraphBuilder = ({
   }, [fitView]);
 
   // animate messages, between views
-  // Priority: animated prop > URL parameter > localStorage > auto (disabled for large graphs)
+  // Priority: disableMessageAnimation > animated prop > URL parameter > localStorage > auto (disabled for large graphs)
   useEffect(() => {
+    // Some graphs (e.g. the Context Diagram) aren't message flows, so animation
+    // is unsupported — always off, ignoring every other source.
+    if (disableMessageAnimation) {
+      setAnimateMessages(false);
+      return;
+    }
+
     if (animated !== undefined) {
       setAnimateMessages(animated);
       return;
@@ -1618,7 +1705,7 @@ const NodeGraphBuilder = ({
         setAnimateMessages(initialNodes.length <= LARGE_GRAPH_NODE_THRESHOLD);
       }
     }
-  }, [animated, initialNodes.length]);
+  }, [animated, disableMessageAnimation, initialNodes.length]);
 
   useEffect(() => {
     setEdges((eds) =>
@@ -1932,7 +2019,10 @@ const NodeGraphBuilder = ({
       queries: "bg-green-600",
       channels: "bg-gray-600",
       externalSystem: "bg-pink-600",
+      systems: "bg-purple-600",
+      system: "bg-purple-600",
       actor: "bg-yellow-500",
+      "context-actor": "bg-yellow-500",
       step: "bg-gray-700",
       data: "bg-blue-600",
       "data-products": "bg-indigo-600",
@@ -2214,6 +2304,7 @@ const NodeGraphBuilder = ({
                         setIsMermaidView={setIsMermaidView}
                         animateMessages={animateMessages}
                         toggleAnimateMessages={toggleAnimateMessages}
+                        hideAnimateMessages={disableMessageAnimation}
                         hideChannels={hideChannels}
                         toggleChannelsVisibility={toggleChannelsVisibility}
                         hasChannels={hasChannels}
@@ -2321,6 +2412,7 @@ const NodeGraphBuilder = ({
                           setIsMermaidView={setIsMermaidView}
                           animateMessages={animateMessages}
                           toggleAnimateMessages={toggleAnimateMessages}
+                          hideAnimateMessages={disableMessageAnimation}
                           hideChannels={hideChannels}
                           toggleChannelsVisibility={toggleChannelsVisibility}
                           hasChannels={hasChannels}
@@ -2588,6 +2680,13 @@ interface NodeGraphProps {
   resourceKey?: string;
   /** Controls whether message flow animation is enabled. When set, overrides URL params and localStorage. */
   animated?: boolean;
+  /**
+   * When true, message-flow animation is unsupported for this graph: it is forced
+   * off (ignoring the `animated` prop, URL params and localStorage) and the
+   * "Simulate Messages" toggle is hidden. Used by graphs that aren't message
+   * flows, e.g. the System Diagram.
+   */
+  disableMessageAnimation?: boolean;
   /** When set, the graph will zoom to this node id. */
   focusNodeId?: string;
   /** Optional token to force repeated focus for the same node id. */

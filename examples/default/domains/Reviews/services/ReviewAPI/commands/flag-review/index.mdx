@@ -1,0 +1,29 @@
+---
+id: flag-review
+name: Flag Review
+version: 1.0.0
+summary: |
+  Command issued by a customer or moderator to flag a published review for re-moderation.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`FlagReview` is sent to the [[service|review-api]] when someone reports a published review as inappropriate. The API records the flag and publishes [[event|review-flagged]] so the review can be screened again.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

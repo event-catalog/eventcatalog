@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UpdateCustomer",
+  "description": "Command to update an existing customer. Only the fields supplied are changed.",
+  "type": "object",
+  "properties": {
+    "customerId": {
+      "description": "Unique identifier of the customer to update",
+      "type": "string",
+      "format": "uuid"
+    },
+    "email": {
+      "description": "New email address",
+      "type": "string",
+      "format": "email"
+    },
+    "name": {
+      "description": "New full name",
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "description": "New account status",
+      "type": "string",
+      "enum": ["ACTIVE", "SUSPENDED", "CLOSED"]
+    }
+  },
+  "required": ["customerId"]
+}

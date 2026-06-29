@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderPacked",
+  "description": "Published when an order has been picked and packed in the warehouse",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "pickingJobId": { "type": "string", "format": "uuid" },
+    "parcelCount": { "type": "integer", "minimum": 1 },
+    "packedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["orderId", "packedAt"]
+}

@@ -1,0 +1,74 @@
+---
+id: fulfilment
+name: Fulfilment
+version: 1.0.0
+summary: |
+  The Fulfilment domain gets a confirmed order to the customer. It reserves stock, picks and packs orders in the warehouse, and hands them to carriers for delivery.
+owners:
+  - fulfilment-platform
+systems:
+  - id: inventory-system
+    version: 1.0.0
+  - id: warehouse-system
+    version: 1.0.0
+  - id: shipping-system
+    version: 1.0.0
+  - id: carrier
+    version: 1.0.0
+badges:
+  - content: Core domain
+    backgroundColor: blue
+    textColor: blue
+    icon: RectangleGroupIcon
+  - content: Business Critical
+    backgroundColor: red
+    textColor: red
+    icon: ShieldCheckIcon
+---
+
+## Overview
+
+The **Fulfilment** domain is responsible for the physical side of an order — making sure stock is available, picking and packing it, and shipping it to the customer. It owns three internal systems and integrates with external carriers:
+
+<Tiles>
+  <Tile
+    icon="ArchiveBoxIcon"
+    href="/docs/systems/inventory-system/1.0.0"
+    title="Inventory System"
+    description="Tracks and reserves stock for orders."
+  />
+  <Tile
+    icon="BuildingStorefrontIcon"
+    href="/docs/systems/warehouse-system/1.0.0"
+    title="Warehouse System"
+    description="Picks and packs orders ready for shipping."
+  />
+  <Tile
+    icon="TruckIcon"
+    href="/docs/systems/shipping-system/1.0.0"
+    title="Shipping System"
+    description="Hands packed orders to carriers for delivery."
+  />
+  <Tile
+    icon="GlobeAltIcon"
+    href="/docs/systems/carrier/1.0.0"
+    title="Carrier"
+    description="External carrier that delivers shipments to customers."
+  />
+</Tiles>
+
+### How the systems work together
+
+When an order is completed, the **Warehouse System** picks and packs it, having relied on the **Inventory System** to reserve stock earlier in checkout. Once packed, the **Shipping System** creates a shipment with an external **Carrier**, which delivers it to the customer and reports progress back.
+
+## System Diagram
+
+The systems in this domain, how they relate, and the people who interact with them.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The components that make up this domain.
+
+<NodeGraph />

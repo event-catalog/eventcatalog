@@ -1,0 +1,99 @@
+---
+import ADRTableClient from './ADRTable.client';
+import Admonition from '../Admonition';
+import { getAdrs, getAdrsForResource, type AdrResource } from '@utils/collections/adrs';
+import { ADR_STATUS_VALUES, type AdrStatus } from '@utils/collections/adr-constants';
+import { getResourceReferenceStyle } from '@utils/resource-reference-colors';
+
+// The ADR resource-reference styling (colour + CSS custom props), computed here on
+// the server so the table's names match the `[[adr|...]]` wiki reference look. We
+// parse the CSS declaration string into a React style object for the client island.
+const adrRefStyle = getResourceReferenceStyle('adr')
+  .split(';')
+  .map((declaration) => declaration.trim())
+  .filter(Boolean)
+  .reduce<Record<string, string>>((style, declaration) => {
+    const [property, ...rest] = declaration.split(':');
+    const value = rest.join(':').trim();
+    if (!property || !value) return style;
+    const key = property.trim().startsWith('--')
+      ? property.trim()
+      : property.trim().replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    style[key] = value;
+    return style;
+  }, {});
+
+export interface Props {
+  // Filter to one or more statuses. Accepts a single status ("accepted") or a
+  // comma-separated list ("accepted,proposed"). When omitted, all statuses show.
+  status?: string;
+  // Page size for the table. Defaults to 10.
+  limit?: number;
+  // The page resource is injected by the MDX runtime via `...props`.
+  collection?: string;
+  data?: any;
+}
+
+const { status, limit } = Astro.props;
+const collection = Astro.props.collection as string;
+const rawStatus: string = status || '';
+
+// ADRs can apply to any documented resource. The only types that can't be the
+// subject of an ADRTable are non-resource pages.
+const isComponentEnabled = !!collection && !!Astro.props.data?.id;
+
+// Parse the `status` prop into a validated list of statuses.
+const requestedStatuses = rawStatus
+  .split(',')
+  .map((value) => value.trim().toLowerCase())
+  .filter((value): value is AdrStatus => (ADR_STATUS_VALUES as readonly string[]).includes(value));
+
+let adrs: ReturnType<typeof getEssentialPropsForAdr>[] = [];
+
+function getEssentialPropsForAdr(adr: Awaited<ReturnType<typeof getAdrs>>[number]) {
+  return {
+    id: adr.data.id,
+    name: adr.data.name,
+    version: adr.data.version,
+    status: adr.data.status as AdrStatus,
+    // Serialise the date so it survives the server -> client island boundary.
+    date: adr.data.date ? new Date(adr.data.date).toISOString() : null,
+    summary: adr.data.summary || '',
+  };
+}
+
+if (isComponentEnabled) {
+  const allAdrs = await getAdrs();
+  const resource = Astro.props as unknown as AdrResource;
+  let relevant = getAdrsForResource(resource, allAdrs);
+
+  if (requestedStatuses.length > 0) {
+    relevant = relevant.filter((adr) => requestedStatuses.includes(adr.data.status as AdrStatus));
+  }
+
+  adrs = relevant.map(getEssentialPropsForAdr);
+}
+---
+
+{
+  isComponentEnabled && (
+    <ADRTableClient
+      client:load
+      adrs={adrs}
+      limit={limit}
+      resourceName={Astro.props.data?.name || collection}
+      refStyle={adrRefStyle}
+    />
+  )
+}
+
+{
+  !isComponentEnabled && (
+    <Admonition type="warning">
+      <div>
+        <span class="font-bold">{`<ADRTable/>`} component could not be rendered.</span>
+        <span class="block">It must be used on a documented resource page (a service, system, domain, etc.).</span>
+      </div>
+    </Admonition>
+  )
+}

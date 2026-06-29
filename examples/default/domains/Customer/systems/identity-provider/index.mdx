@@ -1,0 +1,54 @@
+---
+id: identity-provider
+name: Identity Provider
+version: 1.0.0
+summary: |
+  The identity system that authenticates customers. It is the source of truth for credentials and login, verifies sign-in attempts, and emits an event when a customer successfully authenticates.
+scope: external
+owners:
+  - customer-platform
+services:
+  - id: oauth-api
+containers:
+  - id: user-directory
+relationships:
+  - id: customer-management-system
+    label: provides authentication for
+actors:
+  - id: customer
+    name: Customer
+    label: signs in
+    direction: inbound
+badges:
+  - content: Identity
+    backgroundColor: purple
+    textColor: purple
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Identity Provider** authenticates customers for Acme Inc. It exposes an OAuth-style API, verifies credentials against the [[container|user-directory]], and emits a [[event|customer-authenticated]] event on a successful sign-in so other systems can react. It provides authentication for the [[system|customer-management-system]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| [[service\|oauth-api]] | Service | OAuth-style authentication API. Handles authentication requests and publishes authentication events. |
+| [[container\|user-directory]] | Data store | The directory of customer credentials and identities. |
+
+## Messages this system publishes
+
+- [[event|customer-authenticated]] — a customer has successfully authenticated.

@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RefundRequested",
+  "description": "Published when a refund is requested from the payment processor",
+  "type": "object",
+  "properties": {
+    "refundId": { "type": "string", "format": "uuid" },
+    "paymentId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Amount to refund, in minor units (e.g. cents)"
+    },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "reason": { "type": "string" },
+    "requestedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["refundId", "paymentId", "amount", "currency", "requestedAt"]
+}

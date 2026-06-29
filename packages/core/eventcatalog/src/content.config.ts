@@ -490,6 +490,10 @@ const services = defineCollection({
       'domains/*/subdomains/*/services/*/index.(md|mdx)',
       'domains/*/subdomains/*/services/*/versioned/*/index.(md|mdx)',
 
+      // Capture services inside systems
+      'domains/*/systems/*/services/*/index.(md|mdx)',
+      'domains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
+
       // Capture services in the root
       'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
       'services/*/versioned/*/index.(md|mdx)', // ✅ Capture versioned files inside services
@@ -591,6 +595,7 @@ const adrResourcePointer = adrPointer.extend({
     'flow',
     'channel',
     'domain',
+    'system',
     'user',
     'team',
     'container',
@@ -703,10 +708,10 @@ const resourceDocs = defineCollection({
     // Resource-level docs are restricted to known resource paths.
     // This avoids scanning external docs such as node_modules/**/docs.
     pattern: withIgnoredBuildArtifacts([
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/*.@(md|mdx)',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/*.@(md|mdx)',
       'domains/**/docs/**/*.@(md|mdx)',
       'domains/**/docs/*.@(md|mdx)',
     ]),
@@ -718,10 +723,10 @@ const resourceDocs = defineCollection({
 const resourceDocCategories = defineCollection({
   loader: glob({
     pattern: withIgnoredBuildArtifacts([
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/category.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/_category_.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/category.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/_category_.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/category.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/_category_.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/category.json',
+      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/_category_.json',
       'domains/**/docs/**/category.json',
       'domains/**/docs/**/_category_.json',
       'domains/**/docs/category.json',
@@ -753,6 +758,7 @@ const domains = defineCollection({
       services: z.array(pointer).optional(),
       agents: z.array(pointer).optional(),
       domains: z.array(pointer).optional(),
+      systems: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
       'data-products': z.array(pointer).optional(),
       flows: z.array(pointer).optional(),
@@ -762,6 +768,7 @@ const domains = defineCollection({
         .object({
           parentDomains: detailPanelPropertySchema.optional(),
           subdomains: detailPanelPropertySchema.optional(),
+          systems: detailPanelPropertySchema.optional(),
           services: detailPanelPropertySchema.optional(),
           entities: detailPanelPropertySchema.optional(),
           messages: detailPanelPropertySchema.optional(),
@@ -771,6 +778,84 @@ const domains = defineCollection({
           owners: detailPanelPropertySchema.optional(),
           changelog: detailPanelPropertySchema.optional(),
           attachments: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
+    })
+    .extend(baseSchema.shape),
+});
+
+// A relationship from one system to another, used by the System Diagram.
+// Source-declared and one-directional. The `label` describes the edge; a relationship
+// without a label is treated as having no edge (it is skipped when drawing the diagram).
+const systemRelationshipPointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  label: z.string().optional(),
+});
+
+// An actor (a person/role) that interacts with a system on the Context Diagram.
+// Actors are inline (not a collection) — `id` is the actor's node id, used to
+// de-duplicate the same actor referenced from multiple systems.
+// `direction` controls the edge arrow: `inbound` = actor -> system (e.g. "logs into"),
+// `outbound` = system -> actor (e.g. "sends email to"). Defaults to inbound.
+const systemActorRelationship = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  label: z.string().optional(),
+  direction: z.enum(['inbound', 'outbound']).optional().default('inbound'),
+});
+
+const systems = defineCollection({
+  loader: glob({
+    pattern: withIgnoredBuildArtifacts([
+      '**/systems/**/index.(md|mdx)',
+      '**/systems/**/versioned/*/index.(md|mdx)',
+      // Systems can contain nested resource folders (containers, diagrams, services, etc.).
+      // Those nested resources are loaded by their own collections — exclude their index files
+      // here so they are not mistaken for systems. Nested `systems/` folders are still allowed.
+      '!**/systems/**/agents/**',
+      '!**/systems/**/services/**',
+      '!**/systems/**/events/**',
+      '!**/systems/**/commands/**',
+      '!**/systems/**/queries/**',
+      '!**/systems/**/flows/**',
+      '!**/systems/**/channels/**',
+      '!**/systems/**/entities/**',
+      '!**/systems/**/containers/**',
+      '!**/systems/**/diagrams/**',
+      '!**/systems/**/data-products/**',
+      '!**/systems/**/adrs/**',
+      '!**/systems/**/docs/**',
+    ]),
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
+  schema: z
+    .object({
+      // Whether the system belongs to your organisation (`internal`) or is a
+      // third-party/SaaS system you integrate with (`external`, e.g. "Resend",
+      // "Stripe"). External systems are shaded in the node-graph. Defaults to internal.
+      scope: z.enum(['internal', 'external']).optional().default('internal'),
+      services: z.array(pointer).optional(),
+      flows: z.array(pointer).optional(),
+      entities: z.array(pointer).optional(),
+      containers: z.array(pointer).optional(),
+      relationships: z.array(systemRelationshipPointer).optional(),
+      actors: z.array(systemActorRelationship).optional(),
+      detailsPanel: z
+        .object({
+          versions: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+          attachments: detailPanelPropertySchema.optional(),
+          services: detailPanelPropertySchema.optional(),
+          flows: detailPanelPropertySchema.optional(),
+          entities: detailPanelPropertySchema.optional(),
+          containers: detailPanelPropertySchema.optional(),
+          diagrams: detailPanelPropertySchema.optional(),
         })
         .optional(),
     })
@@ -1064,6 +1149,7 @@ export const collections = {
   users,
   teams,
   domains,
+  systems,
   flows,
   pages,
   changelogs,

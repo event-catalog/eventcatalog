@@ -1,5 +1,4 @@
 ---
-import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { getMDXComponentsByName } from '@utils/markdown';
 import { resourceToCollectionMap } from '@utils/collections/util';
@@ -9,6 +8,7 @@ import DefaultAstroLandingPage from './_index.astro';
 import config from '@config';
 
 let nodeGraphs: any[] = [];
+let systemContextMaps: any[] = [];
 let CustomContent = null;
 let NodeGraph = null;
 let customHomepageComponents: Record<string, any> = {};
@@ -34,9 +34,12 @@ if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
   const rawContent = readFileSync(pathToUserDefinedLandingPage, 'utf-8');
   nodeGraphs = getMDXComponentsByName(rawContent, 'NodeGraph') || [];
 
+  // The homepage can also embed the global System Context Map via <SystemContextMap />.
+  systemContextMaps = getMDXComponentsByName(rawContent, 'SystemContextMap') || [];
+
   // Avoid pulling visualizer CSS into the default homepage bundle.
-  // Only load the NodeGraph component when the custom homepage actually uses it.
-  if (nodeGraphs.length > 0) {
+  // Only load the NodeGraph component when the custom homepage actually uses a graph.
+  if (nodeGraphs.length > 0 || systemContextMaps.length > 0) {
     NodeGraph = (await import('@components/MDX/NodeGraph/NodeGraph.astro')).default;
   }
 }
@@ -48,14 +51,13 @@ if (config.landingPage) {
 
 {
   CustomContent ? (
-    <VerticalSideBarLayout title="EventCatalog">
-      <main class="flex sm:px-8 docs-layout h-full">
+    <VerticalSideBarLayout title="EventCatalog" reducedContentPadding>
+      <main class="flex docs-layout h-full">
         <div class="flex docs-layout w-full">
-          <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+          <div class="w-full overflow-y-auto py-8">
             <div class="w-full max-w-none!">
               <CustomContent components={customHomepageComponents} />
             </div>
-            <Footer />
           </div>
         </div>
         {NodeGraph &&
@@ -81,6 +83,27 @@ if (config.landingPage) {
               />
             );
           })}
+        {NodeGraph &&
+          systemContextMaps.length > 0 &&
+          systemContextMaps.map(() => (
+            <NodeGraph
+              id="system-context-map"
+              version="1.0.0"
+              collection="system-context-map"
+              title="System context map"
+              mode="simple"
+              linksToVisualiser={true}
+              portalId="system-context-map-portal"
+              href={
+                isVisualiserEnabled()
+                  ? {
+                      label: 'Open in Visualiser',
+                      url: buildUrl('/visualiser/system-context-map'),
+                    }
+                  : undefined
+              }
+            />
+          ))}
       </main>
     </VerticalSideBarLayout>
   ) : (

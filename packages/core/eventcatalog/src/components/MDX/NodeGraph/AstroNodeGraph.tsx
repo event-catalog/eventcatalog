@@ -38,6 +38,7 @@ interface AstroNodeGraphProps {
   maxTextSize?: number;
   isDevMode?: boolean;
   resourceKey?: string;
+  disableMessageAnimation?: boolean;
 }
 
 const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: AstroNodeGraphProps) => {

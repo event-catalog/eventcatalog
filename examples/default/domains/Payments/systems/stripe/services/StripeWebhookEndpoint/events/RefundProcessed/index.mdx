@@ -1,0 +1,29 @@
+---
+id: refund-processed
+name: Refund Processed
+version: 1.0.0
+summary: |
+  Published by Stripe when a refund has been processed.
+owners:
+  - payments-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`RefundProcessed` is delivered by Stripe's [[service|stripe-webhook-endpoint]] when a requested refund has been processed. The [[service|payment-worker]] consumes it and records the refund as complete.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

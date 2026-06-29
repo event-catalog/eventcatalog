@@ -1,0 +1,29 @@
+---
+id: inventory-reserved
+name: Inventory Reserved
+version: 1.0.0
+summary: |
+  Published when stock has been successfully reserved for an order.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`InventoryReserved` is published by the [[service|inventory-service]] when stock for an order has been successfully reserved. The Ordering domain's checkout saga relies on this to continue placing the order.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

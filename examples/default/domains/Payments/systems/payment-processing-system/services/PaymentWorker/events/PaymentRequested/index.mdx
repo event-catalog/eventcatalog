@@ -1,0 +1,29 @@
+---
+id: payment-requested
+name: Payment Requested
+version: 1.0.0
+summary: |
+  Published when the Payment Processing System requests a charge from the payment processor.
+owners:
+  - payments-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`PaymentRequested` is published by the [[service|payment-worker]] to ask the external [[system|stripe]] to charge a customer for an order. Stripe responds with [[event|payment-succeeded]] or [[event|payment-failed]]. The [[system|fraud-detection]] system also consumes this event to screen the payment.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

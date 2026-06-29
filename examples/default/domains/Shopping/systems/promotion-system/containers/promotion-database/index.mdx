@@ -1,0 +1,40 @@
+---
+id: promotion-database
+name: Promotion Database
+version: 1.0.0
+summary: PostgreSQL store of promotion and discount rules.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for promotion and discount rules
+classification: internal
+retention: indefinite
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Promotion Database** holds the promotion and discount rules that the [[service|promotion-service]] evaluates when pricing a cart. It is the source of truth for what promotions exist, who they apply to, and when they are valid.
+
+### What does it store?
+
+- **Promotions** — one row per promotion: code, type (percentage / fixed amount), value, and validity window.
+- **Eligibility rules** — the conditions under which a promotion applies (minimum spend, customer segment, etc.).
+
+### Schema
+
+<AccordionGroup>
+  <Accordion title="Promotion Database schema">
+    <Schema file="schema.sql" lang="sql" title="schema.sql" />
+  </Accordion>
+</AccordionGroup>
+
+### Access patterns
+
+- The [[service|promotion-service]] reads rules when handling [[command|calculate-discount]].
+- Rules are managed by the promotions team and change infrequently relative to read volume.

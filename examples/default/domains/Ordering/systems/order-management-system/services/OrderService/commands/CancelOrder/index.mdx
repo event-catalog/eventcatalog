@@ -1,0 +1,32 @@
+---
+id: cancel-order
+name: Cancel Order
+version: 1.0.0
+summary: |
+  Command to cancel an existing order.
+owners:
+  - ordering-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /orders/{orderId}/cancel
+  statusCodes: ['200', '404', '409']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CancelOrder` is handled by the [[service|order-service]]. It cancels an order that has not yet been completed — releasing any reservations and voiding the payment authorization where needed. On success the Order Service publishes an [[event|order-cancelled]] event.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

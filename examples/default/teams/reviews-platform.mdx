@@ -1,0 +1,20 @@
+---
+id: reviews-platform
+name: Reviews Platform
+summary: Owns the Reviews & Ratings domain — how customers review products and how those reviews are moderated, published and aggregated into ratings.
+members:
+  - dboyne
+email: reviews-platform@acme.test
+slackDirectMessageUrl: https://acme.slack.com/channels/reviews-platform
+---
+
+## Overview
+
+The **Reviews Platform** team owns the [[domain|reviews]] domain. They are responsible for collecting customer reviews, moderating them, publishing the approved ones, and turning ratings into the aggregate scores shown across the storefront.
+
+## Responsibilities
+
+- **Review API** — accepts review submissions and serves product reviews.
+- **Review Moderation Worker** — screens submitted reviews and decides whether to publish or reject them.
+- **Rating Aggregator** — keeps each product's aggregate rating up to date as reviews are published.
+- **Review Database** — the system of record for reviews and their moderation state.

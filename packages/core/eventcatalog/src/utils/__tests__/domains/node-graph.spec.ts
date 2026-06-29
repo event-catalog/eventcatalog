@@ -1,6 +1,6 @@
 import type { CollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockAgents, mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts } from './mocks';
+import { mockAgents, mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts, mockSystems } from './mocks';
 import { getNodesAndEdges } from '@utils/node-graphs/domains-node-graph';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -21,6 +21,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockCommands);
         case 'data-products':
           return Promise.resolve(mockDataProducts);
+        case 'systems':
+          return Promise.resolve(mockSystems);
         case 'queries':
         case 'containers':
         case 'channels':
@@ -126,6 +128,18 @@ describe('Domains NodeGraph', () => {
       expect(nodes.length).toEqual(15);
       // 8 original edges + 2 from data product (input edge + output edge) + agent consumer edge + agent → tool edge
       expect(edges.length).toEqual(14);
+    });
+
+    it('does not pull a referenced system (or its services) into the domain resource graph', async () => {
+      // The domain Resource Diagram renders the domain's own resources (services,
+      // agents, data products, subdomains) — not the services that belong to systems
+      // the domain references. Logistics only references FulfilmentSystem, so its
+      // resource graph should be empty.
+      // @ts-ignore
+      const { nodes } = await getNodesAndEdges({ id: 'Logistics', version: '0.0.1' });
+
+      expect(nodes.find((node: any) => node.id === 'LocationService-0.0.1')).toBeUndefined();
+      expect(nodes).toEqual([]);
     });
 
     it('should return nodes and edges for data products in a domain', async () => {

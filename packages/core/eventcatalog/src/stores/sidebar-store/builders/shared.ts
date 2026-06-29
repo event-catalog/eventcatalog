@@ -58,6 +58,7 @@ export type ResourceGroupContext = {
   agents?: CollectionEntry<'agents'>[];
   services: CollectionEntry<'services'>[];
   domains: CollectionEntry<'domains'>[];
+  systems?: CollectionEntry<'systems'>[];
   events: CollectionEntry<'events'>[];
   commands: CollectionEntry<'commands'>[];
   queries: CollectionEntry<'queries'>[];
@@ -115,7 +116,7 @@ export const buildArchitectureDecisionsSection = (resource: AdrResource, adrs: A
   return {
     type: 'group',
     title: 'Decision Records',
-    icon: 'BookText',
+    icon: 'ClipboardList',
     pages: [...relatedAdrs].sort(byAdrName).map(getAdrNodeKey),
   };
 };

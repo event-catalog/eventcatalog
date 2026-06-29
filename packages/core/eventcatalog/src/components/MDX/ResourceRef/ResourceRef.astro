@@ -30,9 +30,11 @@ interface Props {
     | 'channel'
     | 'diagram'
     | 'container'
+    | 'system'
     | 'user'
     | 'team'
     | 'doc'
+    | 'adr'
     | 'data-product';
   version?: string;
 }
@@ -72,9 +74,11 @@ const typeLabels: Record<string, string> = {
   channel: 'Channel',
   diagram: 'Diagram',
   container: 'Container',
+  system: 'System',
   user: 'User',
   team: 'Team',
   doc: 'Custom Doc',
+  adr: 'Decision Record',
   'data-product': 'Data Product',
 };
 
@@ -106,6 +110,9 @@ const typeIcons: Record<string, string> = {
   doc: '<path stroke-linecap="round" stroke-linejoin="round" d="M14 2v4a2 2 0 002 2h4" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7z" /><path stroke-linecap="round" stroke-linejoin="round" d="M10 9H8" /><path stroke-linecap="round" stroke-linejoin="round" d="M16 13H8" /><path stroke-linecap="round" stroke-linejoin="round" d="M16 17H8" />', // FileText
   'data-product':
     '<path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25M21 7.5v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />', // Cube
+  system:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z" />', // Group (systems)
+  adr: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h2" />', // ClipboardList-ish (ADR)
 };
 
 const label = typeLabels[type] || typeLabels.entity;
@@ -176,7 +183,7 @@ const truncatedSummary = summary.length > maxSummaryLength ? summary.slice(0, ma
 const isVersionedResource = type !== 'doc';
 
 // Only these types have visualizers
-const hasVisualizer = ['agent', 'domain', 'service', 'event', 'query', 'command', 'container'].includes(type);
+const hasVisualizer = ['agent', 'domain', 'service', 'event', 'query', 'command', 'container', 'system'].includes(type);
 
 // Check deprecation status
 const deprecation = resource ? getDeprecatedDetails(resource) : null;

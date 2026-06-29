@@ -10,6 +10,7 @@ const itemTypes: PageTypes[] = [
   'queries',
   'services',
   'domains',
+  'systems',
   'flows',
   'channels',
   'entities',

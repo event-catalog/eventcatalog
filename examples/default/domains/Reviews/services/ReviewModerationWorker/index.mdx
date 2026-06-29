@@ -1,0 +1,50 @@
+---
+id: review-moderation-worker
+version: 1.0.0
+name: Review Moderation Worker
+summary: |
+  Asynchronous worker that screens submitted reviews for spam, abuse and policy violations, then publishes or rejects them.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - reviews-platform
+receives:
+  - id: review-submitted
+    version: 1.0.0
+  - id: review-flagged
+    version: 1.0.0
+sends:
+  - id: review-published
+    version: 1.0.0
+  - id: review-rejected
+    version: 1.0.0
+writesTo:
+  - id: review-database
+readsFrom:
+  - id: review-database
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/review-moderation-worker'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Review Moderation Worker** consumes [[event|review-submitted]] (and [[event|review-flagged]] for already-published reviews), screens each review (automated checks plus thresholds for manual review), and records the outcome on the [[container|review-database]]. It then publishes either [[event|review-published]] or [[event|review-rejected]].
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Moderation | Screens reviews for spam, abuse and policy violations. |
+| Outcome | Publishes [[event\|review-published]] or [[event\|review-rejected]]. |
+| Persistence | Records the moderation decision on the [[container\|review-database]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

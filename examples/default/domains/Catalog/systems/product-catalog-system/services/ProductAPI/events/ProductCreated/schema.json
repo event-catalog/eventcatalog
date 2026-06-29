@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProductCreated",
+  "description": "Emitted when a new product is added to the catalog",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "description": "Unique identifier for this event",
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "description": "Time the product was created",
+      "type": "string",
+      "format": "date-time"
+    },
+    "product": {
+      "description": "The product that was created",
+      "type": "object",
+      "properties": {
+        "productId": {
+          "description": "Unique identifier for the product",
+          "type": "string",
+          "format": "uuid"
+        },
+        "sku": {
+          "description": "Stock keeping unit",
+          "type": "string"
+        },
+        "name": {
+          "description": "Display name of the product",
+          "type": "string"
+        },
+        "description": {
+          "description": "Long-form product description",
+          "type": "string"
+        },
+        "price": {
+          "description": "Price in minor units (e.g. cents)",
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "description": "ISO 4217 currency code",
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "category": {
+          "description": "Category the product belongs to",
+          "type": "string"
+        },
+        "status": {
+          "description": "Lifecycle status of the product",
+          "type": "string",
+          "enum": ["DRAFT", "ACTIVE", "ARCHIVED"]
+        }
+      },
+      "required": ["productId", "sku", "name", "price", "currency", "status"]
+    }
+  },
+  "required": ["eventId", "occurredAt", "product"]
+}

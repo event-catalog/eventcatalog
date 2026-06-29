@@ -1,0 +1,32 @@
+---
+id: remove-item-from-cart
+name: Remove Item From Cart
+version: 1.0.0
+summary: |
+  Command to remove an item from a shopping cart.
+owners:
+  - shopping-platform
+schemaPath: schema.json
+operation:
+  method: DELETE
+  path: /carts/{cartId}/items/{productId}
+  statusCodes: ['200', '404']
+sidebar:
+  badge: 'DELETE'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`RemoveItemFromCart` is handled by the [[service|cart-api]]. It removes an item from the cart (or decreases its quantity) and persists the change to the [[container|cart-database]].
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

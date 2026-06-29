@@ -1,0 +1,29 @@
+---
+id: fraud-check-failed
+name: Fraud Check Failed
+version: 1.0.0
+summary: |
+  Published when a payment fails fraud screening.
+owners:
+  - payments-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`FraudCheckFailed` is published by the [[service|fraud-api]] when a payment is flagged as fraudulent. The [[system|payment-processing-system]] uses it to block the charge and cancel the order.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

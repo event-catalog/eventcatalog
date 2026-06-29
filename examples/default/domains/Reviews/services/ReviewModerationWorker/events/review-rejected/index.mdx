@@ -1,0 +1,29 @@
+---
+id: review-rejected
+name: Review Rejected
+version: 1.0.0
+summary: |
+  Published when a submitted review fails moderation (spam, abuse or policy violation) and will not be shown.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReviewRejected` is published by the [[service|review-moderation-worker]] when a review fails moderation. The review is kept for audit but never published to the storefront.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

@@ -30,6 +30,7 @@ export type CollectionType =
   | 'services'
   | 'external-systems'
   | 'domains'
+  | 'systems'
   | 'flows'
   | 'containers'
   | 'data-products';
@@ -49,6 +50,9 @@ export interface DiscoverTableData {
   hasDecisionMakers?: boolean;
   hasInputs?: boolean;
   hasOutputs?: boolean;
+  hasServices?: boolean;
+  hasFlows?: boolean;
+  isSubdomain?: boolean;
   data: {
     id: string;
     name: string;
@@ -79,6 +83,7 @@ export interface DiscoverTableData {
     model?: any;
     agents?: Array<any>;
     services?: Array<any>;
+    flows?: Array<any>;
     servicesThatWriteToContainer?: Array<any>;
     servicesThatReadFromContainer?: Array<any>;
     inputs?: Array<any>;
@@ -340,6 +345,10 @@ export function DiscoverTable<T extends DiscoverTableData>({
           if (prop === 'hasServices') {
             const services = row.data.services || [];
             if (services.length === 0) return false;
+          }
+          if (prop === 'hasFlows') {
+            const flows = row.data.flows || [];
+            if (flows.length === 0) return false;
           }
 
           // Container-specific checks

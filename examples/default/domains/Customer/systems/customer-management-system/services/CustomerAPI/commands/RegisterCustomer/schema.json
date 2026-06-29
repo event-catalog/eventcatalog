@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RegisterCustomer",
+  "description": "Command to register a new customer",
+  "type": "object",
+  "properties": {
+    "email": {
+      "description": "Customer's email address — must be unique",
+      "type": "string",
+      "format": "email"
+    },
+    "name": {
+      "description": "Customer's full name",
+      "type": "string",
+      "minLength": 1
+    },
+    "password": {
+      "description": "Initial password for the customer's credentials",
+      "type": "string",
+      "minLength": 8
+    }
+  },
+  "required": ["email", "password"]
+}

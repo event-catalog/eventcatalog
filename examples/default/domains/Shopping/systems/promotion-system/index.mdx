@@ -1,0 +1,48 @@
+---
+id: promotion-system
+name: Promotion System
+version: 1.0.0
+summary: |
+  Internal system that calculates the discounts and promotions that apply to a cart. It owns promotion rules and returns calculated discounts to the Cart System.
+owners:
+  - shopping-platform
+services:
+  - id: promotion-service
+containers:
+  - id: promotion-database
+relationships:
+  - id: cart-system
+    label: provides discounts to
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Promotion System** owns the discount and promotion rules at Acme Inc. It receives requests to calculate the discount for a cart, evaluates the applicable rules from the [[container|promotion-database]], and publishes a [[event|discount-calculated]] event with the result. It provides discounts to the [[system|cart-system]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| [[service\|promotion-service]] | Service | Evaluates promotion rules and calculates discounts for a cart. |
+| [[container\|promotion-database]] | Data store | PostgreSQL store of promotion and discount rules. |
+
+## Messages this system publishes
+
+- [[event|discount-calculated]] — a discount has been calculated for a cart.
