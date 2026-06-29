@@ -12,30 +12,16 @@ interface Props {
 
 import {
   TableProperties,
-  BotMessageSquare,
-  BookOpen,
-  BookText,
-  Group,
+  House,
   FileText,
   SquareDashedMousePointerIcon,
   FileCode,
   Waypoints,
   PanelLeftClose,
-  Database,
   UserRound,
   UsersRound,
   Settings,
 } from 'lucide-react';
-import {
-  RectangleGroupIcon,
-  GlobeAltIcon,
-  CubeIcon,
-  BoltIcon,
-  ChatBubbleLeftIcon,
-  MagnifyingGlassIcon,
-  QueueListIcon,
-} from '@heroicons/react/24/outline';
-import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
 import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
@@ -74,10 +60,12 @@ import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
 import { filterSidebarItems } from '@utils/sidebar-visibility';
+import { getFirstNavigationPage } from '@enterprise/custom-documentation/utils/custom-docs';
 
 import { isEmbedEnabled, isCustomStylesEnabled, isEventCatalogScaleEnabled, isCustomDocsEnabled, isSSR } from '@utils/feature';
 
 const customDocs = await getCollection('customPages');
+const firstCustomDocsPage = isCustomDocsEnabled() && customDocs.length > 0 ? await getFirstNavigationPage() : null;
 
 let events: any[] = [];
 let commands: any[] = [];
@@ -116,7 +104,7 @@ const currentPath = Astro.url.pathname;
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (route === 'docs/custom') {
-    return customDocs.length > 0 ? buildUrl(`/${route}/${customDocs[0].id.replace('docs', '')}`) : buildUrl(defaultValue);
+    return firstCustomDocsPage ? buildUrl(`/${route}/${firstCustomDocsPage.slug}`) : buildUrl(defaultValue);
   }
 
   const collections = [
@@ -150,8 +138,8 @@ const navigationItems = filterSidebarItems(
   [
     {
       id: '/',
-      label: 'Catalog',
-      icon: BookOpen,
+      label: 'Home',
+      icon: House,
       href: buildUrl(config.landingPage || '/'),
       current:
         currentPath === '/' ||
@@ -171,13 +159,6 @@ const navigationItems = filterSidebarItems(
       current: currentPath.includes('/docs/custom'),
       isPremium: true,
       visible: isCustomDocsEnabled() && customDocs.length > 0,
-    },
-    {
-      id: '/schemas/explorer',
-      label: 'Schemas',
-      icon: FileCode,
-      href: buildUrl('/schemas/explorer'),
-      current: currentPath.includes('/schemas/explorer') && !currentPath.includes('/schemas/fields'),
     },
     ...(isSSR()
       ? [
@@ -218,122 +199,58 @@ const premiumFeatures: Array<{
 
 const internalServices = services.filter((service) => !service.data.externalSystem);
 const externalSystems = services.filter((service) => service.data.externalSystem);
+const discoverTargets = [
+  { id: '/discover/domains', aliases: ['/discover'], href: buildUrl('/discover/domains'), count: domains.length },
+  { id: '/discover/systems', aliases: ['/discover'], href: buildUrl('/discover/systems'), count: systems.length },
+  {
+    id: '/discover/services',
+    aliases: ['/discover'],
+    href: buildUrl('/discover/services'),
+    count: internalServices.length,
+  },
+  {
+    id: '/discover/external-systems',
+    aliases: ['/discover'],
+    href: buildUrl('/discover/external-systems'),
+    count: externalSystems.length,
+  },
+  { id: '/discover/agents', aliases: ['/discover'], href: buildUrl('/discover/agents'), count: agents.length },
+  { id: '/discover/adrs', aliases: ['/discover'], href: buildUrl('/discover/adrs'), count: adrs.length },
+  {
+    id: '/discover/data-products',
+    aliases: ['/discover'],
+    href: buildUrl('/discover/data-products'),
+    count: dataProducts.length,
+  },
+  { id: '/discover/containers', aliases: ['/discover'], href: buildUrl('/discover/containers'), count: containers.length },
+  { id: '/discover/events', aliases: ['/discover'], href: buildUrl('/discover/events'), count: events.length },
+  { id: '/discover/commands', aliases: ['/discover'], href: buildUrl('/discover/commands'), count: commands.length },
+  { id: '/discover/queries', aliases: ['/discover'], href: buildUrl('/discover/queries'), count: queries.length },
+  { id: '/discover/flows', aliases: ['/discover'], href: buildUrl('/discover/flows'), count: flows.length },
+];
+const defaultDiscoverTarget = filterSidebarItems(discoverTargets, userSideBarConfiguration).find((target) => target.count > 0);
 
 const browseItems = filterSidebarItems(
   [
     {
-      id: '/discover/agents',
+      id: '/discover',
       aliases: ['/discover'],
-      label: 'Agents',
-      icon: BotMessageSquare,
-      href: buildUrl('/discover/agents'),
-      current: currentPath === buildUrl('/discover/agents'),
-      visible: agents.length > 0,
+      label: 'Resources',
+      icon: TableProperties,
+      href: defaultDiscoverTarget?.href ?? buildUrl('/discover/domains'),
+      current: currentPath === buildUrl('/discover') || currentPath.startsWith(buildUrl('/discover/', true)),
+      visible: Boolean(defaultDiscoverTarget),
     },
     {
-      id: '/discover/adrs',
-      aliases: ['/discover'],
-      label: 'Decision Records',
-      icon: BookText,
-      href: buildUrl('/discover/adrs'),
-      current: currentPath === buildUrl('/discover/adrs'),
-      visible: adrs.length > 0,
-    },
-    {
-      id: '/discover/data-products',
-      aliases: ['/discover'],
-      label: 'Data Products',
-      icon: CubeIcon,
-      href: buildUrl('/discover/data-products'),
-      current: currentPath === buildUrl('/discover/data-products'),
-      visible: dataProducts.length > 0,
-    },
-    {
-      id: '/discover/containers',
-      aliases: ['/discover'],
-      label: 'Data Stores',
-      icon: Database,
-      href: buildUrl('/discover/containers'),
-      current: currentPath === buildUrl('/discover/containers'),
-      visible: containers.length > 0,
-    },
-    {
-      id: '/discover/domains',
-      aliases: ['/discover'],
-      label: 'Domains',
-      icon: RectangleGroupIcon,
-      href: buildUrl('/discover/domains'),
-      current: currentPath === buildUrl('/discover/domains'),
-      visible: domains.length > 0,
-    },
-    {
-      id: '/discover/systems',
-      aliases: ['/discover'],
-      label: 'Systems',
-      icon: Group,
-      href: buildUrl('/discover/systems'),
-      current: currentPath === buildUrl('/discover/systems'),
-      visible: systems.length > 0,
-    },
-    {
-      id: '/discover/services',
-      aliases: ['/discover'],
-      label: 'Services',
-      icon: ServerIcon,
-      href: buildUrl('/discover/services'),
-      current: currentPath === buildUrl('/discover/services'),
-      visible: internalServices.length > 0,
-    },
-    {
-      id: '/discover/external-systems',
-      aliases: ['/discover'],
-      label: 'External Systems',
-      icon: GlobeAltIcon,
-      href: buildUrl('/discover/external-systems'),
-      current: currentPath === buildUrl('/discover/external-systems'),
-      visible: externalSystems.length > 0,
-    },
-    {
-      id: '/discover/events',
-      aliases: ['/discover'],
-      label: 'Events',
-      icon: BoltIcon,
-      href: buildUrl('/discover/events'),
-      current: currentPath === buildUrl('/discover/events'),
-      visible: events.length > 0,
-    },
-    {
-      id: '/discover/commands',
-      aliases: ['/discover'],
-      label: 'Commands',
-      icon: ChatBubbleLeftIcon,
-      href: buildUrl('/discover/commands'),
-      current: currentPath === buildUrl('/discover/commands'),
-      visible: commands.length > 0,
-    },
-    {
-      id: '/discover/queries',
-      aliases: ['/discover'],
-      label: 'Queries',
-      icon: MagnifyingGlassIcon,
-      href: buildUrl('/discover/queries'),
-      current: currentPath === buildUrl('/discover/queries'),
-      visible: queries.length > 0,
-    },
-    {
-      id: '/discover/flows',
-      aliases: ['/discover'],
-      label: 'Flows',
-      icon: QueueListIcon,
-      href: buildUrl('/discover/flows'),
-      current: currentPath === buildUrl('/discover/flows'),
-      visible: flows.length > 0,
+      id: '/schemas/explorer',
+      label: 'Schemas',
+      icon: FileCode,
+      href: buildUrl('/schemas/explorer'),
+      current: currentPath.includes('/schemas/explorer') && !currentPath.includes('/schemas/fields'),
     },
   ],
   userSideBarConfiguration
-)
-  .filter((item) => item.visible !== false)
-  .sort((a, b) => a.label.localeCompare(b.label));
+).filter((item) => item.visible !== false);
 
 const organizationItems = filterSidebarItems(
   [
@@ -478,8 +395,9 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       .vertical-nav-rail[data-collapsed='true'] .nav-secondary-item,
       .vertical-nav-rail[data-collapsed='true'] #vertical-nav-toggle {
         justify-content: center;
-        padding-left: 0.25rem;
-        padding-right: 0.25rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-link,
       .vertical-nav-rail[data-collapsed='true'] .nav-brand-link {
@@ -488,13 +406,26 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail nav,
       .vertical-nav-rail[data-collapsed='true'] nav {
+        align-items: center;
+        gap: 0.75rem;
         padding-left: 0.25rem;
         padding-right: 0.25rem;
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .rail-divider,
       .vertical-nav-rail[data-collapsed='true'] .rail-divider {
-        margin-left: 0.25rem;
-        margin-right: 0.25rem;
+        display: none;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail nav > .mt-auto,
+      .vertical-nav-rail[data-collapsed='true'] nav > .mt-auto {
+        margin-top: auto !important;
+        padding-top: 0;
+      }
+      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail nav + div,
+      .vertical-nav-rail[data-collapsed='true'] nav + div {
+        border-top: 0;
+        display: flex;
+        justify-content: center;
+        padding: 0.75rem 0.25rem;
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-premium-icon,
       .vertical-nav-rail[data-collapsed='true'] .nav-premium-icon {
@@ -834,6 +765,10 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       return pathname.includes('/schemas/fields');
     }
 
+    if (id === '/discover') {
+      return pathname === '/discover' || pathname.includes('/discover/');
+    }
+
     if (id === '/studio') {
       return pathname.includes('/studio');
     }
@@ -864,9 +799,10 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
     });
 
     secondaryNavItems.forEach((item) => {
+      const id = item.getAttribute('id');
       const href = item.getAttribute('href');
       const targetPath = href ? new URL(href, window.location.origin).pathname : null;
-      const isCurrent = targetPath ? pathname === targetPath : false;
+      const isCurrent = id === '/discover' ? isNavItemCurrent(id, pathname) : targetPath ? pathname === targetPath : false;
 
       if (isCurrent) {
         item.classList.remove(...INACTIVE_NAV_CLASSES);

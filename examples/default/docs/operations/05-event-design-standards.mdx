@@ -1,0 +1,47 @@
+---
+title: Event design standards
+summary: How Acme teams name, publish, consume and operate business events across the commerce platform.
+owners:
+  - platform-governance
+badges:
+  - content: Standard
+    backgroundColor: blue
+    textColor: blue
+---
+
+Events represent business facts, not instructions. The publishing team owns the meaning of the event and the state transition that produced it.
+
+## Naming
+
+Event names should be past tense and business-readable:
+
+- [[event|cart-checked-out]]
+- [[event|order-created]]
+- [[event|payment-succeeded]]
+- [[event|review-published]]
+
+Avoid names that describe infrastructure actions, implementation classes or subscriber intent.
+
+## Publishing
+
+Publish events from the system that owns the state change. For product changes, [[system|product-catalog-system]] publishes product events because [[container|product-database]] is authoritative. For order lifecycle changes, [[system|order-management-system]] publishes order events because [[container|order-database]] is authoritative.
+
+Use an outbox or equivalent durable handoff for events that represent committed business state.
+
+## Consumption
+
+Consumers must be idempotent. Delivery can be retried, delayed or observed out of order across independent streams. Consumers should store processed event identifiers when duplicate handling would otherwise create side effects.
+
+## Event payloads
+
+Payloads should carry enough information for consumers to decide whether they care, but not a full copy of another domain's private data model. Include stable identifiers, timestamps and business status fields. Keep sensitive customer and payment data out of broad event payloads.
+
+<Prompt description="Review an event design" actions={["copy", "cursor"]} icon="radio">
+  Review this event design against Acme's event standards. Check that the event name is a past-tense business fact, the
+  publisher owns the state change, the payload avoids private data models, consumers can process it idempotently, and the
+  related flow documentation is updated. Return specific recommendations.
+</Prompt>
+
+## Flow impact
+
+When an event is added to a critical journey, update the related flow page. Checkout-related event changes should be reflected in [[flow|place-an-order]] or [[flow|checkout-saga]].

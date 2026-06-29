@@ -8,12 +8,20 @@ import { getServices } from '@utils/collections/services';
 import { getQueries } from '@utils/collections/queries';
 import { getContainers } from '@utils/collections/containers';
 import { getDataProducts } from '@utils/collections/data-products';
+import { getFlows } from '@utils/collections/flows';
 import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
 import { getChannels } from '@utils/collections/channels';
+import { getSystems } from '@utils/collections/systems';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { DiscoverTable, type DiscoverTableData, type CollectionType } from '@components/Tables/Discover';
+import {
+  DiscoverTable,
+  type CollectionKindOption,
+  type DiscoverTableData,
+  type CollectionType,
+} from '@components/Tables/Discover';
 import config from '@config';
+import { buildUrl } from '@utils/url-builder';
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -28,8 +36,10 @@ const agents = await getAgents();
 const adrs = await getAdrs();
 const services = await getServices();
 const domains = await getDomains({ getAllVersions: false });
+const systems = await getSystems({ getAllVersions: false });
 const containers = await getContainers();
 const dataProducts = await getDataProducts();
+const flows = await getFlows();
 const channels = await getChannels();
 const users = await getUsers();
 const teams = await getTeams();
@@ -171,6 +181,28 @@ const typeConfig: Record<
 };
 
 const currentTypeConfig = typeConfig[type] || typeConfig.events;
+const internalServices = services.filter((service) => !service.data.externalSystem);
+const externalSystems = services.filter((service) => service.data.externalSystem);
+
+const collectionKinds = [
+  { id: 'domains', label: typeConfig.domains.label, count: domains.length },
+  { id: 'systems', label: typeConfig.systems.label, count: systems.length },
+  { id: 'services', label: typeConfig.services.label, count: internalServices.length },
+  { id: 'external-systems', label: typeConfig['external-systems'].label, count: externalSystems.length },
+  { id: 'agents', label: typeConfig.agents.label, count: agents.length },
+  { id: 'adrs', label: typeConfig.adrs.label, count: adrs.length },
+  { id: 'data-products', label: typeConfig['data-products'].label, count: dataProducts.length },
+  { id: 'containers', label: typeConfig.containers.label, count: containers.length },
+  { id: 'events', label: typeConfig.events.label, count: events.length },
+  { id: 'commands', label: typeConfig.commands.label, count: commands.length },
+  { id: 'queries', label: typeConfig.queries.label, count: queries.length },
+  { id: 'flows', label: typeConfig.flows.label, count: flows.length },
+]
+  .filter((kind) => kind.count > 0)
+  .map((kind) => ({
+    ...kind,
+    href: buildUrl(`/discover/${kind.id}`),
+  })) as CollectionKindOption[];
 
 // External systems reuse the user's `services.tableConfiguration` so customisations apply to both tabs
 const tableConfigurationKey = type === 'external-systems' ? 'services' : type;
@@ -407,6 +439,7 @@ const title = `${currentTypeConfig.label} (${data.length})`;
         collectionType={type as CollectionType}
         collectionLabel={currentTypeConfig.label}
         collectionDescription={currentTypeConfig.description}
+        collectionKinds={collectionKinds}
         domains={uniqueDomains}
         owners={uniqueOwners as Array<{ id: string; name: string; type?: 'user' | 'team' }>}
         producers={uniqueProducers}

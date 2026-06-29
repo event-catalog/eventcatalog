@@ -1,0 +1,47 @@
+---
+title: Governance model
+summary: The operating model Acme teams use to keep domain ownership, catalog quality and cross-team decisions clear.
+owners:
+  - platform-governance
+badges:
+  - content: Standard
+    backgroundColor: gray
+    textColor: gray
+---
+
+Governance at Acme is lightweight but explicit. Teams own the catalog entries for their domains, systems, services, messages and flows, while the Platform Governance group maintains the standards that keep those entries consistent.
+
+## Ownership rules
+
+Every production resource must have:
+
+- a clear owning team,
+- a business capability or system boundary,
+- documented upstream and downstream dependencies,
+- a current version where the resource has versioned contracts,
+- enough context for another team to assess impact without asking in chat first.
+
+Domain teams own business meaning. Platform teams own shared tooling and catalog hygiene. Integration decisions are shared when a change crosses domain boundaries.
+
+## Governance forums
+
+| Forum | Cadence | Purpose |
+|-------|---------|---------|
+| Architecture review | Weekly | Review cross-domain changes, new systems and integration risks. |
+| Contract review | On demand | Review breaking command, query and event changes before implementation. |
+| Operations review | Weekly | Review incidents, SLO misses and catalog gaps found during support. |
+| Catalog health review | Monthly | Remove stale resources and improve ownership metadata. |
+
+## Decision records
+
+Use ADRs when the decision changes a system boundary, persistence model, integration pattern or team operating model. The Catalog domain shows the expected level of detail with [[adr|adr-001-use-transactional-outbox]], [[adr|adr-002-postgres-as-system-of-record]] and [[adr|adr-003-offload-async-work-to-worker]].
+
+<Prompt description="Find governance gaps" actions={["copy", "cursor"]} icon="sparkles">
+  Review this catalog area for governance gaps. Check for missing owners, unclear domain boundaries, undocumented
+  dependencies, stale decision records, unreviewed cross-domain contracts and missing operational notes. Return the gaps as
+  a prioritized checklist with suggested updates to EventCatalog pages.
+</Prompt>
+
+## Escalation path
+
+If two teams disagree on a contract or boundary, the owning domain proposes the default path, affected consuming teams document the impact, and the architecture review makes the final call.

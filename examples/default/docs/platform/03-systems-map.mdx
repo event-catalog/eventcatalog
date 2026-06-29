@@ -1,0 +1,51 @@
+---
+title: Systems map
+summary: The system-level view of Acme Inc's commerce platform and the responsibilities of each major system.
+owners:
+  - dboyne
+badges:
+  - content: Systems
+    backgroundColor: gray
+    textColor: gray
+---
+
+Systems group services and data stores around a stable business capability. They are the best unit for understanding runtime ownership, operational dashboards and integration boundaries.
+
+## Checkout and payment maps
+
+The checkout and payment systems are the highest-coupling parts of the platform. Use these maps when assessing checkout changes, payment incident impact or ownership questions across Ordering and Payments.
+
+<NodeGraph id="checkout-system" version="1.0.0" type="system" maxHeight={34} mode="simple" />
+
+<NodeGraph id="payment-processing-system" version="1.0.0" type="system" maxHeight={34} mode="simple" />
+
+## Internal systems
+
+| System | Domain | Role |
+|--------|--------|------|
+| [[system\|product-catalog-system]] | [[domain\|catalog]] | Source of truth for product data and product change events. |
+| [[system\|search-system]] | [[domain\|catalog]] | Maintains a search index and serves product search queries. |
+| [[system\|cart-system]] | [[domain\|shopping]] | Owns carts and emits checkout intent. |
+| [[system\|promotion-system]] | [[domain\|shopping]] | Calculates discounts for carts. |
+| [[system\|checkout-system]] | [[domain\|ordering]] | Coordinates checkout as a saga. |
+| [[system\|order-management-system]] | [[domain\|ordering]] | Owns order state and order lifecycle events. |
+| [[system\|payment-processing-system]] | [[domain\|payments]] | Records payment intent and drives payment/refund processing. |
+| [[system\|inventory-system]] | [[domain\|fulfilment]] | Owns stock and reservations. |
+| [[system\|warehouse-system]] | [[domain\|fulfilment]] | Picks and packs completed orders. |
+| [[system\|shipping-system]] | [[domain\|fulfilment]] | Creates shipments and tracks delivery handoff. |
+| [[system\|customer-management-system]] | [[domain\|customer]] | Owns customer profile data. |
+| [[system\|identity-provider]] | [[domain\|customer]] | Authenticates customers and manages user credentials. |
+
+## External systems
+
+The catalog also documents external dependencies:
+
+- [[system|stripe]] processes charges and refunds.
+- [[system|fraud-detection]] screens payments.
+- [[system|carrier]] creates and tracks shipments.
+
+## Why systems matter
+
+Services can change implementation technology, but system responsibilities should stay stable. For example, [[service|payment-api]] and [[service|payment-worker]] can evolve independently, but both remain inside [[system|payment-processing-system]] and share the same payment data ownership boundary.
+
+Use system pages for impact analysis when a change affects multiple services or a shared data store.

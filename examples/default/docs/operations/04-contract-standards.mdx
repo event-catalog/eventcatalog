@@ -1,0 +1,48 @@
+---
+title: Contract standards
+summary: The rules Acme teams follow when defining, versioning and changing commands, events and queries.
+owners:
+  - platform-governance
+badges:
+  - content: Standard
+    backgroundColor: orange
+    textColor: orange
+---
+
+Commands, events and queries are the public language between Acme systems. A contract is not ready until it is understandable by a team that does not own the implementation.
+
+## Contract types
+
+| Type | Meaning | Example |
+|------|---------|---------|
+| Command | A request for an owner to do work. | [[command\|reserve-inventory]], [[command\|authorize-payment]], [[command\|create-order]] |
+| Event | A fact that already happened. | [[event\|order-created]], [[event\|payment-succeeded]], [[event\|inventory-reserved]] |
+| Query | A read contract owned by one capability. | [[query\|get-order]], [[query\|search-products]], [[query\|get-product-reviews]] |
+
+## Required fields
+
+Every contract page should document:
+
+- business purpose,
+- producer or handler,
+- consumers where known,
+- schema or payload reference,
+- version and compatibility policy,
+- failure semantics for commands and queries,
+- replay and ordering assumptions for events.
+
+## Versioning rules
+
+Additive fields are allowed when consumers can ignore them. Removing fields, changing meaning, tightening validation or changing delivery semantics is breaking and requires a new version or a migration plan.
+
+Use deprecation before removal. Keep the old contract documented until all consumers have moved.
+
+## Review checklist
+
+Before changing a contract, teams must identify all known consumers, confirm whether the change is additive or breaking, update flow pages that depend on the contract, and add an ADR when the change introduces a new integration pattern.
+
+<Prompt description="Check contract compatibility" actions={["copy", "cursor"]} icon="file-warning">
+  Review a proposed command, event or query contract change for Acme Inc. Decide whether it is additive or breaking, list
+  known consumer risks, identify missing schema or payload details, and suggest a migration plan if the change is not
+  backward compatible. Include the catalog pages that need updates.
+</Prompt>

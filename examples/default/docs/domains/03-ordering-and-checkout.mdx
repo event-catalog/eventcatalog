@@ -1,0 +1,52 @@
+---
+title: Ordering and checkout
+summary: How the Ordering domain coordinates checkout and owns the order lifecycle.
+owners:
+  - ordering-platform
+badges:
+  - content: Domain guide
+    backgroundColor: red
+    textColor: red
+---
+
+[[domain|ordering]] is the core revenue domain. It turns a checked-out cart into a durable order and owns that order through completion or cancellation.
+
+## Domain map
+
+<NodeGraph id="ordering" version="1.0.0" type="domain" maxHeight={36} mode="simple" />
+
+## Checkout System
+
+[[system|checkout-system]] owns orchestration. [[service|checkout-api]] receives checkout intent, and [[service|checkout-orchestrator]] runs the [[flow|checkout-saga]].
+
+The saga coordinates:
+
+1. [[command|reserve-inventory]]
+2. [[command|authorize-payment]]
+3. [[command|create-order]]
+
+If a step fails, the orchestrator compensates rather than leaving partial work behind.
+
+<Flow id="checkout-saga" version="1.0.0" maxHeight={34} />
+
+## Order Management System
+
+[[system|order-management-system]] owns order state in [[container|order-database]]. [[service|order-service]] handles [[command|create-order]], [[command|cancel-order]] and [[query|get-order]].
+
+It publishes:
+
+- [[event|order-created]]
+- [[event|order-completed]]
+- [[event|order-cancelled]]
+
+## Operating guidance
+
+Do not add payment or inventory state directly to orders unless it is a snapshot needed for audit or customer support. The owning systems remain [[system|payment-processing-system]] and [[system|inventory-system]].
+
+When checkout behavior changes, update the [[flow|place-an-order]] and [[flow|checkout-saga]] pages as well as the command schemas.
+
+<Prompt description="Assess an Ordering domain change" actions={["copy", "cursor"]} icon="clipboard-check">
+  Review a proposed Ordering domain change for Acme Inc. Identify whether it changes checkout orchestration, order state,
+  payment or inventory boundaries, customer-visible status, command schemas, event schemas or downstream fulfilment
+  behavior. Return the affected catalog resources and the teams that should review the change.
+</Prompt>

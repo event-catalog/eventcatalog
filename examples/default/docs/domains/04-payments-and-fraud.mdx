@@ -1,0 +1,39 @@
+---
+title: Payments and fraud
+summary: How payment authorization, Stripe integration, refunds and fraud screening are represented in the Payments domain.
+owners:
+  - payments-platform
+badges:
+  - content: Domain guide
+    backgroundColor: red
+    textColor: red
+---
+
+[[domain|payments]] owns payment intent and payment outcomes. It integrates with external providers but keeps Acme's internal payment state in [[container|payment-database]].
+
+## Domain map
+
+<NodeGraph id="payments" version="1.0.0" type="domain" maxHeight={34} mode="simple" />
+
+## Payment Processing System
+
+[[system|payment-processing-system]] is composed of [[service|payment-api]] and [[service|payment-worker]].
+
+[[service|payment-api]] receives [[command|authorize-payment]] from checkout and records the intent. [[service|payment-worker]] drives the external charge/refund process and records outcomes.
+
+Important events:
+
+- [[event|payment-requested]]
+- [[event|payment-succeeded]]
+- [[event|payment-failed]]
+- [[event|refund-requested]]
+
+## External providers
+
+[[system|stripe]] is the external payment processor. It reports outcomes through [[service|stripe-webhook-endpoint]] events such as [[event|payment-succeeded]], [[event|payment-failed]] and [[event|refund-processed]].
+
+[[system|fraud-detection]] screens payment attempts and reports [[event|fraud-check-passed]] or [[event|fraud-check-failed]].
+
+## Failure handling
+
+Payments cross external boundaries, so every step should be durable and retryable. Do not assume webhook delivery order. Payment state transitions should be idempotent and traceable through the payment database.

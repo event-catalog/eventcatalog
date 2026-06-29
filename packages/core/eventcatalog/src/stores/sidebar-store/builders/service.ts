@@ -115,7 +115,7 @@ export const buildServiceNode = (
           renderVisualiser &&
             hasDataStores && {
               type: 'item',
-              title: 'Data Map',
+              title: 'Data Dependency Graph',
               href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/data`),
             },
         ].filter(Boolean) as ChildRef[],

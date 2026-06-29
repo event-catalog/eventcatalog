@@ -1,0 +1,36 @@
+---
+id: stock-item
+name: Stock Item
+version: 1.0.0
+identifier: stockItemId
+aggregateRoot: true
+summary: The inventory record for a product variant at a location.
+owners:
+  - fulfilment-platform
+properties:
+  - name: stockItemId
+    type: UUID
+    required: true
+    description: Unique stock item identifier.
+  - name: productId
+    type: UUID
+    required: true
+    description: Product held in stock.
+    references: product
+    relationType: stocks
+    referencesIdentifier: productId
+  - name: locationId
+    type: string
+    required: true
+    description: Warehouse or fulfilment location.
+  - name: availableQuantity
+    type: integer
+    required: true
+    description: Quantity available to reserve.
+---
+
+## Overview
+
+Stock Item is the Inventory System's view of available stock for a product at a fulfilment location.
+
+<EntityPropertiesTable />

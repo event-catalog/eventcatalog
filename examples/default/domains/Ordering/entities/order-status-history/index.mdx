@@ -1,0 +1,35 @@
+---
+id: order-status-history
+name: Order Status History
+version: 1.0.0
+identifier: orderStatusHistoryId
+summary: Audit history of order lifecycle state changes.
+owners:
+  - ordering-platform
+properties:
+  - name: orderStatusHistoryId
+    type: UUID
+    required: true
+    description: Unique status history record.
+  - name: orderId
+    type: UUID
+    required: true
+    description: Order whose status changed.
+    references: order
+    relationType: belongsTo
+    referencesIdentifier: orderId
+  - name: status
+    type: string
+    required: true
+    description: New order status.
+  - name: changedAt
+    type: datetime
+    required: true
+    description: Time the status changed.
+---
+
+## Overview
+
+Order Status History provides an audit trail for customer support, fulfilment exceptions and order lifecycle debugging.
+
+<EntityPropertiesTable />

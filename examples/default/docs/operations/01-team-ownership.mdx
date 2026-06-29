@@ -1,0 +1,35 @@
+---
+title: Team ownership
+summary: Which platform teams own the major Acme Inc domains and systems documented in the default catalog.
+owners:
+  - dboyne
+badges:
+  - content: Operations
+    backgroundColor: gray
+    textColor: gray
+---
+
+Ownership in the default catalog is modelled with team resources. The owning team is responsible for contract changes, service reliability and documentation freshness for its resources.
+
+## Teams by capability
+
+| Team | Owns |
+|------|------|
+| [[team\|product-platform]] | [[domain\|catalog]], [[system\|product-catalog-system]] and product APIs/workers. |
+| [[team\|search-platform]] | [[system\|search-system]], search indexing and search query contracts. |
+| [[team\|shopping-platform]] | [[domain\|shopping]], [[system\|cart-system]] and [[system\|promotion-system]]. |
+| [[team\|ordering-platform]] | [[domain\|ordering]], [[system\|checkout-system]] and [[system\|order-management-system]]. |
+| [[team\|payments-platform]] | [[domain\|payments]] and [[system\|payment-processing-system]]. |
+| [[team\|fulfilment-platform]] | [[domain\|fulfilment]], inventory, warehouse and shipping systems. |
+| [[team\|customer-platform]] | [[domain\|customer]], customer profile and identity systems. |
+| [[team\|reviews-platform]] | [[domain\|reviews]], review moderation and rating aggregation. |
+
+## Ownership rules
+
+The owner listed on the producing resource owns the contract. Consumers can request changes, but producers decide versioning and rollout.
+
+When a flow spans multiple teams, the team owning the orchestrator is responsible for keeping the flow page current. For checkout, that is [[team|ordering-platform]].
+
+## Documentation expectations
+
+Every resource page should explain responsibility, owners and major contracts. These custom docs should explain cross-resource narratives that do not belong to one resource.

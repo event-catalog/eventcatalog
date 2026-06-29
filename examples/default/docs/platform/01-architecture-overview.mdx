@@ -1,0 +1,50 @@
+---
+title: Architecture overview
+summary: How Acme Inc's commerce platform is organised across domains, systems, services, messages, data stores and teams.
+owners:
+  - dboyne
+badges:
+  - content: Overview
+    backgroundColor: blue
+    textColor: blue
+---
+
+Acme Inc runs a commerce platform that takes a customer from product discovery through cart, checkout, payment, fulfilment, delivery and post-purchase feedback. The catalog is organised around business capabilities rather than deployment topology.
+
+The main business domains are [[domain|catalog]], [[domain|shopping]], [[domain|ordering]], [[domain|payments]], [[domain|fulfilment]], [[domain|customer]] and [[domain|reviews]]. Each domain owns the services, messages and data stores that support its business language.
+
+## Core checkout map
+
+The checkout capability is the best compact view of how Acme's platform is connected. It shows the orchestration boundary between cart checkout, inventory reservation, payment authorization and durable order creation.
+
+<NodeGraph id="checkout-system" version="1.0.0" type="system" maxHeight={36} mode="simple" />
+
+## Platform shape
+
+| Area | Primary capability | Core systems |
+|------|--------------------|--------------|
+| [[domain\|catalog]] | Product data and search | [[system\|product-catalog-system]], [[system\|search-system]] |
+| [[domain\|shopping]] | Cart and promotions | [[system\|cart-system]], [[system\|promotion-system]] |
+| [[domain\|ordering]] | Checkout and order lifecycle | [[system\|checkout-system]], [[system\|order-management-system]] |
+| [[domain\|payments]] | Payment authorization, capture and refunds | [[system\|payment-processing-system]], [[system\|stripe]], [[system\|fraud-detection]] |
+| [[domain\|fulfilment]] | Stock, warehouse and shipment | [[system\|inventory-system]], [[system\|warehouse-system]], [[system\|shipping-system]], [[system\|carrier]] |
+| [[domain\|customer]] | Customer profile and authentication | [[system\|customer-management-system]], [[system\|identity-provider]] |
+| [[domain\|reviews]] | Product feedback and ratings | [[service\|review-api]], [[service\|review-moderation-worker]], [[service\|rating-aggregator]] |
+
+## Architectural style
+
+The platform is event-driven where state changes matter to another capability. Commands are used to request work from an owning capability, queries are used for explicit read access, and events announce facts that have already happened.
+
+The most important chain is the order journey:
+
+1. [[service|cart-api]] publishes [[event|cart-checked-out]].
+2. [[service|checkout-orchestrator]] coordinates [[command|reserve-inventory]], [[command|authorize-payment]] and [[command|create-order]].
+3. [[service|order-service]] publishes [[event|order-created]] and [[event|order-completed]].
+4. [[service|warehouse-service]] reacts to completed orders and publishes [[event|order-ready-for-shipping]].
+5. Shipment and carrier events track delivery progress.
+
+## Reading the catalog
+
+Use resource pages when you need the authoritative contract for a single component. Use these custom docs when you need the operating narrative: why a capability exists, how systems collaborate, and where ownership boundaries sit.
+
+Start with the domain pages when orienting around business capability. Start with flow pages when diagnosing an end-to-end customer journey.

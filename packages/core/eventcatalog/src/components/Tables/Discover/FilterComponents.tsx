@@ -8,10 +8,18 @@ export interface FilterDropdownProps {
   selectedItems: string[];
   onClear: () => void;
   onRemoveItem?: (item: string) => void;
+  clearable?: boolean;
   children: React.ReactNode;
 }
 
-export const FilterDropdown = ({ label, selectedItems, onClear, onRemoveItem, children }: FilterDropdownProps) => {
+export const FilterDropdown = ({
+  label,
+  selectedItems,
+  onClear,
+  onRemoveItem,
+  clearable = true,
+  children,
+}: FilterDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const hasSelection = selectedItems.length > 0;
@@ -88,7 +96,7 @@ export const FilterDropdown = ({ label, selectedItems, onClear, onRemoveItem, ch
           )}
         </div>
         <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-          {hasSelection && (
+          {hasSelection && clearable && (
             <span
               role="button"
               tabIndex={0}

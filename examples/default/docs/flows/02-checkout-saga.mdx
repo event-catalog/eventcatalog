@@ -1,0 +1,48 @@
+---
+title: Checkout saga
+summary: The orchestration pattern used by checkout to coordinate inventory reservation, payment authorization and order creation.
+owners:
+  - ordering-platform
+badges:
+  - content: Flow
+    backgroundColor: orange
+    textColor: orange
+---
+
+[[flow|checkout-saga]] is the detailed orchestration inside [[system|checkout-system]]. It exists because checkout cannot be a single local transaction: inventory, payment and order state are owned by different systems.
+
+## Flow map
+
+<Flow id="checkout-saga" version="1.0.0" maxHeight={36} />
+
+## Saga steps
+
+| Step | Contract | Owner |
+|------|----------|-------|
+| Reserve inventory | [[command\|reserve-inventory]] | [[system\|inventory-system]] |
+| Authorize payment | [[command\|authorize-payment]] | [[system\|payment-processing-system]] |
+| Create order | [[command\|create-order]] | [[system\|order-management-system]] |
+
+## Success condition
+
+Checkout succeeds only when inventory is reserved, payment is authorized and an order is created. The durable outcome is an order in [[container|order-database]] and subsequent [[event|order-created]] publication.
+
+## Compensation
+
+If inventory is unavailable or payment is declined, checkout should not create an order. The orchestrator should release any previous reservation or void any authorization as needed.
+
+## Change guidance
+
+Adding a checkout step means updating:
+
+- the flow definition,
+- the orchestrator implementation,
+- the command/event contracts,
+- failure and compensation behavior,
+- customer-facing status semantics.
+
+<Prompt description="Review saga compensation" actions={["copy", "cursor"]} icon="shield-check">
+  Review this checkout saga change as a senior distributed systems engineer. Check whether every step has a clear owner,
+  success condition, failure condition, retry policy, compensation action and customer-visible status. Call out any
+  missing contracts or catalog pages that should be updated before release.
+</Prompt>

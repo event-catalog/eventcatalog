@@ -1,0 +1,37 @@
+---
+title: Domain map
+summary: The bounded contexts in the Acme Inc catalog and how their responsibilities connect across the commerce journey.
+owners:
+  - dboyne
+badges:
+  - content: Architecture
+    backgroundColor: purple
+    textColor: purple
+---
+
+The domain map shows where business language changes. A cart, an order, a payment and a shipment are different concepts with different owners, lifecycles and consistency rules.
+
+## Core domains
+
+[[domain|shopping]], [[domain|ordering]], [[domain|payments]] and [[domain|fulfilment]] form the core purchase path. A failure in any of these domains can block revenue or customer delivery, so their contracts should be reviewed together when changing checkout behavior.
+
+| Domain | Owns | Publishes or handles |
+|--------|------|----------------------|
+| [[domain\|shopping]] | Cart contents, checkout intent and discounts | [[command\|checkout-cart]], [[event\|cart-checked-out]], [[command\|calculate-discount]] |
+| [[domain\|ordering]] | Checkout orchestration and order state | [[command\|reserve-inventory]], [[command\|authorize-payment]], [[command\|create-order]], [[event\|order-created]] |
+| [[domain\|payments]] | Payment intent, payment outcome and refunds | [[event\|payment-requested]], [[event\|payment-succeeded]], [[event\|payment-failed]], [[event\|refund-requested]] |
+| [[domain\|fulfilment]] | Stock reservation, warehouse packing and shipping | [[event\|inventory-reserved]], [[event\|order-ready-for-shipping]], [[command\|create-shipment]] |
+
+## Supporting domains
+
+[[domain|catalog]], [[domain|customer]] and [[domain|reviews]] support the buying experience. They are still product-critical, but their change cadence and runtime failure modes are different from checkout orchestration.
+
+Catalog and Search keep product data discoverable. Customer and Identity keep profiles and authentication separate from order state. Reviews and Ratings feed product trust signals back into the storefront.
+
+## Integration boundaries
+
+External systems are modelled explicitly so ownership and failure handling are visible. [[system|stripe]], [[system|fraud-detection]] and [[system|carrier]] are outside Acme's control. Internal services should treat these integrations as unreliable boundaries and persist enough state to retry safely.
+
+## Change guidance
+
+When a change crosses a domain boundary, update both sides of the contract. For example, changing checkout payloads requires reviewing [[event|cart-checked-out]], the [[flow|checkout-saga]], and any commands sent by [[service|checkout-orchestrator]].

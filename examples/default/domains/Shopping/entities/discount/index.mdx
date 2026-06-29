@@ -1,0 +1,35 @@
+---
+id: discount
+name: Discount
+version: 1.0.0
+identifier: discountId
+summary: The calculated benefit applied to a cart or cart item.
+owners:
+  - shopping-platform
+properties:
+  - name: discountId
+    type: UUID
+    required: true
+    description: Unique discount identifier.
+  - name: promotionId
+    type: UUID
+    required: false
+    description: Promotion that produced the discount.
+    references: promotion
+    relationType: derivedFrom
+    referencesIdentifier: promotionId
+  - name: amount
+    type: decimal
+    required: true
+    description: Monetary value of the discount.
+  - name: reason
+    type: string
+    required: true
+    description: Human-readable explanation for the discount.
+---
+
+## Overview
+
+Discount is a calculated result from [[command|calculate-discount]]. It is separate from cart persistence so promotion logic can evolve independently.
+
+<EntityPropertiesTable />

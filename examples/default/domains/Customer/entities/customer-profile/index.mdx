@@ -1,0 +1,33 @@
+---
+id: customer-profile
+name: Customer Profile
+version: 1.0.0
+identifier: customerId
+aggregateRoot: true
+summary: The customer details Acme uses for commerce interactions.
+owners:
+  - customer-platform
+properties:
+  - name: customerId
+    type: UUID
+    required: true
+    description: Unique customer identifier.
+  - name: email
+    type: string
+    required: true
+    description: Customer email address.
+  - name: displayName
+    type: string
+    required: false
+    description: Preferred customer display name.
+  - name: status
+    type: string
+    required: true
+    description: Customer profile state.
+---
+
+## Overview
+
+Customer Profile is owned by [[system|customer-management-system]] and is separate from authentication credentials.
+
+<EntityPropertiesTable />
