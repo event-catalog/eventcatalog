@@ -20,6 +20,7 @@ import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
+import { resolveInstalledCoreNodeModules } from './core-node-modules';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -299,9 +300,9 @@ const copyCore = () => {
   });
 
   const coreNodeModules = path.join(core, 'node_modules');
-  const installedCoreNodeModules = path.resolve(currentDir, '..', 'node_modules');
+  const installedCoreNodeModules = resolveInstalledCoreNodeModules(currentDir);
 
-  if (!fs.existsSync(coreNodeModules) && fs.existsSync(installedCoreNodeModules)) {
+  if (!fs.existsSync(coreNodeModules) && installedCoreNodeModules) {
     fs.symlinkSync(installedCoreNodeModules, coreNodeModules, process.platform === 'win32' ? 'junction' : 'dir');
   }
 };

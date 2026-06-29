@@ -88,6 +88,7 @@ export default defineConfig({
   markdown: {
     processor: unified({
       remarkPlugins: markdownRemarkPlugins,
+      rehypePlugins: mdxRehypePlugins,
     }),
   },
 

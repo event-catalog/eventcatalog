@@ -1,18 +1,25 @@
 packages:
-  - "packages/*"
+  - 'packages/*'
 
 minimumReleaseAgeExclude:
-  - "astro"
-  - "@astrojs/check"
-  - "@astrojs/internal-helpers"
-  - "@astrojs/markdown-remark"
-  - "@astrojs/markdown-satteri"
-  - "@astrojs/mdx"
-  - "@astrojs/node"
-  - "@astrojs/react"
-  - "@astrojs/telemetry"
-  - "satteri"
+  - 'astro'
+  - '@astrojs/check'
+  - '@astrojs/internal-helpers'
+  - '@astrojs/markdown-remark'
+  - '@astrojs/markdown-satteri'
+  - '@astrojs/mdx'
+  - '@astrojs/node'
+  - '@astrojs/react'
+  - '@astrojs/telemetry'
+  - '@expressive-code/core'
+  - '@expressive-code/plugin-frames'
+  - '@expressive-code/plugin-shiki'
+  - '@expressive-code/plugin-text-markers'
+  - 'astro-expressive-code'
+  - 'expressive-code'
+  - 'rehype-expressive-code'
+  - 'satteri'
 
 peerDependencyRules:
   allowedVersions:
-    "astro-expressive-code>astro": "7"
+    'astro-expressive-code>astro': '7'
