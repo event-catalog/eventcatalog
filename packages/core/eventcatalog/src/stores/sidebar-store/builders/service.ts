@@ -103,7 +103,7 @@ export const buildServiceNode = (
           },
           renderVisualiser && {
             type: 'item',
-            title: 'Service Integration Graph',
+            title: 'Map',
             href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`),
           },
           renderVisualiser &&
