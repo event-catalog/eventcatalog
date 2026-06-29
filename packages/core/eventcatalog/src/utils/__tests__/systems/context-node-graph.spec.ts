@@ -36,6 +36,27 @@ describe('System Context NodeGraph', () => {
     systems = [];
   });
 
+  describe('incoming system relationships', () => {
+    it('includes the source system and edge when the requested system is only a relationship target', async () => {
+      setSystems([
+        makeSystem('Shipping', { relationships: [{ id: 'Carrier', label: 'delivers shipments with' }] }),
+        makeSystem('Carrier'),
+      ]);
+
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Carrier', version: '1.0.0' });
+
+      expect(nodes.map((node: any) => node.id).sort()).toEqual(['Carrier-1.0.0', 'Shipping-1.0.0']);
+      expect(edges).toHaveLength(1);
+      expect(edges[0]).toMatchObject({
+        source: 'Shipping-1.0.0',
+        target: 'Carrier-1.0.0',
+        label: 'delivers shipments with',
+      });
+      expect(edges[0].markerEnd).toEqual({ type: MarkerType.ArrowClosed, width: 20, height: 20 });
+      expect(edges[0].markerStart).toBeUndefined();
+    });
+  });
+
   describe('reciprocal system relationships', () => {
     it('collapses two reciprocal relationships into a single double-headed edge', async () => {
       setSystems([

@@ -36,13 +36,14 @@ export interface Props {
 
 const { status, limit } = Astro.props;
 const collection = Astro.props.collection as string;
+const rawStatus: string = status || '';
 
 // ADRs can apply to any documented resource. The only types that can't be the
 // subject of an ADRTable are non-resource pages.
 const isComponentEnabled = !!collection && !!Astro.props.data?.id;
 
 // Parse the `status` prop into a validated list of statuses.
-const requestedStatuses = (status || '')
+const requestedStatuses = rawStatus
   .split(',')
   .map((value) => value.trim().toLowerCase())
   .filter((value): value is AdrStatus => (ADR_STATUS_VALUES as readonly string[]).includes(value));

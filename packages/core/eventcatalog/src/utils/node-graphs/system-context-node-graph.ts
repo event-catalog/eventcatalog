@@ -34,6 +34,17 @@ type SystemActor = {
   direction?: 'inbound' | 'outbound';
 };
 
+type SystemRelationship = {
+  id: string;
+  version?: string;
+  label?: string;
+};
+
+type IncomingSystemRelationship = {
+  source: CollectionEntry<'systems'>;
+  relationship: SystemRelationship;
+};
+
 interface ContextGraphFromSeedsProps {
   // The systems the breadth-first traversal starts from. The single-system context
   // diagram seeds with one system; the domain-level diagram seeds with every system
@@ -49,11 +60,12 @@ interface ContextGraphFromSeedsProps {
 /**
  * Shared builder for the System Diagram.
  *
- * Starting from the given seed systems, we walk each system's `relationships` outward
- * (breadth-first) to the systems it relates to, then their relationships, and so on —
- * building the reachable neighbourhood. Each system becomes a node; each relationship
- * that has a `label` becomes a labelled edge (relationships without a label are
- * intentionally not drawn). Actors are rendered inline and deduped across all systems.
+ * Starting from the given seed systems, we walk system relationships in both directions
+ * (breadth-first) to the systems it relates to and the systems that relate to it, then
+ * their relationships, and so on — building the reachable neighbourhood. Each system
+ * becomes a node; each relationship that has a `label` becomes a labelled edge
+ * (relationships without a label are intentionally not drawn). Actors are rendered
+ * inline and deduped across all systems.
  */
 const buildContextGraphFromSeeds = ({
   seedSystems,
@@ -82,6 +94,23 @@ const buildContextGraphFromSeeds = ({
   // System node ids, tracked so we can detect reciprocal system-to-system
   // relationships and collapse them into a single double-headed edge.
   const systemNodeIds = new Set<string>();
+  const incomingRelationshipsByTargetNodeId = new Map<string, IncomingSystemRelationship[]>();
+
+  for (const versionedSystems of systemMap.values()) {
+    for (const source of versionedSystems) {
+      const relationships = (source.data.relationships || []) as SystemRelationship[];
+
+      for (const relationship of relationships) {
+        const target = findInMap(systemMap, relationship.id, relationship.version);
+        if (!target) continue;
+
+        const targetNodeId = generateIdForNode(target);
+        const incoming = incomingRelationshipsByTargetNodeId.get(targetNodeId) || [];
+        incoming.push({ source, relationship });
+        incomingRelationshipsByTargetNodeId.set(targetNodeId, incoming);
+      }
+    }
+  }
 
   // Add (or reuse) an actor node. Actors are inline and deduped by `actor:{id}`,
   // so the same actor referenced from multiple systems appears once.
@@ -132,8 +161,34 @@ const buildContextGraphFromSeeds = ({
     return nodeId;
   };
 
+  const addSystemRelationshipEdge = ({
+    sourceNodeId,
+    targetNodeId,
+    label,
+  }: {
+    sourceNodeId: string;
+    targetNodeId: string;
+    label?: string;
+  }) => {
+    if (!label) return;
+
+    const edgeId = `${sourceNodeId}-${targetNodeId}`;
+    edges.set(
+      edgeId,
+      createEdge({
+        id: edgeId,
+        source: sourceNodeId,
+        target: targetNodeId,
+        label,
+        type: 'straight',
+        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 },
+      })
+    );
+  };
+
   // Breadth-first traversal over the relationship graph, following each system's
-  // `relationships` to other systems. We visit each system once.
+  // `relationships` to other systems and reverse relationships from other systems.
+  // We visit each system once.
   const visited = new Set<string>();
   const queue: CollectionEntry<'systems'>[] = [...seedSystems];
 
@@ -146,7 +201,7 @@ const buildContextGraphFromSeeds = ({
 
     addSystemNode(system);
 
-    const relationships = (system.data.relationships || []) as { id: string; version?: string; label?: string }[];
+    const relationships = (system.data.relationships || []) as SystemRelationship[];
 
     for (const relationship of relationships) {
       const target = findInMap(systemMap, relationship.id, relationship.version);
@@ -157,23 +212,27 @@ const buildContextGraphFromSeeds = ({
 
       // Only draw an edge when the relationship declares a label. A relationship without a
       // label still pulls the target system into the diagram, but has no edge drawn.
-      if (relationship.label) {
-        const edgeId = `${sourceNodeId}-${targetNodeId}`;
-        edges.set(
-          edgeId,
-          createEdge({
-            id: edgeId,
-            source: sourceNodeId,
-            target: targetNodeId,
-            label: relationship.label,
-            type: 'straight',
-            markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20 },
-          })
-        );
-      }
+      addSystemRelationshipEdge({ sourceNodeId, targetNodeId, label: relationship.label });
 
       if (!visited.has(targetNodeId)) {
         queue.push(target);
+      }
+    }
+
+    const incomingRelationships = incomingRelationshipsByTargetNodeId.get(sourceNodeId) || [];
+    for (const { source, relationship } of incomingRelationships) {
+      const incomingSourceNodeId = addSystemNode(source);
+
+      // Preserve relationship direction: the referring system remains the edge source,
+      // even though this traversal discovered it from the target side.
+      addSystemRelationshipEdge({
+        sourceNodeId: incomingSourceNodeId,
+        targetNodeId: sourceNodeId,
+        label: relationship.label,
+      });
+
+      if (!visited.has(incomingSourceNodeId)) {
+        queue.push(source);
       }
     }
 
