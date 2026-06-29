@@ -1,9 +1,0 @@
-{
-  "transactionId": "txn_f6a7b8c9-6789-abcd-ef01-234567890123",
-  "paymentId": "pay_4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e",
-  "riskScore": 12,
-  "decision": "passed",
-  "reasons": [],
-  "confidence": 0.97,
-  "timestamp": "2024-03-15T10:59:05.118Z"
-}
