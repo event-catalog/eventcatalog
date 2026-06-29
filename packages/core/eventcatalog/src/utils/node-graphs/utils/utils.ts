@@ -325,7 +325,7 @@ export const buildContextMenuForResource = ({
 };
 
 /**
- * Context menu for a system node on the System Context Diagram.
+ * Context menu for a system node on the System Diagram.
  * Offers the system's documentation, its architecture map, and its own context view.
  */
 export const buildContextMenuForSystem = ({ id, version }: { id: string; version: string }): ContextMenuItem[] => {

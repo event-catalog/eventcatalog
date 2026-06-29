@@ -1,0 +1,158 @@
+---
+id: place-an-order
+name: Place an Order
+version: 1.0.0
+summary: |
+  The end-to-end journey from a customer checking out their cart to a confirmed order — spanning the Shopping and Ordering domains, including the checkout saga and its failure path.
+owners:
+  - ordering-platform
+steps:
+  - id: shopper_checks_out
+    title: Shopper checks out
+    actor:
+      name: Shopper
+      summary: The customer confirms their cart and starts checkout.
+    next_step:
+      id: checkout_cart_command
+      label: Check out cart
+
+  - id: checkout_cart_command
+    title: Checkout Cart
+    message:
+      id: checkout-cart
+      version: 1.0.0
+    next_step:
+      id: cart_api
+      label: Price and finalise cart
+
+  - id: cart_api
+    title: Cart API
+    service:
+      id: cart-api
+      version: 1.0.0
+    next_step:
+      id: cart_checked_out
+      label: Publish checkout
+
+  - id: cart_checked_out
+    title: Cart Checked Out
+    message:
+      id: cart-checked-out
+      version: 1.0.0
+    next_step:
+      id: checkout_api
+      label: Start checkout flow
+
+  - id: checkout_api
+    title: Checkout API
+    service:
+      id: checkout-api
+      version: 1.0.0
+    next_step:
+      id: checkout_orchestrator
+      label: Run checkout saga
+
+  - id: checkout_orchestrator
+    title: Checkout Orchestrator
+    service:
+      id: checkout-orchestrator
+      version: 1.0.0
+    next_steps:
+      - id: reserve_inventory
+        label: Reserve inventory
+      - id: authorize_payment
+        label: Authorize payment
+
+  - id: reserve_inventory
+    title: Reserve Inventory
+    message:
+      id: reserve-inventory
+      version: 1.0.0
+    next_step:
+      id: authorize_payment
+      label: Inventory held
+
+  - id: authorize_payment
+    title: Authorize Payment
+    message:
+      id: authorize-payment
+      version: 1.0.0
+    next_steps:
+      - id: create_order
+        label: Payment authorized
+      - id: checkout_failed
+        label: Authorization declined
+
+  - id: create_order
+    title: Create Order
+    message:
+      id: create-order
+      version: 1.0.0
+    next_step:
+      id: order_service
+      label: Persist order
+
+  - id: order_service
+    title: Order Service
+    service:
+      id: order-service
+      version: 1.0.0
+    next_step:
+      id: order_created
+      label: Publish order created
+
+  - id: order_created
+    title: Order Created
+    message:
+      id: order-created
+      version: 1.0.0
+    next_step:
+      id: order_confirmed
+      label: Confirm to customer
+
+  - id: order_confirmed
+    title: Order confirmed
+    custom:
+      title: Order confirmed
+      color: green
+      icon: CheckCircleIcon
+      type: Outcome
+      summary: The customer's order is placed and confirmed. Fulfilment begins.
+      properties:
+        happy_path: 'true'
+
+  - id: checkout_failed
+    title: Checkout failed
+    custom:
+      title: Checkout failed
+      color: red
+      icon: ExclamationTriangleIcon
+      type: Exception
+      summary: A checkout step failed (e.g. payment declined). The orchestrator compensates earlier steps and cancels the order.
+      properties:
+        common_causes: 'payment declined, out of stock'
+        next_action: 'release reservation, void authorization, cancel order'
+    next_step:
+      id: order_cancelled
+      label: Cancel order
+
+  - id: order_cancelled
+    title: Order Cancelled
+    message:
+      id: order-cancelled
+      version: 1.0.0
+---
+
+## Overview
+
+**Place an Order** is the headline business flow at Acme Inc. It begins in the [[domain|shopping]] domain, when a shopper checks out their cart, and finishes in the [[domain|ordering]] domain, with a confirmed order — or a compensated, cancelled one if a step fails.
+
+<NodeGraph />
+
+## How it works
+
+1. The shopper checks out — the [[service|cart-api]] prices the cart and publishes [[event|cart-checked-out]].
+2. The [[service|checkout-api]] picks this up and hands it to the [[service|checkout-orchestrator]].
+3. The orchestrator runs the saga: [[command|reserve-inventory]] then [[command|authorize-payment]].
+4. On success it sends [[command|create-order]] to the [[service|order-service]], which publishes [[event|order-created]].
+5. If any step fails, the orchestrator compensates the earlier steps and the order is cancelled via [[event|order-cancelled]].

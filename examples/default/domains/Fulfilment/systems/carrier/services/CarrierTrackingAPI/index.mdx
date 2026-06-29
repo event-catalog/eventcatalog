@@ -1,0 +1,39 @@
+---
+id: carrier-tracking-api
+version: 1.0.0
+name: Tracking API
+summary: |
+  The carrier's API for reporting delivery progress. It notifies Acme Inc when a shipment is created, delivered, or fails.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - fulfilment-platform
+sends:
+  - id: shipment-created
+    version: 1.0.0
+  - id: shipment-delivered
+    version: 1.0.0
+  - id: shipment-failed
+    version: 1.0.0
+repository:
+  language: External
+  url: 'https://github.com/acme/carrier-integration'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Tracking API** is how the carrier reports delivery progress back to Acme Inc. After a shipment is created via the [[service|carrier-shipping-api]], it emits [[event|shipment-created]], then [[event|shipment-delivered]] on success or [[event|shipment-failed]] if delivery cannot be completed.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Shipment lifecycle events" />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

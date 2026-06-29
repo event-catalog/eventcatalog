@@ -490,6 +490,10 @@ const services = defineCollection({
       'domains/*/subdomains/*/services/*/index.(md|mdx)',
       'domains/*/subdomains/*/services/*/versioned/*/index.(md|mdx)',
 
+      // Capture services inside systems
+      'domains/*/systems/*/services/*/index.(md|mdx)',
+      'domains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
+
       // Capture services in the root
       'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
       'services/*/versioned/*/index.(md|mdx)', // ✅ Capture versioned files inside services
@@ -780,7 +784,7 @@ const domains = defineCollection({
     .extend(baseSchema.shape),
 });
 
-// A relationship from one system to another, used by the System Context Diagram.
+// A relationship from one system to another, used by the System Diagram.
 // Source-declared and one-directional. The `label` describes the edge; a relationship
 // without a label is treated as having no edge (it is skipped when drawing the diagram).
 const systemRelationshipPointer = z.object({

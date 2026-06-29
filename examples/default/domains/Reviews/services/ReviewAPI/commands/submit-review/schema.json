@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SubmitReview",
+  "type": "object",
+  "properties": {
+    "reviewId": { "type": "string", "format": "uuid", "description": "Client-generated id for the review." },
+    "productId": { "type": "string", "description": "The product being reviewed." },
+    "customerId": { "type": "string", "description": "The customer submitting the review." },
+    "rating": { "type": "integer", "minimum": 1, "maximum": 5, "description": "Star rating from 1 to 5." },
+    "title": { "type": "string", "maxLength": 120 },
+    "body": { "type": "string", "maxLength": 5000 },
+    "submittedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["reviewId", "productId", "customerId", "rating", "body", "submittedAt"]
+}

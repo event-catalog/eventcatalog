@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CreateOrder",
+  "description": "Command to create a new order from a checked-out cart",
+  "type": "object",
+  "properties": {
+    "cartId": {
+      "description": "Identifier of the cart this order was created from",
+      "type": "string",
+      "format": "uuid"
+    },
+    "customerId": {
+      "description": "Identifier of the customer placing the order",
+      "type": "string",
+      "format": "uuid"
+    },
+    "items": {
+      "description": "The items in the order",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "unitPrice": {
+            "type": "integer",
+            "description": "Price per unit in minor units (e.g. cents)"
+          }
+        },
+        "required": ["productId", "quantity", "unitPrice"]
+      }
+    },
+    "total": {
+      "description": "Order total in minor units (e.g. cents)",
+      "type": "integer",
+      "minimum": 0
+    },
+    "currency": {
+      "description": "ISO 4217 currency code",
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "paymentAuthorizationId": {
+      "description": "Identifier of the payment authorization for this order",
+      "type": "string"
+    }
+  },
+  "required": ["cartId", "customerId", "items", "total", "currency"]
+}

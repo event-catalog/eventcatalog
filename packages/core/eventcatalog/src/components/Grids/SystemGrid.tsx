@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ServerIcon, GlobeAltIcon, CircleStackIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { ServerIcon, GlobeAltIcon, CircleStackIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { BoxIcon, Group as GroupIcon, Waypoints, Database as DatabaseIcon } from 'lucide-react';
 import { ServiceCard, EntityBadge } from './DomainGrid';
@@ -67,22 +67,6 @@ export default function SystemGrid({ system }: SystemGridProps) {
           <div>
             <h2 className="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</h2>
             {data.summary && <p className="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{data.summary}</p>}
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <a
-              href={buildUrl(`/docs/systems/${data.id}/${data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-page-text-muted))] transition-all"
-            >
-              View docs
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
-            </a>
-            <a
-              href={buildUrl(`/visualiser/systems/${data.id}/${data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 dark:bg-zinc-700 rounded-lg hover:bg-zinc-900 dark:hover:bg-zinc-600 transition-all"
-            >
-              Visualizer
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-zinc-400" />
-            </a>
           </div>
         </div>
       </div>

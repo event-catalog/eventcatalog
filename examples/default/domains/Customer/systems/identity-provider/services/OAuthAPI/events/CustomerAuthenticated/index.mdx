@@ -1,0 +1,29 @@
+---
+id: customer-authenticated
+name: Customer Authenticated
+version: 1.0.0
+summary: |
+  Published when a customer has successfully authenticated.
+owners:
+  - customer-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CustomerAuthenticated` is published by the [[service|oauth-api]] whenever a customer successfully signs in. Other systems consume this event for auditing, session tracking, and security monitoring.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

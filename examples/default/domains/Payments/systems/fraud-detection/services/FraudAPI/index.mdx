@@ -1,0 +1,41 @@
+---
+id: fraud-api
+version: 1.0.0
+name: Fraud API
+summary: |
+  External fraud screening API. It consumes payment requests and returns a pass or fail verdict for each.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - payments-platform
+receives:
+  - id: payment-requested
+    version: 1.0.0
+sends:
+  - id: fraud-check-passed
+    version: 1.0.0
+  - id: fraud-check-failed
+    version: 1.0.0
+repository:
+  language: External
+  url: 'https://github.com/acme/fraud-api'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Fraud API** screens payments for fraud. It consumes [[event|payment-requested]] from the [[system|payment-processing-system]] and returns a verdict — [[event|fraud-check-passed]] or [[event|fraud-check-failed]] — which the Payments domain uses to allow or block the charge.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Fraud verdicts" />
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="Payment requests to screen" />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

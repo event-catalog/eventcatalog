@@ -1,0 +1,66 @@
+---
+id: payments
+name: Payments
+version: 1.0.0
+summary: |
+  The Payments domain takes payment for orders and processes refunds. It orchestrates authorization and capture through an external payment processor, and screens payments for fraud.
+owners:
+  - payments-platform
+systems:
+  - id: payment-processing-system
+    version: 1.0.0
+  - id: stripe
+    version: 1.0.0
+  - id: fraud-detection
+    version: 1.0.0
+badges:
+  - content: Core domain
+    backgroundColor: blue
+    textColor: blue
+    icon: RectangleGroupIcon
+  - content: Business Critical
+    backgroundColor: red
+    textColor: red
+    icon: ShieldCheckIcon
+---
+
+## Overview
+
+The **Payments** domain is responsible for moving money. It authorizes and captures payment for orders, issues refunds, and screens payments for fraud. It owns one internal system and integrates with two external providers:
+
+<Tiles>
+  <Tile
+    icon="CreditCardIcon"
+    href="/docs/systems/payment-processing-system/1.0.0"
+    title="Payment Processing System"
+    description="Orchestrates authorization, capture and refunds for orders."
+  />
+  <Tile
+    icon="BuildingLibraryIcon"
+    href="/docs/systems/stripe/1.0.0"
+    title="Stripe"
+    description="External payment processor that charges cards and issues refunds."
+  />
+  <Tile
+    icon="ShieldExclamationIcon"
+    href="/docs/systems/fraud-detection/1.0.0"
+    title="Fraud Detection"
+    description="External provider that screens payments for fraud."
+  />
+</Tiles>
+
+### How the systems work together
+
+The **Payment Processing System** is the internal orchestrator. When the Ordering domain authorizes a payment, it requests payment via the external **Stripe** system and, in parallel, asks **Fraud Detection** to screen the payment. Stripe reports back whether the payment succeeded or failed, and the Payment Processing System records the outcome.
+
+## System Diagram
+
+The systems in this domain, how they relate, and the people who interact with them.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The components that make up this domain.
+
+<NodeGraph />

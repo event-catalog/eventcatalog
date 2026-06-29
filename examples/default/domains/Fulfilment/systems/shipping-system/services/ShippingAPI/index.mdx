@@ -1,0 +1,35 @@
+---
+id: shipping-api
+version: 1.0.0
+name: Shipping API
+summary: |
+  Receives ready-for-shipping orders, selects a carrier, and kicks off shipment creation.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - fulfilment-platform
+receives:
+  - id: order-ready-for-shipping
+    version: 1.0.0
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/shipping-api'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Shipping API** is the entry point to the Shipping System. It consumes [[event|order-ready-for-shipping]] from the [[system|warehouse-system]], selects an appropriate carrier, and hands off to the [[service|carrier-adapter]] to create the shipment.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="Ready-for-shipping orders" />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

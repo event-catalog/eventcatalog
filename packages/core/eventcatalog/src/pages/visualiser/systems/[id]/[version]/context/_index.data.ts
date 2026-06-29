@@ -3,7 +3,7 @@ import { isAuthEnabled, isVisualiserEnabled } from '@utils/feature';
 import { getSystems } from '@utils/collections/systems';
 
 /**
- * A system participates in the System Context Diagram if it declares relationships
+ * A system participates in the System Diagram if it declares relationships
  * (to other systems) or actors, or if another system declares a relationship
  * pointing at it. Systems with nothing on any side have nothing to show, so we
  * don't generate a page for them.
@@ -64,7 +64,7 @@ export class Page extends HybridPage {
   protected static createNotFoundResponse(): Response {
     return new Response(null, {
       status: 404,
-      statusText: 'System context diagram page not found',
+      statusText: 'System Diagram page not found',
     });
   }
 

@@ -147,7 +147,7 @@ const getColor = (collection: string) => {
   Bridge Astro's view-transition router onto `window` so the standalone
   visualiser package (which can't import `astro:*`) can trigger soft, animated
   client navigations instead of hard page reloads. Used by node "drill-in"
-  clicks (e.g. a system node on the System Context Diagram -> that system's Map).
+  clicks (e.g. a system node on the System Diagram -> that system's Map).
 -->
 <script>
   import { navigate } from 'astro:transitions/client';
@@ -165,7 +165,7 @@ const getColor = (collection: string) => {
   /*
    * "Drill into detail" transition for the visualiser graph container.
    *
-   * Both the System Context Diagram and a system's Map render their graph inside
+   * Both the System Diagram and a system's Map render their graph inside
    * a portal tagged with `transition:name="visualiser-graph"`. When navigating
    * between them, Astro morphs that shared container: the outgoing graph fades
    * and scales back, the incoming graph fades and scales up into place — reading

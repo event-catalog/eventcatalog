@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReleaseInventory",
+  "description": "Command to release a previously held inventory reservation",
+  "type": "object",
+  "properties": {
+    "reservationId": { "type": "string", "format": "uuid" },
+    "reason": {
+      "type": "string",
+      "enum": ["CHECKOUT_FAILED", "ORDER_CANCELLED", "EXPIRED"]
+    }
+  },
+  "required": ["reservationId"]
+}

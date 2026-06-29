@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InventoryUnavailable",
+  "description": "Published when stock could not be reserved for an order",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "cartId": { "type": "string", "format": "uuid" },
+    "unavailableItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": { "type": "string", "format": "uuid" },
+          "requested": { "type": "integer", "minimum": 1 },
+          "available": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["productId", "requested", "available"]
+      }
+    },
+    "checkedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["unavailableItems", "checkedAt"]
+}

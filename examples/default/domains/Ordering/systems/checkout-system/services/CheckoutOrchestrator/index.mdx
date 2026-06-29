@@ -1,0 +1,54 @@
+---
+id: checkout-orchestrator
+version: 1.0.0
+name: Checkout Orchestrator
+summary: |
+  Runs the checkout saga. Reserves inventory, authorizes payment and creates the order, coordinating the steps that turn a checked-out cart into a confirmed order.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - ordering-platform
+sends:
+  - id: reserve-inventory
+    version: 1.0.0
+  - id: authorize-payment
+    version: 1.0.0
+  - id: create-order
+    version: 1.0.0
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/checkout-orchestrator'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Checkout Orchestrator** is the brain of the Checkout System. Once the [[service|checkout-api]] hands it a checkout, it runs the checkout saga step by step:
+
+1. **Reserve inventory** — sends [[command|reserve-inventory]] to hold stock for the cart's items.
+2. **Authorize payment** — sends [[command|authorize-payment]] to authorize the order total.
+3. **Create the order** — sends [[command|create-order]] to the [[system|order-management-system]].
+
+If any step fails, the orchestrator compensates the earlier steps (releasing the reservation, voiding the authorization) so the customer is never left in an inconsistent state.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Reserve inventory, authorize payment, create order" />
+</Tiles>
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Inventory | Reserves stock via [[command\|reserve-inventory]]. |
+| Payment | Authorizes the order total via [[command\|authorize-payment]]. |
+| Order creation | Creates the order via [[command\|create-order]] against the [[system\|order-management-system]]. |
+| Compensation | Rolls back earlier steps if a later step fails. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

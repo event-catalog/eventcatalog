@@ -202,7 +202,9 @@ export const buildServiceNode = (
       },
       hasFlows && {
         type: 'group',
-        title: 'Flows',
+        // If the service declares its own flows it owns them ("Flows"); otherwise it is
+        // only referenced as a step in someone else's flow ("Appears in flows").
+        title: serviceFlows.length > 0 ? 'Flows' : 'Appears in flows',
         icon: 'Waypoints',
         pages: serviceFlowRefs,
       },

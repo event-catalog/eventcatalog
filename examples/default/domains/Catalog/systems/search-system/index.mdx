@@ -11,6 +11,9 @@ services:
   - id: search-indexer
 containers:
   - id: search-index
+flows:
+  - id: product-search-indexing
+    version: 1.0.0
 relationships:
   - id: product-catalog-system
     label: indexes product changes from
@@ -40,7 +43,7 @@ How this system relates to the other systems around it.
 
 <ContextDiagram />
 
-## Component Diagram
+## Resource Diagram
 
 The services, data stores and messages that make up this system.
 

@@ -1,0 +1,29 @@
+---
+id: order-ready-for-shipping
+name: Order Ready For Shipping
+version: 1.0.0
+summary: |
+  Published when a packed order is ready to be handed to a carrier for shipping.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderReadyForShipping` is published by the [[service|warehouse-service]] once an order has been packed. The [[system|shipping-system]] consumes it to create a shipment with a carrier.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

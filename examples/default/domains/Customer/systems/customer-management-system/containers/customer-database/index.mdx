@@ -1,0 +1,43 @@
+---
+id: customer-database
+name: Customer Database
+version: 1.0.0
+summary: PostgreSQL database that is the system of record for all customer profile data.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for customer profiles
+classification: confidential
+retention: indefinite
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Customer Database** is the authoritative store for every customer profile at Acme Inc. The [[service|customer-api]] reads from and writes to it. It stores profile data only — credentials and authentication live in the [[system|identity-provider]]'s [[container|user-directory]], not here.
+
+### What does it store?
+
+- **Customers** — one row per customer: id, email, name and account status.
+
+### Schema
+
+<AccordionGroup>
+  <Accordion title="Customer Database schema">
+    <Schema file="schema.sql" lang="sql" title="schema.sql" />
+  </Accordion>
+</AccordionGroup>
+
+### Access patterns
+
+- The [[service|customer-api]] is the only writer on the request path.
+- No credentials or passwords are stored here — only profile data. Authentication is owned by the [[system|identity-provider]].
+
+### Classification
+
+Customer profile data is **confidential**. Access is role-based and least-privilege; PII handling follows Acme's data policies.

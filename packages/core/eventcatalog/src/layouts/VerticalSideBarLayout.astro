@@ -5,6 +5,9 @@ interface Props {
   description?: string;
   showNestedSideBar?: boolean;
   showHeader?: boolean;
+  // When true, the main content uses a reduced horizontal padding instead of the
+  // default 5rem. Used by wide pages such as the custom landing page.
+  reducedContentPadding?: boolean;
 }
 
 import {
@@ -369,7 +372,7 @@ const settingsItems = filterSidebarItems(
 );
 
 const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...premiumFeatures].find((item) => item.current);
-const { title, description, showNestedSideBar = true, showHeader = true } = Astro.props;
+const { title, description, showNestedSideBar = true, showHeader = true, reducedContentPadding = false } = Astro.props;
 
 const canPageBeEmbedded = isEmbedEnabled();
 const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/docs', true)];
@@ -432,6 +435,10 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         margin-right: auto;
         padding-left: var(--ec-app-content-padding-left);
         padding-right: var(--ec-app-content-padding-right);
+      }
+      .app-content-wrapper--reduced-padding {
+        --ec-app-content-padding-left: 2rem;
+        --ec-app-content-padding-right: 2rem;
       }
       .app-shell {
         min-height: calc(100vh - 4rem);
@@ -758,7 +765,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
           Astro.slots.has('sidebar-content') ? (
             <slot />
           ) : (
-            <div class="app-content-wrapper">
+            <div class={`app-content-wrapper ${reducedContentPadding ? 'app-content-wrapper--reduced-padding' : ''}`}>
               <slot />
             </div>
           )

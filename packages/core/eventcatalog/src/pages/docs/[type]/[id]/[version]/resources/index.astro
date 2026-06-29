@@ -1,0 +1,85 @@
+---
+import Footer from '@layouts/Footer.astro';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { buildUrl } from '@utils/url-builder';
+import {
+  SystemResourcesTable,
+  type SystemResourceItem,
+  type SystemResourceCollection,
+} from '@components/Tables/SystemResources/SystemResourcesTable';
+
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+const resourceOwner = await Page.getData(Astro);
+const { data } = resourceOwner;
+const ownerCollection = resourceOwner.collection as 'systems' | 'domains';
+
+// Domain-level messages come from the domain's own `sends` (Domain Events) and
+// `receives` (External Events). Each resolved entry already carries its own
+// collection (events / commands / queries). Dedupe across sends + receives.
+const messageEntries = (() => {
+  const seen = new Map<string, any>();
+  for (const message of [...(data.sends || []), ...(data.receives || [])]) {
+    if (!message?.data?.id || !message?.collection) continue;
+    seen.set(`${message.collection}:${message.data.id}:${message.data.version}`, message);
+  }
+  return Array.from(seen.values());
+})();
+
+const messagesByCollection = (collection: SystemResourceCollection) =>
+  messageEntries.filter((message: any) => message.collection === collection);
+
+// Only show resources that are directly attached to the system/domain — not resources
+// nested further downstream. Domains can't hold containers directly, so a domain's
+// Resources page shows services, flows, entities and its own messages.
+const resourceGroups: Array<{ collection: SystemResourceCollection; items: any[] }> = [
+  { collection: 'services', items: data.services || [] },
+  { collection: 'flows', items: data.flows || [] },
+  { collection: 'entities', items: data.entities || [] },
+  { collection: 'containers', items: data.containers || [] },
+  { collection: 'events', items: messagesByCollection('events') },
+  { collection: 'commands', items: messagesByCollection('commands') },
+  { collection: 'queries', items: messagesByCollection('queries') },
+];
+
+const hrefForResource = (collection: SystemResourceCollection, id: string, version: string) => {
+  if (collection === 'entities') {
+    return buildUrl(`/docs/entities/${id}/${version}`);
+  }
+  return buildUrl(`/docs/${collection}/${id}/${version}`);
+};
+
+const resources: SystemResourceItem[] = resourceGroups.flatMap(({ collection, items }) =>
+  items.map((item: any) => ({
+    collection,
+    id: item.data.id,
+    name: item.data.name || item.data.id,
+    version: item.data.version,
+    summary: item.data.summary,
+    icon: item.data?.styles?.icon,
+    href: hrefForResource(collection, item.data.id, item.data.version),
+  }))
+);
+---
+
+<VerticalSideBarLayout title={`${data.name} | Resources`}>
+  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]">
+    <div class="flex docs-layout w-full">
+      <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] pb-4">
+          <h2 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name} Resources</h2>
+          <h2 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">
+            A group of resources that are mapped to the {data.name} {ownerCollection === 'domains' ? 'domain' : 'system'}.
+          </h2>
+        </div>
+
+        <div class="py-8 w-full">
+          <SystemResourcesTable resources={resources} client:only="react" />
+        </div>
+      </div>
+    </div>
+  </main>
+</VerticalSideBarLayout>

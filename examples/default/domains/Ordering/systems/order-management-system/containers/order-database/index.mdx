@@ -1,0 +1,39 @@
+---
+id: order-database
+name: Order Database
+version: 1.0.0
+summary: PostgreSQL database that is the system of record for orders and their items.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for orders
+classification: confidential
+retention: 7y
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Order Database** is the authoritative store for orders at Acme Inc. The [[service|order-service]] reads from and writes to it as orders are created, cancelled and completed.
+
+### What does it store?
+
+- **Orders** — one row per order: id, customer, status, total and timestamps.
+- **Order Items** — one row per item in an order: product, quantity and unit price.
+
+### Schema
+
+<AccordionGroup>
+  <Accordion title="Order Database schema">
+    <Schema file="schema.sql" lang="sql" title="schema.sql" />
+  </Accordion>
+</AccordionGroup>
+
+### Retention
+
+Orders are financial records and are retained for **7 years** (see frontmatter) to meet accounting and audit requirements.

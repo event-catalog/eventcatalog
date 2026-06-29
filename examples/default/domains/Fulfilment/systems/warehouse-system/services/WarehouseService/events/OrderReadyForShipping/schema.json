@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderReadyForShipping",
+  "description": "Published when a packed order is ready to be handed to a carrier",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "customerId": { "type": "string", "format": "uuid" },
+    "parcelCount": { "type": "integer", "minimum": 1 },
+    "shippingAddress": {
+      "type": "object",
+      "properties": {
+        "line1": { "type": "string" },
+        "city": { "type": "string" },
+        "postcode": { "type": "string" },
+        "country": { "type": "string", "pattern": "^[A-Z]{2}$" }
+      },
+      "required": ["line1", "city", "postcode", "country"]
+    },
+    "readyAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["orderId", "shippingAddress", "readyAt"]
+}

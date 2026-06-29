@@ -870,7 +870,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const adrsList = createLeaf(adrs, {
     type: 'item',
     title: 'Decision Records',
-    icon: 'BookText',
+    icon: 'ClipboardList',
     pages: groupAdrsByStatus(adrs),
   });
 
@@ -1029,10 +1029,22 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     peopleList,
   ];
 
+  // The Browse list leads with the resources people reach for most — Domains,
+  // Systems, Services then Messages — and falls back to A-Z for everything else.
+  const browseOrderPriority = ['list:domains', 'list:systems', 'list:services', 'list:messages'];
+  const browseRank = (key: string) => {
+    const index = browseOrderPriority.indexOf(key);
+    return index === -1 ? browseOrderPriority.length : index;
+  };
+
   const validAllChildren = allChildrenKeys
     .map((key, idx) => ({ key, node: allChildrenNodes[idx] }))
     .filter((item): item is { key: string; node: NavNode } => item.node !== undefined)
-    .sort((a, b) => a.node.title.localeCompare(b.node.title))
+    .sort((a, b) => {
+      const rankDifference = browseRank(a.key) - browseRank(b.key);
+      if (rankDifference !== 0) return rankDifference;
+      return a.node.title.localeCompare(b.node.title);
+    })
     .map((item) => item.key);
 
   let allList;
@@ -1085,6 +1097,16 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
           title: 'Domain Map',
           href: buildUrl('/visualiser/domain-integrations'),
         },
+        // Global context map across every system in the catalog.
+        ...(systems.length > 0
+          ? [
+              {
+                type: 'item' as const,
+                title: 'System Context Map',
+                href: buildUrl('/visualiser/system-context-map'),
+              },
+            ]
+          : []),
       ],
     };
   }

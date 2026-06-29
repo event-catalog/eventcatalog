@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { ChevronRight, ChevronLeft, ChevronDown, Home, Star, FileQuestion } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, Home, Star } from 'lucide-react';
 import type { NavNode, ChildRef } from '@stores/sidebar-store/state';
 import { saveState, loadState, saveCollapsedSections, loadCollapsedSections } from './storage';
 import { useStore } from '@nanostores/react';
@@ -219,7 +219,7 @@ export default function NestedSideBar() {
         { pattern: /^\/visualiser\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
         { pattern: /^\/architecture\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
         // Systems (key prefix is `system`, url segment is `systems`).
-        // The visualiser pattern also matches the System Context Diagram
+        // The visualiser pattern also matches the System Diagram
         // (/visualiser/systems/:id/:version/context) since it is not end-anchored.
         { pattern: /^\/docs\/systems\/([^/]+)\/([^/]+)/, type: 'system' },
         { pattern: /^\/visualiser\/systems\/([^/]+)\/([^/]+)/, type: 'system' },
@@ -591,6 +591,19 @@ export default function NestedSideBar() {
   };
 
   /**
+   * Count entries that actually resolve to a visible node. Some refs (e.g. unresolved
+   * `list:` aliases on an empty catalog) sit in `entries` but render nothing — those
+   * must not count, otherwise the empty state is suppressed and the rail looks blank.
+   * Mirrors the filtering in `renderEntries`.
+   */
+  const hasVisibleEntries = currentLevel.entries.some((ref) => {
+    const node = resolveRef(ref);
+    if (!isVisible(node)) return false;
+    if (isGroup(node!)) return hasVisibleChildren(node!);
+    return true;
+  });
+
+  /**
    * Handle drilling down into an item with children
    */
   const handleDrillDown = (node: NavNode, nodeKey: string | null) => {
@@ -740,17 +753,17 @@ export default function NestedSideBar() {
         const child = resolveRef(childRef);
         return child && isVisible(child);
       }) ?? [];
-    const shouldFlattenSubtleChildren =
-      !isSubtleGroup &&
-      visibleChildren.length > 0 &&
-      visibleChildren.every((childRef) => {
-        const child = resolveRef(childRef);
-        return !!child && isGroup(child) && child.subtle === true;
-      });
 
     const groupId = groupKey || `group-${index}`;
     const canCollapse = visibleChildren.length > 3;
     const isCollapsed = collapsedSections.has(groupId);
+
+    // When a group's children are subtle subgroups (e.g. Resources > Services/Flows/Data Stores),
+    // they render flush under the parent icon instead of inside the indented border guide.
+    const hasSubtleChildren = visibleChildren.some((childRef) => {
+      const child = resolveRef(childRef);
+      return child && isGroup(child) && child.subtle === true;
+    });
 
     const headerContent = (
       <>
@@ -758,19 +771,19 @@ export default function NestedSideBar() {
           {GroupIcon && (
             <span
               className={cn(
-                'flex items-center justify-center',
+                'flex items-center justify-center w-5 h-5 rounded',
                 isSubtleGroup
-                  ? 'w-4 h-4 text-[rgb(var(--ec-content-text-muted))]'
-                  : 'w-5 h-5 rounded bg-[rgb(var(--ec-group-icon-bg))] text-[rgb(var(--ec-group-icon-text))]'
+                  ? 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-content-text-muted))]'
+                  : 'bg-[rgb(var(--ec-group-icon-bg))] text-[rgb(var(--ec-group-icon-text))]'
               )}
             >
-              <GroupIcon className={cn(isSubtleGroup ? 'w-3 h-3' : 'w-3 h-3')} />
+              <GroupIcon className="w-3 h-3" />
             </span>
           )}
           <span
             className={cn(
               isSubtleGroup
-                ? 'text-[10px] font-semibold uppercase tracking-[0.12em] text-[rgb(var(--ec-content-text-muted))]'
+                ? 'text-[9px] font-semibold uppercase tracking-[0.1em] text-[rgb(var(--ec-content-text-muted))]'
                 : 'text-[12px] font-semibold tracking-tight text-[rgb(var(--ec-content-text))]'
             )}
           >
@@ -797,14 +810,14 @@ export default function NestedSideBar() {
             className={cn(
               'flex items-center justify-between w-full rounded-md transition-colors cursor-pointer',
               isSubtleGroup
-                ? 'px-1.5 py-1 hover:bg-[rgb(var(--ec-content-hover))]/60'
+                ? 'px-2 py-1 hover:bg-[rgb(var(--ec-content-hover))]/60'
                 : 'px-2 py-1.5 hover:bg-[rgb(var(--ec-content-hover))]'
             )}
           >
             {headerContent}
           </button>
         ) : (
-          <div className={cn('flex items-center justify-between', isSubtleGroup ? 'px-1.5 py-1' : 'px-2 py-1.5')}>
+          <div className={cn('flex items-center justify-between', isSubtleGroup ? 'px-2 py-1' : 'px-2 py-1.5')}>
             {headerContent}
           </div>
         )}
@@ -812,7 +825,7 @@ export default function NestedSideBar() {
           <div
             className={cn(
               'flex flex-col gap-0.5 border-[rgb(var(--ec-content-border))]',
-              isSubtleGroup ? 'mt-0.5' : shouldFlattenSubtleChildren ? 'mt-1' : 'border-l ml-4 mt-1'
+              isSubtleGroup ? 'border-l ml-4 mt-1' : hasSubtleChildren ? 'mt-1' : 'border-l ml-4 mt-1'
             )}
           >
             {visibleChildren.map((childRef, childIndex) => {
@@ -828,19 +841,16 @@ export default function NestedSideBar() {
                 return (
                   <div
                     key={`nested-group-${childKey || childIndex}`}
-                    className={cn(
-                      child.subtle
-                        ? shouldFlattenSubtleChildren
-                          ? 'ml-5 mt-0.5'
-                          : 'ml-1.5 mt-1 pl-1.5'
-                        : 'ml-3 mt-1.5 pl-3 border-l border-[rgb(var(--ec-content-border))]'
-                    )}
+                    className={cn(child.subtle ? 'mt-1' : 'ml-3 mt-1.5 pl-3 border-l border-[rgb(var(--ec-content-border))]')}
                   >
                     {renderGroup(child, childKey, childIndex)}
                   </div>
                 );
               }
-              return renderItem(child, childKey, childIndex);
+              // Inside a subtle subgroup (e.g. a domain's Resources > Services list) the
+              // section header already conveys the resource type, so suppress the default
+              // per-item icon and only keep a custom icon if one is defined.
+              return renderItem(child, childKey, childIndex, isSubtleGroup);
             })}
           </div>
         )}
@@ -851,14 +861,22 @@ export default function NestedSideBar() {
   /**
    * Render a single item
    */
-  const renderItem = (item: NavNode, itemKey: string | null, index: number) => {
+  const renderItem = (item: NavNode, itemKey: string | null, index: number, suppressDefaultIcon = false) => {
     const itemHasChildren = hasChildren(item);
     const isActive = urlsMatch(item.href, currentPath) || (itemKey !== null && itemKey === activeNodeKey);
     const isFav = isFavorited(itemKey);
     const canFavorite = itemKey !== null; // Only items with keys can be favorited
 
-    // Get icon component from lucide-react
-    const IconComponent = item.icon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[item.icon] : null;
+    // Get icon component from lucide-react. When suppressDefaultIcon is set (e.g. items
+    // listed under a typed subtle subgroup) the default per-collection glyph is hidden;
+    // a custom icon (item.leftIcon) is always still shown.
+    const IconComponent =
+      item.icon && !suppressDefaultIcon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[item.icon] : null;
+    // Some glyphs fill their box more than others, so they read larger at the shared
+    // item size. Render these ~25% smaller (matching the ADR icon) to visually balance:
+    // ClipboardList (ADRs) and the message glyphs (events/commands/queries).
+    const smallerIcons = ['ClipboardList', 'Zap', 'MessageSquare', 'Search', 'Mail'];
+    const iconSizeClass = item.icon && smallerIcons.includes(item.icon) ? 'w-3 h-3' : 'w-4 h-4';
 
     const handleStarClick = (e: React.MouseEvent) => {
       e.preventDefault();
@@ -876,7 +894,7 @@ export default function NestedSideBar() {
                 isActive ? 'text-[rgb(var(--ec-accent-text))]' : 'text-[rgb(var(--ec-content-text-muted))]'
               )}
             >
-              <IconComponent className="w-4 h-4" />
+              <IconComponent className={iconSizeClass} />
             </span>
           )}
           {item.leftIcon && <img src={resolveIconUrl(item.leftIcon)} alt="" loading="lazy" className="w-4 h-4 flex-shrink-0" />}
@@ -1189,19 +1207,25 @@ export default function NestedSideBar() {
         )}
 
         {/* Empty State */}
-        {currentLevel.entries.length === 0 && favorites.length === 0 && (
-          <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-            <div className="mb-4 p-3 rounded-full bg-[rgb(var(--ec-group-icon-bg))]">
-              <FileQuestion className="w-8 h-8 text-[rgb(var(--ec-icon-color))]" />
-            </div>
-            <h3 className="text-[12px] font-semibold text-[rgb(var(--ec-content-text))] mb-2">Your catalog is empty</h3>
-            <p className="text-[11px] text-[rgb(var(--ec-content-text-muted))] leading-relaxed max-w-[240px]">
-              Navigation will appear here when you add resources to your EventCatalog.
+        {!hasVisibleEntries && favorites.length === 0 && (
+          <div className="flex min-h-full flex-col items-center justify-center p-8 text-center">
+            <h3 className="mb-1 text-sm font-semibold text-[rgb(var(--ec-page-text))]">Your catalog is empty</h3>
+            <p className="max-w-[220px] text-sm font-light leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
+              Navigation will appear here when you add resources.{' '}
+              <a
+                href="https://www.eventcatalog.dev/docs/tutorial/install-eventcatalog"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-[rgb(var(--ec-accent))] hover:underline"
+              >
+                Add your first resource
+              </a>
+              .
             </p>
           </div>
         )}
 
-        {currentLevel.entries.length > 0 && renderEntries(currentLevel.entries)}
+        {hasVisibleEntries && renderEntries(currentLevel.entries)}
       </nav>
 
       {/* Animation keyframes */}

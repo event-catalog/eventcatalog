@@ -1,0 +1,49 @@
+---
+id: promotion-service
+version: 1.0.0
+name: Promotion Service
+summary: |
+  Evaluates promotion rules and calculates the discount that applies to a cart. Receives discount requests and publishes the calculated result.
+styles:
+  icon: /icons/languages/go.svg
+owners:
+  - shopping-platform
+receives:
+  - id: calculate-discount
+    version: 1.0.0
+sends:
+  - id: discount-calculated
+    version: 1.0.0
+readsFrom:
+  - id: promotion-database
+repository:
+  language: Go
+  url: 'https://github.com/acme/promotion-service'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Promotion Service** is the heart of the Promotion System. It receives [[command|calculate-discount]] requests from the [[system|cart-system]], evaluates the applicable rules from the [[container|promotion-database]], and publishes a [[event|discount-calculated]] event with the result.
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} message`} description="The calculated discount, published as an event" />
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="Discount calculation requests" />
+</Tiles>
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Discount calculation | Handles [[command\|calculate-discount]] and evaluates promotion rules. |
+| Rules | Reads promotion and discount rules from the [[container\|promotion-database]]. |
+| Event publishing | Emits [[event\|discount-calculated]] with the calculated result. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={4} />
+
+<Footer />

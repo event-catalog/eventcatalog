@@ -1,0 +1,101 @@
+---
+id: checkout-saga
+name: Checkout Saga
+version: 1.0.0
+summary: |
+  How the Checkout Orchestrator turns a checked-out cart into an order — reserving inventory, authorizing payment and creating the order, with compensation when a step fails.
+owners:
+  - ordering-platform
+steps:
+  - id: cart_checked_out
+    title: Cart Checked Out
+    message:
+      id: cart-checked-out
+      version: 1.0.0
+    next_step:
+      id: checkout_api
+      label: Receive checkout
+
+  - id: checkout_api
+    title: Checkout API
+    service:
+      id: checkout-api
+      version: 1.0.0
+    next_step:
+      id: orchestrator
+      label: Start saga
+
+  - id: orchestrator
+    title: Checkout Orchestrator
+    service:
+      id: checkout-orchestrator
+      version: 1.0.0
+    next_step:
+      id: reserve_inventory
+      label: Step 1 — reserve inventory
+
+  - id: reserve_inventory
+    title: Reserve Inventory
+    message:
+      id: reserve-inventory
+      version: 1.0.0
+    next_steps:
+      - id: authorize_payment
+        label: Reserved
+      - id: compensate_release
+        label: Out of stock
+
+  - id: authorize_payment
+    title: Authorize Payment
+    message:
+      id: authorize-payment
+      version: 1.0.0
+    next_steps:
+      - id: create_order
+        label: Authorized
+      - id: compensate_release
+        label: Declined
+
+  - id: create_order
+    title: Create Order
+    message:
+      id: create-order
+      version: 1.0.0
+    next_step:
+      id: saga_complete
+      label: Order created
+
+  - id: saga_complete
+    title: Saga complete
+    custom:
+      title: Saga complete
+      color: green
+      icon: CheckCircleIcon
+      type: Outcome
+      summary: Inventory reserved, payment authorized and order created. The saga succeeds.
+
+  - id: compensate_release
+    title: Compensate
+    custom:
+      title: Compensate and abort
+      color: red
+      icon: ArrowUturnLeftIcon
+      type: Compensation
+      summary: A step failed. The orchestrator releases any reservation and voids any authorization, then aborts the saga without creating an order.
+      properties:
+        actions: 'release reservation, void authorization'
+---
+
+## Overview
+
+The **Checkout Saga** is the heart of the [[system|checkout-system]]. It coordinates the steps that turn a checked-out cart into a confirmed order. Each step has a compensating action so a failure never leaves the customer in an inconsistent state.
+
+<NodeGraph />
+
+## Steps
+
+1. **Reserve inventory** — [[command|reserve-inventory]] holds stock for the cart's items.
+2. **Authorize payment** — [[command|authorize-payment]] places a hold on the order total.
+3. **Create order** — [[command|create-order]] persists the order in the [[system|order-management-system]].
+
+If reservation or authorization fails, the orchestrator **compensates** — releasing the reservation and voiding the authorization — and aborts without creating an order.

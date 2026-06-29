@@ -128,7 +128,7 @@ vi.mock('astro:content', async (importOriginal) => {
   };
 });
 
-const buildDomainQuickReferenceSection = (resource: any, includeUbiquitousLanguage = false) => {
+const buildDomainQuickReferenceSection = (resource: any, includeUbiquitousLanguage = false, includeResources = false) => {
   return {
     type: 'group',
     title: 'Quick Reference',
@@ -138,6 +138,11 @@ const buildDomainQuickReferenceSection = (resource: any, includeUbiquitousLangua
         type: 'item',
         title: 'Overview',
         href: `/docs/${resource.collection}/${resource.data.id}/${resource.data.version}`,
+      },
+      includeResources && {
+        type: 'item',
+        title: 'Domain Resources',
+        href: `/docs/domains/${resource.data.id}/${resource.data.version}/resources`,
       },
       includeUbiquitousLanguage && {
         type: 'item',
@@ -150,6 +155,13 @@ const buildDomainQuickReferenceSection = (resource: any, includeUbiquitousLangua
 
 const getChildNodeByTitle = (title: string, pages: any[]) => {
   return pages.find((child: any) => child.title === title);
+};
+
+// Find a subtle subsection (e.g. Services / Flows / Entities) nested inside the
+// top-level "Resources" group of a system/domain node.
+const getResourceSubsection = (title: string, pages: any[]) => {
+  const resources = pages.find((child: any) => child.title === 'Resources');
+  return (resources?.pages ?? []).find((child: any) => child.title === title);
 };
 
 expect.extend({
@@ -210,10 +222,12 @@ describe('getNestedSideBarData', () => {
           type: 'item',
           title: 'Shipping',
           badge: 'Domain',
-          icon: 'Boxes',
           pages: expect.arrayContaining([buildDomainQuickReferenceSection(domain)]),
         })
       );
+      // A domain without a custom icon gets no default icon in the sidebar.
+      expect(domainNode.icon).toBeUndefined();
+      expect(domainNode.leftIcon).toBeUndefined();
     });
 
     it('uses the domain style icon when one is configured', async () => {
@@ -331,6 +345,21 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
       const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
       expect(browseNode.pages).toEqual(['list:domains', 'list:services']);
+    });
+
+    it('leads the browse section with Domains, Systems, Services then Messages before the rest alphabetically', async () => {
+      const { writeDomain, writeService, writeEvent, writeEntity } = utils(CATALOG_FOLDER);
+      await writeDomain({ id: 'Shipping', name: 'Shipping', version: '0.0.1', markdown: 'Shipping' });
+      await writeService({ id: 'ShippingService', name: 'ShippingService', version: '0.0.1', markdown: 'ShippingService' });
+      await writeEvent({ id: 'OrderPlaced', name: 'OrderPlaced', version: '0.0.1', markdown: 'OrderPlaced' });
+      await writeEntity({ id: 'Order', name: 'Order', version: '0.0.1', markdown: 'Order' });
+
+      const navigationData = await getNestedSideBarData();
+      const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
+
+      // Domains, Services and Messages lead in their fixed priority order; the
+      // remainder (here just Entities) follows alphabetically.
+      expect(browseNode.pages).toEqual(['list:domains', 'list:services', 'list:messages', 'list:entities']);
     });
 
     it('orders browse resources by name', async () => {
@@ -506,16 +535,24 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
       const systemNode = getNavigationConfigurationByKey('system:CoreMonolith:1.0.0', navigationData);
 
-      const servicesSection = (systemNode.pages as any[])?.find((p: any) => p.title === 'Services');
+      const servicesSection = getResourceSubsection('Services', systemNode.pages ?? []);
       expect(servicesSection).toMatchObject({
         type: 'group',
         title: 'Services',
         icon: 'Server',
         pages: ['service:OrdersService:1.0.0'],
       });
+
+      // A system with resources gets the System Resources quick-reference link.
+      const quickReference = getChildNodeByTitle('Quick Reference', systemNode.pages ?? []);
+      expect(quickReference.pages).toContainEqual({
+        type: 'item',
+        title: 'System Resources',
+        href: '/docs/systems/CoreMonolith/1.0.0/resources',
+      });
     });
 
-    it('lists an Architecture section with Overview and System Diagram links for the system', async () => {
+    it('lists an Architecture section with Overview and Resource Diagram links for the system', async () => {
       mockSystems.push({
         id: 'CoreMonolith',
         name: 'Core Monolith',
@@ -539,7 +576,7 @@ describe('getNestedSideBarData', () => {
           },
           {
             type: 'item',
-            title: 'System Diagram',
+            title: 'Resource Diagram',
             href: '/visualiser/systems/CoreMonolith/1.0.0',
           },
         ],
@@ -566,7 +603,7 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
       const systemNode = getNavigationConfigurationByKey('system:CoreMonolith:1.0.0', navigationData);
 
-      const flowsSection = getChildNodeByTitle('Flows', systemNode.pages ?? []);
+      const flowsSection = getResourceSubsection('Flows', systemNode.pages ?? []);
       expect(flowsSection).toMatchObject({
         type: 'group',
         title: 'Flows',
@@ -845,7 +882,37 @@ describe('getNestedSideBarData', () => {
     });
 
     describe('Architecture section', () => {
-      it('the overview and map links are always listed in the navigation item', async () => {
+      it('lists the Overview and Resource Diagram links when the domain has resources to draw', async () => {
+        const { writeDomain, writeService } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          services: [{ id: 'ShippingService', version: '0.0.1' }],
+        });
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        expect(domainNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Resource Diagram',
+          href: '/visualiser/domains/Shipping/0.0.1',
+        });
+        expect(domainNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Overview',
+          href: '/architecture/domains/Shipping/0.0.1',
+        });
+      });
+
+      it('does not list the Resource Diagram link when the domain has no resources to draw', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
         await writeDomain({
           id: 'Shipping',
@@ -856,11 +923,12 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        expect(domainNode).toHaveNavigationLink({
+        expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Resource Diagram',
           href: '/visualiser/domains/Shipping/0.0.1',
         });
+        // The Architecture Overview link is always present.
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
@@ -884,7 +952,7 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Resource Diagram',
           href: '/visualiser/domains/Shipping/0.0.1',
         });
 
@@ -892,7 +960,7 @@ describe('getNestedSideBarData', () => {
         config.visualiser.enabled = true;
       });
 
-      it('the entity map link is only listed if the domain has entities', async () => {
+      it('the entity diagram link is only listed if the domain has entities', async () => {
         const { writeDomain, writeEntity } = utils(CATALOG_FOLDER);
         await writeDomain({
           id: 'Shipping',
@@ -912,7 +980,7 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Entity Map',
+          title: 'Entity Diagram',
           href: '/visualiser/domains/Shipping/0.0.1/entity-map',
         });
       });
@@ -966,7 +1034,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', domainNode.pages ?? []);
+        const flowsSection = getResourceSubsection('Flows', domainNode.pages ?? []);
         expect(flowsSection).toBeUndefined();
       });
     });
@@ -991,7 +1059,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const entitiesSection = getChildNodeByTitle('Entities', domainNode.pages ?? []);
+        const entitiesSection = getResourceSubsection('Entities', domainNode.pages ?? []);
         expect(entitiesSection.pages).toEqual([{ type: 'item', title: 'Order', href: '/docs/entities/Order/0.0.1' }]);
       });
 
@@ -1019,7 +1087,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const entitiesSection = getChildNodeByTitle('Entities', domainNode.pages ?? []);
+        const entitiesSection = getResourceSubsection('Entities', domainNode.pages ?? []);
         expect(entitiesSection).toBeUndefined();
       });
 
@@ -1033,7 +1101,7 @@ describe('getNestedSideBarData', () => {
         });
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const entitiesSection = getChildNodeByTitle('Entities', domainNode.pages ?? []);
+        const entitiesSection = getResourceSubsection('Entities', domainNode.pages ?? []);
         expect(entitiesSection).toBeUndefined();
       });
     });
@@ -1184,7 +1252,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const servicesInDomainSection = getChildNodeByTitle('Services In Domain', domainNode.pages ?? []);
+        const servicesInDomainSection = getResourceSubsection('Services', domainNode.pages ?? []);
         expect(servicesInDomainSection).toBeUndefined();
       });
 
@@ -1225,7 +1293,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const servicesInDomainSection = getChildNodeByTitle('Services In Domain', domainNode.pages ?? []);
+        const servicesInDomainSection = getResourceSubsection('Services', domainNode.pages ?? []);
 
         expect(servicesInDomainSection.pages).toEqual(['service:ShippingService:0.0.1']);
       });
@@ -1264,7 +1332,7 @@ describe('getNestedSideBarData', () => {
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
 
-        const servicesInDomainSection = getChildNodeByTitle('Services In Domain', domainNode.pages ?? []);
+        const servicesInDomainSection = getResourceSubsection('Services', domainNode.pages ?? []);
         const externalIntegrationsSection = getChildNodeByTitle('External Integrations', domainNode.pages ?? []);
 
         expect(servicesInDomainSection.pages).toEqual(['service:ShippingService:0.0.1']);
@@ -1595,7 +1663,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const domainEventsSection = getChildNodeByTitle('Domain Events', domainNode.pages ?? []);
+        const domainEventsSection = getResourceSubsection('Domain Events', domainNode.pages ?? []);
         expect(domainEventsSection).toBeUndefined();
       });
 
@@ -1625,7 +1693,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const domainEventsSection = getChildNodeByTitle('Domain Events', domainNode.pages ?? []);
+        const domainEventsSection = getResourceSubsection('Domain Events', domainNode.pages ?? []);
         expect(domainEventsSection).toBeUndefined();
       });
 
@@ -1649,7 +1717,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const domainEventsSection = getChildNodeByTitle('Domain Events', domainNode.pages ?? []);
+        const domainEventsSection = getResourceSubsection('Domain Events', domainNode.pages ?? []);
         expect(domainEventsSection.pages).toEqual(['event:OrderShipped:0.0.1']);
       });
     });
@@ -1666,7 +1734,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const externalEventsSection = getChildNodeByTitle('External Events', domainNode.pages ?? []);
+        const externalEventsSection = getResourceSubsection('External Events', domainNode.pages ?? []);
         expect(externalEventsSection).toBeUndefined();
       });
 
@@ -1696,7 +1764,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const externalEventsSection = getChildNodeByTitle('External Events', domainNode.pages ?? []);
+        const externalEventsSection = getResourceSubsection('External Events', domainNode.pages ?? []);
         expect(externalEventsSection).toBeUndefined();
       });
 
@@ -1720,7 +1788,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const externalEventsSection = getChildNodeByTitle('External Events', domainNode.pages ?? []);
+        const externalEventsSection = getResourceSubsection('External Events', domainNode.pages ?? []);
         expect(externalEventsSection.pages).toEqual(['event:PaymentProcessed:0.0.1']);
       });
     });
@@ -2237,7 +2305,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', serviceNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', serviceNode.pages ?? []);
         expect(flowsSection).toBeUndefined();
       });
 
@@ -2260,7 +2328,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const serviceNode = getNavigationConfigurationByKey('service:PaymentService:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', serviceNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', serviceNode.pages ?? []);
 
         expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
       });
@@ -3062,7 +3130,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', messageNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', messageNode.pages ?? []);
         expect(flowsSection).toBeUndefined();
       });
 
@@ -3105,9 +3173,9 @@ describe('getNestedSideBarData', () => {
         const commandNode = getNavigationConfigurationByKey('command:ReserveInventory:0.0.1', navigationData);
         const queryNode = getNavigationConfigurationByKey('query:GetPaymentStatus:0.0.1', navigationData);
 
-        expect(getChildNodeByTitle('Flows', eventNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
-        expect(getChildNodeByTitle('Flows', commandNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
-        expect(getChildNodeByTitle('Flows', queryNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+        expect(getChildNodeByTitle('Appears in flows', eventNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+        expect(getChildNodeByTitle('Appears in flows', commandNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
+        expect(getChildNodeByTitle('Appears in flows', queryNode.pages ?? []).pages).toEqual(['flow:CheckoutFlow:0.0.1']);
       });
 
       it('deduplicates flows when multiple steps reference the same message', async () => {
@@ -3133,7 +3201,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', messageNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', messageNode.pages ?? []);
 
         expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
       });
@@ -3713,7 +3781,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', containerNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', containerNode.pages ?? []);
         expect(flowsSection).toBeUndefined();
       });
 
@@ -3737,7 +3805,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', containerNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', containerNode.pages ?? []);
 
         expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
       });
@@ -3765,7 +3833,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', containerNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', containerNode.pages ?? []);
 
         expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
       });
@@ -3796,7 +3864,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', containerNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', containerNode.pages ?? []);
         expect(flowsSection).toBeUndefined();
       });
     });
@@ -4070,7 +4138,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', dataProductNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', dataProductNode.pages ?? []);
         expect(flowsSection).toBeUndefined();
       });
 
@@ -4093,7 +4161,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', dataProductNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', dataProductNode.pages ?? []);
 
         expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
       });
@@ -4124,7 +4192,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', dataProductNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', dataProductNode.pages ?? []);
 
         expect(flowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
       });
@@ -4153,7 +4221,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', dataProductNode.pages ?? []);
+        const flowsSection = getChildNodeByTitle('Appears in flows', dataProductNode.pages ?? []);
         expect(flowsSection).toBeUndefined();
       });
     });
@@ -4254,7 +4322,7 @@ describe('getNestedSideBarData', () => {
       expect(dataProductsSection.pages).toEqual(['data-product:PaymentAnalytics:0.0.1']);
 
       const agentNode = getNavigationConfigurationByKey('agent:FraudReviewAgent:0.0.1', navigationData);
-      const agentFlowsSection = getChildNodeByTitle('Flows', agentNode.pages ?? []);
+      const agentFlowsSection = getChildNodeByTitle('Appears in flows', agentNode.pages ?? []);
       expect(agentFlowsSection.pages).toEqual(['flow:CheckoutFlow:0.0.1']);
     });
 

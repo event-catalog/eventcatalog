@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GetOrder",
+  "description": "Query to fetch a single order by its identifier, and the order returned",
+  "type": "object",
+  "properties": {
+    "request": {
+      "description": "Parameters used to look up the order",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "description": "Unique identifier of the order to fetch",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": ["orderId"]
+    },
+    "response": {
+      "description": "The order returned by the query",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "customerId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["CREATED", "COMPLETED", "CANCELLED"]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string", "format": "uuid" },
+              "quantity": { "type": "integer", "minimum": 1 },
+              "unitPrice": { "type": "integer" }
+            },
+            "required": ["productId", "quantity", "unitPrice"]
+          }
+        },
+        "total": {
+          "type": "integer",
+          "description": "Order total in minor units (e.g. cents)"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["orderId", "customerId", "status", "items", "total", "currency"]
+    }
+  },
+  "required": ["request", "response"]
+}

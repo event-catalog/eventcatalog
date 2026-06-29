@@ -37,7 +37,7 @@ function classNames(...classes: any) {
 }
 
 /**
- * A system rendered on the System Context Diagram.
+ * A system rendered on the System Diagram.
  *
  * Styled to match the other resource nodes (e.g. the service node): a rounded,
  * bordered card with a floating type badge + icon on the top-left border.
@@ -74,7 +74,7 @@ export default memo(function SystemNode({ data }: any) {
 
   const goToMap = () => {
     // Soft, animated navigation via the host's view-transition router when
-    // available (falls back to a hard nav). Both the System Context Diagram and
+    // available (falls back to a hard nav). Both the System Diagram and
     // the target system Map share a `transition:name="visualiser-graph"` portal,
     // so this reads as drilling one level deeper into the system.
     navigateTo(buildUrl(`/visualiser/systems/${id}/${version}`));

@@ -1,0 +1,39 @@
+---
+id: cart-database
+name: Cart Database
+version: 1.0.0
+summary: PostgreSQL database that is the system of record for shopping carts and their items.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for shopping carts
+classification: internal
+retention: 90d
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Cart Database** is the authoritative store for shopping carts at Acme Inc. The [[service|cart-api]] reads from and writes to it as customers add, remove and check out items.
+
+### What does it store?
+
+- **Carts** — one row per cart: id, customer, status and timestamps.
+- **Cart Items** — one row per item in a cart: product, quantity and unit price.
+
+### Schema
+
+<AccordionGroup>
+  <Accordion title="Cart Database schema">
+    <Schema file="schema.sql" lang="sql" title="schema.sql" />
+  </Accordion>
+</AccordionGroup>
+
+### Retention
+
+Carts are transient. Abandoned carts are pruned after **90 days** (see frontmatter). A checked-out cart's contents live on in the [[event|cart-checked-out]] event and downstream order records.

@@ -116,7 +116,7 @@ export const buildArchitectureDecisionsSection = (resource: AdrResource, adrs: A
   return {
     type: 'group',
     title: 'Decision Records',
-    icon: 'BookText',
+    icon: 'ClipboardList',
     pages: [...relatedAdrs].sort(byAdrName).map(getAdrNodeKey),
   };
 };

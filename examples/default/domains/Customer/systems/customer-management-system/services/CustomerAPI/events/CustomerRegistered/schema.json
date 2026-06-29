@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CustomerRegistered",
+  "description": "Emitted when a new customer registers",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "description": "Unique identifier for this event",
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "description": "Time the customer registered",
+      "type": "string",
+      "format": "date-time"
+    },
+    "customer": {
+      "description": "The customer that registered",
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "description": "Unique identifier for the customer",
+          "type": "string",
+          "format": "uuid"
+        },
+        "email": {
+          "description": "Customer's email address",
+          "type": "string",
+          "format": "email"
+        },
+        "name": {
+          "description": "Customer's full name",
+          "type": "string"
+        },
+        "status": {
+          "description": "Lifecycle status of the customer account",
+          "type": "string",
+          "enum": ["ACTIVE", "SUSPENDED", "CLOSED"]
+        }
+      },
+      "required": ["customerId", "email", "status"]
+    }
+  },
+  "required": ["eventId", "occurredAt", "customer"]
+}

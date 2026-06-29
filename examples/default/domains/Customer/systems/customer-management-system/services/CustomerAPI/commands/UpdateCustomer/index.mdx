@@ -1,0 +1,32 @@
+---
+id: update-customer
+name: Update Customer
+version: 1.0.0
+summary: |
+  Command to update an existing customer's profile.
+owners:
+  - customer-platform
+schemaPath: schema.json
+operation:
+  method: PATCH
+  path: /customers/{customerId}
+  statusCodes: ['200', '400', '404']
+sidebar:
+  badge: 'PATCH'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`UpdateCustomer` is handled by the [[service|customer-api]]. It applies a partial update to an existing customer in the [[container|customer-database]] and, on success, publishes a [[event|customer-updated]] event describing what changed.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

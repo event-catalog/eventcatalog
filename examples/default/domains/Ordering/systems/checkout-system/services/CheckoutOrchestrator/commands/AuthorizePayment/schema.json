@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AuthorizePayment",
+  "description": "Command to authorize payment for the total of a checked-out cart",
+  "type": "object",
+  "properties": {
+    "cartId": {
+      "description": "Identifier of the cart being checked out",
+      "type": "string",
+      "format": "uuid"
+    },
+    "customerId": {
+      "description": "Identifier of the customer paying",
+      "type": "string",
+      "format": "uuid"
+    },
+    "amount": {
+      "description": "Amount to authorize, in minor units (e.g. cents)",
+      "type": "integer",
+      "minimum": 0
+    },
+    "currency": {
+      "description": "ISO 4217 currency code",
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    }
+  },
+  "required": ["cartId", "amount", "currency"]
+}

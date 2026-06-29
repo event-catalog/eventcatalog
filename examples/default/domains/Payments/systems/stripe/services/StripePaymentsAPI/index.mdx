@@ -1,0 +1,37 @@
+---
+id: stripe-payments-api
+version: 1.0.0
+name: Payments API
+summary: |
+  Stripe's API for charging cards and issuing refunds. Acme Inc's Payment Processing System calls it to request payments and refunds.
+styles:
+  icon: /icons/payments/stripe.svg
+owners:
+  - payments-platform
+receives:
+  - id: payment-requested
+    version: 1.0.0
+  - id: refund-requested
+    version: 1.0.0
+repository:
+  language: External
+  url: 'https://github.com/stripe/stripe-node'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Payments API** is Stripe's external interface for charging cards and issuing refunds. The [[system|payment-processing-system]] sends [[event|payment-requested]] and [[event|refund-requested]], and Stripe processes them and reports the outcome back through its [[service|stripe-webhook-endpoint]].
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Payment and refund requests" />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

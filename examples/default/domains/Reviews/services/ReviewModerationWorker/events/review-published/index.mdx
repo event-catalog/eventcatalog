@@ -1,0 +1,29 @@
+---
+id: review-published
+name: Review Published
+version: 1.0.0
+summary: |
+  Published when a submitted review passes moderation and becomes visible on the storefront.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReviewPublished` is published by the [[service|review-moderation-worker]] when a review passes moderation. The [[service|rating-aggregator]] consumes it to update the product's aggregate rating.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

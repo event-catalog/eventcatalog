@@ -1,0 +1,29 @@
+---
+id: order-cancelled
+name: Order Cancelled
+version: 1.0.0
+summary: |
+  Published when an order has been cancelled.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderCancelled` is published by the [[service|order-service]] when an order is cancelled — whether at the customer's request or because a downstream step (payment, inventory) failed. Downstream systems consume it to release inventory, refund or void payment, and stop fulfilment.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

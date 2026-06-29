@@ -9,7 +9,7 @@ interface Data {
 }
 
 /**
- * An actor (person/role) on the System Context Diagram.
+ * An actor (person/role) on the System Diagram.
  *
  * Deliberately styled differently from the boxy resource nodes: a soft, pill-ish
  * card with the actor icon in a circular badge centered at the top and the actor

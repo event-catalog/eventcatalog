@@ -9,10 +9,9 @@ import {
   UserIcon,
   ArrowsRightLeftIcon,
   VariableIcon,
-  MapIcon,
   CubeIcon,
 } from '@heroicons/react/24/outline';
-import { BookText, Bot, Box, DatabaseIcon, Group } from 'lucide-react';
+import { BookText, Bot, Box, ClipboardList, DatabaseIcon, Group } from 'lucide-react';
 import { getColorForCollection } from '@utils/collection-colors';
 
 export const getIconForCollection = (collection: string) => {
@@ -24,7 +23,7 @@ export const getIconForCollection = (collection: string) => {
     case 'agents':
       return Bot;
     case 'adrs':
-      return BookText;
+      return ClipboardList;
     case 'services':
       return ServerIcon;
     case 'events':
@@ -45,8 +44,6 @@ export const getIconForCollection = (collection: string) => {
       return VariableIcon;
     case 'ubiquitousLanguages':
       return BookText;
-    case 'bounded-context-map':
-      return MapIcon;
     case 'entities':
       return Box;
     case 'containers':

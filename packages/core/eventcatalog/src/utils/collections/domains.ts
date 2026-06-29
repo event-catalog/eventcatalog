@@ -236,11 +236,20 @@ export const getDomains = async ({
                 .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
                 .filter((s: any) => !!s);
 
+          // Hydrate the system's data stores (containers) so they can be
+          // rendered in the domain's architecture view.
+          const systemContainers = (system.data.containers || [])
+            .map((container: { id: string; version: string | undefined }) =>
+              findInMap(containerMap, container.id, container.version)
+            )
+            .filter((c: any) => !!c);
+
           return {
             ...system,
             data: {
               ...system.data,
               services: systemServices as any,
+              containers: systemContainers as any,
             },
           };
         });

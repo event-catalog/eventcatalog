@@ -1,0 +1,43 @@
+---
+id: warehouse-service
+version: 1.0.0
+name: Warehouse Service
+summary: |
+  Orchestrates picking and packing in the warehouse. It reacts to completed orders, creates picking jobs, and signals when an order is ready to ship.
+styles:
+  icon: /icons/languages/java.svg
+owners:
+  - fulfilment-platform
+receives:
+  - id: order-completed
+    version: 1.0.0
+sends:
+  - id: order-ready-for-shipping
+    version: 1.0.0
+writesTo:
+  - id: warehouse-database
+readsFrom:
+  - id: warehouse-database
+repository:
+  language: Java
+  url: 'https://github.com/acme/warehouse-service'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Warehouse Service** runs warehousing. When the Ordering domain publishes [[event|order-completed]], it creates a picking job in the [[container|warehouse-database]] for the [[service|picking-worker]] to work through. Once the order is packed it publishes [[event|order-ready-for-shipping]] for the [[system|shipping-system]].
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} message`} description="Ready-for-shipping signal" />
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="Completed orders to fulfil" />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

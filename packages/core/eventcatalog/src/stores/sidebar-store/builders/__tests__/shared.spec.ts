@@ -8,7 +8,7 @@ describe('withArchitectureDecisionsSection', () => {
       title: 'Orders Service',
       pages: [
         { type: 'group', title: 'Quick Reference', pages: [] },
-        { type: 'group', title: 'Flows', pages: [] },
+        { type: 'group', title: 'Appears in flows', pages: [] },
         { type: 'group', title: 'Owners', pages: [] },
         { type: 'group', title: 'Code', pages: [] },
       ],
@@ -32,7 +32,7 @@ describe('withArchitectureDecisionsSection', () => {
 
     expect(result.pages?.map((page) => (typeof page === 'string' ? page : page.title))).toEqual([
       'Quick Reference',
-      'Flows',
+      'Appears in flows',
       'Decision Records',
       'Owners',
       'Code',
@@ -102,7 +102,7 @@ describe('withArchitectureDecisionsSection', () => {
       {
         type: 'group',
         title: 'Decision Records',
-        icon: 'BookText',
+        icon: 'ClipboardList',
         pages: ['adr:use-events-for-order-updates:1.0.0'],
       },
     ]);

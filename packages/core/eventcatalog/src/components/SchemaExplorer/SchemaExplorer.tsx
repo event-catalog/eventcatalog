@@ -422,7 +422,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
             )}
           </div>
 
-          {showFormatFilters && (
+          {showFormatFilters && latestMessages.length > 0 && (
             <div className="flex-shrink-0 border-b border-[rgb(var(--ec-page-border))] px-4 py-3">
               <div className="rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] p-3">
                 <div className="mb-3 flex items-center justify-between gap-3">

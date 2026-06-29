@@ -80,6 +80,11 @@ const emptyContext = {
   resourceDocCategories: [],
 } as any;
 
+// Services and Data Stores are nested as subtle subgroups under a top-level "Resources" group.
+const findResourcesSection = (result: any) => (result.pages as any[])?.find((p: any) => p.title === 'Resources');
+const findResourceSubsection = (result: any, title: string) =>
+  (findResourcesSection(result)?.pages as any[])?.find((p: any) => p.title === title);
+
 describe('buildSystemNode', () => {
   describe('basic structure', () => {
     it('returns a NavNode with correct basic properties', () => {
@@ -125,11 +130,12 @@ describe('buildSystemNode', () => {
       });
 
       const result = buildSystemNode(system, [], emptyContext);
-      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services');
+      const servicesSection = findResourceSubsection(result, 'Services');
 
       expect(servicesSection).toMatchObject({
         type: 'group',
         title: 'Services',
+        subtle: true,
         icon: 'Server',
         pages: ['service:OrdersService:1.0.0', 'service:PaymentService:2.0.0'],
       });
@@ -139,7 +145,7 @@ describe('buildSystemNode', () => {
       const system = createMockSystem();
       const result = buildSystemNode(system, [], emptyContext);
 
-      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services');
+      const servicesSection = findResourceSubsection(result, 'Services');
       expect(servicesSection).toBeUndefined();
     });
 
@@ -150,7 +156,7 @@ describe('buildSystemNode', () => {
       } as any);
 
       const result = buildSystemNode(system, [], emptyContext);
-      const servicesSection = (result.pages as any[])?.find((p: any) => p.title === 'Services');
+      const servicesSection = findResourceSubsection(result, 'Services');
       expect(servicesSection).toBeUndefined();
     });
   });
@@ -162,7 +168,7 @@ describe('buildSystemNode', () => {
       });
 
       const result = buildSystemNode(system, [], emptyContext);
-      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+      const flowsSection = findResourceSubsection(result, 'Flows');
 
       expect(flowsSection).toMatchObject({
         type: 'group',
@@ -176,7 +182,7 @@ describe('buildSystemNode', () => {
       const system = createMockSystem();
       const result = buildSystemNode(system, [], emptyContext);
 
-      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+      const flowsSection = findResourceSubsection(result, 'Flows');
       expect(flowsSection).toBeUndefined();
     });
 
@@ -187,7 +193,7 @@ describe('buildSystemNode', () => {
       } as any);
 
       const result = buildSystemNode(system, [], emptyContext);
-      const flowsSection = (result.pages as any[])?.find((p: any) => p.title === 'Flows');
+      const flowsSection = findResourceSubsection(result, 'Flows');
       expect(flowsSection).toBeUndefined();
     });
   });
@@ -239,11 +245,12 @@ describe('buildSystemNode', () => {
       });
 
       const result = buildSystemNode(system, [], emptyContext);
-      const dataStoresSection = (result.pages as any[])?.find((p: any) => p.title === 'Data Stores');
+      const dataStoresSection = findResourceSubsection(result, 'Data Stores');
 
       expect(dataStoresSection).toMatchObject({
         type: 'group',
         title: 'Data Stores',
+        subtle: true,
         icon: 'Database',
         pages: ['container:orders-db:1.0.0', 'container:payments-db:2.0.0'],
       });
@@ -253,7 +260,7 @@ describe('buildSystemNode', () => {
       const system = createMockSystem();
       const result = buildSystemNode(system, [], emptyContext);
 
-      const dataStoresSection = (result.pages as any[])?.find((p: any) => p.title === 'Data Stores');
+      const dataStoresSection = findResourceSubsection(result, 'Data Stores');
       expect(dataStoresSection).toBeUndefined();
     });
 
@@ -264,7 +271,7 @@ describe('buildSystemNode', () => {
       } as any);
 
       const result = buildSystemNode(system, [], emptyContext);
-      const dataStoresSection = (result.pages as any[])?.find((p: any) => p.title === 'Data Stores');
+      const dataStoresSection = findResourceSubsection(result, 'Data Stores');
       expect(dataStoresSection).toBeUndefined();
     });
   });

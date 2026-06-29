@@ -11,183 +11,12 @@ import {
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import { getNodesAndEdges as getAgentsNodeAndEdges } from './agents-node-graph';
 import { getNodesAndEdges as getDataProductsNodeAndEdges } from './data-products-node-graph';
-import { getNodesAndEdges as getSystemNodeAndEdges } from './systems-node-graph';
 import merge from 'lodash.merge';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
-import type { Node } from '@xyflow/react';
 import { getProducersOfMessage } from '@utils/collections/services';
 import { getProducersOfMessage as getAgentProducersOfMessage } from '@utils/collections/agents';
 
 type DagreGraph = any;
-
-interface Props {
-  defaultFlow?: DagreGraph;
-  channelRenderMode?: 'single' | 'flat';
-}
-
-export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }: Props) => {
-  const flow = defaultFlow ?? createDagreGraph({ ranksep: 360, nodesep: 50, edgesep: 50 });
-  let nodes = [] as any,
-    edges = [] as any;
-
-  // 1. Parallel Fetching
-  const [allDomains, services, agents, events, commands, queries] = await Promise.all([
-    getCollection('domains'),
-    getCollection('services'),
-    getCollection('agents'),
-    getCollection('events'),
-    getCollection('commands'),
-    getCollection('queries'),
-  ]);
-
-  const domains = allDomains.filter((domain) => !domain.id.includes('/versioned'));
-  const messages = [...events, ...commands, ...queries];
-
-  // 2. Build optimized maps
-  const serviceMap = createVersionedMap(services);
-  const agentMap = createVersionedMap(agents);
-  const messageMap = createVersionedMap(messages);
-
-  domains.forEach((domain, index) => {
-    const nodeId = generateIdForNode(domain);
-    const rawServices = domain.data.services ?? [];
-    const rawAgents = domain.data.agents ?? [];
-
-    // Optimized service resolution
-    const domainServices = rawServices
-      .map((service) => findInMap(serviceMap, service.id, service.version))
-      .filter((e) => e !== undefined);
-    const domainAgents = rawAgents.map((agent) => findInMap(agentMap, agent.id, agent.version)).filter((e) => e !== undefined);
-    const domainResources = [...domainServices, ...domainAgents];
-
-    // Calculate domain node size based on services
-    const servicesCount = domainResources.length;
-    const SERVICES_PER_ROW = 1;
-    const SERVICE_WIDTH = 330;
-    const SERVICE_HEIGHT = 120;
-    const PADDING = 40;
-    const TITLE_HEIGHT = 20;
-
-    const rows = Math.ceil(servicesCount / SERVICES_PER_ROW);
-    const domainWidth = SERVICE_WIDTH * SERVICES_PER_ROW;
-    const domainHeight = SERVICE_HEIGHT * rows + PADDING * 4;
-
-    // Position domains in a grid layout
-    const DOMAINS_PER_ROW = 2;
-    const rowIndex = Math.floor(index / DOMAINS_PER_ROW);
-    const colIndex = index % DOMAINS_PER_ROW;
-
-    nodes.push({
-      id: nodeId,
-      type: 'group',
-      position: {
-        x: colIndex * (domainWidth + 400),
-        y: rowIndex * (domainHeight + 300),
-      },
-      style: {
-        width: domainWidth,
-        height: domainHeight,
-        backgroundColor: 'transparent',
-        borderRadius: '8px',
-        border: '1px solid #ddd',
-        'box-shadow': '0 0 10px 0 rgba(0, 0, 0, 0.1)',
-      },
-      data: {
-        label: domain.data.name,
-        domain,
-      },
-    });
-
-    nodes.push({
-      id: `domain-context-map-title-${domain.data.name}`,
-      data: { label: `Bounded Context: ${domain.data.name}` },
-      position: { x: 0, y: 0 },
-      style: {
-        height: 20,
-        backgroundColor: 'transparent',
-        border: 'none',
-        color: 'black',
-        width: domainWidth,
-      },
-      extent: 'parent',
-      parentId: nodeId,
-      connectable: false,
-      sourcePosition: 'left',
-      targetPosition: 'right',
-      draggable: false,
-    } as Node);
-
-    // Position services in a grid within the domain
-    if (domainResources) {
-      domainResources.forEach((service, serviceIndex) => {
-        const row = Math.floor(serviceIndex / SERVICES_PER_ROW);
-        const col = serviceIndex % SERVICES_PER_ROW;
-
-        // Add spacing between services
-        const SERVICE_MARGIN = 25;
-        const xPosition = PADDING + col * (SERVICE_WIDTH + SERVICE_MARGIN) + 20;
-        const yPosition = PADDING + row * (SERVICE_HEIGHT + SERVICE_MARGIN) + TITLE_HEIGHT;
-
-        nodes.push({
-          id: generateIdForNode(service),
-          sourcePosition: 'right',
-          targetPosition: 'left',
-          type: service.collection,
-          position: {
-            x: xPosition,
-            y: yPosition,
-          },
-          parentId: nodeId,
-          extent: 'parent',
-          draggable: false,
-          data: {
-            mode: 'full',
-            ...(service.collection === 'agents' ? { agent: service.data } : { service: service.data }),
-          },
-        });
-
-        // Edges
-        const rawReceives = service.data.receives ?? [];
-        const rawSends = service.data.sends ?? [];
-
-        // Optimized message resolution
-        const receives = rawReceives
-          .map((receive) => findInMap(messageMap, receive.id, receive.version))
-          .filter((msg): msg is any => !!msg); // Filter undefined
-
-        // Note: 'sends' was defined but not used in the original loop logic for edges?
-        // Based on original code, it iterates `receives`.
-
-        for (const receive of receives) {
-          const producers = [...getAgentProducersOfMessage(agents, receive), ...getProducersOfMessage(services, receive)];
-
-          for (const producer of producers) {
-            const isSameDomain = domainResources.some(
-              (domainService) => domainService.collection === producer.collection && domainService.data.id === producer.data.id
-            );
-
-            if (!isSameDomain) {
-              edges.push(
-                createEdge({
-                  id: generatedIdForEdge(producer, service),
-                  source: generateIdForNode(producer),
-                  target: generateIdForNode(service),
-                  label: getEdgeLabelForServiceAsTarget(receive),
-                  zIndex: 1000,
-                })
-              );
-            }
-          }
-        }
-      });
-    }
-  });
-
-  return {
-    nodes,
-    edges,
-  };
-};
 
 interface NodesAndEdgesProps {
   id: string;
@@ -213,12 +42,11 @@ export const getNodesAndEdges = async ({
     edges = new Map();
 
   // 1. Parallel Fetching
-  const [domains, services, agents, dataProducts, systems] = await Promise.all([
+  const [domains, services, agents, dataProducts] = await Promise.all([
     getCollection('domains'),
     getCollection('services'),
     getCollection('agents'),
     getCollection('data-products'),
-    getCollection('systems'),
   ]);
 
   const domain = domains.find((service) => service.data.id === id && service.data.version === version);
@@ -236,13 +64,11 @@ export const getNodesAndEdges = async ({
   const agentMap = createVersionedMap(agents);
   const domainMap = createVersionedMap(domains);
   const dataProductMap = createVersionedMap(dataProducts);
-  const systemMap = createVersionedMap(systems);
 
   const rawServices = domain?.data.services || [];
   const rawAgents = domain?.data.agents || [];
   const rawSubDomains = domain?.data.domains || [];
   const rawDataProducts = (domain?.data as any)['data-products'] || [];
-  const rawSystems = (domain?.data as any).systems || [];
 
   // Optimized hydration
   const domainServicesWithVersion = rawServices
@@ -264,11 +90,6 @@ export const getNodesAndEdges = async ({
     .map((dataProduct: any) => findInMap(dataProductMap, dataProduct.id, dataProduct.version))
     .filter((dp: any): dp is any => !!dp)
     .map((dp: any) => ({ id: dp.data.id, version: dp.data.version }));
-
-  const domainSystemsWithVersion = rawSystems
-    .map((system: any) => findInMap(systemMap, system.id, system.version))
-    .filter((s: any): s is any => !!s)
-    .map((s: any) => ({ id: s.data.id, version: s.data.version }));
 
   // Get all the nodes for everything
 
@@ -344,25 +165,6 @@ export const getNodesAndEdges = async ({
     });
 
     subDomainEdges.forEach((e) => edges.set(e.id, e));
-  }
-
-  // A domain can reference one or more systems. Pull each system's services into
-  // the domain graph (grouped by system), the same way subdomains are merged in.
-  for (const system of domainSystemsWithVersion) {
-    const { nodes: systemNodes, edges: systemEdges } = await getSystemNodeAndEdges({
-      id: system.id,
-      version: system.version,
-      defaultFlow: flow,
-      mode,
-      group: true,
-      channelRenderMode,
-      layout: false,
-    });
-    systemNodes.forEach((n) => {
-      nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
-    });
-    // @ts-ignore
-    systemEdges.forEach((e) => edges.set(e.id, e));
   }
 
   // Add group node to the graph first before calculating positions

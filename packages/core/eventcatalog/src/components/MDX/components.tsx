@@ -17,6 +17,7 @@ import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInform
 import Attachments from '@components/MDX/Attachments.astro';
 import AgentTools from '@components/MDX/AgentTools/AgentTools.astro';
 import MessageTable from '@components/MDX/MessageTable/MessageTable.astro';
+import ADRTable from '@components/MDX/ADRTable/ADRTable.astro';
 import ResourceGroupTable from '@components/MDX/ResourceGroupTable/ResourceGroupTable.astro';
 import EntityPropertiesTable from '@components/MDX/EntityPropertiesTable/EntityPropertiesTable.astro';
 import Tabs from '@components/MDX/Tabs/Tabs.astro';
@@ -35,6 +36,7 @@ import LikeC4View from '@components/MDX/LikeC4View/LikeC4View.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import ContextDiagramPortal from '@components/MDX/ContextDiagram/ContextDiagramPortal';
+import SystemContextMapPortal from '@components/MDX/SystemContextMap/SystemContextMapPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
 import { jsx } from 'astro/jsx-runtime';
 import RemoteSchema from '@components/MDX/RemoteSchema.astro';
@@ -55,9 +57,12 @@ const components = (props: any) => {
     Flow,
     Link: (mdxProp: any) => jsx(Link, { ...props, ...mdxProp }),
     MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
+    ADRTable: (mdxProp: any) => jsx(ADRTable, { ...props, ...mdxProp }),
     EntityPropertiesTable: (mdxProp: any) => jsx(EntityPropertiesTable, { ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
+    ComponentDiagram: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     ContextDiagram: (mdxProp: any) => jsx(ContextDiagramPortal, { ...props.data, ...mdxProp, props, mdxProp }),
+    SystemContextMap: (mdxProp: any) => jsx(SystemContextMapPortal, { ...mdxProp }),
     EntityMap: (mdxProp: any) => jsx(EntityMap, { ...props, ...mdxProp }),
     OpenAPI,
     Prompt: (mdxProp: any) => jsx(Prompt, { ...props, ...mdxProp }),

@@ -129,7 +129,9 @@ export const buildAgentNode = (
       },
       hasFlows && {
         type: 'group',
-        title: 'Flows',
+        // If the agent declares its own flows it owns them ("Flows"); otherwise it is
+        // only referenced as a step in someone else's flow ("Appears in flows").
+        title: agentFlows.length > 0 ? 'Flows' : 'Appears in flows',
         icon: 'Waypoints',
         pages: agentFlowRefs,
       },

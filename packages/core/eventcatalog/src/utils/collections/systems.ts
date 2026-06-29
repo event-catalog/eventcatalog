@@ -67,7 +67,7 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
       .map((container: { id: string; version?: string }) => findInMap(containerMap, container.id, container.version))
       .filter((c): c is NonNullable<typeof c> => !!c);
 
-    // Resolve system-to-system relationship pointers (used by the System Context Diagram).
+    // Resolve system-to-system relationship pointers (used by the System Diagram).
     // Each relationship resolves to its target system while keeping the edge `label`.
     // Dangling targets are dropped; relationships keep their label even if absent (the
     // diagram decides whether to draw an edge based on the presence of a label).

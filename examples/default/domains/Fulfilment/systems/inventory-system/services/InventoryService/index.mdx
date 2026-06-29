@@ -1,0 +1,57 @@
+---
+id: inventory-service
+version: 1.0.0
+name: Inventory Service
+summary: |
+  The system of record for stock. Reserves and releases inventory, serves stock-level queries, and publishes events when stock is reserved or unavailable.
+styles:
+  icon: /icons/languages/java.svg
+owners:
+  - fulfilment-platform
+receives:
+  - id: reserve-inventory
+    version: 1.0.0
+  - id: release-inventory
+    version: 1.0.0
+  - id: get-stock-level
+    version: 1.0.0
+sends:
+  - id: inventory-reserved
+    version: 1.0.0
+  - id: inventory-unavailable
+    version: 1.0.0
+writesTo:
+  - id: inventory-database
+readsFrom:
+  - id: inventory-database
+repository:
+  language: Java
+  url: 'https://github.com/acme/inventory-service'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Inventory Service** is the heart of the Inventory System. It receives [[command|reserve-inventory]] during checkout and replies with [[event|inventory-reserved]] or [[event|inventory-unavailable]]. It also handles [[command|release-inventory]] and serves [[query|get-stock-level]] reads, all backed by the [[container|inventory-database]].
+
+<Tiles>
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Inventory outcomes" />
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Inventory commands and queries" />
+</Tiles>
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Reservations | Handles [[command\|reserve-inventory]] and [[command\|release-inventory]]. |
+| Lookups | Serves [[query\|get-stock-level]] from the [[container\|inventory-database]]. |
+| Event publishing | Emits [[event\|inventory-reserved]] and [[event\|inventory-unavailable]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

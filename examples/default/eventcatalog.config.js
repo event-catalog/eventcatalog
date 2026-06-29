@@ -1,32 +1,32 @@
-import path from 'path';
-import url from 'url';
+import path from "path";
+import url from "url";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 /** @type {import('../../bin/eventcatalog.config').Config} */
 export default {
-  cId: '8027010c-f3d6-417a-8234-e2f46087fc56',
-  title: 'Acme Inc',
-  tagline: 'Discover, Explore and Document your Event Driven Architectures.',
-  organizationName: 'Acme Inc',
-  homepageLink: 'https://eventcatalog.dev',
-  editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
+  cId: "8027010c-f3d6-417a-8234-e2f46087fc56",
+  title: "Acme Inc",
+  tagline: "Discover, Explore and Document your Event Driven Architectures.",
+  organizationName: "Acme Inc",
+  homepageLink: "https://eventcatalog.dev",
+  editUrl: "https://github.com/event-catalog/eventcatalog/edit/main",
   port: 3000,
-  outDir: 'dist',
+  outDir: "dist",
   logo: {
-    src: '/logo.png',
-    text: 'Acme Inc',
+    src: "/logo.png",
+    text: "Acme Inc",
   },
 
-  base: '/',
+  base: "/",
   trailingSlash: false,
 
   // Theme: 'default', 'ocean', 'sapphire', 'sunset', 'forest', or custom (defined in eventcatalog.styles.css)
-  theme: 'sunset',
+  theme: "sunset",
 
   mermaid: {
     enableSupportForElkLayout: true,
-    iconPacks: ['logos'],
+    iconPacks: ["logos"],
   },
 
   rss: {
@@ -37,32 +37,41 @@ export default {
   navigation: {
     pages: [
       {
-        type: 'group',
-        title: 'Domains',
-        icon: 'Boxes',
+        type: "group",
+        title: "Domains",
+        icon: "Boxes",
         pages: [
-          'domain:catalog',
-        ]
+          "domain:catalog",
+          "domain:customer",
+          "domain:shopping",
+          "domain:ordering",
+          "domain:payments",
+          "domain:fulfilment",
+          "domain:reviews",
+        ],
       },
-      // {
-      //   type: 'group',
-      //   title: 'Systems',
-      //   icon: 'Boxes',
-      //   pages: [
-      //     'system:core-monolith',
-      //   ]
-      // },
-      // 'list:all',
-    ]
+      {
+        type: "group",
+        title: "Top level diagrams",
+        icon: "Workflow",
+        pages: [
+          {
+            type: "item",
+            title: "System Context Map",
+            href: "/visualiser/system-context-map",
+          },
+        ],
+      },
+    ],
   },
 
   search: {
-    type: 'resource',
+    type: "resource",
   },
 
   visualiser: {
     channels: {
-      renderMode: 'flat',
+      renderMode: "flat",
     },
   },
 

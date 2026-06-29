@@ -121,6 +121,26 @@ const ContainerLink = memo(({ container, type }: { container: any; type: 'reads'
   );
 });
 
+// Standalone data store (container) link, used to list a system's data stores
+const DataStoreLink = memo(({ container }: { container: any }) => {
+  const data = container?.data || container;
+  const id = data?.id || container?.id;
+  const name = data?.name || id;
+  const version = data?.version || 'latest';
+  const technology = data?.technology;
+
+  return (
+    <a
+      href={buildUrl(`/docs/containers/${id}/${version}`)}
+      className="inline-flex items-center gap-2 px-3 py-2 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-sm font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-xs"
+    >
+      <CircleStackIcon className="h-4 w-4 text-amber-500" />
+      <span>{name}</span>
+      {technology && <span className="text-xs text-[rgb(var(--ec-icon-color))]">{technology}</span>}
+    </a>
+  );
+});
+
 // Searchable scrollable box component
 const SearchableBox = memo(
   ({
@@ -246,9 +266,9 @@ const ServiceExpandedContent = memo(
   }
 );
 
-export const ServiceCard = memo(({ service }: { service: any }) => {
+export const ServiceCard = memo(({ service, defaultOpen = false }: { service: any; defaultOpen?: boolean }) => {
   const data = service?.data || service;
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
 
   if (!data?.id) return null;
 
@@ -364,9 +384,9 @@ const DataProductCard = memo(({ dataProduct }: { dataProduct: any }) => {
   );
 });
 
-const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
+const SubdomainSection = memo(({ subdomain, defaultOpen = false }: { subdomain: any; defaultOpen?: boolean }) => {
   const data = subdomain?.data || subdomain;
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
 
   if (!data?.id) return null;
 
@@ -490,13 +510,14 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
   );
 });
 
-const SystemSection = memo(({ system }: { system: any }) => {
+const SystemSection = memo(({ system, defaultOpen = false }: { system: any; defaultOpen?: boolean }) => {
   const data = system?.data || system;
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
 
   if (!data?.id) return null;
 
   const services = data.services || [];
+  const containers = data.containers || [];
 
   return (
     <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl overflow-hidden shadow-xs">
@@ -516,9 +537,14 @@ const SystemSection = memo(({ system }: { system: any }) => {
                 v{data.version}
               </span>
               {/* Show counts when collapsed */}
-              {isCollapsed && services.length > 0 && (
+              {isCollapsed && (services.length > 0 || containers.length > 0) && (
                 <span className="text-[11px] text-[rgb(var(--ec-icon-color))] ml-1">
-                  {services.length} service{services.length > 1 ? 's' : ''}
+                  {[
+                    services.length > 0 && `${services.length} service${services.length > 1 ? 's' : ''}`,
+                    containers.length > 0 && `${containers.length} data store${containers.length > 1 ? 's' : ''}`,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </span>
               )}
             </div>
@@ -542,7 +568,7 @@ const SystemSection = memo(({ system }: { system: any }) => {
 
       {!isCollapsed && (
         <div className="p-5 space-y-5">
-          {services.length > 0 ? (
+          {services.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <ServerIcon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
@@ -558,8 +584,28 @@ const SystemSection = memo(({ system }: { system: any }) => {
                 })}
               </div>
             </div>
-          ) : (
-            <p className="text-sm text-[rgb(var(--ec-icon-color))] italic text-center py-4">No services in this system</p>
+          )}
+
+          {containers.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <CircleStackIcon className="h-4 w-4 text-amber-500" />
+                <h4 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Data Stores</h4>
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+                  {containers.length}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {containers.map((container: any) => {
+                  const containerId = container?.data?.id || container?.id;
+                  return containerId ? <DataStoreLink key={containerId} container={container} /> : null;
+                })}
+              </div>
+            </div>
+          )}
+
+          {services.length === 0 && containers.length === 0 && (
+            <p className="text-sm text-[rgb(var(--ec-icon-color))] italic text-center py-4">Nothing in this system yet</p>
           )}
         </div>
       )}
@@ -644,22 +690,6 @@ export default function DomainGrid({ domain }: DomainGridProps) {
             <h2 className="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</h2>
             {data.summary && <p className="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{data.summary}</p>}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <a
-              href={buildUrl(`/docs/domains/${data.id}/${data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-page-text-muted))] transition-all"
-            >
-              View docs
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
-            </a>
-            <a
-              href={buildUrl(`/visualiser/domains/${data.id}/${data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 dark:bg-zinc-700 rounded-lg hover:bg-zinc-900 dark:hover:bg-zinc-600 transition-all"
-            >
-              Visualizer
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-zinc-400" />
-            </a>
-          </div>
         </div>
       </div>
 
@@ -697,7 +727,7 @@ export default function DomainGrid({ domain }: DomainGridProps) {
             <div className="space-y-4">
               {subdomains.map((subdomain: any) => {
                 const subdomainId = subdomain?.data?.id || subdomain?.id;
-                return subdomainId ? <SubdomainSection key={subdomainId} subdomain={subdomain} /> : null;
+                return subdomainId ? <SubdomainSection key={subdomainId} subdomain={subdomain} defaultOpen /> : null;
               })}
             </div>
           </div>
@@ -716,7 +746,7 @@ export default function DomainGrid({ domain }: DomainGridProps) {
             <div className="space-y-4">
               {systems.map((system: any) => {
                 const systemId = system?.data?.id || system?.id;
-                return systemId ? <SystemSection key={systemId} system={system} /> : null;
+                return systemId ? <SystemSection key={systemId} system={system} defaultOpen /> : null;
               })}
             </div>
           </div>
@@ -735,7 +765,7 @@ export default function DomainGrid({ domain }: DomainGridProps) {
             <div className="space-y-3">
               {topLevelInternalServices.map((service: any) => {
                 const serviceId = service?.data?.id || service?.id;
-                return serviceId ? <ServiceCard key={serviceId} service={service} /> : null;
+                return serviceId ? <ServiceCard key={serviceId} service={service} defaultOpen /> : null;
               })}
             </div>
           </div>
@@ -754,7 +784,7 @@ export default function DomainGrid({ domain }: DomainGridProps) {
             <div className="space-y-3">
               {topLevelExternalServices.map((service: any) => {
                 const serviceId = service?.data?.id || service?.id;
-                return serviceId ? <ServiceCard key={serviceId} service={service} /> : null;
+                return serviceId ? <ServiceCard key={serviceId} service={service} defaultOpen /> : null;
               })}
             </div>
           </div>

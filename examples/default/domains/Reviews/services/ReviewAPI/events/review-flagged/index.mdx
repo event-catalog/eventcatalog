@@ -1,0 +1,29 @@
+---
+id: review-flagged
+name: Review Flagged
+version: 1.0.0
+summary: |
+  Published when a published review is flagged and needs to be screened again.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReviewFlagged` is published by the [[service|review-api]] when a published review is flagged. The [[service|review-moderation-worker]] consumes it and re-screens the review, which may lead to it being rejected.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CustomerAuthenticated",
+  "description": "Emitted when a customer successfully authenticates",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "description": "Unique identifier for this event",
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "description": "Time the customer authenticated",
+      "type": "string",
+      "format": "date-time"
+    },
+    "customerId": {
+      "description": "Unique identifier of the customer that authenticated",
+      "type": "string",
+      "format": "uuid"
+    },
+    "method": {
+      "description": "How the customer authenticated",
+      "type": "string",
+      "enum": ["PASSWORD", "SSO", "MFA"]
+    },
+    "ipAddress": {
+      "description": "IP address the sign-in came from",
+      "type": "string"
+    }
+  },
+  "required": ["eventId", "occurredAt", "customerId", "method"]
+}

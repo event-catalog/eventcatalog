@@ -1,0 +1,47 @@
+---
+id: rating-aggregator
+version: 1.0.0
+name: Rating Aggregator
+summary: |
+  Keeps each product's aggregate star rating up to date as reviews are published, and serves it fast from a cache.
+styles:
+  icon: /icons/languages/go.svg
+owners:
+  - reviews-platform
+receives:
+  - id: review-published
+    version: 1.0.0
+sends:
+  - id: rating-updated
+    version: 1.0.0
+writesTo:
+  - id: rating-cache
+readsFrom:
+  - id: review-database
+  - id: rating-cache
+repository:
+  language: Go
+  url: 'https://github.com/acme/rating-aggregator'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Rating Aggregator** consumes [[event|review-published]] and recomputes the affected product's aggregate rating (average score and review count). It writes the result to the [[container|rating-cache]] for fast reads and publishes [[event|rating-updated]] so other domains can stay in sync.
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Aggregation | Recomputes average rating and review count per product. |
+| Caching | Writes aggregate ratings to the [[container\|rating-cache]]. |
+| Eventing | Publishes [[event\|rating-updated]] on every change. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

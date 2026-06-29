@@ -112,7 +112,7 @@ export const buildContainerNode = (
       },
       renderFlows && {
         type: 'group',
-        title: 'Flows',
+        title: 'Appears in flows',
         icon: 'Waypoints',
         pages: flowRefs,
         visible: flowRefs.length > 0,

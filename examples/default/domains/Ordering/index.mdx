@@ -1,0 +1,61 @@
+---
+id: ordering
+name: Ordering
+version: 1.0.0
+summary: |
+  The Ordering domain turns a checked-out cart into a confirmed order. It orchestrates checkout — reserving inventory, authorizing payment and creating the order — and owns the lifecycle of every order.
+owners:
+  - ordering-platform
+systems:
+  - id: checkout-system
+    version: 1.0.0
+  - id: order-management-system
+    version: 1.0.0
+flows:
+  - id: place-an-order
+    version: 1.0.0
+badges:
+  - content: Core domain
+    backgroundColor: blue
+    textColor: blue
+    icon: RectangleGroupIcon
+  - content: Business Critical
+    backgroundColor: red
+    textColor: red
+    icon: ShieldCheckIcon
+---
+
+## Overview
+
+The **Ordering** domain is responsible for everything that happens once a customer commits to buy — from the moment their cart is checked out to a confirmed, fulfilled order. It is split into two systems:
+
+<Tiles>
+  <Tile
+    icon="CreditCardIcon"
+    href="/docs/systems/checkout-system/1.0.0"
+    title="Checkout System"
+    description="Orchestrates checkout — reserves inventory, authorizes payment and creates the order."
+  />
+  <Tile
+    icon="ClipboardDocumentListIcon"
+    href="/docs/systems/order-management-system/1.0.0"
+    title="Order Management System"
+    description="System of record for orders and their lifecycle."
+  />
+</Tiles>
+
+### How the systems work together
+
+When the [[domain|shopping]] domain checks out a cart, the **Checkout System** takes over. It orchestrates the steps needed to place an order — reserving inventory, authorizing payment, and finally asking the **Order Management System** to create the order. The Order Management System then owns that order for the rest of its life, publishing events as it is created, completed or cancelled.
+
+## System Diagram
+
+The systems in this domain, how they relate, and the people who interact with them.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The components that make up this domain.
+
+<NodeGraph />

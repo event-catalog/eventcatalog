@@ -11,20 +11,28 @@ import {
   buildResourceDocsSection,
 } from './shared';
 import { isChangelogEnabled, isVisualiserEnabled } from '@utils/feature';
-import { iconFieldsForResource } from '@utils/icon';
+import { customIconFieldsForResource } from '@utils/icon';
+
+// Sort resolved collection entries A-Z by their display name (falling back to id).
+const byResourceName = (a: any, b: any) => (a.data?.name || a.data?.id || '').localeCompare(b.data?.name || b.data?.id || '');
 
 export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[], context: ResourceGroupContext): NavNode => {
-  const servicesInSystem = system.data.services || [];
+  const servicesInSystem = [...(system.data.services || [])].sort(byResourceName);
   const renderServices = servicesInSystem.length > 0 && shouldRenderSideBarSection(system, 'services');
 
-  const flowsInSystem = system.data.flows || [];
+  const flowsInSystem = [...(system.data.flows || [])].sort(byResourceName);
   const renderFlows = flowsInSystem.length > 0 && shouldRenderSideBarSection(system, 'flows');
 
-  const entitiesInSystem = system.data.entities || [];
+  const entitiesInSystem = [...(system.data.entities || [])].sort(byResourceName);
   const renderEntities = entitiesInSystem.length > 0 && shouldRenderSideBarSection(system, 'entities');
 
-  const containersInSystem = system.data.containers || [];
+  const containersInSystem = [...(system.data.containers || [])].sort(byResourceName);
   const renderContainers = containersInSystem.length > 0 && shouldRenderSideBarSection(system, 'containers');
+
+  // The Resources page/link only makes sense when the system actually has resources
+  // attached (services, flows, entities or data stores). Mirrors what the page renders.
+  const hasResources =
+    servicesInSystem.length > 0 || flowsInSystem.length > 0 || entitiesInSystem.length > 0 || containersInSystem.length > 0;
 
   const systemDiagrams = system.data.diagrams || [];
   const diagramNavItems = buildDiagramNavItems(systemDiagrams, context.diagrams);
@@ -54,13 +62,20 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
     title: system.data.name,
     badge: 'System',
     summary: system.data.summary,
-    ...iconFieldsForResource(system.data, 'Group'),
+    // Systems use a custom icon when defined, otherwise none — the surrounding
+    // 'Systems' section header (and System badge) already convey the type, so the
+    // default Group glyph on every item is redundant.
+    ...customIconFieldsForResource(system.data),
     pages: [
       buildQuickReferenceSection(
         [
           {
             title: 'Overview',
             href: buildUrl(`/docs/systems/${system.data.id}/${system.data.version}`),
+          },
+          hasResources && {
+            title: 'System Resources',
+            href: buildUrl(`/docs/systems/${system.data.id}/${system.data.version}/resources`),
           },
           isChangelogEnabled() &&
             shouldRenderSideBarSection(system, 'changelog') && {
@@ -88,7 +103,7 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
             },
           renderVisualiser && {
             type: 'item',
-            title: 'System Diagram',
+            title: 'Resource Diagram',
             href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}`),
           },
         ].filter(Boolean) as ChildRef[],
@@ -99,17 +114,39 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
         icon: 'FileImage',
         pages: diagramNavItems,
       },
-      renderServices && {
+      (renderServices || renderFlows || renderContainers) && {
         type: 'group',
-        title: 'Services',
-        icon: 'Server',
-        pages: servicesInSystem.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
-      },
-      renderFlows && {
-        type: 'group',
-        title: 'Flows',
-        icon: 'Waypoints',
-        pages: flowsInSystem.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+        title: 'Resources',
+        icon: 'Boxes',
+        // Resource type subsections are ordered A-Z by their title, and the
+        // resources within each subsection are ordered A-Z by name (sorted above).
+        pages: (
+          [
+            renderServices && {
+              type: 'group',
+              title: 'Services',
+              subtle: true,
+              icon: 'Server',
+              pages: servicesInSystem.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
+            },
+            renderFlows && {
+              type: 'group',
+              title: 'Flows',
+              subtle: true,
+              icon: 'Waypoints',
+              pages: flowsInSystem.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+            },
+            renderContainers && {
+              type: 'group',
+              title: 'Data Stores',
+              subtle: true,
+              icon: 'Database',
+              pages: containersInSystem.map(
+                (container) => `container:${(container as any).data.id}:${(container as any).data.version}`
+              ),
+            },
+          ].filter(Boolean) as NavNode[]
+        ).sort((a, b) => a.title.localeCompare(b.title)) as ChildRef[],
       },
       renderEntities && {
         type: 'group',
@@ -120,14 +157,6 @@ export const buildSystemNode = (system: CollectionEntry<'systems'>, owners: any[
           title: (entity as any).data?.name || (entity as any).data.id,
           href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
         })),
-      },
-      renderContainers && {
-        type: 'group',
-        title: 'Data Stores',
-        icon: 'Database',
-        pages: containersInSystem.map(
-          (container) => `container:${(container as any).data.id}:${(container as any).data.version}`
-        ),
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(system.data.repository as { url: string; language: string }),

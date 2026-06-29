@@ -49,7 +49,9 @@ export const isEventCatalogChatEnabled = () => {
 };
 
 export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
-export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+
+// Custom landing pages are always enabled now.
+export const isCustomLandingPageEnabled = () => true;
 
 export const isAuthEnabled = () => {
   const isAuthEnabledInCatalog = config?.auth?.enabled ?? false;

@@ -1,0 +1,130 @@
+---
+id: product-search-indexing
+name: Product Search Indexing
+version: 1.0.0
+summary: |
+  How a change to a product in the catalog reliably flows into the search index — via the outbox, product events and the indexer — so search stays in sync without coupling to the catalog database.
+owners:
+  - search-platform
+steps:
+  - id: merchant_edits_product
+    title: Merchant edits a product
+    actor:
+      name: Merchant
+      summary: A merchant creates or updates a product in the catalog.
+    next_step:
+      id: product_api
+      label: Apply change
+
+  - id: product_api
+    title: Product API
+    service:
+      id: product-api
+      version: 1.0.0
+    next_step:
+      id: product_database
+      label: Write change + outbox row
+
+  - id: product_database
+    title: Product Database
+    container:
+      id: product-database
+    next_step:
+      id: outbox_note
+      label: Outbox row committed
+
+  - id: outbox_note
+    title: Outbox pattern
+    custom:
+      title: Transactional outbox
+      color: blue
+      icon: InboxStackIcon
+      type: Pattern
+      summary: The product change and an outbox row are written in the same transaction, so the event can never be lost or out of sync with the data.
+      properties:
+        guarantee: 'change and event are atomic'
+    next_step:
+      id: product_search_publisher
+      label: Drain outbox
+
+  - id: product_search_publisher
+    title: Product Search Publisher
+    service:
+      id: product-search-publisher
+      version: 1.0.0
+    next_steps:
+      - id: product_created
+        label: Created
+      - id: product_updated
+        label: Updated
+      - id: product_deleted
+        label: Deleted
+
+  - id: product_created
+    title: Product Created
+    message:
+      id: product-created
+      version: 1.0.0
+    next_step:
+      id: search_indexer
+      label: Index product
+
+  - id: product_updated
+    title: Product Updated
+    message:
+      id: product-updated
+      version: 1.0.0
+    next_step:
+      id: search_indexer
+      label: Re-index product
+
+  - id: product_deleted
+    title: Product Deleted
+    message:
+      id: product-deleted
+      version: 1.0.0
+    next_step:
+      id: search_indexer
+      label: Remove from index
+
+  - id: search_indexer
+    title: Search Indexer
+    service:
+      id: search-indexer
+      version: 1.0.0
+    next_step:
+      id: search_index
+      label: Apply to index
+
+  - id: search_index
+    title: Search Index
+    container:
+      id: search-index
+    next_step:
+      id: searchable
+      label: Available to search
+
+  - id: searchable
+    title: Product is searchable
+    custom:
+      title: Product is searchable
+      color: green
+      icon: MagnifyingGlassIcon
+      type: Outcome
+      summary: The change is reflected in the search index and immediately available to customers via the Search API.
+      properties:
+        read_model: 'derived, rebuildable from events'
+---
+
+## Overview
+
+**Product Search Indexing** documents how the [[system|search-system]] keeps its index in sync with the catalog. The search index is a derived read model — never a source of truth — so it can be rebuilt at any time by replaying product events.
+
+<NodeGraph />
+
+## How it works
+
+1. A merchant changes a product via the [[service|product-api]], which writes the change and an outbox row to the [[container|product-database]] in one transaction.
+2. The [[service|product-search-publisher]] reliably drains the outbox and publishes [[event|product-created]], [[event|product-updated]] or [[event|product-deleted]].
+3. The [[service|search-indexer]] consumes those events and applies them to the [[container|search-index]].
+4. The change is now searchable via the Search API — with no direct coupling between search and the catalog database.

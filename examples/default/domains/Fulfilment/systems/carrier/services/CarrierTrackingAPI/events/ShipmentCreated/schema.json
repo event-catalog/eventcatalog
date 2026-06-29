@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ShipmentCreated",
+  "description": "Published when a shipment has been created and dispatched",
+  "type": "object",
+  "properties": {
+    "shipmentId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "trackingNumber": { "type": "string" },
+    "carrier": { "type": "string" },
+    "estimatedDelivery": { "type": "string", "format": "date" },
+    "createdAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["shipmentId", "orderId", "trackingNumber", "createdAt"]
+}

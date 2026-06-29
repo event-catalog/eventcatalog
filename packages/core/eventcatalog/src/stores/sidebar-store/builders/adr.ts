@@ -115,7 +115,7 @@ export const buildAdrNode = (adr: Adr, owners: any[], decisionMakers: any[], con
     title: adr.data.name,
     badge: 'Decision record',
     summary: adr.data.summary,
-    icon: 'BookText',
+    icon: 'ClipboardList',
     pages: [
       buildQuickReferenceSection(
         [

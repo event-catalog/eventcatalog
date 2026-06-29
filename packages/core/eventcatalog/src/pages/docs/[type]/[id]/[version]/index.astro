@@ -40,7 +40,7 @@ import {
   ShieldCheckIcon,
   AlignLeft,
   Package,
-  BookText,
+  ClipboardList,
   CalendarDays,
 } from 'lucide-react';
 
@@ -149,7 +149,7 @@ const getBadge = () => {
 
   if (isAdrPage) {
     return [
-      createResourceBadge('Decision Record', BookText),
+      createResourceBadge('Decision Record', ClipboardList),
       createResourceBadge(formatAdrDate(props.data.date), CalendarDays),
       createAdrStatusBadge(props.data.status),
     ];
@@ -332,17 +332,31 @@ let nodeGraphs =
 const flowEmbeds = getMDXComponentsByName(props.body || '', 'Flow') || [];
 
 // Context Diagrams embedded via <ContextDiagram />. When no id is passed we assume
-// the current page (only valid on system pages). Each renders the systems-context
-// graph into its own portal so it doesn't collide with the page's System Diagram.
-const contextDiagrams =
-  props.collection === 'systems'
-    ? (getMDXComponentsByName(props.body || '', 'ContextDiagram') || []).map((diagram: any) => ({
-        id: diagram.id ?? props.data.id,
-        version: diagram.version ?? props.data.version,
+// the current page. Valid on system pages (renders the system's context) and domain
+// pages (renders the context across the domain's systems). Each renders into its own
+// portal so it doesn't collide with the page's default diagram.
+//
+// The underlying graph + visualiser link differ per page type:
+//   - systems → `systems-context`, links to /visualiser/systems/:id/:version/context
+//   - domains → `domains-systems-context`, links to /visualiser/domains/:id/:version/systems-context
+const contextDiagramSupported = props.collection === 'systems' || props.collection === 'domains';
+const contextDiagrams = contextDiagramSupported
+  ? (getMDXComponentsByName(props.body || '', 'ContextDiagram') || []).map((diagram: any) => {
+      const id = diagram.id ?? props.data.id;
+      const version = diagram.version ?? props.data.version;
+      return {
+        id,
+        version,
         search: parseMdxBooleanProp(diagram.search, true),
         legend: parseMdxBooleanProp(diagram.legend, true),
-      }))
-    : [];
+        graphCollection: props.collection === 'domains' ? 'domains-systems-context' : 'systems-context',
+        visualiserUrl:
+          props.collection === 'domains'
+            ? buildUrl(`/visualiser/domains/${id}/${version}/systems-context`)
+            : buildUrl(`/visualiser/systems/${id}/${version}/context`),
+      };
+    })
+  : [];
 
 // Get props for the node graph (when no id is passed, we assume its the current page)
 const hasCurrentFlowEmbed =
@@ -617,7 +631,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                 <NodeGraph
                   id={diagram.id}
                   version={diagram.version}
-                  collection="systems-context"
+                  collection={diagram.graphCollection}
                   mode="simple"
                   linksToVisualiser={true}
                   showSearch={diagram.search ?? true}
@@ -627,7 +641,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                     isVisualiserEnabled()
                       ? {
                           label: 'Open Context Diagram',
-                          url: buildUrl(`/visualiser/systems/${diagram.id}/${diagram.version}/context`),
+                          url: diagram.visualiserUrl,
                         }
                       : undefined
                   }
