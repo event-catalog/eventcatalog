@@ -1,0 +1,36 @@
+---
+title: Fulfilment and shipping
+summary: How stock reservation, warehouse packing and carrier handoff work after an order is completed.
+owners:
+  - fulfilment-platform
+badges:
+  - content: Domain guide
+    backgroundColor: blue
+    textColor: blue
+---
+
+[[domain|fulfilment]] gets confirmed orders to customers. It owns the operational handoff from stock reservation through warehouse work and carrier delivery.
+
+## Domain map
+
+<NodeGraph id="fulfilment" version="1.0.0" type="domain" maxHeight={36} mode="simple" />
+
+## Inventory System
+
+[[system|inventory-system]] owns [[container|inventory-database]]. [[service|inventory-service]] handles [[command|reserve-inventory]], [[command|release-inventory]] and [[query|get-stock-level]].
+
+It publishes [[event|inventory-reserved]] or [[event|inventory-unavailable]] during checkout.
+
+## Warehouse System
+
+[[system|warehouse-system]] owns picking and packing in [[container|warehouse-database]]. [[service|warehouse-service]] reacts to [[event|order-completed]] and publishes [[event|order-ready-for-shipping]].
+
+[[service|picking-worker]] handles packing work and publishes [[event|order-packed]].
+
+## Shipping System and Carrier
+
+[[system|shipping-system]] creates shipments through [[command|create-shipment]]. [[system|carrier]] is the external delivery provider and reports [[event|shipment-created]], [[event|shipment-delivered]] or [[event|shipment-failed]].
+
+## Boundary with Ordering
+
+Ordering decides that an order exists. Fulfilment decides whether and how it can be delivered. Keep these lifecycles separate so cancellation, refunds and shipment exceptions can be handled independently.

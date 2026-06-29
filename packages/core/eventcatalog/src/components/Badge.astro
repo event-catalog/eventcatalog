@@ -26,7 +26,7 @@ const href = getBadgeHref(badge);
 const Icon = badge.icon || badge.iconComponent;
 const hasThemedIcon = badge.iconURLLight && badge.iconURLDark;
 const classes = `
-  inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+  inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium
   ${badge.backgroundColor ? 'bg-[rgb(var(--ec-content-hover))]' : 'bg-transparent'} border border-[rgb(var(--ec-page-border))]
   text-[rgb(var(--ec-page-text))]
   shadow-xs
@@ -38,11 +38,11 @@ const classes = `
 {
   href ? (
     <a id={badge.id || undefined} href={href} class={classes} style={getBadgeStyle(badge)} title={badge.content}>
-      {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
+      {Icon && <Icon className="w-3 h-3 flex-shrink-0" />}
       {hasThemedIcon && (
         <img
           src={badge.iconURLLight}
-          class="w-4 h-4 flex-shrink-0 opacity-80 dark:hidden"
+          class="w-3 h-3 flex-shrink-0 opacity-80 dark:hidden"
           alt=""
           onerror="this.style.display='none'"
         />
@@ -50,24 +50,24 @@ const classes = `
       {hasThemedIcon && (
         <img
           src={badge.iconURLDark}
-          class="hidden w-4 h-4 flex-shrink-0 opacity-80 dark:inline-block"
+          class="hidden w-3 h-3 flex-shrink-0 opacity-80 dark:inline-block"
           alt=""
           onerror="this.style.display='none'"
         />
       )}
       {!hasThemedIcon && badge.iconURL && (
-        <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
+        <img src={badge.iconURL} class="w-3 h-3 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
       )}
       <span>{badge.content}</span>
-      <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5 flex-shrink-0 opacity-70" aria-hidden="true" />
+      <ArrowTopRightOnSquareIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-70" aria-hidden="true" />
     </a>
   ) : (
     <span id={badge.id || undefined} class={classes} style={getBadgeStyle(badge)} title={badge.content}>
-      {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
+      {Icon && <Icon className="w-3 h-3 flex-shrink-0" />}
       {hasThemedIcon && (
         <img
           src={badge.iconURLLight}
-          class="w-4 h-4 flex-shrink-0 opacity-80 dark:hidden"
+          class="w-3 h-3 flex-shrink-0 opacity-80 dark:hidden"
           alt=""
           onerror="this.style.display='none'"
         />
@@ -75,13 +75,13 @@ const classes = `
       {hasThemedIcon && (
         <img
           src={badge.iconURLDark}
-          class="hidden w-4 h-4 flex-shrink-0 opacity-80 dark:inline-block"
+          class="hidden w-3 h-3 flex-shrink-0 opacity-80 dark:inline-block"
           alt=""
           onerror="this.style.display='none'"
         />
       )}
       {!hasThemedIcon && badge.iconURL && (
-        <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
+        <img src={badge.iconURL} class="w-3 h-3 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
       )}
       <span>{badge.content}</span>
     </span>

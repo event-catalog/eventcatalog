@@ -1,0 +1,38 @@
+---
+id: cart-item
+name: Cart Item
+version: 1.0.0
+identifier: cartItemId
+summary: A product variant and quantity inside a cart.
+owners:
+  - shopping-platform
+properties:
+  - name: cartItemId
+    type: UUID
+    required: true
+    description: Unique cart item identifier.
+  - name: cartId
+    type: UUID
+    required: true
+    description: Cart this item belongs to.
+    references: cart
+    relationType: belongsTo
+    referencesIdentifier: cartId
+  - name: productId
+    type: UUID
+    required: true
+    description: Product selected by the customer.
+    references: product
+    relationType: references
+    referencesIdentifier: productId
+  - name: quantity
+    type: integer
+    required: true
+    description: Quantity requested.
+---
+
+## Overview
+
+Cart Item records the customer's intent to buy a product variant before checkout. It is owned by [[entity|cart]].
+
+<EntityPropertiesTable />

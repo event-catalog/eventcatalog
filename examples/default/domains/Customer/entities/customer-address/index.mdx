@@ -1,0 +1,35 @@
+---
+id: customer-address
+name: Customer Address
+version: 1.0.0
+identifier: addressId
+summary: A saved address attached to a customer profile.
+owners:
+  - customer-platform
+properties:
+  - name: addressId
+    type: UUID
+    required: true
+    description: Unique address identifier.
+  - name: customerId
+    type: UUID
+    required: true
+    description: Customer who owns the address.
+    references: customer-profile
+    relationType: belongsTo
+    referencesIdentifier: customerId
+  - name: countryCode
+    type: string
+    required: true
+    description: ISO country code.
+  - name: postalCode
+    type: string
+    required: true
+    description: Postal or ZIP code.
+---
+
+## Overview
+
+Customer Address supports checkout and fulfilment while remaining owned by the Customer domain.
+
+<EntityPropertiesTable />

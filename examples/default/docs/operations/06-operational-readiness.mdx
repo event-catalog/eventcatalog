@@ -1,0 +1,50 @@
+---
+title: Operational readiness
+summary: The launch and support standards Acme applies before a system or contract is considered production-ready.
+owners:
+  - platform-governance
+badges:
+  - content: Standard
+    backgroundColor: green
+    textColor: green
+---
+
+A system is production-ready when another team can understand ownership, dependencies and failure behavior from the catalog before an incident starts.
+
+## Required catalog coverage
+
+Before production launch, each system must document:
+
+- owning team and escalation path,
+- services and containers,
+- commands, queries and events,
+- critical flows that include the system,
+- external dependencies,
+- operational dashboards or runbooks where available,
+- known failure modes and recovery expectations.
+
+## Critical system map
+
+Checkout is the reference standard for operational coverage because it crosses Shopping, Ordering, Payments and Fulfilment.
+
+<NodeGraph id="checkout-system" version="1.0.0" type="system" maxHeight={34} mode="simple" />
+
+## Launch gates
+
+| Gate | Required evidence |
+|------|-------------------|
+| Ownership | Team and escalation path are present in the catalog. |
+| Contracts | Public commands, events and queries have schemas or payload notes. |
+| Observability | Error, latency and throughput signals exist for customer-facing paths. |
+| Recovery | Retry, compensation or manual recovery behavior is documented. |
+| Dependencies | Upstream and downstream systems are linked in the catalog. |
+
+<Prompt description="Run an operational readiness review" actions={["copy", "cursor"]} icon="radar">
+  Review this system for production readiness at Acme Inc. Check ownership, escalation, contracts, observability,
+  dependency mapping, failure modes, recovery behavior and customer impact. Return launch blockers, follow-up tasks and
+  catalog pages that should be updated before release.
+</Prompt>
+
+## Incident updates
+
+After an incident, update the catalog when the incident reveals a missing dependency, stale owner, unclear contract, undocumented failure mode or misleading flow.

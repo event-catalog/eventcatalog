@@ -96,11 +96,19 @@ export interface PropertyOption {
   label: string;
 }
 
+export interface CollectionKindOption {
+  id: CollectionType;
+  label: string;
+  href: string;
+  count: number;
+}
+
 export interface DiscoverTableProps<T extends DiscoverTableData> {
   data: T[];
   collectionType: CollectionType;
   collectionLabel: string;
   collectionDescription?: string;
+  collectionKinds?: CollectionKindOption[];
   domains?: Array<{ id: string; name: string; version: string }>;
   owners?: Array<{ id: string; name: string; type?: 'user' | 'team' }>;
   producers?: Array<{ id: string; name: string }>;
@@ -158,6 +166,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
   collectionType,
   collectionLabel,
   collectionDescription,
+  collectionKinds = [],
   domains = [],
   owners = [],
   producers = [],
@@ -202,6 +211,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const selectedKind = collectionKinds.find((kind) => kind.id === collectionType);
 
   // Collect unique badges from all items
   const allBadges = useMemo(() => {
@@ -563,6 +573,12 @@ export function DiscoverTable<T extends DiscoverTableData>({
     setSelectedProperties((prev) => (prev.includes(propertyId) ? prev.filter((p) => p !== propertyId) : [...prev, propertyId]));
   };
 
+  const navigateToKind = (kindId: CollectionType) => {
+    const selectedKind = collectionKinds.find((kind) => kind.id === kindId);
+    if (!selectedKind || selectedKind.id === collectionType) return;
+    window.location.href = selectedKind.href;
+  };
+
   const clearAllFilters = () => {
     setSelectedDomains([]);
     setSelectedOwners([]);
@@ -638,6 +654,28 @@ export function DiscoverTable<T extends DiscoverTableData>({
 
         {/* Filter sections */}
         <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 space-y-6">
+          {collectionKinds.length > 1 && (
+            <div>
+              <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">Kind</label>
+              <FilterDropdown
+                label="Select kind..."
+                selectedItems={selectedKind ? [selectedKind.label] : []}
+                onClear={() => {}}
+                clearable={false}
+              >
+                {collectionKinds.map((kind) => (
+                  <CheckboxItem
+                    key={kind.id}
+                    label={kind.label}
+                    checked={kind.id === collectionType}
+                    onChange={() => navigateToKind(kind.id)}
+                    count={kind.count}
+                  />
+                ))}
+              </FilterDropdown>
+            </div>
+          )}
+
           {/* Message Filters Section */}
           {(showProducersFilter || showConsumersFilter) && (filteredProducers.length > 0 || filteredConsumers.length > 0) && (
             <div className="space-y-3">

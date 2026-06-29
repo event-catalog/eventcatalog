@@ -1,0 +1,43 @@
+---
+title: Place an order
+summary: The end-to-end customer purchase journey from cart checkout to confirmed order and downstream fulfilment.
+owners:
+  - ordering-platform
+badges:
+  - content: Flow
+    backgroundColor: orange
+    textColor: orange
+---
+
+[[flow|place-an-order]] is the highest-value customer journey in the catalog. It spans [[domain|shopping]], [[domain|ordering]], [[domain|payments]] and [[domain|fulfilment]].
+
+## Flow map
+
+<Flow id="place-an-order" version="1.0.0" maxHeight={36} />
+
+## Happy path
+
+1. The customer checks out through [[service|cart-api]] using [[command|checkout-cart]].
+2. [[service|cart-api]] publishes [[event|cart-checked-out]].
+3. [[service|checkout-api]] and [[service|checkout-orchestrator]] start checkout orchestration.
+4. [[service|checkout-orchestrator]] reserves inventory with [[command|reserve-inventory]].
+5. It authorizes payment with [[command|authorize-payment]].
+6. It creates the order with [[command|create-order]].
+7. [[service|order-service]] publishes [[event|order-created]] and eventually [[event|order-completed]].
+8. Fulfilment consumes completed orders and prepares shipment.
+
+## Important boundaries
+
+The flow crosses several ownership boundaries. Shopping owns the cart, Ordering owns the order, Payments owns payment outcome, and Fulfilment owns stock and shipping. Each handoff is a contract boundary.
+
+## Failure points
+
+The two most important failure points are inventory and payment. If [[command|reserve-inventory]] or [[command|authorize-payment]] fails, checkout must compensate and avoid creating an order.
+
+<Prompt description="Analyze checkout impact" actions={["copy", "cursor"]} icon="route">
+  Review the Acme place-an-order flow and identify the operational impact of a checkout change. Focus on cart checkout,
+  inventory reservation, payment authorization, order creation, fulfilment handoff, compensation behavior and teams that
+  need to review the change. Return a concise impact checklist with risks and required catalog updates.
+</Prompt>
+
+Use [[flow|checkout-saga]] for the detailed orchestration view.

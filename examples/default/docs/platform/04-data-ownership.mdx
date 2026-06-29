@@ -1,0 +1,40 @@
+---
+title: Data ownership
+summary: The source-of-truth data stores in the default catalog and the rules for reading and writing business state.
+owners:
+  - dboyne
+badges:
+  - content: Data
+    backgroundColor: green
+    textColor: green
+---
+
+Every durable business concept has an owning system and a source-of-truth store. Other systems should depend on published contracts instead of reaching into another system's data store.
+
+## Source-of-truth stores
+
+| Data store | Owner | Business data |
+|------------|-------|---------------|
+| [[container\|product-database]] | [[system\|product-catalog-system]] | Products, product attributes and catalog change outbox. |
+| [[container\|search-index]] | [[system\|search-system]] | Search-optimised product documents. |
+| [[container\|cart-database]] | [[system\|cart-system]] | Active shopping carts and checkout state. |
+| [[container\|promotion-database]] | [[system\|promotion-system]] | Promotion rules and discount configuration. |
+| [[container\|order-database]] | [[system\|order-management-system]] | Orders and order lifecycle state. |
+| [[container\|payment-database]] | [[system\|payment-processing-system]] | Payment intents, charge outcomes and refunds. |
+| [[container\|inventory-database]] | [[system\|inventory-system]] | Stock levels and reservations. |
+| [[container\|warehouse-database]] | [[system\|warehouse-system]] | Picking and packing work. |
+| [[container\|customer-database]] | [[system\|customer-management-system]] | Customer profiles. |
+| [[container\|review-database]] | [[domain\|reviews]] | Reviews and moderation state. |
+| [[container\|rating-cache]] | [[domain\|reviews]] | Product rating read model. |
+
+## Read model pattern
+
+[[system|search-system]] and [[container|rating-cache]] are read models. They do not own the original facts. They rebuild their state from events such as [[event|product-created]], [[event|product-updated]], [[event|review-published]] and [[event|rating-updated]].
+
+## Write rule
+
+Only the owning system writes its source-of-truth store. Cross-system updates should be commands or events. For example, checkout asks fulfilment to reserve stock with [[command|reserve-inventory]] rather than writing [[container|inventory-database]] directly.
+
+## Consistency rule
+
+User-facing flows should make the consistency model explicit. Checkout needs coordinated confirmation across inventory, payment and order creation, so it uses the [[flow|checkout-saga]]. Search indexing can lag product writes, so it uses asynchronous product events.

@@ -1,0 +1,35 @@
+---
+id: payment-authorization
+name: Payment Authorization
+version: 1.0.0
+identifier: authorizationId
+summary: Approval from a payment provider to reserve funds for an order.
+owners:
+  - payments-platform
+properties:
+  - name: authorizationId
+    type: UUID
+    required: true
+    description: Unique authorization identifier.
+  - name: paymentId
+    type: UUID
+    required: true
+    description: Payment this authorization belongs to.
+    references: payment
+    relationType: belongsTo
+    referencesIdentifier: paymentId
+  - name: providerReference
+    type: string
+    required: true
+    description: External payment provider reference.
+  - name: authorizedAt
+    type: datetime
+    required: true
+    description: Time authorization was granted.
+---
+
+## Overview
+
+Payment Authorization captures the result of [[command|authorize-payment]] and links Acme payment state to provider state.
+
+<EntityPropertiesTable />

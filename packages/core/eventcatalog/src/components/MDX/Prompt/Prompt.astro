@@ -1,4 +1,5 @@
 ---
+import { ChevronDown } from 'lucide-react';
 import { LUCIDE_ICON_MAP } from '@utils/icon-map';
 
 type ActionType = 'copy' | 'cursor';
@@ -37,6 +38,7 @@ const promptText = (slotHtml ?? '')
   .trim();
 
 const cursorUrl = `https://cursor.com/link/prompt?text=${encodeURIComponent(promptText)}`;
+const promptBodyId = `ec-prompt-body-${Math.random().toString(36).slice(2)}`;
 ---
 
 <ec-prompt
@@ -49,6 +51,20 @@ const cursorUrl = `https://cursor.com/link/prompt?text=${encodeURIComponent(prom
       <div class="text-sm font-medium text-[rgb(var(--ec-page-text))] leading-snug">{description}</div>
     </div>
     <div class="flex items-center gap-1.5 shrink-0">
+      <button
+        type="button"
+        data-prompt-toggle
+        aria-expanded="false"
+        aria-controls={promptBodyId}
+        class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md border transition-all duration-150 border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))]"
+      >
+        <span data-prompt-toggle-text>Show prompt</span>
+        <ChevronDown
+          className="w-3.5 h-3.5 shrink-0 transition-transform duration-150 data-[expanded=true]:rotate-180"
+          data-prompt-toggle-icon
+          data-expanded="false"
+        />
+      </button>
       {
         showCopy && (
           <button
@@ -123,6 +139,15 @@ const cursorUrl = `https://cursor.com/link/prompt?text=${encodeURIComponent(prom
       }
     </div>
   </div>
+  <div
+    id={promptBodyId}
+    data-prompt-body
+    hidden
+    class="border-t border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))]/70"
+  >
+    <pre
+      class="m-0 max-h-96 overflow-auto whitespace-pre-wrap break-words px-4 py-3 text-sm leading-6 text-[rgb(var(--ec-page-text))]"><code>{promptText}</code></pre>
+  </div>
   <div hidden><slot /></div>
 </ec-prompt>
 
@@ -130,16 +155,28 @@ const cursorUrl = `https://cursor.com/link/prompt?text=${encodeURIComponent(prom
   if (!customElements.get('ec-prompt')) {
     class ECPromptElement extends HTMLElement {
       private resetTimer: number | null = null;
-      private button: HTMLButtonElement | null = null;
+      private copyButton: HTMLButtonElement | null = null;
+      private toggleButton: HTMLButtonElement | null = null;
+      private promptBody: HTMLElement | null = null;
+      private toggleText: HTMLElement | null = null;
+      private toggleIcon: HTMLElement | null = null;
       private boundHandler = this.handleCopy.bind(this);
+      private boundToggleHandler = this.handleToggle.bind(this);
 
       connectedCallback() {
-        this.button = this.querySelector<HTMLButtonElement>('[data-prompt-copy]');
-        this.button?.addEventListener('click', this.boundHandler);
+        this.copyButton = this.querySelector<HTMLButtonElement>('[data-prompt-copy]');
+        this.toggleButton = this.querySelector<HTMLButtonElement>('[data-prompt-toggle]');
+        this.promptBody = this.querySelector<HTMLElement>('[data-prompt-body]');
+        this.toggleText = this.querySelector<HTMLElement>('[data-prompt-toggle-text]');
+        this.toggleIcon = this.querySelector<HTMLElement>('[data-prompt-toggle-icon]');
+
+        this.copyButton?.addEventListener('click', this.boundHandler);
+        this.toggleButton?.addEventListener('click', this.boundToggleHandler);
       }
 
       disconnectedCallback() {
-        this.button?.removeEventListener('click', this.boundHandler);
+        this.copyButton?.removeEventListener('click', this.boundHandler);
+        this.toggleButton?.removeEventListener('click', this.boundToggleHandler);
         if (this.resetTimer != null) {
           window.clearTimeout(this.resetTimer);
           this.resetTimer = null;
@@ -158,12 +195,28 @@ const cursorUrl = `https://cursor.com/link/prompt?text=${encodeURIComponent(prom
         this.resetTimer = window.setTimeout(() => this.setCopied(false), 1500);
       }
 
+      private handleToggle() {
+        if (!this.promptBody || !this.toggleButton) return;
+
+        const expanded = this.toggleButton.getAttribute('aria-expanded') === 'true';
+        this.setExpanded(!expanded);
+      }
+
+      private setExpanded(expanded: boolean) {
+        if (!this.promptBody || !this.toggleButton) return;
+
+        this.promptBody.hidden = !expanded;
+        this.toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        if (this.toggleText) this.toggleText.textContent = expanded ? 'Hide prompt' : 'Show prompt';
+        if (this.toggleIcon) this.toggleIcon.dataset.expanded = expanded ? 'true' : 'false';
+      }
+
       private setCopied(copied: boolean) {
-        if (!this.button) return;
-        this.button.dataset.copied = copied ? 'true' : 'false';
-        this.button.setAttribute('aria-label', copied ? 'Copied to clipboard' : 'Copy prompt');
-        const idle = this.button.querySelector<HTMLElement>('[data-prompt-copy-idle]');
-        const done = this.button.querySelector<HTMLElement>('[data-prompt-copy-done]');
+        if (!this.copyButton) return;
+        this.copyButton.dataset.copied = copied ? 'true' : 'false';
+        this.copyButton.setAttribute('aria-label', copied ? 'Copied to clipboard' : 'Copy prompt');
+        const idle = this.copyButton.querySelector<HTMLElement>('[data-prompt-copy-idle]');
+        const done = this.copyButton.querySelector<HTMLElement>('[data-prompt-copy-done]');
         if (idle) idle.style.display = copied ? 'none' : '';
         if (done) done.style.display = copied ? '' : 'none';
       }

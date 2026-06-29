@@ -65,6 +65,7 @@ export function CopyPageMenu({
   preferChatAsDefault = false,
   chatButtonText = 'Ask',
   printUrl,
+  variant = 'menu',
 }: {
   schemas: Schema[];
   chatQuery?: string;
@@ -75,6 +76,7 @@ export function CopyPageMenu({
   preferChatAsDefault?: boolean;
   chatButtonText?: string;
   printUrl?: string;
+  variant?: 'menu' | 'toolbar';
 }) {
   // Define available actions
   const availableActions = {
@@ -164,12 +166,14 @@ export function CopyPageMenu({
   const defaultAction = getDefaultAction();
   const [open, setOpen] = useState(false);
   const [buttonText, setButtonText] = useState(defaultAction?.text || 'Action');
+  const [copyButtonText, setCopyButtonText] = useState('Copy page as markdown');
 
   // Fetch the markdown from the url + .mdx
   const copyMarkdownToClipboard = async () => {
     console.log('Copying markdown to clipboard');
     try {
       setButtonText('Copied');
+      setCopyButtonText('Copied');
       const response = await fetch(markdownUrl);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -177,10 +181,13 @@ export function CopyPageMenu({
       const markdown = await response.text();
       await navigator.clipboard.writeText(markdown);
       setTimeout(() => setButtonText(defaultAction?.text || 'Action'), 3000); // Revert after 3 seconds
+      setTimeout(() => setCopyButtonText('Copy page as markdown'), 3000);
     } catch (error) {
       console.error('Failed to copy markdown:', error);
       setButtonText('Copy failed'); // Provide feedback on failure
+      setCopyButtonText('Copy failed');
       setTimeout(() => setButtonText(defaultAction?.text || 'Action'), 3000);
+      setTimeout(() => setCopyButtonText('Copy page as markdown'), 3000);
     }
   };
 
@@ -234,6 +241,153 @@ export function CopyPageMenu({
 
   if (!defaultAction) {
     return null;
+  }
+
+  const actionButtonClass =
+    'group inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors duration-150 hover:text-[rgb(var(--ec-page-text))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 focus:ring-offset-[rgb(var(--ec-page-bg))] rounded-md';
+  const actionIconClass = 'h-3.5 w-3.5 shrink-0 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-page-text))]';
+
+  const hasToolbarActions =
+    availableActions.chat ||
+    availableActions.copyMarkdown ||
+    availableActions.viewMarkdown ||
+    availableActions.copySchemas ||
+    availableActions.rssFeed ||
+    availableActions.exportPDF ||
+    availableActions.editPage;
+
+  if (variant === 'toolbar') {
+    if (!hasToolbarActions) return null;
+
+    const moreActionsAvailable =
+      availableActions.copySchemas || availableActions.rssFeed || availableActions.exportPDF || availableActions.editPage;
+
+    return (
+      <div className="not-prose flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-[rgb(var(--ec-page-text-muted))]">
+        {availableActions.chat && (
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'))}
+            className={actionButtonClass}
+          >
+            <MessageCircleQuestion className={actionIconClass} />
+            Ask a question
+          </button>
+        )}
+
+        {availableActions.chat && (availableActions.copyMarkdown || availableActions.viewMarkdown || moreActionsAvailable) && (
+          <span className="h-4 w-px bg-[rgb(var(--ec-page-border))]" aria-hidden="true" />
+        )}
+
+        {availableActions.copyMarkdown && (
+          <button type="button" onClick={copyMarkdownToClipboard} className={actionButtonClass}>
+            <Copy className={actionIconClass} />
+            {copyButtonText}
+          </button>
+        )}
+
+        {availableActions.copyMarkdown && (availableActions.viewMarkdown || moreActionsAvailable) && (
+          <span className="h-4 w-px bg-[rgb(var(--ec-page-border))]" aria-hidden="true" />
+        )}
+
+        {availableActions.viewMarkdown && (
+          <button type="button" onClick={() => window.open(markdownUrl, '_blank')} className={actionButtonClass}>
+            <FileText className={actionIconClass} />
+            View as Markdown
+          </button>
+        )}
+
+        {availableActions.viewMarkdown && moreActionsAvailable && (
+          <span className="h-4 w-px bg-[rgb(var(--ec-page-border))]" aria-hidden="true" />
+        )}
+
+        {moreActionsAvailable && (
+          <DropdownMenu.Root open={open} onOpenChange={setOpen}>
+            <DropdownMenu.Trigger asChild>
+              <button type="button" className={actionButtonClass}>
+                More actions
+                <ChevronDownIcon className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content
+              className="z-50 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-[rgb(var(--ec-dropdown-border)/0.8)] bg-[rgb(var(--ec-page-bg))] px-1.5 py-1.5 shadow-[0_24px_64px_rgb(0_0_0/0.35)]"
+              sideOffset={10}
+              align="start"
+            >
+              {availableActions.copySchemas &&
+                schemas.map((schema) => {
+                  const title =
+                    schema.format === 'asyncapi'
+                      ? 'Copy AsyncAPI specification'
+                      : schema.format === 'openapi'
+                        ? 'Copy OpenAPI specification'
+                        : 'Copy schema';
+                  const type =
+                    schema.format === 'asyncapi' || schema.format === 'openapi'
+                      ? 'specification'
+                      : `${schema.format.toUpperCase()} schema`;
+
+                  const Icon =
+                    schema.format === 'asyncapi' ? (
+                      <img src={buildUrl('/icons/asyncapi.svg', true)} className="w-4 h-4" />
+                    ) : schema.format === 'openapi' ? (
+                      <img src={buildUrl('/icons/openapi.svg', true)} className="w-4 h-4" />
+                    ) : (
+                      FileText
+                    );
+
+                  return (
+                    <DropdownMenu.Item
+                      key={schema.url}
+                      className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+                      onSelect={() => copySchemaToClipboard(schema)}
+                    >
+                      <MenuItemContent icon={Icon} title={title} description={`Copy ${type} to clipboard`} />
+                    </DropdownMenu.Item>
+                  );
+                })}
+
+              {availableActions.rssFeed && (
+                <DropdownMenu.Item
+                  className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+                  onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`), '_blank')}
+                >
+                  <MenuItemContent icon={RssIcon} title="RSS Feed" description="View this page as RSS feed" external={true} />
+                </DropdownMenu.Item>
+              )}
+
+              {availableActions.exportPDF && (
+                <DropdownMenu.Item
+                  className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+                  onSelect={() => window.open(printUrl, '_blank')}
+                >
+                  <MenuItemContent
+                    icon={PrinterIcon}
+                    title="Export to PDF"
+                    description="Open print-friendly version"
+                    external={true}
+                  />
+                </DropdownMenu.Item>
+              )}
+
+              {availableActions.editPage && (
+                <DropdownMenu.Item
+                  className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+                  onSelect={() => window.open(editUrl, '_blank')}
+                >
+                  <MenuItemContent
+                    icon={PenSquareIcon}
+                    title="Edit page"
+                    description="Edit the contents of this page"
+                    external={true}
+                  />
+                </DropdownMenu.Item>
+              )}
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+        )}
+      </div>
+    );
   }
 
   return (

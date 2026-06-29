@@ -1,0 +1,56 @@
+---
+title: Review and change workflow
+summary: The standard workflow Acme teams use to make catalog-backed architecture and integration changes.
+owners:
+  - platform-governance
+badges:
+  - content: Standard
+    backgroundColor: purple
+    textColor: purple
+---
+
+Catalog updates should land with the system change they describe. The catalog is part of the delivery artifact, not an after-the-fact diagram store.
+
+## Change categories
+
+| Change | Required review |
+|--------|-----------------|
+| Local service implementation only | Owning team review. |
+| New command, event or query | Owning team plus known consumers. |
+| Breaking contract change | Contract review and migration plan. |
+| New system or external dependency | Architecture review. |
+| Critical flow behavior change | Owning teams for every domain in the flow. |
+
+## Standard workflow
+
+<Steps>
+  <Step title="Describe the intent">
+    Update the affected domain, system or flow page with the business reason for the change.
+  </Step>
+  <Step title="Update contracts">
+    Add or revise command, event and query pages before consumers integrate with them.
+  </Step>
+  <Step title="Assess impact">
+    Check system maps and flow pages for upstream and downstream dependencies.
+  </Step>
+  <Step title="Record decisions">
+    Add an ADR when the change affects ownership, persistence, integration style or operational recovery.
+  </Step>
+  <Step title="Close the loop">
+    After release, confirm the catalog matches the deployed behavior and remove stale notes.
+  </Step>
+</Steps>
+
+<Prompt description="Create a catalog-backed change checklist" actions={["copy", "cursor"]} icon="list-checks">
+  Create a review checklist for a proposed Acme architecture change. Include affected domains, systems, services,
+  commands, events, queries, flows, owners, operational risks, decision records and release follow-up. Keep the output
+  practical enough to paste into a pull request description.
+</Prompt>
+
+## Flow review
+
+For checkout changes, review both the customer journey and the internal saga before implementation.
+
+<Flow id="place-an-order" version="1.0.0" maxHeight={34} />
+
+<Flow id="checkout-saga" version="1.0.0" maxHeight={34} />

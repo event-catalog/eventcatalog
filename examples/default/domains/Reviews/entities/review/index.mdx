@@ -16,10 +16,16 @@ properties:
     type: string
     required: true
     description: The product being reviewed.
+    references: product
+    relationType: reviews
+    referencesIdentifier: productId
   - name: customerId
     type: string
     required: true
     description: The customer who wrote the review.
+    references: customer-profile
+    relationType: writtenBy
+    referencesIdentifier: customerId
   - name: rating
     type: integer
     required: true

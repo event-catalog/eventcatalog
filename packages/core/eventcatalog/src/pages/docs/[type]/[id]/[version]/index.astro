@@ -408,7 +408,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
       <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
         <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-6 pt-4">
           <div>
-            <div class="flex justify-between items-end">
+            <div>
               <div class="flex flex-col gap-4">
                 <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">
                   {friendlyCollectionName}
@@ -442,22 +442,32 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                   </div>
                 </div>
               </div>
-              <div class="hidden lg:block mb-2">
-                <CopyAsMarkdown
-                  client:only="react"
-                  schemas={schemasForResource}
-                  chatQuery={generatePromptForResource(props)}
-                  chatEnabled={isEventCatalogChatEnabled()}
-                  markdownDownloadEnabled={isMarkdownDownloadEnabled()}
-                  rssFeedEnabled={isRSSEnabled()}
-                  editUrl={editUrl}
-                  preferChatAsDefault={isEventCatalogChatEnabled()}
-                  printUrl={printUrl}
-                />
-              </div>
             </div>
 
             <h2 class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
+            {
+              badges && (
+                <div class="flex flex-wrap gap-1.5 pt-4">
+                  {badges.map((badge: any) => {
+                    return <Badge badge={badge} />;
+                  })}
+                </div>
+              )
+            }
+            <div class="pt-5">
+              <CopyAsMarkdown
+                client:only="react"
+                variant="toolbar"
+                schemas={schemasForResource}
+                chatQuery={generatePromptForResource(props)}
+                chatEnabled={isEventCatalogChatEnabled()}
+                markdownDownloadEnabled={isMarkdownDownloadEnabled()}
+                rssFeedEnabled={isRSSEnabled()}
+                editUrl={editUrl}
+                preferChatAsDefault={isEventCatalogChatEnabled()}
+                printUrl={printUrl}
+              />
+            </div>
             {
               httpOperation && (
                 <div class="pt-4">
@@ -478,16 +488,6 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                 </div>
               )
             }
-            {
-              badges && (
-                <div class="flex flex-wrap gap-3 pt-6 pb-2">
-                  {badges.map((badge: any) => {
-                    return <Badge badge={badge} />;
-                  })}
-                </div>
-              )
-            }
-
             {
               isSupersededAdr(props) && (
                 <Admonition type="warning" title="This architecture decision has been superseded">

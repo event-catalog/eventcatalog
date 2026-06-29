@@ -1,0 +1,39 @@
+---
+id: fraud-check
+name: Fraud Check
+version: 1.0.0
+identifier: fraudCheckId
+summary: Fraud screening result associated with a payment attempt.
+owners:
+  - payments-platform
+properties:
+  - name: fraudCheckId
+    type: UUID
+    required: true
+    description: Unique fraud check identifier.
+  - name: paymentId
+    type: UUID
+    required: true
+    description: Payment attempt being screened.
+    references: payment
+    relationType: screens
+    referencesIdentifier: paymentId
+  - name: result
+    type: string
+    required: true
+    description: Screening result.
+    enum:
+      - passed
+      - failed
+      - review
+  - name: checkedAt
+    type: datetime
+    required: true
+    description: Time screening completed.
+---
+
+## Overview
+
+Fraud Check documents the screening outcome from [[system|fraud-detection]] so payment decisions are auditable.
+
+<EntityPropertiesTable />

@@ -1,0 +1,46 @@
+---
+title: Catalog and search
+summary: How product data is owned by the Product Catalog System and projected into Search for customer discovery.
+owners:
+  - product-platform
+badges:
+  - content: Domain guide
+    backgroundColor: blue
+    textColor: blue
+---
+
+[[domain|catalog]] owns the product information that customers browse and buy. It is split into two systems with different consistency needs.
+
+## Domain map
+
+<NodeGraph id="catalog" version="1.0.0" type="domain" maxHeight={34} mode="simple" />
+
+## Product Catalog System
+
+[[system|product-catalog-system]] is the source of truth. [[service|product-api]] handles product commands and reads from [[container|product-database]]. Product changes are captured through an outbox and published by [[service|product-search-publisher]].
+
+Key contracts:
+
+- [[command|create-product]]
+- [[command|update-product]]
+- [[command|delete-product]]
+- [[query|get-product]]
+- [[event|product-created]]
+- [[event|product-updated]]
+- [[event|product-deleted]]
+
+## Search System
+
+[[system|search-system]] serves product discovery through [[service|search-api]] and [[query|search-products]]. It maintains [[container|search-index]] from product events.
+
+The Search System should be treated as eventually consistent with the Product Catalog System. If a merchandiser updates a product, the product database is immediately authoritative; search visibility follows after indexing.
+
+## Decision context
+
+The product catalog has several architecture decisions documented directly on the system:
+
+- [[adr|adr-001-use-transactional-outbox]]
+- [[adr|adr-002-postgres-as-system-of-record]]
+- [[adr|adr-003-offload-async-work-to-worker]]
+
+These decisions explain why product events are published asynchronously and why Postgres remains the system of record.

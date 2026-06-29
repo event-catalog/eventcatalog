@@ -1,0 +1,36 @@
+---
+id: order
+name: Order
+version: 1.0.0
+identifier: orderId
+aggregateRoot: true
+summary: The durable customer order created after successful checkout.
+owners:
+  - ordering-platform
+properties:
+  - name: orderId
+    type: UUID
+    required: true
+    description: Unique order identifier.
+  - name: customerId
+    type: UUID
+    required: true
+    description: Customer who placed the order.
+    references: customer-profile
+    relationType: belongsTo
+    referencesIdentifier: customerId
+  - name: status
+    type: string
+    required: true
+    description: Current order lifecycle state.
+  - name: totalAmount
+    type: decimal
+    required: true
+    description: Total order value at creation.
+---
+
+## Overview
+
+Order is the main aggregate in [[system|order-management-system]]. It emits order lifecycle events used by Fulfilment and support workflows.
+
+<EntityPropertiesTable />

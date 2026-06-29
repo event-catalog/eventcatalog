@@ -182,6 +182,8 @@ export default defineConfig({
         'react',
         'react-dom',
         'semver',
+        'diff',
+        'diff2html',
       ],
       esbuildOptions: {
         jsx: 'automatic',

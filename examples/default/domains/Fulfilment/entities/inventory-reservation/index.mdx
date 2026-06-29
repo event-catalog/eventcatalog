@@ -1,0 +1,39 @@
+---
+id: inventory-reservation
+name: Inventory Reservation
+version: 1.0.0
+identifier: reservationId
+aggregateRoot: true
+summary: Stock held for a checkout or order before fulfilment.
+owners:
+  - fulfilment-platform
+properties:
+  - name: reservationId
+    type: UUID
+    required: true
+    description: Unique reservation identifier.
+  - name: orderId
+    type: UUID
+    required: false
+    description: Order associated with the reservation once created.
+    references: order
+    relationType: reservedFor
+    referencesIdentifier: orderId
+  - name: productId
+    type: UUID
+    required: true
+    description: Product being reserved.
+    references: product
+    relationType: reserves
+    referencesIdentifier: productId
+  - name: expiresAt
+    type: datetime
+    required: true
+    description: Time the reservation expires if not committed.
+---
+
+## Overview
+
+Inventory Reservation is created during checkout by [[command|reserve-inventory]] and released if the saga fails.
+
+<EntityPropertiesTable />

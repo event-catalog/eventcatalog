@@ -1,0 +1,48 @@
+---
+title: Eventing model
+summary: How commands, events and queries are used across Acme Inc's event-driven commerce platform.
+owners:
+  - dboyne
+badges:
+  - content: Contracts
+    backgroundColor: orange
+    textColor: orange
+---
+
+The catalog separates messages by intent.
+
+- **Commands** ask another capability to do something.
+- **Events** announce that something has already happened.
+- **Queries** request information without changing state.
+
+## Commands
+
+Commands are named in the imperative and should have one clear handler. Examples:
+
+- [[command|checkout-cart]] asks [[service|cart-api]] to check out a cart.
+- [[command|reserve-inventory]] asks [[service|inventory-service]] to hold stock.
+- [[command|authorize-payment]] asks [[service|payment-api]] to authorize payment.
+- [[command|create-order]] asks [[service|order-service]] to create an order.
+- [[command|submit-review]] asks [[service|review-api]] to accept a product review.
+
+## Events
+
+Events are facts and should be safe for multiple consumers. Examples:
+
+- [[event|cart-checked-out]] starts the checkout process.
+- [[event|order-created]] signals that an order exists.
+- [[event|payment-succeeded]] and [[event|payment-failed]] report external processor outcomes.
+- [[event|order-ready-for-shipping]] hands fulfilment to shipping.
+- [[event|review-published]] updates review read models and product trust signals.
+
+## Queries
+
+Queries are explicit read contracts. Examples include [[query|get-product]], [[query|search-products]], [[query|get-order]], [[query|get-customer]], [[query|get-stock-level]] and [[query|get-product-reviews]].
+
+## Versioning expectations
+
+Backward-compatible additions are preferred. Removing fields or changing semantics requires a versioned contract and a migration plan. For customer-critical flows, review the flow page and all participating messages before changing a schema.
+
+## Failure expectations
+
+Consumers should be idempotent. Producers should publish facts after durable state changes. Long-running processes should persist their progress, especially [[flow|checkout-saga]], payment processing, search indexing and review moderation.

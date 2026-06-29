@@ -269,3 +269,9 @@ export const getNavigationItems = async (): Promise<SidebarItem[]> => {
   const configuredSidebar = config.customDocs?.sidebar || [];
   return processSidebarItems(configuredSidebar as SideBarConfigurationItem[]);
 };
+
+export const getFirstNavigationPage = async (): Promise<AdjacentPage | null> => {
+  const navigationItems = await getNavigationItems();
+  const flatPages = flattenNavigationItems(navigationItems);
+  return flatPages[0] || null;
+};
