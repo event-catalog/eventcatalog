@@ -200,20 +200,35 @@ const premiumFeatures: Array<{
 const internalServices = services.filter((service) => !service.data.externalSystem);
 const externalSystems = services.filter((service) => service.data.externalSystem);
 const discoverTargets = [
-  { href: buildUrl('/discover/domains'), count: domains.length },
-  { href: buildUrl('/discover/systems'), count: systems.length },
-  { href: buildUrl('/discover/services'), count: internalServices.length },
-  { href: buildUrl('/discover/external-systems'), count: externalSystems.length },
-  { href: buildUrl('/discover/agents'), count: agents.length },
-  { href: buildUrl('/discover/adrs'), count: adrs.length },
-  { href: buildUrl('/discover/data-products'), count: dataProducts.length },
-  { href: buildUrl('/discover/containers'), count: containers.length },
-  { href: buildUrl('/discover/events'), count: events.length },
-  { href: buildUrl('/discover/commands'), count: commands.length },
-  { href: buildUrl('/discover/queries'), count: queries.length },
-  { href: buildUrl('/discover/flows'), count: flows.length },
+  { id: '/discover/domains', aliases: ['/discover'], href: buildUrl('/discover/domains'), count: domains.length },
+  { id: '/discover/systems', aliases: ['/discover'], href: buildUrl('/discover/systems'), count: systems.length },
+  {
+    id: '/discover/services',
+    aliases: ['/discover'],
+    href: buildUrl('/discover/services'),
+    count: internalServices.length,
+  },
+  {
+    id: '/discover/external-systems',
+    aliases: ['/discover'],
+    href: buildUrl('/discover/external-systems'),
+    count: externalSystems.length,
+  },
+  { id: '/discover/agents', aliases: ['/discover'], href: buildUrl('/discover/agents'), count: agents.length },
+  { id: '/discover/adrs', aliases: ['/discover'], href: buildUrl('/discover/adrs'), count: adrs.length },
+  {
+    id: '/discover/data-products',
+    aliases: ['/discover'],
+    href: buildUrl('/discover/data-products'),
+    count: dataProducts.length,
+  },
+  { id: '/discover/containers', aliases: ['/discover'], href: buildUrl('/discover/containers'), count: containers.length },
+  { id: '/discover/events', aliases: ['/discover'], href: buildUrl('/discover/events'), count: events.length },
+  { id: '/discover/commands', aliases: ['/discover'], href: buildUrl('/discover/commands'), count: commands.length },
+  { id: '/discover/queries', aliases: ['/discover'], href: buildUrl('/discover/queries'), count: queries.length },
+  { id: '/discover/flows', aliases: ['/discover'], href: buildUrl('/discover/flows'), count: flows.length },
 ];
-const defaultDiscoverTarget = discoverTargets.find((target) => target.count > 0);
+const defaultDiscoverTarget = filterSidebarItems(discoverTargets, userSideBarConfiguration).find((target) => target.count > 0);
 
 const browseItems = filterSidebarItems(
   [

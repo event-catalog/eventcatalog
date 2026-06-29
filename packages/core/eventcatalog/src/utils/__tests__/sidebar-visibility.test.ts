@@ -34,4 +34,27 @@ describe('sidebar visibility', () => {
       ])
     ).toBe(true);
   });
+
+  it('can filter hidden discover targets before selecting a default target', () => {
+    const targets = [
+      { id: '/discover/domains', aliases: ['/discover'], href: '/discover/domains', count: 2 },
+      { id: '/discover/systems', aliases: ['/discover'], href: '/discover/systems', count: 0 },
+      { id: '/discover/services', aliases: ['/discover'], href: '/discover/services', count: 1 },
+    ];
+
+    const defaultTarget = filterSidebarItems(targets, [{ id: '/discover/domains', visible: false }]).find(
+      (target) => target.count > 0
+    );
+
+    expect(defaultTarget?.href).toBe('/discover/services');
+  });
+
+  it('can hide all discover targets with the legacy discover group id', () => {
+    const targets = [
+      { id: '/discover/domains', aliases: ['/discover'], href: '/discover/domains', count: 2 },
+      { id: '/discover/services', aliases: ['/discover'], href: '/discover/services', count: 1 },
+    ];
+
+    expect(filterSidebarItems(targets, [{ id: '/discover', visible: false }])).toEqual([]);
+  });
 });
