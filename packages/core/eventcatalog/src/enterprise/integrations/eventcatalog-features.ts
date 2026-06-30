@@ -16,7 +16,6 @@ import {
   isFullCatalogAPIEnabled,
   isDevMode,
   isIntegrationsEnabled,
-  isExportPDFEnabled,
   isCustomDocsEnabled,
   isSSR,
 } from '../../utils/feature';
@@ -134,14 +133,6 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/api/catalog',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/api/catalog.ts'),
-          });
-        }
-
-        // Export to PDF print pages (Scale plan)
-        if (isExportPDFEnabled()) {
-          params.injectRoute({
-            pattern: '/docs/print/[type]/[id]/[version]',
-            entrypoint: path.join(catalogDirectory, 'src/enterprise/print/message.astro'),
           });
         }
 

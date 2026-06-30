@@ -64,7 +64,6 @@ import {
   isMarkdownDownloadEnabled,
   isVisualiserEnabled,
   isRSSEnabled,
-  isExportPDFEnabled,
 } from '@utils/feature';
 import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
 
@@ -300,12 +299,6 @@ friendlyCollectionName = friendlyCollectionName === 'adr' ? 'architecture decisi
 
 const schemasForResource = getSchemasFromResource(props);
 
-const messageCollections = ['events', 'commands', 'queries'];
-const printUrl =
-  isExportPDFEnabled() && messageCollections.includes(props.collection)
-    ? buildUrl(`/docs/print/${props.collection}/${props.data.id}/${props.data.version}`)
-    : undefined;
-
 const generatePromptForResource = (props: any) => {
   return `
     Please tell me more about the ${props.collection.slice(0, props.collection.length - 1)} -  ${props.data.name} v${props.data.version} in this catalog.
@@ -465,7 +458,6 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                 rssFeedEnabled={isRSSEnabled()}
                 editUrl={editUrl}
                 preferChatAsDefault={isEventCatalogChatEnabled()}
-                printUrl={printUrl}
               />
             </div>
             {
