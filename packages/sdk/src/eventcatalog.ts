@@ -91,6 +91,7 @@ export const dumpCatalog =
   async (options?: { includeMarkdown?: boolean }): Promise<EventCatalog> => {
     const {
       getDomains,
+      getSystems,
       getServices,
       getAgents,
       getEvents,
@@ -107,6 +108,7 @@ export const dumpCatalog =
     const { includeMarkdown = true } = options || {};
 
     const domains = await getDomains();
+    const systems = await getSystems();
     const services = await getServices();
     const agents = await getAgents();
 
@@ -122,6 +124,7 @@ export const dumpCatalog =
 
     const [
       hydratedDomains,
+      hydratedSystems,
       hydratedServices,
       hydratedAgents,
       hydratedEvents,
@@ -135,6 +138,7 @@ export const dumpCatalog =
       hydratedFlows,
     ] = await Promise.all([
       hydrateResource(directory, domains),
+      hydrateResource(directory, systems),
       hydrateResource(directory, services),
       hydrateResource(directory, agents),
       hydrateResource(directory, events),
@@ -154,6 +158,7 @@ export const dumpCatalog =
       createdAt: new Date().toISOString(),
       resources: {
         domains: filterCollection(hydratedDomains, { includeMarkdown }),
+        systems: filterCollection(hydratedSystems, { includeMarkdown }),
         services: filterCollection(hydratedServices, { includeMarkdown }),
         agents: filterCollection(hydratedAgents, { includeMarkdown }),
         messages: {

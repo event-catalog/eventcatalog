@@ -51,6 +51,7 @@ import {
 import {
   writeService,
   writeServiceToDomain,
+  writeServiceToSystem,
   getService,
   versionService,
   rmService,
@@ -67,6 +68,24 @@ import {
   toService,
   addDataStoreToService,
 } from './services';
+import {
+  addContainerToSystem,
+  addEntityToSystem,
+  addFileToSystem,
+  addFlowToSystem,
+  addServiceToSystem,
+  getSystem,
+  getSystemByPath,
+  getSystems,
+  isSystem,
+  rmSystem,
+  rmSystemById,
+  systemHasVersion,
+  toSystem,
+  versionSystem,
+  writeSystem,
+  writeSystemToDomain,
+} from './systems';
 import {
   writeAgent,
   writeAgentToDomain,
@@ -98,6 +117,7 @@ import {
   addServiceToDomain,
   addAgentToDomain,
   addSubDomainToDomain,
+  addSystemToDomain,
   addEntityToDomain,
   addDataProductToDomain,
   getUbiquitousLanguageFromDomain,
@@ -133,7 +153,16 @@ import { writeUser, getUser, getUsers, rmUserById } from './users';
 import { dumpCatalog, getEventCatalogConfigurationFile } from './eventcatalog';
 import { createSnapshot, diffSnapshots, listSnapshots } from './snapshots';
 import { writeChangelog, appendChangelog, getChangelog, rmChangelog } from './changelogs';
-import { getEntity, getEntities, writeEntity, rmEntity, rmEntityById, versionEntity, entityHasVersion } from './entities';
+import {
+  getEntity,
+  getEntities,
+  writeEntity,
+  writeEntityToSystem,
+  rmEntity,
+  rmEntityById,
+  versionEntity,
+  entityHasVersion,
+} from './entities';
 import {
   addFileToFlow,
   flowHasVersion,
@@ -146,6 +175,7 @@ import {
   writeFlowToDomain,
   writeFlowToAgent,
   writeFlowToService,
+  writeFlowToSystem,
   writeVersionedFlow,
 } from './flows';
 export { FlowBuilder } from './flow-builder';
@@ -161,6 +191,7 @@ import {
   dataStoreHasVersion,
   addFileToDataStore,
   writeDataStoreToService,
+  writeDataStoreToSystem,
 } from './data-stores';
 
 import {
@@ -611,6 +642,15 @@ export default (path: string) => {
      */
     writeServiceToDomain: writeServiceToDomain(join(path, 'domains')),
     /**
+     * Adds a service to a system in EventCatalog
+     *
+     * @param service - The service to write
+     * @param system - The system to add the service to
+     * @param options - Optional options to write the service
+     *
+     */
+    writeServiceToSystem: writeServiceToSystem(join(path)),
+    /**
      * Returns a service from EventCatalog
      * @param id - The id of the service to retrieve
      * @param version - Optional id of the version to get (supports semver)
@@ -798,6 +838,28 @@ export default (path: string) => {
 
     /**
      * ================================
+     *            Systems
+     * ================================
+     */
+    writeSystem: writeSystem(join(path, 'systems')),
+    writeSystemToDomain: writeSystemToDomain(join(path)),
+    getSystem: getSystem(join(path)),
+    getSystemByPath: getSystemByPath(join(path)),
+    getSystems: getSystems(join(path)),
+    versionSystem: versionSystem(join(path)),
+    rmSystem: rmSystem(join(path, 'systems')),
+    rmSystemById: rmSystemById(join(path)),
+    addFileToSystem: addFileToSystem(join(path)),
+    addServiceToSystem: addServiceToSystem(join(path)),
+    addFlowToSystem: addFlowToSystem(join(path)),
+    addEntityToSystem: addEntityToSystem(join(path)),
+    addContainerToSystem: addContainerToSystem(join(path)),
+    systemHasVersion: systemHasVersion(join(path)),
+    isSystem: isSystem(join(path)),
+    toSystem: toSystem(join(path)),
+
+    /**
+     * ================================
      *            Agents
      * ================================
      */
@@ -926,6 +988,15 @@ export default (path: string) => {
      * @returns
      */
     addSubDomainToDomain: addSubDomainToDomain(join(path, 'domains')),
+
+    /**
+     * Adds a given system to a domain
+     * @param id - The id of the domain
+     * @param system - The id and version of the system to add
+     * @param version - (Optional) The version of the domain to add the system to
+     * @returns
+     */
+    addSystemToDomain: addSystemToDomain(join(path, 'domains')),
 
     /**
      * Adds an entity to a domain
@@ -1249,6 +1320,15 @@ export default (path: string) => {
      */
     writeEntity: writeEntity(join(path, 'entities')),
     /**
+     * Adds an entity to a system in EventCatalog
+     *
+     * @param entity - The entity to write to the system
+     * @param system - The system and its id to write the entity to
+     * @param options - Optional options to write the entity
+     *
+     */
+    writeEntityToSystem: writeEntityToSystem(join(path)),
+    /**
      * Remove an entity from EventCatalog (modeled on the standard POSIX rm utility)
      *
      * @param path - The path to your entity, e.g. `/User`
@@ -1329,6 +1409,15 @@ export default (path: string) => {
      *
      */
     writeFlowToService: writeFlowToService(join(path, 'services')),
+    /**
+     * Adds a flow to a system in EventCatalog
+     *
+     * @param flow - The flow to write to the system
+     * @param system - The system and its id to write the flow to
+     * @param options - Optional options to write the flow
+     *
+     */
+    writeFlowToSystem: writeFlowToSystem(join(path)),
     /**
      * Adds a flow to an agent in EventCatalog
      *
@@ -1443,6 +1532,14 @@ export default (path: string) => {
      * @returns
      */
     writeDataStoreToService: writeDataStoreToService(join(path)),
+
+    /**
+     * Writes a data store to a system by its id
+     * @param dataStore - The data store to write
+     * @param system - The system to write the data store to
+     * @returns
+     */
+    writeDataStoreToSystem: writeDataStoreToSystem(join(path)),
 
     /**
      * ================================

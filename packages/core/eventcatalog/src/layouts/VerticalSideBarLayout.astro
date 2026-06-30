@@ -160,17 +160,6 @@ const navigationItems = filterSidebarItems(
       isPremium: true,
       visible: isCustomDocsEnabled() && customDocs.length > 0,
     },
-    ...(isSSR()
-      ? [
-          {
-            id: '/schemas/fields',
-            label: 'Schema Insights',
-            icon: Waypoints,
-            href: buildUrl('/schemas/fields'),
-            current: currentPath.includes('/schemas/fields'),
-          },
-        ]
-      : []),
   ],
   userSideBarConfiguration
 );
@@ -243,11 +232,22 @@ const browseItems = filterSidebarItems(
     },
     {
       id: '/schemas/explorer',
-      label: 'Schemas',
+      label: 'Schemas & APIs',
       icon: FileCode,
       href: buildUrl('/schemas/explorer'),
       current: currentPath.includes('/schemas/explorer') && !currentPath.includes('/schemas/fields'),
     },
+    ...(isSSR()
+      ? [
+          {
+            id: '/schemas/fields',
+            label: 'Schema Insights',
+            icon: Waypoints,
+            href: buildUrl('/schemas/fields'),
+            current: currentPath.includes('/schemas/fields'),
+          },
+        ]
+      : []),
   ],
   userSideBarConfiguration
 ).filter((item) => item.visible !== false);

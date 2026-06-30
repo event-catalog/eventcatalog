@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { findFileById, invalidateFileCache } from './internal/utils';
 import type { Entity } from './types';
-import { getResource, getResources, rmResourceById, versionResource, writeResource } from './internal/resources';
+import { getResource, getResourcePath, getResources, rmResourceById, versionResource, writeResource } from './internal/resources';
 
 /**
  * Returns an entity from EventCatalog.
@@ -115,6 +115,25 @@ export const writeEntity =
     }
   ) =>
     writeResource(directory, { ...entity }, { ...options, type: 'entity' });
+
+/**
+ * Write an entity to a system in EventCatalog.
+ */
+export const writeEntityToSystem =
+  (directory: string) =>
+  async (
+    entity: Entity,
+    system: { id: string; version?: string },
+    options: { path?: string; format?: 'md' | 'mdx'; override?: boolean } = { path: '', format: 'mdx', override: false }
+  ) => {
+    const resourcePath = await getResourcePath(directory, system.id, system.version);
+    if (!resourcePath) {
+      throw new Error('System not found');
+    }
+
+    const pathForEntity = join(resourcePath.directory, 'entities', entity.id);
+    await writeResource(directory, { ...entity }, { ...options, path: pathForEntity, type: 'entity' });
+  };
 
 /**
  * Delete an entity at its given path.

@@ -1,7 +1,7 @@
 /**
  * ## EventCatalog SDK
  *
- * The EventCatalog SDK provides methods to interact with domains, services, and messages.
+ * The EventCatalog SDK provides methods to interact with domains, systems, services, and messages.
  *
  * ## Installation
  *
@@ -26,6 +26,7 @@
  * @module docs
  */
 export * from './domains';
+export * from './systems';
 export * from './services';
 export * from './agents';
 export * from './events';
