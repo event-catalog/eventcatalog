@@ -133,6 +133,26 @@ export const mockServices = [
 ];
 
 // ============================================
+// Mock Systems
+// ============================================
+export const mockSystems = [
+  {
+    id: 'CoreSystem-1.0.0',
+    slug: 'systems/CoreSystem',
+    collection: 'systems',
+    body: 'Core system description',
+    data: {
+      id: 'CoreSystem',
+      name: 'Core System',
+      version: '1.0.0',
+      summary: 'Groups core order services',
+      owners: ['order-team'],
+      services: [{ id: 'OrderService', version: '1.0.0' }],
+    },
+  },
+];
+
+// ============================================
 // Mock Agents
 // ============================================
 export const mockAgents = [
@@ -579,6 +599,7 @@ export const mockSchemas = [
 export const mockCollections: Record<string, any[]> = {
   events: mockEvents,
   agents: mockAgents,
+  systems: mockSystems,
   services: mockServices,
   commands: mockCommands,
   queries: mockQueries,
