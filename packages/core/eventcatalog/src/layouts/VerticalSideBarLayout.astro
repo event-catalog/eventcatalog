@@ -153,7 +153,7 @@ const navigationItems = filterSidebarItems(
     {
       id: '/docs/custom',
       aliases: ['/docs'],
-      label: 'Documentation',
+      label: 'Docs',
       icon: FileText,
       href: getDefaultUrl('docs/custom', '/docs/custom'),
       current: currentPath.includes('/docs/custom'),
@@ -224,7 +224,7 @@ const browseItems = filterSidebarItems(
     {
       id: '/discover',
       aliases: ['/discover'],
-      label: 'Resources',
+      label: 'Catalog',
       icon: TableProperties,
       href: defaultDiscoverTarget?.href ?? buildUrl('/discover/domains'),
       current: currentPath === buildUrl('/discover') || currentPath.startsWith(buildUrl('/discover/', true)),

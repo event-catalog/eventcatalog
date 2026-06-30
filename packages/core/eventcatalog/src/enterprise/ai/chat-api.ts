@@ -61,7 +61,7 @@ try {
 const builtInToolsMetadata = [
   {
     name: 'getResources',
-    description: 'Get events, services, commands, queries, flows, domains, channels, entities from EventCatalog',
+    description: 'Get events, services, commands, queries, flows, domains, systems, channels, entities from EventCatalog',
   },
   { name: 'getResource', description: 'Get a specific resource by its id and version' },
   { name: 'getProducersAndConsumersFromSchema', description: 'Get the producers and consumers for a schema' },
@@ -101,6 +101,8 @@ There are many different resource types in EventCatalog, including:
   - example docs url: /docs/services/MyService/1.0.0
 - Domains (collection name 'domains') (business capabilities or functional areas)
   - example docs url: /docs/domains/MyDomain/1.0.0
+- Systems (collection name 'systems') (business capabilities or functional areas)
+  - example docs url: /docs/systems/MySystem/1.0.0
 - Flows (collection name 'flows') (state machines)
   - example docs url: /docs/flows/MyFlow/1.0.0
 - Channels (collection name 'channels') (communication channels)
@@ -340,7 +342,7 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
             resourceVersion: z.string().describe('The version of the resource to get the architecture diagram for'),
             resourceCollection: visualiserCollectionSchema
               .describe(
-                'The collection of the resource (events, commands, queries, services, domains, flows, containers, data-products)'
+                'The collection of the resource (events, commands, queries, services, domains, systems, flows, containers, data-products)'
               )
               .default('services'),
           }),

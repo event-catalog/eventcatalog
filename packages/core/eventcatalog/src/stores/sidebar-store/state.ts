@@ -1099,10 +1099,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...(allList ? { 'list:all': allList as NavNode } : {}),
   };
 
-  // System-level views (only show if visualiser is enabled and there are domains)
+  // System-level views (only show if visualiser is enabled and there are systems)
   const systemNode: Record<string, NavNode> = {};
 
-  if (visualiserEnabled && domains.length > 0) {
+  if (visualiserEnabled && systems.length > 0) {
     systemNode['list:system'] = {
       type: 'group',
       title: 'System',
@@ -1110,8 +1110,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       pages: [
         {
           type: 'item',
-          title: 'Domain Map',
-          href: buildUrl('/visualiser/domain-integrations'),
+          title: 'System Context Map',
+          href: buildUrl('/visualiser/system-context-map'),
         },
       ],
     };

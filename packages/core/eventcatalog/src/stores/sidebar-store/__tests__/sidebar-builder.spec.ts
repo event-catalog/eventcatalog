@@ -4592,13 +4592,19 @@ describe('getNestedSideBarData', () => {
   });
 
   describe('system navigation items', () => {
-    it('shows the System section with Domain Map when domains exist', async () => {
+    it('shows the System section with System Context Map when systems exist', async () => {
       const { writeDomain } = utils(CATALOG_FOLDER);
       await writeDomain({
         id: 'Shipping',
         name: 'Shipping',
         version: '0.0.1',
         markdown: 'Shipping',
+      });
+      mockSystems.push({
+        id: 'ShippingSystem',
+        name: 'Shipping System',
+        version: '0.0.1',
+        summary: 'Coordinates shipping',
       });
 
       const navigationData = await getNestedSideBarData();
@@ -4609,8 +4615,8 @@ describe('getNestedSideBarData', () => {
       expect(systemNode.pages).toEqual([
         {
           type: 'item',
-          title: 'Domain Map',
-          href: '/visualiser/domain-integrations',
+          title: 'System Context Map',
+          href: '/visualiser/system-context-map',
         },
       ]);
     });
@@ -4624,6 +4630,12 @@ describe('getNestedSideBarData', () => {
         name: 'Shipping',
         version: '0.0.1',
         markdown: 'Shipping',
+      });
+      mockSystems.push({
+        id: 'ShippingSystem',
+        name: 'Shipping System',
+        version: '0.0.1',
+        summary: 'Coordinates shipping',
       });
 
       const navigationData = await getNestedSideBarData();
