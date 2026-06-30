@@ -1,6 +1,6 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { render } from 'astro:content';
+import { getEntry, render } from 'astro:content';
 import config from '@config';
 import { AlignLeftIcon, UserIcon, UsersIcon } from 'lucide-react';
 
@@ -27,6 +27,26 @@ const nodeGraphs =
   getMDXComponentsByName(props.body, 'NodeGraph')?.filter((nodeGraph: any) => {
     return nodeGraph.id && nodeGraph.version && nodeGraph.type;
   }) || [];
+
+const resolvedNodeGraphs = await Promise.all(
+  nodeGraphs.map(async (nodeGraph: any) => {
+    const collection = resourceToCollectionMap[nodeGraph.type as keyof typeof resourceToCollectionMap];
+    const domain = collection === 'domains' ? await getEntry('domains', `${nodeGraph.id}-${nodeGraph.version}`) : undefined;
+    const hasSystems = ((domain?.data as any)?.systems || []).length > 0;
+    const graphCollection = hasSystems ? 'domains-systems-context' : collection;
+
+    return {
+      ...nodeGraph,
+      collection,
+      graphCollection,
+      title: nodeGraph.title ?? (hasSystems ? 'System Context Map' : undefined),
+      hrefLabel: hasSystems ? 'Open System Context Map' : 'Open in Visualiser',
+      visualiserUrl: hasSystems
+        ? buildUrl(`/visualiser/domains/${nodeGraph.id}/${nodeGraph.version}/systems-context`)
+        : buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
+    };
+  })
+);
 
 const { prev, next } = await getAdjacentPages(currentSlug);
 
@@ -129,14 +149,13 @@ const editUrl =
           </div>
 
           {
-            nodeGraphs.length > 0 &&
-              nodeGraphs.map((nodeGraph: any) => {
-                const collection = resourceToCollectionMap[nodeGraph.type as keyof typeof resourceToCollectionMap];
+            resolvedNodeGraphs.length > 0 &&
+              resolvedNodeGraphs.map((nodeGraph: any) => {
                 return (
                   <NodeGraph
                     id={nodeGraph.id}
                     version={nodeGraph.version}
-                    collection={collection}
+                    collection={nodeGraph.graphCollection}
                     title={nodeGraph.title}
                     mode={nodeGraph.mode || 'simple'}
                     linksToVisualiser={true}
@@ -145,8 +164,8 @@ const editUrl =
                     href={
                       isVisualiserEnabled()
                         ? {
-                            label: 'Open in Visualiser',
-                            url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
+                            label: nodeGraph.hrefLabel,
+                            url: nodeGraph.visualiserUrl,
                           }
                         : undefined
                     }

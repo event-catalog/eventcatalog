@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink, PenSquareIcon, RssIcon } from 'lucide-react';
+import { Copy, FileText, Sparkles, ChevronDownIcon, ExternalLink, PenSquareIcon, RssIcon } from 'lucide-react';
 import React, { useState, isValidElement } from 'react';
 import type { Schema } from '@utils/collections/schemas';
 import { buildUrl, toMarkdownUrl } from '@utils/url-builder';
@@ -96,7 +96,7 @@ export function CopyPageMenu({
       return {
         type: 'chat',
         text: chatButtonText,
-        icon: MessageCircleQuestion,
+        icon: Sparkles,
       };
     }
     if (availableActions.copyMarkdown) {
@@ -131,7 +131,7 @@ export function CopyPageMenu({
       return {
         type: 'chat',
         text: chatButtonText,
-        icon: MessageCircleQuestion,
+        icon: Sparkles,
       };
     }
     if (availableActions.rssFeed) {
@@ -246,7 +246,7 @@ export function CopyPageMenu({
             onClick={() => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'))}
             className={actionButtonClass}
           >
-            <MessageCircleQuestion className={actionIconClass} />
+            <Sparkles className={actionIconClass} />
             Ask a question
           </button>
         )}
@@ -389,11 +389,7 @@ export function CopyPageMenu({
               className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
               onSelect={() => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'))}
             >
-              <MenuItemContent
-                icon={MessageCircleQuestion}
-                title="EventCatalog Assistant"
-                description="Ask questions about this page"
-              />
+              <MenuItemContent icon={Sparkles} title="EventCatalog Assistant" description="Ask questions about this page" />
             </DropdownMenu.Item>
             <DropdownMenu.Separator className="mx-3 my-3 h-px bg-[rgb(var(--ec-dropdown-border)/0.8)]" />
           </>

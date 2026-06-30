@@ -33,7 +33,8 @@ vi.mock('@utils/collections/schemas', () => ({
 }));
 
 // Mock getItemsFromCollectionByIdAndSemverOrLatest
-vi.mock('@utils/collections/util', () => ({
+vi.mock('@utils/collections/util', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@utils/collections/util')>()),
   getItemsFromCollectionByIdAndSemverOrLatest: vi.fn((collection, id, version) => {
     // Filter collection by id, and optionally by version
     const matches = collection.filter((item: any) => item.data.id === id);
@@ -122,6 +123,7 @@ import {
   getConsumersOfMessage,
   analyzeChangeImpact,
   explainBusinessFlow,
+  getArchitectureDiagramAsMermaid,
   getTeams,
   getTeam,
   getUsers,
@@ -362,6 +364,22 @@ describe('getResource', () => {
       version: '99.0.0',
     });
     expect('error' in result).toBe(true);
+  });
+});
+
+describe('getArchitectureDiagramAsMermaid', () => {
+  it('returns a Mermaid diagram for systems', async () => {
+    const result = await getArchitectureDiagramAsMermaid({
+      resourceId: 'CoreSystem',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'systems',
+    });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.mermaidCode).toContain('flowchart LR');
+      expect(result.mermaidCode).toContain('Order Service');
+    }
   });
 });
 

@@ -171,6 +171,19 @@ const suggestedQuestionsConfig: QuestionConfig[] = [
       { label: 'Who owns this domain?', prompt: 'Who owns this domain and how do I contact them?' },
     ],
   },
+  // Systems page
+  {
+    pattern: /^\/(docs|visualiser|architecture)\/systems\/.+/,
+    questions: [
+      { label: 'What services are in this system?', prompt: 'What services belong to this system?' },
+      { label: 'What flows are in this system?', prompt: 'What flows belong to this system?' },
+      {
+        label: 'What does this system connect to?',
+        prompt: 'What systems, services, actors, or resources does this system connect to?',
+      },
+      { label: 'Who owns this system?', prompt: 'Who owns this system and how do I contact them?' },
+    ],
+  },
   // Business Flows / Workflows (must be before general visualiser pattern)
   {
     pattern: /^\/(docs|visualiser)\/flows\/.+/,
@@ -551,7 +564,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   // Memoize page context to avoid recalculating on every render
   const pageContext = useMemo(() => {
     const match = pathname.match(
-      /^\/(docs|visualiser|architecture)\/(events|services|commands|queries|flows|domains|channels|entities|containers|data-products)\/([^/]+)(?:\/([^/]+))?/
+      /^\/(docs|visualiser|architecture)\/(events|services|commands|queries|flows|domains|systems|channels|entities|containers|data-products)\/([^/]+)(?:\/([^/]+))?/
     );
     if (match) {
       const [, , collection, id, version] = match;
@@ -562,6 +575,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         queries: 'Query',
         flows: 'Flow',
         domains: 'Domain',
+        systems: 'System',
         channels: 'Channel',
         entities: 'Entity',
         containers: 'Container',
@@ -763,7 +777,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           }}
         >
           {/* Header */}
-          <div className="flex-none shrink-0 pb-1">
+          <div className="flex-none shrink-0 border-b border-[rgb(var(--ec-page-border))]">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center space-x-2">
                 <BookOpen size={16} className="text-[rgb(var(--ec-accent))]" />

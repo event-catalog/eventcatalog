@@ -11,7 +11,7 @@ badges:
 
 [[domain|ordering]] is the core revenue domain. It turns a checked-out cart into a durable order and owns that order through completion or cancellation.
 
-## Domain map
+## System context map
 
 <NodeGraph id="ordering" version="1.0.0" type="domain" maxHeight={36} mode="simple" />
 
@@ -45,8 +45,8 @@ Do not add payment or inventory state directly to orders unless it is a snapshot
 
 When checkout behavior changes, update the [[flow|place-an-order]] and [[flow|checkout-saga]] pages as well as the command schemas.
 
-<Prompt description="Assess an Ordering domain change" actions={["copy", "cursor"]} icon="clipboard-check">
-  Review a proposed Ordering domain change for Acme Inc. Identify whether it changes checkout orchestration, order state,
-  payment or inventory boundaries, customer-visible status, command schemas, event schemas or downstream fulfilment
-  behavior. Return the affected catalog resources and the teams that should review the change.
+<Prompt description="Assess an Ordering domain change" actions={['copy', 'cursor']} icon="clipboard-check">
+  Review a proposed Ordering domain change for Acme Inc. Identify whether it changes checkout orchestration, order state, payment
+  or inventory boundaries, customer-visible status, command schemas, event schemas or downstream fulfilment behavior. Return the
+  affected catalog resources and the teams that should review the change.
 </Prompt>

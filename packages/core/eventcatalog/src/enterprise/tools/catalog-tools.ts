@@ -25,6 +25,7 @@ import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graph
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-graphs/data-products-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForSystem } from '@utils/node-graphs/systems-node-graph';
 import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
 import config from '@config';
 import { glob } from 'glob';
@@ -178,6 +179,7 @@ export const collectionSchema = z.enum([
   'queries',
   'flows',
   'domains',
+  'systems',
   'channels',
   'entities',
   'containers',
@@ -196,6 +198,7 @@ export const resourceCollectionSchema = z.enum([
   'queries',
   'flows',
   'domains',
+  'systems',
   'channels',
   'entities',
   'data-products',
@@ -208,6 +211,7 @@ export const visualiserCollectionSchema = z.enum([
   'agents',
   'services',
   'domains',
+  'systems',
   'flows',
   'containers',
   'data-products',
@@ -1028,6 +1032,7 @@ const getNodesAndEdgesFunctions = {
   flows: getNodesAndEdgesForFlows,
   containers: getNodesAndEdgesForContainer,
   'data-products': getNodesAndEdgesForDataProduct,
+  systems: getNodesAndEdgesForSystem,
 };
 
 /**
@@ -1125,5 +1130,5 @@ export const toolDescriptions = {
   getDataProductOutputs:
     'Use this tool to get the outputs (resources produced) for a data product. Returns fully hydrated output resources with their id, version, name, summary, collection type, and data contracts (if defined). Data contracts include the contract name, path, format, type, and content.',
   getArchitectureDiagramAsMermaid:
-    'Use this tool to get the architecture diagram for a resource as Mermaid flowchart code. This shows how the resource connects to other resources (agents, services, events, channels, etc.) in the architecture. The mermaid code can be rendered to visualize the architecture or used to understand relationships. Supported collections: events, commands, queries, agents, services, domains, flows, containers, data-products.',
+    'Use this tool to get the architecture diagram for a resource as Mermaid flowchart code. This shows how the resource connects to other resources (agents, services, systems, events, channels, etc.) in the architecture. The mermaid code can be rendered to visualize the architecture or used to understand relationships. Supported collections: events, commands, queries, agents, services, domains, systems, flows, containers, data-products.',
 };
