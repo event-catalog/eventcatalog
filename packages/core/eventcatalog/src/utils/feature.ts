@@ -27,9 +27,7 @@ export {
   isCustomLandingPageEnabled,
   isAuthEnabled,
   isCustomStylesEnabled,
-  isDiagramComparisonEnabled,
   isEventCatalogMCPEnabled,
   isEventCatalogMCPAuthEnabled,
   isIntegrationsEnabled,
-  isExportPDFEnabled,
 } from '../enterprise/feature';

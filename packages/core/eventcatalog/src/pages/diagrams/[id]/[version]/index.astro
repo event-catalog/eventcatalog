@@ -5,9 +5,9 @@ import VisualiserLayout from '@layouts/VisualiserLayout.astro';
 import components from '@components/MDX/components';
 import config from '@config';
 import { buildUrl } from '@utils/url-builder';
-import { GitCompare, X, Rocket, AlignLeft, HistoryIcon } from 'lucide-react';
+import { GitCompare, X, AlignLeft, HistoryIcon } from 'lucide-react';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
-import { isLLMSTxtEnabled, isEventCatalogChatEnabled, isDiagramComparisonEnabled } from '@utils/feature';
+import { isLLMSTxtEnabled, isEventCatalogChatEnabled } from '@utils/feature';
 
 import { Page } from './_index.data';
 
@@ -21,7 +21,6 @@ const pageTitle = `Diagram | ${props.data.name}`;
 const currentVersion = props.data.version;
 const allVersions = props.allVersions || [currentVersion];
 const hasMultipleVersions = allVersions.length > 1;
-const scaleEnabled = isDiagramComparisonEnabled();
 const chatEnabled = isEventCatalogChatEnabled();
 const markdownDownloadEnabled = isLLMSTxtEnabled();
 const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${props.data.version})`;
@@ -133,7 +132,6 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
                   <button
                     id="compare-btn"
                     type="button"
-                    data-scale-enabled={scaleEnabled}
                     class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 py-2 text-sm font-medium text-[rgb(var(--ec-dropdown-text))] shadow-xs transition-colors hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-hidden focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
                   >
                     <GitCompare className="w-4 h-4" />
@@ -148,57 +146,9 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
     </div>
   </div>
 
-  {/* Upgrade modal - shown when Scale is not enabled */}
+  {/* Compare modal */}
   {
-    hasMultipleVersions && !scaleEnabled && (
-      <div
-        id="upgrade-modal"
-        class="hidden fixed inset-0 z-50 bg-[rgb(var(--ec-page-bg)/0.8)] backdrop-blur-sm flex items-center justify-center"
-      >
-        <div class="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg p-8 max-w-md mx-4 shadow-xl">
-          <div class="flex flex-col items-center text-center">
-            <div class="flex-shrink-0 mb-4 p-3 bg-[rgb(var(--ec-accent-subtle))] rounded-full">
-              <Rocket className="w-10 h-10 text-[rgb(var(--ec-accent))]" />
-            </div>
-            <h4 class="text-xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Upgrade to Scale</h4>
-            <p class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-6">
-              Compare diagram versions side-by-side. Track changes across versions and maintain better documentation governance
-              with visual comparisons.
-            </p>
-            <div class="flex items-center gap-3">
-              <a
-                href="https://eventcatalog.cloud"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[rgb(var(--ec-button-text))] bg-[rgb(var(--ec-accent))] rounded-md hover:opacity-90 transition-opacity"
-              >
-                Start 14-day free trial
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
-              </a>
-              <button
-                id="upgrade-close-btn"
-                type="button"
-                class="px-4 py-2 text-sm font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
-              >
-                Maybe later
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  {/* Compare modal - shown when Scale is enabled */}
-  {
-    hasMultipleVersions && scaleEnabled && (
+    hasMultipleVersions && (
       <div id="compare-modal" class="hidden fixed inset-0 z-50 bg-[rgb(var(--ec-page-bg))]">
         <div class="flex items-center justify-between px-6 py-3 border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))]">
           <h2 class="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Compare: {props.data.name}</h2>
@@ -278,12 +228,10 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
   import { destroyZoomInstances, renderMermaidWithZoom } from '@utils/mermaid-zoom';
 
   function initDiagramPage() {
-    // Compare modal (Scale) and Upgrade modal (non-Scale)
+    // Compare modal
     const compareBtn = document.getElementById('compare-btn') as HTMLButtonElement;
     const compareModal = document.getElementById('compare-modal');
-    const upgradeModal = document.getElementById('upgrade-modal');
     const compareCloseBtn = document.getElementById('compare-close-btn');
-    const upgradeCloseBtn = document.getElementById('upgrade-close-btn');
     const leftVersionSelect = document.getElementById('compare-left-version') as HTMLSelectElement;
     const rightVersionSelect = document.getElementById('compare-right-version') as HTMLSelectElement;
     const leftFrame = document.getElementById('compare-left-frame') as HTMLIFrameElement;
@@ -314,33 +262,11 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
       if (rightFrame) rightFrame.src = '';
     }
 
-    function openUpgradeModal() {
-      if (!upgradeModal) return;
-      upgradeModal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeUpgradeModal() {
-      if (!upgradeModal) return;
-      upgradeModal.classList.add('hidden');
-      document.body.style.overflow = '';
-    }
-
     if (compareBtn) {
-      compareBtn.onclick = () => {
-        const scaleEnabled = compareBtn.dataset.scaleEnabled === 'true';
-        scaleEnabled ? openCompareModal() : openUpgradeModal();
-      };
+      compareBtn.onclick = openCompareModal;
     }
 
     if (compareCloseBtn) compareCloseBtn.onclick = closeCompareModal;
-    if (upgradeCloseBtn) upgradeCloseBtn.onclick = closeUpgradeModal;
-
-    if (upgradeModal) {
-      upgradeModal.onclick = (e) => {
-        if (e.target === upgradeModal) closeUpgradeModal();
-      };
-    }
 
     if (leftVersionSelect) {
       leftVersionSelect.onchange = () => {
@@ -356,7 +282,6 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
     document.onkeydown = (e) => {
       if (e.key === 'Escape') {
         if (compareModal && !compareModal.classList.contains('hidden')) closeCompareModal();
-        if (upgradeModal && !upgradeModal.classList.contains('hidden')) closeUpgradeModal();
       }
     };
 
