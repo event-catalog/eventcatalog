@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 4.0.0-beta.1
+
+### Patch Changes
+
+- d64cfab: Add systems support to the SDK. Systems are a new resource type that can group services, flows, entities, and containers, and can be nested within domains. Includes helpers to read and write systems, add resources to a system, write resources directly into a system, and add systems to domains.
+- Updated dependencies [d64cfab]
+  - @eventcatalog/sdk@2.25.0-beta.0
+  - @eventcatalog/linter@1.1.2-beta.0
+
 ## 4.0.0-beta.0
 
 ### Major Changes
