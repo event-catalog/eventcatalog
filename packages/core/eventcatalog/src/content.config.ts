@@ -491,6 +491,8 @@ const services = defineCollection({
       'domains/*/subdomains/*/services/*/versioned/*/index.(md|mdx)',
 
       // Capture services inside systems
+      'systems/*/services/*/index.(md|mdx)',
+      'systems/*/services/*/versioned/*/index.(md|mdx)',
       'domains/*/systems/*/services/*/index.(md|mdx)',
       'domains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
 
