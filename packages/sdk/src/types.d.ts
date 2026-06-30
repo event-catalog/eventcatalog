@@ -52,6 +52,21 @@ export type ResourcePointer = {
   type?: string;
 };
 
+export type SystemScope = 'internal' | 'external';
+
+export type SystemRelationshipPointer = {
+  id: string;
+  version?: string;
+  label?: string;
+};
+
+export type SystemActorRelationship = {
+  id: string;
+  name?: string;
+  label?: string;
+  direction?: 'inbound' | 'outbound';
+};
+
 export type SchemaPointer = {
   id?: string;
   ref?: string;
@@ -245,6 +260,7 @@ export interface Domain extends BaseSchema {
   services?: ResourcePointer[];
   agents?: ResourcePointer[];
   domains?: ResourcePointer[];
+  systems?: ResourcePointer[];
   entities?: ResourcePointer[];
   dataProducts?: ResourcePointer[];
   flows?: ResourcePointer[];
@@ -253,6 +269,7 @@ export interface Domain extends BaseSchema {
   detailsPanel?: {
     parentDomains?: DetailPanelProperty;
     subdomains?: DetailPanelProperty;
+    systems?: DetailPanelProperty;
     services?: DetailPanelProperty;
     agents?: DetailPanelProperty;
     entities?: DetailPanelProperty;
@@ -262,6 +279,28 @@ export interface Domain extends BaseSchema {
     versions?: DetailPanelProperty;
     owners?: DetailPanelProperty;
     changelog?: DetailPanelProperty;
+  };
+}
+
+export interface System extends BaseSchema {
+  scope?: SystemScope;
+  services?: ResourcePointer[];
+  flows?: ResourcePointer[];
+  entities?: ResourcePointer[];
+  containers?: ResourcePointer[];
+  relationships?: SystemRelationshipPointer[];
+  actors?: SystemActorRelationship[];
+  detailsPanel?: {
+    versions?: DetailPanelProperty;
+    repository?: DetailPanelProperty;
+    owners?: DetailPanelProperty;
+    changelog?: DetailPanelProperty;
+    attachments?: DetailPanelProperty;
+    services?: DetailPanelProperty;
+    flows?: DetailPanelProperty;
+    entities?: DetailPanelProperty;
+    containers?: DetailPanelProperty;
+    diagrams?: DetailPanelProperty;
   };
 }
 
@@ -467,6 +506,7 @@ export type EventCatalog = {
   createdAt: string;
   resources: {
     domains?: ExportedResource<Domain>[];
+    systems?: ExportedResource<System>[];
     services?: ExportedResource<Service>[];
     agents?: ExportedResource<Agent>[];
     messages?: {

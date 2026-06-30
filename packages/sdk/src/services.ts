@@ -237,6 +237,25 @@ export const writeServiceToDomain =
   };
 
 /**
+ * Write a service to a system in EventCatalog.
+ */
+export const writeServiceToSystem =
+  (directory: string) =>
+  async (
+    service: Service,
+    system: { id: string; version?: string },
+    options: { path?: string; format?: 'md' | 'mdx'; override?: boolean } = { path: '', format: 'mdx', override: false }
+  ) => {
+    const resourcePath = await getResourcePath(directory, system.id, system.version);
+    if (!resourcePath) {
+      throw new Error('System not found');
+    }
+
+    const pathForService = join(resourcePath.directory, 'services', service.id);
+    await writeResource(directory, { ...service }, { ...options, path: pathForService, type: 'service' });
+  };
+
+/**
  * Version a service by it's id.
  *
  * Takes the latest service and moves it to a versioned directory.

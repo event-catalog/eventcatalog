@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { findFileById, invalidateFileCache } from './internal/utils';
 import {
   addFileToResource,
+  getResourcePath,
   getResource,
   getResources,
   getVersionedDirectory,
@@ -229,6 +230,25 @@ export const writeFlowToService =
         : `/${service.id}/flows`;
     pathForFlow = join(pathForFlow, flow.id);
 
+    await writeResource(directory, { ...flow }, { ...options, path: pathForFlow, type: 'flow' });
+  };
+
+/**
+ * Write a flow to a system in EventCatalog.
+ */
+export const writeFlowToSystem =
+  (directory: string) =>
+  async (
+    flow: Flow,
+    system: { id: string; version?: string },
+    options: { path?: string; format?: 'md' | 'mdx'; override?: boolean } = { path: '', format: 'mdx', override: false }
+  ) => {
+    const resourcePath = await getResourcePath(directory, system.id, system.version);
+    if (!resourcePath) {
+      throw new Error('System not found');
+    }
+
+    const pathForFlow = join(resourcePath.directory, 'flows', flow.id);
     await writeResource(directory, { ...flow }, { ...options, path: pathForFlow, type: 'flow' });
   };
 

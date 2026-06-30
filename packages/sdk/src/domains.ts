@@ -170,6 +170,10 @@ export const writeDomain =
       resource.domains = uniqueVersions(domain.domains as { id: string; version: string }[]);
     }
 
+    if (Array.isArray(domain.systems)) {
+      resource.systems = uniqueVersions(domain.systems as { id: string; version: string }[]);
+    }
+
     if (Array.isArray(domain.sends)) {
       resource.sends = uniqueVersions(domain.sends as { id: string; version: string }[]);
     }
@@ -460,6 +464,34 @@ export const addSubDomainToDomain =
 
     // Add subdomain to the list
     domain.domains.push(subDomain);
+
+    const writeDir = await resolveDomainWriteDirectory(directory, id, version);
+    await rmDomainById(directory)(id, version, true);
+    await writeDomain(writeDir)(domain, { format: extension === '.md' ? 'md' : 'mdx' });
+  };
+
+/**
+ * Add a system to a domain by its id.
+ * Optionally specify a version to add the system to a specific version of the domain.
+ */
+export const addSystemToDomain =
+  (directory: string) => async (id: string, system: { id: string; version: string }, version?: string) => {
+    let domain: Domain = await getDomain(directory)(id, version);
+    const domainPath = await getResourcePath(directory, id, version);
+
+    const extension = path.extname(domainPath?.fullPath || '');
+
+    if (domain.systems === undefined) {
+      domain.systems = [];
+    }
+
+    const systemExistsInList = domain.systems.some((s) => s.id === system.id && s.version === system.version);
+
+    if (systemExistsInList) {
+      return;
+    }
+
+    domain.systems.push(system);
 
     const writeDir = await resolveDomainWriteDirectory(directory, id, version);
     await rmDomainById(directory)(id, version, true);

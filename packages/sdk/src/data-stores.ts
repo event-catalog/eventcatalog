@@ -166,3 +166,8 @@ export const addFileToDataStore = Containers.addFileToContainer;
  * ```
  */
 export const writeDataStoreToService = Containers.writeContainerToService;
+
+/**
+ * Write a data store (e.g. database, cache, etc.) to a system in EventCatalog.
+ */
+export const writeDataStoreToSystem = Containers.writeContainerToSystem;

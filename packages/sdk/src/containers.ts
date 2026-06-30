@@ -222,3 +222,22 @@ export const writeContainerToService =
     pathForContainer = join(pathForContainer, container.id);
     await writeResource(directory, { ...container }, { ...options, path: pathForContainer, type: 'container' });
   };
+
+/**
+ * Write a container (e.g. data store) to a system in EventCatalog.
+ */
+export const writeContainerToSystem =
+  (directory: string) =>
+  async (
+    container: Container,
+    system: { id: string; version?: string },
+    options: { path?: string; format?: 'md' | 'mdx'; override?: boolean } = { path: '', format: 'mdx', override: false }
+  ) => {
+    const resourcePath = await getResourcePath(directory, system.id, system.version);
+    if (!resourcePath) {
+      throw new Error('System not found');
+    }
+
+    const pathForContainer = join(resourcePath.directory, 'containers', container.id);
+    await writeResource(directory, { ...container }, { ...options, path: pathForContainer, type: 'container' });
+  };
