@@ -65,13 +65,20 @@ async function fetchAllSchemas() {
               version: message.data.version,
               summary: schema.data.message.summary || message.data.summary,
               schemaPath,
-              producers: message.data.producers || [],
-              consumers: message.data.consumers || [],
+              // PERF: producers/consumers are NOT inlined into the list props — on large, densely cross-referenced catalogs these {id,version} arrays
+              // dominate the serialized page. The full relationships are on each resource's own
+              // page (/docs/<collection>/<id>); the explorer is for browsing schemas.
+              producers: [],
+              consumers: [],
               owners: enrichedOwners,
             },
-            schemaContent: schema.data.content || '',
+            // PERF: message schema bodies are NOT inlined (they made the page large on big catalogs). The SchemaExplorer lazy-fetches the
+            // selected message's content from /api/schemas/<collection>/<id>/<version>.
+            schemaContent: '',
             schemaExtension,
-            examples: getExamplesForResource(message),
+            // PERF: examples are not inlined for every item (see producers note); the
+            // selected message's examples render on its resource page.
+            examples: [],
           };
         } catch (error) {
           console.error(`Error reading schema metadata for ${message.data.id}:`, error);
@@ -84,11 +91,16 @@ async function fetchAllSchemas() {
               version: message.data.version,
               summary: schema.data.message.summary || message.data.summary,
               schemaPath,
-              producers: message.data.producers || [],
-              consumers: message.data.consumers || [],
+              // PERF: producers/consumers are NOT inlined into the list props — on large, densely cross-referenced catalogs these {id,version} arrays
+              // dominate the serialized page. The full relationships are on each resource's own
+              // page (/docs/<collection>/<id>); the explorer is for browsing schemas.
+              producers: [],
+              consumers: [],
               owners: enrichedOwners,
             },
-            schemaContent: schema.data.content || '',
+            // PERF: message schema bodies are NOT inlined (they made the page large on big catalogs). The SchemaExplorer lazy-fetches the
+            // selected message's content from /api/schemas/<collection>/<id>/<version>.
+            schemaContent: '',
             schemaExtension,
           };
         }
