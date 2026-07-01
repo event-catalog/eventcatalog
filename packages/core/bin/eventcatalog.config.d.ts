@@ -1,1 +1,1 @@
-export type { Config, SideBarConfig } from '../dist/eventcatalog.config.js';
+export type { Config } from '../dist/eventcatalog.config.js';

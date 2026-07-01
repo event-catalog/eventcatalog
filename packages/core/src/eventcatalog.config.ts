@@ -1,8 +1,3 @@
-export type SideBarConfig = {
-  id: string;
-  visible: boolean;
-};
-
 type ResourceDependency = {
   id: string;
   version?: string;
@@ -53,6 +48,41 @@ type PagesConfiguration = {
 };
 
 type NavigationPage = string | PagesConfiguration;
+
+type VerticalNavigationItemConfig = {
+  /**
+   * Built-in item ids include: home, docs, catalog, schemas, schema-insights,
+   * teams, users, settings, studio. Route ids such as /schemas/explorer are
+   * also supported for built-ins.
+   */
+  id: string;
+  label?: string;
+  /**
+   * Any icon exported by lucide-react, for example House, FileCode, BookOpen.
+   */
+  icon?: string;
+  /**
+   * Required for custom items. Built-in items provide their own href.
+   */
+  href?: string;
+  visible?: boolean;
+  /**
+   * One or more paths that should mark this item active. Defaults to exact href matching
+   * for custom items; built-in items provide their own active matching.
+   */
+  match?: string | string[];
+};
+
+type VerticalNavigationGroupConfig = {
+  id: string;
+  label?: string;
+  visible?: boolean;
+  /**
+   * Defaults to top. Use bottom for settings-style groups anchored below the main nav.
+   */
+  position?: 'top' | 'bottom';
+  items?: VerticalNavigationItemConfig[];
+};
 
 type GeneratorConfig = string | Record<string, unknown> | [string, Record<string, unknown>];
 
@@ -256,9 +286,13 @@ export interface Config {
   };
   mdxOptimize?: boolean;
   compress?: boolean;
-  sidebar?: SideBarConfig[];
   navigation?: {
-    pages: NavigationPage[];
+    pages?: NavigationPage[];
+    /**
+     * Replaces the default vertical application navigation rail when provided.
+     * If omitted, EventCatalog renders the default navigation.
+     */
+    groups?: VerticalNavigationGroupConfig[];
   };
   docs?: {
     sidebar: {
