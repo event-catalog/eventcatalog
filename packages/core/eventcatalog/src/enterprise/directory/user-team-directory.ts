@@ -1,12 +1,12 @@
-import { glob, type Loader } from 'astro/loaders';
+import type { Loader } from 'astro/loaders';
 import pc from 'picocolors';
 import { isEventCatalogScaleEnabled } from '../feature';
 import { EventCatalogStore } from '../../stores/eventcatalog-store';
+import { globWithSafeWatcher, type GlobOptions } from '../../utils/collections/glob-loader';
 
 const colors = pc.createColors(true);
 
 type UserTeamCollection = 'users' | 'teams';
-type GlobOptions = Parameters<typeof glob>[0];
 
 type DirectoryEntry = {
   id: string;
@@ -58,7 +58,7 @@ export const userTeamDirectoryLoader = ({
   conflictStrategy = 'local-wins',
   storePath,
 }: UserTeamDirectoryLoaderOptions): Loader => {
-  const localLoader = glob(local);
+  const localLoader = globWithSafeWatcher(local);
   const directoryStore = createDirectoryStore({ base: local.base, storePath });
 
   return {

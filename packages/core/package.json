@@ -119,6 +119,7 @@
     "pagefind": "^1.5.2",
     "pako": "^2.1.0",
     "picocolors": "^1.1.1",
+    "picomatch": "^4.0.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
