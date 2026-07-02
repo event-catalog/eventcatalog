@@ -35,7 +35,10 @@ export const projectDirBase = (() => {
 })();
 
 const withIgnoredBuildArtifacts = (patterns: string | string[]) => {
-  if (process.env.IGNORE_BUILD_ARTIFACTS === 'true') {
+  // Astro's dev watcher checks changed files with picomatch.isMatch(pattern[]).
+  // Negated patterns in that array make unrelated generated files match, so only
+  // add build-artifact exclusions for non-dev scans.
+  if (process.env.IGNORE_BUILD_ARTIFACTS === 'true' && process.env.EVENTCATALOG_DEV_MODE !== 'true') {
     const ignoredArtifacts = ['!dist/**', '!**/dist/**'];
     return Array.isArray(patterns) ? [...patterns, ...ignoredArtifacts] : [patterns, ...ignoredArtifacts];
   }
