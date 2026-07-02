@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 4.0.0-beta.2
+
+### Minor Changes
+
+- cc936ab: Add configurable navigation groups for the vertical sidebar. You can now define custom navigation groups and items via `navigation.groups` in your `eventcatalog.config.ts`, including custom labels, Lucide icons, hrefs, external links, active-state matching, and top/bottom positioning. This replaces the previous `sidebar` visibility config.
+
+### Patch Changes
+
+- a99dc45: Remove the Export to PDF / print feature and make diagram version comparison available to everyone (no longer gated behind the Scale plan)
+- 86148d9: Add systems support to AI Chat, catalog tools, and sidebar navigation. The chat panel now recognises system pages and resources, the AI tools accept the `systems` collection, the custom documentation page renders the System Context Map when a domain has systems, and the System section in the sidebar shows the System Context Map when systems exist.
+
 ## 4.0.0-beta.1
 
 ### Patch Changes

@@ -16,7 +16,10 @@
   },
   "changesets": [
     "discover-kind-navigation",
+    "quiet-otters-shine",
+    "swift-navigation-groups",
     "swift-otters-dream",
+    "swift-otters-gather",
     "swift-otters-upgrade",
     "systems-collection",
     "wise-otters-gather"
