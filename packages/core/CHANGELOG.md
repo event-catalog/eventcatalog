@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.0.0-beta.3
+
+### Patch Changes
+
+- 15aabba: Fix dev watcher incorrectly matching generated files when IGNORE_BUILD_ARTIFACTS is set. Build-artifact exclusions are now skipped in dev mode, since Astro's watcher uses picomatch against the pattern array where negated patterns caused unrelated generated files to match.
+
 ## 4.0.0-beta.2
 
 ### Minor Changes
