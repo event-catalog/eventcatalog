@@ -1,6 +1,5 @@
 import { defineCollection, reference } from 'astro:content';
 import { z } from 'astro/zod';
-import { glob } from 'astro/loaders';
 import { glob as globPackage } from 'glob';
 import { v4 as uuidv4 } from 'uuid';
 import { badge, ownerReference } from './content.config-shared-collections';
@@ -10,6 +9,7 @@ import path from 'path';
 import { userTeamDirectoryLoader } from './enterprise/directory/user-team-directory';
 import config from '@config';
 import { schemaLoader } from './utils/collections/schema-loader';
+import { globWithSafeWatcher, withIgnoredBuildArtifacts } from './utils/collections/glob-loader';
 
 // Enterprise Collections
 import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './enterprise/collections';
@@ -34,19 +34,8 @@ export const projectDirBase = (() => {
   return projectDir;
 })();
 
-const withIgnoredBuildArtifacts = (patterns: string | string[]) => {
-  // Astro's dev watcher checks changed files with picomatch.isMatch(pattern[]).
-  // Negated patterns in that array make unrelated generated files match, so only
-  // add build-artifact exclusions for non-dev scans.
-  if (process.env.IGNORE_BUILD_ARTIFACTS === 'true' && process.env.EVENTCATALOG_DEV_MODE !== 'true') {
-    const ignoredArtifacts = ['!dist/**', '!**/dist/**'];
-    return Array.isArray(patterns) ? [...patterns, ...ignoredArtifacts] : [patterns, ...ignoredArtifacts];
-  }
-  return patterns;
-};
-
 const pages = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/pages/*.(md|mdx)']),
     base: projectDirBase,
   }),
@@ -126,7 +115,7 @@ const directoryEntrySource = z.object({
 });
 
 const changelogs = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/changelog.(md|mdx)']),
     base: projectDirBase,
   }),
@@ -267,7 +256,7 @@ const flowStep = z
   .optional();
 
 const flows = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/flows/**/index.(md|mdx)', '**/flows/**/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
@@ -375,7 +364,7 @@ const messageDetailsPanelPropertySchema = z.object({
 });
 
 const events = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/events/*/index.(md|mdx)', '**/events/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
@@ -398,7 +387,7 @@ const events = defineCollection({
 });
 
 const commands = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/commands/*/index.(md|mdx)', '**/commands/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
@@ -421,7 +410,7 @@ const commands = defineCollection({
 });
 
 const queries = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/queries/*/index.(md|mdx)', '**/queries/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
@@ -456,7 +445,7 @@ const dataProductOutputPointer = z.object({
 });
 
 const dataProducts = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/data-products/*/index.(md|mdx)', '**/data-products/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
@@ -484,7 +473,7 @@ const dataProducts = defineCollection({
 });
 
 const services = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts([
       'domains/*/services/*/index.(md|mdx)',
       'domains/*/services/*/versioned/*/index.(md|mdx)',
@@ -549,7 +538,7 @@ const agentModel = z.object({
 });
 
 const agents = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/agents/*/index.(md|mdx)', '**/agents/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
@@ -611,7 +600,7 @@ const adrResourcePointer = adrPointer.extend({
 });
 
 const adrs = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/adrs/*/index.(md|mdx)', '**/adrs/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => `${data.id}-${data.version}`,
@@ -661,7 +650,7 @@ const accessModeEnum = z.enum(['read', 'write', 'readWrite', 'appendOnly']);
 const dataClassificationEnum = z.enum(['public', 'internal', 'confidential', 'regulated']);
 
 const containers = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/containers/**/index.(md|mdx)', '**/containers/**/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
@@ -700,7 +689,7 @@ const containers = defineCollection({
 });
 
 const customPages = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     // any number of child folders
     pattern: withIgnoredBuildArtifacts(['docs/*.(md|mdx)', 'docs/**/*.@(md|mdx)']),
     base: projectDirBase,
@@ -709,7 +698,7 @@ const customPages = defineCollection({
 });
 
 const resourceDocs = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     // Resource-level docs are restricted to known resource paths.
     // This avoids scanning external docs such as node_modules/**/docs.
     pattern: withIgnoredBuildArtifacts([
@@ -726,7 +715,7 @@ const resourceDocs = defineCollection({
 });
 
 const resourceDocCategories = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts([
       '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/category.json',
       '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/_category_.json',
@@ -743,7 +732,7 @@ const resourceDocCategories = defineCollection({
 });
 
 const domains = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts([
       // ✅ Strictly include only index.md at the expected levels
       'domains/*/index.(md|mdx)',
@@ -811,7 +800,7 @@ const systemActorRelationship = z.object({
 });
 
 const systems = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts([
       '**/systems/**/index.(md|mdx)',
       '**/systems/**/versioned/*/index.(md|mdx)',
@@ -868,7 +857,7 @@ const systems = defineCollection({
 });
 
 const channels = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/channels/**/index.(md|mdx)', '**/channels/**/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
@@ -913,7 +902,7 @@ const channels = defineCollection({
 });
 
 const ubiquitousLanguages = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts([
       'domains/*/ubiquitous-language.(md|mdx)',
       'domains/*/subdomains/*/ubiquitous-language.(md|mdx)',
@@ -940,7 +929,7 @@ const ubiquitousLanguages = defineCollection({
 });
 
 const entities = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/entities/*/index.(md|mdx)', '**/entities/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
@@ -1081,7 +1070,7 @@ const designs = defineCollection({
 });
 
 const diagrams = defineCollection({
-  loader: glob({
+  loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/diagrams/**/index.(md|mdx)', '**/diagrams/**/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => `${data.id}-${data.version}`,
