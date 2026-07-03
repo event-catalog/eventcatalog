@@ -1,0 +1,44 @@
+---
+id: stripe-webhook-endpoint
+version: 1.0.0
+name: Webhook Endpoint
+summary: |
+  Stripe's webhook delivery for payment and refund outcomes. It notifies Acme Inc whether a charge succeeded or failed, and when a refund is processed.
+styles:
+  icon: /icons/payments/stripe.svg
+owners:
+  - payments-platform
+sends:
+  - id: payment-succeeded
+    version: 1.0.0
+  - id: payment-failed
+    version: 1.0.0
+  - id: refund-processed
+    version: 1.0.0
+repository:
+  language: External
+  url: 'https://github.com/stripe/stripe-node'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Webhook Endpoint** is how Stripe reports outcomes back to Acme Inc. After processing a request from the [[service|stripe-payments-api]], it delivers [[event|payment-succeeded]], [[event|payment-failed]] or [[event|refund-processed]] to the [[system|payment-processing-system]].
+
+<Tiles>
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Sends ${frontmatter.sends.length} messages`}
+    description="Payment and refund outcomes"
+  />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

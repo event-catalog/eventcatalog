@@ -1,0 +1,35 @@
+---
+id: product-variant
+name: Product Variant
+version: 1.0.0
+identifier: variantId
+summary: A purchasable variation of a product, such as size or color.
+owners:
+  - product-platform
+properties:
+  - name: variantId
+    type: UUID
+    required: true
+    description: Unique variant identifier.
+  - name: productId
+    type: UUID
+    required: true
+    description: Product this variant belongs to.
+    references: product
+    relationType: belongsTo
+    referencesIdentifier: productId
+  - name: sku
+    type: string
+    required: true
+    description: Variant-level SKU.
+  - name: attributes
+    type: object
+    required: true
+    description: Variant dimensions such as size, color or material.
+---
+
+## Overview
+
+Product Variant captures the concrete option a customer can buy. It belongs to a [[entity|product]] and is indexed into search when product data changes.
+
+<EntityPropertiesTable />

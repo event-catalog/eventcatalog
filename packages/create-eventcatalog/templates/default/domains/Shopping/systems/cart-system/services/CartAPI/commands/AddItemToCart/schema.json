@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AddItemToCart",
+  "description": "Command to add an item to a shopping cart",
+  "type": "object",
+  "properties": {
+    "cartId": {
+      "description": "Unique identifier of the cart",
+      "type": "string",
+      "format": "uuid"
+    },
+    "productId": {
+      "description": "Identifier of the product to add",
+      "type": "string",
+      "format": "uuid"
+    },
+    "quantity": {
+      "description": "Number of units to add",
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    }
+  },
+  "required": ["cartId", "productId", "quantity"]
+}

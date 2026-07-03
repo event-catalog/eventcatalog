@@ -1,0 +1,29 @@
+---
+id: cart-checked-out
+name: Cart Checked Out
+version: 1.0.0
+summary: |
+  Published when a customer has checked out their cart.
+owners:
+  - shopping-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CartCheckedOut` is published by the [[service|cart-api]] when a customer checks out. Downstream systems consume this event to create an order, take payment, and begin fulfilment.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

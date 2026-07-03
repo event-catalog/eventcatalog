@@ -1,0 +1,38 @@
+---
+id: moderation-decision
+name: Moderation Decision
+version: 1.0.0
+identifier: moderationDecisionId
+summary: The outcome of reviewing submitted customer feedback.
+owners:
+  - reviews-platform
+properties:
+  - name: moderationDecisionId
+    type: UUID
+    required: true
+    description: Unique moderation decision identifier.
+  - name: reviewId
+    type: UUID
+    required: true
+    description: Review being moderated.
+    references: review
+    relationType: decides
+    referencesIdentifier: reviewId
+  - name: outcome
+    type: string
+    required: true
+    description: Moderation result.
+    enum:
+      - published
+      - rejected
+  - name: decidedAt
+    type: datetime
+    required: true
+    description: Time the decision was made.
+---
+
+## Overview
+
+Moderation Decision records why a review became published or rejected and supports audit of [[service|review-moderation-worker]] behavior.
+
+<EntityPropertiesTable />

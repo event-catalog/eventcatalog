@@ -1,0 +1,66 @@
+---
+id: search-system
+name: Search System
+version: 1.0.0
+summary: |
+  Internal system that keeps product data searchable. Consumes product change events from the Product Catalog System, maintains a search index, and serves fast product search to the rest of the business.
+owners:
+  - search-platform
+services:
+  - id: search-api
+  - id: search-indexer
+containers:
+  - id: search-index
+flows:
+  - id: product-search-indexing
+    version: 1.0.0
+relationships:
+  - id: product-catalog-system
+    label: indexes product changes from
+actors:
+  - id: shopper
+    name: Shopper
+    label: searches for products
+    direction: inbound
+  - id: storefront-team
+    name: Storefront Team
+    label: integrates product search
+    direction: inbound
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Search System** makes the catalog discoverable. It subscribes to product change events published by the [[system|product-catalog-system]], updates its [[container|search-index]], and exposes a search API so other teams can find products without ever touching the catalog database directly.
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component                   | Type       | Responsibility                                                        |
+| --------------------------- | ---------- | --------------------------------------------------------------------- |
+| [[service\|search-api]]     | Service    | Public-facing API. Serves product search queries from the index.      |
+| [[service\|search-indexer]] | Service    | Consumes product change events and keeps the search index up to date. |
+| [[container\|search-index]] | Data store | The index that powers product search.                                 |
+
+## Messages this system consumes
+
+The Search System reacts to product changes published by the Product Catalog System:
+
+- [[event|product-created]] — index the new product.
+- [[event|product-updated]] — re-index the changed product.
+- [[event|product-deleted]] — remove the product from the index.

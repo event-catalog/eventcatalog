@@ -1,0 +1,47 @@
+---
+id: shipping-system
+name: Shipping System
+version: 1.0.0
+summary: |
+  Internal system that hands packed orders to carriers. It reacts to ready-for-shipping orders and creates shipments with an external carrier.
+owners:
+  - fulfilment-platform
+services:
+  - id: shipping-api
+  - id: carrier-adapter
+relationships:
+  - id: carrier
+    label: creates shipments with
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Shipping System** connects Acme Inc to its carriers. When the [[system|warehouse-system]] publishes [[event|order-ready-for-shipping]], the [[service|shipping-api]] selects a carrier and the [[service|carrier-adapter]] sends a [[command|create-shipment]] to the external [[system|carrier]] to dispatch the parcel.
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component                    | Type    | Responsibility                                                  |
+| ---------------------------- | ------- | --------------------------------------------------------------- |
+| [[service\|shipping-api]]    | Service | Receives ready-for-shipping orders and selects a carrier.       |
+| [[service\|carrier-adapter]] | Service | Translates and sends shipment requests to the external carrier. |
+
+## Messages this system sends
+
+- [[command\|create-shipment]] — create a shipment with the carrier.

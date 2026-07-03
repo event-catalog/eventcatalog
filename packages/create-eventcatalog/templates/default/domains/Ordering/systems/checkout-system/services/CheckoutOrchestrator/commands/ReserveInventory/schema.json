@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReserveInventory",
+  "description": "Command to reserve stock for the items in a checked-out cart",
+  "type": "object",
+  "properties": {
+    "cartId": {
+      "description": "Identifier of the cart being checked out",
+      "type": "string",
+      "format": "uuid"
+    },
+    "customerId": {
+      "description": "Identifier of the customer checking out",
+      "type": "string",
+      "format": "uuid"
+    },
+    "items": {
+      "description": "The items to reserve",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": ["productId", "quantity"]
+      }
+    }
+  },
+  "required": ["cartId", "items"]
+}

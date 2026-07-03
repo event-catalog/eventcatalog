@@ -1,0 +1,44 @@
+---
+id: search-api
+version: 1.0.0
+name: Search API
+summary: |
+  Public-facing API that serves fast, relevant product search to the rest of the business, reading from the search index.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - search-platform
+receives:
+  - id: search-products
+    version: 1.0.0
+readsFrom:
+  - id: search-index
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/search-api'
+specifications:
+  - type: openapi
+    path: openapi.yml
+    name: Search API
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Search API** is the front door to the Search System. It answers [[query|search-products]] queries by reading from the [[container|search-index]], which is kept current by the [[service|search-indexer]]. Other teams use this API so they never have to query the catalog database directly.
+
+### Responsibilities
+
+| Area   | Description                                                                          |
+| ------ | ------------------------------------------------------------------------------------ |
+| Search | Serves [[query\|search-products]] with full-text matching, filtering and pagination. |
+| Reads  | Queries the [[container\|search-index]] — never the catalog database.                |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={4} />
+
+<Footer />

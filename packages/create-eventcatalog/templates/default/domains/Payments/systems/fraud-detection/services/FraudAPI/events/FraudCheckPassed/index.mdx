@@ -1,0 +1,29 @@
+---
+id: fraud-check-passed
+name: Fraud Check Passed
+version: 1.0.0
+summary: |
+  Published when a payment passes fraud screening.
+owners:
+  - payments-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`FraudCheckPassed` is published by the [[service|fraud-api]] when a payment clears fraud screening. The [[system|payment-processing-system]] uses it to allow the charge to proceed.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

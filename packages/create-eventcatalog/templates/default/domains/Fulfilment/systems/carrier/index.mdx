@@ -1,0 +1,52 @@
+---
+id: carrier
+name: Carrier
+version: 1.0.0
+scope: external
+summary: |
+  External carrier that delivers shipments to customers. It accepts shipment requests and reports delivery progress back.
+owners:
+  - fulfilment-platform
+services:
+  - id: carrier-shipping-api
+  - id: carrier-tracking-api
+relationships:
+  - id: shipping-system
+    label: delivers shipments for
+badges:
+  - content: External
+    backgroundColor: yellow
+    textColor: yellow
+    icon: GlobeAltIcon
+---
+
+## Overview
+
+The **Carrier** is the external delivery company Acme Inc uses to ship orders to customers. It is owned and operated by a third party — modelled here as an **external system** so the catalog shows how the [[system|shipping-system]] integrates with it.
+
+It receives [[command|create-shipment]] and reports progress back via [[event|shipment-created]], [[event|shipment-delivered]] and [[event|shipment-failed]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component                         | Type    | Responsibility                                    |
+| --------------------------------- | ------- | ------------------------------------------------- |
+| [[service\|carrier-shipping-api]] | Service | Accepts shipment requests and dispatches parcels. |
+| [[service\|carrier-tracking-api]] | Service | Reports delivery progress back to Acme Inc.       |
+
+## Messages this system publishes
+
+- [[event\|shipment-created]] — a shipment has been created and dispatched.
+- [[event\|shipment-delivered]] — a shipment was delivered to the customer.
+- [[event\|shipment-failed]] — a shipment could not be delivered.

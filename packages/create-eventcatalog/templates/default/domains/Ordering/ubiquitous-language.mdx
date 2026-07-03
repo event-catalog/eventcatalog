@@ -1,0 +1,53 @@
+---
+dictionary:
+  - id: Order
+    name: Order
+    summary: 'A confirmed intent to purchase, created from a checked-out cart and owned for its whole lifecycle.'
+    description: |
+      The order is the central concept of the Ordering domain. It is owned by the Order Management
+      System, which is the source of truth for orders. An order has:
+
+      - A unique order id and the customer it belongs to
+      - A set of order items (product, quantity and unit price)
+      - A total and currency
+      - A status (CREATED, COMPLETED or CANCELLED)
+
+      An order is immutable in its essentials once created — its lifecycle is expressed through events,
+      not by editing it in place.
+    icon: ClipboardList
+  - id: Checkout
+    name: Checkout
+    summary: 'The flow that turns a checked-out cart into a confirmed order.'
+    description: |
+      Checkout is owned by the Checkout System. It is the orchestration that runs after the Shopping
+      domain checks out a cart — reserving inventory, authorizing payment and creating the order.
+    icon: CreditCard
+  - id: Saga
+    name: Saga
+    summary: 'A multi-step process with compensating actions, used to coordinate checkout across systems.'
+    description: |
+      The Checkout Orchestrator runs checkout as a saga: a sequence of steps (reserve inventory,
+      authorize payment, create order) where each step has a compensating action that undoes it if a
+      later step fails. This keeps the customer consistent without distributed transactions.
+    icon: Workflow
+  - id: Reservation
+    name: Reservation
+    summary: 'A temporary hold on stock for the items in a cart, taken during checkout.'
+    icon: PackageCheck
+  - id: Authorization
+    name: Authorization
+    summary: "A hold placed on a customer's payment method for the order total, captured when the order is created."
+    icon: ShieldCheck
+  - id: Order Item
+    name: Order Item
+    summary: 'A single product line within an order: a product, a quantity and the price paid per unit.'
+    icon: ListOrdered
+  - id: Order Status
+    name: Order Status
+    summary: 'Where an order sits in its life: CREATED, COMPLETED or CANCELLED.'
+    description: |
+      - CREATED — the order exists and is being fulfilled.
+      - COMPLETED — the order has been fully fulfilled.
+      - CANCELLED — the order was cancelled before completion.
+    icon: Workflow
+---

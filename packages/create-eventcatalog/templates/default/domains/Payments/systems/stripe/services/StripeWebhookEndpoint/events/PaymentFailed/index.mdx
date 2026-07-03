@@ -1,0 +1,29 @@
+---
+id: payment-failed
+name: Payment Failed
+version: 1.0.0
+summary: |
+  Published by Stripe when a charge fails.
+owners:
+  - payments-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`PaymentFailed` is delivered by Stripe's [[service|stripe-webhook-endpoint]] when a requested charge fails — for example a declined card. The [[service|payment-worker]] consumes it and records the payment as failed, which ultimately leads the order to be cancelled.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

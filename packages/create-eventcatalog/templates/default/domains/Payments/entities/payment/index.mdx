@@ -1,0 +1,36 @@
+---
+id: payment
+name: Payment
+version: 1.0.0
+identifier: paymentId
+aggregateRoot: true
+summary: Acme's internal record of payment intent and outcome for an order.
+owners:
+  - payments-platform
+properties:
+  - name: paymentId
+    type: UUID
+    required: true
+    description: Unique payment identifier.
+  - name: orderId
+    type: UUID
+    required: true
+    description: Order being paid for.
+    references: order
+    relationType: paysFor
+    referencesIdentifier: orderId
+  - name: amount
+    type: decimal
+    required: true
+    description: Amount requested.
+  - name: status
+    type: string
+    required: true
+    description: Payment lifecycle status.
+---
+
+## Overview
+
+Payment is the Payments domain aggregate. It records Acme's view of payment state regardless of external provider retries or webhook order.
+
+<EntityPropertiesTable />

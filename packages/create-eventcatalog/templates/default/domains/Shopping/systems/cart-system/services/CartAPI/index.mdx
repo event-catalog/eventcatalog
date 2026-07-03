@@ -1,0 +1,72 @@
+---
+id: cart-api
+version: 1.0.0
+name: Cart API
+summary: |
+  The public-facing API for shopping carts. Handles commands to add and remove items and to check out, and publishes an event when a cart is checked out.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - shopping-platform
+receives:
+  - id: add-item-to-cart
+    version: 1.0.0
+  - id: remove-item-from-cart
+    version: 1.0.0
+  - id: checkout-cart
+    version: 1.0.0
+sends:
+  - id: cart-checked-out
+    version: 1.0.0
+  - id: calculate-discount
+    version: 1.0.0
+writesTo:
+  - id: cart-database
+readsFrom:
+  - id: cart-database
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/cart-api'
+specifications:
+  - type: openapi
+    path: openapi.yml
+    name: Cart API
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Cart API** is the front door to the Cart System. It validates incoming commands, persists cart contents to the [[container|cart-database]], asks the [[system|promotion-system]] to calculate discounts via [[command|calculate-discount]], and publishes a [[event|cart-checked-out]] event when the customer checks out.
+
+<Tiles>
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Sends ${frontmatter.sends.length} messages`}
+    description="Checkout event and discount requests"
+  />
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Receives ${frontmatter.receives.length} messages`}
+    description="Cart commands handled by this service"
+  />
+</Tiles>
+
+### Responsibilities
+
+| Area             | Description                                                                                                             |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Cart management  | Validates and applies [[command\|add-item-to-cart]], [[command\|remove-item-from-cart]] and [[command\|checkout-cart]]. |
+| Discounts        | Requests pricing from the Promotion System via [[command\|calculate-discount]].                                         |
+| Event publishing | Emits [[event\|cart-checked-out]] when a cart is checked out.                                                           |
+| Persistence      | Reads from and writes to the [[container\|cart-database]] (system of record).                                           |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

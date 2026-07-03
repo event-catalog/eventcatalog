@@ -1,0 +1,29 @@
+---
+id: submit-review
+name: Submit Review
+version: 1.0.0
+summary: |
+  Command issued by a customer to submit a review and rating for a product.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`SubmitReview` is sent to the [[service|review-api]] when a customer submits a review for a product they have purchased. The API validates and stores the review, then publishes [[event|review-submitted]].
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

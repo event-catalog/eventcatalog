@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CreateShipment",
+  "description": "Command to create a shipment with a carrier for a packed order",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "carrier": { "type": "string", "description": "The carrier to ship with" },
+    "service": {
+      "type": "string",
+      "enum": ["STANDARD", "EXPRESS", "NEXT_DAY"]
+    },
+    "parcelCount": { "type": "integer", "minimum": 1 },
+    "destination": {
+      "type": "object",
+      "properties": {
+        "line1": { "type": "string" },
+        "city": { "type": "string" },
+        "postcode": { "type": "string" },
+        "country": { "type": "string", "pattern": "^[A-Z]{2}$" }
+      },
+      "required": ["line1", "city", "postcode", "country"]
+    }
+  },
+  "required": ["orderId", "destination"]
+}

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "savedAt": "2026-06-29T11:26:03.901Z",
+  "resourceKey": "systems-context/customer-management-system/1.0.0",
+  "positions": {
+    "customer-management-system-1.0.0": {
+      "x": 593.5226571767497,
+      "y": -13.867141162514821
+    },
+    "identity-provider-1.0.0": {
+      "x": 1145,
+      "y": 85
+    },
+    "actor-customer": {
+      "x": 90,
+      "y": 60
+    },
+    "actor-support-agent": {
+      "x": 90,
+      "y": 260
+    }
+  }
+}

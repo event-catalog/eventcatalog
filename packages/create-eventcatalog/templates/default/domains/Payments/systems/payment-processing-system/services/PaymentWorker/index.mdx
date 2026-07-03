@@ -1,0 +1,66 @@
+---
+id: payment-worker
+version: 1.0.0
+name: Payment Worker
+summary: |
+  Drives charges and refunds against the external payment processor and records the outcomes. It requests payments and refunds, and consumes the success/failure events Stripe returns.
+styles:
+  icon: /icons/languages/go.svg
+owners:
+  - payments-platform
+receives:
+  - id: payment-succeeded
+    version: 1.0.0
+  - id: payment-failed
+    version: 1.0.0
+sends:
+  - id: payment-requested
+    version: 1.0.0
+  - id: refund-requested
+    version: 1.0.0
+writesTo:
+  - id: payment-database
+readsFrom:
+  - id: payment-database
+repository:
+  language: Go
+  url: 'https://github.com/acme/payment-worker'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Payment Worker** drives money movement. It requests charges from the external [[system|stripe]] via [[event|payment-requested]] and refunds via [[event|refund-requested]], then consumes the [[event|payment-succeeded]] and [[event|payment-failed]] events Stripe returns and records the outcome in the [[container|payment-database]].
+
+<Tiles>
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Sends ${frontmatter.sends.length} messages`}
+    description="Payment and refund requests"
+  />
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Receives ${frontmatter.receives.length} messages`}
+    description="Payment outcomes from Stripe"
+  />
+</Tiles>
+
+### Responsibilities
+
+| Area        | Description                                                                         |
+| ----------- | ----------------------------------------------------------------------------------- |
+| Charging    | Requests charges via [[event\|payment-requested]].                                  |
+| Refunds     | Requests refunds via [[event\|refund-requested]].                                   |
+| Outcomes    | Consumes [[event\|payment-succeeded]] / [[event\|payment-failed]] and records them. |
+| Persistence | Reads from and writes to the [[container\|payment-database]].                       |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

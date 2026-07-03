@@ -1,0 +1,29 @@
+---
+id: order-completed
+name: Order Completed
+version: 1.0.0
+summary: |
+  Published when an order has been fulfilled and completed.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderCompleted` is published by the [[service|order-service]] when an order has been fully fulfilled. It marks the end of the happy path for an order. Downstream systems consume it to close out fulfilment, capture payment, and update reporting.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

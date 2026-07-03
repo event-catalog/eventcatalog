@@ -1,0 +1,29 @@
+---
+id: shipment-failed
+name: Shipment Failed
+version: 1.0.0
+summary: |
+  Published by the carrier when a shipment could not be delivered.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ShipmentFailed` is published by the carrier's [[service|carrier-tracking-api]] when a shipment cannot be delivered — for example a failed delivery attempt or a lost parcel. Acme Inc consumes it to trigger a redelivery, refund, or customer follow-up.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

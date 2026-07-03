@@ -1,0 +1,32 @@
+---
+id: update-product
+name: Update Product
+version: 1.0.0
+summary: |
+  Command to update an existing product in the catalog.
+owners:
+  - product-platform
+schemaPath: schema.json
+operation:
+  method: PATCH
+  path: /products/{productId}
+  statusCodes: ['200', '400', '404']
+sidebar:
+  badge: 'PATCH'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`UpdateProduct` is handled by the [[service|product-api]]. It applies a partial update to an existing product in the [[container|product-database]] and, on success, publishes a [[event|product-updated]] event describing what changed.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

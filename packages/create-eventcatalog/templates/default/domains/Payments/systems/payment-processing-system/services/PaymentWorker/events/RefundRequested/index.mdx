@@ -1,0 +1,29 @@
+---
+id: refund-requested
+name: Refund Requested
+version: 1.0.0
+summary: |
+  Published when the Payment Processing System requests a refund from the payment processor.
+owners:
+  - payments-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`RefundRequested` is published by the [[service|payment-worker]] to ask the external [[system|stripe]] to refund a previous charge — for example when an order is cancelled after payment. Stripe responds with [[event|refund-processed]].
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

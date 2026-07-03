@@ -1,0 +1,35 @@
+---
+id: review-flag
+name: Review Flag
+version: 1.0.0
+identifier: flagId
+summary: A customer report that a review may violate policy.
+owners:
+  - reviews-platform
+properties:
+  - name: flagId
+    type: UUID
+    required: true
+    description: Unique review flag identifier.
+  - name: reviewId
+    type: UUID
+    required: true
+    description: Review being reported.
+    references: review
+    relationType: flags
+    referencesIdentifier: reviewId
+  - name: reason
+    type: string
+    required: true
+    description: Reason selected by the customer.
+  - name: flaggedAt
+    type: datetime
+    required: true
+    description: Time the review was flagged.
+---
+
+## Overview
+
+Review Flag captures [[command|flag-review]] interactions and can send a published review back through moderation.
+
+<EntityPropertiesTable />

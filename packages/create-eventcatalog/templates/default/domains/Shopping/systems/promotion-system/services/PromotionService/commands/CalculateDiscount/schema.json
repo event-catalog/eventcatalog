@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CalculateDiscount",
+  "description": "Command to calculate the discount for a cart, and the discount returned",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "cartId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "customerId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "subtotal": {
+          "description": "Cart subtotal before discounts, in minor units (e.g. cents)",
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "promotionCode": {
+          "description": "Optional promotion code supplied by the customer",
+          "type": "string"
+        }
+      },
+      "required": ["cartId", "subtotal", "currency"]
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "discount": {
+          "description": "Total discount to apply, in minor units (e.g. cents)",
+          "type": "integer",
+          "minimum": 0
+        },
+        "appliedPromotions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["discount"]
+    }
+  },
+  "required": ["request", "response"]
+}

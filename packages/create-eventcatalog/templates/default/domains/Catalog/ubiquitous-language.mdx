@@ -1,0 +1,54 @@
+---
+dictionary:
+  - id: Product
+    name: Product
+    summary: 'A single item Acme Inc sells, with a name, price, category and lifecycle status.'
+    description: |
+      A product is the central concept of the Catalog domain. It is owned and maintained by the
+      Product Catalog System, which is the source of truth for all product data. A product carries:
+
+      - A unique product id and a unique SKU
+      - Display name, description and category
+      - Price (in minor units) and currency
+      - A lifecycle status (DRAFT, ACTIVE or ARCHIVED)
+
+      Every change to a product publishes a domain event so the rest of the business — including
+      search — can react.
+    icon: Package
+  - id: SKU
+    name: SKU
+    summary: 'Stock Keeping Unit — the unique, human-meaningful code that identifies a product.'
+    description: |
+      A SKU uniquely identifies a product in the catalog and must be unique across all products.
+      Unlike the internal product id (a UUID), the SKU is the code teams and merchants use day to day.
+    icon: Tag
+  - id: Catalog
+    name: Catalog
+    summary: 'The complete, authoritative collection of products Acme Inc offers.'
+    icon: BookOpen
+  - id: Search Index
+    name: Search Index
+    summary: 'A denormalised, search-optimised copy of the catalog that powers product search.'
+    description: |
+      The search index is a derived read model, not a source of truth. It is kept in sync by the
+      Search System consuming product change events, and can be rebuilt at any time by replaying
+      those events. It exists to serve fast, relevant search without coupling consumers to the
+      catalog database.
+    icon: Search
+  - id: Lifecycle Status
+    name: Lifecycle Status
+    summary: 'Where a product sits in its life: DRAFT, ACTIVE or ARCHIVED.'
+    description: |
+      - DRAFT — being prepared, not yet visible to customers.
+      - ACTIVE — live and discoverable.
+      - ARCHIVED — withdrawn from sale but retained for history.
+    icon: Workflow
+  - id: Outbox
+    name: Outbox
+    summary: 'A table where product changes are recorded in the same transaction, then published as events.'
+    description: |
+      The outbox is how the Product Catalog System guarantees that a product change and its event
+      are never out of sync. The Product API writes the change and an outbox row in one transaction;
+      the Product Search Publisher reliably drains the outbox to the broker.
+    icon: Mail
+---

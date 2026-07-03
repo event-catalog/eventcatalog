@@ -1,0 +1,67 @@
+---
+id: customer
+name: Customer
+version: 1.0.0
+summary: |
+  The Customer domain owns who our customers are — how they register, how their profile is maintained, and how they are authenticated across Acme Inc. It is the source of truth for customer identity and profile data.
+owners:
+  - customer-platform
+systems:
+  - id: customer-management-system
+    version: 1.0.0
+  - id: identity-provider
+    version: 1.0.0
+entities:
+  - id: customer-profile
+    version: 1.0.0
+  - id: customer-account
+    version: 1.0.0
+  - id: authentication-session
+    version: 1.0.0
+  - id: customer-address
+    version: 1.0.0
+badges:
+  - content: Core domain
+    backgroundColor: blue
+    textColor: blue
+    icon: RectangleGroupIcon
+  - content: Business Critical
+    backgroundColor: red
+    textColor: red
+    icon: ShieldCheckIcon
+---
+
+## Overview
+
+The **Customer** domain is responsible for the lifecycle of every customer account at Acme Inc — registration, profile updates, and authentication. It is split into two systems:
+
+<Tiles>
+  <Tile
+    icon="RectangleGroupIcon"
+    href="/docs/systems/customer-management-system/1.0.0"
+    title="Customer Management System"
+    description="System of record for customer profiles — register, update and read customers."
+  />
+  <Tile
+    icon="LockClosedIcon"
+    href="/docs/systems/identity-provider/1.0.0"
+    title="Identity Provider"
+    description="Authenticates customers and is the source of truth for credentials and login."
+  />
+</Tiles>
+
+### How the systems work together
+
+The **Customer Management System** owns customer profile data — it accepts registration and update commands and publishes events when customers change. The **Identity Provider** handles authentication: it verifies credentials and emits an event when a customer successfully authenticates, which the rest of the business can react to.
+
+## System Diagram
+
+The systems in this domain, how they relate, and the people who interact with them.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The components that make up this domain.
+
+<NodeGraph />

@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProductUpdated",
+  "description": "Emitted when an existing product's data changes",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "description": "Unique identifier for this event",
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "description": "Time the product was updated",
+      "type": "string",
+      "format": "date-time"
+    },
+    "productId": {
+      "description": "Unique identifier for the product that changed",
+      "type": "string",
+      "format": "uuid"
+    },
+    "changes": {
+      "description": "The fields that changed and their new values",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "description": "Price in minor units (e.g. cents)",
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "description": "ISO 4217 currency code",
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "category": {
+          "type": "string"
+        },
+        "status": {
+          "description": "Lifecycle status of the product",
+          "type": "string",
+          "enum": ["DRAFT", "ACTIVE", "ARCHIVED"]
+        }
+      },
+      "minProperties": 1
+    }
+  },
+  "required": ["eventId", "occurredAt", "productId", "changes"]
+}

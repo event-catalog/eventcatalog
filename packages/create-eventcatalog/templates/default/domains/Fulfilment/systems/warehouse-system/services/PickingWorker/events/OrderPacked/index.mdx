@@ -1,0 +1,29 @@
+---
+id: order-packed
+name: Order Packed
+version: 1.0.0
+summary: |
+  Published when an order has been picked and packed in the warehouse.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderPacked` is published by the [[service|picking-worker]] when an order has been fully picked and packed. The [[service|warehouse-service]] consumes it to mark the order ready and publish [[event|order-ready-for-shipping]].
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

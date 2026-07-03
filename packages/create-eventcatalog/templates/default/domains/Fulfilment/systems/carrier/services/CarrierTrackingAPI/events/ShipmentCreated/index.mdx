@@ -1,0 +1,29 @@
+---
+id: shipment-created
+name: Shipment Created
+version: 1.0.0
+summary: |
+  Published by the carrier when a shipment has been created and dispatched.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ShipmentCreated` is published by the carrier's [[service|carrier-tracking-api]] when a shipment has been created and dispatched. Acme Inc consumes it to give the customer a tracking number and expected delivery date.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

@@ -1,0 +1,43 @@
+---
+id: adr-001-use-transactional-outbox
+name: 'ADR-001: Publish product events via a transactional outbox'
+summary: Product change events are written to an outbox table in the same transaction as the change, then relayed to the broker, so an event is never lost or published for a rolled-back change.
+version: 1.0.0
+status: accepted
+date: 2026-02-10
+owners:
+  - product-platform
+decisionMakers:
+  - product-platform
+appliesTo:
+  - type: system
+    id: product-catalog-system
+  - type: service
+    id: product-search-publisher
+  - type: container
+    id: product-database
+badges:
+  - content: Messaging
+    backgroundColor: blue
+    textColor: blue
+  - content: Reliability
+    backgroundColor: green
+    textColor: green
+---
+
+## Context
+
+The Product Catalog System is the source of truth for products, and other systems — notably the [[system|search-system]] — depend on a reliable stream of `product-created`, `product-updated` and `product-deleted` events. Publishing to the broker directly from the [[service|product-api]] request path creates a dual-write problem: if the database commit succeeds but the broker publish fails (or vice versa), the catalog and its consumers drift out of sync. Lost or phantom events are hard to detect and expensive to reconcile.
+
+## Decision
+
+The Product API writes every product change **and** a corresponding row in an `outbox` table inside a single database transaction in the [[container|product-database]]. A separate relay, the [[service|product-search-publisher]], reads unpublished outbox rows in order and publishes them to the broker with at-least-once delivery, marking each row published once acknowledged.
+
+This decouples persistence from publishing: the request path only touches the database, and event delivery becomes an independent, retryable concern.
+
+## Consequences
+
+- Events are never lost and never published for a change that rolled back — the change and its event share a transaction boundary.
+- Consumers must be **idempotent**, since at-least-once delivery means an event can be redelivered.
+- There is a small publish latency between the commit and the relay draining the outbox.
+- The outbox table needs a retention/cleanup policy so it doesn't grow unbounded.

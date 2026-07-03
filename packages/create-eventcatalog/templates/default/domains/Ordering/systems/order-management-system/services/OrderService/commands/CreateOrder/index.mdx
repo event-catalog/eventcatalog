@@ -1,0 +1,32 @@
+---
+id: create-order
+name: Create Order
+version: 1.0.0
+summary: |
+  Command to create a new order from a checked-out cart.
+owners:
+  - ordering-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /orders
+  statusCodes: ['201', '400', '409']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CreateOrder` is sent by the [[service|checkout-orchestrator]] and handled by the [[service|order-service]]. It is the final step of the checkout saga — once inventory is reserved and payment is authorized, this command creates the order. On success the Order Service publishes an [[event|order-created]] event.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

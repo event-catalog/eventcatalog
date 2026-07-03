@@ -1,0 +1,36 @@
+---
+id: checkout-session
+name: Checkout Session
+version: 1.0.0
+identifier: checkoutSessionId
+aggregateRoot: true
+summary: The orchestration state for turning a checked-out cart into an order.
+owners:
+  - ordering-platform
+properties:
+  - name: checkoutSessionId
+    type: UUID
+    required: true
+    description: Unique checkout session identifier.
+  - name: cartId
+    type: UUID
+    required: true
+    description: Cart being checked out.
+    references: cart
+    relationType: startsFrom
+    referencesIdentifier: cartId
+  - name: status
+    type: string
+    required: true
+    description: Current checkout state.
+  - name: startedAt
+    type: datetime
+    required: true
+    description: Time checkout orchestration started.
+---
+
+## Overview
+
+Checkout Session tracks the saga managed by [[service|checkout-orchestrator]] across inventory reservation, payment authorization and order creation.
+
+<EntityPropertiesTable />

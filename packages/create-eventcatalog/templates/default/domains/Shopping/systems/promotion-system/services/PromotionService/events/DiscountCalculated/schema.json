@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DiscountCalculated",
+  "description": "Emitted when a discount has been calculated for a cart",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cartId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "discount": {
+      "description": "Total discount applied, in minor units (e.g. cents)",
+      "type": "integer",
+      "minimum": 0
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "appliedPromotions": {
+      "description": "Identifiers of the promotions that were applied",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["eventId", "occurredAt", "cartId", "discount", "currency"]
+}

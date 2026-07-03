@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FraudCheckFailed",
+  "description": "Published when a payment fails fraud screening",
+  "type": "object",
+  "properties": {
+    "paymentId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Fraud risk score; higher is riskier"
+    },
+    "reason": {
+      "type": "string",
+      "enum": ["HIGH_RISK_SCORE", "BLOCKLISTED", "VELOCITY", "MISMATCH"]
+    },
+    "checkedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["paymentId", "orderId", "reason", "checkedAt"]
+}

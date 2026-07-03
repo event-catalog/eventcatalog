@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AuthenticateCustomer",
+  "description": "Command to authenticate a customer with their credentials, and the token returned",
+  "type": "object",
+  "properties": {
+    "request": {
+      "description": "The credentials to authenticate",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": ["email", "password"]
+    },
+    "response": {
+      "description": "The access token issued on a successful sign-in",
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "tokenType": {
+          "type": "string",
+          "enum": ["Bearer"]
+        },
+        "expiresIn": {
+          "description": "Token lifetime in seconds",
+          "type": "integer"
+        }
+      },
+      "required": ["accessToken", "tokenType", "expiresIn"]
+    }
+  },
+  "required": ["request", "response"]
+}

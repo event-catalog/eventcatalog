@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FraudCheckPassed",
+  "description": "Published when a payment passes fraud screening",
+  "type": "object",
+  "properties": {
+    "paymentId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Fraud risk score; lower is safer"
+    },
+    "checkedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["paymentId", "orderId", "checkedAt"]
+}

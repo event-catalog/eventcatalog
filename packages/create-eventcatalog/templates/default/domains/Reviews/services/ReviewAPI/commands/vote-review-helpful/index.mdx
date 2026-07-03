@@ -1,0 +1,29 @@
+---
+id: vote-review-helpful
+name: Vote Review Helpful
+version: 1.0.0
+summary: |
+  Command issued by a customer to mark a published review as helpful (or remove their vote).
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`VoteReviewHelpful` is sent to the [[service|review-api]] when a customer marks a review as helpful. The API updates the helpful count and publishes [[event|review-helpful-voted]].
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

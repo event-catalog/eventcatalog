@@ -1,0 +1,53 @@
+---
+id: order-management-system
+name: Order Management System
+version: 1.0.0
+summary: |
+  Internal system that is the source of truth for orders. It creates orders, tracks their lifecycle, and publishes events as orders are created, completed and cancelled.
+owners:
+  - ordering-platform
+services:
+  - id: order-service
+containers:
+  - id: order-database
+flows:
+  - id: order-cancellation
+    version: 1.0.0
+relationships:
+  - id: checkout-system
+    label: receives orders from
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Order Management System** owns the order at Acme Inc. It accepts the [[command|create-order]] command from the [[system|checkout-system]], persists orders in the [[container|order-database]], and serves order lookups via [[query|get-order]]. As an order moves through its lifecycle it publishes [[event|order-created]], [[event|order-completed]] and [[event|order-cancelled]] events for the rest of the business to react to.
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component                     | Type       | Responsibility                                                            |
+| ----------------------------- | ---------- | ------------------------------------------------------------------------- |
+| [[service\|order-service]]    | Service    | Creates, cancels and serves orders, and publishes order lifecycle events. |
+| [[container\|order-database]] | Data store | PostgreSQL system of record for orders and their items.                   |
+
+## Messages this system publishes
+
+- [[event\|order-created]] — a new order has been created.
+- [[event\|order-completed]] — an order has been fulfilled and completed.
+- [[event\|order-cancelled]] — an order has been cancelled.

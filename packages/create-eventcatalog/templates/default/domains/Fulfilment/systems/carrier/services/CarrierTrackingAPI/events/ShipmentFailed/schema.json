@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ShipmentFailed",
+  "description": "Published when a shipment could not be delivered",
+  "type": "object",
+  "properties": {
+    "shipmentId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "reason": {
+      "type": "string",
+      "enum": ["FAILED_DELIVERY", "LOST", "DAMAGED", "RETURNED_TO_SENDER"]
+    },
+    "failedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["shipmentId", "orderId", "reason", "failedAt"]
+}

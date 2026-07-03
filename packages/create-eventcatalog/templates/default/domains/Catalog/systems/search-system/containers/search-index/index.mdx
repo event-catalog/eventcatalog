@@ -1,0 +1,39 @@
+---
+id: search-index
+name: Search Index
+version: 1.0.0
+summary: The denormalised, search-optimised index of products that powers product search.
+container_type: searchIndex
+technology: opensearch@2
+authoritative: false
+access_mode: readWrite
+purpose: Serve fast, relevant product search
+classification: internal
+retention: rebuildable
+residency: eu-west-1
+styles:
+  icon: /icons/analytics/clickhouse.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Search Index** is a denormalised, search-optimised copy of the catalog. It is **not** a source of truth — it can be rebuilt at any time by replaying product events from the [[system|product-catalog-system]]. The [[service|search-indexer]] keeps it up to date, and the [[service|search-api]] reads from it to answer [[query|search-products]] queries.
+
+### What does it store?
+
+One document per product, optimised for search:
+
+- Searchable text — name and description, analysed for full-text matching.
+- Filterable fields — category, status, price, currency.
+- A relevance signal used to rank results.
+
+### Why is it not authoritative?
+
+The system of record is the [[container|product-database]]. The index is a derived read model: if it is ever lost or corrupted, we rebuild it by replaying [[event|product-created]], [[event|product-updated]] and [[event|product-deleted]] events. This keeps search fast without coupling other teams to the catalog database.
+
+### Operational notes
+
+- **Rebuildable**: a full reindex is a supported, routine operation.
+- **Eventually consistent**: changes appear in search shortly after the [[service|search-indexer]] processes the corresponding event.

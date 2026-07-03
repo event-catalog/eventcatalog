@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderCancelled",
+  "description": "Published when an order has been cancelled",
+  "type": "object",
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "customerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reason": {
+      "type": "string",
+      "enum": ["CUSTOMER_REQUESTED", "PAYMENT_FAILED", "OUT_OF_STOCK", "FRAUD"]
+    },
+    "cancelledAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["orderId", "reason", "cancelledAt"]
+}

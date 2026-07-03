@@ -1,0 +1,35 @@
+---
+id: rating-summary
+name: Rating Summary
+version: 1.0.0
+identifier: productId
+summary: Aggregated review statistics for a product.
+owners:
+  - reviews-platform
+properties:
+  - name: productId
+    type: UUID
+    required: true
+    description: Product being summarized.
+    references: product
+    relationType: summarizes
+    referencesIdentifier: productId
+  - name: averageRating
+    type: decimal
+    required: true
+    description: Average published rating.
+  - name: reviewCount
+    type: integer
+    required: true
+    description: Number of published reviews.
+  - name: updatedAt
+    type: datetime
+    required: true
+    description: Time the summary was recalculated.
+---
+
+## Overview
+
+Rating Summary is the read model maintained by [[service|rating-aggregator]] and stored in [[container|rating-cache]].
+
+<EntityPropertiesTable />

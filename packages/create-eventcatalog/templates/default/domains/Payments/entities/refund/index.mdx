@@ -1,0 +1,36 @@
+---
+id: refund
+name: Refund
+version: 1.0.0
+identifier: refundId
+aggregateRoot: true
+summary: A request to return money to a customer after payment.
+owners:
+  - payments-platform
+properties:
+  - name: refundId
+    type: UUID
+    required: true
+    description: Unique refund identifier.
+  - name: paymentId
+    type: UUID
+    required: true
+    description: Payment being refunded.
+    references: payment
+    relationType: refunds
+    referencesIdentifier: paymentId
+  - name: amount
+    type: decimal
+    required: true
+    description: Refund amount.
+  - name: status
+    type: string
+    required: true
+    description: Refund lifecycle state.
+---
+
+## Overview
+
+Refund is owned by Payments and records refund requests and provider outcomes such as [[event|refund-processed]].
+
+<EntityPropertiesTable />

@@ -1,0 +1,33 @@
+---
+id: review-database
+name: Review Database
+version: 1.0.0
+summary: PostgreSQL database that is the system of record for reviews and their moderation state.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for reviews, ratings and moderation decisions
+classification: internal
+retention: indefinite
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Review Database** is the authoritative store for every review in the Reviews & Ratings domain. The [[service|review-api]] writes new reviews to it, and the [[service|review-moderation-worker]] records each moderation decision against the stored review.
+
+### What does it store?
+
+- **Reviews** — one row per review: product, customer, rating, title, body and lifecycle status (`submitted`, `published`, `rejected`).
+- **Moderation decisions** — the outcome and reason for each moderated review, kept for audit.
+
+### Access patterns
+
+- The [[service|review-api]] writes new reviews and reads published reviews.
+- The [[service|review-moderation-worker]] reads submitted reviews and writes moderation outcomes.
+- The [[service|rating-aggregator]] reads published reviews to recompute aggregates.

@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FlagReview",
+  "type": "object",
+  "properties": {
+    "reviewId": { "type": "string", "format": "uuid" },
+    "flaggedBy": { "type": "string", "description": "Customer or moderator id raising the flag." },
+    "reason": { "type": "string", "enum": ["spam", "abuse", "off_topic", "inappropriate", "other"] },
+    "notes": { "type": "string", "maxLength": 1000 },
+    "flaggedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["reviewId", "flaggedBy", "reason", "flaggedAt"]
+}

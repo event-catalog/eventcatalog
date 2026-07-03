@@ -1,0 +1,32 @@
+---
+id: create-shipment
+name: Create Shipment
+version: 1.0.0
+summary: |
+  Command to create a shipment with a carrier for a packed order.
+owners:
+  - fulfilment-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /shipments
+  statusCodes: ['201', '400', '422']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CreateShipment` is sent by the [[service|carrier-adapter]] to the external [[system|carrier]] to dispatch a packed order. The carrier responds asynchronously with [[event|shipment-created]] and later [[event|shipment-delivered]] or [[event|shipment-failed]].
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

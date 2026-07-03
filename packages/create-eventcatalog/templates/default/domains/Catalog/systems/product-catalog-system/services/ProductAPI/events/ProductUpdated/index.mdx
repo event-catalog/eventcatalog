@@ -1,0 +1,29 @@
+---
+id: product-updated
+name: Product Updated
+version: 1.0.0
+summary: |
+  Published when an existing product's data has changed.
+owners:
+  - product-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ProductUpdated` is published by the [[service|product-search-publisher]] whenever an existing product is changed via the [[service|product-api]]. The [[system|search-system]] consumes this event to re-index the product so search results stay accurate.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

@@ -515,11 +515,9 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       .vertical-nav-rail[data-collapsed='true'] .nav-label {
         display: none;
       }
-      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-link,
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail [data-role='nav-item'],
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-secondary-item,
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail #vertical-nav-toggle,
-      .vertical-nav-rail[data-collapsed='true'] .nav-brand-link,
       .vertical-nav-rail[data-collapsed='true'] [data-role='nav-item'],
       .vertical-nav-rail[data-collapsed='true'] .nav-secondary-item,
       .vertical-nav-rail[data-collapsed='true'] #vertical-nav-toggle {
@@ -530,6 +528,9 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-brand-link,
       .vertical-nav-rail[data-collapsed='true'] .nav-brand-link {
+        justify-content: center;
+        width: 100%;
+        height: 3.75rem;
         padding-left: 0;
         padding-right: 0;
       }

@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GetCustomer",
+  "description": "Query to fetch a single customer by their identifier, and the customer returned",
+  "type": "object",
+  "properties": {
+    "request": {
+      "description": "Parameters used to look up the customer",
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "description": "Unique identifier of the customer to fetch",
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": ["customerId"]
+    },
+    "response": {
+      "description": "The customer returned by the query",
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "SUSPENDED", "CLOSED"]
+        },
+        "registeredAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["customerId", "email", "status"]
+    }
+  },
+  "required": ["request", "response"]
+}

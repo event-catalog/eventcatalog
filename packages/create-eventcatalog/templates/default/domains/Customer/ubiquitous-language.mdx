@@ -1,0 +1,48 @@
+---
+dictionary:
+  - id: Customer
+    name: Customer
+    summary: 'A person with an account at Acme Inc, identified by a unique customer id and email.'
+    description: |
+      The customer is the central concept of the Customer domain. Their profile is owned by the
+      Customer Management System, which is the source of truth for who a customer is. A customer has:
+
+      - A unique customer id and a unique email
+      - A display name
+      - An account status (ACTIVE, SUSPENDED or CLOSED)
+
+      A customer's profile data is kept deliberately separate from their credentials, which live in
+      the Identity Provider.
+    icon: User
+  - id: Identity
+    name: Identity
+    summary: 'The credentials and login information used to prove a customer is who they say they are.'
+    description: |
+      An identity is distinct from a customer profile. It lives in the Identity Provider's user
+      directory and holds the login email and a securely hashed credential. Keeping identity separate
+      from profile data isolates the most sensitive information.
+    icon: Fingerprint
+  - id: Authentication
+    name: Authentication
+    summary: 'Verifying that a sign-in attempt belongs to a real customer.'
+    description: |
+      Authentication is owned by the Identity Provider. It verifies credentials against the user
+      directory and, on success, issues an access token and publishes a CustomerAuthenticated event.
+    icon: LockKeyhole
+  - id: Credential
+    name: Credential
+    summary: 'A secret (such as a password) a customer uses to authenticate. Never stored in plain text.'
+    icon: KeyRound
+  - id: Account Status
+    name: Account Status
+    summary: 'Where a customer account sits: ACTIVE, SUSPENDED or CLOSED.'
+    description: |
+      - ACTIVE — the account is in good standing and can be used.
+      - SUSPENDED — temporarily blocked (e.g. for review).
+      - CLOSED — permanently deactivated.
+    icon: Workflow
+  - id: User Directory
+    name: User Directory
+    summary: 'The authoritative store of customer credentials and login identities.'
+    icon: Users
+---

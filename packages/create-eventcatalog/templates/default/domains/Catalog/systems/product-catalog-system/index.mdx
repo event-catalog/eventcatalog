@@ -1,0 +1,72 @@
+---
+id: product-catalog-system
+name: Product Catalog System
+version: 1.0.0
+summary: |
+  Internal system that is the source of truth for product data. Owns the product database and publishes product change events for the rest of the business to consume.
+owners:
+  - product-platform
+services:
+  - id: product-api
+  - id: product-worker
+  - id: product-search-publisher
+containers:
+  - id: product-database
+relationships:
+  - id: search-system
+    label: notifies of product changes
+actors:
+  - id: merchandiser
+    name: Merchandiser
+    label: creates and updates products
+    direction: inbound
+  - id: catalog-admin
+    name: Catalog Admin
+    label: manages categories and pricing
+    direction: inbound
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Product Catalog System** is the system of record for products at Acme Inc. It accepts commands to create, update and delete products, persists them in the [[container|product-database]], and emits domain events whenever product data changes so downstream systems — like the [[system|search-system]] — can react.
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<ComponentDiagram />
+
+## What's inside
+
+| Component                             | Type       | Responsibility                                                              |
+| ------------------------------------- | ---------- | --------------------------------------------------------------------------- |
+| [[service\|product-api]]              | Service    | Public-facing API. Handles create/update/delete commands and product reads. |
+| [[service\|product-worker]]           | Service    | Processes long-running and asynchronous catalog work off the request path.  |
+| [[service\|product-search-publisher]] | Service    | Publishes product change events for the Search System to consume.           |
+| [[container\|product-database]]       | Data store | PostgreSQL system of record for all product data.                           |
+
+## Messages this system publishes
+
+When product data changes, the system emits these events:
+
+- [[event|product-created]] — a new product has been added to the catalog.
+- [[event|product-updated]] — an existing product's data has changed.
+- [[event|product-deleted]] — a product has been removed from the catalog.
+- [[adr|adr-001-use-transactional-outbox]] — a product has been removed from the catalog.
+
+## Architecture decisions
+
+The key decisions that shaped this system. Search, filter by status, or sort by clicking a column.
+
+<ADRTable />

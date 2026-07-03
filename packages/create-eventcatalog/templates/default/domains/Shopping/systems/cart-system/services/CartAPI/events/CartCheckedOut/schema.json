@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CartCheckedOut",
+  "description": "Emitted when a customer checks out their cart",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cartId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "customerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "unitPrice": {
+            "description": "Price per unit in minor units (e.g. cents)",
+            "type": "integer"
+          }
+        },
+        "required": ["productId", "quantity", "unitPrice"]
+      }
+    },
+    "subtotal": {
+      "description": "Total before discounts, in minor units (e.g. cents)",
+      "type": "integer"
+    },
+    "discount": {
+      "description": "Total discount applied, in minor units (e.g. cents)",
+      "type": "integer"
+    },
+    "total": {
+      "description": "Final total, in minor units (e.g. cents)",
+      "type": "integer"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    }
+  },
+  "required": ["eventId", "occurredAt", "cartId", "customerId", "items", "total", "currency"]
+}

@@ -1,0 +1,52 @@
+---
+id: stripe
+name: Stripe
+version: 1.0.0
+scope: external
+summary: |
+  External payment processor used by Acme Inc to charge cards and issue refunds. It receives payment and refund requests and reports outcomes back via webhook events.
+owners:
+  - payments-platform
+services:
+  - id: stripe-payments-api
+  - id: stripe-webhook-endpoint
+relationships:
+  - id: payment-processing-system
+    label: processes payments for
+badges:
+  - content: External
+    backgroundColor: yellow
+    textColor: yellow
+    icon: GlobeAltIcon
+---
+
+## Overview
+
+[Stripe](https://stripe.com) is the external payment processor Acme Inc uses to charge customer cards and issue refunds. It is owned and operated by Stripe — modelled here as an **external system** so the catalog shows how the [[system|payment-processing-system]] integrates with it.
+
+Stripe receives [[event|payment-requested]] and [[event|refund-requested]], and reports outcomes back via [[event|payment-succeeded]], [[event|payment-failed]] and [[event|refund-processed]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component                            | Type    | Responsibility                                                           |
+| ------------------------------------ | ------- | ------------------------------------------------------------------------ |
+| [[service\|stripe-payments-api]]     | Service | Accepts charge and refund requests and processes them.                   |
+| [[service\|stripe-webhook-endpoint]] | Service | Delivers payment and refund outcomes back to Acme Inc as webhook events. |
+
+## Messages this system publishes
+
+- [[event\|payment-succeeded]] — a charge succeeded.
+- [[event\|payment-failed]] — a charge failed.
+- [[event\|refund-processed]] — a refund was processed.

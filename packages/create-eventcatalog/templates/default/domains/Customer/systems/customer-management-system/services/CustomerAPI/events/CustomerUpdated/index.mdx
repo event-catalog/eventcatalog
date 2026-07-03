@@ -1,0 +1,29 @@
+---
+id: customer-updated
+name: Customer Updated
+version: 1.0.0
+summary: |
+  Published when an existing customer's profile has changed.
+owners:
+  - customer-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CustomerUpdated` is published by the [[service|customer-api]] whenever an existing customer's profile changes. Downstream systems consume this event to keep their copy of customer data in sync.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

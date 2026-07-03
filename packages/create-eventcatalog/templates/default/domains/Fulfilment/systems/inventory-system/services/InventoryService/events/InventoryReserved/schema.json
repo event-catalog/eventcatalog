@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InventoryReserved",
+  "description": "Published when stock has been successfully reserved for an order",
+  "type": "object",
+  "properties": {
+    "reservationId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "cartId": { "type": "string", "format": "uuid" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": { "type": "string", "format": "uuid" },
+          "quantity": { "type": "integer", "minimum": 1 }
+        },
+        "required": ["productId", "quantity"]
+      }
+    },
+    "reservedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["reservationId", "items", "reservedAt"]
+}

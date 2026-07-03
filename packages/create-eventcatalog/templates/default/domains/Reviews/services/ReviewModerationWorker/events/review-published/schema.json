@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReviewPublished",
+  "type": "object",
+  "properties": {
+    "reviewId": { "type": "string", "format": "uuid" },
+    "productId": { "type": "string" },
+    "customerId": { "type": "string" },
+    "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "publishedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["reviewId", "productId", "rating", "publishedAt"]
+}
