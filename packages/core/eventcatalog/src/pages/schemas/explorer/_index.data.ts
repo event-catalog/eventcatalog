@@ -73,7 +73,7 @@ async function fetchAllSchemas() {
               owners: enrichedOwners,
             },
             // PERF: message schema bodies are NOT inlined (they made the page large on big catalogs). The SchemaExplorer lazy-fetches the
-            // selected message's content from /api/schemas/<collection>/<id>/<version>.
+            // selected message's content from the internal route /schemas/explorer/content/<collection>/<id>/<version>.
             schemaContent: '',
             schemaExtension,
             // PERF: examples are not inlined for every item (see producers note); the
@@ -99,7 +99,7 @@ async function fetchAllSchemas() {
               owners: enrichedOwners,
             },
             // PERF: message schema bodies are NOT inlined (they made the page large on big catalogs). The SchemaExplorer lazy-fetches the
-            // selected message's content from /api/schemas/<collection>/<id>/<version>.
+            // selected message's content from the internal route /schemas/explorer/content/<collection>/<id>/<version>.
             schemaContent: '',
             schemaExtension,
           };

@@ -6,6 +6,7 @@ import SchemaListItem from './SchemaListItem';
 import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
 import type { SchemaItem } from './types';
+import { buildUrl } from '@utils/url-builder';
 
 // Specification file types (OpenAPI, AsyncAPI, GraphQL)
 const SPEC_TYPES = ['openapi', 'asyncapi', 'graphql'];
@@ -293,7 +294,8 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
 
   // PERF: message schema bodies are no longer inlined into the page (they dominate
   // the payload on large catalogs). Lazy-fetch the SELECTED message's content from
-  // the schema API. Specs/contracts that still carry inlined content are used as-is.
+  // the explorer's internal content route. Specs/contracts that still carry inlined
+  // content are used as-is.
   const [lazySchema, setLazySchema] = useState<{ key: string; content: string } | null>(null);
   useEffect(() => {
     if (!displayMessage) return;
@@ -307,8 +309,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     // Only message bodies are lazy-fetched (their content is dropped from props to
     // keep the page small). Service/domain specs keep their content inline, so they
     // hit the early-return above and never reach here.
+    //
+    // This hits the explorer's own internal route (not the Scale `/api/schemas` API),
+    // so it works on free/static catalogs too. buildUrl keeps base-path deployments working.
     let cancelled = false;
-    fetch(`/api/schemas/${collection}/${encodeURIComponent(id)}/${encodeURIComponent(version)}`)
+    fetch(buildUrl(`/schemas/explorer/content/${collection}/${encodeURIComponent(id)}/${encodeURIComponent(version)}`, true))
       .then((res) => (res.ok ? res.text() : ''))
       .then((content) => {
         if (!cancelled) setLazySchema({ key, content });
