@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.4
+
+### Patch Changes
+
+- bea8571: Rebuild the create-eventcatalog default template with a new e-commerce catalog (domains, systems, services, messages) and fix the collapsed vertical nav brand link alignment.
+
 ## 4.3.4-beta.0
 
 ### Patch Changes

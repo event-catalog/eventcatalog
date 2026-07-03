@@ -1,5 +1,15 @@
 # @eventcatalog/sdk
 
+## 2.25.0
+
+### Minor Changes
+
+- d64cfab: Add systems support to the SDK. Systems are a new resource type that can group services, flows, entities, and containers, and can be nested within domains. Includes helpers to read and write systems, add resources to a system, write resources directly into a system, and add systems to domains.
+
+### Patch Changes
+
+- 9949f9f: Add SDK support for architecture decision records.
+
 ## 2.25.0-beta.1
 
 ### Patch Changes

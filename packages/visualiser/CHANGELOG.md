@@ -1,5 +1,17 @@
 # @eventcatalog/visualiser
 
+## 4.0.0
+
+### Major Changes
+
+- 728ca67: Add support for a new `systems` collection. Systems are a versioned resource that can be defined in any folder (including inside domains), rendered as documentation pages, and listed in the sidebar with their own icon and color. Systems can group services, flows, entities, data stores (containers), and diagrams, have their own architecture overview page (`/architecture/systems/[id]`) listing their entities, services, external integrations, data stores, and flows, be visualised as an architecture map, be browsed and filtered on a dedicated discover page (`/discover/systems`), and be targeted by architecture decision records (`appliesTo: [{ type: 'system' }]`). Domains can reference one or more systems, which are listed in the domain sidebar, rendered as expandable sections on the domain's architecture page (listing the system's services, like subdomains, with external services shown under "External Integrations"), and merged into the domain's architecture map (each referenced system's services are grouped within the domain graph). Teams and users can own systems, which are surfaced on their profile pages.
+
+  Systems can also declare `relationships` to other systems (each with an optional `version` and `label`), which power a new **Context Diagram** visualiser (`/visualiser/systems/[id]/[version]/context`, linked from the system sidebar under Architecture). Starting from a system, the diagram walks its relationships outward to build the reachable neighbourhood of systems, rendering each as a node (showing its service, entity, and data store counts) connected by labelled edges. Clicking a system node opens that system's architecture map.
+
+  Systems support a `scope` of `internal` (default) or `external`. External systems represent third-party/SaaS systems you integrate with (e.g. "Resend", "Stripe") and are shaded and badged as "External System" in the Context Diagram.
+
+  Systems can also declare `actors` — people or roles that interact with the system (e.g. a Customer or Support Agent). Each actor has an `id` (used to de-duplicate the same actor across systems), an optional `name`/`label`, and a `direction` (`inbound` = actor → system, e.g. "logs into"; `outbound` = system → actor, e.g. "sends notifications to"). Actors are rendered as nodes on the Context Diagram connected to their system by a labelled, directional edge.
+
 ## 4.0.0-beta.0
 
 ### Major Changes
@@ -99,7 +111,6 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
-
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
@@ -180,7 +191,6 @@
 - c178b75: core(feat): updated visualiser support for dark mode, new layout engine
 - c178b75: Remove `catalog` object from collection getters, deriving values on-demand instead of pre-computing them for every resource
 - c178b75: Redesign visualiser nodes with post-it note style UI
-
   - New post-it note design for all message and service nodes
   - Folded corner effect and gradient backgrounds
   - Glow handles with pulse animations
@@ -204,7 +214,6 @@
 
 - 7d0203c: fix(visualiser): resolve header visibility conflict with tailwind utilities
 - c05874a: Beta release of @eventcatalog/visualiser package
-
   - Fix node icon positioning: icon at top, label at bottom of left bar
   - Color-matched connection handles for all node types
   - Fix animated edge line color (gray-300)
@@ -233,7 +242,6 @@
 ### Patch Changes
 
 - c05874a: Beta release of @eventcatalog/visualiser package
-
   - Fix node icon positioning: icon at top, label at bottom of left bar
   - Color-matched connection handles for all node types
   - Fix animated edge line color (gray-300)
