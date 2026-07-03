@@ -16,6 +16,7 @@
   },
   "changesets": [
     "discover-kind-navigation",
+    "quiet-lions-gather",
     "quiet-otters-dance",
     "quiet-otters-shine",
     "sdk-adr-support",
