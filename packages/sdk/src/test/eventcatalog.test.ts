@@ -198,6 +198,28 @@ describe('EventCatalog', () => {
         expect(dump.resources.flows?.[0].markdown).toBeUndefined();
       });
     });
+
+    describe('adrs', () => {
+      it('returns a list of ADRs from the catalog', async () => {
+        const dump = await dumpCatalog();
+        expect(dump.resources.adrs).toHaveLength(1);
+
+        const adr = dump.resources.adrs?.find((a: any) => a.id === 'adr-001-use-transactional-outbox');
+        expect(adr).toEqual(
+          expect.objectContaining({
+            id: 'adr-001-use-transactional-outbox',
+            name: 'Use Transactional Outbox',
+            version: '1.0.0',
+            status: 'accepted',
+          })
+        );
+      });
+
+      it('should not include markdown for ADRs if the includeMarkdown option is false', async () => {
+        const dump = await dumpCatalog({ includeMarkdown: false });
+        expect(dump.resources.adrs?.[0].markdown).toBeUndefined();
+      });
+    });
   });
 
   describe('getEventCatalogConfigurationFile', () => {

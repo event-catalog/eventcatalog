@@ -408,6 +408,54 @@ export interface Diagram extends BaseSchema {
   };
 }
 
+export type AdrStatus = 'proposed' | 'accepted' | 'rejected' | 'deprecated' | 'superseded';
+
+export type AdrPointer = {
+  id: string;
+  version?: string;
+};
+
+export type AdrResourcePointer = AdrPointer & {
+  type:
+    | 'agent'
+    | 'service'
+    | 'event'
+    | 'command'
+    | 'query'
+    | 'flow'
+    | 'channel'
+    | 'domain'
+    | 'system'
+    | 'user'
+    | 'team'
+    | 'container'
+    | 'entity'
+    | 'diagram'
+    | 'data-product';
+};
+
+export interface Adr extends BaseSchema {
+  status: AdrStatus;
+  date: Date | string;
+  decisionMakers?: string[];
+  appliesTo?: AdrResourcePointer[];
+  supersedes?: AdrPointer[];
+  supersededBy?: AdrPointer[];
+  amends?: AdrPointer[];
+  amendedBy?: AdrPointer[];
+  related?: AdrPointer[];
+  detailsPanel?: {
+    status?: DetailPanelProperty;
+    date?: DetailPanelProperty;
+    decisionMakers?: DetailPanelProperty;
+    appliesTo?: DetailPanelProperty;
+    relationships?: DetailPanelProperty;
+    owners?: DetailPanelProperty;
+    repository?: DetailPanelProperty;
+    changelog?: DetailPanelProperty;
+  };
+}
+
 export type DataProductOutputPointer = {
   id: string;
   version?: string;
@@ -520,6 +568,7 @@ export type EventCatalog = {
     entities?: ExportedResource<Entity>[];
     containers?: ExportedResource<Container>[];
     flows?: ExportedResource<Flow>[];
+    adrs?: ExportedResource<Adr>[];
     customDocs?: ExportedResource<CustomDoc>[];
   };
 };

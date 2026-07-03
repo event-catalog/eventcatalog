@@ -12,13 +12,13 @@ import {
 import matter from 'gray-matter';
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
-import { Message, Service, CustomDoc } from '../types';
+import { Adr, Message, Service, CustomDoc } from '../types';
 import { satisfies } from 'semver';
 import { lock, unlock } from 'proper-lockfile';
 import { basename } from 'node:path';
 import path from 'node:path';
 
-type Resource = Service | Message | CustomDoc;
+type Resource = Service | Message | CustomDoc | Adr;
 
 export const versionResource = async (catalogDir: string, id: string) => {
   // Find all the events in the directory

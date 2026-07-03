@@ -1,0 +1,18 @@
+---
+id: adr-001-use-transactional-outbox
+name: Use Transactional Outbox
+version: 1.0.0
+summary: Publish integration events through an outbox table.
+status: accepted
+date: '2024-01-15'
+decisionMakers:
+  - dboyne
+appliesTo:
+  - id: OrdersService
+    version: 0.0.1
+    type: service
+---
+
+# Use Transactional Outbox
+
+We will publish integration events through an outbox table owned by the service.
