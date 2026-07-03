@@ -1,0 +1,40 @@
+---
+id: carrier-adapter
+version: 1.0.0
+name: Carrier Adapter
+summary: |
+  Translates Acme Inc shipment requests into the external carrier's format and sends them to create a shipment.
+styles:
+  icon: /icons/languages/go.svg
+owners:
+  - fulfilment-platform
+sends:
+  - id: create-shipment
+    version: 1.0.0
+repository:
+  language: Go
+  url: 'https://github.com/acme/carrier-adapter'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Carrier Adapter** is the anti-corruption layer between Acme Inc and its carriers. It takes a shipment request from the [[service|shipping-api]], maps it to the external [[system|carrier]]'s API, and sends a [[command|create-shipment]] to dispatch the parcel.
+
+<Tiles>
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Sends ${frontmatter.sends.length} message`}
+    description="The create-shipment command"
+  />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

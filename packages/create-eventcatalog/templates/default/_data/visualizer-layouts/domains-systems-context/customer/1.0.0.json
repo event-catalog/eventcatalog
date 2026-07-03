@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "savedAt": "2026-06-26T12:15:29.856Z",
+  "resourceKey": "domains-systems-context/customer/1.0.0",
+  "positions": {
+    "customer-management-system-1.0.0": {
+      "x": 652.3279365079366,
+      "y": 338.73238095238094
+    },
+    "identity-provider-1.0.0": {
+      "x": 745.6812698412698,
+      "y": 71.1025396825397
+    },
+    "actor-customer": {
+      "x": 90,
+      "y": 122.5
+    },
+    "actor-support-agent": {
+      "x": 90,
+      "y": 322.5
+    }
+  }
+}

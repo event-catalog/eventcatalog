@@ -1,0 +1,109 @@
+---
+import { getCollection } from 'astro:content';
+
+// EventCatalog injects its components via Astro.props.components. Destructure the ones
+// this landing page uses (including the SystemContextMap embed).
+const { Tile, Tiles, SystemContextMap } = Astro.props.components;
+
+// Count the catalog's top-level resources. We filter out versioned/ entries so each
+// resource is counted once (by its latest version).
+const isCurrent = (entry) => !entry.filePath?.includes('/versioned/');
+
+const [domains, systems, services] = await Promise.all([
+  getCollection('domains'),
+  getCollection('systems'),
+  getCollection('services'),
+]);
+
+const stats = [
+  { label: 'Domains', value: domains.filter(isCurrent).length, href: '/discover/domains' },
+  { label: 'Systems', value: systems.filter(isCurrent).length, href: '/visualiser/system-context-map' },
+  { label: 'Services', value: services.filter(isCurrent).length, href: '/discover/services' },
+];
+---
+
+<div class="not-prose">
+  {/* Hero */}
+  <div class="pb-8 border-b border-[rgb(var(--ec-page-border))]">
+    <h1 class="text-4xl md:text-5xl font-bold text-[rgb(var(--ec-page-text))]">Acme Inc Catalog</h1>
+    <p class="mt-3 text-lg text-[rgb(var(--ec-page-text-muted))] max-w-3xl font-light">
+      Discover, explore and document the event-driven architecture that powers Acme Inc — our
+      domains, the systems inside them, and the services and messages that connect everything.
+    </p>
+  </div>
+
+  {/* Stat cards */}
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+    {
+      stats.map((stat) => (
+        <a
+          href={stat.href}
+          class="group rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-6 shadow-xs hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] transition-all"
+        >
+          <div class="text-4xl font-bold text-[rgb(var(--ec-page-text))]">{stat.value}</div>
+          <div class="mt-1 text-sm font-medium uppercase tracking-wide text-[rgb(var(--ec-page-text-muted))]">
+            {stat.label}
+          </div>
+        </a>
+      ))
+    }
+  </div>
+
+  {/* System context map */}
+  <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-12 mb-2">System context map</h2>
+  <p class="text-[rgb(var(--ec-page-text-muted))] font-light mb-2">
+    How every system in the catalog relates — and the people who interact with them.
+  </p>
+</div>
+
+<SystemContextMap />
+
+<div class="not-prose">
+  {/* Domains */}
+  <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-12 mb-4">Explore the domains</h2>
+</div>
+
+<Tiles columns={3}>
+  <Tile
+    icon="RectangleGroupIcon"
+    href="/docs/domains/catalog/1.0.0"
+    title="Catalog"
+    description="Source of truth for product data and the search that makes it discoverable."
+  />
+  <Tile
+    icon="UserGroupIcon"
+    href="/docs/domains/customer/1.0.0"
+    title="Customer"
+    description="Customer profiles and authentication across Acme Inc."
+  />
+  <Tile
+    icon="ShoppingCartIcon"
+    href="/docs/domains/shopping/1.0.0"
+    title="Shopping"
+    description="The shopping cart and the promotions applied to it at checkout."
+  />
+  <Tile
+    icon="ClipboardDocumentListIcon"
+    href="/docs/domains/ordering/1.0.0"
+    title="Ordering"
+    description="Turning a checked-out cart into a confirmed order, from checkout to fulfilment."
+  />
+  <Tile
+    icon="CreditCardIcon"
+    href="/docs/domains/payments/1.0.0"
+    title="Payments"
+    description="Taking payment and processing refunds, with external payment and fraud providers."
+  />
+  <Tile
+    icon="TruckIcon"
+    href="/docs/domains/fulfilment/1.0.0"
+    title="Fulfilment"
+    description="Reserving stock, picking and packing orders, and shipping them to customers."
+  />
+  <Tile
+    icon="StarIcon"
+    href="/docs/domains/reviews/1.0.0"
+    title="Reviews & Ratings"
+    description="Collecting, moderating and publishing customer reviews, and aggregating them into product ratings."
+  />
+</Tiles>

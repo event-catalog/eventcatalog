@@ -1,0 +1,36 @@
+---
+id: user-directory
+name: User Directory
+version: 1.0.0
+summary: The directory of customer credentials and identities — the source of truth for authentication.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for credentials and login identities
+classification: regulated
+retention: indefinite
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **User Directory** is the authoritative store for customer credentials and login identities. The [[service|oauth-api]] reads from it to verify sign-in attempts. It holds **only** authentication data — customer profile data lives separately in the [[system|customer-management-system]]'s [[container|customer-database]].
+
+### What does it store?
+
+- **Identities** — one record per customer: the login email and a securely hashed credential.
+- **Login metadata** — last login time, multi-factor settings, lockout state.
+
+### Why is it separate from the customer profile?
+
+Keeping credentials in a dedicated, **regulated**-classification store isolates the most sensitive data from general profile data. Authentication is owned by the Identity Provider; the Customer Management System never sees raw credentials.
+
+### Security
+
+- Credentials are stored only as salted, hashed values — never in plaintext.
+- Access is tightly restricted to the [[service|oauth-api]] under least-privilege roles.

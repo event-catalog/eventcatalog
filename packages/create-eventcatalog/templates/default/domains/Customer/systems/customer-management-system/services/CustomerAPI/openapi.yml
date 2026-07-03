@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: Customer API
+  version: 1.0.0
+  description: |
+    Public-facing API for the Customer Management System. It is the entry point
+    for registering, updating and reading customers. Every change is persisted
+    to the customer database and published as a customer change event.
+  contact:
+    name: Customer Platform
+    email: customer-platform@acme.test
+servers:
+  - url: https://api.acme.test
+    description: Production
+tags:
+  - name: Customers
+    description: Manage and read customer profiles.
+paths:
+  /customers:
+    post:
+      operationId: registerCustomer
+      summary: Register a customer
+      description: Registers a new customer. On success a `CustomerRegistered` event is published.
+      tags:
+        - Customers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCustomerRequest'
+      responses:
+        '201':
+          description: The customer was registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: The request body was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: A customer with the same email already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /customers/{customerId}:
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        description: Unique identifier of the customer.
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getCustomer
+      summary: Get a customer
+      description: Returns the current state of a single customer by their identifier.
+      tags:
+        - Customers
+      responses:
+        '200':
+          description: The customer was found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: No customer exists with that identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      operationId: updateCustomer
+      summary: Update a customer
+      description: Applies a partial update to an existing customer. On success a `CustomerUpdated` event is published.
+      tags:
+        - Customers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomerRequest'
+      responses:
+        '200':
+          description: The customer was updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: The request body was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No customer exists with that identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Customer:
+      type: object
+      required: [customerId, email, status]
+      properties:
+        customerId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED, CLOSED]
+        registeredAt:
+          type: string
+          format: date-time
+    RegisterCustomerRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 8
+    UpdateCustomerRequest:
+      type: object
+      description: Only the fields supplied are changed.
+      minProperties: 1
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          minLength: 1
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED, CLOSED]
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

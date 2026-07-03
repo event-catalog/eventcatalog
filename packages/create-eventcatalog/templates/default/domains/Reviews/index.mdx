@@ -1,0 +1,93 @@
+---
+id: reviews
+name: Reviews & Ratings
+version: 1.0.0
+summary: |
+  The Reviews & Ratings domain owns customer feedback on products — how reviews are submitted, moderated, published and aggregated into the star ratings shown across the storefront.
+owners:
+  - reviews-platform
+services:
+  - id: review-api
+    version: 1.0.0
+  - id: review-moderation-worker
+    version: 1.0.0
+  - id: rating-aggregator
+    version: 1.0.0
+entities:
+  - id: review
+    version: 1.0.0
+  - id: moderation-decision
+    version: 1.0.0
+  - id: rating-summary
+    version: 1.0.0
+  - id: review-vote
+    version: 1.0.0
+  - id: review-flag
+    version: 1.0.0
+flows:
+  - id: review-submission
+    version: 1.0.0
+receives:
+  - id: submit-review
+    version: 1.0.0
+  - id: flag-review
+    version: 1.0.0
+  - id: vote-review-helpful
+    version: 1.0.0
+  - id: get-product-reviews
+    version: 1.0.0
+sends:
+  - id: review-submitted
+    version: 1.0.0
+  - id: review-published
+    version: 1.0.0
+  - id: review-rejected
+    version: 1.0.0
+  - id: review-flagged
+    version: 1.0.0
+  - id: review-helpful-voted
+    version: 1.0.0
+  - id: rating-updated
+    version: 1.0.0
+specifications:
+  - type: openapi
+    path: openapi.yml
+    name: Review API
+  - type: asyncapi
+    path: asyncapi.yml
+    name: Reviews Eventing
+badges:
+  - content: Supporting domain
+    backgroundColor: blue
+    textColor: blue
+    icon: RectangleGroupIcon
+---
+
+## Overview
+
+The **Reviews & Ratings** domain is responsible for everything to do with customer feedback on products: accepting reviews, moderating them for quality and abuse, publishing the approved ones, and aggregating them into the star ratings shown across the storefront.
+
+Unlike most other domains in the catalog, Reviews & Ratings is modelled **without systems** — its services, data stores and flows hang directly off the domain.
+
+### What's inside
+
+| Component                             | Type       | Responsibility                                                          |
+| ------------------------------------- | ---------- | ----------------------------------------------------------------------- |
+| [[service\|review-api]]               | Service    | Accepts review submissions and serves product reviews.                  |
+| [[service\|review-moderation-worker]] | Service    | Screens submitted reviews and publishes or rejects them.                |
+| [[service\|rating-aggregator]]        | Service    | Keeps each product's aggregate rating in sync as reviews are published. |
+| [[container\|review-database]]        | Data Store | System of record for reviews and their moderation state.                |
+| [[container\|rating-cache]]           | Data Store | Fast read store for aggregate product ratings.                          |
+| [[entity\|review]]                    | Entity     | The core review aggregate.                                              |
+
+The diagram below shows the services, data stores and messages that make up this domain.
+
+<NodeGraph />
+
+## How it works
+
+1. A customer submits a review via the [[service\|review-api]], which stores it and publishes [[event\|review-submitted]].
+2. The [[service\|review-moderation-worker]] screens the review and publishes either [[event\|review-published]] or [[event\|review-rejected]].
+3. The [[service\|rating-aggregator]] consumes [[event\|review-published]] and updates the product's aggregate rating, publishing [[event\|rating-updated]].
+
+Once a review is live, customers can interact with it: [[command\|vote-review-helpful]] updates its helpful count (publishing [[event\|review-helpful-voted]]), and [[command\|flag-review]] reports it for re-moderation (publishing [[event\|review-flagged]], which the [[service\|review-moderation-worker]] re-screens).

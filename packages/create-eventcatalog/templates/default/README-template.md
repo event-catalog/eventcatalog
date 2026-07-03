@@ -19,8 +19,9 @@ Your catalog is docs-as-code. Resources live in folders with an `index.mdx` file
 Good places to start:
 
 - `domains/` - bounded contexts, business capabilities, and ownership
-- `domains/<domain>/services/` - services, APIs, and message producers or consumers
-- `events/`, `commands/`, and `queries/` - the messages flowing through your system
+- `domains/<domain>/systems/` - systems and containers inside each domain
+- `domains/<domain>/systems/<system>/services/` - services, APIs, and message producers or consumers
+- `commands/`, `events/`, and `queries/` folders under services - the messages flowing through your system
 - `teams/` and `users/` - who owns each part of the architecture
 
 Prefer a visual workflow? Run `npm run editor` to open the [EventCatalog Editor](https://www.eventcatalog.dev/docs/editor/overview) and browse, create, or update catalog resources through a GitHub-backed UI.

@@ -25,6 +25,19 @@ export default {
   navigation: {
     pages: ['list:top-level-domains', 'list:all'],
   },
+  mermaid: {
+    enableSupportForElkLayout: true,
+    iconPacks: ['logos'],
+  },
+  rss: {
+    enabled: true,
+    limit: 15,
+  },
+  visualiser: {
+    channels: {
+      renderMode: 'flat',
+    },
+  },
   // Customize the logo, add your logo to public/ folder
   logo: {
     alt: '<organizationName> Logo',

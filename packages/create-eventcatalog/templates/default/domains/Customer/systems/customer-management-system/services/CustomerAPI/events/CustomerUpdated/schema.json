@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CustomerUpdated",
+  "description": "Emitted when an existing customer's profile changes",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "description": "Unique identifier for this event",
+      "type": "string",
+      "format": "uuid"
+    },
+    "occurredAt": {
+      "description": "Time the customer was updated",
+      "type": "string",
+      "format": "date-time"
+    },
+    "customerId": {
+      "description": "Unique identifier for the customer that changed",
+      "type": "string",
+      "format": "uuid"
+    },
+    "changes": {
+      "description": "The fields that changed and their new values",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "SUSPENDED", "CLOSED"]
+        }
+      },
+      "minProperties": 1
+    }
+  },
+  "required": ["eventId", "occurredAt", "customerId", "changes"]
+}

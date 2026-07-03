@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaymentFailed",
+  "description": "Published when a charge fails",
+  "type": "object",
+  "properties": {
+    "paymentId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "reason": {
+      "type": "string",
+      "enum": ["CARD_DECLINED", "INSUFFICIENT_FUNDS", "EXPIRED_CARD", "PROCESSING_ERROR"]
+    },
+    "failedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["paymentId", "orderId", "reason", "failedAt"]
+}

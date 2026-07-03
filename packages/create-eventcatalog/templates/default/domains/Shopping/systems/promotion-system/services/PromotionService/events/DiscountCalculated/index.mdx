@@ -1,0 +1,29 @@
+---
+id: discount-calculated
+name: Discount Calculated
+version: 1.0.0
+summary: |
+  Published when a discount has been calculated for a cart.
+owners:
+  - shopping-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`DiscountCalculated` is published by the [[service|promotion-service]] after evaluating the promotion rules for a cart. The [[system|cart-system]] uses the result to price the cart, and other systems can consume it for analytics.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

@@ -1,0 +1,38 @@
+---
+id: review-vote
+name: Review Vote
+version: 1.0.0
+identifier: voteId
+summary: A customer's helpfulness vote on a product review.
+owners:
+  - reviews-platform
+properties:
+  - name: voteId
+    type: UUID
+    required: true
+    description: Unique review vote identifier.
+  - name: reviewId
+    type: UUID
+    required: true
+    description: Review being voted on.
+    references: review
+    relationType: votesOn
+    referencesIdentifier: reviewId
+  - name: customerId
+    type: UUID
+    required: true
+    description: Customer who voted.
+    references: customer-profile
+    relationType: submittedBy
+    referencesIdentifier: customerId
+  - name: votedAt
+    type: datetime
+    required: true
+    description: Time the vote was submitted.
+---
+
+## Overview
+
+Review Vote captures [[command|vote-review-helpful]] interactions and contributes to review helpfulness ranking.
+
+<EntityPropertiesTable />

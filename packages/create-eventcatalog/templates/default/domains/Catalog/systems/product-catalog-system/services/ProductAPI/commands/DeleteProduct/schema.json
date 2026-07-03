@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeleteProduct",
+  "description": "Command to remove a product from the catalog",
+  "type": "object",
+  "properties": {
+    "productId": {
+      "description": "Unique identifier of the product to delete",
+      "type": "string",
+      "format": "uuid"
+    },
+    "reason": {
+      "description": "Optional reason the product is being removed",
+      "type": "string",
+      "enum": ["DISCONTINUED", "DUPLICATE", "MERCHANT_REQUEST", "OTHER"]
+    }
+  },
+  "required": ["productId"]
+}

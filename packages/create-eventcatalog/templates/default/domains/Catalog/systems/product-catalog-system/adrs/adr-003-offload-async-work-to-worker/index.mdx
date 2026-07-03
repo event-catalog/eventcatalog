@@ -1,0 +1,41 @@
+---
+id: adr-003-offload-async-work-to-worker
+name: 'ADR-003: Offload long-running catalog work to a dedicated worker'
+summary: Slow and asynchronous catalog tasks (enrichment, image processing, bulk imports) run in a separate Product Worker so the Product API stays fast and predictable.
+version: 1.0.0
+status: accepted
+date: 2026-02-18
+owners:
+  - product-platform
+decisionMakers:
+  - product-platform
+appliesTo:
+  - type: system
+    id: product-catalog-system
+  - type: service
+    id: product-worker
+  - type: service
+    id: product-api
+badges:
+  - content: Architecture
+    backgroundColor: blue
+    textColor: blue
+  - content: Performance
+    backgroundColor: green
+    textColor: green
+---
+
+## Context
+
+Some catalog operations are slow or bursty: enriching products with derived attributes, processing and optimising images, and ingesting large supplier feeds. Running this work inline in the [[service|product-api]] request path would make API latency unpredictable and couple the responsiveness of create/update/read operations to whatever heavy job happens to be running.
+
+## Decision
+
+The Product Catalog System runs a dedicated [[service|product-worker]] for long-running and asynchronous tasks. The [[service|product-api]] handles validation, persistence and the outbox write synchronously, then returns; the worker picks up enrichment, media processing and bulk imports independently, reading from and writing back to the [[container|product-database]].
+
+## Consequences
+
+- The Product API has a small, predictable surface and stays fast under load.
+- Heavy work can be scaled, retried and scheduled independently of the API.
+- Some product attributes are **eventually** populated after creation, so consumers must not assume every derived field is present immediately.
+- There are now two services writing to the [[container|product-database]], so write paths must respect the same invariants and avoid conflicting updates.

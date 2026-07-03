@@ -1,0 +1,35 @@
+---
+id: warehouse-pick
+name: Warehouse Pick
+version: 1.0.0
+identifier: pickId
+summary: A warehouse task to pick items for a completed order.
+owners:
+  - fulfilment-platform
+properties:
+  - name: pickId
+    type: UUID
+    required: true
+    description: Unique warehouse pick identifier.
+  - name: orderId
+    type: UUID
+    required: true
+    description: Order being picked.
+    references: order
+    relationType: fulfils
+    referencesIdentifier: orderId
+  - name: assignedTo
+    type: string
+    required: false
+    description: Warehouse worker or automation lane assigned.
+  - name: status
+    type: string
+    required: true
+    description: Pick task status.
+---
+
+## Overview
+
+Warehouse Pick represents the operational task handled by the Warehouse System before an order can be packed and shipped.
+
+<EntityPropertiesTable />

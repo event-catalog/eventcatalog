@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReviewSubmitted",
+  "type": "object",
+  "properties": {
+    "reviewId": { "type": "string", "format": "uuid" },
+    "productId": { "type": "string" },
+    "customerId": { "type": "string" },
+    "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "title": { "type": "string" },
+    "body": { "type": "string" },
+    "submittedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["reviewId", "productId", "customerId", "rating", "submittedAt"]
+}

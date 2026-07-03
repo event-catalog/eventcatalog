@@ -1,0 +1,53 @@
+---
+id: warehouse-system
+name: Warehouse System
+version: 1.0.0
+summary: |
+  Internal system that picks and packs orders in the warehouse. It reacts to completed orders, organises picking, and signals when an order is packed and ready to ship.
+owners:
+  - fulfilment-platform
+services:
+  - id: warehouse-service
+  - id: picking-worker
+containers:
+  - id: warehouse-database
+relationships:
+  - id: shipping-system
+    label: hands packed orders to
+  - id: inventory-system
+    label: consumes reserved stock from
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Warehouse System** turns a completed order into a packed parcel. When the Ordering domain publishes [[event|order-completed]], the [[service|warehouse-service]] creates a picking job, the [[service|picking-worker]] works through it, and the system publishes [[event|order-packed]] and then [[event|order-ready-for-shipping]] for the [[system|shipping-system]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component                         | Type       | Responsibility                                                  |
+| --------------------------------- | ---------- | --------------------------------------------------------------- |
+| [[service\|warehouse-service]]    | Service    | Receives completed orders and orchestrates picking and packing. |
+| [[service\|picking-worker]]       | Service    | Works through picking jobs on the warehouse floor.              |
+| [[container\|warehouse-database]] | Data store | PostgreSQL store of picking jobs and their status.              |
+
+## Messages this system publishes
+
+- [[event\|order-packed]] — an order has been picked and packed.
+- [[event\|order-ready-for-shipping]] — a packed order is ready to be shipped.

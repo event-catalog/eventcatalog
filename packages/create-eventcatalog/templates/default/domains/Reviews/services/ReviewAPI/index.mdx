@@ -1,0 +1,58 @@
+---
+id: review-api
+version: 1.0.0
+name: Review API
+summary: |
+  The public-facing API for product reviews. Accepts review submissions, serves published reviews, and is the entry point into the Reviews & Ratings domain.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - reviews-platform
+receives:
+  - id: submit-review
+    version: 1.0.0
+  - id: flag-review
+    version: 1.0.0
+  - id: vote-review-helpful
+    version: 1.0.0
+  - id: get-product-reviews
+    version: 1.0.0
+sends:
+  - id: review-submitted
+    version: 1.0.0
+  - id: review-flagged
+    version: 1.0.0
+  - id: review-helpful-voted
+    version: 1.0.0
+writesTo:
+  - id: review-database
+readsFrom:
+  - id: review-database
+  - id: rating-cache
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/review-api'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Review API** is the front door to the Reviews & Ratings domain. It validates incoming [[command|submit-review]] commands, persists reviews to the [[container|review-database]], and publishes [[event|review-submitted]]. It also serves [[query|get-product-reviews]], reading published reviews from the [[container|review-database]] and aggregate ratings from the [[container|rating-cache]].
+
+### Responsibilities
+
+| Area             | Description                                                                                                                  |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Command handling | Validates and applies [[command\|submit-review]].                                                                            |
+| Reads            | Serves [[query\|get-product-reviews]] from the review database and rating cache.                                             |
+| Eventing         | Publishes [[event\|review-submitted]] for moderation.                                                                        |
+| Persistence      | Writes to the [[container\|review-database]]; reads from the [[container\|review-database]] and [[container\|rating-cache]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

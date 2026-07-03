@@ -1,0 +1,32 @@
+---
+id: add-item-to-cart
+name: Add Item To Cart
+version: 1.0.0
+summary: |
+  Command to add an item to a shopping cart.
+owners:
+  - shopping-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /carts/{cartId}/items
+  statusCodes: ['200', '400', '404']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`AddItemToCart` is handled by the [[service|cart-api]]. It adds an item (or increases its quantity) in the cart and persists the change to the [[container|cart-database]].
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

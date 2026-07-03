@@ -1,0 +1,44 @@
+---
+dictionary:
+  - id: Fulfilment
+    name: Fulfilment
+    summary: 'Everything that gets a confirmed order physically to the customer — stock, packing and shipping.'
+    icon: PackageCheck
+  - id: Stock
+    name: Stock
+    summary: 'The quantity of a product physically available to sell.'
+    description: |
+      Stock is owned by the Inventory System. Each product has an available quantity and a reserved
+      quantity. Stock is the source of truth for whether an order can be fulfilled.
+    icon: Boxes
+  - id: Reservation
+    name: Reservation
+    summary: 'A temporary hold on stock for a specific order, taken during checkout.'
+    description: |
+      A reservation guarantees stock is set aside for an order while payment is taken. It is held,
+      then either consumed when the order ships or released if checkout fails.
+    icon: BookmarkCheck
+  - id: Picking
+    name: Picking
+    summary: "Collecting an order's items from the warehouse shelves."
+    icon: Hand
+  - id: Packing
+    name: Packing
+    summary: 'Boxing up a picked order into one or more parcels ready for shipping.'
+    icon: Package
+  - id: Shipment
+    name: Shipment
+    summary: 'A packed order handed to a carrier for delivery, tracked from dispatch to delivery.'
+    description: |
+      A shipment is created with an external carrier once an order is packed. Its lifecycle —
+      created, delivered or failed — is reported back by the carrier.
+    icon: Truck
+  - id: Carrier
+    name: Carrier
+    summary: 'The external delivery company that transports shipments to customers.'
+    icon: Globe
+  - id: Tracking Number
+    name: Tracking Number
+    summary: "A code from the carrier that lets the customer follow a shipment's progress."
+    icon: ScanBarcode
+---

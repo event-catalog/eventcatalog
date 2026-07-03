@@ -1,0 +1,29 @@
+---
+id: review-submitted
+name: Review Submitted
+version: 1.0.0
+summary: |
+  Published when a customer submits a review. The review is stored but not yet visible — it awaits moderation.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReviewSubmitted` is published by the [[service|review-api]] once a review has been accepted and stored. The [[service|review-moderation-worker]] consumes it to screen the review before it can be published.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

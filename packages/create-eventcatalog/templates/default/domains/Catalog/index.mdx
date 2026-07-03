@@ -1,0 +1,65 @@
+---
+id: catalog
+name: Catalog
+version: 1.0.0
+summary: |
+  The Catalog domain owns everything about products — how they are created, maintained and made discoverable across Acme Inc. It is the source of truth for product data and powers product search across the business.
+owners:
+  - product-platform
+systems:
+  - id: product-catalog-system
+    version: 1.0.0
+  - id: search-system
+    version: 1.0.0
+entities:
+  - id: product
+    version: 1.0.0
+  - id: product-variant
+    version: 1.0.0
+  - id: category
+    version: 1.0.0
+  - id: search-document
+    version: 1.0.0
+badges:
+  - content: Core domain
+    backgroundColor: blue
+    textColor: blue
+    icon: RectangleGroupIcon
+  - content: Business Critical
+    backgroundColor: red
+    textColor: red
+    icon: ShieldCheckIcon
+---
+
+## Overview
+
+The **Catalog** domain is responsible for the lifecycle of every product Acme Inc sells, and for making those products discoverable. It is split into two internal systems that work together:
+
+<Tiles>
+  <Tile
+    icon="RectangleGroupIcon"
+    href="/docs/systems/product-catalog-system/1.0.0"
+    title="Product Catalog System"
+    description="System of record for product data — create, update, delete and read products."
+  />
+  <Tile
+    icon="MagnifyingGlassIcon"
+    href="/docs/systems/search-system/1.0.0"
+    title="Search System"
+    description="Indexes product changes and serves fast, relevant product search to the rest of the business."
+  />
+</Tiles>
+
+### How the systems work together
+
+The **Product Catalog System** is the authoritative source of product data. Whenever a product is created, updated or deleted it publishes a domain event. The **Search System** subscribes to those events, keeps its search index in sync, and exposes a search API so other teams never have to query the catalog database directly.
+
+The diagram below shows the domain's systems, how they relate, and the people who interact with them.
+
+<ContextDiagram />
+
+## Component map
+
+These are the components that are part of this domain (parts of the systems in this domain)
+
+<NodeGraph />

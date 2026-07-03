@@ -1,0 +1,48 @@
+---
+dictionary:
+  - id: Cart
+    name: Cart
+    summary: "A customer's in-progress collection of items they intend to buy."
+    description: |
+      The cart is the central concept of the Shopping domain. It is owned by the Cart System, which
+      is the source of truth for cart contents. A cart has a status (OPEN, CHECKED_OUT or ABANDONED),
+      a customer, a currency, and a set of cart items. Carts are transient — abandoned carts are
+      pruned after a retention window.
+    icon: ShoppingCart
+  - id: Cart Item
+    name: Cart Item
+    summary: 'A single product line within a cart: a product, a quantity and a unit price.'
+    icon: ListOrdered
+  - id: Checkout
+    name: Checkout
+    summary: 'The act of finalising a cart — pricing it and committing to purchase.'
+    description: |
+      At checkout the Cart System prices the cart (including any discounts from the Promotion System)
+      and, on success, publishes a CartCheckedOut event that the rest of the business reacts to —
+      creating an order, taking payment and beginning fulfilment.
+    icon: CreditCard
+  - id: Promotion
+    name: Promotion
+    summary: 'A rule that reduces the price of a cart, such as a percentage off or a fixed amount.'
+    description: |
+      Promotions are owned by the Promotion System. Each promotion has a code, a type (PERCENTAGE or
+      FIXED_AMOUNT), a value, a validity window, and eligibility rules (e.g. minimum spend or customer
+      segment) that determine when it applies.
+    icon: Tag
+  - id: Discount
+    name: Discount
+    summary: 'The actual amount taken off a specific cart after evaluating the applicable promotions.'
+    description: |
+      A discount is the calculated result of applying promotions to a cart. The Cart System asks the
+      Promotion System to calculate it; the Promotion System evaluates the rules and returns the
+      discount, also publishing a DiscountCalculated event.
+    icon: Percent
+  - id: Subtotal
+    name: Subtotal
+    summary: "The total value of a cart's items before any discounts are applied."
+    icon: Calculator
+  - id: Promotion Code
+    name: Promotion Code
+    summary: 'A code a customer enters at checkout to apply a specific promotion.'
+    icon: Ticket
+---

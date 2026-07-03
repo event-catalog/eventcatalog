@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VoteReviewHelpful",
+  "type": "object",
+  "properties": {
+    "reviewId": { "type": "string", "format": "uuid" },
+    "customerId": { "type": "string" },
+    "vote": { "type": "string", "enum": ["helpful", "remove"], "description": "Add a helpful vote or remove an existing one." },
+    "votedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["reviewId", "customerId", "vote", "votedAt"]
+}

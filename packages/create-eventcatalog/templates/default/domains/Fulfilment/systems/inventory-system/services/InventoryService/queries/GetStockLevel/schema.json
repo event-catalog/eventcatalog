@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GetStockLevel",
+  "description": "Query to fetch the current available stock level for a product, and the level returned",
+  "type": "object",
+  "properties": {
+    "request": {
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "format": "uuid" }
+      },
+      "required": ["productId"]
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "format": "uuid" },
+        "available": { "type": "integer", "minimum": 0 },
+        "reserved": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["productId", "available"]
+    }
+  },
+  "required": ["request", "response"]
+}

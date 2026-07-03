@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "savedAt": "2026-06-29T11:03:00.194Z",
+  "resourceKey": "domains-systems-context/catalog/1.0.0",
+  "positions": {
+    "product-catalog-system-1.0.0": {
+      "x": 654.4139077853363,
+      "y": 77.21012849584278
+    },
+    "search-system-1.0.0": {
+      "x": 1145,
+      "y": 335
+    },
+    "actor-merchandiser": {
+      "x": 90,
+      "y": 60
+    },
+    "actor-catalog-admin": {
+      "x": 90,
+      "y": 260
+    },
+    "actor-shopper": {
+      "x": 595,
+      "y": 360
+    },
+    "actor-storefront-team": {
+      "x": 595,
+      "y": 560
+    }
+  }
+}

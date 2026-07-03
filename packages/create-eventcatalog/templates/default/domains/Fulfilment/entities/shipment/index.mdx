@@ -1,0 +1,36 @@
+---
+id: shipment
+name: Shipment
+version: 1.0.0
+identifier: shipmentId
+aggregateRoot: true
+summary: A carrier delivery for a packed customer order.
+owners:
+  - fulfilment-platform
+properties:
+  - name: shipmentId
+    type: UUID
+    required: true
+    description: Unique shipment identifier.
+  - name: orderId
+    type: UUID
+    required: true
+    description: Order being shipped.
+    references: order
+    relationType: ships
+    referencesIdentifier: orderId
+  - name: carrierReference
+    type: string
+    required: false
+    description: External carrier tracking reference.
+  - name: status
+    type: string
+    required: true
+    description: Shipment delivery status.
+---
+
+## Overview
+
+Shipment is created by the Shipping System and updated from carrier events such as [[event|shipment-created]] and [[event|shipment-delivered]].
+
+<EntityPropertiesTable />

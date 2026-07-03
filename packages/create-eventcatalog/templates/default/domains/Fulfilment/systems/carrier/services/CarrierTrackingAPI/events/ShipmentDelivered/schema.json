@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ShipmentDelivered",
+  "description": "Published when a shipment has been delivered to the customer",
+  "type": "object",
+  "properties": {
+    "shipmentId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "deliveredAt": { "type": "string", "format": "date-time" },
+    "signedBy": { "type": "string", "description": "Name of the person who accepted delivery, if captured" }
+  },
+  "required": ["shipmentId", "orderId", "deliveredAt"]
+}

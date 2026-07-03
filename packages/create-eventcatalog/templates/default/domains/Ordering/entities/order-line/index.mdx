@@ -1,0 +1,38 @@
+---
+id: order-line
+name: Order Line
+version: 1.0.0
+identifier: orderLineId
+summary: A purchased product and quantity within an order.
+owners:
+  - ordering-platform
+properties:
+  - name: orderLineId
+    type: UUID
+    required: true
+    description: Unique order line identifier.
+  - name: orderId
+    type: UUID
+    required: true
+    description: Order this line belongs to.
+    references: order
+    relationType: belongsTo
+    referencesIdentifier: orderId
+  - name: productId
+    type: UUID
+    required: true
+    description: Product purchased.
+    references: product
+    relationType: references
+    referencesIdentifier: productId
+  - name: quantity
+    type: integer
+    required: true
+    description: Quantity purchased.
+---
+
+## Overview
+
+Order Line snapshots the products bought at checkout. It should not replace the Catalog domain's authoritative product data.
+
+<EntityPropertiesTable />

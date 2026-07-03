@@ -1,0 +1,32 @@
+---
+id: delete-product
+name: Delete Product
+version: 1.0.0
+summary: |
+  Command to remove a product from the catalog.
+owners:
+  - product-platform
+schemaPath: schema.json
+operation:
+  method: DELETE
+  path: /products/{productId}
+  statusCodes: ['204', '404']
+sidebar:
+  badge: 'DELETE'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`DeleteProduct` is handled by the [[service|product-api]]. It removes a product from the [[container|product-database]] and, on success, publishes a [[event|product-deleted]] event so downstream systems can clean up.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

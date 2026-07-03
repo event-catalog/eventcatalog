@@ -1,0 +1,29 @@
+---
+id: product-created
+name: Product Created
+version: 1.0.0
+summary: |
+  Published when a new product has been added to the catalog.
+owners:
+  - product-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ProductCreated` is published by the [[service|product-search-publisher]] whenever a new product is successfully added to the catalog by the [[service|product-api]]. The [[system|search-system]] consumes this event to index the new product so it becomes discoverable.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

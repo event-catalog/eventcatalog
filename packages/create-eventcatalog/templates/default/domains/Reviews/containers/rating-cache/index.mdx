@@ -1,0 +1,29 @@
+---
+id: rating-cache
+name: Rating Cache
+version: 1.0.0
+summary: Redis cache that serves each product's aggregate star rating with low latency.
+container_type: cache
+technology: redis@7
+authoritative: false
+access_mode: readWrite
+purpose: Fast read store for aggregate product ratings
+classification: internal
+retention: transient
+residency: eu-west-1
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Rating Cache** holds the aggregate rating (average score and review count) for each product. It is a derived read model — never a source of truth — so it can be rebuilt at any time by replaying published reviews.
+
+### What does it store?
+
+- **Aggregate rating** — one entry per product: average rating, review count and last-updated timestamp.
+
+### Access patterns
+
+- The [[service|rating-aggregator]] writes the aggregate rating whenever a review is published.
+- The [[service|review-api]] reads it to serve [[query|get-product-reviews]].

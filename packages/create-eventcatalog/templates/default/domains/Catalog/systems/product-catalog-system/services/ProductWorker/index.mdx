@@ -1,0 +1,48 @@
+---
+id: product-worker
+version: 1.0.0
+name: Product Worker
+summary: |
+  Background worker that handles long-running and asynchronous catalog work off the request path, such as enrichment, image processing and bulk imports.
+styles:
+  icon: /icons/languages/go.svg
+owners:
+  - product-platform
+readsFrom:
+  - id: product-database
+writesTo:
+  - id: product-database
+repository:
+  language: Go
+  url: 'https://github.com/acme/product-worker'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Product Worker** keeps the [[service|product-api]] fast by taking slow or asynchronous work off the request path. It reads from and writes back to the [[container|product-database]], handling jobs like data enrichment, image processing and bulk catalog imports.
+
+<Tiles>
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title="View in visualiser"
+    description="See how the Product Worker fits into the system"
+  />
+</Tiles>
+
+### Responsibilities
+
+| Area         | Description                                                                   |
+| ------------ | ----------------------------------------------------------------------------- |
+| Enrichment   | Augments product records with derived data after they are created or updated. |
+| Media        | Processes and optimises product images asynchronously.                        |
+| Bulk imports | Ingests large product feeds without blocking the API.                         |
+| Persistence  | Reads from and writes to the [[container\|product-database]].                 |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

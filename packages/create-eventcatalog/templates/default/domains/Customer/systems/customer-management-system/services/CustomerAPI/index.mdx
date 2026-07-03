@@ -1,0 +1,72 @@
+---
+id: customer-api
+version: 1.0.0
+name: Customer API
+summary: |
+  The public-facing API for customer profiles. Handles commands to register and update customers, serves customer reads, and publishes customer change events.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - customer-platform
+receives:
+  - id: register-customer
+    version: 1.0.0
+  - id: update-customer
+    version: 1.0.0
+  - id: get-customer
+    version: 1.0.0
+sends:
+  - id: customer-registered
+    version: 1.0.0
+  - id: customer-updated
+    version: 1.0.0
+writesTo:
+  - id: customer-database
+readsFrom:
+  - id: customer-database
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/customer-api'
+specifications:
+  - type: openapi
+    path: openapi.yml
+    name: Customer API
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Customer API** is the front door to the Customer Management System. It validates incoming commands, persists customer data to the [[container|customer-database]], and publishes domain events (<ResourceLink id="customer-registered" type="event">CustomerRegistered</ResourceLink>, <ResourceLink id="customer-updated" type="event">CustomerUpdated</ResourceLink>) so the rest of the business can react to changes.
+
+<Tiles>
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Sends ${frontmatter.sends.length} messages`}
+    description="Domain events published when customer data changes"
+  />
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Receives ${frontmatter.receives.length} messages`}
+    description="Commands and queries handled by this service"
+  />
+</Tiles>
+
+### Responsibilities
+
+| Area             | Description                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| Command handling | Validates and applies [[command\|register-customer]] and [[command\|update-customer]]. |
+| Reads            | Serves [[query\|get-customer]] directly from the customer database.                    |
+| Event publishing | Emits [[event\|customer-registered]] and [[event\|customer-updated]] on every change.  |
+| Persistence      | Reads from and writes to the [[container\|customer-database]] (system of record).      |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

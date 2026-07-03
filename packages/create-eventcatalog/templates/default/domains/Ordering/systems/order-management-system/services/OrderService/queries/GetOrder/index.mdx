@@ -1,0 +1,32 @@
+---
+id: get-order
+name: Get Order
+version: 1.0.0
+summary: |
+  Query to fetch a single order by its identifier.
+owners:
+  - ordering-platform
+schemaPath: schema.json
+operation:
+  method: GET
+  path: /orders/{orderId}
+  statusCodes: ['200', '404']
+sidebar:
+  badge: 'GET'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`GetOrder` is handled by the [[service|order-service]]. It returns the current state of a single order, read directly from the [[container|order-database]].
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

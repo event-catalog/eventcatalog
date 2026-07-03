@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CheckoutCart",
+  "description": "Command to check out a shopping cart",
+  "type": "object",
+  "properties": {
+    "cartId": {
+      "description": "Unique identifier of the cart to check out",
+      "type": "string",
+      "format": "uuid"
+    },
+    "customerId": {
+      "description": "Identifier of the customer checking out",
+      "type": "string",
+      "format": "uuid"
+    },
+    "promotionCode": {
+      "description": "Optional promotion code to apply at checkout",
+      "type": "string"
+    }
+  },
+  "required": ["cartId", "customerId"]
+}

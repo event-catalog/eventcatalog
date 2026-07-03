@@ -1,0 +1,24 @@
+---
+id: get-product-reviews
+name: Get Product Reviews
+version: 1.0.0
+summary: |
+  Query to fetch the published reviews and aggregate rating for a product.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`GetProductReviews` is served by the [[service|review-api]]. It returns the published reviews for a product along with its aggregate rating, read from the [[container|review-database]] and the [[container|rating-cache]].
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

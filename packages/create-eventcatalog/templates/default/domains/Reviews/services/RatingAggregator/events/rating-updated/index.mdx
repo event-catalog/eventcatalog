@@ -1,0 +1,29 @@
+---
+id: rating-updated
+name: Rating Updated
+version: 1.0.0
+summary: |
+  Published when a product's aggregate rating changes as a result of a newly published review.
+owners:
+  - reviews-platform
+schemaPath: schema.json
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`RatingUpdated` is published by the [[service|rating-aggregator]] whenever a product's aggregate rating changes. Other domains (such as the storefront and search) can consume it to keep displayed ratings fresh.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

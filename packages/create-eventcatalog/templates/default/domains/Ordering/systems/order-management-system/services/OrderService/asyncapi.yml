@@ -1,0 +1,233 @@
+asyncapi: 3.0.0
+
+info:
+  title: Order Service
+  version: 1.0.0
+  description: |
+    The event-driven interface of the Order Service — the system of record for orders.
+
+    The service consumes commands to create and cancel orders, and publishes events as
+    orders move through their lifecycle (created, completed, cancelled). Query access
+    (`GetOrder`) is served over the REST API and is not part of this AsyncAPI document.
+  contact:
+    name: Ordering Platform
+    email: ordering-platform@acme.test
+
+defaultContentType: application/json
+
+servers:
+  production:
+    host: broker.acme.test:9092
+    protocol: kafka
+    description: Production Kafka cluster.
+
+channels:
+  orderCommands:
+    address: ordering.commands
+    title: Order commands
+    description: Commands the Order Service consumes to create and cancel orders.
+    messages:
+      CreateOrder:
+        $ref: '#/components/messages/CreateOrder'
+      CancelOrder:
+        $ref: '#/components/messages/CancelOrder'
+
+  orderEvents:
+    address: ordering.orders
+    title: Order lifecycle events
+    description: Events the Order Service publishes as orders move through their lifecycle.
+    messages:
+      OrderCreated:
+        $ref: '#/components/messages/OrderCreated'
+      OrderCompleted:
+        $ref: '#/components/messages/OrderCompleted'
+      OrderCancelled:
+        $ref: '#/components/messages/OrderCancelled'
+
+operations:
+  receiveCreateOrder:
+    action: receive
+    title: Create Order
+    summary: Create a new order from a checked-out cart.
+    channel:
+      $ref: '#/channels/orderCommands'
+    messages:
+      - $ref: '#/channels/orderCommands/messages/CreateOrder'
+
+  receiveCancelOrder:
+    action: receive
+    title: Cancel Order
+    summary: Cancel an existing order.
+    channel:
+      $ref: '#/channels/orderCommands'
+    messages:
+      - $ref: '#/channels/orderCommands/messages/CancelOrder'
+
+  publishOrderCreated:
+    action: send
+    title: Order Created
+    summary: Published when a new order has been created.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderCreated'
+
+  publishOrderCompleted:
+    action: send
+    title: Order Completed
+    summary: Published when an order has been fulfilled and completed.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderCompleted'
+
+  publishOrderCancelled:
+    action: send
+    title: Order Cancelled
+    summary: Published when an order has been cancelled.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderCancelled'
+
+components:
+  messages:
+    CreateOrder:
+      name: CreateOrder
+      title: Create Order
+      summary: Command to create a new order from a checked-out cart.
+      payload:
+        $ref: '#/components/schemas/CreateOrder'
+    CancelOrder:
+      name: CancelOrder
+      title: Cancel Order
+      summary: Command to cancel an existing order.
+      payload:
+        $ref: '#/components/schemas/CancelOrder'
+    OrderCreated:
+      name: OrderCreated
+      title: Order Created
+      summary: Published when a new order has been created.
+      payload:
+        $ref: '#/components/schemas/OrderCreated'
+    OrderCompleted:
+      name: OrderCompleted
+      title: Order Completed
+      summary: Published when an order has been fulfilled and completed.
+      payload:
+        $ref: '#/components/schemas/OrderCompleted'
+    OrderCancelled:
+      name: OrderCancelled
+      title: Order Cancelled
+      summary: Published when an order has been cancelled.
+      payload:
+        $ref: '#/components/schemas/OrderCancelled'
+
+  schemas:
+    OrderItem:
+      type: object
+      required: [productId, quantity, unitPrice]
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        unitPrice:
+          type: integer
+          description: Price per unit in minor units (e.g. cents).
+
+    CancellationReason:
+      type: string
+      enum: [CUSTOMER_REQUESTED, PAYMENT_FAILED, OUT_OF_STOCK, FRAUD]
+
+    CreateOrder:
+      type: object
+      description: Command to create a new order from a checked-out cart.
+      required: [cartId, customerId, items, total, currency]
+      properties:
+        cartId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        total:
+          type: integer
+          minimum: 0
+          description: Order total in minor units (e.g. cents).
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        paymentAuthorizationId:
+          type: string
+          description: Identifier of the payment authorization for this order.
+
+    CancelOrder:
+      type: object
+      description: Command to cancel an existing order.
+      required: [orderId, reason]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        reason:
+          $ref: '#/components/schemas/CancellationReason'
+
+    OrderCreated:
+      type: object
+      description: Published when a new order has been created.
+      required: [orderId, customerId, total, currency, createdAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        total:
+          type: integer
+          description: Order total in minor units (e.g. cents).
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        createdAt:
+          type: string
+          format: date-time
+
+    OrderCompleted:
+      type: object
+      description: Published when an order has been fulfilled and completed.
+      required: [orderId, customerId, completedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        completedAt:
+          type: string
+          format: date-time
+
+    OrderCancelled:
+      type: object
+      description: Published when an order has been cancelled.
+      required: [orderId, reason, cancelledAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        reason:
+          $ref: '#/components/schemas/CancellationReason'
+        cancelledAt:
+          type: string
+          format: date-time

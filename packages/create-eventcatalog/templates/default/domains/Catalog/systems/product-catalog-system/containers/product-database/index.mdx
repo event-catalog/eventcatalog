@@ -1,0 +1,45 @@
+---
+id: product-database
+name: Product Database
+version: 1.0.0
+summary: PostgreSQL database that is the system of record for all product data.
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for products, plus the change outbox used to publish events
+classification: internal
+retention: indefinite
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Product Database** is the authoritative store for every product in the catalog. The [[service|product-api]] reads from and writes to it, and the [[service|product-worker]] uses it for asynchronous enrichment. It also holds the **outbox** table that the [[service|product-search-publisher]] reads to publish product change events.
+
+### What does it store?
+
+- **Products** — one row per product: SKU, name, description, price, currency, category and lifecycle status.
+- **Outbox** — one row per product change, used to reliably publish [[event|product-created]], [[event|product-updated]] and [[event|product-deleted]] events.
+
+### Schema
+
+<AccordionGroup>
+  <Accordion title="Product Database schema">
+    <Schema file="schema.sql" lang="sql" title="schema.sql" />
+  </Accordion>
+</AccordionGroup>
+
+### Access patterns
+
+- The [[service|product-api]] is the only writer to the `products` table on the request path.
+- The [[service|product-search-publisher]] is a read-only consumer of the `outbox` table.
+- The [[service|product-worker]] reads and writes for asynchronous enrichment jobs.
+
+### Why an outbox?
+
+Writing the product change and the event in the **same transaction** guarantees we never persist a change without an event, or publish an event for a change that rolled back. The publisher reads the outbox and emits events with at-least-once delivery.

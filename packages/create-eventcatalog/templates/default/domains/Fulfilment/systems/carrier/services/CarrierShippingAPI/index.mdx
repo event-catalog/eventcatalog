@@ -1,0 +1,40 @@
+---
+id: carrier-shipping-api
+version: 1.0.0
+name: Shipping API
+summary: |
+  The carrier's API for creating shipments. Acme Inc's Shipping System calls it to dispatch packed orders.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - fulfilment-platform
+receives:
+  - id: create-shipment
+    version: 1.0.0
+repository:
+  language: External
+  url: 'https://github.com/acme/carrier-integration'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Shipping API** is the carrier's external interface for creating shipments. The [[system|shipping-system]] sends [[command|create-shipment]], and the carrier dispatches the parcel and begins reporting progress through its [[service|carrier-tracking-api]].
+
+<Tiles>
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Receives ${frontmatter.receives.length} message`}
+    description="Shipment creation requests"
+  />
+</Tiles>
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

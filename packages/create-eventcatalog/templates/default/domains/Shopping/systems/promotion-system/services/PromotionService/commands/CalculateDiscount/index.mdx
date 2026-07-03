@@ -1,0 +1,32 @@
+---
+id: calculate-discount
+name: Calculate Discount
+version: 1.0.0
+summary: |
+  Command to calculate the discount that applies to a cart.
+owners:
+  - shopping-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /discounts/calculate
+  statusCodes: ['200', '400']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CalculateDiscount` is handled by the [[service|promotion-service]]. It is sent by the [[service|cart-api]] when pricing a cart. The service evaluates the applicable promotion rules and returns the discount, also publishing a [[event|discount-calculated]] event.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

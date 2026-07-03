@@ -1,0 +1,60 @@
+---
+id: customer-management-system
+name: Customer Management System
+version: 1.0.0
+summary: |
+  Internal system that is the source of truth for customer profile data. Owns the customer database and publishes customer change events for the rest of the business to consume.
+owners:
+  - customer-platform
+services:
+  - id: customer-api
+containers:
+  - id: customer-database
+relationships:
+  - id: identity-provider
+    label: delegates authentication to
+actors:
+  - id: customer
+    name: Customer
+    label: registers and updates their profile
+    direction: inbound
+  - id: support-agent
+    name: Support Agent
+    label: looks up customer details
+    direction: inbound
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Customer Management System** is the system of record for customer profiles at Acme Inc. It accepts commands to register and update customers, persists them in the [[container|customer-database]], and emits domain events whenever customer data changes so downstream systems can react. It delegates authentication to the [[system|identity-provider]].
+
+## Context Diagram
+
+How this system relates to the other systems around it.
+
+<ContextDiagram />
+
+## Resource Diagram
+
+The services, data stores and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component                        | Type       | Responsibility                                                                                                |
+| -------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| [[service\|customer-api]]        | Service    | Public-facing API. Handles register/update commands and customer reads, and publishes customer change events. |
+| [[container\|customer-database]] | Data store | PostgreSQL system of record for all customer profile data.                                                    |
+
+## Messages this system publishes
+
+When customer data changes, the system emits these events:
+
+- [[event|customer-registered]] — a new customer has registered.
+- [[event|customer-updated]] — an existing customer's profile has changed.
