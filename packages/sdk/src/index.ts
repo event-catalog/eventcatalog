@@ -217,6 +217,8 @@ import {
   addFileToDiagram,
 } from './diagrams';
 
+import { addFileToAdr, adrHasVersion, getAdr, getAdrs, rmAdr, rmAdrById, versionAdr, writeAdr } from './adrs';
+
 // Export the types
 export type * from './types';
 export type * from './snapshot-types';
@@ -1684,6 +1686,20 @@ export default (path: string) => {
      * @returns
      */
     addFileToDiagram: addFileToDiagram(join(path)),
+
+    /**
+     * ================================
+     *            ADRs
+     * ================================
+     */
+    getAdr: getAdr(join(path)),
+    getAdrs: getAdrs(join(path)),
+    writeAdr: writeAdr(join(path, 'adrs')),
+    rmAdr: rmAdr(join(path, 'adrs')),
+    rmAdrById: rmAdrById(join(path)),
+    versionAdr: versionAdr(join(path)),
+    adrHasVersion: adrHasVersion(join(path)),
+    addFileToAdr: addFileToAdr(join(path)),
 
     /**
      * ================================

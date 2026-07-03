@@ -103,6 +103,7 @@ export const dumpCatalog =
       getEntities,
       getDataStores,
       getFlows,
+      getAdrs,
     } = utils(directory);
 
     const { includeMarkdown = true } = options || {};
@@ -121,6 +122,7 @@ export const dumpCatalog =
     const entities = await getEntities();
     const containers = await getDataStores();
     const flows = await getFlows();
+    const adrs = await getAdrs();
 
     const [
       hydratedDomains,
@@ -136,6 +138,7 @@ export const dumpCatalog =
       hydratedEntities,
       hydratedContainers,
       hydratedFlows,
+      hydratedAdrs,
     ] = await Promise.all([
       hydrateResource(directory, domains),
       hydrateResource(directory, systems),
@@ -150,6 +153,7 @@ export const dumpCatalog =
       hydrateResource(directory, entities),
       hydrateResource(directory, containers),
       hydrateResource(directory, flows),
+      hydrateResource(directory, adrs),
     ]);
 
     return {
@@ -172,6 +176,7 @@ export const dumpCatalog =
         entities: filterCollection(hydratedEntities, { includeMarkdown }),
         containers: filterCollection(hydratedContainers, { includeMarkdown }),
         flows: filterCollection(hydratedFlows, { includeMarkdown }),
+        adrs: filterCollection(hydratedAdrs, { includeMarkdown }),
       },
     };
   };
