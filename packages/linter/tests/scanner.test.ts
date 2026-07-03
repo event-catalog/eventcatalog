@@ -68,12 +68,23 @@ describe('extractResourceInfo', () => {
     expect(result).toEqual({ id: 'adr-001' });
   });
 
+  it('should extract nested system id', () => {
+    const result = extractResourceInfo('domains/customer/systems/customer-management-system/index.mdx', 'system');
+    expect(result).toEqual({ id: 'customer-management-system' });
+  });
+
+  it('should extract versioned system id', () => {
+    const result = extractResourceInfo('systems/customer-management-system/versioned/1.0.0/index.mdx', 'system');
+    expect(result).toEqual({ id: 'customer-management-system', version: '1.0.0' });
+  });
+
   it('should scan newer resource types', async () => {
     const rootDir = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-linter-scanner-'));
     const files = [
       'domains/sales/agents/refund-agent/index.mdx',
       'domains/sales/data-products/order-metrics/index.mdx',
       'domains/sales/services/order-service/containers/orders-db/index.mdx',
+      'domains/sales/systems/order-management-system/index.mdx',
       'domains/sales/diagrams/order-flow/index.mdx',
       'adrs/adr-001/index.md',
     ];
@@ -87,6 +98,42 @@ describe('extractResourceInfo', () => {
     );
 
     const catalogFiles = await scanCatalogFiles(rootDir);
-    expect(catalogFiles.map((file) => file.resourceType).sort()).toEqual(['adr', 'agent', 'container', 'dataProduct', 'diagram']);
+    expect(catalogFiles.map((file) => file.resourceType).sort()).toEqual([
+      'adr',
+      'agent',
+      'container',
+      'dataProduct',
+      'diagram',
+      'system',
+    ]);
+  });
+
+  it('should scan systems without treating nested resources as systems', async () => {
+    const rootDir = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-linter-scanner-'));
+    const files = [
+      'domains/customer/systems/customer-management-system/index.mdx',
+      'domains/customer/systems/customer-management-system/versioned/1.0.0/index.mdx',
+      'domains/customer/systems/customer-management-system/services/customer-api/index.mdx',
+      'domains/customer/systems/customer-management-system/containers/customer-db/index.mdx',
+    ];
+
+    await Promise.all(
+      files.map(async (file) => {
+        const filePath = path.join(rootDir, file);
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, '---\nid: test\nname: Test\nversion: 1.0.0\n---\n');
+      })
+    );
+
+    const catalogFiles = await scanCatalogFiles(rootDir);
+    const systemFiles = catalogFiles.filter((file) => file.resourceType === 'system');
+
+    expect(systemFiles).toHaveLength(2);
+    expect(systemFiles.map((file) => file.resourceId).sort()).toEqual([
+      'customer-management-system',
+      'customer-management-system',
+    ]);
+    expect(catalogFiles.some((file) => file.resourceType === 'service' && file.resourceId === 'customer-api')).toBe(true);
+    expect(catalogFiles.some((file) => file.resourceType === 'container' && file.resourceId === 'customer-db')).toBe(true);
   });
 });

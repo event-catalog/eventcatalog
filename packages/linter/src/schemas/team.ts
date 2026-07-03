@@ -21,6 +21,7 @@ export const teamSchema = z.object({
   ownedCommands: z.array(z.any()).optional(), // reference('commands')
   ownedQueries: z.array(z.any()).optional(), // reference('queries')
   ownedDomains: z.array(z.any()).optional(), // reference('domains')
+  ownedSystems: z.array(z.any()).optional(), // reference('systems')
   ownedServices: z.array(z.any()).optional(), // reference('services')
   ownedEvents: z.array(z.any()).optional(), // reference('events')
 });

@@ -1,5 +1,6 @@
 export * from './common';
 export * from './domain';
+export * from './system';
 export * from './service';
 export * from './message';
 export * from './channel';
@@ -15,6 +16,7 @@ export * from './diagram';
 export * from './data-store';
 
 import { domainSchema } from './domain';
+import { systemSchema } from './system';
 import { serviceSchema } from './service';
 import { eventSchema, commandSchema, querySchema } from './message';
 import { channelSchema } from './channel';
@@ -31,6 +33,7 @@ import { dataStoreSchema } from './data-store';
 
 export const schemas = {
   domain: domainSchema,
+  system: systemSchema,
   service: serviceSchema,
   agent: agentSchema,
   adr: adrSchema,

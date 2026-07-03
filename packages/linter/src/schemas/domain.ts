@@ -6,6 +6,7 @@ export const domainSchema = z
     services: z.array(pointerSchema).optional(),
     agents: z.array(pointerSchema).optional(),
     domains: z.array(pointerSchema).optional(),
+    systems: z.array(pointerSchema).optional(),
     entities: z.array(pointerSchema).optional(),
     'data-products': z.array(pointerSchema).optional(),
     dataProducts: z.array(pointerSchema).optional(),
@@ -16,6 +17,7 @@ export const domainSchema = z
       .object({
         parentDomains: detailPanelPropertySchema,
         subdomains: detailPanelPropertySchema,
+        systems: detailPanelPropertySchema,
         services: detailPanelPropertySchema,
         agents: detailPanelPropertySchema,
         entities: detailPanelPropertySchema,

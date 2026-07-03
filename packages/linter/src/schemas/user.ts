@@ -19,6 +19,7 @@ export const userSchema = z.object({
   msTeamsDirectMessageUrl: z.string().optional(),
   ownedAgents: z.array(z.any()).optional(), // reference('agents')
   ownedDomains: z.array(z.any()).optional(), // reference('domains')
+  ownedSystems: z.array(z.any()).optional(), // reference('systems')
   ownedServices: z.array(z.any()).optional(), // reference('services')
   ownedEvents: z.array(z.any()).optional(), // reference('events')
   ownedCommands: z.array(z.any()).optional(), // reference('commands')

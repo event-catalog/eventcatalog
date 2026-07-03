@@ -39,6 +39,8 @@ const normalizeResourceType = (type: unknown): ResourceType | undefined => {
     channels: 'channel',
     domain: 'domain',
     domains: 'domain',
+    system: 'system',
+    systems: 'system',
     user: 'user',
     users: 'user',
     team: 'team',
@@ -252,6 +254,7 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
     addReferences(references, frontmatter.services, ['service'], 'services');
     addReferences(references, frontmatter.agents, ['agent'], 'agents');
     addReferences(references, frontmatter.domains, ['domain'], 'domains');
+    addReferences(references, frontmatter.systems, ['system'], 'systems');
     addReferences(references, frontmatter.entities, ['entity'], 'entities');
     addReferences(references, frontmatter['data-products'], ['dataProduct'], 'data-products');
     addReferences(references, frontmatter.dataProducts, ['dataProduct'], 'dataProducts');
@@ -274,6 +277,14 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
 
   if (file.resourceType === 'service') {
     addReferences(references, frontmatter.entities, ['entity'], 'entities');
+  }
+
+  if (file.resourceType === 'system') {
+    addReferences(references, frontmatter.services, ['service'], 'services');
+    addReferences(references, frontmatter.flows, ['flow'], 'flows');
+    addReferences(references, frontmatter.entities, ['entity'], 'entities');
+    addReferences(references, frontmatter.containers, ['container'], 'containers');
+    addReferences(references, frontmatter.relationships, ['system'], 'relationships');
   }
 
   if (file.resourceType === 'flow' && frontmatter.steps && Array.isArray(frontmatter.steps)) {
@@ -354,6 +365,7 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
       'query',
       'service',
       'agent',
+      'system',
       'container',
       'channel',
       'dataProduct',
@@ -389,6 +401,7 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
   if (file.resourceType === 'user' || file.resourceType === 'team') {
     addReferences(references, frontmatter.ownedAgents, ['agent'], 'ownedAgents');
     addReferences(references, frontmatter.ownedDomains, ['domain'], 'ownedDomains');
+    addReferences(references, frontmatter.ownedSystems, ['system'], 'ownedSystems');
     addReferences(references, frontmatter.ownedServices, ['service'], 'ownedServices');
     addReferences(references, frontmatter.ownedEvents, ['event'], 'ownedEvents');
     addReferences(references, frontmatter.ownedCommands, ['command'], 'ownedCommands');
