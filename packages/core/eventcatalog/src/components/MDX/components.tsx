@@ -42,6 +42,11 @@ import { jsx } from 'astro/jsx-runtime';
 import RemoteSchema from '@components/MDX/RemoteSchema.astro';
 import Visibility from '@components/MDX/Visibility';
 
+const getEntityMapCollection = (props: any, mdxProp: any) => {
+  const collection = mdxProp.collection ?? props.collection;
+  return collection === 'domains' || collection === 'services' ? collection : undefined;
+};
+
 const components = (props: any) => {
   return {
     Attachments: (mdxProp: any) => jsx(Attachments, { ...props, ...mdxProp }),
@@ -63,7 +68,7 @@ const components = (props: any) => {
     ComponentDiagram: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     ContextDiagram: (mdxProp: any) => jsx(ContextDiagramPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     SystemContextMap: (mdxProp: any) => jsx(SystemContextMapPortal, { ...mdxProp }),
-    EntityMap: (mdxProp: any) => jsx(EntityMap, { ...props, ...mdxProp }),
+    EntityMap: (mdxProp: any) => jsx(EntityMap, { ...props, ...mdxProp, collection: getEntityMapCollection(props, mdxProp) }),
     OpenAPI,
     Prompt: (mdxProp: any) => jsx(Prompt, { ...props, ...mdxProp }),
     ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
