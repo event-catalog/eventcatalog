@@ -22,6 +22,7 @@ A comprehensive linter for EventCatalog that validates frontmatter schemas and r
 ### Supported Resource Types
 
 - 🏢 **Domains** (including subdomains)
+- 🧩 **Systems**
 - ⚙️ **Services**
 - 📨 **Events**
 - 📤 **Commands**
@@ -326,8 +327,9 @@ If no `.eventcatalogrc.js` file is found, the linter uses the default rules list
 
 ### Reference Validation
 
-- ✅ Services referenced in domains exist
+- ✅ Services and systems referenced in domains exist
 - ✅ Agents, data products, flows, entities, and subdomains referenced in domains exist
+- ✅ Services, flows, entities, containers, and relationships referenced in systems exist
 - ✅ Events/Commands/Queries referenced in services exist
 - ✅ Events/Commands/Queries referenced in agents exist
 - ✅ Data product inputs and outputs reference existing resources

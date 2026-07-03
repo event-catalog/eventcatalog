@@ -135,6 +135,7 @@ describe('buildResourceIndex', () => {
   it('should build index for newer resource types', () => {
     const parsedFiles: ParsedFile[] = [
       createParsedFile('agent', 'RefundAgent', { id: 'refund-agent', version: '1.0.0' }),
+      createParsedFile('system', 'CustomerManagementSystem', { id: 'customer-management-system', version: '1.0.0' }),
       createParsedFile('container', 'PaymentsDb', { id: 'payments-db', version: '1.0.0' }),
       createParsedFile('dataProduct', 'PaymentAnalytics', { id: 'payment-analytics', version: '1.0.0' }),
       createParsedFile('diagram', 'OrderFlow', { id: 'order-flow', version: '1.0.0' }),
@@ -144,6 +145,7 @@ describe('buildResourceIndex', () => {
     const index = buildResourceIndex(parsedFiles);
 
     expect(index.agent['refund-agent']).toBeDefined();
+    expect(index.system['customer-management-system']).toBeDefined();
     expect(index.container['payments-db']).toBeDefined();
     expect(index.dataProduct['payment-analytics']).toBeDefined();
     expect(index.diagram['order-flow']).toBeDefined();
@@ -261,15 +263,17 @@ describe('validateReferences', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('should validate domain references to agents, data products, and flows', () => {
+  it('should validate domain references to agents, systems, data products, and flows', () => {
     const parsedFiles: ParsedFile[] = [
       createParsedFile('domain', 'sales', {
         version: '1.0.0',
         agents: [{ id: 'refund-agent' }],
+        systems: [{ id: 'order-management-system' }],
         'data-products': [{ id: 'payment-analytics' }],
         flows: [{ id: 'refund-flow' }],
       }),
       createParsedFile('agent', 'refund-agent', { id: 'refund-agent', version: '1.0.0' }),
+      createParsedFile('system', 'order-management-system', { id: 'order-management-system', version: '1.0.0' }),
       createParsedFile('dataProduct', 'payment-analytics', { id: 'payment-analytics', version: '1.0.0' }),
       createParsedFile('flow', 'refund-flow', { id: 'refund-flow', version: '1.0.0' }),
     ];
@@ -278,19 +282,66 @@ describe('validateReferences', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('should report missing domain references to agents and data products', () => {
+  it('should report missing domain references to agents, systems, and data products', () => {
     const parsedFiles: ParsedFile[] = [
       createParsedFile('domain', 'sales', {
         version: '1.0.0',
         agents: [{ id: 'missing-agent' }],
+        systems: [{ id: 'missing-system' }],
         'data-products': [{ id: 'missing-product' }],
       }),
     ];
 
     const errors = validateReferences(parsedFiles);
-    expect(errors).toHaveLength(2);
+    expect(errors).toHaveLength(3);
     expect(errors.map((error) => error.message)).toEqual(
-      expect.arrayContaining([expect.stringContaining('missing-agent'), expect.stringContaining('missing-product')])
+      expect.arrayContaining([
+        expect.stringContaining('missing-agent'),
+        expect.stringContaining('missing-system'),
+        expect.stringContaining('missing-product'),
+      ])
+    );
+  });
+
+  it('should validate system references to resources and relationships', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('system', 'customer-management-system', {
+        id: 'customer-management-system',
+        version: '1.0.0',
+        services: [{ id: 'customer-api' }],
+        flows: [{ id: 'customer-registration' }],
+        entities: [{ id: 'customer' }],
+        containers: [{ id: 'customer-db' }],
+        relationships: [{ id: 'identity-provider', version: '1.0.0', label: 'delegates authentication to' }],
+      }),
+      createParsedFile('service', 'customer-api', { id: 'customer-api', version: '1.0.0' }),
+      createParsedFile('flow', 'customer-registration', { id: 'customer-registration', version: '1.0.0' }),
+      createParsedFile('entity', 'customer', { id: 'customer', version: '1.0.0' }),
+      createParsedFile('container', 'customer-db', { id: 'customer-db', version: '1.0.0' }),
+      createParsedFile('system', 'identity-provider', { id: 'identity-provider', version: '1.0.0' }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('should report missing system resource references', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('system', 'customer-management-system', {
+        id: 'customer-management-system',
+        version: '1.0.0',
+        services: [{ id: 'missing-service' }],
+        flows: [{ id: 'missing-flow' }],
+        entities: [{ id: 'missing-entity' }],
+        containers: [{ id: 'missing-container' }],
+        relationships: [{ id: 'missing-system', label: 'depends on' }],
+      }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(5);
+    expect(errors.map((error) => error.field)).toEqual(
+      expect.arrayContaining(['services', 'flows', 'entities', 'containers', 'relationships'])
     );
   });
 
@@ -564,12 +615,14 @@ describe('validateReferences', () => {
           version: '1.0.0',
           appliesTo: [
             { type: 'service', id: 'order-service' },
+            { type: 'system', id: 'order-management-system' },
             { type: 'data-product', id: 'order-metrics' },
           ],
           supersedes: [{ id: 'adr-001' }],
         }),
         createParsedFile('adr', 'adr-001', { id: 'adr-001', version: '1.0.0' }),
         createParsedFile('service', 'order-service', { id: 'order-service', version: '1.0.0' }),
+        createParsedFile('system', 'order-management-system', { id: 'order-management-system', version: '1.0.0' }),
         createParsedFile('dataProduct', 'order-metrics', { id: 'order-metrics', version: '1.0.0' }),
       ];
 
@@ -577,11 +630,20 @@ describe('validateReferences', () => {
       expect(errors).toHaveLength(0);
     });
 
-    it('should validate user and team owned agent references', () => {
+    it('should validate user and team owned agent and system references', () => {
       const parsedFiles: ParsedFile[] = [
-        createParsedFile('user', 'dboyne', { id: 'dboyne', ownedAgents: [{ id: 'support-agent' }] }),
-        createParsedFile('team', 'platform', { id: 'platform', ownedAgents: [{ id: 'support-agent' }] }),
+        createParsedFile('user', 'dboyne', {
+          id: 'dboyne',
+          ownedAgents: [{ id: 'support-agent' }],
+          ownedSystems: [{ id: 'customer-management-system' }],
+        }),
+        createParsedFile('team', 'platform', {
+          id: 'platform',
+          ownedAgents: [{ id: 'support-agent' }],
+          ownedSystems: [{ id: 'customer-management-system' }],
+        }),
         createParsedFile('agent', 'support-agent', { id: 'support-agent', version: '1.0.0' }),
+        createParsedFile('system', 'customer-management-system', { id: 'customer-management-system', version: '1.0.0' }),
       ];
 
       const errors = validateReferences(parsedFiles);

@@ -78,6 +78,7 @@ export const resourcePointerSchema = z.object({
     'flow',
     'channel',
     'domain',
+    'system',
     'user',
     'team',
     'container',

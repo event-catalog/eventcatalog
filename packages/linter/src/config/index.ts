@@ -59,6 +59,7 @@ const PLURAL_TO_SINGULAR: Record<string, string> = {
   agents: 'agent',
   adrs: 'adr',
   domains: 'domain',
+  systems: 'system',
   entities: 'entity',
   channels: 'channel',
   flows: 'flow',

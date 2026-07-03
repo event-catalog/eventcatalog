@@ -102,6 +102,7 @@ describe('Configuration', () => {
             queries: [{ id: 'GetOrder' }],
             services: [{ id: 'PaymentService' }],
             domains: [{ id: 'Order', version: '1.0.0' }],
+            systems: [{ id: 'OrderManagementSystem', version: '1.0.0' }],
           }
         };`
       );
@@ -113,6 +114,7 @@ describe('Configuration', () => {
       expect(result.query).toEqual([{ id: 'GetOrder', version: undefined }]);
       expect(result.service).toEqual([{ id: 'PaymentService', version: undefined }]);
       expect(result.domain).toEqual([{ id: 'Order', version: '1.0.0' }]);
+      expect(result.system).toEqual([{ id: 'OrderManagementSystem', version: '1.0.0' }]);
     });
 
     it('should return empty object when config has no dependencies', () => {

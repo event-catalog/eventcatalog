@@ -207,6 +207,7 @@ describe('validateSchema', () => {
         name: 'John Doe',
         email: 'john.doe@example.com',
         role: 'Developer',
+        ownedSystems: [{ id: 'customer-management-system' }],
       });
 
       const errors = validateSchema(parsedFile);
@@ -258,6 +259,7 @@ describe('validateSchema', () => {
         email: 'platform-team@example.com',
         summary: 'Handles platform infrastructure',
         members: ['john-doe', 'jane-doe'],
+        ownedSystems: [{ id: 'customer-management-system' }],
       });
 
       const errors = validateSchema(parsedFile);
@@ -329,6 +331,24 @@ describe('validateSchema', () => {
         readsFrom: [{ id: 'payments-db' }],
         tools: [{ name: 'Payment lookup', type: 'mcp' }],
         model: { provider: 'OpenAI', name: 'gpt-4.1-mini' },
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('should pass with valid system frontmatter', () => {
+      const parsedFile = createParsedFile('system', {
+        id: 'customer-management-system',
+        name: 'Customer Management System',
+        version: '1.0.0',
+        scope: 'internal',
+        services: [{ id: 'customer-api' }],
+        flows: [{ id: 'customer-registration' }],
+        entities: [{ id: 'customer' }],
+        containers: [{ id: 'customer-database' }],
+        relationships: [{ id: 'identity-provider', label: 'delegates authentication to' }],
+        actors: [{ id: 'customer', name: 'Customer', label: 'registers', direction: 'inbound' }],
       });
 
       const errors = validateSchema(parsedFile);
