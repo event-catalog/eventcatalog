@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.0.2
+
+### Patch Changes
+
+- a74a736: Restrict EntityMap MDX component collection prop to domains or services
+
 ## 4.0.1
 
 ### Patch Changes
