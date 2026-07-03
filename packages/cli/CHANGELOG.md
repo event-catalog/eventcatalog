@@ -1,5 +1,13 @@
 # @eventcatalog/cli
 
+## 0.6.12-beta.1
+
+### Patch Changes
+
+- Updated dependencies [9949f9f]
+  - @eventcatalog/sdk@2.25.0-beta.1
+  - @eventcatalog/language-server@0.8.23-beta.1
+
 ## 0.6.12-beta.0
 
 ### Patch Changes

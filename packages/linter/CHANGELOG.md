@@ -1,5 +1,12 @@
 # @eventcatalog/linter
 
+## 1.1.2-beta.1
+
+### Patch Changes
+
+- Updated dependencies [9949f9f]
+  - @eventcatalog/sdk@2.25.0-beta.1
+
 ## 1.1.2-beta.0
 
 ### Patch Changes
