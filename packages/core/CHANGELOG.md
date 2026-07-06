@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.0.4
+
+### Patch Changes
+
+- cb103f0: Persist Discover table filters in the URL so searches, filters, and toggles survive page reloads and can be shared via link
+
 ## 4.0.3
 
 ### Patch Changes
