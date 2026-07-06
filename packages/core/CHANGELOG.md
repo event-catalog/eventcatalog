@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.0.3
+
+### Patch Changes
+
+- eec436c: Add custom documentation tools (getCustomDocs, searchCustomDocs, getCustomDoc) to AI Chat and MCP Server, with section-level full-text search powered by MiniSearch
+
 ## 4.0.2
 
 ### Patch Changes
