@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.0.5
+
+### Patch Changes
+
+- d6da676: Add a domain type filter (root domains / subdomains) to the Discover table and show subdomains nested under their parent domain in the name column.
+
 ## 4.0.4
 
 ### Patch Changes
