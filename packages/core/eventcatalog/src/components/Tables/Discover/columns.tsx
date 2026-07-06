@@ -19,6 +19,7 @@ import { favoritesStore, toggleFavorite, type FavoriteItem } from '../../../stor
 import type { DiscoverTableData, CollectionType } from './DiscoverTable';
 import type { TableConfiguration } from '@types';
 import { formatAdrDate, isAdrCollection } from '@utils/collections/adr-constants';
+import { CornerDownRight } from 'lucide-react';
 
 const columnHelper = createColumnHelper<DiscoverTableData>();
 
@@ -121,22 +122,48 @@ const ResourceNameCell = ({ item }: { item: DiscoverTableData }) => {
   const { color, Icon } = getColorAndIconForCollection(item.collection);
   const resourceIcon = item.data.icon;
   const resourceIconUrl = isIconPath(resourceIcon) ? resolveIconUrl(resourceIcon) : null;
+  const isDomain = item.collection === 'domains';
+  const subdomains = isDomain ? item.data.domains || [] : [];
 
   return (
-    <a
-      href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
-      className="group inline-flex items-center gap-2.5 hover:text-[rgb(var(--ec-accent))] transition-colors"
-    >
-      {resourceIconUrl ? (
-        <img src={resourceIconUrl} alt="" className="h-5 w-5 flex-shrink-0 rounded-sm object-contain" />
-      ) : (
-        <Icon className={`h-4 w-4 flex-shrink-0 ${getCollectionTextColorClass(color, 'text-[rgb(var(--ec-icon-color))]')}`} />
+    <div className="flex min-w-0 flex-col gap-2">
+      <a
+        href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
+        className="group inline-flex items-center gap-2.5 hover:text-[rgb(var(--ec-accent))] transition-colors"
+      >
+        {resourceIconUrl ? (
+          <img src={resourceIconUrl} alt="" className="h-5 w-5 flex-shrink-0 rounded-sm object-contain" />
+        ) : (
+          <Icon className={`h-4 w-4 flex-shrink-0 ${getCollectionTextColorClass(color, 'text-[rgb(var(--ec-icon-color))]')}`} />
+        )}
+        <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
+          {item.data.name}
+        </span>
+        {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
+        {item.isSubdomain && (
+          <span className="rounded-full border border-[rgb(var(--ec-page-border))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-page-text-muted))]">
+            Subdomain
+          </span>
+        )}
+      </a>
+
+      {subdomains.length > 0 && (
+        <div className="flex flex-col gap-1 pl-6">
+          {subdomains.map((domain: any) => (
+            <a
+              key={`${domain.data.id}-${domain.data.version}`}
+              href={buildUrl(`/docs/${domain.collection || 'domains'}/${domain.data.id}/${domain.data.version}`)}
+              className="group/subdomain inline-flex w-fit items-center gap-1.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-accent))]"
+            >
+              <CornerDownRight className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-icon-color))] group-hover/subdomain:text-[rgb(var(--ec-accent))]" />
+              <span className="font-medium text-[rgb(var(--ec-page-text))] group-hover/subdomain:text-[rgb(var(--ec-accent))]">
+                {domain.data.name}
+              </span>
+            </a>
+          ))}
+        </div>
       )}
-      <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
-        {item.data.name}
-      </span>
-      {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
-    </a>
+    </div>
   );
 };
 

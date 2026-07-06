@@ -4,7 +4,9 @@ import { buildDiscoverFilterSearch, filterKnownValues, parseDiscoverFilterSearch
 describe('discover filter URL helpers', () => {
   it('parses repeated filter params from the URL', () => {
     expect(
-      parseDiscoverFilterSearch('?q=orders&domain=Sales&domain=Payments&owner=team-a&property=hasOwners&latest=false&drafts=true')
+      parseDiscoverFilterSearch(
+        '?q=orders&domain=Sales&domain=Payments&owner=team-a&domainType=subdomain&property=hasOwners&latest=false&drafts=true'
+      )
     ).toEqual({
       q: 'orders',
       domains: ['Sales', 'Payments'],
@@ -13,6 +15,7 @@ describe('discover filter URL helpers', () => {
       consumers: [],
       agentProviders: [],
       agentModels: [],
+      domainTypes: ['subdomain'],
       badges: [],
       properties: ['hasOwners'],
       statuses: [],
@@ -32,6 +35,7 @@ describe('discover filter URL helpers', () => {
           consumers: [],
           agentProviders: [],
           agentModels: [],
+          domainTypes: ['root'],
           badges: ['Critical'],
           properties: ['hasOwners'],
           statuses: [],
@@ -40,7 +44,7 @@ describe('discover filter URL helpers', () => {
         },
         '?environment=prod&domain=Old'
       )
-    ).toBe('?environment=prod&q=orders&domain=Sales&badge=Critical&property=hasOwners&latest=false');
+    ).toBe('?environment=prod&q=orders&domain=Sales&domainType=root&badge=Critical&property=hasOwners&latest=false');
   });
 
   it('filters stale values against the options available on the current page', () => {

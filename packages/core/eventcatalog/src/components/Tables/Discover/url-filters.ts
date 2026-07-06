@@ -6,6 +6,7 @@ export interface DiscoverFilterQueryState {
   consumers: string[];
   agentProviders: string[];
   agentModels: string[];
+  domainTypes: string[];
   badges: string[];
   properties: string[];
   statuses: string[];
@@ -21,6 +22,7 @@ const FILTER_PARAM_NAMES = [
   'consumer',
   'agentProvider',
   'agentModel',
+  'domainType',
   'badge',
   'property',
   'status',
@@ -47,6 +49,7 @@ export const parseDiscoverFilterSearch = (search: string): DiscoverFilterQuerySt
     consumers: getValues(params, 'consumer'),
     agentProviders: getValues(params, 'agentProvider'),
     agentModels: getValues(params, 'agentModel'),
+    domainTypes: getValues(params, 'domainType'),
     badges: getValues(params, 'badge'),
     properties: getValues(params, 'property'),
     statuses: getValues(params, 'status'),
@@ -73,6 +76,7 @@ export const buildDiscoverFilterSearch = (filters: DiscoverFilterQueryState, cur
   appendValues('consumer', filters.consumers);
   appendValues('agentProvider', filters.agentProviders);
   appendValues('agentModel', filters.agentModels);
+  appendValues('domainType', filters.domainTypes);
   appendValues('badge', filters.badges);
   appendValues('property', filters.properties);
   appendValues('status', filters.statuses);

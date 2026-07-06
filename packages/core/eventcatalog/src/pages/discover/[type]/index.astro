@@ -93,7 +93,6 @@ const typeConfig: Record<
     propertyOptions: [
       { id: 'hasServices', label: 'Has Services' },
       { id: 'hasOwners', label: 'Has Owners' },
-      { id: 'isSubdomain', label: 'Is Subdomain' },
       { id: 'isDeprecated', label: 'Is Deprecated' },
     ],
   },
@@ -285,6 +284,21 @@ function resolvePointer(pointer: { id: string; version?: string }) {
 const allSubdomainIds = new Set(
   domains.flatMap((d: any) => (d.data?.domains || []).map((sd: any) => sd.data?.id || sd.id)).filter(Boolean)
 );
+const parentDomainsBySubdomainId = domains.reduce((parentsBySubdomain: Map<string, any[]>, domain: any) => {
+  (domain.data?.domains || []).forEach((subdomain: any) => {
+    const subdomainId = subdomain.data?.id || subdomain.id;
+    if (!subdomainId) return;
+
+    const parents = parentsBySubdomain.get(subdomainId) || [];
+    parents.push({
+      id: domain.data.id,
+      name: domain.data.name,
+      version: domain.data.version,
+    });
+    parentsBySubdomain.set(subdomainId, parents);
+  });
+  return parentsBySubdomain;
+}, new Map<string, any[]>());
 
 const isAgentLike = type === 'agents';
 const isServiceLike = type === 'services' || type === 'external-systems';
@@ -314,6 +328,7 @@ const tableData = enrichedData.map((d: any) => ({
   hasServices: type === 'domains' || type === 'systems' ? (d.data?.services || []).length > 0 : false,
   hasFlows: type === 'systems' ? (d.data?.flows || []).length > 0 : false,
   isSubdomain: type === 'domains' ? allSubdomainIds.has(d.data.id) : false,
+  parentDomains: type === 'domains' ? parentDomainsBySubdomainId.get(d.data.id) || [] : undefined,
   // Service-specific properties
   domains: isServiceOrAgentLike ? d.enrichedDomains : undefined,
   hasSpecifications: isServiceLike ? hasSpecifications(d) : false,
@@ -347,6 +362,7 @@ const tableData = enrichedData.map((d: any) => ({
     tools: d.data?.tools ?? [],
     agents: d.data?.agents?.map(mapToItem) ?? [],
     services: d.data?.services?.map(mapToItem) ?? [],
+    domains: d.data?.domains?.map(mapToItem) ?? [],
     flows: d.data?.flows?.map(mapToItem) ?? [],
     servicesThatWriteToContainer: d.data?.servicesThatWriteToContainer?.map(mapToItem) ?? [],
     servicesThatReadFromContainer: d.data?.servicesThatReadFromContainer?.map(mapToItem) ?? [],
