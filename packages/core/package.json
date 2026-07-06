@@ -115,6 +115,7 @@
     "marked": "^15.0.6",
     "mdast-util-find-and-replace": "^3.0.2",
     "mermaid": "^11.12.3",
+    "minisearch": "^7.2.0",
     "nanostores": "^1.1.0",
     "pagefind": "^1.5.2",
     "pako": "^2.1.0",

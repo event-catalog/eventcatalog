@@ -18,6 +18,9 @@ import {
   getDataProductInputs as getDataProductInputsImpl,
   getDataProductOutputs as getDataProductOutputsImpl,
   getArchitectureDiagramAsMermaid as getArchitectureDiagramImpl,
+  getCustomDocs as getCustomDocsImpl,
+  searchCustomDocs as searchCustomDocsImpl,
+  getCustomDoc as getCustomDocImpl,
   collectionSchema,
   resourceCollectionSchema,
   messageCollectionSchema,
@@ -72,6 +75,9 @@ const builtInToolsMetadata = [
   { name: 'getDataProductInputs', description: 'Get the inputs (resources consumed) for a data product' },
   { name: 'getDataProductOutputs', description: 'Get the outputs (resources produced) for a data product with data contracts' },
   { name: 'getArchitectureDiagramAsMermaid', description: 'Get the architecture diagram for a resource as Mermaid code' },
+  { name: 'getCustomDocs', description: 'List custom documentation pages (guides, runbooks, architecture notes)' },
+  { name: 'searchCustomDocs', description: 'Search the full text of custom documentation pages' },
+  { name: 'getCustomDoc', description: 'Get the markdown content of a custom documentation page' },
 ];
 
 // Get extended tools metadata from user configuration
@@ -348,6 +354,36 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           }),
           execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
             return await getArchitectureDiagramImpl({ resourceId, resourceVersion, resourceCollection });
+          },
+        }),
+        getCustomDocs: tool({
+          description: toolDescriptions.getCustomDocs,
+          inputSchema: z.object({
+            cursor: z.string().optional().describe('Pagination cursor from previous response'),
+            search: z.string().optional().describe('Search term to filter docs by title, id, or summary (case-insensitive)'),
+          }),
+          execute: async ({ cursor, search }) => {
+            return await getCustomDocsImpl({ cursor, search });
+          },
+        }),
+        searchCustomDocs: tool({
+          description: toolDescriptions.searchCustomDocs,
+          inputSchema: z.object({
+            query: z.string().describe('Full-text search query, e.g. keywords describing the topic to find'),
+            limit: z.number().optional().describe('Maximum number of results to return (default 10)'),
+          }),
+          execute: async ({ query, limit }) => {
+            return await searchCustomDocsImpl({ query, limit });
+          },
+        }),
+        getCustomDoc: tool({
+          description: toolDescriptions.getCustomDoc,
+          inputSchema: z.object({
+            id: z.string().describe('The id or slug of the custom documentation page'),
+            section: z.string().optional().describe('Optional section heading to return only that section of the page'),
+          }),
+          execute: async ({ id, section }) => {
+            return await getCustomDocImpl({ id, section });
           },
         }),
         suggestFollowUpQuestions: tool({

@@ -30,6 +30,11 @@ import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
 import config from '@config';
 import { glob } from 'glob';
 import path from 'node:path';
+import {
+  buildDocsSearchIndex,
+  chunkMarkdownByHeadings,
+  type DocsSearchIndex,
+} from '@enterprise/custom-documentation/utils/docs-search';
 
 const MESSAGE_COLLECTIONS = new Set(['events', 'commands', 'queries']);
 const LIKEC4_SOURCE_PATTERN = '**/*.{c4,likec4}';
@@ -1092,6 +1097,132 @@ export async function getArchitectureDiagramAsMermaid(params: {
 }
 
 // ============================================
+// Custom Documentation Tools
+// ============================================
+
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
+let cachedDocsSearchIndex: DocsSearchIndex | null = null;
+
+const findCustomDocByIdOrSlug = (docs: any[], idOrSlug: string) => {
+  const normalized = idOrSlug.toLowerCase().trim();
+  return (
+    docs.find((doc) => doc.id.toLowerCase() === normalized) ?? docs.find((doc) => doc.data.slug?.toLowerCase() === normalized)
+  );
+};
+
+const getDocsSearchIndex = async (): Promise<DocsSearchIndex> => {
+  if (CACHE_ENABLED && cachedDocsSearchIndex) {
+    return cachedDocsSearchIndex;
+  }
+
+  const docs = await getCollection('customPages');
+  cachedDocsSearchIndex = buildDocsSearchIndex(
+    docs.map((doc: any) => ({
+      id: doc.id,
+      title: doc.data.title,
+      summary: doc.data.summary,
+      body: doc.body,
+    }))
+  );
+
+  return cachedDocsSearchIndex;
+};
+
+/**
+ * List custom documentation pages (metadata only, no page content)
+ */
+export async function getCustomDocs(params: { cursor?: string; search?: string }) {
+  const docs = await getCollection('customPages');
+  let allResults = docs.map((doc: any) => ({
+    id: doc.id,
+    title: doc.data.title,
+    summary: doc.data.summary,
+    ...(doc.data.slug && { slug: doc.data.slug }),
+  }));
+
+  if (params.search) {
+    const searchTerm = params.search.toLowerCase().trim();
+    allResults = allResults.filter(
+      (doc: any) =>
+        doc.id?.toLowerCase().includes(searchTerm) ||
+        doc.title?.toLowerCase().includes(searchTerm) ||
+        doc.summary?.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  const paginatedResult = paginate(allResults, params.cursor);
+
+  if ('error' in paginatedResult) {
+    return paginatedResult;
+  }
+
+  return {
+    docs: paginatedResult.items,
+    nextCursor: paginatedResult.nextCursor,
+    totalCount: paginatedResult.totalCount,
+  };
+}
+
+/**
+ * Full-text search across custom documentation pages.
+ * Matches at the section level so results point at the relevant part of a page.
+ */
+export async function searchCustomDocs(params: { query: string; limit?: number }) {
+  const query = params.query?.trim();
+
+  if (!query) {
+    return { error: 'A search query is required' };
+  }
+
+  const index = await getDocsSearchIndex();
+  const results = index.search(query, { limit: params.limit });
+
+  return { results, totalCount: results.length };
+}
+
+/**
+ * Get the full markdown content of a custom documentation page by id or slug.
+ * Pass a section heading to get just that section of the page.
+ */
+export async function getCustomDoc(params: { id: string; section?: string }) {
+  const docs = await getCollection('customPages');
+  const doc = findCustomDocByIdOrSlug(docs, params.id);
+
+  if (!doc) {
+    return { error: `Custom documentation page not found: ${params.id}` };
+  }
+
+  const { title, summary, slug, owners } = doc.data;
+  const metadata = {
+    id: doc.id,
+    title,
+    summary,
+    ...(slug && { slug }),
+    ...(owners && { owners }),
+  };
+
+  if (params.section) {
+    const requestedSection = params.section.toLowerCase().trim();
+    const sections = chunkMarkdownByHeadings(doc.body ?? '');
+    const section = sections.find((chunk) => chunk.heading?.toLowerCase() === requestedSection);
+
+    if (!section) {
+      const availableSections = sections
+        .map((chunk) => chunk.heading)
+        .filter(Boolean)
+        .join(', ');
+      return {
+        error: `Section "${params.section}" not found in ${doc.id}. Available sections: ${availableSections || 'none'}`,
+      };
+    }
+
+    return { ...metadata, section: section.heading, markdown: section.content };
+  }
+
+  return { ...metadata, markdown: doc.body ?? '' };
+}
+
+// ============================================
 // Tool metadata (descriptions)
 // ============================================
 
@@ -1131,4 +1262,10 @@ export const toolDescriptions = {
     'Use this tool to get the outputs (resources produced) for a data product. Returns fully hydrated output resources with their id, version, name, summary, collection type, and data contracts (if defined). Data contracts include the contract name, path, format, type, and content.',
   getArchitectureDiagramAsMermaid:
     'Use this tool to get the architecture diagram for a resource as Mermaid flowchart code. This shows how the resource connects to other resources (agents, services, systems, events, channels, etc.) in the architecture. The mermaid code can be rendered to visualize the architecture or used to understand relationships. Supported collections: events, commands, queries, agents, services, domains, systems, flows, containers, data-products.',
+  getCustomDocs:
+    'Use this tool to list the custom documentation pages in EventCatalog (guides, runbooks, architecture notes, onboarding docs, etc.). Returns page ids, titles, and summaries without page content. Supports pagination via cursor and filtering by search term (searches title, id, and summary).',
+  searchCustomDocs:
+    'Use this tool to search the full text of custom documentation pages in EventCatalog. Returns the best matching sections, each with the page id, section heading, and a short snippet. To read more, call getCustomDoc with the returned page id (and optionally the section heading). Reformulate the query and search again if the first results are not relevant. If you are unsure where to find something, or the structured catalog tools have not answered the question, search here - custom documentation often contains guides, runbooks, and context not captured elsewhere in the catalog. An empty result may simply mean the catalog has no custom documentation on the topic.',
+  getCustomDoc:
+    'Use this tool to get the full markdown content of a custom documentation page by its id or slug. Optionally pass a section heading to get only that section - prefer this for large pages to keep responses small.',
 };
