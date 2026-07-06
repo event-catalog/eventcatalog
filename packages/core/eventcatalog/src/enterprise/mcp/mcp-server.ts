@@ -26,6 +26,9 @@ import {
   getUser,
   findMessageBySchemaId,
   explainUbiquitousLanguageTerms,
+  getCustomDocs,
+  searchCustomDocs,
+  getCustomDoc,
   collectionSchema,
   resourceCollectionSchema,
   messageCollectionSchema,
@@ -294,6 +297,42 @@ function createMcpServer() {
       }),
     },
     createToolHandler(explainUbiquitousLanguageTerms, 'Failed to get ubiquitous language terms')
+  );
+
+  server.registerTool(
+    'getCustomDocs',
+    {
+      description: toolDescriptions.getCustomDocs,
+      inputSchema: z.object({
+        cursor: z.string().optional().describe('Pagination cursor from previous response'),
+        search: z.string().optional().describe('Search term to filter docs by title, id, or summary (case-insensitive)'),
+      }),
+    },
+    createToolHandler(getCustomDocs, 'Failed to get custom documentation pages')
+  );
+
+  server.registerTool(
+    'searchCustomDocs',
+    {
+      description: toolDescriptions.searchCustomDocs,
+      inputSchema: z.object({
+        query: z.string().describe('Full-text search query, e.g. keywords describing the topic to find'),
+        limit: z.number().optional().describe('Maximum number of results to return (default 10)'),
+      }),
+    },
+    createToolHandler(searchCustomDocs, 'Failed to search custom documentation')
+  );
+
+  server.registerTool(
+    'getCustomDoc',
+    {
+      description: toolDescriptions.getCustomDoc,
+      inputSchema: z.object({
+        id: z.string().describe('The id or slug of the custom documentation page'),
+        section: z.string().optional().describe('Optional section heading to return only that section of the page'),
+      }),
+    },
+    createToolHandler(getCustomDoc, 'Failed to get custom documentation page')
   );
 
   // Register extended tools from user configuration

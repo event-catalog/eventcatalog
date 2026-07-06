@@ -594,6 +594,40 @@ export const mockSchemas = [
 ];
 
 // ============================================
+// Mock Custom Pages (custom documentation)
+// ============================================
+export const mockCustomPages = [
+  {
+    id: 'docs/payments/runbook',
+    collection: 'customPages',
+    body: [
+      'Intro to operating payments.',
+      '',
+      '## Refund failures',
+      'When a refund fails, retry the refund three times.',
+      '',
+      '## Chargeback handling',
+      'Chargebacks are disputed via the acquirer portal.',
+    ].join('\n'),
+    data: {
+      title: 'Payment Runbook',
+      summary: 'How we operate payments',
+      owners: ['payment-team'],
+    },
+  },
+  {
+    id: 'docs/onboarding',
+    collection: 'customPages',
+    body: 'Welcome to the team. Ask the order team for repository access.',
+    data: {
+      title: 'Onboarding Guide',
+      summary: 'Getting started as a new engineer',
+      slug: 'getting-started',
+    },
+  },
+];
+
+// ============================================
 // Helper to get all mocks by collection
 // ============================================
 export const mockCollections: Record<string, any[]> = {
@@ -614,4 +648,5 @@ export const mockCollections: Record<string, any[]> = {
   teams: mockTeams,
   users: mockUsers,
   ubiquitousLanguages: mockUbiquitousLanguages,
+  customPages: mockCustomPages,
 };

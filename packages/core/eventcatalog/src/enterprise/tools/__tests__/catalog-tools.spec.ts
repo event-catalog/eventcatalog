@@ -131,6 +131,9 @@ import {
   findMessageBySchemaId,
   explainUbiquitousLanguageTerms,
   getC4Diagram,
+  getCustomDocs,
+  searchCustomDocs,
+  getCustomDoc,
 } from '../catalog-tools';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 
@@ -1325,5 +1328,115 @@ describe('explainUbiquitousLanguageTerms', () => {
     if (!('error' in result)) {
       expect(result.subdomainCount).toBe(1);
     }
+  });
+});
+
+// ============================================
+// Custom Documentation Tools Tests
+// ============================================
+
+describe('getCustomDocs', () => {
+  it('returns all custom docs with metadata but no body', async () => {
+    const result = await getCustomDocs({});
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalCount).toBe(2);
+      expect(result.docs[0]).toEqual({
+        id: 'docs/payments/runbook',
+        title: 'Payment Runbook',
+        summary: 'How we operate payments',
+      });
+      expect(result.docs[1]).toEqual({
+        id: 'docs/onboarding',
+        title: 'Onboarding Guide',
+        summary: 'Getting started as a new engineer',
+        slug: 'getting-started',
+      });
+    }
+  });
+
+  it('filters docs with the search param (title, id, summary)', async () => {
+    const result = await getCustomDocs({ search: 'onboarding' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalCount).toBe(1);
+      expect(result.docs[0].id).toBe('docs/onboarding');
+    }
+  });
+
+  it('returns no nextCursor when all docs fit on one page', async () => {
+    const result = await getCustomDocs({});
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.nextCursor).toBeUndefined();
+    }
+  });
+});
+
+describe('searchCustomDocs', () => {
+  it('finds docs by body content and returns the matched section with a snippet', async () => {
+    const result = await searchCustomDocs({ query: 'refund fails' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.results.length).toBeGreaterThan(0);
+      expect(result.results[0].docId).toBe('docs/payments/runbook');
+      expect(result.results[0].heading).toBe('Refund failures');
+      expect(result.results[0].snippet.toLowerCase()).toContain('refund');
+    }
+  });
+
+  it('returns empty results when nothing matches', async () => {
+    const result = await searchCustomDocs({ query: 'zzzzz-nonexistent' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.results).toEqual([]);
+    }
+  });
+
+  it('returns an error for an empty query', async () => {
+    const result = await searchCustomDocs({ query: '   ' });
+    expect('error' in result).toBe(true);
+  });
+});
+
+describe('getCustomDoc', () => {
+  it('returns the full markdown and metadata for a doc by id', async () => {
+    const result = await getCustomDoc({ id: 'docs/payments/runbook' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.title).toBe('Payment Runbook');
+      expect(result.markdown).toContain('## Refund failures');
+      expect(result.markdown).toContain('acquirer portal');
+    }
+  });
+
+  it('resolves a doc by its custom slug', async () => {
+    const result = await getCustomDoc({ id: 'getting-started' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.title).toBe('Onboarding Guide');
+    }
+  });
+
+  it('returns only the requested section when a section is provided', async () => {
+    const result = await getCustomDoc({ id: 'docs/payments/runbook', section: 'Chargeback handling' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.markdown).toContain('acquirer portal');
+      expect(result.markdown).not.toContain('Refund failures');
+    }
+  });
+
+  it('returns an error listing available sections when the section is not found', async () => {
+    const result = await getCustomDoc({ id: 'docs/payments/runbook', section: 'Nope' });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('Chargeback handling');
+    }
+  });
+
+  it('returns an error when the doc is not found', async () => {
+    const result = await getCustomDoc({ id: 'docs/does-not-exist' });
+    expect('error' in result).toBe(true);
   });
 });
