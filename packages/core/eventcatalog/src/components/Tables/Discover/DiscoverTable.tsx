@@ -54,6 +54,7 @@ export interface DiscoverTableData {
   hasServices?: boolean;
   hasFlows?: boolean;
   isSubdomain?: boolean;
+  parentDomains?: Array<{ id: string; name: string; version: string }>;
   data: {
     id: string;
     name: string;
@@ -84,6 +85,7 @@ export interface DiscoverTableData {
     model?: any;
     agents?: Array<any>;
     services?: Array<any>;
+    domains?: Array<any>;
     flows?: Array<any>;
     servicesThatWriteToContainer?: Array<any>;
     servicesThatReadFromContainer?: Array<any>;
@@ -164,6 +166,11 @@ const AgentProviderIcon = ({ provider, className }: { provider: string; classNam
 
 const areStringArraysEqual = (left: string[], right: string[]) =>
   left.length === right.length && left.every((value, index) => value === right[index]);
+
+const DOMAIN_TYPE_OPTIONS = [
+  { id: 'root', label: 'Root domains' },
+  { id: 'subdomain', label: 'Subdomains' },
+];
 
 export function DiscoverTable<T extends DiscoverTableData>({
   data: initialData,
@@ -272,6 +279,13 @@ export function DiscoverTable<T extends DiscoverTableData>({
       ? filterKnownValues(initialUrlFilters.agentModels, new Set(agentModels.map((model) => model.id)))
       : []
   );
+  const [selectedDomainTypes, setSelectedDomainTypes] = useState<string[]>(() =>
+    collectionType === 'domains'
+      ? initialUrlFilters.domainTypes.length > 0
+        ? filterKnownValues(initialUrlFilters.domainTypes, new Set(DOMAIN_TYPE_OPTIONS.map((option) => option.id)))
+        : ['root']
+      : []
+  );
   const [selectedBadges, setSelectedBadges] = useState<string[]>(() =>
     filterKnownValues(initialUrlFilters.badges, new Set(allBadges.map((badge) => badge.content)))
   );
@@ -292,6 +306,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
       consumers: showConsumersFilter ? new Set(consumers.map((consumer) => consumer.id)) : new Set<string>(),
       agentProviders: collectionType === 'agents' ? new Set(agentProviders.map((provider) => provider.id)) : new Set<string>(),
       agentModels: collectionType === 'agents' ? new Set(agentModels.map((model) => model.id)) : new Set<string>(),
+      domainTypes: collectionType === 'domains' ? new Set(DOMAIN_TYPE_OPTIONS.map((option) => option.id)) : new Set<string>(),
       badges: new Set(allBadges.map((badge) => badge.content)),
       properties: new Set(propertyOptions.map((property) => property.id)),
       statuses: collectionType === 'adrs' ? new Set(statusOptions.map((status) => status.id)) : new Set<string>(),
@@ -325,6 +340,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
       badges: selectedBadges,
       properties: selectedProperties,
       statuses: selectedStatuses,
+      domainTypes: selectedDomainTypes,
       showOnlyLatest,
       onlyShowDrafts,
     }),
@@ -334,6 +350,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
       selectedAgentProviders,
       selectedBadges,
       selectedConsumers,
+      selectedDomainTypes,
       selectedDomains,
       selectedOwners,
       selectedProducers,
@@ -356,6 +373,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     setSelectedConsumers((values) => pruneState(values, knownFilterValues.consumers));
     setSelectedAgentProviders((values) => pruneState(values, knownFilterValues.agentProviders));
     setSelectedAgentModels((values) => pruneState(values, knownFilterValues.agentModels));
+    setSelectedDomainTypes((values) => pruneState(values, knownFilterValues.domainTypes));
     setSelectedBadges((values) => pruneState(values, knownFilterValues.badges));
     setSelectedProperties((values) => pruneState(values, knownFilterValues.properties));
     setSelectedStatuses((values) => pruneState(values, knownFilterValues.statuses));
@@ -398,6 +416,15 @@ export function DiscoverTable<T extends DiscoverTableData>({
         const itemDomains = row.domains || [];
         const hasMatchingDomain = itemDomains.some((d) => selectedDomains.includes(d.id));
         if (!hasMatchingDomain) {
+          return false;
+        }
+      }
+
+      // Domain type filter
+      if (collectionType === 'domains' && selectedDomainTypes.length > 0) {
+        const matchesRoot = selectedDomainTypes.includes('root') && !row.isSubdomain;
+        const matchesSubdomain = selectedDomainTypes.includes('subdomain') && row.isSubdomain;
+        if (!matchesRoot && !matchesSubdomain) {
           return false;
         }
       }
@@ -541,6 +568,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     selectedOwners,
     selectedProducers,
     selectedConsumers,
+    selectedDomainTypes,
     selectedAgentProviders,
     selectedAgentModels,
     selectedBadges,
@@ -652,6 +680,18 @@ export function DiscoverTable<T extends DiscoverTableData>({
     return counts;
   }, [initialData]);
 
+  const domainTypeCounts = useMemo(() => {
+    const counts: Record<string, number> = { root: 0, subdomain: 0 };
+    initialData.forEach((item) => {
+      if (item.isSubdomain) {
+        counts.subdomain++;
+      } else {
+        counts.root++;
+      }
+    });
+    return counts;
+  }, [initialData]);
+
   const toggleDomain = (domainId: string) => {
     setSelectedDomains((prev) => (prev.includes(domainId) ? prev.filter((id) => id !== domainId) : [...prev, domainId]));
   };
@@ -676,6 +716,12 @@ export function DiscoverTable<T extends DiscoverTableData>({
 
   const toggleAgentModel = (modelId: string) => {
     setSelectedAgentModels((prev) => (prev.includes(modelId) ? prev.filter((id) => id !== modelId) : [...prev, modelId]));
+  };
+
+  const toggleDomainType = (domainType: string) => {
+    setSelectedDomainTypes((prev) =>
+      prev.includes(domainType) ? prev.filter((id) => id !== domainType) : [...prev, domainType]
+    );
   };
 
   const toggleBadge = (badgeContent: string) => {
@@ -703,6 +749,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     setSelectedConsumers([]);
     setSelectedAgentProviders([]);
     setSelectedAgentModels([]);
+    setSelectedDomainTypes(collectionType === 'domains' ? ['root'] : []);
     setSelectedBadges([]);
     setSelectedStatuses([]);
     setSelectedProperties([]);
@@ -719,6 +766,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     selectedConsumers.length +
     selectedAgentProviders.length +
     selectedAgentModels.length +
+    selectedDomainTypes.length +
     selectedBadges.length +
     selectedStatuses.length +
     selectedProperties.length +
@@ -742,6 +790,9 @@ export function DiscoverTable<T extends DiscoverTableData>({
     (id) => agentProviders.find((provider) => provider.id === id)?.name || id
   );
   const selectedAgentModelNames = selectedAgentModels.map((id) => agentModels.find((model) => model.id === id)?.name || id);
+  const selectedDomainTypeNames = selectedDomainTypes.map(
+    (id) => DOMAIN_TYPE_OPTIONS.find((option) => option.id === id)?.label || id
+  );
   const selectedStatusNames = selectedStatuses.map((id) => statusOptions.find((status) => status.id === id)?.name || id);
 
   // Filter producers/consumers to only show those with count > 0
@@ -853,6 +904,33 @@ export function DiscoverTable<T extends DiscoverTableData>({
 
           {/* Catalog Filters Section */}
           <div className="space-y-3">
+            {collectionType === 'domains' && (
+              <div>
+                <label className="block text-xs font-medium text-[rgb(var(--ec-page-text)/0.8)] mb-1.5">
+                  Filter by Domain type
+                </label>
+                <FilterDropdown
+                  label="All domains"
+                  selectedItems={selectedDomainTypeNames}
+                  onClear={() => setSelectedDomainTypes([])}
+                  onRemoveItem={(label) => {
+                    const option = DOMAIN_TYPE_OPTIONS.find((item) => item.label === label);
+                    if (option) toggleDomainType(option.id);
+                  }}
+                >
+                  {DOMAIN_TYPE_OPTIONS.map((option) => (
+                    <CheckboxItem
+                      key={option.id}
+                      label={option.label}
+                      checked={selectedDomainTypes.includes(option.id)}
+                      onChange={() => toggleDomainType(option.id)}
+                      count={domainTypeCounts[option.id] || 0}
+                    />
+                  ))}
+                </FilterDropdown>
+              </div>
+            )}
+
             {collectionType === 'agents' && (filteredAgentProviders.length > 0 || filteredAgentModels.length > 0) && (
               <>
                 {filteredAgentProviders.length > 0 && (
