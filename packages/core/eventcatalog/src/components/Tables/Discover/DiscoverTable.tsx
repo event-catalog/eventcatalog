@@ -20,6 +20,7 @@ import { resolveIconUrl } from '@utils/icon';
 import { FilterDropdown, CheckboxItem } from './FilterComponents';
 import { getDiscoverColumns } from './columns';
 import { formatAdrStatus, type AdrStatus } from '@utils/collections/adr-constants';
+import { buildDiscoverFilterSearch, filterKnownValues, parseDiscoverFilterSearch } from './url-filters';
 
 export type CollectionType =
   | 'agents'
@@ -161,6 +162,9 @@ const AgentProviderIcon = ({ provider, className }: { provider: string; classNam
   return <img src={providerIconUrls.default} alt="" className={className} loading="lazy" />;
 };
 
+const areStringArraysEqual = (left: string[], right: string[]) =>
+  left.length === right.length && left.every((value, index) => value === right[index]);
+
 export function DiscoverTable<T extends DiscoverTableData>({
   data: initialData,
   collectionType,
@@ -185,34 +189,6 @@ export function DiscoverTable<T extends DiscoverTableData>({
     () => getDiscoverColumns(collectionType, tableConfiguration ?? { columns: {} }),
     [collectionType, tableConfiguration]
   );
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [tableFilter, setTableFilter] = useState('');
-  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
-  const PAGE_SIZE_STORAGE_KEY = 'eventcatalog-discover-page-size';
-  const [pageSize, setPageSize] = useState<number>(() => {
-    if (typeof window === 'undefined') return 10;
-    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
-    return PAGE_SIZE_OPTIONS.includes(stored) ? stored : 10;
-  });
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(pageSize));
-    }
-  }, [pageSize]);
-  const [showOnlyLatest, setShowOnlyLatest] = useState(true);
-  const [onlyShowDrafts, setOnlyShowDrafts] = useState(false);
-  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
-  const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
-  const [selectedProducers, setSelectedProducers] = useState<string[]>([]);
-  const [selectedConsumers, setSelectedConsumers] = useState<string[]>([]);
-  const [selectedAgentProviders, setSelectedAgentProviders] = useState<string[]>([]);
-  const [selectedAgentModels, setSelectedAgentModels] = useState<string[]>([]);
-  const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
-  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const selectedKind = collectionKinds.find((kind) => kind.id === collectionType);
-
   // Collect unique badges from all items
   const allBadges = useMemo(() => {
     const badgeMap = new Map<string, { content: string; backgroundColor?: string; textColor?: string; count: number }>();
@@ -234,6 +210,168 @@ export function DiscoverTable<T extends DiscoverTableData>({
     });
     return Array.from(badgeMap.values()).sort((a, b) => b.count - a.count);
   }, [initialData]);
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    initialData.forEach((item) => {
+      const status = item.data.status;
+      if (status) counts[status] = (counts[status] || 0) + 1;
+    });
+    return counts;
+  }, [initialData]);
+
+  const statusOptions = useMemo(
+    () =>
+      Object.keys(statusCounts)
+        .map((status) => ({
+          id: status,
+          name: formatAdrStatus(status as AdrStatus),
+          count: statusCounts[status],
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [statusCounts]
+  );
+  const [initialUrlFilters] = useState(() =>
+    parseDiscoverFilterSearch(typeof window === 'undefined' ? '' : window.location.search)
+  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [tableFilter, setTableFilter] = useState(initialUrlFilters.q);
+  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+  const PAGE_SIZE_STORAGE_KEY = 'eventcatalog-discover-page-size';
+  const [pageSize, setPageSize] = useState<number>(() => {
+    if (typeof window === 'undefined') return 10;
+    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+    return PAGE_SIZE_OPTIONS.includes(stored) ? stored : 10;
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(pageSize));
+    }
+  }, [pageSize]);
+  const [showOnlyLatest, setShowOnlyLatest] = useState(initialUrlFilters.showOnlyLatest);
+  const [onlyShowDrafts, setOnlyShowDrafts] = useState(initialUrlFilters.onlyShowDrafts);
+  const [selectedDomains, setSelectedDomains] = useState<string[]>(() =>
+    showDomainsFilter ? filterKnownValues(initialUrlFilters.domains, new Set(domains.map((domain) => domain.id))) : []
+  );
+  const [selectedOwners, setSelectedOwners] = useState<string[]>(() =>
+    showOwnersFilter ? filterKnownValues(initialUrlFilters.owners, new Set(owners.map((owner) => owner.id))) : []
+  );
+  const [selectedProducers, setSelectedProducers] = useState<string[]>(() =>
+    showProducersFilter ? filterKnownValues(initialUrlFilters.producers, new Set(producers.map((producer) => producer.id))) : []
+  );
+  const [selectedConsumers, setSelectedConsumers] = useState<string[]>(() =>
+    showConsumersFilter ? filterKnownValues(initialUrlFilters.consumers, new Set(consumers.map((consumer) => consumer.id))) : []
+  );
+  const [selectedAgentProviders, setSelectedAgentProviders] = useState<string[]>(() =>
+    collectionType === 'agents'
+      ? filterKnownValues(initialUrlFilters.agentProviders, new Set(agentProviders.map((provider) => provider.id)))
+      : []
+  );
+  const [selectedAgentModels, setSelectedAgentModels] = useState<string[]>(() =>
+    collectionType === 'agents'
+      ? filterKnownValues(initialUrlFilters.agentModels, new Set(agentModels.map((model) => model.id)))
+      : []
+  );
+  const [selectedBadges, setSelectedBadges] = useState<string[]>(() =>
+    filterKnownValues(initialUrlFilters.badges, new Set(allBadges.map((badge) => badge.content)))
+  );
+  const [selectedProperties, setSelectedProperties] = useState<string[]>(() =>
+    filterKnownValues(initialUrlFilters.properties, new Set(propertyOptions.map((property) => property.id)))
+  );
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(() =>
+    collectionType === 'adrs'
+      ? filterKnownValues(initialUrlFilters.statuses, new Set(statusOptions.map((status) => status.id)))
+      : []
+  );
+  const selectedKind = collectionKinds.find((kind) => kind.id === collectionType);
+  const knownFilterValues = useMemo(
+    () => ({
+      domains: showDomainsFilter ? new Set(domains.map((domain) => domain.id)) : new Set<string>(),
+      owners: showOwnersFilter ? new Set(owners.map((owner) => owner.id)) : new Set<string>(),
+      producers: showProducersFilter ? new Set(producers.map((producer) => producer.id)) : new Set<string>(),
+      consumers: showConsumersFilter ? new Set(consumers.map((consumer) => consumer.id)) : new Set<string>(),
+      agentProviders: collectionType === 'agents' ? new Set(agentProviders.map((provider) => provider.id)) : new Set<string>(),
+      agentModels: collectionType === 'agents' ? new Set(agentModels.map((model) => model.id)) : new Set<string>(),
+      badges: new Set(allBadges.map((badge) => badge.content)),
+      properties: new Set(propertyOptions.map((property) => property.id)),
+      statuses: collectionType === 'adrs' ? new Set(statusOptions.map((status) => status.id)) : new Set<string>(),
+    }),
+    [
+      agentModels,
+      agentProviders,
+      allBadges,
+      collectionType,
+      consumers,
+      domains,
+      owners,
+      producers,
+      propertyOptions,
+      showConsumersFilter,
+      showDomainsFilter,
+      showOwnersFilter,
+      showProducersFilter,
+      statusOptions,
+    ]
+  );
+  const currentUrlFilters = useMemo(
+    () => ({
+      q: tableFilter,
+      domains: selectedDomains,
+      owners: selectedOwners,
+      producers: selectedProducers,
+      consumers: selectedConsumers,
+      agentProviders: selectedAgentProviders,
+      agentModels: selectedAgentModels,
+      badges: selectedBadges,
+      properties: selectedProperties,
+      statuses: selectedStatuses,
+      showOnlyLatest,
+      onlyShowDrafts,
+    }),
+    [
+      onlyShowDrafts,
+      selectedAgentModels,
+      selectedAgentProviders,
+      selectedBadges,
+      selectedConsumers,
+      selectedDomains,
+      selectedOwners,
+      selectedProducers,
+      selectedProperties,
+      selectedStatuses,
+      showOnlyLatest,
+      tableFilter,
+    ]
+  );
+
+  useEffect(() => {
+    const pruneState = (values: string[], knownValues: Set<string>) => {
+      const nextValues = filterKnownValues(values, knownValues);
+      return areStringArraysEqual(values, nextValues) ? values : nextValues;
+    };
+
+    setSelectedDomains((values) => pruneState(values, knownFilterValues.domains));
+    setSelectedOwners((values) => pruneState(values, knownFilterValues.owners));
+    setSelectedProducers((values) => pruneState(values, knownFilterValues.producers));
+    setSelectedConsumers((values) => pruneState(values, knownFilterValues.consumers));
+    setSelectedAgentProviders((values) => pruneState(values, knownFilterValues.agentProviders));
+    setSelectedAgentModels((values) => pruneState(values, knownFilterValues.agentModels));
+    setSelectedBadges((values) => pruneState(values, knownFilterValues.badges));
+    setSelectedProperties((values) => pruneState(values, knownFilterValues.properties));
+    setSelectedStatuses((values) => pruneState(values, knownFilterValues.statuses));
+  }, [knownFilterValues]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const nextSearch = buildDiscoverFilterSearch(currentUrlFilters, window.location.search);
+    const nextUrl = `${window.location.pathname}${nextSearch}${window.location.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState(window.history.state, '', nextUrl);
+    }
+  }, [currentUrlFilters]);
 
   // Filter data based on all filter states
   const filteredData = useMemo(() => {
@@ -514,27 +652,6 @@ export function DiscoverTable<T extends DiscoverTableData>({
     return counts;
   }, [initialData]);
 
-  const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    initialData.forEach((item) => {
-      const status = item.data.status;
-      if (status) counts[status] = (counts[status] || 0) + 1;
-    });
-    return counts;
-  }, [initialData]);
-
-  const statusOptions = useMemo(
-    () =>
-      Object.keys(statusCounts)
-        .map((status) => ({
-          id: status,
-          name: formatAdrStatus(status as AdrStatus),
-          count: statusCounts[status],
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [statusCounts]
-  );
-
   const toggleDomain = (domainId: string) => {
     setSelectedDomains((prev) => (prev.includes(domainId) ? prev.filter((id) => id !== domainId) : [...prev, domainId]));
   };
@@ -576,7 +693,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
   const navigateToKind = (kindId: CollectionType) => {
     const selectedKind = collectionKinds.find((kind) => kind.id === kindId);
     if (!selectedKind || selectedKind.id === collectionType) return;
-    window.location.href = selectedKind.href;
+    window.location.href = `${selectedKind.href}${buildDiscoverFilterSearch(currentUrlFilters)}`;
   };
 
   const clearAllFilters = () => {
@@ -606,7 +723,8 @@ export function DiscoverTable<T extends DiscoverTableData>({
     selectedStatuses.length +
     selectedProperties.length +
     (!showOnlyLatest ? 1 : 0) +
-    (onlyShowDrafts ? 1 : 0);
+    (onlyShowDrafts ? 1 : 0) +
+    (tableFilter ? 1 : 0);
 
   // Get selected domain names for display
   const selectedDomainNames = selectedDomains.map((id) => domains.find((d) => d.id === id)?.name || id);
