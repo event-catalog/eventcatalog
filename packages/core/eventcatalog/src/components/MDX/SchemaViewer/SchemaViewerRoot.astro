@@ -105,7 +105,8 @@ try {
 
   function moveSchemaViewerToPortal(schema) {
     const schemaViewerContainers = document.querySelectorAll(`[data-schema-viewer-portal-id="${schema.id}"]`);
-    const schemaViewerContainer = schemaViewerContainers[schema.index];
+    const schemaPortalIndex = schemas.slice(0, schema.index).filter((previousSchema) => previousSchema.id === schema.id).length;
+    const schemaViewerContainer = schemaViewerContainers[schemaPortalIndex];
     const schemaViewerClient = document.getElementById(`${schema.id}-${schema.index}-SchemaViewer-client`);
 
     if (schemaViewerContainer && schemaViewerClient) {
