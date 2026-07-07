@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.0.6
+
+### Patch Changes
+
+- 7ca87f7: Fix SchemaViewer portal targeting when multiple schemas share the same id on a page, so each schema renders into its correct container.
+
 ## 4.0.5
 
 ### Patch Changes
