@@ -11,16 +11,19 @@ describe('CLI Integration with Configuration', () => {
   let tempDir: string;
   let servicesDir: string;
   let eventsDir: string;
+  let usersDir: string;
   let configPath: string;
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'eventcatalog-cli-test-'));
     servicesDir = path.join(tempDir, 'services');
     eventsDir = path.join(tempDir, 'events');
+    usersDir = path.join(tempDir, 'users');
     configPath = path.join(tempDir, '.eventcatalogrc.js');
 
     fs.mkdirSync(servicesDir, { recursive: true });
     fs.mkdirSync(eventsDir, { recursive: true });
+    fs.mkdirSync(usersDir, { recursive: true });
   });
 
   afterEach(() => {
@@ -39,6 +42,10 @@ describe('CLI Integration with Configuration', () => {
     const eventDir = path.join(eventsDir, name);
     fs.mkdirSync(eventDir, { recursive: true });
     fs.writeFileSync(path.join(eventDir, 'index.mdx'), content);
+  };
+
+  const createUserFile = (name: string, content: string) => {
+    fs.writeFileSync(path.join(usersDir, `${name}.mdx`), content);
   };
 
   const runLinter = async (args: string = '') => {
@@ -288,5 +295,54 @@ version: 1.0.0
 
     // Check that files were processed correctly
     expect(result.stdout).toContain('file checked'); // Should check files (exact count may vary)
+  });
+
+  it('does not report missing service message references when they are declared as external dependencies in an ESM eventcatalog.config.js', async () => {
+    fs.writeFileSync(
+      path.join(tempDir, 'eventcatalog.config.js'),
+      `
+export default {
+  dependencies: {
+    events: [
+      { id: 'my.company.LocationSyncEvent' },
+      { id: 'my.company.CarrierSyncEvent' },
+    ],
+  },
+};
+`
+    );
+
+    createUserFile(
+      'catalog-owner',
+      `---
+id: catalog-owner
+name: Catalog Owner
+summary: Owns the catalog
+---
+# Catalog Owner
+`
+    );
+
+    createServiceFile(
+      'oms-scs',
+      `---
+id: oms-scs
+name: OMS SCS
+summary: OMS SCS
+owners:
+  - catalog-owner
+receives:
+  - id: my.company.LocationSyncEvent
+  - id: my.company.CarrierSyncEvent
+---
+# OMS SCS
+`
+    );
+
+    const result = await runLinter();
+
+    expect(result.success).toBe(true);
+    expect(result.stdout).not.toContain('Referenced event/command/query');
+    expect(result.stdout).toContain('2 files checked');
   });
 });
