@@ -4,6 +4,7 @@ import JSONSchemaViewer from '@components/SchemaExplorer/JSONSchemaViewer';
 import { Code } from 'astro-expressive-code/components';
 import { isPrivateRemoteSchemaEnabled } from '@utils/feature';
 import { resolveTemplateVariables } from '@utils/remote-file';
+import { resolveSchemaRefs } from '@utils/json-schema-refs';
 
 const {
   url,
@@ -89,6 +90,10 @@ try {
   if (isValidJSON(content)) {
     contentType = 'json';
     processedData = JSON.parse(content);
+    processedData = await resolveSchemaRefs(processedData, {
+      baseUrl: String(resolvedUrl),
+      headers: resolvedHeaders as HeadersInit,
+    });
 
     // Check if it's a JSON Schema
     isSchema = isJSONSchema(processedData);
