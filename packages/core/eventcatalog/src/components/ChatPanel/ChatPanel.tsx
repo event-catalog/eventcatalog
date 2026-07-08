@@ -1,12 +1,14 @@
 import { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react';
 import { X, Square, Trash2, BookOpen, Copy, Check, Maximize2, Minimize2, Wrench, ChevronDown, MessageSquare } from 'lucide-react';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Popover from '@radix-ui/react-popover';
+import { buildUrl } from '@utils/url-builder';
 
 interface ToolMetadata {
   name: string;
@@ -527,6 +529,8 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [tools, setTools] = useState<ToolMetadata[]>([]);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const chatApiUrl = useMemo(() => buildUrl('/api/chat', true), []);
+  const chatTransport = useMemo(() => new DefaultChatTransport({ api: chatApiUrl }), [chatApiUrl]);
 
   // Sort tools with custom ones first
   const sortedTools = useMemo(() => {
@@ -540,7 +544,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   // Fetch available tools when panel opens
   useEffect(() => {
     if (isOpen && tools.length === 0) {
-      fetch('/api/chat')
+      fetch(chatApiUrl)
         .then((res) => res.json())
         .then((data) => {
           if (data.tools) {
@@ -597,7 +601,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setShowScrollButton(!isNearBottom);
   }, []);
 
-  const { messages, sendMessage, stop, status, setMessages, error } = useChat();
+  const { messages, sendMessage, stop, status, setMessages, error } = useChat({ transport: chatTransport });
 
   // Extract user-friendly error message
   const errorMessage = error?.message || 'Something went wrong. Please try again.';
