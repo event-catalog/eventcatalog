@@ -28,7 +28,7 @@ export default function VersionHistoryModal({
             <div className="flex items-center gap-3">
               <ArrowsPointingOutIcon className="h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
               <div>
-                <Dialog.Title className="text-xl font-semibold text-[rgb(var(--ec-page-text))]">Version History</Dialog.Title>
+                <Dialog.Title className="text-xl font-semibold text-[rgb(var(--ec-page-text))]">Version Comparison</Dialog.Title>
                 <Dialog.Description className="text-sm text-[rgb(var(--ec-page-text-muted))] mt-1">
                   {messageName}
                 </Dialog.Description>
@@ -51,7 +51,7 @@ export default function VersionHistoryModal({
               <DiffViewer diffs={diffs} apiAccessEnabled={apiAccessEnabled} />
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="text-[rgb(var(--ec-page-text-muted))] text-center">No version history available</p>
+                <p className="text-[rgb(var(--ec-page-text-muted))] text-center">No version comparison available</p>
               </div>
             )}
           </div>

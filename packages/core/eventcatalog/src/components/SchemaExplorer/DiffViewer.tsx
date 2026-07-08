@@ -122,10 +122,10 @@ export default function DiffViewer({ diffs, onOpenFullscreen, apiAccessEnabled =
       {isDark && <style dangerouslySetInnerHTML={{ __html: DIFF_DARK_STYLES }} />}
       <div className="mb-5 flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-[rgb(var(--ec-page-text))] mb-1">Version History</h3>
+          <h3 className="text-base font-semibold text-[rgb(var(--ec-page-text))] mb-1">Version Comparison</h3>
           <p className="text-sm text-[rgb(var(--ec-page-text-muted))]">
             {apiAccessEnabled
-              ? `${diffs.length} version comparison${diffs.length !== 1 ? 's' : ''}`
+              ? `${diffs.length} selected comparison${diffs.length !== 1 ? 's' : ''}`
               : 'Compare schema versions side-by-side'}
           </p>
         </div>
@@ -142,21 +142,19 @@ export default function DiffViewer({ diffs, onOpenFullscreen, apiAccessEnabled =
       </div>
       {apiAccessEnabled ? (
         <div className={`space-y-6 ${isDark ? 'diff-dark-mode' : ''}`}>
-          {diffs.map((diff, index) => (
+          {diffs.map((diff) => (
             <div
-              key={`${diff.newerVersion}-${diff.olderVersion}`}
+              key={`${diff.fromVersion}-${diff.toVersion}`}
               className="border border-[rgb(var(--ec-page-border))] rounded-lg overflow-hidden"
             >
               <div className="bg-[rgb(var(--ec-content-hover))] border-b border-[rgb(var(--ec-page-border))] px-4 py-2.5">
                 <div className="flex items-center justify-between">
                   <div className="text-sm">
-                    <span className="font-semibold text-[rgb(var(--ec-page-text))]">v{diff.newerVersion}</span>
+                    <span className="font-semibold text-[rgb(var(--ec-page-text))]">v{diff.fromVersion}</span>
                     <span className="text-[rgb(var(--ec-page-text-muted))] mx-2">&rarr;</span>
-                    <span className="font-semibold text-[rgb(var(--ec-page-text))]">v{diff.olderVersion}</span>
+                    <span className="font-semibold text-[rgb(var(--ec-page-text))]">v{diff.toVersion}</span>
                   </div>
-                  <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
-                    {index === 0 ? 'Latest change' : `${index + 1} version${index + 1 !== 1 ? 's' : ''} ago`}
-                  </span>
+                  <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">Selected comparison</span>
                 </div>
               </div>
               <div className="relative">

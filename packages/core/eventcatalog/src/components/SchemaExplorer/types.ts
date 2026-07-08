@@ -45,9 +45,9 @@ export interface SchemaItem {
 }
 
 export interface VersionDiff {
-  newerVersion: string;
-  olderVersion: string;
+  fromVersion: string;
+  toVersion: string;
   diffHtml: string;
-  newerContent: string;
-  olderContent: string;
+  fromContent: string;
+  toContent: string;
 }

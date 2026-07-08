@@ -1,0 +1,25 @@
+---
+id: order-created
+name: Order Created
+version: 0.6.0
+summary: |
+  Published when a new order has been created. This version added the order total and currency for payment reconciliation.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderCreated` version `0.6.0` added monetary fields so consumers could reconcile order totals without calling the Order API.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

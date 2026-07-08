@@ -20,10 +20,36 @@
       "type": "string",
       "pattern": "^[A-Z]{3}$"
     },
+    "status": {
+      "type": "string",
+      "enum": ["created"],
+      "description": "Initial lifecycle status for the order"
+    },
+    "items": {
+      "type": "array",
+      "description": "Line items captured at order creation time",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "unitPrice": {
+            "type": "integer",
+            "description": "Unit price in minor units (e.g. cents)"
+          }
+        },
+        "required": ["sku", "quantity", "unitPrice"]
+      }
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time"
     }
   },
-  "required": ["orderId", "customerId", "total", "currency", "createdAt"]
+  "required": ["orderId", "customerId", "total", "currency", "status", "items", "createdAt"]
 }

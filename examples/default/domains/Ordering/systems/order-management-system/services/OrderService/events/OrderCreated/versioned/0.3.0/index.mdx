@@ -1,0 +1,25 @@
+---
+id: order-created
+name: Order Created
+version: 0.3.0
+summary: |
+  Published when a new order has been created. This early contract only included identifiers and the creation timestamp.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderCreated` version `0.3.0` was the first stable order creation event contract used by downstream fulfilment consumers.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />
