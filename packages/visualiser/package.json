@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/visualiser",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "ReactFlow nodes and visualiser components for EventCatalog - framework agnostic",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

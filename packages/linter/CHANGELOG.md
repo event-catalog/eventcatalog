@@ -1,5 +1,11 @@
 # @eventcatalog/linter
 
+## 1.1.4
+
+### Patch Changes
+
+- 0983132: Fix loading dependencies from ESM `eventcatalog.config.js` files.
+
 ## 1.1.3
 
 ### Patch Changes
