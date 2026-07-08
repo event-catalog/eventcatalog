@@ -70,6 +70,17 @@ const PLURAL_TO_SINGULAR: Record<string, string> = {
   diagrams: 'diagram',
 };
 
+const unwrapDefaultExport = (config: unknown): Record<string, any> => {
+  if (config && typeof config === 'object' && 'default' in config) {
+    const defaultExport = (config as Record<string, unknown>).default;
+    if (defaultExport && typeof defaultExport === 'object') {
+      return defaultExport as Record<string, any>;
+    }
+  }
+
+  return config as Record<string, any>;
+};
+
 export const loadEventCatalogConfig = (rootDir: string): CatalogDependencies => {
   const configPath = path.join(rootDir, 'eventcatalog.config.js');
 
@@ -79,7 +90,7 @@ export const loadEventCatalogConfig = (rootDir: string): CatalogDependencies => 
 
   try {
     delete require.cache[require.resolve(configPath)];
-    const config = require(configPath);
+    const config = unwrapDefaultExport(require(configPath));
 
     if (!config.dependencies || typeof config.dependencies !== 'object') {
       return {};
@@ -118,7 +129,7 @@ export const loadConfig = (rootDir: string): LinterConfig => {
   try {
     // Clear module cache to ensure fresh load
     delete require.cache[require.resolve(configPath)];
-    const config = require(configPath);
+    const config = unwrapDefaultExport(require(configPath));
 
     // Merge with defaults
     const mergedConfig: LinterConfig = {
