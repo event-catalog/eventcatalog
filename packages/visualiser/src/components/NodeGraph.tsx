@@ -22,8 +22,8 @@ import {
   type Node,
   type NodeChange,
   useReactFlow,
+  useStoreApi,
   getNodesBounds,
-  getViewportForBounds,
   type NodeTypes,
   MarkerType,
 } from "@xyflow/react";
@@ -99,6 +99,10 @@ import { useChannelVisibility } from "../hooks/use-channel-visibility";
 import VisualizerDropdownContent from "./VisualizerDropdownContent";
 import NodeContextMenu from "./NodeContextMenu";
 import { convertToMermaid } from "../utils/export-mermaid";
+import {
+  getExportImageDimensions,
+  injectExportStyles,
+} from "../utils/export-image";
 import { copyToClipboard } from "../utils/clipboard";
 import { layoutGraph } from "../utils/layout";
 import { packNodesAroundBounds } from "../utils/local-packing";
@@ -493,6 +497,7 @@ const NodeGraphBuilder = ({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { fitView, getNodes, getIntersectingNodes, getZoom, setCenter } =
     useReactFlow();
+  const storeApi = useStoreApi();
 
   // Sync when parent passes new nodes/edges (e.g. playground re-parse)
   useEffect(() => {
@@ -1927,21 +1932,12 @@ const NodeGraphBuilder = ({
   }, [fitView]);
 
   const handleExportVisual = useCallback(() => {
-    const imageWidth = 1024;
-    const imageHeight = 768;
-    const nodesBounds = getNodesBounds(getNodes());
-    const width =
-      imageWidth > nodesBounds.width ? imageWidth : nodesBounds.width;
-    const height =
-      imageHeight > nodesBounds.height ? imageHeight : nodesBounds.height;
-    const viewport = getViewportForBounds(
-      nodesBounds,
-      width,
-      height,
-      0.5,
-      2,
-      0,
-    );
+    // nodeLookup resolves child node positions (relative to their parent
+    // group) to absolute coordinates — without it grouped graphs get cropped
+    const nodesBounds = getNodesBounds(getNodes(), {
+      nodeLookup: storeApi.getState().nodeLookup,
+    });
+    const { width, height, viewport } = getExportImageDimensions(nodesBounds);
 
     // Hide controls during export
     const controls = document.querySelector(
@@ -1949,21 +1945,29 @@ const NodeGraphBuilder = ({
     ) as HTMLElement;
     if (controls) controls.style.display = "none";
 
-    toPng(document.querySelector(".react-flow__viewport") as HTMLElement, {
+    const viewportElement = document.querySelector(
+      ".react-flow__viewport",
+    ) as HTMLElement;
+    const removeExportStyles = injectExportStyles(viewportElement);
+
+    toPng(viewportElement, {
       backgroundColor: "#f1f1f1",
       width,
       height,
       style: {
-        width: width.toString(),
-        height: height.toString(),
+        width: `${width}px`,
+        height: `${height}px`,
         transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
       },
-    }).then((dataUrl: string) => {
-      downloadImage(dataUrl, title);
-      // Restore controls
-      if (controls) controls.style.display = "block";
-    });
-  }, [getNodes, downloadImage, title]);
+    })
+      .then((dataUrl: string) => {
+        downloadImage(dataUrl, title);
+      })
+      .finally(() => {
+        removeExportStyles();
+        if (controls) controls.style.display = "block";
+      });
+  }, [getNodes, storeApi, downloadImage, title]);
 
   const handleLegendClick = useCallback(
     (collectionType: string, groupId?: string) => {
