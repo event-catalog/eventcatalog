@@ -48,3 +48,7 @@ Use `<type>(<scope>): <imperative summary>` when possible. For PRs:
 - Link related issues.
 - Include screenshots/GIFs for UI changes.
 - Add a changeset (`pnpm changeset`) for publishable package changes unless the change is internal-only.
+
+## Important
+
+Never start the catalog, the catalog is already running.

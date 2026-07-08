@@ -64,43 +64,70 @@ export default function SchemaDetailsPanel({
   const consumers = message.data.consumers || [];
   const filename = message.data.schemaPath?.split('/').pop() || `${message.data.id}.${ext || 'json'}`;
 
-  // Generate diffs between all consecutive versions
-  const allDiffs: VersionDiff[] = useMemo(() => {
-    const diffs: VersionDiff[] = [];
-    if (!hasMultipleVersions) return diffs;
+  const uniqueAvailableVersions = useMemo(
+    () =>
+      availableVersions.filter(
+        (version, index, versions) => versions.findIndex((item) => item.data.version === version.data.version) === index
+      ),
+    [availableVersions]
+  );
+  const defaultToVersion = uniqueAvailableVersions[0]?.data.version || '';
+  const defaultFromVersion = uniqueAvailableVersions[1]?.data.version || defaultToVersion;
+  const [diffFromVersion, setDiffFromVersion] = useState(defaultFromVersion);
+  const [diffToVersion, setDiffToVersion] = useState(defaultToVersion);
+  const schemaResourceKey = [
+    message.collection,
+    message.data.id,
+    message.specType || '',
+    message.specFilenameWithoutExtension || message.specName || '',
+  ].join(':');
 
-    for (let i = 0; i < availableVersions.length - 1; i++) {
-      const newerVersion = availableVersions[i];
-      const olderVersion = availableVersions[i + 1];
+  useEffect(() => {
+    setDiffFromVersion(defaultFromVersion);
+    setDiffToVersion(defaultToVersion);
+    setIsDiffModalOpen(false);
+  }, [schemaResourceKey, defaultFromVersion, defaultToVersion]);
 
-      if (newerVersion.schemaContent && olderVersion.schemaContent) {
-        const diff = Diff.createTwoFilesPatch(
-          `v${olderVersion.data.version}`,
-          `v${newerVersion.data.version}`,
-          olderVersion.schemaContent,
-          newerVersion.schemaContent,
-          '',
-          '',
-          { context: 3 }
-        );
+  const diffFromItem = useMemo(
+    () => uniqueAvailableVersions.find((version) => version.data.version === diffFromVersion),
+    [diffFromVersion, uniqueAvailableVersions]
+  );
+  const diffToItem = useMemo(
+    () => uniqueAvailableVersions.find((version) => version.data.version === diffToVersion),
+    [diffToVersion, uniqueAvailableVersions]
+  );
+  const hasDiffFromContent = !!diffFromItem?.schemaContent?.trim();
+  const hasDiffToContent = !!diffToItem?.schemaContent?.trim();
+  const selectedDiff: VersionDiff | null = useMemo(() => {
+    if (!diffFromItem || !diffToItem) return null;
+    if (diffFromItem.data.version === diffToItem.data.version) return null;
+    if (!diffFromItem.schemaContent?.trim() || !diffToItem.schemaContent?.trim()) return null;
 
-        const diffHtml = html(diff, {
-          drawFileList: false,
-          matching: 'lines',
-          outputFormat: 'side-by-side',
-        });
+    const diff = Diff.createTwoFilesPatch(
+      `v${diffFromItem.data.version}`,
+      `v${diffToItem.data.version}`,
+      diffFromItem.schemaContent,
+      diffToItem.schemaContent,
+      '',
+      '',
+      { context: 3 }
+    );
 
-        diffs.push({
-          newerVersion: newerVersion.data.version,
-          olderVersion: olderVersion.data.version,
-          diffHtml,
-          newerContent: newerVersion.schemaContent,
-          olderContent: olderVersion.schemaContent,
-        });
-      }
-    }
-    return diffs;
-  }, [availableVersions]);
+    const diffHtml = html(diff, {
+      drawFileList: false,
+      matching: 'lines',
+      outputFormat: 'side-by-side',
+    });
+
+    return {
+      fromVersion: diffFromItem.data.version,
+      toVersion: diffToItem.data.version,
+      diffHtml,
+      fromContent: diffFromItem.schemaContent,
+      toContent: diffToItem.schemaContent,
+    };
+  }, [diffFromItem, diffToItem]);
+  const selectedDiffs = selectedDiff ? [selectedDiff] : [];
 
   // Check if this is a JSON schema
   const parsedSchema = useMemo(() => {
@@ -212,7 +239,7 @@ export default function SchemaDetailsPanel({
   if (examples.length > 0) {
     tabs.push({ id: 'examples', label: 'Usage Examples', icon: <BookOpenIcon className="h-3.5 w-3.5" /> });
   }
-  if (allDiffs.length > 0) {
+  if (hasMultipleVersions) {
     tabs.push({ id: 'diff', label: 'Changes', icon: <ClockIcon className="h-3.5 w-3.5" /> });
   }
   tabs.push({ id: 'api', label: 'API', icon: <GlobeAltIcon className="h-3.5 w-3.5" /> });
@@ -341,8 +368,67 @@ export default function SchemaDetailsPanel({
               copiedId={copiedId}
               apiAccessEnabled={apiAccessEnabled}
             />
-          ) : activeTab === 'diff' && allDiffs.length > 0 ? (
-            <DiffViewer diffs={allDiffs} onOpenFullscreen={() => setIsDiffModalOpen(true)} apiAccessEnabled={apiAccessEnabled} />
+          ) : activeTab === 'diff' && hasMultipleVersions ? (
+            <div className="flex h-full min-h-0 flex-col overflow-hidden">
+              <div className="mb-4 flex flex-shrink-0 flex-col gap-3 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] p-3 sm:flex-row sm:items-end sm:justify-between">
+                <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[rgb(var(--ec-page-text-muted))]">
+                      From
+                    </span>
+                    <select
+                      value={diffFromVersion}
+                      onChange={(event) => setDiffFromVersion(event.target.value)}
+                      className="h-9 rounded-md border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-sm font-mono tabular-nums text-[rgb(var(--ec-page-text))] outline-hidden transition-colors focus:border-[rgb(var(--ec-accent))] focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
+                    >
+                      {uniqueAvailableVersions.map((version) => (
+                        <option key={`from-${version.data.version}`} value={version.data.version}>
+                          v{version.data.version}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[rgb(var(--ec-page-text-muted))]">
+                      To
+                    </span>
+                    <select
+                      value={diffToVersion}
+                      onChange={(event) => setDiffToVersion(event.target.value)}
+                      className="h-9 rounded-md border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-sm font-mono tabular-nums text-[rgb(var(--ec-page-text))] outline-hidden transition-colors focus:border-[rgb(var(--ec-accent))] focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
+                    >
+                      {uniqueAvailableVersions.map((version) => (
+                        <option key={`to-${version.data.version}`} value={version.data.version}>
+                          v{version.data.version}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDiffModalOpen(true)}
+                  disabled={!selectedDiff}
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+                  Expand
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-hidden">
+                {diffFromVersion === diffToVersion ? (
+                  <div className="flex h-full items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
+                    <p className="text-sm">Select two different versions</p>
+                  </div>
+                ) : !hasDiffFromContent || !hasDiffToContent ? (
+                  <div className="flex h-full items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
+                    <p className="text-sm">No schema content available</p>
+                  </div>
+                ) : (
+                  <DiffViewer diffs={selectedDiffs} apiAccessEnabled={apiAccessEnabled} />
+                )}
+              </div>
+            </div>
           ) : (
             <SchemaContentViewer
               message={message}
@@ -507,7 +593,7 @@ export default function SchemaDetailsPanel({
       <VersionHistoryModal
         isOpen={isDiffModalOpen}
         onOpenChange={setIsDiffModalOpen}
-        diffs={allDiffs}
+        diffs={selectedDiffs}
         messageName={message.data.name}
         apiAccessEnabled={apiAccessEnabled}
       />
