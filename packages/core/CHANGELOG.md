@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 4.0.7
+
+### Patch Changes
+
+- a68d3a2: Fix the AI assistant API URL when EventCatalog is deployed with a custom base path (#1345).
+- 9c6ead6: Schema Explorer version comparison now lets you pick any two versions to diff using From/To selectors instead of only showing consecutive-version diffs
+- 37bb4c9: Resolve JSON Schema `$ref` pointers (local and remote) when rendering remote JSON schemas, so referenced definitions are inlined instead of shown as unresolved `$ref` values.
+- Updated dependencies [0983132]
+- Updated dependencies [f963964]
+  - @eventcatalog/linter@1.1.4
+  - @eventcatalog/visualiser@4.0.1
+
 ## 4.0.6
 
 ### Patch Changes

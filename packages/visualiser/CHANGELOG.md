@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 4.0.1
+
+### Patch Changes
+
+- f963964: Fix visualiser image export (download visual) so grouped graphs are no longer cropped and SVG edges/labels keep their colors in the exported PNG
+
 ## 4.0.0
 
 ### Major Changes
@@ -111,6 +117,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
@@ -214,6 +221,7 @@
 
 - 7d0203c: fix(visualiser): resolve header visibility conflict with tailwind utilities
 - c05874a: Beta release of @eventcatalog/visualiser package
+
   - Fix node icon positioning: icon at top, label at bottom of left bar
   - Color-matched connection handles for all node types
   - Fix animated edge line color (gray-300)
