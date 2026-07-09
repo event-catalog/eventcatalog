@@ -20,6 +20,10 @@ export const logger = {
       pc.dim('If you like the project, we would appreciate a star on GitHub ❤️ - ') +
         pc.bold('https://github.com/event-catalog/eventcatalog/stargazers')
     );
+    console.log(
+      pc.dim('Using AI? Install EventCatalog Skills to help you manage your catalog - ') +
+        pc.bold('https://github.com/event-catalog/skills')
+    );
     console.log();
   },
   info: (message: string, tag: string = 'info') => {

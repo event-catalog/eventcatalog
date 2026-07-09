@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import path from 'path';
 import { makeDir } from './helpers/make-dir';
 import { tryGitInit } from './helpers/git';
+import { installEventCatalogSkills } from './helpers/install-skills';
 
 import { isFolderEmpty } from './helpers/is-folder-empty';
 import { getOnline } from './helpers/is-online';
@@ -23,6 +24,7 @@ export async function createApp({
   experimentalApp,
   organizationName,
   initEmptyProject,
+  installSkills,
   template: templateName,
 }: {
   appPath: string;
@@ -34,6 +36,7 @@ export async function createApp({
   experimentalApp: boolean;
   organizationName: string;
   initEmptyProject: boolean;
+  installSkills: boolean;
   template?: TemplateType;
 }): Promise<void> {
   let repoInfo: any | undefined;
@@ -78,6 +81,8 @@ export async function createApp({
     organizationName,
   });
 
+  const skillsInstalled = installSkills ? await installEventCatalogSkills(root) : false;
+
   const gitInitialized = tryGitInit(root);
 
   let cdpath: string;
@@ -92,6 +97,9 @@ export async function createApp({
   console.log(chalk.green('  Project initialized!'));
   console.log(`    ${chalk.dim('■')} Template copied`);
   console.log(`    ${chalk.dim('■')} Dependencies installed`);
+  if (skillsInstalled) {
+    console.log(`    ${chalk.dim('■')} EventCatalog Skills installed`);
+  }
   if (gitInitialized) {
     console.log(`    ${chalk.dim('■')} Git initialized`);
   }

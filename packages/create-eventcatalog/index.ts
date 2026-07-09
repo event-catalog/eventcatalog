@@ -12,6 +12,7 @@ import packageJson from './package.json';
 
 let projectPath: string = '';
 let organizationName: string = '';
+let installSkills: boolean = false;
 
 const program = new Commander.Command(packageJson.name)
   .version(packageJson.version)
@@ -161,6 +162,15 @@ async function run(): Promise<void> {
     }
   }
 
+  const installSkillsResponse = await prompts({
+    type: 'confirm',
+    name: 'installSkills',
+    message: 'Would you like to install EventCatalog Skills?',
+    initial: true,
+  });
+
+  installSkills = installSkillsResponse.installSkills ?? false;
+
   console.log();
 
   const template = program.template || 'default';
@@ -197,6 +207,7 @@ async function run(): Promise<void> {
       experimentalApp: false,
       organizationName: organizationName,
       initEmptyProject,
+      installSkills,
       template: template,
     });
   } catch (reason) {
@@ -224,6 +235,7 @@ async function run(): Promise<void> {
       organizationName: organizationName,
       experimentalApp: program.experimentalApp,
       initEmptyProject,
+      installSkills,
     });
   }
 }
