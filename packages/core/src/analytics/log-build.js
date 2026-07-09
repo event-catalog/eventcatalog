@@ -60,6 +60,8 @@ const toCloudResourceCounts = (counts) => ({
   designs: counts.designs || 0,
   diagrams: counts.diagrams || 0,
   ubiquitousLanguages: counts.ubiquitousLanguages || 0,
+  customPages: counts.customPages || 0,
+  customApis: counts.customApis || 0,
 });
 
 const reportCloudResourceInventory = async (configFile, resourceCounts) => {
