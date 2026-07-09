@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.1.0
+
+### Minor Changes
+
+- 80b0ddc: Custom pages: `.astro` and API route files in your catalog's `pages/` directory are now served as routes under a configurable prefix (`pages.prefix`, defaults to `custom`). Requires the Scale plan.
+
 ## 4.0.7
 
 ### Patch Changes
