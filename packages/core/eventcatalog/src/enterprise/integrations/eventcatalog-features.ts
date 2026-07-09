@@ -4,23 +4,80 @@
  */
 
 import type { AstroIntegration } from 'astro';
+import fs from 'node:fs';
 import path from 'path';
 import config from '../../../eventcatalog.config.js';
 import {
   isEventCatalogChatEnabled,
   isAuthEnabled,
   isEventCatalogScaleEnabled,
-  isEventCatalogStarterEnabled,
   isEventCatalogMCPEnabled,
   isEventCatalogMCPAuthEnabled,
   isFullCatalogAPIEnabled,
   isDevMode,
   isIntegrationsEnabled,
   isCustomDocsEnabled,
+  isCustomPagesEnabled,
   isSSR,
 } from '../../utils/feature';
+import {
+  CUSTOM_PAGES_MANIFEST_FILENAME,
+  getCustomPageRoutes,
+  isApiRoute,
+  listCustomPageFiles,
+  resolveCustomPagesPrefix,
+} from '../custom-pages/routes';
 
 const catalogDirectory = process.env.CATALOG_DIR || process.cwd();
+const customPagesDirectory = path.join(catalogDirectory, 'src/custom-pages');
+
+// Routes are injected at astro:config:setup, so adding or removing a custom page
+// file needs a full Astro restart before its route exists. This manifest is
+// registered via addWatchFile — rewriting it with a changed file list triggers
+// that restart (a Vite-level server.restart() does NOT re-run route injection).
+const customPagesManifest = path.join(customPagesDirectory, CUSTOM_PAGES_MANIFEST_FILENAME);
+
+const writeCustomPagesManifest = () => {
+  const content = JSON.stringify(listCustomPageFiles(customPagesDirectory));
+
+  try {
+    if (fs.existsSync(customPagesManifest) && fs.readFileSync(customPagesManifest, 'utf-8') === content) {
+      return;
+    }
+
+    fs.mkdirSync(customPagesDirectory, { recursive: true });
+    fs.writeFileSync(customPagesManifest, content);
+  } catch (error: any) {
+    console.warn(`[EventCatalog] Could not update the custom pages manifest: ${error.message}`);
+  }
+};
+
+const configureCustomPages = (params: {
+  command: 'dev' | 'build' | 'preview' | 'sync';
+  injectRoute: (route: { pattern: string; entrypoint: string }) => void;
+}) => {
+  const prefix = resolveCustomPagesPrefix(config.pages?.prefix);
+  const routes = getCustomPageRoutes(customPagesDirectory, prefix);
+
+  const apiRoutes = routes.filter(isApiRoute);
+  if (apiRoutes.length > 0 && !isSSR()) {
+    const message = `Custom API routes (${apiRoutes.map((route) => `pages/${route.file}`).join(', ')}) require EventCatalog to run in server mode. Set output: 'server' in your eventcatalog.config.js or remove the pages/api directory.`;
+
+    // The dev server serves endpoints dynamically regardless of output mode,
+    // so only fail the build — but warn early during development.
+    if (params.command === 'build') {
+      throw new Error(`[EventCatalog] ${message}`);
+    }
+    console.warn(`[EventCatalog] ${message}`);
+  }
+
+  for (const route of routes) {
+    params.injectRoute({
+      pattern: route.pattern,
+      entrypoint: path.join(customPagesDirectory, route.file),
+    });
+  }
+};
 
 const configureAuthentication = (params: {
   injectRoute: (route: { pattern: string; entrypoint: string }) => void;
@@ -148,6 +205,18 @@ export default function eventCatalogIntegration(): AstroIntegration {
           });
         }
 
+        // User-defined pages and API routes (Scale plan)
+        if (isCustomPagesEnabled()) {
+          configureCustomPages(params);
+        } else if (listCustomPageFiles(customPagesDirectory).length > 0) {
+          console.warn('[EventCatalog] Custom pages require the Scale plan. The routes for your pages will not be served.');
+        }
+
+        // Keep routes in sync during dev — a manifest change restarts the dev
+        // server so injectRoute runs again with the new file list
+        writeCustomPagesManifest();
+        params.addWatchFile(customPagesManifest);
+
         // Warn if integrations are configured without Scale plan
         if (config.integrations && !isIntegrationsEnabled()) {
           console.warn('[EventCatalog] Integrations require the Scale plan. Analytics integrations will not be loaded.');
@@ -164,6 +233,20 @@ export default function eventCatalogIntegration(): AstroIntegration {
             entrypoint: path.join(catalogDirectory, 'src/enterprise/visualizer-layout/reset.ts'),
           });
         }
+      },
+      'astro:server:setup': ({ server }) => {
+        // When custom page files appear or disappear, refresh the manifest.
+        // A content change restarts the dev server (via addWatchFile above),
+        // which re-runs route injection. Unchanged content writes nothing,
+        // so events from the watcher's initial scan are no-ops.
+        const onCustomPageChange = (file: string) => {
+          if (!path.resolve(file).startsWith(customPagesDirectory + path.sep)) return;
+          if (!/\.(astro|ts|js|mjs)$/i.test(file)) return;
+          writeCustomPagesManifest();
+        };
+
+        server.watcher.on('add', onCustomPageChange);
+        server.watcher.on('unlink', onCustomPageChange);
       },
     },
   };

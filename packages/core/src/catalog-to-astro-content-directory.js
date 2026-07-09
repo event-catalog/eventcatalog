@@ -43,6 +43,22 @@ const copyFiles = async (source, target) => {
   }
 };
 
+const clearCustomPages = async (target) => {
+  const customPagesDir = path.join(target, 'src', 'custom-pages');
+  if (fs.existsSync(customPagesDir)) fs.rmSync(customPagesDir, { recursive: true });
+
+  // Older versions copied pages/ code files (e.g. homepage.astro) into public/generated,
+  // serving their source as static assets. Clean up any stale copies.
+  const staleCodeFiles = await glob(path.join(target, 'public', 'generated', 'pages', '**/*.{astro,ts,js,mjs}'), {
+    nodir: true,
+    windowsPathsNoEscape: os.platform() == 'win32',
+  });
+
+  for (const file of staleCodeFiles) {
+    fs.rmSync(file);
+  }
+};
+
 const removeGeneratedLikeC4Sources = async (target) => {
   const generatedDir = path.join(target, 'public', 'generated');
   const files = await glob(path.join(generatedDir, '**/*.{c4,likec4}'), {
@@ -72,6 +88,7 @@ export const catalogToAstro = async (source, astroDir) => {
     fs.writeFileSync(path.join(source, 'eventcatalog.styles.css'), '');
   }
 
+  await clearCustomPages(astroDir);
   await removeGeneratedLikeC4Sources(astroDir);
   await copyFiles(source, astroDir);
 };

@@ -286,6 +286,14 @@ export interface Config {
   };
   mdxOptimize?: boolean;
   compress?: boolean;
+  pages?: {
+    /**
+     * URL prefix that user-defined pages (pages/*.astro, pages/api/*.ts) are served under,
+     * e.g. pages/reports.astro is served at /custom/reports.
+     * @default 'custom'
+     */
+    prefix?: string;
+  };
   navigation?: {
     pages?: NavigationPage[];
     /**

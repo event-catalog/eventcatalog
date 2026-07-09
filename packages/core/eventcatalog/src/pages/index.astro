@@ -21,7 +21,7 @@ const props = Astro.props;
 const pathToUserDefinedLandingPage = path.join(process.env.PROJECT_DIR || '', 'pages/homepage.astro');
 
 if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
-  const customPages = import.meta.glob('/**/homepage.astro', { eager: true });
+  const customPages = import.meta.glob('/src/custom-pages/homepage.astro', { eager: true });
   // @ts-ignore
   CustomContent = Object.values(customPages)[0]?.default || null;
 

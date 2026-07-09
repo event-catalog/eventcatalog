@@ -1,0 +1,25 @@
+---
+/**
+ * Public layout shell for user-defined custom pages, imported by catalog
+ * authors as `@catalog/layouts/Layout.astro`.
+ *
+ * The props here are a documented, stable interface — internal layouts can
+ * change freely, this contract cannot.
+ */
+interface Props {
+  title: string;
+  description?: string;
+  /** Render the resource sidebar (domains, services, messages). Defaults to true. */
+  sidebar?: boolean;
+  /** Show the EventCatalog header (search, navigation). Defaults to true. */
+  showHeader?: boolean;
+}
+
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+
+const { title, description, sidebar = true, showHeader = true } = Astro.props;
+---
+
+<VerticalSideBarLayout title={title} description={description} showHeader={showHeader} showNestedSideBar={sidebar}>
+  <slot />
+</VerticalSideBarLayout>

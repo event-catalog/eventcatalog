@@ -25,6 +25,7 @@ export {
   isEventCatalogChatEnabled,
   isEventCatalogUpgradeEnabled,
   isCustomLandingPageEnabled,
+  isCustomPagesEnabled,
   isAuthEnabled,
   isCustomStylesEnabled,
   isEventCatalogMCPEnabled,
