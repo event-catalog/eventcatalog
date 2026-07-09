@@ -15,6 +15,7 @@ import remarkComment from 'remark-comment';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { eventCatalogLikeC4 } from './src/plugins/likec4';
+import { astroTrailingSlashEndpointFix } from './src/plugins/astro-trailing-slash-endpoint-fix';
 
 import rehypeExpressiveCode from 'rehype-expressive-code';
 
@@ -116,7 +117,11 @@ export default defineConfig({
     eventCatalogIntegration(),
   ].filter(Boolean),
   vite: {
-    plugins: [tailwindcss(), ...(await eventCatalogLikeC4(projectDirectory))],
+    plugins: [
+      tailwindcss(),
+      ...(await eventCatalogLikeC4(projectDirectory)),
+      ...(config.trailingSlash === true ? [astroTrailingSlashEndpointFix()] : []),
+    ],
     define: {
       /**
        * Trailing slash is exposed as global variable here principally for `@utils/url-builder`.
