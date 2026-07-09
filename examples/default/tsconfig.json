@@ -1,0 +1,26 @@
+{
+  // Editor support (IntelliSense, go-to-definition) for custom pages.
+  // These aliases mirror the ones the EventCatalog build provides at runtime.
+  // In a real catalog the paths point into .eventcatalog-core instead.
+  "compilerOptions": {
+    "baseUrl": ".",
+    "allowJs": true,
+    "jsx": "preserve",
+    "paths": {
+      "@catalog/components/*": ["components/*"],
+      "@catalog/layouts/*": ["../../packages/core/eventcatalog/src/toolkit/layouts/*"],
+      "@catalog/utils": ["../../packages/core/eventcatalog/src/toolkit/utils/index.ts"],
+      "@catalog/utils/*": ["../../packages/core/eventcatalog/src/toolkit/utils/*"],
+      "@components/*": ["../../packages/core/eventcatalog/src/components/*"],
+      "@layouts/*": ["../../packages/core/eventcatalog/src/layouts/*"],
+      "@utils/*": ["../../packages/core/eventcatalog/src/utils/*"],
+      "@enterprise/*": ["../../packages/core/eventcatalog/src/enterprise/*"],
+      "@icons/*": ["../../packages/core/eventcatalog/src/icons/*"],
+      "@stores/*": ["../../packages/core/eventcatalog/src/stores/*"],
+      "@types": ["../../packages/core/eventcatalog/src/types/index.ts"],
+      "@config": ["eventcatalog.config.js"],
+      "@eventcatalog": ["../../packages/core/eventcatalog/src/utils/eventcatalog-config/catalog.ts"]
+    }
+  },
+  "include": ["pages/**/*", "components/**/*"]
+}

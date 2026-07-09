@@ -53,6 +53,9 @@ export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled(
 // Custom landing pages are always enabled now.
 export const isCustomLandingPageEnabled = () => true;
 
+// User-defined pages and API routes (pages/*.astro, pages/api/*.ts)
+export const isCustomPagesEnabled = () => isEventCatalogScaleEnabled();
+
 export const isAuthEnabled = () => {
   const isAuthEnabledInCatalog = config?.auth?.enabled ?? false;
   const directory = process.env.PROJECT_DIR || process.cwd();

@@ -9,6 +9,9 @@
       "@icons/*": ["src/icons/*"],
       "@components/*": ["src/components/*"],
       "@catalog/components/*": ["src/custom-defined-components/*"],
+      "@catalog/layouts/*": ["src/toolkit/layouts/*"],
+      "@catalog/utils": ["src/toolkit/utils/index.ts"],
+      "@catalog/utils/*": ["src/toolkit/utils/*"],
       "@catalog/snippets/*": ["src/snippets/*"],
       "@types": ["src/types/index.ts"],
       "@utils/*": ["src/utils/*"],
@@ -22,5 +25,6 @@
     "jsxImportSource": "react",
     "types": ["vitest/globals"]
   },
-  "include": ["src/**/*", "*.config.*"]
+  "include": ["src/**/*", "*.config.*"],
+  "exclude": ["src/custom-pages"]
 }

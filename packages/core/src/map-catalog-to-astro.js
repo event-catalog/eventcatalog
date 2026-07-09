@@ -1,5 +1,9 @@
 import path from 'node:path';
 
+// Code files in the top-level `pages/` directory become routes in the Astro app
+// (custom pages). Everything else in `pages/` keeps the collection behaviour.
+const CUSTOM_PAGE_EXTENSIONS = ['.astro', '.ts', '.js', '.mjs'];
+
 const COLLECTION_KEYS = [
   'agents',
   'events',
@@ -38,6 +42,11 @@ export function mapCatalogToAstro({ filePath, astroDir, projectDir }) {
     return [];
   }
 
+  const customPageTargetPaths = getCustomPageTargetPaths(relativeFilePath, astroDir);
+  if (customPageTargetPaths) {
+    return customPageTargetPaths;
+  }
+
   const baseTargetPaths = getBaseTargetPaths(relativeFilePath);
   const relativeTargetPath = getRelativeTargetPath(relativeFilePath);
 
@@ -66,6 +75,42 @@ function isCollectionKey(key) {
 
 function isLikeC4Source(filePath) {
   return filePath.endsWith('.c4') || filePath.endsWith('.likec4');
+}
+
+// This is a workaround to differentiate between a file and a directory.
+// Of course this is not the best solution. But how differentiate? `fs.stats`
+// could be used, but sometimes the filePath references a deleted file/directory
+// which causes an error when using `fs.stats`.
+const hasExtension = (str) => /\.[a-zA-Z0-9]{2,}$/.test(str);
+
+/**
+ * Maps files in the user's top-level `pages/` directory.
+ * Code files (.astro/.ts/.js/.mjs) become custom pages (routes) in the Astro app,
+ * they must never land in `public/` where their source would be served.
+ * @param {string} filePath - The file path without the projectDir prefix.
+ * @param {string} astroDir - The astro directory.
+ * @returns {string[]|null} Target paths, or null when the path is not a top-level pages path.
+ */
+function getCustomPageTargetPaths(filePath, astroDir) {
+  const filePathArr = filePath.split(path.sep).filter(Boolean);
+
+  if (filePathArr[0] !== 'pages') {
+    return null;
+  }
+
+  const customPagePath = path.join(astroDir, 'src', 'custom-pages', ...filePathArr.slice(1));
+
+  if (CUSTOM_PAGE_EXTENSIONS.includes(path.extname(filePath).toLowerCase())) {
+    return [customPagePath];
+  }
+
+  // Directories map to both targets so watcher deletes clean up both copies
+  if (!hasExtension(filePath)) {
+    return [customPagePath, path.join(astroDir, 'public', 'generated', ...filePathArr)];
+  }
+
+  // Other assets keep the existing public/generated behaviour
+  return [path.join(astroDir, 'public', 'generated', ...filePathArr)];
 }
 
 /**
@@ -103,12 +148,6 @@ function getBaseTargetPaths(filePath) {
 
   // Collection
   if (isCollectionKey(filePathArr[0])) {
-    // This is a workaround to differentiate between a file and a directory.
-    // Of course this is not the best solution. But how differentiate? `fs.stats`
-    // could be used, but sometimes the filePath references a deleted file/directory
-    // which causes an error when using `fs.stats`.
-    const hasExtension = (str) => /\.[a-zA-Z0-9]{2,}$/.test(str);
-
     // Assets files
     if (hasExtension(filePath)) {
       return [path.join('public', 'generated')];
