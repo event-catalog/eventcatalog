@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.1.3
+
+### Patch Changes
+
+- a4caa45: Count custom pages and custom API routes in build analytics resource inventory
+
 ## 4.1.2
 
 ### Patch Changes
