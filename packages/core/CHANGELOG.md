@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.1.1
+
+### Patch Changes
+
+- c769012: feat(create-eventcatalog): optionally install EventCatalog Skills when scaffolding a new project, and surface the skills repo in the CLI banner
+
 ## 4.1.0
 
 ### Minor Changes
