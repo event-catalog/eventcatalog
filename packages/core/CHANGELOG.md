@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.1.5
+
+### Patch Changes
+
+- afc9ebf: fix(core): serve proper favicons instead of the logo image
+
 ## 4.1.4
 
 ### Patch Changes
