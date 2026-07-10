@@ -2,17 +2,20 @@
 
 <img src="./images/banner.png" alt="EventCatalog overview" width="800" />
 
-## The discovery and governance layer for event-driven systems
+## The open source documentation tool for software architectures.
 
-Document, visualize, and govern your domains, services, events and schemas — with AI-powered search, interactive visualizations, and 15+ generators for Kafka, EventBridge, RabbitMQ, and more.
+A documentation tool designed for software architecture not generic pages.
+
+Document systems, domains, services, messages and schemas. Document your architecture they way you build it.
+
+Customize your documentation to fit your workflow. Automate it, customize it, visualize it.
 
 [![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
 [![npm version](https://badge.fury.io/js/@eventcatalog%2Fcore.svg)](https://badge.fury.io/js/@eventcatalog/core)
 [![All Contributors](https://img.shields.io/badge/all_contributors-69-orange.svg?style=flat-square)](#contributors-)
 
-**31,000+ catalogs created**
-
+**40,000+ catalogs created**
 
 </div>
 
