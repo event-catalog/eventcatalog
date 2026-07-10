@@ -23,7 +23,7 @@ To enable authentication for your site, you will need to do three things:
 :::info Authentication is a paid feature
 Authentication is a paid feature, and is available on EventCatalog Scale and Enterprise plans.
 
-You can get a 14 day free trial of EventCatalog Scale and Enterprise [here](https://www.eventcatalog.dev/pricing).
+You can get a 30-day free trial of EventCatalog Scale and Enterprise [here](https://www.eventcatalog.dev/pricing).
 
 You will need to set your license key in your `.env` file.
 
@@ -44,7 +44,7 @@ This is the only strictly required environment variable. It is the secret used t
 AUTH_SECRET=your-secret
 ```
 
-#### AUTH_TRUST_HOST
+#### AUTH_TRUST_HOST {#auth_trust_host}
 
 When running EventCatalog behind a reverse proxy (Kubernetes/AKS, Nginx, Cloudflare, AWS ALB, etc.), you must set `AUTH_TRUST_HOST=true`. Without it, Auth.js falls back to the internal container URL (e.g. `http://localhost:3000`) instead of the real domain, which causes login and sign-out to fail with CSRF/cross-site errors such as "Cross-site POST form submissions are forbidden".
 

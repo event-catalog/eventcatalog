@@ -1,12 +1,12 @@
 ---
-sidebar_position: 1
+sidebar_position: 4
 keywords:
   - EventCatalog search
   - full-content search
   - indexed search
   - pagefind
   - search configuration
-sidebar_label: Search
+sidebar_label: Global Search
 title: Search
 description: Configure resource metadata search or opt-in to full-content indexed search
 ---

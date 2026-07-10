@@ -53,13 +53,13 @@ _Note: If you want to embed private EventCatalog instances, raise an issue on Gi
 
 ## Commercial Use
 
-This plugin requires a license key to be used. 
+This plugin requires an EventCatalog Scale license key to be used.
 
-You can get a 14 day trial license key to try the plugin out by going to [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a 30-day trial Scale license key by going to [EventCatalog Cloud](https://eventcatalog.cloud).
 
 You can try the Backstage plugin, or use EventCatalog Scale (as it's already included).
 
-After the trial you can purchase a license to continue using this plugin, we have different plans to suit your organization. 
+After the trial, you can continue using this plugin with EventCatalog Scale. 
 
 See [pricing](/pricing) for more information.
 

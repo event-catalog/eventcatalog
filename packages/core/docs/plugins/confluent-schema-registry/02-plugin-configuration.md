@@ -49,8 +49,8 @@ You can assign the schemas to a producer or consumer (service).
 | `services.id` | string | - | EventCatalog ID for the service. |
 | `services.sends` | Filter | - | Configuration to assign schemas to a producer. The schemas and topic defined here will be assigned to the producer. |
 | `services.receives` | Filter | - | Configuration to assign schemas to a consumer. The schemas and topic defined here will be assigned to the consumer. |
-| `services.writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service writes to. (Added in v0.2.1) |
-| `services.readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service reads from. (Added in v0.2.1) |
+| `services.writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service writes to. (Added in v0.2.1) |
+| `services.readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service reads from. (Added in v0.2.1) |
 
 ### Topics
 
@@ -60,7 +60,7 @@ Schemas are mapped to their topics.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `topics` | object | - | Optional list of topics to assign the schemas to. (optional). [These are documented as channels](/docs/development/guides/channels/introduction) in EventCatalog. |
+| `topics` | object | - | Optional list of topics to assign the schemas to. (optional). [These are documented as channels](/docs/development/guides/resources/messages/message-channels/introduction) in EventCatalog. |
 | `topics.id` | string | - | EventCatalog ID for the topic (e.g `orders-topic`). |
 | `topics.name` | string | - | Name of the topic (e.g `Orders Topic`). |
 | `topics.address` | string | - | Address of the topic (e.g `kafka-cluster-1.us-east-1.confluent.cloud:9092`). |

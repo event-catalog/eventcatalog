@@ -20,6 +20,12 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 const { title, description, sidebar = true, showHeader = true } = Astro.props;
 ---
 
-<VerticalSideBarLayout title={title} description={description} showHeader={showHeader} showNestedSideBar={sidebar}>
+<VerticalSideBarLayout
+  title={title}
+  description={description}
+  showHeader={showHeader}
+  showNestedSideBar={sidebar}
+  wrapContent={false}
+>
   <slot />
 </VerticalSideBarLayout>

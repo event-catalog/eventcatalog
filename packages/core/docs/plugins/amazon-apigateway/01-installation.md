@@ -127,36 +127,35 @@ export default {
 
 The API Gateway and OpenAPI plugin both require a license key to work with EventCatalog.
 
-You can get a trial license key from [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a trial Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud).
 
 You have a few options for setting the license key:
 
 1. [Setting license key in `.env` file (recommended)](#setting-license-key-in-env-file-recommended)
 2. [Setting license key in eventcatalog.config.js](#setting-license-key-in-eventcatalogconfigjs)
 
-#### 1. Setting license key in `.env` file (recommended)
+#### 1. Setting license key in `.env` file (recommended) {#setting-license-key-in-env-file-recommended}
 
 <AddedIn version="2.35.4" />
 
 Create a `.env` file in the root of your project and add the following:
 
 ```bash title=".env"
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
+```
+
+:::tip Using an Older API Key?
+
+If you already have older Amazon API Gateway and OpenAPI plugin keys, you can still use them with the plugin-specific environment variables.
+
+```bash title=".env"
 EVENTCATALOG_LICENSE_KEY_AMAZON_APIGATEWAY=your-license-key
 EVENTCATALOG_LICENSE_KEY_OPENAPI=your-license-key
 ```
 
-:::tip Using an older version of EventCatalog?
-
-If you are using an older version of EventCatalog that does not support the `.env` file, you can just export the license key as an environment variable.
-
-```bash title="Setting license key in environment variables"
-export EVENTCATALOG_LICENSE_KEY_AMAZON_APIGATEWAY=your-license-key
-export EVENTCATALOG_LICENSE_KEY_OPENAPI=your-license-key
-```
-
 :::
 
-#### 2. Setting license key in eventcatalog.config.js
+#### 2. Setting license key in eventcatalog.config.js {#setting-license-key-in-eventcatalogconfigjs}
 
 If you prefer, you can set the license key in the `eventcatalog.config.js` file
 using the `licenseKey` property in both the API Gateway and OpenAPI plugin.
@@ -167,7 +166,7 @@ export default {
     [
       '@eventcatalog/generator-eventbridge',
       {
-        licenseKey: '[INSERT_YOUR_LICENSE_KEY]', // or process.env.EVENTCATALOG_LICENSE_KEY_AMAZON_APIGATEWAY
+        licenseKey: '[INSERT_YOUR_LICENSE_KEY]', // or process.env.EVENTCATALOG_SCALE_LICENSE_KEY
       },
     ],
   ],
@@ -193,6 +192,5 @@ Run your catalog locally to see the changes.
 ```sh
 npm run dev
 ```
-
 
 

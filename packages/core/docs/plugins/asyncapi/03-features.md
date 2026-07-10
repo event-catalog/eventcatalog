@@ -17,9 +17,9 @@ import TabItem from '@theme/TabItem';
 | [Mapping messages events, commands or queries](#mapping-messages-events-commands-or-queries) | AsyncAPI does not distinguish between commands, events and queries, everything is a message. Using the EventCatalog custom AsyncAPI [extension](https://www.asyncapi.com/docs/concepts/asyncapi-document/extending-specification) `x-eventcatalog-message-type` you can specify if your messages are events, command or queries. |
 | [Defining message ownership roles](#defining-message-ownership-roles) | AsyncAPI specification files do not define who owns the message and it's contract. Your AsyncAPI file my define messages your service consumes and produces but that service may not be the service that owns it's contract. (e.g An order service that consumes a Payment event. The order service (AsyncAPI file) would specify it consumes the payment event, but it is not the owner of the contract or event). |
 | [Defining message versions](#defining-message-versions) | In EventCatalog you can version your domains, services and all your messages. This can be useful as you can specify which version of a message your service produces or consumes. |
-| [Mapping channels into EventCatalog](#mapping-channels-into-eventcatalog) | EventCatalog supports [Channels](/docs/development/guides/channels/introduction) ([see demo](https://demo.eventcatalog.dev/docs/channels/inventory.%7Benv%7D.events/1.0.0)). This let's you document how messages or organized and transported in your event-driven architecture. |
+| [Mapping channels into EventCatalog](#mapping-channels-into-eventcatalog) | EventCatalog supports [Channels](/docs/development/guides/resources/messages/message-channels/introduction) ([see demo](https://demo.eventcatalog.dev/docs/channels/inventory.%7Benv%7D.events/1.0.0)). This let's you document how messages or organized and transported in your event-driven architecture. |
 | [Creating draft domains, services and messages](#creating-draft-domains-services-and-messages) | You can create draft domains, services and messages in EventCatalog from your AsyncAPI files. This will be used to mark the resources as draft in EventCatalog. |
-| [Persist markdown](#persist-markdown) | When you generate your AsyncAPI files your markdown on your domains,services, and messages in EventCatalog is persisted between versions. This allows you to add [custom components](/docs/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your AsyncAPI files. |
+| [Persist markdown](#persist-markdown) | When you generate your AsyncAPI files your markdown on your domains,services, and messages in EventCatalog is persisted between versions. This allows you to add [custom components](/docs/components/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your AsyncAPI files. |
 | [Fetch AsyncAPI files by URL](#fetch-asyncapi-files-by-url) | You can use the `path` property of the generator to specify a path to your local file system or an external URL, or you can mix both of them. |
 | [Authenticate remote URLs](#authenticate-remote-urls) | Use HTTP headers to access protected AsyncAPI files from authenticated URLs. |
 | [Automatic versioning](#automatic-versioning) | When you change versions in your AsyncAPI file and run generate, your services and messages are automatically versioned. This allows you to keep an audit log of changes between AsyncAPI files, schemas and more. |
@@ -182,7 +182,7 @@ UserSignedUp:
 
 <AddedIn version="2.7.0" pkg="@eventcatalog/generator-asyncapi" url="https://github.com/event-catalog/generators/releases/tag/v"/>
 
-EventCatalog supports [Channels](/docs/development/guides/channels/introduction) ([see demo](https://demo.eventcatalog.dev/docs/channels/inventory.%7Benv%7D.events/1.0.0)). This let's you document how messages or organized and transported in your event-driven architecture.
+EventCatalog supports [Channels](/docs/development/guides/resources/messages/message-channels/introduction) ([see demo](https://demo.eventcatalog.dev/docs/channels/inventory.%7Benv%7D.events/1.0.0)). This let's you document how messages or organized and transported in your event-driven architecture.
 
 ![Example](../../../docs/development/guides/img/channels/channels-example.png)
 
@@ -581,7 +581,7 @@ _Example of a deprecated resource in EventCatalog:_
 
 When you generate your AsyncAPI files your markdown on your domains,services, and messages in EventCatalog is persisted between versions.
 
-This allows you to add [custom components](/docs/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your AsyncAPI files.
+This allows you to add [custom components](/docs/components/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your AsyncAPI files.
 
 ### Fetch AsyncAPI files by URL
 
@@ -641,7 +641,7 @@ The headers are passed with every HTTP request when fetching the AsyncAPI file f
 
 When you change versions in your AsyncAPI file and run generate, your services and messages are automatically versioned. This allows you to keep an audit log of changes between AsyncAPI files, schemas and more.
 
-You can also add changelogs between different versions of your services and messages. [Read here for more information](/docs/development/guides/messages/common/changelog).
+You can also add changelogs between different versions of your services and messages. [Read here for more information](/docs/development/guides/resources/messages/versioning-and-lifecycle/add-changelog).
 
 ### Downloading schemas
 
@@ -659,11 +659,11 @@ The generator supports AsyncAPI specification files up to and including version 
 
 <AddedIn version="6.4.0" pkg="@eventcatalog/generator-asyncapi" url="https://github.com/event-catalog/generators/releases/tag/v"/>
 
-When a service sends or receives many messages, the [visualiser](/docs/development/guides/messages/common/grouping-messages) can become crowded. The `groupMessagesBy` option lets you automatically group related messages together so they collapse into a single node in the visualiser map, making your architecture easier to understand at a glance.
+When a service sends or receives many messages, the [visualiser](/docs/development/guides/resources/messages/connect-messages/group-messages) can become crowded. The `groupMessagesBy` option lets you automatically group related messages together so they collapse into a single node in the visualiser map, making your architecture easier to understand at a glance.
 
 ![Message group expanded in the visualiser](./img/message-group-expanded.png)
 
-To learn more about how groups work in the visualiser, see [Grouping messages](/docs/development/guides/messages/common/grouping-messages).
+To learn more about how groups work in the visualiser, see [Grouping messages](/docs/development/guides/resources/messages/connect-messages/group-messages).
 
 Set `groupMessagesBy: 'x-extension'` in your generator config, then add `x-eventcatalog-group` to each message in your AsyncAPI components.
 
@@ -690,7 +690,7 @@ components:
 When `parseChannels` is also enabled, group assignments and channel pointers are both preserved on the generated messages.
 
 :::tip
-Once grouped, messages appear as a compact stacked card in the visualiser. Click the group to expand it and see the full downstream graph — channels, consumers, and producers — just as if the messages were ungrouped. See [Grouping messages](/docs/development/guides/messages/common/grouping-messages) for more details.
+Once grouped, messages appear as a compact stacked card in the visualiser. Click the group to expand it and see the full downstream graph — channels, consumers, and producers — just as if the messages were ungrouped. See [Grouping messages](/docs/development/guides/resources/messages/connect-messages/group-messages) for more details.
 :::
 
 ### Example

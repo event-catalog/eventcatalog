@@ -10,7 +10,7 @@ description: Creating and managing changelogs within EventCatalog.
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Changelogs are currently supported in [domains](/docs/development/guides/domains/versioning-and-changelogs/changelog), [services](/docs/development/guides/services/versioning-and-lifecycle/changelog) and [messages](/docs/development/guides/messages/common/changelog).
+Changelogs are currently supported in [domains](/docs/development/guides/domains/add-changelog), [services](/docs/development/guides/resources/services/versioning-and-lifecycle/add-changelog) and [messages](/docs/development/guides/resources/messages/versioning-and-lifecycle/add-changelog).
 
 To add a changelog to your resources you need to create a `changelog.mdx` file.
 

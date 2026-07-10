@@ -111,4 +111,4 @@ When the EventCatalog MCP server is enabled, an additional entry pointing at `/d
 
 Only services and domains are included in v1 of this endpoint. Events, commands, queries, data products, schemas, diagrams, teams, and users are out of scope for this release.
 
-For a broader machine-readable index of your catalog content, see [llms.txt](/docs/development/developer-tools/llms.txt) and [schemas.txt](/docs/development/developer-tools/schemas.txt).
+For a broader machine-readable index of your catalog content, see [llms.txt](/docs/development/ask-your-architecture/llms.txt) and [schemas.txt](/docs/development/ask-your-architecture/schemas.txt).

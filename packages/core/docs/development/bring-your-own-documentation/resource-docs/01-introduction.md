@@ -11,12 +11,10 @@ keywords:
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
 
 <AddedIn version="3.15.0" />
-
-:::info Scale plan required
-Resource-level documentation requires an [EventCatalog Scale plan](https://eventcatalog.dev/pricing).
-:::
+<PlanBanner plan="Scale" />
 
 Resource-level documentation lets you attach documentation pages directly to any resource in your catalog. Instead of keeping ADRs, runbooks, contracts, and guides in a separate tool, you can place them alongside the resource they describe.
 

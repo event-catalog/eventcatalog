@@ -10,8 +10,11 @@ keywords:
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
+import ProjectTree from '@site/src/components/MDX/ProjectTree';
 
 <AddedIn version="2.x.0" />
+<PlanBanner plan="Scale" />
 
 When you group resource docs into subdirectories, each subdirectory becomes a section in the resource sidebar. By default, the section label is the folder name and sections are sorted alphabetically.
 
@@ -21,15 +24,41 @@ When you group resource docs into subdirectories, each subdirectory becomes a se
 
 Place a `category.json` file inside any doc type folder to configure its sidebar label and position.
 
-```
-services/
-└── OrdersService/
-    └── docs/
-        └── runbooks/
-            ├── category.json
-            ├── 01-deployment.md
-            └── 02-incident-response.md
-```
+<ProjectTree
+  items={[
+    {
+      name: 'services',
+      type: 'folder',
+      defaultOpen: true,
+      children: [
+        {
+          name: 'OrdersService',
+          type: 'folder',
+          defaultOpen: true,
+          children: [
+            {
+              name: 'docs',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                {
+                  name: 'runbooks',
+                  type: 'folder',
+                  defaultOpen: true,
+                  children: [
+                    { name: 'category.json', highlight: true },
+                    { name: '01-deployment.md' },
+                    { name: '02-incident-response.md' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 ```json title="services/OrdersService/docs/runbooks/category.json"
 {

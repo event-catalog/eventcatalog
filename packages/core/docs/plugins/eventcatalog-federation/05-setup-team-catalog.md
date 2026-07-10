@@ -12,7 +12,7 @@ import Beta from '@site/src/components/MDX/Beta';
 
 <!-- <Beta /> -->
 <AddedIn version="2.18.0" />
-<PluginLicense url="/docs/development/guides/custom-components%20copy/introduction#commercial-use" />
+<PluginLicense url="/docs/plugins/eventcatalog-federation/intro#commercial-use" />
 
 Multiple teams can own their own EventCatalog, this is useful if you have multiple teams that want to own their own EventCatalog / Documentation.
 
@@ -39,10 +39,10 @@ Your team can document their own services, messages and domains in this catalog,
 To help you get started:
 
 - [Creating domains in EventCatalog](/docs/development/guides/domains/introduction)
-- [Creating services in EventCatalog](/docs/development/guides/services/introduction)
-- [Creating events in EventCatalog](/docs/development/guides/messages/events/introduction)
-- [Creating commands in EventCatalog](/docs/development/guides/messages/commands/introduction)
-- [Creating queries in EventCatalog](/docs/development/guides/messages/queries/introduction)
+- [Creating services in EventCatalog](/docs/development/guides/resources/services/introduction)
+- [Creating events in EventCatalog](/docs/development/guides/resources/messages/message-types/events)
+- [Creating commands in EventCatalog](/docs/development/guides/resources/messages/message-types/commands)
+- [Creating queries in EventCatalog](/docs/development/guides/resources/messages/message-types/queries)
 
 Once your teams have created their own documentation you can [merge them into the main catalog using the federation generator](https://github.com/event-catalog/generators).
 
@@ -93,5 +93,4 @@ dependencies: {
 }
 // rest of your config
 ```
-
 

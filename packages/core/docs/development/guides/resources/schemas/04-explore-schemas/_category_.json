@@ -1,0 +1,11 @@
+{
+  "label": "Explore schemas",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/schemas/explore-schemas",
+    "description": "Find, inspect, and understand schemas across your catalog."
+  }
+}

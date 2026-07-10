@@ -9,7 +9,6 @@ import PlanBanner from '@site/src/components/MDX/PlanBanner';
 import AddedIn from '@site/src/components/MDX/AddedIn';
 
 <PlanBanner plan="Scale" />
-<AddedIn version="3.21.0" />
 
 EventCatalog supports analytics integrations that let you track how your team navigates and uses your catalog. Connect your existing analytics tools to understand which services, events, and flows your team visits most.
 

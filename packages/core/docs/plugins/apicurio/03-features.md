@@ -65,8 +65,8 @@ One of the powerful features of the Apicurio Registry plugin is its ability to w
 
 You can store OpenAPI and AsyncAPI specifications in your Apicurio Registry and use them to generate comprehensive service documentation automatically.
 
-:::info Plugin Licenses Required
-The OpenAPI and AsyncAPI generators are separate licensed plugins. You'll need to obtain license keys for each plugin you want to use from [EventCatalog Cloud](https://eventcatalog.cloud). A 14-day free trial is available for both plugins.
+:::info EventCatalog Scale License Required
+The OpenAPI and AsyncAPI generators require an EventCatalog Scale license key. You can get a 30-day free trial from [EventCatalog Cloud](https://eventcatalog.cloud).
 
 See the [OpenAPI Plugin](/docs/plugins/openapi/intro) and [AsyncAPI Plugin](/docs/plugins/asyncapi/intro) documentation for more details on installation and configuration.
 :::

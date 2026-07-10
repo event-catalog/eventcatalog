@@ -218,7 +218,7 @@ When multiple filter criteria are specified in a single filter object, ALL crite
 
 Your markdown is persisted between generation runs on EventCatalog. Initially the generator will generate markdown for you for your domains, services and events, but any edits to the markdown file will be persisted between versions.
 
-This allows you to add [custom components](/docs/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when your schemas are versioned.
+This allows you to add [custom components](/docs/components/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when your schemas are versioned.
 
 This can be useful for adding extra additional context to your events, example payloads, example CLI commands on how to produce/consume them and any other useful information.
 

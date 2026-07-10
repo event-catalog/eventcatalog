@@ -43,8 +43,8 @@ EventCatalog Federation is powered by the [EventCatalog Federation Generator](ht
 5. You use the federation generator to merge your teams catalogs into the main catalog
 6. You setup CI/CD to keep your main catalog up to date with your teams catalogs (or just rebuild every X time)
 
-To use the federation generator you will need a License Key from [EventCatalog Cloud](https://eventcatalog.cloud).
-You can get a free 14 day trial license key for the plugin.
+To use the federation generator you will need an EventCatalog Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a free 30-day trial Scale license key for the plugin.
 
 You can read more documentation:
 
@@ -55,11 +55,11 @@ You can read more documentation:
 
 ## Commercial Use
 
-This plugin requires a license key to be used. 
+This plugin requires an EventCatalog Scale license key to be used.
 
-You can get a 14 day trial license key to try the plugin out by going to [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a 30-day trial Scale license key by going to [EventCatalog Cloud](https://eventcatalog.cloud).
 
-After the trial you can purchase a license to continue using this plugin, we have different plans to suit your organization. 
+After the trial, you can continue using this plugin with EventCatalog Scale. 
 
 See [pricing](/pricing) for more information.
 

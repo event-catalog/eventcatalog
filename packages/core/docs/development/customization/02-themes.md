@@ -1,4 +1,5 @@
 ---
+sidebar_position: 6
 keywords:
   - EventCatalog themes
   - dark mode

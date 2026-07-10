@@ -10,31 +10,31 @@ EventCatalog Editor can browse and edit the main EventCatalog resource types.
 | Resource type | Browse | Edit docs | Edit metadata | Create | Delete | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | [Domain](/docs/development/guides/domains/introduction) | Yes | Yes | Yes | Yes | Yes | Supports services, messages, entities, specifications, and ubiquitous language |
-| [Service](/docs/development/guides/services/introduction) | Yes | Yes | Yes | Yes | Yes | Supports message relationships, data store relationships, and specifications |
-| [Event](/docs/development/guides/messages/events/introduction) | Yes | Yes | Yes | Yes | Yes | Supports schemas and producer/consumer relationships |
-| [Command](/docs/development/guides/messages/commands/introduction) | Yes | Yes | Yes | Yes | Yes | Supports schemas, operations, and producer/consumer relationships |
-| [Query](/docs/development/guides/messages/queries/introduction) | Yes | Yes | Yes | Yes | Yes | Supports schemas, operations, and producer/consumer relationships |
-| [Channel](/docs/development/guides/channels/introduction) | Yes | Yes | Yes | Yes | Yes | Supports common metadata |
-| [Entity](/docs/development/guides/domains/entities/introduction) | Yes | Yes | Yes | Yes | Yes | Supports common metadata |
-| [Data store](/docs/development/guides/data/introduction) | Yes | Yes | Yes | Yes | Yes | Represented as EventCatalog container resources |
-| [Flow](/docs/development/guides/flows/introduction) | Yes | Yes | Yes | Yes | Yes | Supports flow step editing |
-| [User](/docs/development/guides/owners/users/introduction) | Yes | Yes | Yes | Yes | Yes | Versionless |
-| [Team](/docs/development/guides/owners/teams/introduction) | Yes | Yes | Yes | Yes | Yes | Versionless |
+| [Service](/docs/development/guides/resources/services/introduction) | Yes | Yes | Yes | Yes | Yes | Supports message relationships, data store relationships, and specifications |
+| [Event](/docs/development/guides/resources/messages/message-types/events) | Yes | Yes | Yes | Yes | Yes | Supports schemas and producer/consumer relationships |
+| [Command](/docs/development/guides/resources/messages/message-types/commands) | Yes | Yes | Yes | Yes | Yes | Supports schemas, operations, and producer/consumer relationships |
+| [Query](/docs/development/guides/resources/messages/message-types/queries) | Yes | Yes | Yes | Yes | Yes | Supports schemas, operations, and producer/consumer relationships |
+| [Channel](/docs/development/guides/resources/messages/message-channels/introduction) | Yes | Yes | Yes | Yes | Yes | Supports common metadata |
+| [Entity](/docs/development/guides/resources/entities/introduction) | Yes | Yes | Yes | Yes | Yes | Supports common metadata |
+| [Data store](/docs/development/guides/resources/data/introduction) | Yes | Yes | Yes | Yes | Yes | Represented as EventCatalog container resources |
+| [Flow](/docs/development/guides/resources/flows/introduction) | Yes | Yes | Yes | Yes | Yes | Supports flow step editing |
+| [User](/docs/development/guides/owners/what-are-teams-and-users) | Yes | Yes | Yes | Yes | Yes | Versionless |
+| [Team](/docs/development/guides/owners/what-are-teams-and-users) | Yes | Yes | Yes | Yes | Yes | Versionless |
 
 ## Schemas
 
 Schemas are supported on:
 
-- [Events](/docs/development/guides/messages/events/introduction)
-- [Commands](/docs/development/guides/messages/commands/introduction)
-- [Queries](/docs/development/guides/messages/queries/introduction)
+- [Events](/docs/development/guides/resources/messages/message-types/events)
+- [Commands](/docs/development/guides/resources/messages/message-types/commands)
+- [Queries](/docs/development/guides/resources/messages/message-types/queries)
 
 ## Specifications
 
 Specifications are supported on:
 
 - [Domains](/docs/development/guides/domains/introduction)
-- [Services](/docs/development/guides/services/introduction)
+- [Services](/docs/development/guides/resources/services/introduction)
 
 Supported specification types:
 

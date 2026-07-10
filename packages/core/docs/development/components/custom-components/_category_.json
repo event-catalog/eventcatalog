@@ -1,0 +1,11 @@
+{
+  "label": "Write your own components",
+  "position": 7,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "components/custom-components",
+    "description": "Learn how to create reusable components for your EventCatalog documentation."
+  }
+}

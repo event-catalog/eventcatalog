@@ -12,7 +12,7 @@ import Beta from '@site/src/components/MDX/Beta';
 
 <!-- <Beta /> -->
 <AddedIn version="2.18.0" />
-<PluginLicense url="/docs/development/guides/custom-components%20copy/introduction#commercial-use" />
+<PluginLicense url="/docs/plugins/eventcatalog-federation/intro#commercial-use" />
 
 EventCatalog Federation is powered by the [EventCatalog Federation Generator](https://github.com/event-catalog/generators), this let's you define the repositories you want to merge into your main catalog.
 
@@ -162,7 +162,7 @@ If you want to learn more about the federation generator you can read the [Event
 
 ### Running the generator
 
-You will need a license key to run the generator, you can get a free 14 day trial license key from [EventCatalog Cloud](https://eventcatalog.cloud).
+You will need an EventCatalog Scale license key to run the generator. You can get a free 30-day trial Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud).
 
 Once you have configured the federation generator you can run the generator.
 

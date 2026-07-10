@@ -25,7 +25,6 @@ Here are some guides and places you can host static content
 - [Host with Docker](#hosting-with-docker)
 - [Deploy to NextJS](https://nextjs.org/docs/deployment)
 - [Host in AWS S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
-- [Deploying EventCatalog using Helm chart](https://github.com/osodevops/helm-charts/tree/main/charts/eventcatalog)
 
 **Community posts**
 - [Using AWS CDK to Deploy EventCatalog](https://matt.martz.codes/using-aws-cdk-to-deploy-eventcatalog)

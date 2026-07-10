@@ -1,0 +1,11 @@
+{
+  "label": "Agents",
+  "position": 10,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/resources/agents",
+    "description": "A collection of guides to help you understand agents and how they work with EventCatalog."
+  }
+}

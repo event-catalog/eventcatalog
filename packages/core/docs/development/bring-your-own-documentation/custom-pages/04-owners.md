@@ -10,8 +10,10 @@ description: Adding owners to custom pages with EventCatalog.
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
 
 <AddedIn version="2.33.0" />
+<PlanBanner plan="Scale" />
 
 Owners in EventCatalog are either **users** or **teams** and are **optional**.
 
@@ -41,5 +43,4 @@ Assigning owners to your custom pages can provide others with context of who own
 :::tip Creating users and teams
     EventCatalog gives you the ability to create users and teams. You can read the documentation to get started.
 :::
-
 

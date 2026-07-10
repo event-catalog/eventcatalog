@@ -106,7 +106,7 @@ Each example includes:
 - Azure CLI installed ([Install guide](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli))
 - Azure account with Event Hubs namespace
 - Azure Schema Registry with sample schemas
-- EventCatalog license key ([14-day trial available](https://eventcatalog.cloud))
+- EventCatalog license key ([30-day trial available](https://eventcatalog.cloud))
 - Appropriate Azure permissions (`Azure Event Hubs Data Receiver` role)
 
 ### Quick Start

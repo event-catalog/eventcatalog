@@ -5,9 +5,9 @@ title: Architecture Change Detection
 description: Know when your event-driven architecture changes. Get notified when services start or stop producing and consuming messages.
 ---
 
-import EventCatalogPro from '@site/src/components/MDX/EventCatalogPro';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
 
-<EventCatalogPro />
+<PlanBanner plan="Scale" />
 
 Services get added. Consumers change. Producers disappear. In event-driven systems, these relationship changes often go unnoticed until something breaks downstream.
 

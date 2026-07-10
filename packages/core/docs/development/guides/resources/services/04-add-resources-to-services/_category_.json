@@ -1,0 +1,11 @@
+{
+  "label": "Add resources to services",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/services/add-resources-to-services",
+    "description": "Add messages, data stores, and entities to your services."
+  }
+}

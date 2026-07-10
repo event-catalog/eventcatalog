@@ -69,7 +69,7 @@ If the editor asks you to sign in, sign in with [EventCatalog Cloud](https://eve
 
 ## Open a resource
 
-Choose a resource from the left navigation. A good first edit is a [service](/docs/development/guides/services/introduction), [domain](/docs/development/guides/domains/introduction), [event](/docs/development/guides/messages/events/introduction), [command](/docs/development/guides/messages/commands/introduction), or [query](/docs/development/guides/messages/queries/introduction) that already exists in your catalog.
+Choose a resource from the left navigation. A good first edit is a [service](/docs/development/guides/resources/services/introduction), [domain](/docs/development/guides/domains/introduction), [event](/docs/development/guides/resources/messages/message-types/events), [command](/docs/development/guides/resources/messages/message-types/commands), or [query](/docs/development/guides/resources/messages/message-types/queries) that already exists in your catalog.
 
 The editor shows:
 

@@ -1,0 +1,11 @@
+{
+  "label": "Add specifications to services",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/schemas/add-specifications-to-services",
+    "description": "Attach OpenAPI, AsyncAPI, and GraphQL specifications to services."
+  }
+}

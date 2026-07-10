@@ -5,7 +5,7 @@ title: Use the Flow Editor
 description: Create and update EventCatalog flows visually with EventCatalog Editor.
 ---
 
-Use the Flow Editor when you want to document a business process, user journey, or architecture workflow without editing the [flow](/docs/development/guides/flows/introduction) files by hand.
+Use the Flow Editor when you want to document a business process, user journey, or architecture workflow without editing the [flow](/docs/development/guides/resources/flows/introduction) files by hand.
 
 Flow resources are still stored in your local EventCatalog project. The editor gives you a visual way to create and arrange the steps, then writes the change back to your catalog files.
 
@@ -33,10 +33,10 @@ Use the node picker to add the resource that best represents the next step.
 
 For example:
 
-- Add a [service](/docs/development/guides/services/introduction) when a system performs work
-- Add an [event](/docs/development/guides/messages/events/introduction) when something has happened
-- Add a [command](/docs/development/guides/messages/commands/introduction) when one system asks another system to do something
-- Add a [query](/docs/development/guides/messages/queries/introduction) when the flow reads information
+- Add a [service](/docs/development/guides/resources/services/introduction) when a system performs work
+- Add an [event](/docs/development/guides/resources/messages/message-types/events) when something has happened
+- Add a [command](/docs/development/guides/resources/messages/message-types/commands) when one system asks another system to do something
+- Add a [query](/docs/development/guides/resources/messages/message-types/queries) when the flow reads information
 
 Use existing catalog resources when they already exist. Create new resources when the flow reveals something that is missing from the catalog.
 

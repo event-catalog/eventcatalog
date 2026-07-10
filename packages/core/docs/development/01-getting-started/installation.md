@@ -106,6 +106,6 @@ To use the editor, you need Git installed and editor access through [EventCatalo
 
 - [Understand the project structure](/docs/development/getting-started/project-structure)
 - [Develop and build your catalog](/docs/development/getting-started/develop-and-build)
-- [Create your first domain](/docs/development/guides/domains/creating-domains/adding-domains)
-- [Create your first service](/docs/development/guides/services/adding-services)
-- [Document your first message](/docs/development/guides/messages/overview)
+- [Create your first domain](/docs/development/guides/domains/create-domain)
+- [Create your first service](/docs/development/guides/resources/services/create-service)
+- [Document your first message](/docs/development/guides/resources/messages/what-are-messages)

@@ -1,0 +1,12 @@
+{
+  "label": "Visualize domains",
+  "position": 6,
+  "className": "hidden",
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/domains/visualize-domains",
+    "description": "Visualize domain relationships, integrations, and entities."
+  }
+}

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 21
 keywords:
   - components
 sidebar_label: Steps

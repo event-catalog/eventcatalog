@@ -1,0 +1,12 @@
+{
+  "label": "Tutorial",
+  "position": 1,
+  "collapsible": false,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "tutorial",
+    "title": "EventCatalog Tutorial",
+    "description": "Build your first EventCatalog from a small commerce architecture and learn how domains, services, messages, schemas, owners, and visualizations fit together."
+  }
+}

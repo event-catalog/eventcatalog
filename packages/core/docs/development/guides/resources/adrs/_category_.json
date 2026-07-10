@@ -1,0 +1,11 @@
+{
+  "label": "Architecture Decision Records",
+  "position": 9,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/resources/adrs",
+    "description": "A collection of guides to help you document and manage architecture decision records in EventCatalog."
+  }
+}

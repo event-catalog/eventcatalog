@@ -1,0 +1,11 @@
+{
+  "label": "Automated teams and users",
+  "position": 6,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/development/guides/owners/automated-teams-and-users",
+    "description": "A collection of guides to help you sync teams and users into EventCatalog from external systems."
+  }
+}

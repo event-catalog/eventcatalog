@@ -74,12 +74,11 @@ You can attach OpenAPI or AsyncAPI specifications stored in your Apicurio Regist
 You can attach OpenAPI or AsyncAPI specifications from your Apicurio Registry to services. These specifications can optionally be processed by their respective EventCatalog plugins to generate additional documentation.
 
 :::info Plugin Licenses Required
-The OpenAPI and AsyncAPI generators are separate licensed plugins. To use them with the Apicurio plugin, you'll need to:
+The OpenAPI and AsyncAPI generators require an EventCatalog Scale license key. To use them with the Apicurio plugin, you'll need to:
 - Install the respective plugins: `npm install @eventcatalog/generator-openapi @eventcatalog/generator-asyncapi`
-- Obtain license keys from [EventCatalog Cloud](https://eventcatalog.cloud) (14-day free trial available)
-- Configure the license keys in your `.env` file:
-  - `EVENTCATALOG_LICENSE_KEY_OPENAPI=your-openapi-license-key`
-  - `EVENTCATALOG_LICENSE_KEY_ASYNCAPI=your-asyncapi-license-key`
+- Obtain an EventCatalog Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud) (30-day free trial available)
+- Configure the license key in your `.env` file:
+  - `EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key`
 
 Learn more: [OpenAPI Plugin Docs](/docs/plugins/openapi/intro) | [AsyncAPI Plugin Docs](/docs/plugins/asyncapi/intro)
 :::
@@ -534,11 +533,10 @@ When using nested generators, make sure to:
 ```bash
 npm install @eventcatalog/generator-openapi @eventcatalog/generator-asyncapi
 ```
-2. Obtain license keys from [EventCatalog Cloud](https://eventcatalog.cloud) (14-day free trial available)
-3. Add the license keys to your `.env` file:
+2. Obtain an EventCatalog Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud) (30-day free trial available)
+3. Add the license key to your `.env` file:
 ```bash
-EVENTCATALOG_LICENSE_KEY_OPENAPI=your-openapi-license-key
-EVENTCATALOG_LICENSE_KEY_ASYNCAPI=your-asyncapi-license-key
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
 ```
 
 See [OpenAPI Plugin Docs](/docs/plugins/openapi/intro) | [AsyncAPI Plugin Docs](/docs/plugins/asyncapi/intro) for more information.

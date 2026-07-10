@@ -1,0 +1,11 @@
+{
+  "label": "Versioning & lifecycle",
+  "position": 7,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/services/versioning-and-lifecycle",
+    "description": "Version, deprecate, and document changes to services."
+  }
+}

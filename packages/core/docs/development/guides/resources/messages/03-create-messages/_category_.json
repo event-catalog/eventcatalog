@@ -1,0 +1,11 @@
+{
+  "label": "Create messages",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/messages/create-messages",
+    "description": "Create events, commands, queries, and draft messages."
+  }
+}

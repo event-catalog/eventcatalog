@@ -107,36 +107,36 @@ generators: [
 
 ### Configure license key
 
-The EventCatalog Federation plugin requires a license key to work with EventCatalog.
+The EventCatalog Federation plugin requires an EventCatalog Scale license key to work with EventCatalog.
 
-You can get a trial license key from [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a trial Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud).
 
 You have a few options for setting the license key:
 
 1. [Setting license key in `.env` file (recommended)](#setting-license-key-in-env-file-recommended)
 2. [Setting license key in eventcatalog.config.js](#setting-license-key-in-eventcatalogconfigjs)
 
-#### 1. Setting license key in `.env` file (recommended)
+#### 1. Setting license key in `.env` file (recommended) {#setting-license-key-in-env-file-recommended}
 
 <AddedIn version="2.35.4" />
 
 Create a `.env` file in the root of your project and add the following:
 
 ```bash title=".env"
-EVENTCATALOG_LICENSE_KEY_FEDERATION=your-license-key
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
 ```
 
-:::tip Using an older version of EventCatalog?
+:::tip Using an Older API Key?
 
-If you are using an older version of EventCatalog that does not support the `.env` file, you can just export the license key as an environment variable.
+If you already have an older Federation plugin key, you can still use it with the Federation-specific environment variable.
 
-```bash title="Setting license key in environment variables"
-export EVENTCATALOG_LICENSE_KEY_FEDERATION=your-license-key
+```bash title=".env"
+EVENTCATALOG_LICENSE_KEY_FEDERATION=your-license-key
 ```
 
 :::
 
-#### 2. Setting license key in eventcatalog.config.js
+#### 2. Setting license key in eventcatalog.config.js {#setting-license-key-in-eventcatalogconfigjs}
 
 If you prefer, you can set the license key in the `eventcatalog.config.js` file
 using the `licenseKey` property in the EventCatalog Federation plugin.
@@ -147,7 +147,7 @@ export default {
     [
       '@eventcatalog/generator-federation',
       {
-        licenseKey: '[INSERT_YOUR_LICENSE_KEY]', // or process.env.EVENTCATALOG_LICENSE_KEY_FEDERATION
+        licenseKey: '[INSERT_YOUR_LICENSE_KEY]', // or process.env.EVENTCATALOG_SCALE_LICENSE_KEY
       },
     ],
   ],
@@ -177,6 +177,5 @@ npm run dev
 ## Any questions or need help?
 
 If you get stuck, find an issue or need help, please raise an issue on [GitHub](https://github.com/event-catalog/eventcatalog/issues) or join our [Discord community](https://eventcatalog.dev/discord).
-
 
 

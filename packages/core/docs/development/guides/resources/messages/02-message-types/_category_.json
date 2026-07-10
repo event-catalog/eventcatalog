@@ -1,0 +1,11 @@
+{
+  "label": "Message types",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/messages/message-types",
+    "description": "Understand events, commands, and queries in EventCatalog."
+  }
+}

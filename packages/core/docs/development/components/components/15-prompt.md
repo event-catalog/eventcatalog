@@ -1,5 +1,5 @@
 ---
-sidebar_position: 18
+sidebar_position: 15
 keywords:
   - components
   - prompt
@@ -15,7 +15,7 @@ import AddedIn from '@site/src/components/MDX/AddedIn';
 
 <AddedIn version="3.32.2" />
 
-`<Prompt />` lets you embed ready-to-use AI prompts directly in your documentation pages. Readers can expand the card to inspect the prompt, copy it to their clipboard, or open it straight in Cursor with one click.
+`<Prompt />` lets you embed ready-to-use AI prompts directly in your documentation pages. Readers can copy the prompt to their clipboard or open it straight in Cursor with one click.
 
 Place the prompt text as the slot content and configure the label and actions via props.
 
@@ -57,10 +57,6 @@ Place the prompt text as the slot content and configure the label and actions vi
 Use `actions={["copy"]}` (the default) when you only need clipboard support. Add `"cursor"` to the array when your team works in Cursor and you want a one-click "Open in Cursor" button that pre-fills the prompt.
 
 Both actions derive their text from the slot content. HTML tags are stripped automatically, so plain text is always passed to the clipboard and the Cursor deep-link.
-
-### Inspect the prompt
-
-Every prompt card includes a **Show prompt** control. Expanding the card reveals the exact prompt text that will be copied or sent to Cursor.
 
 ### Use the icon prop
 

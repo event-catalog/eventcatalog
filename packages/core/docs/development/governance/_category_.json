@@ -1,6 +1,7 @@
 {
   "label": "Governance Patterns",
   "position": 9,
+  "className": "hidden",
   "collapsible": true,
   "collapsed": false
 }

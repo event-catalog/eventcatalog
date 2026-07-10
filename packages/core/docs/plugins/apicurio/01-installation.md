@@ -117,18 +117,28 @@ We create an `orders` domain and an `Orders Service` that sends and receives mes
 
 The EventCatalog Apicurio Registry plugin requires API keys in your environment variables.
 
-1. A license key for the Apicurio Registry plugin (14 days trial, at [EventCatalog Cloud](https://eventcatalog.cloud))
+1. An EventCatalog Scale license key for the Apicurio Registry plugin (30-day trial, at [EventCatalog Cloud](https://eventcatalog.cloud))
 2. Apicurio Registry access token (optional - only if your registry requires authentication)
 
 Create a `.env` file in the root, and add your keys to the project.
 
 ```bash title=".env"
 # EventCatalog license key
-EVENTCATALOG_LICENSE_KEY_APICURIO_SCHEMA_REGISTRY=your-license-key
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
 
 # Apicurio Registry Bearer Token (optional - only if your registry requires authentication)
 APICURIO_ACCESS_TOKEN=your-access-token-here
 ```
+
+:::tip Using an Older API Key?
+
+If you already have an older Apicurio Registry plugin key, you can still use it with the plugin-specific environment variable.
+
+```bash title=".env"
+EVENTCATALOG_LICENSE_KEY_APICURIO_SCHEMA_REGISTRY=your-license-key
+```
+
+:::
 
 #### White listing EventCatalog domains
 

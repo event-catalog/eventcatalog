@@ -15,7 +15,7 @@ import PlanBanner from '@site/src/components/MDX/PlanBanner';
 ### Prerequisites
 
 1. **SSR mode** - EventCatalog must run in [server mode](/docs/development/deployment/build-ssr-mode#building-your-eventcatalog-ssr) (not static)
-2. **Scale license** - You can get a 14 day free trial at [eventcatalog.cloud](https://eventcatalog.cloud)
+2. **Scale license** - You can get a 30-day free trial at [eventcatalog.cloud](https://eventcatalog.cloud)
 
 ### Quick start
 
@@ -240,7 +240,7 @@ For catalogs without SSR mode, use the standalone `@eventcatalog/mcp-server` pac
 For local development and testing, you can use the MCP Server on stdio. This is useful for single-client, low-latency tools.
 
 **Prerequisites:**
-- EventCatalog configured with the [`LLMS.txt` feature](/docs/development/developer-tools/llms.txt)
+- EventCatalog configured with the [`LLMS.txt` feature](/docs/development/ask-your-architecture/llms.txt)
 - EventCatalog Scale license
 - MCP client installed
 

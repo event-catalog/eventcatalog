@@ -51,8 +51,17 @@ The linter validates all EventCatalog resource types:
 - 📡 **Channels**
 - 🔄 **Flows**
 - 📊 **Entities**
+- 🤖 **Agents**
+- 🧱 **Containers** (including the legacy data store alias)
+- 📈 **Data Products**
+- 🧭 **Diagrams**
+- 📝 **ADRs**
 - 👤 **Users**
 - 👥 **Teams**
+
+<AddedIn version="1.2.0" />
+
+Agents, Containers, Data Products, Diagrams, and ADRs are validated as of version 1.2.0.
 
 ## Quick Start
 
@@ -314,7 +323,7 @@ npx @eventcatalog/linter --fail-on-warning
 
 ### Default Behavior
 
-If no `.eventcatalogrc.js` file is found, the linter uses default rules where all validations are set to `'error'`. This ensures strict validation out of the box, making it easy to get started with quality documentation practices.
+If no `.eventcatalogrc.js` file is found, the linter uses the default rules listed above. Most validations are errors by default, while documentation quality checks such as orphan messages, missing descriptions, missing schemas, and deprecated references default to warnings.
 
 ### Package.json Integration
 
@@ -341,16 +350,29 @@ Add to your `package.json` scripts:
 - ✅ Email addresses are valid format
 - ✅ Enum values are from allowed lists
 - ✅ Nested object structures are correct
+- ✅ Common resource configuration is supported, including `attachments`, `editUrl`, `diagrams`, `detailsPanel`, sidebar colors, and GraphQL specifications
 
 ### Reference Validation
 
 - ✅ Services referenced in domains exist
+- ✅ Agents, data products, flows, entities, and subdomains referenced in domains exist
 - ✅ Events/Commands/Queries referenced in services exist
+- ✅ Events/Commands/Queries referenced in agents exist
+- ✅ Data product inputs and outputs reference existing resources
+- ✅ ADR relationships and typed `appliesTo` references exist
 - ✅ Entities referenced in domains/services exist
+- ✅ Channels referenced in sends/receives `to`/`from`, routes, messages, and message channels exist
+- ✅ Containers referenced in `writesTo`/`readsFrom` exist
+- ✅ Diagrams referenced from other resources exist
 - ✅ Users/Teams referenced as owners exist
-- ✅ Flow steps reference existing services/messages
+- ✅ User/team owned resources and team members exist
+- ✅ Flow steps reference existing services/messages/agents/containers/data products
 - ✅ Entity properties reference existing entities
 - ✅ Version-specific references are valid
+
+<AddedIn version="1.2.0" />
+
+The expanded reference checks for agents, data products, ADRs, diagrams, and flow steps were added in version 1.2.0.
 
 ## Example Output
 
@@ -475,6 +497,9 @@ The linter provides descriptive rule names in parentheses to help identify and f
 - `(refs/owner-exists)` - Referenced owner (user/team) doesn't exist
 - `(refs/valid-version-range)` - Referenced version doesn't exist or invalid pattern
 - `(refs/resource-exists)` - Referenced resource doesn't exist
+- `(refs/channel-exists)` - Referenced channel in sends/receives `to`/`from`, routes, messages, or message channels doesn't exist
+- `(refs/container-exists)` - Referenced container in `writesTo`/`readsFrom` or flow steps doesn't exist
+- `(refs/orphan-messages)` - Event/command/query has no producer and no consumer
 
 ### Best Practice Rules
 
@@ -544,6 +569,116 @@ sidebar:
   label: User Events
 draft: false
 deprecated: false
+---
+```
+
+#### Agent
+
+<AddedIn version="1.2.0" />
+
+```yaml
+---
+id: refund-agent
+name: Refund Agent
+version: 1.0.0
+summary: Coordinates customer refund decisions
+owners:
+  - platform-team
+receives:
+  - id: refund-requested
+    from:
+      - id: refunds
+sends:
+  - id: refund-approved
+    to:
+      - id: public-events/orders
+readsFrom:
+  - id: orders-db
+model:
+  provider: OpenAI
+  name: gpt-4.1-mini
+tools:
+  - name: Payment lookup
+    type: mcp
+---
+```
+
+#### Container
+
+<AddedIn version="1.2.0" />
+
+```yaml
+---
+id: orders-db
+name: Orders DB
+version: 1.0.0
+summary: Stores order records
+container_type: database
+technology: PostgreSQL
+classification: internal
+access_mode: readWrite
+authoritative: true
+---
+```
+
+#### Data product
+
+<AddedIn version="1.2.0" />
+
+```yaml
+---
+id: refund-analytics
+name: Refund Analytics
+version: 1.0.0
+summary: Curated refund metrics for finance teams
+inputs:
+  - id: refund-approved
+  - id: orders-db
+outputs:
+  - id: public-events/orders
+    contract:
+      path: contracts/refund-analytics.json
+      name: Refund Analytics Contract
+---
+```
+
+#### ADR
+
+<AddedIn version="1.2.0" />
+
+```yaml
+---
+id: adr-001
+name: Use event-driven refunds
+version: 1.0.0
+summary: Records the decision to coordinate refunds through events
+status: accepted
+date: 2026-05-26
+decisionMakers:
+  - id: platform-team
+    collection: teams
+appliesTo:
+  - type: service
+    id: order-service
+  - type: data-product
+    id: refund-analytics
+related:
+  - id: adr-000
+---
+```
+
+#### Diagram
+
+<AddedIn version="1.2.0" />
+
+```yaml
+---
+id: refund-flow
+name: Refund Flow Diagram
+version: 1.0.0
+summary: Shows the refund workflow across services and agents
+owners:
+  - platform-team
 ---
 ```
 

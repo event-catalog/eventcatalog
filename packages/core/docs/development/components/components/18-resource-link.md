@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 18
 keywords:
 - components
 sidebar_label: ResourceLink

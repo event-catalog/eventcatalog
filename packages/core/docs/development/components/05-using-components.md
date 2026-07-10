@@ -7,23 +7,13 @@ title: Using components
 description: Understanding components
 ---
 
-EventCatalog uses [MDX](https://mdxjs.com/) under the hood. This gives you the ability to include predefined components inside your contents.
+EventCatalog is powered by [Astro](https://astro.build/) and [MDX](https://mdxjs.com/). This gives you the flexibility to use [prebuilt components](/docs/components/list) or [create your own components](/docs/components/custom-components) for your documentation.
 
-You can add components to your domains, services or messages.
+### Using prebuild components
 
-## Quick links
+EventCatalog comes with a range of prebuilt components, you can use these by adding them to the markdown content of any resource.
 
-In addition to components, use wiki-style syntax for inline resource references with interactive tooltips:
-
-```md
-The [[service|OrdersService]] processes [[event|OrderCreated]] messages.
-```
-
-See [Resource references](/docs/development/components/resource-references) for details.
-
-### Example
-
-You can include any component inside the markdown content. This example renders an Accordion component within an event.
+This example renders an Accordion component within an event.
 
 ```md title="/events/Orders/OrderAmended/index.mdx"
 ---
@@ -60,8 +50,6 @@ Event is raised when an order has been changed.
 
 
 ![Example](./img/accordian.png)
-
-
 
 
 

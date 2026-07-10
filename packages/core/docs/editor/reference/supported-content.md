@@ -36,11 +36,11 @@ Common command groups include:
 - Lists: bullet and ordered lists
 - Advanced: code blocks, dividers, and tables
 - Admonitions: note, tip, warning, danger, and info callouts
-- Diagrams: Node Graph, [Flow](/docs/development/guides/flows/introduction), Mermaid, Miro, Draw.io, Lucid, IcePanel, Entity Map, and Schema Viewer
+- Diagrams: Node Graph, [Flow](/docs/development/guides/resources/flows/introduction), Mermaid, Miro, Draw.io, Lucid, IcePanel, Entity Map, and Schema Viewer
 - Layout: Steps, Tiles, and Accordion group
 - AI: Prompt and Visibility blocks
 
-Some commands are resource-aware. For example, Schema Viewer appears for [events](/docs/development/guides/messages/events/introduction), [commands](/docs/development/guides/messages/commands/introduction), and [queries](/docs/development/guides/messages/queries/introduction), and Entity Map appears for [domains](/docs/development/guides/domains/introduction).
+Some commands are resource-aware. For example, Schema Viewer appears for [events](/docs/development/guides/resources/messages/message-types/events), [commands](/docs/development/guides/resources/messages/message-types/commands), and [queries](/docs/development/guides/resources/messages/message-types/queries), and Entity Map appears for [domains](/docs/development/guides/domains/introduction).
 
 ## Source mode
 

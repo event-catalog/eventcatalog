@@ -198,14 +198,24 @@ In this example we:
 
 The EventCatalog GitHub plugin requires API keys in your environment variables.
 
-1. A license key for the GitHub plugin (14 days trial, at [EventCatalog Cloud](https://eventcatalog.cloud))
+1. An EventCatalog Scale license key for the GitHub plugin (30-day trial, at [EventCatalog Cloud](https://eventcatalog.cloud))
 
 Create a `.env` file in the root, and add your keys to the project.
 
 ```bash title=".env"
 # EventCatalog license key
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
+```
+
+:::tip Using an Older API Key?
+
+If you already have an older GitHub plugin key, you can still use it with the plugin-specific environment variable.
+
+```bash title=".env"
 EVENTCATALOG_LICENSE_KEY_GITHUB=your-license-key
 ```
+
+:::
 
 #### White listing EventCatalog domains
 
@@ -225,7 +235,7 @@ Set the `EVENTCATALOG_GITHUB_TOKEN` environment variable in your `.env` file.
 
 ```bash title=".env"
 # EventCatalog license key
-EVENTCATALOG_LICENSE_KEY_GITHUB=your-license-key
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
 
 # GitHub token for private repository access
 EVENTCATALOG_GITHUB_TOKEN=ghp_your_token_here
@@ -288,6 +298,3 @@ npm run build
 If you get stuck, find an issue or need help, please raise an issue on [GitHub](https://github.com/event-catalog/eventcatalog/issues) or join our [Discord community](https://eventcatalog.dev/discord).
 
 You can also find some examples of the plugin in action in our examples repository: [eventcatalog/examples](https://github.com/event-catalog/generators/tree/main/examples/generator-github).
-
-
-

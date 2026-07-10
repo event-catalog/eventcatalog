@@ -8,6 +8,10 @@ title: Components
 description: Component list for custom pages 
 ---
 
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
+
+<PlanBanner plan="Scale" />
+
 You can add custom EventCatalog components to your custom pages.
 
 [See the list of components and how to use them](/docs/development/components/using-components).
@@ -50,4 +54,3 @@ In custom documentation pages, `id`, `version`, and `type` are all required. A `
 | `search` | boolean | No | Show or hide the search bar. Accepts `true`/`false` or `"true"`/`"false"`. Defaults to `true`. |
 | `legend` | boolean | No | Show or hide the legend. Accepts `true`/`false` or `"true"`/`"false"`. Defaults to `true`. |
 | `mode` | string | No | `"simple"` or `"full"`. Defaults to `"simple"`. |
-

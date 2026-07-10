@@ -22,7 +22,7 @@ The EventCatalog OpenAPI plugin is configured in the `eventcatalog.config.js` fi
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
 | `services` | `Service[]` | Yes | List of OpenAPI files to add to your catalog |
-| `licenseKey` | string | Yes* | License key for the plugin. Get a 14-day trial at [EventCatalog Cloud](https://eventcatalog.cloud). Can also be set via `EVENTCATALOG_LICENSE_KEY_OPENAPI` environment variable. |
+| `licenseKey` | string | Yes* | EventCatalog Scale license key. Get a 30-day trial at [EventCatalog Cloud](https://eventcatalog.cloud). Can also be set via the `EVENTCATALOG_SCALE_LICENSE_KEY` environment variable. |
 
 
 ### Service Configuration
@@ -33,14 +33,15 @@ Each service in the `services` array requires the following properties:
 |----------|------|----------|-------------|
 | `id` | string | Yes | EventCatalog ID for the service. |
 | `path` | string or string[] | Yes | Path/s to your OpenAPI file or remote URL to the OpenAPI file. v6.0.0 introduced the ability to map multiple OpenAPI files to a single service. |
+| `version` | string | No | Version for the generated EventCatalog service and messages. If not provided, the version from the OpenAPI `info.version` field is used. |
 | `name` | string | No | Display name for the service. If not provided, the specification will be used. _Added in v7.4.3_|
 | `summary` | string | No | Short summary of the service. If not provided, the specification will be used. _Added in v7.4.3_|
 | `owners` | string[] | No | Owners of the service. You can assign EventCatalog users or teams to services. |
 | `setMessageOwnersToServiceOwners` | boolean | No | If true, the owners of the service will be set to the owners of the messages in the OpenAPI file (default is true). |
 | `generateMarkdown` | function | - | Function to override the default markdown generation for the service. See [Markdown templates](#markdown-templates) for more information. |
 | `draft` | boolean | No | If true, the service will be drafted in EventCatalog with all it's endpoints / messages. (Added in v7.3.0) |
-| `writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service writes to. (Added in v7.5.0) |
-| `readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service reads from. (Added in v7.5.0) |
+| `writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service writes to. (Added in v7.5.0) |
+| `readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service reads from. (Added in v7.5.0) |
 | `headers` | `Record<string, string>` | No | HTTP headers for authenticated remote URLs (e.g., `{ Authorization: 'Bearer token' }`). Used when fetching OpenAPI files from URLs that require authentication. |
 | `consumers` | `ConsumerService[]` | No | Services that consume messages generated from this OpenAPI spec. Each entry requires an `id`, and supports an optional `version` and `routes` filter. See [consumer services](/docs/plugins/openapi/features#define-consumer-services) for details. |
 
@@ -64,7 +65,7 @@ Each service in the `services` array requires the following properties:
 | `writeFilesToRoot` | boolean | `false` | Write OpenAPI messages to root instead of service folder. By default all domains, services and messages 
 will be grouped in the folder directory structure. |
 | `saveParsedSpecFile` | boolean | `false` | Parse and save expanded OpenAPI spec (helpful for files with $refs) |
-| `sidebarBadgeType` | string | `HTTP_METHOD` | (Added in v5.0.1) Decides what badges are shown in the [documentation sidebar](/docs/development/customization/customize-sidebars/documentation-sidebar). `HTTP_METHOD` shows HTTP methods as badges, `MESSAGE_TYPE` shows `QUERY`, `COMMAND` or `EVENT` as badges. |
+| `sidebarBadgeType` | string | `HTTP_METHOD` | (Added in v5.0.1) Decides what badges are shown in the [documentation sidebar](/docs/development/customization/documentation-sidebar). `HTTP_METHOD` shows HTTP methods as badges, `MESSAGE_TYPE` shows `QUERY`, `COMMAND` or `EVENT` as badges. |
 | `httpMethodsToMessages` | object | - | (Added in v5.0.2) Gives you the ability to map HTTP methods (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, etc.) to message types (`command`, `query`, `event`). By default OpenAPI will map your requests to queries, you can use this property to change this behavior or use the `x-eventcatalog-message-type` extension to set the message type for each request. **If you use the `x-eventcatalog-message-type` extension in your spec file, this will be used.** |
 | `preserveExistingMessages` | boolean | true | (Added in v5.0.5) If true, the existing message markdown is preserved on new generation (default is true). Setting to false will always write the message markdown from the OpenAPI spec file. |
 | `parseExamples` | boolean | true | <AddedIn version="7.9.0" pkg="@eventcatalog/generator-openapi" url="https://github.com/event-catalog/generators/releases/tag/v"/> When enabled, parses examples from OpenAPI operations (request body and response examples) and writes them to each message's `examples` folder as JSON files. Set to `false` to disable. |
@@ -110,7 +111,8 @@ export default {
         services: [
           { 
             path: path.join(__dirname, 'openapi-files', 'orders-service.yml'),
-            id: 'orders-service'
+            id: 'orders-service',
+            version: '1.0.0'
           }
         ],
         domain: { id: 'orders', name: 'Orders', version: '0.0.1' },
@@ -316,7 +318,6 @@ export default {
 
 If you have questions or need help, you can join our [Discord community](https://eventcatalog.dev/discord)
 or refer to the [OpenAPI examples on GitHub](https://github.com/event-catalog/generators/tree/main/examples/generator-openapi).
-
 
 
 

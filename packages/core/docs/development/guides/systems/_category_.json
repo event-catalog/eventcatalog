@@ -1,0 +1,11 @@
+{
+  "label": "Systems",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/systems",
+    "description": "A collection of guides to help you understand systems and how they work with EventCatalog."
+  }
+}
