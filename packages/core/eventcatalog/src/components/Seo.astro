@@ -25,7 +25,11 @@ if (typeof _image === 'string') {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="viewport" content="width=device-width" />
-<link rel="icon" type="image/png" href={buildUrl('/logo.png', true)} />
+<link rel="icon" href={buildUrl('/favicon.ico', true)} sizes="any" />
+<link rel="icon" type="image/svg+xml" href={buildUrl('/favicon.svg', true)} />
+<link rel="icon" type="image/png" sizes="32x32" href={buildUrl('/favicon-32x32.png', true)} />
+<link rel="icon" type="image/png" sizes="16x16" href={buildUrl('/favicon-16x16.png', true)} />
+<link rel="apple-touch-icon" href={buildUrl('/apple-touch-icon.png', true)} />
 
 <SEO
   title={title}
