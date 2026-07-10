@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.1.4
+
+### Patch Changes
+
+- 3a64d3a: fix(core): toolkit pages no longer inherit the default app content wrapper, so they can control their own layout and padding
+
 ## 4.1.3
 
 ### Patch Changes
