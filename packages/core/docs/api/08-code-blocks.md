@@ -1,5 +1,5 @@
 ---
-sidebar_position: 100
+sidebar_position: 6
 sidebar_label: Code blocks
 title: Code blocks
 description: Understanding what is possible with EventCatalog code blocks

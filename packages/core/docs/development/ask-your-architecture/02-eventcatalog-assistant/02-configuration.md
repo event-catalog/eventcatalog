@@ -7,6 +7,7 @@ title: Configuration
 description: Configure EventCatalog Assistant
 ---
 
+import AddedIn from '@site/src/components/MDX/AddedIn';
 import PlanBanner from '@site/src/components/MDX/PlanBanner';
 
 <PlanBanner plan="Scale" />

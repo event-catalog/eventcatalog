@@ -66,6 +66,7 @@ Success! You are now ready to start building with EventCatalog! 🥳
 
 Here are a few things that we recommend exploring next. You can read them in any order. You can even leave our documentation for a bit and go play in your new EventCatalog project codebase, coming back here whenever you run into trouble or have a question.
 
-- [Create your first domain](/docs/development/guides/domains/creating-domains/adding-domains)
-- [Create your first service](/docs/development/guides/services/adding-services)
-- [Create your first message](/docs/messages)
+- [Create your first domain](/docs/development/guides/domains/create-domain)
+- [Create your first system](/docs/development/guides/systems/create-system)
+- [Create your first service](/docs/development/guides/resources/services/create-service)
+- [Create your first message](/docs/development/guides/resources/messages/what-are-messages)

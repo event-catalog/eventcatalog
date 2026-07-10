@@ -168,24 +168,34 @@ generators: [
 
 ### Configure license key
 
-The EventCatalog AWS Glue Schema Registry plugin requires a license key to work with EventCatalog.
+The EventCatalog AWS Glue Schema Registry plugin requires an EventCatalog Scale license key to work with EventCatalog.
 
-You can get a trial license key from [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a trial Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud).
 
 You have a few options for setting the license key:
 
 1. [Setting license key in `.env` file (recommended)](#setting-license-key-in-env-file-recommended)
 2. [Setting license key in eventcatalog.config.js](#setting-license-key-in-eventcatalogconfigjs)
 
-#### 1. Setting license key in `.env` file (recommended)
+#### 1. Setting license key in `.env` file (recommended) {#setting-license-key-in-env-file-recommended}
 
 Create a `.env` file in the root of your project and add the following:
+
+```bash title=".env"
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
+```
+
+:::tip Using an Older API Key?
+
+If you already have an older AWS Glue Schema Registry plugin key, you can still use it with the plugin-specific environment variable.
 
 ```bash title=".env"
 EVENTCATALOG_LICENSE_KEY_AWS_GLUE_SCHEMA_REGISTRY=your-license-key
 ```
 
-#### 2. Setting license key in eventcatalog.config.js
+:::
+
+#### 2. Setting license key in eventcatalog.config.js {#setting-license-key-in-eventcatalogconfigjs}
 
 If you prefer, you can set the license key in the `eventcatalog.config.js` file
 using the `licenseKey` property in the EventCatalog AWS Glue Schema Registry plugin.
@@ -196,7 +206,7 @@ export default {
     [
       '@eventcatalog/generator-aws-glue',
       {
-        licenseKey: '[INSERT_YOUR_LICENSE_KEY]', // or process.env.EVENTCATALOG_LICENSE_KEY_AWS_GLUE_SCHEMA_REGISTRY
+        licenseKey: '[INSERT_YOUR_LICENSE_KEY]', // or process.env.EVENTCATALOG_SCALE_LICENSE_KEY
       },
     ],
   ],

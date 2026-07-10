@@ -7,44 +7,48 @@ title: Bring your own documentation
 description: Bring your own documentation to EventCatalog
 ---
 
-EventCatalog allows you to centralise architecture documentation alongside your domains, services, and events — keeping knowledge and context in one place.
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
 
-You can write this documentation with Markdown and MDX, or use the optional [EventCatalog Editor](/docs/editor/overview) for a visual editing workflow.
+<PlanBanner plan="Scale" />
 
-Common use cases include:
+EventCatalog lets you bring your own documentation and diagrams into your catalog.
 
-- Architecture decision records (ADRs)
-- Infrastructure & operations runbooks
-- CI/CD documentation
-- User journeys
-- API documentation
-- Technical debt tracking
-- Team processes
-- Onboarding information
-- Best practices & standards
+This is useful when your documentation is spread across multiple repositories, project folders, wikis, or internal tools. You can bring that context into EventCatalog and make it part of the same experience people already use to explore your architecture.
 
-EventCatalog provides two ways to bring your own documentation to your catalog:
+You can document anything that helps your teams understand, operate, and govern your systems, including:
 
-1. [Global documentation](#1-global-documentation) 
-   - for cross-cutting and catalog-wide knowledge
-2. [Resource-level documentation](#2-resource-level-documentation) 
-   - for implementation details tied to a specific resoruce (e.g domain, service, or event)
+- Team onboarding documentation
+- Best practices and engineering standards
+- Runbooks and operational guides
+- CI/CD and deployment documentation
+- User journeys and business processes
+- Technical debt and migration notes
+
+EventCatalog has a few ways to bring your own information to your catalog:
+
+1. [High level documentation](#high-level-documentation)
+   - for catalog-wide knowledge that is not tied to one specific resource
+1. [Resource-level documentation](#resource-level-documentation)
+   - for documentation attached to a specific domain, service, event, API, or other catalog resource
+1. [Diagrams](/docs/development/bring-your-own-documentation/diagrams/introduction)
+   -  bring your own diagrams (e.g Miro, DrawIO, Mermaid) to your catalog.
 
 ---
 
-### Global documentation
+### High level documentation
 
-Global documentation can be used to document cross-cutting and catalog-wide knowledge. 
-You can bring your own documentation to your catalog and have your own documentation section (/docs/custom/) regardless of EventCatalog resources.
+High level documentation is for top-level knowledge that should live in your catalog but does not belong to one specific resource.
 
-[Read the custom pages guide](/docs/guides/bring-your-own-documentation/custom-pages).
+Use high level documentation for things like engineering standards, onboarding guides, architecture principles, platform runbooks, team processes, or shared API guidance. These pages appear in your catalog's documentation area and can be organized independently from your domains, services, and events.
+
+[Read the high level documentation guide](/docs/development/bring-your-own-documentation/custom-pages/introduction).
 
 ### Resource-level documentation
 
-Resource-level documentation can be used to document implementation details tied to a specific EventCatalog resource (e.g domain, service, or event).
+Resource-level documentation is for knowledge that belongs with a specific EventCatalog resource.
 
-This can be useful if you want to document details tied to a specific domain, service, message, data product, etc.
+Use resource-level documentation when the context should appear next to the thing it describes. For example, you can attach service runbooks to a service, onboarding material to a domain, operational notes to a system, or extra API documentation to an API.
 
-EventCatalog will render your custom documentation alongside the resource it is tied to in the sidebar.
+EventCatalog renders this documentation alongside the resource, so readers can move between the resource overview and its supporting documentation without leaving the catalog.
 
-[Read the resource docs guide](/docs/guides/bring-your-own-documentation/resource-docs).
+[Read the resource-level documentation guide](/docs/development/bring-your-own-documentation/resource-docs/introduction).

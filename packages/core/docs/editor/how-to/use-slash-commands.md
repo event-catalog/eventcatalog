@@ -32,7 +32,7 @@ You can insert components such as:
 - Draw.io diagram
 - Lucid diagram
 - IcePanel diagram
-- [Flow](/docs/development/guides/flows/introduction)
+- [Flow](/docs/development/guides/resources/flows/introduction)
 - Mermaid diagram
 - Entity Map
 - Schema Viewer
@@ -43,7 +43,7 @@ You can insert components such as:
 - Visibility
 - Admonitions such as note, tip, warning, danger, and info
 
-Some commands are available only when they make sense for the current resource. For example, **Schema Viewer** is available for [events](/docs/development/guides/messages/events/introduction), [commands](/docs/development/guides/messages/commands/introduction), and [queries](/docs/development/guides/messages/queries/introduction), while **Entity Map** is available for [domains](/docs/development/guides/domains/introduction).
+Some commands are available only when they make sense for the current resource. For example, **Schema Viewer** is available for [events](/docs/development/guides/resources/messages/message-types/events), [commands](/docs/development/guides/resources/messages/message-types/commands), and [queries](/docs/development/guides/resources/messages/message-types/queries), while **Entity Map** is available for [domains](/docs/development/guides/domains/introduction).
 
 ## Use visual previews
 

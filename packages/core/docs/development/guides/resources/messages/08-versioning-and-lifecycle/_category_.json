@@ -1,0 +1,11 @@
+{
+  "label": "Versioning & lifecycle",
+  "position": 6,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/messages/versioning-and-lifecycle",
+    "description": "Version, deprecate, and document changes to messages."
+  }
+}

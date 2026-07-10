@@ -1,64 +1,104 @@
 ---
 sidebar_position: 1
 keywords:
-- EventCatalog global documentation
-sidebar_label: Adding global documentation
-title: Adding global documentation
-description: Adding global documentation to your EventCatalog
+- EventCatalog high level documentation
+sidebar_label: Adding high level documentation
+title: Adding high level documentation
+description: Adding high level documentation to your EventCatalog
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
+import ProjectTree from '@site/src/components/MDX/ProjectTree';
 
 <AddedIn version="2.33.0" />
+<PlanBanner plan="Scale" />
 
 ## Getting started
 
-Global documentation requires a [Starter or Scale plan](https://eventcatalog.dev/pricing), you can get a 14 day free trial to test it out at [EventCatalog Cloud](https://eventcatalog.cloud). Once you have a license key you can start to use the feature.
+High level documentation requires an EventCatalog Scale license key. You can get a 30-day free trial from [EventCatalog Cloud](https://eventcatalog.cloud).
 
-## Adding global documentation
+## Adding high level documentation
 
-Global documentation is split into two parts:
+High level documentation is split into two parts:
 
 1. [Creating your documentation (markdown files)](#creating-your-documentation)
 2. [Configuring your sidebar (eventcatalog.config.js)](#configuring-your-sidebar)
 
 ### Creating documentation
 
-Global documentation is stored in the `/docs` folder in your catalog [(see example on GitHub)](https://github.com/event-catalog/eventcatalog/tree/main/examples/default/docs), and can be accessed via the url `/docs/custom/`.
+High level documentation is stored in the `/docs` folder in your catalog [(see example on GitHub)](https://github.com/event-catalog/eventcatalog/tree/main/examples/default/docs), and can be accessed via the url `/docs/custom/`.
 
 All documentation is a `.mdx` (markdown extended) file. You can organize these however you want, for example:
 
-```
-docs/
-├── architecture-decision-records/
-│   ├── drafts/
-│   │   ├── 01-introduction.mdx
-│   │   ├── 02-example-record.mdx
-│   ├── published/
-│   │   ├── 01-introduction.mdx
-│   │   ├── 02-example-record.mdx
-│   ├── examples/
-│   │   ├── 01-introduction.mdx
-│   │   ├── 02-example-record.mdx
-├── runbooks/
-│   ├── 01-introduction.mdx
-│   ├── 02-deployment-procedure.mdx
-│   ├── 03-disaster-recovery.mdx
-│   ├── 04-incident-response.mdx
+<ProjectTree
+  items={[
+    {
+      name: 'docs',
+      type: 'folder',
+      defaultOpen: true,
+      children: [
+        {
+          name: 'architecture-decision-records',
+          type: 'folder',
+          defaultOpen: true,
+          children: [
+            {
+              name: 'drafts',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                { name: '01-introduction.mdx' },
+                { name: '02-example-record.mdx' },
+              ],
+            },
+            {
+              name: 'published',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                { name: '01-introduction.mdx' },
+                { name: '02-example-record.mdx' },
+              ],
+            },
+            {
+              name: 'examples',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                { name: '01-introduction.mdx' },
+                { name: '02-example-record.mdx' },
+              ],
+            },
+          ],
+        },
+        {
+          name: 'runbooks',
+          type: 'folder',
+          defaultOpen: true,
+          children: [
+            { name: '01-introduction.mdx' },
+            { name: '02-deployment-procedure.mdx' },
+            { name: '03-disaster-recovery.mdx' },
+            { name: '04-incident-response.mdx' },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
-```
-
-In this example we have global documentation for:
+In this example we have high level documentation for:
 
 - architecture Decision Records
 - Runbooks
 
-:::tip Organize your global documentation
+:::tip Organize your high level documentation
 We added numbers (01, 02, 03) to the files to help with maintenance, you can configure the order of the files in your configuration.
 :::
 
 
-#### Structure of markdown files for global documentation
+#### Structure of markdown files for high level documentation
 
 Each markdown file is split into two parts:
 
@@ -193,8 +233,6 @@ export default {
  #### Rendered output
 
 ![Example](./img/custom-attrs.png)
-
-
 
 
 

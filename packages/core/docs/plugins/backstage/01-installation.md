@@ -24,11 +24,11 @@ We recommend using the latest version of the plugin. You can read the [migration
 
 ## Configuring EventCatalog for Backstage
 
-You will need a license key to use the backstage integration, this is either the SCALE license key or the Backstage license key.
+You will need an EventCatalog Scale license key to use the Backstage integration.
 
-You can get a 14 day trial license key from [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a 30-day trial Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud).
 
-Once you have a license key for Backstage, you will need to build and deploy your EventCatalog with the license key set.
+Once you have an EventCatalog Scale license key, you will need to build and deploy your EventCatalog with the license key set.
 
 #### 1. Setting license key in `.env` file (recommended)
 
@@ -37,23 +37,15 @@ Once you have a license key for Backstage, you will need to build and deploy you
 Create a `.env` file in the root of your project and add the following:
 
 ```bash title=".env"
-# If you have a Backstage license key
-EVENTCATALOG_LICENSE_KEY_BACKSTAGE=your-license-key
-
-# If you have a SCALE license key
 EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
 ```
 
-:::tip Using an older version of EventCatalog?
+:::tip Using an Older API Key?
 
-If you are using an older version of EventCatalog that does not support the `.env` file, you can just export the license key as an environment variable.
+If you already have an older Backstage plugin key, you can still use it with the Backstage-specific environment variable.
 
-```bash title="Setting license key in environment variables"
-# If you have a Backstage license key
-export EVENTCATALOG_LICENSE_KEY_BACKSTAGE=your-license-key
-
-# If you have a SCALE license key
-export EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
+```bash title=".env"
+EVENTCATALOG_LICENSE_KEY_BACKSTAGE=your-license-key
 ```
 
 :::

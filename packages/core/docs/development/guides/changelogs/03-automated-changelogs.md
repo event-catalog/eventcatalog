@@ -11,7 +11,7 @@ import AddedIn from '@site/src/components/MDX/AddedIn';
 
 <AddedIn version="2.7.3"/>
 
-EventCatalog allows you to store schemas, API specifications and custom files along side your domains, services and messages. For [example you can add specifications to a service](/docs/development/guides/services/adding-to-services/openapi).
+EventCatalog allows you to store schemas, API specifications and custom files along side your domains, services and messages. For [example you can add specifications to a service](/docs/development/guides/resources/schemas/add-specifications-to-services/add-openapi-specifications).
 
 When you version your resources, you can also version the files. When you do this, EventCatalog will match the current version to it's previous version and calculate if any diffs should be displayed in your changelog page.
 

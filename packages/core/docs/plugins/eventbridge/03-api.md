@@ -142,7 +142,7 @@ The EventBridge registry name for your schemas.
 
 - Type: `String`
 
-The license key for the EventBridge generator. You can get a 14 day trial license key to try the plugin out by going to [EventCatalog Cloud](https://eventcatalog.cloud).
+The license key for the EventBridge generator. You can get a 30-day trial Scale license key by going to [EventCatalog Cloud](https://eventcatalog.cloud).
 
 ```js title="eventcatalog.config.js"
 [
@@ -158,7 +158,7 @@ The license key for the EventBridge generator. You can get a 14 day trial licens
 You can also set the license key as an environment variable. If this is set on the machine the `licenseKey` is not required in the generator configuration.
 
 ```bash
-EVENTCATALOG_LICENSE_KEY_EVENTBRIDGE=YOUR_LICENSE_KEY
+EVENTCATALOG_SCALE_LICENSE_KEY=YOUR_SCALE_LICENSE_KEY
 ```
 :::
 
@@ -202,8 +202,8 @@ List of services to add and what events they publish (sends) and consume (receiv
 | sends.eventBusName            | optional | The name of the EventBus for the matched events. This will be displayed as an EventCatalog Channel. |
 | receives            | optional | The events the service receives (consumes). You can use [EventCatalog filters](/docs/plugins/eventbridge/intro#using-filters-to-map-events-to-your-services) to match your events. |
 | receives.eventBusName            | optional | The name of the EventBus for the matched events. This will be displayed as an EventCatalog Channel. |
-| writesTo            | optional | Array of [data stores](/docs/development/guides/data/introduction) ids that the service writes to. (Added in v3.2.2) |
-| readsFrom            | optional | Array of [data stores](/docs/development/guides/data/introduction) ids that the service reads from. (Added in v3.2.2) |
+| writesTo            | optional | Array of [data stores](/docs/development/guides/resources/data/introduction) ids that the service writes to. (Added in v3.2.2) |
+| readsFrom            | optional | Array of [data stores](/docs/development/guides/resources/data/introduction) ids that the service reads from. (Added in v3.2.2) |
 | writeToRoot            | optional | Write the service to the root of your catalog, ignoring the domain structure. [Useful if you have shared services between domains](/docs/plugins/eventbridge/03a-workflows#shared-services-between-domains) (Added in v3.3.0) |
 
 ### `domain` {#domain}

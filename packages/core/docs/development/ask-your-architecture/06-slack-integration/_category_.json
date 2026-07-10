@@ -1,0 +1,13 @@
+{
+  "label": "Slack Integration",
+  "position": 8,
+  "className": "hidden",
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "development/ask-your-architecture/slack-integration",
+    "title": "Slack Integration",
+    "description": "Query your EventCatalog directly from Slack using the EventCatalog Slack Bot."
+  }
+}

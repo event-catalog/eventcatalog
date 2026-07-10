@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
 keywords:
 - components
 sidebar_label: Accordion

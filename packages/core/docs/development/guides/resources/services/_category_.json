@@ -1,0 +1,11 @@
+{
+  "label": "Services",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/resources/services",
+    "description": "A collection of guides to help you understand services and how they work with EventCatalog."
+  }
+}

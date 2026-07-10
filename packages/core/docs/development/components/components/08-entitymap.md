@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 8
 keywords:
 - components
 sidebar_label: EntityMap
@@ -16,7 +16,7 @@ A component to visually render a domain's entity map.
 The `<EntityMap/>` component is supported in domains, services, and all messages, changelogs, and custom documentation pages.
 
 :::info
-To visualize entities [you need to create entities in EventCatalog](/docs/development/guides/domains/entities/introduction) and assign them to your services or domains.
+To visualize entities [you need to create entities in EventCatalog](/docs/development/guides/resources/entities/introduction) and assign them to your services or domains.
 :::
 
 ## Interactive controls

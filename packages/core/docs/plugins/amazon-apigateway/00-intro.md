@@ -46,11 +46,11 @@ This will map your routes into commands, events and queries in your catalog and 
 
 ## Commercial and License
 
-This plugin requires a license key to be used. 
+This plugin requires an EventCatalog Scale license key to be used.
 
-You can get a 14 day trial license key to try the plugin out by going to [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a 30-day trial Scale license key by going to [EventCatalog Cloud](https://eventcatalog.cloud).
 
-After the trial you can purchase a license to continue using this plugin, we have different plans to suit your organization. 
+After the trial, you can continue using this plugin with EventCatalog Scale. 
 
 See [pricing](/pricing) for more information.
 
@@ -59,16 +59,16 @@ _Have any questions? You can email us at `hello@eventcatalog.dev`._
 ## License FAQ
 
 ### What is the license key for?
-The license key is required to use the Amazon API Gateway plugin with EventCatalog. It helps support ongoing development and maintenance of the plugin and project.
+The EventCatalog Scale license key is required to use the Amazon API Gateway plugin with EventCatalog. It helps support ongoing development and maintenance of the plugin and project.
 
-### How do I get a license key?
-You can obtain a license key by visiting [EventCatalog Cloud](https://eventcatalog.cloud). Your organization can have a 14 day trial license key to try the plugin out.
+### How do I get an EventCatalog Scale license key?
+You can obtain an EventCatalog Scale license key by visiting [EventCatalog Cloud](https://eventcatalog.cloud). Your organization can start with a 30-day trial.
 
 ### Terms
-- **Trial Period**: 14 days free trial no credit card required
+- **Trial Period**: 30-day free trial no credit card required
 - **Support**: Discord community support (extra for priority support)
 
-After your trial period ends, you can purchase a full license through [EventCatalog Cloud](https://eventcatalog.cloud) to continue using the plugin.
+After your trial period ends, you can continue with EventCatalog Scale through [EventCatalog Cloud](https://eventcatalog.cloud).
 
 ## Issues
 

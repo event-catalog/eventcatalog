@@ -21,7 +21,7 @@ The EventCatalog GraphQL plugin is configured in the `eventcatalog.config.js` fi
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
 | `services` | `Service[]` | Yes | List of GraphQL schema files to add to your catalog, and the service name and version |
-| `licenseKey` | string | Yes* | License key for the plugin. Get a 14-day trial at [EventCatalog Cloud](https://eventcatalog.cloud). Can also be set via `EVENTCATALOG_LICENSE_KEY_GRAPHQL` environment variable. |
+| `licenseKey` | string | Yes* | EventCatalog Scale license key. Get a 30-day trial at [EventCatalog Cloud](https://eventcatalog.cloud). Can also be set via the `EVENTCATALOG_SCALE_LICENSE_KEY` environment variable. |
 
 ### Service Configuration
 
@@ -36,8 +36,8 @@ Each service in the `services` array requires the following properties:
 | `name` | string | No | Display name for the service. If not provided, the `id` will be used. |
 | `summary` | string | No | Short summary of the service. |
 | `generateMarkdown` | function | - | Function to override the default markdown generation for the service. See [Markdown templates](#markdown-templates) for more information. |
-| `writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service writes to. (Added in v0.4.4) |
-| `readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service reads from. (Added in v0.4.0) |
+| `writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service writes to. (Added in v0.4.4) |
+| `readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service reads from. (Added in v0.4.0) |
 
 ## Optional Configuration Options
 
@@ -124,4 +124,3 @@ export default {
 ```
 
 You can view an example configuration in the [EventCatalog GraphQL plugin GitHub repository](https://github.com/event-catalog/generators/blob/main/examples/generator-graphql/basic/eventcatalog.config.js).
-

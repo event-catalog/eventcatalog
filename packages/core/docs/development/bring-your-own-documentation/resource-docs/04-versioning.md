@@ -9,8 +9,11 @@ keywords:
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
+import ProjectTree from '@site/src/components/MDX/ProjectTree';
 
 <AddedIn version="3.15.0" />
+<PlanBanner plan="Scale" />
 
 ## How versioning works
 
@@ -18,19 +21,65 @@ Resource docs are associated with a specific version of a resource. When you ver
 
 Previous versions of a doc are stored inside the resource's `versioned/` directory, following the same pattern used for versioned resources.
 
-```
-services/
-└── OrdersService/
-    ├── index.mdx
-    ├── docs/
-    │   └── runbooks/
-    │       └── 01-deployment.md        ← current version
-    └── versioned/
-        └── 0.0.2/
-            └── docs/
-                └── runbooks/
-                    └── 01-deployment.md   ← older version
-```
+<ProjectTree
+  items={[
+    {
+      name: 'services',
+      type: 'folder',
+      defaultOpen: true,
+      children: [
+        {
+          name: 'OrdersService',
+          type: 'folder',
+          defaultOpen: true,
+          children: [
+            { name: 'index.mdx' },
+            {
+              name: 'docs',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                {
+                  name: 'runbooks',
+                  type: 'folder',
+                  defaultOpen: true,
+                  children: [{ name: '01-deployment.md', highlight: true }],
+                },
+              ],
+            },
+            {
+              name: 'versioned',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                {
+                  name: '0.0.2',
+                  type: 'folder',
+                  defaultOpen: true,
+                  children: [
+                    {
+                      name: 'docs',
+                      type: 'folder',
+                      defaultOpen: true,
+                      children: [
+                        {
+                          name: 'runbooks',
+                          type: 'folder',
+                          defaultOpen: true,
+                          children: [{ name: '01-deployment.md', highlight: true }],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 ## Navigate between versions
 

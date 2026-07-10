@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 4
 keywords:
 - components
 - agents
@@ -36,7 +36,7 @@ The component reads the `tools` array from the current agent's frontmatter, so i
 
 The `<AgentTools/>` component takes no props — it reads the `tools` array from the current agent's frontmatter.
 
-For details on the `tools` frontmatter shape, see [Agent tools](/docs/development/guides/agents/adding-tools).
+For details on the `tools` frontmatter shape, see [Agent tools](/docs/development/guides/resources/agents/adding-tools).
 
 ### Support
 

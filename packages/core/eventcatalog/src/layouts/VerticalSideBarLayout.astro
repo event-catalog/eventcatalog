@@ -5,6 +5,8 @@ interface Props {
   description?: string;
   showNestedSideBar?: boolean;
   showHeader?: boolean;
+  /** Wrap the page content in EventCatalog's default app content container. Defaults to true. */
+  wrapContent?: boolean;
   // When true, the main content uses a reduced horizontal padding instead of the
   // default 5rem. Used by wide pages such as the custom landing page.
   reducedContentPadding?: boolean;
@@ -89,6 +91,7 @@ if (isCustomStylesEnabled()) {
 }
 
 const currentPath = Astro.url.pathname;
+const wrapContent = Astro.props.wrapContent ?? true;
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (route === 'docs/custom') {
@@ -762,7 +765,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       }
       <main class="content-panel sidebar-transition w-full bg-[rgb(var(--ec-page-bg))]" id="content">
         {
-          Astro.slots.has('sidebar-content') ? (
+          Astro.slots.has('sidebar-content') || !wrapContent ? (
             <slot />
           ) : (
             <div class={`app-content-wrapper ${reducedContentPadding ? 'app-content-wrapper--reduced-padding' : ''}`}>

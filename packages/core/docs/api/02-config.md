@@ -273,7 +273,7 @@ Configure the landing page URL your EventCatalog loads. By default EventCatalog 
 
 Clicking on the EventCatalog logo (or [your custom logo](/docs/api/config#logo)), will also go to this URL.
 
-If you set this value the `Home` icon in the vertical navigation will not be shown and your users will be redirected to this default URL.
+If you set this value the `Home` icon in the Application sidebar will not be shown and your users will be redirected to this default URL.
 
 You can set this to any EventCatalog page URL. 
 
@@ -289,25 +289,146 @@ module.exports = {
 };
 ```
 
-### `sidebar` {#sidebar}
+### `navigation` {#navigation}
 
-<AddedIn version="2.30.1" />
+<AddedIn version="4.0" />
 
-- Type: `Array[{ id: string, visible: boolean }]`
+- Type: `object`
 
-Configure the [application sidebar](/docs/development/customization/customize-sidebars/application-sidebar) in EventCatalog.
+Configure navigation in EventCatalog.
 
-Show/hide items in the sidebar, [see list of options](/docs/development/customization/customize-sidebars/application-sidebar#showhide-items-in-the-application-sidebar).
+Use `navigation.groups` to configure the [Application sidebar](/docs/development/customization/application-sidebar).
+
+Use `navigation.pages` to configure the [Documentation sidebar](/docs/development/customization/documentation-sidebar) shown on `/docs/*` pages.
 
 ```js title="eventcatalog.config.js"
 module.exports = {
-  sidebar: {
-    // Will hide the AI chat feature in the sidebar
-    id: '/chat',
-    visible: false
-  }
+  navigation: {
+    groups: [
+      {
+        id: 'main',
+        items: [{ id: 'home' }, { id: 'docs' }],
+      },
+      {
+        id: 'browse',
+        label: 'Browse',
+        items: [
+          { id: 'catalog' },
+          { id: 'schemas' },
+          { id: 'schema-insights', visible: false },
+        ],
+      },
+      {
+        id: 'organization',
+        label: 'Organization',
+        items: [{ id: 'teams' }, { id: 'users' }],
+      },
+      {
+        id: 'settings',
+        position: 'bottom',
+        items: [{ id: 'settings' }],
+      },
+    ],
+    pages: ['list:top-level-domains', 'list:all'],
+  },
 };
 ```
+
+#### `navigation.groups`
+
+`navigation.groups` configures the Application sidebar that appears across EventCatalog.
+
+If you do not configure `navigation.groups`, EventCatalog renders the default Application sidebar.
+
+If you do configure `navigation.groups`, your groups replace the default Application sidebar. Add every item you want users to see.
+
+Built-in Application sidebar item IDs include:
+
+- `home`
+- `docs`
+- `catalog`
+- `schemas`
+- `schema-insights`
+- `teams`
+- `users`
+- `settings`
+
+You can also reference built-in route IDs directly, such as `/schemas/explorer`, `/directory/teams`, or `/settings/general`.
+
+Groups support:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | Unique group identifier. |
+| `label` | `string` | Optional label shown above the group. |
+| `visible` | `boolean` | Set to `false` to hide the group. |
+| `position` | `'top' \| 'bottom'` | Use `bottom` for groups pinned below the main navigation. Defaults to `top`. |
+| `items` | `array` | Navigation items in this group. |
+
+Items support:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | Built-in item id, route id, or custom item id. |
+| `label` | `string` | Custom label. Required for custom items. |
+| `icon` | `string` | Any icon exported by [lucide-react](https://lucide.dev/icons/), such as `House`, `BookOpen`, or `LifeBuoy`. |
+| `href` | `string` | Required for custom items. Built-in items provide their own `href`. |
+| `visible` | `boolean` | Set to `false` to hide the item. |
+| `match` | `string \| string[]` | Paths that should mark the item as active. Useful for custom navigation items. |
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  navigation: {
+    groups: [
+      {
+        id: 'platform',
+        label: 'Platform',
+        items: [
+          {
+            id: 'platform-docs',
+            label: 'Platform Docs',
+            icon: 'BookOpen',
+            href: '/docs/custom/platform/overview',
+            match: ['/docs/custom/platform'],
+          },
+          {
+            id: 'support',
+            label: 'Support',
+            icon: 'LifeBuoy',
+            href: 'https://support.example.com',
+          },
+        ],
+      },
+    ],
+  },
+};
+```
+
+External `href` values open in a new tab.
+
+#### `navigation.pages`
+
+`navigation.pages` configures the context-aware Documentation sidebar shown on `/docs/*` pages.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  navigation: {
+    pages: ['list:top-level-domains', 'list:all'],
+  },
+};
+```
+
+See [Documentation sidebar](/docs/development/customization/documentation-sidebar) for all supported list, resource, group, and custom link options.
+
+:::note Migrating from `sidebar`
+
+In v3 you could show or hide Application sidebar items using the top-level `sidebar` property.
+
+In v4 this has been replaced by `navigation.groups`.
+
+The `SideBarConfig` type is no longer exported.
+
+:::
 
 ### `visualiser` {#visualiser}
 
@@ -348,7 +469,11 @@ module.exports = {
 
 - Type: `object`
 
-Configure the [documentation sidebar](/docs/development/customization/customize-sidebars/documentation-sidebar) in EventCatalog.
+Configure documentation rendering options in EventCatalog.
+
+Use `docs.sidebar` for the Documentation sidebar render mode and orphaned message behavior.
+
+Use [`navigation.pages`](#navigationpages) when you want to choose which resources, groups, and custom links appear in the [Documentation sidebar](/docs/development/customization/documentation-sidebar).
 
 ```js title="eventcatalog.config.js"
 module.exports = {
@@ -360,7 +485,7 @@ module.exports = {
 };
 ```
 
-Configuration for the documentation sidebar.
+Configuration for the Documentation sidebar render mode.
 
 ### `docs.sidebar` options
 
@@ -704,7 +829,7 @@ Enable tools like Claude, ChatGPT, GitHub Copilot, and Cursor to quickly underst
 }
 ```
 
-See the [LLMs documentation](/docs/development/developer-tools/llms.txt) for more information, how you can use it and examples.
+See the [LLMs documentation](/docs/development/ask-your-architecture/llms.txt) for more information, how you can use it and examples.
 
 
 ### `fullCatalogAPIEnabled` {#fullCatalogAPIEnabled}
@@ -739,6 +864,33 @@ module.exports = {
         name: { visible: true, label: 'Name' },
         summary: { visible: true, label: 'Summary' },
         services: { visible: true, label: 'Services' },
+        badges: { visible: true, label: 'Badges' },
+        actions: { visible: true, label: 'Actions' },
+      }
+    }
+  }
+};
+```
+
+See the [Customize tables](/docs/development/customization/customize-tables) documentation for more information and examples.
+
+### `systems` {#systems}
+
+<AddedIn version="4.0" />
+
+- Type: `object`
+
+Configuration for the systems table.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  systems: {
+    tableConfiguration: {
+      columns: {
+        name: { visible: true, label: 'System' },
+        summary: { visible: true, label: 'Summary' },
+        services: { visible: true, label: 'Services' },
+        flows: { visible: true, label: 'Flows' },
         badges: { visible: true, label: 'Badges' },
         actions: { visible: true, label: 'Actions' },
       }

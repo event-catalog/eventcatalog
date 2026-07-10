@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 2
 keywords:
 - EventCatalog domains
 sidebar_label: Ubiquitous language
@@ -8,8 +8,6 @@ description: Creating a Ubiquitous-language dictionary for your domain
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
-
-<AddedIn version="2.16.0" />
 
 Ubiquitous Language is a shared language that is used by all stakeholders in a project/domain to improve communication and reduce misunderstandings.
 
@@ -23,7 +21,7 @@ To add a ubiquitous language dictionary, create a new file within your domain fo
 
 The contents of the file should be a list of terms used in your domain. 
 
-Each term should have a name, summary, description and icon. The icon is optional and can be used to visually represent the term. You can find a list of icons [here](https://lucide.dev/).
+Each term should have a name, summary, description and icon. The icon is optional and can be used to visually represent the term. You can find a list of icons [here](https://lucide.dev/). Use the PascalCase React component name for Lucide icons, for example `file-text` should be configured as `FileText`.
 
 ```md title="/domains/Orders/ubiquitous-language.md"
 ---
@@ -68,8 +66,6 @@ When you add a ubiquitous language dictionary to your domain, it will automatica
 <a class="block" href="https://demo.eventcatalog.dev/docs/domains/Orders/language">View demo</a>
 
 Clicking on a term in the Domain Language explorer will open that term in a new page. 
-
-
 
 
 

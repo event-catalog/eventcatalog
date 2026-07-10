@@ -1,8 +1,8 @@
 ---
-sidebar_position: 1
+sidebar_position: 5
 keywords:
 - EventCatalog tables
-sidebar_label: Customize tables
+sidebar_label: Tables
 title: Customize tables
 description: Customize tables in EventCatalog
 ---

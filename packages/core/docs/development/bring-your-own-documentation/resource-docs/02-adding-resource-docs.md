@@ -11,25 +11,44 @@ keywords:
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
+import ProjectTree from '@site/src/components/MDX/ProjectTree';
 
 <AddedIn version="3.15.0" />
-
-:::info Scale plan required
-Resource docs require an [EventCatalog Scale plan](https://eventcatalog.dev/pricing).
-:::
+<PlanBanner plan="Scale" />
 
 ## Adding resource-level documentation
 
 Place `.mdx` files inside a `docs/` directory under any resource. EventCatalog will automatically pick them up and display them in the resource's sidebar.
 
-```
-services/
-└── OrdersService/
-    ├── index.mdx
-    └── docs/
-        ├── 01-deployment.mdx
-        └── 02-incident-response.mdx
-```
+<ProjectTree
+  items={[
+    {
+      name: 'services',
+      type: 'folder',
+      defaultOpen: true,
+      children: [
+        {
+          name: 'OrdersService',
+          type: 'folder',
+          defaultOpen: true,
+          children: [
+            { name: 'index.mdx' },
+            {
+              name: 'docs',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                { name: '01-deployment.mdx', highlight: true },
+                { name: '02-incident-response.mdx', highlight: true },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 ### Frontmatter properties
 
@@ -65,12 +84,20 @@ version: 1.0.0
 
 Files are sorted alphabetically by default. Prefix the file name with a number to control the order.
 
-```
-docs/
-├── 01-deployment.mdx
-├── 02-incident-response.mdx
-└── 03-disaster-recovery.mdx
-```
+<ProjectTree
+  items={[
+    {
+      name: 'docs',
+      type: 'folder',
+      defaultOpen: true,
+      children: [
+        { name: '01-deployment.mdx', highlight: true },
+        { name: '02-incident-response.mdx', highlight: true },
+        { name: '03-disaster-recovery.mdx', highlight: true },
+      ],
+    },
+  ]}
+/>
 
 The numeric prefix is stripped from the doc's ID and URL, so `01-deployment.mdx` is accessible at `.../pages/deployment`.
 
@@ -80,18 +107,52 @@ You can also set an explicit `order` value in frontmatter, which takes precedenc
 
 Domains and subdomains follow the same pattern.
 
-```
-domains/
-└── E-Commerce/
-    ├── index.mdx
-    └── docs/
-        └── 01-bounded-context.mdx
-    └── subdomains/
-        └── Orders/
-            ├── index.mdx
-            └── docs/
-                └── 01-order-processing.mdx
-```
+<ProjectTree
+  items={[
+    {
+      name: 'domains',
+      type: 'folder',
+      defaultOpen: true,
+      children: [
+        {
+          name: 'E-Commerce',
+          type: 'folder',
+          defaultOpen: true,
+          children: [
+            { name: 'index.mdx' },
+            {
+              name: 'docs',
+              type: 'folder',
+              defaultOpen: true,
+              children: [{ name: '01-bounded-context.mdx', highlight: true }],
+            },
+            {
+              name: 'subdomains',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                {
+                  name: 'Orders',
+                  type: 'folder',
+                  defaultOpen: true,
+                  children: [
+                    { name: 'index.mdx' },
+                    {
+                      name: 'docs',
+                      type: 'folder',
+                      defaultOpen: true,
+                      children: [{ name: '01-order-processing.mdx', highlight: true }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 ## Navigate to a resource doc
 
@@ -111,19 +172,53 @@ http://localhost:3000/docs/services/OrdersService/1.0.0/pages/deployment
 
 Docs can be organised into groups using subdirectories inside `docs/`. Each subdirectory becomes a **doc type** and gets its own section in the resource sidebar.
 
-```
-services/
-└── OrdersService/
-    ├── index.mdx
-    └── docs/
-        ├── adrs/
-        │   └── 01-use-postgres.mdx
-        ├── runbooks/
-        │   ├── 01-deployment.mdx
-        │   └── 02-incident-response.mdx
-        └── guides/
-            └── on-call.mdx
-```
+<ProjectTree
+  items={[
+    {
+      name: 'services',
+      type: 'folder',
+      defaultOpen: true,
+      children: [
+        {
+          name: 'OrdersService',
+          type: 'folder',
+          defaultOpen: true,
+          children: [
+            { name: 'index.mdx' },
+            {
+              name: 'docs',
+              type: 'folder',
+              defaultOpen: true,
+              children: [
+                {
+                  name: 'adrs',
+                  type: 'folder',
+                  defaultOpen: true,
+                  children: [{ name: '01-use-postgres.mdx', highlight: true }],
+                },
+                {
+                  name: 'runbooks',
+                  type: 'folder',
+                  defaultOpen: true,
+                  children: [
+                    { name: '01-deployment.mdx', highlight: true },
+                    { name: '02-incident-response.mdx', highlight: true },
+                  ],
+                },
+                {
+                  name: 'guides',
+                  type: 'folder',
+                  defaultOpen: true,
+                  children: [{ name: 'on-call.mdx', highlight: true }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]}
+/>
 
 The folder name is used as the group label by default. The built-in types `adrs`, `runbooks`, `contracts`, `troubleshooting`, and `guides` are automatically formatted with friendly labels in the sidebar.
 

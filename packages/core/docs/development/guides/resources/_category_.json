@@ -1,0 +1,11 @@
+{
+  "label": "Resources",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "/resources",
+    "description": "Guides for documenting EventCatalog resources such as services, messages, schemas, data stores, data products, entities, agents, flows, and architecture decision records."
+  }
+}

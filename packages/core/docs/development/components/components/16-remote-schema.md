@@ -1,5 +1,5 @@
 ---
-sidebar_position: 15
+sidebar_position: 16
 keywords:
 - components
 - remote schema
@@ -10,7 +10,7 @@ title: RemoteSchema
 description: Component for fetching and rendering remote schemas in EventCatalog
 ---
 
-import EventCatalogPro from '@site/src/components/MDX/EventCatalogPro';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
 import AddedIn from '@site/src/components/MDX/AddedIn';
 
 <AddedIn version="2.52.0" />
@@ -47,7 +47,9 @@ The `<RemoteSchema/>` component only works in Server-Side Rendering (SSR) mode. 
 />
 ```
 
-**Fetching from Private APIs** <EventCatalogPro />
+### Fetching from Private APIs
+
+<PlanBanner plan="Scale" />
 
 For private APIs requiring authentication, you can provide headers:
 

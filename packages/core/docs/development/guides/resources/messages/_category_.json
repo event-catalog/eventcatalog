@@ -1,0 +1,11 @@
+{
+  "label": "Messages",
+  "position": 2,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/resources/messages",
+    "description": "Understand, create, connect, and manage events, commands, and queries in EventCatalog."
+  }
+}

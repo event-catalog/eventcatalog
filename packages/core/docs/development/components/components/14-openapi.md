@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 14
 keywords:
 - components
 sidebar_label: OpenAPI
@@ -9,10 +9,10 @@ description: Component for EventCatalog
 
 
 :::warning
-This component is now deprecated. Please read the frontmatter API documentation [here](/docs/development/guides/services/adding-to-services/openapi).
+This component is now deprecated. Please read the frontmatter API documentation [here](/docs/development/guides/resources/schemas/add-specifications-to-services/add-openapi-specifications).
 :::
 
-You can add specifications to any service in EventCatalog using the specifications frontmatter API. You can read more about it [here](/docs/development/guides/services/adding-to-services/openapi).
+You can add specifications to any service in EventCatalog using the specifications frontmatter API. You can read more about it [here](/docs/development/guides/resources/schemas/add-specifications-to-services/add-openapi-specifications).
 
 If you are interested in automating your EventCatalog with OpenAPI files, you can use the [OpenAPI plugin](/docs/plugins/openapi/intro).
 

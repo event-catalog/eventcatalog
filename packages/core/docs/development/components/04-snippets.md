@@ -9,8 +9,6 @@ description: Understanding how to use snippets with EventCatalog
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
 
-<AddedIn version="2.48.0" />
-
 Keep your documentation consistent and maintainable with reusable snippets.
 
 In EventCatalog, staying DRY (Don't Repeat Yourself) isn't just for code—it's for documentation too. If you're repeating the same content across multiple pages, consider using a snippet to centralize it. This makes your docs easier to manage and keeps everything in sync.

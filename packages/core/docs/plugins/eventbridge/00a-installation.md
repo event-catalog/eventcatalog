@@ -186,37 +186,37 @@ generators: [
 
 ### Configure license key
 
-The EventBridge plugin requires a license key to work with EventCatalog.
+The EventBridge plugin requires an EventCatalog Scale license key to work with EventCatalog.
 
-You can get a 14 day trial license key to try the plugin out by going to [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a 30-day trial Scale license key by going to [EventCatalog Cloud](https://eventcatalog.cloud).
 
 You have a few options for setting the license key:
 
-1. [Setting license key in `.env` file (recommended)](#1-setting-license-key-in-env-file-recommended)
-2. [Setting license key in eventcatalog.config.js](#2-setting-license-key-in-eventcatalogconfigjs)
+1. [Setting license key in `.env` file (recommended)](#setting-license-key-in-env-file-recommended)
+2. [Setting license key in eventcatalog.config.js](#setting-license-key-in-eventcatalogconfigjs)
 
-#### 1. Setting license key in `.env` file (recommended)
+#### 1. Setting license key in `.env` file (recommended) {#setting-license-key-in-env-file-recommended}
 
 <AddedIn version="2.35.4" />
 
 Create a `.env` file in the root of your project and add the following:
 
 ```bash title=".env"
-EVENTCATALOG_LICENSE_KEY_EVENTBRIDGE=your-license-key
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
 ```
 
-:::tip Using an older version of EventCatalog?
+:::tip Using an Older API Key?
 
-If you are using an older version of EventCatalog that does not support the `.env` file, you can just export the license key as an environment variable.
+If you already have an older EventBridge plugin key, you can still use it with the EventBridge-specific environment variable.
 
-```bash title="Setting license key in environment variables"
-export EVENTCATALOG_LICENSE_KEY_EVENTBRIDGE=your-license-key
+```bash title=".env"
+EVENTCATALOG_LICENSE_KEY_EVENTBRIDGE=your-license-key
 ```
 
 :::
 
 
-#### 2. Setting license key in eventcatalog.config.js
+#### 2. Setting license key in eventcatalog.config.js {#setting-license-key-in-eventcatalogconfigjs}
 
 If you prefer, you can set the license key in the `eventcatalog.config.js` file
 using the `licenseKey` property in the EventCatalog EventBridge plugin.
@@ -227,7 +227,7 @@ export default {
     [
       '@eventcatalog/generator-eventbridge',
       {
-        licenseKey: '[INSERT_YOUR_LICENSE_KEY]', // or process.env.EVENTCATALOG_LICENSE_KEY_EVENTBRIDGE
+        licenseKey: '[INSERT_YOUR_LICENSE_KEY]', // or process.env.EVENTCATALOG_SCALE_LICENSE_KEY
         region: 'us-east-1',
         registryName: 'discovered-schemas'
       },
@@ -288,11 +288,11 @@ It's recommended you create a new IAM user with the following policy.
 
 ## Commercial and License
 
-This plugin requires a license key to be used. 
+This plugin requires an EventCatalog Scale license key to be used.
 
-You can get a 14 day trial license key to try the plugin out by going to [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a 30-day trial Scale license key by going to [EventCatalog Cloud](https://eventcatalog.cloud).
 
-After the trial you can purchase a license to continue using this plugin, we have different plans to suit your organization. 
+After the trial, you can continue using this plugin with EventCatalog Scale. 
 
 See [pricing](/pricing) for more information.
 
@@ -301,16 +301,16 @@ _Have any questions? You can email us at `hello@eventcatalog.dev`._
 ## License FAQ
 
 ### What is the license key for?
-The license key is required to use the OpenAPI plugin with EventCatalog. It helps support ongoing development and maintenance of the plugin and project.
+The EventCatalog Scale license key is required to use the OpenAPI plugin with EventCatalog. It helps support ongoing development and maintenance of the plugin and project.
 
-### How do I get a license key?
-You can obtain a license key by visiting [EventCatalog Cloud](https://eventcatalog.cloud). New users can start with a 14-day free trial.
+### How do I get an EventCatalog Scale license key?
+You can obtain an EventCatalog Scale license key by visiting [EventCatalog Cloud](https://eventcatalog.cloud). New users can start with a 30-day free trial.
 
 ### Terms
-- **Trial Period**: 14 days free trial no credit card required
+- **Trial Period**: 30-day free trial no credit card required
 - **Support**: Discord community support (extra for priority support)
 
-After your trial period ends, you can purchase a full license through [EventCatalog Cloud](https://eventcatalog.cloud) to continue using the plugin.
+After your trial period ends, you can continue with EventCatalog Scale through [EventCatalog Cloud](https://eventcatalog.cloud).
 
 ## Issues
 

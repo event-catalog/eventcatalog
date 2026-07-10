@@ -6,15 +6,13 @@ keywords:
 - AI Tools
 - Runtime Data
 - Metrics
-sidebar_label: Custom Tools
+sidebar_label: Configure your own tools
 title: Custom Tools
 description: Extend EventCatalog Assistant with custom tools to bring real-time data, metrics, and integrations into your architecture conversations
 ---
 
 import PlanBanner from '@site/src/components/MDX/PlanBanner';
 import AddedIn from '@site/src/components/MDX/AddedIn';
-
-<AddedIn version="3.2.0" />
 
 <PlanBanner plan="Scale" />
 

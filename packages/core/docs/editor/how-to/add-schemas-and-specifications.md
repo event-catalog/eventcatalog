@@ -11,9 +11,9 @@ Use schemas and specifications to keep implementation contracts close to the arc
 
 Schemas are supported on:
 
-- [Events](/docs/development/guides/messages/events/introduction)
-- [Commands](/docs/development/guides/messages/commands/introduction)
-- [Queries](/docs/development/guides/messages/queries/introduction)
+- [Events](/docs/development/guides/resources/messages/message-types/events)
+- [Commands](/docs/development/guides/resources/messages/message-types/commands)
+- [Queries](/docs/development/guides/resources/messages/message-types/queries)
 
 Open the message resource, then use the **Schema** section to add or edit the schema file.
 
@@ -33,7 +33,7 @@ If the schema editor does not expose the exact change you need yet, use source m
 Specifications are supported on:
 
 - [Domains](/docs/development/guides/domains/introduction)
-- [Services](/docs/development/guides/services/introduction)
+- [Services](/docs/development/guides/resources/services/introduction)
 
 Open the domain or service, then use the specifications area to add:
 
@@ -63,4 +63,4 @@ Use source mode when you need to:
 - Add custom MDX around a schema
 - Edit specification metadata the visual form does not expose yet
 
-For more on schema documentation in EventCatalog, see the [schema documentation guides](/docs/development/guides/schemas/introduction).
+For more on schema documentation in EventCatalog, see the [schema documentation guides](/docs/development/guides/resources/schemas/what-are-schemas-and-specifications).

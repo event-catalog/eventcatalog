@@ -29,11 +29,11 @@ The EventCatalog Azure Schema Registry plugin can provide you with many features
 
 - Keep your schemas in sync with your architecture documentation
 - Automatic versioning; as your schemas change they are versioned in EventCatalog alongside your documentation
-- Understand how your schemas have evolved over time with the Schema diff explorer with the [Schema Explorer](/docs/development/guides/schemas/schema-explorer)
+- Understand how your schemas have evolved over time with the Schema diff explorer with the [Schema Explorer](/docs/development/guides/resources/schemas/explore-schemas/schema-explorer)
 - Add meaning (markdown) to your schemas. Provide business context to your schemas and add value
 - Quickly find who is producing or consuming your schemas
 - Visualize your Azure Event Hubs architecture with the [EventCatalog Visualizer](/features/visualization)
-- Download and view schemas in EventCatalog (Avro, JSON Schema) or through the [Schema API](/docs/development/guides/schemas/schema-api)
+- Download and view schemas in EventCatalog (Avro, JSON Schema) or through the [Schema API](/docs/development/guides/resources/schemas/schema-api)
 - Use [EventCatalog MCP server](/docs/development/ask-your-architecture/mcp-server/introduction) to get schemas for your LLMs
 
 ### How it works
@@ -67,11 +67,11 @@ We use the REST API because it is simpler and more flexible. It doesn't require 
 
 ## Commercial and License
 
-This plugin requires a license key to be used.
+This plugin requires an EventCatalog Scale license key to be used.
 
-You can get a 14 day trial license key to try the plugin out by going to [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a 30-day trial Scale license key by going to [EventCatalog Cloud](https://eventcatalog.cloud).
 
-After the trial you can purchase a license to continue using this plugin, we have different plans to suit your organization based on where you are in your governance and documentation journey.
+After the trial, you can continue using this plugin with EventCatalog Scale.
 
 See [pricing](/pricing) for more information.
 
@@ -80,13 +80,13 @@ _Have any questions? You can email us at `hello@eventcatalog.dev`._
 ## License FAQ
 
 ### What is the license key for?
-The license key is required to use the Azure Schema Registry plugin with EventCatalog. It helps support ongoing development and maintenance of the plugin and project.
+The EventCatalog Scale license key is required to use the Azure Schema Registry plugin with EventCatalog. It helps support ongoing development and maintenance of the plugin and project.
 
-### How do I get a license key?
-You can obtain a license key by visiting [EventCatalog Cloud](https://eventcatalog.cloud). New users can start with a 14-day free trial.
+### How do I get an EventCatalog Scale license key?
+You can obtain an EventCatalog Scale license key by visiting [EventCatalog Cloud](https://eventcatalog.cloud). New users can start with a 30-day free trial.
 
 ### Terms
-- **Trial Period**: 14 days free trial no credit card required
+- **Trial Period**: 30-day free trial no credit card required
 - **Support**: Discord community support (extra for priority support)
 
-After your trial period ends, you can purchase a full license through [EventCatalog Cloud](https://eventcatalog.cloud) to continue using the plugin.
+After your trial period ends, you can continue with EventCatalog Scale through [EventCatalog Cloud](https://eventcatalog.cloud).

@@ -13,7 +13,7 @@ Instead of asking every contributor to edit Markdown, MDX, YAML frontmatter, sch
 
 Each EventCatalog resource is still represented by files in your catalog.
 
-For example, a [service](/docs/development/guides/services/introduction) might live at:
+For example, a [service](/docs/development/guides/resources/services/introduction) might live at:
 
 ```txt
 domains/Orders/services/OrderService/index.mdx

@@ -28,7 +28,7 @@ import TabItem from '@theme/TabItem';
 | [Define EventCatalog ids and names in your OpenAPI specification file](#define-eventcatalog-ids-and-names-in-your-openapi-specification-file) | EventCatalog messages (commands, queries and events) have two important properties, these are `id` and `name`. |
 | [Define messages a service sends or receives](#define-messages-a-service-sends-or-receives) | **By default all messages in your OpenAPI spec file are documented as messages that are received by your service** (e.g a route with /getOrders will be a query/command/event that the service accepts). You can override this by using the `x-eventcatalog-message-action` extension. |
 | [Deprecating messages](#deprecating-messages) | To mark messages as deprecated you can use the `deprecated` field or the `x-eventcatalog-deprecated-date` and `x-eventcatalog-deprecated-message` extensions. |
-| [Persist markdown](#persist-markdown) | When you generate your OpenAPI files your markdown on your domains,services, and messages in EventCatalog is persisted between versions. This allows you to add [custom components](/docs/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your OpenAPI files. |
+| [Persist markdown](#persist-markdown) | When you generate your OpenAPI files your markdown on your domains,services, and messages in EventCatalog is persisted between versions. This allows you to add [custom components](/docs/components/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your OpenAPI files. |
 | [Automatic versioning](#automatic-versioning) | When you change versions in your OpenAPI file and run generate, your services and messages are automatically versioned. This allows you to keep an audit log of changes between OpenAPI files, schemas and more. |
 | [Downloading schemas](#downloading-schemas) | If your messages have schemas EventCatalog will document these for you. Run your generator and every message will show it's schema on the UI and give users the ability to download it's schema. |
 | [Parse examples from operations](#parse-examples-from-operations) | Automatically extract request body and response examples from your OpenAPI operations and save them as JSON files alongside your messages in EventCatalog. |
@@ -595,13 +595,13 @@ This will render a banner in EventCatalog indicating that the message will be de
 
 When you generate your OpenAPI files your markdown on your domains,services, and messages in EventCatalog is persisted between versions.
 
-This allows you to add [custom components](/docs/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your OpenAPI files.
+This allows you to add [custom components](/docs/components/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your OpenAPI files.
 
 ### Automatic versioning
 
 When you change versions in your OpenAPI file and run generate, your services and messages are automatically versioned. This allows you to keep an audit log of changes between OpenAPI files, schemas and more.
 
-You can also add changelogs between different versions of your services and messages. [Read here for more information](/docs/development/guides/messages/common/changelog).
+You can also add changelogs between different versions of your services and messages. [Read here for more information](/docs/development/guides/resources/messages/versioning-and-lifecycle/add-changelog).
 
 ### Downloading schemas
 
@@ -613,11 +613,11 @@ The service that is also generated will allow you to see and download the OpenAP
 
 <AddedIn version="7.12.0" pkg="@eventcatalog/generator-openapi" url="https://github.com/event-catalog/generators/releases/tag/v"/>
 
-When a service sends or receives many messages, the [visualiser](/docs/development/guides/messages/common/grouping-messages) can become crowded. The `groupMessagesBy` option lets you automatically group related messages together so they collapse into a single node in the visualiser map, making your architecture easier to understand at a glance.
+When a service sends or receives many messages, the [visualiser](/docs/development/guides/resources/messages/connect-messages/group-messages) can become crowded. The `groupMessagesBy` option lets you automatically group related messages together so they collapse into a single node in the visualiser map, making your architecture easier to understand at a glance.
 
 ![Message group expanded in the visualiser](./img/message-group-expanded.png)
 
-To learn more about how groups work in the visualiser, see [Grouping messages](/docs/development/guides/messages/common/grouping-messages).
+To learn more about how groups work in the visualiser, see [Grouping messages](/docs/development/guides/resources/messages/connect-messages/group-messages).
 
 Three strategies are supported:
 
@@ -696,7 +696,7 @@ generators: [
 This is useful for very large APIs where `path-prefix` still leaves too many ungrouped nodes. Every message collapses into a single `operations` node in the visualiser.
 
 :::tip
-Once grouped, messages appear as a compact stacked card in the visualiser. Click the group to expand it and see the full downstream graph — channels, consumers, and producers — just as if the messages were ungrouped. See [Grouping messages](/docs/development/guides/messages/common/grouping-messages) for more details.
+Once grouped, messages appear as a compact stacked card in the visualiser. Click the group to expand it and see the full downstream graph — channels, consumers, and producers — just as if the messages were ungrouped. See [Grouping messages](/docs/development/guides/resources/messages/connect-messages/group-messages) for more details.
 :::
 
 ---
@@ -787,4 +787,3 @@ generators: [
   ],
 ],
 ```
-

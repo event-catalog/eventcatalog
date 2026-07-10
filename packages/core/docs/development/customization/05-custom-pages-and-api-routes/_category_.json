@@ -1,0 +1,12 @@
+{
+  "label": "Custom pages and API routes",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "/development/customization/custom-pages-and-api-routes",
+    "title": "Custom pages and API routes",
+    "description": "Add custom pages, internal tools, dashboards, and API routes to your EventCatalog."
+  }
+}

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 17
 keywords:
 - components
 sidebar_label: ResourceGroupTable

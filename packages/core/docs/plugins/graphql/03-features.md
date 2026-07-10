@@ -17,7 +17,7 @@ import TabItem from '@theme/TabItem';
 | [Assign owners to your domains, services and messages](#assign-owners-to-your-domains-services-and-messages) | You can assign owners (teams or individuals) to your GraphQL services and all the messages that are generated from your schema. This helps with accountability and contact information for your APIs. |
 | [Automatic versioning](#automatic-versioning) | When you change versions in your GraphQL schema and run generate, your services and messages are automatically versioned. This allows you to keep an audit log of changes between schema versions. |
 | [Creating draft domains, services and messages](#creating-draft-domains-services-and-messages) | You can create draft domains, services and messages in EventCatalog from your GraphQL schemas. This will be used to mark the resources as draft in EventCatalog. |
-| [Persist markdown](#persist-markdown) | When you generate your GraphQL schemas your markdown on your domains, services, and messages in EventCatalog is persisted between versions. This allows you to add [custom components](/docs/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your schemas. |
+| [Persist markdown](#persist-markdown) | When you generate your GraphQL schemas your markdown on your domains, services, and messages in EventCatalog is persisted between versions. This allows you to add [custom components](/docs/components/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when you version your schemas. |
 | [Displaying schemas](#displaying-schemas) | EventCatalog will document your GraphQL schemas and allow users to download them. Your schema files are versioned alongside your services and messages. |
 
 ### Mapping operations as queries, mutations, or subscriptions
@@ -56,9 +56,9 @@ type User {
 
 When this schema is processed by the GraphQL generator:
 
-- **Queries** like `getUser` and `getAllUsers` will be documented as [queries](/docs/development/guides/messages/queries/introduction)
-- **Mutations** like `createUser`, `updateUser`, and `deleteUser` will be documented as [commands](/docs/development/guides/messages/commands/introduction)
-- **Subscriptions** like `userUpdated` and `userDeleted` will be documented as [events](/docs/development/guides/messages/events/introduction)
+- **Queries** like `getUser` and `getAllUsers` will be documented as [queries](/docs/development/guides/resources/messages/message-types/queries)
+- **Mutations** like `createUser`, `updateUser`, and `deleteUser` will be documented as [commands](/docs/development/guides/resources/messages/message-types/commands)
+- **Subscriptions** like `userUpdated` and `userDeleted` will be documented as [events](/docs/development/guides/resources/messages/message-types/events)
 
 Each operation becomes a message in EventCatalog with:
 - The operation name as the message ID

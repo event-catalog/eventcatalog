@@ -1,0 +1,11 @@
+{
+  "label": "Schemas & Specifications",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/resources/schemas",
+    "description": "A collection of guides to help you understand schemas and how they work with EventCatalog."
+  }
+}

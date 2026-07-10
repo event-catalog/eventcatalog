@@ -1,0 +1,11 @@
+{
+  "label": "Diagrams",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "bring-your-own-documentation/diagrams",
+    "description": "Learn how to document your architecture with reusable diagrams"
+  }
+}

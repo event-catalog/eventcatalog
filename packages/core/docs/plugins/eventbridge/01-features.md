@@ -154,7 +154,7 @@ generators: [
 
 <AddedIn version="1.2.0" pkg="@eventcatalog/generator-eventbridge" url="https://github.com/event-catalog/generator-eventbridge/releases/tag/v"/>
 
-EventCatalog [supports channels as resources](/docs/development/guides/channels/introduction). This let's you document your event buses in EventCatalog.
+EventCatalog [supports channels as resources](/docs/development/guides/resources/messages/message-channels/introduction). This let's you document your event buses in EventCatalog.
 
 EventCatalog will use your Event Bus as a channel, the protocol for the channel is set to `eventbridge`.
 
@@ -196,7 +196,7 @@ generators: [
 
 Your markdown is persisted between generation runs on EventCatalog. Initially the generator will generate markdown for you for your domains, services and events, but any edits to the markdown file will be persisted between versions.
 
-This allows you to add [custom components](/docs/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when your events are versioned.
+This allows you to add [custom components](/docs/components/custom-components), our [MDX components](/docs/components) and customize your EventCatalog pages without losing changes when your events are versioned.
 
 This can be useful for adding extra additional context to your events, example payloads, example CLI commands on how to raise them and any other useful information.
 

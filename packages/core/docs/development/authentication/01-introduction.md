@@ -8,11 +8,11 @@ description: Introduction to EventCatalog Authentication
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
-import EventCatalogPro from '@site/src/components/MDX/EventCatalogPro';
+import PlanBanner from '@site/src/components/MDX/PlanBanner';
 
 # Authentication Guide
 
-<EventCatalogPro />
+<PlanBanner plan="Scale" />
 <AddedIn version="2.43.0" />
 
 
@@ -67,7 +67,7 @@ Designed for large organizations with dedicated identity management systems:
 
 Ready to secure your EventCatalog with authentication?
 
-**New to EventCatalog?** Start your **14-day free trial** at [EventCatalog.cloud](https://eventcatalog.cloud) to explore all authentication features.
+**New to EventCatalog?** Start your **30-day free trial** at [EventCatalog.cloud](https://eventcatalog.cloud) to explore all authentication features.
 
 ## Next steps
 

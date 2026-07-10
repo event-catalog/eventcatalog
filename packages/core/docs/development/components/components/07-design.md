@@ -1,5 +1,5 @@
 ---
-sidebar_position: 15
+sidebar_position: 7
 keywords:
 - components
 - remote schema
@@ -10,7 +10,6 @@ title: Design
 description: Component for embedding EventCatalog Studio diagrams into your documentation
 ---
 
-import EventCatalogPro from '@site/src/components/MDX/EventCatalogPro';
 import AddedIn from '@site/src/components/MDX/AddedIn';
 
 <AddedIn version="2.56.0" />

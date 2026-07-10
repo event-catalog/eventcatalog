@@ -12,7 +12,7 @@ description: Adding owners to domains with EventCatalog.
 
 You can assign owners to your domains to provide context of who owns this domain and how to contact them.
 
-Owners in EventCatalog are either [**users**](/docs/development/guides/owners/users/introduction) or [**teams**](/docs/development/guides/owners/teams/introduction) and are **optional**.
+Owners in EventCatalog are either [**users**](/docs/development/guides/owners/what-are-teams-and-users) or [**teams**](/docs/development/guides/owners/what-are-teams-and-users) and are **optional**.
 
 ## Adding owners to a domain
 

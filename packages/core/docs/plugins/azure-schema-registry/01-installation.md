@@ -26,9 +26,9 @@ npm i @eventcatalog/generator-azure-schema-registry
 ```
 
 :::info License Key
-The EventCatalog Azure Schema Registry plugin requires a license key to work with EventCatalog.
+The EventCatalog Azure Schema Registry plugin requires an EventCatalog Scale license key to work with EventCatalog.
 
-You can get a trial license key from [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a trial Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud).
 :::
 
 ## Configuration
@@ -201,9 +201,9 @@ The EventCatalog Azure Schema Registry plugin uses Azure's REST API with Bearer 
 
 ### Configure Azure Schema Registry License Key
 
-The EventCatalog Azure Schema Registry plugin requires a license key to work with EventCatalog.
+The EventCatalog Azure Schema Registry plugin requires an EventCatalog Scale license key to work with EventCatalog.
 
-You can get a trial license key from [EventCatalog Cloud](https://eventcatalog.cloud).
+You can get a trial Scale license key from [EventCatalog Cloud](https://eventcatalog.cloud).
 
 
 ---
@@ -286,11 +286,21 @@ Create or update your `.env` file in your EventCatalog project root:
 
 ```bash title=".env"
 # EventCatalog license key
-EVENTCATALOG_LICENSE_KEY_AZURE_SCHEMA_REGISTRY=your-license-key
+EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
 
 # Azure Schema Registry access token (paste the token from step 1)
 AZURE_SCHEMA_REGISTRY_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOi...
 ```
+
+:::tip Using an Older API Key?
+
+If you already have an older Azure Schema Registry plugin key, you can still use it with the plugin-specific environment variable.
+
+```bash title=".env"
+EVENTCATALOG_LICENSE_KEY_AZURE_SCHEMA_REGISTRY=your-license-key
+```
+
+:::
 
 **Step 3: Run the Generator**
 

@@ -21,7 +21,7 @@ The plugin uses Azure's REST API with Bearer token authentication. You must set 
 
 ```bash
 # EventCatalog license key
-export EVENTCATALOG_LICENSE_KEY_AZURE_SCHEMA_REGISTRY=your-license-key
+export EVENTCATALOG_SCALE_LICENSE_KEY=your-scale-license-key
 
 # Azure Schema Registry access token
 export AZURE_SCHEMA_REGISTRY_TOKEN=your-azure-access-token
@@ -57,8 +57,8 @@ You can assign schemas to services (producers/consumers) in your architecture.
 | `services[].version` | `string` | - | Version of the service (e.g., `1.0.0`). |
 | `services[].sends` | `array` | - | Array of schema filters for messages this service sends. |
 | `services[].receives` | `array` | - | Array of schema filters for messages this service receives. |
-| `services[].writesTo` | `array[{id: string, version?: string}]` | - | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service writes to. |
-| `services[].readsFrom` | `array[{id: string, version?: string}]` | - | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service reads from. |
+| `services[].writesTo` | `array[{id: string, version?: string}]` | - | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service writes to. |
+| `services[].readsFrom` | `array[{id: string, version?: string}]` | - | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service reads from. |
 
 ### Schema Filters (sends/receives)
 
@@ -87,7 +87,7 @@ You can define and assign domains to organize your services.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `licenseKey` | `string` | From env var | EventCatalog license key. Can also be set via `EVENTCATALOG_LICENSE_KEY_AZURE_SCHEMA_REGISTRY` environment variable. |
+| `licenseKey` | `string` | From env var | EventCatalog Scale license key. Can also be set via the `EVENTCATALOG_SCALE_LICENSE_KEY` environment variable. |
 
 ## Example Configurations
 

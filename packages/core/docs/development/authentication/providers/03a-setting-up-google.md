@@ -9,7 +9,6 @@ id: setting-up-google
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
-import EventCatalogPro from '@site/src/components/MDX/EventCatalogPro';
 import PlanBanner from '@site/src/components/MDX/PlanBanner';
 
 <AddedIn version="2.43.3" />

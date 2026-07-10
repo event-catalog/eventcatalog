@@ -1,23 +1,17 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 keywords:
 - EventCatalog landing page
-sidebar_label: Custom landing page
+sidebar_label: Custom homepage
 title: Customize landing page
 description: Customize landing pages in EventCatalog
 ---
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
 
-<AddedIn version="2.37.1" />
-
-EventCatalog provides a landing page for your catalog, this is the first page that users see when they visit your catalog. See the demo [here](https://demo.eventcatalog.dev/).
+EventCatalog provides a landing page for your catalog, this is the first page that users see when they visit your catalog. 
 
 You can customize the landing page with your own content, HTML and EventCatalog components.
-
-:::info 
-Landing page customization is only available for customers on [paid plans](https://www.eventcatalog.dev/pricing). You can get a 14 day free trial of EventCatalog Starter Plan on [EventCatalog Cloud](https://eventcatalog.cloud).
-:::
 
 ### Example of a custom landing page
 
@@ -31,8 +25,6 @@ visualizer for a domains, subdomains and flows.
 
 ## How to customize your landing page
 
-1. Setup and configure your [EventCatalog Starter or Scale License key](/docs/development/getting-started/configuration-overview#configuring-environment-variables).
-    - You can get a 14 day free trial of EventCatalog Starter Plan on [EventCatalog Cloud](https://eventcatalog.cloud).
 1. Create a new folder called `pages` and an Astro file called `homepage.astro`
     - Example: `/pages/homepage.astro`
 1. Add the contents to your Astro file.
@@ -111,10 +103,10 @@ const { Tile, Tiles, Flow, NodeGraph, Admonition } = Astro.props.components;
     <p class="text-gray-700 mb-4">Learn how to get started with EventCatalog, create domains, services, events, and commands.</p>
     <Tiles columns={3}>
       <Tile icon="BookOpenIcon" href="https://eventcatalog.dev/docs/development/getting-started" title="Getting started with EventCatalog" description="How to get started with EventCatalog" />
-      <Tile icon="RectangleGroupIcon" href="https://eventcatalog.dev/docs/development/guides/domains/creating-domains/adding-domains" title="Creating domains" description="Learn how to create domains in your event catalog" />
-      <Tile icon="ServerIcon" href="https://eventcatalog.dev/docs/development/guides/services/adding-services" title="Creating services" description="Learn how to create services in your event catalog" />
-      <Tile icon="ChatBubbleLeftIcon" iconColor="text-blue-500" href="https://eventcatalog.dev/docs/development/guides/messages/commands/introduction" title="Creating commands" description="Learn how to create commands in your event catalog" />
-      <Tile icon="BoltIcon" iconColor="text-orange-500" href="https://eventcatalog.dev/docs/development/guides/messages/events/introduction" title="Creating events" description="Learn how to create events in your event catalog" />
+      <Tile icon="RectangleGroupIcon" href="https://eventcatalog.dev/docs/development/guides/domains/create-domain" title="Create a domain" description="Learn how to create domains in your event catalog" />
+      <Tile icon="ServerIcon" href="https://eventcatalog.dev/docs/development/guides/resources/services/create-service" title="Creating services" description="Learn how to create services in your event catalog" />
+      <Tile icon="ChatBubbleLeftIcon" iconColor="text-blue-500" href="https://eventcatalog.dev/docs/development/guides/resources/messages/message-types/commands" title="Creating commands" description="Learn how to create commands in your event catalog" />
+      <Tile icon="BoltIcon" iconColor="text-orange-500" href="https://eventcatalog.dev/docs/development/guides/resources/messages/message-types/events" title="Creating events" description="Learn how to create events in your event catalog" />
       <Tile icon="UserGroupIcon" iconColor="text-green-500" href="https://eventcatalog.dev/docs/owners" title="Assigning owners to resources" description="Learn how to assign owners to resources in your event catalog" />
     </Tiles>
   </div>

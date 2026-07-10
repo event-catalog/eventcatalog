@@ -1,0 +1,11 @@
+{
+  "label": "Flows",
+  "position": 8,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/resources/flows",
+    "description": "A collection of guides to help you understand flows and how they work with EventCatalog."
+  }
+}

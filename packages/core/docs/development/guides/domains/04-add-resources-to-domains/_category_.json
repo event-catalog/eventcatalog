@@ -1,0 +1,11 @@
+{
+  "label": "Add resources to domains",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/domains/add-resources-to-domains",
+    "description": "Add systems, services, messages, data products, and entities to your domains."
+  }
+}

@@ -7,9 +7,11 @@ title: Plugin Configuration
 description: Configuration of the Amazon API Gateway plugin
 ---
 
-This plugin requires a license key. You can get a 14 day free trial license key by signing up to [EventCatalog Cloud](https://eventcatalog.dev/cloud).
+This plugin requires an EventCatalog Scale license key.
 
-Once you have your license key you can set the `EVENTCATALOG_LICENSE_KEY_AMAZON_APIGATEWAY` environment variable.
+You can get a 30-day free trial license key by signing up to [EventCatalog Cloud](https://eventcatalog.dev/cloud).
+
+Once you have your license key you can set the `EVENTCATALOG_SCALE_LICENSE_KEY` environment variable.
 
 ## Overview
 
@@ -21,7 +23,7 @@ The Amazon API Gateway plugin is configured in the `eventcatalog.config.js` file
 |--------|------|----------|---------|-------------|
 | `output` | string | No | `amazon-apigateway-specs` | The output directory for the OpenAPI specifications (used by the OpenAPI Generator plugin) |
 | `credentials` | [AwsCredentialIdentity](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-smithy-types/Interface/AwsCredentialIdentity/) | No | - | AWS credentials to use for the import on AWS. If this is not provided it will default to the credentials on the machine. |
-| `licenseKey` | string | No | - | You can either pass the license key directly or set the `EVENTCATALOG_LICENSE_KEY_AMAZON_APIGATEWAY` environment variable. |
+| `licenseKey` | string | No | - | You can either pass the license key directly or set the `EVENTCATALOG_SCALE_LICENSE_KEY` environment variable. |
 | `apis` | API[] | Yes | - | Array of API configurations |
 
 ## API Configuration
@@ -128,7 +130,6 @@ export default {
 ```
 
 You can view an example configuration in the  [EventCatalog Amazon API Gateway plugin GitHub repository](https://github.com/event-catalog/generators/blob/main/examples/generator-amazon-apigateway/basic/eventcatalog.config.js).
-
 
 
 

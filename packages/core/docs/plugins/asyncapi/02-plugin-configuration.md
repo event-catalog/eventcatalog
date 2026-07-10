@@ -22,7 +22,7 @@ The EventCatalog AsyncAPI plugin is configured in the `eventcatalog.config.js` f
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
 | `services` | `Service[]` | Yes | List of AsyncAPI files to add to your catalog |
-| `licenseKey` | string | Yes* | License key for the plugin. Get a 14-day trial at [EventCatalog Cloud](https://eventcatalog.cloud). Can also be set via `EVENTCATALOG_LICENSE_KEY_ASYNCAPI` environment variable. |
+| `licenseKey` | string | Yes* | EventCatalog Scale license key. Get a 30-day trial at [EventCatalog Cloud](https://eventcatalog.cloud). Can also be set via the `EVENTCATALOG_SCALE_LICENSE_KEY` environment variable. |
 
 ### Service Configuration
 
@@ -32,12 +32,13 @@ Each service in the `services` array requires the following properties:
 |----------|------|----------|-------------|
 | `id` | string | Yes | EventCatalog ID for the service. |
 | `path` | string | Yes | Path to your AsyncAPI file or remote URL to the AsyncAPI file |
+| `version` | string | No | Version for the generated EventCatalog service. If not provided, the version from the AsyncAPI `info.version` field is used. Messages and channels default to this version unless overridden by `x-eventcatalog-message-version` or `x-eventcatalog-channel-version`. |
 | `name` | string | No | Display name for the service. If not provided, the specification will be used. _Added in v4.5.3_|
 | `summary` | string | No | Short summary of the service. If not provided, the specification will be used. _Added in v4.5.3_|
 | `owners` | string[] | No | Owners of the service. You can assign EventCatalog users or teams to services. Setting owners on the service will also set the owners of the messages in the AsyncAPI file. If owners are already set on any resource, those owners are persisted. |
 | `generateMarkdown` | function | - | Function to override the default markdown generation for the service. See [Markdown templates](#markdown-templates) for more information. |
-| `writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service writes to. (Added in v4.5.4) |
-| `readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/data/introduction) id and version (optional) that the service reads from. (Added in v4.5.4) |
+| `writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service writes to. (Added in v4.5.4) |
+| `readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service reads from. (Added in v4.5.4) |
 | `headers` | `Record<string, string>` | No | HTTP headers for authenticated remote URLs (e.g., `{ Authorization: 'Bearer token' }`). Used when fetching AsyncAPI files from URLs that require authentication. |
 
 ## Optional Configuration Options
@@ -103,7 +104,7 @@ export default {
       '@eventcatalog/generator-asyncapi',
       {
         services: [
-          { path: path.join(__dirname, 'asyncapi-files', 'orders-service.yml'), id: 'Orders Service' },
+          { path: path.join(__dirname, 'asyncapi-files', 'orders-service.yml'), id: 'Orders Service', version: '1.0.0' },
           { path: path.join(__dirname, 'asyncapi-files', 'order-fulfillment-service.yml'), id: 'Order Fulfillment' },
           { path: path.join(__dirname, 'asyncapi-files', 'inventory-service.yml'), id: 'Inventory Service' },
         ],
@@ -296,7 +297,6 @@ export default {
 
 If you have questions or need help, you can join our [Discord community](https://eventcatalog.dev/discord)
 or refer to the [AsyncAPI examples on GitHub](https://github.com/event-catalog/generators/tree/main/examples/generator-asyncapi).
-
 
 
 
