@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@eventcatalog/sdk": "workspace:*",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.3.0",
     "langium": "^3.3.1",
     "semver": "^7.7.4",
     "vscode-languageclient": "^9.0.1",
