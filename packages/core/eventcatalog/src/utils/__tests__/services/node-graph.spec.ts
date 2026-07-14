@@ -58,7 +58,7 @@ describe('Services NodeGraph', () => {
         id: 'OrderService-1.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: expect.objectContaining({ mode: 'simple', service: { ...mockServices[0].data } }),
+        data: expect.objectContaining({ mode: 'simple', isFocused: true, service: { ...mockServices[0].data } }),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
       };
@@ -406,9 +406,11 @@ describe('Services NodeGraph', () => {
 
       const hasMessages = nodes.some((node) => node.type === 'events' || node.type === 'commands' || node.type === 'queries');
       const hasChannels = nodes.some((node) => node.type === 'channels');
+      const focusedService = nodes.find((node) => node.id === 'PaymentService-1.0.0');
 
       expect(hasMessages).toBe(false);
       expect(hasChannels).toBe(false);
+      expect(focusedService?.data.isFocused).toBe(true);
     });
 
     it('will render any container (data) that the service writes to or reads from', async () => {

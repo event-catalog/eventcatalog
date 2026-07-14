@@ -8,6 +8,7 @@ import { getDomains } from '@utils/collections/domains';
 import { getSystems } from '@utils/collections/systems';
 import { getServices } from '@utils/collections/services';
 import { getMessages, pluralizeMessageType } from '@utils/collections/messages';
+import { getTriggeredByOfMessage, getTriggersOfMessage } from '@utils/collections/message-triggers';
 import { getOwner } from '@utils/collections/owners';
 import { getFlows } from '@utils/collections/flows';
 import { getUsers } from '@utils/collections/users';
@@ -451,10 +452,14 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
-  const rawAgents = await getCollection('agents');
+  const [rawAgents, rawServices, rawDomains] = await Promise.all([
+    getCollection('agents'),
+    getCollection('services'),
+    getCollection('domains'),
+  ]);
+  const messageReceivers = [...rawServices, ...rawAgents, ...rawDomains];
 
   // Compute channels for each service from raw sends[].to / receives[].from pointers
-  const rawServices = await getCollection('services');
   const channelMap = createVersionedMap(channels);
   const serviceChannelsMap = new Map<string, CollectionEntry<'channels'>[]>();
 
@@ -560,7 +565,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
-  // Build a set of message IDs that have field usage declared by any service or agent.
+  // Build a set of message IDs that have field usage declared by any resource that can receive messages.
   // We use raw collections because the hydrated resources replace
   // sends/receives pointers with resolved message entries, which strips the fields property.
   const messagesWithFieldUsage = new Set<string>();
@@ -580,6 +585,14 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
     }
   }
+  for (const domain of rawDomains) {
+    for (const pointer of domain.data.sends || []) {
+      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
+    }
+    for (const pointer of domain.data.receives || []) {
+      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
+    }
+  }
 
   const flowRefsByMessage = buildFlowReferencesByMessage({ flows, events, commands, queries });
 
@@ -588,8 +601,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       const type = pluralizeMessageType(message as any);
       const versionedKey = `${type}:${message.data.id}:${message.data.version}`;
       const hasFieldUsage = messagesWithFieldUsage.has(message.data.id);
+      const triggers = getTriggersOfMessage(messageReceivers, message, messages);
+      const triggeredBy = getTriggeredByOfMessage(messageReceivers, message, messages);
       acc[versionedKey] = withArchitectureDecisionsSection(
-        buildMessageNode(message, owners, context, hasFieldUsage, flowRefsByMessage.get(versionedKey) || []),
+        buildMessageNode(message, owners, context, hasFieldUsage, flowRefsByMessage.get(versionedKey) || [], {
+          triggers,
+          triggeredBy,
+        }),
         message,
         adrs
       );

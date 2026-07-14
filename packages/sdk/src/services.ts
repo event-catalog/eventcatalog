@@ -1,4 +1,4 @@
-import type { Service, Specifications } from './types';
+import type { MessagePointerInput, Service, Specifications } from './types';
 import fs from 'node:fs/promises';
 import { join, dirname, extname, relative } from 'node:path';
 import {
@@ -416,13 +416,7 @@ export const getSpecificationFilesForService = (directory: string) => async (id:
  */
 
 export const addMessageToService =
-  (directory: string) =>
-  async (
-    id: string,
-    direction: string,
-    event: { id: string; version: string; fields?: string[]; group?: string },
-    version?: string
-  ) => {
+  (directory: string) => async (id: string, direction: string, event: MessagePointerInput, version?: string) => {
     let service: Service = await getService(directory)(id, version);
     const servicePath = await getResourcePath(directory, id, version);
     const extension = extname(servicePath?.fullPath || '');
@@ -448,7 +442,7 @@ export const addMessageToService =
           return;
         }
       }
-      service.receives.push(buildMessagePointer(event));
+      service.receives.push(buildMessagePointer(event, { includeTriggers: true }));
     } else {
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }

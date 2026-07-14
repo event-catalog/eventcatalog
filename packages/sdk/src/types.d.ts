@@ -86,12 +86,27 @@ export type SendsPointer = {
   group?: string;
 };
 
+export type TriggerPointer = {
+  id: string;
+  version?: string;
+  condition?: string;
+};
+
 export type ReceivesPointer = {
   id: string;
   version?: string;
   fields?: string[];
   from?: ChannelPointer[];
   group?: string;
+  triggers?: TriggerPointer[];
+};
+
+export type MessagePointerInput = {
+  id: string;
+  version: string;
+  fields?: string[];
+  group?: string;
+  triggers?: TriggerPointer[];
 };
 
 export interface ResourceGroup {
@@ -137,6 +152,8 @@ export interface CustomDoc {
 interface MessageDetailsPanelProperty {
   producers?: DetailPanelProperty;
   consumers?: DetailPanelProperty;
+  triggers?: DetailPanelProperty;
+  triggeredBy?: DetailPanelProperty;
   channels?: DetailPanelProperty;
   versions?: DetailPanelProperty;
   repository?: DetailPanelProperty;

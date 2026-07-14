@@ -14,6 +14,7 @@ import {
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { iconFieldsForResource } from '@utils/icon';
 import { collectionToResourceMap } from '@utils/collections/util';
+import type { MessageTrigger } from '@utils/collections/message-triggers';
 
 type MessageSchemaEntry = CollectionEntry<'schemas'>;
 
@@ -47,16 +48,22 @@ export const buildMessageNode = (
   owners: any[],
   context: ResourceGroupContext,
   hasFieldUsage: boolean = false,
-  flowRefs: string[] = []
+  flowRefs: string[] = [],
+  messageTriggers: { triggers: MessageTrigger[]; triggeredBy: MessageTrigger[] } = { triggers: [], triggeredBy: [] }
 ): NavNode => {
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
   const collection = message.collection;
+  const triggerRefs = [...new Set(messageTriggers.triggers.map(({ message }) => getProducerConsumerPageRef(message)))];
+  const triggeredByRefs = [...new Set(messageTriggers.triggeredBy.map(({ message }) => getProducerConsumerPageRef(message)))];
 
   const renderProducers = producers.length > 0 && shouldRenderSideBarSection(message, 'producers');
   const renderConsumers = consumers.length > 0 && shouldRenderSideBarSection(message, 'consumers');
+  const renderTriggers = triggerRefs.length > 0 && shouldRenderSideBarSection(message, 'triggers');
+  const renderTriggeredBy = triggeredByRefs.length > 0 && shouldRenderSideBarSection(message, 'triggeredBy');
   const renderFlows = flowRefs.length > 0 && shouldRenderSideBarSection(message, 'flows');
   const renderRepository = message.data.repository && shouldRenderSideBarSection(message, 'repository');
+  const hasTriggerPaths = messageTriggers.triggers.length > 0 || messageTriggers.triggeredBy.length > 0;
 
   // Determine badge based on collection type
   const badgeMap: Record<string, string> = {
@@ -124,6 +131,15 @@ export const buildMessageNode = (
             title: 'Map',
             href: buildUrl(`/visualiser/${collection}/${message.data.id}/${message.data.version}`),
           },
+          ...(hasTriggerPaths
+            ? [
+                {
+                  type: 'item' as const,
+                  title: 'Trigger paths',
+                  href: buildUrl(`/triggers/${collection}/${message.data.id}/${message.data.version}`),
+                },
+              ]
+            : []),
         ],
       },
       hasDiagrams && {
@@ -162,6 +178,20 @@ export const buildMessageNode = (
         icon: 'Server',
         pages: consumers.map(getProducerConsumerPageRef),
         visible: consumers.length > 0,
+      },
+      renderTriggeredBy && {
+        type: 'group',
+        title: 'Triggered by',
+        icon: 'Mail',
+        pages: triggeredByRefs,
+        visible: triggeredByRefs.length > 0,
+      },
+      renderTriggers && {
+        type: 'group',
+        title: 'Triggers',
+        icon: 'Mail',
+        pages: triggerRefs,
+        visible: triggerRefs.length > 0,
       },
       renderFlows && {
         type: 'group',

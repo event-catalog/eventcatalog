@@ -16,6 +16,7 @@ import {
   useDarkMode,
 } from "../shared-styles";
 import { TruncatedResourceName } from "../TruncatedResourceName";
+import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
 const SPEC_LABELS: Record<string, string> = {
   openapi: "OpenAPI",
@@ -331,6 +332,7 @@ function PostItService(props: ServiceNode) {
         props?.selected ? p.ring : "",
       )}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}
@@ -490,6 +492,7 @@ function DefaultService(props: ServiceNode) {
         boxShadow: `0 2px 12px ${p.shadowColor}`,
       }}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}

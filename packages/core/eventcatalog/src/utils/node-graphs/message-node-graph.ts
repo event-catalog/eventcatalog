@@ -1,6 +1,6 @@
 // import { getColor } from '@utils/colors';
 import { getEvents } from '@utils/collections/events';
-import type { CollectionEntry } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import {
   calculatedNodes,
@@ -42,6 +42,7 @@ import {
 import { getNodesAndEdgesForChannelChain } from './channel-node-graph';
 import { getChannelChain, isChannelsConnected } from '@utils/collections/channels';
 import { getChannels } from '@utils/collections/channels';
+import { getTriggeredByOfMessage, getTriggersOfMessage, type MessageReceiver } from '@utils/collections/message-triggers';
 
 type DagreGraph = any;
 type RoutableResource = CollectionEntry<'agents'> | CollectionEntry<'services'>;
@@ -166,6 +167,52 @@ const getDataProductNodeData = (resource: CollectionEntry<'data-products'>, mode
   contextMenu: buildContextMenuForResource({ collection: 'data-products', id: resource.data.id, version: resource.data.version }),
 });
 
+export const getTriggerReceiverNodeData = (receiver: MessageReceiver, mode: 'simple' | 'full') => {
+  if (receiver.collection !== 'domains') return getRoutableNodeData(receiver, mode);
+
+  return {
+    title: receiver.data.id,
+    mode,
+    domain: {
+      ...receiver,
+      data: {
+        ...receiver.data,
+        // Raw domain entries contain service pointers, while the visualiser's
+        // domain node expects hydrated services in full mode.
+        services: [],
+      },
+    },
+    contextMenu: buildContextMenuForResource({
+      collection: 'domains',
+      id: receiver.data.id,
+      version: receiver.data.version,
+    }),
+  };
+};
+
+export const createTriggerMessageNode = (
+  message: CollectionEntry<CollectionMessageTypes>,
+  mode: 'simple' | 'full',
+  isFocused = false
+) =>
+  createNode({
+    id: generateIdForNode(message),
+    type: message.collection,
+    data: {
+      mode,
+      ...(isFocused ? { isFocused: true } : {}),
+      message: { ...message.data, ...getOperationFields(message.data) },
+      contextMenu: buildContextMenuForMessage({
+        id: message.data.id,
+        version: message.data.version,
+        name: message.data.name,
+        collection: message.collection,
+        schemaPath: (message.data as any).schemaPath,
+      }),
+    },
+    position: { x: 0, y: 0 },
+  });
+
 const getNodesAndEdges = async ({
   id,
   version,
@@ -194,6 +241,19 @@ const getNodesAndEdges = async ({
   // Pre-calculate channel map for O(1) lookups
   const channelMap = createVersionedMap(channels);
 
+  // Trigger metadata lives on raw receive pointers. Hydrated resources replace
+  // those pointers with messages, so load the raw collections for this relation.
+  const [events, commands, queries, services, agents, domains] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('services'),
+    getCollection('agents'),
+    getCollection('domains'),
+  ]);
+  const allMessages = [...events, ...commands, ...queries] as CollectionEntry<CollectionMessageTypes>[];
+  const messageReceivers = [...services, ...agents, ...domains] as MessageReceiver[];
+
   // We always render the message itself
   nodes.push({
     id: generateIdForNode(message),
@@ -201,6 +261,7 @@ const getNodesAndEdges = async ({
     targetPosition: 'left',
     data: {
       mode,
+      isFocused: true,
       message: {
         ...message.data,
         ...getOperationFields(message.data),
@@ -563,6 +624,63 @@ const getNodesAndEdges = async ({
       );
     }
   });
+
+  const appendNode = (node: Node) => {
+    if (!nodes.some((existingNode: Node) => existingNode.id === node.id)) nodes.push(node);
+  };
+  const appendEdge = (source: any, target: any, label: string, colorMessage: CollectionEntry<CollectionMessageTypes>) => {
+    const id = generatedIdForEdge(source, target);
+    if (edges.some((edge: Edge) => edge.id === id)) return;
+
+    edges.push(
+      createEdge({
+        id,
+        source: generateIdForNode(source),
+        target: generateIdForNode(target),
+        label,
+        data: {
+          customColor: getColorFromString(colorMessage.data.id),
+          rootSourceAndTarget: {
+            source: { id: generateIdForNode(source), collection: source.collection },
+            target: { id: generateIdForNode(target), collection: target.collection },
+          },
+        },
+      })
+    );
+  };
+  const appendReceiver = (receiver: MessageReceiver) => {
+    const receiverId = generateIdForNode(receiver);
+    if (nodes.some((node: Node) => node.id === receiverId)) return;
+
+    appendNode(
+      createNode({
+        id: receiverId,
+        type: receiver.collection,
+        data: getTriggerReceiverNodeData(receiver, mode),
+        position: { x: 0, y: 0 },
+      })
+    );
+
+    if (receiver.collection !== 'domains') {
+      appendAgentToolNodesAndEdges({ agent: receiver, nodes, edges, mode });
+    }
+  };
+
+  // Complete both sides of a trigger chain around the focused message:
+  // triggering message -> receiver -> triggered message.
+  for (const relation of getTriggeredByOfMessage(messageReceivers, message, allMessages)) {
+    appendNode(createTriggerMessageNode(relation.message, mode));
+    appendReceiver(relation.receiver);
+    appendEdge(relation.message, relation.receiver, getEdgeLabelForMessageAsSource(relation.message), relation.message);
+    appendEdge(relation.receiver, message, getEdgeLabelForServiceAsTarget(message), message);
+  }
+
+  for (const relation of getTriggersOfMessage(messageReceivers, message, allMessages)) {
+    appendReceiver(relation.receiver);
+    appendNode(createTriggerMessageNode(relation.message, mode));
+    appendEdge(message, relation.receiver, getEdgeLabelForMessageAsSource(message), message);
+    appendEdge(relation.receiver, relation.message, getEdgeLabelForServiceAsTarget(relation.message), relation.message);
+  }
 
   nodes.forEach((node: any) => {
     flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });

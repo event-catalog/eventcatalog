@@ -11,6 +11,37 @@ owners:
 receives:
   - id: review-submitted
     version: 1.0.0
+    triggers:
+      - id: review-published
+        version: 1.0.0
+        condition: When automated moderation passes with a high confidence score
+      - id: review-published
+        version: 1.0.0
+        condition: When a human moderator approves a queued review
+      - id: review-published
+        version: 1.0.0
+        condition: When a trusted reviewer qualifies for the fast-track policy
+      - id: review-published
+        version: 1.0.0
+        condition: When a verified-purchase review passes all policy checks
+      - id: review-published
+        version: 1.0.0
+        condition: When a resubmitted review clears its original moderation warning
+      - id: review-rejected
+        version: 1.0.0
+        condition: When the content is classified as spam
+      - id: review-rejected
+        version: 1.0.0
+        condition: When prohibited or abusive language exceeds the policy threshold
+      - id: review-rejected
+        version: 1.0.0
+        condition: When the review duplicates an existing submission
+      - id: review-rejected
+        version: 1.0.0
+        condition: When reviewer-risk signals fail the authenticity checks
+      - id: review-rejected
+        version: 1.0.0
+        condition: When a human moderator rejects a queued review
   - id: review-flagged
     version: 1.0.0
 sends:

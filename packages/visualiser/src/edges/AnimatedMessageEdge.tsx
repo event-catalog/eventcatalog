@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import { BaseEdge, getSmoothStepPath } from "@xyflow/react";
 import { EDGE_WARNING_STYLE, EDGE_DEFAULT_STYLE } from "../nodes/shared-styles";
+import EdgeLabel from "./EdgeLabel";
 
 /** Map collection type → envelope fill color (module-level, zero allocation). */
 function messageColor(collection: string): string {
@@ -15,9 +16,6 @@ function messageColor(collection: string): string {
       return "gray";
   }
 }
-
-const TSPAN_NORMAL_STYLE = { fontStyle: "normal" } as const;
-const TSPAN_ITALIC_STYLE = { fontStyle: "italic" } as const;
 
 const AnimatedMessageEdge = memo(
   ({
@@ -100,18 +98,6 @@ const AnimatedMessageEdge = memo(
       [edgePath, id, customColors.join(","), opacity, randomDelay],
     );
 
-    const lines = useMemo(() => String(label ?? "").split("\n"), [label]);
-    const longestLine = useMemo(
-      () =>
-        lines.reduce(
-          (a: string, b: string) => (a.length > b.length ? a : b),
-          "",
-        ),
-      [lines],
-    );
-    const labelWidth = Math.max(longestLine.length * 6.5 + 16, 50);
-    const firstLineDy = `${-((lines.length - 1) * 1.2) / 2}em`;
-
     return (
       <>
         <BaseEdge
@@ -122,43 +108,7 @@ const AnimatedMessageEdge = memo(
           style={warning ? EDGE_WARNING_STYLE : EDGE_DEFAULT_STYLE}
         />
         {animatedNodes}
-        <g>
-          {label && (
-            <rect
-              x={labelX - labelWidth / 2}
-              y={labelY - lines.length * 7 - 2}
-              width={labelWidth}
-              height={lines.length * 14 + 4}
-              fill="rgb(var(--ec-card-bg))"
-              fillOpacity={0.95}
-              stroke="rgb(var(--ec-page-border))"
-              strokeWidth={0.75}
-              rx={5}
-              ry={5}
-            />
-          )}
-          <text
-            x={labelX}
-            y={labelY}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fontSize="11px"
-            fontWeight={500}
-            fill="rgb(var(--ec-page-text))"
-            pointerEvents="none"
-          >
-            {lines.map((line: string, i: number) => (
-              <tspan
-                key={i}
-                x={labelX}
-                dy={i === 0 ? firstLineDy : "1.2em"}
-                style={i === 0 ? TSPAN_NORMAL_STYLE : TSPAN_ITALIC_STYLE}
-              >
-                {line}
-              </tspan>
-            ))}
-          </text>
-        </g>
+        <EdgeLabel label={label} labelX={labelX} labelY={labelY} />
       </>
     );
   },

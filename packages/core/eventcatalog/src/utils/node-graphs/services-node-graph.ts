@@ -347,7 +347,10 @@ export const getNodesAndEdges = async ({
     id: generateIdForNode(service),
     sourcePosition: 'right',
     targetPosition: 'left',
-    data: getResourceNodeData(service, mode),
+    data: {
+      ...getResourceNodeData(service, mode),
+      isFocused: service.collection === 'services',
+    },
     type: service.collection,
   });
 
@@ -606,6 +609,17 @@ export const getNodesAndEdges = async ({
       uniqueNodesById.set(node.id, node);
     }
   });
+
+  // Inbound message processing may create the service node before the primary
+  // node is added. Mark the surviving copy after deduplication so the service
+  // currently being viewed always retains its focus treatment.
+  if (service.collection === 'services') {
+    const focusedServiceNode = uniqueNodesById.get(generateIdForNode(service));
+    if (focusedServiceNode) {
+      focusedServiceNode.data = { ...focusedServiceNode.data, isFocused: true };
+    }
+  }
+
   const uniqueNodes = Array.from(uniqueNodesById.values());
 
   uniqueNodes.forEach((node: any) => {

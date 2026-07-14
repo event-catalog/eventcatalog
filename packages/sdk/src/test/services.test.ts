@@ -1238,6 +1238,42 @@ describe('Services SDK', () => {
       });
     });
 
+    it('adds messages triggered by a received message', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        markdown: '# Hello world',
+      });
+
+      await addCommandToService(
+        'InventoryService',
+        'receives',
+        {
+          id: 'ReserveInventory',
+          version: '1.0.0',
+          triggers: [
+            { id: 'InventoryReserved', version: '1.0.0', condition: 'When stock is available' },
+            { id: 'InventoryUnavailable', version: '1.0.0', condition: 'When stock is unavailable' },
+          ],
+        },
+        '0.0.1'
+      );
+
+      const service = await getService('InventoryService');
+
+      expect(service.receives).toEqual([
+        {
+          id: 'ReserveInventory',
+          version: '1.0.0',
+          triggers: [
+            { id: 'InventoryReserved', version: '1.0.0', condition: 'When stock is available' },
+            { id: 'InventoryUnavailable', version: '1.0.0', condition: 'When stock is unavailable' },
+          ],
+        },
+      ]);
+    });
+
     it('throws an error when trying to add an event to a service with an unsupported direction', async () => {
       await writeService({
         id: 'InventoryService',

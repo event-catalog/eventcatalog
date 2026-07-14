@@ -16,6 +16,7 @@ import {
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 import { TruncatedResourceName } from "../TruncatedResourceName";
+import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
@@ -91,6 +92,7 @@ function PostItData(props: DataNode) {
         props?.selected ? "ring-2 ring-indigo-400/60 ring-offset-1" : "",
       )}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}
@@ -258,6 +260,7 @@ function DefaultData(props: DataNode) {
         boxShadow: "0 2px 12px rgba(99, 102, 241, 0.15)",
       }}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}

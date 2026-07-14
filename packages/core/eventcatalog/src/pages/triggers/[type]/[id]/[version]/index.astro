@@ -1,0 +1,201 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+import LineageScenarioSwitcher from '@components/Lineage/LineageScenarioSwitcher';
+import AstroNodeGraph from '@components/MDX/NodeGraph/AstroNodeGraph';
+import ResourceRef from '@components/MDX/ResourceRef/ResourceRef.astro';
+import Footer from '@layouts/Footer.astro';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { getTriggeredByOfMessage, getTriggersOfMessage, type MessageReceiver } from '@utils/collections/message-triggers';
+import { buildMessageLineageGraph, groupMessageLineageGraphs } from '@utils/node-graphs/message-lineage';
+import type { CollectionMessageTypes } from '@types';
+
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+const props = await Page.getData(Astro);
+const { data } = props as CollectionEntry<CollectionMessageTypes>;
+const currentMessage = props as CollectionEntry<CollectionMessageTypes>;
+
+const [events, commands, queries, services, agents, domains] = await Promise.all([
+  getCollection('events'),
+  getCollection('commands'),
+  getCollection('queries'),
+  getCollection('services'),
+  getCollection('agents'),
+  getCollection('domains'),
+]);
+
+const allMessages = [...events, ...commands, ...queries] as CollectionEntry<CollectionMessageTypes>[];
+const receivers = [...services, ...agents, ...domains] as MessageReceiver[];
+
+const triggeredByRows = groupMessageLineageGraphs(
+  getTriggeredByOfMessage(receivers, currentMessage, allMessages).map((relation) =>
+    buildMessageLineageGraph({ currentMessage, relation, direction: 'triggeredBy' })
+  )
+);
+const triggerRows = groupMessageLineageGraphs(
+  getTriggersOfMessage(receivers, currentMessage, allMessages).map((relation) =>
+    buildMessageLineageGraph({ currentMessage, relation, direction: 'triggers' })
+  )
+);
+
+const resourceTypeByCollection = {
+  events: 'event',
+  commands: 'command',
+  queries: 'query',
+  services: 'service',
+  domains: 'domain',
+  agents: 'agent',
+} as const;
+const resourceType = (resource: CollectionEntry<CollectionMessageTypes> | MessageReceiver) =>
+  resourceTypeByCollection[resource.collection];
+const conditionText = (condition: string) => condition.replace(/^when\s+/i, '');
+const scenarioConditions = (row: (typeof triggeredByRows)[number]) =>
+  row.scenarios.map(({ condition }) => (condition ? conditionText(condition) : 'No condition specified'));
+---
+
+<VerticalSideBarLayout title={`Trigger paths | ${data.name}`} description={`Message trigger paths for ${data.name}`}>
+  <main class="w-full min-h-full bg-[rgb(var(--ec-page-bg))] py-8">
+    <header class="border-b border-[rgb(var(--ec-page-border))] py-5">
+      <div class="text-sm font-semibold text-[rgb(var(--ec-accent))]">Trigger paths</div>
+      <h1 class="pt-3 text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name}</h1>
+      <p class="pt-3 text-base text-[rgb(var(--ec-page-text-muted))] font-light">
+        Explore the direct messages that trigger this message and the messages it can trigger.
+      </p>
+    </header>
+
+    <div class="space-y-10 py-8">
+      {
+        triggeredByRows.length > 0 && (
+          <section aria-labelledby="triggered-by-heading">
+            <div class="space-y-5">
+              {triggeredByRows.map((row, index) => (
+                <article class="lineage-row overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-sm">
+                  <div class="border-b border-[rgb(var(--ec-page-border))] px-5 py-4">
+                    <h3 class="text-sm md:text-base font-medium text-[rgb(var(--ec-page-text))]">
+                      <ResourceRef type={resourceType(row.target)} version={row.target.data.version}>
+                        {row.target.data.id}
+                      </ResourceRef>{' '}
+                      is triggered by{' '}
+                      <ResourceRef type={resourceType(row.source)} version={row.source.data.version}>
+                        {row.source.data.id}
+                      </ResourceRef>
+                      {row.scenarios.length === 1 && row.scenarios[0].condition && (
+                        <>
+                          {' '}
+                          when <span class="font-semibold">{conditionText(row.scenarios[0].condition)}</span>
+                        </>
+                      )}
+                      {row.scenarios.length > 1 && (
+                        <>
+                          {' '}
+                          when <LineageScenarioSwitcher client:visible conditions={scenarioConditions(row)} />
+                        </>
+                      )}{' '}
+                      via{' '}
+                      <ResourceRef type={resourceType(row.receiver)} version={row.receiver.data.version}>
+                        {row.receiver.data.id}
+                      </ResourceRef>
+                    </h3>
+                  </div>
+                  <div
+                    id={`${data.id}-triggered-by-${index}-portal`}
+                    class="lineage-graph h-[250px] w-full bg-[rgb(var(--ec-page-bg))]"
+                  />
+                  <AstroNodeGraph
+                    client:only="react"
+                    id={`${data.id}-triggered-by-${index}`}
+                    portalId={`${data.id}-triggered-by-${index}-portal`}
+                    nodes={row.nodes}
+                    edges={row.edges}
+                    mode="simple"
+                    linkTo="docs"
+                    includeKey={false}
+                    showSearch={false}
+                    zoomOnScroll={false}
+                    disableMessageAnimation={true}
+                  />
+                </article>
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      {
+        triggerRows.length > 0 && (
+          <section aria-label="Messages triggered by this message">
+            <div class="space-y-5">
+              {triggerRows.map((row, index) => (
+                <article class="lineage-row overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-sm">
+                  <div class="border-b border-[rgb(var(--ec-page-border))] px-5 py-4">
+                    <h3 class="text-sm md:text-base font-medium text-[rgb(var(--ec-page-text))]">
+                      <ResourceRef type={resourceType(row.target)} version={row.target.data.version}>
+                        {row.target.data.id}
+                      </ResourceRef>{' '}
+                      is triggered by{' '}
+                      <ResourceRef type={resourceType(row.source)} version={row.source.data.version}>
+                        {row.source.data.id}
+                      </ResourceRef>
+                      {row.scenarios.length === 1 && row.scenarios[0].condition && (
+                        <>
+                          {' '}
+                          when <span class="font-semibold">{conditionText(row.scenarios[0].condition)}</span>
+                        </>
+                      )}
+                      {row.scenarios.length > 1 && (
+                        <>
+                          {' '}
+                          when <LineageScenarioSwitcher client:visible conditions={scenarioConditions(row)} />
+                        </>
+                      )}{' '}
+                      via{' '}
+                      <ResourceRef type={resourceType(row.receiver)} version={row.receiver.data.version}>
+                        {row.receiver.data.id}
+                      </ResourceRef>
+                    </h3>
+                  </div>
+                  <div
+                    id={`${data.id}-triggers-${index}-portal`}
+                    class="lineage-graph h-[250px] w-full bg-[rgb(var(--ec-page-bg))]"
+                  />
+                  <AstroNodeGraph
+                    client:only="react"
+                    id={`${data.id}-triggers-${index}`}
+                    portalId={`${data.id}-triggers-${index}-portal`}
+                    nodes={row.nodes}
+                    edges={row.edges}
+                    mode="simple"
+                    linkTo="docs"
+                    includeKey={false}
+                    showSearch={false}
+                    zoomOnScroll={false}
+                    disableMessageAnimation={true}
+                  />
+                </article>
+              ))}
+            </div>
+          </section>
+        )
+      }
+    </div>
+
+    <Footer />
+  </main>
+</VerticalSideBarLayout>
+
+<style is:global>
+  .lineage-row {
+    content-visibility: auto;
+    contain-intrinsic-size: 330px;
+  }
+
+  .lineage-graph .react-flow__panel.top,
+  .lineage-graph .react-flow__controls,
+  .lineage-graph .react-flow__attribution {
+    display: none;
+  }
+</style>

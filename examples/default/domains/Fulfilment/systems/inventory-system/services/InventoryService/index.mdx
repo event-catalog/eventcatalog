@@ -11,6 +11,13 @@ owners:
 receives:
   - id: reserve-inventory
     version: 1.0.0
+    triggers:
+      - id: inventory-reserved
+        version: 1.0.0
+        condition: When sufficient stock is available
+      - id: inventory-unavailable
+        version: 1.0.0
+        condition: When there is not enough stock to fulfil the reservation
   - id: release-inventory
     version: 1.0.0
   - id: get-stock-level

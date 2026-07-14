@@ -1353,6 +1353,31 @@ describe('Domain SDK', () => {
         expect(domain.receives).toEqual([{ id: 'PaymentProcessed', version: '1.0.0' }]);
       });
 
+      it('adds messages triggered by a message the domain receives', async () => {
+        await writeDomain({
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '0.0.1',
+          markdown: '# Hello world',
+        });
+
+        await addEventToDomain('Orders', 'receives', {
+          id: 'PaymentProcessed',
+          version: '1.0.0',
+          triggers: [{ id: 'GetOrderStatus', version: '1.0.0', condition: 'After payment succeeds' }],
+        });
+
+        const domain = await getDomain('Orders');
+
+        expect(domain.receives).toEqual([
+          {
+            id: 'PaymentProcessed',
+            version: '1.0.0',
+            triggers: [{ id: 'GetOrderStatus', version: '1.0.0', condition: 'After payment succeeds' }],
+          },
+        ]);
+      });
+
       it('adds a command to the receives of an existing domain', async () => {
         await writeDomain({
           id: 'Orders',

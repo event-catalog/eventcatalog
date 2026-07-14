@@ -185,7 +185,7 @@ export default memo(function FlowNode({
             className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
           >
             <a href={buildUrl(`/visualiser/flows/${id}/${version}`)}>
-              View in visualiser
+              Focus node
             </a>
           </ContextMenu.Item>
           <ContextMenu.Separator className="h-[1px] bg-[rgb(var(--ec-page-border))] m-1" />

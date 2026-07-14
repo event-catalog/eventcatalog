@@ -1,6 +1,11 @@
-import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from '../../node-graphs/message-node-graph';
+import {
+  getNodesAndEdgesForCommands,
+  getNodesAndEdgesForConsumedMessage,
+  getNodesAndEdgesForEvents,
+  getNodesAndEdgesForProducedMessage,
+} from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockEvents, mockServices, mockChannels, mockAgents } from './mocks';
+import { mockEvents, mockServices, mockChannels, mockAgents, mockCommands } from './mocks';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import utils from '@eventcatalog/sdk';
@@ -9,6 +14,8 @@ import fs from 'fs';
 import { getProducersOfMessage, getConsumersOfMessage } from '@utils/collections/services';
 
 const CATALOG_FOLDER = path.join(__dirname, 'catalog');
+const triggerReceivers: any[] = [];
+const triggerDomains: any[] = [];
 
 const toAstroCollection = (item: any, collection: string) => {
   return {
@@ -24,7 +31,7 @@ vi.mock('astro:content', async (importOriginal) => {
     // this will only affect "foo" outside of the original module
     getCollection: (key: string) => {
       if (key === 'services') {
-        return Promise.resolve(mockServices);
+        return Promise.resolve([...mockServices, ...triggerReceivers]);
       }
       if (key === 'agents') {
         return Promise.resolve(mockAgents);
@@ -34,6 +41,12 @@ vi.mock('astro:content', async (importOriginal) => {
       }
       if (key === 'events') {
         return Promise.resolve(mockEvents);
+      }
+      if (key === 'commands') {
+        return Promise.resolve(mockCommands);
+      }
+      if (key === 'domains') {
+        return Promise.resolve(triggerDomains);
       }
       return Promise.resolve([]);
     },
@@ -46,6 +59,108 @@ describe('Message NodeGraph', () => {
     // Clear the catalog folder but not the folder itself
     fs.rmSync(CATALOG_FOLDER, { recursive: true, force: true });
     fs.mkdirSync(CATALOG_FOLDER, { recursive: true });
+    triggerReceivers.length = 0;
+    triggerDomains.length = 0;
+  });
+
+  describe('message triggers', () => {
+    it('completes the command to service to event chain from either message graph', async () => {
+      triggerReceivers.push({
+        id: 'PaymentService',
+        collection: 'services',
+        data: {
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '1.0.0',
+          receives: [
+            {
+              id: 'ProcessPayment',
+              version: '0.0.1',
+              triggers: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+            },
+          ],
+          sends: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        },
+      });
+
+      const eventGraph = await getNodesAndEdgesForEvents({ id: 'PaymentProcessed', version: '0.0.1', mode: 'simple' });
+      const commandGraph = await getNodesAndEdgesForCommands({ id: 'ProcessPayment', version: '0.0.1', mode: 'simple' });
+
+      expect(eventGraph.nodes.find((node) => node.id === 'PaymentProcessed-0.0.1')?.data.isFocused).toBe(true);
+      expect(eventGraph.nodes.find((node) => node.id === 'ProcessPayment-0.0.1')?.data.isFocused).toBeUndefined();
+      expect(commandGraph.nodes.find((node) => node.id === 'ProcessPayment-0.0.1')?.data.isFocused).toBe(true);
+      expect(commandGraph.nodes.find((node) => node.id === 'PaymentProcessed-0.0.1')?.data.isFocused).toBeUndefined();
+      expect(eventGraph.nodes.find((node) => node.id === 'ProcessPayment-0.0.1')?.data.contextMenu).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            label: 'Focus node',
+            href: '/visualiser/commands/ProcessPayment/0.0.1',
+          }),
+        ])
+      );
+
+      for (const graph of [eventGraph, commandGraph]) {
+        expect(graph.nodes).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: 'ProcessPayment-0.0.1', type: 'commands' }),
+            expect.objectContaining({ id: 'PaymentService-1.0.0', type: 'services' }),
+            expect.objectContaining({ id: 'PaymentProcessed-0.0.1', type: 'events' }),
+          ])
+        );
+        expect(graph.edges).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'ProcessPayment-0.0.1-PaymentService-1.0.0',
+              source: 'ProcessPayment-0.0.1',
+              target: 'PaymentService-1.0.0',
+            }),
+            expect.objectContaining({
+              id: 'PaymentService-1.0.0-PaymentProcessed-0.0.1',
+              source: 'PaymentService-1.0.0',
+              target: 'PaymentProcessed-0.0.1',
+            }),
+          ])
+        );
+      }
+    });
+
+    it('renders domains that own a trigger relationship', async () => {
+      triggerDomains.push({
+        id: 'Payments',
+        collection: 'domains',
+        data: {
+          id: 'Payments',
+          name: 'Payments',
+          version: '1.0.0',
+          receives: [
+            {
+              id: 'ProcessPayment',
+              version: '0.0.1',
+              triggers: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+            },
+          ],
+        },
+      });
+
+      const graph = await getNodesAndEdgesForEvents({ id: 'PaymentProcessed', version: '0.0.1', mode: 'full' });
+
+      expect(graph.nodes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'ProcessPayment-0.0.1', type: 'commands' }),
+          expect.objectContaining({
+            id: 'Payments-1.0.0',
+            type: 'domains',
+            data: expect.objectContaining({ domain: expect.objectContaining({ collection: 'domains' }) }),
+          }),
+        ])
+      );
+      expect(graph.edges).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ source: 'ProcessPayment-0.0.1', target: 'Payments-1.0.0' }),
+          expect.objectContaining({ source: 'Payments-1.0.0', target: 'PaymentProcessed-0.0.1' }),
+        ])
+      );
+    });
   });
 
   describe('getNodesAndEdgesForConsumedMessage', () => {

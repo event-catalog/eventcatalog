@@ -11,8 +11,16 @@ owners:
 receives:
   - id: register-customer
     version: 1.0.0
+    triggers:
+      - id: customer-registered
+        version: 1.0.0
+        condition: When the customer registration is validated and persisted
   - id: update-customer
     version: 1.0.0
+    triggers:
+      - id: customer-updated
+        version: 1.0.0
+        condition: When the customer profile changes are persisted
   - id: get-customer
     version: 1.0.0
 sends:
