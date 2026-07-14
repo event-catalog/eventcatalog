@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.26.0
+
+### Minor Changes
+
+- 6bd170f: Allow services, domains, and agents to document messages triggered by any received message and show both sides of those relationships in message sidebars and node graphs. Messages with documented trigger relationships include a dedicated Trigger paths page with one visual row per path and its optional scenarios; messages without paths do not generate the page. The SDK supports trigger pointers and includes domains when resolving message producers and consumers. Message, service, and data store visualizers now keep the currently viewed resource visibly marked as the graph's focus, and resource context menus can focus another node in its own map. Edge labels now render above graph edges so intersecting paths do not obscure their text.
+
 ## 2.25.0
 
 ### Minor Changes
@@ -90,6 +96,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"

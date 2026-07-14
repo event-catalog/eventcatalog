@@ -1,5 +1,12 @@
 # @eventcatalog/language-server
 
+## 0.8.24
+
+### Patch Changes
+
+- Updated dependencies [6bd170f]
+  - @eventcatalog/sdk@2.26.0
+
 ## 0.8.23
 
 ### Patch Changes
