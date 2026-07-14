@@ -16,6 +16,7 @@ import {
   useDarkMode,
 } from "../shared-styles";
 import { TruncatedResourceName } from "../TruncatedResourceName";
+import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
 const GlowHandle = memo(function GlowHandle({
   side,
@@ -65,6 +66,7 @@ function PostItCommand(props: CommandNode) {
         props?.selected ? "ring-2 ring-blue-400/60 ring-offset-1" : "",
       )}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}
@@ -226,6 +228,7 @@ function DefaultCommand(props: CommandNode) {
         boxShadow: "0 2px 12px rgba(59, 130, 246, 0.15)",
       }}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}

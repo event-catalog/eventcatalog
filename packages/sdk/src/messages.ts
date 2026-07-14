@@ -1,14 +1,15 @@
 import { dirname, join } from 'node:path';
 import fsSync from 'node:fs';
-import type { Agent, Message, Service } from './types';
+import type { Agent, Domain, Message, Service } from './types';
 import matter from 'gray-matter';
 import { getResource, getResourcePath, isLatestVersion } from './internal/resources';
 import { findFileById, getFiles } from './internal/utils';
 import { getServices } from './services';
 import { getAgents } from './agents';
+import { getDomains } from './domains';
 import { satisfies, validRange } from 'semver';
 
-type MessageParticipant = Service | Agent;
+type MessageParticipant = Service | Agent | Domain;
 
 /**
  * Returns a message from EventCatalog by a given schema path.
@@ -61,7 +62,7 @@ export const getMessageBySchemaPath =
   };
 
 /**
- * Returns the producers and consumers (services and agents) for a given message.
+ * Returns the producers and consumers (services, agents, and domains) for a given message.
  *
  * @example
  * ```ts
@@ -69,7 +70,7 @@ export const getMessageBySchemaPath =
  *
  * const { getProducersAndConsumersForMessage } = utils('/path/to/eventcatalog');
  *
- * // Returns the producers and consumers (services and agents) for a given message
+ * // Returns the producers and consumers (services, agents, and domains) for a given message
  * const { producers, consumers } = await getProducersAndConsumersForMessage('InventoryAdjusted', '0.0.1');
  */
 export const getProducersAndConsumersForMessage =
@@ -79,9 +80,10 @@ export const getProducersAndConsumersForMessage =
     version?: string,
     options?: { latestOnly?: boolean }
   ): Promise<{ producers: MessageParticipant[]; consumers: MessageParticipant[] }> => {
-    const [services = [], agents = []] = await Promise.all([
+    const [services = [], agents = [], domains = []] = await Promise.all([
       getServices(directory)({ latestOnly: options?.latestOnly ?? true }),
       getAgents(directory)({ latestOnly: options?.latestOnly ?? true }),
+      getDomains(directory)({ latestOnly: options?.latestOnly ?? true }),
     ]);
     const message = (await getResource(directory, id, version, { type: 'message' })) as Message;
     const isMessageLatestVersion = await isLatestVersion(directory, id, version);
@@ -93,7 +95,7 @@ export const getProducersAndConsumersForMessage =
     const producers: MessageParticipant[] = [];
     const consumers: MessageParticipant[] = [];
 
-    for (const participant of [...services, ...agents]) {
+    for (const participant of [...services, ...agents, ...domains]) {
       const participantPublishesMessage = participant.sends?.some((_message) => {
         if (_message.version) {
           const isParticipantUsingSemverRange = validRange(_message.version);

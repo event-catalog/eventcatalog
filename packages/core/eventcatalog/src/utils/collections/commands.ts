@@ -20,7 +20,7 @@ export const getCommands = async ({ getAllVersions = true, hydrateServices = tru
   const cacheKey = `${getAllVersions ? 'allVersions' : 'currentVersions'}-${hydrateServices ? 'hydrated' : 'minimal'}`;
 
   // Check cache
-  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0) {
+  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0 && CACHE_ENABLED) {
     // console.timeEnd('✅ New getCommands');
     return memoryCache[cacheKey];
   }

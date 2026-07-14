@@ -31,7 +31,17 @@ describe('Containers NodeGraph', () => {
           id: 'OrderDatabase-1.0.0',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: expect.objectContaining({ mode: 'simple', data: { ...mockContainers[0].data } }),
+          data: expect.objectContaining({
+            mode: 'simple',
+            isFocused: true,
+            data: { ...mockContainers[0].data },
+            contextMenu: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Focus node',
+                href: '/visualiser/containers/OrderDatabase/1.0.0',
+              }),
+            ]),
+          }),
           position: { x: 525, y: 60 },
           type: 'data',
         },

@@ -237,6 +237,18 @@ export default memo(function EntityNode({
               Read documentation
             </a>
           </ContextMenu.Item>
+          <ContextMenu.Item
+            asChild
+            className="text-sm text-[rgb(var(--ec-page-text))] px-2 py-1.5 outline-none cursor-pointer hover:bg-[rgb(var(--ec-accent-subtle))] rounded-sm flex items-center"
+          >
+            <a
+              href={buildUrl(
+                `/visualiser/entities/${entity.data.id}/${version}`,
+              )}
+            >
+              Focus node
+            </a>
+          </ContextMenu.Item>
         </ContextMenu.Content>
       </ContextMenu.Portal>
     </ContextMenu.Root>

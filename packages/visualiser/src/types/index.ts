@@ -9,6 +9,8 @@ export type EventCatalogResource = {
   collection?: string;
   filePath?: string;
   id?: string;
+  /** Marks the resource represented by the current visualizer page. */
+  isFocused?: boolean;
 };
 
 /**

@@ -90,6 +90,11 @@ import {
 import AnimatedMessageEdge from "../edges/AnimatedMessageEdge";
 import MultilineEdgeLabel from "../edges/MultilineEdgeLabel";
 import FlowEdge from "../edges/FlowEdge";
+import {
+  LabelledDefaultEdge,
+  LabelledSmoothStepEdge,
+  LabelledStepEdge,
+} from "../edges/LabelledEdge";
 import VisualiserSearch, { type VisualiserSearchRef } from "./VisualiserSearch";
 import StepWalkthrough from "./StepWalkthrough";
 import StudioModal from "./StudioModal";
@@ -490,6 +495,9 @@ const NodeGraphBuilder = ({
         animated: AnimatedMessageEdge,
         multiline: MultilineEdgeLabel,
         "flow-edge": FlowEdge,
+        default: LabelledDefaultEdge,
+        smoothstep: LabelledSmoothStepEdge,
+        step: LabelledStepEdge,
       }) as Record<string, any>,
     [],
   );

@@ -162,7 +162,10 @@ export const buildContextMenuForMessage = ({
   collection: string;
   schemaPath?: string;
 }): ContextMenuItem[] => {
-  const items: ContextMenuItem[] = [{ label: 'Read documentation', href: buildUrl(`/docs/${collection}/${id}/${version}`) }];
+  const items: ContextMenuItem[] = [
+    { label: 'Read documentation', href: buildUrl(`/docs/${collection}/${id}/${version}`) },
+    { label: 'Focus node', href: buildUrl(`/visualiser/${collection}/${id}/${version}`) },
+  ];
 
   if (schemaPath) {
     items.push({
@@ -250,7 +253,10 @@ export const buildContextMenuForService = ({
   specifications?: unknown;
   repository?: { url: string };
 }): ContextMenuItem[] => {
-  const items: ContextMenuItem[] = [{ label: 'Read documentation', href: buildUrl(`/docs/services/${id}/${version}`) }];
+  const items: ContextMenuItem[] = [
+    { label: 'Read documentation', href: buildUrl(`/docs/services/${id}/${version}`) },
+    { label: 'Focus node', href: buildUrl(`/visualiser/services/${id}/${version}`) },
+  ];
 
   const specItems = getSpecMenuItems(specifications, id, version);
   items.push(...specItems);
@@ -283,7 +289,10 @@ export const buildContextMenuForAgent = ({
   version: string;
   repository?: { url: string };
 }): ContextMenuItem[] => {
-  const items: ContextMenuItem[] = [{ label: 'Read documentation', href: buildUrl(`/docs/agents/${id}/${version}`) }];
+  const items: ContextMenuItem[] = [
+    { label: 'Read documentation', href: buildUrl(`/docs/agents/${id}/${version}`) },
+    { label: 'Focus node', href: buildUrl(`/visualiser/agents/${id}/${version}`) },
+  ];
 
   if (repository?.url) {
     items.push({
@@ -315,6 +324,7 @@ export const buildContextMenuForResource = ({
 }): ContextMenuItem[] => {
   return [
     { label: 'Read documentation', href: buildUrl(`/docs/${collection}/${id}/${version}`) },
+    { label: 'Focus node', href: buildUrl(`/visualiser/${collection}/${id}/${version}`) },
     {
       label: 'Read changelog',
       href: buildUrl(`/docs/${collection}/${id}/${version}/changelog`),
@@ -331,7 +341,7 @@ export const buildContextMenuForResource = ({
 export const buildContextMenuForSystem = ({ id, version }: { id: string; version: string }): ContextMenuItem[] => {
   return [
     { label: 'Read documentation', href: buildUrl(`/docs/systems/${id}/${version}`) },
-    { label: 'View map', href: buildUrl(`/visualiser/systems/${id}/${version}`) },
+    { label: 'Focus node', href: buildUrl(`/visualiser/systems/${id}/${version}`) },
     { label: 'View context', href: buildUrl(`/visualiser/systems/${id}/${version}/context`) },
   ];
 };

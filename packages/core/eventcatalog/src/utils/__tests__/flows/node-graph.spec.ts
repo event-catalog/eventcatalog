@@ -140,6 +140,10 @@ describe('Flows NodeGraph', () => {
             label: 'Read documentation',
             href: expect.stringContaining('/docs/events/PaymentProcessed/0.0.1'),
           }),
+          expect.objectContaining({
+            label: 'Focus node',
+            href: expect.stringContaining('/visualiser/events/PaymentProcessed/0.0.1'),
+          }),
           expect.objectContaining({ label: 'Read changelog' }),
         ])
       );
@@ -155,6 +159,10 @@ describe('Flows NodeGraph', () => {
           expect.objectContaining({
             label: 'Read documentation',
             href: expect.stringContaining('/docs/services/SubscriptionService/0.0.1'),
+          }),
+          expect.objectContaining({
+            label: 'Focus node',
+            href: expect.stringContaining('/visualiser/services/SubscriptionService/0.0.1'),
           }),
         ])
       );
@@ -177,6 +185,10 @@ describe('Flows NodeGraph', () => {
               expect.objectContaining({
                 label: 'Read documentation',
                 href: expect.stringContaining('/docs/agents/FraudReviewAgent/1.0.0'),
+              }),
+              expect.objectContaining({
+                label: 'Focus node',
+                href: expect.stringContaining('/visualiser/agents/FraudReviewAgent/1.0.0'),
               }),
             ]),
           }),
@@ -207,6 +219,10 @@ describe('Flows NodeGraph', () => {
                 label: 'Read documentation',
                 href: expect.stringContaining('/docs/containers/OrdersDB/1.0.0'),
               }),
+              expect.objectContaining({
+                label: 'Focus node',
+                href: expect.stringContaining('/visualiser/containers/OrdersDB/1.0.0'),
+              }),
             ]),
           }),
         })
@@ -230,6 +246,10 @@ describe('Flows NodeGraph', () => {
               expect.objectContaining({
                 label: 'Read documentation',
                 href: expect.stringContaining('/docs/data-products/OrderAnalytics/1.0.0'),
+              }),
+              expect.objectContaining({
+                label: 'Focus node',
+                href: expect.stringContaining('/visualiser/data-products/OrderAnalytics/1.0.0'),
               }),
             ]),
           }),

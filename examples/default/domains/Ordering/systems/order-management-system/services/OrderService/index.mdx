@@ -11,8 +11,16 @@ owners:
 receives:
   - id: create-order
     version: 1.0.0
+    triggers:
+      - id: order-created
+        version: 1.0.0
+        condition: When the order is validated and persisted
   - id: cancel-order
     version: 1.0.0
+    triggers:
+      - id: order-cancelled
+        version: 1.0.0
+        condition: When the order can be cancelled successfully
   - id: get-order
     version: 1.0.0
 sends:

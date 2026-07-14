@@ -1,4 +1,4 @@
-import type { Agent } from './types';
+import type { Agent, MessagePointerInput } from './types';
 import fs from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 import {
@@ -115,13 +115,7 @@ export const addFileToAgent =
     addFileToResource(directory, id, file, version);
 
 export const addMessageToAgent =
-  (directory: string) =>
-  async (
-    id: string,
-    direction: string,
-    message: { id: string; version: string; fields?: string[]; group?: string },
-    version?: string
-  ) => {
+  (directory: string) => async (id: string, direction: string, message: MessagePointerInput, version?: string) => {
     const agent: Agent = await getAgent(directory)(id, version);
 
     if (direction === 'sends') {
@@ -143,7 +137,7 @@ export const addMessageToAgent =
           return;
         }
       }
-      agent.receives.push(buildMessagePointer(message));
+      agent.receives.push(buildMessagePointer(message, { includeTriggers: true }));
     } else {
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }

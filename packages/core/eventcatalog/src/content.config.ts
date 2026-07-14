@@ -87,11 +87,18 @@ const sendsPointer = z.object({
     .optional(),
 });
 
+const triggersPointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  condition: z.string().optional(),
+});
+
 const receivesPointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
   fields: z.array(z.string()).optional(),
   group: z.string().optional(),
+  triggers: z.array(triggersPointer).optional(),
   from: z
     .array(
       z.object({
@@ -355,6 +362,8 @@ const operationSchema = z
 const messageDetailsPanelPropertySchema = z.object({
   producers: detailPanelPropertySchema.optional(),
   consumers: detailPanelPropertySchema.optional(),
+  triggers: detailPanelPropertySchema.optional(),
+  triggeredBy: detailPanelPropertySchema.optional(),
   channels: detailPanelPropertySchema.optional(),
   versions: detailPanelPropertySchema.optional(),
   repository: detailPanelPropertySchema.optional(),

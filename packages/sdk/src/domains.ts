@@ -1,4 +1,4 @@
-import type { Domain, UbiquitousLanguageDictionary } from './types';
+import type { Domain, MessagePointerInput, UbiquitousLanguageDictionary } from './types';
 import fs from 'node:fs/promises';
 import path, { join } from 'node:path';
 import fsSync from 'node:fs';
@@ -612,13 +612,7 @@ export const addDataProductToDomain =
  * ```
  */
 export const addMessageToDomain =
-  (directory: string) =>
-  async (
-    id: string,
-    direction: string,
-    message: { id: string; version: string; fields?: string[]; group?: string },
-    version?: string
-  ) => {
+  (directory: string) => async (id: string, direction: string, message: MessagePointerInput, version?: string) => {
     let domain: Domain = await getDomain(directory)(id, version);
     const domainPath = await getResourcePath(directory, id, version);
     const extension = path.extname(domainPath?.fullPath || '');
@@ -644,7 +638,7 @@ export const addMessageToDomain =
           return;
         }
       }
-      domain.receives.push(buildMessagePointer(message));
+      domain.receives.push(buildMessagePointer(message, { includeTriggers: true }));
     } else {
       throw new Error(`Direction ${direction} is invalid, only 'receives' and 'sends' are supported`);
     }

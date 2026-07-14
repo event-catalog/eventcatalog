@@ -143,11 +143,12 @@ export const getNodesAndEdges = async ({
     targetPosition: 'left',
     data: {
       mode,
+      isFocused: true,
       data: {
         ...container.data,
       },
       contextMenu: buildContextMenuForResource({
-        collection: 'entities',
+        collection: 'containers',
         id: container.data.id,
         version: container.data.version,
       }),

@@ -3153,6 +3153,84 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    describe('triggers section', () => {
+      it('lists events triggered by a command when a service receives it', async () => {
+        const { writeCommand, writeEvent, writeService } = utils(CATALOG_FOLDER);
+
+        await writeCommand({
+          id: 'CreateUser',
+          name: 'Create User',
+          version: '1.0.0',
+          markdown: 'Create User',
+        });
+        await writeEvent({
+          id: 'UserCreated',
+          name: 'User Created',
+          version: '1.0.0',
+          markdown: 'User Created',
+        });
+        await writeService({
+          id: 'UserService',
+          name: 'User Service',
+          version: '1.0.0',
+          markdown: 'User Service',
+          receives: [
+            {
+              id: 'CreateUser',
+              version: '1.0.0',
+              triggers: [{ id: 'UserCreated', version: '1.0.0', condition: 'on success' }],
+            },
+          ],
+        } as any);
+
+        const navigationData = await getNestedSideBarData();
+        const commandNode = getNavigationConfigurationByKey('command:CreateUser:1.0.0', navigationData);
+        const eventNode = getNavigationConfigurationByKey('event:UserCreated:1.0.0', navigationData);
+        const triggersSection = getChildNodeByTitle('Triggers', commandNode.pages ?? []);
+        const triggeredBySection = getChildNodeByTitle('Triggered by', eventNode.pages ?? []);
+
+        expect(triggersSection.pages).toEqual(['event:UserCreated:1.0.0']);
+        expect(triggeredBySection.pages).toEqual(['command:CreateUser:1.0.0']);
+      });
+
+      it('lists relationships declared by a domain', async () => {
+        const { writeCommand, writeDomain, writeEvent } = utils(CATALOG_FOLDER);
+
+        await writeCommand({
+          id: 'CreateShipment',
+          name: 'Create Shipment',
+          version: '1.0.0',
+          markdown: 'Create Shipment',
+        });
+        await writeEvent({
+          id: 'ShipmentCreated',
+          name: 'Shipment Created',
+          version: '1.0.0',
+          markdown: 'Shipment Created',
+        });
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '1.0.0',
+          markdown: 'Shipping',
+          receives: [
+            {
+              id: 'CreateShipment',
+              version: '1.0.0',
+              triggers: [{ id: 'ShipmentCreated', version: '1.0.0' }],
+            },
+          ],
+        } as any);
+
+        const navigationData = await getNestedSideBarData();
+        const commandNode = getNavigationConfigurationByKey('command:CreateShipment:1.0.0', navigationData);
+        const eventNode = getNavigationConfigurationByKey('event:ShipmentCreated:1.0.0', navigationData);
+
+        expect(getChildNodeByTitle('Triggers', commandNode.pages ?? []).pages).toEqual(['event:ShipmentCreated:1.0.0']);
+        expect(getChildNodeByTitle('Triggered by', eventNode.pages ?? []).pages).toEqual(['command:CreateShipment:1.0.0']);
+      });
+    });
+
     describe('flows section', () => {
       it('is not listed if no flows reference the message', async () => {
         const { writeEvent } = utils(CATALOG_FOLDER);

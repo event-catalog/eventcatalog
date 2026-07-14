@@ -30,6 +30,10 @@ flows:
 receives:
   - id: submit-review
     version: 1.0.0
+    triggers:
+      - id: review-submitted
+        version: 1.0.0
+        condition: When the review passes submission validation
   - id: flag-review
     version: 1.0.0
   - id: vote-review-helpful

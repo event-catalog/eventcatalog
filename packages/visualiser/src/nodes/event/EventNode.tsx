@@ -16,6 +16,7 @@ import {
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 import { TruncatedResourceName } from "../TruncatedResourceName";
+import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
 const GlowHandle = memo(function GlowHandle({
   side,
@@ -65,6 +66,7 @@ function PostItEvent(props: EventNode) {
         props?.selected ? "ring-2 ring-orange-400/60 ring-offset-1" : "",
       )}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}
@@ -231,6 +233,7 @@ function DefaultEvent(props: EventNode) {
         boxShadow: "0 2px 12px rgba(251, 146, 60, 0.15)",
       }}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}

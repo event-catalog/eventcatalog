@@ -477,6 +477,36 @@ describe('Agents SDK', () => {
       expect(agent.receives).toEqual([{ id: 'InvestigateOrder', version: '1.0.0' }]);
     });
 
+    it('adds messages triggered by a message the agent receives', async () => {
+      await writeAgent({
+        id: 'OrderSupportAgent',
+        name: 'Order Support Agent',
+        version: '0.0.1',
+        markdown: '# Order support agent',
+      });
+
+      await addQueryToAgent(
+        'OrderSupportAgent',
+        'receives',
+        {
+          id: 'GetOrderSummary',
+          version: '1.0.0',
+          triggers: [{ id: 'InvestigateOrder', version: '1.0.0', condition: 'When an anomaly is detected' }],
+        },
+        '0.0.1'
+      );
+
+      const agent = await getAgent('OrderSupportAgent');
+
+      expect(agent.receives).toEqual([
+        {
+          id: 'GetOrderSummary',
+          version: '1.0.0',
+          triggers: [{ id: 'InvestigateOrder', version: '1.0.0', condition: 'When an anomaly is detected' }],
+        },
+      ]);
+    });
+
     it('adds the given query to the agent sends list', async () => {
       await writeAgent({
         id: 'OrderSupportAgent',

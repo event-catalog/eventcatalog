@@ -15,6 +15,7 @@ const {
   getProducersAndConsumersForMessage,
   writeService,
   writeAgent,
+  writeDomain,
   addEventToService,
   addEventToAgent,
   versionEvent,
@@ -70,6 +71,29 @@ describe('Messages SDK', () => {
   });
 
   describe('getProducersAndConsumersForMessage', () => {
+    it('includes domains that send and receive the message', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        markdown: '# Hello world',
+      });
+
+      await writeDomain({
+        id: 'Fulfilment',
+        name: 'Fulfilment',
+        version: '1.0.0',
+        markdown: '# Fulfilment',
+        sends: [{ id: 'InventoryAdjusted', version: '0.0.1' }],
+        receives: [{ id: 'InventoryAdjusted', version: '0.0.1' }],
+      });
+
+      const { producers, consumers } = await getProducersAndConsumersForMessage('InventoryAdjusted', '0.0.1');
+
+      expect(producers.map((participant) => participant.id)).toContain('Fulfilment');
+      expect(consumers.map((participant) => participant.id)).toContain('Fulfilment');
+    });
+
     it('returns the producers and consumers for a given message', async () => {
       await writeEvent({
         id: 'InventoryAdjusted',

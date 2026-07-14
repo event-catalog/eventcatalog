@@ -4,6 +4,7 @@ import { copy, CopyFilterAsync, CopyFilterSync } from 'fs-extra';
 import { join, dirname, normalize, sep as pathSeparator, resolve, basename, relative } from 'node:path';
 import matter from 'gray-matter';
 import { satisfies, validRange, valid } from 'semver';
+import type { MessagePointerInput } from '../types';
 
 // In-memory file index cache. Auto-built on first read, invalidated on writes.
 interface FileIndexEntry {
@@ -308,14 +309,17 @@ export const copyDir = async (catalogDir: string, source: string, target: string
   fsSync.rmSync(tmpDirectory, { recursive: true });
 };
 
-// Makes sure values in sends/recieves are unique
-export const buildMessagePointer = (message: { id: string; version: string; fields?: string[]; group?: string }) => {
-  const pointer: { id: string; version: string; fields?: string[]; group?: string } = {
+// Builds the frontmatter pointer used by sends/receives relationships.
+export const buildMessagePointer = (message: MessagePointerInput, options: { includeTriggers?: boolean } = {}) => {
+  const pointer: MessagePointerInput = {
     id: message.id,
     version: message.version,
   };
   if (message.fields) pointer.fields = message.fields;
   if (message.group) pointer.group = message.group;
+  if (options.includeTriggers && message.triggers) {
+    pointer.triggers = message.triggers.map((trigger) => ({ ...trigger }));
+  }
   return pointer;
 };
 
