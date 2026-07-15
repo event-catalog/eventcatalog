@@ -9,6 +9,7 @@ import config from '@config';
 import fs from 'fs';
 import { isLLMSTxtEnabled } from '@utils/feature';
 import { filterMarkdownForAgents } from '@utils/llms';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 
 const events = await getCollection('events');
 const agents = await getCollection('agents');
@@ -67,7 +68,8 @@ export const GET: APIRoute = async ({ params, props }) => {
 
   const content = props?.content ?? findContent(params);
   if (content?.filePath) {
-    const file = filterMarkdownForAgents(fs.readFileSync(content.filePath, 'utf8'));
+    const absoluteFilePath = getAbsoluteFilePathForAstroFile(content.filePath);
+    const file = filterMarkdownForAgents(fs.readFileSync(absoluteFilePath, 'utf8'));
     return new Response(file, { status: 200 });
   }
 

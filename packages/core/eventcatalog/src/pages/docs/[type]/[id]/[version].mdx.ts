@@ -8,6 +8,7 @@ import config from '@config';
 import fs from 'fs';
 import { addSchemaToMarkdown, filterMarkdownForAgents } from '@utils/llms';
 import { isLLMSTxtEnabled, isSSR } from '@utils/feature';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 const events = await getCollection('events');
 const agents = await getCollection('agents');
 const commands = await getCollection('commands');
@@ -67,10 +68,11 @@ export const GET: APIRoute = async ({ params, props }) => {
 
   const content = props?.content ?? findContent(params);
   if (content?.filePath) {
-    let file = fs.readFileSync(content.filePath, 'utf8');
+    const absoluteFilePath = getAbsoluteFilePathForAstroFile(content.filePath);
+    let file = fs.readFileSync(absoluteFilePath, 'utf8');
 
     try {
-      file = addSchemaToMarkdown(content, file);
+      file = addSchemaToMarkdown({ ...content, filePath: absoluteFilePath }, file);
     } catch (error) {
       console.log('Warning: Cant find the schema for', content.data.id, content.data.version);
     }
