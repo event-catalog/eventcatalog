@@ -21,6 +21,7 @@ import { logger } from './utils/cli-logger';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
 import { linkCoreNodeModules, resolveInstalledCoreNodeModules } from './core-node-modules';
+import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -118,23 +119,6 @@ const startDevPrewarm = ({
   };
 
   setTimeout(tick, initialDelayMs);
-};
-
-const createAstroLineFilter = () => {
-  return (line: string) => {
-    return (
-      line.includes('[glob-loader]') ||
-      /^\s*The collection ".*" does not exist or is empty\. Please check your content config file for errors\.\s*$/.test(line)
-    );
-  };
-};
-
-const createAstroDevLineFilter = () => {
-  const shouldFilterAstroLine = createAstroLineFilter();
-
-  return (line: string) => {
-    return shouldFilterAstroLine(line) || line.includes('[router]');
-  };
 };
 
 const buildDevSearchIndex = async ({ config }: { config: Awaited<ReturnType<typeof getEventCatalogConfigFile>> }) => {
