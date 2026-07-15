@@ -1,8 +1,9 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname, isAbsolute, join } from 'node:path';
 import { formatPatch, structuredPatch } from 'diff';
 import { html, parse } from 'diff2html';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from './collections/util';
+import { getAbsoluteFilePathForAstroFile } from './files';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionTypes } from '@types';
 
@@ -32,7 +33,8 @@ export async function getFilesForDiffInCollection(
   const pathToFolder = collection.filePath;
   if (!pathToFolder) return [];
 
-  const dir = dirname(pathToFolder);
+  const absolutePathToFolder = isAbsolute(pathToFolder) ? pathToFolder : getAbsoluteFilePathForAstroFile(pathToFolder);
+  const dir = dirname(absolutePathToFolder);
   const allFilesInDirectory = await readdir(dir);
 
   return allFilesInDirectory

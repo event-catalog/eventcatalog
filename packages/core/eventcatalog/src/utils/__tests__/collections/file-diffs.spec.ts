@@ -110,5 +110,37 @@ describe('Diff Utilities', () => {
       expect(diffs[0]).toContain('<span class="d2h-file-name">asyncapi.yml</span>');
       expect(diffs[1]).toContain('<span class="d2h-file-name">schema.json</span>');
     });
+
+    it('resolves Astro relative file paths from PROJECT_DIR when diffing in SSR mode', async () => {
+      const originalProjectDir = process.env.PROJECT_DIR;
+      process.env.PROJECT_DIR = pathToTestCatalog;
+
+      const allEvents = [
+        {
+          data: { id: 'myevent', version: '1.0.0' },
+          filePath: '../events/OrderAmended/index.mdx',
+        },
+        {
+          data: { id: 'myevent', version: '0.9.0' },
+          filePath: '../events/OrderAmended/versioned/0.0.1/index.mdx',
+        },
+      ];
+
+      try {
+        const diffs = (await getDiffsForCurrentAndPreviousVersion(
+          '1.0.0',
+          '0.9.0',
+          'myevent',
+          // @ts-ignore
+          allEvents
+        )) as string[];
+
+        expect(diffs).toHaveLength(2);
+        expect(diffs[0]).toContain('<span class="d2h-file-name">asyncapi.yml</span>');
+        expect(diffs[1]).toContain('<span class="d2h-file-name">schema.json</span>');
+      } finally {
+        process.env.PROJECT_DIR = originalProjectDir;
+      }
+    });
   });
 });
