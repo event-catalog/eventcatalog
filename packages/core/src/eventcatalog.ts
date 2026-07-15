@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { execSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import http from 'node:http';
 import fs from 'fs';
@@ -122,7 +122,10 @@ const startDevPrewarm = ({
 
 const createAstroLineFilter = () => {
   return (line: string) => {
-    return line.includes('[glob-loader]') || /The collection.*does not exist/.test(line);
+    return (
+      line.includes('[glob-loader]') ||
+      /^\s*The collection ".*" does not exist or is empty\. Please check your content config file for errors\.\s*$/.test(line)
+    );
   };
 };
 
@@ -575,7 +578,7 @@ program
     }
   });
 
-const previewCatalog = ({
+const previewCatalog = async ({
   command,
   canEmbedPages = false,
   isEventCatalogStarter = false,
@@ -586,34 +589,42 @@ const previewCatalog = ({
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
 }) => {
-  execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} npx astro preview ${command.args.join(' ').trim()}`,
-    {
-      cwd: core,
-      stdio: 'inherit',
-    }
-  );
+  await runCommandWithFilteredOutput({
+    command: `npx astro preview ${command.args.join(' ').trim()}`,
+    cwd: core,
+    env: {
+      PROJECT_DIR: dir,
+      CATALOG_DIR: core,
+      ENABLE_EMBED: String(canEmbedPages),
+      EVENTCATALOG_STARTER: String(isEventCatalogStarter),
+      EVENTCATALOG_SCALE: String(isEventCatalogScale),
+    },
+    shouldFilterLine: createAstroLineFilter(),
+  });
 };
 
-const startServerCatalog = ({
-  command,
+const startServerCatalog = async ({
   canEmbedPages = false,
   isEventCatalogStarter = false,
   isEventCatalogScale = false,
 }: {
-  command: Command;
   canEmbedPages: boolean;
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
 }) => {
   const serverEntryPath = path.join(dir, 'dist', 'server', 'entry.mjs');
-  execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} node "${serverEntryPath}"`,
-    {
-      cwd: core,
-      stdio: 'inherit',
-    }
-  );
+  await runCommandWithFilteredOutput({
+    command: `node "${serverEntryPath}"`,
+    cwd: core,
+    env: {
+      PROJECT_DIR: dir,
+      CATALOG_DIR: core,
+      ENABLE_EMBED: String(canEmbedPages),
+      EVENTCATALOG_STARTER: String(isEventCatalogStarter),
+      EVENTCATALOG_SCALE: String(isEventCatalogScale),
+    },
+    shouldFilterLine: createAstroLineFilter(),
+  });
 };
 
 program
@@ -635,7 +646,12 @@ program
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
-    previewCatalog({ command, canEmbedPages: canEmbedPages || isEventCatalogScale, isEventCatalogStarter, isEventCatalogScale });
+    await previewCatalog({
+      command,
+      canEmbedPages: canEmbedPages || isEventCatalogScale,
+      isEventCatalogStarter,
+      isEventCatalogScale,
+    });
   });
 
 program
@@ -660,14 +676,13 @@ program
     const isServerOutput = await isOutputServer();
 
     if (isServerOutput) {
-      startServerCatalog({
-        command,
+      await startServerCatalog({
         canEmbedPages: canEmbedPages || isEventCatalogScale,
         isEventCatalogStarter,
         isEventCatalogScale,
       });
     } else {
-      previewCatalog({
+      await previewCatalog({
         command,
         canEmbedPages: canEmbedPages || isEventCatalogScale,
         isEventCatalogStarter,
