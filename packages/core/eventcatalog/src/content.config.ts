@@ -10,6 +10,7 @@ import { userTeamDirectoryLoader } from './enterprise/directory/user-team-direct
 import config from '@config';
 import { schemaLoader } from './utils/collections/schema-loader';
 import { globWithSafeWatcher, withIgnoredBuildArtifacts } from './utils/collections/glob-loader';
+import { withExtensionProperties } from './utils/collections/extension-properties';
 
 // Enterprise Collections
 import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './enterprise/collections';
@@ -270,85 +271,87 @@ const flows = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      detailsPanel: z
-        .object({
-          owners: detailPanelPropertySchema.optional(),
-          versions: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-      steps: z.array(
-        z
+  schema: withExtensionProperties(
+    z
+      .object({
+        detailsPanel: z
           .object({
-            id: z.union([z.string(), z.number()]),
-            type: z.enum(['node', 'message', 'agent', 'user', 'actor']).optional(),
-            title: z.string(),
-            summary: z.string().optional(),
-            message: pointer.optional(),
-            agent: pointer.optional(),
-            service: pointer.optional(),
-            flow: pointer.optional(),
-            container: pointer.optional(),
-            dataProduct: pointer.optional(),
-
-            actor: z
-              .object({
-                name: z.string(),
-                summary: z.string().optional(),
-              })
-              .optional(),
-            custom: z
-              .object({
-                title: z.string(),
-                icon: z.string().optional(),
-                type: z.string().optional(),
-                summary: z.string().optional(),
-                url: z.string().url().optional(),
-                color: z.string().optional(),
-                properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
-                height: z.number().optional(),
-                menu: z
-                  .array(
-                    z.object({
-                      label: z.string(),
-                      url: z.string().url().optional(),
-                    })
-                  )
-                  .optional(),
-              })
-              .optional(),
-            externalSystem: z
-              .object({
-                name: z.string(),
-                summary: z.string().optional(),
-                url: z.string().url().optional(),
-              })
-              .optional(),
-            next_step: flowStep,
-            next_steps: z.array(flowStep).optional(),
+            owners: detailPanelPropertySchema.optional(),
+            versions: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
           })
-          .refine((data) => {
-            // Cant have both next_steps and next_steps
-            if (data.next_step && data.next_steps) return false;
+          .optional(),
+        steps: z.array(
+          z
+            .object({
+              id: z.union([z.string(), z.number()]),
+              type: z.enum(['node', 'message', 'agent', 'user', 'actor']).optional(),
+              title: z.string(),
+              summary: z.string().optional(),
+              message: pointer.optional(),
+              agent: pointer.optional(),
+              service: pointer.optional(),
+              flow: pointer.optional(),
+              container: pointer.optional(),
+              dataProduct: pointer.optional(),
 
-            // Either one or non types can be present
-            const typesUsed = [
-              data.message,
-              data.agent,
-              data.service,
-              data.flow,
-              data.container,
-              data.dataProduct,
-              data.actor,
-              data.custom,
-            ].filter((v) => v).length;
-            return typesUsed === 0 || typesUsed === 1;
-          })
-      ),
-    })
-    .extend(baseSchema.shape),
+              actor: z
+                .object({
+                  name: z.string(),
+                  summary: z.string().optional(),
+                })
+                .optional(),
+              custom: z
+                .object({
+                  title: z.string(),
+                  icon: z.string().optional(),
+                  type: z.string().optional(),
+                  summary: z.string().optional(),
+                  url: z.string().url().optional(),
+                  color: z.string().optional(),
+                  properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+                  height: z.number().optional(),
+                  menu: z
+                    .array(
+                      z.object({
+                        label: z.string(),
+                        url: z.string().url().optional(),
+                      })
+                    )
+                    .optional(),
+                })
+                .optional(),
+              externalSystem: z
+                .object({
+                  name: z.string(),
+                  summary: z.string().optional(),
+                  url: z.string().url().optional(),
+                })
+                .optional(),
+              next_step: flowStep,
+              next_steps: z.array(flowStep).optional(),
+            })
+            .refine((data) => {
+              // Cant have both next_steps and next_steps
+              if (data.next_step && data.next_steps) return false;
+
+              // Either one or non types can be present
+              const typesUsed = [
+                data.message,
+                data.agent,
+                data.service,
+                data.flow,
+                data.container,
+                data.dataProduct,
+                data.actor,
+                data.custom,
+              ].filter((v) => v).length;
+              return typesUsed === 0 || typesUsed === 1;
+            })
+        ),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const operationSchema = z
@@ -380,19 +383,21 @@ const events = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      // Used by users
-      operation: operationSchema,
-      // Used by eventcatalog
-      producers: z.array(reference('services')).optional(),
-      consumers: z.array(reference('services')).optional(),
-      channels: z.array(channelPointer).optional(),
-      schemas: z.array(schemaPointer).optional(),
-      messageChannels: z.array(reference('channels')).optional(),
-      detailsPanel: messageDetailsPanelPropertySchema.optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        // Used by users
+        operation: operationSchema,
+        // Used by eventcatalog
+        producers: z.array(reference('services')).optional(),
+        consumers: z.array(reference('services')).optional(),
+        channels: z.array(channelPointer).optional(),
+        schemas: z.array(schemaPointer).optional(),
+        messageChannels: z.array(reference('channels')).optional(),
+        detailsPanel: messageDetailsPanelPropertySchema.optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const commands = defineCollection({
@@ -403,19 +408,21 @@ const commands = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      // Used by users
-      operation: operationSchema,
-      // Used by eventcatalog
-      producers: z.array(reference('services')).optional(),
-      consumers: z.array(reference('services')).optional(),
-      channels: z.array(channelPointer).optional(),
-      schemas: z.array(schemaPointer).optional(),
-      detailsPanel: messageDetailsPanelPropertySchema.optional(),
-      messageChannels: z.array(reference('channels')).optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        // Used by users
+        operation: operationSchema,
+        // Used by eventcatalog
+        producers: z.array(reference('services')).optional(),
+        consumers: z.array(reference('services')).optional(),
+        channels: z.array(channelPointer).optional(),
+        schemas: z.array(schemaPointer).optional(),
+        detailsPanel: messageDetailsPanelPropertySchema.optional(),
+        messageChannels: z.array(reference('channels')).optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const queries = defineCollection({
@@ -426,19 +433,21 @@ const queries = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      // Used by users
-      operation: operationSchema,
-      // Used by eventcatalog
-      producers: z.array(reference('services')).optional(),
-      consumers: z.array(reference('services')).optional(),
-      channels: z.array(channelPointer).optional(),
-      schemas: z.array(schemaPointer).optional(),
-      detailsPanel: messageDetailsPanelPropertySchema.optional(),
-      messageChannels: z.array(reference('channels')).optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        // Used by users
+        operation: operationSchema,
+        // Used by eventcatalog
+        producers: z.array(reference('services')).optional(),
+        consumers: z.array(reference('services')).optional(),
+        channels: z.array(channelPointer).optional(),
+        schemas: z.array(schemaPointer).optional(),
+        detailsPanel: messageDetailsPanelPropertySchema.optional(),
+        messageChannels: z.array(reference('channels')).optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const dataProductOutputPointer = z.object({
@@ -461,24 +470,26 @@ const dataProducts = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      inputs: z.array(pointer).optional(),
-      outputs: z.array(dataProductOutputPointer).optional(),
-      detailsPanel: z
-        .object({
-          domains: detailPanelPropertySchema.optional(),
-          inputs: detailPanelPropertySchema.optional(),
-          outputs: detailPanelPropertySchema.optional(),
-          versions: detailPanelPropertySchema.optional(),
-          repository: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-          flows: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        inputs: z.array(pointer).optional(),
+        outputs: z.array(dataProductOutputPointer).optional(),
+        detailsPanel: z
+          .object({
+            domains: detailPanelPropertySchema.optional(),
+            inputs: detailPanelPropertySchema.optional(),
+            outputs: detailPanelPropertySchema.optional(),
+            versions: detailPanelPropertySchema.optional(),
+            repository: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+            flows: detailPanelPropertySchema.optional(),
+          })
+          .optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const services = defineCollection({
@@ -506,30 +517,32 @@ const services = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      sends: z.array(sendsPointer).optional(),
-      receives: z.array(receivesPointer).optional(),
-      entities: z.array(pointer).optional(),
-      writesTo: z.array(pointer).optional(),
-      readsFrom: z.array(pointer).optional(),
-      flows: z.array(pointer).optional(),
-      externalSystem: z.boolean().optional(),
-      detailsPanel: z
-        .object({
-          domains: detailPanelPropertySchema.optional(),
-          messages: detailPanelPropertySchema.optional(),
-          versions: detailPanelPropertySchema.optional(),
-          specifications: detailPanelPropertySchema.optional(),
-          entities: detailPanelPropertySchema.optional(),
-          repository: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-          containers: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        sends: z.array(sendsPointer).optional(),
+        receives: z.array(receivesPointer).optional(),
+        entities: z.array(pointer).optional(),
+        writesTo: z.array(pointer).optional(),
+        readsFrom: z.array(pointer).optional(),
+        flows: z.array(pointer).optional(),
+        externalSystem: z.boolean().optional(),
+        detailsPanel: z
+          .object({
+            domains: detailPanelPropertySchema.optional(),
+            messages: detailPanelPropertySchema.optional(),
+            versions: detailPanelPropertySchema.optional(),
+            specifications: detailPanelPropertySchema.optional(),
+            entities: detailPanelPropertySchema.optional(),
+            repository: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+            containers: detailPanelPropertySchema.optional(),
+          })
+          .optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const agentTool = z.object({
@@ -554,31 +567,33 @@ const agents = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      sends: z.array(sendsPointer).optional(),
-      receives: z.array(receivesPointer).optional(),
-      writesTo: z.array(pointer).optional(),
-      readsFrom: z.array(pointer).optional(),
-      flows: z.array(pointer).optional(),
-      model: agentModel.optional(),
-      tools: z.array(agentTool).optional(),
-      specifications: z.undefined().optional(),
-      detailsPanel: z
-        .object({
-          domains: detailPanelPropertySchema.optional(),
-          messages: detailPanelPropertySchema.optional(),
-          versions: detailPanelPropertySchema.optional(),
-          repository: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-          containers: detailPanelPropertySchema.optional(),
-          tools: detailPanelPropertySchema.optional(),
-          model: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        sends: z.array(sendsPointer).optional(),
+        receives: z.array(receivesPointer).optional(),
+        writesTo: z.array(pointer).optional(),
+        readsFrom: z.array(pointer).optional(),
+        flows: z.array(pointer).optional(),
+        model: agentModel.optional(),
+        tools: z.array(agentTool).optional(),
+        specifications: z.undefined().optional(),
+        detailsPanel: z
+          .object({
+            domains: detailPanelPropertySchema.optional(),
+            messages: detailPanelPropertySchema.optional(),
+            versions: detailPanelPropertySchema.optional(),
+            repository: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+            containers: detailPanelPropertySchema.optional(),
+            tools: detailPanelPropertySchema.optional(),
+            model: detailPanelPropertySchema.optional(),
+          })
+          .optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const adrStatus = z.enum(ADR_STATUS_VALUES);
@@ -614,31 +629,33 @@ const adrs = defineCollection({
     base: projectDirBase,
     generateId: ({ data }) => `${data.id}-${data.version}`,
   }),
-  schema: z
-    .object({
-      status: adrStatus,
-      date: z.coerce.date(),
-      decisionMakers: z.array(ownerReference).optional(),
-      appliesTo: z.array(adrResourcePointer).optional(),
-      supersedes: z.array(adrPointer).optional(),
-      supersededBy: z.array(adrPointer).optional(),
-      amends: z.array(adrPointer).optional(),
-      amendedBy: z.array(adrPointer).optional(),
-      related: z.array(adrPointer).optional(),
-      detailsPanel: z
-        .object({
-          status: detailPanelPropertySchema.optional(),
-          date: detailPanelPropertySchema.optional(),
-          decisionMakers: detailPanelPropertySchema.optional(),
-          appliesTo: detailPanelPropertySchema.optional(),
-          relationships: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          repository: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        status: adrStatus,
+        date: z.coerce.date(),
+        decisionMakers: z.array(ownerReference).optional(),
+        appliesTo: z.array(adrResourcePointer).optional(),
+        supersedes: z.array(adrPointer).optional(),
+        supersededBy: z.array(adrPointer).optional(),
+        amends: z.array(adrPointer).optional(),
+        amendedBy: z.array(adrPointer).optional(),
+        related: z.array(adrPointer).optional(),
+        detailsPanel: z
+          .object({
+            status: detailPanelPropertySchema.optional(),
+            date: detailPanelPropertySchema.optional(),
+            decisionMakers: detailPanelPropertySchema.optional(),
+            appliesTo: detailPanelPropertySchema.optional(),
+            relationships: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            repository: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+          })
+          .optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 // 1) Put this near your other enums/utilities
@@ -666,35 +683,38 @@ const containers = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      container_type: containerTypeEnum, // <— the important discriminator inside DataContainer
-      technology: z.string().optional(), // e.g. "postgres@14", "kafka", "s3"
-      authoritative: z.boolean().optional().default(false),
-      access_mode: accessModeEnum.optional(), // read/write/readWrite/appendOnly
-      classification: dataClassificationEnum.optional(),
-      residency: z.string().optional(),
-      retention: z.string().optional(),
-      // details panel toggles (aligns with your pattern)
-      detailsPanel: z
-        .object({
-          versions: detailPanelPropertySchema.optional(),
-          repository: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-          attachments: detailPanelPropertySchema.optional(),
-          services: detailPanelPropertySchema.optional(),
-          flows: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-      services: z.array(reference('services')).optional(),
+  schema: withExtensionProperties(
+    z
+      .object({
+        container_type: containerTypeEnum, // <— the important discriminator inside DataContainer
+        technology: z.string().optional(), // e.g. "postgres@14", "kafka", "s3"
+        purpose: z.string().optional(),
+        authoritative: z.boolean().optional().default(false),
+        access_mode: accessModeEnum.optional(), // read/write/readWrite/appendOnly
+        classification: dataClassificationEnum.optional(),
+        residency: z.string().optional(),
+        retention: z.string().optional(),
+        // details panel toggles (aligns with your pattern)
+        detailsPanel: z
+          .object({
+            versions: detailPanelPropertySchema.optional(),
+            repository: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+            attachments: detailPanelPropertySchema.optional(),
+            services: detailPanelPropertySchema.optional(),
+            flows: detailPanelPropertySchema.optional(),
+          })
+          .optional(),
+        services: z.array(reference('services')).optional(),
 
-      servicesThatWriteToContainer: z.array(reference('services')).optional(),
-      servicesThatReadFromContainer: z.array(reference('services')).optional(),
-      dataProductsThatWriteToContainer: z.array(reference('data-products')).optional(),
-      dataProductsThatReadFromContainer: z.array(reference('data-products')).optional(),
-    })
-    .extend(baseSchema.shape),
+        servicesThatWriteToContainer: z.array(reference('services')).optional(),
+        servicesThatReadFromContainer: z.array(reference('services')).optional(),
+        dataProductsThatWriteToContainer: z.array(reference('data-products')).optional(),
+        dataProductsThatReadFromContainer: z.array(reference('data-products')).optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const customPages = defineCollection({
@@ -756,35 +776,37 @@ const domains = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      services: z.array(pointer).optional(),
-      agents: z.array(pointer).optional(),
-      domains: z.array(pointer).optional(),
-      systems: z.array(pointer).optional(),
-      entities: z.array(pointer).optional(),
-      'data-products': z.array(pointer).optional(),
-      flows: z.array(pointer).optional(),
-      sends: z.array(sendsPointer).optional(),
-      receives: z.array(receivesPointer).optional(),
-      detailsPanel: z
-        .object({
-          parentDomains: detailPanelPropertySchema.optional(),
-          subdomains: detailPanelPropertySchema.optional(),
-          systems: detailPanelPropertySchema.optional(),
-          services: detailPanelPropertySchema.optional(),
-          entities: detailPanelPropertySchema.optional(),
-          messages: detailPanelPropertySchema.optional(),
-          ubiquitousLanguage: detailPanelPropertySchema.optional(),
-          repository: detailPanelPropertySchema.optional(),
-          versions: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-          attachments: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        services: z.array(pointer).optional(),
+        agents: z.array(pointer).optional(),
+        domains: z.array(pointer).optional(),
+        systems: z.array(pointer).optional(),
+        entities: z.array(pointer).optional(),
+        'data-products': z.array(pointer).optional(),
+        flows: z.array(pointer).optional(),
+        sends: z.array(sendsPointer).optional(),
+        receives: z.array(receivesPointer).optional(),
+        detailsPanel: z
+          .object({
+            parentDomains: detailPanelPropertySchema.optional(),
+            subdomains: detailPanelPropertySchema.optional(),
+            systems: detailPanelPropertySchema.optional(),
+            services: detailPanelPropertySchema.optional(),
+            entities: detailPanelPropertySchema.optional(),
+            messages: detailPanelPropertySchema.optional(),
+            ubiquitousLanguage: detailPanelPropertySchema.optional(),
+            repository: detailPanelPropertySchema.optional(),
+            versions: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+            attachments: detailPanelPropertySchema.optional(),
+          })
+          .optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 // A relationship from one system to another, used by the System Diagram.
@@ -835,34 +857,36 @@ const systems = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      // Whether the system belongs to your organisation (`internal`) or is a
-      // third-party/SaaS system you integrate with (`external`, e.g. "Resend",
-      // "Stripe"). External systems are shaded in the node-graph. Defaults to internal.
-      scope: z.enum(['internal', 'external']).optional().default('internal'),
-      services: z.array(pointer).optional(),
-      flows: z.array(pointer).optional(),
-      entities: z.array(pointer).optional(),
-      containers: z.array(pointer).optional(),
-      relationships: z.array(systemRelationshipPointer).optional(),
-      actors: z.array(systemActorRelationship).optional(),
-      detailsPanel: z
-        .object({
-          versions: detailPanelPropertySchema.optional(),
-          repository: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-          attachments: detailPanelPropertySchema.optional(),
-          services: detailPanelPropertySchema.optional(),
-          flows: detailPanelPropertySchema.optional(),
-          entities: detailPanelPropertySchema.optional(),
-          containers: detailPanelPropertySchema.optional(),
-          diagrams: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        // Whether the system belongs to your organisation (`internal`) or is a
+        // third-party/SaaS system you integrate with (`external`, e.g. "Resend",
+        // "Stripe"). External systems are shaded in the node-graph. Defaults to internal.
+        scope: z.enum(['internal', 'external']).optional().default('internal'),
+        services: z.array(pointer).optional(),
+        flows: z.array(pointer).optional(),
+        entities: z.array(pointer).optional(),
+        containers: z.array(pointer).optional(),
+        relationships: z.array(systemRelationshipPointer).optional(),
+        actors: z.array(systemActorRelationship).optional(),
+        detailsPanel: z
+          .object({
+            versions: detailPanelPropertySchema.optional(),
+            repository: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+            attachments: detailPanelPropertySchema.optional(),
+            services: detailPanelPropertySchema.optional(),
+            flows: detailPanelPropertySchema.optional(),
+            entities: detailPanelPropertySchema.optional(),
+            containers: detailPanelPropertySchema.optional(),
+            diagrams: detailPanelPropertySchema.optional(),
+          })
+          .optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const channels = defineCollection({
@@ -873,41 +897,43 @@ const channels = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      channels: z.array(channelPointer).optional(),
-      address: z.string().optional(),
-      protocols: z.array(z.string()).optional(),
-      deliveryGuarantee: z.enum(['at-most-once', 'at-least-once', 'exactly-once']).optional(),
-      routes: z.array(channelPointer).optional(),
-      parameters: z
-        .record(
-          z.string(),
-          z.object({
-            enum: z.array(z.string()).optional(),
-            default: z.string().optional(),
-            examples: z.array(z.string()).optional(),
-            description: z.string().optional(),
+  schema: withExtensionProperties(
+    z
+      .object({
+        channels: z.array(channelPointer).optional(),
+        address: z.string().optional(),
+        protocols: z.array(z.string()).optional(),
+        deliveryGuarantee: z.enum(['at-most-once', 'at-least-once', 'exactly-once']).optional(),
+        routes: z.array(channelPointer).optional(),
+        parameters: z
+          .record(
+            z.string(),
+            z.object({
+              enum: z.array(z.string()).optional(),
+              default: z.string().optional(),
+              examples: z.array(z.string()).optional(),
+              description: z.string().optional(),
+            })
+          )
+          .optional(),
+        messages: z.array(z.object({ collection: z.string(), name: z.string(), ...pointer.shape })).optional(),
+        detailsPanel: z
+          .object({
+            producers: detailPanelPropertySchema.optional(),
+            consumers: detailPanelPropertySchema.optional(),
+            messages: detailPanelPropertySchema.optional(),
+            protocols: detailPanelPropertySchema.optional(),
+            parameters: detailPanelPropertySchema.optional(),
+            versions: detailPanelPropertySchema.optional(),
+            repository: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+            attachments: detailPanelPropertySchema.optional(),
           })
-        )
-        .optional(),
-      messages: z.array(z.object({ collection: z.string(), name: z.string(), ...pointer.shape })).optional(),
-      detailsPanel: z
-        .object({
-          producers: detailPanelPropertySchema.optional(),
-          consumers: detailPanelPropertySchema.optional(),
-          messages: detailPanelPropertySchema.optional(),
-          protocols: detailPanelPropertySchema.optional(),
-          parameters: detailPanelPropertySchema.optional(),
-          versions: detailPanelPropertySchema.optional(),
-          repository: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-          attachments: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-    })
-    .extend(baseSchema.shape),
+          .optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const ubiquitousLanguages = defineCollection({
@@ -945,45 +971,46 @@ const entities = defineCollection({
       return `${data.id}-${data.version}`;
     },
   }),
-  schema: z
-    .object({
-      aggregateRoot: z.boolean().optional(),
-      identifier: z.string().optional(),
-      properties: z
-        .array(
-          z.object({
-            name: z.string(),
-            type: z.string(),
-            required: z.boolean().optional(),
-            description: z.string().optional(),
-            references: z.string().optional(),
-            referencesIdentifier: z.string().optional(),
-            relationType: z.string().optional(),
-            enum: z.array(z.string()).optional(),
-            items: z
-              .object({
-                type: z.string(),
-              })
-              .optional(),
+  schema: withExtensionProperties(
+    z
+      .object({
+        aggregateRoot: z.boolean().optional(),
+        identifier: z.string().optional(),
+        properties: z
+          .array(
+            z.object({
+              name: z.string(),
+              type: z.string(),
+              required: z.boolean().optional(),
+              description: z.string().optional(),
+              references: z.string().optional(),
+              referencesIdentifier: z.string().optional(),
+              relationType: z.string().optional(),
+              enum: z.array(z.string()).optional(),
+              items: z
+                .object({
+                  type: z.string(),
+                })
+                .optional(),
+            })
+          )
+          .optional(),
+        services: z.array(reference('services')).optional(),
+        domains: z.array(reference('domains')).optional(),
+        detailsPanel: z
+          .object({
+            domains: detailPanelPropertySchema.optional(),
+            services: detailPanelPropertySchema.optional(),
+            messages: detailPanelPropertySchema.optional(),
+            versions: detailPanelPropertySchema.optional(),
+            owners: detailPanelPropertySchema.optional(),
+            changelog: detailPanelPropertySchema.optional(),
+            attachments: detailPanelPropertySchema.optional(),
           })
-        )
-        .optional(),
-      services: z.array(reference('services')).optional(),
-      domains: z.array(reference('domains')).optional(),
-      detailsPanel: z
-        .object({
-          domains: detailPanelPropertySchema.optional(),
-          services: detailPanelPropertySchema.optional(),
-          messages: detailPanelPropertySchema.optional(),
-          versions: detailPanelPropertySchema.optional(),
-          owners: detailPanelPropertySchema.optional(),
-          changelog: detailPanelPropertySchema.optional(),
-          attachments: detailPanelPropertySchema.optional(),
-        })
-        .optional(),
-    })
-
-    .extend(baseSchema.shape),
+          .optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const users = defineCollection({
@@ -1084,14 +1111,16 @@ const diagrams = defineCollection({
     base: projectDirBase,
     generateId: ({ data }) => `${data.id}-${data.version}`,
   }),
-  schema: z
-    .object({
-      id: z.string(),
-      name: z.string(),
-      version: z.string(),
-      summary: z.string().optional(),
-    })
-    .extend(baseSchema.shape),
+  schema: withExtensionProperties(
+    z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        version: z.string(),
+        summary: z.string().optional(),
+      })
+      .extend(baseSchema.shape)
+  ),
 });
 
 const schemas = defineCollection({

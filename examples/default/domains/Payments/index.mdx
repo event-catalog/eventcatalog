@@ -6,6 +6,10 @@ summary: |
   The Payments domain takes payment for orders and processes refunds. It orchestrates authorization and capture through an external payment processor, and screens payments for fraud.
 owners:
   - payments-platform
+x-business-criticality: mission-critical
+x-compliance-frameworks:
+  - PCI-DSS
+  - SOC2
 systems:
   - id: payment-processing-system
     version: 1.0.0
@@ -37,6 +41,8 @@ badges:
 
 The **Payments** domain is responsible for moving money. It authorizes and captures payment for orders, issues refunds, and screens payments for fraud. It owns one internal system and integrates with two external providers:
 
+<CustomProperties title="Domain metadata" />
+
 <Tiles>
   <Tile
     icon="CreditCardIcon"
@@ -67,4 +73,3 @@ The **Payment Processing System** is the internal orchestrator. When the Orderin
 The systems in this domain, how they relate, and the people who interact with them.
 
 <ContextDiagram />
-

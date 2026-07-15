@@ -9,6 +9,8 @@ owners:
   - product-platform
 decisionMakers:
   - product-platform
+x-next-review-date: '2027-02-10'
+x-risk-level: medium
 appliesTo:
   - type: system
     id: product-catalog-system
@@ -28,6 +30,8 @@ badges:
 ## Context
 
 The Product Catalog System is the source of truth for products, and other systems — notably the [[system|search-system]] — depend on a reliable stream of `product-created`, `product-updated` and `product-deleted` events. Publishing to the broker directly from the [[service|product-api]] request path creates a dual-write problem: if the database commit succeeds but the broker publish fails (or vice versa), the catalog and its consumers drift out of sync. Lost or phantom events are hard to detect and expensive to reconcile.
+
+<CustomProperties title="Review metadata" />
 
 ## Decision
 

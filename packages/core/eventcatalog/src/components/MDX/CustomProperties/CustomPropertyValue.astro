@@ -1,0 +1,51 @@
+---
+import { formatCustomPropertyLabel } from './custom-properties';
+
+interface Props {
+  value: unknown;
+}
+
+const { value } = Astro.props;
+const isArray = Array.isArray(value);
+const isDate = value instanceof Date;
+const isObject = value !== null && typeof value === 'object' && !isArray && !isDate;
+const entries = isObject ? Object.entries(value as Record<string, unknown>) : [];
+const scalarValue = value === null || value === undefined ? '—' : isDate ? value.toISOString() : String(value);
+---
+
+{
+  isArray ? (
+    value.length > 0 ? (
+      <ul class="m-0 list-disc space-y-1 pl-5 text-[rgb(var(--ec-page-text))]">
+        {value.map((item) => (
+          <li>
+            <Astro.self value={item} />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <span class="text-[rgb(var(--ec-page-text-muted))]">—</span>
+    )
+  ) : isObject ? (
+    entries.length > 0 ? (
+      <dl class="m-0 space-y-2">
+        {entries.map(([name, nestedValue]) => (
+          <div class="grid gap-1 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)]">
+            <dt class="font-medium text-[rgb(var(--ec-page-text-muted))]">{formatCustomPropertyLabel(name)}</dt>
+            <dd class="m-0 min-w-0 text-[rgb(var(--ec-page-text))]">
+              <Astro.self value={nestedValue} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    ) : (
+      <span class="text-[rgb(var(--ec-page-text-muted))]">—</span>
+    )
+  ) : typeof value === 'boolean' ? (
+    <span class="inline-flex rounded-full bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 text-xs font-medium text-[rgb(var(--ec-page-text))]">
+      {scalarValue}
+    </span>
+  ) : (
+    <span class="break-words text-[rgb(var(--ec-page-text))]">{scalarValue}</span>
+  )
+}

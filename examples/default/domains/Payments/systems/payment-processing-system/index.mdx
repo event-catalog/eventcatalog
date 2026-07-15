@@ -6,6 +6,12 @@ summary: |
   Internal system that orchestrates payment for orders. It authorizes payments, requests charges from the external payment processor, handles the outcome, and issues refunds.
 owners:
   - payments-platform
+x-deployment-regions:
+  - eu-west-1
+  - us-east-1
+x-recovery-objectives:
+  rto: 30m
+  rpo: 5m
 services:
   - id: payment-api
   - id: payment-worker
@@ -26,6 +32,8 @@ badges:
 ## Overview
 
 The **Payment Processing System** is the internal heart of the Payments domain. When the Ordering domain sends [[command|authorize-payment]], the [[service|payment-api]] records the intent in the [[container|payment-database]] and the [[service|payment-worker]] requests a charge from the external [[system|stripe]] via [[event|payment-requested]]. Stripe reports the outcome back as [[event|payment-succeeded]] or [[event|payment-failed]], which the worker records. The system also issues refunds via [[event|refund-requested]].
+
+<CustomProperties title="Operational metadata" />
 
 ## Context Diagram
 

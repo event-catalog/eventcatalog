@@ -41,6 +41,8 @@ import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal'
 import { jsx } from 'astro/jsx-runtime';
 import RemoteSchema from '@components/MDX/RemoteSchema.astro';
 import Visibility from '@components/MDX/Visibility';
+import CustomProperties from '@components/MDX/CustomProperties/CustomProperties.astro';
+import CustomProperty from '@components/MDX/CustomProperties/CustomProperty.astro';
 
 const getEntityMapCollection = (props: any, mdxProp: any) => {
   const collection = mdxProp.collection ?? props.collection;
@@ -50,6 +52,8 @@ const getEntityMapCollection = (props: any, mdxProp: any) => {
 const components = (props: any) => {
   return {
     Attachments: (mdxProp: any) => jsx(Attachments, { ...props, ...mdxProp }),
+    CustomProperties: (mdxProp: any) => jsx(CustomProperties, { ...props, ...mdxProp }),
+    CustomProperty: (mdxProp: any) => jsx(CustomProperty, { ...props, ...mdxProp }),
     Accordion,
     AccordionGroup,
     Admonition,

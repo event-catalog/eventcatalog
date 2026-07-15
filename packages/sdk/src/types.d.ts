@@ -1,5 +1,9 @@
+export interface ExtensionProperties {
+  [key: `x-${string}`]: unknown;
+}
+
 // Base type for all resources (domains, services and messages)
-export interface BaseSchema {
+export interface BaseSchema extends ExtensionProperties {
   id: string;
   name: string;
   summary?: string;

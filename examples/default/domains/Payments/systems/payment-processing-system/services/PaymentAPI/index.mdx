@@ -8,6 +8,11 @@ styles:
   icon: /icons/languages/nodejs.svg
 owners:
   - payments-platform
+x-operational-tier: 1
+x-cost-centre: payments-engineering
+x-on-call:
+  schedule: payments-primary
+  escalation-channel: '#payments-incidents'
 receives:
   - id: authorize-payment
     version: 1.0.0
@@ -25,6 +30,8 @@ import Footer from '@catalog/components/footer.astro';
 ## Overview
 
 The **Payment API** is the entry point to the Payment Processing System. It receives [[command|authorize-payment]] from the Ordering domain, records the payment intent in the [[container|payment-database]], and leaves the [[service|payment-worker]] to drive the charge against [[system|stripe]].
+
+<CustomProperties />
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="The authorize-payment command from Ordering" />
