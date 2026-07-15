@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 4.2.1
+
+### Patch Changes
+
+- 3d39871: Fix changelog file diff resolution for versioned resources in SSR deployments.
+- ac932a9: Suppress Astro's empty optional collection messages when previewing or starting EventCatalog while preserving other warnings.
+- 5f3ce55: Fix the raw Markdown resource endpoints resolving catalog files from the server working directory in SSR deployments.
+
 ## 4.2.0
 
 ### Minor Changes
