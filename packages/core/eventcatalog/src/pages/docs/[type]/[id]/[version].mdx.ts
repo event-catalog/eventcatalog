@@ -72,7 +72,7 @@ export const GET: APIRoute = async ({ params, props }) => {
     let file = fs.readFileSync(absoluteFilePath, 'utf8');
 
     try {
-      file = addSchemaToMarkdown(content, file);
+      file = addSchemaToMarkdown({ ...content, filePath: absoluteFilePath }, file);
     } catch (error) {
       console.log('Warning: Cant find the schema for', content.data.id, content.data.version);
     }

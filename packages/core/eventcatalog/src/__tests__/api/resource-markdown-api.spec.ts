@@ -12,8 +12,17 @@ const event = vi.hoisted(() => ({
   filePath: '../domains/mydomain/events/MyEvent/index.mdx',
 }));
 
+const eventWithSchema = vi.hoisted(() => ({
+  data: {
+    id: 'EventWithSchema',
+    version: '1.0.0',
+    schemaPath: 'schema.json',
+  },
+  filePath: '../domains/mydomain/events/EventWithSchema/index.mdx',
+}));
+
 vi.mock('astro:content', () => ({
-  getCollection: async (collection: string) => (collection === 'events' ? [event] : []),
+  getCollection: async (collection: string) => (collection === 'events' ? [event, eventWithSchema] : []),
 }));
 
 describe('resource markdown API', () => {
@@ -26,6 +35,11 @@ describe('resource markdown API', () => {
     const resourceDirectory = path.join(projectDir, 'domains', 'mydomain', 'events', 'MyEvent');
     fs.mkdirSync(resourceDirectory, { recursive: true });
     fs.writeFileSync(path.join(resourceDirectory, 'index.mdx'), markdown);
+
+    const resourceWithSchemaDirectory = path.join(projectDir, 'domains', 'mydomain', 'events', 'EventWithSchema');
+    fs.mkdirSync(resourceWithSchemaDirectory, { recursive: true });
+    fs.writeFileSync(path.join(resourceWithSchemaDirectory, 'index.mdx'), markdown);
+    fs.writeFileSync(path.join(resourceWithSchemaDirectory, 'schema.json'), '{"type":"object"}');
   });
 
   afterAll(() => {
@@ -48,5 +62,15 @@ describe('resource markdown API', () => {
 
     expect(response.status).toBe(200);
     expect(await response.text()).toBe(markdown);
+  });
+
+  it('includes a relative schema when Astro provides a relative resource file path', async () => {
+    const response = await getMdx({
+      params: { type: 'events', id: 'EventWithSchema', version: '1.0.0' },
+      props: {},
+    } as any);
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe(`${markdown}\n\n ## Raw Schema:schema.json\n\n{"type":"object"}`);
   });
 });
