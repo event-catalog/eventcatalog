@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/language-server",
-  "version": "0.8.24",
+  "version": "0.8.25",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

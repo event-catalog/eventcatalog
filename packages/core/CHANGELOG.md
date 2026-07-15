@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 4.2.3
+
+### Patch Changes
+
+- aafd17a: Add support for custom extension properties (`x-*`) on resources, with new `<CustomProperties>` and `<CustomProperty>` MDX components to display them.
+- Updated dependencies [aafd17a]
+  - @eventcatalog/sdk@2.26.1
+  - @eventcatalog/linter@1.1.6
+
 ## 4.2.2
 
 ### Patch Changes
