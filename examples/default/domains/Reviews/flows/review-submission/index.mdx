@@ -6,6 +6,10 @@ summary: |
   How a customer's product review travels from submission, through moderation, to being published and folded into the product's aggregate rating.
 owners:
   - reviews-platform
+x-business-capability: customer-reviews
+x-success-metrics:
+  publication-target: 5m
+  moderation-pass-rate: 0.95
 steps:
   - id: customer_submits
     title: Customer submits a review
@@ -110,6 +114,8 @@ steps:
 ## Overview
 
 **Review Submission** documents the journey of a customer review from submission through moderation to publication. A review is only ever folded into a product's rating once it has been approved.
+
+<CustomProperties title="Flow metadata" />
 
 <NodeGraph />
 

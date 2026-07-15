@@ -44,6 +44,10 @@ readsFrom:
 repository:
   language: TypeScript
   url: 'https://github.com/acme/review-api'
+x-operational-tier: 1
+x-scrum-masters:
+  - David
+  - Andrew
 ---
 
 import Footer from '@catalog/components/footer.astro';
@@ -51,6 +55,8 @@ import Footer from '@catalog/components/footer.astro';
 ## Overview
 
 The **Review API** is the front door to the Reviews & Ratings domain. It validates incoming [[command|submit-review]] commands, persists reviews to the [[container|review-database]], and publishes [[event|review-submitted]]. It also serves [[query|get-product-reviews]], reading published reviews from the [[container|review-database]] and aggregate ratings from the [[container|rating-cache]].
+
+<CustomProperty name="x-scrum-masters" label="Scrum masters" />
 
 ### Responsibilities
 

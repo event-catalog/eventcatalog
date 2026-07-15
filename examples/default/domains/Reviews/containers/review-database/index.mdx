@@ -11,6 +11,10 @@ purpose: System of record for reviews, ratings and moderation decisions
 classification: internal
 retention: indefinite
 residency: eu-west-1
+x-backup-policy:
+  frequency: hourly
+  retention-days: 35
+  cross-region: true
 styles:
   icon: /icons/database/postgresql.svg
 ---
@@ -20,6 +24,8 @@ styles:
 ### What is this?
 
 The **Review Database** is the authoritative store for every review in the Reviews & Ratings domain. The [[service|review-api]] writes new reviews to it, and the [[service|review-moderation-worker]] records each moderation decision against the stored review.
+
+<CustomProperty name="x-backup-policy" label="Backup policy" />
 
 ### What does it store?
 

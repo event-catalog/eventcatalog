@@ -7,6 +7,11 @@ aggregateRoot: true
 summary: The customer details Acme uses for commerce interactions.
 owners:
   - customer-platform
+x-contains-personal-data: true
+x-data-steward: customer-data-governance
+x-subject-access-request-fields:
+  - email
+  - displayName
 properties:
   - name: customerId
     type: UUID
@@ -29,5 +34,7 @@ properties:
 ## Overview
 
 Customer Profile is owned by [[system|customer-management-system]] and is separate from authentication credentials.
+
+<CustomProperties title="Data governance" />
 
 <EntityPropertiesTable />

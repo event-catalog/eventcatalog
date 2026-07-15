@@ -1,0 +1,39 @@
+---
+import CustomPropertyRow from './CustomPropertyRow.astro';
+import { getCustomProperties } from './custom-properties';
+
+interface Props {
+  title?: string;
+  data?: Record<string, unknown>;
+}
+
+const { title = 'Custom properties', data } = Astro.props;
+const properties = getCustomProperties(data);
+---
+
+{
+  properties.length > 0 && (
+    <section class="not-prose my-8">
+      {title && <h3 class="mb-4 text-xl font-semibold text-[rgb(var(--ec-page-text))]">{title}</h3>}
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-left text-sm text-[rgb(var(--ec-page-text-muted))]">
+          <thead>
+            <tr class="border-b border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]">
+              <th scope="col" class="py-3 pr-6 font-semibold">
+                Property
+              </th>
+              <th scope="col" class="py-3 font-semibold">
+                Value
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[rgb(var(--ec-page-border))]">
+            {properties.map((property) => (
+              <CustomPropertyRow property={property} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
