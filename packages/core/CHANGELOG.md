@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.2.2
+
+### Patch Changes
+
+- 8850fcf: Suppress the Astro `getStaticPaths() ignored in dynamic page` router warning during builds and extract the Astro output filters into a dedicated, tested module
+
 ## 4.2.1
 
 ### Patch Changes
