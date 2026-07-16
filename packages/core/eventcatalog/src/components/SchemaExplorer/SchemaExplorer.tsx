@@ -6,6 +6,7 @@ import SchemaListItem from './SchemaListItem';
 import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
 import type { SchemaItem } from './types';
+import { buildUrl } from '@utils/url-builder';
 
 // Specification file types (OpenAPI, AsyncAPI, GraphQL)
 const SPEC_TYPES = ['openapi', 'asyncapi', 'graphql'];
@@ -290,6 +291,47 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     const versionedMessage = versions.find((v) => v.data.version === selectedVersion);
     return versionedMessage || versions[0];
   }, [selectedMessage, selectedVersion, messagesByIdAndVersions]);
+
+  // PERF: message schema bodies are no longer inlined into the page (they dominate
+  // the payload on large catalogs). Lazy-fetch the SELECTED message's content from
+  // the explorer's internal content route. Specs/contracts that still carry inlined
+  // content are used as-is.
+  const [lazySchema, setLazySchema] = useState<{ key: string; content: string } | null>(null);
+  useEffect(() => {
+    if (!displayMessage) return;
+    const { collection } = displayMessage;
+    const { id, version } = displayMessage.data;
+    const key = `${collection}/${id}/${version}`;
+    if (displayMessage.schemaContent) {
+      setLazySchema({ key, content: displayMessage.schemaContent });
+      return;
+    }
+    // Only message bodies are lazy-fetched (their content is dropped from props to
+    // keep the page small). Service/domain specs keep their content inline, so they
+    // hit the early-return above and never reach here.
+    //
+    // This hits the explorer's own internal route (not the Scale `/api/schemas` API),
+    // so it works on free/static catalogs too. buildUrl keeps base-path deployments working.
+    let cancelled = false;
+    fetch(buildUrl(`/schemas/explorer/content/${collection}/${encodeURIComponent(id)}/${encodeURIComponent(version)}`, true))
+      .then((res) => (res.ok ? res.text() : ''))
+      .then((content) => {
+        if (!cancelled) setLazySchema({ key, content });
+      })
+      .catch(() => {
+        if (!cancelled) setLazySchema({ key, content: '' });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [displayMessage]);
+
+  const displayMessageWithContent = useMemo(() => {
+    if (!displayMessage) return null;
+    if (displayMessage.schemaContent) return displayMessage;
+    const key = `${displayMessage.collection}/${displayMessage.data.id}/${displayMessage.data.version}`;
+    return lazySchema?.key === key ? { ...displayMessage, schemaContent: lazySchema.content } : displayMessage;
+  }, [displayMessage, lazySchema]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -588,7 +630,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         >
           {displayMessage ? (
             <SchemaDetailsPanel
-              message={displayMessage}
+              message={displayMessageWithContent || displayMessage}
               availableVersions={availableVersions}
               selectedVersion={selectedVersion}
               onVersionChange={handleVersionChange}
