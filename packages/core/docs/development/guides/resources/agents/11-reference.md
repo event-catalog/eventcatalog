@@ -236,3 +236,7 @@ tools:
     description: Retrieves order status and recent order events.
 ---
 ```
+
+## Custom properties
+
+You can add organization-specific metadata to this resource using frontmatter fields prefixed with `x-`. Learn how to define, render, and reference them in [Custom properties on resources](/docs/development/customization/custom-properties).

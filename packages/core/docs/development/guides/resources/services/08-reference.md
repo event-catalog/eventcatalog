@@ -8,6 +8,8 @@ title: Services reference
 description: Frontmatter fields, paths, and routes for services in EventCatalog.
 ---
 
+import AddedIn from '@site/src/components/MDX/AddedIn';
+
 This page lists the fields, paths, and routes supported by services.
 
 ## Paths
@@ -131,6 +133,12 @@ receives:
     version: 1.0.0
 ---
 ```
+
+#### Map commands to events
+
+<AddedIn version="4.2.0" />
+
+Each received command can declare the events it triggers. See [Map commands to events](/docs/development/guides/resources/messages/connect-messages/map-commands-to-events) for the supported fields, scenarios, and generated views.
 
 ### `entities` {#entities}
 
@@ -293,3 +301,7 @@ flows:
 ```
 
 If `version` is omitted, EventCatalog uses the latest version.
+
+## Custom properties
+
+You can add organization-specific metadata to this resource using frontmatter fields prefixed with `x-`. Learn how to define, render, and reference them in [Custom properties on resources](/docs/development/customization/custom-properties).
