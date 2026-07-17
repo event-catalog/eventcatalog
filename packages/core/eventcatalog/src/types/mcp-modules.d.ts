@@ -7,6 +7,7 @@ declare module 'hono' {
   export interface Context {
     req: {
       raw: Request;
+      param: (name: string) => string;
     };
     json: (data: unknown, status?: number) => Response;
   }

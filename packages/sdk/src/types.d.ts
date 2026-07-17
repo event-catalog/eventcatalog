@@ -52,6 +52,38 @@ export type ResourcePointer = {
   type?: string;
 };
 
+export type CatalogGraphRoot = {
+  type: 'domain' | 'system';
+  id: string;
+  version?: string;
+};
+
+export type CatalogGraphResourceType =
+  | 'domain'
+  | 'system'
+  | 'service'
+  | 'agent'
+  | 'event'
+  | 'command'
+  | 'query'
+  | 'flow'
+  | 'channel'
+  | 'entity'
+  | 'container'
+  | 'data-product'
+  | 'adr';
+
+export type CatalogGraphResource = {
+  type: CatalogGraphResourceType;
+  id: string;
+  version: string;
+};
+
+export type CatalogGraph = {
+  root: CatalogGraphResource;
+  resources: CatalogGraphResource[];
+};
+
 export type SystemScope = 'internal' | 'external';
 
 export type SystemRelationshipPointer = {

@@ -37,6 +37,8 @@ import {
 } from '@enterprise/tools/catalog-tools';
 import { getCollection } from 'astro:content';
 import { createMcpAuthErrorResponse, validateMcpRequest } from './mcp-auth';
+import { createScopedCatalogTools } from './mcp-scoped-tools';
+import { McpScopeNotFoundError, resolveMcpScope, type McpScope, type McpScopeKind } from './mcp-scope';
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
@@ -81,11 +83,27 @@ try {
 }
 
 // Create MCP Server with tools that access Astro collections
-function createMcpServer() {
+function createMcpServer(scope?: McpScope) {
   const server = new McpServer({
-    name: 'EventCatalog MCP Server',
+    name: scope ? `EventCatalog MCP Server — ${scope.name} ${scope.ref.kind}` : 'EventCatalog MCP Server',
     version: '1.0.0',
   });
+
+  const scopedTools = scope ? createScopedCatalogTools(scope) : undefined;
+  const tools = {
+    getResources: scopedTools?.getResources ?? getResources,
+    getResource: scopedTools?.getResource ?? getResource,
+    getMessagesProducedOrConsumedByResource:
+      scopedTools?.getMessagesProducedOrConsumedByResource ?? getMessagesProducedOrConsumedByResource,
+    getSchemaForResource: scopedTools?.getSchemaForResource ?? getSchemaForResource,
+    findResourcesByOwner: scopedTools?.findResourcesByOwner ?? findResourcesByOwner,
+    getProducersOfMessage: scopedTools?.getProducersOfMessage ?? getProducersOfMessage,
+    getConsumersOfMessage: scopedTools?.getConsumersOfMessage ?? getConsumersOfMessage,
+    analyzeChangeImpact: scopedTools?.analyzeChangeImpact ?? analyzeChangeImpact,
+    explainBusinessFlow: scopedTools?.explainBusinessFlow ?? explainBusinessFlow,
+    findMessageBySchemaId: scopedTools?.findMessageBySchemaId ?? findMessageBySchemaId,
+    explainUbiquitousLanguageTerms: scopedTools?.explainUbiquitousLanguageTerms ?? explainUbiquitousLanguageTerms,
+  };
 
   // Register all built-in tools using the helper
   server.registerTool(
@@ -98,7 +116,7 @@ function createMcpServer() {
         search: z.string().optional().describe('Search term to filter resources by name, id, or summary (case-insensitive)'),
       }),
     },
-    createToolHandler(getResources, 'Failed to get resources')
+    createToolHandler(tools.getResources, 'Failed to get resources')
   );
 
   server.registerTool(
@@ -111,7 +129,7 @@ function createMcpServer() {
         version: z.string().describe('The version of the resource to get'),
       }),
     },
-    createToolHandler(getResource, 'Failed to get resource')
+    createToolHandler(tools.getResource, 'Failed to get resource')
   );
 
   server.registerTool(
@@ -126,7 +144,7 @@ function createMcpServer() {
           .default('services'),
       }),
     },
-    createToolHandler(getMessagesProducedOrConsumedByResource, 'Failed to get messages')
+    createToolHandler(tools.getMessagesProducedOrConsumedByResource, 'Failed to get messages')
   );
 
   server.registerTool(
@@ -141,7 +159,7 @@ function createMcpServer() {
           .default('services'),
       }),
     },
-    createToolHandler(getSchemaForResource, 'Failed to get schema')
+    createToolHandler(tools.getSchemaForResource, 'Failed to get schema')
   );
 
   server.registerTool(
@@ -152,7 +170,7 @@ function createMcpServer() {
         ownerId: z.string().describe('The id of the owner (team or user) to find resources for'),
       }),
     },
-    createToolHandler(findResourcesByOwner, 'Failed to find resources')
+    createToolHandler(tools.findResourcesByOwner, 'Failed to find resources')
   );
 
   server.registerTool(
@@ -167,7 +185,7 @@ function createMcpServer() {
           .default('events'),
       }),
     },
-    createToolHandler(getProducersOfMessage, 'Failed to get producers')
+    createToolHandler(tools.getProducersOfMessage, 'Failed to get producers')
   );
 
   server.registerTool(
@@ -182,19 +200,21 @@ function createMcpServer() {
           .default('events'),
       }),
     },
-    createToolHandler(getConsumersOfMessage, 'Failed to get consumers')
+    createToolHandler(tools.getConsumersOfMessage, 'Failed to get consumers')
   );
 
-  server.registerTool(
-    'getC4Diagram',
-    {
-      description: toolDescriptions.getC4Diagram,
-      inputSchema: z.object({
-        viewId: z.string().describe('The id of the LikeC4 view to return source files for').optional(),
-      }),
-    },
-    createToolHandler(getC4Diagram, 'Failed to get c4 diagram')
-  );
+  if (!scope) {
+    server.registerTool(
+      'getC4Diagram',
+      {
+        description: toolDescriptions.getC4Diagram,
+        inputSchema: z.object({
+          viewId: z.string().describe('The id of the LikeC4 view to return source files for').optional(),
+        }),
+      },
+      createToolHandler(getC4Diagram, 'Failed to get c4 diagram')
+    );
+  }
 
   server.registerTool(
     'analyzeChangeImpact',
@@ -208,7 +228,7 @@ function createMcpServer() {
           .default('events'),
       }),
     },
-    createToolHandler(analyzeChangeImpact, 'Failed to analyze impact')
+    createToolHandler(tools.analyzeChangeImpact, 'Failed to analyze impact')
   );
 
   server.registerTool(
@@ -220,52 +240,54 @@ function createMcpServer() {
         flowVersion: z.string().describe('The version of the flow'),
       }),
     },
-    createToolHandler(explainBusinessFlow, 'Failed to explain flow')
+    createToolHandler(tools.explainBusinessFlow, 'Failed to explain flow')
   );
 
-  server.registerTool(
-    'getTeams',
-    {
-      description: toolDescriptions.getTeams,
-      inputSchema: z.object({
-        cursor: z.string().optional().describe('Pagination cursor from previous response'),
-      }),
-    },
-    createToolHandler(getTeams, 'Failed to get teams')
-  );
+  if (!scope) {
+    server.registerTool(
+      'getTeams',
+      {
+        description: toolDescriptions.getTeams,
+        inputSchema: z.object({
+          cursor: z.string().optional().describe('Pagination cursor from previous response'),
+        }),
+      },
+      createToolHandler(getTeams, 'Failed to get teams')
+    );
 
-  server.registerTool(
-    'getTeam',
-    {
-      description: toolDescriptions.getTeam,
-      inputSchema: z.object({
-        id: z.string().describe('The id of the team to get'),
-      }),
-    },
-    createToolHandler(getTeam, 'Failed to get team')
-  );
+    server.registerTool(
+      'getTeam',
+      {
+        description: toolDescriptions.getTeam,
+        inputSchema: z.object({
+          id: z.string().describe('The id of the team to get'),
+        }),
+      },
+      createToolHandler(getTeam, 'Failed to get team')
+    );
 
-  server.registerTool(
-    'getUsers',
-    {
-      description: toolDescriptions.getUsers,
-      inputSchema: z.object({
-        cursor: z.string().optional().describe('Pagination cursor from previous response'),
-      }),
-    },
-    createToolHandler(getUsers, 'Failed to get users')
-  );
+    server.registerTool(
+      'getUsers',
+      {
+        description: toolDescriptions.getUsers,
+        inputSchema: z.object({
+          cursor: z.string().optional().describe('Pagination cursor from previous response'),
+        }),
+      },
+      createToolHandler(getUsers, 'Failed to get users')
+    );
 
-  server.registerTool(
-    'getUser',
-    {
-      description: toolDescriptions.getUser,
-      inputSchema: z.object({
-        id: z.string().describe('The id of the user to get'),
-      }),
-    },
-    createToolHandler(getUser, 'Failed to get user')
-  );
+    server.registerTool(
+      'getUser',
+      {
+        description: toolDescriptions.getUser,
+        inputSchema: z.object({
+          id: z.string().describe('The id of the user to get'),
+        }),
+      },
+      createToolHandler(getUser, 'Failed to get user')
+    );
+  }
 
   server.registerTool(
     'findMessageBySchemaId',
@@ -284,59 +306,63 @@ function createMcpServer() {
           .describe('Optional hint for which collection to search (events, commands, or queries)'),
       }),
     },
-    createToolHandler(findMessageBySchemaId, 'Failed to find message')
+    createToolHandler(tools.findMessageBySchemaId, 'Failed to find message')
   );
 
-  server.registerTool(
-    'explainUbiquitousLanguageTerms',
-    {
-      description: toolDescriptions.explainUbiquitousLanguageTerms,
-      inputSchema: z.object({
-        domainId: z.string().describe('The id of the domain to get ubiquitous language terms for'),
-        domainVersion: z.string().optional().describe('The version of the domain. If not provided, uses the latest version.'),
-      }),
-    },
-    createToolHandler(explainUbiquitousLanguageTerms, 'Failed to get ubiquitous language terms')
-  );
+  if (!scope || scope.ref.kind === 'domain') {
+    server.registerTool(
+      'explainUbiquitousLanguageTerms',
+      {
+        description: toolDescriptions.explainUbiquitousLanguageTerms,
+        inputSchema: z.object({
+          domainId: z.string().describe('The id of the domain to get ubiquitous language terms for'),
+          domainVersion: z.string().optional().describe('The version of the domain. If not provided, uses the latest version.'),
+        }),
+      },
+      createToolHandler(tools.explainUbiquitousLanguageTerms, 'Failed to get ubiquitous language terms')
+    );
+  }
 
-  server.registerTool(
-    'getCustomDocs',
-    {
-      description: toolDescriptions.getCustomDocs,
-      inputSchema: z.object({
-        cursor: z.string().optional().describe('Pagination cursor from previous response'),
-        search: z.string().optional().describe('Search term to filter docs by title, id, or summary (case-insensitive)'),
-      }),
-    },
-    createToolHandler(getCustomDocs, 'Failed to get custom documentation pages')
-  );
+  if (!scope) {
+    server.registerTool(
+      'getCustomDocs',
+      {
+        description: toolDescriptions.getCustomDocs,
+        inputSchema: z.object({
+          cursor: z.string().optional().describe('Pagination cursor from previous response'),
+          search: z.string().optional().describe('Search term to filter docs by title, id, or summary (case-insensitive)'),
+        }),
+      },
+      createToolHandler(getCustomDocs, 'Failed to get custom documentation pages')
+    );
 
-  server.registerTool(
-    'searchCustomDocs',
-    {
-      description: toolDescriptions.searchCustomDocs,
-      inputSchema: z.object({
-        query: z.string().describe('Full-text search query, e.g. keywords describing the topic to find'),
-        limit: z.number().optional().describe('Maximum number of results to return (default 10)'),
-      }),
-    },
-    createToolHandler(searchCustomDocs, 'Failed to search custom documentation')
-  );
+    server.registerTool(
+      'searchCustomDocs',
+      {
+        description: toolDescriptions.searchCustomDocs,
+        inputSchema: z.object({
+          query: z.string().describe('Full-text search query, e.g. keywords describing the topic to find'),
+          limit: z.number().optional().describe('Maximum number of results to return (default 10)'),
+        }),
+      },
+      createToolHandler(searchCustomDocs, 'Failed to search custom documentation')
+    );
 
-  server.registerTool(
-    'getCustomDoc',
-    {
-      description: toolDescriptions.getCustomDoc,
-      inputSchema: z.object({
-        id: z.string().describe('The id or slug of the custom documentation page'),
-        section: z.string().optional().describe('Optional section heading to return only that section of the page'),
-      }),
-    },
-    createToolHandler(getCustomDoc, 'Failed to get custom documentation page')
-  );
+    server.registerTool(
+      'getCustomDoc',
+      {
+        description: toolDescriptions.getCustomDoc,
+        inputSchema: z.object({
+          id: z.string().describe('The id or slug of the custom documentation page'),
+          section: z.string().optional().describe('Optional section heading to return only that section of the page'),
+        }),
+      },
+      createToolHandler(getCustomDoc, 'Failed to get custom documentation page')
+    );
+  }
 
   // Register extended tools from user configuration
-  for (const [toolName, toolConfig] of Object.entries(extendedTools)) {
+  for (const [toolName, toolConfig] of Object.entries(scope ? {} : extendedTools)) {
     if (!toolConfig || typeof toolConfig !== 'object') continue;
 
     // Extract tool properties (Vercel AI SDK format)
@@ -386,9 +412,13 @@ function createMcpServer() {
         'agents',
         'services',
         'domains',
+        'systems',
         'flows',
         'channels',
         'entities',
+        'containers',
+        'diagrams',
+        'data-products',
         'adrs',
       ] as const,
     },
@@ -415,6 +445,12 @@ function createMcpServer() {
       uri: 'eventcatalog://services',
       description: 'All services in EventCatalog',
       collections: ['services'] as const,
+    },
+    {
+      name: 'All Systems in EventCatalog',
+      uri: 'eventcatalog://systems',
+      description: 'All systems in EventCatalog',
+      collections: ['systems'] as const,
     },
     {
       name: 'All Agents in EventCatalog',
@@ -465,6 +501,12 @@ function createMcpServer() {
       collections: ['flows'] as const,
     },
     {
+      name: 'All Data Products in EventCatalog',
+      uri: 'eventcatalog://data-products',
+      description: 'All data products in EventCatalog',
+      collections: ['data-products'] as const,
+    },
+    {
       name: 'All Teams in EventCatalog',
       uri: 'eventcatalog://teams',
       description: 'All teams in EventCatalog',
@@ -479,16 +521,26 @@ function createMcpServer() {
   ];
 
   for (const resource of resourceDefinitions) {
+    if (scope && resource.collections.every((collection) => collection === 'teams' || collection === 'users')) continue;
+
+    const resourceUri = scope
+      ? `${scope.uriPrefix}/resources${resource.uri === 'eventcatalog://all' ? '' : `/${resource.uri.replace('eventcatalog://', '')}`}`
+      : resource.uri;
+    const resourceName = scope ? resource.name.replace('in EventCatalog', `in ${scope.name} ${scope.ref.kind}`) : resource.name;
+    const resourceDescription = scope
+      ? resource.description.replace('in EventCatalog', `in ${scope.name} ${scope.ref.kind}`)
+      : resource.description;
+
     server.registerResource(
-      resource.name,
-      resource.uri,
-      { description: resource.description, mimeType: 'application/json' },
+      resourceName,
+      resourceUri,
+      { description: resourceDescription, mimeType: 'application/json' },
       async (uri: URL) => {
         const allResources: any[] = [];
 
         for (const collectionName of resource.collections) {
           try {
-            const items = await getCollection(collectionName as any);
+            const items = scope ? scope.list(collectionName) : await getCollection(collectionName as any);
             for (const item of items) {
               allResources.push({
                 type: collectionName,
@@ -507,7 +559,7 @@ function createMcpServer() {
           contents: [
             {
               uri: uri.href,
-              text: JSON.stringify({ resources: allResources }, null, 2),
+              text: JSON.stringify({ ...(scope && { scope: scope.ref }), resources: allResources }, null, 2),
               mimeType: 'application/json',
             },
           ],
@@ -525,8 +577,39 @@ function createMcpServer() {
 // Create Hono app for MCP routes
 const app = new Hono().basePath('/docs/mcp');
 
-// Built-in tool names derived from toolDescriptions
-const builtInTools = Object.keys(toolDescriptions);
+const globalBuiltInTools = [
+  'getResources',
+  'getResource',
+  'getMessagesProducedOrConsumedByResource',
+  'getSchemaForResource',
+  'findResourcesByOwner',
+  'getProducersOfMessage',
+  'getConsumersOfMessage',
+  'getC4Diagram',
+  'analyzeChangeImpact',
+  'explainBusinessFlow',
+  'getTeams',
+  'getTeam',
+  'getUsers',
+  'getUser',
+  'findMessageBySchemaId',
+  'explainUbiquitousLanguageTerms',
+  'getCustomDocs',
+  'searchCustomDocs',
+  'getCustomDoc',
+];
+
+const scopedBuiltInTools = globalBuiltInTools.filter(
+  (tool) =>
+    !['getC4Diagram', 'getTeams', 'getTeam', 'getUsers', 'getUser', 'getCustomDocs', 'searchCustomDocs', 'getCustomDoc'].includes(
+      tool
+    )
+);
+
+const getScopedBuiltInTools = (scope: McpScope) =>
+  scope.ref.kind === 'system'
+    ? scopedBuiltInTools.filter((tool) => tool !== 'explainUbiquitousLanguageTerms')
+    : scopedBuiltInTools;
 
 // MCP Resource URIs
 const mcpResources = [
@@ -538,32 +621,65 @@ const mcpResources = [
   'eventcatalog://adrs',
   'eventcatalog://services',
   'eventcatalog://domains',
+  'eventcatalog://systems',
+  'eventcatalog://channels',
   'eventcatalog://entities',
+  'eventcatalog://containers',
+  'eventcatalog://diagrams',
+  'eventcatalog://data-products',
   'eventcatalog://flows',
   'eventcatalog://teams',
   'eventcatalog://users',
 ];
 
-// Health check endpoint
-app.get('/', async (c: Context) => {
+const getMcpResourceUris = (scope?: McpScope) =>
+  scope
+    ? mcpResources
+        .filter((uri) => uri !== 'eventcatalog://teams' && uri !== 'eventcatalog://users')
+        .map(
+          (uri) => `${scope.uriPrefix}/resources${uri === 'eventcatalog://all' ? '' : `/${uri.replace('eventcatalog://', '')}`}`
+        )
+    : mcpResources;
+
+const getScopeRef = (c: Context, kind: McpScopeKind) => ({
+  kind,
+  id: c.req.param('id'),
+  version: c.req.param('version') || 'latest',
+});
+
+const resolveRequestScope = async (c: Context, kind?: McpScopeKind) => (kind ? resolveMcpScope(getScopeRef(c, kind)) : undefined);
+
+const createScopeNotFoundResponse = (error: McpScopeNotFoundError) =>
+  new Response(JSON.stringify({ error: 'scope_not_found', message: error.message }), {
+    status: 404,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+const handleHealthCheck = async (c: Context, kind?: McpScopeKind) => {
   const auth = await validateMcpRequest(c.req.raw);
 
   if (!auth.ok) {
     return createMcpAuthErrorResponse(auth);
   }
 
-  return c.json({
-    name: 'EventCatalog MCP Server',
-    version: '1.1.0',
-    status: 'running',
-    tools: [...builtInTools, ...extendedToolNames],
-    extendedTools: extendedToolNames.length > 0 ? extendedToolNames : undefined,
-    resources: mcpResources,
-  });
-});
+  try {
+    const scope = await resolveRequestScope(c, kind);
+    return c.json({
+      name: scope ? `EventCatalog MCP Server — ${scope.name} ${scope.ref.kind}` : 'EventCatalog MCP Server',
+      version: '1.2.0',
+      status: 'running',
+      ...(scope && { scope: scope.ref }),
+      tools: scope ? getScopedBuiltInTools(scope) : [...globalBuiltInTools, ...extendedToolNames],
+      extendedTools: !scope && extendedToolNames.length > 0 ? extendedToolNames : undefined,
+      resources: getMcpResourceUris(scope),
+    });
+  } catch (error) {
+    if (error instanceof McpScopeNotFoundError) return createScopeNotFoundResponse(error);
+    throw error;
+  }
+};
 
-// MCP protocol endpoint - handles POST requests for MCP protocol
-app.post('/', async (c: Context) => {
+const handleMcpRequest = async (c: Context, kind?: McpScopeKind) => {
   try {
     const auth = await validateMcpRequest(c.req.raw);
 
@@ -571,17 +687,16 @@ app.post('/', async (c: Context) => {
       return createMcpAuthErrorResponse(auth);
     }
 
-    // Create fresh server and transport per request — the MCP SDK's
-    // WebStandardStreamableHTTPServerTransport is single-use in stateless
-    // mode: it sets _hasHandledRequest=true after the first call and throws
-    // on any subsequent request. McpServer equally rejects reconnection.
-    const server = createMcpServer();
+    const scope = await resolveRequestScope(c, kind);
+    const server = createMcpServer(scope);
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
     await server.connect(transport);
     return await transport.handleRequest(c.req.raw);
   } catch (error) {
+    if (error instanceof McpScopeNotFoundError) return createScopeNotFoundResponse(error);
+
     console.error('MCP request error:', error);
     return c.json(
       {
@@ -595,7 +710,21 @@ app.post('/', async (c: Context) => {
       500
     );
   }
-});
+};
+
+// Health check endpoint
+app.get('/', (c: Context) => handleHealthCheck(c));
+
+for (const kind of ['domain', 'system'] as const) {
+  const path = `${kind}s`;
+  app.get(`/${path}/:id`, (c: Context) => handleHealthCheck(c, kind));
+  app.get(`/${path}/:id/:version`, (c: Context) => handleHealthCheck(c, kind));
+  app.post(`/${path}/:id`, (c: Context) => handleMcpRequest(c, kind));
+  app.post(`/${path}/:id/:version`, (c: Context) => handleMcpRequest(c, kind));
+}
+
+// MCP protocol endpoint - handles POST requests for MCP protocol
+app.post('/', (c: Context) => handleMcpRequest(c));
 
 // Astro API route handler - delegates all requests to Hono
 // Note: SSR and Scale plan checks are handled at build time by the integration

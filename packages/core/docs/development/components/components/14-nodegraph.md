@@ -1,5 +1,5 @@
 ---
-sidebar_position: 13
+sidebar_position: 14
 keywords:
 - components
 sidebar_label: NodeGraph
@@ -164,7 +164,6 @@ You can see a demo of this [here](https://demo.eventcatalog.dev/docs/domains/E-C
 | `id`                    | `string`  | `undefined`       | The id of the NodeGraph to render. If not provided, the current page's NodeGraph will be rendered. |
 | `version`               | `string`  | `undefined`       | The version of the NodeGraph to render. If not provided, the current page's NodeGraph will be rendered. |
 | `type`                  | `string`  | `undefined`       | The type of the NodeGraph to render. If not provided, the current page's NodeGraph will be rendered. |
-
 
 
 
