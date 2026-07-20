@@ -64,6 +64,7 @@ import {
   isMarkdownDownloadEnabled,
   isVisualiserEnabled,
   isRSSEnabled,
+  isEventCatalogMCPEnabled,
 } from '@utils/feature';
 import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
 
@@ -89,6 +90,15 @@ const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) 
 const contentBadges = props.data.badges || [];
 const editUrl =
   props.data.editUrl || (config.editUrl && props?.filePath ? buildEditUrlForResource(config.editUrl, props?.filePath) : '');
+const isLatestVersion = props.data.latestVersion === props.data.version;
+const mcpResourceType = props.collection === 'domains' ? 'domain' : props.collection === 'systems' ? 'system' : undefined;
+const mcpServerUrl =
+  mcpResourceType && isEventCatalogMCPEnabled()
+    ? buildUrl(
+        `/docs/mcp/${mcpResourceType}s/${encodeURIComponent(props.data.id)}${isLatestVersion ? '' : `/${encodeURIComponent(props.data.version)}`}`,
+        true
+      )
+    : undefined;
 
 const headerIconSrc = isIconPath(props.data.styles?.icon) ? resolveIconUrl(props.data.styles!.icon!) : null;
 
@@ -458,6 +468,9 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                 rssFeedEnabled={isRSSEnabled()}
                 editUrl={editUrl}
                 preferChatAsDefault={isEventCatalogChatEnabled()}
+                mcpServerUrl={mcpServerUrl}
+                resourceName={props.data.name}
+                mcpResourceType={mcpResourceType}
               />
             </div>
             {

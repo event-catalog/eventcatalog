@@ -186,6 +186,11 @@ type McpAuthConfig = {
 };
 
 type McpConfig = {
+  /**
+   * Enables the built-in MCP server when EventCatalog is running in server mode with a Scale license.
+   * @default true
+   */
+  enabled?: boolean;
   auth?: McpAuthConfig;
 };
 

@@ -1,8 +1,11 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Copy, FileText, Sparkles, ChevronDownIcon, ExternalLink, PenSquareIcon, RssIcon } from 'lucide-react';
-import React, { useState, isValidElement } from 'react';
+import React, { Suspense, isValidElement, lazy, useState } from 'react';
 import type { Schema } from '@utils/collections/schemas';
 import { buildUrl, toMarkdownUrl } from '@utils/url-builder';
+import McpIcon from './McpIcon';
+
+const McpConnectDialog = lazy(() => import('./McpConnectDialog'));
 
 // Type allows either a component type (like Lucide icon) or a pre-rendered element (like <img>)
 type IconInput = React.ElementType | React.ReactElement;
@@ -56,6 +59,9 @@ export function CopyPageMenu({
   preferChatAsDefault = false,
   chatButtonText = 'Ask',
   variant = 'menu',
+  mcpServerUrl,
+  resourceName,
+  mcpResourceType,
 }: {
   schemas: Schema[];
   chatQuery?: string;
@@ -66,6 +72,9 @@ export function CopyPageMenu({
   preferChatAsDefault?: boolean;
   chatButtonText?: string;
   variant?: 'menu' | 'toolbar';
+  mcpServerUrl?: string;
+  resourceName?: string;
+  mcpResourceType?: 'domain' | 'system';
 }) {
   // Define available actions
   const availableActions = {
@@ -75,6 +84,7 @@ export function CopyPageMenu({
     viewMarkdown: markdownDownloadEnabled,
     chat: chatEnabled,
     rssFeed: rssFeedEnabled,
+    mcpServer: Boolean(mcpServerUrl),
   };
 
   // Check if any actions are available
@@ -141,6 +151,13 @@ export function CopyPageMenu({
         icon: RssIcon,
       };
     }
+    if (availableActions.mcpServer) {
+      return {
+        type: 'mcpServer',
+        text: 'Connect to MCP server',
+        icon: McpIcon,
+      };
+    }
     return null;
   };
 
@@ -148,6 +165,18 @@ export function CopyPageMenu({
   const [open, setOpen] = useState(false);
   const [buttonText, setButtonText] = useState(defaultAction?.text || 'Action');
   const [copyButtonText, setCopyButtonText] = useState('Copy page as markdown');
+  const [mcpDialogOpen, setMcpDialogOpen] = useState(false);
+  const mcpDialog = mcpServerUrl && mcpDialogOpen && (
+    <Suspense fallback={null}>
+      <McpConnectDialog
+        open={mcpDialogOpen}
+        onOpenChange={setMcpDialogOpen}
+        serverUrl={mcpServerUrl}
+        resourceName={resourceName}
+        resourceType={mcpResourceType ?? 'domain'}
+      />
+    </Suspense>
+  );
 
   // Fetch the markdown from the url + .mdx
   const copyMarkdownToClipboard = async () => {
@@ -214,6 +243,9 @@ export function CopyPageMenu({
         // Dispatch custom event to open chat panel instead of navigating
         window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'));
         break;
+      case 'mcpServer':
+        setMcpDialogOpen(true);
+        break;
     }
   };
 
@@ -224,6 +256,7 @@ export function CopyPageMenu({
   const actionButtonClass =
     'group inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors duration-150 hover:text-[rgb(var(--ec-page-text))] focus:outline-hidden focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 focus:ring-offset-[rgb(var(--ec-page-bg))] rounded-md';
   const actionIconClass = 'h-3.5 w-3.5 shrink-0 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-page-text))]';
+  const mcpDescription = `Connect an MCP client to this ${mcpResourceType ?? 'resource'}`;
 
   const hasToolbarActions =
     availableActions.chat ||
@@ -231,12 +264,20 @@ export function CopyPageMenu({
     availableActions.viewMarkdown ||
     availableActions.copySchemas ||
     availableActions.rssFeed ||
+    availableActions.mcpServer ||
     availableActions.editPage;
 
   if (variant === 'toolbar') {
     if (!hasToolbarActions) return null;
 
-    const moreActionsAvailable = availableActions.copySchemas || availableActions.rssFeed || availableActions.editPage;
+    const showMcpToolbarAction = availableActions.mcpServer;
+    const showCopyMarkdownToolbarAction = availableActions.copyMarkdown && !showMcpToolbarAction;
+    const hasSecondaryToolbarAction = showMcpToolbarAction || showCopyMarkdownToolbarAction;
+    const moreActionsAvailable =
+      availableActions.copySchemas ||
+      availableActions.rssFeed ||
+      availableActions.editPage ||
+      (showMcpToolbarAction && availableActions.copyMarkdown);
 
     return (
       <div className="not-prose flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-[rgb(var(--ec-page-text-muted))]">
@@ -251,18 +292,25 @@ export function CopyPageMenu({
           </button>
         )}
 
-        {availableActions.chat && (availableActions.copyMarkdown || availableActions.viewMarkdown || moreActionsAvailable) && (
+        {availableActions.chat && (hasSecondaryToolbarAction || availableActions.viewMarkdown || moreActionsAvailable) && (
           <span className="h-4 w-px bg-[rgb(var(--ec-page-border))]" aria-hidden="true" />
         )}
 
-        {availableActions.copyMarkdown && (
+        {showMcpToolbarAction && (
+          <button type="button" onClick={() => setMcpDialogOpen(true)} className={actionButtonClass}>
+            <McpIcon className={actionIconClass} />
+            Connect to MCP server
+          </button>
+        )}
+
+        {showCopyMarkdownToolbarAction && (
           <button type="button" onClick={copyMarkdownToClipboard} className={actionButtonClass}>
             <Copy className={actionIconClass} />
             {copyButtonText}
           </button>
         )}
 
-        {availableActions.copyMarkdown && (availableActions.viewMarkdown || moreActionsAvailable) && (
+        {hasSecondaryToolbarAction && (availableActions.viewMarkdown || moreActionsAvailable) && (
           <span className="h-4 w-px bg-[rgb(var(--ec-page-border))]" aria-hidden="true" />
         )}
 
@@ -290,6 +338,15 @@ export function CopyPageMenu({
               sideOffset={10}
               align="start"
             >
+              {showMcpToolbarAction && availableActions.copyMarkdown && (
+                <DropdownMenu.Item
+                  className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+                  onSelect={() => copyMarkdownToClipboard()}
+                >
+                  <MenuItemContent icon={Copy} title="Copy page as markdown" description="Copy page as Markdown for LLMs" />
+                </DropdownMenu.Item>
+              )}
+
               {availableActions.copySchemas &&
                 schemas.map((schema) => {
                   const title =
@@ -348,6 +405,7 @@ export function CopyPageMenu({
             </DropdownMenu.Content>
           </DropdownMenu.Root>
         )}
+        {mcpDialog}
       </div>
     );
   }
@@ -383,6 +441,15 @@ export function CopyPageMenu({
         sideOffset={10}
         align="end"
       >
+        {availableActions.mcpServer && (
+          <DropdownMenu.Item
+            className="cursor-pointer rounded-2xl outline-hidden transition-colors duration-150 hover:bg-[rgb(var(--ec-dropdown-hover))] data-[highlighted]:bg-[rgb(var(--ec-dropdown-hover))]"
+            onSelect={() => setMcpDialogOpen(true)}
+          >
+            <MenuItemContent icon={McpIcon} title="Connect to MCP server" description={mcpDescription} />
+          </DropdownMenu.Item>
+        )}
+
         {availableActions.chat && (
           <>
             <DropdownMenu.Item
@@ -477,6 +544,7 @@ export function CopyPageMenu({
           </>
         )}
       </DropdownMenu.Content>
+      {mcpDialog}
     </DropdownMenu.Root>
   );
 }

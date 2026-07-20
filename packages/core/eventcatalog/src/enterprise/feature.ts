@@ -67,7 +67,7 @@ export const isCustomStylesEnabled = () => {
   return isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 };
 
-export const isEventCatalogMCPEnabled = () => isEventCatalogScaleEnabled() && isSSR();
+export const isEventCatalogMCPEnabled = () => isEventCatalogScaleEnabled() && isSSR() && (config?.mcp?.enabled ?? true);
 
 export const isEventCatalogMCPAuthEnabled = () => isEventCatalogMCPEnabled() && (config?.mcp?.auth?.enabled ?? false);
 
