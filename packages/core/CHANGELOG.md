@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.3.0
+
+### Minor Changes
+
+- c73c813: Add scoped MCP servers for domains and systems, with an `mcp.enabled` configuration option to disable the built-in server.
+
 ## 4.2.6
 
 ### Patch Changes
