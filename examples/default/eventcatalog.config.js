@@ -18,6 +18,8 @@ export default {
     text: "Acme Inc",
   },
 
+  output: 'server',
+
   base: "/",
   trailingSlash: false,
 

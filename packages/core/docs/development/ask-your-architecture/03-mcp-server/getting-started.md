@@ -31,6 +31,18 @@ For local development:
 http://localhost:3000/docs/mcp/
 ```
 
+The MCP server is enabled by default when EventCatalog is running in server mode with a Scale license. To disable it, set
+`mcp.enabled` to `false`:
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  output: 'server',
+  mcp: {
+    enabled: false,
+  },
+};
+```
+
 ### Verify the server
 
 Visit the endpoint in your browser to verify. It returns available tools and resources:
@@ -281,7 +293,6 @@ This starts the MCP Server over HTTP on port 3000 with root path `/mcp`.
 See [instructions on the GitHub repository](https://github.com/event-catalog/mcp-server/blob/main/README.Docker.md).
 
 </details>
-
 
 
 
