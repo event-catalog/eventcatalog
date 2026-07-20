@@ -8,27 +8,28 @@ title: Fundamentals
 description: Understanding the fundamentals of EventCatalog
 ---
 
-EventCatalog is a architecture catalog built around software primitives and domain-driven design patterns, so you can model the systems you actually build instead of creating disconnected documentation pages.
+EventCatalog is a self hosted [open source documentation tool](https://github.com/event-catalog/eventcatalog/stargazers) for software architecture. It allows you to document your architecture using software primitives and patterns such as domains, systems and resources rather than random documentation pages (e.g Confluence).
 
-EventCatalog gives your teams and AI agents a shared understanding of how your systems work across your organization.
+EventCatalog follows the [docs-as-code](https://www.writethedocs.org/guide/docs-as-code/) pattern. Your documentation is stored in code using [markdown (MDX)](https://mdxjs.com/) and stays private, in your own repository and infrastructure. 
 
-EventCatalog is an open source project and is self-hosted and follows the [docs-as-code](https://www.writethedocs.org/guide/docs-as-code/) pattern. All pages in EventCatalog are powered by [markdown (MDX)](https://mdxjs.com/).
+At its core, EventCatalog gives you a small set of building blocks for your documentation.
 
-Your catalog is private, stays in your own repository and infrastructure. 
-
-At its core, EventCatalog gives you a small set of building blocks.
+![EventCatalog model showing domains, systems, resources, contracts, and ownership](./img/levels-catalog.png)
 
 - **Domains (Level 1)** - a domain describes a business boundary
 - **Systems (Level 2)** - a system is a collection of resources that work together to perform a function.
 - **Resources (Level 3)** - individual resources (e.g services, messages, data stores) that can be assigned to systems or domains.
 
-All building blocks are optional, it's up to you how you want to model your architecture in your catalog.
+:::info What blocks to use?
+All building blocks are optional in your catalog. It's up to you how you want to model your documentation.
 
-![EventCatalog model showing domains, systems, resources, contracts, and ownership](./img/ec-types.png)
+Want to match your c4 model?, you can. Want to document a monolith you can. Want to document distributed systems you can.
+We focus on architecture primitives and let you fill in the details.
+:::
 
 ## The EventCatalog model
 
-Domains give your catalog a business shape. They help users understand the boundaries in your architecture, such as `Shopping`, `Payments`, `Fulfilment`, or `Customer`.
+Domains describe a business capability or boundary. They help users understand the boundaries in your architecture, such as `Shopping`, `Payments`, `Fulfilment`, or `Customer`.
 
 Systems give your catalog an operating shape. A system is a collection of resources that work together to perform a function. For example, a `Shopping` domain might contain a `Cart System` and a `Promotion System`.
 
@@ -48,7 +49,9 @@ Teams and users can own domains, systems, resources, and contracts. This makes o
 
 ## Levels of detail
 
-EventCatalog is useful to anyone in your organization. You can define high level primitives whilst giving lower level implementation details.
+Architecture documentation all have different audiences, and EventCatalog can be useful to anyone in your organization.
+
+You can define a high level of information for stakeholders whilst whilst giving lower level implementation details for developers.
 
 | Level | Name | What it answers | Example |
 |-------|------|-----------------|---------|
@@ -76,9 +79,9 @@ It's up to you where you define your catalog (or catalogs). Here are some exampl
 | **Federated** | Multiple EventCatalog instances connected into one view |
 
 
-## Automation
+## Living documentation
 
-Your documentation can also be automated, keeping your implementation details close to your documentation. There are many [integrations](/integrations) or you can create your own automations with our [SDK](/docs/sdk).
+Your documentation can also be automated, keeping your implementation details close to your documentation. There are many [integrations](/integrations) or you can create your own automations with our [SDK](/docs/sdk). We also have started building some [AI Agents to help you manage your documentation](https://github.com/event-catalog/agents) in CI/CD environments.
 
 ## Visual editing
 

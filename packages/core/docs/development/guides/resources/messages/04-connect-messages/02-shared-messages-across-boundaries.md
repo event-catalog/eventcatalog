@@ -4,6 +4,7 @@ keywords:
 sidebar_label: Patterns for shared messages
 title: Patterns for shared messages
 description: Understand the patterns for shared messages in EventCatalog.
+sidebar_position: 3
 ---
 
 import ProjectTree from '@site/src/components/MDX/ProjectTree';

@@ -515,3 +515,7 @@ The attachments can be a URL string or an object with additional properties.
 | `description` | `string` | No | The description of the attachment. |
 | `type` | `string` | No | The type of the attachment, used to group attachments in the UI. |
 | `icon` | `string` | No | The icon of the attachment. You can pick from the [lucide icons](https://lucide.dev/icons/) library. |
+
+## Custom properties
+
+You can add organization-specific metadata to this resource using frontmatter fields prefixed with `x-`. Learn how to define, render, and reference them in [Custom properties on resources](/docs/development/customization/custom-properties).
