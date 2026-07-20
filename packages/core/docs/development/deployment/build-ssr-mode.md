@@ -51,7 +51,7 @@ The easiest way to do this is to use [a docker container](/docs/development/depl
 
 ## Loading indicator
 
-<AddedIn version="4.2.4" />
+<AddedIn version="4.2.5" />
 
 Server-side rendering means a page's render time depends on your server, so navigations can occasionally take longer than a static build.
 

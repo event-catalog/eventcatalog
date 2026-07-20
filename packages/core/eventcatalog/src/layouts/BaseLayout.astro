@@ -2,6 +2,7 @@
 import SEO from '../components/Seo.astro';
 import AnalyticsHead from '../enterprise/analytics/components/AnalyticsHead.astro';
 import AnalyticsTracker from '../enterprise/analytics/components/AnalyticsTracker.astro';
+import NavigationProgress from '../components/NavigationProgress.astro';
 import config from '@config';
 
 interface Props {
@@ -46,6 +47,7 @@ const catalogTheme = config.theme || 'default';
     <slot name="head" />
   </head>
   <body>
+    <NavigationProgress />
     <slot />
     <AnalyticsTracker />
   </body>
