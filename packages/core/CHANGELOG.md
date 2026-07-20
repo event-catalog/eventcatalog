@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.2.4
+
+### Patch Changes
+
+- 2e7cff2: chore(deps): bump astro to 7.1.1 and update @astrojs integration packages
+
 ## 4.2.3
 
 ### Patch Changes
