@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 9
 keywords:
 - EventCatalog resource icons
 - custom icons

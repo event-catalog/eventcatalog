@@ -18,33 +18,33 @@ As systems grow, complexity grows. Documentation becomes important for teams but
 
 ### What is EventCatalog?
 
-EventCatalog is a documentation and governance tool that is built for architects.
+EventCatalog is an open source documentation tool that is built for software architecture.
 
- It lets you document and visualize your architecture with primitives you are already familiar with. You can document domains, systems, applications and schemas and visualize how they all relate to each other.
+We focus on architecture primitives like domains, systems and resources (e.g services, messages) and let you document your architecture with primitives you are already familiar with. 
 
 EventCatalog creates an internal architecture graph of how your systems work. This makes EventCatalog accessible to your AI agents, LLMs and AI workflows and [creates context of your business and architecture](/docs/development/ask-your-architecture/intro).
 
-EventCatalog is technology agnostic, this means you can document and model any systems you have
+EventCatalog is technology agnostic, this means you can document and model any systems you have.
 
 
-#### What can EventCatalog do for you?
+#### Our project goals for you
 
-- **Save time across the organization**
+- **Help you save time across the organization**
   - Help teams find information they need across your business and organization
   - Document high level information for stakeholders while providing lower level details to your teams.
   - Connect to your AI Agents and AI Workflows. Give your LLMs the context they need.
-- **Create documentation you can trust**
+- **Create a documentation solution you can trust**
   - Sync documentation from your code with our Agent
   - Automate documentation from your OpenAPI, AsyncAPI, or schema registries
   - Use EventCatalog Agent to sync code to docs from your CI/CD workflows.
   - Write your own automation and plugins with the [EventCatalog SDK](/docs/sdk)
-- **Detect breaking changes before they reach production**
+- **Help you detect breaking changes before they reach production**
   - Use EventCatalog Agent to detect breaking schema changes
   - Bring your own model and get notified when things break
 - **Use natural langugage to query your architecture**
   - Connect AI tools to your architecture using [EventCatalog's MCP server](/docs/development/ask-your-architecture/mcp-server/introduction)
   - Ask architectural questions grounded in your documented domains, services, events, data products, and schemas
-- **Show the bigger picture**
+- **Help your teams understand the bigger picture**
   - Help business stakeholders understand the bigger picture
   - Visualize your architecture and future ideas
   - Document key business workflows
