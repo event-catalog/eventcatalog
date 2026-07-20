@@ -56,6 +56,61 @@ export type ResourcePointer = {
   type?: string;
 };
 
+export type CatalogGraphResourceType =
+  | 'domain'
+  | 'system'
+  | 'service'
+  | 'agent'
+  | 'event'
+  | 'command'
+  | 'query'
+  | 'flow'
+  | 'channel'
+  | 'entity'
+  | 'container'
+  | 'data-product'
+  | 'adr';
+
+export type CatalogGraphRoot = {
+  type: CatalogGraphResourceType;
+  id: string;
+  version?: string;
+};
+
+export type CatalogGraphOptions = {
+  /** Number of relationship levels to traverse. Defaults to the complete reachable graph. */
+  depth?: number;
+  /** Return one deduplicated resource list instead of nested children. */
+  flat?: boolean;
+};
+
+export type CatalogGraphResource = {
+  type: CatalogGraphResourceType;
+  id: string;
+  version: string;
+};
+
+export type CatalogGraphNode = CatalogGraphResource & {
+  children: CatalogGraphNode[];
+};
+
+export type NestedCatalogGraph = {
+  root: CatalogGraphNode;
+};
+
+export type FlatCatalogGraph = {
+  root: CatalogGraphResource;
+  resources: CatalogGraphResource[];
+};
+
+export type CatalogGraph = NestedCatalogGraph | FlatCatalogGraph;
+
+export interface GetCatalogGraph {
+  (root: CatalogGraphRoot, options: CatalogGraphOptions & { flat: true }): Promise<FlatCatalogGraph | undefined>;
+  (root: CatalogGraphRoot, options?: CatalogGraphOptions & { flat?: false }): Promise<NestedCatalogGraph | undefined>;
+  (root: CatalogGraphRoot, options: CatalogGraphOptions): Promise<CatalogGraph | undefined>;
+}
+
 export type SystemScope = 'internal' | 'external';
 
 export type SystemRelationshipPointer = {

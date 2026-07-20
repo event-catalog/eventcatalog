@@ -151,6 +151,7 @@ import { writeTeam, getTeam, getTeams, rmTeamById, getOwnersForResource } from '
 
 import { writeUser, getUser, getUsers, rmUserById } from './users';
 import { dumpCatalog, getEventCatalogConfigurationFile } from './eventcatalog';
+import { getGraph } from './graph';
 import { createSnapshot, diffSnapshots, listSnapshots } from './snapshots';
 import { writeChangelog, appendChangelog, getChangelog, rmChangelog } from './changelogs';
 import {
@@ -1169,6 +1170,14 @@ export default (path: string) => {
      * @returns A JSON file with the catalog
      */
     dumpCatalog: dumpCatalog(join(path)),
+
+    /**
+     * Returns the resources reachable from a catalog resource.
+     * @param root - Resource to use as the root of the graph
+     * @param options - Traversal depth and whether to return a flat resource list
+     * @returns The resolved graph, or undefined when the root does not exist
+     */
+    getGraph: getGraph(join(path)),
 
     /**
      * Returns the event catalog configuration file.
