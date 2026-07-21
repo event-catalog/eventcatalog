@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.3.1
+
+### Patch Changes
+
+- ee68c2a: fix(sidebar): use stable collapse keys for ADR status groups so collapse state persists correctly
+
 ## 4.3.0
 
 ### Minor Changes
