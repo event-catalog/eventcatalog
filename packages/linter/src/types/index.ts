@@ -70,7 +70,14 @@ export interface EntityProperty {
   description?: string;
   references?: string;
   referencesIdentifier?: string;
-  relationType?: 'one-to-one' | 'one-to-many';
+  referenceTarget?: 'entity';
+  relationType?: string;
+  enum?: string[];
+  properties?: EntityProperty[];
+  items?: {
+    type: string;
+    properties?: EntityProperty[];
+  };
 }
 
 export interface ValidationError {

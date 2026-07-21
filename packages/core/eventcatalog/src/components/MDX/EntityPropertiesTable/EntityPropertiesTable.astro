@@ -8,11 +8,30 @@ type EntityProperty = {
   type: string;
   required?: boolean;
   description?: string;
+  references?: string;
+  referencesIdentifier?: string;
+  referenceTarget?: 'entity';
   enum?: string[];
+  properties?: EntityProperty[];
   items?: {
     type: string;
+    properties?: EntityProperty[];
   };
 };
+
+type EntityPropertyRow = {
+  property: EntityProperty;
+  depth: number;
+};
+
+const getNestedProperties = (property: EntityProperty) =>
+  property.properties || (property.type === 'array' ? property.items?.properties : undefined) || [];
+
+const flattenProperties = (entityProperties: EntityProperty[], depth = 0): EntityPropertyRow[] =>
+  entityProperties.flatMap((property) => [{ property, depth }, ...flattenProperties(getNestedProperties(property), depth + 1)]);
+
+const getPropertyTypeLabel = (property: EntityProperty) =>
+  property.type === 'array' && property.items ? `${property.items.type}[]` : property.type;
 
 // Expects a CollectionEntry for 'entities'.
 // The actual properties structure might differ slightly from the base type,
@@ -22,6 +41,7 @@ export interface Props extends CollectionEntry<'entities'> {}
 const { data, collection } = Astro.props;
 // Cast the properties to our expected type for use in the template
 const properties = data?.properties as EntityProperty[] | undefined;
+const propertyRows = flattenProperties(properties || []);
 const isComponentEnabled = collection === 'entities';
 ---
 
@@ -56,23 +76,23 @@ const isComponentEnabled = collection === 'entities';
             <th scope="col" class="py-3 px-6 min-w-[250px]">
               Description
             </th>
+            <th scope="col" class="py-3 px-6 min-w-[180px]">
+              Reference
+            </th>
           </tr>
         </thead>
         <tbody>
-          {properties.map((prop) => (
+          {propertyRows.map(({ property: prop, depth }) => (
             <tr class="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border-b border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] align-top">
-              <td class="py-4 px-6 font-medium text-[rgb(var(--ec-page-text))] whitespace-nowrap">
+              <td
+                class="py-4 pr-6 font-medium text-[rgb(var(--ec-page-text))] whitespace-nowrap"
+                style={`padding-left: ${24 + depth * 20}px`}
+              >
+                {depth > 0 && <span class="mr-1 text-[rgb(var(--ec-icon-color))]">↳</span>}
                 <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.name}</code>
               </td>
               <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
-                {prop.type === 'array' && prop.items ? (
-                  <span>
-                    array&lt;<code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.items.type}</code>
-                    &gt;
-                  </span>
-                ) : (
-                  <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.type}</code>
-                )}
+                <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{getPropertyTypeLabel(prop)}</code>
                 {prop.enum && (
                   <div class="text-xs text-[rgb(var(--ec-page-text-muted))] mt-2">
                     <span class="font-semibold block mb-1">Enum:</span>
@@ -99,6 +119,22 @@ const isComponentEnabled = collection === 'entities';
               </td>
               <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
                 {prop.description || <span class="text-[rgb(var(--ec-icon-color))] italic">No description provided.</span>}
+              </td>
+              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
+                {prop.references ? (
+                  <div class="flex flex-col gap-1">
+                    <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5 w-fit">{prop.references}</code>
+                    <span class="text-xs">
+                      {prop.referenceTarget === 'entity'
+                        ? 'Whole entity'
+                        : prop.referencesIdentifier
+                          ? `Property: ${prop.referencesIdentifier}`
+                          : 'Identifier or first property'}
+                    </span>
+                  </div>
+                ) : (
+                  <span class="text-[rgb(var(--ec-icon-color))]">—</span>
+                )}
               </td>
             </tr>
           ))}

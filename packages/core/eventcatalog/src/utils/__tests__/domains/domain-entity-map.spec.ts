@@ -1,5 +1,5 @@
 import { MarkerType } from '@xyflow/react';
-import { getNodesAndEdges } from '../../node-graphs/domain-entity-map';
+import { ENTITY_TARGET_HANDLE_ID, getNodesAndEdges } from '../../node-graphs/domain-entity-map';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { getCollection, getEntry } from 'astro:content';
 import type { CollectionKey } from 'astro:content';
@@ -48,6 +48,31 @@ const mockEntities = [
           required: false,
           references: 'Payment',
           relationType: 'hasOne',
+        },
+        {
+          name: 'payment',
+          type: 'object',
+          required: false,
+          references: 'Payment',
+          referenceTarget: 'entity',
+          relationType: 'paidWith',
+        },
+        {
+          name: 'deliveryAddress',
+          type: 'object',
+          required: true,
+          properties: [
+            {
+              name: 'line1',
+              type: 'string',
+              required: true,
+            },
+            {
+              name: 'countryCode',
+              type: 'string',
+              required: true,
+            },
+          ],
         },
       ],
     },
@@ -410,7 +435,7 @@ describe('Domain Entity Map NodeGraph', () => {
       });
 
       // Check edges
-      expect(edges).toHaveLength(3); // Order -> Customer, Order -> OrderItem, Order -> Payment
+      expect(edges).toHaveLength(4); // Order -> Customer, OrderItem, and Payment twice
 
       // Check Order -> Customer edge
       const orderToCustomerEdge = edges.find((e: any) => e.source === 'Order-1.0.0' && e.target === 'Customer-1.0.0');
@@ -529,6 +554,20 @@ describe('Domain Entity Map NodeGraph', () => {
       });
     });
 
+    it('targets the entity header when referenceTarget is entity without changing the default fallback', async () => {
+      const { edges } = await getNodesAndEdges({ id: 'Orders', version: '1.0.0' });
+
+      const orderToPaymentEntityEdge = edges.find(
+        (edge: any) => edge.source === 'Order-1.0.0' && edge.sourceHandle === 'payment-source'
+      );
+
+      expect(orderToPaymentEntityEdge).toMatchObject({
+        target: 'Payment-1.0.0',
+        targetHandle: ENTITY_TARGET_HANDLE_ID,
+        label: 'paidWith',
+      });
+    });
+
     it('creates a hasMany edge for array item entity types without explicit references', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'Warehousing', version: '1.0.0' });
 
@@ -537,6 +576,7 @@ describe('Domain Entity Map NodeGraph', () => {
       const warehouseToBinEdge = edges.find((e: any) => e.source === 'Warehouse-1.0.0' && e.target === 'Bin-1.0.0');
 
       expect(warehouseNode).toBeDefined();
+      expect(warehouseNode.data.referencePropertyNames).toEqual(['bins']);
       expect(binNode).toMatchObject({
         id: 'Bin-1.0.0',
         type: 'entities',
@@ -560,6 +600,7 @@ describe('Domain Entity Map NodeGraph', () => {
       const productEdges = edges.filter((e: any) => e.source === 'Product-1.0.0' || e.target === 'Product-1.0.0');
 
       expect(productNode).toBeDefined();
+      expect(productNode.data.referencePropertyNames).toEqual([]);
       expect(stringNode).toBeUndefined();
       expect(productEdges).toHaveLength(0);
     });
@@ -618,7 +659,7 @@ describe('Domain Entity Map NodeGraph', () => {
       expect(orderNode.data.entity.data.version).toBe('1.0.0');
     });
 
-    it('should properly position nodes using dagre layout', async () => {
+    it('should properly position nodes using ELK layout', async () => {
       const { nodes } = await getNodesAndEdges({ id: 'Orders', version: '1.0.0' });
 
       // All nodes should have valid positions
@@ -643,6 +684,15 @@ describe('Domain Entity Map NodeGraph', () => {
       // Shipment should be positioned to the right of connected entities
       const maxConnectedX = Math.max(...connectedNodes.map((n: any) => n.position.x));
       expect(shipmentNode.position.x).toBeGreaterThan(maxConnectedX);
+    });
+
+    it('keeps the generated entity map compact', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'Orders', version: '1.0.0' });
+      const xPositions = nodes.map((node: any) => node.position.x);
+      const yPositions = nodes.map((node: any) => node.position.y);
+
+      expect(Math.max(...xPositions) - Math.min(...xPositions)).toBeLessThan(1200);
+      expect(Math.max(...yPositions) - Math.min(...yPositions)).toBeLessThan(900);
     });
 
     it('should handle entity with no identifier property', async () => {

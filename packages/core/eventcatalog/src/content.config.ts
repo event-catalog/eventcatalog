@@ -963,6 +963,44 @@ const ubiquitousLanguages = defineCollection({
   }),
 });
 
+interface EntityPropertySchema {
+  name: string;
+  type: string;
+  required?: boolean;
+  description?: string;
+  references?: string;
+  referencesIdentifier?: string;
+  referenceTarget?: 'entity';
+  relationType?: string;
+  enum?: string[];
+  properties?: EntityPropertySchema[];
+  items?: {
+    type: string;
+    properties?: EntityPropertySchema[];
+  };
+}
+
+const entityPropertySchema: z.ZodType<EntityPropertySchema> = z.lazy(() =>
+  z.object({
+    name: z.string(),
+    type: z.string(),
+    required: z.boolean().optional(),
+    description: z.string().optional(),
+    references: z.string().optional(),
+    referencesIdentifier: z.string().optional(),
+    referenceTarget: z.literal('entity').optional(),
+    relationType: z.string().optional(),
+    enum: z.array(z.string()).optional(),
+    properties: z.array(entityPropertySchema).optional(),
+    items: z
+      .object({
+        type: z.string(),
+        properties: z.array(entityPropertySchema).optional(),
+      })
+      .optional(),
+  })
+);
+
 const entities = defineCollection({
   loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/entities/*/index.(md|mdx)', '**/entities/*/versioned/*/index.(md|mdx)']),
@@ -976,25 +1014,7 @@ const entities = defineCollection({
       .object({
         aggregateRoot: z.boolean().optional(),
         identifier: z.string().optional(),
-        properties: z
-          .array(
-            z.object({
-              name: z.string(),
-              type: z.string(),
-              required: z.boolean().optional(),
-              description: z.string().optional(),
-              references: z.string().optional(),
-              referencesIdentifier: z.string().optional(),
-              relationType: z.string().optional(),
-              enum: z.array(z.string()).optional(),
-              items: z
-                .object({
-                  type: z.string(),
-                })
-                .optional(),
-            })
-          )
-          .optional(),
+        properties: z.array(entityPropertySchema).optional(),
         services: z.array(reference('services')).optional(),
         domains: z.array(reference('domains')).optional(),
         detailsPanel: z

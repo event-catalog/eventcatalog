@@ -56,6 +56,12 @@ export type { FieldNodeType } from "./field";
 // Shared components
 export { NotesIndicator } from "./NotesIndicator";
 export { OwnerIndicator, normalizeOwners } from "./OwnerIndicator";
+export {
+  ENTITY_TARGET_HANDLE_ID,
+  getNestedEntityProperties,
+  getPropertyTypeLabel,
+} from "./Entity";
+export type { EntityProperty } from "./Entity";
 
 // Core nodes (single files) - import then re-export for nodeComponents
 import CustomNode from "./Custom";

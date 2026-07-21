@@ -258,9 +258,13 @@ attachments:
 | `description` | `string` | Description of the property. |
 | `references` | `string` | Entity id referenced by this property. |
 | `referencesIdentifier` | `string` | Identifier property on the referenced entity. |
+| `referenceTarget` | `entity` | Targets the referenced entity as a whole instead of one of its properties. |
 | `relationType` | `string` | Relationship label shown in entity maps. |
 | `enum` | `array` | Allowed string values. |
-| `items` | `object` | Item type for array properties. |
+| `properties` | `array` | Nested properties for an embedded object. |
+| `items` | `object` | Item type and optional nested properties for array properties. |
+
+Property definitions are recursive, so embedded objects and arrays of embedded objects can contain their own `properties`. Embedded objects are owned by their parent entity and are not independently referenceable catalog resources.
 
 ## EntityPropertiesTable component
 
