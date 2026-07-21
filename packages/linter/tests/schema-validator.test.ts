@@ -190,7 +190,28 @@ describe('validateSchema', () => {
             name: 'orders',
             type: 'Order[]',
             references: 'order',
+            referenceTarget: 'entity',
             relationType: 'one-to-many',
+          },
+          {
+            name: 'profile',
+            type: 'object',
+            properties: [
+              {
+                name: 'displayName',
+                type: 'string',
+              },
+              {
+                name: 'preferences',
+                type: 'object',
+                properties: [
+                  {
+                    name: 'locale',
+                    type: 'string',
+                  },
+                ],
+              },
+            ],
           },
         ],
       });

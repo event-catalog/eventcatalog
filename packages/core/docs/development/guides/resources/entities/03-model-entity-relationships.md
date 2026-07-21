@@ -42,7 +42,10 @@ Use these fields on an entity property:
 
 - `references`: The id of the entity being referenced.
 - `referencesIdentifier`: The property on the referenced entity that this property matches.
+- `referenceTarget`: Set to `entity` when the relationship should point to the referenced entity as a whole.
 - `relationType`: The relationship label, such as `belongsTo`, `hasOne`, `hasMany`, or a business-specific label.
+
+`referenceTarget` is opt-in. When it is omitted, EventCatalog retains the existing behavior of targeting `referencesIdentifier`, the referenced entity's `identifier`, or its first property.
 
 ## Example relationship
 
@@ -82,6 +85,49 @@ properties:
 ```
 
 This tells EventCatalog that `order.customerId` references the `customer.customerId` identifier.
+
+## Reference a whole entity
+
+Use `referenceTarget: entity` when the relationship is to the entity rather than one of its properties.
+
+```yaml
+properties:
+  - name: customer
+    type: object
+    references: customer
+    referenceTarget: entity
+    relationType: placedBy
+```
+
+This renders the relationship against the `Customer` entity header. Existing relationships that omit `referenceTarget` continue to use property-level targeting.
+
+## Model embedded objects
+
+Use nested `properties` for a value object that only exists as part of its parent entity. Embedded objects have no entity id and cannot be referenced independently from elsewhere in the catalog.
+
+```yaml
+properties:
+  - name: deliveryAddress
+    type: object
+    properties:
+      - name: line1
+        type: string
+        required: true
+      - name: city
+        type: string
+        required: true
+  - name: adjustments
+    type: array
+    items:
+      type: object
+      properties:
+        - name: reason
+          type: string
+        - name: amount
+          type: decimal
+```
+
+Embedded properties appear inside their parent entity rather than as separate nodes in entity maps.
 
 ## Relationship direction
 

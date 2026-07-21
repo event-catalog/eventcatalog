@@ -129,6 +129,7 @@ const LARGE_GRAPH_NODE_THRESHOLD = 30;
 
 // Static props for ReactFlow - defined outside component to avoid new references on every render
 const NODE_ORIGIN: [number, number] = [0.1, 0.1];
+const INITIAL_FIT_VIEW_OPTIONS = { padding: 0.2, duration: 0 } as const;
 const MINIMAP_STYLE = {
   backgroundColor: "rgb(var(--ec-page-bg))",
   border: "1px solid rgb(var(--ec-page-border))",
@@ -506,9 +507,28 @@ const NodeGraphBuilder = ({
   const { fitView, getNodes, getIntersectingNodes, getZoom, setCenter } =
     useReactFlow();
   const storeApi = useStoreApi();
+  const previousGraphInputRef = useRef({
+    nodes: initialNodes,
+    edges: initialEdges,
+  });
 
   // Sync when parent passes new nodes/edges (e.g. playground re-parse)
   useEffect(() => {
+    const previousGraphInput = previousGraphInputRef.current;
+    previousGraphInputRef.current = {
+      nodes: initialNodes,
+      edges: initialEdges,
+    };
+
+    // React Flow's fitView prop handles the initial viewport after measuring
+    // the nodes. Avoid scheduling a second animated fit on mount.
+    if (
+      previousGraphInput.nodes === initialNodes &&
+      previousGraphInput.edges === initialEdges
+    ) {
+      return;
+    }
+
     setNodes(initialNodes);
     setEdges(initialEdges);
     // fitView after React Flow processes the new nodes
@@ -2371,6 +2391,7 @@ const NodeGraphBuilder = ({
             nodes={nodes}
             edges={edges}
             fitView
+            fitViewOptions={INITIAL_FIT_VIEW_OPTIONS}
             onNodesChange={handleNodesChange}
             onEdgesChange={onEdgesChange}
             onEdgeMouseEnter={handleEdgeMouseEnter}

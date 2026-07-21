@@ -10,11 +10,18 @@ import { getServices, type Service } from '@utils/collections/services';
 
 const elk = new ELK();
 
+export const ENTITY_TARGET_HANDLE_ID = '__eventcatalog-entity-target';
+
 const getReferencedEntityId = (property: any, entityMap: Map<string, Entity[]>) => {
   if (property.references) return property.references;
   if (property.type === 'array' && property.items?.type && entityMap.has(property.items.type)) return property.items.type;
   return undefined;
 };
+
+const getReferencePropertyNames = (entity: Entity, entityMap: Map<string, Entity[]>) =>
+  entity.data.properties
+    ?.filter((property: any) => getReferencedEntityId(property, entityMap))
+    .map((property: any) => property.name) ?? [];
 
 const getRelationType = (property: any) => {
   if (property.relationType) return property.relationType;
@@ -64,7 +71,14 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
       id: nodeId,
       type: 'entities',
       position: { x: 0, y: 0 },
-      data: { label: entity.data.name, entity, domainName: resource?.data.name, domainId: resource?.data.id },
+      data: {
+        label: entity.data.name,
+        entity,
+        domainName: resource?.data.name,
+        domainId: resource?.data.id,
+        entityTargetHandle: ENTITY_TARGET_HANDLE_ID,
+        referencePropertyNames: getReferencePropertyNames(entity, entityMap),
+      },
     });
   }
 
@@ -116,6 +130,8 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
             externalToDomain: true,
             domainName: domainName,
             domainId: domainId,
+            entityTargetHandle: ENTITY_TARGET_HANDLE_ID,
+            referencePropertyNames: getReferencePropertyNames(externalEntity, entityMap),
           },
         });
         addedExternalEntities.push(externalEntity);
@@ -151,9 +167,12 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
         // Use the property name as the source handle
         const sourceHandle = `${referenceProperty.name}-source`;
 
-        // Use referencesIdentifier if provided, otherwise use identifier or first property
+        // Whole-entity targeting is explicit so existing catalogs retain their
+        // identifier/first-property fallback behavior.
         let targetHandle = '';
-        if (referenceProperty.referencesIdentifier) {
+        if (referenceProperty.referenceTarget === 'entity') {
+          targetHandle = ENTITY_TARGET_HANDLE_ID;
+        } else if (referenceProperty.referencesIdentifier) {
           targetHandle = `${referenceProperty.referencesIdentifier}-target`;
         } else if (referencedEntity.data.identifier) {
           targetHandle = `${referencedEntity.data.identifier}-target`;
@@ -211,8 +230,8 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
   // Prepare ELK graph structure
   const elkNodes = nodes.map((node: any) => ({
     id: node.id,
-    width: 280,
-    height: 200,
+    width: 220,
+    height: Math.max(120, 72 + (node.data.entity.data.properties?.length ?? 0) * 40),
   }));
 
   const elkEdges = edges.map((edge: any) => ({
@@ -225,12 +244,10 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
     id: 'root',
     layoutOptions: {
       'elk.algorithm': 'force',
-      'elk.force.repulsivePower': '2.0',
-      'elk.force.iterations': '500',
-      'elk.spacing.nodeNode': '150',
-      'elk.spacing.edgeNode': '75',
-      'elk.spacing.edgeEdge': '30',
-      'elk.padding': '[top=50,left=50,bottom=50,right=50]',
+      'elk.force.iterations': '300',
+      'elk.spacing.nodeNode': '45',
+      'elk.spacing.componentComponent': '50',
+      'elk.padding': '[top=30,left=30,bottom=30,right=30]',
       'elk.separateConnectedComponents': 'true',
     },
     children: elkNodes,

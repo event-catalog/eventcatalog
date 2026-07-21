@@ -453,18 +453,27 @@ interface DetailPanelProperty {
   visible: boolean;
 }
 
+export interface EntityProperty {
+  name: string;
+  type: string;
+  required?: boolean;
+  description?: string;
+  references?: string;
+  referencesIdentifier?: string;
+  referenceTarget?: 'entity';
+  relationType?: string;
+  enum?: string[];
+  properties?: EntityProperty[];
+  items?: {
+    type: string;
+    properties?: EntityProperty[];
+  };
+}
+
 export interface Entity extends BaseSchema {
   aggregateRoot?: boolean;
   identifier?: string;
-  properties?: {
-    name: string;
-    type: string;
-    required?: boolean;
-    description?: string;
-    references?: string;
-    referencesIdentifier?: string;
-    relationType?: string;
-  }[];
+  properties?: EntityProperty[];
   detailsPanel?: {
     domains?: DetailPanelProperty;
     services?: DetailPanelProperty;
