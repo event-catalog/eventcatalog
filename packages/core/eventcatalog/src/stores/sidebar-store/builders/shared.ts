@@ -23,6 +23,7 @@ export type ChildRef = string | NavNode;
 export type NavNode = {
   type: 'group' | 'item';
   title: string;
+  collapseKey?: string; // Stable key used to persist collapse state for inline groups
   icon?: string; // Lucide icon name
   subtle?: boolean; // Render lightweight styling for nested subgroup headers
   leftIcon?: string; // Path to SVG icon shown on the left of the label

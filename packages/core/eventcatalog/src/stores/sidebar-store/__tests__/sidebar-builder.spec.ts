@@ -113,6 +113,10 @@ vi.mock('astro:content', async (importOriginal) => {
           const { getDataProducts } = utils(CATALOG_FOLDER);
           const dataProducts = (await getDataProducts()) ?? [];
           return Promise.resolve(dataProducts.map((dataProduct) => toAstroCollection(dataProduct, 'data-products')));
+        case 'adrs':
+          const { getAdrs } = utils(CATALOG_FOLDER);
+          const adrs = (await getAdrs()) ?? [];
+          return Promise.resolve(adrs.map((adr) => toAstroCollection(adr, 'adrs')));
         case 'ubiquitousLanguages':
           return Promise.resolve(
             mockUbiquitousLanguages.map((ubiquitousLanguage) => toAstroCollection(ubiquitousLanguage, 'ubiquitousLanguages'))
@@ -197,6 +201,43 @@ describe('getNestedSideBarData', () => {
   });
 
   describe('root navigation items (default navigation config)', () => {
+    it('uses stable collapse keys for ADR status groups', async () => {
+      const { writeAdr } = utils(CATALOG_FOLDER);
+
+      await writeAdr({
+        id: 'accepted-decision',
+        name: 'Accepted decision',
+        version: '1.0.0',
+        status: 'accepted',
+        date: '2026-07-21',
+        markdown: '# Accepted decision',
+      });
+      await writeAdr({
+        id: 'superseded-decision',
+        name: 'Superseded decision',
+        version: '1.0.0',
+        status: 'superseded',
+        date: '2026-07-20',
+        markdown: '# Superseded decision',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const adrsNode = getNavigationConfigurationByKey('list:adrs', navigationData);
+
+      expect(adrsNode.pages).toEqual([
+        expect.objectContaining({
+          title: 'Accepted (1)',
+          collapseKey: 'adrs:status:accepted',
+          pages: ['adr:accepted-decision:1.0.0'],
+        }),
+        expect.objectContaining({
+          title: 'Superseded (1)',
+          collapseKey: 'adrs:status:superseded',
+          pages: ['adr:superseded-decision:1.0.0'],
+        }),
+      ]);
+    });
+
     it('renders a list of domains (that are not in a subdomain) as a root navigation item', async () => {
       const { writeDomain, getDomain } = utils(CATALOG_FOLDER);
 

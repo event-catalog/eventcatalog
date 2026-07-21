@@ -1,5 +1,8 @@
 // Shared utilities for NestedSideBar components
 
+export const isGroupCollapsed = (canCollapse: boolean, groupId: string, collapsedSections: Set<string>): boolean =>
+  canCollapse && collapsedSections.has(groupId);
+
 /**
  * Returns Tailwind classes for badge styling based on badge type.
  * Uses CSS variables from theme.css for proper theming support.

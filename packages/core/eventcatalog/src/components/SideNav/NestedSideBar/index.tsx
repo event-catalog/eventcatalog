@@ -13,7 +13,7 @@ import {
   removeFavorite as removeFavoriteAction,
   type FavoriteItem,
 } from '@stores/favorites-store';
-import { getBadgeClasses } from './utils';
+import { getBadgeClasses, isGroupCollapsed } from './utils';
 import { resolveIconUrl } from '@utils/icon';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
@@ -754,9 +754,9 @@ export default function NestedSideBar() {
         return child && isVisible(child);
       }) ?? [];
 
-    const groupId = groupKey || `group-${index}`;
+    const groupId = groupKey || group.collapseKey || `group-${index}`;
     const canCollapse = visibleChildren.length > 3;
-    const isCollapsed = collapsedSections.has(groupId);
+    const isCollapsed = isGroupCollapsed(canCollapse, groupId, collapsedSections);
 
     // When a group's children are subtle subgroups (e.g. Resources > Services/Flows/Data Stores),
     // they render flush under the parent icon instead of inside the indented border guide.
