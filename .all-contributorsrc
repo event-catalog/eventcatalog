@@ -691,6 +691,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "dszczepaniak-cksource",
+      "name": "Dominik Szczepaniak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/93583958?v=4",
+      "profile": "https://cksource.com",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
