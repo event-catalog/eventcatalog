@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/sdk",
-  "version": "2.26.2",
+  "version": "2.26.3",
   "description": "SDK to integrate with EventCatalog",
   "scripts": {
     "build": "tsup",

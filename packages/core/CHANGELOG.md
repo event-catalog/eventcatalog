@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 4.3.2
+
+### Patch Changes
+
+- 5dd9f5d: Add recursive embedded entity properties and opt-in whole-entity relationship targets, render embedded properties in entity documentation and visualiser nodes, and keep generated entity maps more compact.
+- Updated dependencies [5dd9f5d]
+  - @eventcatalog/sdk@2.26.3
+  - @eventcatalog/linter@1.1.8
+  - @eventcatalog/visualiser@4.1.1
+
 ## 4.3.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 4.1.1
+
+### Patch Changes
+
+- 5dd9f5d: Add recursive embedded entity properties and opt-in whole-entity relationship targets, render embedded properties in entity documentation and visualiser nodes, and keep generated entity maps more compact.
+
 ## 4.1.0
 
 ### Minor Changes
