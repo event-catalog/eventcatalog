@@ -294,6 +294,8 @@ This can be useful if you want to introduce a new endpoint, but warn users that 
 
 If your service exposes multiple APIs, you can map many OpenAPI files to a single service.
 
+One service configuration entry represents one EventCatalog service version. Every file in the `path` array is attached to that service version.
+
 ```js title="eventcatalog.config.js"
 // ..rest of file
 generators: [
@@ -304,10 +306,10 @@ generators: [
         // Here we map two OpenAPI files to a single service
         { 
           path: [
-            path.join(__dirname, 'openapi-files', 'orders-service-v1.yml'),
-            path.join(__dirname, 'openapi-files', 'orders-service-v2.yml')
+            path.join(__dirname, 'openapi-files', 'orders-public-api.yml'),
+            path.join(__dirname, 'openapi-files', 'orders-admin-api.yml')
           ], 
-          id: 'orders-service', owners: ['dboyne', 'team-1'] 
+          id: 'orders-service', version: '3.0.0', owners: ['dboyne', 'team-1']
         },
       ],
       // You can also set owners to the domain, this does not cascade to the services or messages
@@ -323,11 +325,11 @@ generators: [
 
 #### How does mapping multiple OpenAPI files to a single service work?
 
-The OpenAPI plugin will parse all the files in the `path` array. The are ordered by version (info.version).
+The OpenAPI plugin parses every file in the `path` array and adds every specification to the same service version.
 
-Old versions are parsed first and versioned in your catalog along side the messages.
+When `version` is configured on the service entry, it is used for the service and its generated messages. When it is omitted, the highest OpenAPI `info.version` in the array is selected using semantic version ordering.
 
-The latest version is parsed last and will be used as the current version in your catalog.
+The files in a `path` array do not create separate historical service records. To model service history, configure a separate service entry with an explicit `version` for each OpenAPI file. See [OpenAPI workflows](/docs/plugins/openapi/03a-workflows#creating-versioned-service-records) for examples.
 
 You can try this demo out for yourself by running the [mapping-many-openapi-files-to-a-service example](https://github.com/event-catalog/generators/tree/main/examples/generator-openapi/mapping-many-openapi-files-to-a-service).
 

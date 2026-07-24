@@ -2,7 +2,7 @@
 id: cli-governance
 title: Governance
 sidebar_label: Governance
-sidebar_position: 20
+sidebar_position: 19
 ---
 
 # Governance CLI Commands

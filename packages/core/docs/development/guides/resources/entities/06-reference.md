@@ -96,6 +96,27 @@ properties:
       - pending
       - confirmed
       - cancelled
+  # Delivery address captured as part of the order.
+  - name: deliveryAddress
+    type: object
+    required: true
+    properties:
+      - name: line1
+        type: string
+        required: true
+      - name: city
+        type: string
+        required: true
+  # Discounts and credits embedded in the order.
+  - name: adjustments
+    type: array
+    items:
+      type: object
+      properties:
+        - name: description
+          type: string
+        - name: amount
+          type: decimal
 ---
 ```
 
@@ -264,7 +285,9 @@ attachments:
 | `properties` | `array` | Nested properties for an embedded object. |
 | `items` | `object` | Item type and optional nested properties for array properties. |
 
-Property definitions are recursive, so embedded objects and arrays of embedded objects can contain their own `properties`. Embedded objects are owned by their parent entity and are not independently referenceable catalog resources.
+Property definitions are recursive. Embedded objects and arrays of embedded objects can contain their own `properties`. Embedded objects belong to their parent entity and are not independently referenceable catalog resources.
+
+Use `referenceTarget: entity` with `references` when a relationship should connect to the referenced entity as a whole. If `referenceTarget` is omitted, EventCatalog targets `referencesIdentifier`, the referenced entity's `identifier`, or its first property.
 
 ## EntityPropertiesTable component
 
@@ -274,7 +297,7 @@ Use `<EntityPropertiesTable />` in the entity Markdown body to render the entity
 <EntityPropertiesTable />
 ```
 
-This is useful when you want the documentation page to show the same properties defined in frontmatter.
+This is useful when you want the documentation page to show the same properties defined in frontmatter. Embedded properties are displayed beneath their parent property, and references identify whether they target a whole entity or one of its properties.
 
 ## Custom properties
 

@@ -3,8 +3,7 @@
 ## Project Structure & Module Organization
 This repository is a `pnpm` + Turborepo monorepo. Packages live in `packages/*`:
 - `packages/core`: main EventCatalog app (Astro + React) and local scripts.
-- `packages/cli`, `packages/sdk`, `packages/linter`, `packages/language-server`, `packages/visualiser`, `packages/create-eventcatalog`.
-- `packages/playground`: local DSL playground app.
+- `packages/cli`, `packages/sdk`, `packages/linter`, `packages/visualiser`, `packages/create-eventcatalog`.
 
 Examples and integration checks live in `examples/` (notably `examples/default`). Shared release metadata is in `.changeset/`.
 

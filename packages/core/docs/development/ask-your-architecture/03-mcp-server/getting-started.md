@@ -19,7 +19,7 @@ import PlanBanner from '@site/src/components/MDX/PlanBanner';
 
 ### Quick start
 
-Your MCP server is available at:
+The MCP server for your whole catalog is available at:
 
 ```
 https://your-eventcatalog.com/docs/mcp/
@@ -31,8 +31,41 @@ For local development:
 http://localhost:3000/docs/mcp/
 ```
 
-The MCP server is enabled by default when EventCatalog is running in server mode with a Scale license. To disable it, set
-`mcp.enabled` to `false`:
+### Connect to a domain or system
+
+Domain and system pages include a **Connect to MCP server** action when the built-in MCP server is available. Select it to see
+and copy the scoped server URL for that resource.
+
+Scoped MCP servers expose the selected domain or system and resources reachable from it through supported catalog
+relationships. EventCatalog follows those relationships recursively, giving the MCP client the full reachable graph without
+including unrelated catalog resources. Scoped MCP URLs do not take a depth parameter.
+
+| Scope | Latest version | Specific version |
+|---|---|---|
+| Domain | `/docs/mcp/domains/{domain-id}` | `/docs/mcp/domains/{domain-id}/{version}` |
+| System | `/docs/mcp/systems/{system-id}` | `/docs/mcp/systems/{system-id}/{version}` |
+
+For example:
+
+```text
+https://your-eventcatalog.com/docs/mcp/domains/payments
+https://your-eventcatalog.com/docs/mcp/systems/payment-processing/1.2.0
+```
+
+The unversioned URL follows the latest version of the domain or system. When you view a historical version in EventCatalog, the
+connection action uses the versioned URL instead.
+
+You can use a scoped URL anywhere the client examples below use the whole-catalog `/docs/mcp/` URL.
+
+:::note Scoped tool availability
+Scoped servers omit C4, team and user directory, custom documentation, and user-defined extended tools. System-scoped servers
+also omit the domain-specific ubiquitous-language tool.
+:::
+
+### Disable the MCP server
+
+The built-in MCP server is enabled by default when EventCatalog is running in server mode with a Scale license. To disable the
+whole-catalog endpoint, scoped endpoints, and MCP connection actions, set `mcp.enabled` to `false`:
 
 ```js title="eventcatalog.config.js"
 module.exports = {
@@ -50,12 +83,16 @@ Visit the endpoint in your browser to verify. It returns available tools and res
 ```json
 {
   "name": "EventCatalog MCP Server",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "status": "running",
   "tools": ["getResources", "getResource", ...],
   "resources": ["eventcatalog://all", "eventcatalog://events", ...]
 }
 ```
+
+The MCP server uses stateless Streamable HTTP. MCP protocol requests use `POST`; an ordinary browser `GET` returns the health
+response above. A client requesting a server-sent events stream with `GET` receives `405 Method Not Allowed` because this
+stateless server does not provide the optional SSE channel.
 
 ### Protect with OAuth
 
@@ -64,6 +101,10 @@ Visit the endpoint in your browser to verify. It returns available tools and res
 The built-in MCP server can be protected with OAuth Bearer tokens, following the MCP authorization specification for HTTP transports.
 
 EventCatalog acts as the OAuth protected resource server for `/docs/mcp`. Your identity provider or authorization server remains responsible for user login, consent, client registration, `/authorize`, `/oauth/token`, and token refresh.
+
+The same authorization configuration protects the whole-catalog endpoint and every scoped domain and system endpoint. Configure
+`resource` and `audience` for the catalog MCP resource at `/docs/mcp`; you do not need separate OAuth configuration for each
+scope.
 
 Configure MCP authorization in `eventcatalog.config.js`:
 
@@ -187,7 +228,7 @@ claude mcp add --transport http <name> <url>
 
 ## Available tools
 
-### 15 built-in tools
+### 19 built-in tools
 
 - `getResources` - Get events, services, commands, queries, flows, domains
 - `getResource` - Get a specific resource by id and version
@@ -196,25 +237,34 @@ claude mcp add --transport http <name> <url>
 - `findResourcesByOwner` - Resources owned by a team or user
 - `getProducersOfMessage` - Services that produce a message
 - `getConsumersOfMessage` - Services that consume a message
+- `getC4Diagram` - Get the source for a C4 diagram
 - `analyzeChangeImpact` - Impact of changing a message
 - `explainBusinessFlow` - Detailed flow information
 - `getTeams` / `getTeam` - Query teams
 - `getUsers` / `getUser` - Query users
 - `findMessageBySchemaId` - Find messages by schema identifiers
 - `explainUbiquitousLanguageTerms` - DDD ubiquitous language from domains
+- `getCustomDocs` - List and search custom documentation pages
+- `searchCustomDocs` - Full-text search custom documentation
+- `getCustomDoc` - Get a custom documentation page or section
 
 [See full API documentation →](/docs/development/ask-your-architecture/mcp-server/getting-started)
 
-### 12 resources
+### 17 resources
 
 - `eventcatalog://all` - All resources
 - `eventcatalog://events` - All events
 - `eventcatalog://commands` - All commands
 - `eventcatalog://queries` - All queries
+- `eventcatalog://agents` - All agents
+- `eventcatalog://adrs` - All architecture decision records
 - `eventcatalog://services` - All services
+- `eventcatalog://systems` - All systems
 - `eventcatalog://channels` - All channels
+- `eventcatalog://entities` - All entities
 - `eventcatalog://diagrams` - All diagrams
 - `eventcatalog://containers` - All containers
+- `eventcatalog://data-products` - All data products
 - `eventcatalog://domains` - All domains
 - `eventcatalog://flows` - All flows
 - `eventcatalog://teams` - All teams
@@ -293,7 +343,6 @@ This starts the MCP Server over HTTP on port 3000 with root path `/mcp`.
 See [instructions on the GitHub repository](https://github.com/event-catalog/mcp-server/blob/main/README.Docker.md).
 
 </details>
-
 
 
 

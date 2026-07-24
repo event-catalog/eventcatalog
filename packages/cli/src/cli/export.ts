@@ -1,6 +1,5 @@
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import open from 'open';
 import createSDK from '@eventcatalog/sdk';
 
 const RESOURCE_TYPES = ['event', 'command', 'query', 'service', 'domain'] as const;
@@ -40,7 +39,6 @@ interface ExportOptions {
   version?: string;
   hydrate?: boolean;
   stdout?: boolean;
-  playground?: boolean;
   output?: string;
   dir: string;
 }
@@ -220,7 +218,7 @@ function buildVisualizerBlock(dsl: string, name: string, filterTypes: ResourceTy
 }
 
 export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): Promise<string> {
-  const { hydrate = false, stdout = false, playground = false, output, dir } = options;
+  const { hydrate = false, stdout = false, output, dir } = options;
 
   const sdk = createSDK(dir);
   // Independent collection fetches/conversions can run in parallel.
@@ -253,23 +251,11 @@ export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): P
   const filepath = resolve(filename);
   writeFileSync(filepath, dsl + '\n', 'utf-8');
 
-  const lines = ['', `  Exported full catalog to ${filepath}`];
-
-  if (playground) {
-    const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `https://compass.eventcatalog.dev/?code=${encoded}`;
-    await open(playgroundUrl);
-    lines.push('', `  Opening in EventCatalog Compass...`);
-  } else {
-    lines.push('', `  Tip: Use --playground to open in EventCatalog Compass`);
-  }
-
-  lines.push('');
-  return lines.join('\n');
+  return ['', `  Exported full catalog to ${filepath}`, ''].join('\n');
 }
 
 export async function exportAll(options: ExportOptions): Promise<string> {
-  const { resource, hydrate = false, stdout = false, playground = false, output, dir } = options;
+  const { resource, hydrate = false, stdout = false, output, dir } = options;
 
   const type = normalizeResourceType(resource);
   assertSupportedExportType(resource, type);
@@ -297,23 +283,11 @@ export async function exportAll(options: ExportOptions): Promise<string> {
   const filepath = resolve(filename);
   writeFileSync(filepath, dsl + '\n', 'utf-8');
 
-  const lines = ['', `  Exported ${allResources.length} ${plural} to ${filepath}`];
-
-  if (playground) {
-    const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `https://compass.eventcatalog.dev/?code=${encoded}`;
-    await open(playgroundUrl);
-    lines.push('', `  Opening in EventCatalog Compass...`);
-  } else {
-    lines.push('', `  Tip: Use --playground to open in EventCatalog Compass`);
-  }
-
-  lines.push('');
-  return lines.join('\n');
+  return ['', `  Exported ${allResources.length} ${plural} to ${filepath}`, ''].join('\n');
 }
 
 export async function exportResource(options: ExportOptions): Promise<string> {
-  const { resource, id, version, hydrate = false, stdout = false, playground = false, output, dir } = options;
+  const { resource, id, version, hydrate = false, stdout = false, output, dir } = options;
 
   if (!id) {
     return exportAll(options);
@@ -350,17 +324,5 @@ export async function exportResource(options: ExportOptions): Promise<string> {
   const filepath = resolve(filename);
   writeFileSync(filepath, dsl + '\n', 'utf-8');
 
-  const lines = ['', `  Exported ${type} '${id}' to ${filepath}`];
-
-  if (playground) {
-    const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `https://compass.eventcatalog.dev/?code=${encoded}`;
-    await open(playgroundUrl);
-    lines.push('', `  Opening in EventCatalog Compass...`);
-  } else {
-    lines.push('', `  Tip: Use --playground to open in EventCatalog Compass`);
-  }
-
-  lines.push('');
-  return lines.join('\n');
+  return ['', `  Exported ${type} '${id}' to ${filepath}`, ''].join('\n');
 }

@@ -17,6 +17,8 @@ When entities are assigned to a domain or service, EventCatalog can create an en
 - Entities referenced from outside the current resource.
 - Which entities are owned by the current domain or service context.
 
+Entity properties that contain embedded objects can be expanded directly in the map. Relationships configured with `referenceTarget: entity` connect to the entity header, while existing property-level relationships continue to connect to the referenced identifier or property.
+
 ![Entity Map](./img/entity-map.png)
 
 ## Open an entity map in the visualizer

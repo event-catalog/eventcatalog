@@ -2,7 +2,7 @@
 id: cli-snapshots
 title: Snapshots
 sidebar_label: Snapshots
-sidebar_position: 19
+sidebar_position: 18
 ---
 
 # Snapshots CLI Commands

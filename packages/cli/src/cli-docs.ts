@@ -1660,12 +1660,6 @@ export const cliFunctions: CLIFunctionDoc[] = [
         description: 'Include referenced resources (messages, channels, owners)',
       },
       { name: 'stdout', type: 'boolean', required: false, description: 'Print to stdout instead of writing a file' },
-      {
-        name: 'playground',
-        type: 'boolean',
-        required: false,
-        description: 'Open the exported DSL in EventCatalog Compass',
-      },
       { name: 'output', type: 'string', required: false, description: 'Output file path (defaults to <id>.ec or catalog.ec)' },
     ],
     examples: [
@@ -1692,58 +1686,6 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Export entire catalog to a custom file',
         command: 'npx @eventcatalog/cli export --all --hydrate -o my-catalog.ec',
-      },
-      {
-        description: 'Export and open in EventCatalog Compass',
-        command: 'npx @eventcatalog/cli export --resource services --hydrate --playground',
-      },
-    ],
-  },
-
-  // ================================
-  //            Import
-  // ================================
-  {
-    name: 'import',
-    description:
-      'Import EventCatalog DSL (.ec) files into catalog markdown files. Existing resources with the same version are overridden. Importing a newer version automatically moves the old version into the versioned/ folder.',
-    category: 'Import',
-    args: [
-      { name: 'files', type: 'string', required: false, description: 'One or more .ec file paths to import' },
-      { name: 'stdin', type: 'boolean', required: false, description: 'Read DSL from stdin' },
-      { name: 'dry-run', type: 'boolean', required: false, description: 'Preview resources without writing' },
-      {
-        name: 'flat',
-        type: 'boolean',
-        required: false,
-        description: 'Write resources in a flat structure (no nesting under domains/services)',
-      },
-      { name: 'no-init', type: 'boolean', required: false, description: 'Skip catalog initialization prompt' },
-    ],
-    examples: [
-      {
-        description: 'Import a single .ec file',
-        command: 'npx @eventcatalog/cli import catalog.ec',
-      },
-      {
-        description: 'Import multiple .ec files',
-        command: 'npx @eventcatalog/cli import services.ec events.ec',
-      },
-      {
-        description: 'Import from stdin (pipe from export)',
-        command: 'npx @eventcatalog/cli export --all --stdout | npx @eventcatalog/cli import --stdin -d ./new-catalog',
-      },
-      {
-        description: 'Preview what would be written or merged',
-        command: 'npx @eventcatalog/cli import catalog.ec --dry-run',
-      },
-      {
-        description: 'Import without nested folders',
-        command: 'npx @eventcatalog/cli import catalog.ec --flat',
-      },
-      {
-        description: 'Import into an existing catalog directory without init prompts',
-        command: 'npx @eventcatalog/cli import catalog.ec --no-init -d ./existing-catalog',
       },
     ],
   },

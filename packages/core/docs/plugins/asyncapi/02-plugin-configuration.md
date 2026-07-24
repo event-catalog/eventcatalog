@@ -57,6 +57,7 @@ Each service in the `services` array requires the following properties:
 | `messages.id.separator` | string | `-` | The separator to use between the prefix and the message id. _(Added in v4.5.1)_ [(Read more)](/docs/plugins/asyncapi/plugin-configuration#adding-prefix-to-all-messages) |
 | `messages.id.prefixWithServiceId` | boolean | | If true, the service id will be added to the id of the messages that are generated. For example a message with the id `orderPlaced` and the service id `orders-service` will be `orders-service-orderPlaced`. _(Added in v4.5.1)_ [(Read more)](/docs/plugins/asyncapi/plugin-configuration#adding-prefix-to-all-messages) |
 | `messages.id.lowerCase` | boolean | false | If true, the message id will be stored in lowercase and the folder will also be lowercased. (e.g `/events/orderplaced/index.mdx) _(Added in v5.0.0)_ |
+| `preserveExistingMessages` | boolean | `true` | Preserve existing message Markdown when the generator runs again. Set to `false` to replace existing Markdown with content generated from the AsyncAPI specification and `messages.generateMarkdown` template. Referenced and external messages are never overwritten. |
 | `saveParsedSpecFile` | boolean | `false` | Parse and save expanded AsyncAPI spec (helpful for files with $refs) |
 | `parseSchemas` | boolean | `true` | If you choose to parse your specification file using the [saveParsedSpecFile](#saveparsedspecfile-saveparsedspecfile) field, you can also opt in or out to have your ,message schemas parsed using the `parseSchemas` field. By default message schemas are parsed, if you want to keep your original schemas you have to set `parseSchemas` to false. | | `parseChannels` | boolean | `false` | Parse and save channels. If you set to true the AsyncAPI channels will also be documented in the catalog. |
 | `parseChannels` | boolean | `false` | When setting the value to true the generator will parse and write channels to your EventCatalog. |
@@ -65,6 +66,35 @@ Each service in the `services` array requires the following properties:
 | `attachHeadersToSchema` | boolean | `false` | When enabled, combines message headers and payload into a single schema with `headers` and `payload` properties. Only applies to messages using JSON schema format. _(Added in v5.5.1)_ [(Read more)](/docs/plugins/asyncapi/features#attach-headers-to-schema) |
 | `parseExamples` | boolean | `true` | Parse message examples from AsyncAPI files and write each payload as a `.json` file to the message's `examples` folder. Named examples use `{name}.json`; unnamed examples fall back to `example-{index}.json`. Set to `false` to disable. _(Added in v6.1.0)_ [(Read more)](/docs/plugins/asyncapi/features#parse-message-examples) |
 | `debug` | boolean | `false` | Enable debug mode |
+
+## Regenerating existing message Markdown
+
+<AddedIn version="7.0.1" pkg="@eventcatalog/generator-asyncapi" url="https://github.com/event-catalog/generators/releases/tag/v"/>
+
+By default, the generator preserves the Markdown already stored for an existing message. This allows you to manually enrich generated message pages without losing those changes the next time the generator runs.
+
+Set `preserveExistingMessages` to `false` when your AsyncAPI specification or `messages.generateMarkdown` template should be the source of truth:
+
+```js title="eventcatalog.config.js"
+export default {
+  generators: [
+    [
+      '@eventcatalog/generator-asyncapi',
+      {
+        preserveExistingMessages: false,
+        services: [
+          {
+            path: './asyncapi.yml',
+            id: 'orders-service',
+          },
+        ],
+      },
+    ],
+  ],
+};
+```
+
+This option only controls message Markdown. Message metadata and schemas can still be updated, while existing badges and attachments are preserved. A service that only references or receives an existing message cannot overwrite the message, even when `preserveExistingMessages` is `false`.
 
 ## Example Configuration
 
@@ -297,8 +327,6 @@ export default {
 
 If you have questions or need help, you can join our [Discord community](https://eventcatalog.dev/discord)
 or refer to the [AsyncAPI examples on GitHub](https://github.com/event-catalog/generators/tree/main/examples/generator-asyncapi).
-
-
 
 
 

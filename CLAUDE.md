@@ -11,8 +11,6 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
 - `@eventcatalog/sdk` - SDK for programmatically interacting with EventCatalog
 - `@eventcatalog/create-eventcatalog` - CLI tool for scaffolding new EventCatalog projects
 - `@eventcatalog/visualiser` - Standalone React visualiser component (ReactFlow-based node graphs)
-- `@eventcatalog/dsl-playground` - Browser-based DSL playground for authoring EventCatalog DSL
-- `@eventcatalog/language-server` - Language server for the EventCatalog DSL (parsing, diagnostics, completion)
 
 ## Quick Reference Commands
 
@@ -66,14 +64,6 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
       /edges                 # Edge type components (animated, multiline, flow)
       /utils                 # Layout, mermaid export, clipboard utilities
       /types                 # Shared types (including DslGraph)
-  /playground                # @eventcatalog/dsl-playground
-    /src
-      /components            # Editor, Visualizer, TabBar
-      /hooks                 # useDslParser
-      /monaco                # Monaco editor config, completions, diagnostics
-      /examples              # Built-in DSL examples
-  /language-server           # @eventcatalog/language-server
-    /src                     # DSL parser, graph builder, formatter
 /examples
   /default                   # Default example catalog (used by start:catalog)
   /e-commerce                # E-commerce example

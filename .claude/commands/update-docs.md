@@ -21,7 +21,7 @@ Capture the actual diff with one of:
 - `git diff` and `git diff --staged` (uncommitted)
 - `git show HEAD` (previous commit)
 
-Only `@eventcatalog/core` (under `packages/core/`) changes need user-facing docs. If the diff is purely SDK / CLI / playground / language-server / tests / formatting, tell the user there's nothing to document and stop.
+Only `@eventcatalog/core` (under `packages/core/`) changes need user-facing docs. If the diff is purely SDK / CLI / tests / formatting, tell the user there's nothing to document and stop.
 
 ### 2) Resolve the release version
 

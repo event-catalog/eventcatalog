@@ -15,7 +15,7 @@ import TabItem from '@theme/TabItem';
 | Feature | Use cases |
 |---------|-----------|
 | [Mapping messages events, commands or queries](#mapping-messages-events-commands-or-queries) | AsyncAPI does not distinguish between commands, events and queries, everything is a message. Using the EventCatalog custom AsyncAPI [extension](https://www.asyncapi.com/docs/concepts/asyncapi-document/extending-specification) `x-eventcatalog-message-type` you can specify if your messages are events, command or queries. |
-| [Defining message ownership roles](#defining-message-ownership-roles) | AsyncAPI specification files do not define who owns the message and it's contract. Your AsyncAPI file my define messages your service consumes and produces but that service may not be the service that owns it's contract. (e.g An order service that consumes a Payment event. The order service (AsyncAPI file) would specify it consumes the payment event, but it is not the owner of the contract or event). |
+| [Defining message ownership roles](#defining-message-ownership-roles) | Decide which service owns a shared message contract. By default, `send`/`publish` operations own the contract and `receive`/`subscribe` operations reference it. Use `x-eventcatalog-role` when you need to override that behavior. |
 | [Defining message versions](#defining-message-versions) | In EventCatalog you can version your domains, services and all your messages. This can be useful as you can specify which version of a message your service produces or consumes. |
 | [Mapping channels into EventCatalog](#mapping-channels-into-eventcatalog) | EventCatalog supports [Channels](/docs/development/guides/resources/messages/message-channels/introduction) ([see demo](https://demo.eventcatalog.dev/docs/channels/inventory.%7Benv%7D.events/1.0.0)). This let's you document how messages or organized and transported in your event-driven architecture. |
 | [Creating draft domains, services and messages](#creating-draft-domains-services-and-messages) | You can create draft domains, services and messages in EventCatalog from your AsyncAPI files. This will be used to mark the resources as draft in EventCatalog. |
@@ -53,47 +53,60 @@ You can see more [examples of the extension on the demo project](https://github.
 
 <AddedIn version="2.4.0" pkg="@eventcatalog/generator-asyncapi" url="https://github.com/event-catalog/generators/releases/tag/v"/>
 
-AsyncAPI specification files do not define who owns the message and it's contract. Your AsyncAPI file my define messages your service consumes and produces but that service may not be the service that owns it's contract. (e.g An order service that consumes a Payment event. The order service (AsyncAPI file) would specify it consumes the payment event, but it is not the owner of the contract or event).
+EventCatalog stores a message as one shared contract, even when several AsyncAPI files reference it. The generator therefore needs to decide which service can create or update that contract.
 
-By default when you integrate your AsyncAPI files into EventCatalog, EventCatalog will assume your service (AsyncAPI file) owns the messages and will document them this way.
+By default, ownership follows the AsyncAPI operation direction:
 
-If you want to define ownership of messages in your files you can use the `x-eventcatalog-role` extension in your AsyncAPI files. This let's you specify if your service is a provider (owner) or the message or just a consumer (client) of the message.
+| AsyncAPI operation | Relationship to the contract | Generator behavior |
+|--------------------|------------------------------|--------------------|
+| `send` or `publish` | Owner | Creates the message and may update an existing contract. |
+| `receive` or `subscribe` | Reference | Uses the existing contract without overwriting it. If the message does not exist, the receiver creates a fallback from its own definition. |
 
-The available extension values are:
+The service relationship is recorded independently of ownership. Owners are added to the service's `sends`, while references are added to its `receives`.
 
-- `provider`: Generator will generate a new message considering the service is the owner of message contract (`default`).
-- `client`: Generator will consider the message as a sent/received message in service but will NOT generate or modify the message in EventCatalog.
+:::info Default changed in generator v7
+Before v7, every message without an explicit role was treated as owned by the service being generated. This meant a consumer could overwrite the producer's summary or schema.
 
-```js title="x-eventcatalog-role example"
-components:
-  messages:
-    SendOrderConfirmation:
-      description: 'Command received to ask for sending an Order confirmation notification'
-      x-eventcatalog-role: client // Define the ownership. This example shows the service is a client of the message and does not own the message.
+To retain the previous ownership behavior for a receiving operation, set `x-eventcatalog-role: provider` explicitly.
+:::
+
+#### Receiver fallbacks
+
+If a receiving service is generated before the message exists, EventCatalog creates a fallback beneath that service. This keeps consumer-only catalogs working.
+
+When the producing service is generated later for the same message and version, its definition becomes authoritative and the fallback is moved to the producer's message location. This makes the final contract independent of whether the producer or consumer was generated first.
+
+#### Override the inferred role
+
+Use `x-eventcatalog-role` on an operation or message when operation direction does not express the ownership you need:
+
+- `provider`: The service owns the message contract and may create or update it.
+- `client`: The contract is external to the service. The generator records the `sends` or `receives` relationship but does not create or modify the message documentation.
+
+An operation-level role takes precedence over a message-level role. This is useful when a shared message has a different role for each operation or service.
+
+```yaml title="Receiving service that explicitly owns the contract"
+operations:
+  receiveOrderPlaced:
+    action: receive
+    x-eventcatalog-role: provider
+    channel:
+      $ref: '#/channels/orders'
+    messages:
+      - $ref: '#/channels/orders/messages/OrderPlaced'
 ```
 
-You can see more [examples of the extension on the demo project](https://github.com/event-catalog/generators/tree/main/examples/generator-asyncapi/tree/main/asyncapi-files).
+You can also set the role on the message:
 
-AsyncAPI specification files do not define who owns the message and it's contract. Your AsyncAPI file my define messages your service consumes and produces but that service may not be the service that owns it's contract. (e.g An order service that consumes a Payment event. The order service (AsyncAPI file) would specify it consumes the payment event, but it is not the owner of the contract or event).
-
-By default when you integrate your AsyncAPI files into EventCatalog, EventCatalog will assume your service (AsyncAPI file) owns the messages and will document them this way.
-
-If you want to define ownership of messages in your files you can use the `x-eventcatalog-role` extension in your AsyncAPI files. This let's you specify if your service is a provider (owner) or the message or just a consumer (client) of the message.
-
-The available extension values are:
-
-- `provider`: Generator will generate a new message considering the service is the owner of message contract (`default`).
-- `client`: Generator will consider the message as a sent/received message in service but will NOT generate or modify the message in EventCatalog.
-
-```js title="x-eventcatalog-role example"
+```yaml title="External message"
 components:
   messages:
-    SendOrderConfirmation:
-      description: 'Command received to ask for sending an Order confirmation notification'
-      x-eventcatalog-role: client // Define the ownership. This example shows the service is a client of the message and does not own the message.
+    PaymentProcessed:
+      description: Payment processed by an external provider
+      x-eventcatalog-role: client
 ```
 
-You can see more [examples of the extension on the demo project](https://github.com/event-catalog/generators/tree/main/examples/generator-asyncapi/tree/main/asyncapi-files).
+See [Shared message contracts across producer and consumer specs](/docs/plugins/asyncapi/03a-workflows#shared-message-contracts-across-producer-and-consumer-specs) for a complete workflow.
 
 ### Defining message versions
 

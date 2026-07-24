@@ -120,7 +120,6 @@ See EventCatalog powering real-world architectures:
 | [@eventcatalog/sdk](./packages/sdk) | Node.js SDK for programmatic catalog management |
 | [@eventcatalog/create-eventcatalog](./packages/create-eventcatalog) | CLI scaffolding tool |
 | [@eventcatalog/visualiser](./packages/visualiser) | Standalone React visualiser component |
-| [@eventcatalog/dsl-playground](./packages/playground) | Browser-based DSL playground |
 
 ---
 

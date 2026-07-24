@@ -33,7 +33,7 @@ Each service in the `services` array requires the following properties:
 |----------|------|----------|-------------|
 | `id` | string | Yes | EventCatalog ID for the service. |
 | `path` | string or string[] | Yes | Path/s to your OpenAPI file or remote URL to the OpenAPI file. v6.0.0 introduced the ability to map multiple OpenAPI files to a single service. |
-| `version` | string | No | Version for the generated EventCatalog service and messages. If not provided, the version from the OpenAPI `info.version` field is used. |
+| `version` | string | No | Version for the generated EventCatalog service and messages. If not provided, the OpenAPI `info.version` is used. For a `path` array, the highest `info.version` is selected using semantic version ordering and all specifications are attached to that service version. |
 | `name` | string | No | Display name for the service. If not provided, the specification will be used. _Added in v7.4.3_|
 | `summary` | string | No | Short summary of the service. If not provided, the specification will be used. _Added in v7.4.3_|
 | `owners` | string[] | No | Owners of the service. You can assign EventCatalog users or teams to services. |
@@ -318,7 +318,6 @@ export default {
 
 If you have questions or need help, you can join our [Discord community](https://eventcatalog.dev/discord)
 or refer to the [OpenAPI examples on GitHub](https://github.com/event-catalog/generators/tree/main/examples/generator-openapi).
-
 
 
 
