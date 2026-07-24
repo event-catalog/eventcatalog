@@ -55,7 +55,7 @@ The version that the new feature ships in is required for the `<AddedIn />` comp
 - Use `git diff HEAD~1` to see what changed in the most recent commit
 - If more context is needed, examine additional commits with `git log --oneline -10` and `git diff <commit>..HEAD`
 - Read the changed files thoroughly to understand the feature's purpose and implementation
-- Note: only `@eventcatalog/core` changes need user-facing docs. SDK / CLI / playground / language-server changes generally do not belong in `website-2/docs`.
+- Note: only `@eventcatalog/core` changes need user-facing docs. SDK / CLI changes generally do not belong in `website-2/docs`.
 
 ### Step 3: Survey Existing Documentation
 - Explore `eventcatalog/website-2/docs` to understand the documentation structure

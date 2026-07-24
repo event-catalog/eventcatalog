@@ -6,7 +6,6 @@ import { resolve } from 'node:path';
 import { executeFunction } from './executor';
 import { listFunctions, formatListOutput } from './list';
 import { exportResource, exportCatalog } from './export';
-import { importDSL } from './import';
 import { snapshotCreate, snapshotDiff, snapshotList } from './snapshot';
 import { governanceCheck } from './governance';
 
@@ -51,7 +50,6 @@ program
   .option('-v, --version <version>', 'Resource version (defaults to latest)')
   .option('--hydrate', 'Include referenced resources (messages, channels, owners)', false)
   .option('--stdout', 'Print to stdout instead of writing a file', false)
-  .option('--playground', 'Open the exported DSL in EventCatalog Compass', false)
   .option('-o, --output <path>', 'Output file path (defaults to <id>.ec or catalog.ec)')
   .action(async (opts) => {
     try {
@@ -62,7 +60,6 @@ program
         const result = await exportCatalog({
           hydrate: opts.hydrate,
           stdout: opts.stdout,
-          playground: opts.playground,
           output: opts.output,
           dir,
         });
@@ -81,36 +78,7 @@ program
         version: opts.version,
         hydrate: opts.hydrate,
         stdout: opts.stdout,
-        playground: opts.playground,
         output: opts.output,
-        dir,
-      });
-      console.log(result);
-    } catch (error) {
-      console.error(error instanceof Error ? error.message : String(error));
-      process.exit(1);
-    }
-  });
-
-// Import command - import .ec DSL files into catalog markdown
-program
-  .command('import [files...]')
-  .description('Import EventCatalog DSL (.ec) files into catalog markdown')
-  .option('--stdin', 'Read DSL from stdin', false)
-  .option('--dry-run', 'Preview resources without writing', false)
-  .option('--flat', 'Write resources in flat structure (no nesting under domains/services)', false)
-  .option('--no-init', 'Skip catalog initialization prompt')
-  .action(async (files: string[], opts) => {
-    try {
-      const globalOpts = program.opts() as any;
-      const dir = globalOpts.dir || '.';
-
-      const result = await importDSL({
-        files: files.length > 0 ? files : undefined,
-        stdin: opts.stdin,
-        dryRun: opts.dryRun,
-        flat: opts.flat,
-        noInit: !opts.init,
         dir,
       });
       console.log(result);

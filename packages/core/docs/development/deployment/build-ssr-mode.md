@@ -48,11 +48,3 @@ This will output one directory
 You will need to deploy your EventCatalog to a server that can run Node.js.
 
 The easiest way to do this is to use [a docker container](/docs/development/deployment/hosting-options#hosting-static-website-with-docker).
-
-## Loading indicator
-
-<AddedIn version="4.2.5" />
-
-Server-side rendering means a page's render time depends on your server, so navigations can occasionally take longer than a static build.
-
-EventCatalog shows a thin progress bar at the top of the page during navigations that take longer than 200ms, so the catalog never looks unresponsive. It works automatically and needs no configuration.

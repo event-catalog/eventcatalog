@@ -10,6 +10,5 @@
   "privatePackages": {
     "version": false,
     "tag": false
-  },
-  "ignore": ["@eventcatalog/dsl-playground"]
+  }
 }

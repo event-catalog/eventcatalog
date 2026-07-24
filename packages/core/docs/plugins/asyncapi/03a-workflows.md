@@ -16,6 +16,8 @@ Many companies have different needs, so we have provided a few different workflo
 
 - [Simple mapping between AsyncAPI files and EventCatalog services](#simple-mapping-between-asyncapi-files-and-eventcatalog-services)
   - Map a single AsyncAPI file to a single EventCatalog service
+- [Shared message contracts across producer and consumer specs](#shared-message-contracts-across-producer-and-consumer-specs)
+  - Keep the producer's message contract authoritative when several services reference it
 - [Independent message versions from your AsyncAPI file](#independent-message-versions-from-your-asyncapi-file)
   - Version your messages independently of the service version
 - [Mapping multiple AsyncAPI files to a single EventCatalog service](#mapping-multiple-asyncapi-files-to-a-single-eventcatalog-service)
@@ -48,7 +50,64 @@ generators: [
 ],
 ```
 
-### Independent message versions from your AsyncAPI file
+## Shared message contracts across producer and consumer specs
+
+This workflow is useful when several AsyncAPI files describe the same message. For example, an order service may send `OrderPlaced` while notification and fulfillment services receive it.
+
+EventCatalog stores one shared message contract for a given message ID and version. Without an explicit `x-eventcatalog-role`, the generator uses the AsyncAPI operation direction to determine how each service relates to that contract:
+
+- `send` or `publish` operations own the message contract and may update it.
+- `receive` or `subscribe` operations reference an existing contract without overwriting it.
+- A receiver creates a fallback from its own AsyncAPI definition only when the message does not exist yet.
+- If the producer is generated after a receiver fallback, the producer's definition replaces the fallback and becomes authoritative.
+
+The services can be configured in either order:
+
+```js title="eventcatalog.config.js"
+generators: [
+  [
+    '@eventcatalog/generator-asyncapi',
+    {
+      services: [
+        { path: path.join(__dirname, 'asyncapi-files', 'notification-service.yml'), id: 'notification-service' },
+        { path: path.join(__dirname, 'asyncapi-files', 'order-service.yml'), id: 'order-service' },
+      ],
+    },
+  ],
+],
+```
+
+Given these operations, `order-service` owns `OrderPlaced` and `notification-service` references it:
+
+```yaml title="order-service.yml"
+operations:
+  sendOrderPlaced:
+    action: send
+    channel:
+      $ref: '#/channels/orders'
+    messages:
+      - $ref: '#/channels/orders/messages/OrderPlaced'
+```
+
+```yaml title="notification-service.yml"
+operations:
+  receiveOrderPlaced:
+    action: receive
+    channel:
+      $ref: '#/channels/orders'
+    messages:
+      - $ref: '#/channels/orders/messages/OrderPlaced'
+```
+
+Both services remain connected to the message: the producer has an entry in `sends` and the consumer has an entry in `receives`. Only the producer can replace the shared contract.
+
+:::tip Explicit ownership
+If a receiving operation should own the contract, add `x-eventcatalog-role: provider` to that operation or message. Use `x-eventcatalog-role: client` when a sending or receiving service should only record its relationship and must never create the message documentation.
+
+Read [Defining message ownership roles](/docs/plugins/asyncapi/features#defining-message-ownership-roles) for the complete rules.
+:::
+
+## Independent message versions from your AsyncAPI file
 
 This is useful if you want to version your messages separately from the AsyncAPI file.
 

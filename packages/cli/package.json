@@ -7,7 +7,6 @@
     "build:bin": "tsup",
     "test": "vitest --run",
     "test:ci": "vitest --run",
-    "bench:import-export": "node src/test/bench/import-export.benchmark.js",
     "format": "prettier --write .",
     "format:diff": "prettier --list-different ."
   },
@@ -33,15 +32,12 @@
   },
   "dependencies": {
     "@eventcatalog/breaking-changes": "workspace:*",
-    "@eventcatalog/language-server": "workspace:*",
     "@eventcatalog/sdk": "workspace:*",
     "@eventcatalog/license": "^0.0.7",
     "commander": "^12.0.0",
     "dotenv": "^16.5.0",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.1",
-    "langium": "^3.3.1",
-    "open": "^11.0.0",
     "semver": "^7.7.2"
   },
   "devDependencies": {

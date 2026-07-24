@@ -204,7 +204,6 @@ visualizer main {
 
     const filepath = path.resolve('OrderCreated.ec');
     expect(result).toContain(`Exported event 'OrderCreated' to ${filepath}`);
-    expect(result).toContain('Tip: Use --playground to open in EventCatalog Compass');
     expect(fs.existsSync(filepath)).toBe(true);
 
     const content = fs.readFileSync(filepath, 'utf-8');
@@ -226,29 +225,11 @@ visualizer main {
     });
 
     expect(result).toContain(`Exported event 'OrderCreated' to ${outputPath}`);
-    expect(result).toContain('Tip: Use --playground to open in EventCatalog Compass');
     expect(fs.existsSync(outputPath)).toBe(true);
 
     const content = fs.readFileSync(outputPath, 'utf-8');
     expect(content).toContain('event OrderCreated {');
     expect(content).toContain('visualizer main {');
-  });
-
-  it('includes playground URL when --playground is set', async () => {
-    await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
-
-    const outputPath = path.join(CATALOG_PATH, 'playground-test.ec');
-    const result = await exportResource({
-      resource: 'event',
-      id: 'OrderCreated',
-      playground: true,
-      output: outputPath,
-      dir: CATALOG_PATH,
-    });
-
-    expect(result).toContain(`Exported event 'OrderCreated' to ${outputPath}`);
-    expect(result).toContain('Opening in EventCatalog Compass...');
-    expect(result).not.toContain('Tip: Use --playground');
   });
 
   it('throws for invalid resource type', async () => {

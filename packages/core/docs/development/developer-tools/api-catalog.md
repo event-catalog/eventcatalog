@@ -105,7 +105,7 @@ Content-Type: application/yaml
 
 ### MCP server entry
 
-When the EventCatalog MCP server is enabled, an additional entry pointing at `/docs/mcp` is appended to the linkset. This lets MCP-aware agents discover the catalog's machine interface alongside its API specifications.
+When the EventCatalog MCP server is enabled, an additional entry pointing at `/docs/mcp` is appended to the linkset. This lets MCP-aware agents discover the catalog's machine interface alongside its API specifications. The entry is omitted when `mcp.enabled` is set to `false`.
 
 ### What is included
 

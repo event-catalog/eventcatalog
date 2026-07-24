@@ -550,6 +550,30 @@ module.exports = {
 | ------ | ---- | ------- | ----------- |
 | `chat.enabled` | `boolean` | `true` | Enables or disables the AI chat feature. Set to `false` to hide the chat UI and prevent chat requests even when all other prerequisites are met. |
 
+### `mcp` {#mcp}
+
+Configuration for the built-in EventCatalog MCP server.
+
+The MCP server requires a Scale plan and `output: 'server'`. When those prerequisites are met, it is enabled by default. Set
+`mcp.enabled` to `false` to prevent the MCP routes from being registered and hide the MCP connection actions on domain and
+system pages.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  output: 'server',
+  mcp: {
+    enabled: false,
+  },
+};
+```
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `mcp.enabled` | `boolean` | `true` | Enables or disables the built-in MCP server when its SSR and Scale prerequisites are met. |
+
+See the [MCP server guide](/docs/development/ask-your-architecture/mcp-server/getting-started) for scoped domain and system
+endpoints, client setup, and OAuth configuration.
+
 ### `search` {#search}
 
 <AddedIn version="3.36.0" />

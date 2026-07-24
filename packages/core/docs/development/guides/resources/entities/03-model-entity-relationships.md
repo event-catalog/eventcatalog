@@ -88,27 +88,28 @@ This tells EventCatalog that `order.customerId` references the `customer.custome
 
 ## Reference a whole entity
 
-Use `referenceTarget: entity` when the relationship is to the entity rather than one of its properties.
+Use `referenceTarget: entity` when a property relates to the referenced entity as a whole rather than one of its properties.
 
-```yaml
+```yaml title="/entities/order/index.mdx"
 properties:
   - name: customer
-    type: object
+    type: Customer
     references: customer
     referenceTarget: entity
     relationType: placedBy
 ```
 
-This renders the relationship against the `Customer` entity header. Existing relationships that omit `referenceTarget` continue to use property-level targeting.
+This renders the relationship against the `Customer` entity header in entity maps. Existing relationships that omit `referenceTarget` continue to use property-level targeting.
 
 ## Model embedded objects
 
-Use nested `properties` for a value object that only exists as part of its parent entity. Embedded objects have no entity id and cannot be referenced independently from elsewhere in the catalog.
+Use nested `properties` for a value object that exists only as part of its parent entity. Property definitions are recursive, so embedded objects can contain other embedded objects.
 
-```yaml
+```yaml title="/entities/order/index.mdx"
 properties:
   - name: deliveryAddress
     type: object
+    required: true
     properties:
       - name: line1
         type: string
@@ -116,8 +117,26 @@ properties:
       - name: city
         type: string
         required: true
+      - name: coordinates
+        type: object
+        properties:
+          - name: latitude
+            type: number
+          - name: longitude
+            type: number
+```
+
+Embedded objects are owned by their parent entity. They have no entity id and cannot be referenced independently elsewhere in the catalog.
+
+### Model arrays of embedded objects
+
+Define nested `properties` inside `items` when an array contains embedded objects.
+
+```yaml title="/entities/order/index.mdx"
+properties:
   - name: adjustments
     type: array
+    description: Discounts and credits applied to the order.
     items:
       type: object
       properties:
@@ -125,6 +144,7 @@ properties:
           type: string
         - name: amount
           type: decimal
+          required: true
 ```
 
 Embedded properties appear inside their parent entity rather than as separate nodes in entity maps.
