@@ -1,5 +1,11 @@
 # @eventcatalog/cli
 
+## 1.0.0
+
+### Major Changes
+
+- 10738b9: Remove the EventCatalog DSL import command and the Compass playground integration from the CLI.
+
 ## 0.6.16
 
 ### Patch Changes
