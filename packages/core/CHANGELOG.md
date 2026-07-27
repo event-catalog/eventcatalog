@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.3.3
+
+### Patch Changes
+
+- 04e5d19: Add stable, versionless URLs for the latest service's specifications, changelog, and attached documentation.
+
 ## 4.3.2
 
 ### Patch Changes
