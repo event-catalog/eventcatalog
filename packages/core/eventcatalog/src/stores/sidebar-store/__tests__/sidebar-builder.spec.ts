@@ -1899,7 +1899,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
-          href: '/docs/services/ShippingService/0.0.1',
+          href: '/docs/services/ShippingService',
         });
       });
 
@@ -1917,7 +1917,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/0.0.1/changelog',
+          href: '/docs/services/ShippingService/changelog',
         });
         config.changelog = { enabled: false };
       });
@@ -1936,7 +1936,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/0.0.1/changelog',
+          href: '/docs/services/ShippingService/changelog',
         });
       });
 
@@ -1959,7 +1959,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/0.0.1/changelog',
+          href: '/docs/services/ShippingService/changelog',
         });
         config.changelog = { enabled: false };
       });
@@ -2109,21 +2109,59 @@ describe('getNestedSideBarData', () => {
             type: 'item',
             title: 'OpenAPI',
             leftIcon: '/icons/openapi-black.svg',
-            href: '/docs/services/ShippingService/0.0.1/spec/openapi',
+            href: '/docs/services/ShippingService/spec/openapi',
           },
           {
             type: 'item',
             title: 'AsyncAPI',
             leftIcon: '/icons/asyncapi-black.svg',
-            href: '/docs/services/ShippingService/0.0.1/asyncapi/asyncapi',
+            href: '/docs/services/ShippingService/asyncapi/asyncapi',
           },
           {
             type: 'item',
             title: 'GraphQL',
             leftIcon: '/icons/graphql-black.svg',
-            href: '/docs/services/ShippingService/0.0.1/graphql/graphql',
+            href: '/docs/services/ShippingService/graphql/graphql',
           },
         ]);
+      });
+
+      it('keeps specification links versioned for historical service versions', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        const specifications = [{ type: 'asyncapi' as const, path: 'asyncapi.yaml', name: 'AsyncAPI' }];
+
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '1.0.0',
+          markdown: 'ShippingService',
+          specifications,
+        });
+        await writeService(
+          {
+            id: 'ShippingService',
+            name: 'ShippingService',
+            version: '2.0.0',
+            markdown: 'ShippingService',
+            specifications,
+          },
+          { versionExistingContent: true }
+        );
+
+        const navigationData = await getNestedSideBarData();
+        const historicalServiceNode = getNavigationConfigurationByKey('service:ShippingService:1.0.0', navigationData);
+        const latestServiceNode = getNavigationConfigurationByKey('service:ShippingService:2.0.0', navigationData);
+
+        expect(historicalServiceNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'AsyncAPI',
+          href: '/docs/services/ShippingService/1.0.0/asyncapi/asyncapi',
+        });
+        expect(latestServiceNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'AsyncAPI',
+          href: '/docs/services/ShippingService/asyncapi/asyncapi',
+        });
       });
     });
 
@@ -4642,7 +4680,7 @@ describe('getNestedSideBarData', () => {
           {
             type: 'item',
             title: 'Service Boundary ADR',
-            href: '/docs/services/ShippingService/0.0.1/adrs/service-boundary',
+            href: '/docs/services/ShippingService/adrs/service-boundary',
           },
         ]);
 

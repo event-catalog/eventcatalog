@@ -1,0 +1,25 @@
+---
+import LatestVersionRedirect from '@components/LatestVersionRedirect.astro';
+import { isSSR } from '@utils/feature';
+import { buildUrl } from '@utils/url-builder';
+import { Page as VersionedPage } from '../../../[type]/[id]/[version]/graphql/_[filename].data';
+import { getLatestServicePaths, getLatestServiceVersion } from '../../_latest-version-route';
+
+export const prerender = !isSSR();
+export const getStaticPaths = async () => getLatestServicePaths(await VersionedPage.getStaticPaths());
+
+const { id, filename } = Astro.params;
+const version = Astro.props.redirectVersion ?? (id ? await getLatestServiceVersion(id) : undefined);
+
+if (!id || !filename || !version) {
+  throw new Response(null, { status: 404, statusText: 'GraphQL specification not found' });
+}
+
+const redirectUrl = buildUrl(`/docs/services/${id}/${version}/graphql/${filename}`);
+
+if (isSSR()) {
+  return Astro.redirect(`${redirectUrl}${Astro.url.search}${Astro.url.hash}`);
+}
+---
+
+<LatestVersionRedirect title="Latest GraphQL specification" redirectUrl={redirectUrl} />

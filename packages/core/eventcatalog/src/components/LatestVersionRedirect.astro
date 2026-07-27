@@ -1,0 +1,26 @@
+---
+import Seo from '@components/Seo.astro';
+
+interface Props {
+  redirectUrl: string;
+  title: string;
+}
+
+const { redirectUrl, title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Seo title={title} />
+    <meta http-equiv="refresh" content={`0;url=${redirectUrl}`} />
+  </head>
+  <body>
+    <p>You are being redirected to <a href={redirectUrl}>{redirectUrl}</a></p>
+  </body>
+</html>
+
+<script define:vars={{ redirectUrl }}>
+  const fullRedirectUrl = redirectUrl + window.location.search + window.location.hash;
+  window.location.replace(fullRedirectUrl);
+</script>

@@ -10,6 +10,7 @@ description: Learn how versioning works for EventCatalog resources.
 ---
 
 import ProjectTree from '@site/src/components/MDX/ProjectTree';
+import AddedIn from '@site/src/components/MDX/AddedIn';
 
 EventCatalog resources can be versioned when you want to preserve how a resource looked at a point in time.
 
@@ -109,6 +110,20 @@ For example:
 | `Orders` service version `1.0.0` | `/docs/services/Orders/1.0.0` |
 
 This lets users compare the current resource with previous versions when they need historical context.
+
+### Stable URLs for the latest version
+
+<AddedIn version="4.3.3" />
+
+For services, the URLs for the latest version and its sub-pages (changelog, specifications, and attached documentation) stay versionless and never change as the service is versioned up.
+
+| Page | URL |
+|------|-----|
+| Overview | `/docs/services/Orders` |
+| Changelog | `/docs/services/Orders/changelog` |
+| OpenAPI spec | `/docs/services/Orders/spec/openapi` |
+
+Share these links freely. When `Orders` moves from `1.0.0` to `2.0.0`, the versionless URLs keep resolving to whatever is latest, so the link never rots. Historical versions keep their versioned URLs, for example `/docs/services/Orders/1.0.0/changelog`.
 
 ## Referencing versions
 

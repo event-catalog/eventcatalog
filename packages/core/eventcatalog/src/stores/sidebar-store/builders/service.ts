@@ -58,12 +58,15 @@ export const buildServiceNode = (
   const renderEntities = serviceEntities.length > 0 && shouldRenderSideBarSection(service, 'entities');
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(service, 'owners');
   const renderRepository = service.data.repository && shouldRenderSideBarSection(service, 'repository');
+  const isLatestVersion = service.data.version === service.data.latestVersion;
+  const docsBasePath = `/docs/services/${service.data.id}${isLatestVersion ? '' : `/${service.data.version}`}`;
   const docsSection = buildResourceDocsSection(
     'services',
     service.data.id,
     service.data.version,
     context.resourceDocs,
-    context.resourceDocCategories
+    context.resourceDocCategories,
+    { includeVersionInUrl: !isLatestVersion }
   );
 
   // Diagrams
@@ -82,11 +85,11 @@ export const buildServiceNode = (
     pages: [
       buildQuickReferenceSection(
         [
-          { title: 'Overview', href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}`) },
+          { title: 'Overview', href: buildUrl(docsBasePath) },
           isChangelogEnabled() &&
             shouldRenderSideBarSection(service, 'changelog') && {
               title: 'Changelog',
-              href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}/changelog`),
+              href: buildUrl(`${docsBasePath}/changelog`),
             },
         ].filter(Boolean) as { title: string; href: string }[]
       ),
@@ -135,25 +138,19 @@ export const buildServiceNode = (
             type: 'item',
             title: `${specification.name}`,
             leftIcon: '/icons/openapi-black.svg',
-            href: buildUrl(
-              `/docs/services/${service.data.id}/${service.data.version}/spec/${specification.filenameWithoutExtension}`
-            ),
+            href: buildUrl(`${docsBasePath}/spec/${specification.filenameWithoutExtension}`),
           })),
           ...asyncAPISpecifications.map((specification) => ({
             type: 'item',
             title: `${specification.name}`,
             leftIcon: '/icons/asyncapi-black.svg',
-            href: buildUrl(
-              `/docs/services/${service.data.id}/${service.data.version}/asyncapi/${specification.filenameWithoutExtension}`
-            ),
+            href: buildUrl(`${docsBasePath}/asyncapi/${specification.filenameWithoutExtension}`),
           })),
           ...graphQLSpecifications.map((specification) => ({
             type: 'item',
             title: `${specification.name}`,
             leftIcon: '/icons/graphql-black.svg',
-            href: buildUrl(
-              `/docs/services/${service.data.id}/${service.data.version}/graphql/${specification.filenameWithoutExtension}`
-            ),
+            href: buildUrl(`${docsBasePath}/graphql/${specification.filenameWithoutExtension}`),
           })),
         ],
       },

@@ -189,8 +189,10 @@ export const buildResourceDocsSection = (
   id: string,
   version: string,
   resourceDocs: ResourceDocEntry[],
-  resourceDocCategories: ResourceDocCategoryEntry[]
+  resourceDocCategories: ResourceDocCategoryEntry[],
+  options: { includeVersionInUrl?: boolean } = {}
 ): NavNode | null => {
+  const { includeVersionInUrl = true } = options;
   const docsForResource = resourceDocs.filter(
     (doc) => doc.data.resourceCollection === collection && doc.data.resourceId === id && doc.data.resourceVersion === version
   );
@@ -249,7 +251,7 @@ export const buildResourceDocsSection = (
         type: 'item',
         title: doc.data.title || doc.data.id,
         href: buildUrl(
-          `/docs/${collection}/${id}/${version}/${encodeURIComponent(doc.data.type)}/${encodeURIComponent(doc.data.id)}`
+          `/docs/${collection}/${id}${includeVersionInUrl ? `/${version}` : ''}/${encodeURIComponent(doc.data.type)}/${encodeURIComponent(doc.data.id)}`
         ),
       })),
     })),
