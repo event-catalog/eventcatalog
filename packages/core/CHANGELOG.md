@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.3.4
+
+### Patch Changes
+
+- b1f3308: Improve sidebar navigation group collapsing, persistence, and layout scrolling
+
 ## 4.3.3
 
 ### Patch Changes
