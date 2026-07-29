@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderPlacedOnHold",
+  "description": "Published when an order is paused for operational review",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "holdId": { "type": "string", "format": "uuid" },
+    "reason": {
+      "type": "string",
+      "enum": ["PAYMENT_REVIEW", "FRAUD_REVIEW", "ADDRESS_VERIFICATION", "INVENTORY_RECHECK"]
+    },
+    "ownerTeam": { "type": "string" },
+    "customerMessage": { "type": "string", "maxLength": 280 },
+    "reviewBy": { "type": "string", "format": "date-time" },
+    "placedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["orderId", "holdId", "reason", "ownerTeam", "reviewBy", "placedAt"],
+  "examples": [
+    {
+      "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+      "holdId": "49c81188-c99a-4af4-97c9-2e9516bba8f7",
+      "reason": "ADDRESS_VERIFICATION",
+      "ownerTeam": "ordering-operations",
+      "customerMessage": "We are confirming one detail of your delivery address. No action is required yet.",
+      "reviewBy": "2026-07-29T11:00:00Z",
+      "placedAt": "2026-07-29T09:51:26Z"
+    }
+  ]
+}

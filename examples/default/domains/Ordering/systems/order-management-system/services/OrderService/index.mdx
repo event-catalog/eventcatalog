@@ -26,6 +26,22 @@ receives:
 sends:
   - id: order-created
     version: 1.0.0
+  - id: order-confirmed
+    version: 1.0.0
+  - id: order-amended
+    version: 1.0.0
+  - id: order-placed-on-hold
+    version: 1.0.0
+  - id: order-hold-released
+    version: 1.0.0
+  - id: order-fulfilment-started
+    version: 1.0.0
+  - id: order-status-changed
+    version: 1.0.0
+  - id: order-delivery-address-changed
+    version: 1.0.0
+  - id: order-archived
+    version: 1.0.0
   - id: order-completed
     version: 1.0.0
   - id: order-cancelled
@@ -47,26 +63,36 @@ import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
-The **Order Service** is the heart of the Order Management System. It receives [[command|create-order]] from the [[system|checkout-system]], persists orders to the [[container|order-database]], and serves order lookups via [[query|get-order]]. It also handles [[command|cancel-order]]. As orders move through their lifecycle it publishes [[event|order-created]], [[event|order-completed]] and [[event|order-cancelled]] events.
+The **Order Service** is the heart of the Order Management System. It receives [[command|create-order]] from the [[system|checkout-system]], persists orders to the [[container|order-database]], and serves order lookups via [[query|get-order]]. It also handles [[command|cancel-order]]. As orders move through their lifecycle it publishes detailed events covering creation, confirmation, amendments, operational holds, fulfilment, completion, cancellation, and archival.
 
 <Tiles>
-  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Order lifecycle events" />
-  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Order commands and queries" />
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Sends ${frontmatter.sends.length} messages`}
+    description="Order lifecycle events"
+  />
+  <Tile
+    icon="BoltIcon"
+    href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`}
+    title={`Receives ${frontmatter.receives.length} messages`}
+    description="Order commands and queries"
+  />
 </Tiles>
 
 ### Responsibilities
 
-| Area | Description |
-|------|-------------|
-| Order creation | Handles [[command\|create-order]] from the Checkout System and persists the order. |
-| Order cancellation | Handles [[command\|cancel-order]] and compensates downstream where needed. |
-| Order lookups | Serves [[query\|get-order]] from the [[container\|order-database]]. |
-| Event publishing | Emits [[event\|order-created]], [[event\|order-completed]] and [[event\|order-cancelled]]. |
+| Area               | Description                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Order creation     | Handles [[command\|create-order]] from the Checkout System and persists the order.                                 |
+| Order cancellation | Handles [[command\|cancel-order]] and compensates downstream where needed.                                         |
+| Order lookups      | Serves [[query\|get-order]] from the [[container\|order-database]].                                                |
+| Event publishing   | Emits a complete order lifecycle stream for fulfilment, customer communications, support, and analytics consumers. |
 
 ## Architecture diagram
 
 <NodeGraph />
 
-<MessageTable format="all" limit={8} />
+<MessageTable format="all" limit={12} />
 
 <Footer />

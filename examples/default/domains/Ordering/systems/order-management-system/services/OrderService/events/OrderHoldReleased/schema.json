@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderHoldReleased",
+  "description": "Published when an operational hold on an order is released",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "holdId": { "type": "string", "format": "uuid" },
+    "previousReason": {
+      "type": "string",
+      "enum": ["PAYMENT_REVIEW", "FRAUD_REVIEW", "ADDRESS_VERIFICATION", "INVENTORY_RECHECK"]
+    },
+    "resolution": { "type": "string", "maxLength": 250 },
+    "releasedBy": { "type": "string" },
+    "nextStatus": { "type": "string", "enum": ["CONFIRMED", "AWAITING_FULFILMENT"] },
+    "releasedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["orderId", "holdId", "previousReason", "resolution", "releasedBy", "nextStatus", "releasedAt"],
+  "examples": [
+    {
+      "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+      "holdId": "49c81188-c99a-4af4-97c9-2e9516bba8f7",
+      "previousReason": "ADDRESS_VERIFICATION",
+      "resolution": "Postal address matched the carrier validation service",
+      "releasedBy": "address-verification-policy:v3",
+      "nextStatus": "AWAITING_FULFILMENT",
+      "releasedAt": "2026-07-29T10:04:51Z"
+    }
+  ]
+}

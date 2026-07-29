@@ -226,12 +226,12 @@ describe('getNestedSideBarData', () => {
 
       expect(adrsNode.pages).toEqual([
         expect.objectContaining({
-          title: 'Accepted (1)',
+          title: 'Accepted',
           collapseKey: 'adrs:status:accepted',
           pages: ['adr:accepted-decision:1.0.0'],
         }),
         expect.objectContaining({
-          title: 'Superseded (1)',
+          title: 'Superseded',
           collapseKey: 'adrs:status:superseded',
           pages: ['adr:superseded-decision:1.0.0'],
         }),

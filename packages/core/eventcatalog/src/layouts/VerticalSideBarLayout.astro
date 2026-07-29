@@ -449,9 +449,25 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         }
       })();
     </script>
+    <script is:inline>
+      (() => {
+        const sidebarWidthStorageKey = 'eventcatalog-sidebar-width:v1';
+        const minimumSidebarWidth = 224;
+        const maximumSidebarWidth = 576;
+
+        try {
+          const savedWidth = Number(localStorage.getItem(sidebarWidthStorageKey));
+          if (Number.isFinite(savedWidth) && savedWidth > 0) {
+            const width = Math.min(maximumSidebarWidth, Math.max(minimumSidebarWidth, savedWidth));
+            document.documentElement.style.setProperty('--ec-sidebar-panel-width', `${width}px`);
+          }
+        } catch (error) {}
+      })();
+    </script>
     <style is:global>
       :root {
         --ec-vertical-nav-width: 14rem;
+        --ec-sidebar-panel-width: 17rem;
       }
 
       :root[data-vertical-nav-collapsed='true'] {
@@ -472,7 +488,6 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         min-height: 100vh;
         min-height: 100dvh;
         background-color: rgb(var(--ec-page-bg));
-        --ec-sidebar-panel-width: 17rem;
         display: flex;
         flex-direction: column;
       }
@@ -580,7 +595,44 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         top: 0;
         left: var(--ec-vertical-nav-width);
         z-index: 20;
-        overflow-y: auto;
+        overflow: hidden;
+      }
+      .sidebar-resize-handle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 30;
+        width: 8px;
+        height: 100%;
+        cursor: col-resize;
+        touch-action: none;
+      }
+      .sidebar-resize-handle::after {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 2px;
+        content: '';
+        background: rgb(var(--ec-accent) / 0.65);
+        opacity: 0;
+        transform: translateX(-50%);
+        transition: opacity 150ms ease;
+      }
+      .sidebar-resize-handle:hover::after,
+      .sidebar-resize-handle:focus-visible::after,
+      body.sidebar-is-resizing .sidebar-resize-handle::after {
+        opacity: 1;
+      }
+      .sidebar-resize-handle:focus-visible {
+        outline: none;
+      }
+      body.sidebar-is-resizing {
+        cursor: col-resize;
+        user-select: none;
+      }
+      body.sidebar-is-resizing .sidebar-transition {
+        transition: none;
       }
       .content-panel {
         min-width: 0;
@@ -754,14 +806,22 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         </div>
       </aside>
       {
-        showNestedSideBar &&
-          (Astro.slots.has('sidebar-content') ? (
-            <aside id="sidebar" class="sidebar-panel sidebar-transition">
-              <slot name="sidebar-content" />
-            </aside>
-          ) : (
-            <SideNav id="sidebar" class={`sidebar-panel sidebar-transition`} />
-          ))
+        showNestedSideBar && (
+          <aside id="sidebar" class="sidebar-panel sidebar-transition">
+            {Astro.slots.has('sidebar-content') ? <slot name="sidebar-content" /> : <SideNav class="h-full min-h-0" />}
+            <div
+              id="sidebar-resize-handle"
+              class="sidebar-resize-handle"
+              role="separator"
+              aria-label="Resize sidebar"
+              aria-orientation="vertical"
+              aria-valuemin="224"
+              aria-valuemax="576"
+              aria-valuenow="272"
+              tabindex="0"
+            />
+          </aside>
+        )
       }
       <main class="content-panel sidebar-transition w-full bg-[rgb(var(--ec-page-bg))]" id="content">
         {
@@ -803,6 +863,9 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
   }}
 >
   const VERTICAL_NAV_STORAGE_KEY = 'eventcatalog-vertical-nav-collapsed';
+  const SIDEBAR_WIDTH_STORAGE_KEY = 'eventcatalog-sidebar-width:v1';
+  const MINIMUM_SIDEBAR_WIDTH = 224;
+  const MAXIMUM_SIDEBAR_WIDTH = 576;
   const ACTIVE_NAV_CLASSES = [
     'border-[rgb(var(--ec-accent)/0.2)]',
     'bg-[rgb(var(--ec-page-bg)/0.88)]',
@@ -926,6 +989,80 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
     }
   };
 
+  const clampSidebarWidth = (width) => Math.min(MAXIMUM_SIDEBAR_WIDTH, Math.max(MINIMUM_SIDEBAR_WIDTH, width));
+
+  const applySidebarWidth = (width) => {
+    const nextWidth = clampSidebarWidth(width);
+    document.documentElement.style.setProperty('--ec-sidebar-panel-width', `${nextWidth}px`);
+
+    const resizeHandle = document.getElementById('sidebar-resize-handle');
+    resizeHandle?.setAttribute('aria-valuenow', String(Math.round(nextWidth)));
+    return nextWidth;
+  };
+
+  const persistSidebarWidth = (width) => {
+    try {
+      localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(Math.round(width)));
+    } catch (error) {}
+  };
+
+  const getPersistedSidebarWidth = () => {
+    try {
+      const savedWidth = Number(localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY));
+      return Number.isFinite(savedWidth) && savedWidth > 0 ? clampSidebarWidth(savedWidth) : null;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const setupSidebarResize = () => {
+    const sidebar = document.getElementById('sidebar');
+    const resizeHandle = document.getElementById('sidebar-resize-handle');
+    if (!sidebar || !resizeHandle) return;
+
+    const persistedWidth = getPersistedSidebarWidth();
+    const currentWidth = persistedWidth ?? sidebar.getBoundingClientRect().width;
+    applySidebarWidth(currentWidth);
+
+    resizeHandle.onpointerdown = (event) => {
+      if (event.button !== 0) return;
+
+      const startX = event.clientX;
+      const startWidth = sidebar.getBoundingClientRect().width;
+      document.body.classList.add('sidebar-is-resizing');
+      resizeHandle.setPointerCapture(event.pointerId);
+
+      resizeHandle.onpointermove = (moveEvent) => {
+        applySidebarWidth(startWidth + moveEvent.clientX - startX);
+      };
+
+      const finishResize = (upEvent) => {
+        const finalWidth = applySidebarWidth(startWidth + upEvent.clientX - startX);
+        persistSidebarWidth(finalWidth);
+        document.body.classList.remove('sidebar-is-resizing');
+        if (resizeHandle.hasPointerCapture(upEvent.pointerId)) {
+          resizeHandle.releasePointerCapture(upEvent.pointerId);
+        }
+        resizeHandle.onpointermove = null;
+        resizeHandle.onpointerup = null;
+        resizeHandle.onpointercancel = null;
+      };
+
+      resizeHandle.onpointerup = finishResize;
+      resizeHandle.onpointercancel = finishResize;
+    };
+
+    resizeHandle.onkeydown = (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+
+      event.preventDefault();
+      const direction = event.key === 'ArrowLeft' ? -1 : 1;
+      const step = event.shiftKey ? 32 : 16;
+      const nextWidth = applySidebarWidth(sidebar.getBoundingClientRect().width + direction * step);
+      persistSidebarWidth(nextWidth);
+    };
+  };
+
   // Apply immediately when this script executes so transitions don't briefly re-open the rail.
   applyPersistedVerticalNavState();
 
@@ -1015,6 +1152,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
     }
 
     setVerticalNavCollapsedState(getPersistedVerticalNavCollapsedState());
+    setupSidebarResize();
 
     syncNavItemStates();
 

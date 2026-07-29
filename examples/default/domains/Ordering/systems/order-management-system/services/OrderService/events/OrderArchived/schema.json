@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderArchived",
+  "description": "Published when a terminal order is moved to long-term storage",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "terminalStatus": { "type": "string", "enum": ["COMPLETED", "CANCELLED"] },
+    "retentionCategory": { "type": "string", "enum": ["STANDARD", "FINANCIAL_RECORD", "LEGAL_HOLD"] },
+    "archiveReference": { "type": "string" },
+    "recordChecksum": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "terminalAt": { "type": "string", "format": "date-time" },
+    "archivedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": [
+    "orderId",
+    "terminalStatus",
+    "retentionCategory",
+    "archiveReference",
+    "recordChecksum",
+    "terminalAt",
+    "archivedAt"
+  ],
+  "examples": [
+    {
+      "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+      "terminalStatus": "COMPLETED",
+      "retentionCategory": "FINANCIAL_RECORD",
+      "archiveReference": "orders/2026/07/7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13.json",
+      "recordChecksum": "a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447",
+      "terminalAt": "2026-08-01T14:22:09Z",
+      "archivedAt": "2033-08-01T02:15:00Z"
+    }
+  ]
+}

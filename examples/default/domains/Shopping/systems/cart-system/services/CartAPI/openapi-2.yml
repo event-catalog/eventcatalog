@@ -1,0 +1,200 @@
+openapi: 3.0.3
+info:
+  title: Cart API
+  version: 1.0.0
+  description: |
+    Public-facing API for the Cart System. Customers use it to build a cart —
+    adding and removing items — and to check out. At checkout the cart is priced
+    (including discounts from the Promotion System) and a `CartCheckedOut` event
+    is published.
+  contact:
+    name: Shopping Platform
+    email: shopping-platform@acme.test
+servers:
+  - url: https://api.acme.test
+    description: Production
+tags:
+  - name: Cart
+    description: Build and check out a shopping cart.
+paths:
+  /carts/{cartId}/items:
+    parameters:
+      - $ref: '#/components/parameters/CartId'
+    post:
+      operationId: addItemToCart
+      summary: Add an item to the cart
+      tags:
+        - Cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddItemRequest'
+      responses:
+        '200':
+          description: The item was added; the updated cart is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: The request was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: The cart was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /carts/{cartId}/items/{productId}:
+    parameters:
+      - $ref: '#/components/parameters/CartId'
+      - name: productId
+        in: path
+        required: true
+        description: Identifier of the product to remove.
+        schema:
+          type: string
+          format: uuid
+    delete:
+      operationId: removeItemFromCart
+      summary: Remove an item from the cart
+      tags:
+        - Cart
+      responses:
+        '200':
+          description: The item was removed; the updated cart is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '404':
+          description: The cart or item was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /carts/{cartId}/checkout:
+    parameters:
+      - $ref: '#/components/parameters/CartId'
+    post:
+      operationId: checkoutCart
+      summary: Check out the cart
+      description: Prices the cart (including discounts) and, on success, publishes a `CartCheckedOut` event.
+      tags:
+        - Cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '200':
+          description: The cart was checked out.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          description: The request was invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: The cart was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: The cart is empty or already checked out.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  parameters:
+    CartId:
+      name: cartId
+      in: path
+      required: true
+      description: Unique identifier of the cart.
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    Cart:
+      type: object
+      required: [cartId, status, items, currency]
+      properties:
+        cartId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [OPEN, CHECKED_OUT, ABANDONED]
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        subtotal:
+          type: integer
+          description: Total before discounts, in minor units (e.g. cents).
+        discount:
+          type: integer
+          description: Total discount applied, in minor units (e.g. cents).
+        total:
+          type: integer
+          description: Final total, in minor units (e.g. cents).
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+    CartItem:
+      type: object
+      required: [productId, quantity, unitPrice]
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        unitPrice:
+          type: integer
+          description: Price per unit in minor units (e.g. cents).
+    AddItemRequest:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+    CheckoutRequest:
+      type: object
+      required: [customerId]
+      properties:
+        customerId:
+          type: string
+          format: uuid
+        promotionCode:
+          type: string
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

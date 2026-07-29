@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderAmended",
+  "description": "Published when an accepted order is amended",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "revision": { "type": "integer", "minimum": 2 },
+    "changedFields": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["items", "deliveryAddress", "deliveryMethod", "promotionCode"] },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "previousTotal": { "type": "integer", "minimum": 0 },
+    "newTotal": { "type": "integer", "minimum": 0 },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "amendedBy": { "type": "string", "description": "Customer, support agent, or automated policy identifier" },
+    "reason": { "type": "string", "maxLength": 250 },
+    "amendedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["orderId", "revision", "changedFields", "previousTotal", "newTotal", "currency", "amendedBy", "amendedAt"],
+  "examples": [
+    {
+      "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+      "revision": 2,
+      "changedFields": ["items", "promotionCode"],
+      "previousTotal": 12999,
+      "newTotal": 11999,
+      "currency": "GBP",
+      "amendedBy": "support-agent:maya.chen",
+      "reason": "Removed duplicate accessory and applied verified welcome offer",
+      "amendedAt": "2026-07-29T09:48:03Z"
+    }
+  ]
+}

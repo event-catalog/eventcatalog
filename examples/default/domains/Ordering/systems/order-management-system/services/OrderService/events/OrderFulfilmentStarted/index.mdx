@@ -1,0 +1,29 @@
+---
+id: order-fulfilment-started
+name: Order Fulfilment Started
+version: 1.0.0
+summary: |
+  Published when an order is released to a fulfilment location for picking and packing.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderFulfilmentStarted` marks the handoff from order management to warehouse execution. Customer communications use it to update delivery expectations, while analytics consumers measure the time from confirmation to operational fulfilment.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

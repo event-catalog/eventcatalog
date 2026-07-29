@@ -1,7 +1,20 @@
 // Shared utilities for NestedSideBar components
 
-export const isGroupCollapsed = (canCollapse: boolean, groupId: string, collapsedSections: Set<string>): boolean =>
-  canCollapse && collapsedSections.has(groupId);
+export const SIDEBAR_GROUP_COLLAPSE_THRESHOLD = 5;
+const GROUP_TITLES_WITHOUT_COUNT = new Set(['Quick Reference', 'Architecture', 'Resources']);
+
+export type SectionCollapsePreferences = {
+  expanded: Set<string>;
+};
+
+export const canCollapseGroup = (childCount: number): boolean => childCount > SIDEBAR_GROUP_COLLAPSE_THRESHOLD;
+
+export const getGroupLabel = (title: string, childCount: number): string =>
+  GROUP_TITLES_WITHOUT_COUNT.has(title) ? title : `${title} (${childCount})`;
+
+export const isGroupCollapsed = (canCollapse: boolean, groupId: string, preferences: SectionCollapsePreferences): boolean => {
+  return canCollapse && !preferences.expanded.has(groupId);
+};
 
 /**
  * Returns Tailwind classes for badge styling based on badge type.

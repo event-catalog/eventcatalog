@@ -1,0 +1,29 @@
+---
+id: order-placed-on-hold
+name: Order Placed On Hold
+version: 1.0.0
+summary: |
+  Published when order progression is paused for a review or dependency check.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderPlacedOnHold` tells fulfilment and customer-facing systems to pause work while a payment, fraud, address, or inventory concern is reviewed. It includes the owning team and review deadline so operational tooling can route and escalate the hold.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />
