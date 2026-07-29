@@ -1,0 +1,29 @@
+---
+id: order-delivery-address-changed
+name: Order Delivery Address Changed
+version: 1.0.0
+summary: |
+  Published when the validated delivery address changes before dispatch.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderDeliveryAddressChanged` provides fulfilment and carrier integrations with the latest validated delivery destination. The previous postal code and revision make stale updates detectable without exposing unnecessary customer details.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

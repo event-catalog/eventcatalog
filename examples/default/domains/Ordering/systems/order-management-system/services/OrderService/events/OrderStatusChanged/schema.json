@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderStatusChanged",
+  "description": "Published for every accepted order lifecycle transition",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "previousStatus": {
+      "type": "string",
+      "enum": ["CREATED", "CONFIRMED", "ON_HOLD", "AWAITING_FULFILMENT", "FULFILLING", "COMPLETED", "CANCELLED"]
+    },
+    "newStatus": {
+      "type": "string",
+      "enum": ["CONFIRMED", "ON_HOLD", "AWAITING_FULFILMENT", "FULFILLING", "COMPLETED", "CANCELLED", "ARCHIVED"]
+    },
+    "sequence": { "type": "integer", "minimum": 1, "description": "Monotonic transition number for the order" },
+    "changeReason": { "type": "string", "maxLength": 250 },
+    "correlationId": { "type": "string", "format": "uuid" },
+    "changedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["orderId", "previousStatus", "newStatus", "sequence", "changedAt"],
+  "examples": [
+    {
+      "orderId": "7e86e1d8-cd5f-4d6f-ae8e-bdc5ed3a0d13",
+      "previousStatus": "AWAITING_FULFILMENT",
+      "newStatus": "FULFILLING",
+      "sequence": 5,
+      "changeReason": "Released to warehouse wh-london-02",
+      "correlationId": "896f860b-aea5-4b98-91c5-ef4d188778dd",
+      "changedAt": "2026-07-29T10:06:12Z"
+    }
+  ]
+}

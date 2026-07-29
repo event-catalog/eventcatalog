@@ -1,0 +1,29 @@
+---
+id: order-hold-released
+name: Order Hold Released
+version: 1.0.0
+summary: |
+  Published when an operational hold is resolved and the order can continue.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderHoldReleased` resumes processing after the concern represented by an order hold has been resolved. The event correlates to the original hold and records the resolution for support, audit, and fulfilment consumers.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

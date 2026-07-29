@@ -13,7 +13,7 @@ import {
   removeFavorite as removeFavoriteAction,
   type FavoriteItem,
 } from '@stores/favorites-store';
-import { getBadgeClasses, isGroupCollapsed } from './utils';
+import { canCollapseGroup, getBadgeClasses, getGroupLabel, isGroupCollapsed } from './utils';
 import { resolveIconUrl } from '@utils/icon';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
@@ -57,7 +57,7 @@ export default function NestedSideBar() {
   const [slideDirection, setSlideDirection] = useState<'forward' | 'backward' | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [currentPath, setCurrentPath] = useState<string>('');
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const [sectionCollapsePreferences, setSectionCollapsePreferences] = useState(loadCollapsedSections);
   const [showPathPreview, setShowPathPreview] = useState(false);
   const [showFullPath, setShowFullPath] = useState(false);
 
@@ -95,28 +95,22 @@ export default function NestedSideBar() {
    * Toggle section collapse state
    */
   const toggleSectionCollapse = (sectionId: string) => {
-    setCollapsedSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(sectionId)) {
-        next.delete(sectionId);
+    setSectionCollapsePreferences((previousPreferences) => {
+      const nextPreferences = {
+        expanded: new Set(previousPreferences.expanded),
+      };
+      const isCurrentlyCollapsed = isGroupCollapsed(true, sectionId, previousPreferences);
+
+      if (isCurrentlyCollapsed) {
+        nextPreferences.expanded.add(sectionId);
       } else {
-        next.add(sectionId);
+        nextPreferences.expanded.delete(sectionId);
       }
-      // Save to localStorage
-      saveCollapsedSections(next);
-      return next;
+
+      saveCollapsedSections(nextPreferences);
+      return nextPreferences;
     });
   };
-
-  /**
-   * Load collapsed sections from localStorage on mount
-   */
-  useEffect(() => {
-    const saved = loadCollapsedSections();
-    if (saved.size > 0) {
-      setCollapsedSections(saved);
-    }
-  }, []);
 
   /**
    * Update navigation stack when roots become available
@@ -521,7 +515,7 @@ export default function NestedSideBar() {
   // Show loading state if no data yet
   if (!data || roots.length === 0) {
     return (
-      <aside className="w-full min-h-full flex-1 flex flex-col font-sans bg-[rgb(var(--ec-rail-bg))]">
+      <aside className="flex h-full min-h-0 w-full flex-1 flex-col bg-[rgb(var(--ec-rail-bg))] font-sans">
         {/* Search skeleton */}
         <div className="px-4 py-3 border-b border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-rail-bg))]">
           <div className="h-10 bg-[rgb(var(--ec-content-hover))] rounded-xl animate-pulse" />
@@ -754,9 +748,9 @@ export default function NestedSideBar() {
         return child && isVisible(child);
       }) ?? [];
 
-    const groupId = groupKey || group.collapseKey || `group-${index}`;
-    const canCollapse = visibleChildren.length > 3;
-    const isCollapsed = isGroupCollapsed(canCollapse, groupId, collapsedSections);
+    const groupId = groupKey || group.collapseKey || `${currentLevel.key ?? 'root'}:group:${group.title}`;
+    const canCollapse = canCollapseGroup(visibleChildren.length);
+    const isCollapsed = isGroupCollapsed(canCollapse, groupId, sectionCollapsePreferences);
 
     // When a group's children are subtle subgroups (e.g. Resources > Services/Flows/Data Stores),
     // they render flush under the parent icon instead of inside the indented border guide.
@@ -787,7 +781,7 @@ export default function NestedSideBar() {
                 : 'text-[12px] font-semibold tracking-tight text-[rgb(var(--ec-content-text))]'
             )}
           >
-            {group.title}
+            {getGroupLabel(group.title, visibleChildren.length)}
           </span>
         </div>
         {canCollapse && (
@@ -973,7 +967,7 @@ export default function NestedSideBar() {
   };
 
   return (
-    <aside className="w-full min-h-full flex-1 flex flex-col font-sans bg-[rgb(var(--ec-rail-bg))]">
+    <aside className="flex h-full min-h-0 w-full flex-1 flex-col bg-[rgb(var(--ec-rail-bg))] font-sans">
       {isTopLevel && (
         <div className="flex h-[60px] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
           <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)] truncate">
@@ -1128,7 +1122,7 @@ export default function NestedSideBar() {
       {/* Navigation Content */}
       <nav
         key={animationKey}
-        className={cn('flex-1 overflow-y-auto overflow-x-hidden p-4 px-2', getAnimationClass())}
+        className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 px-2', getAnimationClass())}
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: 'rgb(var(--ec-content-border)) transparent',

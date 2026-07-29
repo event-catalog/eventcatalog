@@ -1,9 +1,11 @@
+import type { SectionCollapsePreferences } from './utils';
+
 // ============================================
 // Local Storage Persistence
 // ============================================
 
 const STORAGE_KEY = 'eventcatalog-sidebar-nav';
-const COLLAPSED_SECTIONS_KEY = 'eventcatalog-sidebar-collapsed';
+const SECTION_PREFERENCES_KEY = 'eventcatalog-sidebar-sections:v2';
 const FAVORITES_KEY = 'eventcatalog-sidebar-favorites';
 
 // ============================================
@@ -49,21 +51,28 @@ export const loadState = (): PersistedState | null => {
 // Collapsed Sections
 // ============================================
 
-export const saveCollapsedSections = (sections: Set<string>): void => {
+export const saveCollapsedSections = (preferences: SectionCollapsePreferences): void => {
   try {
-    localStorage.setItem(COLLAPSED_SECTIONS_KEY, JSON.stringify([...sections]));
+    localStorage.setItem(SECTION_PREFERENCES_KEY, JSON.stringify({ expanded: [...preferences.expanded] }));
   } catch (e) {
     console.warn('Failed to save collapsed sections:', e);
   }
 };
 
-export const loadCollapsedSections = (): Set<string> => {
+export const loadCollapsedSections = (): SectionCollapsePreferences => {
   try {
-    const stored = localStorage.getItem(COLLAPSED_SECTIONS_KEY);
-    return stored ? new Set(JSON.parse(stored)) : new Set();
+    const stored = localStorage.getItem(SECTION_PREFERENCES_KEY);
+    if (stored) {
+      const preferences = JSON.parse(stored);
+      return {
+        expanded: new Set(Array.isArray(preferences.expanded) ? preferences.expanded : []),
+      };
+    }
+
+    return { expanded: new Set() };
   } catch (e) {
     console.warn('Failed to load collapsed sections:', e);
-    return new Set();
+    return { expanded: new Set() };
   }
 };
 

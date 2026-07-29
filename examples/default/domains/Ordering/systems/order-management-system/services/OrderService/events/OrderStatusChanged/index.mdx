@@ -1,0 +1,29 @@
+---
+id: order-status-changed
+name: Order Status Changed
+version: 1.0.0
+summary: |
+  Published for every accepted transition in the order lifecycle state machine.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderStatusChanged` is the canonical state-transition event for projections and operational timelines. More specific business events remain the preferred integration points, while this event supports generic history, search, support, and analytics use cases.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

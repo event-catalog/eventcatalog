@@ -1,0 +1,29 @@
+---
+id: order-confirmed
+name: Order Confirmed
+version: 1.0.0
+summary: |
+  Published when payment, inventory, and order validation have succeeded and the order is ready for fulfilment.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderConfirmed` is published by the [[service|order-service]] once an order has passed validation and its payment and inventory reservations are secured. Fulfilment, customer notification, and analytics consumers use this as the reliable signal that the order can progress.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

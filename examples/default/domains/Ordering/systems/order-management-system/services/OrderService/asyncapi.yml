@@ -7,7 +7,8 @@ info:
     The event-driven interface of the Order Service — the system of record for orders.
 
     The service consumes commands to create and cancel orders, and publishes events as
-    orders move through their lifecycle (created, completed, cancelled). Query access
+    orders move through their lifecycle, including confirmation, amendments, operational
+    holds, fulfilment, completion, cancellation, and archival. Query access
     (`GetOrder`) is served over the REST API and is not part of this AsyncAPI document.
   contact:
     name: Ordering Platform
@@ -39,6 +40,22 @@ channels:
     messages:
       OrderCreated:
         $ref: '#/components/messages/OrderCreated'
+      OrderConfirmed:
+        $ref: '#/components/messages/OrderConfirmed'
+      OrderAmended:
+        $ref: '#/components/messages/OrderAmended'
+      OrderPlacedOnHold:
+        $ref: '#/components/messages/OrderPlacedOnHold'
+      OrderHoldReleased:
+        $ref: '#/components/messages/OrderHoldReleased'
+      OrderFulfilmentStarted:
+        $ref: '#/components/messages/OrderFulfilmentStarted'
+      OrderStatusChanged:
+        $ref: '#/components/messages/OrderStatusChanged'
+      OrderDeliveryAddressChanged:
+        $ref: '#/components/messages/OrderDeliveryAddressChanged'
+      OrderArchived:
+        $ref: '#/components/messages/OrderArchived'
       OrderCompleted:
         $ref: '#/components/messages/OrderCompleted'
       OrderCancelled:
@@ -71,6 +88,78 @@ operations:
       $ref: '#/channels/orderEvents'
     messages:
       - $ref: '#/channels/orderEvents/messages/OrderCreated'
+
+  publishOrderConfirmed:
+    action: send
+    title: Order Confirmed
+    summary: Published when an order is confirmed and ready for fulfilment.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderConfirmed'
+
+  publishOrderAmended:
+    action: send
+    title: Order Amended
+    summary: Published when an accepted order is changed before fulfilment.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderAmended'
+
+  publishOrderPlacedOnHold:
+    action: send
+    title: Order Placed On Hold
+    summary: Published when order progression is paused for review.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderPlacedOnHold'
+
+  publishOrderHoldReleased:
+    action: send
+    title: Order Hold Released
+    summary: Published when an operational hold is resolved.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderHoldReleased'
+
+  publishOrderFulfilmentStarted:
+    action: send
+    title: Order Fulfilment Started
+    summary: Published when an order is released for picking and packing.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderFulfilmentStarted'
+
+  publishOrderStatusChanged:
+    action: send
+    title: Order Status Changed
+    summary: Published for every accepted order lifecycle transition.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderStatusChanged'
+
+  publishOrderDeliveryAddressChanged:
+    action: send
+    title: Order Delivery Address Changed
+    summary: Published when the validated delivery address changes before dispatch.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderDeliveryAddressChanged'
+
+  publishOrderArchived:
+    action: send
+    title: Order Archived
+    summary: Published when a terminal order is moved to long-term storage.
+    channel:
+      $ref: '#/channels/orderEvents'
+    messages:
+      - $ref: '#/channels/orderEvents/messages/OrderArchived'
 
   publishOrderCompleted:
     action: send
@@ -110,6 +199,54 @@ components:
       summary: Published when a new order has been created.
       payload:
         $ref: '#/components/schemas/OrderCreated'
+    OrderConfirmed:
+      name: OrderConfirmed
+      title: Order Confirmed
+      summary: Published when an order is confirmed and ready for fulfilment.
+      payload:
+        $ref: '#/components/schemas/OrderConfirmed'
+    OrderAmended:
+      name: OrderAmended
+      title: Order Amended
+      summary: Published when an accepted order is changed before fulfilment.
+      payload:
+        $ref: '#/components/schemas/OrderAmended'
+    OrderPlacedOnHold:
+      name: OrderPlacedOnHold
+      title: Order Placed On Hold
+      summary: Published when order progression is paused for review.
+      payload:
+        $ref: '#/components/schemas/OrderPlacedOnHold'
+    OrderHoldReleased:
+      name: OrderHoldReleased
+      title: Order Hold Released
+      summary: Published when an operational hold is resolved.
+      payload:
+        $ref: '#/components/schemas/OrderHoldReleased'
+    OrderFulfilmentStarted:
+      name: OrderFulfilmentStarted
+      title: Order Fulfilment Started
+      summary: Published when an order is released for picking and packing.
+      payload:
+        $ref: '#/components/schemas/OrderFulfilmentStarted'
+    OrderStatusChanged:
+      name: OrderStatusChanged
+      title: Order Status Changed
+      summary: Published for every accepted order lifecycle transition.
+      payload:
+        $ref: '#/components/schemas/OrderStatusChanged'
+    OrderDeliveryAddressChanged:
+      name: OrderDeliveryAddressChanged
+      title: Order Delivery Address Changed
+      summary: Published when the validated delivery address changes before dispatch.
+      payload:
+        $ref: '#/components/schemas/OrderDeliveryAddressChanged'
+    OrderArchived:
+      name: OrderArchived
+      title: Order Archived
+      summary: Published when a terminal order is moved to long-term storage.
+      payload:
+        $ref: '#/components/schemas/OrderArchived'
     OrderCompleted:
       name: OrderCompleted
       title: Order Completed
@@ -197,6 +334,240 @@ components:
           type: string
           pattern: '^[A-Z]{3}$'
         createdAt:
+          type: string
+          format: date-time
+
+    OrderConfirmed:
+      type: object
+      description: Published when an order is confirmed and ready for fulfilment.
+      required: [orderId, customerId, confirmationNumber, total, currency, confirmedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        confirmationNumber:
+          type: string
+          pattern: '^ORD-[0-9]{8}$'
+        paymentAuthorizationId:
+          type: string
+        inventoryReservationId:
+          type: string
+        total:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        confirmedAt:
+          type: string
+          format: date-time
+
+    OrderAmended:
+      type: object
+      description: Published when an accepted order is amended.
+      required: [orderId, revision, changedFields, previousTotal, newTotal, currency, amendedBy, amendedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 2
+        changedFields:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum: [items, deliveryAddress, deliveryMethod, promotionCode]
+        previousTotal:
+          type: integer
+          minimum: 0
+        newTotal:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        amendedBy:
+          type: string
+        reason:
+          type: string
+          maxLength: 250
+        amendedAt:
+          type: string
+          format: date-time
+
+    OrderPlacedOnHold:
+      type: object
+      description: Published when an order is paused for operational review.
+      required: [orderId, holdId, reason, ownerTeam, reviewBy, placedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        holdId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          enum: [PAYMENT_REVIEW, FRAUD_REVIEW, ADDRESS_VERIFICATION, INVENTORY_RECHECK]
+        ownerTeam:
+          type: string
+        customerMessage:
+          type: string
+          maxLength: 280
+        reviewBy:
+          type: string
+          format: date-time
+        placedAt:
+          type: string
+          format: date-time
+
+    OrderHoldReleased:
+      type: object
+      description: Published when an operational hold is released.
+      required: [orderId, holdId, previousReason, resolution, releasedBy, nextStatus, releasedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        holdId:
+          type: string
+          format: uuid
+        previousReason:
+          type: string
+          enum: [PAYMENT_REVIEW, FRAUD_REVIEW, ADDRESS_VERIFICATION, INVENTORY_RECHECK]
+        resolution:
+          type: string
+          maxLength: 250
+        releasedBy:
+          type: string
+        nextStatus:
+          type: string
+          enum: [CONFIRMED, AWAITING_FULFILMENT]
+        releasedAt:
+          type: string
+          format: date-time
+
+    OrderFulfilmentStarted:
+      type: object
+      description: Published when an order is released for picking and packing.
+      required: [orderId, fulfilmentId, warehouseId, itemCount, priority, deliveryMethod, startedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        fulfilmentId:
+          type: string
+          format: uuid
+        warehouseId:
+          type: string
+        itemCount:
+          type: integer
+          minimum: 1
+        priority:
+          type: string
+          enum: [STANDARD, EXPEDITED, SAME_DAY]
+        deliveryMethod:
+          type: string
+          enum: [HOME_DELIVERY, CLICK_AND_COLLECT]
+        estimatedDispatchAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+
+    OrderStatusChanged:
+      type: object
+      description: Published for every accepted order lifecycle transition.
+      required: [orderId, previousStatus, newStatus, sequence, changedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        previousStatus:
+          type: string
+          enum: [CREATED, CONFIRMED, ON_HOLD, AWAITING_FULFILMENT, FULFILLING, COMPLETED, CANCELLED]
+        newStatus:
+          type: string
+          enum: [CONFIRMED, ON_HOLD, AWAITING_FULFILMENT, FULFILLING, COMPLETED, CANCELLED, ARCHIVED]
+        sequence:
+          type: integer
+          minimum: 1
+        changeReason:
+          type: string
+          maxLength: 250
+        correlationId:
+          type: string
+          format: uuid
+        changedAt:
+          type: string
+          format: date-time
+
+    OrderDeliveryAddressChanged:
+      type: object
+      description: Published when the validated delivery address changes before dispatch.
+      required: [orderId, addressRevision, previousPostalCode, deliveryAddress, changedBy, changedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        addressRevision:
+          type: integer
+          minimum: 2
+        previousPostalCode:
+          type: string
+        deliveryAddress:
+          type: object
+          required: [recipientName, line1, city, postalCode, countryCode]
+          properties:
+            recipientName:
+              type: string
+            line1:
+              type: string
+            line2:
+              type: string
+            city:
+              type: string
+            postalCode:
+              type: string
+            countryCode:
+              type: string
+              pattern: '^[A-Z]{2}$'
+        changedBy:
+          type: string
+        changedAt:
+          type: string
+          format: date-time
+
+    OrderArchived:
+      type: object
+      description: Published when a terminal order is moved to long-term storage.
+      required: [orderId, terminalStatus, retentionCategory, archiveReference, recordChecksum, terminalAt, archivedAt]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        terminalStatus:
+          type: string
+          enum: [COMPLETED, CANCELLED]
+        retentionCategory:
+          type: string
+          enum: [STANDARD, FINANCIAL_RECORD, LEGAL_HOLD]
+        archiveReference:
+          type: string
+        recordChecksum:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+        terminalAt:
+          type: string
+          format: date-time
+        archivedAt:
           type: string
           format: date-time
 

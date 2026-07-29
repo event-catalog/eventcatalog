@@ -68,7 +68,7 @@ const groupAdrsByStatus = (adrs: Adr[]): NavNode[] =>
 
     groups.push({
       type: 'group',
-      title: `${formatAdrStatus(status)} (${adrsForStatus.length})`,
+      title: formatAdrStatus(status),
       collapseKey: `adrs:status:${status}`,
       subtle: true,
       pages: [...adrsForStatus].sort(byResourceName).map(getAdrNodeKey),

@@ -1,0 +1,29 @@
+---
+id: order-amended
+name: Order Amended
+version: 1.0.0
+summary: |
+  Published when an accepted order is changed before fulfilment begins.
+owners:
+  - ordering-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`OrderAmended` records an approved change to an order, such as a quantity adjustment, delivery method change, or promotional correction. Consumers use the revision and changed fields to update projections without rebuilding the full order history.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />
