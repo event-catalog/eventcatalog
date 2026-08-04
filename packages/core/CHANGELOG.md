@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.4.0
+
+### Minor Changes
+
+- 9ab9991: feat(core): astro-compress is now an optional peer dependency, install it in your catalog to use `compress: true`. Top level sidebar groups now stay expanded.
+
 ## 4.3.4
 
 ### Patch Changes
