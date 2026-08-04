@@ -290,6 +290,10 @@ export interface Config {
     allowAnyEnvInSpecHeaders?: boolean;
   };
   mdxOptimize?: boolean;
+  /**
+   * Compress static build output using astro-compress installed in the EventCatalog project.
+   * @default false
+   */
   compress?: boolean;
   pages?: {
     /**
