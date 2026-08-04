@@ -90,7 +90,6 @@
     "@xyflow/react": "^12.3.6",
     "ai": "^6.0.17",
     "astro": "^7.1.1",
-    "astro-compress": "^2.4.0",
     "astro-expressive-code": "^0.44.0",
     "astro-seo": "^0.8.4",
     "auth-astro": "^4.2.0",

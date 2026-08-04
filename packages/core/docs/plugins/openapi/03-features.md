@@ -99,11 +99,15 @@ routes: [{ prefix: '/api', suffix: '/events' }]
 routes: [{ match: '/api/*/track' }]
 ```
 
-#### How consumers are created and updated
+#### How consumers are looked up and updated
 
-When the generator runs, each consumer service is looked up by `id` and `version`. If a consumer service does not yet exist, it is created automatically with a basic `<NodeGraph />` page. New consumers are placed inside the configured `domain` if one is defined.
+When the generator runs, each consumer service is looked up by `id` and `version`. The consumer service must already exist in the catalog. If it cannot be found, the consumer entry is skipped; the generator does not create a service page or add the consumer to the configured `domain`.
 
 If the consumer already exists in the catalog, it is updated in-place so its existing markdown, location, and metadata are preserved. The `sends` list on the consumer is merged with the incoming messages, with deduplication applied. If a consumer entry already tracks a versioned message, its version is updated to the latest value from the spec.
+
+:::note
+If another generator creates the consumer service, place that generator before the OpenAPI generator that references it. Otherwise, the consumer relationship is skipped for that generation run.
+:::
 
 ---
 

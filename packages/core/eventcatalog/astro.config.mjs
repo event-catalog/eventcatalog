@@ -15,6 +15,7 @@ import remarkComment from 'remark-comment';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { eventCatalogLikeC4 } from './src/plugins/likec4';
+import { loadAstroCompressIntegration } from './src/plugins/astro-compress';
 import { astroTrailingSlashEndpointFix } from './src/plugins/astro-trailing-slash-endpoint-fix';
 
 import rehypeExpressiveCode from 'rehype-expressive-code';
@@ -107,12 +108,7 @@ export default defineConfig({
         rehypePlugins: mdxRehypePlugins,
       }),
     }),
-    effectiveOutput !== 'server' &&
-      compress &&
-      (await import('astro-compress')).default({
-        Logger: 0,
-        CSS: false,
-      }),
+    effectiveOutput !== 'server' && compress && (await loadAstroCompressIntegration(projectDirectory)),
     ecstudioWatcher(),
     eventCatalogIntegration(),
   ].filter(Boolean),

@@ -8,8 +8,6 @@ title: Version services
 description: Learn how to version services
 ---
 
-import AddedIn from '@site/src/components/MDX/AddedIn';
-
 All content in EventCatalog can be versioned. This allows you to keep historic versions of content which can give context to users why things are changing.
 
 ## How to version a service

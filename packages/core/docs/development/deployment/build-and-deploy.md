@@ -46,7 +46,13 @@ npx eventcatalog dev --debug -- --env=production --port=3000
 
 You can opt into our build step which will compress your static assets. 
 
-You can enable this by setting the [compress option](/docs/api/config#compress) to `true` in your `eventcatalog.config.js` file.
+First install the compression integration in your EventCatalog project:
+
+```bash
+npm install --save-dev astro-compress
+```
+
+Then set the [compress option](/docs/api/config#compress) to `true` in your `eventcatalog.config.js` file.
 
 :::info "Why is compression disabled by default?"
 Compression can increase your build time and the amount of memory required to build your catalog.

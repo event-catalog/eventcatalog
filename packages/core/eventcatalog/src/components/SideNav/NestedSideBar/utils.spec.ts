@@ -14,9 +14,13 @@ describe('sidebar group presentation', () => {
     expect(getGroupLabel(title, 10)).toBe(title);
   });
 
-  it('only allows groups with more than five children to collapse', () => {
-    expect(canCollapseGroup(5)).toBe(false);
-    expect(canCollapseGroup(6)).toBe(true);
+  it('keeps top-level groups expanded', () => {
+    expect(canCollapseGroup(6, true)).toBe(false);
+  });
+
+  it('only allows nested groups with more than five children to collapse', () => {
+    expect(canCollapseGroup(5, false)).toBe(false);
+    expect(canCollapseGroup(6, false)).toBe(true);
   });
 });
 

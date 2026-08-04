@@ -704,11 +704,19 @@ module.exports = {
 
 - Type: `boolean`
 
-Setting this to true will automatically compress all your CSS, HTML, SVG, JavaScript, JSON and image files in the Astro outDir folder.
+Setting this to true will automatically compress your HTML, SVG, JavaScript, JSON and image files in the Astro outDir folder.
 
 This is disabled by default from EventCatalog v2.61.9.
 
 **This only works for static builds.**
+
+<AddedIn version="4.4.0" />
+
+`astro-compress` is no longer bundled with EventCatalog. Install it in your EventCatalog project before enabling compression:
+
+```bash
+npm install --save-dev astro-compress
+```
 
 ```js title="eventcatalog.config.js"
 module.exports = {
