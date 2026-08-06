@@ -229,6 +229,18 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
+      d3-drag:
+        specifier: 3.0.0
+        version: 3.0.0
+      d3-force:
+        specifier: 3.0.0
+        version: 3.0.0
+      d3-selection:
+        specifier: 3.0.0
+        version: 3.0.0
+      d3-zoom:
+        specifier: 3.0.0
+        version: 3.0.0
       dagre:
         specifier: ^0.8.5
         version: 0.8.5
@@ -374,6 +386,18 @@ importers:
       '@astrojs/check':
         specifier: ^0.9.9
         version: 0.9.9(prettier-plugin-astro@0.14.1)(prettier@3.6.2)(typescript@5.9.3)
+      '@types/d3-drag':
+        specifier: ^3.0.7
+        version: 3.0.7
+      '@types/d3-force':
+        specifier: ^3.0.10
+        version: 3.0.10
+      '@types/d3-selection':
+        specifier: ^3.0.11
+        version: 3.0.11
+      '@types/d3-zoom':
+        specifier: ^3.0.8
+        version: 3.0.8
       '@types/dagre':
         specifier: ^0.7.52
         version: 0.7.53

@@ -98,6 +98,9 @@ export default {
     channels: {
       renderMode: "flat",
     },
+    architectureGraph: {
+      enabled: true,
+    },
   },
 
   llmsTxt: {

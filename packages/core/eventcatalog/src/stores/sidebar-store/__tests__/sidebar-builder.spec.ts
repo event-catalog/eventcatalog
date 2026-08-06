@@ -272,6 +272,10 @@ describe('getNestedSideBarData', () => {
     });
 
     it('renders top-level diagrams with the System Context Map below top-level domains', async () => {
+      // The hydrated dev config may have opted into the Architecture Graph —
+      // this test asserts the out-of-the-box (opt-in, disabled) behaviour
+      delete config.visualiser?.architectureGraph;
+
       const { writeDomain } = utils(CATALOG_FOLDER);
 
       await writeDomain({
@@ -304,6 +308,46 @@ describe('getNestedSideBarData', () => {
           },
         ],
       });
+    });
+
+    it('shows the Architecture Graph link when the feature is opted in', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+      });
+
+      config.visualiser = { ...config.visualiser, architectureGraph: { enabled: true } };
+
+      try {
+        const navigationData = await getNestedSideBarData();
+        const diagramsNode = getNavigationConfigurationByKey('list:top-level-diagrams', navigationData);
+
+        expect(diagramsNode.pages).toEqual([
+          {
+            type: 'item',
+            title: 'System Context Map',
+            href: '/visualiser/system-context-map',
+          },
+          {
+            type: 'item',
+            title: 'Architecture Graph',
+            href: '/visualiser/graph',
+          },
+        ]);
+      } finally {
+        delete config.visualiser.architectureGraph;
+      }
     });
 
     it('uses the domain style icon when one is configured', async () => {

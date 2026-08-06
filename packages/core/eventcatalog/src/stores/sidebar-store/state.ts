@@ -40,7 +40,7 @@ import {
   shouldRenderSideBarSection,
   withArchitectureDecisionsSection,
 } from './builders/shared';
-import { isChangelogEnabled } from '@utils/feature';
+import { isArchitectureGraphEnabled, isChangelogEnabled } from '@utils/feature';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -851,6 +851,15 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
               title: 'System Context Map',
               href: buildUrl('/visualiser/system-context-map'),
             },
+            ...(isArchitectureGraphEnabled()
+              ? [
+                  {
+                    type: 'item' as const,
+                    title: 'Architecture Graph',
+                    href: buildUrl('/visualiser/graph'),
+                  },
+                ]
+              : []),
           ],
         }
       : undefined;

@@ -3,6 +3,9 @@ import config from '../../eventcatalog.config.js';
 // Open-source feature flags
 export const isSSR = () => config?.output === 'server';
 export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;
+// Opt-in while in beta — building the whole-catalog graph is unproven on very large catalogs
+export const isArchitectureGraphEnabled = () =>
+  isVisualiserEnabled() && (config?.visualiser?.architectureGraph?.enabled ?? false);
 export const isChangelogEnabled = () => config?.changelog?.enabled ?? false;
 export const isRSSEnabled = () => config?.rss?.enabled ?? false;
 export const isLLMSTxtEnabled = () => config?.llmsTxt?.enabled ?? true;
