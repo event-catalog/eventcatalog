@@ -963,6 +963,7 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
     }
 
     const findNode = (canvasX: number, canvasY: number): SimNode | null => {
+      if (Number.isNaN(canvasX) || Number.isNaN(canvasY)) return null;
       const x = transform.invertX(canvasX);
       const y = transform.invertY(canvasY);
       const candidate = simulation.find(x, y, 50) as SimNode | undefined;
@@ -972,9 +973,12 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
       return distance <= r + 4 ? candidate : null;
     };
 
-    const pointerPosition = (event: MouseEvent | Touch): [number, number] => {
+    // Touch events carry their coordinates on touches[0], not the event itself
+    const pointerPosition = (event: MouseEvent | TouchEvent | Touch): [number, number] => {
+      const source = 'touches' in event ? event.touches[0] : event;
+      if (!source) return [NaN, NaN];
       const rect = canvas.getBoundingClientRect();
-      return [event.clientX - rect.left, event.clientY - rect.top];
+      return [source.clientX - rect.left, source.clientY - rect.top];
     };
 
     const zoomBehaviour = zoom<HTMLCanvasElement, unknown>()
@@ -982,8 +986,7 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
       // Let node drags win over panning: ignore presses that start on a node
       .filter((event) => {
         if (event.type === 'mousedown' || event.type === 'touchstart') {
-          const source = event.type === 'touchstart' ? event.touches[0] : event;
-          const [x, y] = pointerPosition(source);
+          const [x, y] = pointerPosition(event);
           return !findNode(x, y);
         }
         return !event.ctrlKey || event.type === 'wheel';
@@ -1138,7 +1141,10 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
 
     const resizeObserver = new ResizeObserver(() => {
       sizeCanvas();
-      draw();
+      // Refit to the new container size unless the user has taken the camera —
+      // the settled layout would otherwise stay clipped or under-sized
+      if (userAdjustedView) draw();
+      else fitToView();
     });
     resizeObserver.observe(container);
 

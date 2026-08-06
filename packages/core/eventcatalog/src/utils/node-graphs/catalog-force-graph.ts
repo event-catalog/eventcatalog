@@ -35,7 +35,10 @@ export interface CatalogGraphLink {
   label: string;
 }
 
-type AnyEntry = { collection?: string; data: { id: string; name?: string; version?: string; latestVersion?: string } };
+type AnyEntry = {
+  collection?: string;
+  data: { id: string; name?: string; version?: string; latestVersion?: string; visualiser?: boolean };
+};
 
 const nodeKey = (collection: string, id: string) => `${collection}/${id}`;
 
@@ -73,8 +76,12 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
     ]);
   const teams = await getTeams();
 
+  // Latest version of each resource only, honouring the resource-level
+  // `visualiser: false` opt-out (matching the other visualiser views)
   const latestOnly = <T extends AnyEntry>(items: T[]): T[] =>
-    items.filter((item) => !item.data.latestVersion || item.data.version === item.data.latestVersion);
+    items.filter(
+      (item) => item.data.visualiser !== false && (!item.data.latestVersion || item.data.version === item.data.latestVersion)
+    );
 
   const collections: Record<string, AnyEntry[]> = {
     domains: latestOnly(domains as AnyEntry[]),
@@ -108,7 +115,16 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
   const addLink = (source: string | undefined, target: string | undefined, label: string) => {
     if (!source || !target || source === target) return;
     if (!nodes.has(source) || !nodes.has(target)) return;
-    links.set(`${source}->${target}`, { source, target, label });
+    // One rendered link per direction, but distinct relationships between the
+    // same pair (e.g. two entity properties with different relationTypes) keep
+    // all their labels rather than the last one silently winning
+    const key = `${source}->${target}`;
+    const existing = links.get(key);
+    if (existing) {
+      if (!existing.label.split(' / ').includes(label)) existing.label = `${existing.label} / ${label}`;
+      return;
+    }
+    links.set(key, { source, target, label });
   };
 
   // Individual users are deliberately not rendered — only team ownership is,
@@ -119,12 +135,14 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
     return id && teamIds.has(id) ? nodeKey('teams', id) : undefined;
   };
 
-  // Data product inputs/outputs are polymorphic — resolve the collection by id,
-  // in the same order the data product node-graph merges its lookup maps.
+  // Data product inputs/outputs are polymorphic — resolve the collection by id.
+  // Precedence mirrors the data product node-graph, which merges message, service
+  // and container maps in that order with later maps overriding: containers win
+  // over services, which win over messages.
   const polymorphicKey = (ref: unknown) => {
     const id = refId(ref);
     if (!id) return undefined;
-    for (const collection of ['events', 'commands', 'queries', 'services', 'containers']) {
+    for (const collection of ['containers', 'services', 'events', 'commands', 'queries']) {
       const key = nodeKey(collection, id);
       if (nodes.has(key)) return key;
     }
@@ -201,9 +219,14 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
   for (const entity of collections.entities) {
     const key = nodeKey('entities', entity.data.id);
     for (const property of (entity.data as any).properties ?? []) {
-      if (!property?.references) continue;
+      // Same inference as the entity map: an explicit `references`, or an array
+      // property whose item type names another entity (an implicit hasMany)
+      const referencedId =
+        property?.references ??
+        (property?.type === 'array' && nodes.has(nodeKey('entities', property?.items?.type)) ? property.items.type : undefined);
+      if (!referencedId) continue;
       const label = property.relationType || (property.type === 'array' ? 'hasMany' : 'references');
-      addLink(key, nodeKey('entities', property.references), label);
+      addLink(key, nodeKey('entities', referencedId), label);
     }
   }
 

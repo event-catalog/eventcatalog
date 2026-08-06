@@ -87,7 +87,13 @@ const mockEntities = [
       id: 'Shipment',
       name: 'Shipment',
       version: '0.0.1',
-      properties: [{ name: 'orderId', type: 'string', references: 'Order', relationType: 'belongsTo' }],
+      properties: [
+        { name: 'orderId', type: 'string', references: 'Order', relationType: 'belongsTo' },
+        // A second relationship to the same entity must not overwrite the first
+        { name: 'relatedOrder', type: 'string', references: 'Order', relationType: 'relatesTo' },
+        // Implicit array relationship: items.type names an entity, no explicit references
+        { name: 'lines', type: 'array', items: { type: 'OrderLine' } },
+      ],
     },
   },
   {
@@ -99,6 +105,29 @@ const mockEntities = [
       id: 'Order',
       name: 'Order',
       version: '0.0.1',
+    },
+  },
+  {
+    id: 'entities/OrderLine/index.mdx',
+    slug: 'entities/OrderLine',
+    collection: 'entities',
+    filePath: 'entities/OrderLine/index.mdx',
+    data: {
+      id: 'OrderLine',
+      name: 'Order Line',
+      version: '0.0.1',
+    },
+  },
+  {
+    id: 'entities/HiddenEntity/index.mdx',
+    slug: 'entities/HiddenEntity',
+    collection: 'entities',
+    filePath: 'entities/HiddenEntity/index.mdx',
+    data: {
+      id: 'HiddenEntity',
+      name: 'Hidden Entity',
+      version: '0.0.1',
+      visualiser: false,
     },
   },
 ];
@@ -180,6 +209,12 @@ describe('getCatalogForceGraph', () => {
     expect(links.some((link) => link.source.startsWith('users/') || link.target.startsWith('users/'))).toBe(false);
   });
 
+  it('honours the resource-level visualiser opt-out', async () => {
+    const { nodes } = await getCatalogForceGraph();
+
+    expect(nodes.some((node) => node.id === 'entities/HiddenEntity')).toBe(false);
+  });
+
   it('links resources by their relationships', async () => {
     const { links } = await getCatalogForceGraph();
 
@@ -194,8 +229,10 @@ describe('getCatalogForceGraph', () => {
         // Containers
         { source: 'services/LocationService', target: 'containers/LocationStore', label: 'writes to' },
         { source: 'containers/LocationStore', target: 'services/LocationService', label: 'read by' },
-        // Entity references
-        { source: 'entities/Shipment', target: 'entities/Order', label: 'belongsTo' },
+        // Entity references — two distinct relationships to the same entity keep both labels
+        { source: 'entities/Shipment', target: 'entities/Order', label: 'belongsTo / relatesTo' },
+        // Implicit array relationship (items.type names an entity)
+        { source: 'entities/Shipment', target: 'entities/OrderLine', label: 'hasMany' },
         // Team ownership (user owners are not rendered)
         { source: 'domains/Shipping', target: 'teams/logistics-team', label: 'owned by' },
       ])
