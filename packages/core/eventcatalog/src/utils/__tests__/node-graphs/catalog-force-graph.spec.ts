@@ -132,6 +132,47 @@ const mockEntities = [
   },
 ];
 
+const mockSystems = [
+  {
+    id: 'systems/CheckoutSystem/index.mdx',
+    slug: 'systems/CheckoutSystem',
+    collection: 'systems',
+    filePath: 'systems/CheckoutSystem/index.mdx',
+    data: {
+      id: 'CheckoutSystem',
+      name: 'Checkout System',
+      version: '1.0.0',
+      relationships: [
+        { id: 'PaymentSystem', version: '1.0.0', label: 'depends on' },
+        // Unlabelled: context-diagram inclusion only — must not become an edge
+        { id: 'LegacyCrm', version: '1.0.0' },
+      ],
+    },
+  },
+  {
+    id: 'systems/PaymentSystem/index.mdx',
+    slug: 'systems/PaymentSystem',
+    collection: 'systems',
+    filePath: 'systems/PaymentSystem/index.mdx',
+    data: {
+      id: 'PaymentSystem',
+      name: 'Payment System',
+      version: '1.0.0',
+    },
+  },
+  {
+    id: 'systems/LegacyCrm/index.mdx',
+    slug: 'systems/LegacyCrm',
+    collection: 'systems',
+    filePath: 'systems/LegacyCrm/index.mdx',
+    data: {
+      id: 'LegacyCrm',
+      name: 'Legacy CRM',
+      version: '1.0.0',
+    },
+  },
+];
+
 const mockTeams = [
   {
     id: 'logistics-team',
@@ -172,6 +213,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockContainers);
         case 'entities':
           return Promise.resolve(mockEntities);
+        case 'systems':
+          return Promise.resolve(mockSystems);
         case 'teams':
           return Promise.resolve(mockTeams);
         case 'users':
@@ -213,6 +256,17 @@ describe('getCatalogForceGraph', () => {
     const { nodes } = await getCatalogForceGraph();
 
     expect(nodes.some((node) => node.id === 'entities/HiddenEntity')).toBe(false);
+  });
+
+  it('only draws system relationships that carry a label', async () => {
+    const { links } = await getCatalogForceGraph();
+
+    expect(links).toEqual(
+      expect.arrayContaining([{ source: 'systems/CheckoutSystem', target: 'systems/PaymentSystem', label: 'depends on' }])
+    );
+    // Unlabelled relationships are context-diagram inclusion only — no edge,
+    // matching the System Context Map's behaviour
+    expect(links.some((link) => link.source === 'systems/CheckoutSystem' && link.target === 'systems/LegacyCrm')).toBe(false);
   });
 
   it('links resources by their relationships', async () => {

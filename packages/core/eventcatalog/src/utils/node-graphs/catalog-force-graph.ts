@@ -192,7 +192,11 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
     for (const entity of data.entities ?? []) addLink(key, nodeKey('entities', refId(entity)!), 'contains');
     for (const flow of data.flows ?? []) addLink(key, nodeKey('flows', refId(flow)!), 'contains');
     for (const relationship of data.relationships ?? []) {
-      addLink(key, nodeKey('systems', refId(relationship)!), relationship.label || 'connects to');
+      // An unlabelled relationship means "include in my context diagram" without
+      // asserting a relationship — the context map draws no edge for it, so
+      // neither do we (matching system-context-node-graph.ts)
+      if (!relationship.label) continue;
+      addLink(key, nodeKey('systems', refId(relationship)!), relationship.label);
     }
   }
 
