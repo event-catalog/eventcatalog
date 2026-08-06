@@ -361,6 +361,13 @@ export interface Config {
     channels?: {
       renderMode?: 'flat' | 'single';
     };
+    /**
+     * The catalog-wide force-directed graph at /visualiser/graph.
+     * Opt-in while in beta — disabled unless explicitly enabled.
+     */
+    architectureGraph?: {
+      enabled?: boolean;
+    };
   };
   environments?: {
     name: string;

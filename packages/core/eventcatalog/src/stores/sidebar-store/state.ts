@@ -40,7 +40,7 @@ import {
   shouldRenderSideBarSection,
   withArchitectureDecisionsSection,
 } from './builders/shared';
-import { isChangelogEnabled } from '@utils/feature';
+import { isArchitectureGraphEnabled, isChangelogEnabled } from '@utils/feature';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -839,18 +839,34 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     };
   }
 
+  // The System Context Map needs systems to exist; the Architecture Graph works
+  // for any catalog — the group renders when either item has something to show
+  const architectureGraphEnabled = isArchitectureGraphEnabled();
   const topLevelDiagramsNode =
-    visualiserEnabled && systems.length > 0
+    visualiserEnabled && (systems.length > 0 || architectureGraphEnabled)
       ? {
           type: 'group' as const,
           title: 'Top level diagrams',
           icon: 'Workflow',
           pages: [
-            {
-              type: 'item' as const,
-              title: 'System Context Map',
-              href: buildUrl('/visualiser/system-context-map'),
-            },
+            ...(systems.length > 0
+              ? [
+                  {
+                    type: 'item' as const,
+                    title: 'System Context Map',
+                    href: buildUrl('/visualiser/system-context-map'),
+                  },
+                ]
+              : []),
+            ...(architectureGraphEnabled
+              ? [
+                  {
+                    type: 'item' as const,
+                    title: 'Architecture Graph',
+                    href: buildUrl('/visualiser/graph'),
+                  },
+                ]
+              : []),
           ],
         }
       : undefined;
