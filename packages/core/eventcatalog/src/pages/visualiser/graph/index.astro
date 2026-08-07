@@ -1,6 +1,7 @@
 ---
 import VisualiserLayout from '@layouts/VisualiserLayout.astro';
 import CatalogForceGraph from '@components/CatalogGraph/CatalogForceGraph';
+import type { CatalogGraphWireLink } from '@components/CatalogGraph/CatalogForceGraph';
 import { getCatalogForceGraph } from '@utils/node-graphs/catalog-force-graph';
 import { isArchitectureGraphEnabled } from '@utils/feature';
 
@@ -26,11 +27,13 @@ const wireNodes = nodes.map(({ id, label, collection, version }) => ({
   version,
 }));
 
-const wireLinks = links.map((link) => [
-  nodeIndexById.get(link.source)!,
-  nodeIndexById.get(link.target)!,
-  labelIndexByLabel.get(link.label)!,
-]);
+const wireLinks = links.map(
+  (link): CatalogGraphWireLink => [
+    nodeIndexById.get(link.source)!,
+    nodeIndexById.get(link.target)!,
+    labelIndexByLabel.get(link.label)!,
+  ]
+);
 ---
 
 <VisualiserLayout title="Visualiser | Architecture Graph" description="Force-directed graph of every resource in the catalog">
