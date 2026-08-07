@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.5.1
+
+### Patch Changes
+
+- d8f460d: fix(core): type wire links as tuples for astro check
+
 ## 4.5.0
 
 ### Minor Changes
