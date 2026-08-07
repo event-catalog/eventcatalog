@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.5.0
+
+### Minor Changes
+
+- ba27fe3: feat(core): add opt-in architecture graph — a catalog-wide force-directed graph at /visualiser/graph, enabled via `visualiser.architectureGraph.enabled`
+
 ## 4.4.1
 
 ### Patch Changes
