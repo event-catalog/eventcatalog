@@ -22,6 +22,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForChannel } from '@utils/node-graphs/channel-node-graph';
 import config from '@config';
 import { isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
@@ -79,6 +80,7 @@ const getNodesAndEdgesFunctions = {
   domains: getNodesAndEdgesForDomain,
   flows: getNodesAndEdgesForFlows,
   containers: getNodesAndEdgesForContainer,
+  channels: getNodesAndEdgesForChannel,
   'data-products': getNodesAndEdgesForDataProduct,
   systems: getNodesAndEdgesForSystem,
 };

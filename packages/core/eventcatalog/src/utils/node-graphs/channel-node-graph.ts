@@ -1,6 +1,27 @@
-import type { CollectionEntry } from 'astro:content';
-import { createEdge, createNode, generatedIdForEdge, generateIdForNode, getColorFromString } from './utils/utils';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import dagre from 'dagre';
+import {
+  buildContextMenuForAgent,
+  buildContextMenuForMessage,
+  buildContextMenuForResource,
+  buildContextMenuForService,
+  calculatedNodes,
+  createDagreGraph,
+  createEdge,
+  createNode,
+  generatedIdForEdge,
+  generateIdForNode,
+  getColorFromString,
+  getEdgeLabelForMessageAsSource,
+  getEdgeLabelForServiceAsTarget,
+  getOperationFields,
+  DEFAULT_NODE_WIDTH,
+  DEFAULT_NODE_HEIGHT,
+} from './utils/utils';
+import { createVersionedMap, findInMap } from '@utils/collections/util';
+import { getChannels } from '@utils/collections/channels';
 import { type Node, type Edge } from '@xyflow/react';
+import type { CollectionMessageTypes } from '@types';
 
 interface CollectionItem {
   collection: string;
@@ -72,4 +93,308 @@ export const getNodesAndEdgesForChannelChain = ({
   );
 
   return { nodes, edges };
+};
+
+type MessageProducerOrConsumer = CollectionEntry<'services'> | CollectionEntry<'agents'>;
+
+type DagreGraph = any;
+
+interface Props {
+  id: string;
+  version: string;
+  defaultFlow?: DagreGraph;
+  mode?: 'simple' | 'full';
+  layout?: boolean;
+}
+
+/**
+ * Builds the graph for a single channel: everything that publishes into it on the left,
+ * everything that consumes out of it on the right, and any channels it routes to (or is
+ * routed from) either side of it.
+ */
+export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', layout = true }: Props) => {
+  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
+  const nodes: any[] = [];
+  const edges: any[] = [];
+
+  const [channels, services, agents, events, commands, queries] = await Promise.all([
+    getChannels(),
+    getCollection('services'),
+    getCollection('agents'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+  ]);
+
+  const channel = channels.find((c) => c.data.id === id && c.data.version === version);
+
+  // Nothing found...
+  if (!channel) {
+    return { nodes: [], edges: [] };
+  }
+
+  const allMessages = [...events, ...commands, ...queries] as CollectionEntry<CollectionMessageTypes>[];
+  const messageMap = createVersionedMap(allMessages);
+  const channelMap = createVersionedMap(channels);
+
+  const isThisChannel = (pointer?: { id: string; version?: string }) => {
+    if (!pointer) return false;
+    const resolved = findInMap(channelMap, pointer.id, pointer.version) as CollectionEntry<'channels'> | undefined;
+    return !!resolved && resolved.data.id === channel.data.id && resolved.data.version === channel.data.version;
+  };
+
+  const routesThroughThisChannel = (pointers?: { id: string; version?: string }[]) =>
+    Array.isArray(pointers) && pointers.some(isThisChannel);
+
+  // Messages that name this channel directly in their own `channels` frontmatter.
+  const messagesPointingAtChannel = new Set(
+    allMessages.filter((message) => routesThroughThisChannel(message.data.channels)).map((message) => generateIdForNode(message))
+  );
+
+  // messageNodeId -> { message, producers, consumers }
+  const messageFlows = new Map<
+    string,
+    {
+      message: CollectionEntry<CollectionMessageTypes>;
+      producers: MessageProducerOrConsumer[];
+      consumers: MessageProducerOrConsumer[];
+    }
+  >();
+
+  const trackFlow = (
+    message: CollectionEntry<CollectionMessageTypes>,
+    resource: MessageProducerOrConsumer,
+    direction: 'producers' | 'consumers'
+  ) => {
+    const messageNodeId = generateIdForNode(message);
+    const flowForMessage = messageFlows.get(messageNodeId) ?? { message, producers: [], consumers: [] };
+    const alreadyTracked = flowForMessage[direction].some(
+      (existing) => existing.data.id === resource.data.id && existing.data.version === resource.data.version
+    );
+
+    if (!alreadyTracked) {
+      flowForMessage[direction].push(resource);
+    }
+
+    messageFlows.set(messageNodeId, flowForMessage);
+  };
+
+  for (const resource of [...services, ...agents] as MessageProducerOrConsumer[]) {
+    const pointerGroups = [
+      { pointers: resource.data.sends ?? [], channelKey: 'to' as const, direction: 'producers' as const },
+      { pointers: resource.data.receives ?? [], channelKey: 'from' as const, direction: 'consumers' as const },
+    ];
+
+    for (const { pointers, channelKey, direction } of pointerGroups) {
+      for (const pointer of pointers as any[]) {
+        const message = findInMap(messageMap, pointer.id, pointer.version) as CollectionEntry<CollectionMessageTypes> | undefined;
+
+        if (!message) continue;
+
+        const channelPointers = pointer[channelKey];
+        const hasExplicitChannels = Array.isArray(channelPointers) && channelPointers.length > 0;
+
+        // Either the service routes this message through the channel explicitly, or the
+        // message itself declares the channel and the service has no routing of its own.
+        const flowsThroughChannel = hasExplicitChannels
+          ? routesThroughThisChannel(channelPointers)
+          : messagesPointingAtChannel.has(generateIdForNode(message));
+
+        if (flowsThroughChannel) {
+          trackFlow(message, resource, direction);
+        }
+      }
+    }
+  }
+
+  // Messages that name the channel but have no producer or consumer still belong on the graph.
+  for (const message of allMessages) {
+    const messageNodeId = generateIdForNode(message);
+    if (messagesPointingAtChannel.has(messageNodeId) && !messageFlows.has(messageNodeId)) {
+      messageFlows.set(messageNodeId, { message, producers: [], consumers: [] });
+    }
+  }
+
+  const channelNodeId = generateIdForNode(channel);
+  const addedNodeIds = new Set<string>();
+
+  const addNode = (node: any) => {
+    if (addedNodeIds.has(node.id)) return;
+    addedNodeIds.add(node.id);
+    nodes.push(node);
+  };
+
+  const addResourceNode = (resource: MessageProducerOrConsumer) => {
+    addNode(
+      createNode({
+        id: generateIdForNode(resource),
+        type: resource.collection,
+        data: {
+          mode,
+          ...(resource.collection === 'agents' ? { agent: { ...resource.data } } : { service: { ...resource.data } }),
+          contextMenu:
+            resource.collection === 'agents'
+              ? buildContextMenuForAgent({ id: resource.data.id, version: resource.data.version })
+              : buildContextMenuForService({
+                  id: resource.data.id,
+                  version: resource.data.version,
+                  specifications: (resource.data as any).specifications,
+                  repository: (resource.data as any).repository,
+                }),
+        },
+        position: { x: 0, y: 0 },
+      })
+    );
+  };
+
+  const addChannelNode = (channelToAdd: CollectionEntry<'channels'>, isFocused = false) => {
+    addNode(
+      createNode({
+        id: generateIdForNode(channelToAdd),
+        type: channelToAdd.collection,
+        data: {
+          mode,
+          ...(isFocused ? { isFocused: true } : {}),
+          channel: { ...channelToAdd.data },
+          contextMenu: buildContextMenuForResource({
+            collection: 'channels',
+            id: channelToAdd.data.id,
+            version: channelToAdd.data.version,
+          }),
+        },
+        position: { x: 0, y: 0 },
+      })
+    );
+  };
+
+  // The channel itself
+  addChannelNode(channel, true);
+
+  // consumerNodeId -> messages it consumes from this channel, so one consumer gets one edge
+  const messagesByConsumer = new Map<
+    string,
+    { consumer: MessageProducerOrConsumer; messages: CollectionEntry<CollectionMessageTypes>[] }
+  >();
+
+  for (const { message, producers, consumers } of messageFlows.values()) {
+    const messageNodeId = generateIdForNode(message);
+
+    addNode(
+      createNode({
+        id: messageNodeId,
+        type: message.collection,
+        data: {
+          mode,
+          message: { ...message.data, ...getOperationFields(message.data) },
+          contextMenu: buildContextMenuForMessage({
+            id: message.data.id,
+            version: message.data.version,
+            name: message.data.name,
+            collection: message.collection,
+            schemaPath: (message.data as any).schemaPath,
+          }),
+        },
+        position: { x: 0, y: 0 },
+      })
+    );
+
+    // The message flows into the channel
+    edges.push(
+      createEdge({
+        id: generatedIdForEdge(message, channel),
+        source: messageNodeId,
+        target: channelNodeId,
+        label: 'routes to',
+        data: { customColor: getColorFromString(message.data.id) },
+      })
+    );
+
+    for (const producer of producers) {
+      addResourceNode(producer);
+      edges.push(
+        createEdge({
+          id: generatedIdForEdge(producer, message),
+          source: generateIdForNode(producer),
+          target: messageNodeId,
+          label: getEdgeLabelForServiceAsTarget(message),
+          type: 'multiline',
+          data: { customColor: getColorFromString(message.data.id) },
+        })
+      );
+    }
+
+    for (const consumer of consumers) {
+      const consumerNodeId = generateIdForNode(consumer);
+      const grouped = messagesByConsumer.get(consumerNodeId) ?? { consumer, messages: [] };
+      grouped.messages.push(message);
+      messagesByConsumer.set(consumerNodeId, grouped);
+    }
+  }
+
+  // One edge per consumer, labelled with the message when there is only one
+  for (const [consumerNodeId, { consumer, messages }] of messagesByConsumer) {
+    addResourceNode(consumer);
+    edges.push(
+      createEdge({
+        id: generatedIdForEdge(channel, consumer),
+        source: channelNodeId,
+        target: consumerNodeId,
+        label:
+          messages.length === 1 ? getEdgeLabelForMessageAsSource(messages[0], true) : `consumes ${messages.length}\nmessages`,
+        type: 'multiline',
+        data: { customColor: getColorFromString(channel.data.id) },
+      })
+    );
+  }
+
+  // Channels this channel routes messages on to
+  for (const route of (channel.data.routes ?? []) as { id: string; version?: string }[]) {
+    const routedChannel = findInMap(channelMap, route.id, route.version) as CollectionEntry<'channels'> | undefined;
+    if (!routedChannel || generateIdForNode(routedChannel) === channelNodeId) continue;
+
+    addChannelNode(routedChannel);
+    edges.push(
+      createEdge({
+        id: generatedIdForEdge(channel, routedChannel),
+        source: channelNodeId,
+        target: generateIdForNode(routedChannel),
+        label: 'routes to',
+        data: { customColor: getColorFromString(channel.data.id) },
+      })
+    );
+  }
+
+  // Channels that route messages into this channel
+  for (const upstreamChannel of channels) {
+    if (generateIdForNode(upstreamChannel) === channelNodeId) continue;
+    if (!routesThroughThisChannel(upstreamChannel.data.routes)) continue;
+
+    addChannelNode(upstreamChannel);
+    edges.push(
+      createEdge({
+        id: generatedIdForEdge(upstreamChannel, channel),
+        source: generateIdForNode(upstreamChannel),
+        target: channelNodeId,
+        label: 'routes to',
+        data: { customColor: getColorFromString(upstreamChannel.data.id) },
+      })
+    );
+  }
+
+  nodes.forEach((node) => {
+    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
+  });
+
+  edges.forEach((edge) => {
+    flow.setEdge(edge.source, edge.target);
+  });
+
+  if (layout) {
+    dagre.layout(flow);
+  }
+
+  return {
+    nodes: calculatedNodes(flow, nodes),
+    edges,
+  };
 };
