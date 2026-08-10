@@ -778,6 +778,119 @@ describe('resolve', () => {
       ]);
     });
 
+    it('resolves a semver range to the highest satisfying version', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '1.0.0',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/1.0.0/index.mdx',
+            contentHash: 'sha256:04bd91',
+          },
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '1.2.0',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/1.2.0/index.mdx',
+            contentHash: 'sha256:62ea15',
+          },
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '2.0.0',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/2.0.0/index.mdx',
+            contentHash: 'sha256:772af1',
+          },
+        ],
+      });
+      const fulfilmentIndex = anIndex({
+        source: 'acme/fulfilment',
+        commit: '8f2c6d0',
+        resources: [
+          {
+            type: 'service',
+            id: 'shipping-service',
+            version: '1.0.0',
+            name: 'Shipping Service',
+            receives: [{ id: 'payment-captured', version: '^1.0.0' }],
+            contentPath: 'services/shipping-service/index.mdx',
+            contentHash: 'sha256:b75e20',
+          },
+        ],
+      });
+
+      expect(resolve([paymentsIndex, fulfilmentIndex]).edges).toEqual([
+        {
+          from: 'shipping-service',
+          ...fromResource('1.0.0', 'acme/fulfilment', '8f2c6d0'),
+          to: 'payment-captured',
+          direction: 'receives',
+          pointer: '^1.0.0',
+          resolved: '1.2.0',
+          resolvedFrom: {
+            source: 'acme/payments',
+            commit: '4a1b7e2',
+          },
+          status: 'resolved',
+        },
+      ]);
+    });
+
+    it('marks a semver range as unresolved when no version satisfies it', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '2.0.0',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/2.0.0/index.mdx',
+            contentHash: 'sha256:04bd91',
+          },
+        ],
+      });
+      const fulfilmentIndex = anIndex({
+        source: 'acme/fulfilment',
+        commit: '8f2c6d0',
+        resources: [
+          {
+            type: 'service',
+            id: 'shipping-service',
+            version: '1.0.0',
+            name: 'Shipping Service',
+            receives: [{ id: 'payment-captured', version: '^1.0.0' }],
+            contentPath: 'services/shipping-service/index.mdx',
+            contentHash: 'sha256:b75e20',
+          },
+        ],
+      });
+
+      const resolution = resolve([paymentsIndex, fulfilmentIndex]);
+
+      expect({ edges: resolution.edges, externals: resolution.externals }).toEqual({
+        edges: [
+          {
+            from: 'shipping-service',
+            ...fromResource('1.0.0', 'acme/fulfilment', '8f2c6d0'),
+            to: 'payment-captured',
+            direction: 'receives',
+            pointer: '^1.0.0',
+            resolved: null,
+            status: 'unresolved',
+          },
+        ],
+        externals: [],
+      });
+    });
+
     it('resolves an unversioned pointer to the highest version', () => {
       const paymentsIndex = anIndex({
         source: 'acme/payments',

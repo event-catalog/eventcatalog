@@ -1,4 +1,4 @@
-import { gt, valid } from 'semver';
+import { gt, satisfies, valid, validRange } from 'semver';
 import type {
   Conflict,
   ConflictKind,
@@ -31,6 +31,26 @@ const isHigherVersion = (candidate?: string, current?: string) => {
   if (current === undefined) return true;
   if (valid(candidate) && valid(current)) return gt(candidate, current);
   return compareText(candidate, current) > 0;
+};
+
+const selectTarget = (candidates: ResolvedEntity[] | undefined, pointerVersion?: string) => {
+  if (!candidates?.length) return undefined;
+
+  if (pointerVersion === undefined || pointerVersion === 'latest') {
+    return candidates.reduce((latest, candidate) => (isHigherVersion(candidate.version, latest.version) ? candidate : latest));
+  }
+
+  const exactMatch = candidates.find((candidate) => candidate.version === pointerVersion);
+  if (exactMatch) return exactMatch;
+
+  const range = validRange(pointerVersion);
+  if (!range) return undefined;
+
+  return candidates.reduce<ResolvedEntity | undefined>((latest, candidate) => {
+    if (candidate.version === undefined || !valid(candidate.version) || !satisfies(candidate.version, range)) return latest;
+    if (latest === undefined || isHigherVersion(candidate.version, latest.version)) return candidate;
+    return latest;
+  }, undefined);
 };
 
 const getPointerFields = (entity: ResolvedEntity): PointerField[] => [
@@ -170,10 +190,7 @@ export const resolve = (indexes: Index[]): ResolvedGraph => {
     for (const field of getPointerFields(entity)) {
       for (const pointer of field.pointers ?? []) {
         const candidates = entitiesById.get(pointer.id);
-        const followsLatest = pointer.version === undefined || pointer.version === 'latest';
-        const target = followsLatest
-          ? candidates?.reduce((latest, candidate) => (isHigherVersion(candidate.version, latest.version) ? candidate : latest))
-          : candidates?.find((candidate) => candidate.version === pointer.version);
+        const target = selectTarget(candidates, pointer.version);
 
         if (!target) {
           if (candidates) {
