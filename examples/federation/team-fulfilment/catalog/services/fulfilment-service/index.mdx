@@ -1,0 +1,13 @@
+---
+id: fulfilment-service
+name: Fulfilment Service
+version: 1.0.0
+receives:
+  - id: payment-captured
+    version: 1.0.0
+  - id: shipment-dispatched
+---
+
+## Overview
+
+Starts fulfilment when the payments team confirms a successful capture.
