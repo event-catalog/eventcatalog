@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.27.0
+
+### Minor Changes
+
+- d01cfe6: Add the federation pipeline to the SDK: `buildIndex` discovers and describes catalog content into a portable index, `resolve` combines indexes from multiple sources into a single graph (with conflict detection, externals and edges), and `hydrate` materializes the resolved content to disk (fetching, verifying, caching and referencing artifacts). Also adds `parseIndex` for validating an index, and exports the new federation types.
+
 ## 2.26.3
 
 ### Patch Changes
@@ -114,6 +120,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
