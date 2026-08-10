@@ -5,6 +5,7 @@ const { title, logo } = config;
 import { join } from 'node:path';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import { buildUrl } from '@utils/url-builder';
+import { getSession } from 'auth-astro/server';
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
@@ -32,7 +33,6 @@ if (!isSSR() || !isAuthEnabled()) {
 
 // If we are in SSR mode, check if the user is already logged in
 if (isSSR() && isAuthEnabled()) {
-  const { getSession } = await import(/* @vite-ignore */ 'auth-astro/server');
   const session = await getSession(Astro.request);
   if (session) {
     return Astro.redirect('/');

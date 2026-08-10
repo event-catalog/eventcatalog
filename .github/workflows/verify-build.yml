@@ -72,12 +72,24 @@ jobs:
             visualiser-package.tgz
 
   build-eventcatalog:
-    name: Build EventCatalog
+    name: Build EventCatalog (${{ matrix.label }})
     timeout-minutes: 10
     needs: build-and-test
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - label: static, Linux
+            os: ubuntu-latest
+            catalog: default
+            output: static
+          - label: static, Windows
+            os: windows-latest
+            catalog: default
+            output: static
+          - label: SSR, Linux
+            os: ubuntu-latest
+            catalog: ssr
+            output: server
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -89,20 +101,23 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('examples/default/package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-
+          key: npm-${{ runner.os }}-${{ matrix.catalog }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-${{ matrix.catalog }}-
       - name: Download package artifacts
         uses: actions/download-artifact@v4
         with:
           name: eventcatalog-packages-artifact
       - name: Install @eventcatalog packages
-        working-directory: examples/default/
+        working-directory: examples/${{ matrix.catalog }}/
         run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz
       - name: Build EventCatalog
-        working-directory: examples/default/
+        working-directory: examples/${{ matrix.catalog }}/
         run: npx eventcatalog build
+      - name: Smoke test SSR artifact
+        if: matrix.output == 'server'
+        run: node packages/core/scripts/ci/smoke-ssr.mjs examples/${{ matrix.catalog }}
       - name: Check build size
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.output == 'static'
         run: node packages/core/scripts/check-build-size.js
         env:
           SIZE_THRESHOLD: 5
