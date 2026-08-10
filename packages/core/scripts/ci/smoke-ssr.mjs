@@ -41,6 +41,7 @@ const server = spawn(process.execPath, [serverEntry], {
   },
   stdio: ['ignore', 'pipe', 'pipe'],
 });
+const serverExit = once(server, 'exit');
 
 let output = '';
 const captureOutput = (chunk) => {
@@ -51,14 +52,17 @@ server.stdout.on('data', captureOutput);
 server.stderr.on('data', captureOutput);
 
 const stopServer = async () => {
-  if (server.exitCode !== null) return;
+  if (server.exitCode !== null || server.signalCode !== null) {
+    await serverExit;
+    return;
+  }
 
   server.kill('SIGTERM');
-  await Promise.race([once(server, 'exit'), delay(5_000)]);
+  const exited = await Promise.race([serverExit.then(() => true), delay(5_000, false, { ref: false })]);
 
-  if (server.exitCode === null) {
+  if (!exited) {
     server.kill('SIGKILL');
-    await once(server, 'exit');
+    await serverExit;
   }
 };
 
