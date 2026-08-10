@@ -13,7 +13,6 @@
 
 ### Patch Changes
 
-- 51c5f45: Bundle the Auth Astro server dependency used by the login page so production SSR deployments can resolve it at runtime.
 - Updated dependencies [439161f]
   - @eventcatalog/sdk@2.27.1
   - @eventcatalog/linter@1.1.10
