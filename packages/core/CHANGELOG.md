@@ -1,5 +1,23 @@
 # @eventcatalog/core
 
+## 4.6.0
+
+### Minor Changes
+
+- 3ee5549: feat(core): load catalog content from federated source directories
+
+  Astro content collections now also scan `federated/*/` so resources pulled in from
+  federated catalog sources (services, domains, subdomains, resource docs and doc
+  categories, ubiquitous language, users and teams) are picked up alongside the
+  local catalog.
+
+### Patch Changes
+
+- 51c5f45: Bundle the Auth Astro server dependency used by the login page so production SSR deployments can resolve it at runtime.
+- Updated dependencies [439161f]
+  - @eventcatalog/sdk@2.27.1
+  - @eventcatalog/linter@1.1.10
+
 ## 4.5.2
 
 ### Patch Changes
