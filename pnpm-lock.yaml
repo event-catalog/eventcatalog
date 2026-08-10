@@ -595,6 +595,9 @@ importers:
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
+      ignore:
+        specifier: ^7.0.5
+        version: 7.0.5
       proper-lockfile:
         specifier: ^4.1.2
         version: 4.1.2
@@ -604,6 +607,9 @@ importers:
       slugify:
         specifier: ^1.6.6
         version: 1.6.6
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@types/fs-extra':
         specifier: ^11.0.4

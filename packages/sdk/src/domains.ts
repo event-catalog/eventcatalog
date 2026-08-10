@@ -89,6 +89,12 @@ export const getDomains =
         '**/queries/**',
         '**/flows/**',
         '**/entities/**',
+        '**/systems/**',
+        '**/containers/**',
+        '**/data-products/**',
+        '**/adrs/**',
+        '**/diagrams/**',
+        '**/channels/**',
       ],
       ...options,
     }) as Promise<Domain[]>;
