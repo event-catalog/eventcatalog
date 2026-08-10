@@ -9,7 +9,7 @@ import path from 'path';
 import { userTeamDirectoryLoader } from './enterprise/directory/user-team-directory';
 import config from '@config';
 import { schemaLoader } from './utils/collections/schema-loader';
-import { globWithSafeWatcher, withIgnoredBuildArtifacts } from './utils/collections/glob-loader';
+import { globWithSafeWatcher, withFederatedContent, withIgnoredBuildArtifacts } from './utils/collections/glob-loader';
 import { withExtensionProperties } from './utils/collections/extension-properties';
 
 // Enterprise Collections
@@ -494,24 +494,26 @@ const dataProducts = defineCollection({
 
 const services = defineCollection({
   loader: globWithSafeWatcher({
-    pattern: withIgnoredBuildArtifacts([
-      'domains/*/services/*/index.(md|mdx)',
-      'domains/*/services/*/versioned/*/index.(md|mdx)',
+    pattern: withIgnoredBuildArtifacts(
+      withFederatedContent([
+        'domains/*/services/*/index.(md|mdx)',
+        'domains/*/services/*/versioned/*/index.(md|mdx)',
 
-      // Capture subdomain folders
-      'domains/*/subdomains/*/services/*/index.(md|mdx)',
-      'domains/*/subdomains/*/services/*/versioned/*/index.(md|mdx)',
+        // Capture subdomain folders
+        'domains/*/subdomains/*/services/*/index.(md|mdx)',
+        'domains/*/subdomains/*/services/*/versioned/*/index.(md|mdx)',
 
-      // Capture services inside systems
-      'systems/*/services/*/index.(md|mdx)',
-      'systems/*/services/*/versioned/*/index.(md|mdx)',
-      'domains/*/systems/*/services/*/index.(md|mdx)',
-      'domains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
+        // Capture services inside systems
+        'systems/*/services/*/index.(md|mdx)',
+        'systems/*/services/*/versioned/*/index.(md|mdx)',
+        'domains/*/systems/*/services/*/index.(md|mdx)',
+        'domains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
 
-      // Capture services in the root
-      'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
-      'services/*/versioned/*/index.(md|mdx)', // ✅ Capture versioned files inside services
-    ]),
+        // Capture services in the root
+        'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
+        'services/*/versioned/*/index.(md|mdx)', // ✅ Capture versioned files inside services
+      ])
+    ),
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
       return `${data.id}-${data.version}`;
@@ -730,14 +732,16 @@ const resourceDocs = defineCollection({
   loader: globWithSafeWatcher({
     // Resource-level docs are restricted to known resource paths.
     // This avoids scanning external docs such as node_modules/**/docs.
-    pattern: withIgnoredBuildArtifacts([
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/*.@(md|mdx)',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/*.@(md|mdx)',
-      'domains/**/docs/**/*.@(md|mdx)',
-      'domains/**/docs/*.@(md|mdx)',
-    ]),
+    pattern: withIgnoredBuildArtifacts(
+      withFederatedContent([
+        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/*.@(md|mdx)',
+        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/*.@(md|mdx)',
+        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/*.@(md|mdx)',
+        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/*.@(md|mdx)',
+        'domains/**/docs/**/*.@(md|mdx)',
+        'domains/**/docs/*.@(md|mdx)',
+      ])
+    ),
     base: projectDirBase,
   }),
   schema: resourceDocsSchema,
@@ -745,16 +749,18 @@ const resourceDocs = defineCollection({
 
 const resourceDocCategories = defineCollection({
   loader: globWithSafeWatcher({
-    pattern: withIgnoredBuildArtifacts([
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/category.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/_category_.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/category.json',
-      '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/_category_.json',
-      'domains/**/docs/**/category.json',
-      'domains/**/docs/**/_category_.json',
-      'domains/**/docs/category.json',
-      'domains/**/docs/_category_.json',
-    ]),
+    pattern: withIgnoredBuildArtifacts(
+      withFederatedContent([
+        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/category.json',
+        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/docs/**/_category_.json',
+        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/category.json',
+        '{agents,events,commands,queries,services,flows,containers,channels,entities,data-products,systems}/**/versioned/*/docs/**/_category_.json',
+        'domains/**/docs/**/category.json',
+        'domains/**/docs/**/_category_.json',
+        'domains/**/docs/category.json',
+        'domains/**/docs/_category_.json',
+      ])
+    ),
     base: projectDirBase,
   }),
   schema: resourceDocCategoriesSchema,
@@ -762,15 +768,17 @@ const resourceDocCategories = defineCollection({
 
 const domains = defineCollection({
   loader: globWithSafeWatcher({
-    pattern: withIgnoredBuildArtifacts([
-      // ✅ Strictly include only index.md at the expected levels
-      'domains/*/index.(md|mdx)',
-      'domains/*/versioned/*/index.(md|mdx)',
+    pattern: withIgnoredBuildArtifacts(
+      withFederatedContent([
+        // ✅ Strictly include only index.md at the expected levels
+        'domains/*/index.(md|mdx)',
+        'domains/*/versioned/*/index.(md|mdx)',
 
-      // Capture subdomain folders
-      'domains/*/subdomains/*/index.(md|mdx)',
-      'domains/*/subdomains/*/versioned/*/index.(md|mdx)',
-    ]),
+        // Capture subdomain folders
+        'domains/*/subdomains/*/index.(md|mdx)',
+        'domains/*/subdomains/*/versioned/*/index.(md|mdx)',
+      ])
+    ),
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
       return `${data.id}-${data.version}`;
@@ -938,10 +946,9 @@ const channels = defineCollection({
 
 const ubiquitousLanguages = defineCollection({
   loader: globWithSafeWatcher({
-    pattern: withIgnoredBuildArtifacts([
-      'domains/*/ubiquitous-language.(md|mdx)',
-      'domains/*/subdomains/*/ubiquitous-language.(md|mdx)',
-    ]),
+    pattern: withIgnoredBuildArtifacts(
+      withFederatedContent(['domains/*/ubiquitous-language.(md|mdx)', 'domains/*/subdomains/*/ubiquitous-language.(md|mdx)'])
+    ),
     base: projectDirBase,
     generateId: ({ data }) => {
       // File has no id, so we need to generate one
@@ -1039,7 +1046,7 @@ const users = defineCollection({
     sources: config.directory?.sources,
     conflictStrategy: config.directory?.conflictStrategy,
     local: {
-      pattern: withIgnoredBuildArtifacts('users/*.(md|mdx)'),
+      pattern: withIgnoredBuildArtifacts(withFederatedContent('users/*.(md|mdx)')),
       base: projectDirBase,
       generateId: ({ data }) => data.id as string,
     },
@@ -1071,7 +1078,7 @@ const teams = defineCollection({
     sources: config.directory?.sources,
     conflictStrategy: config.directory?.conflictStrategy,
     local: {
-      pattern: withIgnoredBuildArtifacts('teams/*.(md|mdx)'),
+      pattern: withIgnoredBuildArtifacts(withFederatedContent('teams/*.(md|mdx)')),
       base: projectDirBase,
       generateId: ({ data }) => data.id as string,
     },
