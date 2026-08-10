@@ -2603,6 +2603,114 @@ describe('resolve', () => {
         },
       ]);
     });
+
+    it('resolves pinned, unversioned, and external triggers nested in receives pointers', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'command',
+            id: 'capture-payment',
+            version: '1.0.0',
+            name: 'Capture Payment',
+            contentPath: 'commands/capture-payment/index.mdx',
+          },
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '1.0.0',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/index.mdx',
+          },
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '2.0.0',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/versioned/2.0.0/index.mdx',
+          },
+          {
+            type: 'event',
+            id: 'payment-failed',
+            version: '1.0.0',
+            name: 'Payment Failed',
+            contentPath: 'events/payment-failed/versioned/1.0.0/index.mdx',
+          },
+          {
+            type: 'event',
+            id: 'payment-failed',
+            version: '2.0.0',
+            name: 'Payment Failed',
+            contentPath: 'events/payment-failed/index.mdx',
+          },
+          {
+            type: 'service',
+            id: 'payment-service',
+            version: '1.0.0',
+            name: 'Payment Service',
+            receives: [
+              {
+                id: 'capture-payment',
+                version: '1.0.0',
+                triggers: [
+                  { id: 'payment-captured', version: '1.0.0', condition: 'When capture succeeds' },
+                  { id: 'payment-failed', condition: 'When capture fails' },
+                  { id: 'payment-reconciliation-requested', condition: 'When the result is uncertain' },
+                ],
+              },
+            ],
+            contentPath: 'services/payment-service/index.mdx',
+          },
+        ],
+      });
+
+      const resolution = resolve([paymentsIndex]);
+      const triggerEdges = resolution.edges.filter((edge) => edge.via === 'receives.triggers');
+
+      expect({ edges: triggerEdges, externals: resolution.externals }).toEqual({
+        edges: [
+          {
+            from: 'payment-service',
+            ...fromResource('1.0.0', 'acme/payments', '4a1b7e2'),
+            to: 'payment-captured',
+            direction: 'sends',
+            via: 'receives.triggers',
+            pointer: '1.0.0',
+            resolved: '1.0.0',
+            resolvedFrom: { source: 'acme/payments', commit: '4a1b7e2' },
+            status: 'resolved',
+          },
+          {
+            from: 'payment-service',
+            ...fromResource('1.0.0', 'acme/payments', '4a1b7e2'),
+            to: 'payment-failed',
+            direction: 'sends',
+            via: 'receives.triggers',
+            pointer: null,
+            resolved: '2.0.0',
+            resolvedFrom: { source: 'acme/payments', commit: '4a1b7e2' },
+            status: 'resolved',
+          },
+          {
+            from: 'payment-service',
+            ...fromResource('1.0.0', 'acme/payments', '4a1b7e2'),
+            to: 'payment-reconciliation-requested',
+            direction: 'sends',
+            via: 'receives.triggers',
+            pointer: null,
+            resolved: null,
+            status: 'external',
+          },
+        ],
+        externals: [
+          {
+            id: 'payment-reconciliation-requested',
+            referencedBy: ['payment-service'],
+          },
+        ],
+      });
+    });
   });
 
   describe('conflicts', () => {

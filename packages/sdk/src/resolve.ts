@@ -81,6 +81,7 @@ const getPointerFields = (entity: ResolvedEntity): PointerField[] => [
   { direction: 'references', via: 'routes', pointers: entity.routes },
   { direction: 'sends', via: 'sends.to', pointers: entity.sends?.flatMap((pointer) => pointer.to ?? []) },
   { direction: 'receives', via: 'receives.from', pointers: entity.receives?.flatMap((pointer) => pointer.from ?? []) },
+  { direction: 'sends', via: 'receives.triggers', pointers: entity.receives?.flatMap((pointer) => pointer.triggers ?? []) },
 ];
 
 export const resolve = (indexes: Index[]): ResolvedGraph => {
