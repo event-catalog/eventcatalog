@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import utils, { parseIndex } from '../index';
@@ -20,6 +21,7 @@ describe('buildIndex against the default example catalog', () => {
     expect(duplicateContentPaths).toEqual([]);
     expect(parseIndex(index)).toEqual(index);
 
-    await expect(`${JSON.stringify(index, null, 2)}\n`).toMatchFileSnapshot(INDEX_SNAPSHOT_PATH);
+    const snapshot = JSON.parse(await fs.readFile(INDEX_SNAPSHOT_PATH, 'utf8'));
+    expect(snapshot).toEqual(index);
   });
 });
