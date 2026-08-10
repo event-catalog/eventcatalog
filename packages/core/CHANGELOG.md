@@ -1,5 +1,22 @@
 # @eventcatalog/core
 
+## 4.6.0
+
+### Minor Changes
+
+- 3ee5549: feat(core): load catalog content from federated source directories
+
+  Astro content collections now also scan `federated/*/` so resources pulled in from
+  federated catalog sources (services, domains, subdomains, resource docs and doc
+  categories, ubiquitous language, users and teams) are picked up alongside the
+  local catalog.
+
+### Patch Changes
+
+- Updated dependencies [439161f]
+  - @eventcatalog/sdk@2.27.1
+  - @eventcatalog/linter@1.1.10
+
 ## 4.5.2
 
 ### Patch Changes
