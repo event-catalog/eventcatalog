@@ -1,5 +1,12 @@
 # @eventcatalog/linter
 
+## 1.1.9
+
+### Patch Changes
+
+- Updated dependencies [d01cfe6]
+  - @eventcatalog/sdk@2.27.0
+
 ## 1.1.8
 
 ### Patch Changes
