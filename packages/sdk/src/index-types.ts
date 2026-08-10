@@ -3,6 +3,8 @@ import type {
   AdrResourcePointer,
   AdrStatus,
   BaseSchema,
+  Channel,
+  ChannelPointer,
   Container,
   DataProductOutputPointer,
   ResourcePointer,
@@ -18,6 +20,7 @@ import type {
 export type IndexResourceType =
   | 'adr'
   | 'agent'
+  | 'channel'
   | 'command'
   | 'container'
   | 'data-product'
@@ -72,6 +75,12 @@ export type IndexResource = {
   references?: IndexReference[];
   sends?: SendsPointer[];
   receives?: ReceivesPointer[];
+  channels?: ChannelPointer[];
+  address?: Channel['address'];
+  protocols?: Channel['protocols'];
+  deliveryGuarantee?: Channel['deliveryGuarantee'];
+  routes?: Channel['routes'];
+  parameters?: Channel['parameters'];
   services?: ResourcePointer[];
   agents?: ResourcePointer[];
   domains?: ResourcePointer[];

@@ -23,6 +23,40 @@ describe('parseIndex', () => {
     expect(parseIndex(validIndex)).toEqual(validIndex);
   });
 
+  it('parses channel resources and channel pointers', () => {
+    const index = {
+      indexVersion: 1,
+      source: 'acme/payments',
+      commit: '4a1b7e2',
+      resources: [
+        {
+          type: 'channel',
+          id: 'payments.events',
+          version: '2.0.0',
+          name: 'Payments Events',
+          contentPath: 'channels/payments.events/index.mdx',
+          address: 'payments.{region}.events',
+          protocols: ['kafka'],
+          deliveryGuarantee: 'at-least-once',
+          routes: [{ id: 'payments.dead-letter' }],
+          parameters: {
+            region: { enum: ['eu', 'us'], default: 'eu', examples: ['eu'] },
+          },
+        },
+        {
+          type: 'event',
+          id: 'payment-captured',
+          version: '1.0.0',
+          name: 'Payment Captured',
+          contentPath: 'events/payment-captured/index.mdx',
+          channels: [{ id: 'payments.events', parameters: { region: 'eu' } }],
+        },
+      ],
+    };
+
+    expect(parseIndex(index)).toEqual(index);
+  });
+
   it('rejects an unsupported index version', () => {
     expect(() => parseIndex({ ...validIndex, indexVersion: 2 })).toThrow(
       new InvalidIndexError([{ path: ['indexVersion'], message: 'Invalid input: expected 1' }])

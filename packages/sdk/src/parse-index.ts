@@ -35,7 +35,19 @@ const ResourcePointerSchema = z
 const ChannelPointerSchema = ResourcePointerSchema.extend({
   label: z.string().optional(),
   direction: z.enum(['inbound', 'outbound']).optional(),
+  parameters: z.record(z.string(), z.string()).optional(),
 });
+
+const ChannelParametersSchema = z.record(
+  z.string(),
+  z
+    .object({
+      enum: z.array(z.string()).optional(),
+      default: z.string().optional(),
+      examples: z.array(z.string()).optional(),
+    })
+    .strict()
+);
 
 const TriggerPointerSchema = z
   .object({
@@ -192,6 +204,7 @@ const IndexResourceSchema = z
     type: z.enum([
       'adr',
       'agent',
+      'channel',
       'command',
       'container',
       'data-product',
@@ -226,6 +239,12 @@ const IndexResourceSchema = z
     references: z.array(IndexReferenceSchema).optional(),
     sends: z.array(SendsPointerSchema).optional(),
     receives: z.array(ReceivesPointerSchema).optional(),
+    channels: z.array(ChannelPointerSchema).optional(),
+    address: z.string().optional(),
+    protocols: z.array(z.string()).optional(),
+    deliveryGuarantee: z.enum(['at-most-once', 'at-least-once', 'exactly-once']).optional(),
+    routes: z.array(ChannelPointerSchema).optional(),
+    parameters: ChannelParametersSchema.optional(),
     services: z.array(ResourcePointerSchema).optional(),
     agents: z.array(ResourcePointerSchema).optional(),
     domains: z.array(ResourcePointerSchema).optional(),

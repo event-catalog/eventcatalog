@@ -111,6 +111,71 @@ describe('buildIndex', () => {
     });
   });
 
+  it('indexes channels and channel pointers from messages', async () => {
+    await sdk.writeChannel({
+      id: 'payments.events',
+      name: 'Payments Events',
+      version: '2.0.0',
+      address: 'payments.{region}.events',
+      protocols: ['kafka'],
+      deliveryGuarantee: 'at-least-once',
+      routes: [{ id: 'payments.dead-letter', version: '1.0.0' }],
+      parameters: {
+        region: {
+          enum: ['eu', 'us'],
+          default: 'eu',
+          examples: ['eu'],
+        },
+      },
+      markdown: '# Payments Events',
+    });
+    await sdk.writeEvent({
+      id: 'payment-captured',
+      name: 'Payment Captured',
+      version: '1.0.0',
+      channels: [{ id: 'payments.events', version: '2.0.0', parameters: { region: 'eu' } }],
+      markdown: '# Payment Captured',
+    });
+
+    const index = await sdk.buildIndex({ source: 'acme/payments', commit: '4a1b7e2' });
+
+    expect(index).toEqual({
+      indexVersion: 1,
+      source: 'acme/payments',
+      commit: '4a1b7e2',
+      resources: [
+        {
+          type: 'channel',
+          id: 'payments.events',
+          version: '2.0.0',
+          name: 'Payments Events',
+          contentPath: 'channels/payments.events/index.mdx',
+          contentHash: hashFile('channels/payments.events/index.mdx'),
+          address: 'payments.{region}.events',
+          protocols: ['kafka'],
+          deliveryGuarantee: 'at-least-once',
+          routes: [{ id: 'payments.dead-letter', version: '1.0.0' }],
+          parameters: {
+            region: {
+              enum: ['eu', 'us'],
+              default: 'eu',
+              examples: ['eu'],
+            },
+          },
+        },
+        {
+          type: 'event',
+          id: 'payment-captured',
+          version: '1.0.0',
+          name: 'Payment Captured',
+          contentPath: 'events/payment-captured/index.mdx',
+          contentHash: hashFile('events/payment-captured/index.mdx'),
+          channels: [{ id: 'payments.events', version: '2.0.0', parameters: { region: 'eu' } }],
+        },
+      ],
+    });
+  });
+
   it('does not hash resource content when `hashContent` is false', async () => {
     await sdk.writeEvent({
       id: 'payment-captured',

@@ -5,6 +5,7 @@ import ignore from 'ignore';
 import { rcompare, valid } from 'semver';
 import { getAdrs } from './adrs';
 import { getAgents } from './agents';
+import { getChannels } from './channels';
 import { getCommands } from './commands';
 import { getDataProducts } from './data-products';
 import { getDataStores } from './data-stores';
@@ -22,6 +23,8 @@ import { getTeams } from './teams';
 import type {
   Adr,
   BaseSchema,
+  Channel,
+  ChannelPointer,
   Container,
   DataProductOutputPointer,
   FlowStep,
@@ -66,6 +69,12 @@ type IndexableResource = {
   diagrams?: ResourcePointer[];
   sends?: SendsPointer[];
   receives?: ReceivesPointer[];
+  channels?: ChannelPointer[];
+  address?: Channel['address'];
+  protocols?: Channel['protocols'];
+  deliveryGuarantee?: Channel['deliveryGuarantee'];
+  routes?: Channel['routes'];
+  parameters?: Channel['parameters'];
   services?: ResourcePointer[];
   agents?: ResourcePointer[];
   domains?: ResourcePointer[];
@@ -337,6 +346,12 @@ const toIndexResource = async (
     ...(resource.steps === undefined ? {} : { references: getFlowReferences(resource.steps) }),
     ...(resource.sends === undefined ? {} : { sends: resource.sends }),
     ...(resource.receives === undefined ? {} : { receives: resource.receives }),
+    ...(resource.channels === undefined ? {} : { channels: resource.channels }),
+    ...(resource.address === undefined ? {} : { address: resource.address }),
+    ...(resource.protocols === undefined ? {} : { protocols: resource.protocols }),
+    ...(resource.deliveryGuarantee === undefined ? {} : { deliveryGuarantee: resource.deliveryGuarantee }),
+    ...(resource.routes === undefined ? {} : { routes: resource.routes }),
+    ...(resource.parameters === undefined ? {} : { parameters: resource.parameters }),
     ...(resource.services === undefined ? {} : { services: resource.services }),
     ...(resource.agents === undefined ? {} : { agents: resource.agents }),
     ...(resource.domains === undefined ? {} : { domains: resource.domains }),
@@ -367,6 +382,7 @@ export const buildIndex =
   async ({ source, commit, hashContent = true }: BuildIndexOptions): Promise<Index> => {
     const [
       domains,
+      channels,
       events,
       commands,
       queries,
@@ -383,6 +399,7 @@ export const buildIndex =
       diagrams,
     ] = await Promise.all([
       getDomains(directory)(),
+      getChannels(directory)(),
       getEvents(directory)(),
       getCommands(directory)(),
       getQueries(directory)(),
@@ -400,6 +417,7 @@ export const buildIndex =
     ]);
     const indexableResources: IndexableResourceEntry[] = [
       ...(domains ?? []).map((resource) => ({ type: 'domain' as const, resource })),
+      ...(channels ?? []).map((resource) => ({ type: 'channel' as const, resource })),
       ...(events ?? []).map((resource) => ({ type: 'event' as const, resource })),
       ...(commands ?? []).map((resource) => ({ type: 'command' as const, resource })),
       ...(queries ?? []).map((resource) => ({ type: 'query' as const, resource })),

@@ -107,6 +107,58 @@ describe('hydrate', () => {
     });
   });
 
+  it('fetches content for a federated channel', async () => {
+    const content = Buffer.from('# Payments Events');
+    const fetch = vi.fn<Fetcher>().mockResolvedValue(content);
+    const graph: ResolvedGraph = {
+      entities: [
+        {
+          type: 'channel',
+          id: 'payments.events',
+          version: '2.0.0',
+          name: 'Payments Events',
+          address: 'payments.{region}.events',
+          protocols: ['kafka'],
+          contentPath: 'channels/payments.events/index.mdx',
+          contentHash: 'sha256:13a1dc9349756c968fe39144ad9092d796262d1afd98135188e8932420f64af2',
+          resolvedFrom: {
+            source: 'acme/payments',
+            commit: '4a1b7e2',
+          },
+        },
+      ],
+      assets: [],
+      edges: [],
+      conflicts: [],
+      warnings: [],
+      externals: [],
+    };
+
+    const result = await hydrate(graph, {
+      outDir,
+      localSource: 'acme/central',
+      fetch,
+    });
+
+    expect(fetch.mock.calls).toEqual([
+      [
+        {
+          source: 'acme/payments',
+          commit: '4a1b7e2',
+          path: 'channels/payments.events/index.mdx',
+        },
+      ],
+    ]);
+    await expect(
+      fs.readFile(path.join(outDir, 'acme-payments--bf264d5186bc', 'channels/payments.events/index.mdx'))
+    ).resolves.toEqual(content);
+    expect(result).toEqual({
+      fetched: 1,
+      written: 1,
+      referenced: 0,
+    });
+  });
+
   it('skips a fetch when contentHash is already cached', async () => {
     const cachedContent = Buffer.from('# Cached Payment Service');
     const fetch = vi.fn<Fetcher>().mockResolvedValue(Buffer.from('# Fresh Payment Service'));
@@ -153,6 +205,63 @@ describe('hydrate', () => {
     ).resolves.toEqual(cachedContent);
     expect(result).toEqual({
       fetched: 0,
+      written: 1,
+      referenced: 0,
+    });
+  });
+
+  it('refetches and replaces cached bytes that do not match contentHash', async () => {
+    const content = Buffer.from('# Payment Service');
+    const contentHash = 'sha256:3e63897b7cc3a92411599289d00d686f1b1fc8e336927efa46101c8943410c70';
+    const fetch = vi.fn<Fetcher>().mockResolvedValue(content);
+    const get = vi.fn<Cache['get']>().mockResolvedValue(Buffer.from('# Corrupted Payment Service'));
+    const set = vi.fn<Cache['set']>();
+    const cache: Cache = { get, set };
+    const graph: ResolvedGraph = {
+      entities: [
+        {
+          type: 'service',
+          id: 'payment-service',
+          version: '1.0.0',
+          name: 'Payment Service',
+          contentPath: 'services/payment-service/index.mdx',
+          contentHash,
+          resolvedFrom: {
+            source: 'acme/payments',
+            commit: '4a1b7e2',
+          },
+        },
+      ],
+      assets: [],
+      edges: [],
+      conflicts: [],
+      warnings: [],
+      externals: [],
+    };
+
+    const result = await hydrate(graph, {
+      outDir,
+      localSource: 'acme/central',
+      fetch,
+      cache,
+    });
+
+    expect(get.mock.calls).toEqual([[contentHash]]);
+    expect(fetch.mock.calls).toEqual([
+      [
+        {
+          source: 'acme/payments',
+          commit: '4a1b7e2',
+          path: 'services/payment-service/index.mdx',
+        },
+      ],
+    ]);
+    expect(set.mock.calls).toEqual([[contentHash, content]]);
+    await expect(
+      fs.readFile(path.join(outDir, 'acme-payments--bf264d5186bc', 'services/payment-service/index.mdx'))
+    ).resolves.toEqual(content);
+    expect(result).toEqual({
+      fetched: 1,
       written: 1,
       referenced: 0,
     });

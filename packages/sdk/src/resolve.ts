@@ -39,6 +39,9 @@ const getPointerFields = (entity: ResolvedEntity): PointerField[] => [
   { direction: 'writesTo', pointers: entity.writesTo },
   { direction: 'readsFrom', pointers: entity.readsFrom },
   { direction: 'contains', via: 'services', pointers: entity.services },
+  { direction: 'contains', via: 'agents', pointers: entity.agents },
+  { direction: 'contains', via: 'domains', pointers: entity.domains },
+  { direction: 'contains', via: 'dataProducts', pointers: entity.dataProducts },
   { direction: 'contains', via: 'systems', pointers: entity.systems },
   { direction: 'contains', via: 'entities', pointers: entity.entities },
   { direction: 'contains', via: 'containers', pointers: entity.containers },
@@ -49,6 +52,15 @@ const getPointerFields = (entity: ResolvedEntity): PointerField[] => [
   { direction: 'references', via: 'steps', pointers: entity.references },
   { direction: 'appliesTo', pointers: entity.appliesTo },
   { direction: 'relatesTo', via: 'related', pointers: entity.related },
+  { direction: 'relatesTo', via: 'supersedes', pointers: entity.supersedes },
+  { direction: 'relatesTo', via: 'supersededBy', pointers: entity.supersededBy },
+  { direction: 'relatesTo', via: 'amends', pointers: entity.amends },
+  { direction: 'relatesTo', via: 'amendedBy', pointers: entity.amendedBy },
+  { direction: 'relatesTo', via: 'diagrams', pointers: entity.diagrams },
+  { direction: 'references', via: 'channels', pointers: entity.channels },
+  { direction: 'references', via: 'routes', pointers: entity.routes },
+  { direction: 'sends', via: 'sends.to', pointers: entity.sends?.flatMap((pointer) => pointer.to ?? []) },
+  { direction: 'receives', via: 'receives.from', pointers: entity.receives?.flatMap((pointer) => pointer.from ?? []) },
 ];
 
 export const resolve = (indexes: Index[]): ResolvedGraph => {

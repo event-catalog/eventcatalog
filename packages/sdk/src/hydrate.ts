@@ -39,6 +39,8 @@ const getSourceDirectory = (source: string) => {
   return `${slug}--${digest}`;
 };
 
+const getContentHash = (content: Buffer) => `sha256:${createHash('sha256').update(content).digest('hex')}`;
+
 const getArtifactOutputPath = (artifact: Artifact, outDir: string) => {
   const allowedDirectory = path.resolve(artifact.shared ? outDir : path.join(outDir, getSourceDirectory(artifact.source)));
   const portableTarget = artifact.target.replaceAll('\\', '/');
@@ -162,6 +164,10 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
     for (const artifact of artifacts) {
       let content: Buffer | undefined = artifact.hash ? await options.cache?.get(artifact.hash) : undefined;
 
+      if (content !== undefined && artifact.hash && getContentHash(content) !== artifact.hash) {
+        content = undefined;
+      }
+
       if (content === undefined) {
         content = await options.fetch({
           source: artifact.source,
@@ -171,7 +177,7 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
         result.fetched++;
 
         if (artifact.hash) {
-          const actualHash = `sha256:${createHash('sha256').update(content).digest('hex')}`;
+          const actualHash = getContentHash(content);
 
           if (actualHash !== artifact.hash) {
             throw new Error(

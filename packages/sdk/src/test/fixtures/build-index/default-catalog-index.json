@@ -1,0 +1,4049 @@
+{
+  "indexVersion": 1,
+  "source": "eventcatalog/examples/default",
+  "commit": "fixture",
+  "resources": [
+    {
+      "type": "adr",
+      "id": "adr-001-use-transactional-outbox",
+      "version": "1.0.0",
+      "name": "ADR-001: Publish product events via a transactional outbox",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/adrs/adr-001-use-transactional-outbox/index.mdx",
+      "contentHash": "sha256:c0185646b1da56e022231f3d695f20c97a403567da77279e4b7024c7204666ed",
+      "owners": [
+        "product-platform"
+      ],
+      "status": "accepted",
+      "appliesTo": [
+        {
+          "type": "system",
+          "id": "product-catalog-system"
+        },
+        {
+          "type": "service",
+          "id": "product-search-publisher"
+        },
+        {
+          "type": "container",
+          "id": "product-database"
+        }
+      ]
+    },
+    {
+      "type": "adr",
+      "id": "adr-002-postgres-as-system-of-record",
+      "version": "1.0.0",
+      "name": "ADR-002: Use PostgreSQL as the product system of record",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/adrs/adr-002-postgres-as-system-of-record/index.mdx",
+      "contentHash": "sha256:9bbad6f6da920176c6b15ca1d85f0539bfd0bd70b633cadb40f13ffda835904a",
+      "owners": [
+        "product-platform"
+      ],
+      "status": "accepted",
+      "appliesTo": [
+        {
+          "type": "system",
+          "id": "product-catalog-system"
+        },
+        {
+          "type": "container",
+          "id": "product-database"
+        }
+      ],
+      "related": [
+        {
+          "id": "adr-001-use-transactional-outbox"
+        }
+      ]
+    },
+    {
+      "type": "adr",
+      "id": "adr-003-offload-async-work-to-worker",
+      "version": "1.0.0",
+      "name": "ADR-003: Offload long-running catalog work to a dedicated worker",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/adrs/adr-003-offload-async-work-to-worker/index.mdx",
+      "contentHash": "sha256:785ae3411472e1bc46630beaa7c3d5fbcc6f194cd45e4136f870b3cd63e7f498",
+      "owners": [
+        "product-platform"
+      ],
+      "status": "accepted",
+      "appliesTo": [
+        {
+          "type": "system",
+          "id": "product-catalog-system"
+        },
+        {
+          "type": "service",
+          "id": "product-worker"
+        },
+        {
+          "type": "service",
+          "id": "product-api"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "add-item-to-cart",
+      "version": "1.0.0",
+      "name": "Add Item To Cart",
+      "contentPath": "domains/Shopping/systems/cart-system/services/CartAPI/commands/AddItemToCart/index.mdx",
+      "contentHash": "sha256:abc8fbe0d646a8e2b04477527ba29d66d4584c87d04856eb1e1a53ee0909160c",
+      "owners": [
+        "shopping-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:c8585c8107da10c4c9c02dc4384f8ccadaffc43a28a985197a2045791bfbd298"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "authenticate-customer",
+      "version": "1.0.0",
+      "name": "Authenticate Customer",
+      "contentPath": "domains/Customer/systems/identity-provider/services/OAuthAPI/commands/AuthenticateCustomer/index.mdx",
+      "contentHash": "sha256:b1937000c87557427c582493e31b182afdf13381b18222f1a131f98306560889",
+      "owners": [
+        "customer-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:c1e2a8315c1ec4b3f85888ca623f642859a3c3f44028bdabbc10b53c959c82a1"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "authorize-payment",
+      "version": "1.0.0",
+      "name": "Authorize Payment",
+      "contentPath": "domains/Ordering/systems/checkout-system/services/CheckoutOrchestrator/commands/AuthorizePayment/index.mdx",
+      "contentHash": "sha256:9c6016de966e994812916b83f919d8e444668adc48e448a9b7616d9ebf70feed",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:e4461a01e92ca0d396b19f884d426f81a305cda3594a80d65b3c953f557b6a82"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "calculate-discount",
+      "version": "1.0.0",
+      "name": "Calculate Discount",
+      "contentPath": "domains/Shopping/systems/promotion-system/services/PromotionService/commands/CalculateDiscount/index.mdx",
+      "contentHash": "sha256:66a076f717e47b4c66f8d39e48fbe7b6df780e958cd594bfec4963e900f7b71b",
+      "owners": [
+        "shopping-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:e72302bd6fa5fee8e82c156594d7e07c818b4e79608c677a7cda02ffc509b6a9"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "cancel-order",
+      "version": "1.0.0",
+      "name": "Cancel Order",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/commands/CancelOrder/index.mdx",
+      "contentHash": "sha256:aebba775afbccd0a643355994e63beac6b3013a313cd3db6f5758c22adb7a5e2",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:a9ab236c652dee4791b6ca16ae9e3200a7138c4b5d53969a380506e4580b24d7"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "checkout-cart",
+      "version": "1.0.0",
+      "name": "Checkout Cart",
+      "contentPath": "domains/Shopping/systems/cart-system/services/CartAPI/commands/CheckoutCart/index.mdx",
+      "contentHash": "sha256:b94912418764a5773b3f007bbcd411e7ed19b36b4cde57d5b0fa203132e83839",
+      "owners": [
+        "shopping-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:6806eb7322e799445b36aeb1fd260c1987d217eaaacabe92da6c0e544059a858"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "create-order",
+      "version": "1.0.0",
+      "name": "Create Order",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/commands/CreateOrder/index.mdx",
+      "contentHash": "sha256:6c8a877d504e8595a81cf0bbe52b5a805f2d3bcf38575d37980d31119da6bbba",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:0651de9a9cf07a1f34b50d31cfaee4d63e92c252d1e6cc516b24040ba48b1b11"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "create-product",
+      "version": "1.0.0",
+      "name": "Create Product",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/commands/CreateProduct/index.mdx",
+      "contentHash": "sha256:9c9f0f63cecd86ca8ac535848590edf481dc3c2bcc745d7836c259cd9a5f11d7",
+      "owners": [
+        "product-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:18ce94dae333fc5613ebc7597f570276b59f92cbea28cfe811f6e8fa67b26a8d"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "create-shipment",
+      "version": "1.0.0",
+      "name": "Create Shipment",
+      "contentPath": "domains/Fulfilment/systems/shipping-system/services/CarrierAdapter/commands/CreateShipment/index.mdx",
+      "contentHash": "sha256:ff68fec3e6cdbcf51f067f58215e8d4f59dc967018cb50a2ecb8cfa5c3056123",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:55f240b44883de5870b5be707a5eb29e313fedb59bb1a408dadb20076fb8b1a3"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "delete-product",
+      "version": "1.0.0",
+      "name": "Delete Product",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/commands/DeleteProduct/index.mdx",
+      "contentHash": "sha256:942391cb113de771e68f9338baed771b66e2b6bc80e65eb18e35f6fb447edd47",
+      "owners": [
+        "product-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:4a98cac6c02570a0694601d00e8f6203aff37494d8c17c05da89ddf2c3a383bf"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "flag-review",
+      "version": "1.0.0",
+      "name": "Flag Review",
+      "contentPath": "domains/Reviews/services/ReviewAPI/commands/flag-review/index.mdx",
+      "contentHash": "sha256:bd89586f38ffe3444c62c20dfdae739a8562d5e88acf5807d6429cfde869df70",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:f169779389b0873e1bc342c81e85c19055acb6a8c791be8ca3e996084179c433"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "register-customer",
+      "version": "1.0.0",
+      "name": "Register Customer",
+      "contentPath": "domains/Customer/systems/customer-management-system/services/CustomerAPI/commands/RegisterCustomer/index.mdx",
+      "contentHash": "sha256:fdab08abc43439d8d6371cdb1b1686f653c3dcad80270139631e9f9d92824c4e",
+      "owners": [
+        "customer-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:507be509dba1127f205108d03b241401c5d520b961bac2a925ed765c369b2bcd"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "release-inventory",
+      "version": "1.0.0",
+      "name": "Release Inventory",
+      "contentPath": "domains/Fulfilment/systems/inventory-system/services/InventoryService/commands/ReleaseInventory/index.mdx",
+      "contentHash": "sha256:db153f4cab02671ddf4d2844b067a3cd17f4bedc53cc7dba06d5162ba92b32e8",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:6ee6aae45206b2d45b1046d92b6fcdcff3451cbd8fdfbe323e84f7036ea28363"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "remove-item-from-cart",
+      "version": "1.0.0",
+      "name": "Remove Item From Cart",
+      "contentPath": "domains/Shopping/systems/cart-system/services/CartAPI/commands/RemoveItemFromCart/index.mdx",
+      "contentHash": "sha256:9568cb298a80f6af3cc7fb6ccff3707da811e3c37c5d95f581de8332b10e1044",
+      "owners": [
+        "shopping-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:3bd7afab3da2ca6ee11af44879ca30c7ef9bb7fcf9c84708629ba90e6492ebc3"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "reserve-inventory",
+      "version": "1.0.0",
+      "name": "Reserve Inventory",
+      "contentPath": "domains/Ordering/systems/checkout-system/services/CheckoutOrchestrator/commands/ReserveInventory/index.mdx",
+      "contentHash": "sha256:3f42b85d4574e8095026eb8f497fbe35a993a197a21399e34af44e65154e9e93",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:25bc5b0a2439ca62a56ec7ea4a591b4775c9831bf3ddb672a0bb25e71c8df32d"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "submit-review",
+      "version": "1.0.0",
+      "name": "Submit Review",
+      "contentPath": "domains/Reviews/services/ReviewAPI/commands/submit-review/index.mdx",
+      "contentHash": "sha256:9bad501de35445445cca4de0db1d45c8be830390be926bdb73d6585bc7624439",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:97756439908e0cf16a584ab8b9eaf95adea9ed64b8b16be21978f94449a9471c"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "update-customer",
+      "version": "1.0.0",
+      "name": "Update Customer",
+      "contentPath": "domains/Customer/systems/customer-management-system/services/CustomerAPI/commands/UpdateCustomer/index.mdx",
+      "contentHash": "sha256:04cd655ae882fc0bcf98dc60d663dffa60b9214c27722ba8e81efdaab3c16d9f",
+      "owners": [
+        "customer-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:2c12ab3f8c9a9b3441d5b6b43b75ad310a56e44acda390807973be4f52b19ad4"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "update-product",
+      "version": "1.0.0",
+      "name": "Update Product",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/commands/UpdateProduct/index.mdx",
+      "contentHash": "sha256:56ff9296c9043bad438a57472116b92bd486b21171db491201b44a069994b335",
+      "owners": [
+        "product-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:1c256e3ebfe23092b811d630de911f55e2a36ffaf3381ff310c22f0ac965522e"
+        }
+      ]
+    },
+    {
+      "type": "command",
+      "id": "vote-review-helpful",
+      "version": "1.0.0",
+      "name": "Vote Review Helpful",
+      "contentPath": "domains/Reviews/services/ReviewAPI/commands/vote-review-helpful/index.mdx",
+      "contentHash": "sha256:181e7343185b3bd89d2b394840336f9487fbabdd52a49544dfa3079a9982b7f1",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:0f74b9169425cdbadd8eedf1c9838b2b0ad0a6882a1ce658159e2783c054d03e"
+        }
+      ]
+    },
+    {
+      "type": "container",
+      "id": "cart-database",
+      "version": "1.0.0",
+      "name": "Cart Database",
+      "contentPath": "domains/Shopping/systems/cart-system/containers/cart-database/index.mdx",
+      "contentHash": "sha256:3b082f0171336745026db5179d7a1584c670c94e67dd182fa1d4532850ab933d",
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/cart-system/containers/cart-database/schema.sql",
+          "hash": "sha256:f3c14b093ae38083e88153b91e7a7efbb13750a9ba963045cb579602313001c0"
+        }
+      ],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "customer-database",
+      "version": "1.0.0",
+      "name": "Customer Database",
+      "contentPath": "domains/Customer/systems/customer-management-system/containers/customer-database/index.mdx",
+      "contentHash": "sha256:f32c04a27f81c85b8d4419fbd24d76bb0420500d9c4bee5437f58727a5939f01",
+      "sidecars": [
+        {
+          "path": "domains/Customer/systems/customer-management-system/containers/customer-database/schema.sql",
+          "hash": "sha256:eb0e79d21b9b87a8dbde1afb9713449dd0e4235e612ff79ebf8c2e7548e0bfea"
+        }
+      ],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "inventory-database",
+      "version": "1.0.0",
+      "name": "Inventory Database",
+      "contentPath": "domains/Fulfilment/systems/inventory-system/containers/inventory-database/index.mdx",
+      "contentHash": "sha256:41ad98e6c93d6bd9f275846a1166fda1b5791992f5b8128224efef5f915f37bc",
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/inventory-system/containers/inventory-database/schema.sql",
+          "hash": "sha256:4030b7fb0df9e3c7130cde331867a3ad92f17e4051318f5e3e8f9e6fa622090d"
+        }
+      ],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "order-database",
+      "version": "1.0.0",
+      "name": "Order Database",
+      "contentPath": "domains/Ordering/systems/order-management-system/containers/order-database/index.mdx",
+      "contentHash": "sha256:7e58b7891804c1c9ed7cf38f7ad0b3fb7f1e931fbcf3a9961dd1707b65b9d9b6",
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/containers/order-database/schema.sql",
+          "hash": "sha256:e41d0357c3db061ad8ca33a312324b824c8ca1267a7082681f956f2938faa352"
+        }
+      ],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "payment-database",
+      "version": "1.0.0",
+      "name": "Payment Database",
+      "contentPath": "domains/Payments/systems/payment-processing-system/containers/payment-database/index.mdx",
+      "contentHash": "sha256:6d69bde6873683e95e6311ed6832dc4146e90acdc61ba46e15536336de2a21d8",
+      "sidecars": [
+        {
+          "path": "domains/Payments/systems/payment-processing-system/containers/payment-database/schema.sql",
+          "hash": "sha256:4a0cce1c3f96fde7ce883b270a04de6401a282814870c4e392ca03d2c290f6a5"
+        }
+      ],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "product-database",
+      "version": "1.0.0",
+      "name": "Product Database",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/containers/product-database/index.mdx",
+      "contentHash": "sha256:656370626ce89688446e15b64e6450df5d612aae1a2ae5a670ce643df04587fa",
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/containers/product-database/schema.sql",
+          "hash": "sha256:2328ac660a583d2f2894932852548773b8954110645097d4b98ae5d87b7e1be8"
+        }
+      ],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "promotion-database",
+      "version": "1.0.0",
+      "name": "Promotion Database",
+      "contentPath": "domains/Shopping/systems/promotion-system/containers/promotion-database/index.mdx",
+      "contentHash": "sha256:9e048fe0abcc585a36c963a19e71a5ec1f2b0114e1c5fcb356c2491ff806c90d",
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/promotion-system/containers/promotion-database/schema.sql",
+          "hash": "sha256:1f17d1072c865c15bae962c903c07f6ba0c9165cf13989537fcfb2bd91bb9e2c"
+        }
+      ],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "rating-cache",
+      "version": "1.0.0",
+      "name": "Rating Cache",
+      "contentPath": "domains/Reviews/containers/rating-cache/index.mdx",
+      "contentHash": "sha256:1854e2ef4b8f95b217b29c561a6a8d2efbfbc4280c3f8b75c7c0173009ae6b90",
+      "container_type": "cache"
+    },
+    {
+      "type": "container",
+      "id": "review-database",
+      "version": "1.0.0",
+      "name": "Review Database",
+      "contentPath": "domains/Reviews/containers/review-database/index.mdx",
+      "contentHash": "sha256:d7a520e101b9f287524b628fbacd1e10271e7bb6c21b32e96f68479247f8c8cd",
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "search-index",
+      "version": "1.0.0",
+      "name": "Search Index",
+      "contentPath": "domains/Catalog/systems/search-system/containers/search-index/index.mdx",
+      "contentHash": "sha256:8af9927731b60a0657904416370dd698f98f253f7f49425fb9bb510b5c7a271d",
+      "container_type": "searchIndex"
+    },
+    {
+      "type": "container",
+      "id": "user-directory",
+      "version": "1.0.0",
+      "name": "User Directory",
+      "contentPath": "domains/Customer/systems/identity-provider/containers/user-directory/index.mdx",
+      "contentHash": "sha256:34495ce55684f685325fd28eb73c0ea1bc0eb3ab069484d9bc64a31e5801735f",
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "warehouse-database",
+      "version": "1.0.0",
+      "name": "Warehouse Database",
+      "contentPath": "domains/Fulfilment/systems/warehouse-system/containers/warehouse-database/index.mdx",
+      "contentHash": "sha256:925bbf32084f53fdc5612fda1f4524b3fdc3755ac5d5014aabfe934a2542aa56",
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/warehouse-system/containers/warehouse-database/schema.sql",
+          "hash": "sha256:6edf05486e723138933207c2c012bcd4aeda2e5b38a444868f5ea0b8358ea366"
+        }
+      ],
+      "container_type": "database"
+    },
+    {
+      "type": "domain",
+      "id": "catalog",
+      "version": "1.0.0",
+      "name": "Catalog",
+      "contentPath": "domains/Catalog/index.mdx",
+      "contentHash": "sha256:73da6896ccad4dc201c8199a89e103cba2e71a2bd2bfc8d16c86d403586fa5f9",
+      "owners": [
+        "product-platform"
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/ubiquitous-language.mdx",
+          "hash": "sha256:8905dfccffdfc950d1f5aec2fda7c67045a3d3d536b972f1d835297a1284da3a"
+        }
+      ],
+      "systems": [
+        {
+          "id": "product-catalog-system",
+          "version": "1.0.0"
+        },
+        {
+          "id": "search-system",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "product",
+          "version": "1.0.0"
+        },
+        {
+          "id": "product-variant",
+          "version": "1.0.0"
+        },
+        {
+          "id": "category",
+          "version": "1.0.0"
+        },
+        {
+          "id": "search-document",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "customer",
+      "version": "1.0.0",
+      "name": "Customer",
+      "contentPath": "domains/Customer/index.mdx",
+      "contentHash": "sha256:df6811c1a5e418757516b27c54d30cd473af7bf5a017b58ba46e38d00d8f18c6",
+      "owners": [
+        "customer-platform"
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/ubiquitous-language.mdx",
+          "hash": "sha256:3e3c5f510f9807c7b83889b749414716a1669377aaa23ea79e13b38bca4237a4"
+        }
+      ],
+      "systems": [
+        {
+          "id": "customer-management-system",
+          "version": "1.0.0"
+        },
+        {
+          "id": "identity-provider",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "customer-profile",
+          "version": "1.0.0"
+        },
+        {
+          "id": "customer-account",
+          "version": "1.0.0"
+        },
+        {
+          "id": "authentication-session",
+          "version": "1.0.0"
+        },
+        {
+          "id": "customer-address",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "fulfilment",
+      "version": "1.0.0",
+      "name": "Fulfilment",
+      "contentPath": "domains/Fulfilment/index.mdx",
+      "contentHash": "sha256:4c135222dcc67e7872a40668050b3056b98932a38cd21968b050c0f9bf37440a",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/ubiquitous-language.mdx",
+          "hash": "sha256:513c1fd12c9612c7f8903004aeb8914408fa4355219bb4499f62636d55cc3f69"
+        }
+      ],
+      "systems": [
+        {
+          "id": "inventory-system",
+          "version": "1.0.0"
+        },
+        {
+          "id": "warehouse-system",
+          "version": "1.0.0"
+        },
+        {
+          "id": "shipping-system",
+          "version": "1.0.0"
+        },
+        {
+          "id": "carrier",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "stock-item",
+          "version": "1.0.0"
+        },
+        {
+          "id": "inventory-reservation",
+          "version": "1.0.0"
+        },
+        {
+          "id": "warehouse-pick",
+          "version": "1.0.0"
+        },
+        {
+          "id": "shipment",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "ordering",
+      "version": "1.0.0",
+      "name": "Ordering",
+      "contentPath": "domains/Ordering/index.mdx",
+      "contentHash": "sha256:b8897d88a778080bd1e00b8afba2566e855f59927a831e4e0197ce492401e07a",
+      "owners": [
+        "ordering-platform"
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/ubiquitous-language.mdx",
+          "hash": "sha256:3f5ece175b8fa2d82aa5f225095a505340a283470a14c5e05c95332a171d455b"
+        }
+      ],
+      "systems": [
+        {
+          "id": "checkout-system",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-management-system",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "checkout-session",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-line",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-status-history",
+          "version": "1.0.0"
+        }
+      ],
+      "flows": [
+        {
+          "id": "place-an-order",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "payments",
+      "version": "1.0.0",
+      "name": "Payments",
+      "contentPath": "domains/Payments/index.mdx",
+      "contentHash": "sha256:82dcb892b91e5cec3d3abb0ef98f02637516314240070158adf365369ea009dc",
+      "owners": [
+        "payments-platform"
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Payments/ubiquitous-language.mdx",
+          "hash": "sha256:37e3eff5e46d471656ac8b1f47a3168a8db31e411ce9ffbd2252df325003c07a"
+        }
+      ],
+      "systems": [
+        {
+          "id": "payment-processing-system",
+          "version": "1.0.0"
+        },
+        {
+          "id": "stripe",
+          "version": "1.0.0"
+        },
+        {
+          "id": "fraud-detection",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "payment",
+          "version": "1.0.0"
+        },
+        {
+          "id": "payment-authorization",
+          "version": "1.0.0"
+        },
+        {
+          "id": "refund",
+          "version": "1.0.0"
+        },
+        {
+          "id": "fraud-check",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "reviews",
+      "version": "1.0.0",
+      "name": "Reviews & Ratings",
+      "contentPath": "domains/Reviews/index.mdx",
+      "contentHash": "sha256:5d8f7212fceb1c29e04ae25e22aeea6e230bbaa4e8daba564a7f3cf70a7c54bc",
+      "owners": [
+        "reviews-platform"
+      ],
+      "specifications": [
+        {
+          "type": "openapi",
+          "path": "openapi.yml",
+          "name": "Review API",
+          "hash": "sha256:45c5adf8ead80a35d0d72df201d48d36755bb6928daf782d6ba1684d157cc236"
+        },
+        {
+          "type": "asyncapi",
+          "path": "asyncapi.yml",
+          "name": "Reviews Eventing",
+          "hash": "sha256:36358abda679dc19a2c22344a6b2eca4fc83a71a5485a31416356fda549e4fbb"
+        }
+      ],
+      "sends": [
+        {
+          "id": "review-submitted",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-published",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-rejected",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-flagged",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-helpful-voted",
+          "version": "1.0.0"
+        },
+        {
+          "id": "rating-updated",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "submit-review",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "review-submitted",
+              "version": "1.0.0",
+              "condition": "When the review passes submission validation"
+            }
+          ]
+        },
+        {
+          "id": "flag-review",
+          "version": "1.0.0"
+        },
+        {
+          "id": "vote-review-helpful",
+          "version": "1.0.0"
+        },
+        {
+          "id": "get-product-reviews",
+          "version": "1.0.0"
+        }
+      ],
+      "services": [
+        {
+          "id": "review-api",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-moderation-worker",
+          "version": "1.0.0"
+        },
+        {
+          "id": "rating-aggregator",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "review",
+          "version": "1.0.0"
+        },
+        {
+          "id": "moderation-decision",
+          "version": "1.0.0"
+        },
+        {
+          "id": "rating-summary",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-vote",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-flag",
+          "version": "1.0.0"
+        }
+      ],
+      "flows": [
+        {
+          "id": "review-submission",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "shopping",
+      "version": "1.0.0",
+      "name": "Shopping",
+      "contentPath": "domains/Shopping/index.mdx",
+      "contentHash": "sha256:013ccf530b88fb9b343966f85b4fdc74062afab262dbc9bc5b306cfae046920e",
+      "owners": [
+        "shopping-platform"
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Shopping/ubiquitous-language.mdx",
+          "hash": "sha256:b8dd599829b78e570323150ad08bc65d01262413b9290a996ef63e9797e30f0d"
+        }
+      ],
+      "systems": [
+        {
+          "id": "cart-system",
+          "version": "1.0.0"
+        },
+        {
+          "id": "promotion-system",
+          "version": "1.0.0"
+        }
+      ],
+      "entities": [
+        {
+          "id": "cart",
+          "version": "1.0.0"
+        },
+        {
+          "id": "cart-item",
+          "version": "1.0.0"
+        },
+        {
+          "id": "promotion",
+          "version": "1.0.0"
+        },
+        {
+          "id": "discount",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "authentication-session",
+      "version": "1.0.0",
+      "name": "Authentication Session",
+      "contentPath": "domains/Customer/entities/authentication-session/index.mdx",
+      "contentHash": "sha256:2013fa6e82e44b2ee9c24619c01733803e3650b2f35b7aa5705e69fec0f19bff",
+      "owners": [
+        "customer-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "cart",
+      "version": "1.0.0",
+      "name": "Cart",
+      "contentPath": "domains/Shopping/entities/cart/index.mdx",
+      "contentHash": "sha256:13e8c5197b46effe9fb67d88645df3acb5beeb0ea3f84af0c0163b6c0af0bf34",
+      "owners": [
+        "shopping-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "cart-item",
+      "version": "1.0.0",
+      "name": "Cart Item",
+      "contentPath": "domains/Shopping/entities/cart-item/index.mdx",
+      "contentHash": "sha256:24f5c084a504ff9292ea01ee893bd38e2a5ddc6aca2b3bf3acb0fbf59c466252",
+      "owners": [
+        "shopping-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "category",
+      "version": "1.0.0",
+      "name": "Category",
+      "contentPath": "domains/Catalog/entities/category/index.mdx",
+      "contentHash": "sha256:e35fcfbcab26cc281a0cd273c1eac6bd323970334d550bf52537e9d8f3d68430",
+      "owners": [
+        "product-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "checkout-session",
+      "version": "1.0.0",
+      "name": "Checkout Session",
+      "contentPath": "domains/Ordering/entities/checkout-session/index.mdx",
+      "contentHash": "sha256:3ee14c6040224665c474cb68424016f65360a0ab0f82ca735986bec6fcf0a835",
+      "owners": [
+        "ordering-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "customer-account",
+      "version": "1.0.0",
+      "name": "Customer Account",
+      "contentPath": "domains/Customer/entities/customer-account/index.mdx",
+      "contentHash": "sha256:fb88c9721d2b0485044b0bbfd5a05329a3377d2eeebe0541da035001ffba91b9",
+      "owners": [
+        "customer-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "customer-address",
+      "version": "1.0.0",
+      "name": "Customer Address",
+      "contentPath": "domains/Customer/entities/customer-address/index.mdx",
+      "contentHash": "sha256:459070f15f7952a8b09979bc8f2b81d0210fefff716838741602d789e37f2ec2",
+      "owners": [
+        "customer-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "customer-profile",
+      "version": "1.0.0",
+      "name": "Customer Profile",
+      "contentPath": "domains/Customer/entities/customer-profile/index.mdx",
+      "contentHash": "sha256:560b630624fdb659713b9746509793de2adc266f051f23aa78442587d4d5dfc9",
+      "owners": [
+        "customer-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "discount",
+      "version": "1.0.0",
+      "name": "Discount",
+      "contentPath": "domains/Shopping/entities/discount/index.mdx",
+      "contentHash": "sha256:45b3a29a361f996eacee0d85ced8da2c998dc057cf24363bb775d04657ff65b0",
+      "owners": [
+        "shopping-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "fraud-check",
+      "version": "1.0.0",
+      "name": "Fraud Check",
+      "contentPath": "domains/Payments/entities/fraud-check/index.mdx",
+      "contentHash": "sha256:fb1b7161b2d1bec64ea64e9ba6884b7a9f1d59cf94d0ce5b5582c2f1e190d873",
+      "owners": [
+        "payments-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "inventory-reservation",
+      "version": "1.0.0",
+      "name": "Inventory Reservation",
+      "contentPath": "domains/Fulfilment/entities/inventory-reservation/index.mdx",
+      "contentHash": "sha256:f7bce8239350941425a5e32562ed80e6175581a04680caa7e0fe9f88d1fd46be",
+      "owners": [
+        "fulfilment-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "moderation-decision",
+      "version": "1.0.0",
+      "name": "Moderation Decision",
+      "contentPath": "domains/Reviews/entities/moderation-decision/index.mdx",
+      "contentHash": "sha256:d4693cd868bfb55f035763ff8ce9971875db0933cb3ce94d161ed6bf62f0f76c",
+      "owners": [
+        "reviews-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "order",
+      "version": "1.0.0",
+      "name": "Order",
+      "contentPath": "domains/Ordering/entities/order/index.mdx",
+      "contentHash": "sha256:0510ec6a21d0956735895b19bb910e6d5606bbef9f2d0e098ce92f6e3b1fef68",
+      "owners": [
+        "ordering-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "order-line",
+      "version": "1.0.0",
+      "name": "Order Line",
+      "contentPath": "domains/Ordering/entities/order-line/index.mdx",
+      "contentHash": "sha256:ef9395747d87801ffe60f64d542ddfef593cd2d66da3dfcee735fff8fa8df52c",
+      "owners": [
+        "ordering-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "order-status-history",
+      "version": "1.0.0",
+      "name": "Order Status History",
+      "contentPath": "domains/Ordering/entities/order-status-history/index.mdx",
+      "contentHash": "sha256:7fdb1ffbdc2bd41648506017d32d7e8f75f38293a39a2f4161aaba33687fa2f1",
+      "owners": [
+        "ordering-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "payment",
+      "version": "1.0.0",
+      "name": "Payment",
+      "contentPath": "domains/Payments/entities/payment/index.mdx",
+      "contentHash": "sha256:d07eff34070105f0a088952a4e054ea4b4b2e141b5f122b5f034acbb2ff24426",
+      "owners": [
+        "payments-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "payment-authorization",
+      "version": "1.0.0",
+      "name": "Payment Authorization",
+      "contentPath": "domains/Payments/entities/payment-authorization/index.mdx",
+      "contentHash": "sha256:ed173c6eb128fe449231c71e2c3f741365643c9baa57a93ede67f8f8a9feda8d",
+      "owners": [
+        "payments-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "product",
+      "version": "1.0.0",
+      "name": "Product",
+      "contentPath": "domains/Catalog/entities/product/index.mdx",
+      "contentHash": "sha256:a543f2c0ad0bd456b62008ab11d25a3a07956d64cb3294fa8a7882bb8f2e186e",
+      "owners": [
+        "product-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "product-variant",
+      "version": "1.0.0",
+      "name": "Product Variant",
+      "contentPath": "domains/Catalog/entities/product-variant/index.mdx",
+      "contentHash": "sha256:344131f93c86111c846475819b4ae213ea2155ee412597d1eb8094ac8cdf3395",
+      "owners": [
+        "product-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "promotion",
+      "version": "1.0.0",
+      "name": "Promotion",
+      "contentPath": "domains/Shopping/entities/promotion/index.mdx",
+      "contentHash": "sha256:c236f1ed81af6111aecd30ea0edd74f18cf8cd369ac0fb079002280242534c87",
+      "owners": [
+        "shopping-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "rating-summary",
+      "version": "1.0.0",
+      "name": "Rating Summary",
+      "contentPath": "domains/Reviews/entities/rating-summary/index.mdx",
+      "contentHash": "sha256:826d1c04ae82cdfefb77e7898e27c3d3490bddbae1732ccfe798f58fc9eb7fdb",
+      "owners": [
+        "reviews-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "refund",
+      "version": "1.0.0",
+      "name": "Refund",
+      "contentPath": "domains/Payments/entities/refund/index.mdx",
+      "contentHash": "sha256:eb5590e3ef60f0b62a8ad3114050dee6857f3bdf135b35148436597d16ce2af5",
+      "owners": [
+        "payments-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "review",
+      "version": "1.0.0",
+      "name": "Review",
+      "contentPath": "domains/Reviews/entities/review/index.mdx",
+      "contentHash": "sha256:366551bdd368d9082d6dacc5de269ce1aae142f60e53cb1ee505d7c189b05c9f",
+      "owners": [
+        "reviews-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "review-flag",
+      "version": "1.0.0",
+      "name": "Review Flag",
+      "contentPath": "domains/Reviews/entities/review-flag/index.mdx",
+      "contentHash": "sha256:fd66ed6031c497cec108f3305ceb081e1b0873deebe2f544dc91a05df3ae7b09",
+      "owners": [
+        "reviews-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "review-vote",
+      "version": "1.0.0",
+      "name": "Review Vote",
+      "contentPath": "domains/Reviews/entities/review-vote/index.mdx",
+      "contentHash": "sha256:6cd86d97e921f785d7005e675d91a3fa520158a0ff59809b75805caf24fa9c64",
+      "owners": [
+        "reviews-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "search-document",
+      "version": "1.0.0",
+      "name": "Search Document",
+      "contentPath": "domains/Catalog/entities/search-document/index.mdx",
+      "contentHash": "sha256:eedc787bbf94f71a22364a8a0f59a9f7a792c68ff1f5613966197f708bfb4281",
+      "owners": [
+        "search-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "shipment",
+      "version": "1.0.0",
+      "name": "Shipment",
+      "contentPath": "domains/Fulfilment/entities/shipment/index.mdx",
+      "contentHash": "sha256:195db6af532bdd79d4d2b8d9256f510dd6d181e1a286dc130ab392e144ffb3ab",
+      "owners": [
+        "fulfilment-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "stock-item",
+      "version": "1.0.0",
+      "name": "Stock Item",
+      "contentPath": "domains/Fulfilment/entities/stock-item/index.mdx",
+      "contentHash": "sha256:da08793f7992d3b84e2077a552dab91aaea028f4ec5aaa054ce906ce7e1befae",
+      "owners": [
+        "fulfilment-platform"
+      ]
+    },
+    {
+      "type": "entity",
+      "id": "warehouse-pick",
+      "version": "1.0.0",
+      "name": "Warehouse Pick",
+      "contentPath": "domains/Fulfilment/entities/warehouse-pick/index.mdx",
+      "contentHash": "sha256:54408bf5ba5e8cc06592d144b9736fda55ff503fb1e0fbc5ccf70e4668797bd9",
+      "owners": [
+        "fulfilment-platform"
+      ]
+    },
+    {
+      "type": "event",
+      "id": "cart-checked-out",
+      "version": "1.0.0",
+      "name": "Cart Checked Out",
+      "contentPath": "domains/Shopping/systems/cart-system/services/CartAPI/events/CartCheckedOut/index.mdx",
+      "contentHash": "sha256:a04639e4b42de63b5124533dc8a13ab5eac2cffdc8d2750362d64e04e4077290",
+      "owners": [
+        "shopping-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:90ba194f031512ff883f3071d3e724776d7a223707a64c86a9a245edfa7bcfda"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "customer-authenticated",
+      "version": "1.0.0",
+      "name": "Customer Authenticated",
+      "contentPath": "domains/Customer/systems/identity-provider/services/OAuthAPI/events/CustomerAuthenticated/index.mdx",
+      "contentHash": "sha256:6fb98c97e0e670a24534efcc5bbbc2eee8b6e57c04b83cf5864e99ae9dc12d6b",
+      "owners": [
+        "customer-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:9f6b870488245af477a0d485f3eb9dcb08429d10962ff4a330aa6420679a66f1"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "customer-registered",
+      "version": "1.0.0",
+      "name": "Customer Registered",
+      "contentPath": "domains/Customer/systems/customer-management-system/services/CustomerAPI/events/CustomerRegistered/index.mdx",
+      "contentHash": "sha256:c2656bef3e0cf36fd25843cd44115e03ac7f9a79b1a04ce5462254b8ea9c4859",
+      "owners": [
+        "customer-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:683cf1c4ed93d60c43f21a6cfd9e80451a007b6dddd062f92a6726fef758a7d4"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "customer-updated",
+      "version": "1.0.0",
+      "name": "Customer Updated",
+      "contentPath": "domains/Customer/systems/customer-management-system/services/CustomerAPI/events/CustomerUpdated/index.mdx",
+      "contentHash": "sha256:06c7b2eaf41a72807b32ba08f0d8f34b1f4ae4fc85e9f6dd5a238f1047573aa2",
+      "owners": [
+        "customer-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:ce0ac8a2426ae5278304c59b43170407eaca73236cea49135dca9cc4840723bb"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "discount-calculated",
+      "version": "1.0.0",
+      "name": "Discount Calculated",
+      "contentPath": "domains/Shopping/systems/promotion-system/services/PromotionService/events/DiscountCalculated/index.mdx",
+      "contentHash": "sha256:0e17391666ff7e5318264bab2af4d80be509073fe5eb9c3eb6ea0063583ad983",
+      "owners": [
+        "shopping-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:b36ccc2449721581564bcfd9bc8a81959e699d9bde1ea94a2df35070f8c413d1"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "fraud-check-failed",
+      "version": "1.0.0",
+      "name": "Fraud Check Failed",
+      "contentPath": "domains/Payments/systems/fraud-detection/services/FraudAPI/events/FraudCheckFailed/index.mdx",
+      "contentHash": "sha256:56a493a3e9369cba492f8d2aeb89af6f926130bd200b29eeb317701aeee2d123",
+      "owners": [
+        "payments-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:e8943b1f8cf2e26a2b4755fa95c3a572d2c60daf9b43d98b9313d0db374ae207"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "fraud-check-passed",
+      "version": "1.0.0",
+      "name": "Fraud Check Passed",
+      "contentPath": "domains/Payments/systems/fraud-detection/services/FraudAPI/events/FraudCheckPassed/index.mdx",
+      "contentHash": "sha256:f8d21c547ed420bea14e4eb7a73ecda50b153819f3fbe32fc100b612069b2147",
+      "owners": [
+        "payments-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:386e8ac47d5600ac1a0e00253636781f27485935281350874b3ca1c063662426"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "inventory-reserved",
+      "version": "1.0.0",
+      "name": "Inventory Reserved",
+      "contentPath": "domains/Fulfilment/systems/inventory-system/services/InventoryService/events/InventoryReserved/index.mdx",
+      "contentHash": "sha256:54ed26f49ffcd48e677942e98402218a0af39ef4eabaf16c2018bcfb96679cda",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:dc94c50a007e3a70156977a49ac5e3987064402c79ecef1bcd5815b2b1a9440a"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "inventory-unavailable",
+      "version": "1.0.0",
+      "name": "Inventory Unavailable",
+      "contentPath": "domains/Fulfilment/systems/inventory-system/services/InventoryService/events/InventoryUnavailable/index.mdx",
+      "contentHash": "sha256:e6fb19aac2b6b8d795603750f334e3eef1da0ec292a991898d0e5538cb0a078e",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:582fe4df41a588009893340367fa13148fdfcfd44955296c81ca2c52e699e99c"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-amended",
+      "version": "1.0.0",
+      "name": "Order Amended",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderAmended/index.mdx",
+      "contentHash": "sha256:b6a9e5ee5d5250cc6b0829813435125254e6ee61c25c1bf2f8975ee7056aaf5f",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:f33ed0af94cf82f717def635e1e1620a7f898d0d364fea39fde0d4c3e18ea9cf"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-archived",
+      "version": "1.0.0",
+      "name": "Order Archived",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderArchived/index.mdx",
+      "contentHash": "sha256:1f0333a638c6f2b99c04f1dc31adf68f66140e2a84d9a390edf06df94ec1ca5a",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:f6d7182cf40649839fe9cd71c915ced965a07efbca4155e348d2a0e433e9b999"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-cancelled",
+      "version": "1.0.0",
+      "name": "Order Cancelled",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderCancelled/index.mdx",
+      "contentHash": "sha256:40a682a027b00c641a45cb49e856e5b60274b7f4edd64e7bf01c85d647231b98",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:d31eab8d4640bfce048a3e3fc675bba0b00e9be3e8dfdf36049ae17f4827adb6"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-completed",
+      "version": "1.0.0",
+      "name": "Order Completed",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderCompleted/index.mdx",
+      "contentHash": "sha256:9029654089b4aeead7915189d5300198556a33e4e1cdf541906811da29b5f74b",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:06a78ae6837672a16a6e613b648beb67739a1ac6f199fa85a9afcf357e3e27e4"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-confirmed",
+      "version": "1.0.0",
+      "name": "Order Confirmed",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderConfirmed/index.mdx",
+      "contentHash": "sha256:636963f59ccc0ad83199f328bcd24cc17680e73581870827ea8c53cf150ccdf6",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:6fe7b47557ad2e57357794cb689889b82519ea9d69fa63a6fc1bcfeb0ea68920"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-created",
+      "version": "1.0.0",
+      "name": "Order Created",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderCreated/index.mdx",
+      "contentHash": "sha256:93e32711132a7fb660e478eaf9155531e70bf7d92511c02b6b645ebe4ebc31b0",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:af211dfb2198f3db831ec1336b73325f270259adf5e4fd0c955d46d5b0799c27"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-created",
+      "version": "0.6.0",
+      "name": "Order Created",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderCreated/versioned/0.6.0/index.mdx",
+      "contentHash": "sha256:c9da26cf097e09d0423565d8ffea75f7c8c2b1e1fede038bf16de0e8b0b4384d",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:9a8034f9c0c3f04246c79a3a88375177bdd310a742dcb8b5697e0d0e017eb98d"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-created",
+      "version": "0.3.0",
+      "name": "Order Created",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderCreated/versioned/0.3.0/index.mdx",
+      "contentHash": "sha256:314e14146fb80ce3425a01460102bf945eb2698af5eec9f59916047e1a4f014f",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:db170b23b73c158d10df1aa758eb7397ddb4f938852310615d4507ba1a75012f"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-delivery-address-changed",
+      "version": "1.0.0",
+      "name": "Order Delivery Address Changed",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderDeliveryAddressChanged/index.mdx",
+      "contentHash": "sha256:62408a60bf04499b857c46c112fd3018c77e9a4c1ce35a85544732ea533909b1",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:efc8a656bcaf388324237b4968f9b5fbd28a60584ad06a2ef458ac41b544854f"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-fulfilment-started",
+      "version": "1.0.0",
+      "name": "Order Fulfilment Started",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderFulfilmentStarted/index.mdx",
+      "contentHash": "sha256:555ac845cf9ec5775972b12cecc006d2ef969baf58cd85c4bb6d178e05c16ced",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:7567fc4be8858b2c433a094254eef992365af572bcf11e9d917dcfcba04d9539"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-hold-released",
+      "version": "1.0.0",
+      "name": "Order Hold Released",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderHoldReleased/index.mdx",
+      "contentHash": "sha256:7f44d1b27e6c599550fd0790094eac402ef7247406f781fa47fb543ebe7191b7",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:c8883752252f08165f0d0b82d10df5b5d8624d94e36276ad22313bf9579ac056"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-packed",
+      "version": "1.0.0",
+      "name": "Order Packed",
+      "contentPath": "domains/Fulfilment/systems/warehouse-system/services/PickingWorker/events/OrderPacked/index.mdx",
+      "contentHash": "sha256:963bc6551b123549927d9ecaa111e5877a525cecdb56e375fd1492fa2d515bf2",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:15d36e04f5ef8b8d7534d3ab11bd74c2138c0ec6edbd09d436cf0ce75dcbe73c"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-placed-on-hold",
+      "version": "1.0.0",
+      "name": "Order Placed On Hold",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderPlacedOnHold/index.mdx",
+      "contentHash": "sha256:a4ac2a2773712fbf3f7a5636d0353e5af39f909f7b8b2d377713412bf24802f7",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:1fa646b5128121dc7a1f070f425a03ab0b512ade24944ff4fd98695f7e0ff6b2"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-ready-for-shipping",
+      "version": "1.0.0",
+      "name": "Order Ready For Shipping",
+      "contentPath": "domains/Fulfilment/systems/warehouse-system/services/WarehouseService/events/OrderReadyForShipping/index.mdx",
+      "contentHash": "sha256:5dfb23724776e2814703630962b157ef7efb3f71dcd05a53c3e381fe029263e6",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:026538a49f5715f66e2c54b1bbbdaa42078264dba3eb8320f4147680a2bd5892"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "order-status-changed",
+      "version": "1.0.0",
+      "name": "Order Status Changed",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderStatusChanged/index.mdx",
+      "contentHash": "sha256:7b332a4731b6b299e406a90533e0abbfa1d05573e612a02e36e262cffb355fc0",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:41ccc4618a4899d5f5ec486148b10bb9af53a1c16580c08f1e6e154c979a78fa"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "payment-failed",
+      "version": "1.0.0",
+      "name": "Payment Failed",
+      "contentPath": "domains/Payments/systems/stripe/services/StripeWebhookEndpoint/events/PaymentFailed/index.mdx",
+      "contentHash": "sha256:423fb82c1690e8f49e446a0583c47546481d793383eeea524d26ca4b527a956e",
+      "owners": [
+        "payments-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:518debd8c9f350ef5803e25f387de149f1c9394bd3332e735906430e633b9bb7"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "payment-requested",
+      "version": "1.0.0",
+      "name": "Payment Requested",
+      "contentPath": "domains/Payments/systems/payment-processing-system/services/PaymentWorker/events/PaymentRequested/index.mdx",
+      "contentHash": "sha256:67db48cc0527ebd98e780ff2884ca93f762311f3fc8ba86d899b5f542cc481f2",
+      "owners": [
+        "payments-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:d3e85e0309df030d8b835bddee99acab7349ee87c34655ae4ca953d44f723ffb"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "payment-succeeded",
+      "version": "1.0.0",
+      "name": "Payment Succeeded",
+      "contentPath": "domains/Payments/systems/stripe/services/StripeWebhookEndpoint/events/PaymentSucceeded/index.mdx",
+      "contentHash": "sha256:4d166455f15f000435e8ebee4c735442dad4577530b12633a02c1a28a68388ad",
+      "owners": [
+        "payments-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:e15ad586af41416bff2552b281bc0c7830adb5a9f373c852d3ed3b8a66efd1b5"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "product-created",
+      "version": "1.0.0",
+      "name": "Product Created",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductCreated/index.mdx",
+      "contentHash": "sha256:e1f9a5a4e9c6e0373501a8eb7088fcf134544e47a71de6e3f9e1b3618e347b02",
+      "owners": [
+        "product-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:4e56f2f940f9736a0c3eb42d219813ae908402e93fe928cbe79b510cc9863308"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "product-deleted",
+      "version": "1.0.0",
+      "name": "Product Deleted",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductDeleted/index.mdx",
+      "contentHash": "sha256:2ab5906b2b54e86789f464c030fea4e7f9624082081b21500a3a0b51b2c5f2c2",
+      "owners": [
+        "product-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:edc48129f8b3941c8c5ebc44ac2afd09572db433587ef1cf8e78f3f583c3b00d"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "product-updated",
+      "version": "1.0.0",
+      "name": "Product Updated",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductUpdated/index.mdx",
+      "contentHash": "sha256:c27b06cd5369639ca4eda268af8b8158cacde6646ce9053cbf3c39b0d20e4879",
+      "owners": [
+        "product-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:9f712814510b4abd5d8f0b0defaa2daf33afa0a01e2437c3610c814cccfe0956"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "rating-updated",
+      "version": "1.0.0",
+      "name": "Rating Updated",
+      "contentPath": "domains/Reviews/services/RatingAggregator/events/rating-updated/index.mdx",
+      "contentHash": "sha256:0aa40cf2d95dcb22ca3bfc9ca835ef050f6321365ab65172cdcea4fbf0f3f13b",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:ac253fc46f7d986e7192b79e7197d3f83e6222a1a4d5feb02e5d54a47ec2e0f8"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "refund-processed",
+      "version": "1.0.0",
+      "name": "Refund Processed",
+      "contentPath": "domains/Payments/systems/stripe/services/StripeWebhookEndpoint/events/RefundProcessed/index.mdx",
+      "contentHash": "sha256:5fab76c0a685b1bc26b41d0ca106158cd638aa3d45f3b8f56e4afe95f76ef2bb",
+      "owners": [
+        "payments-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:a4f12e2962254dda385b2bf0b20078e59f5d746660940c1eaabd7bf9492beafd"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "refund-requested",
+      "version": "1.0.0",
+      "name": "Refund Requested",
+      "contentPath": "domains/Payments/systems/payment-processing-system/services/PaymentWorker/events/RefundRequested/index.mdx",
+      "contentHash": "sha256:c06b201508538f37e6d00878ab63f03d34fb5130e5445d993bcdc180a52f0aff",
+      "owners": [
+        "payments-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:1324237f388090a263700d9ac55dd44ca0305b7594d37803022cf145c6f54ea3"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "review-flagged",
+      "version": "1.0.0",
+      "name": "Review Flagged",
+      "contentPath": "domains/Reviews/services/ReviewAPI/events/review-flagged/index.mdx",
+      "contentHash": "sha256:b6703a382299791339fbdb9337c4d9e223f94603d3be8296f1e9b63d7130aec9",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:bfad84a870f1580599e26a02ea5145338a8d1255357751697fe5bbc6b7db3e3b"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "review-helpful-voted",
+      "version": "1.0.0",
+      "name": "Review Helpful Voted",
+      "contentPath": "domains/Reviews/services/ReviewAPI/events/review-helpful-voted/index.mdx",
+      "contentHash": "sha256:61b3430cf7f553490d5ff5f0624a25961ccaea33ebba76dc81a178668cc63999",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:8f6865aecc46a4e67a8b22de31409dd228996e3879bf28d65e1e3b1bc434be52"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "review-published",
+      "version": "1.0.0",
+      "name": "Review Published",
+      "contentPath": "domains/Reviews/services/ReviewModerationWorker/events/review-published/index.mdx",
+      "contentHash": "sha256:a4ad0789f3e123ef6011a2e2a95580dcf9881d41b556f8fb9dc3c39679f9871b",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:4a1870933a64fb56d6e7c6a06d5509d34e0c42661dcbbe277c0d5c80133df293"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "review-rejected",
+      "version": "1.0.0",
+      "name": "Review Rejected",
+      "contentPath": "domains/Reviews/services/ReviewModerationWorker/events/review-rejected/index.mdx",
+      "contentHash": "sha256:349c419f78e405790b9b1001b0f36723100bb81ae0a494eaa8ae33b5ca405836",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:5cea41ad2843f285af04bdfa634d0ecc8d31492ae4430ca0af44d6faa08d0a47"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "review-submitted",
+      "version": "1.0.0",
+      "name": "Review Submitted",
+      "contentPath": "domains/Reviews/services/ReviewAPI/events/review-submitted/index.mdx",
+      "contentHash": "sha256:c53eb50074a8e0857c37d84e5ff7828e1b79508bd771e787745acc8bdf61552d",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:05564754b8f093f5ac760602a9762df04005e9797ac275d670066210006c9e0e"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "shipment-created",
+      "version": "1.0.0",
+      "name": "Shipment Created",
+      "contentPath": "domains/Fulfilment/systems/carrier/services/CarrierTrackingAPI/events/ShipmentCreated/index.mdx",
+      "contentHash": "sha256:42a936b002bfc3c81126f78b6e43cbfdcdb3961d224e254918bb3dacca064299",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:c5b489386d762f6eeadf2667a9f1397646ae2b43ca8065cc118e4080b3acea7b"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "shipment-delivered",
+      "version": "1.0.0",
+      "name": "Shipment Delivered",
+      "contentPath": "domains/Fulfilment/systems/carrier/services/CarrierTrackingAPI/events/ShipmentDelivered/index.mdx",
+      "contentHash": "sha256:ded00744eb8f809c9f3f5f62bfffe6f434754a14c067b47d3730f8b761054bc1",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:72cdaf9a911ea867115b9c4a0cd515352b71d888db90afae76ba573b2ceaa110"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "shipment-failed",
+      "version": "1.0.0",
+      "name": "Shipment Failed",
+      "contentPath": "domains/Fulfilment/systems/carrier/services/CarrierTrackingAPI/events/ShipmentFailed/index.mdx",
+      "contentHash": "sha256:48dc7e9c1315366924056fe853e8728469ef79f47b9b9d66fc3d577d06955644",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:452721b4301f092406e121da29da4ef1cbb91141e0926bb4155eb41ee18870ab"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "id": "checkout-saga",
+      "version": "1.0.0",
+      "name": "Checkout Saga",
+      "contentPath": "domains/Ordering/systems/checkout-system/flows/CheckoutSaga/index.mdx",
+      "contentHash": "sha256:5d22c06fda75bcb53ede4bd5860252bfc4ce58a3e015386c1895295ee61999d7",
+      "owners": [
+        "ordering-platform"
+      ],
+      "references": [
+        {
+          "kind": "message",
+          "id": "cart-checked-out",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "checkout-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "checkout-orchestrator",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "reserve-inventory",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "authorize-payment",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "create-order",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "id": "order-cancellation",
+      "version": "1.0.0",
+      "name": "Order Cancellation",
+      "contentPath": "domains/Ordering/systems/order-management-system/flows/OrderCancellation/index.mdx",
+      "contentHash": "sha256:0db604e655dee81b049ea49960ecf48d82d92b1fdc191e0ead704ecfd60b34d5",
+      "owners": [
+        "ordering-platform"
+      ],
+      "references": [
+        {
+          "kind": "message",
+          "id": "cancel-order",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "order-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "container",
+          "id": "order-database"
+        },
+        {
+          "kind": "message",
+          "id": "order-cancelled",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "id": "place-an-order",
+      "version": "1.0.0",
+      "name": "Place an Order",
+      "contentPath": "domains/Ordering/flows/PlaceAnOrder/index.mdx",
+      "contentHash": "sha256:a0bc2d64cfce55a17ae5118c25c7b227cf83558a0d3bfae0bb20c4543d1e4506",
+      "owners": [
+        "ordering-platform"
+      ],
+      "references": [
+        {
+          "kind": "message",
+          "id": "checkout-cart",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "cart-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "cart-checked-out",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "checkout-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "checkout-orchestrator",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "reserve-inventory",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "authorize-payment",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "create-order",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "order-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "order-created",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "order-cancelled",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "id": "product-search-indexing",
+      "version": "1.0.0",
+      "name": "Product Search Indexing",
+      "contentPath": "domains/Catalog/systems/search-system/flows/ProductSearchIndexing/index.mdx",
+      "contentHash": "sha256:eea8987eca0408e6a4cc53f8f4d5379946b9902c1ab7dfe779135c1bbb4a5cfd",
+      "owners": [
+        "search-platform"
+      ],
+      "references": [
+        {
+          "kind": "service",
+          "id": "product-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "container",
+          "id": "product-database"
+        },
+        {
+          "kind": "service",
+          "id": "product-search-publisher",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "product-created",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "product-updated",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "product-deleted",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "search-indexer",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "container",
+          "id": "search-index"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "id": "review-submission",
+      "version": "1.0.0",
+      "name": "Review Submission",
+      "contentPath": "domains/Reviews/flows/review-submission/index.mdx",
+      "contentHash": "sha256:e7d5a4ba77445cd62c68fca3b6c3643295bc2c572a0a9dc79d92ac185aac7ad5",
+      "owners": [
+        "reviews-platform"
+      ],
+      "references": [
+        {
+          "kind": "service",
+          "id": "review-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "container",
+          "id": "review-database"
+        },
+        {
+          "kind": "message",
+          "id": "review-submitted",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "review-moderation-worker",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "review-published",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "review-rejected",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "rating-aggregator",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "container",
+          "id": "rating-cache"
+        }
+      ]
+    },
+    {
+      "type": "query",
+      "id": "get-customer",
+      "version": "1.0.0",
+      "name": "Get Customer",
+      "contentPath": "domains/Customer/systems/customer-management-system/services/CustomerAPI/queries/GetCustomer/index.mdx",
+      "contentHash": "sha256:6c802a77ffdabbd7c001b1a328a9968cabb63319c2cc5d967dcaaffd850cb424",
+      "owners": [
+        "customer-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:a3c81226be8efcccd946d5d9f26c07e2cc210c28c39ebc7b1b1eceb27555db76"
+        }
+      ]
+    },
+    {
+      "type": "query",
+      "id": "get-order",
+      "version": "1.0.0",
+      "name": "Get Order",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/queries/GetOrder/index.mdx",
+      "contentHash": "sha256:ab5969012363be01584ac52e0f0974216826b8def5ab8b06bac87a93ce3fe657",
+      "owners": [
+        "ordering-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:2d5caf6b8503c08eabfb55e4f75e5501d3d4f9db1d8b20e3c0553de5710b2197"
+        }
+      ]
+    },
+    {
+      "type": "query",
+      "id": "get-product",
+      "version": "1.0.0",
+      "name": "Get Product",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/queries/GetProduct/index.mdx",
+      "contentHash": "sha256:ba1274e127aa40b2fd8c1bbfb3defa7b4dcef5d3d896f0522487d37fcb28ea53",
+      "owners": [
+        "product-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:6d6523bb91ee98b4d2a5cce4cb896111534d660c531d2f2306367c5f9c436116"
+        }
+      ]
+    },
+    {
+      "type": "query",
+      "id": "get-product-reviews",
+      "version": "1.0.0",
+      "name": "Get Product Reviews",
+      "contentPath": "domains/Reviews/services/ReviewAPI/queries/get-product-reviews/index.mdx",
+      "contentHash": "sha256:f4cb0f9f112137eab2a1c356993a12415487fc1ab68949784d51b5f8b373a172",
+      "owners": [
+        "reviews-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:c49dcaabed69d060555f983d64153aafc3e645d34fb26852146af432b7f35b33"
+        }
+      ]
+    },
+    {
+      "type": "query",
+      "id": "get-stock-level",
+      "version": "1.0.0",
+      "name": "Get Stock Level",
+      "contentPath": "domains/Fulfilment/systems/inventory-system/services/InventoryService/queries/GetStockLevel/index.mdx",
+      "contentHash": "sha256:33375b042f9f2b51b159a8ca15cff7e77e6aa4b2aca4b732c9b1e24a3ee8780d",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:f6c62d0e5e0995ad9b503225f79fd013b660ab5bd16bcb33e9598ca29c96bf9d"
+        }
+      ]
+    },
+    {
+      "type": "query",
+      "id": "search-products",
+      "version": "1.0.0",
+      "name": "Search Products",
+      "contentPath": "domains/Catalog/systems/search-system/services/SearchAPI/queries/SearchProducts/index.mdx",
+      "contentHash": "sha256:e02a0060acbfd9cd4e0405ef76a6cebb055ec7a95b6947fc67e6b4f29951b584",
+      "owners": [
+        "search-platform"
+      ],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:03c6b246f91ac07b2f7e8206afb75a26265dafc2b5ec88a1938434f947f12387"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "carrier-adapter",
+      "version": "1.0.0",
+      "name": "Carrier Adapter",
+      "contentPath": "domains/Fulfilment/systems/shipping-system/services/CarrierAdapter/index.mdx",
+      "contentHash": "sha256:1194ad01f16f233dadefa14925ec4af2cd73715f03bac9bae45e5c27650e423d",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "sends": [
+        {
+          "id": "create-shipment",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "carrier-shipping-api",
+      "version": "1.0.0",
+      "name": "Shipping API",
+      "contentPath": "domains/Fulfilment/systems/carrier/services/CarrierShippingAPI/index.mdx",
+      "contentHash": "sha256:a106c0dcc0e853de68dc765501a14a75dbe16523056023fa9d0a7240ad90fa70",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "receives": [
+        {
+          "id": "create-shipment",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "carrier-tracking-api",
+      "version": "1.0.0",
+      "name": "Tracking API",
+      "contentPath": "domains/Fulfilment/systems/carrier/services/CarrierTrackingAPI/index.mdx",
+      "contentHash": "sha256:aa38f11ebb650eafa0c0a9ef1ead89befe179d0ca4b223050cb22e215351d3a5",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "sends": [
+        {
+          "id": "shipment-created",
+          "version": "1.0.0"
+        },
+        {
+          "id": "shipment-delivered",
+          "version": "1.0.0"
+        },
+        {
+          "id": "shipment-failed",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "cart-api",
+      "version": "1.0.0",
+      "name": "Cart API",
+      "contentPath": "domains/Shopping/systems/cart-system/services/CartAPI/index.mdx",
+      "contentHash": "sha256:eb381f0cf346618df09415a2b0eda11f4f52b24b240c38d664e025a1ba941080",
+      "owners": [
+        "shopping-platform"
+      ],
+      "specifications": [
+        {
+          "type": "openapi",
+          "path": "openapi.yml",
+          "name": "Cart API",
+          "hash": "sha256:7cb9ecbc22ceffbd7626ff3149bfc3fee0d8bd552daac299c0ee6599f49c00c4"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/cart-system/services/CartAPI/openapi-2.yml",
+          "hash": "sha256:7cb9ecbc22ceffbd7626ff3149bfc3fee0d8bd552daac299c0ee6599f49c00c4"
+        }
+      ],
+      "sends": [
+        {
+          "id": "cart-checked-out",
+          "version": "1.0.0"
+        },
+        {
+          "id": "calculate-discount",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "add-item-to-cart",
+          "version": "1.0.0"
+        },
+        {
+          "id": "remove-item-from-cart",
+          "version": "1.0.0"
+        },
+        {
+          "id": "checkout-cart",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "cart-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "cart-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "checkout-api",
+      "version": "1.0.0",
+      "name": "Checkout API",
+      "contentPath": "domains/Ordering/systems/checkout-system/services/CheckoutAPI/index.mdx",
+      "contentHash": "sha256:6cb716edeac80b6ea038e75e10d07e3fe46cd88b08e8cc76bf6060a7ea26367b",
+      "owners": [
+        "ordering-platform"
+      ],
+      "receives": [
+        {
+          "id": "checkout-cart",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "checkout-orchestrator",
+      "version": "1.0.0",
+      "name": "Checkout Orchestrator",
+      "contentPath": "domains/Ordering/systems/checkout-system/services/CheckoutOrchestrator/index.mdx",
+      "contentHash": "sha256:71bffdf03696cfc7103373e98e8f7225b55710f2e9fa28dcabcb08ffff3989a5",
+      "owners": [
+        "ordering-platform"
+      ],
+      "sends": [
+        {
+          "id": "reserve-inventory",
+          "version": "1.0.0"
+        },
+        {
+          "id": "authorize-payment",
+          "version": "1.0.0"
+        },
+        {
+          "id": "create-order",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "customer-api",
+      "version": "1.0.0",
+      "name": "Customer API",
+      "contentPath": "domains/Customer/systems/customer-management-system/services/CustomerAPI/index.mdx",
+      "contentHash": "sha256:5e17549a539f95cf781b0add84c974af553ae799bbd47043dcf1cec4dab1c3a8",
+      "owners": [
+        "customer-platform"
+      ],
+      "specifications": [
+        {
+          "type": "openapi",
+          "path": "openapi.yml",
+          "name": "Customer API",
+          "hash": "sha256:e980d2e7347221d719bd804b2b4deaa31921824346ffbe2a619980783467e096"
+        }
+      ],
+      "sends": [
+        {
+          "id": "customer-registered",
+          "version": "1.0.0"
+        },
+        {
+          "id": "customer-updated",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "register-customer",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "customer-registered",
+              "version": "1.0.0",
+              "condition": "When the customer registration is validated and persisted"
+            }
+          ]
+        },
+        {
+          "id": "update-customer",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "customer-updated",
+              "version": "1.0.0",
+              "condition": "When the customer profile changes are persisted"
+            }
+          ]
+        },
+        {
+          "id": "get-customer",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "customer-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "customer-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "fraud-api",
+      "version": "1.0.0",
+      "name": "Fraud API",
+      "contentPath": "domains/Payments/systems/fraud-detection/services/FraudAPI/index.mdx",
+      "contentHash": "sha256:932017c595046697606a669cb2a324b15e4e7f0377855b9d78809c62b9aff05b",
+      "owners": [
+        "payments-platform"
+      ],
+      "sends": [
+        {
+          "id": "fraud-check-passed",
+          "version": "1.0.0"
+        },
+        {
+          "id": "fraud-check-failed",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "payment-requested",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "inventory-service",
+      "version": "1.0.0",
+      "name": "Inventory Service",
+      "contentPath": "domains/Fulfilment/systems/inventory-system/services/InventoryService/index.mdx",
+      "contentHash": "sha256:ab784d0b72d31fa49a6d40cc22db6620a59505bac10576527abd26c3d59ba798",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "sends": [
+        {
+          "id": "inventory-reserved",
+          "version": "1.0.0"
+        },
+        {
+          "id": "inventory-unavailable",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "reserve-inventory",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "inventory-reserved",
+              "version": "1.0.0",
+              "condition": "When sufficient stock is available"
+            },
+            {
+              "id": "inventory-unavailable",
+              "version": "1.0.0",
+              "condition": "When there is not enough stock to fulfil the reservation"
+            }
+          ]
+        },
+        {
+          "id": "release-inventory",
+          "version": "1.0.0"
+        },
+        {
+          "id": "get-stock-level",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "inventory-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "inventory-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "oauth-api",
+      "version": "1.0.0",
+      "name": "OAuth API",
+      "contentPath": "domains/Customer/systems/identity-provider/services/OAuthAPI/index.mdx",
+      "contentHash": "sha256:c0655f4ce95d422a1cf95d05902de331876dac094a5330be65586175ccb44824",
+      "owners": [
+        "customer-platform"
+      ],
+      "sends": [
+        {
+          "id": "customer-authenticated",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "authenticate-customer",
+          "version": "1.0.0"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "user-directory"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "order-service",
+      "version": "1.0.0",
+      "name": "Order Service",
+      "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/index.mdx",
+      "contentHash": "sha256:6603ecb47b7fbf521db0c9b9499304ab75d086cd837de3200101707500fc5907",
+      "owners": [
+        "ordering-platform"
+      ],
+      "specifications": [
+        {
+          "type": "asyncapi",
+          "path": "asyncapi.yml",
+          "name": "Order Service AsyncAPI",
+          "hash": "sha256:acc23a9294215d4c6d1e2f82222014e5755cac40a7b5ecdb7924f2cf49b435ee"
+        }
+      ],
+      "sends": [
+        {
+          "id": "order-created",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-confirmed",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-amended",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-placed-on-hold",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-hold-released",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-fulfilment-started",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-status-changed",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-delivery-address-changed",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-archived",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-completed",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-cancelled",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "create-order",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "order-created",
+              "version": "1.0.0",
+              "condition": "When the order is validated and persisted"
+            }
+          ]
+        },
+        {
+          "id": "cancel-order",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "order-cancelled",
+              "version": "1.0.0",
+              "condition": "When the order can be cancelled successfully"
+            }
+          ]
+        },
+        {
+          "id": "get-order",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "order-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "order-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "payment-api",
+      "version": "1.0.0",
+      "name": "Payment API",
+      "contentPath": "domains/Payments/systems/payment-processing-system/services/PaymentAPI/index.mdx",
+      "contentHash": "sha256:0678b124dbfa077a6f9957fb03f248ed4816dc25f5a8167c1fe17f0abf29144b",
+      "owners": [
+        "payments-platform"
+      ],
+      "receives": [
+        {
+          "id": "authorize-payment",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "payment-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "payment-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "payment-worker",
+      "version": "1.0.0",
+      "name": "Payment Worker",
+      "contentPath": "domains/Payments/systems/payment-processing-system/services/PaymentWorker/index.mdx",
+      "contentHash": "sha256:d4b1681bf27fe7042d1de20d1b2ad1971a1b8c3e2a9c09d996b11a2b578ae621",
+      "owners": [
+        "payments-platform"
+      ],
+      "sends": [
+        {
+          "id": "payment-requested",
+          "version": "1.0.0"
+        },
+        {
+          "id": "refund-requested",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "payment-succeeded",
+          "version": "1.0.0"
+        },
+        {
+          "id": "payment-failed",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "payment-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "payment-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "picking-worker",
+      "version": "1.0.0",
+      "name": "Picking Worker",
+      "contentPath": "domains/Fulfilment/systems/warehouse-system/services/PickingWorker/index.mdx",
+      "contentHash": "sha256:496cadc6168e1b0fce2090a86bc26014144222375b6db79cae694a59bd401f85",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "sends": [
+        {
+          "id": "order-packed",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "warehouse-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "warehouse-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "product-api",
+      "version": "1.0.0",
+      "name": "Product API",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/index.mdx",
+      "contentHash": "sha256:0a3d73879bba3a2719e9d013d19f884693e4dd06328e0f88b4ee7a1c68318bcc",
+      "owners": [
+        "product-platform"
+      ],
+      "specifications": [
+        {
+          "type": "openapi",
+          "path": "openapi.yml",
+          "name": "Product API",
+          "hash": "sha256:76d20efb09279ff1ccc0ea695f4b3a4c066bf5777a7b195bed66357a44468d18"
+        }
+      ],
+      "receives": [
+        {
+          "id": "create-product",
+          "version": "1.0.0"
+        },
+        {
+          "id": "update-product",
+          "version": "1.0.0"
+        },
+        {
+          "id": "delete-product",
+          "version": "1.0.0"
+        },
+        {
+          "id": "get-product",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "product-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "product-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "product-search-publisher",
+      "version": "1.0.0",
+      "name": "Product Search Publisher",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductSearchPublisher/index.mdx",
+      "contentHash": "sha256:9d2a6756bb5804c706d9005e42a9f1dbd6e7bace9e01a86ed3104cb85f04551e",
+      "owners": [
+        "product-platform"
+      ],
+      "sends": [
+        {
+          "id": "product-created",
+          "version": "1.0.0"
+        },
+        {
+          "id": "product-updated",
+          "version": "1.0.0"
+        },
+        {
+          "id": "product-deleted",
+          "version": "1.0.0"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "product-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "product-worker",
+      "version": "1.0.0",
+      "name": "Product Worker",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductWorker/index.mdx",
+      "contentHash": "sha256:adf3f9fdb74608583125b78bcb273dfb76c96330182581a7077592c2e8a351d1",
+      "owners": [
+        "product-platform"
+      ],
+      "writesTo": [
+        {
+          "id": "product-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "product-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "promotion-service",
+      "version": "1.0.0",
+      "name": "Promotion Service",
+      "contentPath": "domains/Shopping/systems/promotion-system/services/PromotionService/index.mdx",
+      "contentHash": "sha256:e0cfb37cdf3efb1d2e663b331ba827afdc612d28f411da8bb2c4e4c62f601371",
+      "owners": [
+        "shopping-platform"
+      ],
+      "sends": [
+        {
+          "id": "discount-calculated",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "calculate-discount",
+          "version": "1.0.0"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "promotion-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "rating-aggregator",
+      "version": "1.0.0",
+      "name": "Rating Aggregator",
+      "contentPath": "domains/Reviews/services/RatingAggregator/index.mdx",
+      "contentHash": "sha256:b07c78b76dcc84cf5c816e36f17647a103ec67c0e38ed5ef9c9f3870ee76edde",
+      "owners": [
+        "reviews-platform"
+      ],
+      "sends": [
+        {
+          "id": "rating-updated",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "review-published",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "rating-cache"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "review-database"
+        },
+        {
+          "id": "rating-cache"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "review-api",
+      "version": "1.0.0",
+      "name": "Review API",
+      "contentPath": "domains/Reviews/services/ReviewAPI/index.mdx",
+      "contentHash": "sha256:f3f5c2dae565225460249cc415a19e1759ea8837d09c44c531b0911f3b6253a0",
+      "owners": [
+        "reviews-platform"
+      ],
+      "sends": [
+        {
+          "id": "review-submitted",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-flagged",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-helpful-voted",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "submit-review",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "review-submitted",
+              "version": "1.0.0",
+              "condition": "When the review passes submission validation"
+            }
+          ]
+        },
+        {
+          "id": "flag-review",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "review-flagged",
+              "version": "1.0.0",
+              "condition": "When a customer reports a published review"
+            }
+          ]
+        },
+        {
+          "id": "vote-review-helpful",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "review-helpful-voted",
+              "version": "1.0.0",
+              "condition": "When a helpful vote is recorded successfully"
+            }
+          ]
+        },
+        {
+          "id": "get-product-reviews",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "review-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "review-database"
+        },
+        {
+          "id": "rating-cache"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "review-moderation-worker",
+      "version": "1.0.0",
+      "name": "Review Moderation Worker",
+      "contentPath": "domains/Reviews/services/ReviewModerationWorker/index.mdx",
+      "contentHash": "sha256:2b66e27f7fbd0f1a713fa8086193052ba085549ca6859e8f8c169b0f40c36ffd",
+      "owners": [
+        "reviews-platform"
+      ],
+      "sends": [
+        {
+          "id": "review-published",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-rejected",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "review-submitted",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "review-published",
+              "version": "1.0.0",
+              "condition": "When automated moderation passes with a high confidence score"
+            },
+            {
+              "id": "review-published",
+              "version": "1.0.0",
+              "condition": "When a human moderator approves a queued review"
+            },
+            {
+              "id": "review-published",
+              "version": "1.0.0",
+              "condition": "When a trusted reviewer qualifies for the fast-track policy"
+            },
+            {
+              "id": "review-published",
+              "version": "1.0.0",
+              "condition": "When a verified-purchase review passes all policy checks"
+            },
+            {
+              "id": "review-published",
+              "version": "1.0.0",
+              "condition": "When a resubmitted review clears its original moderation warning"
+            },
+            {
+              "id": "review-rejected",
+              "version": "1.0.0",
+              "condition": "When the content is classified as spam"
+            },
+            {
+              "id": "review-rejected",
+              "version": "1.0.0",
+              "condition": "When prohibited or abusive language exceeds the policy threshold"
+            },
+            {
+              "id": "review-rejected",
+              "version": "1.0.0",
+              "condition": "When the review duplicates an existing submission"
+            },
+            {
+              "id": "review-rejected",
+              "version": "1.0.0",
+              "condition": "When reviewer-risk signals fail the authenticity checks"
+            },
+            {
+              "id": "review-rejected",
+              "version": "1.0.0",
+              "condition": "When a human moderator rejects a queued review"
+            }
+          ]
+        },
+        {
+          "id": "review-flagged",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "review-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "review-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "search-api",
+      "version": "1.0.0",
+      "name": "Search API",
+      "contentPath": "domains/Catalog/systems/search-system/services/SearchAPI/index.mdx",
+      "contentHash": "sha256:8e6443b5e473763d4cf2fc519f2881cc8a559b38b72db16d53bb122bf2ce916d",
+      "owners": [
+        "search-platform"
+      ],
+      "specifications": [
+        {
+          "type": "openapi",
+          "path": "openapi.yml",
+          "name": "Search API",
+          "hash": "sha256:4db552ac30405b8e8a5f7b7fc3ec39b79f213a57e70c87389f87136aafc879ba"
+        }
+      ],
+      "receives": [
+        {
+          "id": "search-products",
+          "version": "1.0.0"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "search-index"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "search-indexer",
+      "version": "1.0.0",
+      "name": "Search Indexer",
+      "contentPath": "domains/Catalog/systems/search-system/services/SearchIndexer/index.mdx",
+      "contentHash": "sha256:a17f511a27a86746d7f0801fac55dfde5e3d4ec234e69d479d6eedc340871730",
+      "owners": [
+        "search-platform"
+      ],
+      "receives": [
+        {
+          "id": "product-created",
+          "version": "1.0.0"
+        },
+        {
+          "id": "product-updated",
+          "version": "1.0.0"
+        },
+        {
+          "id": "product-deleted",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "search-index"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "shipping-api",
+      "version": "1.0.0",
+      "name": "Shipping API",
+      "contentPath": "domains/Fulfilment/systems/shipping-system/services/ShippingAPI/index.mdx",
+      "contentHash": "sha256:7df18c714ce25d3886e622777d159f150e8ea4c6888f14411194054a6cb26dfe",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "receives": [
+        {
+          "id": "order-ready-for-shipping",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "stripe-payments-api",
+      "version": "1.0.0",
+      "name": "Payments API",
+      "contentPath": "domains/Payments/systems/stripe/services/StripePaymentsAPI/index.mdx",
+      "contentHash": "sha256:d7b9837a988fb26b4e238578611e30defb975f25bc7b4d69f0abec583854dec4",
+      "owners": [
+        "payments-platform"
+      ],
+      "receives": [
+        {
+          "id": "payment-requested",
+          "version": "1.0.0"
+        },
+        {
+          "id": "refund-requested",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "stripe-webhook-endpoint",
+      "version": "1.0.0",
+      "name": "Webhook Endpoint",
+      "contentPath": "domains/Payments/systems/stripe/services/StripeWebhookEndpoint/index.mdx",
+      "contentHash": "sha256:dbfc35004da0d76264be521b176e988f83683fa72e591ea4a3411a6120250589",
+      "owners": [
+        "payments-platform"
+      ],
+      "sends": [
+        {
+          "id": "payment-succeeded",
+          "version": "1.0.0"
+        },
+        {
+          "id": "payment-failed",
+          "version": "1.0.0"
+        },
+        {
+          "id": "refund-processed",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "warehouse-service",
+      "version": "1.0.0",
+      "name": "Warehouse Service",
+      "contentPath": "domains/Fulfilment/systems/warehouse-system/services/WarehouseService/index.mdx",
+      "contentHash": "sha256:5901cf452763f2b3e4f62670d2b453f58ef16018804e0d6c84ff96d2b38fa9f4",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "sends": [
+        {
+          "id": "order-ready-for-shipping",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "order-completed",
+          "version": "1.0.0"
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "warehouse-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "warehouse-database"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "carrier",
+      "version": "1.0.0",
+      "name": "Carrier",
+      "contentPath": "domains/Fulfilment/systems/carrier/index.mdx",
+      "contentHash": "sha256:a2d22fdb7c62a55f66439cb4e3c0f4e75dd452d757e054980b2379ffa687d3d8",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "services": [
+        {
+          "id": "carrier-shipping-api"
+        },
+        {
+          "id": "carrier-tracking-api"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "shipping-system",
+          "label": "delivers shipments for"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "cart-system",
+      "version": "1.0.0",
+      "name": "Cart System",
+      "contentPath": "domains/Shopping/systems/cart-system/index.mdx",
+      "contentHash": "sha256:3b89ccf6acf17443fb6874ee89a647e43a386fd7bc511c1abb529917f27a994a",
+      "owners": [
+        "shopping-platform"
+      ],
+      "services": [
+        {
+          "id": "cart-api"
+        }
+      ],
+      "containers": [
+        {
+          "id": "cart-database"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "promotion-system",
+          "label": "calculates discounts via"
+        }
+      ],
+      "actors": [
+        {
+          "id": "shopper",
+          "name": "Shopper",
+          "label": "adds items and checks out",
+          "direction": "inbound"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "checkout-system",
+      "version": "1.0.0",
+      "name": "Checkout System",
+      "contentPath": "domains/Ordering/systems/checkout-system/index.mdx",
+      "contentHash": "sha256:9df555d237da11df686f4346f18d7964902d39d5ca34ef4430c01a195ed93d66",
+      "owners": [
+        "ordering-platform"
+      ],
+      "services": [
+        {
+          "id": "checkout-api"
+        },
+        {
+          "id": "checkout-orchestrator"
+        }
+      ],
+      "flows": [
+        {
+          "id": "checkout-saga",
+          "version": "1.0.0"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "order-management-system",
+          "label": "creates orders via"
+        }
+      ],
+      "actors": [
+        {
+          "id": "shopper",
+          "name": "Shopper",
+          "label": "confirms checkout",
+          "direction": "inbound"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "customer-management-system",
+      "version": "1.0.0",
+      "name": "Customer Management System",
+      "contentPath": "domains/Customer/systems/customer-management-system/index.mdx",
+      "contentHash": "sha256:b6361cb86b544f413cf8ae25b1bb8fb6cc51ce030c4c18f8abccfd4a88ebf381",
+      "owners": [
+        "customer-platform"
+      ],
+      "services": [
+        {
+          "id": "customer-api"
+        }
+      ],
+      "containers": [
+        {
+          "id": "customer-database"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "identity-provider",
+          "label": "delegates authentication to"
+        }
+      ],
+      "actors": [
+        {
+          "id": "customer",
+          "name": "Customer",
+          "label": "registers and updates their profile",
+          "direction": "inbound"
+        },
+        {
+          "id": "support-agent",
+          "name": "Support Agent",
+          "label": "looks up customer details",
+          "direction": "inbound"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "fraud-detection",
+      "version": "1.0.0",
+      "name": "Fraud Detection",
+      "contentPath": "domains/Payments/systems/fraud-detection/index.mdx",
+      "contentHash": "sha256:29e00250036fcacf881a6fb10064f569f30694d2c24a59d29e0fb735454ce31d",
+      "owners": [
+        "payments-platform"
+      ],
+      "services": [
+        {
+          "id": "fraud-api"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "payment-processing-system",
+          "label": "screens payments for"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "identity-provider",
+      "version": "1.0.0",
+      "name": "Identity Provider",
+      "contentPath": "domains/Customer/systems/identity-provider/index.mdx",
+      "contentHash": "sha256:747ba079f40e7b82fc7f8197e37edbd0dabe11ba1bf015b3e2a02b29c67c75b3",
+      "owners": [
+        "customer-platform"
+      ],
+      "services": [
+        {
+          "id": "oauth-api"
+        }
+      ],
+      "containers": [
+        {
+          "id": "user-directory"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "customer-management-system",
+          "label": "provides authentication for"
+        }
+      ],
+      "actors": [
+        {
+          "id": "customer",
+          "name": "Customer",
+          "label": "signs in",
+          "direction": "inbound"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "inventory-system",
+      "version": "1.0.0",
+      "name": "Inventory System",
+      "contentPath": "domains/Fulfilment/systems/inventory-system/index.mdx",
+      "contentHash": "sha256:a88d7076165db3888ca9e807d7ec06a94944776d9049d8875f6007309ea7ffb1",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "services": [
+        {
+          "id": "inventory-service"
+        }
+      ],
+      "containers": [
+        {
+          "id": "inventory-database"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "warehouse-system",
+          "label": "provides stock for"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "order-management-system",
+      "version": "1.0.0",
+      "name": "Order Management System",
+      "contentPath": "domains/Ordering/systems/order-management-system/index.mdx",
+      "contentHash": "sha256:72cb22f41588c983432fa578290a003c8f13081f5890be351cf6fba03afb6713",
+      "owners": [
+        "ordering-platform"
+      ],
+      "services": [
+        {
+          "id": "order-service"
+        }
+      ],
+      "flows": [
+        {
+          "id": "order-cancellation",
+          "version": "1.0.0"
+        }
+      ],
+      "containers": [
+        {
+          "id": "order-database"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "checkout-system",
+          "label": "receives orders from"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "payment-processing-system",
+      "version": "1.0.0",
+      "name": "Payment Processing System",
+      "contentPath": "domains/Payments/systems/payment-processing-system/index.mdx",
+      "contentHash": "sha256:e1a217680abdef59166f26371d05648b1246461835f3b4fc75fd0239e59edd1c",
+      "owners": [
+        "payments-platform"
+      ],
+      "services": [
+        {
+          "id": "payment-api"
+        },
+        {
+          "id": "payment-worker"
+        }
+      ],
+      "containers": [
+        {
+          "id": "payment-database"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "stripe",
+          "label": "requests charges from"
+        },
+        {
+          "id": "fraud-detection",
+          "label": "screens payments with"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "product-catalog-system",
+      "version": "1.0.0",
+      "name": "Product Catalog System",
+      "contentPath": "domains/Catalog/systems/product-catalog-system/index.mdx",
+      "contentHash": "sha256:90524af32593eef0ed601bd7a81cbdc2c2d544b180390f230c3ebc0a904f414f",
+      "owners": [
+        "product-platform"
+      ],
+      "services": [
+        {
+          "id": "product-api"
+        },
+        {
+          "id": "product-worker"
+        },
+        {
+          "id": "product-search-publisher"
+        }
+      ],
+      "containers": [
+        {
+          "id": "product-database"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "search-system",
+          "label": "notifies of product changes"
+        }
+      ],
+      "actors": [
+        {
+          "id": "merchandiser",
+          "name": "Merchandiser",
+          "label": "creates and updates products",
+          "direction": "inbound"
+        },
+        {
+          "id": "catalog-admin",
+          "name": "Catalog Admin",
+          "label": "manages categories and pricing",
+          "direction": "inbound"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "promotion-system",
+      "version": "1.0.0",
+      "name": "Promotion System",
+      "contentPath": "domains/Shopping/systems/promotion-system/index.mdx",
+      "contentHash": "sha256:146f2cddf6af2edd54271a719d765050f4806287dbc9ef2e5a55fc89f0066759",
+      "owners": [
+        "shopping-platform"
+      ],
+      "services": [
+        {
+          "id": "promotion-service"
+        }
+      ],
+      "containers": [
+        {
+          "id": "promotion-database"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "cart-system",
+          "label": "provides discounts to"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "search-system",
+      "version": "1.0.0",
+      "name": "Search System",
+      "contentPath": "domains/Catalog/systems/search-system/index.mdx",
+      "contentHash": "sha256:39d88953fc10b9accd655d8cd82e6f5365dfa760203c923f398cd352b83e2092",
+      "owners": [
+        "search-platform"
+      ],
+      "services": [
+        {
+          "id": "search-api"
+        },
+        {
+          "id": "search-indexer"
+        }
+      ],
+      "flows": [
+        {
+          "id": "product-search-indexing",
+          "version": "1.0.0"
+        }
+      ],
+      "containers": [
+        {
+          "id": "search-index"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "product-catalog-system",
+          "label": "indexes product changes from"
+        }
+      ],
+      "actors": [
+        {
+          "id": "shopper",
+          "name": "Shopper",
+          "label": "searches for products",
+          "direction": "inbound"
+        },
+        {
+          "id": "storefront-team",
+          "name": "Storefront Team",
+          "label": "integrates product search",
+          "direction": "inbound"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "shipping-system",
+      "version": "1.0.0",
+      "name": "Shipping System",
+      "contentPath": "domains/Fulfilment/systems/shipping-system/index.mdx",
+      "contentHash": "sha256:48afd68c277e5ddba65c2f5b4ed9ff7abbdcd426494e7c26e43c2cdea885e356",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "services": [
+        {
+          "id": "shipping-api"
+        },
+        {
+          "id": "carrier-adapter"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "carrier",
+          "label": "creates shipments with"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "stripe",
+      "version": "1.0.0",
+      "name": "Stripe",
+      "contentPath": "domains/Payments/systems/stripe/index.mdx",
+      "contentHash": "sha256:6463ce40da6017ae82b4b951405181f55b3c688a7ad3ae12c55a95ef2a36fadd",
+      "owners": [
+        "payments-platform"
+      ],
+      "services": [
+        {
+          "id": "stripe-payments-api"
+        },
+        {
+          "id": "stripe-webhook-endpoint"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "payment-processing-system",
+          "label": "processes payments for"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "warehouse-system",
+      "version": "1.0.0",
+      "name": "Warehouse System",
+      "contentPath": "domains/Fulfilment/systems/warehouse-system/index.mdx",
+      "contentHash": "sha256:d9230318d5127bdbd70bc402fe01cbbdeb6673211d9422044c1ee63fc9594da1",
+      "owners": [
+        "fulfilment-platform"
+      ],
+      "services": [
+        {
+          "id": "warehouse-service"
+        },
+        {
+          "id": "picking-worker"
+        }
+      ],
+      "containers": [
+        {
+          "id": "warehouse-database"
+        }
+      ],
+      "relationships": [
+        {
+          "id": "shipping-system",
+          "label": "hands packed orders to"
+        },
+        {
+          "id": "inventory-system",
+          "label": "consumes reserved stock from"
+        }
+      ]
+    },
+    {
+      "type": "team",
+      "id": "customer-platform",
+      "name": "Customer Platform",
+      "contentPath": "teams/customer-platform.mdx",
+      "contentHash": "sha256:a5865e613537e0ec886b515f497c8abbe2ab91d93414615ecd1995fc1b17949d",
+      "members": [
+        "dboyne"
+      ]
+    },
+    {
+      "type": "team",
+      "id": "fulfilment-platform",
+      "name": "Fulfilment Platform",
+      "contentPath": "teams/fulfilment-platform.mdx",
+      "contentHash": "sha256:b2e5f80040dde9cced0e3ff2a26d422dcc4238e9a618a1cc625523edf69c1985",
+      "members": [
+        "dboyne"
+      ]
+    },
+    {
+      "type": "team",
+      "id": "ordering-platform",
+      "name": "Ordering Platform",
+      "contentPath": "teams/ordering-platform.mdx",
+      "contentHash": "sha256:d2088a46ab8add0968cfcb6c865e68de127a7c4fdd3efbd6a950d44a8d00bfa8",
+      "members": [
+        "dboyne"
+      ]
+    },
+    {
+      "type": "team",
+      "id": "payments-platform",
+      "name": "Payments Platform",
+      "contentPath": "teams/payments-platform.mdx",
+      "contentHash": "sha256:58d97145ee7cc31c85af7347abd768d3f7ae0dd6a292f5bea78fc04cab2645c1",
+      "members": [
+        "dboyne"
+      ]
+    },
+    {
+      "type": "team",
+      "id": "product-platform",
+      "name": "Product Platform",
+      "contentPath": "teams/product-platform.mdx",
+      "contentHash": "sha256:372afd93e071c5028733401e5da44476a8c930a2a88676de80bb30b59729ec8a",
+      "members": [
+        "dboyne"
+      ]
+    },
+    {
+      "type": "team",
+      "id": "reviews-platform",
+      "name": "Reviews Platform",
+      "contentPath": "teams/reviews-platform.mdx",
+      "contentHash": "sha256:978fd39afcdb01941fc5ceba4e08f29d190d06efddbf75794d0d98302c96f849",
+      "members": [
+        "dboyne"
+      ]
+    },
+    {
+      "type": "team",
+      "id": "search-platform",
+      "name": "Search Platform",
+      "contentPath": "teams/search-platform.mdx",
+      "contentHash": "sha256:6749c5b36d9e66e9d057e566cf9b4f3f8bb8637555712f732f8c887eae9452bb",
+      "members": [
+        "dboyne"
+      ]
+    },
+    {
+      "type": "team",
+      "id": "shopping-platform",
+      "name": "Shopping Platform",
+      "contentPath": "teams/shopping-platform.mdx",
+      "contentHash": "sha256:cd5a80efd5c3d4e2783d7b266a2d285faff4b2e5018e72f31dca58ce6818ba27",
+      "members": [
+        "dboyne"
+      ]
+    },
+    {
+      "type": "user",
+      "id": "dboyne",
+      "name": "David Boyne",
+      "contentPath": "users/dboyne.mdx",
+      "contentHash": "sha256:f677169f4ad6492bed53825c670c33e3bcda9279d02e0781a48f6347a61edc90"
+    }
+  ],
+  "assets": [
+    {
+      "path": "components/footer.astro",
+      "hash": "sha256:2ddabd5a0f25b01b9e4f75d70e1cc9c5814efdd2ae60794855d1634fddcaf628"
+    },
+    {
+      "path": "public/icons/analytics/clickhouse.svg",
+      "hash": "sha256:56b721320616172170bb817a949dd88f71a52254b07caeec6589d0ff9d363cb5"
+    },
+    {
+      "path": "public/icons/cache/redis.svg",
+      "hash": "sha256:4245419834dd111d83a8ed645a2e305c67faa0af5c5b864eb5f0991de156034c"
+    },
+    {
+      "path": "public/icons/database/postgresql.svg",
+      "hash": "sha256:bc45b1c56d0b1501dea387dbec4fda450d2ebc35244a620791815509d8c41dba"
+    },
+    {
+      "path": "public/icons/languages/go.svg",
+      "hash": "sha256:33e31a3d049683755ceb07b4a6abe830b2ee02e6ffeee408fe705ef078d3849e"
+    },
+    {
+      "path": "public/icons/languages/java.svg",
+      "hash": "sha256:71840f3ce1bb6d6684f703583316900a157d7925f6488cfa8119a4dd267f198e"
+    },
+    {
+      "path": "public/icons/languages/nodejs.svg",
+      "hash": "sha256:6c7826737490eb559312b3fdc8853db70ef48a9e035d1bac019efd6e1a1e1371"
+    },
+    {
+      "path": "public/icons/payments/stripe.svg",
+      "hash": "sha256:4a339a433c6eee8e60929b3f339998fc2ecbdd362e243fb48e9701185d546d7e"
+    },
+    {
+      "path": "public/logo.png",
+      "hash": "sha256:c0382065ad58b4c97f1906b36988a73ec712e60de67ccd1833a1f3abf3c98159"
+    }
+  ]
+}

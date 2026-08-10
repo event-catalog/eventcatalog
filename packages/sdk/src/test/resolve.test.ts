@@ -1651,6 +1651,287 @@ describe('resolve', () => {
       });
     });
 
+    it('resolves pinned and unversioned agent, domain, and data-product membership from a domain', () => {
+      const domainsIndex = anIndex({
+        source: 'acme/central',
+        commit: '6b4e8f2',
+        resources: [
+          {
+            type: 'domain',
+            id: 'payments-domain',
+            version: '1.0.0',
+            name: 'Payments Domain',
+            agents: [{ id: 'fraud-agent', version: '1.0.0' }, { id: 'fraud-agent' }],
+            domains: [{ id: 'finance-domain', version: '1.0.0' }, { id: 'finance-domain' }],
+            dataProducts: [{ id: 'payments-report', version: '1.0.0' }, { id: 'payments-report' }],
+            contentPath: 'domains/payments-domain/index.mdx',
+          },
+        ],
+      });
+      const membersIndex = anIndex({
+        source: 'acme/platform',
+        commit: 'd812f09',
+        resources: [
+          ...['1.0.0', '2.0.0'].map((version) => ({
+            type: 'agent' as const,
+            id: 'fraud-agent',
+            version,
+            name: 'Fraud Agent',
+            contentPath: `agents/fraud-agent/${version}/index.mdx`,
+          })),
+          ...['1.0.0', '2.0.0'].map((version) => ({
+            type: 'domain' as const,
+            id: 'finance-domain',
+            version,
+            name: 'Finance Domain',
+            contentPath: `domains/finance-domain/${version}/index.mdx`,
+          })),
+          ...['1.0.0', '2.0.0'].map((version) => ({
+            type: 'data-product' as const,
+            id: 'payments-report',
+            version,
+            name: 'Payments Report',
+            contentPath: `data-products/payments-report/${version}/index.mdx`,
+          })),
+        ],
+      });
+
+      const resolution = resolve([domainsIndex, membersIndex]);
+
+      expect(
+        resolution.edges.map(({ to, direction, via, pointer, resolved, status }) => ({
+          to,
+          direction,
+          via,
+          pointer,
+          resolved,
+          status,
+        }))
+      ).toEqual([
+        {
+          to: 'fraud-agent',
+          direction: 'contains',
+          via: 'agents',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'fraud-agent',
+          direction: 'contains',
+          via: 'agents',
+          pointer: null,
+          resolved: '2.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'finance-domain',
+          direction: 'contains',
+          via: 'domains',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'finance-domain',
+          direction: 'contains',
+          via: 'domains',
+          pointer: null,
+          resolved: '2.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'payments-report',
+          direction: 'contains',
+          via: 'dataProducts',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'payments-report',
+          direction: 'contains',
+          via: 'dataProducts',
+          pointer: null,
+          resolved: '2.0.0',
+          status: 'resolved',
+        },
+      ]);
+      expect(resolution.externals).toEqual([]);
+    });
+
+    it('resolves pinned and unversioned ADR lifecycle pointers and reports missing ADRs as external', () => {
+      const architectureIndex = anIndex({
+        source: 'acme/architecture',
+        commit: '9f31c6a',
+        resources: [
+          {
+            type: 'adr',
+            id: 'current-decision',
+            version: '1.0.0',
+            name: 'Current Decision',
+            supersedes: [{ id: 'legacy-decision', version: '1.0.0' }, { id: 'legacy-decision' }],
+            supersededBy: [{ id: 'future-decision', version: '1.0.0' }, { id: 'future-decision' }],
+            amends: [{ id: 'logging-decision', version: '1.0.0' }, { id: 'logging-decision' }],
+            amendedBy: [{ id: 'security-decision', version: '1.0.0' }, { id: 'security-decision' }, { id: 'missing-decision' }],
+            contentPath: 'adrs/current-decision/index.mdx',
+          },
+          ...['legacy-decision', 'future-decision', 'logging-decision', 'security-decision'].flatMap((id) =>
+            ['1.0.0', '2.0.0'].map((version) => ({
+              type: 'adr' as const,
+              id,
+              version,
+              name: id,
+              contentPath: `adrs/${id}/${version}/index.mdx`,
+            }))
+          ),
+        ],
+      });
+
+      const resolution = resolve([architectureIndex]);
+
+      expect(
+        resolution.edges
+          .filter((edge) => edge.from === 'current-decision')
+          .map(({ to, direction, via, pointer, resolved, status }) => ({
+            to,
+            direction,
+            via,
+            pointer,
+            resolved,
+            status,
+          }))
+      ).toEqual([
+        {
+          to: 'legacy-decision',
+          direction: 'relatesTo',
+          via: 'supersedes',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'legacy-decision',
+          direction: 'relatesTo',
+          via: 'supersedes',
+          pointer: null,
+          resolved: '2.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'future-decision',
+          direction: 'relatesTo',
+          via: 'supersededBy',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'future-decision',
+          direction: 'relatesTo',
+          via: 'supersededBy',
+          pointer: null,
+          resolved: '2.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'logging-decision',
+          direction: 'relatesTo',
+          via: 'amends',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'logging-decision',
+          direction: 'relatesTo',
+          via: 'amends',
+          pointer: null,
+          resolved: '2.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'security-decision',
+          direction: 'relatesTo',
+          via: 'amendedBy',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'security-decision',
+          direction: 'relatesTo',
+          via: 'amendedBy',
+          pointer: null,
+          resolved: '2.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'missing-decision',
+          direction: 'relatesTo',
+          via: 'amendedBy',
+          pointer: null,
+          resolved: null,
+          status: 'external',
+        },
+      ]);
+      expect(resolution.externals).toEqual([{ id: 'missing-decision', referencedBy: ['current-decision'] }]);
+    });
+
+    it('resolves pinned and unversioned diagram pointers', () => {
+      const centralIndex = anIndex({
+        source: 'acme/central',
+        commit: '6b4e8f2',
+        resources: [
+          {
+            type: 'domain',
+            id: 'payments-domain',
+            version: '1.0.0',
+            name: 'Payments Domain',
+            diagrams: [{ id: 'payments-landscape', version: '1.0.0' }, { id: 'payments-landscape' }],
+            contentPath: 'domains/payments-domain/index.mdx',
+          },
+          ...['1.0.0', '2.0.0'].map((version) => ({
+            type: 'diagram' as const,
+            id: 'payments-landscape',
+            version,
+            name: 'Payments Landscape',
+            contentPath: `diagrams/payments-landscape/${version}/index.mdx`,
+          })),
+        ],
+      });
+
+      const resolution = resolve([centralIndex]);
+
+      expect(
+        resolution.edges.map(({ to, direction, via, pointer, resolved, status }) => ({
+          to,
+          direction,
+          via,
+          pointer,
+          resolved,
+          status,
+        }))
+      ).toEqual([
+        {
+          to: 'payments-landscape',
+          direction: 'relatesTo',
+          via: 'diagrams',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          status: 'resolved',
+        },
+        {
+          to: 'payments-landscape',
+          direction: 'relatesTo',
+          via: 'diagrams',
+          pointer: null,
+          resolved: '2.0.0',
+          status: 'resolved',
+        },
+      ]);
+    });
+
     it('records which field produced an edge', () => {
       const centralIndex = anIndex({
         source: 'acme/central',
@@ -2078,6 +2359,136 @@ describe('resolve', () => {
         conflicts: [],
         externals: [],
       });
+    });
+
+    it('resolves versioned and unversioned channel pointers from messages and channel routes', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '1.0.0',
+            name: 'Payment Captured',
+            channels: [{ id: 'payments.events' }],
+            contentPath: 'events/payment-captured/index.mdx',
+          },
+          {
+            type: 'channel',
+            id: 'payments.events',
+            version: '1.0.0',
+            name: 'Payments Events',
+            contentPath: 'channels/payments.events/versioned/1.0.0/index.mdx',
+          },
+          {
+            type: 'channel',
+            id: 'payments.events',
+            version: '2.0.0',
+            name: 'Payments Events',
+            routes: [{ id: 'payments.dead-letter', version: '1.0.0' }],
+            contentPath: 'channels/payments.events/index.mdx',
+          },
+          {
+            type: 'channel',
+            id: 'payments.dead-letter',
+            version: '1.0.0',
+            name: 'Payments Dead Letter',
+            contentPath: 'channels/payments.dead-letter/index.mdx',
+          },
+        ],
+      });
+
+      expect(resolve([paymentsIndex]).edges).toEqual([
+        {
+          from: 'payment-captured',
+          ...fromResource('1.0.0', 'acme/payments', '4a1b7e2'),
+          to: 'payments.events',
+          direction: 'references',
+          via: 'channels',
+          pointer: null,
+          resolved: '2.0.0',
+          resolvedFrom: { source: 'acme/payments', commit: '4a1b7e2' },
+          status: 'resolved',
+        },
+        {
+          from: 'payments.events',
+          ...fromResource('2.0.0', 'acme/payments', '4a1b7e2'),
+          to: 'payments.dead-letter',
+          direction: 'references',
+          via: 'routes',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          resolvedFrom: { source: 'acme/payments', commit: '4a1b7e2' },
+          status: 'resolved',
+        },
+      ]);
+    });
+
+    it('resolves channels nested in service sends and receives pointers', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '1.0.0',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/index.mdx',
+          },
+          {
+            type: 'command',
+            id: 'capture-payment',
+            version: '1.0.0',
+            name: 'Capture Payment',
+            contentPath: 'commands/capture-payment/index.mdx',
+          },
+          {
+            type: 'service',
+            id: 'payment-service',
+            version: '1.0.0',
+            name: 'Payment Service',
+            sends: [{ id: 'payment-captured', to: [{ id: 'payments.events' }] }],
+            receives: [{ id: 'capture-payment', from: [{ id: 'payments.events', version: '1.0.0' }] }],
+            contentPath: 'services/payment-service/index.mdx',
+          },
+          {
+            type: 'channel',
+            id: 'payments.events',
+            version: '1.0.0',
+            name: 'Payments Events',
+            contentPath: 'channels/payments.events/index.mdx',
+          },
+        ],
+      });
+
+      const channelEdges = resolve([paymentsIndex]).edges.filter((edge) => edge.to === 'payments.events');
+
+      expect(channelEdges).toEqual([
+        {
+          from: 'payment-service',
+          ...fromResource('1.0.0', 'acme/payments', '4a1b7e2'),
+          to: 'payments.events',
+          direction: 'sends',
+          via: 'sends.to',
+          pointer: null,
+          resolved: '1.0.0',
+          resolvedFrom: { source: 'acme/payments', commit: '4a1b7e2' },
+          status: 'resolved',
+        },
+        {
+          from: 'payment-service',
+          ...fromResource('1.0.0', 'acme/payments', '4a1b7e2'),
+          to: 'payments.events',
+          direction: 'receives',
+          via: 'receives.from',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          resolvedFrom: { source: 'acme/payments', commit: '4a1b7e2' },
+          status: 'resolved',
+        },
+      ]);
     });
   });
 
