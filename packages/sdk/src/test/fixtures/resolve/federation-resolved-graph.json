@@ -1,0 +1,325 @@
+{
+  "entities": [
+    {
+      "type": "domain",
+      "id": "commerce",
+      "version": "1.0.0",
+      "name": "Commerce",
+      "contentPath": "domains/commerce/index.mdx",
+      "contentHash": "sha256:bbc343d3a1c620fe25380a823ba5ba2f4c28eb56d83be110baa27e5983a1d408",
+      "sidecars": [
+        {
+          "path": "domains/commerce/ubiquitous-language.mdx",
+          "hash": "sha256:1e2ab5e2cd127b8a4ba782ce8ffa06bee99e0edb898030b9a3569b59883e87b6"
+        }
+      ],
+      "services": [
+        {
+          "id": "payment-service"
+        },
+        {
+          "id": "fulfilment-service"
+        }
+      ],
+      "resolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      }
+    },
+    {
+      "type": "adr",
+      "id": "federate-commerce-services",
+      "version": "1.0.0",
+      "name": "Federate commerce services",
+      "contentPath": "adrs/federate-commerce-services/index.mdx",
+      "contentHash": "sha256:a95cf8412ea279a498f992fe22e6153edc76e64640845bf6317b24b84259fff9",
+      "status": "accepted",
+      "appliesTo": [
+        {
+          "type": "service",
+          "id": "payment-service"
+        },
+        {
+          "type": "service",
+          "id": "fulfilment-service"
+        }
+      ],
+      "resolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      }
+    },
+    {
+      "type": "service",
+      "id": "fulfilment-service",
+      "version": "1.0.0",
+      "name": "Fulfilment Service",
+      "contentPath": "services/fulfilment-service/index.mdx",
+      "contentHash": "sha256:b6346a08719b63042c78a428b682843f5a043bbcea98b1af125b5daab55f1cbf",
+      "receives": [
+        {
+          "id": "payment-captured",
+          "version": "1.0.0"
+        },
+        {
+          "id": "shipment-dispatched"
+        }
+      ],
+      "resolvedFrom": {
+        "source": "team/fulfilment",
+        "commit": "fulfilment-fixture"
+      }
+    },
+    {
+      "type": "event",
+      "id": "payment-captured",
+      "version": "1.0.0",
+      "name": "Payment Captured",
+      "contentPath": "services/payment-service/events/payment-captured/versioned/1.0.0/index.mdx",
+      "contentHash": "sha256:6efa2010ccdb8b875cff034a091713c7522894abc018b0fce07b6e0681016665",
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      }
+    },
+    {
+      "type": "event",
+      "id": "payment-captured",
+      "version": "2.0.0",
+      "name": "Payment Captured",
+      "contentPath": "services/payment-service/events/payment-captured/index.mdx",
+      "contentHash": "sha256:f7d22f54b77b93244becb9abb8f7bfeac525ed75c876a5140ea2a5942fa9745d",
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:50f3452ea7d8d13c240bbf9ffa45485193eeacbc1f3c10358ddaa363442c8aa7"
+        }
+      ],
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      }
+    },
+    {
+      "type": "service",
+      "id": "payment-service",
+      "version": "1.0.0",
+      "name": "Payment Service",
+      "contentPath": "services/payment-service/index.mdx",
+      "contentHash": "sha256:0da186c10d170026e0bb10d5609733535bc6aa8c912bd1cbdd661be09be4b4cc",
+      "sidecars": [
+        {
+          "path": "services/payment-service/docs/runbook.mdx",
+          "hash": "sha256:e8b858a027227a93b55f118b8543d3028c21b69e545eb5e4a12a310e130aa7cf"
+        }
+      ],
+      "sends": [
+        {
+          "id": "payment-captured"
+        }
+      ],
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      }
+    },
+    {
+      "type": "flow",
+      "id": "payment-to-fulfilment",
+      "version": "1.0.0",
+      "name": "Payment to fulfilment",
+      "contentPath": "flows/payment-to-fulfilment/index.mdx",
+      "contentHash": "sha256:a3adc652d1bfd80b8f2842bee0a0653a361dc0174adbba4357829f9b1ebd5bf7",
+      "references": [
+        {
+          "kind": "service",
+          "id": "payment-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "fulfilment-service",
+          "version": "1.0.0"
+        }
+      ],
+      "resolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      }
+    }
+  ],
+  "assets": [
+    {
+      "path": "public/icons/nodejs.svg",
+      "hash": "sha256:6fbbf52ad685cdad2380428b582e5c644b412e4c63f7a2a609270d4f9fd3b0ce",
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "commerce",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      },
+      "to": "payment-service",
+      "direction": "contains",
+      "via": "services",
+      "pointer": null,
+      "resolved": "1.0.0",
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      },
+      "status": "resolved"
+    },
+    {
+      "from": "commerce",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      },
+      "to": "fulfilment-service",
+      "direction": "contains",
+      "via": "services",
+      "pointer": null,
+      "resolved": "1.0.0",
+      "resolvedFrom": {
+        "source": "team/fulfilment",
+        "commit": "fulfilment-fixture"
+      },
+      "status": "resolved"
+    },
+    {
+      "from": "federate-commerce-services",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      },
+      "to": "payment-service",
+      "direction": "appliesTo",
+      "pointer": null,
+      "resolved": "1.0.0",
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      },
+      "status": "resolved"
+    },
+    {
+      "from": "federate-commerce-services",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      },
+      "to": "fulfilment-service",
+      "direction": "appliesTo",
+      "pointer": null,
+      "resolved": "1.0.0",
+      "resolvedFrom": {
+        "source": "team/fulfilment",
+        "commit": "fulfilment-fixture"
+      },
+      "status": "resolved"
+    },
+    {
+      "from": "fulfilment-service",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "team/fulfilment",
+        "commit": "fulfilment-fixture"
+      },
+      "to": "payment-captured",
+      "direction": "receives",
+      "pointer": "1.0.0",
+      "resolved": "1.0.0",
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      },
+      "status": "resolved"
+    },
+    {
+      "from": "fulfilment-service",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "team/fulfilment",
+        "commit": "fulfilment-fixture"
+      },
+      "to": "shipment-dispatched",
+      "direction": "receives",
+      "pointer": null,
+      "resolved": null,
+      "status": "external"
+    },
+    {
+      "from": "payment-service",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      },
+      "to": "payment-captured",
+      "direction": "sends",
+      "pointer": null,
+      "resolved": "2.0.0",
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      },
+      "status": "resolved"
+    },
+    {
+      "from": "payment-to-fulfilment",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      },
+      "to": "payment-service",
+      "direction": "references",
+      "via": "steps",
+      "pointer": "1.0.0",
+      "resolved": "1.0.0",
+      "resolvedFrom": {
+        "source": "team/payments",
+        "commit": "payments-fixture"
+      },
+      "status": "resolved"
+    },
+    {
+      "from": "payment-to-fulfilment",
+      "fromVersion": "1.0.0",
+      "fromResolvedFrom": {
+        "source": "central",
+        "commit": "central-fixture"
+      },
+      "to": "fulfilment-service",
+      "direction": "references",
+      "via": "steps",
+      "pointer": "1.0.0",
+      "resolved": "1.0.0",
+      "resolvedFrom": {
+        "source": "team/fulfilment",
+        "commit": "fulfilment-fixture"
+      },
+      "status": "resolved"
+    }
+  ],
+  "conflicts": [],
+  "warnings": [],
+  "externals": [
+    {
+      "id": "shipment-dispatched",
+      "referencedBy": ["fulfilment-service"]
+    }
+  ]
+}
