@@ -55,7 +55,7 @@
     "html-to-image": "^1.11.11",
     "lucide-react": "^0.510.0",
     "marked": "^16.1.2",
-    "mermaid": "^11.12.3",
+    "mermaid": "^11.16.1",
     "svg-pan-zoom": "^3.6.2"
   },
   "devDependencies": {
