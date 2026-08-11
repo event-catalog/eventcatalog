@@ -1,5 +1,12 @@
 # @eventcatalog/create-catalog
 
+## 4.3.6
+
+### Patch Changes
+
+- d78b40e: chore(cli): updated logos for new catalogs
+- 20f51e0: Default template now enables the visualiser and architecture graph, adds top-level diagrams to the navigation, and drops the duplicate component map from the Catalog domain page.
+
 ## 4.3.5
 
 ### Patch Changes
