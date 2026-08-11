@@ -126,8 +126,8 @@ describe('Domains NodeGraph', () => {
 
       // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated) + agent consumer + agent tool
       expect(nodes.length).toEqual(15);
-      // 8 original edges + 2 from data product (input edge + output edge) + agent consumer edge + agent → tool edge
-      expect(edges.length).toEqual(14);
+      // Attaching the agent directly to the Checkout subdomain adds its remaining relationship edge.
+      expect(edges.length).toEqual(15);
     });
 
     it('does not pull a referenced system (or its services) into the domain resource graph', async () => {
