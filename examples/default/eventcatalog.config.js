@@ -65,6 +65,10 @@ export default {
   //   ],
   // },
 
+  navigation: {
+    pages: ["list:top-level-domains", "list:top-level-diagrams", "list:all"],
+  },
+
   customDocs: {
     sidebar: [
       {
@@ -95,6 +99,7 @@ export default {
   },
 
   visualiser: {
+    enabled: true,
     channels: {
       renderMode: "flat",
     },

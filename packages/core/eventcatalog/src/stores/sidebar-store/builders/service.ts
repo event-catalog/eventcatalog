@@ -58,15 +58,13 @@ export const buildServiceNode = (
   const renderEntities = serviceEntities.length > 0 && shouldRenderSideBarSection(service, 'entities');
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(service, 'owners');
   const renderRepository = service.data.repository && shouldRenderSideBarSection(service, 'repository');
-  const isLatestVersion = service.data.version === service.data.latestVersion;
-  const docsBasePath = `/docs/services/${service.data.id}${isLatestVersion ? '' : `/${service.data.version}`}`;
+  const docsBasePath = `/docs/services/${service.data.id}/${service.data.version}`;
   const docsSection = buildResourceDocsSection(
     'services',
     service.data.id,
     service.data.version,
     context.resourceDocs,
-    context.resourceDocCategories,
-    { includeVersionInUrl: !isLatestVersion }
+    context.resourceDocCategories
   );
 
   // Diagrams

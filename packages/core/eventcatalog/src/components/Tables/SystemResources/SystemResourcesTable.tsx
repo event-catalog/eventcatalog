@@ -12,7 +12,18 @@ import { getColorAndIconForCollection } from '@utils/collections/icons';
 import { getCollectionTextColorClass } from '@utils/collection-colors';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
 
-export type SystemResourceCollection = 'services' | 'flows' | 'entities' | 'containers' | 'events' | 'commands' | 'queries';
+export type SystemResourceCollection =
+  | 'domains'
+  | 'systems'
+  | 'agents'
+  | 'services'
+  | 'flows'
+  | 'entities'
+  | 'data-products'
+  | 'containers'
+  | 'events'
+  | 'commands'
+  | 'queries';
 
 export interface SystemResourceItem {
   collection: SystemResourceCollection;
@@ -29,9 +40,13 @@ interface SystemResourcesTableProps {
 }
 
 const TYPE_LABELS: Record<SystemResourceCollection, string> = {
+  domains: 'Subdomains',
+  systems: 'Systems',
+  agents: 'Agents',
   services: 'Services',
   flows: 'Flows',
   entities: 'Entities',
+  'data-products': 'Data Products',
   containers: 'Data Stores',
   events: 'Events',
   commands: 'Commands',
@@ -39,7 +54,19 @@ const TYPE_LABELS: Record<SystemResourceCollection, string> = {
 };
 
 // Order the type filter pills follow on the page.
-const TYPE_ORDER: SystemResourceCollection[] = ['services', 'flows', 'entities', 'containers', 'events', 'commands', 'queries'];
+const TYPE_ORDER: SystemResourceCollection[] = [
+  'domains',
+  'systems',
+  'agents',
+  'services',
+  'flows',
+  'entities',
+  'data-products',
+  'containers',
+  'events',
+  'commands',
+  'queries',
+];
 
 // Small icon for a collection type (used in filter pills and the type column).
 const CollectionTypeIcon = ({ collection, className }: { collection: SystemResourceCollection; className?: string }) => {

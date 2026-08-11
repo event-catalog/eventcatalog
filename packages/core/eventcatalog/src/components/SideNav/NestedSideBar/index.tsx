@@ -866,12 +866,6 @@ export default function NestedSideBar() {
     // a custom icon (item.leftIcon) is always still shown.
     const IconComponent =
       item.icon && !suppressDefaultIcon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[item.icon] : null;
-    // Some glyphs fill their box more than others, so they read larger at the shared
-    // item size. Render these ~25% smaller (matching the ADR icon) to visually balance:
-    // ClipboardList (ADRs) and the message glyphs (events/commands/queries).
-    const smallerIcons = ['ClipboardList', 'Zap', 'MessageSquare', 'Search', 'Mail'];
-    const iconSizeClass = item.icon && smallerIcons.includes(item.icon) ? 'w-3 h-3' : 'w-4 h-4';
-
     const handleStarClick = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -888,7 +882,7 @@ export default function NestedSideBar() {
                 isActive ? 'text-[rgb(var(--ec-accent-text))]' : 'text-[rgb(var(--ec-content-text-muted))]'
               )}
             >
-              <IconComponent className={iconSizeClass} />
+              <IconComponent className="w-4 h-4" />
             </span>
           )}
           {item.leftIcon && <img src={resolveIconUrl(item.leftIcon)} alt="" loading="lazy" className="w-4 h-4 flex-shrink-0" />}

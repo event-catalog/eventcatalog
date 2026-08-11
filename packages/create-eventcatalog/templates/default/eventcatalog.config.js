@@ -23,7 +23,7 @@ export default {
   // Customize the navigation for your docs sidebar.
   // read more at https://eventcatalog.dev/docs/development/customization/customize-sidebars/documentation-sidebar
   navigation: {
-    pages: ['list:top-level-domains', 'list:all'],
+    pages: ['list:top-level-domains', 'list:top-level-diagrams', 'list:all'],
   },
   mermaid: {
     enableSupportForElkLayout: true,
@@ -34,8 +34,12 @@ export default {
     limit: 15,
   },
   visualiser: {
+    enabled: true,
     channels: {
       renderMode: 'flat',
+    },
+    architectureGraph: {
+      enabled: true,
     },
   },
   // Customize the logo, add your logo to public/ folder
