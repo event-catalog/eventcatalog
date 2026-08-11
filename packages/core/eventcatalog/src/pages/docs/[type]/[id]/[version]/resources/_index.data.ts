@@ -9,13 +9,13 @@ type SupportedType = (typeof SUPPORTED_TYPES)[number];
 
 const isSupportedType = (type: string): type is SupportedType => SUPPORTED_TYPES.includes(type as SupportedType);
 
-const loadResourceOwner = async (type: SupportedType) => {
+export const loadResourceOwner = async (type: SupportedType) => {
   if (type === 'systems') {
     const { getSystems } = await import('@utils/collections/systems');
     return getSystems();
   }
   const { getDomains } = await import('@utils/collections/domains');
-  return getDomains();
+  return getDomains({ includeServicesInSubdomains: false });
 };
 
 export class Page extends HybridPage {

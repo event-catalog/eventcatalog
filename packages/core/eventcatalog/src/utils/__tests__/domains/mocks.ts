@@ -24,6 +24,7 @@ export const mockDomains = [
       name: 'Checkout',
       version: '0.0.1',
       services: [{ id: 'OrderService' /* version: latest */ }, { id: 'PaymentService', version: '0.0.1' }],
+      agents: [{ id: 'FraudReviewAgent', version: '1.0.0' }],
       'data-products': [{ id: 'CheckoutAnalytics', version: '1.0.0' }],
     },
   },

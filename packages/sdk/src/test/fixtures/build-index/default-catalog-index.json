@@ -542,7 +542,7 @@
       "version": "1.0.0",
       "name": "Catalog",
       "contentPath": "domains/Catalog/index.mdx",
-      "contentHash": "sha256:73da6896ccad4dc201c8199a89e103cba2e71a2bd2bfc8d16c86d403586fa5f9",
+      "contentHash": "sha256:1cb8e8ddd496e775dcc6d0e0a4eac85cc28066d248599a363d38c44f6c3a5801",
       "owners": ["product-platform"],
       "sidecars": [
         {
