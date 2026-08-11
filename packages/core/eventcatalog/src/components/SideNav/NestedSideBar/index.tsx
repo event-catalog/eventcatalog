@@ -749,7 +749,7 @@ export default function NestedSideBar() {
       }) ?? [];
 
     const groupId = groupKey || group.collapseKey || `${currentLevel.key ?? 'root'}:group:${group.title}`;
-    const canCollapse = canCollapseGroup(visibleChildren.length, isTopLevel);
+    const canCollapse = canCollapseGroup(visibleChildren.length, isTopLevel, group.collapsible);
     const isCollapsed = isGroupCollapsed(canCollapse, groupId, sectionCollapsePreferences);
 
     // When a group's children are subtle subgroups (e.g. Resources > Services/Flows/Data Stores),

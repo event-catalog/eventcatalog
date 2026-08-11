@@ -492,6 +492,7 @@ describe('getNestedSideBarData', () => {
       });
       const navigationData = await getNestedSideBarData();
       const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
+      expect(browseNode.collapsible).toBe(false);
       expect(browseNode.pages).toEqual(['list:domains', 'list:services']);
     });
 

@@ -1104,6 +1104,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     allList = {
       type: 'group',
       title: 'Browse',
+      collapsible: false,
       icon: 'Telescope',
       pages: validAllChildren,
     };
