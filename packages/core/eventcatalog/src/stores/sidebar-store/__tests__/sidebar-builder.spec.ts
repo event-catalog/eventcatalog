@@ -1972,7 +1972,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
-          href: '/docs/services/ShippingService',
+          href: '/docs/services/ShippingService/0.0.1',
         });
       });
 
@@ -1990,7 +1990,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
         });
         config.changelog = { enabled: false };
       });
@@ -2009,7 +2009,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
         });
       });
 
@@ -2032,7 +2032,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
         });
         config.changelog = { enabled: false };
       });
@@ -2182,24 +2182,24 @@ describe('getNestedSideBarData', () => {
             type: 'item',
             title: 'OpenAPI',
             leftIcon: '/icons/openapi-black.svg',
-            href: '/docs/services/ShippingService/spec/openapi',
+            href: '/docs/services/ShippingService/0.0.1/spec/openapi',
           },
           {
             type: 'item',
             title: 'AsyncAPI',
             leftIcon: '/icons/asyncapi-black.svg',
-            href: '/docs/services/ShippingService/asyncapi/asyncapi',
+            href: '/docs/services/ShippingService/0.0.1/asyncapi/asyncapi',
           },
           {
             type: 'item',
             title: 'GraphQL',
             leftIcon: '/icons/graphql-black.svg',
-            href: '/docs/services/ShippingService/graphql/graphql',
+            href: '/docs/services/ShippingService/0.0.1/graphql/graphql',
           },
         ]);
       });
 
-      it('keeps specification links versioned for historical service versions', async () => {
+      it('keeps specification links versioned for every service version', async () => {
         const { writeService } = utils(CATALOG_FOLDER);
         const specifications = [{ type: 'asyncapi' as const, path: 'asyncapi.yaml', name: 'AsyncAPI' }];
 
@@ -2233,7 +2233,7 @@ describe('getNestedSideBarData', () => {
         expect(latestServiceNode).toHaveNavigationLink({
           type: 'item',
           title: 'AsyncAPI',
-          href: '/docs/services/ShippingService/asyncapi/asyncapi',
+          href: '/docs/services/ShippingService/2.0.0/asyncapi/asyncapi',
         });
       });
     });
@@ -4753,7 +4753,7 @@ describe('getNestedSideBarData', () => {
           {
             type: 'item',
             title: 'Service Boundary ADR',
-            href: '/docs/services/ShippingService/adrs/service-boundary',
+            href: '/docs/services/ShippingService/0.0.1/adrs/service-boundary',
           },
         ]);
 

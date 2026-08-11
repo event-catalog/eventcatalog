@@ -8,6 +8,7 @@ import {
   mockUbiquitousLanguages,
   mockDataProducts,
   mockSystems,
+  mockAgents,
 } from './mocks';
 import {
   domainHasEntities,
@@ -38,6 +39,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockDataProducts);
         case 'systems':
           return Promise.resolve(mockSystems);
+        case 'agents':
+          return Promise.resolve(mockAgents);
         case 'ubiquitousLanguages':
           let result = mockUbiquitousLanguages;
           if (filter) {
@@ -84,6 +87,17 @@ describe('Domains', () => {
       expect(systems[0].data.services).toEqual([
         expect.objectContaining({ data: expect.objectContaining({ id: 'LocationService' }) }),
       ]);
+    });
+
+    it('can keep child-subdomain services and agents off the parent domain', async () => {
+      const domains = await getDomains({ includeServicesInSubdomains: false });
+      const shipping = domains.find((domain) => domain.data.id === 'Shipping');
+      const checkout = (shipping?.data.domains as any[])?.find((domain) => domain.data.id === 'Checkout');
+
+      expect((shipping?.data.services as any[]).map((service) => service.data.id)).toEqual(['LocationService']);
+      expect(shipping?.data.agents).toEqual([]);
+      expect(checkout.data.services.map((service: any) => service.data.id)).toEqual(['OrderService', 'PaymentService']);
+      expect(checkout.data.agents.map((agent: any) => agent.data.id)).toEqual(['FraudReviewAgent']);
     });
   });
 

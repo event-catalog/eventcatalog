@@ -81,10 +81,14 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const sortedReceivesMessages = [...receivesMessages].sort(byResourceName);
   const renderMessages = shouldRenderSideBarSection(domain, 'messages');
 
-  // The Resources page/link only makes sense when the domain actually has resources
-  // attached (services, flows, entities or its own messages). Mirrors what the page renders.
+  // The Resources page/link only makes sense when the domain has direct resources.
+  // Keep this aligned with the resource groups rendered by the page.
   const hasResources =
-    servicesInDomain.length > 0 ||
+    subDomains.length > 0 ||
+    systemsInDomain.length > 0 ||
+    agentsInDomain.length > 0 ||
+    dataProductsInDomain.length > 0 ||
+    allServicesInDomain.length > 0 ||
     domainFlows.length > 0 ||
     entitiesInDomain.length > 0 ||
     sendsMessages.length > 0 ||
