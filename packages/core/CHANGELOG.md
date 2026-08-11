@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 4.6.2
+
+### Patch Changes
+
+- 3395e8c: fix: bump vulnerable dependencies flagged by npm audit (hono, mermaid, react-syntax-highlighter, uuid)
+- Updated dependencies [3395e8c]
+  - @eventcatalog/visualiser@4.1.2
+
 ## 4.6.1
 
 ### Patch Changes

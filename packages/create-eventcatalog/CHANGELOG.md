@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.7
+
+### Patch Changes
+
+- 3395e8c: fix: bump vulnerable dependencies flagged by npm audit (hono, mermaid, react-syntax-highlighter, uuid)
+
 ## 4.3.6
 
 ### Patch Changes
