@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import matter from 'gray-matter';
 import ignore from 'ignore';
 import { rcompare, valid } from 'semver';
 import { getAdrs } from './adrs';
@@ -16,6 +17,7 @@ import { getEvents } from './events';
 import { getFlows } from './flows';
 import type { Index, IndexAsset, IndexResource, IndexResourceType, IndexSidecar } from './index-types';
 import { getResourcePath } from './internal/resources';
+import { getFiles } from './internal/utils';
 import { getQueries } from './queries';
 import { getServices } from './services';
 import { getSystems } from './systems';
@@ -156,6 +158,26 @@ const loadIgnoreRules = async (directory: string) => {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
     throw error;
   }
+};
+
+const getFederatedDirectoryResources = async (
+  directory: string,
+  type: 'team' | 'user',
+  resourceDirectory: 'teams' | 'users',
+  ignoreRules?: ignore.Ignore
+): Promise<IndexableResourceEntry[]> => {
+  const files = await getFiles(path.join(directory, 'federated', '**', resourceDirectory, '*.{md,mdx}'));
+  const resourcePathPattern = new RegExp(`^(?:federated/[^/]+/)+${resourceDirectory}/[^/]+\\.mdx?$`, 'i');
+
+  return files
+    .filter((file) => {
+      const catalogPath = toCatalogPath(directory, file);
+      return resourcePathPattern.test(catalogPath) && !ignoreRules?.ignores(catalogPath);
+    })
+    .map((sourcePath) => {
+      const { data } = matter.read(sourcePath);
+      return { type, resource: data as IndexableResource, sourcePath };
+    });
 };
 
 const normalizeAssets = async (directory: string, hashContent: boolean, ignoreRules?: ignore.Ignore) => {
@@ -380,6 +402,7 @@ const toIndexResource = async (
 export const buildIndex =
   (directory: string) =>
   async ({ source, commit, hashContent = true }: BuildIndexOptions): Promise<Index> => {
+    const ignoreRules = await loadIgnoreRules(directory);
     const [
       domains,
       channels,
@@ -415,6 +438,10 @@ export const buildIndex =
       getUsers(directory)(),
       getDiagrams(directory)(),
     ]);
+    const federatedDirectoryResources = await Promise.all([
+      getFederatedDirectoryResources(directory, 'team', 'teams', ignoreRules),
+      getFederatedDirectoryResources(directory, 'user', 'users', ignoreRules),
+    ]);
     const indexableResources: IndexableResourceEntry[] = [
       ...(domains ?? []).map((resource) => ({ type: 'domain' as const, resource })),
       ...(channels ?? []).map((resource) => ({ type: 'channel' as const, resource })),
@@ -439,6 +466,7 @@ export const buildIndex =
         resource,
         sourcePath: path.join(directory, 'users', `${resource.id}.mdx`),
       })),
+      ...federatedDirectoryResources.flat(),
       ...(diagrams ?? []).map((resource) => ({ type: 'diagram' as const, resource })),
     ];
     const locatedResources = await Promise.all(
@@ -455,7 +483,6 @@ export const buildIndex =
         .filter(({ sourcePath }) => /^index\.mdx?$/i.test(path.basename(sourcePath)))
         .map(({ sourcePath }) => path.resolve(path.dirname(sourcePath)))
     );
-    const ignoreRules = await loadIgnoreRules(directory);
     const resources = await Promise.all(
       locatedResources.map(({ type, resource, sourcePath }) =>
         toIndexResource(directory, type, resource, hashContent, sourcePath, resourceDirectories, ignoreRules)

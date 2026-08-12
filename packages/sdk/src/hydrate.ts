@@ -12,7 +12,7 @@ export type Cache = {
 
 export type HydrateOptions = {
   outDir: string;
-  localSource: string;
+  localSource?: string;
   fetch: Fetcher;
   modes?: Record<string, 'hydrate' | 'reference'>;
   cache?: Cache;
@@ -99,7 +99,7 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
 
   for (const entity of graph.entities) {
     const { source, commit } = entity.resolvedFrom;
-    if (source === options.localSource) continue;
+    if (options.localSource !== undefined && source === options.localSource) continue;
 
     if (options.modes?.[source] === 'reference') {
       result.referenced++;
@@ -136,7 +136,8 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
 
   for (const asset of graph.assets) {
     const { source, commit } = asset.resolvedFrom;
-    if (source === options.localSource || options.modes?.[source] === 'reference') continue;
+    if ((options.localSource !== undefined && source === options.localSource) || options.modes?.[source] === 'reference')
+      continue;
 
     artifacts.push({
       source,

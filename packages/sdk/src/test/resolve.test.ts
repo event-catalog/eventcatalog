@@ -368,7 +368,7 @@ describe('resolve', () => {
       });
     });
 
-    it('chooses a deterministic winner and warns when asset hashes differ', () => {
+    it('chooses the last source as the winner and warns when asset hashes differ', () => {
       const paymentsIndex = anIndex({
         source: 'acme/payments',
         commit: '4a1b7e2',
@@ -415,7 +415,27 @@ describe('resolve', () => {
       };
 
       expect(resolve([paymentsIndex, fulfilmentIndex])).toEqual(expected);
-      expect(resolve([fulfilmentIndex, paymentsIndex])).toEqual(expected);
+      expect(resolve([fulfilmentIndex, paymentsIndex])).toEqual({
+        ...expected,
+        assets: [
+          {
+            path: 'public/logo.svg',
+            hash: 'sha256:c81a4f',
+            resolvedFrom: {
+              source: 'acme/payments',
+              commit: '4a1b7e2',
+            },
+          },
+        ],
+        warnings: [
+          {
+            kind: 'asset-collision',
+            path: 'public/logo.svg',
+            sources: ['acme/fulfilment', 'acme/payments'],
+            winner: 'acme/payments',
+          },
+        ],
+      });
     });
   });
 

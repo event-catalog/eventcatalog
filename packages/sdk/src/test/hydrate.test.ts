@@ -84,7 +84,6 @@ describe('hydrate', () => {
 
     const result = await hydrate(graph, {
       outDir,
-      localSource: 'acme/central',
       fetch,
     });
 
