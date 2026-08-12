@@ -10,7 +10,12 @@ import type { FederationSourceProvider, ResolvedFederationSource } from './types
 const execFileAsync = promisify(execFile);
 
 type FetchResponse = Pick<Response, 'status' | 'statusText' | 'ok' | 'arrayBuffer'>;
-type FetchFunction = (url: string) => Promise<FetchResponse>;
+type FetchFunction = (url: string, init?: RequestInit) => Promise<FetchResponse>;
+type ExecFileFunction = (
+  file: string,
+  args: string[],
+  options: { cwd: string; env?: NodeJS.ProcessEnv; encoding: 'utf8' }
+) => Promise<{ stdout: string; stderr: string }>;
 type CheckoutFunction = <T>(
   source: FederationSourceConfig,
   ref: string,
@@ -20,6 +25,8 @@ type CheckoutFunction = <T>(
 export type GitHubSourceProviderOptions = {
   fetch?: FetchFunction;
   checkout?: CheckoutFunction;
+  execFile?: ExecFileFunction;
+  token?: string;
 };
 
 const parseGitHubSource = (source: FederationSourceConfig) => {
@@ -45,38 +52,77 @@ const rawUrl = (source: FederationSourceConfig, ref: string, filePath: string) =
   )}/${encodePath(filePath)}`;
 };
 
-const fetchBytes = async (url: string, fetcher: FetchFunction): Promise<Buffer | undefined> => {
-  const response = await fetcher(url);
+const contentsApiUrl = (source: FederationSourceConfig, ref: string, filePath: string) => {
+  const { owner, repository } = parseGitHubSource(source);
+  return `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/contents/${encodePath(
+    filePath
+  )}?ref=${encodeURIComponent(ref)}`;
+};
+
+const fetchBytes = async (
+  source: FederationSourceConfig,
+  ref: string,
+  filePath: string,
+  fetcher: FetchFunction,
+  token?: string
+): Promise<Buffer | undefined> => {
+  const url = token ? contentsApiUrl(source, ref, filePath) : rawUrl(source, ref, filePath);
+  const response = token
+    ? await fetcher(url, {
+        headers: {
+          Accept: 'application/vnd.github.raw+json',
+          Authorization: `Bearer ${token}`,
+          'X-GitHub-Api-Version': '2026-03-10',
+        },
+      })
+    : await fetcher(url);
   if (response.status === 404) return undefined;
   if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
   return Buffer.from(await response.arrayBuffer());
 };
 
-const withCheckout = async <T>(source: FederationSourceConfig, ref: string, callback: (directory: string) => Promise<T>) => {
-  const { owner, repository } = parseGitHubSource(source);
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-federation-'));
+const getGitEnvironment = (token?: string) => {
+  if (!token) return process.env;
 
-  try {
-    const git = (args: string[]) => execFileAsync('git', args, { cwd: directory });
-    await git(['init', '--quiet']);
-    await git(['remote', 'add', 'origin', `https://github.com/${owner}/${repository}.git`]);
-    await git(['sparse-checkout', 'init', '--cone']);
-    if ((source.path ?? '.') !== '.') await git(['sparse-checkout', 'set', source.path ?? '.']);
-    await git(['fetch', '--quiet', '--depth', '1', 'origin', ref]);
-    await git(['checkout', '--quiet', '--detach', 'FETCH_HEAD']);
-    return await callback(directory);
-  } finally {
-    await fs.rm(directory, { recursive: true, force: true });
-  }
+  const inheritedCount = Number.parseInt(process.env.GIT_CONFIG_COUNT ?? '0', 10);
+  const configIndex = Number.isInteger(inheritedCount) && inheritedCount >= 0 ? inheritedCount : 0;
+  return {
+    ...process.env,
+    GIT_CONFIG_COUNT: String(configIndex + 1),
+    [`GIT_CONFIG_KEY_${configIndex}`]: 'http.https://github.com/.extraheader',
+    [`GIT_CONFIG_VALUE_${configIndex}`]: `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${token}`).toString('base64')}`,
+  };
 };
+
+const createCheckout =
+  (executeFile: ExecFileFunction, token?: string): CheckoutFunction =>
+  async (source, ref, callback) => {
+    const { owner, repository } = parseGitHubSource(source);
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-federation-'));
+    const env = getGitEnvironment(token);
+
+    try {
+      const git = (args: string[]) => executeFile('git', args, { cwd: directory, env, encoding: 'utf8' });
+      await git(['init', '--quiet']);
+      await git(['remote', 'add', 'origin', `https://github.com/${owner}/${repository}.git`]);
+      await git(['sparse-checkout', 'init', '--cone']);
+      if ((source.path ?? '.') !== '.') await git(['sparse-checkout', 'set', source.path ?? '.']);
+      await git(['fetch', '--quiet', '--depth', '1', 'origin', ref]);
+      await git(['checkout', '--quiet', '--detach', 'FETCH_HEAD']);
+      return await callback(directory);
+    } finally {
+      await fs.rm(directory, { recursive: true, force: true });
+    }
+  };
 
 const generateIndex = async (
   source: FederationSourceConfig,
   ref: string,
-  checkout: CheckoutFunction
+  checkout: CheckoutFunction,
+  executeFile: ExecFileFunction
 ): Promise<ResolvedFederationSource> =>
   checkout(source, ref, async (directory) => {
-    const { stdout } = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: directory });
+    const { stdout } = await executeFile('git', ['rev-parse', 'HEAD'], { cwd: directory, encoding: 'utf8' });
     const commit = stdout.trim();
     const catalogDirectory = path.resolve(directory, source.path ?? '.');
     const relativeCatalogDirectory = path.relative(directory, catalogDirectory);
@@ -91,10 +137,11 @@ const generateIndex = async (
 const fetchPublishedIndex = async (
   source: FederationSourceConfig,
   ref: string,
-  fetcher: FetchFunction
+  fetcher: FetchFunction,
+  token?: string
 ): Promise<ResolvedFederationSource | undefined> => {
   const indexPath = path.posix.join(source.path ?? '.', 'catalog.index.json');
-  const bytes = await fetchBytes(rawUrl(source, ref, indexPath), fetcher);
+  const bytes = await fetchBytes(source, ref, indexPath, fetcher, token);
   if (!bytes) return undefined;
   const index = parseIndex(JSON.parse(bytes.toString('utf8')));
   if (index.source !== source.id) {
@@ -104,20 +151,23 @@ const fetchPublishedIndex = async (
 };
 
 export const createGitHubSourceProvider = (options: GitHubSourceProviderOptions = {}): FederationSourceProvider => {
-  const fetcher: FetchFunction = options.fetch ?? ((url) => fetch(url));
-  const checkout = options.checkout ?? withCheckout;
+  const fetcher: FetchFunction = options.fetch ?? ((url, init) => fetch(url, init));
+  const executeFile: ExecFileFunction = options.execFile ?? ((file, args, execOptions) => execFileAsync(file, args, execOptions));
+  const configuredToken = options.token ?? process.env.EVENTCATALOG_GITHUB_TOKEN ?? process.env.GITHUB_TOKEN;
+  const token = configuredToken?.trim() || undefined;
+  const checkout = options.checkout ?? createCheckout(executeFile, token);
 
   return {
     async resolve(source) {
       assertSafeCatalogPath(source);
       const ref = source.ref ?? 'main';
-      return (await fetchPublishedIndex(source, ref, fetcher)) ?? generateIndex(source, ref, checkout);
+      return (await fetchPublishedIndex(source, ref, fetcher, token)) ?? generateIndex(source, ref, checkout, executeFile);
     },
 
     async fetchContent({ source, commit, path: artifactPath }) {
       assertSafeCatalogPath(source);
       const catalogPath = path.posix.join(source.path ?? '.', artifactPath);
-      const content = await fetchBytes(rawUrl(source, commit, catalogPath), fetcher);
+      const content = await fetchBytes(source, commit, catalogPath, fetcher, token);
       if (!content) throw new Error(`Federated artifact not found for "${source.id}": ${artifactPath}`);
       return content;
     },
