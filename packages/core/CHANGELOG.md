@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 4.6.3
+
+### Patch Changes
+
+- f59c821: Add the `eventcatalog federate` CLI command. Reads `federation.sources` from the catalog config, fetches and indexes each configured GitHub source, resolves the combined graph, then hydrates federated content and public assets into the local catalog. Includes a content-addressed cache (`--no-cache` to bypass), pinned source commits in a lockfile, and ownership conflict reporting.
+- Updated dependencies [f59c821]
+  - @eventcatalog/sdk@2.27.2
+  - @eventcatalog/linter@1.1.11
+
 ## 4.6.2
 
 ### Patch Changes
