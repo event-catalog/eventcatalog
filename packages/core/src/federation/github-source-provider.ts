@@ -98,6 +98,7 @@ const createCheckout =
   (executeFile: ExecFileFunction, token?: string): CheckoutFunction =>
   async (source, ref, callback) => {
     const { owner, repository } = parseGitHubSource(source);
+    const catalogPath = path.posix.normalize(source.path ?? '.');
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-federation-'));
     const env = getGitEnvironment(token);
 
@@ -105,8 +106,10 @@ const createCheckout =
       const git = (args: string[]) => executeFile('git', args, { cwd: directory, env, encoding: 'utf8' });
       await git(['init', '--quiet']);
       await git(['remote', 'add', 'origin', `https://github.com/${owner}/${repository}.git`]);
-      await git(['sparse-checkout', 'init', '--cone']);
-      if ((source.path ?? '.') !== '.') await git(['sparse-checkout', 'set', source.path ?? '.']);
+      if (catalogPath !== '.') {
+        await git(['sparse-checkout', 'init', '--cone']);
+        await git(['sparse-checkout', 'set', catalogPath]);
+      }
       await git(['fetch', '--quiet', '--depth', '1', 'origin', ref]);
       await git(['checkout', '--quiet', '--detach', 'FETCH_HEAD']);
       return await callback(directory);

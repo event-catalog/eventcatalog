@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import type { Index } from '@eventcatalog/sdk';
 import { createGitHubSourceProvider } from '../federation/github-source-provider';
@@ -107,17 +109,22 @@ describe('GitHub federation source provider', () => {
     );
   });
 
-  it('authenticates the git checkout fallback without putting the token in the remote URL or arguments', async () => {
+  it('fully checks out a root catalog and authenticates without putting the token in the URL or arguments', async () => {
     const fetcher = vi.fn(async () => response(404));
-    const executeFile = vi.fn(async (_file: string, args: string[]) => ({
-      stdout: args[0] === 'rev-parse' ? 'abc123\n' : '',
-      stderr: '',
-    }));
+    const executeFile = vi.fn(async (_file: string, args: string[], options: { cwd: string }) => {
+      if (args[0] === 'checkout') {
+        const service = path.join(options.cwd, 'services/payment-service/index.mdx');
+        await fs.mkdir(path.dirname(service), { recursive: true });
+        await fs.writeFile(service, '---\nid: payment-service\nname: Payment service\n---\n# Payment service');
+      }
+      return { stdout: args[0] === 'rev-parse' ? 'abc123\n' : '', stderr: '' };
+    });
     const provider = createGitHubSourceProvider({ fetch: fetcher, execFile: executeFile, token: 'github-token' });
 
     await expect(provider.resolve({ id: 'acme/payments', source: 'github:acme/catalogs' })).resolves.toMatchObject({
       commit: 'abc123',
       generated: true,
+      index: { resources: [expect.objectContaining({ id: 'payment-service' })] },
     });
 
     const fetchCall = executeFile.mock.calls.find(([, args]) => args[0] === 'fetch');
@@ -133,6 +140,29 @@ describe('GitHub federation source provider', () => {
       ['remote', 'add', 'origin', 'https://github.com/acme/catalogs.git'],
       expect.any(Object)
     );
+    expect(executeFile.mock.calls.some(([, args]) => args[0] === 'sparse-checkout')).toBe(false);
+  });
+
+  it('uses sparse checkout when the catalog is in a repository subdirectory', async () => {
+    const fetcher = vi.fn(async () => response(404));
+    const executeFile = vi.fn(async (_file: string, args: string[], options: { cwd: string }) => {
+      if (args[0] === 'checkout') {
+        const service = path.join(options.cwd, 'catalogs/payments/services/payment-service/index.mdx');
+        await fs.mkdir(path.dirname(service), { recursive: true });
+        await fs.writeFile(service, '---\nid: payment-service\nname: Payment service\n---\n# Payment service');
+      }
+      return { stdout: args[0] === 'rev-parse' ? 'abc123\n' : '', stderr: '' };
+    });
+    const provider = createGitHubSourceProvider({ fetch: fetcher, execFile: executeFile, token: '' });
+
+    await expect(
+      provider.resolve({ id: 'acme/payments', source: 'github:acme/catalogs', path: 'catalogs/payments' })
+    ).resolves.toMatchObject({
+      index: { resources: [expect.objectContaining({ id: 'payment-service' })] },
+    });
+
+    expect(executeFile).toHaveBeenCalledWith('git', ['sparse-checkout', 'init', '--cone'], expect.any(Object));
+    expect(executeFile).toHaveBeenCalledWith('git', ['sparse-checkout', 'set', 'catalogs/payments'], expect.any(Object));
   });
 
   it('rejects catalog paths that escape the source repository', async () => {
