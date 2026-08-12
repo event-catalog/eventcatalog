@@ -744,8 +744,20 @@ const reportFederationProgress = (event: FederationProgressEvent) => {
         'federation'
       );
       return;
+    case 'local:start':
+      logger.info('Indexing central catalog ownership...', 'federation');
+      return;
+    case 'local:complete':
+      logger.success(
+        `Central catalog: ${event.resources} local resource${event.resources === 1 ? '' : 's'} found (excluding federated/)`,
+        'federation'
+      );
+      return;
     case 'resolving':
-      logger.info(`Resolving ${event.resources} resources across catalog boundaries...`, 'federation');
+      logger.info(
+        `Validating ownership across ${event.localResources} local resource${event.localResources === 1 ? '' : 's'} and ${event.resources} remote resource${event.resources === 1 ? '' : 's'}...`,
+        'federation'
+      );
       return;
     case 'resolved':
       if (event.graph.conflicts.length > 0) {
@@ -762,7 +774,7 @@ const reportFederationProgress = (event: FederationProgressEvent) => {
         return;
       }
       logger.success(
-        `Graph resolved: ${event.graph.entities.length} resources, ${event.graph.edges.length} relationships`,
+        `Graph resolved: ${event.graph.entities.length} remote resources, ${event.graph.edges.length} relationships`,
         'federation'
       );
       if (event.graph.warnings.length > 0) {

@@ -19,6 +19,9 @@ import { basename } from 'node:path';
 import path from 'node:path';
 
 type Resource = Service | Message | CustomDoc | Adr;
+const resourceSourcePaths = new WeakMap<object, string>();
+
+export const getResourceSourcePath = (resource: object) => resourceSourcePaths.get(resource);
 
 export const versionResource = async (catalogDir: string, id: string) => {
   // Find all the events in the directory
@@ -222,10 +225,12 @@ export const getResources = async (
         }
       }
     }
-    return {
+    const resource = {
       ...data,
       markdown: content.trim(),
     } as Resource;
+    resourceSourcePaths.set(resource, file);
+    return resource;
   });
 };
 

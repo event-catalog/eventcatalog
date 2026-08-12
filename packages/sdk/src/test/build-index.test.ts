@@ -54,6 +54,38 @@ describe('buildIndex', () => {
     ]);
   });
 
+  it('can exclude federated resources when indexing local catalog ownership', async () => {
+    const localService = path.join(CATALOG_PATH, 'services/payment-service/index.mdx');
+    const federatedService = path.join(CATALOG_PATH, 'federated/acme/services/payment-service/index.mdx');
+    const federatedOnlyService = path.join(CATALOG_PATH, 'federated/acme/services/order-service/index.mdx');
+    const federatedEventWithLocalServiceId = path.join(CATALOG_PATH, 'federated/acme/events/payment-service/index.mdx');
+    fs.mkdirSync(path.dirname(localService), { recursive: true });
+    fs.mkdirSync(path.dirname(federatedService), { recursive: true });
+    fs.mkdirSync(path.dirname(federatedOnlyService), { recursive: true });
+    fs.mkdirSync(path.dirname(federatedEventWithLocalServiceId), { recursive: true });
+    fs.writeFileSync(localService, '---\nid: payment-service\nname: Local payment service\n---\n# Local');
+    fs.writeFileSync(federatedService, '---\nid: payment-service\nname: Federated payment service\n---\n# Federated');
+    fs.writeFileSync(federatedOnlyService, '---\nid: order-service\nname: Federated order service\n---\n# Federated');
+    fs.writeFileSync(
+      federatedEventWithLocalServiceId,
+      '---\nid: payment-service\nname: Federated event with local service ID\n---\n# Federated'
+    );
+
+    const index = await sdk.buildIndex({
+      source: 'central-catalog',
+      commit: 'local',
+      includeFederated: false,
+    });
+
+    expect(index.resources).toEqual([
+      expect.objectContaining({
+        id: 'payment-service',
+        name: 'Local payment service',
+        contentPath: 'services/payment-service/index.mdx',
+      }),
+    ]);
+  });
+
   it('indexes teams and users from an already composed catalog using their federated paths', async () => {
     const federatedTeam = path.join(CATALOG_PATH, 'federated/acme/teams/payments-team.mdx');
     const federatedUser = path.join(CATALOG_PATH, 'federated/acme/users/alice.mdx');

@@ -83,9 +83,9 @@ describe('federate catalog', () => {
       fetchContent: vi.fn(async ({ path: artifactPath }) => Buffer.from(`# ${artifactPath}\n`)),
     };
     const progress: FederationProgressEvent[] = [];
-    const centralResource = path.join(projectDirectory, 'services', 'payment-service', 'index.mdx');
+    const centralResource = path.join(projectDirectory, 'services', 'central-service', 'index.mdx');
     await fs.mkdir(path.dirname(centralResource), { recursive: true });
-    await fs.writeFile(centralResource, '---\nid: payment-service\nname: Central payment service\n---\n# Central');
+    await fs.writeFile(centralResource, '---\nid: central-service\nname: Central service\n---\n# Central');
     const previousOutput = path.join(projectDirectory, 'federated', 'old-source', 'services', 'payment-service', 'index.mdx');
     await fs.mkdir(path.dirname(previousOutput), { recursive: true });
     await fs.writeFile(previousOutput, '---\nid: payment-service\nname: Previously hydrated payment service\n---\n# Previous');
@@ -117,6 +117,8 @@ describe('federate catalog', () => {
       'source:complete',
       'source:start',
       'source:complete',
+      'local:start',
+      'local:complete',
       'resolving',
       'resolved',
       'hydrating',
@@ -125,6 +127,8 @@ describe('federate catalog', () => {
       'public:complete',
       'complete',
     ]);
+    expect(progress).toContainEqual({ type: 'local:complete', resources: 1 });
+    expect(progress).toContainEqual({ type: 'resolving', localResources: 1, resources: 2 });
   });
 
   it('composes public assets into the root with main ownership and last-source-wins semantics', async () => {
@@ -300,6 +304,32 @@ describe('federate catalog', () => {
     await expect(fs.readFile(previousOutput, 'utf8')).resolves.toBe('keep me');
     await expect(fs.access(path.join(projectDirectory, 'eventcatalog.lock'))).rejects.toThrow();
     expect(provider.fetchContent).not.toHaveBeenCalled();
+  });
+
+  it('stops before hydration when the main catalog and a source own the same resource', async () => {
+    await writeProject(projectDirectory, [{ id: 'acme/payments', source: 'github:acme/payments' }]);
+    const localResource = path.join(projectDirectory, 'services', 'payment-service', 'index.mdx');
+    await fs.mkdir(path.dirname(localResource), { recursive: true });
+    await fs.writeFile(localResource, '---\nid: payment-service\nname: Local payment service\n---\n# Local');
+
+    const index = sourceIndex('acme/payments', 'payment-service');
+    const provider: FederationSourceProvider = {
+      resolve: vi.fn(async () => ({ bytes: Buffer.from(JSON.stringify(index)), index, commit: index.commit, generated: true })),
+      fetchContent: vi.fn(async ({ path: artifactPath }) => Buffer.from(`# ${artifactPath}\n`)),
+    };
+
+    await expect(federateCatalog(projectDirectory, { provider })).rejects.toMatchObject({
+      conflicts: [
+        {
+          kind: 'duplicate-source',
+          id: 'payment-service',
+          sources: ['acme/payments', 'central-catalog'],
+        },
+      ],
+    });
+    expect(provider.fetchContent).not.toHaveBeenCalled();
+    await expect(fs.access(path.join(projectDirectory, 'federated'))).rejects.toThrow();
+    await expect(fs.access(path.join(projectDirectory, 'eventcatalog.lock'))).rejects.toThrow();
   });
 
   it('reuses unchanged content from the cache on later runs', async () => {

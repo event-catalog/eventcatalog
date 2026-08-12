@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { hydrate, resolve, type Conflict, type HydrateResult, type ResolvedGraph } from '@eventcatalog/sdk';
+import createSDK, { hydrate, resolve, type Conflict, type HydrateResult, type ResolvedGraph } from '@eventcatalog/sdk';
 import type { FederationSourceConfig } from '../eventcatalog.config';
 import { getEventCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { createFederationContentCache } from './content-cache';
@@ -23,7 +23,9 @@ export type FederationProgressEvent =
       resources: number;
       generated: boolean;
     }
-  | { type: 'resolving'; resources: number }
+  | { type: 'local:start' }
+  | { type: 'local:complete'; resources: number }
+  | { type: 'resolving'; resources: number; localResources: number }
   | { type: 'resolved'; graph: ResolvedGraph }
   | { type: 'hydrating'; outDir: string }
   | { type: 'hydrate:cache'; files: number }
@@ -175,10 +177,24 @@ export const federateCatalog = async (
   const lockPath = path.join(projectDirectory, 'eventcatalog.lock');
   const previousLock = await readLock(lockPath);
   const resources = resolvedSources.reduce((total, source) => total + source.resolved.index.resources.length, 0);
-  options.onProgress?.({ type: 'resolving', resources });
-  const graph = resolve(resolvedSources.map(({ resolved }) => resolved.index));
+  const remoteIndexes = resolvedSources.map(({ resolved }) => resolved.index);
+  options.onProgress?.({ type: 'local:start' });
+  const localIndex = await createSDK(projectDirectory).buildIndex({
+    source: config.cId,
+    commit: 'local',
+    hashContent: false,
+    includeFederated: false,
+  });
+  options.onProgress?.({ type: 'local:complete', resources: localIndex.resources.length });
+  options.onProgress?.({ type: 'resolving', resources, localResources: localIndex.resources.length });
+  const ownershipGraph = resolve([localIndex, ...remoteIndexes]);
+  if (ownershipGraph.conflicts.length > 0) {
+    options.onProgress?.({ type: 'resolved', graph: ownershipGraph });
+    throw new FederationConflictError(ownershipGraph.conflicts);
+  }
+
+  const graph = resolve(remoteIndexes);
   options.onProgress?.({ type: 'resolved', graph });
-  if (graph.conflicts.length > 0) throw new FederationConflictError(graph.conflicts);
 
   const sourcesById = new Map(sources.map((source) => [source.id, source]));
   options.onProgress?.({ type: 'hydrating', outDir });

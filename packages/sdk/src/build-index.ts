@@ -16,7 +16,7 @@ import { getEntities } from './entities';
 import { getEvents } from './events';
 import { getFlows } from './flows';
 import type { Index, IndexAsset, IndexResource, IndexResourceType, IndexSidecar } from './index-types';
-import { getResourcePath } from './internal/resources';
+import { getResourcePath, getResourceSourcePath } from './internal/resources';
 import { getFiles } from './internal/utils';
 import { getQueries } from './queries';
 import { getServices } from './services';
@@ -46,6 +46,7 @@ type BuildIndexOptions = {
   source: string;
   commit: string;
   hashContent?: boolean;
+  includeFederated?: boolean;
 };
 
 type IndexableResource = {
@@ -150,6 +151,7 @@ const compareIndexResources = (
 ) => compareText(left.type, right.type) || compareText(left.id, right.id) || compareVersions(left.version, right.version);
 
 const toCatalogPath = (directory: string, filePath: string) => path.relative(directory, filePath).split(path.sep).join('/');
+const isFederatedPath = (directory: string, filePath: string) => toCatalogPath(directory, filePath).startsWith('federated/');
 
 const loadIgnoreRules = async (directory: string) => {
   try {
@@ -401,7 +403,7 @@ const toIndexResource = async (
 
 export const buildIndex =
   (directory: string) =>
-  async ({ source, commit, hashContent = true }: BuildIndexOptions): Promise<Index> => {
+  async ({ source, commit, hashContent = true, includeFederated = true }: BuildIndexOptions): Promise<Index> => {
     const ignoreRules = await loadIgnoreRules(directory);
     const [
       domains,
@@ -438,10 +440,12 @@ export const buildIndex =
       getUsers(directory)(),
       getDiagrams(directory)(),
     ]);
-    const federatedDirectoryResources = await Promise.all([
-      getFederatedDirectoryResources(directory, 'team', 'teams', ignoreRules),
-      getFederatedDirectoryResources(directory, 'user', 'users', ignoreRules),
-    ]);
+    const federatedDirectoryResources = includeFederated
+      ? await Promise.all([
+          getFederatedDirectoryResources(directory, 'team', 'teams', ignoreRules),
+          getFederatedDirectoryResources(directory, 'user', 'users', ignoreRules),
+        ])
+      : [];
     const indexableResources: IndexableResourceEntry[] = [
       ...(domains ?? []).map((resource) => ({ type: 'domain' as const, resource })),
       ...(channels ?? []).map((resource) => ({ type: 'channel' as const, resource })),
@@ -469,15 +473,20 @@ export const buildIndex =
       ...federatedDirectoryResources.flat(),
       ...(diagrams ?? []).map((resource) => ({ type: 'diagram' as const, resource })),
     ];
-    const locatedResources = await Promise.all(
-      indexableResources.map(async (entry) => {
-        const sourcePath =
-          entry.sourcePath ?? (await getResourcePath(directory, entry.resource.id, entry.resource.version))?.fullPath;
+    const locatedResources = (
+      await Promise.all(
+        indexableResources.map(async (entry) => {
+          const sourcePath =
+            entry.sourcePath ??
+            (includeFederated ? undefined : getResourceSourcePath(entry.resource)) ??
+            (await getResourcePath(directory, entry.resource.id, entry.resource.version))?.fullPath;
 
-        if (!sourcePath) throw new Error(`Cannot find ${entry.type} ${entry.resource.id} (${entry.resource.version})`);
-        return { ...entry, sourcePath };
-      })
-    );
+          if (!sourcePath) throw new Error(`Cannot find ${entry.type} ${entry.resource.id} (${entry.resource.version})`);
+          if (!includeFederated && isFederatedPath(directory, sourcePath)) return undefined;
+          return { ...entry, sourcePath };
+        })
+      )
+    ).filter((entry) => entry !== undefined);
     const resourceDirectories = new Set(
       locatedResources
         .filter(({ sourcePath }) => /^index\.mdx?$/i.test(path.basename(sourcePath)))
