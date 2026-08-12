@@ -722,6 +722,14 @@ const reportFederationProgress = (event: FederationProgressEvent) => {
       if (event.sources > 0)
         logger.info(`Found ${event.sources} configured source${event.sources === 1 ? '' : 's'}`, 'federation');
       return;
+    case 'cleanup:complete':
+      logger.success(
+        `No sources configured; removed previous federation output${
+          event.publicFiles > 0 ? ` and ${event.publicFiles} managed public file${event.publicFiles === 1 ? '' : 's'}` : ''
+        }.`,
+        'federation'
+      );
+      return;
     case 'cache:disabled':
       logger.info('Content cache disabled; all federated files will be downloaded.', 'federation');
       return;
@@ -822,11 +830,15 @@ program
       );
     }
 
+    let cleanedPreviousOutput = false;
     const result = await federateCatalog(dir, {
       useCache: commandOptions.cache,
-      onProgress: reportFederationProgress,
+      onProgress: (event) => {
+        if (event.type === 'cleanup:complete') cleanedPreviousOutput = true;
+        reportFederationProgress(event);
+      },
     });
-    if (!result) logger.warning('No federation sources configured; nothing to do.', 'federation');
+    if (!result && !cleanedPreviousOutput) logger.warning('No federation sources configured; nothing to do.', 'federation');
   });
 
 program.addHelpText(

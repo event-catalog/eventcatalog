@@ -223,6 +223,63 @@ describe('federate catalog', () => {
     await expect(fs.access(path.join(projectDirectory, 'federated/public'))).rejects.toThrow();
   });
 
+  it('removes resources, public assets, and lock entries when a configured source is removed', async () => {
+    const paymentsSource = { id: 'acme/payments', source: 'github:acme/payments' };
+    await writeProject(projectDirectory, [paymentsSource]);
+    const filesBySource: Record<string, Record<string, Buffer>> = {
+      'acme/payments': { 'public/payments.txt': Buffer.from('payments') },
+    };
+    const index = sourceIndexWithPublicFiles('acme/payments', 'payment-service', filesBySource['acme/payments']);
+    const provider: FederationSourceProvider = {
+      resolve: vi.fn(async () => ({ bytes: Buffer.from(JSON.stringify(index)), index, commit: index.commit, generated: true })),
+      fetchContent: vi.fn(async ({ source, path: artifactPath }) => {
+        if (artifactPath.startsWith('public/')) return filesBySource[source.id][artifactPath];
+        return Buffer.from(`# ${artifactPath}\n`);
+      }),
+    };
+    const removedSourceDirectory = path.join(projectDirectory, 'federated/acme-orders--874229ea429d');
+    await fs.mkdir(removedSourceDirectory, { recursive: true });
+    await fs.writeFile(path.join(removedSourceDirectory, 'old-resource.mdx'), '# Old resource');
+    await fs.mkdir(path.join(projectDirectory, 'public'), { recursive: true });
+    await fs.writeFile(path.join(projectDirectory, 'public/payments.txt'), 'payments');
+    await fs.writeFile(path.join(projectDirectory, 'public/orders.txt'), 'orders');
+    await fs.writeFile(
+      path.join(projectDirectory, 'eventcatalog.lock'),
+      JSON.stringify({
+        lockVersion: 1,
+        sources: [
+          { id: 'acme/orders', digest: hash('orders-index'), commit: 'orders-commit', resolvedAt: '2026-08-11T12:00:00.000Z' },
+          {
+            id: 'acme/payments',
+            digest: hash('payments-index'),
+            commit: 'payments-commit',
+            resolvedAt: '2026-08-11T12:00:00.000Z',
+          },
+        ],
+        publicFiles: {
+          'orders.txt': { source: 'acme/orders', hash: hash('orders') },
+          'payments.txt': { source: 'acme/payments', hash: hash('payments') },
+        },
+      })
+    );
+
+    const result = await federateCatalog(projectDirectory, { provider });
+
+    expect(result).toMatchObject({ sources: 1, resources: 1 });
+    await expect(
+      fs.readFile(path.join(projectDirectory, 'federated/acme-payments--bf264d5186bc/services/payment-service/index.mdx'), 'utf8')
+    ).resolves.toBe('# services/payment-service/index.mdx\n');
+    await expect(fs.access(path.join(projectDirectory, 'federated/acme-orders--874229ea429d'))).rejects.toThrow();
+    await expect(fs.readFile(path.join(projectDirectory, 'public/payments.txt'), 'utf8')).resolves.toBe('payments');
+    await expect(fs.access(path.join(projectDirectory, 'public/orders.txt'))).rejects.toThrow();
+
+    const lock = JSON.parse(await fs.readFile(path.join(projectDirectory, 'eventcatalog.lock'), 'utf8'));
+    expect(lock.sources.map((source: { id: string }) => source.id)).toEqual(['acme/payments']);
+    expect(lock.publicFiles).toEqual({
+      'payments.txt': { source: 'acme/payments', hash: hash('payments') },
+    });
+  });
+
   it('stops before hydration when two sources own the same resource', async () => {
     await writeProject(projectDirectory, [
       { id: 'acme/payments', source: 'github:acme/payments' },
@@ -287,6 +344,56 @@ describe('federate catalog', () => {
     expect(provider.fetchContent).toHaveBeenCalledTimes(2);
     expect(progress).toContainEqual({ type: 'cache:disabled' });
     expect(progress.some((event) => event.type === 'hydrate:cache')).toBe(false);
+  });
+
+  it('cleans previous federation output when the source list becomes empty', async () => {
+    await writeProject(projectDirectory, []);
+    const federatedResource = path.join(projectDirectory, 'federated', 'acme-payments', 'services', 'payments', 'index.mdx');
+    const managedPublicFile = path.join(projectDirectory, 'public', 'icons', 'managed.svg');
+    const editedPublicFile = path.join(projectDirectory, 'public', 'icons', 'edited.svg');
+    const centralPublicFile = path.join(projectDirectory, 'public', 'central.svg');
+    await fs.mkdir(path.dirname(federatedResource), { recursive: true });
+    await fs.mkdir(path.dirname(managedPublicFile), { recursive: true });
+    await fs.writeFile(federatedResource, '# Previously federated');
+    await fs.writeFile(managedPublicFile, 'managed');
+    await fs.writeFile(editedPublicFile, 'edited by the main catalog');
+    await fs.writeFile(centralPublicFile, 'central');
+    await fs.writeFile(
+      path.join(projectDirectory, 'eventcatalog.lock'),
+      JSON.stringify({
+        lockVersion: 1,
+        sources: [
+          {
+            id: 'acme/payments',
+            digest: hash('index'),
+            commit: 'abc123',
+            resolvedAt: '2026-08-11T12:00:00.000Z',
+          },
+        ],
+        publicFiles: {
+          'icons/managed.svg': { source: 'acme/payments', hash: hash('managed') },
+          'icons/edited.svg': { source: 'acme/payments', hash: hash('original generated content') },
+        },
+      })
+    );
+
+    const progress: FederationProgressEvent[] = [];
+    await federateCatalog(projectDirectory, { onProgress: (event) => progress.push(event) });
+
+    await expect(fs.access(path.join(projectDirectory, 'federated'))).rejects.toThrow();
+    await expect(fs.access(managedPublicFile)).rejects.toThrow();
+    await expect(fs.readFile(editedPublicFile, 'utf8')).resolves.toBe('edited by the main catalog');
+    await expect(fs.readFile(centralPublicFile, 'utf8')).resolves.toBe('central');
+
+    const lock = await fs
+      .readFile(path.join(projectDirectory, 'eventcatalog.lock'), 'utf8')
+      .then((contents) => JSON.parse(contents))
+      .catch((error: NodeJS.ErrnoException) => {
+        if (error.code === 'ENOENT') return undefined;
+        throw error;
+      });
+    if (lock) expect(lock).toMatchObject({ sources: [], publicFiles: {} });
+    expect(progress).toContainEqual({ type: 'cleanup:complete', federated: true, publicFiles: 1, lock: true });
   });
 
   it('does nothing when federation has no configured sources', async () => {

@@ -11,6 +11,7 @@ import type { FederationSourceProvider, ResolvedFederationSource } from './types
 
 export type FederationProgressEvent =
   | { type: 'configured'; sources: number }
+  | { type: 'cleanup:complete'; federated: boolean; publicFiles: number; lock: boolean }
   | { type: 'cache:disabled' }
   | { type: 'source:start'; source: FederationSourceConfig; current: number; total: number }
   | {
@@ -97,6 +98,41 @@ const readLock = async (lockPath: string): Promise<FederationLock | undefined> =
   }
 };
 
+const pathExists = async (filePath: string) => {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false;
+    throw error;
+  }
+};
+
+const cleanupPreviousFederation = async (projectDirectory: string, onProgress?: FederateCatalogOptions['onProgress']) => {
+  const outDir = path.join(projectDirectory, 'federated');
+  const lockPath = path.join(projectDirectory, 'eventcatalog.lock');
+  const previousLock = await readLock(lockPath);
+  const hadFederatedOutput = await pathExists(outDir);
+  const hadLock = previousLock !== undefined;
+
+  if (!hadFederatedOutput && !hadLock) return;
+
+  await fs.rm(outDir, { recursive: true, force: true });
+  const publicResult = await composePublicAssets({
+    projectDirectory,
+    federatedDirectory: outDir,
+    assets: [],
+    previousFiles: previousLock?.publicFiles,
+  });
+  await fs.rm(lockPath, { force: true });
+  onProgress?.({
+    type: 'cleanup:complete',
+    federated: hadFederatedOutput,
+    publicFiles: publicResult.removed,
+    lock: hadLock,
+  });
+};
+
 export const federateCatalog = async (
   projectDirectory: string,
   options: FederateCatalogOptions = {}
@@ -104,7 +140,10 @@ export const federateCatalog = async (
   const config = await getEventCatalogConfigFile(projectDirectory);
   const sources: FederationSourceConfig[] = config.federation?.sources ?? [];
   options.onProgress?.({ type: 'configured', sources: sources.length });
-  if (sources.length === 0) return null;
+  if (sources.length === 0) {
+    await cleanupPreviousFederation(projectDirectory, options.onProgress);
+    return null;
+  }
   validateSources(sources);
   if (options.useCache === false) options.onProgress?.({ type: 'cache:disabled' });
 

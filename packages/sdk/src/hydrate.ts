@@ -41,6 +41,8 @@ const getSourceDirectory = (source: string) => {
 
 const getContentHash = (content: Buffer) => `sha256:${createHash('sha256').update(content).digest('hex')}`;
 
+const getHydrationTarget = (artifactPath: string) => artifactPath.replace(/^(?:federated\/[^/]+\/)+/, '');
+
 const getArtifactOutputPath = (artifact: Artifact, outDir: string) => {
   const allowedDirectory = path.resolve(artifact.shared ? outDir : path.join(outDir, getSourceDirectory(artifact.source)));
   const portableTarget = artifact.target.replaceAll('\\', '/');
@@ -113,7 +115,7 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
       commit,
       path: entity.contentPath,
       hash: entity.contentHash,
-      target: entity.contentPath,
+      target: getHydrationTarget(entity.contentPath),
     });
 
     const entityDirectory = path.posix.dirname(entity.contentPath);
@@ -121,16 +123,28 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
     for (const schema of entity.schemas ?? []) {
       if (!schema.path) continue;
       const artifactPath = path.posix.join(entityDirectory, schema.path);
-      artifacts.push({ source, commit, path: artifactPath, hash: schema.hash, target: artifactPath });
+      artifacts.push({ source, commit, path: artifactPath, hash: schema.hash, target: getHydrationTarget(artifactPath) });
     }
 
     for (const specification of entity.specifications ?? []) {
       const artifactPath = path.posix.join(entityDirectory, specification.path);
-      artifacts.push({ source, commit, path: artifactPath, hash: specification.hash, target: artifactPath });
+      artifacts.push({
+        source,
+        commit,
+        path: artifactPath,
+        hash: specification.hash,
+        target: getHydrationTarget(artifactPath),
+      });
     }
 
     for (const sidecar of entity.sidecars ?? []) {
-      artifacts.push({ source, commit, path: sidecar.path, hash: sidecar.hash, target: sidecar.path });
+      artifacts.push({
+        source,
+        commit,
+        path: sidecar.path,
+        hash: sidecar.hash,
+        target: getHydrationTarget(sidecar.path),
+      });
     }
   }
 
@@ -144,7 +158,7 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
       commit,
       path: asset.path,
       hash: asset.hash,
-      target: asset.path,
+      target: getHydrationTarget(asset.path),
       shared: true,
     });
   }
