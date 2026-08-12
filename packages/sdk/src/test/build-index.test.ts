@@ -38,6 +38,78 @@ describe('buildIndex', () => {
     });
   });
 
+  it('indexes resources from an already composed catalog', async () => {
+    const federatedService = path.join(CATALOG_PATH, 'federated/acme/services/payment-service/index.mdx');
+    fs.mkdirSync(path.dirname(federatedService), { recursive: true });
+    fs.writeFileSync(federatedService, '---\nid: payment-service\nname: Payment service\n---\n# Federated');
+
+    const index = await sdk.buildIndex({ source: 'composed-catalog', commit: 'abc1234' });
+
+    expect(index.resources).toEqual([
+      expect.objectContaining({
+        id: 'payment-service',
+        name: 'Payment service',
+        contentPath: 'federated/acme/services/payment-service/index.mdx',
+      }),
+    ]);
+  });
+
+  it('can exclude federated resources when indexing local catalog ownership', async () => {
+    const localService = path.join(CATALOG_PATH, 'services/payment-service/index.mdx');
+    const federatedService = path.join(CATALOG_PATH, 'federated/acme/services/payment-service/index.mdx');
+    const federatedOnlyService = path.join(CATALOG_PATH, 'federated/acme/services/order-service/index.mdx');
+    const federatedEventWithLocalServiceId = path.join(CATALOG_PATH, 'federated/acme/events/payment-service/index.mdx');
+    fs.mkdirSync(path.dirname(localService), { recursive: true });
+    fs.mkdirSync(path.dirname(federatedService), { recursive: true });
+    fs.mkdirSync(path.dirname(federatedOnlyService), { recursive: true });
+    fs.mkdirSync(path.dirname(federatedEventWithLocalServiceId), { recursive: true });
+    fs.writeFileSync(localService, '---\nid: payment-service\nname: Local payment service\n---\n# Local');
+    fs.writeFileSync(federatedService, '---\nid: payment-service\nname: Federated payment service\n---\n# Federated');
+    fs.writeFileSync(federatedOnlyService, '---\nid: order-service\nname: Federated order service\n---\n# Federated');
+    fs.writeFileSync(
+      federatedEventWithLocalServiceId,
+      '---\nid: payment-service\nname: Federated event with local service ID\n---\n# Federated'
+    );
+
+    const index = await sdk.buildIndex({
+      source: 'central-catalog',
+      commit: 'local',
+      includeFederated: false,
+    });
+
+    expect(index.resources).toEqual([
+      expect.objectContaining({
+        id: 'payment-service',
+        name: 'Local payment service',
+        contentPath: 'services/payment-service/index.mdx',
+      }),
+    ]);
+  });
+
+  it('indexes teams and users from an already composed catalog using their federated paths', async () => {
+    const federatedTeam = path.join(CATALOG_PATH, 'federated/acme/teams/payments-team.mdx');
+    const federatedUser = path.join(CATALOG_PATH, 'federated/acme/users/alice.mdx');
+    fs.mkdirSync(path.dirname(federatedTeam), { recursive: true });
+    fs.mkdirSync(path.dirname(federatedUser), { recursive: true });
+    fs.writeFileSync(federatedTeam, '---\nid: payments-team\nname: Payments team\nmembers:\n  - alice\n---\n# Team');
+    fs.writeFileSync(federatedUser, '---\nid: alice\nname: Alice\n---\n# User');
+
+    const index = await sdk.buildIndex({ source: 'composed-catalog', commit: 'abc1234' });
+
+    expect(index.resources).toEqual([
+      expect.objectContaining({
+        type: 'team',
+        id: 'payments-team',
+        contentPath: 'federated/acme/teams/payments-team.mdx',
+      }),
+      expect.objectContaining({
+        type: 'user',
+        id: 'alice',
+        contentPath: 'federated/acme/users/alice.mdx',
+      }),
+    ]);
+  });
+
   it('indexes public files and components as assets', async () => {
     fs.mkdirSync(path.join(CATALOG_PATH, 'public/icons/languages'), { recursive: true });
     fs.mkdirSync(path.join(CATALOG_PATH, 'components'), { recursive: true });

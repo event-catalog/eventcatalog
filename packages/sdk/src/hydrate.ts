@@ -12,7 +12,7 @@ export type Cache = {
 
 export type HydrateOptions = {
   outDir: string;
-  localSource: string;
+  localSource?: string;
   fetch: Fetcher;
   modes?: Record<string, 'hydrate' | 'reference'>;
   cache?: Cache;
@@ -40,6 +40,8 @@ const getSourceDirectory = (source: string) => {
 };
 
 const getContentHash = (content: Buffer) => `sha256:${createHash('sha256').update(content).digest('hex')}`;
+
+const getHydrationTarget = (artifactPath: string) => artifactPath.replace(/^(?:federated\/[^/]+\/)+/, '');
 
 const getArtifactOutputPath = (artifact: Artifact, outDir: string) => {
   const allowedDirectory = path.resolve(artifact.shared ? outDir : path.join(outDir, getSourceDirectory(artifact.source)));
@@ -99,7 +101,7 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
 
   for (const entity of graph.entities) {
     const { source, commit } = entity.resolvedFrom;
-    if (source === options.localSource) continue;
+    if (options.localSource !== undefined && source === options.localSource) continue;
 
     if (options.modes?.[source] === 'reference') {
       result.referenced++;
@@ -113,7 +115,7 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
       commit,
       path: entity.contentPath,
       hash: entity.contentHash,
-      target: entity.contentPath,
+      target: getHydrationTarget(entity.contentPath),
     });
 
     const entityDirectory = path.posix.dirname(entity.contentPath);
@@ -121,29 +123,42 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
     for (const schema of entity.schemas ?? []) {
       if (!schema.path) continue;
       const artifactPath = path.posix.join(entityDirectory, schema.path);
-      artifacts.push({ source, commit, path: artifactPath, hash: schema.hash, target: artifactPath });
+      artifacts.push({ source, commit, path: artifactPath, hash: schema.hash, target: getHydrationTarget(artifactPath) });
     }
 
     for (const specification of entity.specifications ?? []) {
       const artifactPath = path.posix.join(entityDirectory, specification.path);
-      artifacts.push({ source, commit, path: artifactPath, hash: specification.hash, target: artifactPath });
+      artifacts.push({
+        source,
+        commit,
+        path: artifactPath,
+        hash: specification.hash,
+        target: getHydrationTarget(artifactPath),
+      });
     }
 
     for (const sidecar of entity.sidecars ?? []) {
-      artifacts.push({ source, commit, path: sidecar.path, hash: sidecar.hash, target: sidecar.path });
+      artifacts.push({
+        source,
+        commit,
+        path: sidecar.path,
+        hash: sidecar.hash,
+        target: getHydrationTarget(sidecar.path),
+      });
     }
   }
 
   for (const asset of graph.assets) {
     const { source, commit } = asset.resolvedFrom;
-    if (source === options.localSource || options.modes?.[source] === 'reference') continue;
+    if ((options.localSource !== undefined && source === options.localSource) || options.modes?.[source] === 'reference')
+      continue;
 
     artifacts.push({
       source,
       commit,
       path: asset.path,
       hash: asset.hash,
-      target: asset.path,
+      target: getHydrationTarget(asset.path),
       shared: true,
     });
   }

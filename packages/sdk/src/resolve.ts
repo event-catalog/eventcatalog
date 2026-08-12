@@ -99,12 +99,7 @@ export const resolve = (indexes: Index[]): ResolvedGraph => {
   const warnings: ResolutionWarning[] = [];
 
   for (const [assetPath, candidates] of assetCandidatesByPath) {
-    candidates.sort(
-      (left, right) =>
-        compareText(left.resolvedFrom.source, right.resolvedFrom.source) ||
-        compareText(left.resolvedFrom.commit, right.resolvedFrom.commit)
-    );
-    const [winner] = candidates;
+    const winner = candidates[candidates.length - 1];
     const sources = [...new Set(candidates.map((candidate) => candidate.resolvedFrom.source))].sort(compareText);
     const hashes = new Set(candidates.map((candidate) => candidate.hash));
     const hashesCanBeCompared = candidates.every((candidate) => candidate.hash !== undefined);

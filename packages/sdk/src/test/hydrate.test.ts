@@ -84,7 +84,6 @@ describe('hydrate', () => {
 
     const result = await hydrate(graph, {
       outDir,
-      localSource: 'acme/central',
       fetch,
     });
 
@@ -105,6 +104,67 @@ describe('hydrate', () => {
       written: 1,
       referenced: 0,
     });
+  });
+
+  it('flattens content from an already composed source instead of creating nested federation directories', async () => {
+    const files: Record<string, Buffer> = {
+      'federated/inner/teams/payments-team.mdx': Buffer.from('# Payments Team'),
+      'federated/inner/users/alice.mdx': Buffer.from('# Alice'),
+      'federated/inner/services/payment-service/index.mdx': Buffer.from('# Payment Service'),
+      'federated/inner/services/payment-service/schema.json': Buffer.from('{}'),
+      'federated/inner/services/payment-service/openapi.yaml': Buffer.from('openapi: 3.0.0'),
+      'federated/inner/services/payment-service/docs/runbook.mdx': Buffer.from('# Runbook'),
+    };
+    const fetch = vi.fn<Fetcher>().mockImplementation(async (request) => files[request.path]);
+    const graph: ResolvedGraph = {
+      entities: [
+        {
+          type: 'team',
+          id: 'payments-team',
+          name: 'Payments Team',
+          contentPath: 'federated/inner/teams/payments-team.mdx',
+          resolvedFrom: { source: 'acme/composed', commit: '4a1b7e2' },
+        },
+        {
+          type: 'user',
+          id: 'alice',
+          name: 'Alice',
+          contentPath: 'federated/inner/users/alice.mdx',
+          resolvedFrom: { source: 'acme/composed', commit: '4a1b7e2' },
+        },
+        {
+          type: 'service',
+          id: 'payment-service',
+          name: 'Payment Service',
+          contentPath: 'federated/inner/services/payment-service/index.mdx',
+          schemas: [{ path: 'schema.json' }],
+          specifications: [{ type: 'openapi', path: 'openapi.yaml' }],
+          sidecars: [{ path: 'federated/inner/services/payment-service/docs/runbook.mdx' }],
+          resolvedFrom: { source: 'acme/composed', commit: '4a1b7e2' },
+        },
+      ],
+      assets: [],
+      edges: [],
+      conflicts: [],
+      warnings: [],
+      externals: [],
+    };
+
+    await hydrate(graph, { outDir, fetch });
+
+    expect(fetch.mock.calls.map(([request]) => request.path)).toEqual(Object.keys(files));
+    const sourceDirectory = path.join(outDir, 'acme-composed--929126a0ee67');
+    await expect(
+      Promise.all([
+        fs.readFile(path.join(sourceDirectory, 'teams/payments-team.mdx')),
+        fs.readFile(path.join(sourceDirectory, 'users/alice.mdx')),
+        fs.readFile(path.join(sourceDirectory, 'services/payment-service/index.mdx')),
+        fs.readFile(path.join(sourceDirectory, 'services/payment-service/schema.json')),
+        fs.readFile(path.join(sourceDirectory, 'services/payment-service/openapi.yaml')),
+        fs.readFile(path.join(sourceDirectory, 'services/payment-service/docs/runbook.mdx')),
+      ])
+    ).resolves.toEqual(Object.values(files));
+    await expect(fs.access(path.join(sourceDirectory, 'federated'))).rejects.toThrow();
   });
 
   it('fetches content for a federated channel', async () => {
