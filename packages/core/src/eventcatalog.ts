@@ -836,15 +836,10 @@ program
     }
 
     logger.info('Starting federation...', 'federation');
-    if (!(await isEventCatalogScaleEnabled())) {
-      throw new Error(
-        'Cannot federate catalogs: EventCatalog federation is an Enterprise feature. Visit https://www.eventcatalog.dev/pricing to enable federation.'
-      );
-    }
-
     let cleanedPreviousOutput = false;
     const result = await federateCatalog(dir, {
       useCache: commandOptions.cache,
+      isFederationEnabled: isEventCatalogScaleEnabled,
       onProgress: (event) => {
         if (event.type === 'cleanup:complete') cleanedPreviousOutput = true;
         reportFederationProgress(event);

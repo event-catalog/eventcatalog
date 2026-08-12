@@ -59,6 +59,7 @@ type FederateCatalogOptions = {
   onProgress?: (event: FederationProgressEvent) => void;
   now?: () => Date;
   useCache?: boolean;
+  isFederationEnabled?: () => Promise<boolean>;
 };
 
 export class FederationConflictError extends Error {
@@ -145,6 +146,11 @@ export const federateCatalog = async (
   if (sources.length === 0) {
     await cleanupPreviousFederation(projectDirectory, options.onProgress);
     return null;
+  }
+  if (options.isFederationEnabled && !(await options.isFederationEnabled())) {
+    throw new Error(
+      'Cannot federate catalogs: EventCatalog federation is an Enterprise feature. Visit https://www.eventcatalog.dev/pricing to enable federation.'
+    );
   }
   validateSources(sources);
   if (options.useCache === false) options.onProgress?.({ type: 'cache:disabled' });
