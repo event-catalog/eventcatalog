@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.7.1
+
+### Patch Changes
+
+- 0546a63: fix(core): show AsyncAPI parser errors instead of a blank page when a specification fails to parse
+
 ## 4.7.0
 
 ### Minor Changes
