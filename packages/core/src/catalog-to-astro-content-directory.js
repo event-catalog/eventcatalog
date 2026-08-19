@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import os from 'node:os';
 import { verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
+import { isCustomComponentPath, syncCustomComponents } from './custom-components.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const rootPkg = path.resolve(path.dirname(__filename), '../');
@@ -32,6 +33,10 @@ const copyFiles = async (source, target) => {
   }
 
   for (const file of files) {
+    // Custom components are composed in one deterministic pass so local files
+    // always override federated files and stale generated files are removed.
+    if (isCustomComponentPath(source, file)) continue;
+
     mapCatalogToAstro({
       filePath: file,
       astroDir: target,
@@ -90,5 +95,6 @@ export const catalogToAstro = async (source, astroDir) => {
 
   await clearCustomPages(astroDir);
   await removeGeneratedLikeC4Sources(astroDir);
+  await syncCustomComponents(source, astroDir);
   await copyFiles(source, astroDir);
 };
