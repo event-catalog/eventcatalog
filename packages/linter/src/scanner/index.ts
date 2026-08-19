@@ -17,13 +17,15 @@ const RESOURCE_DIRECTORY_NAMES: Partial<Record<ResourceType, string>> = {
   adr: 'adrs',
 };
 
+const withFederatedContent = (patterns: string[]) => [...patterns, ...patterns.map((pattern) => `federated/*/${pattern}`)];
+
 const RESOURCE_PATTERNS: Partial<Record<ResourceType, string[]>> = {
-  domain: [
+  domain: withFederatedContent([
     'domains/*/index.{md,mdx}',
     'domains/*/versioned/*/index.{md,mdx}',
     'domains/*/subdomains/*/index.{md,mdx}',
     'domains/*/subdomains/*/versioned/*/index.{md,mdx}',
-  ],
+  ]),
   system: [
     '**/systems/**/index.{md,mdx}',
     '**/systems/**/versioned/*/index.{md,mdx}',
@@ -42,14 +44,16 @@ const RESOURCE_PATTERNS: Partial<Record<ResourceType, string[]>> = {
     '!**/systems/**/docs/**',
   ],
   service: [
-    'domains/*/services/*/index.{md,mdx}',
-    'domains/*/services/*/versioned/*/index.{md,mdx}',
-    'domains/*/subdomains/*/services/*/index.{md,mdx}',
-    'domains/*/subdomains/*/services/*/versioned/*/index.{md,mdx}',
+    ...withFederatedContent([
+      'domains/*/services/*/index.{md,mdx}',
+      'domains/*/services/*/versioned/*/index.{md,mdx}',
+      'domains/*/subdomains/*/services/*/index.{md,mdx}',
+      'domains/*/subdomains/*/services/*/versioned/*/index.{md,mdx}',
+      'services/*/index.{md,mdx}',
+      'services/*/versioned/*/index.{md,mdx}',
+    ]),
     '**/systems/**/services/*/index.{md,mdx}',
     '**/systems/**/services/*/versioned/*/index.{md,mdx}',
-    'services/*/index.{md,mdx}',
-    'services/*/versioned/*/index.{md,mdx}',
   ],
   agent: ['**/agents/*/index.{md,mdx}', '**/agents/*/versioned/*/index.{md,mdx}'],
   adr: ['**/adrs/*/index.{md,mdx}', '**/adrs/*/versioned/*/index.{md,mdx}'],
@@ -62,8 +66,8 @@ const RESOURCE_PATTERNS: Partial<Record<ResourceType, string[]>> = {
   container: ['**/containers/**/index.{md,mdx}', '**/containers/**/versioned/*/index.{md,mdx}'],
   dataProduct: ['**/data-products/*/index.{md,mdx}', '**/data-products/*/versioned/*/index.{md,mdx}'],
   diagram: ['**/diagrams/**/index.{md,mdx}', '**/diagrams/**/versioned/*/index.{md,mdx}'],
-  user: ['users/*.{md,mdx}'],
-  team: ['teams/*.{md,mdx}'],
+  user: withFederatedContent(['users/*.{md,mdx}']),
+  team: withFederatedContent(['teams/*.{md,mdx}']),
 };
 
 export const extractResourceInfo = (filePath: string, resourceType: ResourceType): { id: string; version?: string } => {
