@@ -44,6 +44,13 @@ const writeProject = async (projectDirectory: string, sources: unknown[]) => {
   );
 };
 
+const writeService = async (directory: string, id: string, markdown = `# ${id}`) => {
+  const filePath = path.join(directory, 'services', id, 'index.mdx');
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, `---\nid: ${id}\nname: ${id}\nversion: 1.0.0\n---\n${markdown}\n`);
+  return filePath;
+};
+
 const listFiles = async (directory: string, relativeDirectory = ''): Promise<string[]> => {
   const entries = await fs.readdir(path.join(directory, relativeDirectory), { withFileTypes: true });
   const files = await Promise.all(
@@ -129,6 +136,96 @@ describe('federate catalog', () => {
     ]);
     expect(progress).toContainEqual({ type: 'local:complete', resources: 1 });
     expect(progress).toContainEqual({ type: 'resolving', localResources: 1, resources: 2 });
+  });
+
+  it('indexes and hydrates local filesystem resources and assets through the default provider', async () => {
+    const sourceDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-local-source-'));
+    try {
+      await writeService(sourceDirectory, 'payment-service');
+      await fs.mkdir(path.join(sourceDirectory, 'components'), { recursive: true });
+      await fs.writeFile(path.join(sourceDirectory, 'components', 'payment-card.astro'), '<aside>Payments</aside>');
+      await fs.mkdir(path.join(sourceDirectory, 'public'), { recursive: true });
+      await fs.writeFile(path.join(sourceDirectory, 'public', 'payment.txt'), 'payments');
+      await writeProject(projectDirectory, [
+        { id: 'acme/payments', source: `file:${path.relative(projectDirectory, sourceDirectory)}` },
+      ]);
+
+      const result = await federateCatalog(projectDirectory, { now: () => new Date('2026-08-19T12:00:00.000Z') });
+
+      expect(result).toMatchObject({
+        sources: 1,
+        resources: 1,
+        hydrate: { fetched: 3, written: 3, referenced: 0 },
+      });
+      expect(await listFiles(path.join(projectDirectory, 'federated'))).toEqual([
+        'acme-payments--bf264d5186bc/services/payment-service/index.mdx',
+        'components/payment-card.astro',
+      ]);
+      await expect(fs.readFile(path.join(projectDirectory, 'public', 'payment.txt'), 'utf8')).resolves.toBe('payments');
+      const lock = JSON.parse(await fs.readFile(path.join(projectDirectory, 'eventcatalog.lock'), 'utf8'));
+      expect(lock.sources).toEqual([
+        expect.objectContaining({
+          id: 'acme/payments',
+          commit: expect.stringMatching(/^local:[a-f0-9]{12}$/),
+          resolvedAt: '2026-08-19T12:00:00.000Z',
+        }),
+      ]);
+    } finally {
+      await fs.rm(sourceDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it('applies source conflict rules to filesystem catalogs before hydration', async () => {
+    const firstSource = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-local-first-'));
+    const secondSource = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-local-second-'));
+    try {
+      await writeService(firstSource, 'shared-service', '# First');
+      await writeService(secondSource, 'shared-service', '# Second');
+      await writeProject(projectDirectory, [
+        { id: 'acme/first', source: `file:${path.relative(projectDirectory, firstSource)}` },
+        { id: 'acme/second', source: `file:${path.relative(projectDirectory, secondSource)}` },
+      ]);
+
+      await expect(federateCatalog(projectDirectory)).rejects.toMatchObject({
+        conflicts: [
+          {
+            kind: 'duplicate-source',
+            id: 'shared-service',
+            sources: ['acme/first', 'acme/second'],
+          },
+        ],
+      });
+      await expect(fs.access(path.join(projectDirectory, 'federated'))).rejects.toThrow();
+    } finally {
+      await Promise.all([
+        fs.rm(firstSource, { recursive: true, force: true }),
+        fs.rm(secondSource, { recursive: true, force: true }),
+      ]);
+    }
+  });
+
+  it('applies central ownership conflicts to filesystem catalogs before hydration', async () => {
+    const sourceDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-local-conflict-'));
+    try {
+      await writeService(sourceDirectory, 'shared-service', '# Source');
+      await writeService(projectDirectory, 'shared-service', '# Central');
+      await writeProject(projectDirectory, [
+        { id: 'acme/source', source: `file:${path.relative(projectDirectory, sourceDirectory)}` },
+      ]);
+
+      await expect(federateCatalog(projectDirectory)).rejects.toMatchObject({
+        conflicts: [
+          {
+            kind: 'duplicate-source',
+            id: 'shared-service',
+            sources: ['acme/source', 'central-catalog'],
+          },
+        ],
+      });
+      await expect(fs.access(path.join(projectDirectory, 'federated'))).rejects.toThrow();
+    } finally {
+      await fs.rm(sourceDirectory, { recursive: true, force: true });
+    }
   });
 
   it('composes public assets into the root with main ownership and last-source-wins semantics', async () => {

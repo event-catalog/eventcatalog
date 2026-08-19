@@ -86,6 +86,27 @@ describe('buildIndex', () => {
     ]);
   });
 
+  it('excludes generated catalog resources', async () => {
+    const localService = path.join(CATALOG_PATH, 'services/payment-service/index.mdx');
+    const distService = path.join(CATALOG_PATH, 'dist/services/generated-service/index.mdx');
+    const coreService = path.join(CATALOG_PATH, '.eventcatalog-core/services/cached-service/index.mdx');
+    fs.mkdirSync(path.dirname(localService), { recursive: true });
+    fs.mkdirSync(path.dirname(distService), { recursive: true });
+    fs.mkdirSync(path.dirname(coreService), { recursive: true });
+    fs.writeFileSync(localService, '---\nid: payment-service\nname: Payment service\n---\n# Local');
+    fs.writeFileSync(distService, '---\nid: generated-service\nname: Generated service\n---\n# Generated');
+    fs.writeFileSync(coreService, '---\nid: cached-service\nname: Cached service\n---\n# Cached');
+
+    const index = await sdk.buildIndex({ source: 'acme/payments', commit: 'local' });
+
+    expect(index.resources).toEqual([
+      expect.objectContaining({
+        id: 'payment-service',
+        contentPath: 'services/payment-service/index.mdx',
+      }),
+    ]);
+  });
+
   it('indexes teams and users from an already composed catalog using their federated paths', async () => {
     const federatedTeam = path.join(CATALOG_PATH, 'federated/acme/teams/payments-team.mdx');
     const federatedUser = path.join(CATALOG_PATH, 'federated/acme/users/alice.mdx');

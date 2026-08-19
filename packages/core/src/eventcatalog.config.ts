@@ -89,11 +89,11 @@ type GeneratorConfig = string | Record<string, unknown> | [string, Record<string
 export type FederationSourceConfig = {
   /** Stable source id used by the lockfile and federation graph. */
   id: string;
-  /** Source locator, for example github:acme/payments. */
+  /** Source locator, for example github:acme/payments or file:../payments. */
   source: string;
-  /** Directory containing the source catalog. @default '.' */
+  /** Directory containing the source catalog, relative to the GitHub repository or filesystem source. @default '.' */
   path?: string;
-  /** Branch or tag to federate. @default 'main' */
+  /** Branch or tag to federate from a GitHub source. Not supported for filesystem sources. @default 'main' */
   ref?: string;
   /** Materialize source files or retain graph references only. @default 'hydrate' */
   mode?: 'hydrate' | 'reference';
