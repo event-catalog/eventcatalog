@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.7.3
+
+### Patch Changes
+
+- 74bd3ce: Make federated custom components available through `@catalog/components`, with local catalog components taking precedence.
+
 ## 4.7.2
 
 ### Patch Changes
