@@ -13,7 +13,7 @@ import {
   removeFavorite as removeFavoriteAction,
   type FavoriteItem,
 } from '@stores/favorites-store';
-import { canCollapseGroup, getBadgeClasses, getGroupLabel, isGroupCollapsed } from './utils';
+import { canCollapseGroup, findNodeKeyByUrl, getBadgeClasses, getGroupLabel, isGroupCollapsed } from './utils';
 import { resolveIconUrl } from '@utils/icon';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
@@ -201,86 +201,9 @@ export default function NestedSideBar() {
   /**
    * Find a node key by matching URL patterns
    */
-  const findNodeKeyByUrl = useCallback(
+  const findNodeKeyForUrl = useCallback(
     (url: string): string | null => {
-      // Strip the base path so patterns always match against /docs/..., /visualiser/..., etc.
-      const normalizedUrl = stripBasePath(url);
-
-      // URL patterns to match resources with version
-      const urlPatternsWithVersion = [
-        // Domains
-        { pattern: /^\/docs\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
-        { pattern: /^\/visualiser\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
-        { pattern: /^\/architecture\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
-        // Systems (key prefix is `system`, url segment is `systems`).
-        // The visualiser pattern also matches the System Diagram
-        // (/visualiser/systems/:id/:version/context) since it is not end-anchored.
-        { pattern: /^\/docs\/systems\/([^/]+)\/([^/]+)/, type: 'system' },
-        { pattern: /^\/visualiser\/systems\/([^/]+)\/([^/]+)/, type: 'system' },
-        { pattern: /^\/architecture\/systems\/([^/]+)\/([^/]+)/, type: 'system' },
-        // Agents
-        { pattern: /^\/docs\/agents\/([^/]+)\/([^/]+)/, type: 'agent' },
-        { pattern: /^\/visualiser\/agents\/([^/]+)\/([^/]+)/, type: 'agent' },
-        // Decision Records
-        { pattern: /^\/docs\/adrs\/([^/]+)\/([^/]+)/, type: 'adr' },
-        // Services
-        { pattern: /^\/docs\/services\/([^/]+)\/([^/]+)/, type: 'service' },
-        { pattern: /^\/architecture\/services\/([^/]+)\/([^/]+)/, type: 'service' },
-        { pattern: /^\/visualiser\/services\/([^/]+)\/([^/]+)/, type: 'service' },
-        // Messages (events, commands, queries) - note: keys use singular form
-        { pattern: /^\/docs\/events\/([^/]+)\/([^/]+)/, type: 'event' },
-        { pattern: /^\/docs\/commands\/([^/]+)\/([^/]+)/, type: 'command' },
-        { pattern: /^\/docs\/queries\/([^/]+)\/([^/]+)/, type: 'query' },
-        { pattern: /^\/visualiser\/messages\/([^/]+)\/([^/]+)/, type: 'message' },
-        { pattern: /^\/visualiser\/events\/([^/]+)\/([^/]+)/, type: 'event' },
-        { pattern: /^\/visualiser\/commands\/([^/]+)\/([^/]+)/, type: 'command' },
-        { pattern: /^\/visualiser\/queries\/([^/]+)\/([^/]+)/, type: 'query' },
-        // Containers
-        { pattern: /^\/docs\/containers\/([^/]+)\/([^/]+)/, type: 'container' },
-        { pattern: /^\/visualiser\/containers\/([^/]+)\/([^/]+)/, type: 'container' },
-        // Flows
-        { pattern: /^\/docs\/flows\/([^/]+)\/([^/]+)/, type: 'flow' },
-        { pattern: /^\/visualiser\/flows\/([^/]+)\/([^/]+)/, type: 'flow' },
-        // Data Products
-        { pattern: /^\/docs\/data-products\/([^/]+)\/([^/]+)/, type: 'data-product' },
-        { pattern: /^\/visualiser\/data-products\/([^/]+)\/([^/]+)/, type: 'data-product' },
-        // Entities
-        { pattern: /^\/docs\/entities\/([^/]+)\/([^/]+)/, type: 'entity' },
-      ];
-
-      // URL patterns without version (language pages, etc)
-      const urlPatternsWithoutVersion = [{ pattern: /^\/docs\/domains\/([^/]+)\/language/, type: 'domain' }];
-
-      // First try to match patterns with version
-      for (const { pattern, type } of urlPatternsWithVersion) {
-        const match = normalizedUrl.match(pattern);
-        if (match) {
-          const id = match[1];
-          const version = match[2];
-
-          // First try with version
-          const keyWithVersion = `${type}:${id}:${version}`;
-          if (nodes[keyWithVersion]) {
-            return keyWithVersion;
-          }
-
-          // Fallback to lookup without version (for latest)
-          const foundNodeKey = nodeLookup.get(`${type}:${id}`);
-          if (foundNodeKey) return foundNodeKey;
-        }
-      }
-
-      // Then try patterns without version
-      for (const { pattern, type } of urlPatternsWithoutVersion) {
-        const match = normalizedUrl.match(pattern);
-        if (match) {
-          const id = match[1];
-          const foundNodeKey = nodeLookup.get(`${type}:${id}`);
-          if (foundNodeKey) return foundNodeKey;
-        }
-      }
-
-      return null;
+      return findNodeKeyByUrl(stripBasePath(url), nodes, nodeLookup);
     },
     [nodeLookup, nodes]
   );
@@ -337,7 +260,7 @@ export default function NestedSideBar() {
    */
   const findAndNavigateToUrl = useCallback(
     (url: string) => {
-      const foundNodeKey = findNodeKeyByUrl(url);
+      const foundNodeKey = findNodeKeyForUrl(url);
 
       if (foundNodeKey) {
         setNavigationStack((currentStack) => {
@@ -373,7 +296,7 @@ export default function NestedSideBar() {
       }
       return false;
     },
-    [findNodeKeyByUrl, tryConnectStack, resolveRef, roots]
+    [findNodeKeyForUrl, tryConnectStack, resolveRef, roots]
   );
 
   /**
@@ -393,7 +316,7 @@ export default function NestedSideBar() {
     }
 
     const savedState = loadState();
-    const targetKey = findNodeKeyByUrl(currentUrl);
+    const targetKey = findNodeKeyForUrl(currentUrl);
 
     let finalStack: NavigationLevel[] | null = null;
 
@@ -432,7 +355,7 @@ export default function NestedSideBar() {
     }
 
     setIsInitialized(true);
-  }, [data, roots, isInitialized, buildStackFromPath, findNodeKeyByUrl, tryConnectStack, resolveRef]);
+  }, [data, roots, isInitialized, buildStackFromPath, findNodeKeyForUrl, tryConnectStack, resolveRef]);
 
   /**
    * Save state whenever navigation changes
@@ -510,7 +433,7 @@ export default function NestedSideBar() {
     return stripBasePath(left).replace(/\/$/, '') === stripBasePath(right).replace(/\/$/, '');
   }, []);
 
-  const activeNodeKey = useMemo(() => findNodeKeyByUrl(currentPath), [currentPath, findNodeKeyByUrl]);
+  const activeNodeKey = useMemo(() => findNodeKeyForUrl(currentPath), [currentPath, findNodeKeyForUrl]);
 
   // Show loading state if no data yet
   if (!data || roots.length === 0) {

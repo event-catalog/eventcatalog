@@ -1,0 +1,23 @@
+---
+id: payments.outcomes
+name: Payment Outcomes
+version: 1.0.0
+summary: |
+  HTTP webhook channel used to deliver payment and refund outcomes from Stripe.
+owners:
+  - payments-platform
+address: /webhooks/stripe
+protocols:
+  - http
+deliveryGuarantee: at-least-once
+---
+
+## Overview
+
+The [[service|stripe-webhook-endpoint]] delivers payment and refund outcome events through this webhook channel. The [[service|payment-worker]] consumes payment success and failure events from it.
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />

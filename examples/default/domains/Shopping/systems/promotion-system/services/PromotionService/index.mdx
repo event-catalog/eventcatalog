@@ -11,6 +11,9 @@ owners:
 receives:
   - id: calculate-discount
     version: 1.0.0
+    from:
+      - id: shopping.discount-commands
+        version: 1.0.0
 sends:
   - id: discount-calculated
     version: 1.0.0

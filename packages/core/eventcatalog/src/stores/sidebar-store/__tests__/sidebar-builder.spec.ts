@@ -4388,6 +4388,55 @@ describe('getNestedSideBarData', () => {
         href: '/docs/channels/PaymentChannel/0.0.1/changelog',
       });
     });
+
+    describe('Architecture section', () => {
+      it('lists the channel map when the visualizer is enabled', async () => {
+        const { writeChannel } = utils(CATALOG_FOLDER);
+        await writeChannel({
+          id: 'PaymentChannel',
+          name: 'Payment Channel',
+          version: '0.0.1',
+          markdown: 'Payment Channel',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+        const architectureSection = getChildNodeByTitle('Architecture', channelNode.pages ?? []);
+
+        expect(architectureSection).toEqual({
+          type: 'group',
+          title: 'Architecture',
+          icon: 'Workflow',
+          pages: [
+            {
+              type: 'item',
+              title: 'Map',
+              href: '/visualiser/channels/PaymentChannel/0.0.1',
+            },
+          ],
+        });
+      });
+
+      it('does not list the Architecture section when the visualizer is disabled', async () => {
+        config.visualiser.enabled = false;
+
+        const { writeChannel } = utils(CATALOG_FOLDER);
+        await writeChannel({
+          id: 'PaymentChannel',
+          name: 'Payment Channel',
+          version: '0.0.1',
+          markdown: 'Payment Channel',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+        const architectureSection = getChildNodeByTitle('Architecture', channelNode.pages ?? []);
+
+        expect(architectureSection).toBeUndefined();
+
+        config.visualiser.enabled = true;
+      });
+    });
   });
 
   describe('data product navigation items', () => {

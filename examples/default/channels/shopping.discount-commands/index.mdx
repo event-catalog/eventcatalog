@@ -1,0 +1,23 @@
+---
+id: shopping.discount-commands
+name: Discount Commands
+version: 1.0.0
+summary: |
+  SQS queue used to send discount calculation commands to the Promotion Service.
+owners:
+  - shopping-platform
+address: shopping-discount-commands
+protocols:
+  - sqs
+deliveryGuarantee: at-least-once
+---
+
+## Overview
+
+The [[service|cart-api]] sends [[command|calculate-discount]] commands to this queue, and the [[service|promotion-service]] consumes them.
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />

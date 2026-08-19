@@ -1,0 +1,26 @@
+---
+id: catalog.product-events.search
+name: Search Product Events
+version: 1.0.0
+summary: |
+  Filtered Kafka topic containing product changes that must be applied to the search index.
+owners:
+  - search-platform
+address: catalog.product-events.search
+protocols:
+  - kafka
+deliveryGuarantee: at-least-once
+routes:
+  - id: catalog.search-indexer.queue
+    version: 1.0.0
+---
+
+## Overview
+
+This topic receives the search-relevant subset of product events from [[channel|catalog.product-events]] and routes them to the [[channel|catalog.search-indexer.queue]] queue.
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />

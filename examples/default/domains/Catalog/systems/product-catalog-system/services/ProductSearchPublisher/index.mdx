@@ -13,10 +13,19 @@ readsFrom:
 sends:
   - id: product-created
     version: 1.0.0
+    to:
+      - id: catalog.product-events
+        version: 1.0.0
   - id: product-updated
     version: 1.0.0
+    to:
+      - id: catalog.product-events
+        version: 1.0.0
   - id: product-deleted
     version: 1.0.0
+    to:
+      - id: catalog.product-events
+        version: 1.0.0
 repository:
   language: Go
   url: 'https://github.com/acme/product-search-publisher'

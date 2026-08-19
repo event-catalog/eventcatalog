@@ -20,6 +20,9 @@ sends:
     version: 1.0.0
   - id: calculate-discount
     version: 1.0.0
+    to:
+      - id: shopping.discount-commands
+        version: 1.0.0
 writesTo:
   - id: cart-database
 readsFrom:

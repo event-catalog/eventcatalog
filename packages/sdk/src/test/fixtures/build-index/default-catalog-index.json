@@ -77,6 +77,78 @@
       ]
     },
     {
+      "type": "channel",
+      "id": "catalog.product-events",
+      "version": "1.0.0",
+      "name": "Product Events",
+      "contentPath": "channels/catalog.product-events/index.mdx",
+      "contentHash": "sha256:6140c9f2fc3c35d0a47dcfe3ba27c0bbc061f4ce3709a279a70c6e8ca0c50edb",
+      "owners": ["product-platform"],
+      "address": "catalog.product-events",
+      "protocols": ["kafka"],
+      "deliveryGuarantee": "at-least-once",
+      "routes": [
+        {
+          "id": "catalog.product-events.search",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "channel",
+      "id": "catalog.product-events.search",
+      "version": "1.0.0",
+      "name": "Search Product Events",
+      "contentPath": "channels/catalog.product-events.search/index.mdx",
+      "contentHash": "sha256:bf0f0b93e176606efc5c71a9e3b6386ddf21828f5dfb8a92eb5fa8e57d9177db",
+      "owners": ["search-platform"],
+      "address": "catalog.product-events.search",
+      "protocols": ["kafka"],
+      "deliveryGuarantee": "at-least-once",
+      "routes": [
+        {
+          "id": "catalog.search-indexer.queue",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "channel",
+      "id": "catalog.search-indexer.queue",
+      "version": "1.0.0",
+      "name": "Search Indexer Queue",
+      "contentPath": "channels/catalog.search-indexer.queue/index.mdx",
+      "contentHash": "sha256:60ad9d5c08f6c6b8c99ad2ef85c390cf27922aee9afb0999a5ef968d6e020a4d",
+      "owners": ["search-platform"],
+      "address": "catalog-search-indexer",
+      "protocols": ["sqs"],
+      "deliveryGuarantee": "at-least-once"
+    },
+    {
+      "type": "channel",
+      "id": "payments.outcomes",
+      "version": "1.0.0",
+      "name": "Payment Outcomes",
+      "contentPath": "channels/payments.outcomes/index.mdx",
+      "contentHash": "sha256:883f4fb080797ae6df3e807f10af1cb8742f253c544e0f27a509d65d94e881c0",
+      "owners": ["payments-platform"],
+      "address": "/webhooks/stripe",
+      "protocols": ["http"],
+      "deliveryGuarantee": "at-least-once"
+    },
+    {
+      "type": "channel",
+      "id": "shopping.discount-commands",
+      "version": "1.0.0",
+      "name": "Discount Commands",
+      "contentPath": "channels/shopping.discount-commands/index.mdx",
+      "contentHash": "sha256:bfbb9e8d0d8403df9d702dc8bf0a8fc2203f291bd525954d635336edb46720e7",
+      "owners": ["shopping-platform"],
+      "address": "shopping-discount-commands",
+      "protocols": ["sqs"],
+      "deliveryGuarantee": "at-least-once"
+    },
+    {
       "type": "command",
       "id": "add-item-to-cart",
       "version": "1.0.0",
@@ -2235,7 +2307,7 @@
       "version": "1.0.0",
       "name": "Cart API",
       "contentPath": "domains/Shopping/systems/cart-system/services/CartAPI/index.mdx",
-      "contentHash": "sha256:eb381f0cf346618df09415a2b0eda11f4f52b24b240c38d664e025a1ba941080",
+      "contentHash": "sha256:2af4b4eb4ac307e06b8f600257269699cfe371c2df563afc2a6de5ba6bc8d7ee",
       "owners": ["shopping-platform"],
       "specifications": [
         {
@@ -2258,7 +2330,13 @@
         },
         {
           "id": "calculate-discount",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "shopping.discount-commands",
+              "version": "1.0.0"
+            }
+          ]
         }
       ],
       "receives": [
@@ -2627,7 +2705,7 @@
       "version": "1.0.0",
       "name": "Payment Worker",
       "contentPath": "domains/Payments/systems/payment-processing-system/services/PaymentWorker/index.mdx",
-      "contentHash": "sha256:d4b1681bf27fe7042d1de20d1b2ad1971a1b8c3e2a9c09d996b11a2b578ae621",
+      "contentHash": "sha256:ac6a516c9bdccbf8dc030e84acc55a8c35d247bdbdfbc2df764f1f1633756d83",
       "owners": ["payments-platform"],
       "sends": [
         {
@@ -2642,11 +2720,23 @@
       "receives": [
         {
           "id": "payment-succeeded",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "payments.outcomes",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "payment-failed",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "payments.outcomes",
+              "version": "1.0.0"
+            }
+          ]
         }
       ],
       "writesTo": [
@@ -2736,20 +2826,38 @@
       "version": "1.0.0",
       "name": "Product Search Publisher",
       "contentPath": "domains/Catalog/systems/product-catalog-system/services/ProductSearchPublisher/index.mdx",
-      "contentHash": "sha256:9d2a6756bb5804c706d9005e42a9f1dbd6e7bace9e01a86ed3104cb85f04551e",
+      "contentHash": "sha256:71eb892a013075df4c80d166749a9673019ddeda94d5d56baab043c72a1857bf",
       "owners": ["product-platform"],
       "sends": [
         {
           "id": "product-created",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "catalog.product-events",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "product-updated",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "catalog.product-events",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "product-deleted",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "catalog.product-events",
+              "version": "1.0.0"
+            }
+          ]
         }
       ],
       "readsFrom": [
@@ -2783,7 +2891,7 @@
       "version": "1.0.0",
       "name": "Promotion Service",
       "contentPath": "domains/Shopping/systems/promotion-system/services/PromotionService/index.mdx",
-      "contentHash": "sha256:e0cfb37cdf3efb1d2e663b331ba827afdc612d28f411da8bb2c4e4c62f601371",
+      "contentHash": "sha256:ec0cb8131f0dafa1d905c0b8cd1bf6344e78ed77827ea65b60c45a07b0c89fea",
       "owners": ["shopping-platform"],
       "sends": [
         {
@@ -2794,7 +2902,13 @@
       "receives": [
         {
           "id": "calculate-discount",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "shopping.discount-commands",
+              "version": "1.0.0"
+            }
+          ]
         }
       ],
       "readsFrom": [
@@ -3037,20 +3151,38 @@
       "version": "1.0.0",
       "name": "Search Indexer",
       "contentPath": "domains/Catalog/systems/search-system/services/SearchIndexer/index.mdx",
-      "contentHash": "sha256:a17f511a27a86746d7f0801fac55dfde5e3d4ec234e69d479d6eedc340871730",
+      "contentHash": "sha256:ecacd9fa6209f9828f42c035a9525d857e0024df9f81d95a0d19963837536560",
       "owners": ["search-platform"],
       "receives": [
         {
           "id": "product-created",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "catalog.search-indexer.queue",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "product-updated",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "catalog.search-indexer.queue",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "product-deleted",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "catalog.search-indexer.queue",
+              "version": "1.0.0"
+            }
+          ]
         }
       ],
       "writesTo": [
@@ -3099,20 +3231,38 @@
       "version": "1.0.0",
       "name": "Webhook Endpoint",
       "contentPath": "domains/Payments/systems/stripe/services/StripeWebhookEndpoint/index.mdx",
-      "contentHash": "sha256:dbfc35004da0d76264be521b176e988f83683fa72e591ea4a3411a6120250589",
+      "contentHash": "sha256:bdc68b11dcc3f25551feb58dd8d85f387ba4b9821b86a60cd46479842e5477dd",
       "owners": ["payments-platform"],
       "sends": [
         {
           "id": "payment-succeeded",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "payments.outcomes",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "payment-failed",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "payments.outcomes",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "refund-processed",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "payments.outcomes",
+              "version": "1.0.0"
+            }
+          ]
         }
       ]
     },

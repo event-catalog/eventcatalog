@@ -29,6 +29,7 @@ export class Page extends HybridPage {
       'domains',
       'flows',
       'containers',
+      'channels',
       'data-products',
       'systems',
     ];

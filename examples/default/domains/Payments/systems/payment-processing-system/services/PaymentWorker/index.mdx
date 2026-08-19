@@ -11,8 +11,14 @@ owners:
 receives:
   - id: payment-succeeded
     version: 1.0.0
+    from:
+      - id: payments.outcomes
+        version: 1.0.0
   - id: payment-failed
     version: 1.0.0
+    from:
+      - id: payments.outcomes
+        version: 1.0.0
 sends:
   - id: payment-requested
     version: 1.0.0
