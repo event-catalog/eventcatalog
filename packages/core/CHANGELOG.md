@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 4.7.2
+
+### Patch Changes
+
+- Updated dependencies [39cb616]
+  - @eventcatalog/linter@1.1.12
+
 ## 4.7.1
 
 ### Patch Changes
