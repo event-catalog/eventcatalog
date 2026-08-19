@@ -1,5 +1,18 @@
 # @eventcatalog/core
 
+## 4.7.4
+
+### Patch Changes
+
+- 653219a: Make federated custom components available through `@catalog/components`, with local catalog components taking precedence.
+- 653219a: Support local filesystem catalogs as federation sources using the `file:` protocol.
+
+  Ignore generated `dist` and `.eventcatalog-core` resources when indexing catalogs.
+
+- Updated dependencies [653219a]
+  - @eventcatalog/sdk@2.27.3
+  - @eventcatalog/linter@1.1.13
+
 ## 4.7.3
 
 ### Patch Changes
