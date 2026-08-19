@@ -1,0 +1,23 @@
+---
+id: catalog.search-indexer.queue
+name: Search Indexer Queue
+version: 1.0.0
+summary: |
+  SQS queue from which the Search Indexer consumes product lifecycle events.
+owners:
+  - search-platform
+address: catalog-search-indexer
+protocols:
+  - sqs
+deliveryGuarantee: at-least-once
+---
+
+## Overview
+
+The [[service|search-indexer]] consumes product events from this queue and applies them to the search index. The queue is the final channel in the product-event routing chain.
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />

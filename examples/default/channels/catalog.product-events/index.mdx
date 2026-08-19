@@ -1,0 +1,26 @@
+---
+id: catalog.product-events
+name: Product Events
+version: 1.0.0
+summary: |
+  Kafka topic that carries product lifecycle events from the Product Catalog System.
+owners:
+  - product-platform
+address: catalog.product-events
+protocols:
+  - kafka
+deliveryGuarantee: at-least-once
+routes:
+  - id: catalog.product-events.search
+    version: 1.0.0
+---
+
+## Overview
+
+The [[service|product-search-publisher]] publishes product lifecycle events to this topic. Events needed by the Search System are routed to the [[channel|catalog.product-events.search]] topic for downstream processing.
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />
