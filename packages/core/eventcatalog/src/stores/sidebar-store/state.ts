@@ -764,6 +764,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode>
   );
 
+  const visualiserEnabled = config?.visualiser?.enabled !== false;
+
   const channelNodes = channels.reduce(
     (acc, channel) => {
       const versionedKey = `channel:${channel.data.id}:${channel.data.version}`;
@@ -796,6 +798,18 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
               ].filter(Boolean) as { title: string; href: string }[]
             ),
             docsSection,
+            visualiserEnabled && {
+              type: 'group',
+              title: 'Architecture',
+              icon: 'Workflow',
+              pages: [
+                {
+                  type: 'item',
+                  title: 'Map',
+                  href: buildUrl(`/visualiser/${channel.collection}/${channel.data.id}/${channel.data.version}`),
+                },
+              ],
+            },
           ].filter(Boolean) as ChildRef[],
         },
         channel,
@@ -827,7 +841,6 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode>
   );
 
-  const visualiserEnabled = config?.visualiser?.enabled !== false;
   const rootDomainsNodes: Record<string, NavNode> = {};
 
   if (rootDomains.length > 0) {

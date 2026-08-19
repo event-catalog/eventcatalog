@@ -11,10 +11,19 @@ owners:
 receives:
   - id: product-created
     version: 1.0.0
+    from:
+      - id: catalog.search-indexer.queue
+        version: 1.0.0
   - id: product-updated
     version: 1.0.0
+    from:
+      - id: catalog.search-indexer.queue
+        version: 1.0.0
   - id: product-deleted
     version: 1.0.0
+    from:
+      - id: catalog.search-indexer.queue
+        version: 1.0.0
 writesTo:
   - id: search-index
 repository:

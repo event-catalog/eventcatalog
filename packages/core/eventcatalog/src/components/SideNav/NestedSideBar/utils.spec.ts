@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canCollapseGroup, getGroupLabel, isGroupCollapsed } from './utils';
+import { canCollapseGroup, findNodeKeyByUrl, getGroupLabel, isGroupCollapsed } from './utils';
 
 const preferences = (expanded: string[] = []) => ({
   expanded: new Set(expanded),
@@ -35,5 +35,23 @@ describe('isGroupCollapsed', () => {
 
   it('uses an explicit expanded preference', () => {
     expect(isGroupCollapsed(true, 'outbound-messages', preferences(['outbound-messages']))).toBe(false);
+  });
+});
+
+describe('findNodeKeyByUrl', () => {
+  const channelKey = 'channel:product-events:1.0.0';
+  const nodes = { [channelKey]: {} };
+  const nodeLookup = new Map([['channel:product-events', channelKey]]);
+
+  it('selects the channel sidebar for channel documentation', () => {
+    expect(findNodeKeyByUrl('/docs/channels/product-events/1.0.0', nodes, nodeLookup)).toBe(channelKey);
+  });
+
+  it('keeps the channel sidebar selected on the channel map', () => {
+    expect(findNodeKeyByUrl('/visualiser/channels/product-events/1.0.0', nodes, nodeLookup)).toBe(channelKey);
+  });
+
+  it('falls back to the available channel version', () => {
+    expect(findNodeKeyByUrl('/docs/channels/product-events/latest', nodes, nodeLookup)).toBe(channelKey);
   });
 });

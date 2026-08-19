@@ -21,6 +21,17 @@ const mockChannels = [
       id: 'DownstreamQueue',
       name: 'Downstream Queue',
       version: '1.0.0',
+      routes: [{ id: 'FinalQueue', version: '1.0.0' }],
+    },
+  },
+  {
+    id: 'FinalQueue-1.0.0',
+    slug: 'FinalQueue',
+    collection: 'channels',
+    data: {
+      id: 'FinalQueue',
+      name: 'Final Queue',
+      version: '1.0.0',
     },
   },
   {
@@ -125,6 +136,20 @@ const mockServices = [
       sends: [{ id: 'MessageWithChannelOnItself', version: '1.0.0' }],
     },
   },
+  {
+    id: 'SearchIndexer-1.0.0',
+    slug: 'SearchIndexer',
+    collection: 'services',
+    data: {
+      id: 'SearchIndexer',
+      name: 'Search Indexer',
+      version: '1.0.0',
+      receives: [
+        { id: 'OrderCreated', version: '1.0.0', from: [{ id: 'FinalQueue', version: '1.0.0' }] },
+        { id: 'OrderUpdated', version: '1.0.0', from: [{ id: 'FinalQueue', version: '1.0.0' }] },
+      ],
+    },
+  },
 ];
 
 const mockAgents = [
@@ -172,7 +197,7 @@ vi.mock('@utils/collections/channels', async (importOriginal) => {
   };
 });
 
-const { getNodesAndEdges } = await import('@utils/node-graphs/channel-node-graph');
+const { getNodesAndEdges, getNodesAndEdgesForChannelChain } = await import('@utils/node-graphs/channel-node-graph');
 
 const idsFor = (nodes: any[]) => nodes.map((node) => node.id);
 const edgesFor = (edges: any[]) => edges.map((edge) => `${edge.source} -> ${edge.target} (${edge.label})`);
@@ -284,6 +309,49 @@ describe('Channels NodeGraph', () => {
       expect(edgesFor(edges)).toEqual(expect.arrayContaining(['EventBus-1.0.0 -> DownstreamQueue-1.0.0 (routes to)']));
     });
 
+    it('renders the complete channel route around a focused channel without connecting messages directly to it', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'DownstreamQueue', version: '1.0.0' });
+      const renderedEdges = edgesFor(edges);
+
+      expect(idsFor(nodes)).toEqual(
+        expect.arrayContaining([
+          'OrderService-1.0.0',
+          'OrderCreated-1.0.0',
+          'OrderUpdated-1.0.0',
+          'EventBus-1.0.0',
+          'DownstreamQueue-1.0.0',
+          'FinalQueue-1.0.0',
+          'SearchIndexer-1.0.0',
+        ])
+      );
+      expect(renderedEdges).toEqual(
+        expect.arrayContaining([
+          'OrderService-1.0.0 -> OrderCreated-1.0.0 (publishes \nevent)',
+          'OrderCreated-1.0.0 -> EventBus-1.0.0 (routes to)',
+          'EventBus-1.0.0 -> DownstreamQueue-1.0.0 (routes to)',
+          'DownstreamQueue-1.0.0 -> FinalQueue-1.0.0 (routes to)',
+          'FinalQueue-1.0.0 -> SearchIndexer-1.0.0 (consumes 2\nmessages)',
+        ])
+      );
+      expect(renderedEdges).not.toEqual(
+        expect.arrayContaining([
+          'OrderCreated-1.0.0 -> DownstreamQueue-1.0.0 (routes to)',
+          'OrderUpdated-1.0.0 -> DownstreamQueue-1.0.0 (routes to)',
+        ])
+      );
+    });
+
+    it('deduplicates channel route edges shared by multiple messages', async () => {
+      const { edges } = await getNodesAndEdges({ id: 'DownstreamQueue', version: '1.0.0' });
+
+      expect(
+        edges.filter((edge: any) => edge.source === 'EventBus-1.0.0' && edge.target === 'DownstreamQueue-1.0.0')
+      ).toHaveLength(1);
+      expect(
+        edges.filter((edge: any) => edge.source === 'DownstreamQueue-1.0.0' && edge.target === 'FinalQueue-1.0.0')
+      ).toHaveLength(1);
+    });
+
     it('when nodes are laid out, every node is given a calculated position', async () => {
       const { nodes } = await getNodesAndEdges({ id: 'EventBus', version: '1.0.0' });
 
@@ -292,6 +360,40 @@ describe('Channels NodeGraph', () => {
         expect(typeof node.position.x).toBe('number');
         expect(typeof node.position.y).toBe('number');
       });
+    });
+  });
+
+  describe('getNodesAndEdgesForChannelChain', () => {
+    it('adds a context menu to every channel in the route chain', () => {
+      const { nodes } = getNodesAndEdgesForChannelChain({
+        source: mockEvents[0],
+        target: mockServices[1],
+        channelChain: mockChannels.slice(0, 2) as any,
+      });
+
+      expect(nodes).toHaveLength(2);
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'EventBus-1.0.0',
+            data: expect.objectContaining({
+              contextMenu: expect.arrayContaining([
+                { label: 'Read documentation', href: '/docs/channels/EventBus/1.0.0' },
+                { label: 'Focus node', href: '/visualiser/channels/EventBus/1.0.0' },
+              ]),
+            }),
+          }),
+          expect.objectContaining({
+            id: 'DownstreamQueue-1.0.0',
+            data: expect.objectContaining({
+              contextMenu: expect.arrayContaining([
+                { label: 'Read documentation', href: '/docs/channels/DownstreamQueue/1.0.0' },
+                { label: 'Focus node', href: '/visualiser/channels/DownstreamQueue/1.0.0' },
+              ]),
+            }),
+          }),
+        ])
+      );
     });
   });
 });

@@ -11,10 +11,19 @@ owners:
 sends:
   - id: payment-succeeded
     version: 1.0.0
+    to:
+      - id: payments.outcomes
+        version: 1.0.0
   - id: payment-failed
     version: 1.0.0
+    to:
+      - id: payments.outcomes
+        version: 1.0.0
   - id: refund-processed
     version: 1.0.0
+    to:
+      - id: payments.outcomes
+        version: 1.0.0
 repository:
   language: External
   url: 'https://github.com/stripe/stripe-node'

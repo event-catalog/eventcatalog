@@ -15,6 +15,7 @@ import {
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 import { TruncatedResourceName } from "../TruncatedResourceName";
+import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 
 import { memo, useMemo } from "react";
 
@@ -144,6 +145,7 @@ function PostItChannel(props: ChannelNode) {
         props?.selected ? "ring-2 ring-gray-400/60 ring-offset-1" : "",
       )}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}
@@ -337,6 +339,7 @@ function DefaultChannel(props: ChannelNode) {
         boxShadow: "0 2px 12px rgba(107, 114, 128, 0.15)",
       }}
     >
+      {props.data.isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}
