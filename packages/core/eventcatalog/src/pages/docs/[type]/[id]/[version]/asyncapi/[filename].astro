@@ -128,6 +128,19 @@ const rawJson = parsed.document?.json();
 const stringified = rawJson ? deepCopyBreakingCycles(rawJson) : undefined;
 const config: ConfigInterface = { show: { sidebar: true, errors: true } };
 
+// When the document fails to parse there is nothing to render. Surface the parser
+// diagnostics instead of leaving the page blank.
+const parseErrors = parsed.document
+  ? []
+  : parsed.diagnostics
+      .filter((diagnostic) => diagnostic.severity === 0)
+      .map((diagnostic) => ({
+        code: String(diagnostic.code),
+        message: diagnostic.message,
+        path: diagnostic.path?.join('.') ?? '',
+      }));
+const failedToParse = !parsed.document;
+
 const component = createElement(AsyncApiComponentWP, { schema: { stringified }, config });
 const renderedComponent = renderToString(component);
 
@@ -177,7 +190,28 @@ const pagefindAttributes =
         </div>
       )
     }
-    <div id="asyncapi" class="not-prose" set:html={renderedComponent} />
+    {
+      failedToParse ? (
+        <div class="not-prose mx-auto my-12 max-w-3xl rounded-lg border border-red-300 bg-[rgb(var(--ec-card-bg))] p-6">
+          <h3 class="text-lg font-semibold text-red-600">Unable to render this AsyncAPI specification</h3>
+          <p class="mt-2 text-sm text-[rgb(var(--ec-page-text))]">
+            The specification file <code class="font-mono">{fileName}</code> is not a valid AsyncAPI document. Fix the errors
+            below and rebuild your catalog.
+          </p>
+          <ul class="mt-4 space-y-3">
+            {parseErrors.map((error) => (
+              <li class="rounded-md border border-[rgb(var(--ec-page-border))] p-3 text-sm">
+                <span class="font-mono font-semibold text-red-600">{error.code}</span>
+                <p class="mt-1 text-[rgb(var(--ec-page-text))]">{error.message}</p>
+                {error.path && <p class="mt-1 font-mono text-xs text-[rgb(var(--ec-page-text-muted))]">at {error.path}</p>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div id="asyncapi" class="not-prose" set:html={renderedComponent} />
+      )
+    }
   </div>
 </VerticalSideBarLayout>
 
