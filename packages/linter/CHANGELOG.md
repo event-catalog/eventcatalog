@@ -1,5 +1,11 @@
 # @eventcatalog/linter
 
+## 1.1.12
+
+### Patch Changes
+
+- 39cb616: Fix resource discovery for federated domains, services, teams, and users so valid owner and decision-maker references are indexed correctly.
+
 ## 1.1.11
 
 ### Patch Changes
