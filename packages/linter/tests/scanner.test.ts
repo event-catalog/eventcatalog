@@ -136,4 +136,34 @@ describe('extractResourceInfo', () => {
     expect(catalogFiles.some((file) => file.resourceType === 'service' && file.resourceId === 'customer-api')).toBe(true);
     expect(catalogFiles.some((file) => file.resourceType === 'container' && file.resourceId === 'customer-db')).toBe(true);
   });
+
+  it('should scan root-scoped resources inside federated catalogs', async () => {
+    const rootDir = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-linter-scanner-'));
+    const sourceDir = 'federated/event-catalog--payments--abc123';
+    const files = [
+      `${sourceDir}/domains/payments/index.mdx`,
+      `${sourceDir}/domains/payments/services/payment-service/index.mdx`,
+      `${sourceDir}/services/fraud-service/index.mdx`,
+      `${sourceDir}/teams/payments-team.mdx`,
+      `${sourceDir}/users/jane-doe.mdx`,
+    ];
+
+    await Promise.all(
+      files.map(async (file) => {
+        const filePath = path.join(rootDir, file);
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, '---\nid: test\nname: Test\nversion: 1.0.0\n---\n');
+      })
+    );
+
+    const catalogFiles = await scanCatalogFiles(rootDir);
+
+    expect(catalogFiles.map((file) => `${file.resourceType}:${file.resourceId}`).sort()).toEqual([
+      'domain:payments',
+      'service:fraud-service',
+      'service:payment-service',
+      'team:payments-team',
+      'user:jane-doe',
+    ]);
+  });
 });

@@ -345,4 +345,42 @@ receives:
     expect(result.stdout).not.toContain('Referenced event/command/query');
     expect(result.stdout).toContain('2 files checked');
   });
+
+  it('resolves owners from federated catalogs', async () => {
+    const federatedRoot = path.join(tempDir, 'federated', 'event-catalog--payments--abc123');
+    const federatedServiceDir = path.join(federatedRoot, 'services', 'payment-service');
+    const federatedTeamsDir = path.join(federatedRoot, 'teams');
+
+    fs.mkdirSync(federatedServiceDir, { recursive: true });
+    fs.mkdirSync(federatedTeamsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(federatedServiceDir, 'index.mdx'),
+      `---
+id: payment-service
+name: Payment Service
+summary: Processes payments
+version: 1.0.0
+owners:
+  - payments-team
+---
+# Payment Service
+`
+    );
+    fs.writeFileSync(
+      path.join(federatedTeamsDir, 'payments-team.mdx'),
+      `---
+id: payments-team
+name: Payments Team
+summary: Owns payment services
+---
+# Payments Team
+`
+    );
+
+    const result = await runLinter();
+
+    expect(result.success).toBe(true);
+    expect(result.stdout).not.toContain('Referenced user/team');
+    expect(result.stdout).toContain('2 files checked');
+  });
 });
