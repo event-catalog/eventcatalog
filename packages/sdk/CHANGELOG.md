@@ -1,5 +1,23 @@
 # @eventcatalog/sdk
 
+## 2.27.2
+
+### Patch Changes
+
+- f59c821: Add the `eventcatalog federate` CLI command. Reads `federation.sources` from the catalog config, fetches and indexes each configured GitHub source, resolves the combined graph, then hydrates federated content and public assets into the local catalog. Includes a content-addressed cache (`--no-cache` to bypass), pinned source commits in a lockfile, and ownership conflict reporting.
+
+## 2.27.1
+
+### Patch Changes
+
+- 439161f: Add an end-to-end integration test for the federation pipeline (`buildIndex`, `resolve`, `hydrate`) that runs against real example catalogs on disk, with committed snapshots of the resolved graph and hydrated file tree.
+
+## 2.27.0
+
+### Minor Changes
+
+- d01cfe6: Add the federation pipeline to the SDK: `buildIndex` discovers and describes catalog content into a portable index, `resolve` combines indexes from multiple sources into a single graph (with conflict detection, externals and edges), and `hydrate` materializes the resolved content to disk (fetching, verifying, caching and referencing artifacts). Also adds `parseIndex` for validating an index, and exports the new federation types.
+
 ## 2.26.3
 
 ### Patch Changes

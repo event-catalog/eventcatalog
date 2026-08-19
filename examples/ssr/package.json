@@ -1,0 +1,10 @@
+{
+  "name": "eventcatalog-ssr-test-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@eventcatalog/connectors": "workspace:*",
+    "@eventcatalog/core": "workspace:*"
+  }
+}

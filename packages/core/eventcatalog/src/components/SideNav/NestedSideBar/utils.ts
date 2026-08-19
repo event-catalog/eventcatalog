@@ -7,8 +7,8 @@ export type SectionCollapsePreferences = {
   expanded: Set<string>;
 };
 
-export const canCollapseGroup = (childCount: number, isTopLevel: boolean): boolean =>
-  !isTopLevel && childCount > SIDEBAR_GROUP_COLLAPSE_THRESHOLD;
+export const canCollapseGroup = (childCount: number, isTopLevel: boolean, collapsible = true): boolean =>
+  collapsible && !isTopLevel && childCount > SIDEBAR_GROUP_COLLAPSE_THRESHOLD;
 
 export const getGroupLabel = (title: string, childCount: number): string =>
   GROUP_TITLES_WITHOUT_COUNT.has(title) ? title : `${title} (${childCount})`;

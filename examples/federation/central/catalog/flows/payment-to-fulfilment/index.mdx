@@ -1,0 +1,23 @@
+---
+id: payment-to-fulfilment
+name: Payment to fulfilment
+version: 1.0.0
+steps:
+  - id: capture_payment
+    title: Capture payment
+    service:
+      id: payment-service
+      version: 1.0.0
+    next_step:
+      id: start_fulfilment
+      label: Payment captured
+  - id: start_fulfilment
+    title: Start fulfilment
+    service:
+      id: fulfilment-service
+      version: 1.0.0
+---
+
+## Payment to fulfilment
+
+The central flow joins the team-owned services without taking ownership of either one.

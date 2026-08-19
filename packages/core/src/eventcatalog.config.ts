@@ -86,6 +86,23 @@ type VerticalNavigationGroupConfig = {
 
 type GeneratorConfig = string | Record<string, unknown> | [string, Record<string, unknown>];
 
+export type FederationSourceConfig = {
+  /** Stable source id used by the lockfile and federation graph. */
+  id: string;
+  /** Source locator, for example github:acme/payments. */
+  source: string;
+  /** Directory containing the source catalog. @default '.' */
+  path?: string;
+  /** Branch or tag to federate. @default 'main' */
+  ref?: string;
+  /** Materialize source files or retain graph references only. @default 'hydrate' */
+  mode?: 'hydrate' | 'reference';
+};
+
+type FederationConfig = {
+  sources: FederationSourceConfig[];
+};
+
 type DirectoryEntry = {
   id: string;
   markdown?: string;
@@ -361,6 +378,13 @@ export interface Config {
     channels?: {
       renderMode?: 'flat' | 'single';
     };
+    /**
+     * The catalog-wide force-directed graph at /visualiser/graph.
+     * Opt-in while in beta — disabled unless explicitly enabled.
+     */
+    architectureGraph?: {
+      enabled?: boolean;
+    };
   };
   environments?: {
     name: string;
@@ -402,4 +426,6 @@ export interface Config {
   integrations?: IntegrationsConfig;
   scalarConfiguration?: ScalarConfiguration;
   generators?: GeneratorConfig[];
+  /** Catalogs composed into this catalog by `eventcatalog federate`. */
+  federation?: FederationConfig;
 }

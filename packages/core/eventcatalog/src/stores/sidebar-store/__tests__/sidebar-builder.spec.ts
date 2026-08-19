@@ -272,6 +272,10 @@ describe('getNestedSideBarData', () => {
     });
 
     it('renders top-level diagrams with the System Context Map below top-level domains', async () => {
+      // The hydrated dev config may have opted into the Architecture Graph —
+      // this test asserts the out-of-the-box (opt-in, disabled) behaviour
+      delete config.visualiser?.architectureGraph;
+
       const { writeDomain } = utils(CATALOG_FOLDER);
 
       await writeDomain({
@@ -304,6 +308,74 @@ describe('getNestedSideBarData', () => {
           },
         ],
       });
+    });
+
+    it('shows the Architecture Graph link when the feature is opted in', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      mockSystems.push({
+        id: 'CoreMonolith',
+        name: 'Core Monolith',
+        version: '1.0.0',
+        summary: 'The legacy core monolith',
+      });
+
+      config.visualiser = { ...config.visualiser, architectureGraph: { enabled: true } };
+
+      try {
+        const navigationData = await getNestedSideBarData();
+        const diagramsNode = getNavigationConfigurationByKey('list:top-level-diagrams', navigationData);
+
+        expect(diagramsNode.pages).toEqual([
+          {
+            type: 'item',
+            title: 'System Context Map',
+            href: '/visualiser/system-context-map',
+          },
+          {
+            type: 'item',
+            title: 'Architecture Graph',
+            href: '/visualiser/graph',
+          },
+        ]);
+      } finally {
+        delete config.visualiser.architectureGraph;
+      }
+    });
+
+    it('shows the Architecture Graph link even when the catalog has no systems', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      config.visualiser = { ...config.visualiser, architectureGraph: { enabled: true } };
+
+      try {
+        const navigationData = await getNestedSideBarData();
+        const diagramsNode = getNavigationConfigurationByKey('list:top-level-diagrams', navigationData);
+
+        expect(diagramsNode.pages).toEqual([
+          {
+            type: 'item',
+            title: 'Architecture Graph',
+            href: '/visualiser/graph',
+          },
+        ]);
+      } finally {
+        delete config.visualiser.architectureGraph;
+      }
     });
 
     it('uses the domain style icon when one is configured', async () => {
@@ -420,6 +492,7 @@ describe('getNestedSideBarData', () => {
       });
       const navigationData = await getNestedSideBarData();
       const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
+      expect(browseNode.collapsible).toBe(false);
       expect(browseNode.pages).toEqual(['list:domains', 'list:services']);
     });
 
@@ -1899,7 +1972,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
-          href: '/docs/services/ShippingService',
+          href: '/docs/services/ShippingService/0.0.1',
         });
       });
 
@@ -1917,7 +1990,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
         });
         config.changelog = { enabled: false };
       });
@@ -1936,7 +2009,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
         });
       });
 
@@ -1959,7 +2032,7 @@ describe('getNestedSideBarData', () => {
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Changelog',
-          href: '/docs/services/ShippingService/changelog',
+          href: '/docs/services/ShippingService/0.0.1/changelog',
         });
         config.changelog = { enabled: false };
       });
@@ -2109,24 +2182,24 @@ describe('getNestedSideBarData', () => {
             type: 'item',
             title: 'OpenAPI',
             leftIcon: '/icons/openapi-black.svg',
-            href: '/docs/services/ShippingService/spec/openapi',
+            href: '/docs/services/ShippingService/0.0.1/spec/openapi',
           },
           {
             type: 'item',
             title: 'AsyncAPI',
             leftIcon: '/icons/asyncapi-black.svg',
-            href: '/docs/services/ShippingService/asyncapi/asyncapi',
+            href: '/docs/services/ShippingService/0.0.1/asyncapi/asyncapi',
           },
           {
             type: 'item',
             title: 'GraphQL',
             leftIcon: '/icons/graphql-black.svg',
-            href: '/docs/services/ShippingService/graphql/graphql',
+            href: '/docs/services/ShippingService/0.0.1/graphql/graphql',
           },
         ]);
       });
 
-      it('keeps specification links versioned for historical service versions', async () => {
+      it('keeps specification links versioned for every service version', async () => {
         const { writeService } = utils(CATALOG_FOLDER);
         const specifications = [{ type: 'asyncapi' as const, path: 'asyncapi.yaml', name: 'AsyncAPI' }];
 
@@ -2160,7 +2233,7 @@ describe('getNestedSideBarData', () => {
         expect(latestServiceNode).toHaveNavigationLink({
           type: 'item',
           title: 'AsyncAPI',
-          href: '/docs/services/ShippingService/asyncapi/asyncapi',
+          href: '/docs/services/ShippingService/2.0.0/asyncapi/asyncapi',
         });
       });
     });
@@ -4729,7 +4802,7 @@ describe('getNestedSideBarData', () => {
           {
             type: 'item',
             title: 'Service Boundary ADR',
-            href: '/docs/services/ShippingService/adrs/service-boundary',
+            href: '/docs/services/ShippingService/0.0.1/adrs/service-boundary',
           },
         ]);
 

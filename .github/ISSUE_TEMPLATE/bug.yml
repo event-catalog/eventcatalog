@@ -58,6 +58,15 @@ body:
     label: "EventCatalog Version"
     placeholder: "@eventcatalog/core@{version}"
 
+- type: dropdown
+  id: output
+  attributes:
+    label: "Output"
+    multiple: false
+    options:
+      - Static
+      - Server (Server Side Rendering)
+
 - type: input
   id: node
   attributes:

@@ -1,7 +1,7 @@
 {
   "name": "@eventcatalog/create-eventcatalog",
   "description": "Create EventCatalog with one command",
-  "version": "4.3.5",
+  "version": "4.3.7",
   "license": "MIT",
   "bin": {
     "create-catalog": "./dist/index.js"
@@ -53,7 +53,7 @@
     "validate-npm-package-name": "3.0.0"
   },
   "dependencies": {
-    "uuid": "^10.0.0"
+    "uuid": "^11.1.1"
   },
   "packageManager": "pnpm@10.23.0+sha512.21c4e5698002ade97e4efe8b8b4a89a8de3c85a37919f957e7a0f30f38fbc5bbdd05980ffe29179b2fb6e6e691242e098d945d1601772cad0fef5fb6411e2a4b"
 }

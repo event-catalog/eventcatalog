@@ -15,6 +15,17 @@ export const withIgnoredBuildArtifacts = (patterns: string | string[]) => {
 
 const toPatterns = (patterns: string | string[]) => (Array.isArray(patterns) ? patterns : [patterns]);
 
+export const withFederatedContent = (patterns: string | string[]) => {
+  const patternList = toPatterns(patterns);
+  const federatedPatterns = patternList.map((pattern) => {
+    const isNegative = pattern.startsWith('!');
+    const catalogPattern = isNegative ? pattern.slice(1) : pattern;
+    return `${isNegative ? '!' : ''}federated/*/${catalogPattern}`;
+  });
+
+  return [...patternList, ...federatedPatterns];
+};
+
 const matchesGlobPattern = (entry: string, patterns: string | string[]) => {
   const patternList = toPatterns(patterns);
   const positivePatterns = patternList.filter((pattern) => !pattern.startsWith('!'));

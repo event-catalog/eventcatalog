@@ -153,6 +153,7 @@ import { writeUser, getUser, getUsers, rmUserById } from './users';
 import { dumpCatalog, getEventCatalogConfigurationFile } from './eventcatalog';
 import { getGraph } from './graph';
 import { createSnapshot, diffSnapshots, listSnapshots } from './snapshots';
+import { buildIndex } from './build-index';
 import { writeChangelog, appendChangelog, getChangelog, rmChangelog } from './changelogs';
 import {
   getEntity,
@@ -222,8 +223,12 @@ import { addFileToAdr, adrHasVersion, getAdr, getAdrs, rmAdr, rmAdrById, version
 
 // Export the types
 export type * from './types';
+export type * from './index-types';
 export type * from './snapshot-types';
 export type * from './flow-builder';
+export { resolve } from './resolve';
+export * from './hydrate';
+export * from './parse-index';
 
 /**
  * Init the SDK for EventCatalog
@@ -1730,6 +1735,7 @@ export default (path: string) => {
      * ```
      */
     createSnapshot: createSnapshot(join(path)),
+    buildIndex: buildIndex(join(path)),
     diffSnapshots: diffSnapshots(join(path)),
     listSnapshots: listSnapshots(join(path)),
 

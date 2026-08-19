@@ -1,5 +1,74 @@
 # @eventcatalog/core
 
+## 4.6.3
+
+### Patch Changes
+
+- f59c821: Add the `eventcatalog federate` CLI command. Reads `federation.sources` from the catalog config, fetches and indexes each configured GitHub source, resolves the combined graph, then hydrates federated content and public assets into the local catalog. Includes a content-addressed cache (`--no-cache` to bypass), pinned source commits in a lockfile, and ownership conflict reporting.
+- Updated dependencies [f59c821]
+  - @eventcatalog/sdk@2.27.2
+  - @eventcatalog/linter@1.1.11
+
+## 4.6.2
+
+### Patch Changes
+
+- 3395e8c: fix: bump vulnerable dependencies flagged by npm audit (hono, mermaid, react-syntax-highlighter, uuid)
+- Updated dependencies [3395e8c]
+  - @eventcatalog/visualiser@4.1.2
+
+## 4.6.1
+
+### Patch Changes
+
+- 20f51e0: Resources pages now list every resource directly attached to a domain (subdomains, systems, agents and data products alongside services, flows, entities and messages), and the sidebar Resources link appears whenever any of those exist. Service sidebar links are versioned again, and sidebar icons render at a consistent size.
+- 9a1bf7a: Keep the Browse section expanded while continuing to auto-collapse other large sidebar groups.
+- 91e8fc2: chore(core): bump astro and @astrojs dependencies to their latest patch/minor releases
+- b6569aa: fix(core): update js-yaml to patch denial-of-service vulnerabilities
+
+## 4.6.0
+
+### Minor Changes
+
+- 3ee5549: feat(core): load catalog content from federated source directories
+
+  Astro content collections now also scan `federated/*/` so resources pulled in from
+  federated catalog sources (services, domains, subdomains, resource docs and doc
+  categories, ubiquitous language, users and teams) are picked up alongside the
+  local catalog.
+
+### Patch Changes
+
+- Updated dependencies [439161f]
+  - @eventcatalog/sdk@2.27.1
+  - @eventcatalog/linter@1.1.10
+
+## 4.5.2
+
+### Patch Changes
+
+- Updated dependencies [d01cfe6]
+  - @eventcatalog/sdk@2.27.0
+  - @eventcatalog/linter@1.1.9
+
+## 4.5.1
+
+### Patch Changes
+
+- d8f460d: fix(core): type wire links as tuples for astro check
+
+## 4.5.0
+
+### Minor Changes
+
+- ba27fe3: feat(core): add opt-in architecture graph — a catalog-wide force-directed graph at /visualiser/graph, enabled via `visualiser.architectureGraph.enabled`
+
+## 4.4.1
+
+### Patch Changes
+
+- 87862ef: updated auth/core version
+
 ## 4.4.0
 
 ### Minor Changes

@@ -42,6 +42,7 @@ git-push.sh
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/federated-catalog/
 
 src/__tests__/example-catalog-dependencies/dependencies
 
@@ -81,3 +82,4 @@ ec-test/
 docs/superpowers/*
 .worktrees/
 .pnpm-store/
+federationv2.md

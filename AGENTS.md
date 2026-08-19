@@ -37,6 +37,17 @@ Vitest is the default test framework across packages. Tests are placed either ne
 - For multiline CLI export DSL assertions, use the shared `dsl` template tag with `toBe(...)` so expected blocks stay readable and indented in the test file.
 - For core/UI-impacting changes, also verify catalog build paths (`pnpm verify-build:catalog`).
 
+## Federation Pipeline Checks
+
+Federation is a three-stage pipeline in `packages/sdk`: `buildIndex` discovers and describes catalog content, `resolve` combines indexes into a graph, and `hydrate` materializes the resolved content. Any future change to resources, relationships, schemas/specifications, sidecars, assets, paths, hashes, or catalog filesystem conventions must be reviewed across all three stages, even when the requested change initially appears to affect only one stage.
+
+- Check whether `packages/sdk/src/build-index.ts` and its index types need to capture the new or changed data.
+- Check whether `packages/sdk/src/resolve.ts` must preserve, merge, validate, conflict-check, or create edges for that data.
+- Check whether `packages/sdk/src/hydrate.ts` must fetch, verify, cache, write, reference, or remove that data safely.
+- Add or update focused tests in `build-index.test.ts`, `resolve.test.ts`, and `hydrate.test.ts` wherever the behavior crosses those boundaries.
+- Run the relevant focused tests and the complete SDK suite (`pnpm --filter @eventcatalog/sdk test`) before considering federation-related work complete.
+- When filesystem output changes, rerun the default-catalog federation integration review and inspect the diff against `examples/default` so missing, extra, or stale files are deliberate.
+
 ## Commit & Pull Request Guidelines
 Recent history favors Conventional Commit style with scopes:
 - `feat(cli): add import command`

@@ -22,6 +22,10 @@ describe('sidebar group presentation', () => {
     expect(canCollapseGroup(5, false)).toBe(false);
     expect(canCollapseGroup(6, false)).toBe(true);
   });
+
+  it('keeps groups marked as non-collapsible expanded regardless of their size', () => {
+    expect(canCollapseGroup(100, false, false)).toBe(false);
+  });
 });
 
 describe('isGroupCollapsed', () => {
