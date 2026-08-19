@@ -28,7 +28,7 @@ function buildFileCache(catalogDir: string): void {
   const canonicalCatalogDir = toCanonicalPath(catalogDir);
   const files = globSync('**/index.{md,mdx}', {
     cwd: canonicalCatalogDir,
-    ignore: ['node_modules/**'],
+    ignore: ['node_modules/**', 'dist/**', '.eventcatalog-core/**'],
     absolute: true,
     nodir: true,
   }).map(normalize);
@@ -234,7 +234,7 @@ export const getFiles = async (pattern: string, ignore: string | string[] = '') 
 
     const files = globSync(relativePattern, {
       cwd: absoluteBaseDir,
-      ignore: ['node_modules/**', ...ignoreList],
+      ignore: ['node_modules/**', 'dist/**', '.eventcatalog-core/**', ...ignoreList],
       absolute: true,
       nodir: true,
     });

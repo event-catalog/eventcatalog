@@ -5,8 +5,8 @@ import createSDK, { hydrate, resolve, type Conflict, type HydrateResult, type Re
 import type { FederationSourceConfig } from '../eventcatalog.config';
 import { getEventCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { createFederationContentCache } from './content-cache';
-import { createGitHubSourceProvider } from './github-source-provider';
 import { composePublicAssets, type FederatedPublicFiles, type PublicAssetCompositionResult } from './public-assets';
+import { createFederationSourceProvider } from './source-provider';
 import type { FederationSourceProvider, ResolvedFederationSource } from './types';
 
 export type FederationProgressEvent =
@@ -155,7 +155,7 @@ export const federateCatalog = async (
   validateSources(sources);
   if (options.useCache === false) options.onProgress?.({ type: 'cache:disabled' });
 
-  const provider = options.provider ?? createGitHubSourceProvider();
+  const provider = options.provider ?? createFederationSourceProvider(projectDirectory);
   const resolvedSources: { config: FederationSourceConfig; resolved: ResolvedFederationSource }[] = [];
 
   for (const [index, source] of sources.entries()) {
