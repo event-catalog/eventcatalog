@@ -97,8 +97,26 @@ export type FederationSourceConfig = {
   ref?: string;
 };
 
+export type FederationRuleId =
+  | 'federation/duplicate-source'
+  | 'federation/type-collision'
+  | 'federation/pointer-type-mismatch'
+  | 'federation/facet-disagreement'
+  | 'federation/asset-collision'
+  | 'federation/missing-resource'
+  | 'federation/unresolved-version';
+
+export type FederationRuleLevel = 'off' | 'warn' | 'error';
+
+export type FederationRulesConfig = Partial<Record<FederationRuleId, FederationRuleLevel>>;
+
 type FederationConfig = {
   sources: FederationSourceConfig[];
+  /**
+   * Override federation validation rule levels. Unconfigured rules keep their defaults.
+   * `off` hides the diagnostic, `warn` reports and continues, and `error` stops before hydration.
+   */
+  rules?: FederationRulesConfig;
 };
 
 type DirectoryEntry = {

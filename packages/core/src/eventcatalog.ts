@@ -22,8 +22,13 @@ import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-in
 import { buildSearchIndex } from './search-indexer';
 import { linkCoreNodeModules, resolveInstalledCoreNodeModules } from './core-node-modules';
 import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
-import { federateCatalog, FederationConflictError, type FederationProgressEvent } from './federation/federate';
-import { getFederationDiagnosticCounts, getFederationDiagnostics } from './federation/diagnostics';
+import {
+  federateCatalog,
+  FederationConflictError,
+  FederationDiagnosticError,
+  type FederationProgressEvent,
+} from './federation/federate';
+import { getFederationDiagnosticCounts, getVisibleFederationDiagnostics } from './federation/diagnostics';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -761,8 +766,7 @@ const reportFederationProgress = (event: FederationProgressEvent, verbose = fals
       );
       return;
     case 'resolved':
-      const graphCounts = getFederationDiagnosticCounts(event.graph);
-      const counts = graphCounts.errors > 0 ? { errors: graphCounts.errors, warnings: 0 } : graphCounts;
+      const counts = getFederationDiagnosticCounts(event.diagnostics);
       const showDiagnosticDetails = verbose || counts.errors > 0;
 
       if (counts.errors === 0) {
@@ -775,9 +779,7 @@ const reportFederationProgress = (event: FederationProgressEvent, verbose = fals
       if (counts.errors + counts.warnings === 0) return;
 
       if (showDiagnosticDetails) {
-        const diagnostics = getFederationDiagnostics(event.graph).filter((diagnostic) =>
-          counts.errors > 0 ? diagnostic.severity === 'error' : verbose
-        );
+        const diagnostics = getVisibleFederationDiagnostics(event.diagnostics, verbose);
 
         logger.info('Federation diagnostics', 'federation');
         logger.line();
@@ -863,6 +865,6 @@ program
   .parseAsync()
   .then(() => process.exit(0))
   .catch((err) => {
-    if (!(err instanceof FederationConflictError)) console.error(err);
+    if (!(err instanceof FederationConflictError) && !(err instanceof FederationDiagnosticError)) console.error(err);
     process.exit(1);
   });

@@ -1,14 +1,40 @@
 import type { Conflict, ResolvedGraph } from '@eventcatalog/sdk';
+import type { FederationRuleId, FederationRuleLevel, FederationRulesConfig } from '../eventcatalog.config';
 
 export type FederationDiagnostic = {
   severity: 'error' | 'warning';
   message: string;
-  rule: `federation/${string}`;
+  rule: FederationRuleId;
   attributes: { label: string; value: string }[];
+};
+
+export const federationRuleDefaults: Record<FederationRuleId, FederationRuleLevel> = {
+  'federation/duplicate-source': 'error',
+  'federation/type-collision': 'error',
+  'federation/pointer-type-mismatch': 'error',
+  'federation/facet-disagreement': 'error',
+  'federation/asset-collision': 'warn',
+  'federation/missing-resource': 'warn',
+  'federation/unresolved-version': 'warn',
+};
+
+export type ResolvedFederationRules = Record<FederationRuleId, FederationRuleLevel>;
+
+export const resolveFederationRules = (rules: FederationRulesConfig = {}): ResolvedFederationRules => {
+  for (const [rule, level] of Object.entries(rules)) {
+    if (!Object.hasOwn(federationRuleDefaults, rule)) throw new Error(`Unknown federation rule "${rule}".`);
+    if (level !== 'off' && level !== 'warn' && level !== 'error') {
+      throw new Error(`Invalid level "${String(level)}" for federation rule "${rule}". Expected off, warn, or error.`);
+    }
+  }
+
+  return { ...federationRuleDefaults, ...rules };
 };
 
 const getExternalResource = (external: ResolvedGraph['externals'][number]) =>
   `${external.id}${external.version === undefined ? '' : `@${external.version}`}`;
+
+const getVersionedResource = (id: string, version: string | null | undefined) => `${id}${version == null ? '' : `@${version}`}`;
 
 const getDocumentedResourceType = (type: ResolvedGraph['entities'][number]['type']) => {
   const usesAn = type === 'adr' || type === 'agent' || type === 'entity' || type === 'event';
@@ -86,7 +112,8 @@ const getConflictDiagnostic = (conflict: Conflict, graph: ResolvedGraph): Federa
   }
 };
 
-export const getFederationDiagnostics = (graph: ResolvedGraph): FederationDiagnostic[] => {
+export const getFederationDiagnostics = (graph: ResolvedGraph, rules: FederationRulesConfig = {}): FederationDiagnostic[] => {
+  const resolvedRules = resolveFederationRules(rules);
   const diagnostics = graph.conflicts.map((conflict) => getConflictDiagnostic(conflict, graph));
 
   for (const external of graph.externals) {
@@ -107,6 +134,25 @@ export const getFederationDiagnostics = (graph: ResolvedGraph): FederationDiagno
     }
   }
 
+  for (const edge of graph.edges.filter((edge) => edge.status === 'unresolved')) {
+    const availableVersions = [
+      ...new Set(graph.entities.filter((entity) => entity.id === edge.to).map((entity) => entity.version ?? 'unversioned')),
+    ].sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+
+    diagnostics.push({
+      severity: 'warning',
+      message: 'Referenced EventCatalog resource version does not exist',
+      rule: 'federation/unresolved-version',
+      attributes: [
+        { label: 'source catalog', value: edge.fromResolvedFrom.source },
+        { label: 'referenced by', value: getVersionedResource(edge.from, edge.fromVersion) },
+        { label: 'resource', value: edge.to },
+        { label: 'requested version', value: edge.pointer ?? 'unspecified' },
+        { label: 'available versions', value: availableVersions.join(', ') },
+      ],
+    });
+  }
+
   for (const warning of graph.warnings) {
     diagnostics.push({
       severity: 'warning',
@@ -121,15 +167,28 @@ export const getFederationDiagnostics = (graph: ResolvedGraph): FederationDiagno
     });
   }
 
-  return diagnostics.sort(
-    (left, right) =>
-      (left.severity === right.severity ? 0 : left.severity === 'error' ? -1 : 1) ||
-      left.rule.localeCompare(right.rule) ||
-      (left.attributes[0]?.value ?? '').localeCompare(right.attributes[0]?.value ?? '')
-  );
+  return diagnostics
+    .flatMap((diagnostic) => {
+      const level = resolvedRules[diagnostic.rule];
+      if (level === 'off') return [];
+      return [{ ...diagnostic, severity: level === 'error' ? ('error' as const) : ('warning' as const) }];
+    })
+    .sort(
+      (left, right) =>
+        (left.severity === right.severity ? 0 : left.severity === 'error' ? -1 : 1) ||
+        left.rule.localeCompare(right.rule) ||
+        (left.attributes[0]?.value ?? '').localeCompare(right.attributes[0]?.value ?? '')
+    );
 };
 
-export const getFederationDiagnosticCounts = (graph: ResolvedGraph) => ({
-  errors: graph.conflicts.length,
-  warnings: graph.warnings.length + graph.externals.length,
-});
+export const getFederationDiagnosticCounts = (diagnostics: FederationDiagnostic[]) =>
+  diagnostics.reduce(
+    (counts, diagnostic) => ({
+      errors: counts.errors + (diagnostic.severity === 'error' ? 1 : 0),
+      warnings: counts.warnings + (diagnostic.severity === 'warning' ? 1 : 0),
+    }),
+    { errors: 0, warnings: 0 }
+  );
+
+export const getVisibleFederationDiagnostics = (diagnostics: FederationDiagnostic[], verbose: boolean) =>
+  diagnostics.filter((diagnostic) => verbose || diagnostic.severity === 'error');
