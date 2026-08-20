@@ -38,6 +38,34 @@ export const logger = {
   warning: (message: string, tag: string = 'warn') => {
     console.log(formatMessage(tag, message, pc.yellow));
   },
+  line: (message = '') => {
+    console.log(message);
+  },
+  diagnostic: (
+    severity: 'error' | 'warning',
+    message: string,
+    rule: string,
+    attributes: { label: string; value: string }[] = []
+  ) => {
+    const isError = severity === 'error';
+    const color = isError ? pc.red : pc.yellow;
+    const icon = isError ? '✖' : '⚠';
+    const label = `${icon} ${severity.padEnd(7)} ${message}`;
+    const ruleSpacing = ' '.repeat(Math.max(2, 72 - label.length));
+    console.log(`  ${color(icon)} ${color(severity.padEnd(7))} ${message}${ruleSpacing}${pc.gray(rule)}`);
+    for (const attribute of attributes) {
+      console.log(`             - ${pc.dim(`${attribute.label}:`)} ${attribute.value}`);
+    }
+  },
+  diagnosticSummary: (errors: number, warnings: number) => {
+    const total = errors + warnings;
+    const color = errors > 0 ? pc.red : pc.yellow;
+    const icon = errors > 0 ? '✖' : '⚠';
+    const problems = `${total} problem${total === 1 ? '' : 's'}`;
+    const errorCount = `${errors} error${errors === 1 ? '' : 's'}`;
+    const warningCount = `${warnings} warning${warnings === 1 ? '' : 's'}`;
+    console.log(color(`${icon} ${problems} (${errorCount}, ${warningCount})`));
+  },
   dim: (message: string) => {
     console.log(pc.dim(message));
   },

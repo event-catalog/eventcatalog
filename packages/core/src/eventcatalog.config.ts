@@ -95,8 +95,6 @@ export type FederationSourceConfig = {
   path?: string;
   /** Branch or tag to federate from a GitHub source. Not supported for filesystem sources. @default 'main' */
   ref?: string;
-  /** Materialize source files or retain graph references only. @default 'hydrate' */
-  mode?: 'hydrate' | 'reference';
 };
 
 type FederationConfig = {

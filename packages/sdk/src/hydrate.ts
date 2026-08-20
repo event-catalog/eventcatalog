@@ -14,14 +14,12 @@ export type HydrateOptions = {
   outDir: string;
   localSource?: string;
   fetch: Fetcher;
-  modes?: Record<string, 'hydrate' | 'reference'>;
   cache?: Cache;
 };
 
 export type HydrateResult = {
   fetched: number;
   written: number;
-  referenced: number;
 };
 
 type Artifact = {
@@ -95,18 +93,12 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
   const result: HydrateResult = {
     fetched: 0,
     written: 0,
-    referenced: 0,
   };
   const artifacts: Artifact[] = [];
 
   for (const entity of graph.entities) {
     const { source, commit } = entity.resolvedFrom;
     if (options.localSource !== undefined && source === options.localSource) continue;
-
-    if (options.modes?.[source] === 'reference') {
-      result.referenced++;
-      continue;
-    }
 
     if (!entity.contentPath) continue;
 
@@ -150,8 +142,7 @@ export async function hydrate(graph: ResolvedGraph, options: HydrateOptions): Pr
 
   for (const asset of graph.assets) {
     const { source, commit } = asset.resolvedFrom;
-    if ((options.localSource !== undefined && source === options.localSource) || options.modes?.[source] === 'reference')
-      continue;
+    if (options.localSource !== undefined && source === options.localSource) continue;
 
     artifacts.push({
       source,

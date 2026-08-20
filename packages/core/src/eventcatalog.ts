@@ -23,6 +23,7 @@ import { buildSearchIndex } from './search-indexer';
 import { linkCoreNodeModules, resolveInstalledCoreNodeModules } from './core-node-modules';
 import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
 import { federateCatalog, FederationConflictError, type FederationProgressEvent } from './federation/federate';
+import { getFederationDiagnosticCounts, getFederationDiagnostics } from './federation/diagnostics';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -716,7 +717,7 @@ program
     await generate(dir);
   });
 
-const reportFederationProgress = (event: FederationProgressEvent) => {
+const reportFederationProgress = (event: FederationProgressEvent, verbose = false) => {
   switch (event.type) {
     case 'configured':
       if (event.sources > 0)
@@ -760,34 +761,40 @@ const reportFederationProgress = (event: FederationProgressEvent) => {
       );
       return;
     case 'resolved':
-      if (event.graph.conflicts.length > 0) {
-        logger.error(
-          `${event.graph.conflicts.length} ownership conflict${event.graph.conflicts.length === 1 ? '' : 's'} found`,
-          'federation'
-        );
-        for (const conflict of event.graph.conflicts.slice(0, 10)) {
-          logger.error(`${conflict.id}: ${conflict.sources.join(', ')}`, 'federation');
-        }
-        if (event.graph.conflicts.length > 10) {
-          logger.error(`...and ${event.graph.conflicts.length - 10} more`, 'federation');
-        }
-        return;
-      }
-      logger.success(
-        `Graph resolved: ${event.graph.entities.length} remote resources, ${event.graph.edges.length} relationships`,
-        'federation'
-      );
-      if (event.graph.warnings.length > 0) {
-        logger.warning(
-          `${event.graph.warnings.length} federation warning${event.graph.warnings.length === 1 ? '' : 's'}`,
+      const graphCounts = getFederationDiagnosticCounts(event.graph);
+      const counts = graphCounts.errors > 0 ? { errors: graphCounts.errors, warnings: 0 } : graphCounts;
+      const showDiagnosticDetails = verbose || counts.errors > 0;
+
+      if (counts.errors === 0) {
+        logger.success(
+          `Graph resolved: ${event.graph.entities.length} remote resources, ${event.graph.edges.length} relationships`,
           'federation'
         );
       }
-      if (event.graph.externals.length > 0) {
+
+      if (counts.errors + counts.warnings === 0) return;
+
+      if (showDiagnosticDetails) {
+        const diagnostics = getFederationDiagnostics(event.graph).filter((diagnostic) =>
+          counts.errors > 0 ? diagnostic.severity === 'error' : verbose
+        );
+
+        logger.info('Federation diagnostics', 'federation');
+        logger.line();
+        for (const diagnostic of diagnostics) {
+          logger.diagnostic(diagnostic.severity, diagnostic.message, diagnostic.rule, diagnostic.attributes);
+          logger.line();
+        }
+        logger.diagnosticSummary(counts.errors, counts.warnings);
+      } else {
         logger.warning(
-          `${event.graph.externals.length} reference${event.graph.externals.length === 1 ? '' : 's'} remain external`,
+          `${counts.warnings} problem${counts.warnings === 1 ? '' : 's'} (0 errors, ${counts.warnings} warning${counts.warnings === 1 ? '' : 's'})`,
           'federation'
         );
+      }
+
+      if (!verbose && counts.warnings > 0) {
+        logger.info('Run with --verbose to see warning details.', 'federation');
       }
       return;
     case 'hydrating':
@@ -808,12 +815,6 @@ const reportFederationProgress = (event: FederationProgressEvent) => {
         `Public assets: ${event.result.copied} copied, ${event.result.skipped} preserved from the main catalog, ${event.result.removed} stale removed`,
         'federation'
       );
-      if (event.result.overwritten > 0) {
-        logger.warning(
-          `${event.result.overwritten} public asset conflict${event.result.overwritten === 1 ? '' : 's'} resolved using the last configured source`,
-          'federation'
-        );
-      }
       return;
     case 'complete':
       logger.success(
@@ -828,7 +829,8 @@ program
   .command('federate')
   .description('Fetch, resolve, and hydrate the catalogs configured in federation.sources.')
   .option('--no-cache', 'Download all federation content and refresh the cache.')
-  .action(async (commandOptions: { cache: boolean }) => {
+  .option('-v, --verbose', 'Show detailed federation diagnostics.')
+  .action(async (commandOptions: { cache: boolean; verbose: boolean }) => {
     logger.welcome();
 
     if (fs.existsSync(path.join(dir, '.env'))) {
@@ -842,7 +844,7 @@ program
       isFederationEnabled: isEventCatalogScaleEnabled,
       onProgress: (event) => {
         if (event.type === 'cleanup:complete') cleanedPreviousOutput = true;
-        reportFederationProgress(event);
+        reportFederationProgress(event, commandOptions.verbose);
       },
     });
     if (!result && !cleanedPreviousOutput) logger.warning('No federation sources configured; nothing to do.', 'federation');

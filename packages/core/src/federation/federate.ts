@@ -215,7 +215,6 @@ export const federateCatalog = async (
         options.onProgress?.({ type: 'hydrate:cache', files: cachedFiles });
       },
     }),
-    modes: Object.fromEntries(sources.map((source) => [source.id, source.mode ?? 'hydrate'])),
     fetch: async ({ source: sourceId, commit, path: artifactPath }) => {
       const source = sourcesById.get(sourceId);
       if (!source) throw new Error(`Cannot fetch content for unconfigured source "${sourceId}"`);

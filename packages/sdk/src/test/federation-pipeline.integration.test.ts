@@ -186,7 +186,6 @@ describe('federation pipeline integration', () => {
     ).resolves.toEqual({
       fetched: 7,
       written: 7,
-      referenced: 0,
     });
 
     const hydratedTreeSnapshot = JSON.parse(await fs.readFile(HYDRATED_TREE_SNAPSHOT_PATH, 'utf8'));
