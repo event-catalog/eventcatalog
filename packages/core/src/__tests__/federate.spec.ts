@@ -354,6 +354,52 @@ describe('federate catalog', () => {
     await expect(fs.access(path.join(projectDirectory, 'federated/public'))).rejects.toThrow();
   });
 
+  it('restores the previous federation output when public asset composition fails', async () => {
+    await writeProject(projectDirectory, [{ id: 'acme/payments', source: 'github:acme/payments' }]);
+    let files: Record<string, Buffer> = {
+      'public/remove.txt': Buffer.from('remove me'),
+      'public/update.txt': Buffer.from('first version'),
+    };
+    let index = sourceIndexWithPublicFiles('acme/payments', 'payment-service', files);
+    const provider: FederationSourceProvider = {
+      resolve: vi.fn(async () => ({ bytes: Buffer.from(JSON.stringify(index)), index, commit: index.commit, generated: true })),
+      fetchContent: vi.fn(async ({ path: artifactPath }) =>
+        artifactPath.startsWith('public/') ? files[artifactPath] : Buffer.from(`# ${artifactPath}\n`)
+      ),
+    };
+
+    await federateCatalog(projectDirectory, { provider });
+    const previousOutput = path.join(projectDirectory, 'federated', 'previous-only.txt');
+    const lockPath = path.join(projectDirectory, 'eventcatalog.lock');
+    await fs.writeFile(previousOutput, 'previous output');
+    const previousLock = await fs.readFile(lockPath, 'utf8');
+
+    files = {
+      'public/new.txt': Buffer.from('new file'),
+      'public/update.txt': Buffer.from('second version'),
+    };
+    index = sourceIndexWithPublicFiles('acme/payments', 'payment-service', files);
+
+    const failedDestination = path.join(projectDirectory, 'public', 'update.txt');
+    const writeFile = fs.writeFile.bind(fs);
+    const writeFileSpy = vi.spyOn(fs, 'writeFile').mockImplementation(async (filePath, ...args) => {
+      if (filePath === failedDestination) throw new Error('Simulated public asset write failure');
+      return writeFile(filePath, ...args);
+    });
+
+    try {
+      await expect(federateCatalog(projectDirectory, { provider })).rejects.toThrow('Simulated public asset write failure');
+    } finally {
+      writeFileSpy.mockRestore();
+    }
+
+    await expect(fs.readFile(previousOutput, 'utf8')).resolves.toBe('previous output');
+    await expect(fs.readFile(path.join(projectDirectory, 'public/remove.txt'), 'utf8')).resolves.toBe('remove me');
+    await expect(fs.readFile(path.join(projectDirectory, 'public/update.txt'), 'utf8')).resolves.toBe('first version');
+    await expect(fs.access(path.join(projectDirectory, 'public/new.txt'))).rejects.toThrow();
+    await expect(fs.readFile(lockPath, 'utf8')).resolves.toBe(previousLock);
+  });
+
   it('removes resources, public assets, and lock entries when a configured source is removed', async () => {
     const paymentsSource = { id: 'acme/payments', source: 'github:acme/payments' };
     await writeProject(projectDirectory, [paymentsSource]);
