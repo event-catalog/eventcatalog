@@ -4,6 +4,7 @@ import {
   federationRuleDefaults,
   getFederationDiagnosticCounts,
   getFederationDiagnostics,
+  getVisibleFederationDiagnostics,
   resolveFederationRules,
 } from '../federation/diagnostics';
 
@@ -263,6 +264,8 @@ describe('federation diagnostics', () => {
       { rule: 'federation/duplicate-source', severity: 'warning' },
     ]);
     expect(getFederationDiagnosticCounts(diagnostics)).toEqual({ errors: 1, warnings: 1 });
+    expect(getVisibleFederationDiagnostics(diagnostics, false)).toEqual([diagnostics[0]]);
+    expect(getVisibleFederationDiagnostics(diagnostics, true)).toEqual(diagnostics);
   });
 
   it('rejects unknown rule ids and invalid rule levels', () => {

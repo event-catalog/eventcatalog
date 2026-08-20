@@ -95,6 +95,41 @@ const validateSources = (sources: FederationSourceConfig[]) => {
   }
 };
 
+const createDiagnosticGraph = (
+  graph: ResolvedGraph,
+  ownershipGraph: ResolvedGraph,
+  remoteSourceIds: Set<string>,
+  localSourceId: string
+): ResolvedGraph => {
+  const edges = ownershipGraph.edges.filter((edge) => remoteSourceIds.has(edge.fromResolvedFrom.source));
+  const externalsByPointer = new Map<string, ResolvedGraph['externals'][number]>();
+
+  for (const edge of edges.filter((edge) => edge.status === 'external')) {
+    const version = edge.pointer ?? undefined;
+    const key = `${edge.to}@${version ?? ''}`;
+    const external = externalsByPointer.get(key) ?? {
+      id: edge.to,
+      ...(version === undefined ? {} : { version }),
+      referencedBy: [],
+    };
+    if (!external.referencedBy.includes(edge.from)) external.referencedBy.push(edge.from);
+    externalsByPointer.set(key, external);
+  }
+
+  return {
+    ...graph,
+    entities: [
+      ...graph.entities,
+      ...ownershipGraph.entities.filter(
+        (entity) => entity.resolvedFrom.source === localSourceId && entity.resolvedFrom.commit === 'local'
+      ),
+    ],
+    edges,
+    conflicts: ownershipGraph.conflicts,
+    externals: [...externalsByPointer.values()],
+  };
+};
+
 const writeLock = async (lockPath: string, lock: FederationLock) => {
   const temporaryPath = `${lockPath}.tmp-${process.pid}`;
   try {
@@ -209,10 +244,13 @@ export const federateCatalog = async (
   options.onProgress?.({ type: 'resolving', resources, localResources: localIndex.resources.length });
   const ownershipGraph = resolve([localIndex, ...remoteIndexes]);
   const graph = resolve(remoteIndexes);
-  const diagnostics = getFederationDiagnostics(
-    { ...graph, entities: ownershipGraph.entities, conflicts: ownershipGraph.conflicts },
-    rules
+  const diagnosticGraph = createDiagnosticGraph(
+    graph,
+    ownershipGraph,
+    new Set(remoteIndexes.map((index) => index.source)),
+    localIndex.source
   );
+  const diagnostics = getFederationDiagnostics(diagnosticGraph, rules);
   options.onProgress?.({ type: 'resolved', graph, diagnostics });
 
   const blockingConflicts = ownershipGraph.conflicts.filter((conflict) => rules[`federation/${conflict.kind}`] === 'error');

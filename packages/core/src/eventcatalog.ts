@@ -28,7 +28,7 @@ import {
   FederationDiagnosticError,
   type FederationProgressEvent,
 } from './federation/federate';
-import { getFederationDiagnosticCounts } from './federation/diagnostics';
+import { getFederationDiagnosticCounts, getVisibleFederationDiagnostics } from './federation/diagnostics';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -766,8 +766,7 @@ const reportFederationProgress = (event: FederationProgressEvent, verbose = fals
       );
       return;
     case 'resolved':
-      const graphCounts = getFederationDiagnosticCounts(event.diagnostics);
-      const counts = graphCounts.errors > 0 ? { errors: graphCounts.errors, warnings: 0 } : graphCounts;
+      const counts = getFederationDiagnosticCounts(event.diagnostics);
       const showDiagnosticDetails = verbose || counts.errors > 0;
 
       if (counts.errors === 0) {
@@ -780,9 +779,7 @@ const reportFederationProgress = (event: FederationProgressEvent, verbose = fals
       if (counts.errors + counts.warnings === 0) return;
 
       if (showDiagnosticDetails) {
-        const diagnostics = event.diagnostics.filter((diagnostic) =>
-          counts.errors > 0 ? diagnostic.severity === 'error' : verbose
-        );
+        const diagnostics = getVisibleFederationDiagnostics(event.diagnostics, verbose);
 
         logger.info('Federation diagnostics', 'federation');
         logger.line();

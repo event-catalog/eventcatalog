@@ -32,6 +32,26 @@ const sourceIndex = (source: string, resourceId: string): Index => {
   };
 };
 
+const sourceSystemIndex = (source: string, resourceId: string, services: { id: string; version?: string }[]): Index => {
+  const contentPath = `systems/${resourceId}/index.mdx`;
+  const content = Buffer.from(`# ${contentPath}\n`);
+  return {
+    indexVersion: 1,
+    source,
+    commit: `${source}-commit`,
+    resources: [
+      {
+        type: 'system',
+        id: resourceId,
+        name: resourceId,
+        services,
+        contentPath,
+        contentHash: `sha256:${createHash('sha256').update(content).digest('hex')}`,
+      },
+    ],
+  };
+};
+
 const sourceIndexWithPublicFiles = (source: string, resourceId: string, files: Record<string, Buffer>): Index => ({
   ...sourceIndex(source, resourceId),
   assets: Object.entries(files).map(([assetPath, content]) => ({
@@ -480,6 +500,45 @@ describe('federate catalog', () => {
     await expect(federation).rejects.toBeInstanceOf(FederationDiagnosticError);
     expect(provider.fetchContent).not.toHaveBeenCalled();
     await expect(fs.access(path.join(projectDirectory, 'federated'))).rejects.toThrow();
+  });
+
+  it('resolves remote references to resources owned by the central catalog before applying diagnostic rules', async () => {
+    await writeProject(projectDirectory, [{ id: 'acme/orders', source: 'github:acme/orders' }], {
+      'federation/missing-resource': 'error',
+    });
+    await writeService(projectDirectory, 'central-audit-service');
+    const index = sourceSystemIndex('acme/orders', 'order-system', [{ id: 'central-audit-service' }]);
+    const provider: FederationSourceProvider = {
+      resolve: vi.fn(async () => ({ bytes: Buffer.from(JSON.stringify(index)), index, commit: index.commit, generated: true })),
+      fetchContent: vi.fn(async ({ path: artifactPath }) => Buffer.from(`# ${artifactPath}\n`)),
+    };
+
+    const result = await federateCatalog(projectDirectory, { provider });
+
+    expect(result?.diagnostics).toEqual([]);
+    expect(result).toMatchObject({ hydrate: { fetched: 1, written: 1 } });
+  });
+
+  it('does not apply federation diagnostics to references originating in the central catalog', async () => {
+    await writeProject(projectDirectory, [{ id: 'acme/orders', source: 'github:acme/orders' }], {
+      'federation/missing-resource': 'error',
+    });
+    const localSystem = path.join(projectDirectory, 'systems', 'central-system', 'index.mdx');
+    await fs.mkdir(path.dirname(localSystem), { recursive: true });
+    await fs.writeFile(
+      localSystem,
+      '---\nid: central-system\nname: Central System\nservices:\n  - id: missing-local-service\n---\n# Central System\n'
+    );
+    const index = sourceIndex('acme/orders', 'order-service');
+    const provider: FederationSourceProvider = {
+      resolve: vi.fn(async () => ({ bytes: Buffer.from(JSON.stringify(index)), index, commit: index.commit, generated: true })),
+      fetchContent: vi.fn(async ({ path: artifactPath }) => Buffer.from(`# ${artifactPath}\n`)),
+    };
+
+    const result = await federateCatalog(projectDirectory, { provider });
+
+    expect(result?.diagnostics).toEqual([]);
+    expect(result).toMatchObject({ hydrate: { fetched: 1, written: 1 } });
   });
 
   it('stops before hydration when the main catalog and a source own the same resource', async () => {

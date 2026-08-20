@@ -189,3 +189,6 @@ export const getFederationDiagnosticCounts = (diagnostics: FederationDiagnostic[
     }),
     { errors: 0, warnings: 0 }
   );
+
+export const getVisibleFederationDiagnostics = (diagnostics: FederationDiagnostic[], verbose: boolean) =>
+  diagnostics.filter((diagnostic) => verbose || diagnostic.severity === 'error');
