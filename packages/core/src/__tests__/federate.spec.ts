@@ -4,7 +4,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Index } from '@eventcatalog/sdk';
-import { federateCatalog, FederationConflictError, type FederationProgressEvent } from '../federation/federate';
+import type { FederationRulesConfig } from '../eventcatalog.config';
+import {
+  federateCatalog,
+  FederationConflictError,
+  FederationDiagnosticError,
+  type FederationProgressEvent,
+} from '../federation/federate';
 import type { FederationSourceProvider } from '../federation/types';
 
 const sourceIndex = (source: string, resourceId: string): Index => {
@@ -36,11 +42,15 @@ const sourceIndexWithPublicFiles = (source: string, resourceId: string, files: R
 
 const hash = (content: Buffer | string) => `sha256:${createHash('sha256').update(content).digest('hex')}`;
 
-const writeProject = async (projectDirectory: string, sources: unknown[]) => {
+const writeProject = async (projectDirectory: string, sources: unknown[], rules?: FederationRulesConfig) => {
   await fs.writeFile(path.join(projectDirectory, 'package.json'), JSON.stringify({ type: 'module' }));
   await fs.writeFile(
     path.join(projectDirectory, 'eventcatalog.config.js'),
-    `export default ${JSON.stringify({ cId: 'central-catalog', federation: { sources } }, null, 2)};\n`
+    `export default ${JSON.stringify(
+      { cId: 'central-catalog', federation: { sources, ...(rules === undefined ? {} : { rules }) } },
+      null,
+      2
+    )};\n`
   );
 };
 
@@ -401,6 +411,75 @@ describe('federate catalog', () => {
     await expect(fs.readFile(previousOutput, 'utf8')).resolves.toBe('keep me');
     await expect(fs.access(path.join(projectDirectory, 'eventcatalog.lock'))).rejects.toThrow();
     expect(provider.fetchContent).not.toHaveBeenCalled();
+  });
+
+  it('continues hydration when a conflict rule is configured as a warning', async () => {
+    await writeProject(
+      projectDirectory,
+      [
+        { id: 'acme/payments', source: 'github:acme/payments' },
+        { id: 'acme/orders', source: 'github:acme/orders' },
+      ],
+      { 'federation/duplicate-source': 'warn' }
+    );
+    const provider: FederationSourceProvider = {
+      resolve: vi.fn(async (source) => {
+        const index = sourceIndex(source.id, 'shared-service');
+        return { bytes: Buffer.from(JSON.stringify(index)), index, commit: index.commit, generated: true };
+      }),
+      fetchContent: vi.fn(async ({ path: artifactPath }) => Buffer.from(`# ${artifactPath}\n`)),
+    };
+
+    const result = await federateCatalog(projectDirectory, { provider });
+
+    expect(result).toMatchObject({ hydrate: { fetched: 1, written: 2 } });
+    expect(result?.diagnostics).toEqual([
+      expect.objectContaining({
+        severity: 'warning',
+        rule: 'federation/duplicate-source',
+      }),
+    ]);
+    expect(provider.fetchContent).toHaveBeenCalledOnce();
+  });
+
+  it('stops before hydration when a warning rule is configured as an error', async () => {
+    await writeProject(
+      projectDirectory,
+      [
+        { id: 'acme/payments', source: 'github:acme/payments' },
+        { id: 'acme/orders', source: 'github:acme/orders' },
+      ],
+      { 'federation/asset-collision': 'error' }
+    );
+    const indexes = {
+      'acme/payments': sourceIndexWithPublicFiles('acme/payments', 'payment-service', {
+        'public/shared.svg': Buffer.from('payments'),
+      }),
+      'acme/orders': sourceIndexWithPublicFiles('acme/orders', 'order-service', {
+        'public/shared.svg': Buffer.from('orders'),
+      }),
+    };
+    const provider: FederationSourceProvider = {
+      resolve: vi.fn(async (source) => {
+        const index = indexes[source.id as keyof typeof indexes];
+        return { bytes: Buffer.from(JSON.stringify(index)), index, commit: index.commit, generated: true };
+      }),
+      fetchContent: vi.fn(),
+    };
+
+    const federation = federateCatalog(projectDirectory, { provider });
+    await expect(federation).rejects.toMatchObject({
+      name: 'FederationDiagnosticError',
+      diagnostics: [
+        expect.objectContaining({
+          severity: 'error',
+          rule: 'federation/asset-collision',
+        }),
+      ],
+    });
+    await expect(federation).rejects.toBeInstanceOf(FederationDiagnosticError);
+    expect(provider.fetchContent).not.toHaveBeenCalled();
+    await expect(fs.access(path.join(projectDirectory, 'federated'))).rejects.toThrow();
   });
 
   it('stops before hydration when the main catalog and a source own the same resource', async () => {

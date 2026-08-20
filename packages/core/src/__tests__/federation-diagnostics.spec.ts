@@ -1,6 +1,11 @@
 import type { ResolvedGraph } from '@eventcatalog/sdk';
 import { describe, expect, it } from 'vitest';
-import { getFederationDiagnosticCounts, getFederationDiagnostics } from '../federation/diagnostics';
+import {
+  federationRuleDefaults,
+  getFederationDiagnosticCounts,
+  getFederationDiagnostics,
+  resolveFederationRules,
+} from '../federation/diagnostics';
 
 const graph = (overrides: Partial<ResolvedGraph>): ResolvedGraph => ({
   entities: [],
@@ -55,6 +60,70 @@ describe('federation diagnostics', () => {
         ],
       },
     ]);
+  });
+
+  it.each([
+    { requestedVersion: '1.0.0', description: 'an unavailable exact version' },
+    { requestedVersion: '^1.0.0', description: 'an unsatisfied version range' },
+  ])('describes $description and lists the available versions', ({ requestedVersion }) => {
+    const resolvedGraph = graph({
+      entities: [
+        {
+          type: 'event',
+          id: 'payment-captured',
+          version: '2.0.0',
+          name: 'Payment Captured',
+          contentPath: 'events/payment-captured/2.0.0/index.mdx',
+          resolvedFrom: { source: 'event-catalog/payments', commit: 'abc123' },
+        },
+        {
+          type: 'event',
+          id: 'payment-captured',
+          version: '2.1.0',
+          name: 'Payment Captured',
+          contentPath: 'events/payment-captured/2.1.0/index.mdx',
+          resolvedFrom: { source: 'event-catalog/payments', commit: 'def456' },
+        },
+        {
+          type: 'service',
+          id: 'shipping-service',
+          version: '1.0.0',
+          name: 'Shipping Service',
+          contentPath: 'services/shipping-service/index.mdx',
+          resolvedFrom: { source: 'event-catalog/fulfillment', commit: 'ghi789' },
+        },
+      ],
+      edges: [
+        {
+          from: 'shipping-service',
+          fromVersion: '1.0.0',
+          fromResolvedFrom: { source: 'event-catalog/fulfillment', commit: 'ghi789' },
+          to: 'payment-captured',
+          direction: 'receives',
+          pointer: requestedVersion,
+          resolved: null,
+          status: 'unresolved',
+        },
+      ],
+    });
+
+    const diagnostics = getFederationDiagnostics(resolvedGraph);
+
+    expect(diagnostics).toEqual([
+      {
+        severity: 'warning',
+        message: 'Referenced EventCatalog resource version does not exist',
+        rule: 'federation/unresolved-version',
+        attributes: [
+          { label: 'source catalog', value: 'event-catalog/fulfillment' },
+          { label: 'referenced by', value: 'shipping-service@1.0.0' },
+          { label: 'resource', value: 'payment-captured' },
+          { label: 'requested version', value: requestedVersion },
+          { label: 'available versions', value: '2.0.0, 2.1.0' },
+        ],
+      },
+    ]);
+    expect(getFederationDiagnosticCounts(diagnostics)).toEqual({ errors: 0, warnings: 1 });
   });
 
   it('formats asset collisions with their sources and winner', () => {
@@ -114,7 +183,9 @@ describe('federation diagnostics', () => {
       externals: [{ id: 'missing-ledger', referencedBy: ['payment-captured'] }],
     });
 
-    expect(getFederationDiagnostics(resolvedGraph)).toEqual([
+    const diagnostics = getFederationDiagnostics(resolvedGraph);
+
+    expect(diagnostics).toEqual([
       {
         severity: 'error',
         message: 'Resource ID has conflicting types',
@@ -136,6 +207,70 @@ describe('federation diagnostics', () => {
         ],
       },
     ]);
-    expect(getFederationDiagnosticCounts(resolvedGraph)).toEqual({ errors: 1, warnings: 1 });
+    expect(getFederationDiagnosticCounts(diagnostics)).toEqual({ errors: 1, warnings: 1 });
+  });
+
+  it('keeps the existing rule levels as defaults', () => {
+    expect(federationRuleDefaults).toEqual({
+      'federation/duplicate-source': 'error',
+      'federation/type-collision': 'error',
+      'federation/pointer-type-mismatch': 'error',
+      'federation/facet-disagreement': 'error',
+      'federation/asset-collision': 'warn',
+      'federation/missing-resource': 'warn',
+      'federation/unresolved-version': 'warn',
+    });
+  });
+
+  it('applies off, warn, and error rule overrides before reporting and counting diagnostics', () => {
+    const resolvedGraph = graph({
+      entities: [
+        {
+          type: 'service',
+          id: 'checkout-api',
+          version: '1.0.0',
+          name: 'Checkout API',
+          contentPath: 'services/checkout-api/index.mdx',
+          resolvedFrom: { source: 'event-catalog/checkout', commit: 'abc123' },
+        },
+      ],
+      conflicts: [
+        {
+          kind: 'duplicate-source',
+          id: 'checkout-api',
+          sources: ['event-catalog/checkout', 'event-catalog/storefront'],
+        },
+      ],
+      externals: [{ id: 'payment-authorized', referencedBy: ['checkout-api'] }],
+      warnings: [
+        {
+          kind: 'asset-collision',
+          path: 'public/logo.svg',
+          sources: ['event-catalog/checkout', 'event-catalog/storefront'],
+          winner: 'event-catalog/storefront',
+        },
+      ],
+    });
+
+    const diagnostics = getFederationDiagnostics(resolvedGraph, {
+      'federation/duplicate-source': 'warn',
+      'federation/missing-resource': 'error',
+      'federation/asset-collision': 'off',
+    });
+
+    expect(diagnostics.map(({ rule, severity }) => ({ rule, severity }))).toEqual([
+      { rule: 'federation/missing-resource', severity: 'error' },
+      { rule: 'federation/duplicate-source', severity: 'warning' },
+    ]);
+    expect(getFederationDiagnosticCounts(diagnostics)).toEqual({ errors: 1, warnings: 1 });
+  });
+
+  it('rejects unknown rule ids and invalid rule levels', () => {
+    expect(() => resolveFederationRules({ 'federation/not-a-rule': 'warn' } as never)).toThrow(
+      'Unknown federation rule "federation/not-a-rule".'
+    );
+    expect(() => resolveFederationRules({ 'federation/missing-resource': 'fatal' } as never)).toThrow(
+      'Invalid level "fatal" for federation rule "federation/missing-resource". Expected off, warn, or error.'
+    );
   });
 });

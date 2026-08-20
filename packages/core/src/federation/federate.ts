@@ -5,6 +5,7 @@ import createSDK, { hydrate, resolve, type Conflict, type HydrateResult, type Re
 import type { FederationSourceConfig } from '../eventcatalog.config';
 import { getEventCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { createFederationContentCache } from './content-cache';
+import { getFederationDiagnostics, resolveFederationRules, type FederationDiagnostic } from './diagnostics';
 import { composePublicAssets, type FederatedPublicFiles, type PublicAssetCompositionResult } from './public-assets';
 import { createFederationSourceProvider } from './source-provider';
 import type { FederationSourceProvider, ResolvedFederationSource } from './types';
@@ -26,7 +27,7 @@ export type FederationProgressEvent =
   | { type: 'local:start' }
   | { type: 'local:complete'; resources: number }
   | { type: 'resolving'; resources: number; localResources: number }
-  | { type: 'resolved'; graph: ResolvedGraph }
+  | { type: 'resolved'; graph: ResolvedGraph; diagnostics: FederationDiagnostic[] }
   | { type: 'hydrating'; outDir: string }
   | { type: 'hydrate:cache'; files: number }
   | { type: 'hydrate:file'; files: number; source: string; path: string }
@@ -37,6 +38,7 @@ export type FederateCatalogResult = {
   sources: number;
   resources: number;
   graph: ResolvedGraph;
+  diagnostics: FederationDiagnostic[];
   hydrate: HydrateResult;
   public: PublicAssetCompositionResult;
   outDir: string;
@@ -70,6 +72,17 @@ export class FederationConflictError extends Error {
     super(`Federation conflicts prevent hydration:\n${details}`);
     this.name = 'FederationConflictError';
     this.conflicts = conflicts;
+  }
+}
+
+export class FederationDiagnosticError extends Error {
+  diagnostics: FederationDiagnostic[];
+
+  constructor(diagnostics: FederationDiagnostic[]) {
+    const details = diagnostics.map((diagnostic) => `${diagnostic.rule}: ${diagnostic.message}`).join('\n');
+    super(`Federation diagnostics prevent hydration:\n${details}`);
+    this.name = 'FederationDiagnosticError';
+    this.diagnostics = diagnostics;
   }
 }
 
@@ -153,6 +166,7 @@ export const federateCatalog = async (
     );
   }
   validateSources(sources);
+  const rules = resolveFederationRules(config.federation?.rules);
   if (options.useCache === false) options.onProgress?.({ type: 'cache:disabled' });
 
   const provider = options.provider ?? createFederationSourceProvider(projectDirectory);
@@ -194,13 +208,18 @@ export const federateCatalog = async (
   options.onProgress?.({ type: 'local:complete', resources: localIndex.resources.length });
   options.onProgress?.({ type: 'resolving', resources, localResources: localIndex.resources.length });
   const ownershipGraph = resolve([localIndex, ...remoteIndexes]);
-  if (ownershipGraph.conflicts.length > 0) {
-    options.onProgress?.({ type: 'resolved', graph: ownershipGraph });
-    throw new FederationConflictError(ownershipGraph.conflicts);
-  }
-
   const graph = resolve(remoteIndexes);
-  options.onProgress?.({ type: 'resolved', graph });
+  const diagnostics = getFederationDiagnostics(
+    { ...graph, entities: ownershipGraph.entities, conflicts: ownershipGraph.conflicts },
+    rules
+  );
+  options.onProgress?.({ type: 'resolved', graph, diagnostics });
+
+  const blockingConflicts = ownershipGraph.conflicts.filter((conflict) => rules[`federation/${conflict.kind}`] === 'error');
+  if (blockingConflicts.length > 0) throw new FederationConflictError(blockingConflicts);
+
+  const blockingDiagnostics = diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
+  if (blockingDiagnostics.length > 0) throw new FederationDiagnosticError(blockingDiagnostics);
 
   const sourcesById = new Map(sources.map((source) => [source.id, source]));
   options.onProgress?.({ type: 'hydrating', outDir });
@@ -254,6 +273,7 @@ export const federateCatalog = async (
     sources: sources.length,
     resources,
     graph,
+    diagnostics,
     hydrate: hydrateResult,
     public: publicResult,
     outDir,
