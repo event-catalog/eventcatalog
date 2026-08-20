@@ -6,6 +6,7 @@ import type { FederationSourceConfig } from '../eventcatalog.config';
 import { getEventCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { createFederationContentCache } from './content-cache';
 import { getFederationDiagnostics, resolveFederationRules, type FederationDiagnostic } from './diagnostics';
+import { withFederationOutputTransaction } from './output-transaction';
 import { composePublicAssets, type FederatedPublicFiles, type PublicAssetCompositionResult } from './public-assets';
 import { createFederationSourceProvider } from './source-provider';
 import type { FederationSourceProvider, ResolvedFederationSource } from './types';
@@ -168,14 +169,22 @@ const cleanupPreviousFederation = async (projectDirectory: string, onProgress?: 
 
   if (!hadFederatedOutput && !hadLock) return;
 
-  await fs.rm(outDir, { recursive: true, force: true });
-  const publicResult = await composePublicAssets({
+  const publicResult = await withFederationOutputTransaction(
     projectDirectory,
-    federatedDirectory: outDir,
-    assets: [],
-    previousFiles: previousLock?.publicFiles,
-  });
-  await fs.rm(lockPath, { force: true });
+    outDir,
+    Object.keys(previousLock?.publicFiles ?? {}),
+    async () => {
+      const result = await composePublicAssets({
+        projectDirectory,
+        federatedDirectory: outDir,
+        assets: [],
+        previousFiles: previousLock?.publicFiles,
+      });
+      await fs.rm(lockPath, { force: true });
+      return result;
+    }
+  );
+
   onProgress?.({
     type: 'cleanup:complete',
     federated: hadFederatedOutput,
@@ -259,53 +268,65 @@ export const federateCatalog = async (
   const blockingDiagnostics = diagnostics.filter((diagnostic) => diagnostic.severity === 'error');
   if (blockingDiagnostics.length > 0) throw new FederationDiagnosticError(blockingDiagnostics);
 
-  const sourcesById = new Map(sources.map((source) => [source.id, source]));
-  options.onProgress?.({ type: 'hydrating', outDir });
-  let hydratedFiles = 0;
-  let cachedFiles = 0;
-  const hydrateResult = await hydrate(graph, {
-    outDir,
-    cache: createFederationContentCache(projectDirectory, {
-      read: options.useCache !== false,
-      onHit: () => {
-        cachedFiles += 1;
-        options.onProgress?.({ type: 'hydrate:cache', files: cachedFiles });
-      },
-    }),
-    fetch: async ({ source: sourceId, commit, path: artifactPath }) => {
-      const source = sourcesById.get(sourceId);
-      if (!source) throw new Error(`Cannot fetch content for unconfigured source "${sourceId}"`);
-      const content = await provider.fetchContent({ source, commit, path: artifactPath });
-      hydratedFiles += 1;
-      options.onProgress?.({ type: 'hydrate:file', files: hydratedFiles, source: sourceId, path: artifactPath });
-      return content;
-    },
-  });
-
-  const publicResult = await composePublicAssets({
+  const publicPaths = [
+    ...Object.keys(previousLock?.publicFiles ?? {}),
+    ...graph.assets.filter((asset) => asset.path.startsWith('public/')).map((asset) => asset.path.slice('public/'.length)),
+  ];
+  const { hydrateResult, publicResult } = await withFederationOutputTransaction(
     projectDirectory,
-    federatedDirectory: outDir,
-    assets: graph.assets,
-    previousFiles: previousLock?.publicFiles,
-    collisionPaths: new Set(
-      graph.warnings.filter((warning) => warning.kind === 'asset-collision').map((warning) => warning.path)
-    ),
-  });
-  options.onProgress?.({ type: 'public:complete', result: publicResult });
+    outDir,
+    publicPaths,
+    async () => {
+      const sourcesById = new Map(sources.map((source) => [source.id, source]));
+      options.onProgress?.({ type: 'hydrating', outDir });
+      let hydratedFiles = 0;
+      let cachedFiles = 0;
+      const hydrateResult = await hydrate(graph, {
+        outDir,
+        cache: createFederationContentCache(projectDirectory, {
+          read: options.useCache !== false,
+          onHit: () => {
+            cachedFiles += 1;
+            options.onProgress?.({ type: 'hydrate:cache', files: cachedFiles });
+          },
+        }),
+        fetch: async ({ source: sourceId, commit, path: artifactPath }) => {
+          const source = sourcesById.get(sourceId);
+          if (!source) throw new Error(`Cannot fetch content for unconfigured source "${sourceId}"`);
+          const content = await provider.fetchContent({ source, commit, path: artifactPath });
+          hydratedFiles += 1;
+          options.onProgress?.({ type: 'hydrate:file', files: hydratedFiles, source: sourceId, path: artifactPath });
+          return content;
+        },
+      });
 
-  const resolvedAt = (options.now ?? (() => new Date()))().toISOString();
-  await writeLock(lockPath, {
-    lockVersion: 1,
-    sources: resolvedSources
-      .map(({ config: source, resolved }) => ({
-        id: source.id,
-        digest: `sha256:${createHash('sha256').update(resolved.bytes).digest('hex')}`,
-        commit: resolved.commit,
-        resolvedAt,
-      }))
-      .sort((left, right) => left.id.localeCompare(right.id)),
-    publicFiles: publicResult.files,
-  });
+      const publicResult = await composePublicAssets({
+        projectDirectory,
+        federatedDirectory: outDir,
+        assets: graph.assets,
+        previousFiles: previousLock?.publicFiles,
+        collisionPaths: new Set(
+          graph.warnings.filter((warning) => warning.kind === 'asset-collision').map((warning) => warning.path)
+        ),
+      });
+      options.onProgress?.({ type: 'public:complete', result: publicResult });
+
+      const resolvedAt = (options.now ?? (() => new Date()))().toISOString();
+      await writeLock(lockPath, {
+        lockVersion: 1,
+        sources: resolvedSources
+          .map(({ config: source, resolved }) => ({
+            id: source.id,
+            digest: `sha256:${createHash('sha256').update(resolved.bytes).digest('hex')}`,
+            commit: resolved.commit,
+            resolvedAt,
+          }))
+          .sort((left, right) => left.id.localeCompare(right.id)),
+        publicFiles: publicResult.files,
+      });
+      return { hydrateResult, publicResult };
+    }
+  );
 
   const result = {
     sources: sources.length,
