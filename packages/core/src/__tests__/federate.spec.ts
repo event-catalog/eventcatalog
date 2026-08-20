@@ -75,8 +75,8 @@ describe('federate catalog', () => {
 
   it('resolves only configured sources, hydrates, locks, and reports progress', async () => {
     await writeProject(projectDirectory, [
-      { id: 'acme/payments', source: 'github:acme/catalogs', path: 'payments', mode: 'hydrate' },
-      { id: 'acme/orders', source: 'github:acme/catalogs', path: 'orders', mode: 'hydrate' },
+      { id: 'acme/payments', source: 'github:acme/catalogs', path: 'payments' },
+      { id: 'acme/orders', source: 'github:acme/catalogs', path: 'orders' },
     ]);
     const indexes = {
       'acme/payments': sourceIndex('acme/payments', 'payment-service'),
@@ -103,7 +103,7 @@ describe('federate catalog', () => {
       onProgress: (event) => progress.push(event),
     });
 
-    expect(result).toMatchObject({ sources: 2, resources: 2, hydrate: { fetched: 2, written: 2, referenced: 0 } });
+    expect(result).toMatchObject({ sources: 2, resources: 2, hydrate: { fetched: 2, written: 2 } });
     expect(result?.graph.conflicts).toEqual([]);
     expect(result?.graph.entities.map((entity) => entity.resolvedFrom.source).sort()).toEqual(['acme/orders', 'acme/payments']);
     expect(await listFiles(path.join(projectDirectory, 'federated'))).toEqual([
@@ -155,7 +155,7 @@ describe('federate catalog', () => {
       expect(result).toMatchObject({
         sources: 1,
         resources: 1,
-        hydrate: { fetched: 3, written: 3, referenced: 0 },
+        hydrate: { fetched: 3, written: 3 },
       });
       expect(await listFiles(path.join(projectDirectory, 'federated'))).toEqual([
         'acme-payments--bf264d5186bc/services/payment-service/index.mdx',

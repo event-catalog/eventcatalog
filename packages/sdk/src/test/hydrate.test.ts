@@ -51,7 +51,6 @@ describe('hydrate', () => {
     ).resolves.toEqual({
       fetched: 0,
       written: 0,
-      referenced: 0,
     });
     expect(fetch).not.toHaveBeenCalled();
     await expect(fs.access(outDir)).rejects.toThrow();
@@ -102,7 +101,6 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 1,
       written: 1,
-      referenced: 0,
     });
   });
 
@@ -215,7 +213,6 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 1,
       written: 1,
-      referenced: 0,
     });
   });
 
@@ -266,7 +263,6 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 0,
       written: 1,
-      referenced: 0,
     });
   });
 
@@ -323,7 +319,6 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 1,
       written: 1,
-      referenced: 0,
     });
   });
 
@@ -383,7 +378,6 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 1,
       written: 1,
-      referenced: 0,
     });
   });
 
@@ -632,7 +626,6 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 3,
       written: 3,
-      referenced: 0,
     });
   });
 
@@ -718,7 +711,6 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 3,
       written: 3,
-      referenced: 0,
     });
   });
 
@@ -787,7 +779,6 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 4,
       written: 4,
-      referenced: 0,
     });
   });
 
@@ -845,46 +836,7 @@ describe('hydrate', () => {
       expect(result).toEqual({
         fetched: 2,
         written: 2,
-        referenced: 0,
       });
-    });
-
-    it('does not fetch assets from a source in reference mode', async () => {
-      const fetch = vi.fn<Fetcher>();
-      const graph: ResolvedGraph = {
-        entities: [],
-        assets: [
-          {
-            path: 'public/icons/payments.svg',
-            hash: 'sha256:4c22e5bcafd94c0d64a92f4d0f45853c2ea14d5e76b0e3c7806ef59fa45b9817',
-            resolvedFrom: {
-              source: 'acme/payments',
-              commit: '4a1b7e2',
-            },
-          },
-        ],
-        edges: [],
-        conflicts: [],
-        warnings: [],
-        externals: [],
-      };
-
-      await expect(
-        hydrate(graph, {
-          outDir,
-          localSource: 'acme/central',
-          fetch,
-          modes: {
-            'acme/payments': 'reference',
-          },
-        })
-      ).resolves.toEqual({
-        fetched: 0,
-        written: 0,
-        referenced: 0,
-      });
-      expect(fetch).not.toHaveBeenCalled();
-      await expect(fs.access(outDir)).rejects.toThrow();
     });
 
     it('hydrates the selected asset when a collision warning is present', async () => {
@@ -924,7 +876,6 @@ describe('hydrate', () => {
       ).resolves.toEqual({
         fetched: 1,
         written: 1,
-        referenced: 0,
       });
       expect(fetch.mock.calls).toEqual([
         [
@@ -937,48 +888,6 @@ describe('hydrate', () => {
       ]);
       await expect(fs.readFile(path.join(outDir, 'public/logo.svg'))).resolves.toEqual(content);
     });
-  });
-
-  it('does not fetch content for a source in reference mode', async () => {
-    const fetch = vi.fn<Fetcher>().mockResolvedValue(Buffer.from('# Payment Service'));
-    const graph: ResolvedGraph = {
-      entities: [
-        {
-          type: 'service',
-          id: 'payment-service',
-          version: '1.0.0',
-          name: 'Payment Service',
-          contentPath: 'services/payment-service/index.mdx',
-          contentHash: 'sha256:3e63897b7cc3a92411599289d00d686f1b1fc8e336927efa46101c8943410c70',
-          resolvedFrom: {
-            source: 'acme/payments',
-            commit: '4a1b7e2',
-          },
-        },
-      ],
-      assets: [],
-      edges: [],
-      conflicts: [],
-      warnings: [],
-      externals: [],
-    };
-
-    await expect(
-      hydrate(graph, {
-        outDir,
-        localSource: 'acme/central',
-        fetch,
-        modes: {
-          'acme/payments': 'reference',
-        },
-      })
-    ).resolves.toEqual({
-      fetched: 0,
-      written: 0,
-      referenced: 1,
-    });
-    expect(fetch.mock.calls).toEqual([]);
-    await expect(fs.access(outDir)).rejects.toThrow();
   });
 
   it('removes files from a previous hydrate that are no longer in the graph', async () => {
@@ -1020,7 +929,6 @@ describe('hydrate', () => {
     ).resolves.toEqual({
       fetched: 1,
       written: 1,
-      referenced: 0,
     });
     await expect(fs.access(stalePath)).rejects.toThrow();
     await expect(fs.readFile(currentPath)).resolves.toEqual(content);
@@ -1053,7 +961,6 @@ describe('hydrate', () => {
     ).resolves.toEqual({
       fetched: 0,
       written: 0,
-      referenced: 0,
     });
     expect(fetch.mock.calls).toEqual([]);
     await expect(fs.readFile(localPath, 'utf8')).resolves.toBe('# Local Service');
@@ -1100,7 +1007,6 @@ describe('hydrate', () => {
     ).resolves.toEqual({
       fetched: 1,
       written: 1,
-      referenced: 0,
     });
     await expect(fs.access(departedSourceDirectory)).rejects.toThrow();
     await expect(fs.readFile(currentPath)).resolves.toEqual(content);
