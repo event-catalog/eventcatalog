@@ -53,6 +53,7 @@ export const installTemplate = async ({
       start: 'eventcatalog start',
       preview: 'eventcatalog preview',
       generate: 'eventcatalog generate',
+      federate: 'eventcatalog federate',
       export: 'eventcatalog export',
       lint: 'eventcatalog-linter',
       test: 'echo "Error: no test specified" && exit 1',
