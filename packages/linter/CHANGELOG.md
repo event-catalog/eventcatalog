@@ -1,5 +1,12 @@
 # @eventcatalog/linter
 
+## 1.1.14
+
+### Patch Changes
+
+- Updated dependencies [fc71bc8]
+  - @eventcatalog/sdk@2.27.4
+
 ## 1.1.13
 
 ### Patch Changes

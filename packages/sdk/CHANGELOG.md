@@ -1,5 +1,13 @@
 # @eventcatalog/sdk
 
+## 2.27.4
+
+### Patch Changes
+
+- fc71bc8: Add ESLint-style `--verbose` federation diagnostics for asset collisions and missing-resource references, with structured attributes, gray rule IDs, and consolidated problem counts.
+
+  Remove the incomplete federation reference mode so all configured sources are consistently hydrated.
+
 ## 2.27.3
 
 ### Patch Changes
@@ -140,6 +148,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
