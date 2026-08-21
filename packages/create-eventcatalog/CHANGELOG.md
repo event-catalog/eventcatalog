@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.8
+
+### Patch Changes
+
+- c6cfda5: Add a federate script and ignore generated federation files in new catalogs.
+
 ## 4.3.7
 
 ### Patch Changes
