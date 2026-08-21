@@ -60,7 +60,7 @@ export const getQueries = async ({ getAllVersions = true, hydrateServices = true
     targetQueries.map(async (query) => {
       // Version info
       const queryVersions = queryMap.get(query.data.id) || [];
-      const latestVersion = queryVersions[0]?.data.version || query.data.version;
+      const latestVersion = queryVersions.find((v) => !v.data.draft)?.data.version || query.data.version;
       const versions = queryVersions.map((e) => e.data.version);
 
       // Find producers and consumers via reverse index
