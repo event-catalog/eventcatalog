@@ -843,7 +843,6 @@ program
     let cleanedPreviousOutput = false;
     const result = await federateCatalog(dir, {
       useCache: commandOptions.cache,
-      isFederationEnabled: isEventCatalogScaleEnabled,
       onProgress: (event) => {
         if (event.type === 'cleanup:complete') cleanedPreviousOutput = true;
         reportFederationProgress(event, commandOptions.verbose);
