@@ -22,6 +22,8 @@ yarn-debug.log*
 yarn-error.log*
 
 .eventcatalog-core
+.eventcatalog-cache/
+federated/
 
 .env
 .env-*
