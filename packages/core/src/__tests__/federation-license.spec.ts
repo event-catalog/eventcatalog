@@ -30,7 +30,10 @@ describe('federation license boundary', () => {
     ]);
 
     expect(rootLicense).toContain('packages/core/src/federation/');
-    expect(packageLicense).toContain('dist/federation/');
+    expect(packageLicense).toContain('src/federation/**');
+    expect(packageLicense).toContain('regardless of its output location');
+    expect(packageLicense).toContain('`dist/**`');
+    expect(packageLicense).toContain('`bin/**`');
     expect(packageLicense).toContain('The EventCatalog Commercial License');
     expect(federationLicense).toContain('The EventCatalog Commercial License');
     expect(sdkPackage.license).toBe('MIT');

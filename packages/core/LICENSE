@@ -1,14 +1,16 @@
 EventCatalog Core is distributed under a mixed-license model.
 
-The MIT License below applies to this package except for these commercially
-licensed paths and their compiled derivatives:
+The EventCatalog Commercial License below applies to these source paths:
 
-- `eventcatalog/src/enterprise/`
-- `dist/federation/`
+- `eventcatalog/src/enterprise/**`
+- `src/federation/**`
 
-The corresponding federation source is located at `src/federation/` in the
-EventCatalog repository. The EventCatalog Commercial License below applies to
-the listed commercial paths.
+The EventCatalog Commercial License also applies to any portion of a compiled,
+bundled, copied, minified, or otherwise generated artifact derived from those
+paths, regardless of its output location, including artifacts under `dist/**`
+and `bin/**`.
+
+The MIT License below applies to all remaining portions of this package.
 
 MIT License
 
