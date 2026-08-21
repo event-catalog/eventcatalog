@@ -35,7 +35,7 @@
 <div align="center">
 
 [![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT%20%2B%20Commercial-blue.svg)](./LICENSE)
 [![npm version](https://badge.fury.io/js/@eventcatalog%2Fcore.svg)](https://badge.fury.io/js/@eventcatalog/core)
 
 </div>
@@ -205,4 +205,5 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 # License
 
-MIT.
+EventCatalog Core uses a mixed-license model. Most files are licensed under MIT; the Enterprise and Federation paths
+identified in [LICENSE](./LICENSE) use the EventCatalog Commercial License.

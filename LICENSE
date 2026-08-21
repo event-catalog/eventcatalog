@@ -22,7 +22,10 @@ SOFTWARE.
 
 ---
 
-Note: Source code within `packages/core/eventcatalog/src/enterprise/` is
-licensed under the EventCatalog Commercial License and is NOT covered by the
-MIT License above. See `packages/core/eventcatalog/src/enterprise/LICENSE`
-for the full terms.
+Note: Source code within the following directories is licensed under the
+EventCatalog Commercial License and is NOT covered by the MIT License above:
+
+- `packages/core/eventcatalog/src/enterprise/`
+- `packages/core/src/federation/`
+
+See the `LICENSE` file in each directory for the full terms.

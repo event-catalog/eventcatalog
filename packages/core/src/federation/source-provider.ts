@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/src/federation/LICENSE
+ */
+
 import type { FederationSourceConfig } from '../eventcatalog.config';
 import { createFileSystemSourceProvider } from './filesystem-source-provider';
 import { createGitHubSourceProvider } from './github-source-provider';

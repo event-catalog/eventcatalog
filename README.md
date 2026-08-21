@@ -11,7 +11,7 @@ Document systems, domains, services, messages and schemas. Document your archite
 Customize your documentation to fit your workflow. Automate it, customize it, visualize it.
 
 [![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT%20%2B%20Commercial-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
 [![npm version](https://badge.fury.io/js/@eventcatalog%2Fcore.svg)](https://badge.fury.io/js/@eventcatalog/core)
 [![All Contributors](https://img.shields.io/badge/all_contributors-69-orange.svg?style=flat-square)](#contributors-)
 
@@ -271,4 +271,5 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## License
 
-MIT.
+EventCatalog uses a mixed-license model. Most of the repository is licensed under MIT; paid feature directories identified
+in the root [LICENSE](LICENSE) use the EventCatalog Commercial License.
