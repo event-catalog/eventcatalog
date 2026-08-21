@@ -823,7 +823,7 @@ const reportFederationProgress = (event: FederationProgressEvent, verbose = fals
         `Federation complete: ${event.result.sources} sources, ${event.result.resources} remote resources, ${event.result.hydrate.written} files written (${event.result.hydrate.fetched} downloaded, ${event.result.hydrate.written - event.result.hydrate.fetched} cached)`,
         'federation'
       );
-      logger.info(`Pinned source commits in ${path.relative(dir, event.result.lockPath)}`, 'federation');
+      logger.info(`Recorded resolved source state in ${path.relative(dir, event.result.lockPath)}`, 'federation');
   }
 };
 
