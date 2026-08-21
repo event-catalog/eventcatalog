@@ -1,5 +1,20 @@
 # @eventcatalog/core
 
+## 4.7.5
+
+### Patch Changes
+
+- fc71bc8: Add ESLint-style `--verbose` federation diagnostics for asset collisions and missing-resource references, with structured attributes, gray rule IDs, and consolidated problem counts.
+
+  Remove the incomplete federation reference mode so all configured sources are consistently hydrated.
+
+- ac6aa66: Federation now restores the previous output when a run fails part way through. The federated resources directory, managed public assets, and `eventcatalog.lock` are snapshotted before the update and rolled back if hydration, public asset composition, or lock writing throws, so a failed federate no longer leaves the catalog in a half-written state.
+- 55a9c8e: Clarify the federation lock file log message to reflect that it records resolved source state, not just pinned commits
+- b68efb2: Federation diagnostics are now configurable per rule. Set `federation.rules` in `eventcatalog.config.js` to `off`, `warn`, or `error` for any `federation/*` rule, and add a new `federation/unresolved-version` warning when a resource references a version that does not exist. Remote references are resolved against resources owned by the central catalog before diagnostics are applied, and warning counts remain visible when errors coexist.
+- Updated dependencies [fc71bc8]
+  - @eventcatalog/sdk@2.27.4
+  - @eventcatalog/linter@1.1.14
+
 ## 4.7.4
 
 ### Patch Changes
