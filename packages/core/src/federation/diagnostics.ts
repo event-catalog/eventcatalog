@@ -1,3 +1,8 @@
+/**
+ * Licensed under the EventCatalog Commercial License.
+ * See /packages/core/src/federation/LICENSE
+ */
+
 import type { Conflict, ResolvedGraph } from '@eventcatalog/sdk';
 import type { FederationRuleId, FederationRuleLevel, FederationRulesConfig } from '../eventcatalog.config';
 
