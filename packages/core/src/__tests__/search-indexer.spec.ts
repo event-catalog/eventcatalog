@@ -207,4 +207,48 @@ Use this event to trigger fulfilment.
       version: '1.2.0',
     });
   });
+
+  it('indexes ubiquitous language terms and links to the domain language explorer', async () => {
+    const projectDir = await createTempCatalog();
+    await fs.mkdir(path.join(projectDir, 'domains', 'Warehouse'), { recursive: true });
+    await fs.writeFile(
+      path.join(projectDir, 'domains', 'Warehouse', 'index.mdx'),
+      `---
+id: Warehouse
+name: Warehouse
+version: 1.0.0
+---
+
+Warehouse overview.
+`
+    );
+    await fs.writeFile(
+      path.join(projectDir, 'domains', 'Warehouse', 'ubiquitous-language.mdx'),
+      `---
+dictionary:
+  - id: Incoterm
+    name: Incoterm
+    summary: Defines shipping responsibilities between buyers and sellers.
+    description: International commercial terms used by the warehouse team.
+    icon: Mail
+---
+`
+    );
+
+    const records = await collectSearchRecords({ projectDir, config });
+    const language = records.find((record) => record.type === 'Language');
+
+    expect(language).toMatchObject({
+      url: '/docs/domains/Warehouse/language',
+      title: 'Warehouse ubiquitous language',
+      type: 'Language',
+      collection: 'language',
+      id: 'Warehouse',
+      version: '1.0.0',
+    });
+    expect(language?.content).toContain('Incoterm');
+    expect(language?.content).toContain('Defines shipping responsibilities between buyers and sellers.');
+    expect(language?.content).toContain('International commercial terms used by the warehouse team.');
+    expect(language?.content).not.toContain('Mail');
+  });
 });

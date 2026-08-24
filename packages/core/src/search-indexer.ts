@@ -82,6 +82,14 @@ const valueToSearchText = (value: unknown): string => {
   return '';
 };
 
+const getDictionarySearchFields = (dictionary: unknown) => {
+  if (!Array.isArray(dictionary)) return undefined;
+
+  return dictionary
+    .filter((entry): entry is Record<string, unknown> => typeof entry === 'object' && entry !== null)
+    .map(({ id, name, summary, description }) => ({ id, name, summary, description }));
+};
+
 export const markdownToSearchText = (content: string) => {
   return content
     .replace(/<!--[\s\S]*?-->/g, ' ')
@@ -327,6 +335,7 @@ export const collectSearchRecords = async ({
         decisionMakers: parsed.data.decisionMakers,
         appliesTo: parsed.data.appliesTo,
         badges: parsed.data.badges,
+        dictionary: getDictionarySearchFields(parsed.data.dictionary),
       });
 
       const content = [frontmatterText, markdownToSearchText(parsed.content)].filter(Boolean).join('\n\n');
