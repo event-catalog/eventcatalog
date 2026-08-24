@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.7.9
+
+### Patch Changes
+
+- c186d1e: Fix indexed search so ubiquitous language terms are searchable.
+
 ## 4.7.8
 
 ### Patch Changes
