@@ -28,9 +28,10 @@ export const eventCatalogLikeC4 = async (workspaceDir: string): Promise<Plugin[]
     return [registry];
   }
 
-  const LikeC4VitePlugin = await loadLikeC4VitePlugin(workspaceDir);
+  const { LikeC4VitePlugin, resolveLikeC4Dependency } = await loadLikeC4(workspaceDir);
 
   return [
+    likeC4DependencyResolver(resolveLikeC4Dependency),
     LikeC4VitePlugin({
       workspace: workspaceDir,
     }),
@@ -47,7 +48,7 @@ const hasLikeC4Sources = (workspaceDir: string) => {
   );
 };
 
-const loadLikeC4VitePlugin = async (workspaceDir: string) => {
+const loadLikeC4 = async (workspaceDir: string) => {
   try {
     const requireFromCatalog = createRequire(join(workspaceDir, 'package.json'));
     const likeC4VitePluginPath = requireFromCatalog.resolve('likec4/vite-plugin');
@@ -57,11 +58,31 @@ const loadLikeC4VitePlugin = async (workspaceDir: string) => {
       throw new Error('The installed likec4 package does not export LikeC4VitePlugin from likec4/vite-plugin.');
     }
 
-    return likeC4.LikeC4VitePlugin;
+    return {
+      LikeC4VitePlugin: likeC4.LikeC4VitePlugin,
+      resolveLikeC4Dependency: (id: string) => requireFromCatalog.resolve(id),
+    };
   } catch (error) {
     throw new Error(`${likeC4InstallMessage}\n\n${error instanceof Error ? error.message : String(error)}`);
   }
 };
+
+const likeC4DependencyResolver = (resolveLikeC4Dependency: (id: string) => string): Plugin => ({
+  name: 'eventcatalog-likec4-dependency-resolver',
+  enforce: 'pre',
+
+  resolveId(id) {
+    if (!id.startsWith('likec4/')) {
+      return;
+    }
+
+    try {
+      return resolveLikeC4Dependency(id);
+    } catch {
+      return;
+    }
+  },
+});
 
 const likeC4ProjectRegistry = (workspaceDir: string, enabled: boolean): Plugin => {
   let discoveredProjects: string[] = [];
