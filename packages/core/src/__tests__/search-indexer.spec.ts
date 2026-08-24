@@ -230,6 +230,7 @@ dictionary:
     name: Incoterm
     summary: Defines shipping responsibilities between buyers and sellers.
     description: International commercial terms used by the warehouse team.
+    icon: Mail
 ---
 `
     );
@@ -248,5 +249,6 @@ dictionary:
     expect(language?.content).toContain('Incoterm');
     expect(language?.content).toContain('Defines shipping responsibilities between buyers and sellers.');
     expect(language?.content).toContain('International commercial terms used by the warehouse team.');
+    expect(language?.content).not.toContain('Mail');
   });
 });
