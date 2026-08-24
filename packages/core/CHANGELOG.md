@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.7.8
+
+### Patch Changes
+
+- 74f6e23: Require the built-in Federation workflow to use the offline EventCatalog Enterprise entitlement instead of the Scale entitlement.
+
 ## 4.7.7
 
 ### Patch Changes
