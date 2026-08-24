@@ -140,8 +140,8 @@ importers:
         specifier: ^0.41.3
         version: 0.41.3
       '@eventcatalog/license':
-        specifier: ^0.0.7
-        version: 0.0.7
+        specifier: ^0.0.8
+        version: 0.0.8
       '@eventcatalog/linter':
         specifier: workspace:*
         version: link:../linter
@@ -1765,6 +1765,10 @@ packages:
 
   '@eventcatalog/license@0.0.7':
     resolution: {integrity: sha512-izSIn3Dfc6LTcPiA89EqZ4/l5WCitLxt0XVu2yilyaibMOioxW7ABRFZY8/Azocd6ULKseVA2lCcoeT35/GRcg==}
+    engines: {node: '>=16.0.0'}
+
+  '@eventcatalog/license@0.0.8':
+    resolution: {integrity: sha512-iMo2NiTo8MQVYONrrXe3WFo61i/T4oSz5OY4DSL9PwwdOYWtx0zZ1+ANcWyLI7ub6PFS8KJIWlxsM2JYOLYrjQ==}
     engines: {node: '>=16.0.0'}
 
   '@expressive-code/core@0.44.0':
@@ -9951,6 +9955,15 @@ snapshots:
     optional: true
 
   '@eventcatalog/license@0.0.7':
+    dependencies:
+      boxen: 8.0.1
+      chalk: 5.6.2
+      https-proxy-agent: 7.0.6
+      jose: 5.10.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@eventcatalog/license@0.0.8':
     dependencies:
       boxen: 8.0.1
       chalk: 5.6.2

@@ -3,11 +3,11 @@
  * See /packages/core/src/federation/LICENSE
  */
 
-import { isEventCatalogScaleEnabled } from '@eventcatalog/license';
+import { isEventCatalogEnterpriseEnabled } from '@eventcatalog/license';
 
 /**
- * Federation is currently enabled through the Scale entitlement. Keep callers
- * plan-agnostic so this can move to the Enterprise offline entitlement without
- * changing the federation workflow.
+ * Federation is enabled through the Enterprise offline entitlement. Keep
+ * callers plan-agnostic so licensing details remain isolated from the
+ * federation workflow.
  */
-export const isFederationEnabled = () => isEventCatalogScaleEnabled();
+export const isFederationEnabled = () => isEventCatalogEnterpriseEnabled();
