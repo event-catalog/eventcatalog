@@ -442,6 +442,6 @@ export interface Config {
   integrations?: IntegrationsConfig;
   scalarConfiguration?: ScalarConfiguration;
   generators?: GeneratorConfig[];
-  /** Catalogs composed into this catalog by `eventcatalog federate`. */
+  /** Catalogs composed into this catalog by `eventcatalog federate`. Requires an offline EventCatalog Enterprise license. */
   federation?: FederationConfig;
 }
