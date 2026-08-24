@@ -327,6 +327,7 @@ export const collectSearchRecords = async ({
         decisionMakers: parsed.data.decisionMakers,
         appliesTo: parsed.data.appliesTo,
         badges: parsed.data.badges,
+        dictionary: parsed.data.dictionary,
       });
 
       const content = [frontmatterText, markdownToSearchText(parsed.content)].filter(Boolean).join('\n\n');
