@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.7.7
+
+### Patch Changes
+
+- 2669f4b: Fix LikeC4 virtual module imports by resolving LikeC4 package subpaths from the catalog workspace.
+
 ## 4.7.6
 
 ### Patch Changes
