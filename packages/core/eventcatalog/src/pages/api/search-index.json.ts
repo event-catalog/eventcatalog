@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getNestedSideBarData } from '@stores/sidebar-store/state';
+import { getSearchIndexNodeEntries } from '@stores/sidebar-store/search-index';
 
 const isDev = import.meta.env.DEV;
 
@@ -18,7 +19,7 @@ const SKIPPED_PREFIXES = ['list:'];
 export const GET: APIRoute = async () => {
   const sidebarData = await getNestedSideBarData();
 
-  const items = Object.entries(sidebarData.nodes).reduce<SearchIndexItemCompact[]>((acc, [key, node]) => {
+  const items = getSearchIndexNodeEntries(sidebarData.nodes).reduce<SearchIndexItemCompact[]>((acc, [key, node]) => {
     if (typeof node === 'string') return acc;
     if (SKIPPED_PREFIXES.some((prefix) => key.startsWith(prefix))) return acc;
     if (!node.title) return acc;

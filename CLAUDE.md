@@ -145,6 +145,8 @@ const event = await getEntry('events', 'OrderCreated-1.0.0');
 
 Most resources are versioned. Entry IDs follow the pattern: `{id}-{version}` (e.g., `OrderCreated-1.0.0`).
 
+Historical Astro message entries are identified by a top-level `filePath` containing `versioned`; test fixtures must preserve this field outside `data`.
+
 When you need to get specific version or latest version you need to use the `getItemsFromCollectionByIdAndSemverOrLatest` utility function.
 
 ```typescript
