@@ -281,7 +281,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     systems,
     agents,
     services,
-    { events, commands, queries },
+    { events: allEvents, commands: allCommands, queries: allQueries },
     containers,
     flows,
     users,
@@ -301,7 +301,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getSystems({ getAllVersions: false }),
     getAgents({ getAllVersions: false }),
     getServices({ getAllVersions: false }),
-    getMessages({ getAllVersions: false }),
+    getMessages({ getAllVersions: true }),
     getContainers({ getAllVersions: false }),
     getFlows({ getAllVersions: false }),
     getUsers(),
@@ -322,7 +322,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const allSubDomainIds = new Set(domains.flatMap((d) => (d.data.domains || []).map((sd: any) => sd.data.id)));
   const rootDomains = domains.filter((d) => !allSubDomainIds.has(d.data.id));
 
-  const messages = [...events, ...commands, ...queries];
+  const events = allEvents.filter((event) => event.data.version === event.data.latestVersion);
+  const commands = allCommands.filter((command) => command.data.version === command.data.latestVersion);
+  const queries = allQueries.filter((query) => query.data.version === query.data.latestVersion);
+  const messages = [...allEvents, ...allCommands, ...allQueries];
 
   const context = {
     agents,
@@ -595,7 +598,12 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     }
   }
 
-  const flowRefsByMessage = buildFlowReferencesByMessage({ flows, events, commands, queries });
+  const flowRefsByMessage = buildFlowReferencesByMessage({
+    flows,
+    events: allEvents,
+    commands: allCommands,
+    queries: allQueries,
+  });
 
   const messageNodes = messagesWithOwners.reduce(
     (acc, { message, owners }) => {

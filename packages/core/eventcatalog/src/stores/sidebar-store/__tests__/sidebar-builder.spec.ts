@@ -13,6 +13,7 @@ const mockSystems: any[] = [];
 const mockResourceDocs: any[] = [];
 const mockResourceDocCategories: any[] = [];
 const mockAgents: any[] = [];
+const mockEvents: any[] = [];
 const mockSchemas: any[] = [];
 const mockUbiquitousLanguages: any[] = [];
 
@@ -73,7 +74,10 @@ vi.mock('astro:content', async (importOriginal) => {
         case 'events':
           const { getEvents } = utils(CATALOG_FOLDER);
           const events = (await getEvents()) ?? [];
-          return Promise.resolve(events.map((event) => toAstroCollection(event, 'events')));
+          return Promise.resolve([
+            ...events.map((event) => toAstroCollection(event, 'events')),
+            ...mockEvents.map(({ filePath, ...event }) => ({ ...toAstroCollection(event, 'events'), filePath })),
+          ]);
         case 'commands':
           const { getCommands } = utils(CATALOG_FOLDER);
           const commands = (await getCommands()) ?? [];
@@ -190,6 +194,7 @@ describe('getNestedSideBarData', () => {
     mockResourceDocs.length = 0;
     mockResourceDocCategories.length = 0;
     mockAgents.length = 0;
+    mockEvents.length = 0;
     mockSchemas.length = 0;
     mockUbiquitousLanguages.length = 0;
     fs.rmSync(CATALOG_FOLDER, { recursive: true, force: true });
@@ -2748,6 +2753,46 @@ describe('getNestedSideBarData', () => {
   });
 
   describe('message navigation items', () => {
+    it('builds historical message nodes with version-specific consumers without listing them in Browse', async () => {
+      const { writeService } = utils(CATALOG_FOLDER);
+
+      mockEvents.push(
+        {
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '2.18.0',
+          markdown: 'Payment Processed 2.18.0',
+          filePath: 'events/PaymentProcessed/versioned/2.18.0/index.mdx',
+        },
+        {
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '3.1.0',
+          markdown: 'Payment Processed 3.1.0',
+          filePath: 'events/PaymentProcessed/index.mdx',
+        }
+      );
+      await writeService({
+        id: 'PaymentService',
+        name: 'Payment Service',
+        version: '1.0.0',
+        markdown: 'Payment Service',
+        receives: [{ id: 'PaymentProcessed', version: '2.18.0' }],
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const historicalNode = getNavigationConfigurationByKey('event:PaymentProcessed:2.18.0', navigationData);
+      const latestNode = getNavigationConfigurationByKey('event:PaymentProcessed:3.1.0', navigationData);
+      const historicalConsumers = getChildNodeByTitle('Consumers', historicalNode.pages ?? []);
+      const latestConsumers = getChildNodeByTitle('Consumers', latestNode.pages ?? []);
+      const eventsList = getNavigationConfigurationByKey('list:events', navigationData);
+
+      expect(historicalNode).toBeDefined();
+      expect(historicalConsumers.pages).toEqual(['service:PaymentService:1.0.0']);
+      expect(latestConsumers).toBeUndefined();
+      expect(eventsList.pages).toEqual(['event:PaymentProcessed:3.1.0']);
+    });
+
     it('users can reference the latest version of a resource without passing in the version', async () => {
       const { writeEvent } = utils(CATALOG_FOLDER);
       await writeEvent({
