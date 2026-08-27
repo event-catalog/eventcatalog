@@ -40,8 +40,15 @@ export const installTemplate = async ({
   organizationName,
 }: InstallTemplateArgs) => {
   /**
-   * Create a package.json for the new project
+   * Create a package.json for the new project.
+   *
+   * auth-astro@4.2.0 peerDepends on @auth/core@^0.37.3, which does not include
+   * the patched 0.41.3+ releases (GHSA-7rqj-j65f-68wh, GHSA-xmf8-cvqr-rfgj,
+   * GHSA-x445-f3h2-j279). npm therefore nests a vulnerable 0.37.x copy under
+   * auth-astro even though @eventcatalog/core already depends on @auth/core@^0.41.3.
+   * Force a patched version for npm, pnpm, and yarn generated catalogs.
    */
+  const authCoreOverride = '>=0.41.3';
   const packageJson = {
     name: appName,
     version: '0.1.0',
@@ -57,6 +64,17 @@ export const installTemplate = async ({
       export: 'eventcatalog export',
       lint: 'eventcatalog-linter',
       test: 'echo "Error: no test specified" && exit 1',
+    },
+    overrides: {
+      '@auth/core': authCoreOverride,
+    },
+    pnpm: {
+      overrides: {
+        '@auth/core': authCoreOverride,
+      },
+    },
+    resolutions: {
+      '@auth/core': authCoreOverride,
     },
   };
   /**

@@ -6,6 +6,7 @@ settings:
 
 overrides:
   prismjs: '>=1.30.0'
+  '@auth/core': '>=0.41.3'
 
 importers:
 
@@ -137,7 +138,7 @@ importers:
         specifier: 3.1.0
         version: 3.1.0(postcss@8.5.15)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@auth/core':
-        specifier: ^0.41.3
+        specifier: '>=0.41.3'
         version: 0.41.3
       '@eventcatalog/license':
         specifier: ^0.0.8
@@ -4072,7 +4073,7 @@ packages:
     resolution: {integrity: sha512-Jx0dFAvwJ5UJ6E/2J6rqPNhXzTX6Fj18sIq12U7n+J15TV7etpXSHFPPcQdAmfDmX3RCURp253Vxe4l/keNW1g==}
     engines: {node: '>=17.4'}
     peerDependencies:
-      '@auth/core': ^0.37.3
+      '@auth/core': '>=0.41.3'
       astro: '>=4.0.0'
 
   available-typed-arrays@1.0.7:
