@@ -628,11 +628,13 @@ describe('buildIndex', () => {
         markdown: '# Payments',
       });
       await sdk.addUbiquitousLanguageToDomain('payments', {
+        editUrl: 'https://github.com/org/catalog/edit/main/domains/payments/ubiquitous-language.mdx',
         dictionary: [
           {
             id: 'payment',
             name: 'Payment',
             summary: 'An exchange of money for goods or services.',
+            editUrl: 'https://github.com/org/glossary/edit/main/terms/payment.md',
           },
         ],
       });
