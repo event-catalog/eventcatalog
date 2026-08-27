@@ -363,7 +363,11 @@ export const getNodesAndEdges = async ({
       data: {
         mode,
         data: { ...writeTo.data },
-        contextMenu: buildContextMenuForResource({ collection: 'entities', id: writeTo.data.id, version: writeTo.data.version }),
+        contextMenu: buildContextMenuForResource({
+          collection: 'containers',
+          id: writeTo.data.id,
+          version: writeTo.data.version,
+        }),
       },
       type: 'data',
     });
@@ -449,7 +453,7 @@ export const getNodesAndEdges = async ({
         mode,
         data: { ...readFrom.data },
         contextMenu: buildContextMenuForResource({
-          collection: 'entities',
+          collection: 'containers',
           id: readFrom.data.id,
           version: readFrom.data.version,
         }),
