@@ -46,7 +46,7 @@ const devMode = isDevMode();
 
 const errorMessage = getErrorMessage(error);
 const errorStack = isDev ? getErrorStack(error) : undefined;
-const pageUrl = Astro.request.url;
+const pagePath = Astro.url.pathname;
 const requestUserAgent = Astro.request.headers.get('user-agent') ?? '';
 
 const promptTemplate = buildAgentBugPrompt({
@@ -224,7 +224,7 @@ const platformLabel = getPlatformLabel();
       readonly
       set:text={promptTemplate}
     />
-    <span id="ec-500-server-url" hidden>{pageUrl}</span>
+    <span id="ec-500-server-url" hidden>{pagePath}</span>
     <span id="ec-500-server-ua" hidden>{requestUserAgent}</span>
   </body>
 </html>
@@ -236,15 +236,15 @@ const platformLabel = getPlatformLabel();
   const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-agent-prompt]');
   const PAGE_URL_PLACEHOLDER = templateField?.dataset.pageUrlPlaceholder ?? '__EVENTCATALOG_PAGE_URL__';
   const USER_AGENT_PLACEHOLDER = templateField?.dataset.userAgentPlaceholder ?? '__EVENTCATALOG_USER_AGENT__';
-  const serverUrl = document.querySelector('#ec-500-server-url')?.textContent?.trim() ?? '';
+  const serverPath = document.querySelector('#ec-500-server-url')?.textContent?.trim() ?? '';
   const serverUserAgent = document.querySelector('#ec-500-server-ua')?.textContent?.trim() ?? '';
 
   function buildPrompt() {
     const template = templateField?.value ?? '';
-    const pageUrl = window.location.href || serverUrl || PAGE_URL_PLACEHOLDER;
+    const pagePath = window.location.pathname || serverPath || PAGE_URL_PLACEHOLDER;
     const userAgent = navigator.userAgent || serverUserAgent || USER_AGENT_PLACEHOLDER;
 
-    return template.replaceAll(PAGE_URL_PLACEHOLDER, pageUrl).replaceAll(USER_AGENT_PLACEHOLDER, userAgent);
+    return template.replaceAll(PAGE_URL_PLACEHOLDER, pagePath).replaceAll(USER_AGENT_PLACEHOLDER, userAgent);
   }
 
   function setCopied(copied: boolean) {

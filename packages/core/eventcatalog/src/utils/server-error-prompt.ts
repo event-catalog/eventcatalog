@@ -73,9 +73,28 @@ export function getBugFormOutputLabel(ssr: boolean): 'Static' | 'Server (Server 
   return ssr ? 'Server (Server Side Rendering)' : 'Static';
 }
 
+/**
+ * Path only — no origin (internal hostnames) and no query string (possible tokens).
+ */
+export function toSafePagePath(input: string): string {
+  const value = input.trim();
+  if (!value || value === PAGE_URL_PLACEHOLDER) {
+    return value;
+  }
+
+  try {
+    const url = value.includes('://') ? new URL(value) : new URL(value, 'http://localhost');
+    return url.pathname || '/';
+  } catch {
+    const withoutHash = value.split('#')[0] ?? value;
+    const pathOnly = withoutHash.split('?')[0] ?? withoutHash;
+    return pathOnly || '/';
+  }
+}
+
 export function buildAgentBugPrompt(input: AgentBugPromptInput): string {
   const errorMessage = input.errorMessage.trim() || 'An unexpected error occurred while rendering this page.';
-  const pageUrl = input.pageUrl?.trim() || PAGE_URL_PLACEHOLDER;
+  const pageUrl = toSafePagePath(input.pageUrl?.trim() || PAGE_URL_PLACEHOLDER);
   const userAgent = input.userAgent?.trim() || USER_AGENT_PLACEHOLDER;
   const version = input.eventCatalogVersion?.trim() || VERSION;
   const ssr = Boolean(input.isSSR);

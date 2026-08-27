@@ -12,6 +12,7 @@ import {
   getErrorStack,
   getPlatformLabel,
   PAGE_URL_PLACEHOLDER,
+  toSafePagePath,
   USER_AGENT_PLACEHOLDER,
   VERSION,
 } from '../server-error-prompt';
@@ -67,6 +68,23 @@ describe('server-error-prompt', () => {
     });
   });
 
+  describe('toSafePagePath', () => {
+    it('keeps a pathname as-is', () => {
+      expect(toSafePagePath('/docs/services/Orders/1.0.0')).toBe('/docs/services/Orders/1.0.0');
+    });
+
+    it('strips origin and query strings so internal hosts and tokens are not copied', () => {
+      expect(toSafePagePath('https://catalog.internal.corp:3000/docs/services/Orders/1.0.0?token=secret&tab=schema')).toBe(
+        '/docs/services/Orders/1.0.0'
+      );
+      expect(toSafePagePath('/docs/services/Orders/1.0.0?access_token=abc#hash')).toBe('/docs/services/Orders/1.0.0');
+    });
+
+    it('leaves the copy-time placeholder unchanged', () => {
+      expect(toSafePagePath(PAGE_URL_PLACEHOLDER)).toBe(PAGE_URL_PLACEHOLDER);
+    });
+  });
+
   describe('getBugFormOutputLabel', () => {
     it('maps isSSR() to the bug.yml Output dropdown labels', () => {
       expect(getBugFormOutputLabel(false)).toBe('Static');
@@ -78,7 +96,7 @@ describe('server-error-prompt', () => {
     const prompt = buildAgentBugPrompt({
       errorMessage: 'Cannot read properties of undefined (reading "data")',
       errorStack: 'Error: Cannot read properties of undefined\n    at renderPage',
-      pageUrl: 'http://localhost:3000/docs/services/Orders/1.0.0',
+      pageUrl: '/docs/services/Orders/1.0.0',
       userAgent: 'Mozilla/5.0 TestAgent',
       eventCatalogVersion: '4.8.2',
       isSSR: false,
@@ -105,7 +123,8 @@ describe('server-error-prompt', () => {
       expect(prompt).toContain('v22.14.0');
       expect(prompt).toContain('### Platform(s):');
       expect(prompt).toContain('MacOS');
-      expect(prompt).toContain('http://localhost:3000/docs/services/Orders/1.0.0');
+      expect(prompt).toContain('/docs/services/Orders/1.0.0');
+      expect(prompt).not.toContain('http://localhost:3000');
       expect(prompt).toContain('Mozilla/5.0 TestAgent');
       expect(prompt).toContain('Cannot read properties of undefined (reading "data")');
       expect(prompt).toContain('EVENTCATALOG_DEV_MODE: true');
@@ -139,6 +158,17 @@ describe('server-error-prompt', () => {
 
       expect(withPlaceholders).toContain(PAGE_URL_PLACEHOLDER);
       expect(withPlaceholders).toContain(USER_AGENT_PLACEHOLDER);
+    });
+
+    it('strips origin and query from a full page URL before putting it in the prompt', () => {
+      const sanitized = buildAgentBugPrompt({
+        errorMessage: 'boom',
+        pageUrl: 'https://catalog.internal.corp/docs/services/Orders/1.0.0?token=secret',
+      });
+
+      expect(sanitized).toContain('/docs/services/Orders/1.0.0');
+      expect(sanitized).not.toContain('catalog.internal.corp');
+      expect(sanitized).not.toContain('token=secret');
     });
   });
 });
