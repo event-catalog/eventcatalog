@@ -439,9 +439,10 @@ export default function NestedSideBar() {
   if (!data || roots.length === 0) {
     return (
       <aside className="flex h-full min-h-0 w-full flex-1 flex-col bg-[rgb(var(--ec-rail-bg))] font-sans">
-        {/* Search skeleton */}
-        <div className="px-4 py-3 border-b border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-rail-bg))]">
-          <div className="h-10 bg-[rgb(var(--ec-content-hover))] rounded-xl animate-pulse" />
+        <div className="flex h-[60px] items-center px-6 bg-[rgb(var(--ec-rail-bg)/0.98)] backdrop-blur-sm border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10">
+          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--ec-sidebar-text)/0.5)] truncate">
+            All resources
+          </span>
         </div>
         {/* Content skeleton */}
         <div className="p-4 space-y-3">
