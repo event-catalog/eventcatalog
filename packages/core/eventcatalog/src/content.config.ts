@@ -956,6 +956,7 @@ const ubiquitousLanguages = defineCollection({
     },
   }),
   schema: z.object({
+    editUrl: z.string().optional(),
     dictionary: z
       .array(
         z.object({
@@ -964,6 +965,7 @@ const ubiquitousLanguages = defineCollection({
           summary: z.string().optional(),
           description: z.string().optional(),
           icon: z.string().optional(),
+          editUrl: z.string().optional(),
         })
       )
       .optional(),

@@ -53,6 +53,20 @@ export const buildEditUrlForResource = (editUrl: string, filePath: string) => {
   return `${editUrl}/${cleanFilePath}`;
 };
 
+export const resolveEditUrl = ({
+  resourceEditUrl,
+  configEditUrl,
+  filePath,
+}: {
+  resourceEditUrl?: string;
+  configEditUrl?: string;
+  filePath?: string;
+}) => {
+  if (resourceEditUrl) return resourceEditUrl;
+  if (configEditUrl && filePath) return buildEditUrlForResource(configEditUrl, filePath);
+  return '';
+};
+
 // Takes a given url and returns the .mdx url
 export const toMarkdownUrl = (url: string) => {
   const trailingSlash = typeof __EC_TRAILING_SLASH__ !== 'undefined' ? __EC_TRAILING_SLASH__ : false;

@@ -1,4 +1,4 @@
-import { buildEditUrlForResource, buildUrl, buildUrlWithParams, toMarkdownUrl } from '../url-builder';
+import { buildEditUrlForResource, buildUrl, buildUrlWithParams, resolveEditUrl, toMarkdownUrl } from '../url-builder';
 
 declare global {
   interface Window {
@@ -127,6 +127,34 @@ describe('url-builder', () => {
         './examples/default/domains/E-Commerce/index.mdx'
       );
       expect(url).toBe('https://github.com/eventcatalog/eventcatalog/edit/main/examples/default/domains/E-Commerce/index.mdx');
+    });
+  });
+
+  describe('resolveEditUrl', () => {
+    const configEditUrl = 'https://github.com/event-catalog/eventcatalog/edit/main';
+    const filePath = 'domains/Orders/ubiquitous-language.mdx';
+
+    it('uses the resource editUrl when it is set', () => {
+      const url = resolveEditUrl({
+        resourceEditUrl: 'https://github.com/org/glossary/edit/main/Order.md',
+        configEditUrl,
+        filePath,
+      });
+      expect(url).toBe('https://github.com/org/glossary/edit/main/Order.md');
+    });
+
+    it('falls back to the site-wide editUrl and file path', () => {
+      const url = resolveEditUrl({
+        configEditUrl,
+        filePath,
+      });
+      expect(url).toBe('https://github.com/event-catalog/eventcatalog/edit/main/domains/Orders/ubiquitous-language.mdx');
+    });
+
+    it('returns an empty string when no editUrl can be resolved', () => {
+      expect(resolveEditUrl({ filePath })).toBe('');
+      expect(resolveEditUrl({ configEditUrl })).toBe('');
+      expect(resolveEditUrl({})).toBe('');
     });
   });
 

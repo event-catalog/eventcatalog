@@ -7,8 +7,10 @@ import { buildUrl } from '@utils/url-builder';
 import { ClientRouter } from 'astro:transitions';
 import { marked } from 'marked';
 import * as LucideIcons from 'lucide-react';
+import { SquarePenIcon } from 'lucide-react';
+import config from '@config';
 
-import { Page } from './_index.data';
+import { Page, resolveUbiquitousLanguageTermEditUrl } from './_index.data';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -17,6 +19,11 @@ const props = await Page.getData(Astro);
 
 const { ubiquitousLanguage } = props;
 const pageTitle = `${props.type} | ${ubiquitousLanguage.name}`.replace(/^\w/, (c) => c.toUpperCase());
+const editUrl = resolveUbiquitousLanguageTermEditUrl({
+  term: ubiquitousLanguage,
+  collection: { filePath: props.filePath, data: { editUrl: props.collectionEditUrl } },
+  configEditUrl: config.editUrl,
+});
 
 marked.setOptions({
   breaks: true,
@@ -104,6 +111,21 @@ const badges = [
         }
 
         <Footer />
+        <div class="flex justify-end">
+          {
+            editUrl && (
+              <div class="flex justify-end">
+                <a
+                  href={editUrl}
+                  class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))] rounded-md p-2"
+                >
+                  <SquarePenIcon className="w-4 h-4 inline-block mr-1" />
+                  Edit this page
+                </a>
+              </div>
+            )
+          }
+        </div>
       </div>
     </div>
     <ClientRouter />

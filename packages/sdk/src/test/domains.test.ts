@@ -729,6 +729,46 @@ describe('Domain SDK', () => {
         ],
       });
     });
+
+    it('preserves collection and term editUrl values on the dictionary', async () => {
+      await writeDomain({
+        id: 'Payment',
+        name: 'Payment Domain',
+        version: '0.0.1',
+        summary: 'All things to do with the payment systems',
+        markdown: '# Hello world',
+      });
+
+      await addUbiquitousLanguageToDomain('Payment', {
+        editUrl: 'https://github.com/org/catalog/edit/main/domains/Payment/ubiquitous-language.mdx',
+        dictionary: [
+          {
+            id: 'Order',
+            name: 'Order',
+            summary: 'All things to do with the payment systems',
+            description: 'This is a description',
+            icon: 'KeyIcon',
+            editUrl: 'https://github.com/org/glossary/edit/main/terms/order.md',
+          },
+        ],
+      });
+
+      const ubiquitousLanguage = await getUbiquitousLanguageFromDomain('Payment');
+
+      expect(ubiquitousLanguage).toEqual({
+        editUrl: 'https://github.com/org/catalog/edit/main/domains/Payment/ubiquitous-language.mdx',
+        dictionary: [
+          {
+            id: 'Order',
+            name: 'Order',
+            summary: 'All things to do with the payment systems',
+            description: 'This is a description',
+            icon: 'KeyIcon',
+            editUrl: 'https://github.com/org/glossary/edit/main/terms/order.md',
+          },
+        ],
+      });
+    });
   });
   describe('domainHasVersion', () => {
     it('returns true when a given service and version exists in the catalog', async () => {
