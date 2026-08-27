@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 4.8.2
+
+### Patch Changes
+
+- 93aedc2: Add `editUrl` support for ubiquitous language terms so dictionary pages can show "Edit this page" like other resources.
+- Updated dependencies [93aedc2]
+  - @eventcatalog/sdk@2.28.1
+  - @eventcatalog/linter@1.1.16
+
 ## 4.8.1
 
 ### Patch Changes
