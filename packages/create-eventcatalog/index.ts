@@ -5,7 +5,8 @@ import Commander from 'commander';
 import path from 'path';
 import prompts from 'prompts';
 import checkForUpdate from 'update-check';
-import { createApp, DownloadError } from './create-app';
+import { createApp } from './create-app';
+import { formatValidTemplates, isValidTemplate, resolveInstallSkills } from './helpers/cli-options';
 import { getPkgManager } from './helpers/get-pkg-manager';
 import { validateNpmName } from './helpers/validate-pkg';
 import packageJson from './package.json';
@@ -16,40 +17,12 @@ let installSkills: boolean = false;
 
 const program = new Commander.Command(packageJson.name)
   .version(packageJson.version)
-  .arguments('<project-directory>')
-  .usage(`${chalk.green('<project-directory>')} [options]`)
+  .arguments('[project-directory]')
+  .usage(`${chalk.green('[project-directory]')} [options]`)
   .action((name, options) => {
     projectPath = name;
     organizationName = options.organizationName || '';
   })
-  .option(
-    '--ts, --typescript',
-    `
-
-  Initialize as a TypeScript project. (default)
-`
-  )
-  .option(
-    '--js, --javascript',
-    `
-
-  Initialize as a JavaScript project.
-`
-  )
-  .option(
-    '--eslint',
-    `
-
-  Initialize with eslint config.
-`
-  )
-  .option(
-    '--experimental-app',
-    `
-
-  Initialize as a \`app/\` directory project.
-`
-  )
   .option(
     '--use-npm',
     `
@@ -65,25 +38,6 @@ const program = new Commander.Command(packageJson.name)
 `
   )
   .option(
-    '-e, --example [name]|[github-url]',
-    `
-
-  An example to bootstrap the app with. You can use an example name
-  from the official Next.js repo or a GitHub URL. The URL can use
-  any branch and/or subdirectory
-`
-  )
-  .option(
-    '--example-path <path-to-example>',
-    `
-
-  In a rare case, your GitHub URL might contain a branch name with
-  a slash (e.g. bug/fix-1) and the path to the example (e.g. foo/bar).
-  In this case, you must specify the path to the example separately:
-  --example-path foo/bar
-`
-  )
-  .option(
     '--organization-name [name]',
     `
 
@@ -94,7 +48,7 @@ const program = new Commander.Command(packageJson.name)
     '--template [name]',
     `
 
-  The template to use.
+  The template to use (${formatValidTemplates()}).
 `
   )
   .option(
@@ -102,6 +56,20 @@ const program = new Commander.Command(packageJson.name)
     `
 
   Initialize the project with an empty template.
+`
+  )
+  .option(
+    '--skills',
+    `
+
+  Install EventCatalog skills without prompting.
+`
+  )
+  .option(
+    '--no-skills',
+    `
+
+  Skip installing EventCatalog skills without prompting.
 `
   )
   .allowUnknownOption()
@@ -149,6 +117,13 @@ async function run(): Promise<void> {
     process.exit(1);
   }
 
+  const requestedTemplate = program.empty ? 'empty' : typeof program.template === 'string' ? program.template.trim() : 'default';
+  if (!isValidTemplate(requestedTemplate)) {
+    console.error(`Unknown template ${chalk.red(`"${requestedTemplate}"`)}.`);
+    console.error(`Available templates: ${formatValidTemplates()}`);
+    process.exit(1);
+  }
+
   if (!organizationName) {
     const res = await prompts({
       type: 'text',
@@ -162,18 +137,20 @@ async function run(): Promise<void> {
     }
   }
 
-  const installSkillsResponse = await prompts({
-    type: 'confirm',
-    name: 'installSkills',
-    message: 'Would you like to install EventCatalog Skills?',
-    initial: true,
-  });
-
-  installSkills = installSkillsResponse.installSkills ?? false;
+  const skillsFromFlag = resolveInstallSkills(process.argv);
+  if (skillsFromFlag === 'prompt') {
+    const installSkillsResponse = await prompts({
+      type: 'confirm',
+      name: 'installSkills',
+      message: 'Would you like to install EventCatalog Skills?',
+      initial: true,
+    });
+    installSkills = installSkillsResponse.installSkills ?? false;
+  } else {
+    installSkills = skillsFromFlag;
+  }
 
   console.log();
-
-  const template = program.template || 'default';
 
   const resolvedProjectPath = path.resolve(projectPath);
   const projectName = path.basename(resolvedProjectPath);
@@ -186,58 +163,17 @@ async function run(): Promise<void> {
     process.exit(1);
   }
 
-  if (program.example === true) {
-    console.error('Please provide an example name or url, otherwise remove the example option.');
-    process.exit(1);
-  }
-
-  const example = typeof program.example === 'string' && program.example.trim();
-
   const options = program.opts();
   const initEmptyProject = options.empty ?? false;
 
-  try {
-    await createApp({
-      appPath: resolvedProjectPath,
-      packageManager,
-      example: example && example !== 'default' ? example : undefined,
-      examplePath: program.examplePath,
-      typescript: true,
-      eslint: true,
-      experimentalApp: false,
-      organizationName: organizationName,
-      initEmptyProject,
-      installSkills,
-      template: template,
-    });
-  } catch (reason) {
-    if (!(reason instanceof DownloadError)) {
-      throw reason;
-    }
-
-    const res = await prompts({
-      type: 'confirm',
-      name: 'builtin',
-      message:
-        `Could not download "${example}" because of a connectivity issue between your machine and GitHub.\n` +
-        `Do you want to use the default template instead?`,
-      initial: true,
-    });
-    if (!res.builtin) {
-      throw reason;
-    }
-
-    await createApp({
-      appPath: resolvedProjectPath,
-      packageManager,
-      typescript: program.typescript,
-      eslint: program.eslint,
-      organizationName: organizationName,
-      experimentalApp: program.experimentalApp,
-      initEmptyProject,
-      installSkills,
-    });
-  }
+  await createApp({
+    appPath: resolvedProjectPath,
+    packageManager,
+    organizationName: organizationName,
+    initEmptyProject,
+    installSkills,
+    template: requestedTemplate,
+  });
 }
 
 const update = checkForUpdate(packageJson).catch(() => null);

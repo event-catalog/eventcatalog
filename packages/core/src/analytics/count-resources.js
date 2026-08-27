@@ -7,7 +7,7 @@ const RESOURCE_PATTERNS = {
   commands: ['**/commands/*/index.@(md|mdx)'],
   queries: ['**/queries/*/index.@(md|mdx)'],
   services: ['**/services/*/index.@(md|mdx)'],
-  domains: ['domains/*/index.@(md|mdx)', 'domains/*/subdomains/*/index.@(md|mdx)'],
+  domains: ['domains/*/index.@(md|mdx)', 'domains/*/subdomains/*/index.@(md|mdx)', 'domains/*/domains/*/index.@(md|mdx)'],
   flows: ['**/flows/*/index.@(md|mdx)'],
   channels: ['**/channels/**/index.@(md|mdx)'],
   entities: ['**/entities/*/index.@(md|mdx)'],
@@ -17,7 +17,11 @@ const RESOURCE_PATTERNS = {
   users: ['users/*.@(md|mdx)'],
   designs: ['**/*.ecstudio'],
   diagrams: ['**/diagrams/**/index.@(md|mdx)'],
-  ubiquitousLanguages: ['domains/*/ubiquitous-language.@(md|mdx)', 'domains/*/subdomains/*/ubiquitous-language.@(md|mdx)'],
+  ubiquitousLanguages: [
+    'domains/*/ubiquitous-language.@(md|mdx)',
+    'domains/*/subdomains/*/ubiquitous-language.@(md|mdx)',
+    'domains/*/domains/*/ubiquitous-language.@(md|mdx)',
+  ],
 };
 
 const CUSTOM_ROUTE_PATTERNS = {

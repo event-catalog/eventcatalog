@@ -52,13 +52,15 @@ A subdomain is just another domain resource. But a parent domain references the 
 
 First you need to create your subdomain.
 
-You can create a subdomain in the `/domains` folder or in a `/subdomains` folder.
+You can create a subdomain in the `/domains` folder, in a `/subdomains` folder, or in a nested `/domains` folder.
 
 **Examples**
 
 1. `/domains/MySubDomain/index.mdx` - Just like any other domain resource.
 2. `/domains/MyParentDomain/subdomains/MySubDomain/index.mdx`
     - You nest the subdomain within the parent domain. (recommended)
+3. `/domains/MyParentDomain/domains/MySubDomain/index.mdx`
+    - The `@eventcatalog/sdk` `writeDomain` helper uses this nested `domains/` convention when you pass `{ path: '{Parent}/domains' }`. EventCatalog loads both folder layouts.
 
 Once you have created your subdomain, you can reference it from your parent domain.
 

@@ -9,6 +9,7 @@ import { isFolderEmpty } from './helpers/is-folder-empty';
 import { getOnline } from './helpers/is-online';
 import { isWriteable } from './helpers/is-writeable';
 import type { PackageManager } from './helpers/get-pkg-manager';
+import { resolveTemplateDirectory } from './helpers/cli-options';
 
 import { installTemplate, TemplateMode, TemplateType } from './templates';
 
@@ -17,11 +18,6 @@ export class DownloadError extends Error {}
 export async function createApp({
   appPath,
   packageManager,
-  example,
-  examplePath,
-  typescript,
-  eslint,
-  experimentalApp,
   organizationName,
   initEmptyProject,
   installSkills,
@@ -29,19 +25,18 @@ export async function createApp({
 }: {
   appPath: string;
   packageManager: PackageManager;
-  example?: string;
-  examplePath?: string;
-  typescript: boolean;
-  eslint: boolean;
-  experimentalApp: boolean;
   organizationName: string;
   initEmptyProject: boolean;
   installSkills: boolean;
-  template?: TemplateType;
+  template?: string;
 }): Promise<void> {
-  let repoInfo: any | undefined;
-  const mode: TemplateMode = typescript ? 'ts' : 'js';
-  const template: TemplateType = initEmptyProject ? 'empty' : templateName || 'default';
+  const mode: TemplateMode = 'ts';
+  const requestedTemplate = initEmptyProject ? 'empty' : templateName || 'default';
+  const templateDirectory = resolveTemplateDirectory(requestedTemplate);
+  if (!templateDirectory) {
+    throw new Error(`Unknown template "${requestedTemplate}".`);
+  }
+  const template = templateDirectory as TemplateType;
 
   const root = path.resolve(appPath);
 
@@ -64,12 +59,6 @@ export async function createApp({
 
   process.chdir(root);
 
-  let hasPackageJson = false;
-
-  /**
-   * If an example repository is not provided for cloning, proceed
-   * by installing from a template.
-   */
   await installTemplate({
     appName,
     root,
@@ -77,7 +66,7 @@ export async function createApp({
     mode,
     packageManager,
     isOnline,
-    eslint,
+    eslint: true,
     organizationName,
   });
 

@@ -499,9 +499,11 @@ const services = defineCollection({
         'domains/*/services/*/index.(md|mdx)',
         'domains/*/services/*/versioned/*/index.(md|mdx)',
 
-        // Capture subdomain folders
+        // Capture subdomain folders (subdomains/ and nested domains/)
         'domains/*/subdomains/*/services/*/index.(md|mdx)',
         'domains/*/subdomains/*/services/*/versioned/*/index.(md|mdx)',
+        'domains/*/domains/*/services/*/index.(md|mdx)',
+        'domains/*/domains/*/services/*/versioned/*/index.(md|mdx)',
 
         // Capture services inside systems
         'systems/*/services/*/index.(md|mdx)',
@@ -774,9 +776,12 @@ const domains = defineCollection({
         'domains/*/index.(md|mdx)',
         'domains/*/versioned/*/index.(md|mdx)',
 
-        // Capture subdomain folders
+        // Capture subdomain folders. The SDK writes nested domains to either
+        // domains/{parent}/subdomains/{child} or domains/{parent}/domains/{child}.
         'domains/*/subdomains/*/index.(md|mdx)',
         'domains/*/subdomains/*/versioned/*/index.(md|mdx)',
+        'domains/*/domains/*/index.(md|mdx)',
+        'domains/*/domains/*/versioned/*/index.(md|mdx)',
       ])
     ),
     base: projectDirBase,
@@ -947,7 +952,11 @@ const channels = defineCollection({
 const ubiquitousLanguages = defineCollection({
   loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(
-      withFederatedContent(['domains/*/ubiquitous-language.(md|mdx)', 'domains/*/subdomains/*/ubiquitous-language.(md|mdx)'])
+      withFederatedContent([
+        'domains/*/ubiquitous-language.(md|mdx)',
+        'domains/*/subdomains/*/ubiquitous-language.(md|mdx)',
+        'domains/*/domains/*/ubiquitous-language.(md|mdx)',
+      ])
     ),
     base: projectDirBase,
     generateId: ({ data }) => {

@@ -5,6 +5,7 @@ import type { APIRoute } from 'astro';
 import { isCustomDocsEnabled, isResourceDocsEnabled, isLLMSTxtEnabled } from '@utils/feature';
 import { getUbiquitousLanguage } from '@utils/collections/domains';
 import { getResourceDocs } from '@utils/collections/resource-docs';
+import { formatVersionedItem, joinLlmsItems, renderUbiquitousLanguages } from '@utils/llms-txt';
 
 const events = await getCollection('events');
 const commands = await getCollection('commands');
@@ -27,42 +28,17 @@ const entities = await getCollection('entities');
 const customDocs = await getCollection('customPages');
 const resourceDocsList = isResourceDocsEnabled() ? await getResourceDocs() : [];
 
-const ubiquitousLanguages: Record<string, { id: string; version: string; properties: any }[]> = {};
+const ubiquitousLanguages: Record<string, { properties: any }[]> = {};
 
 for (const domain of domains) {
   const ubiquitousLanguagesForDomain = await getUbiquitousLanguage(domain);
   if (ubiquitousLanguagesForDomain.length > 0) {
     ubiquitousLanguages[domain.id] = ubiquitousLanguagesForDomain.map((item) => ({
-      id: domain.id,
-      version: domain.data.version,
       properties: item.data.dictionary,
     }));
   }
 }
 
-// Render the Ubiquitous Languages section
-const renderUbiquitousLanguages = (baseUrl: string) => {
-  return Object.entries(ubiquitousLanguages)
-    .map(([domainId, items]) => {
-      const domainName = domains.find((domain) => domain.id === domainId)?.data.name || domainId;
-      const itemsList = items
-        .map((item) => {
-          // @ts-ignore
-          const propertiesList = Object.entries(item.properties)
-            .map(
-              ([key, value]: any) =>
-                `    - [${value.name}: - ${value.summary}](${baseUrl}/docs/domains/${domainId.split('-')[0]}/language.mdx)`
-            )
-            .join('\n');
-          return propertiesList;
-        })
-        .join('\n');
-      return `- ${domainName} Domain\n${itemsList}`;
-    })
-    .join('\n');
-};
-
-// render the entities from the domain list
 const renderEntities = (baseUrl: string) => {
   const domainsWithEntities = domains.filter((domain) => domain.data.entities?.length && domain.data.entities.length > 0);
 
@@ -91,9 +67,9 @@ export const GET: APIRoute = async ({ params, request }) => {
   const url = new URL(request.url);
   const baseUrl = process.env.LLMS_TXT_BASE_URL || `${url.origin}`;
 
-  const formatVersionedItem = (item: any, type: string, extraParams?: string | string[]) => {
+  const formatItem = (item: any, type: string, extraParams?: string | string[]) => {
     const params = Array.isArray(extraParams) ? extraParams.join('&') : extraParams || '';
-    return `- [${item.data.name} - ${item.data.id} - ${item.data.version} ${params ? `- ${params}` : ''}](${baseUrl}/docs/${type}/${item.data.id}/${item.data.version}.mdx) ${item.data.summary ? `- ${item.data.summary}` : ''}`;
+    return formatVersionedItem(baseUrl, item, type, params);
   };
 
   const formatSimpleItem = (item: any, type: string) =>
@@ -136,38 +112,38 @@ export const GET: APIRoute = async ({ params, request }) => {
     `# ${config.organizationName} EventCatalog Documentation\n`,
     `> ${config.tagline}\n`,
     '## Events',
-    events.map((item) => formatVersionedItem(item, 'events')).join(''),
+    joinLlmsItems(events.map((item) => formatItem(item, 'events'))),
     '\n## Commands',
-    commands.map((item) => formatVersionedItem(item, 'commands')).join(''),
+    joinLlmsItems(commands.map((item) => formatItem(item, 'commands'))),
     '\n## Queries',
-    queries.map((item) => formatVersionedItem(item, 'queries')).join(''),
+    joinLlmsItems(queries.map((item) => formatItem(item, 'queries'))),
     '\n## Agents',
-    agents.map((item) => formatVersionedItem(item, 'agents')).join(''),
+    joinLlmsItems(agents.map((item) => formatItem(item, 'agents'))),
     '\n## Services',
-    services.map((item) => formatVersionedItem(item, 'services')).join(''),
+    joinLlmsItems(services.map((item) => formatItem(item, 'services'))),
     '\n## Data Products',
-    dataProducts.map((item) => formatVersionedItem(item, 'data-products')).join('\n'),
+    joinLlmsItems(dataProducts.map((item) => formatItem(item, 'data-products'))),
     '\n## Domains',
-    domains.map((item) => formatVersionedItem(item, 'domains')).join(''),
+    joinLlmsItems(domains.map((item) => formatItem(item, 'domains'))),
     '\n## Flows',
-    flows.map((item) => formatVersionedItem(item, 'flows')).join('\n'),
+    joinLlmsItems(flows.map((item) => formatItem(item, 'flows'))),
     '\n## Channels',
-    channels
-      .map((item) =>
-        formatVersionedItem(item, 'channels', item.data.protocols?.map((protocol) => `protocol - ${protocol}`).join('&'))
-      )
-      .join(''),
-    ...(Object.keys(ubiquitousLanguages).length > 0 ? ['## Ubiquitous Language', renderUbiquitousLanguages(baseUrl)] : []),
+    joinLlmsItems(
+      channels.map((item) => formatItem(item, 'channels', item.data.protocols?.map((protocol) => `protocol - ${protocol}`).join('&')))
+    ),
+    ...(Object.keys(ubiquitousLanguages).length > 0
+      ? ['## Ubiquitous Language', renderUbiquitousLanguages(baseUrl, domains, ubiquitousLanguages)]
+      : []),
     '\n## Containers (Databases, External Systems)',
-    containers.map((item) => formatVersionedItem(item, 'containers')).join('\n'),
+    joinLlmsItems(containers.map((item) => formatItem(item, 'containers'))),
     '\n## Entities',
     renderEntities(baseUrl),
     '\n## Teams',
-    teams.map((item) => formatSimpleItem(item, 'teams')).join('\n'),
+    joinLlmsItems(teams.map((item) => formatSimpleItem(item, 'teams'))),
     '\n## Users',
-    users.map((item) => formatSimpleItem(item, 'users')).join('\n'),
+    joinLlmsItems(users.map((item) => formatSimpleItem(item, 'users'))),
     ...(isCustomDocsEnabled()
-      ? ['\n## Custom Docs', customDocs.map((item) => formatCustomDoc(item, 'docs/custom')).join('\n')]
+      ? ['\n## Custom Docs', joinLlmsItems(customDocs.map((item) => formatCustomDoc(item, 'docs/custom')))]
       : []),
     ...(isResourceDocsEnabled() && resourceDocsList.length > 0 ? ['\n## Resource Docs', renderResourceDocs()] : []),
   ].join('\n');

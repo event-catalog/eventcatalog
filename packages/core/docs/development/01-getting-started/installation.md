@@ -76,6 +76,14 @@ npx @eventcatalog/create-eventcatalog@latest my-catalog --template asyncapi
 
 Templates are useful when you already know which integration you want to use, such as AsyncAPI, OpenAPI, EventBridge, GitHub, or a schema registry.
 
+### Skip or accept the skills prompt
+
+Use `--skills` or `--no-skills` to skip the EventCatalog Skills prompt.
+
+```bash
+npx @eventcatalog/create-eventcatalog@latest my-catalog --no-skills
+```
+
 ## Generate a catalog from an existing codebase
 
 If you already have a codebase, you can use the [Catalog Documentation Creator](https://github.com/event-catalog/skills) AI skill to generate EventCatalog documentation from the information in your project.

@@ -2,13 +2,13 @@ import { PackageManager } from '../helpers/get-pkg-manager';
 
 export type TemplateType =
   | 'default'
-  | 'app'
   | 'empty'
   | 'asyncapi'
   | 'openapi'
   | 'confluent'
   | 'eventbridge'
   | 'amazon-apigateway'
+  | 'amazon-api-gateway'
   | 'graphql';
 export type TemplateMode = 'js' | 'ts';
 
@@ -24,7 +24,7 @@ export interface InstallTemplateArgs {
   packageManager: PackageManager;
   isOnline: boolean;
   organizationName: string;
-  template: TemplateType;
+  template: TemplateType | string;
   mode: TemplateMode;
   eslint: boolean;
 }

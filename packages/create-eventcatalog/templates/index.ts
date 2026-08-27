@@ -1,5 +1,6 @@
 import { copy } from '../helpers/copy';
 import { install } from '../helpers/install';
+import { formatValidTemplates, resolveTemplateDirectory } from '../helpers/cli-options';
 
 import os from 'os';
 import fs from 'fs';
@@ -10,7 +11,7 @@ import { GetTemplateFileArgs, InstallTemplateArgs } from './types';
 import { raiseEvent } from './analytics';
 
 /**
- * Get the file path for a given file in a template, e.g. "next.config.js".
+ * Get the file path for a given file in a template.
  */
 export const getTemplateFile = ({ template, mode, file }: GetTemplateFileArgs): string => {
   return path.join(__dirname, template, mode, file);
@@ -27,7 +28,7 @@ Before any EventCatalog work, find and read the relevant doc in \`node_modules/@
 const CLAUDE_RULES = '@AGENTS.md\n';
 
 /**
- * Install a Next.js internal template to a given `root` directory.
+ * Install an EventCatalog template into a given `root` directory.
  */
 export const installTemplate = async ({
   appName,
@@ -35,10 +36,19 @@ export const installTemplate = async ({
   packageManager,
   isOnline,
   template,
-  mode,
   eslint,
   organizationName,
 }: InstallTemplateArgs) => {
+  const templateDirectory = resolveTemplateDirectory(template);
+  if (!templateDirectory) {
+    throw new Error(`Unknown template "${template}". Available templates: ${formatValidTemplates()}`);
+  }
+
+  const templatePath = path.join(__dirname, '../templates', templateDirectory);
+  if (!fs.existsSync(templatePath)) {
+    throw new Error(`Unknown template "${template}". Available templates: ${formatValidTemplates()}`);
+  }
+
   /**
    * Create a package.json for the new project
    */
@@ -72,36 +82,33 @@ export const installTemplate = async ({
   /**
    * Default dependencies.
    */
-  // const dependencies = ["@eventcatalog/eventcatalog-2"];
   const dependencies = ['@eventcatalog/core', '@eventcatalog/linter'] as any;
 
-  // if asyncapi is selected, add the asyncapi dependencies
-  if (template === 'asyncapi') {
+  if (templateDirectory === 'asyncapi') {
     dependencies.push('@eventcatalog/generator-asyncapi');
   }
 
-  if (template === 'openapi') {
+  if (templateDirectory === 'openapi') {
     dependencies.push('@eventcatalog/generator-openapi');
   }
 
-  if (template === 'graphql') {
+  if (templateDirectory === 'graphql') {
     dependencies.push('@eventcatalog/generator-graphql');
   }
 
-  if (template === 'confluent') {
+  if (templateDirectory === 'confluent') {
     dependencies.push('@eventcatalog/generator-confluent-schema-registry');
   }
 
-  if (template === 'eventbridge') {
+  if (templateDirectory === 'eventbridge') {
     dependencies.push('@eventcatalog/generator-eventbridge');
   }
 
-  if (template === 'amazon-apigateway') {
+  if (templateDirectory === 'amazon-api-gateway') {
     dependencies.push('@eventcatalog/generator-amazon-apigateway');
     dependencies.push('@eventcatalog/generator-openapi');
   }
 
-  // "@myuser/my-package": "file:../lib"
   const devDependencies = [] as any;
 
   /**
@@ -118,8 +125,6 @@ export const installTemplate = async ({
   /**
    * Copy the template files to the target directory.
    */
-  const templatePath = path.join(__dirname, '../templates', template);
-  // console.log("templatePath", templatePath, __dirname, template);
   await copy('**', root, {
     parents: true,
     cwd: templatePath,
@@ -159,8 +164,10 @@ export const installTemplate = async ({
   await raiseEvent({ command: 'create', org: organizationName, cId });
 
   if (!eslint) {
-    // remove un-necessary template file if eslint is not desired
-    await fs.promises.unlink(path.join(root, '.eslintrc.json'));
+    const eslintConfigPath = path.join(root, '.eslintrc.json');
+    if (fs.existsSync(eslintConfigPath)) {
+      await fs.promises.unlink(eslintConfigPath);
+    }
   }
 };
 

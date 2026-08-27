@@ -33,6 +33,11 @@ describe('extractResourceInfo', () => {
     expect(result).toEqual({ id: 'sales/subdomains/orders' });
   });
 
+  it('should extract domain nested under domains/{parent}/domains/{child}', () => {
+    const result = extractResourceInfo('domains/E-Commerce/domains/Orders/index.mdx', 'domain');
+    expect(result).toEqual({ id: 'E-Commerce/domains/Orders' });
+  });
+
   it('should extract domain with versioned structure', () => {
     const result = extractResourceInfo('domains/sales/versioned/2.1.0/index.mdx', 'domain');
     expect(result).toEqual({ id: 'sales', version: '2.1.0' });
@@ -165,5 +170,36 @@ describe('extractResourceInfo', () => {
       'team:payments-team',
       'user:jane-doe',
     ]);
+  });
+
+  it('should scan domains nested under domains/{parent}/domains/{child}', async () => {
+    const rootDir = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-linter-scanner-'));
+    const files = [
+      'domains/E-Commerce/index.mdx',
+      'domains/E-Commerce/domains/Orders/index.mdx',
+      'domains/E-Commerce/domains/Orders/versioned/1.0.0/index.mdx',
+      'domains/E-Commerce/domains/Orders/services/OrderService/index.mdx',
+    ];
+
+    await Promise.all(
+      files.map(async (file) => {
+        const filePath = path.join(rootDir, file);
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, '---\nid: test\nname: Test\nversion: 1.0.0\n---\n');
+      })
+    );
+
+    const catalogFiles = await scanCatalogFiles(rootDir);
+
+    expect(catalogFiles.some((file) => file.resourceType === 'domain' && file.resourceId === 'E-Commerce')).toBe(true);
+    expect(catalogFiles.some((file) => file.resourceType === 'domain' && file.resourceId === 'E-Commerce/domains/Orders')).toBe(
+      true
+    );
+    expect(
+      catalogFiles.some(
+        (file) => file.resourceType === 'domain' && file.resourceId === 'E-Commerce/domains/Orders' && file.version === '1.0.0'
+      )
+    ).toBe(true);
+    expect(catalogFiles.some((file) => file.resourceType === 'service' && file.resourceId === 'OrderService')).toBe(true);
   });
 });

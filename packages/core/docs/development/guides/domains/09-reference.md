@@ -20,11 +20,14 @@ Domains can be created at the root of the `domains` folder:
 /domains/{Domain Name}/index.mdx
 ```
 
-Subdomains can be created inside a domain:
+Subdomains can be created inside a domain using either nested folder:
 
 ```txt
 /domains/{Domain Name}/subdomains/{Subdomain Name}/index.mdx
+/domains/{Domain Name}/domains/{Subdomain Name}/index.mdx
 ```
+
+The `subdomains/` layout is the documented catalog convention. The nested `domains/` layout is what `@eventcatalog/sdk` writes when you pass `{ path: '{Parent}/domains' }` to `writeDomain`. EventCatalog loads both.
 
 ## Routes
 

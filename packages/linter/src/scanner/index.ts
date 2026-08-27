@@ -25,6 +25,8 @@ const RESOURCE_PATTERNS: Partial<Record<ResourceType, string[]>> = {
     'domains/*/versioned/*/index.{md,mdx}',
     'domains/*/subdomains/*/index.{md,mdx}',
     'domains/*/subdomains/*/versioned/*/index.{md,mdx}',
+    'domains/*/domains/*/index.{md,mdx}',
+    'domains/*/domains/*/versioned/*/index.{md,mdx}',
   ]),
   system: [
     '**/systems/**/index.{md,mdx}',
@@ -49,6 +51,8 @@ const RESOURCE_PATTERNS: Partial<Record<ResourceType, string[]>> = {
       'domains/*/services/*/versioned/*/index.{md,mdx}',
       'domains/*/subdomains/*/services/*/index.{md,mdx}',
       'domains/*/subdomains/*/services/*/versioned/*/index.{md,mdx}',
+      'domains/*/domains/*/services/*/index.{md,mdx}',
+      'domains/*/domains/*/services/*/versioned/*/index.{md,mdx}',
       'services/*/index.{md,mdx}',
       'services/*/versioned/*/index.{md,mdx}',
     ]),
