@@ -420,6 +420,27 @@ describe('Services NodeGraph', () => {
       expect(hasContainers).toBe(true);
     });
 
+    it('links container context menus to /containers/… rather than /entities/… (issue #2804)', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'OrderService', version: '1.0.0' });
+
+      const expectedContainerContextMenu = (id: string) => [
+        { label: 'Read documentation', href: `/docs/containers/${id}/1.0.0` },
+        { label: 'Focus node', href: `/visualiser/containers/${id}/1.0.0` },
+        {
+          label: 'Read changelog',
+          href: `/docs/containers/${id}/1.0.0/changelog`,
+          external: true,
+          separator: true,
+        },
+      ];
+
+      const writesToNode = nodes.find((node) => node.id === 'OrderDatabase-1.0.0');
+      const readsFromNode = nodes.find((node) => node.id === 'PaymentDatabase-1.0.0');
+
+      expect(writesToNode?.data.contextMenu).toEqual(expectedContainerContextMenu('OrderDatabase'));
+      expect(readsFromNode?.data.contextMenu).toEqual(expectedContainerContextMenu('PaymentDatabase'));
+    });
+
     describe('message grouping', () => {
       it('should collapse grouped sends into messageGroup nodes', async () => {
         vi.mocked(getCollection).mockImplementation(((key: any) => {
