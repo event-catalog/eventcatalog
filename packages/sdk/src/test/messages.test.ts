@@ -94,6 +94,29 @@ describe('Messages SDK', () => {
       expect(consumers.map((participant) => participant.id)).toContain('Fulfilment');
     });
 
+    it('matches V-prefixed integer message versions against semver ranges', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: 'V1',
+        markdown: '# Hello world',
+      });
+
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '1.0.0',
+        markdown: '# Inventory Service',
+        sends: [{ id: 'InventoryAdjusted', version: '^1' }],
+        receives: [{ id: 'InventoryAdjusted', version: 'V1' }],
+      });
+
+      const { producers, consumers } = await getProducersAndConsumersForMessage('InventoryAdjusted', 'V1');
+
+      expect(producers.map((participant) => participant.id)).toContain('InventoryService');
+      expect(consumers.map((participant) => participant.id)).toContain('InventoryService');
+    });
+
     it('returns the producers and consumers for a given message', async () => {
       await writeEvent({
         id: 'InventoryAdjusted',

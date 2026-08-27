@@ -1,4 +1,4 @@
-import { maxSatisfying, validRange } from 'semver';
+import { isVersionGreaterThan, versionSatisfiesRange } from './internal/versions';
 import { getAdrs } from './adrs';
 import { getAgents } from './agents';
 import { getChannels } from './channels';
@@ -246,15 +246,13 @@ export const getGraph = (directory: string): GetCatalogGraph => {
       const exactMatch = allVersionsIndex.byVersion.get(`${pointer.id}:${pointer.version}`);
       if (exactMatch) return exactMatch;
 
-      const range = validRange(pointer.version);
-      if (!range) return undefined;
-
       const candidates = allVersionsIndex.byId.get(pointer.id) || [];
-      const version = maxSatisfying(
-        candidates.map((resource) => resource.version),
-        range
-      );
-      return candidates.find((resource) => resource.version === version);
+      let match;
+      for (const candidate of candidates) {
+        if (!versionSatisfiesRange(candidate.version, pointer.version)) continue;
+        if (!match || isVersionGreaterThan(candidate.version, match.version)) match = candidate;
+      }
+      return match;
     };
 
     const resolvePointer = async (pointer: ResourcePointer, candidateTypes: CatalogGraphResourceType[]) => {
@@ -308,8 +306,7 @@ export const getGraph = (directory: string): GetCatalogGraph => {
       if (!pointer.version || pointer.version === 'latest') return true;
       if (pointer.version === version) return true;
 
-      const range = validRange(pointer.version);
-      return range ? maxSatisfying([version], range) === version : false;
+      return versionSatisfiesRange(version, pointer.version);
     };
 
     const getAdrsForResource = async (type: CatalogGraphResourceType, resource: CatalogResource) => {

@@ -7,7 +7,7 @@ import { findFileById, getFiles } from './internal/utils';
 import { getServices } from './services';
 import { getAgents } from './agents';
 import { getDomains } from './domains';
-import { satisfies, validRange } from 'semver';
+import { versionSatisfiesRange } from './internal/versions';
 
 type MessageParticipant = Service | Agent | Domain;
 
@@ -96,34 +96,20 @@ export const getProducersAndConsumersForMessage =
     const consumers: MessageParticipant[] = [];
 
     for (const participant of [...services, ...agents, ...domains]) {
-      const participantPublishesMessage = participant.sends?.some((_message) => {
+      const matchesMessage = (_message: { id: string; version?: string }) => {
         if (_message.version) {
-          const isParticipantUsingSemverRange = validRange(_message.version);
-          if (isParticipantUsingSemverRange) {
-            return _message.id === message.id && satisfies(message.version, _message.version);
-          } else {
-            return _message.id === message.id && message.version === _message.version;
-          }
+          return (
+            _message.id === message.id &&
+            (message.version === _message.version || versionSatisfiesRange(message.version, _message.version))
+          );
         }
         if (isMessageLatestVersion && _message.id === message.id) {
           return true;
         }
         return false;
-      });
-      const participantSubscribesToMessage = participant.receives?.some((_message) => {
-        if (_message.version) {
-          const isParticipantUsingSemverRange = validRange(_message.version);
-          if (isParticipantUsingSemverRange) {
-            return _message.id === message.id && satisfies(message.version, _message.version);
-          } else {
-            return _message.id === message.id && message.version === _message.version;
-          }
-        }
-        if (isMessageLatestVersion && _message.id === message.id) {
-          return true;
-        }
-        return false;
-      });
+      };
+      const participantPublishesMessage = participant.sends?.some(matchesMessage);
+      const participantSubscribesToMessage = participant.receives?.some(matchesMessage);
 
       if (participantPublishesMessage) {
         producers.push(participant);

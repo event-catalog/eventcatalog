@@ -1,5 +1,5 @@
 import { globSync } from 'glob';
-import { satisfies, validRange } from 'semver';
+import { versionSatisfiesRange } from '../internal/versions';
 
 /**
  * Checks whether a pointer version (which may be a semver range like ^1.0.0, ~1.2.0)
@@ -9,19 +9,10 @@ export function msgVersionMatches(pointerVersion: string | undefined, messageVer
   if (!pointerVersion) return true;
   if (!messageVersion) return false;
   if (pointerVersion === messageVersion) return true;
-  try {
-    // Check if pointerVersion is a range that messageVersion satisfies
-    if (validRange(pointerVersion)) {
-      if (satisfies(messageVersion, pointerVersion)) return true;
-    }
-    // Check the reverse: messageVersion may be a range that pointerVersion satisfies
-    if (validRange(messageVersion)) {
-      if (satisfies(pointerVersion, messageVersion)) return true;
-    }
-  } catch {
-    // Invalid semver, fall through
-  }
-  return false;
+  // Check if pointerVersion is a range that messageVersion satisfies
+  if (versionSatisfiesRange(messageVersion, pointerVersion)) return true;
+  // Check the reverse: messageVersion may be a range that pointerVersion satisfies
+  return versionSatisfiesRange(pointerVersion, messageVersion);
 }
 
 interface BaseResource {
