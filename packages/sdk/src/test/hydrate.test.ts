@@ -4,6 +4,8 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { hydrate, type Cache, type Fetcher } from '../hydrate';
 import type { ResolvedGraph } from '../index-types';
+import { resolve } from '../resolve';
+import utils from '../index';
 
 describe('hydrate', () => {
   let testDirectory: string;
@@ -711,6 +713,51 @@ describe('hydrate', () => {
     expect(result).toEqual({
       fetched: 3,
       written: 3,
+    });
+  });
+
+  it('preserves collection and term editUrl when hydrating a ubiquitous language sidecar', async () => {
+    const catalogPath = path.join(testDirectory, 'source-catalog');
+    await fs.mkdir(catalogPath, { recursive: true });
+    const sdk = utils(catalogPath);
+
+    await sdk.writeDomain({
+      id: 'payments',
+      name: 'Payments',
+      version: '1.0.0',
+      markdown: '# Payments',
+    });
+    await sdk.addUbiquitousLanguageToDomain('payments', {
+      editUrl: 'https://github.com/org/catalog/edit/main/domains/payments/ubiquitous-language.mdx',
+      dictionary: [
+        {
+          id: 'payment',
+          name: 'Payment',
+          summary: 'An exchange of money for goods or services.',
+          editUrl: 'https://github.com/org/glossary/edit/main/terms/payment.md',
+        },
+      ],
+    });
+
+    const index = await sdk.buildIndex({ source: 'acme/payments', commit: '4a1b7e2' });
+    expect(index.resources[0]?.sidecars).toEqual([expect.objectContaining({ path: 'domains/payments/ubiquitous-language.mdx' })]);
+
+    const graph = resolve([index]);
+    const fetch: Fetcher = async ({ path: artifactPath }) => fs.readFile(path.join(catalogPath, artifactPath));
+
+    await expect(hydrate(graph, { outDir, fetch })).resolves.toEqual({ fetched: 2, written: 2 });
+
+    const { getUbiquitousLanguageFromDomain } = utils(path.join(outDir, 'acme-payments--bf264d5186bc'));
+    await expect(getUbiquitousLanguageFromDomain('payments')).resolves.toEqual({
+      editUrl: 'https://github.com/org/catalog/edit/main/domains/payments/ubiquitous-language.mdx',
+      dictionary: [
+        {
+          id: 'payment',
+          name: 'Payment',
+          summary: 'An exchange of money for goods or services.',
+          editUrl: 'https://github.com/org/glossary/edit/main/terms/payment.md',
+        },
+      ],
     });
   });
 

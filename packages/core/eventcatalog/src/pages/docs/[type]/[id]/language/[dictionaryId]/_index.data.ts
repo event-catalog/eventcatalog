@@ -1,7 +1,52 @@
-import { getUbiquitousLanguage } from '@utils/collections/domains';
-import { getDomains } from '@utils/collections/domains';
+import type { CollectionEntry } from 'astro:content';
+import { getDomains, getUbiquitousLanguage } from '@utils/collections/domains';
 import { isSSR } from '@utils/feature';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
+import { resolveEditUrl } from '@utils/url-builder';
+
+type Domain = CollectionEntry<'domains'>;
+type UbiquitousLanguage = CollectionEntry<'ubiquitousLanguages'>;
+type DictionaryTerm = NonNullable<UbiquitousLanguage['data']['dictionary']>[number];
+
+export const resolveUbiquitousLanguageTermEditUrl = ({
+  term,
+  collection,
+  configEditUrl,
+}: {
+  term: Pick<DictionaryTerm, 'editUrl'>;
+  collection: Pick<UbiquitousLanguage, 'filePath'> & { data: Pick<UbiquitousLanguage['data'], 'editUrl'> };
+  configEditUrl?: string;
+}) =>
+  resolveEditUrl({
+    resourceEditUrl: term.editUrl || collection.data.editUrl,
+    configEditUrl,
+    filePath: collection.filePath,
+  });
+
+export const buildUbiquitousLanguageTermPage = ({
+  domain,
+  collection,
+  term,
+}: {
+  domain: Domain;
+  collection: UbiquitousLanguage;
+  term: DictionaryTerm;
+}) => ({
+  params: {
+    type: domain.collection,
+    id: domain.data.id,
+    dictionaryId: term.id,
+  },
+  props: {
+    type: domain.collection,
+    domainId: domain.data.id,
+    domain: domain.data,
+    ...term,
+    ubiquitousLanguage: term,
+    filePath: collection.filePath,
+    collectionEditUrl: collection.data.editUrl,
+  },
+});
 
 export class Page extends HybridPage {
   static async getStaticPaths() {
@@ -19,32 +64,19 @@ export class Page extends HybridPage {
         return accumulator;
       }
 
-      const dictionary = ubiquitousLanguages[0].data.dictionary;
-
-      if (!dictionary) {
-        return accumulator;
-      }
-
       return [
         ...accumulator,
-        ...dictionary.map((item) => ({
-          params: {
-            type: domain.collection,
-            id: domain.data.id,
-            dictionaryId: item.id,
-          },
-          props: {
-            type: domain.collection,
-            domainId: domain.data.id,
-            domain: domain.data,
-            ubiquitousLanguage: item,
-            ...item,
-          },
-        })),
+        ...ubiquitousLanguages.flatMap((collection) =>
+          (collection.data.dictionary ?? []).map((term) => buildUbiquitousLanguageTermPage({ domain, collection, term }))
+        ),
       ];
     }, Promise.resolve([]));
 
     return pages;
+  }
+
+  protected static hasValidProps(props: any): boolean {
+    return Boolean(props?.ubiquitousLanguage && props?.domain);
   }
 
   protected static async fetchData(params: any) {
@@ -58,20 +90,14 @@ export class Page extends HybridPage {
     if (ubiquitousLanguages.length === 0) return null;
 
     // Find the ubiquitous language that contains our dictionary item
-    const ubiquitousLanguage = ubiquitousLanguages.find((l) => l.data.dictionary?.some((d) => d.id === params.dictionaryId));
-    if (!ubiquitousLanguage) return null;
+    const collection = ubiquitousLanguages.find((l) => l.data.dictionary?.some((d) => d.id === params.dictionaryId));
+    if (!collection) return null;
 
     // Find the specific dictionary item
-    const item = ubiquitousLanguage.data.dictionary?.find((d) => d.id === params.dictionaryId);
-    if (!item) return null;
+    const term = collection.data.dictionary?.find((d) => d.id === params.dictionaryId);
+    if (!term) return null;
 
-    return {
-      type: domain.collection,
-      domainId: domain.data.id,
-      domain: domain.data,
-      ubiquitousLanguage: item,
-      ...item,
-    };
+    return buildUbiquitousLanguageTermPage({ domain, collection, term }).props;
   }
 
   protected static createNotFoundResponse(): Response {

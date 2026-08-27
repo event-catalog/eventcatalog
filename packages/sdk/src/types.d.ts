@@ -443,10 +443,12 @@ export interface UbiquitousLanguage {
   summary?: string;
   description?: string;
   icon?: string;
+  editUrl?: string;
 }
 
 export interface UbiquitousLanguageDictionary {
   dictionary: UbiquitousLanguage[];
+  editUrl?: string;
 }
 
 interface DetailPanelProperty {
