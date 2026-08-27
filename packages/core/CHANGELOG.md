@@ -1,5 +1,18 @@
 # @eventcatalog/core
 
+## 4.7.10
+
+### Patch Changes
+
+- 6917590: Fix legacy generated documentation pills being unreadable in dark mode.
+- 3167265: fix(core): dev command crashing on Windows with regex_error(error_escape)
+
+  The file watcher interpolated raw Windows backslash paths into its ignore
+  glob, which @parcel/watcher compiles with std::regex. Depending on the
+  characters in the project path (e.g. a folder starting with `x` produced an
+  invalid `\x` escape), this crashed `npm run dev` on startup. Paths are now
+  normalized to forward slashes before building the glob.
+
 ## 4.7.9
 
 ### Patch Changes
