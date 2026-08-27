@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.7.11
+
+### Patch Changes
+
+- 19439c8: Fix service and agent visualiser context menus linking container nodes to /entities/… instead of /containers/….
+
 ## 4.7.10
 
 ### Patch Changes
