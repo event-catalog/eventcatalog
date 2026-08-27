@@ -185,6 +185,18 @@ describe('Events SDK', () => {
       });
     });
 
+    it('returns the highest version of the event that satisfies a semver range', async () => {
+      await writeEvent({ id: 'InventoryAdjusted', name: 'Inventory Adjusted', version: 'V1.9', markdown: '# V1.9' });
+      await versionEvent('InventoryAdjusted');
+      await writeEvent({ id: 'InventoryAdjusted', name: 'Inventory Adjusted', version: 'V1.10', markdown: '# V1.10' });
+      await versionEvent('InventoryAdjusted');
+      await writeEvent({ id: 'InventoryAdjusted', name: 'Inventory Adjusted', version: 'V2', markdown: '# V2' });
+
+      const test = await getEvent('InventoryAdjusted', '^1');
+
+      expect(test.version).toBe('V1.10');
+    });
+
     it('returns the latest version of the event if the version matches the latest version', async () => {
       await writeEvent({
         id: 'InventoryAdjusted',
