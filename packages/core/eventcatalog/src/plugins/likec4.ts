@@ -72,6 +72,10 @@ const likeC4DependencyResolver = (resolveLikeC4Dependency: (id: string) => strin
   enforce: 'pre',
 
   resolveId(id) {
+    if (id.startsWith('likec4:plugin/')) {
+      return id;
+    }
+
     if (!id.startsWith('likec4/')) {
       return;
     }

@@ -51,4 +51,13 @@ describe('eventCatalogLikeC4', () => {
       'eventcatalog-likec4',
     ]);
   });
+
+  it('returns likec4:plugin virtual module ids without a null-byte prefix', async () => {
+    const plugins = await eventCatalogLikeC4(testProjectDirectory);
+    const resolver = plugins.find((plugin) => plugin.name === 'eventcatalog-likec4-dependency-resolver');
+    const resolveId = resolver?.resolveId as ((id: string) => string | undefined) | undefined;
+
+    expect(resolveId?.('likec4:plugin/react.js')).toBe('likec4:plugin/react.js');
+    expect(resolveId?.('likec4:plugin/react/payments.js')).toBe('likec4:plugin/react/payments.js');
+  });
 });
