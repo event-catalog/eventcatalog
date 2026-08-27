@@ -3,7 +3,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
 import ignore from 'ignore';
-import { rcompare, valid } from 'semver';
 import { getAdrs } from './adrs';
 import { getAgents } from './agents';
 import { getChannels } from './channels';
@@ -41,6 +40,7 @@ import type {
   Team,
 } from './types';
 import { getUsers } from './users';
+import { compareVersions as compareVersionValues } from './internal/versions';
 
 type BuildIndexOptions = {
   source: string;
@@ -141,7 +141,8 @@ const compareVersions = (left?: string, right?: string) => {
   if (left === right) return 0;
   if (left === undefined) return 1;
   if (right === undefined) return -1;
-  if (valid(left) && valid(right)) return rcompare(left, right);
+  const comparison = compareVersionValues(left, right);
+  if (comparison !== undefined) return -comparison;
   return compareText(right, left);
 };
 

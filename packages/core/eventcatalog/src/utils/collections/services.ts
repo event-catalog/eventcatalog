@@ -1,6 +1,5 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import semver from 'semver';
 import type { CollectionMessageTypes, CollectionTypes } from '@types';
 import { getDomains, getDomainsForService } from './domains';
 import {

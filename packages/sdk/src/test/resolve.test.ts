@@ -1036,6 +1036,182 @@ describe('resolve', () => {
       ]);
     });
 
+    it('sorts V-prefixed integer versions numerically', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: 'V2',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/V2/index.mdx',
+            contentHash: 'sha256:04bd91',
+          },
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: 'V10',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/V10/index.mdx',
+            contentHash: 'sha256:62ea15',
+          },
+        ],
+      });
+      const fulfilmentIndex = anIndex({
+        source: 'acme/fulfilment',
+        commit: '8f2c6d0',
+        resources: [
+          {
+            type: 'service',
+            id: 'shipping-service',
+            version: 'V1',
+            name: 'Shipping Service',
+            receives: [{ id: 'payment-captured' }],
+            contentPath: 'services/shipping-service/index.mdx',
+            contentHash: 'sha256:b75e20',
+          },
+        ],
+      });
+
+      expect(resolve([paymentsIndex, fulfilmentIndex]).edges[0]).toEqual(
+        expect.objectContaining({
+          from: 'shipping-service',
+          to: 'payment-captured',
+          resolved: 'V10',
+          status: 'resolved',
+        })
+      );
+    });
+
+    it('resolves semver ranges against V-prefixed integer versions', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: 'V1',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/V1/index.mdx',
+            contentHash: 'sha256:04bd91',
+          },
+        ],
+      });
+      const fulfilmentIndex = anIndex({
+        source: 'acme/fulfilment',
+        commit: '8f2c6d0',
+        resources: [
+          {
+            type: 'service',
+            id: 'shipping-service',
+            version: 'V1',
+            name: 'Shipping Service',
+            receives: [{ id: 'payment-captured', version: '^1.0.0' }],
+            contentPath: 'services/shipping-service/index.mdx',
+            contentHash: 'sha256:b75e20',
+          },
+        ],
+      });
+
+      expect(resolve([paymentsIndex, fulfilmentIndex]).edges[0]).toEqual(
+        expect.objectContaining({
+          pointer: '^1.0.0',
+          resolved: 'V1',
+          status: 'resolved',
+        })
+      );
+    });
+
+    it('does not include semver prereleases in stable ranges', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '1.0.0-beta.1',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/1.0.0-beta.1/index.mdx',
+            contentHash: 'sha256:04bd91',
+          },
+        ],
+      });
+      const fulfilmentIndex = anIndex({
+        source: 'acme/fulfilment',
+        commit: '8f2c6d0',
+        resources: [
+          {
+            type: 'service',
+            id: 'shipping-service',
+            version: '1.0.0',
+            name: 'Shipping Service',
+            receives: [{ id: 'payment-captured', version: '^1.0.0' }],
+            contentPath: 'services/shipping-service/index.mdx',
+            contentHash: 'sha256:b75e20',
+          },
+        ],
+      });
+
+      expect(resolve([paymentsIndex, fulfilmentIndex]).edges[0]).toEqual(
+        expect.objectContaining({
+          pointer: '^1.0.0',
+          resolved: null,
+          status: 'unresolved',
+        })
+      );
+    });
+
+    it('keeps lexicographical latest selection for unsupported date-like versions', () => {
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '2024-10',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/2024-10/index.mdx',
+            contentHash: 'sha256:04bd91',
+          },
+          {
+            type: 'event',
+            id: 'payment-captured',
+            version: '2024-11',
+            name: 'Payment Captured',
+            contentPath: 'events/payment-captured/2024-11/index.mdx',
+            contentHash: 'sha256:62ea15',
+          },
+        ],
+      });
+      const fulfilmentIndex = anIndex({
+        source: 'acme/fulfilment',
+        commit: '8f2c6d0',
+        resources: [
+          {
+            type: 'service',
+            id: 'shipping-service',
+            version: '1.0.0',
+            name: 'Shipping Service',
+            receives: [{ id: 'payment-captured' }],
+            contentPath: 'services/shipping-service/index.mdx',
+            contentHash: 'sha256:b75e20',
+          },
+        ],
+      });
+
+      expect(resolve([paymentsIndex, fulfilmentIndex]).edges[0]).toEqual(
+        expect.objectContaining({
+          resolved: '2024-11',
+          status: 'resolved',
+        })
+      );
+    });
+
     it("treats an explicit 'latest' the same as an absent version", () => {
       const paymentsIndex = anIndex({
         source: 'acme/payments',

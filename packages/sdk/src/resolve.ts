@@ -1,4 +1,3 @@
-import { gt, satisfies, valid, validRange } from 'semver';
 import type {
   Conflict,
   ConflictKind,
@@ -11,6 +10,7 @@ import type {
   ResolvedEntity,
   ResolvedGraph,
 } from './index-types';
+import { compareVersions, versionSatisfiesRange } from './internal/versions';
 
 type Pointer = {
   id: string;
@@ -29,7 +29,8 @@ const compareText = (left: string, right: string) => (left < right ? -1 : left >
 const isHigherVersion = (candidate?: string, current?: string) => {
   if (candidate === current || candidate === undefined) return false;
   if (current === undefined) return true;
-  if (valid(candidate) && valid(current)) return gt(candidate, current);
+  const comparison = compareVersions(candidate, current);
+  if (comparison !== undefined) return comparison > 0;
   return compareText(candidate, current) > 0;
 };
 
@@ -43,11 +44,8 @@ const selectTarget = (candidates: ResolvedEntity[] | undefined, pointerVersion?:
   const exactMatch = candidates.find((candidate) => candidate.version === pointerVersion);
   if (exactMatch) return exactMatch;
 
-  const range = validRange(pointerVersion);
-  if (!range) return undefined;
-
   return candidates.reduce<ResolvedEntity | undefined>((latest, candidate) => {
-    if (candidate.version === undefined || !valid(candidate.version) || !satisfies(candidate.version, range)) return latest;
+    if (candidate.version === undefined || !versionSatisfiesRange(candidate.version, pointerVersion)) return latest;
     if (latest === undefined || isHigherVersion(candidate.version, latest.version)) return candidate;
     return latest;
   }, undefined);

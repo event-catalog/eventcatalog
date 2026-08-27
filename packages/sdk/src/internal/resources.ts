@@ -13,10 +13,10 @@ import matter from 'gray-matter';
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import { Adr, Message, Service, CustomDoc } from '../types';
-import { satisfies } from 'semver';
 import { lock, unlock } from 'proper-lockfile';
 import { basename } from 'node:path';
 import path from 'node:path';
+import { isVersionGreaterThan } from './versions';
 
 type Resource = Service | Message | CustomDoc | Adr;
 const resourceSourcePaths = new WeakMap<object, string>();
@@ -117,7 +117,7 @@ export const writeResource = async (
       const currentResource = await getResource(catalogDir, resource.id);
 
       if (currentResource) {
-        if (satisfies(resource.version, `>${currentResource.version}`)) {
+        if (isVersionGreaterThan(resource.version, currentResource.version)) {
           await versionResource(catalogDir, resource.id);
         } else {
           throw new Error(`New version ${resource.version} is not greater than current version ${currentResource.version}`);

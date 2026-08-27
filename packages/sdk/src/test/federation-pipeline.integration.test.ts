@@ -199,4 +199,58 @@ describe('federation pipeline integration', () => {
     ).resolves.toContain('"paymentId"');
     await expect(fs.readFile(path.join(outDir, 'public/icons/nodejs.svg'), 'utf8')).resolves.toContain('<title>Node.js</title>');
   });
+
+  it('preserves and resolves V-prefixed integer versions through the complete pipeline', async () => {
+    const catalogPath = path.join(testDirectory, 'source-catalog');
+    const sdk = utils(catalogPath);
+
+    await sdk.writeEvent({ id: 'payment-captured', name: 'Payment Captured', version: 'V1', markdown: '# V1' });
+    await sdk.writeEvent(
+      { id: 'payment-captured', name: 'Payment Captured', version: 'V2', markdown: '# V2' },
+      { versionExistingContent: true }
+    );
+    await sdk.writeEvent(
+      { id: 'payment-captured', name: 'Payment Captured', version: 'V10', markdown: '# V10' },
+      { versionExistingContent: true }
+    );
+    await sdk.writeService({
+      id: 'payment-service',
+      name: 'Payment Service',
+      version: 'V1',
+      sends: [{ id: 'payment-captured' }],
+      markdown: '# Payment Service',
+    });
+
+    const index = await sdk.buildIndex({ source: 'team/test', commit: 'test-fixture' });
+    expect(index.resources.map(({ type, id, version }) => `${type}:${id}@${version}`)).toEqual([
+      'event:payment-captured@V10',
+      'event:payment-captured@V2',
+      'event:payment-captured@V1',
+      'service:payment-service@V1',
+    ]);
+
+    const graph = resolve([index]);
+    expect(graph.edges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          from: 'payment-service',
+          to: 'payment-captured',
+          resolved: 'V10',
+          status: 'resolved',
+        }),
+      ])
+    );
+
+    const fetch: Fetcher = async ({ path: artifactPath }) => fs.readFile(path.join(catalogPath, artifactPath));
+    await expect(hydrate(graph, { outDir, fetch })).resolves.toEqual({ fetched: 4, written: 4 });
+
+    expect(await listFiles(outDir)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/events\/payment-captured\/index\.mdx$/),
+        expect.stringMatching(/events\/payment-captured\/versioned\/V1\/index\.mdx$/),
+        expect.stringMatching(/events\/payment-captured\/versioned\/V2\/index\.mdx$/),
+        expect.stringMatching(/services\/payment-service\/index\.mdx$/),
+      ])
+    );
+  });
 });

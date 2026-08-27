@@ -523,6 +523,28 @@ describe('buildIndex', () => {
     expect(second).toEqual(expectedIndex);
   });
 
+  it('orders V-prefixed integer resource versions numerically', async () => {
+    await sdk.writeEvent({ id: 'a-event', name: 'A Event', version: 'V1', markdown: '# A Event V1' });
+    await sdk.versionEvent('a-event');
+    await sdk.writeEvent({ id: 'a-event', name: 'A Event', version: 'V2', markdown: '# A Event V2' });
+    await sdk.versionEvent('a-event');
+    await sdk.writeEvent({ id: 'a-event', name: 'A Event', version: 'V10', markdown: '# A Event V10' });
+
+    const index = await sdk.buildIndex({ source: 'acme/catalog', commit: 'abc1234' });
+
+    expect(index.resources.map(({ version }) => version)).toEqual(['V10', 'V2', 'V1']);
+  });
+
+  it('keeps lexicographical ordering for unsupported date-like versions', async () => {
+    await sdk.writeEvent({ id: 'a-event', name: 'A Event', version: '2024-10', markdown: '# October' });
+    await sdk.versionEvent('a-event');
+    await sdk.writeEvent({ id: 'a-event', name: 'A Event', version: '2024-11', markdown: '# November' });
+
+    const index = await sdk.buildIndex({ source: 'acme/catalog', commit: 'abc1234' });
+
+    expect(index.resources.map(({ version }) => version)).toEqual(['2024-11', '2024-10']);
+  });
+
   it('indexes resource owners when they are set', async () => {
     await sdk.writeEvent({
       id: 'payment-captured',

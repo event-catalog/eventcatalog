@@ -1,6 +1,9 @@
 import type { CollectionTypes } from '@types';
 import {
+  createVersionedMap,
+  findInMap,
   getDeprecatedDetails,
+  getItemsFromCollectionByIdAndSemverOrLatest,
   getPointerField,
   getResourceTypeLabel,
   isSameVersion,
@@ -32,6 +35,11 @@ describe('Collections - utils', () => {
       [{ version: 'v1', range: '^1', expected: true }],
       [{ version: 'v1', range: '2', expected: false }],
       [{ version: 'v1', range: '>1', expected: false }],
+      [{ version: 'V1', range: 'V1', expected: true }],
+      [{ version: 'V2', range: 'V1', expected: false }],
+      [{ version: 'V1', range: '^1.0.0', expected: true }],
+      [{ version: '1.0.0-beta.1', range: '^1.0.0', expected: false }],
+      [{ version: 'draft', range: 'draft', expected: true }],
     ])('should returns $expected to version as $version and range as $range', ({ expected, version, range }) => {
       expect(satisfies(version, range)).toBe(expected);
     });
@@ -41,11 +49,61 @@ describe('Collections - utils', () => {
     it.each([
       [{ versions: ['1', '3', '2'], result: ['3', '2', '1'], latest: '3' }],
       [{ versions: ['10', '1', '2', '3'], result: ['10', '3', '2', '1'], latest: '10' }],
+      [{ versions: ['V1', 'V10', 'V2'], result: ['V10', 'V2', 'V1'], latest: 'V10' }],
       [{ versions: ['1.0.1', '1.1.0', '1.0.2'], result: ['1.1.0', '1.0.2', '1.0.1'], latest: '1.1.0' }],
+      [
+        {
+          versions: ['1.0.0-beta.1', '1.0.0'],
+          result: ['1.0.0', '1.0.0-beta.1'],
+          latest: '1.0.0',
+        },
+      ],
       [{ versions: ['a', 'c', 'b'], result: ['c', 'b', 'a'], latest: 'c' }],
+      [{ versions: ['2024-10', '2024-11'], result: ['2024-11', '2024-10'], latest: '2024-11' }],
       [{ versions: [], result: [], latest: undefined }],
     ])('should returns $latest as latest version of $versions', ({ versions, result, latest }) => {
       expect(sortStringVersions(versions)).toEqual({ versions: result, latestVersion: latest });
+    });
+  });
+
+  describe('versioned collection lookup', () => {
+    const versions = ['V1', 'V10', 'V2'].map((version) => ({ data: { id: 'OrderPlaced', version } }));
+
+    it('returns the latest V-prefixed integer version', () => {
+      expect(getItemsFromCollectionByIdAndSemverOrLatest(versions, 'OrderPlaced')).toEqual([
+        { data: { id: 'OrderPlaced', version: 'V10' } },
+      ]);
+    });
+
+    it('finds an exact V-prefixed integer version', () => {
+      expect(getItemsFromCollectionByIdAndSemverOrLatest(versions, 'OrderPlaced', 'V1')).toEqual([
+        { data: { id: 'OrderPlaced', version: 'V1' } },
+      ]);
+    });
+
+    it('orders versioned maps numerically and preserves exact lookup', () => {
+      const map = createVersionedMap(versions);
+
+      expect(map.get('OrderPlaced')?.map((item) => item.data.version)).toEqual(['V10', 'V2', 'V1']);
+      expect(findInMap(map, 'OrderPlaced', 'V1')?.data.version).toBe('V1');
+    });
+
+    it('does not resolve prereleases through stable ranges', () => {
+      const map = createVersionedMap([{ data: { id: 'OrderPlaced', version: '1.0.0-beta.1' } }]);
+
+      expect(findInMap(map, 'OrderPlaced', '^1.0.0')).toBeUndefined();
+      expect(versionMatches('1.0.0-beta.1', '^1.0.0')).toBe(false);
+    });
+
+    it('preserves exact custom string lookups', () => {
+      const customVersions = [
+        { data: { id: 'OrderPlaced', version: 'draft' } },
+        { data: { id: 'OrderPlaced', version: 'release' } },
+      ];
+
+      expect(getItemsFromCollectionByIdAndSemverOrLatest(customVersions, 'OrderPlaced', 'draft')).toEqual([
+        { data: { id: 'OrderPlaced', version: 'draft' } },
+      ]);
     });
   });
 
