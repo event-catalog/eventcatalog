@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 4.7.12
+
+### Patch Changes
+
+- 1deed7d: Show version-specific producers and consumers in the sidebar for historical messages.
+- 4cab4e0: Remove unused NestedSideBar SearchBar leftover code. Catalog search is unchanged: the header SearchModal and Discover grid filter are still in place.
+
 ## 4.7.11
 
 ### Patch Changes
