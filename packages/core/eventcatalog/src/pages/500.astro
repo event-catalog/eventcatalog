@@ -1,0 +1,286 @@
+---
+/**
+ * Custom 500 page for on-demand / SSR render failures.
+ *
+ * This page is intentionally a standalone HTML document (same approach as the
+ * auth error page). It must not import layouts, collections, @config, or other
+ * catalog runtime that may have caused the original failure.
+ *
+ * Astro only uses this page for on-demand rendering (`eventcatalog dev` and
+ * production SSR). Prerendered static pages, 404s, and client-side island
+ * crashes are out of scope.
+ */
+import '../styles/tailwind.css';
+import '../styles/theme.css';
+import '../styles/themes/ocean.css';
+import '../styles/themes/sapphire.css';
+import '../styles/themes/sunset.css';
+import '../styles/themes/forest.css';
+import '@fontsource/inter';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/700.css';
+
+import { buildUrl } from '@utils/url-builder';
+import {
+  buildAgentBugPrompt,
+  EVENTCATALOG_CORE_VERSION,
+  getErrorMessage,
+  getErrorStack,
+  getPlatformLabel,
+  PAGE_URL_PLACEHOLDER,
+  resolveCatalogOutput,
+  USER_AGENT_PLACEHOLDER,
+} from '@utils/server-error-prompt';
+
+interface Props {
+  error?: unknown;
+}
+
+const { error } = Astro.props;
+const isDev = import.meta.env.DEV;
+const isDevMode = process.env.EVENTCATALOG_DEV_MODE === 'true';
+const catalogTheme = typeof __EC_CATALOG_THEME__ !== 'undefined' && __EC_CATALOG_THEME__ ? __EC_CATALOG_THEME__ : 'default';
+const configuredOutput = resolveCatalogOutput(
+  typeof __EC_CONFIGURED_OUTPUT__ !== 'undefined' ? __EC_CONFIGURED_OUTPUT__ : undefined
+);
+const effectiveOutput = resolveCatalogOutput(typeof __EC_OUTPUT__ !== 'undefined' ? __EC_OUTPUT__ : undefined, 'server');
+
+const errorMessage = getErrorMessage(error);
+const errorStack = isDev ? getErrorStack(error) : undefined;
+const pageUrl = Astro.request.url;
+const requestUserAgent = Astro.request.headers.get('user-agent') ?? '';
+
+const promptTemplate = buildAgentBugPrompt({
+  errorMessage,
+  errorStack,
+  pageUrl: PAGE_URL_PLACEHOLDER,
+  userAgent: USER_AGENT_PLACEHOLDER,
+  eventCatalogVersion: EVENTCATALOG_CORE_VERSION,
+  configuredOutput,
+  effectiveOutput,
+  isDevMode,
+  nodeVersion: `v${process.versions.node}`,
+  platform: process.platform,
+});
+
+const homeHref = buildUrl('/');
+const faviconIco = buildUrl('/favicon.ico', true);
+const faviconSvg = buildUrl('/favicon.svg', true);
+const appleTouchIcon = buildUrl('/apple-touch-icon.png', true);
+const platformLabel = getPlatformLabel();
+---
+
+<!doctype html>
+<html lang="en" data-catalog-theme={catalogTheme}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href={faviconIco} sizes="any" />
+    <link rel="icon" type="image/svg+xml" href={faviconSvg} />
+    <link rel="apple-touch-icon" href={appleTouchIcon} />
+    <meta name="generator" content={Astro.generator} />
+    <title>Something went wrong | EventCatalog</title>
+    <script is:inline define:vars={{ catalogTheme }}>
+      (function () {
+        const stored = localStorage.getItem('eventcatalog-theme');
+        const theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-catalog-theme', catalogTheme);
+      })();
+    </script>
+    <style>
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      }
+      .ec-500-bg {
+        background-color: rgb(var(--ec-page-bg));
+        background-image:
+          linear-gradient(to right, rgb(var(--ec-page-border) / 0.7) 1px, transparent 1px),
+          linear-gradient(to bottom, rgb(var(--ec-page-border) / 0.7) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .ec-500-bg::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 80% 50% at 50% 40%, transparent 0%, rgb(var(--ec-page-bg) / 0.92) 100%);
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))]">
+    <main class="ec-500-bg relative min-h-screen flex items-center justify-center px-4 py-12 sm:px-6">
+      <div class="relative w-full max-w-2xl">
+        <div
+          class="overflow-hidden rounded-2xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-xl shadow-black/5"
+        >
+          <div class="h-1 bg-gradient-to-r from-[rgb(var(--ec-accent-gradient-from))] to-[rgb(var(--ec-accent-gradient-to))]">
+          </div>
+
+          <div class="px-6 py-8 sm:px-10 sm:py-10">
+            <p class="text-xs font-semibold tracking-[0.2em] text-[rgb(var(--ec-page-text-muted))] uppercase">EventCatalog</p>
+            <p class="mt-3 font-mono text-5xl font-semibold leading-none text-[rgb(var(--ec-accent))]">500</p>
+            <h1 class="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">This page failed to render</h1>
+            <p class="mt-2 text-sm text-[rgb(var(--ec-page-text-muted))]">
+              EventCatalog hit a server error while building this page. The details below can help you or an agent file a bug.
+            </p>
+
+            <section class="mt-6" aria-label="Error details">
+              <h2 class="text-xs font-semibold uppercase tracking-wide text-[rgb(var(--ec-page-text-muted))]">Error</h2>
+              <pre
+                class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))] px-4 py-3 font-mono text-sm leading-6 text-[rgb(var(--ec-page-text))]"
+                set:text={errorMessage}
+              />
+              {
+                errorStack && (
+                  <details class="mt-3 rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))]">
+                    <summary class="cursor-pointer select-none px-4 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]">
+                      Stack trace (development only)
+                    </summary>
+                    <pre
+                      class="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-[rgb(var(--ec-page-border))] px-4 py-3 font-mono text-xs leading-5 text-[rgb(var(--ec-page-text-muted))]"
+                      set:text={errorStack}
+                    />
+                  </details>
+                )
+              }
+            </section>
+
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                data-copy-agent-prompt
+                data-copied="false"
+                aria-label="Copy prompt for an agent"
+                aria-live="polite"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[rgb(var(--ec-button-bg))] px-4 py-3 text-sm font-medium text-[rgb(var(--ec-button-text))] transition-colors hover:bg-[rgb(var(--ec-button-bg-hover))] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--ec-accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(var(--ec-card-bg))]"
+              >
+                <span data-copy-idle class="inline-flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  Copy prompt for an agent
+                </span>
+                <span data-copy-done class="inline-flex items-center gap-2" hidden>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Copied — paste into Cursor or Claude
+                </span>
+              </button>
+
+              <a
+                href={homeHref}
+                class="inline-flex items-center justify-center rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-4 py-3 text-sm font-medium text-[rgb(var(--ec-page-text))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--ec-accent))] focus-visible:ring-offset-2 focus-visible:ring-offset-[rgb(var(--ec-card-bg))]"
+              >
+                Back to home
+              </a>
+            </div>
+
+            <p class="mt-4 text-sm text-[rgb(var(--ec-page-text-muted))]">
+              The copied prompt asks an agent to open a GitHub bug on
+              <span class="text-[rgb(var(--ec-page-text))]">event-catalog/eventcatalog</span>
+              using the Bug Report form. It does not send anything from this catalog.
+            </p>
+          </div>
+        </div>
+
+        <p class="mt-6 text-center text-xs text-[rgb(var(--ec-page-text-muted))]">
+          {isDevMode ? 'eventcatalog dev' : 'SSR'}
+          {' · '}
+          @eventcatalog/core@{EVENTCATALOG_CORE_VERSION}
+          {' · '}
+          {platformLabel}
+        </p>
+      </div>
+    </main>
+
+    <textarea
+      id="ec-500-prompt-template"
+      data-page-url-placeholder={PAGE_URL_PLACEHOLDER}
+      data-user-agent-placeholder={USER_AGENT_PLACEHOLDER}
+      hidden
+      readonly
+      set:text={promptTemplate}
+    />
+    <span id="ec-500-server-url" hidden>{pageUrl}</span>
+    <span id="ec-500-server-ua" hidden>{requestUserAgent}</span>
+  </body>
+</html>
+
+<script>
+  const templateField = document.querySelector<HTMLTextAreaElement>('#ec-500-prompt-template');
+  const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-agent-prompt]');
+  const PAGE_URL_PLACEHOLDER = templateField?.dataset.pageUrlPlaceholder ?? '__EVENTCATALOG_PAGE_URL__';
+  const USER_AGENT_PLACEHOLDER = templateField?.dataset.userAgentPlaceholder ?? '__EVENTCATALOG_USER_AGENT__';
+  const serverUrl = document.querySelector('#ec-500-server-url')?.textContent?.trim() ?? '';
+  const serverUserAgent = document.querySelector('#ec-500-server-ua')?.textContent?.trim() ?? '';
+
+  async function copyText(text: string) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+
+  function buildPrompt() {
+    const template = templateField?.value ?? '';
+    const pageUrl = window.location.href || serverUrl || PAGE_URL_PLACEHOLDER;
+    const userAgent = navigator.userAgent || serverUserAgent || USER_AGENT_PLACEHOLDER;
+
+    return template.replaceAll(PAGE_URL_PLACEHOLDER, pageUrl).replaceAll(USER_AGENT_PLACEHOLDER, userAgent);
+  }
+
+  function setCopied(copied: boolean) {
+    if (!copyButton) return;
+    copyButton.dataset.copied = copied ? 'true' : 'false';
+    copyButton.setAttribute('aria-label', copied ? 'Copied prompt to clipboard' : 'Copy prompt for an agent');
+    const idle = copyButton.querySelector<HTMLElement>('[data-copy-idle]');
+    const done = copyButton.querySelector<HTMLElement>('[data-copy-done]');
+    if (idle) idle.hidden = copied;
+    if (done) done.hidden = !copied;
+  }
+
+  copyButton?.addEventListener('click', async () => {
+    try {
+      await copyText(buildPrompt());
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      if (copyButton) copyButton.dataset.copied = 'false';
+    }
+  });
+</script>

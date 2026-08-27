@@ -9,6 +9,9 @@ export default defineConfig({
   root: __dirname,
   define: {
     __EC_TRAILING_SLASH__: false,
+    __EC_OUTPUT__: JSON.stringify('static'),
+    __EC_CONFIGURED_OUTPUT__: JSON.stringify('static'),
+    __EC_CATALOG_THEME__: JSON.stringify('default'),
   },
   plugins: [
     tsconfigPaths({

@@ -128,6 +128,11 @@ export default defineConfig({
       __EC_TRAILING_SLASH__: JSON.stringify(config.trailingSlash === true),
       __EC_BASE__: JSON.stringify(base),
       __EC_SEARCH_TYPE__: JSON.stringify(searchType),
+      // Baked in at compile time so 500.astro can report output/theme without
+      // importing eventcatalog.config.js (which may be the source of the failure).
+      __EC_OUTPUT__: JSON.stringify(effectiveOutput),
+      __EC_CONFIGURED_OUTPUT__: JSON.stringify(config.output || 'static'),
+      __EC_CATALOG_THEME__: JSON.stringify(config.theme || 'default'),
     },
     server: {
       fs: {
