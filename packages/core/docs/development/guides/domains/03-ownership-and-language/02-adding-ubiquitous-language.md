@@ -65,31 +65,7 @@ When you add a ubiquitous language dictionary to your domain, it will automatica
 ![Example](../../img/domains/ubiquitous-lang-sidebar.png)
 <a class="block" href="https://demo.eventcatalog.dev/docs/domains/Orders/language">View demo</a>
 
-Clicking on a term in the Domain Language explorer will open that term in a new page.
-
-### `editUrl` {#editUrl}
-
-<AddedIn version="4.8.2" />
-
-Override the default "Edit this page" link on a ubiquitous language term page. This is the same field other resources use, for example GitHub or GitLab.
-
-If you omit `editUrl`, EventCatalog falls back to the site-wide [`editUrl`](/docs/api/config#editUrl) in `eventcatalog.config.js` and the path of the `ubiquitous-language.mdx` file.
-
-You can set it on the dictionary file, or on an individual term when terms are generated from an external source:
-
-```md title="/domains/Orders/ubiquitous-language.md"
----
-editUrl: https://github.com/your-org/glossary/edit/main/domains/Orders/ubiquitous-language.md
-dictionary:
-  - id: Purchase Order
-    name: Purchase Order
-    summary: "A mystical document issued by a buyer to a seller."
-    editUrl: https://github.com/your-org/glossary/edit/main/terms/purchase-order.md
----
-```
-
-Per-term `editUrl` takes precedence over the file-level value.
- 
+Clicking on a term in the Domain Language explorer will open that term in a new page. 
 
 
 
