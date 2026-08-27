@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 4.8.0
+
+### Minor Changes
+
+- 2d47c4a: Support V-prefixed integer resource versions such as `V1`, `V2`, and `V10` across version comparison, lookup, federation, and snapshots. Prerelease versions now follow strict semver rules instead of being coerced to their stable version.
+
+### Patch Changes
+
+- Updated dependencies [2d47c4a]
+  - @eventcatalog/sdk@2.28.0
+  - @eventcatalog/linter@1.1.15
+
 ## 4.7.12
 
 ### Patch Changes
