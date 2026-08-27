@@ -69,7 +69,7 @@ Clicking on a term in the Domain Language explorer will open that term in a new 
 
 ### `editUrl` {#editUrl}
 
-<AddedIn version="4.8.1" />
+<AddedIn version="4.8.2" />
 
 Override the default "Edit this page" link on a ubiquitous language term page. This is the same field other resources use, for example GitHub or GitLab.
 
