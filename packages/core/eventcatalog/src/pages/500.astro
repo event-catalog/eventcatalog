@@ -2,9 +2,10 @@
 /**
  * Custom 500 page for on-demand / SSR render failures.
  *
- * This page is intentionally a standalone HTML document (same approach as the
- * auth error page). It must not import layouts, collections, @config, or other
- * catalog runtime that may have caused the original failure.
+ * Standalone HTML document (same approach as the auth error page) so it can
+ * still render if layouts/collections fail. Auth.js `/auth/error` and
+ * `/unauthorized` stay as-is. HybridPage missing resources throw an empty 404
+ * Response — those are not product bugs and do not use this page.
  *
  * Astro only uses this page for on-demand rendering (`eventcatalog dev` and
  * production SSR). Prerendered static pages, 404s, and client-side island
@@ -20,16 +21,17 @@ import '@fontsource/inter';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/700.css';
 
+import config from '@config';
 import { buildUrl } from '@utils/url-builder';
+import { isDevMode, isSSR } from '@utils/feature';
 import {
   buildAgentBugPrompt,
-  EVENTCATALOG_CORE_VERSION,
   getErrorMessage,
   getErrorStack,
   getPlatformLabel,
   PAGE_URL_PLACEHOLDER,
-  resolveCatalogOutput,
   USER_AGENT_PLACEHOLDER,
+  VERSION,
 } from '@utils/server-error-prompt';
 
 interface Props {
@@ -38,12 +40,9 @@ interface Props {
 
 const { error } = Astro.props;
 const isDev = import.meta.env.DEV;
-const isDevMode = process.env.EVENTCATALOG_DEV_MODE === 'true';
-const catalogTheme = typeof __EC_CATALOG_THEME__ !== 'undefined' && __EC_CATALOG_THEME__ ? __EC_CATALOG_THEME__ : 'default';
-const configuredOutput = resolveCatalogOutput(
-  typeof __EC_CONFIGURED_OUTPUT__ !== 'undefined' ? __EC_CONFIGURED_OUTPUT__ : undefined
-);
-const effectiveOutput = resolveCatalogOutput(typeof __EC_OUTPUT__ !== 'undefined' ? __EC_OUTPUT__ : undefined, 'server');
+const catalogTheme = config.theme || 'default';
+const ssr = isSSR();
+const devMode = isDevMode();
 
 const errorMessage = getErrorMessage(error);
 const errorStack = isDev ? getErrorStack(error) : undefined;
@@ -55,10 +54,9 @@ const promptTemplate = buildAgentBugPrompt({
   errorStack,
   pageUrl: PAGE_URL_PLACEHOLDER,
   userAgent: USER_AGENT_PLACEHOLDER,
-  eventCatalogVersion: EVENTCATALOG_CORE_VERSION,
-  configuredOutput,
-  effectiveOutput,
-  isDevMode,
+  eventCatalogVersion: VERSION,
+  isSSR: ssr,
+  isDevMode: devMode,
   nodeVersion: `v${process.versions.node}`,
   platform: process.platform,
 });
@@ -209,9 +207,9 @@ const platformLabel = getPlatformLabel();
         </div>
 
         <p class="mt-6 text-center text-xs text-[rgb(var(--ec-page-text-muted))]">
-          {isDevMode ? 'eventcatalog dev' : 'SSR'}
+          {devMode ? 'eventcatalog dev' : 'SSR'}
           {' · '}
-          @eventcatalog/core@{EVENTCATALOG_CORE_VERSION}
+          @eventcatalog/core@{VERSION}
           {' · '}
           {platformLabel}
         </p>
@@ -232,29 +230,14 @@ const platformLabel = getPlatformLabel();
 </html>
 
 <script>
+  import { copyToClipboard } from '@utils/clipboard';
+
   const templateField = document.querySelector<HTMLTextAreaElement>('#ec-500-prompt-template');
   const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-agent-prompt]');
   const PAGE_URL_PLACEHOLDER = templateField?.dataset.pageUrlPlaceholder ?? '__EVENTCATALOG_PAGE_URL__';
   const USER_AGENT_PLACEHOLDER = templateField?.dataset.userAgentPlaceholder ?? '__EVENTCATALOG_USER_AGENT__';
   const serverUrl = document.querySelector('#ec-500-server-url')?.textContent?.trim() ?? '';
   const serverUserAgent = document.querySelector('#ec-500-server-ua')?.textContent?.trim() ?? '';
-
-  async function copyText(text: string) {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-  }
 
   function buildPrompt() {
     const template = templateField?.value ?? '';
@@ -276,7 +259,8 @@ const platformLabel = getPlatformLabel();
 
   copyButton?.addEventListener('click', async () => {
     try {
-      await copyText(buildPrompt());
+      const copied = await copyToClipboard(buildPrompt());
+      if (!copied) return;
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2500);
     } catch {

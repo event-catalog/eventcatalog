@@ -2,18 +2,18 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { VERSION as CORE_VERSION } from '../../../../src/constants';
 import {
   BUG_REPORT_ISSUE_URL,
   buildAgentBugPrompt,
-  EVENTCATALOG_CORE_VERSION,
   EVENTCATALOG_REPO_URL,
   getBugFormOutputLabel,
   getErrorMessage,
   getErrorStack,
   getPlatformLabel,
   PAGE_URL_PLACEHOLDER,
-  resolveCatalogOutput,
   USER_AGENT_PLACEHOLDER,
+  VERSION,
 } from '../server-error-prompt';
 
 const corePackageJson = JSON.parse(
@@ -21,9 +21,10 @@ const corePackageJson = JSON.parse(
 ) as { version: string };
 
 describe('server-error-prompt', () => {
-  it('reads the EventCatalog version from @eventcatalog/core package.json instead of hardcoding it', () => {
-    expect(EVENTCATALOG_CORE_VERSION).toBe(corePackageJson.version);
-    expect(EVENTCATALOG_CORE_VERSION).toMatch(/^\d+\.\d+\.\d+/);
+  it('reuses VERSION from @eventcatalog/core constants instead of hardcoding it', () => {
+    expect(VERSION).toBe(CORE_VERSION);
+    expect(VERSION).toBe(corePackageJson.version);
+    expect(VERSION).toMatch(/^\d+\.\d+\.\d+/);
   });
 
   describe('getErrorMessage', () => {
@@ -67,19 +68,9 @@ describe('server-error-prompt', () => {
   });
 
   describe('getBugFormOutputLabel', () => {
-    it('maps catalog output to the bug.yml Output dropdown labels', () => {
-      expect(getBugFormOutputLabel('static')).toBe('Static');
-      expect(getBugFormOutputLabel('server')).toBe('Server (Server Side Rendering)');
-      expect(getBugFormOutputLabel('unknown')).toBe('Unknown');
-    });
-  });
-
-  describe('resolveCatalogOutput', () => {
-    it('only accepts static or server values', () => {
-      expect(resolveCatalogOutput('static')).toBe('static');
-      expect(resolveCatalogOutput('server')).toBe('server');
-      expect(resolveCatalogOutput('hybrid')).toBe('unknown');
-      expect(resolveCatalogOutput(undefined, 'static')).toBe('static');
+    it('maps isSSR() to the bug.yml Output dropdown labels', () => {
+      expect(getBugFormOutputLabel(false)).toBe('Static');
+      expect(getBugFormOutputLabel(true)).toBe('Server (Server Side Rendering)');
     });
   });
 
@@ -90,8 +81,7 @@ describe('server-error-prompt', () => {
       pageUrl: 'http://localhost:3000/docs/services/Orders/1.0.0',
       userAgent: 'Mozilla/5.0 TestAgent',
       eventCatalogVersion: '4.8.2',
-      configuredOutput: 'static',
-      effectiveOutput: 'server',
+      isSSR: false,
       isDevMode: true,
       nodeVersion: 'v22.14.0',
       platform: 'darwin',
@@ -119,13 +109,13 @@ describe('server-error-prompt', () => {
       expect(prompt).toContain('Mozilla/5.0 TestAgent');
       expect(prompt).toContain('Cannot read properties of undefined (reading "data")');
       expect(prompt).toContain('EVENTCATALOG_DEV_MODE: true');
-      expect(prompt).toContain('Configured catalog output: static');
-      expect(prompt).toContain('Effective Astro output: server');
+      expect(prompt).toContain('isSSR(): false');
     });
 
-    it('instructs the agent not to invent features or include secrets or catalog content', () => {
+    it('instructs the agent not to invent features or include secrets, catalog content, or HybridPage 404s', () => {
       expect(prompt).toContain('Do not invent features');
       expect(prompt).toContain('Do not include secrets, credentials, tokens, environment variable values, or catalog content');
+      expect(prompt).toContain('HybridPage missing resources throw an empty 404 Response, not a 500');
     });
 
     it('includes a development stack when one is provided', () => {
@@ -135,11 +125,11 @@ describe('server-error-prompt', () => {
     it('omits the stack when it was not captured', () => {
       const withoutStack = buildAgentBugPrompt({
         errorMessage: 'boom',
-        eventCatalogVersion: EVENTCATALOG_CORE_VERSION,
+        eventCatalogVersion: VERSION,
       });
 
       expect(withoutStack).not.toContain('Stack (captured in development only');
-      expect(withoutStack).toContain(`@eventcatalog/core@${EVENTCATALOG_CORE_VERSION}`);
+      expect(withoutStack).toContain(`@eventcatalog/core@${VERSION}`);
     });
 
     it('uses placeholders for page URL and user agent so the 500 page can fill them at copy time', () => {
