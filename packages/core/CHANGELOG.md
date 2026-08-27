@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.8.3
+
+### Patch Changes
+
+- adb80fd: Fix LikeC4 diagrams in Vite dev by resolving `likec4:plugin/` virtual modules without a `\0` prefix.
+
 ## 4.8.2
 
 ### Patch Changes
