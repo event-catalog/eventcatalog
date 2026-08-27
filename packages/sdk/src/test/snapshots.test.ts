@@ -49,6 +49,19 @@ describe('Snapshots SDK', () => {
       expect(result.snapshot.resources.messages.events[0].id).toBe('OrderCreated');
     });
 
+    it('keeps the latest V-prefixed integer version when deduplicating resources', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: 'V1', markdown: '# V1' });
+      await versionEvent('OrderCreated');
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: 'V10', markdown: '# V10' });
+      await versionEvent('OrderCreated');
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: 'V2', markdown: '# V2' });
+
+      const result = await createSnapshot({ outputDir: path.join(CATALOG_PATH, '.snapshots') });
+
+      expect(result.snapshot.resources.messages.events).toHaveLength(1);
+      expect(result.snapshot.resources.messages.events[0].version).toBe('V10');
+    });
+
     it('only includes core fields (id, version, name, sends, receives, deprecated)', async () => {
       await writeEvent({
         id: 'OrderCreated',

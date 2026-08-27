@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
-import { compare } from 'semver';
+import { compareVersions } from './internal/versions';
 import type { CatalogSnapshot, SnapshotOptions, SnapshotResult, SnapshotMeta, SnapshotDiff } from './snapshot-types';
 import utils from './index';
 import { computeResourceDiff, computeRelationshipDiff } from './snapshot-diff';
@@ -30,11 +30,17 @@ const pickCoreFields = (resource: any): any => {
   return picked;
 };
 
+const isNewerVersion = (candidate: string, current: string) => {
+  const comparison = compareVersions(candidate, current);
+  if (comparison !== undefined) return comparison > 0;
+  return candidate.localeCompare(current) > 0;
+};
+
 const deduplicateByLatestVersion = (resources: any[]): any[] => {
   const seen = new Map<string, any>();
   for (const r of resources) {
     const existing = seen.get(r.id);
-    if (!existing || compare(r.version, existing.version) > 0) {
+    if (!existing || isNewerVersion(r.version, existing.version)) {
       seen.set(r.id, r);
     }
   }

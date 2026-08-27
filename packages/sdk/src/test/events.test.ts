@@ -165,6 +165,38 @@ describe('Events SDK', () => {
       });
     });
 
+    it('returns a V-prefixed integer version of the event when a semver range is given', async () => {
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: 'V1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const test = await getEvent('InventoryAdjusted', '^1');
+
+      expect(test).toEqual({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: 'V1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+    });
+
+    it('returns the highest version of the event that satisfies a semver range', async () => {
+      await writeEvent({ id: 'InventoryAdjusted', name: 'Inventory Adjusted', version: 'V1.9', markdown: '# V1.9' });
+      await versionEvent('InventoryAdjusted');
+      await writeEvent({ id: 'InventoryAdjusted', name: 'Inventory Adjusted', version: 'V1.10', markdown: '# V1.10' });
+      await versionEvent('InventoryAdjusted');
+      await writeEvent({ id: 'InventoryAdjusted', name: 'Inventory Adjusted', version: 'V2', markdown: '# V2' });
+
+      const test = await getEvent('InventoryAdjusted', '^1');
+
+      expect(test.version).toBe('V1.10');
+    });
+
     it('returns the latest version of the event if the version matches the latest version', async () => {
       await writeEvent({
         id: 'InventoryAdjusted',
@@ -900,6 +932,62 @@ describe('Events SDK', () => {
 
         expect(fs.existsSync(path.join(CATALOG_PATH, 'events/InventoryAdjusted/versioned/0.0.1', 'index.mdx'))).toBe(true);
         expect(fs.existsSync(path.join(CATALOG_PATH, 'events/InventoryAdjusted', 'index.mdx'))).toBe(true);
+      });
+
+      it('versions the previous event when using V-prefixed integer versions', async () => {
+        await writeEvent({
+          id: 'InventoryAdjusted',
+          name: 'Inventory Adjusted',
+          version: 'V1',
+          summary: 'This is a summary',
+          markdown: 'Hello world',
+        });
+
+        await writeEvent(
+          {
+            id: 'InventoryAdjusted',
+            name: 'Inventory Adjusted',
+            version: 'V2',
+            summary: 'This is a summary',
+            markdown: 'New Content!',
+          },
+          {
+            versionExistingContent: true,
+          }
+        );
+
+        const event = await getEvent('InventoryAdjusted', 'V2');
+        expect(event.markdown).toBe('New Content!');
+        expect(event.version).toBe('V2');
+
+        expect(fs.existsSync(path.join(CATALOG_PATH, 'events/InventoryAdjusted/versioned/V1', 'index.mdx'))).toBe(true);
+        expect(fs.existsSync(path.join(CATALOG_PATH, 'events/InventoryAdjusted', 'index.mdx'))).toBe(true);
+      });
+
+      it('preserves semver prerelease ordering when versioning the previous event', async () => {
+        await writeEvent({
+          id: 'InventoryAdjusted',
+          name: 'Inventory Adjusted',
+          version: '1.0.0-beta.1',
+          summary: 'This is a summary',
+          markdown: 'Prerelease content',
+        });
+
+        await writeEvent(
+          {
+            id: 'InventoryAdjusted',
+            name: 'Inventory Adjusted',
+            version: '1.0.0',
+            summary: 'This is a summary',
+            markdown: 'Stable content',
+          },
+          {
+            versionExistingContent: true,
+          }
+        );
+
+        expect((await getEvent('InventoryAdjusted')).version).toBe('1.0.0');
+        expect(fs.existsSync(path.join(CATALOG_PATH, 'events/InventoryAdjusted/versioned/1.0.0-beta.1', 'index.mdx'))).toBe(true);
       });
 
       it('does not version the previous event but overrides it when versionExistingContent is true and override is also true', async () => {

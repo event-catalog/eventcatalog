@@ -92,6 +92,18 @@ describe('Service graphs', () => {
     );
   });
 
+  it('resolves V-prefixed integer message versions through semver range pointers', async () => {
+    await writeEvent({ id: 'service-event', name: 'Service Event', version: 'V1', markdown: '# Service Event V1' });
+    await writeEvent(
+      { id: 'service-event', name: 'Service Event', version: 'V2', markdown: '# Service Event V2' },
+      { versionExistingContent: true }
+    );
+
+    await expectServiceChildren({ sends: [{ id: 'service-event', version: '^1' }] }, [
+      { type: 'event', id: 'service-event', version: 'V1', children: [] },
+    ]);
+  });
+
   it('includes entities', async () => {
     await writeEntity({ id: 'service-entity', name: 'Service Entity', version: '1.0.0', markdown: '# Service Entity' });
 

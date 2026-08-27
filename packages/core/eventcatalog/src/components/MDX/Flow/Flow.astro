@@ -25,15 +25,15 @@ const flow = flowCollection[0];
 
 const { nodes, edges } = await getNodesAndEdges({
   id: id,
-  version: flow.data.version,
+  version: flow?.data.version,
   mode: mode,
 });
 
 // Load and apply saved layout if it exists
-const resourceKey = buildResourceKey('flows', id, flow.data.version);
+const resourceKey = buildResourceKey('flows', id, flow?.data.version);
 const savedLayout = await loadSavedLayout(resourceKey);
 const nodesWithLayout = applyLayoutToNodes(nodes, savedLayout);
-const portalId = `${id}-${flow.data.version}-flow-${randomUUID()}-portal`;
+const portalId = `${id}-${flow?.data.version}-flow-${randomUUID()}-portal`;
 ---
 
 {

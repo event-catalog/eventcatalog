@@ -3,7 +3,7 @@ import fsSync from 'node:fs';
 import { copy, CopyFilterAsync, CopyFilterSync } from 'fs-extra';
 import { join, dirname, normalize, sep as pathSeparator, resolve, basename, relative } from 'node:path';
 import matter from 'gray-matter';
-import { satisfies, validRange, valid } from 'semver';
+import { isVersionGreaterThan, versionSatisfiesRange } from './versions';
 import type { MessagePointerInput } from '../types';
 
 // In-memory file index cache. Auto-built on first read, invalidated on writes.
@@ -190,20 +190,13 @@ export const findFileById = async (catalogDir: string, id: string, version?: str
   const exactMatch = entries.find((e) => e.version === version);
   if (exactMatch) return exactMatch.path;
 
-  // Semver range match
-  const semverRange = validRange(version);
-  if (semverRange) {
-    const match = entries.find((e) => {
-      try {
-        return satisfies(e.version, semverRange);
-      } catch {
-        return false;
-      }
-    });
-    return match?.path;
+  // Semver range match — pick the highest satisfying version
+  let match: FileIndexEntry | undefined;
+  for (const entry of entries) {
+    if (!versionSatisfiesRange(entry.version, version)) continue;
+    if (!match || isVersionGreaterThan(entry.version, match.version)) match = entry;
   }
-
-  return undefined;
+  return match?.path;
 };
 
 export const getFiles = async (pattern: string, ignore: string | string[] = '') => {

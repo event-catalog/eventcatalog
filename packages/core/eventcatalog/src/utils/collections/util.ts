@@ -1,7 +1,7 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import semver, { coerce, compare, satisfies as satisfiesRange } from 'semver';
 import path from 'node:path';
+import { compareVersions, toComparableVersion, versionSatisfiesRange } from './version-compare';
 
 // --- FILE PATH HELPERS ---
 
@@ -95,12 +95,11 @@ export { isSameVersion } from './version-compare';
  * Sorts versioned items. Latest version first.
  */
 export function sortVersioned<T>(versioned: T[], versionExtractor: (e: T) => string): T[] {
-  // try to coerce semver versions from input version
-  const semverVersions = versioned.map((v) => ({ original: v, semver: coerce(versionExtractor(v)) }));
+  const versions = versioned.map((original) => ({ original, version: versionExtractor(original) }));
 
   // if all versions are semver'ish, use semver to sort them
-  if (semverVersions.every((v) => v.semver != null)) {
-    const sorted = semverVersions.sort((a, b) => compare(b.semver!, a.semver!));
+  if (versions.every(({ version }) => toComparableVersion(version) !== undefined)) {
+    const sorted = versions.sort((a, b) => compareVersions(b.version, a.version)!);
 
     return sorted.map((v) => v.original);
   } else {
@@ -137,9 +136,8 @@ export function sortStringVersions(versions: string[]) {
  * @returns {boolean} Returns true if the version satisfies the range.
  */
 export const satisfies = (version: string, range: string): boolean => {
-  const coercedVersion = coerce(version);
-  if (!coercedVersion) return false;
-  return satisfiesRange(coercedVersion, range);
+  if (version === range) return true;
+  return versionSatisfiesRange(version, range);
 };
 
 export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { id: string; version: string } }>(
@@ -150,6 +148,9 @@ export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { 
   const filteredCollection = collection.filter((c) => c.data.id == id);
 
   if (version && version != 'latest') {
+    const exactMatches = filteredCollection.filter((item) => item.data.version === version);
+    if (exactMatches.length > 0) return exactMatches;
+
     return filteredCollection.filter((c) => satisfies(c.data.version, version));
   }
 
@@ -282,12 +283,10 @@ export const createVersionedMap = <T extends { data: { id: string; version?: str
 
   // Sort every entry so index [0] is always the latest version
   for (const [key, list] of map.entries()) {
-    list.sort((a, b) => {
-      // specific version sorting logic (fallback to string compare if not valid semver)
-      const vA = a.data.version || '0.0.0';
-      const vB = b.data.version || '0.0.0';
-      return semver.valid(vB) && semver.valid(vA) ? semver.rcompare(vA, vB) : vB.localeCompare(vA);
-    });
+    map.set(
+      key,
+      sortVersioned(list, (item) => item.data.version || '0.0.0')
+    );
   }
   return map;
 };
@@ -319,11 +318,7 @@ export const findInMap = <T extends { data: { version?: string } }>(
   if (exactMatch) return exactMatch;
 
   // Try semver match if not exact
-  if (semver.validRange(version)) {
-    return items.find((i) => semver.satisfies(i.data.version || '0.0.0', version));
-  }
-
-  return undefined;
+  return items.find((i) => satisfies(i.data.version || '0.0.0', version));
 };
 
 /**
@@ -342,13 +337,7 @@ export const versionMatches = (version: string, rangePattern: string): boolean =
   if (version === rangePattern) return true;
 
   // Try semver range matching
-  try {
-    if (semver.validRange(rangePattern)) {
-      return semver.satisfies(version, rangePattern);
-    }
-  } catch (error) {
-    // Invalid semver, fall through
-  }
+  if (satisfies(version, rangePattern)) return true;
 
   // Handle x-patterns like 1.x, 1.2.x
   if (rangePattern.includes('.x')) {
