@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.8.1
+
+### Patch Changes
+
+- 917b12e: chore(deps): bump astro and @astrojs packages to latest patch releases
+
 ## 4.8.0
 
 ### Minor Changes
