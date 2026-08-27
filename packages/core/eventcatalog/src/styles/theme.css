@@ -336,6 +336,16 @@
   --tw-prose-td-borders: rgb(33 38 45); /* #21262d */
 }
 
+/*
+ * Older generated documentation can contain pill markup with hard-coded
+ * light-theme Tailwind colors. Keep that content readable without changing
+ * the appearance of other custom prose elements.
+ */
+:root[data-theme="dark"] .prose .rounded-full.text-gray-900.border-gray-300 {
+  color: rgb(var(--ec-page-text));
+  border-color: rgb(var(--ec-page-border));
+}
+
 :root[data-theme="dark"] .prose code {
   background-color: rgb(33 38 45); /* #21262d */
   border-radius: 0.25rem;
