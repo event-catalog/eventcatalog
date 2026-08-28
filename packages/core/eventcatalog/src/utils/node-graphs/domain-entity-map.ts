@@ -23,6 +23,10 @@ const getReferencePropertyNames = (entity: Entity, entityMap: Map<string, Entity
     ?.filter((property: any) => getReferencedEntityId(property, entityMap))
     .map((property: any) => property.name) ?? [];
 
+// Entities on a resource are usually hydrated collection entries, whose top-level `id` is the
+// Astro id (`Customer-1.0.0`) rather than the catalog id used by `property.references`.
+const getCatalogId = (entity: any) => entity?.data?.id ?? entity?.id;
+
 const getRelationType = (property: any) => {
   if (property.relationType) return property.relationType;
   if (property.type === 'array' && property.items?.type) return 'hasMany';
@@ -89,7 +93,7 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
     .filter((ref: any) => ref !== undefined);
 
   const externalToDomain = Array.from(new Set<string>(listOfReferencedEntities as string[])) // Remove duplicates
-    .filter((entityId: any) => !resourceEntities.some((domainEntity: any) => domainEntity.id === entityId));
+    .filter((entityId: any) => !resourceEntities.some((domainEntity: any) => getCatalogId(domainEntity) === entityId));
 
   // 2. Build optimized maps
   // Only build domain map if we have domains to search
