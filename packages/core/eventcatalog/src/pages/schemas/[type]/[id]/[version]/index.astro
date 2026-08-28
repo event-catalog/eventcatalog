@@ -80,7 +80,7 @@ if (isDataProduct && contractPath) {
   const [allItems, schemaEntries] = await Promise.all([pageDataLoader[type](), getCollection('schemas')]);
   const versions = allItems.filter((item) => item.data.id === data.id);
   const schemasForMessage = schemaEntries.filter(
-    (schema) => schema.data.message.collection === type && schema.data.message.id === data.id
+    (schema) => schema.data.message.collectionName === type && schema.data.message.id === data.id
   );
 
   const getSchemaForVersion = (version: string) => {

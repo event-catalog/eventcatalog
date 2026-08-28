@@ -2902,7 +2902,7 @@ describe('getNestedSideBarData', () => {
           ref: 'git://contracts/events/PaymentProcessed.schema.json',
           format: 'jsonschema',
           source: { provider: 'git', path: 'events/PaymentProcessed.schema.json' },
-          message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
+          message: { collectionName: 'events', id: 'PaymentProcessed', version: '0.0.1' },
         });
 
         const navigationData = await getNestedSideBarData();
@@ -2951,14 +2951,14 @@ describe('getNestedSideBarData', () => {
             ref: 'git://contracts/events/PaymentProcessed.schema.json',
             format: 'jsonschema',
             source: { provider: 'git', path: 'events/PaymentProcessed.schema.json' },
-            message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
+            message: { collectionName: 'events', id: 'PaymentProcessed', version: '0.0.1' },
           },
           {
             id: 'git://contracts/events/PaymentProcessed.schema.avsc',
             ref: 'git://contracts/events/PaymentProcessed.schema.avsc',
             format: 'avro',
             source: { provider: 'git', path: 'events/PaymentProcessed.schema.avsc' },
-            message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
+            message: { collectionName: 'events', id: 'PaymentProcessed', version: '0.0.1' },
           }
         );
 
@@ -3031,7 +3031,7 @@ describe('getNestedSideBarData', () => {
           format: 'jsonschema',
           file: 'schema.json',
           source: { provider: 'file', path: 'schema.json' },
-          message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
+          message: { collectionName: 'events', id: 'PaymentProcessed', version: '0.0.1' },
         });
         await writeService({
           id: 'ShippingService',
@@ -3064,7 +3064,7 @@ describe('getNestedSideBarData', () => {
           ref: 'git://contracts/events/PaymentProcessed.schema.json',
           format: 'jsonschema',
           source: { provider: 'git', path: 'events/PaymentProcessed.schema.json' },
-          message: { collection: 'events', id: 'PaymentProcessed', version: '0.0.1' },
+          message: { collectionName: 'events', id: 'PaymentProcessed', version: '0.0.1' },
         });
         await writeService({
           id: 'ShippingService',
@@ -3148,7 +3148,7 @@ describe('getNestedSideBarData', () => {
           format: 'jsonschema',
           file: 'schema.json',
           source: { provider: 'file', path: 'schema.json' },
-          message: { collection: 'events', id: 'InventoryAdjusted', version: '1.0.0' },
+          message: { collectionName: 'events', id: 'InventoryAdjusted', version: '1.0.0' },
         });
         await writeService({
           id: 'InventoryService',

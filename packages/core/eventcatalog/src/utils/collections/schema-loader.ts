@@ -76,7 +76,7 @@ export type MessageSchemaResource = {
   default?: boolean;
   latest?: boolean;
   message: {
-    collection: MessageCollection;
+    collectionName: MessageCollection;
     id: string;
     name?: string;
     version: string;
@@ -131,8 +131,10 @@ const getSchemaFormat = (schemaPath: string) => {
   return extension || 'unknown';
 };
 
-const buildGeneratedSchemaId = (message: { collection: MessageCollection; id: string; version: string }, schemaPath: string) =>
-  `schema:${message.collection}:${message.id}:${message.version}:${schemaPath}`;
+const buildGeneratedSchemaId = (
+  message: { collectionName: MessageCollection; id: string; version: string },
+  schemaPath: string
+) => `schema:${message.collectionName}:${message.id}:${message.version}:${schemaPath}`;
 
 const getSchemaCollectionId = ({
   message,
@@ -140,7 +142,7 @@ const getSchemaCollectionId = ({
   schemaRef,
   schemaFile,
 }: {
-  message: { collection: MessageCollection; id: string; version: string };
+  message: { collectionName: MessageCollection; id: string; version: string };
   reference: SchemaReference;
   schemaRef?: string;
   schemaFile?: string;
@@ -249,7 +251,7 @@ const buildSchemaSourceErrorMessage = ({
   source: SchemaSource;
   error: unknown;
 }) => {
-  const messageType = getMessageTypeLabel(schema.message.collection);
+  const messageType = getMessageTypeLabel(schema.message.collectionName);
 
   return [
     '',
@@ -268,7 +270,7 @@ const buildSchemaSourceErrorMessage = ({
 const addLatestMetadata = (schemas: MessageSchemaResource[]) => {
   const schemasByMessage = schemas.reduce(
     (acc, schema) => {
-      const key = `${schema.message.collection}:${schema.message.id}`;
+      const key = `${schema.message.collectionName}:${schema.message.id}`;
       acc[key] = [...(acc[key] ?? []), schema];
       return acc;
     },
@@ -284,7 +286,7 @@ const addLatestMetadata = (schemas: MessageSchemaResource[]) => {
   );
 
   return schemas.map((schema) => {
-    const key = `${schema.message.collection}:${schema.message.id}`;
+    const key = `${schema.message.collectionName}:${schema.message.id}`;
     return {
       ...schema,
       latest: schema.message.version === latestVersionsByMessage[key],
@@ -304,7 +306,7 @@ export const getMessageSchemasFromFrontmatter = ({
   if (!data.id || !data.version) return [];
 
   const message = {
-    collection,
+    collectionName: collection,
     id: data.id,
     name: data.name,
     version: data.version,

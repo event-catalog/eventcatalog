@@ -37,7 +37,7 @@ const schemaEntry = ({
     filePath: path.join(__dirname, 'schemas', file),
     latest,
     message: {
-      collection,
+      collectionName: collection,
       id,
       name: `${id} message`,
       version,

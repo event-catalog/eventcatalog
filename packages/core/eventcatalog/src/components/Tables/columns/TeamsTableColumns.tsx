@@ -82,7 +82,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     filterFn: filterByName,
   }),
 
-  columnHelper.accessor('data.source', {
+  columnHelper.accessor((row) => row.data.source, {
     id: 'source',
     header: () => <span>{tableConfiguration.columns?.source?.label || 'Source'}</span>,
     cell: (info) => <DirectorySourceCell source={info.getValue() as { provider: string; url?: string } | undefined} />,

@@ -36,9 +36,9 @@ const getMessagesWithSchemas = (collection: MessageCollection) => {
   const seenMessages = new Set<string>();
 
   return schemas
-    .filter((schema) => schema.data.message.collection === collection)
+    .filter((schema) => schema.data.message.collectionName === collection)
     .map((schema) => {
-      const key = `${schema.data.message.collection}:${schema.data.message.id}:${schema.data.message.version}`;
+      const key = `${schema.data.message.collectionName}:${schema.data.message.id}:${schema.data.message.version}`;
       if (seenMessages.has(key)) return null;
       seenMessages.add(key);
 
@@ -63,7 +63,7 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const formatVersionedItem = (item: (typeof schemas)[number]) => {
     const message = item.data.message;
-    return `- [${message.name || message.id} - ${message.id} - ${message.version}](${baseUrl}/api/schemas/${message.collection}/${message.id}/${message.version})} ${message.summary ? `- ${message.summary.trim()}` : ''}`;
+    return `- [${message.name || message.id} - ${message.id} - ${message.version}](${baseUrl}/api/schemas/${message.collectionName}/${message.id}/${message.version})} ${message.summary ? `- ${message.summary.trim()}` : ''}`;
   };
 
   const formatServiceWithSchema = (item: ServiceWithSchema) => {

@@ -29,7 +29,7 @@ const getSchemasForMessage = (
 ) => {
   return schemas.filter(
     (schema) =>
-      schema.data.message.collection === message.collection &&
+      schema.data.message.collectionName === message.collection &&
       schema.data.message.id === message.data.id &&
       schema.data.message.version === message.data.version
   );

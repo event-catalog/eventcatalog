@@ -4,11 +4,14 @@ const THEME_KEY = 'eventcatalog-theme';
 
 export type Theme = 'light' | 'dark';
 
-export const themeStore = atom<Theme>('dark');
+// Default theme when the user has not explicitly chosen one. This is also the value the
+// store holds during server rendering, so SSR-safe hooks must hydrate against it.
+export const DEFAULT_THEME: Theme = 'dark';
 
-// Default theme when the user has not explicitly chosen one.
+export const themeStore = atom<Theme>(DEFAULT_THEME);
+
 const getDefaultTheme = (): Theme => {
-  return 'dark';
+  return DEFAULT_THEME;
 };
 
 // Apply theme to document via data-theme attribute

@@ -45,7 +45,7 @@ describe('schema-loader', () => {
         environments: undefined,
         default: true,
         message: {
-          collection: 'commands',
+          collectionName: 'commands',
           id: 'CancelShipment',
           name: 'Cancel shipment',
           version: '0.0.1',
@@ -100,7 +100,7 @@ describe('schema-loader', () => {
         environments: ['prod'],
         default: true,
         message: {
-          collection: 'events',
+          collectionName: 'events',
           id: 'ShipmentCancelled',
           name: 'Shipment cancelled',
           version: '1.0.0',
@@ -123,7 +123,7 @@ describe('schema-loader', () => {
         environments: ['uat'],
         default: undefined,
         message: {
-          collection: 'events',
+          collectionName: 'events',
           id: 'ShipmentCancelled',
           name: 'Shipment cancelled',
           version: '1.0.0',
@@ -161,7 +161,7 @@ describe('schema-loader', () => {
         environments: ['prod'],
         default: undefined,
         message: {
-          collection: 'events',
+          collectionName: 'events',
           id: 'ShipmentCancelled',
           name: undefined,
           version: '1.0.0',
@@ -221,7 +221,7 @@ describe('schema-loader', () => {
         environments: undefined,
         default: undefined,
         message: {
-          collection: 'events',
+          collectionName: 'events',
           id: 'OrderPlaced',
           name: undefined,
           version: '1.0.0',
@@ -262,7 +262,7 @@ schemaPath: schema.json
     expect(schemas[0]).toMatchObject({
       id: 'schema:commands:CancelShipment:0.0.1:schema.json',
       message: {
-        collection: 'commands',
+        collectionName: 'commands',
         id: 'CancelShipment',
         name: 'Cancel shipment',
         version: '0.0.1',
@@ -523,7 +523,7 @@ schemas:
       latest: true,
       readOnly: true,
       message: {
-        collection: 'events',
+        collectionName: 'events',
         id: 'OrderPlaced',
         version: '1.0.0',
       },

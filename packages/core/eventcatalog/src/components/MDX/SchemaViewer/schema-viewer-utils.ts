@@ -29,7 +29,7 @@ type CollectionSchema = {
       branch?: string;
     };
     message?: {
-      collection: string;
+      collectionName: string;
       id: string;
       version: string;
     };
@@ -79,7 +79,7 @@ const getCollectionSchemaForViewer = ({
   const resourceSchemas = collectionSchemas.filter((schema) => {
     const message = schema.data.message;
     if (!message) return false;
-    return message.collection === collection && message.id === id && message.version === version;
+    return message.collectionName === collection && message.id === id && message.version === version;
   });
 
   return resourceSchemas.find((schema) => schema.data.default) || resourceSchemas[0];

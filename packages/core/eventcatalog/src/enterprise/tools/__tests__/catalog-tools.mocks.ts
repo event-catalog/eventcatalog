@@ -581,7 +581,7 @@ export const mockSchemas = [
         path: 'schemas/OrderCreated.schema.json',
       },
       message: {
-        collection: 'events',
+        collectionName: 'events',
         id: 'OrderCreated',
         name: 'Order Created',
         version: '1.0.0',

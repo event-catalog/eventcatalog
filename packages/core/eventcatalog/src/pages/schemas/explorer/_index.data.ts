@@ -48,7 +48,7 @@ async function fetchAllSchemas() {
   const messagesWithSchemas = await Promise.all(
     schemaEntries.map(async (schema) => {
       const message = messagesBySchemaReference.get(
-        `${schema.data.message.collection}:${schema.data.message.id}:${schema.data.message.version}`
+        `${schema.data.message.collectionName}:${schema.data.message.id}:${schema.data.message.version}`
       );
       const schemaPath = schema.data.file || schema.data.source.path || '';
       const schemaExtension = path.extname(schemaPath).slice(1) || schema.data.format;
@@ -95,7 +95,7 @@ async function fetchAllSchemas() {
       }
 
       return {
-        collection: schema.data.message.collection,
+        collection: schema.data.message.collectionName,
         data: {
           id: schema.data.message.id,
           name: schema.data.message.name || schema.data.name || schema.data.message.id,

@@ -11,7 +11,7 @@ import { sortVersioned } from '@utils/collections/util';
 const findSchema = async (collection: string | undefined, id: string, version: string | undefined) => {
   const schemas = await getCollection('schemas');
   const matchingSchemas = schemas.filter(
-    (schema) => schema.data.message.collection === collection && schema.data.message.id === id
+    (schema) => schema.data.message.collectionName === collection && schema.data.message.id === id
   );
 
   if (version === 'latest') {
@@ -30,7 +30,7 @@ export async function getStaticPaths() {
   // Generate paths for specific versions
   const versionedPaths = schemas.map((schema) => ({
     params: {
-      collection: schema.data.message.collection,
+      collection: schema.data.message.collectionName,
       id: schema.data.message.id,
       version: schema.data.message.version,
     },
@@ -45,7 +45,7 @@ export async function getStaticPaths() {
     .filter((schema) => schema.data.latest)
     .map((latestSchema) => ({
       params: {
-        collection: latestSchema.data.message.collection,
+        collection: latestSchema.data.message.collectionName,
         id: latestSchema.data.message.id,
         version: 'latest',
       },
