@@ -254,6 +254,68 @@ const mockEntities = [
       ],
     },
   },
+  // Shop entities use the Astro id format generated in production (`${id}-${version}`)
+  {
+    id: 'ShopOrder-1.0.0',
+    slug: 'entities/ShopOrder',
+    collection: 'entities',
+    data: {
+      id: 'ShopOrder',
+      name: 'ShopOrder',
+      version: '1.0.0',
+      identifier: 'orderId',
+      properties: [
+        {
+          name: 'orderId',
+          type: 'UUID',
+          required: true,
+        },
+        {
+          name: 'customer_id',
+          type: 'UUID',
+          required: true,
+          references: 'ShopCustomer',
+          relationType: 'hasOne',
+        },
+      ],
+    },
+  },
+  {
+    id: 'ShopCustomer-1.0.0',
+    slug: 'entities/ShopCustomer',
+    collection: 'entities',
+    data: {
+      id: 'ShopCustomer',
+      name: 'ShopCustomer',
+      version: '1.0.0',
+      identifier: 'customerId',
+      properties: [
+        {
+          name: 'customerId',
+          type: 'UUID',
+          required: true,
+        },
+      ],
+    },
+  },
+  {
+    id: 'ShopCustomer-2.0.0',
+    slug: 'entities/ShopCustomer',
+    collection: 'entities',
+    data: {
+      id: 'ShopCustomer',
+      name: 'ShopCustomer',
+      version: '2.0.0',
+      identifier: 'customerId',
+      properties: [
+        {
+          name: 'customerId',
+          type: 'UUID',
+          required: true,
+        },
+      ],
+    },
+  },
   // Versioned Order entity
   {
     id: 'entities/Order/versioned/200/index.mdx',
@@ -340,6 +402,33 @@ const mockDomains = [
       ],
     },
   },
+  // Domain that owns both sides of a reference
+  {
+    id: 'domains/Shop-1.0.0',
+    slug: 'domains/Shop',
+    collection: 'domains',
+    data: {
+      id: 'Shop',
+      name: 'Shop',
+      version: '1.0.0',
+      entities: [{ id: 'ShopOrder' }, { id: 'ShopCustomer' }],
+    },
+  },
+  // Same as Shop, but pinned to an older version of the referenced entity
+  {
+    id: 'domains/ShopLegacy-1.0.0',
+    slug: 'domains/ShopLegacy',
+    collection: 'domains',
+    data: {
+      id: 'ShopLegacy',
+      name: 'ShopLegacy',
+      version: '1.0.0',
+      entities: [
+        { id: 'ShopOrder', version: '1.0.0' },
+        { id: 'ShopCustomer', version: '1.0.0' },
+      ],
+    },
+  },
 ];
 
 const mockServices = [
@@ -420,6 +509,8 @@ describe('Domain Entity Map NodeGraph', () => {
           domainId: 'Orders',
         },
       });
+      // OrderItem is referenced by Order and owned by the domain, so it is not external
+      expect(orderItemNode.data.externalToDomain).toBeUndefined();
 
       // Check external Customer node
       const customerNode = nodes.find((n: any) => n.data.entity.data.id === 'Customer');
@@ -727,6 +818,53 @@ describe('Domain Entity Map NodeGraph', () => {
       // External entities should be marked correctly
       expect(customerNodes[0].data.externalToDomain).toBe(true);
       expect(paymentNodes[0].data.externalToDomain).toBe(true);
+    });
+
+    it('does not mark or warn about a referenced entity that the domain owns', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Shop', version: '1.0.0' });
+
+      const shopCustomerNodes = nodes.filter((n: any) => n.data.entity.data.id === 'ShopCustomer');
+      expect(shopCustomerNodes).toHaveLength(1);
+      expect(shopCustomerNodes[0]).toMatchObject({
+        id: 'ShopCustomer-2.0.0',
+        data: {
+          domainName: 'Shop',
+          domainId: 'Shop',
+        },
+      });
+      expect(shopCustomerNodes[0].data.externalToDomain).toBeUndefined();
+
+      expect(edges).toHaveLength(1);
+      expect(edges[0]).toMatchObject({
+        source: 'ShopOrder-1.0.0',
+        sourceHandle: 'customer_id-source',
+        target: 'ShopCustomer-2.0.0',
+        targetHandle: 'customerId-target',
+        label: 'hasOne',
+      });
+
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('does not add an external node when the domain pins an older version of a referenced entity it owns', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const { nodes, edges } = await getNodesAndEdges({ id: 'ShopLegacy', version: '1.0.0' });
+
+      const shopCustomerNodes = nodes.filter((n: any) => n.data.entity.data.id === 'ShopCustomer');
+      expect(shopCustomerNodes).toHaveLength(1);
+      expect(shopCustomerNodes[0].id).toBe('ShopCustomer-1.0.0');
+      expect(shopCustomerNodes[0].data.externalToDomain).toBeUndefined();
+
+      expect(edges).toHaveLength(1);
+      expect(edges[0]).toMatchObject({
+        source: 'ShopOrder-1.0.0',
+        target: 'ShopCustomer-1.0.0',
+      });
+
+      expect(warn).not.toHaveBeenCalled();
     });
   });
 });
