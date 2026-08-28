@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.8.4
+
+### Patch Changes
+
+- 5e77f94: fix(core): stop treating entities owned by a domain as external in the entity map
+
 ## 4.8.3
 
 ### Patch Changes
