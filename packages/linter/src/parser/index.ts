@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import matter from 'gray-matter';
 import { CatalogFile } from '../scanner';
+import { locateParseError } from '../utils/locations';
 
 export interface ParsedFile {
   file: CatalogFile;
@@ -12,11 +13,21 @@ export interface ParsedFile {
 export interface ParseError {
   file: CatalogFile;
   error: Error;
+  /** 1-based line of the parse problem, when it could be determined */
+  line?: number;
+  /** 1-based column of the parse problem, when it could be determined */
+  column?: number;
 }
 
 export const parseFrontmatter = async (file: CatalogFile): Promise<ParsedFile | ParseError> => {
+  let fileContent: string;
   try {
-    const fileContent = await fs.readFile(file.path, 'utf-8');
+    fileContent = await fs.readFile(file.path, 'utf-8');
+  } catch (error) {
+    return { file, error: error instanceof Error ? error : new Error(String(error)) };
+  }
+
+  try {
     const { data, content } = matter(fileContent);
 
     return {
@@ -26,9 +37,11 @@ export const parseFrontmatter = async (file: CatalogFile): Promise<ParsedFile | 
       raw: fileContent,
     };
   } catch (error) {
+    const location = locateParseError(fileContent);
     return {
       file,
       error: error instanceof Error ? error : new Error(String(error)),
+      ...(location ? { line: location.line, column: location.column } : {}),
     };
   }
 };

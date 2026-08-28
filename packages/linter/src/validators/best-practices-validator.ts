@@ -7,8 +7,11 @@ export const validateBestPractices = (parsedFiles: ParsedFile[]): ValidationErro
   for (const parsedFile of parsedFiles) {
     const { file, frontmatter, content } = parsedFile;
 
-    // Check for required summary
-    if (!frontmatter.summary || (typeof frontmatter.summary === 'string' && frontmatter.summary.trim() === '')) {
+    // Check for required summary (skip users - the user schema has no summary field)
+    if (
+      file.resourceType !== 'user' &&
+      (!frontmatter.summary || (typeof frontmatter.summary === 'string' && frontmatter.summary.trim() === ''))
+    ) {
       errors.push({
         type: 'schema',
         resource: `${file.resourceType}/${file.resourceId}`,

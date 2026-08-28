@@ -81,18 +81,29 @@ export interface EntityProperty {
 }
 
 export interface ValidationError {
-  type: 'schema' | 'reference';
+  type: 'schema' | 'reference' | 'structure';
   resource: string;
   field?: string;
   message: string;
   file: string;
   line?: number;
+  column?: number;
   severity?: 'error' | 'warning';
   rule?: string;
 }
 
 export interface LinterOptions {
-  rootDir: string;
+  rootDir?: string;
   failOnWarning?: boolean;
+  /** Fail when more than this many warnings are reported (undefined = unlimited) */
+  maxWarnings?: number;
   verbose?: boolean;
+  /** Report errors only */
+  quiet?: boolean;
+  /** Coloured output (set to false by `--no-color`) */
+  color?: boolean;
+  /** Scaffold a config file instead of linting */
+  init?: boolean;
+  /** Overwrite an existing config file (with `init`) */
+  force?: boolean;
 }

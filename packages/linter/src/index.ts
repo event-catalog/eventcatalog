@@ -5,3 +5,7 @@ export * from './parser';
 export * from './validators';
 export * from './reporters';
 export * from './config';
+export * from './rules';
+export * from './init';
+export * from './utils/versions';
+export * from './utils/locations';

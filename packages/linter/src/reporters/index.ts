@@ -8,13 +8,47 @@ export interface ReportSummary {
   schemaErrors: number;
   referenceErrors: number;
   parseErrors: number;
+  /** Files that were scanned and validated (after ignore patterns) */
   filesChecked: number;
+  /** Files skipped because of ignore patterns */
+  filesIgnored: number;
+  /** Files with at least one reported problem */
   filesWithErrors: number;
 }
 
-export const formatError = (error: ValidationError, showFilename: boolean = true): string => {
-  const lineInfo = error.line ? chalk.dim(`:${error.line}:1`) : '';
-  const filename = showFilename ? `${chalk.dim(error.file)}${lineInfo}` : '';
+export interface ReportOptions {
+  verbose?: boolean;
+  /** Only report errors; warnings are dropped from output and counts */
+  quiet?: boolean;
+  /** Number of files that were validated, shown in the summary */
+  filesChecked?: number;
+  /** Number of files skipped by ignore patterns, shown in the summary */
+  filesIgnored?: number;
+}
+
+const plural = (count: number, singular: string, pluralForm = `${singular}s`): string =>
+  `${count} ${count === 1 ? singular : pluralForm}`;
+
+const formatFilesChecked = (filesChecked: number, filesIgnored: number): string =>
+  `  ${plural(filesChecked, 'file')} checked${filesIgnored > 0 ? `, ${plural(filesIgnored, 'file')} ignored` : ''}`;
+
+/** `12:3` style position, or an empty string when the finding has no location */
+export const formatLocation = (error: { line?: number; column?: number }): string =>
+  error.line ? `${error.line}:${error.column ?? 1}` : '';
+
+export interface FormatOptions {
+  /** Prefix the finding with its file path (used when findings are not grouped by file) */
+  showFilename?: boolean;
+  /** Pad the `line:col` prefix to this width so findings in a file line up */
+  locationWidth?: number;
+}
+
+export const formatError = (error: ValidationError, options: FormatOptions | boolean = {}): string => {
+  const { showFilename = true, locationWidth = 0 } = typeof options === 'boolean' ? { showFilename: options } : options;
+
+  const location = formatLocation(error);
+  const filename = showFilename ? chalk.dim(location ? `${error.file}:${location}` : error.file) : '';
+  const position = !showFilename && location ? chalk.dim(location.padStart(locationWidth)) : '';
 
   const isWarning = error.severity === 'warning';
   const severity = isWarning ? chalk.yellow('warning') : chalk.red('error');
@@ -24,6 +58,7 @@ export const formatError = (error: ValidationError, showFilename: boolean = true
 
   const parts = [];
   if (filename) parts.push(filename);
+  if (position) parts.push(position);
   parts.push(icon, severity, error.message, field, chalk.dim(errorCode));
 
   return parts.filter(Boolean).join(' ');
@@ -49,14 +84,20 @@ const getErrorCode = (error: ValidationError): string => {
   return '(@eventcatalog/unknown)';
 };
 
-export const formatParseError = (error: ParseError, showFilename: boolean = true): string => {
-  const filename = showFilename ? chalk.dim(error.file.relativePath) : '';
+export const formatParseError = (error: ParseError, options: FormatOptions | boolean = {}): string => {
+  const { showFilename = true, locationWidth = 0 } = typeof options === 'boolean' ? { showFilename: options } : options;
+
+  const location = formatLocation(error);
+  const filename = showFilename ? chalk.dim(location ? `${error.file.relativePath}:${location}` : error.file.relativePath) : '';
+  const position = !showFilename && location ? chalk.dim(location.padStart(locationWidth)) : '';
   const severity = chalk.red('error');
-  const message = `Parse error: ${error.error.message}`;
+  const firstLine = error.error.message.split('\n')[0].replace(/\s*(?:at|on)? ?line \d+, column \d+:?\s*$/i, '');
+  const message = `Parse error: ${firstLine}`;
   const errorCode = chalk.dim('(@eventcatalog/parse-error)');
 
   const parts = [];
   if (filename) parts.push(filename);
+  if (position) parts.push(position);
   parts.push(chalk.red('✖'), severity, message, errorCode);
 
   return parts.filter(Boolean).join(' ');
@@ -76,20 +117,14 @@ export const groupErrorsByFile = (errors: ValidationError[]): Map<string, Valida
 };
 
 export const reportErrors = (
-  validationErrors: ValidationError[],
+  allValidationErrors: ValidationError[],
   parseErrors: ParseError[],
-  verbose: boolean = false
+  options: ReportOptions | boolean = {}
 ): ReportSummary => {
-  const allErrors = [
-    ...validationErrors,
-    ...parseErrors.map((pe) => ({
-      type: 'parse' as const,
-      resource: pe.file.resourceType || 'unknown',
-      message: pe.error.message,
-      file: pe.file.relativePath,
-      line: undefined,
-    })),
-  ];
+  const resolved: ReportOptions = typeof options === 'boolean' ? { verbose: options } : options;
+  const { quiet = false, filesChecked = 0, filesIgnored = 0 } = resolved;
+
+  const validationErrors = quiet ? allValidationErrors.filter((e) => e.severity !== 'warning') : allValidationErrors;
 
   const schemaErrors = validationErrors.filter((e) => e.type === 'schema');
   const referenceErrors = validationErrors.filter((e) => e.type === 'reference');
@@ -100,13 +135,15 @@ export const reportErrors = (
 
   if (totalErrors === 0 && totalWarnings === 0) {
     console.log(chalk.green('✔ No problems found!'));
+    console.log(chalk.dim(formatFilesChecked(filesChecked, filesIgnored)));
     return {
       totalErrors: 0,
       totalWarnings: 0,
       schemaErrors: 0,
       referenceErrors: 0,
       parseErrors: 0,
-      filesChecked: 0,
+      filesChecked,
+      filesIgnored,
       filesWithErrors: 0,
     };
   }
@@ -128,36 +165,45 @@ export const reportErrors = (
     // File header (ESLint-style)
     console.log(chalk.underline(file));
 
+    // Align the line:col prefixes within the file
+    const locationWidth = Math.max(
+      0,
+      ...fileParseErrors.map((error) => formatLocation(error).length),
+      ...fileErrors.map((error) => formatLocation(error).length)
+    );
+
     // Parse errors first
     for (const error of fileParseErrors) {
-      console.log(`  ${formatParseError(error, false)}`);
+      console.log(`  ${formatParseError(error, { showFilename: false, locationWidth })}`);
     }
 
-    // Then validation errors
-    for (const error of fileErrors) {
-      console.log(`  ${formatError(error, false)}`);
+    // Then validation errors, in source order
+    const sortedErrors = [...fileErrors].sort((a, b) => (a.line ?? 0) - (b.line ?? 0) || (a.column ?? 0) - (b.column ?? 0));
+    for (const error of sortedErrors) {
+      console.log(`  ${formatError(error, { showFilename: false, locationWidth })}`);
     }
 
     // File summary
     const fileWarnings = fileErrors.filter((e) => e.severity === 'warning').length;
     const fileActualErrors = fileErrorCount - fileWarnings;
-    const problemText = fileErrorCount === 1 ? 'problem' : 'problems';
     const summaryColor = fileActualErrors > 0 ? chalk.red : chalk.yellow;
     const summaryIcon = fileActualErrors > 0 ? '✖' : '⚠';
-    console.log(summaryColor(`\n${summaryIcon} ${fileErrorCount} ${problemText}\n`));
+    console.log(summaryColor(`\n${summaryIcon} ${plural(fileErrorCount, 'problem')}\n`));
   }
 
   // Overall summary (ESLint-style)
   const filesWithErrors = allFiles.size;
   const totalProblems = totalErrors + totalWarnings;
-  const problemText = totalProblems === 1 ? 'problem' : 'problems';
-  const fileText = filesWithErrors === 1 ? 'file' : 'files';
 
   const summaryColor = totalErrors > 0 ? chalk.red.bold : chalk.yellow.bold;
   const summaryIcon = totalErrors > 0 ? '✖' : '⚠';
 
-  console.log(summaryColor(`${summaryIcon} ${totalProblems} ${problemText} (${totalErrors} errors, ${totalWarnings} warnings)`));
-  console.log(chalk.dim(`  ${filesWithErrors} ${fileText} checked`));
+  console.log(
+    summaryColor(
+      `${summaryIcon} ${plural(totalProblems, 'problem')} (${plural(totalErrors, 'error')}, ${plural(totalWarnings, 'warning')}) in ${plural(filesWithErrors, 'file')}`
+    )
+  );
+  console.log(chalk.dim(formatFilesChecked(filesChecked, filesIgnored)));
 
   return {
     totalErrors,
@@ -165,7 +211,8 @@ export const reportErrors = (
     schemaErrors: schemaErrors.length,
     referenceErrors: referenceErrors.length,
     parseErrors: parseErrors.length,
-    filesChecked: allFiles.size,
+    filesChecked,
+    filesIgnored,
     filesWithErrors,
   };
 };

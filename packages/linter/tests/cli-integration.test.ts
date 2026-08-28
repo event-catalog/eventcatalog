@@ -294,7 +294,7 @@ version: 1.0.0
     const result = await runLinter();
 
     // Check that files were processed correctly
-    expect(result.stdout).toContain('file checked'); // Should check files (exact count may vary)
+    expect(result.stdout).toMatch(/files? checked/); // Should check files (exact count may vary)
   });
 
   it('does not report missing service message references when they are declared as external dependencies in an ESM eventcatalog.config.js', async () => {
@@ -317,7 +317,6 @@ export default {
       `---
 id: catalog-owner
 name: Catalog Owner
-summary: Owns the catalog
 ---
 # Catalog Owner
 `
@@ -328,6 +327,7 @@ summary: Owns the catalog
       `---
 id: oms-scs
 name: OMS SCS
+version: 1.0.0
 summary: OMS SCS
 owners:
   - catalog-owner
@@ -344,6 +344,132 @@ receives:
     expect(result.success).toBe(true);
     expect(result.stdout).not.toContain('Referenced event/command/query');
     expect(result.stdout).toContain('2 files checked');
+  });
+
+  it('warns about unrecognised markdown files without failing the run', async () => {
+    createServiceFile(
+      'user-service',
+      `---
+id: user-service
+name: User Service
+version: 1.0.0
+summary: Manages users
+owners:
+  - catalog-owner
+---
+# User Service
+`
+    );
+    createUserFile('catalog-owner', `---\nid: catalog-owner\nname: Catalog Owner\n---\n# Catalog Owner\n`);
+    fs.writeFileSync(
+      path.join(eventsDir, 'UserCreated.mdx'),
+      `---\nid: UserCreated\nname: User Created\nversion: 1.0.0\n---\n# User Created\n`
+    );
+
+    const result = await runLinter();
+
+    expect(result.success).toBe(true);
+    expect(result.stdout).toContain('events/UserCreated.mdx');
+    expect(result.stdout).toContain('Did you mean "events/UserCreated/index.mdx"?');
+    expect(result.stdout).toContain('(structure/unrecognised-file)');
+    expect(result.stdout).toMatch(/1 warnings?/);
+  });
+
+  it('fails on unrecognised files when --fail-on-warning is used', async () => {
+    fs.writeFileSync(
+      path.join(eventsDir, 'UserCreated.mdx'),
+      `---\nid: UserCreated\nname: User Created\nversion: 1.0.0\n---\n# User Created\n`
+    );
+
+    const result = await runLinter('--fail-on-warning');
+
+    expect(result.success).toBe(false);
+    expect(result.stdout).toContain('(structure/unrecognised-file)');
+  });
+
+  it('allows structure/unrecognised-file to be turned off', async () => {
+    fs.writeFileSync(configPath, `module.exports = { rules: { 'structure/unrecognised-file': 'off' } };`);
+    fs.writeFileSync(
+      path.join(eventsDir, 'UserCreated.mdx'),
+      `---\nid: UserCreated\nname: User Created\nversion: 1.0.0\n---\n# User Created\n`
+    );
+
+    const result = await runLinter('--fail-on-warning');
+
+    expect(result.success).toBe(true);
+    expect(result.stdout).not.toContain('structure/unrecognised-file');
+  });
+
+  it('reports scanned and ignored file counts in the summary', async () => {
+    fs.writeFileSync(configPath, `module.exports = { ignorePatterns: ['drafts/**'] };`);
+    createServiceFile('user-service', `---\nid: user-service\nname: User Service\nversion: 1.0.0\n---\n# x\n`);
+    createServiceFile('order-service', `---\nid: order-service\nname: Order Service\nversion: 1.0.0\n---\n# x\n`);
+    fs.mkdirSync(path.join(tempDir, 'drafts', 'events', 'DraftEvent'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tempDir, 'drafts', 'events', 'DraftEvent', 'index.mdx'),
+      `---\nid: DraftEvent\nname: Draft\nversion: 1.0.0\n---\n# x\n`
+    );
+
+    const result = await runLinter();
+
+    expect(result.success).toBe(false);
+    // Both services fail (no summary/owners) but the count reflects files scanned, not files with problems
+    expect(result.stdout).toMatch(/\(\d+ errors?, \d+ warnings?\) in 2 files/);
+    expect(result.stdout).toContain('2 files checked, 1 file ignored');
+    expect(result.stdout).not.toContain('DraftEvent');
+  });
+
+  it('hides warnings with --quiet', async () => {
+    createServiceFile(
+      'user-service',
+      `---\nid: user-service\nname: User Service\nversion: 1.0.0\nsummary: s\nowners:\n  - catalog-owner\n---\n`
+    );
+    createUserFile('catalog-owner', `---\nid: catalog-owner\nname: Catalog Owner\n---\n# Catalog Owner\n`);
+
+    const normal = await runLinter();
+    expect(normal.success).toBe(true);
+    expect(normal.stdout).toContain('best-practices/description-required');
+
+    const quiet = await runLinter('--quiet');
+    expect(quiet.success).toBe(true);
+    expect(quiet.stdout).not.toContain('best-practices/description-required');
+    expect(quiet.stdout).toContain('No problems found');
+  });
+
+  it('fails when warnings exceed --max-warnings', async () => {
+    createServiceFile(
+      'user-service',
+      `---\nid: user-service\nname: User Service\nversion: 1.0.0\nsummary: s\nowners:\n  - catalog-owner\n---\n`
+    );
+    createUserFile('catalog-owner', `---\nid: catalog-owner\nname: Catalog Owner\n---\n# Catalog Owner\n`);
+
+    const allowed = await runLinter('--max-warnings 5');
+    expect(allowed.success).toBe(true);
+
+    const exceeded = await runLinter('--max-warnings 0');
+    expect(exceeded.success).toBe(false);
+    expect(exceeded.stdout).toContain('maximum allowed: 0');
+
+    const invalid = await runLinter('--max-warnings nope');
+    expect(invalid.success).toBe(false);
+    expect(invalid.stderr).toContain('must be a non-negative integer');
+
+    for (const malformed of ['1.5', '2oops', '0x']) {
+      const result = await runLinter(`--max-warnings ${malformed}`);
+      expect(result.success, malformed).toBe(false);
+      expect(result.stderr, malformed).toContain('must be a non-negative integer');
+    }
+  });
+
+  it('keeps progress output off stdout and reports the package version', async () => {
+    createServiceFile('user-service', `---\nid: user-service\nname: User Service\nversion: 1.0.0\n---\n# x\n`);
+
+    const result = await runLinter();
+    expect(result.stdout).not.toContain('Loading configuration');
+    expect(result.stderr).not.toContain('Loading configuration');
+
+    const version = await runLinter('--version');
+    expect(version.stdout.trim()).toBe(JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8')).version);
   });
 
   it('resolves owners from federated catalogs', async () => {

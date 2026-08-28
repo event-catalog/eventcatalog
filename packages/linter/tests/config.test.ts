@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import {
   loadConfig,
+  loadConfigAsync,
   loadEventCatalogConfig,
   shouldIgnoreFile,
   getEffectiveRules,
@@ -82,6 +83,19 @@ describe('Configuration', () => {
         ignorePatterns: DEFAULT_IGNORE_PATTERNS,
         overrides: [],
       });
+    });
+
+    it('should load ESM config in a type module catalog', async () => {
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify({ type: 'module' }));
+      fs.writeFileSync(
+        configPath,
+        `export default { rules: { 'schema/required-fields': 'warn' }, ignorePatterns: ['generated/**'] };`
+      );
+
+      const config = await loadConfigAsync(tempDir);
+
+      expect(config.rules['schema/required-fields']).toBe('warn');
+      expect(config.ignorePatterns).toEqual([...DEFAULT_IGNORE_PATTERNS, 'generated/**']);
     });
   });
 

@@ -458,7 +458,8 @@
       "version": "1.0.0",
       "name": "Cart Database",
       "contentPath": "domains/Shopping/systems/cart-system/containers/cart-database/index.mdx",
-      "contentHash": "sha256:3b082f0171336745026db5179d7a1584c670c94e67dd182fa1d4532850ab933d",
+      "contentHash": "sha256:cd71688985bff8be305f937e58a891d06b072762fafa6d2ddf8a54add379f5b1",
+      "owners": ["shopping-platform"],
       "sidecars": [
         {
           "path": "domains/Shopping/systems/cart-system/containers/cart-database/schema.sql",
@@ -473,7 +474,8 @@
       "version": "1.0.0",
       "name": "Customer Database",
       "contentPath": "domains/Customer/systems/customer-management-system/containers/customer-database/index.mdx",
-      "contentHash": "sha256:f32c04a27f81c85b8d4419fbd24d76bb0420500d9c4bee5437f58727a5939f01",
+      "contentHash": "sha256:c4fb3d4d167d948525b705499c77d6eca2a02f9b71dc17c0fa78b77f9f558894",
+      "owners": ["customer-platform"],
       "sidecars": [
         {
           "path": "domains/Customer/systems/customer-management-system/containers/customer-database/schema.sql",
@@ -488,7 +490,8 @@
       "version": "1.0.0",
       "name": "Inventory Database",
       "contentPath": "domains/Fulfilment/systems/inventory-system/containers/inventory-database/index.mdx",
-      "contentHash": "sha256:41ad98e6c93d6bd9f275846a1166fda1b5791992f5b8128224efef5f915f37bc",
+      "contentHash": "sha256:871eb2bfd4ef9f634b98252dfbfa8738bd8d42351a25a852f021b8c09763ca85",
+      "owners": ["fulfilment-platform"],
       "sidecars": [
         {
           "path": "domains/Fulfilment/systems/inventory-system/containers/inventory-database/schema.sql",
@@ -503,7 +506,8 @@
       "version": "1.0.0",
       "name": "Order Database",
       "contentPath": "domains/Ordering/systems/order-management-system/containers/order-database/index.mdx",
-      "contentHash": "sha256:7e58b7891804c1c9ed7cf38f7ad0b3fb7f1e931fbcf3a9961dd1707b65b9d9b6",
+      "contentHash": "sha256:feacdc64ff9e17de5ae71d658950893b104bfa751f502404499d4e36e61f7c9f",
+      "owners": ["ordering-platform"],
       "sidecars": [
         {
           "path": "domains/Ordering/systems/order-management-system/containers/order-database/schema.sql",
@@ -518,7 +522,8 @@
       "version": "1.0.0",
       "name": "Payment Database",
       "contentPath": "domains/Payments/systems/payment-processing-system/containers/payment-database/index.mdx",
-      "contentHash": "sha256:6d69bde6873683e95e6311ed6832dc4146e90acdc61ba46e15536336de2a21d8",
+      "contentHash": "sha256:a21c0af4604fab4a0a8a6ae4c913df9c62514964a23aff4267f25bd6a27df109",
+      "owners": ["payments-platform"],
       "sidecars": [
         {
           "path": "domains/Payments/systems/payment-processing-system/containers/payment-database/schema.sql",
@@ -533,7 +538,8 @@
       "version": "1.0.0",
       "name": "Product Database",
       "contentPath": "domains/Catalog/systems/product-catalog-system/containers/product-database/index.mdx",
-      "contentHash": "sha256:656370626ce89688446e15b64e6450df5d612aae1a2ae5a670ce643df04587fa",
+      "contentHash": "sha256:d8353b4d5c5f7fff4c2472a388911b022fad23140c8fa663f618e0cf18be0f80",
+      "owners": ["product-platform"],
       "sidecars": [
         {
           "path": "domains/Catalog/systems/product-catalog-system/containers/product-database/schema.sql",
@@ -548,7 +554,8 @@
       "version": "1.0.0",
       "name": "Promotion Database",
       "contentPath": "domains/Shopping/systems/promotion-system/containers/promotion-database/index.mdx",
-      "contentHash": "sha256:9e048fe0abcc585a36c963a19e71a5ec1f2b0114e1c5fcb356c2491ff806c90d",
+      "contentHash": "sha256:2b4eeb0c8d926f3fd34df5c9e707fa45b80a2e6847d4c1ac924854811f393aeb",
+      "owners": ["shopping-platform"],
       "sidecars": [
         {
           "path": "domains/Shopping/systems/promotion-system/containers/promotion-database/schema.sql",
@@ -563,7 +570,8 @@
       "version": "1.0.0",
       "name": "Rating Cache",
       "contentPath": "domains/Reviews/containers/rating-cache/index.mdx",
-      "contentHash": "sha256:1854e2ef4b8f95b217b29c561a6a8d2efbfbc4280c3f8b75c7c0173009ae6b90",
+      "contentHash": "sha256:40ed9a3678c69653c7f652edbe70d3fb7f672877cc0f4a490f2bf2eac83c5871",
+      "owners": ["reviews-platform"],
       "container_type": "cache"
     },
     {
@@ -572,7 +580,8 @@
       "version": "1.0.0",
       "name": "Review Database",
       "contentPath": "domains/Reviews/containers/review-database/index.mdx",
-      "contentHash": "sha256:d7a520e101b9f287524b628fbacd1e10271e7bb6c21b32e96f68479247f8c8cd",
+      "contentHash": "sha256:1d21389e38bd3684a351a3501e84d3e33aa3b06e4245a26f98d99a3dab314a9d",
+      "owners": ["reviews-platform"],
       "container_type": "database"
     },
     {
@@ -581,7 +590,8 @@
       "version": "1.0.0",
       "name": "Search Index",
       "contentPath": "domains/Catalog/systems/search-system/containers/search-index/index.mdx",
-      "contentHash": "sha256:8af9927731b60a0657904416370dd698f98f253f7f49425fb9bb510b5c7a271d",
+      "contentHash": "sha256:9bd7574da5acbb010f8c611022cb24d1c2eff83eec85dea2cc0c210055e28293",
+      "owners": ["search-platform"],
       "container_type": "searchIndex"
     },
     {
@@ -590,7 +600,8 @@
       "version": "1.0.0",
       "name": "User Directory",
       "contentPath": "domains/Customer/systems/identity-provider/containers/user-directory/index.mdx",
-      "contentHash": "sha256:34495ce55684f685325fd28eb73c0ea1bc0eb3ab069484d9bc64a31e5801735f",
+      "contentHash": "sha256:a4585f2a1f145f205b06bc272389f072e43c0ab9b6ccb4c20c596b726a26d251",
+      "owners": ["customer-platform"],
       "container_type": "database"
     },
     {
@@ -599,7 +610,8 @@
       "version": "1.0.0",
       "name": "Warehouse Database",
       "contentPath": "domains/Fulfilment/systems/warehouse-system/containers/warehouse-database/index.mdx",
-      "contentHash": "sha256:925bbf32084f53fdc5612fda1f4524b3fdc3755ac5d5014aabfe934a2542aa56",
+      "contentHash": "sha256:3273258ff4906176506284340c6b5fa2258e53d21a62160bcd9116acc0c4cb0f",
+      "owners": ["fulfilment-platform"],
       "sidecars": [
         {
           "path": "domains/Fulfilment/systems/warehouse-system/containers/warehouse-database/schema.sql",

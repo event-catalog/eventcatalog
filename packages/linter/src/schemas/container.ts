@@ -14,6 +14,7 @@ export const containerSchema = z
       'other',
     ]),
     technology: z.string().optional(),
+    purpose: z.string().optional(),
     authoritative: z.boolean().optional().default(false),
     access_mode: z.enum(['read', 'write', 'readWrite', 'appendOnly']).optional(),
     classification: z.enum(['public', 'internal', 'confidential', 'regulated']).optional(),

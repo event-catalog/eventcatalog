@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidVersionReference } from '../utils/versions';
 
 export const badgeSchema = z.object({
   content: z.string(),
@@ -115,11 +116,18 @@ export const sendsPointerSchema = z.object({
     .optional(),
 });
 
+export const triggersPointerSchema = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  condition: z.string().optional(),
+});
+
 export const receivesPointerSchema = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
   fields: z.array(z.string()).optional(),
   group: z.string().optional(),
+  triggers: z.array(triggersPointerSchema).optional(),
   from: z
     .array(
       channelPointerSchema.extend({
@@ -131,27 +139,14 @@ export const receivesPointerSchema = z.object({
 
 export const resourceReferenceSchema = pointerSchema;
 
-export const semverSchema = z.string().refine((version) => {
-  // Allow common patterns used in EventCatalog
-  if (version === 'latest') return true;
-
-  // Allow x patterns like 0.0.x, 1.x, 2.1.x but not x.x.x
-  if (version.includes('.x')) {
-    const xPattern = /^\d+(\.\d+)*\.x$/;
-    return xPattern.test(version);
-  }
-
-  // Allow semver ranges like ^1.0.0, ~1.2.0
-  if (version.startsWith('^') || version.startsWith('~')) {
-    const rangeVersion = version.substring(1);
-    const semverRegex = /^\d+\.\d+\.\d+(-[\w\d-.]+)?(\+[\w\d-.]+)?$/;
-    return semverRegex.test(rangeVersion);
-  }
-
-  // For strict semver, use a regex that matches the semver spec
-  const semverRegex = /^\d+\.\d+\.\d+(-[\w\d-.]+)?(\+[\w\d-.]+)?$/;
-  return semverRegex.test(version);
-}, 'Invalid semantic version format');
+/**
+ * Accepts every version format EventCatalog core understands: strict semver (`1.2.3`),
+ * number-like versions (`1`, `1.2`, `v1`, `V2.1`), `latest`, and semver ranges
+ * (`^1.0.0`, `~1.2.0`, `1.x`, `0.0.x`).
+ */
+export const semverSchema = z
+  .string()
+  .refine((version) => version.trim() !== '' && isValidVersionReference(version), 'Invalid semantic version format');
 
 export const sidebarSchema = z
   .object({
