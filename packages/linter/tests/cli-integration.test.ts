@@ -453,6 +453,12 @@ owners:
     const invalid = await runLinter('--max-warnings nope');
     expect(invalid.success).toBe(false);
     expect(invalid.stderr).toContain('must be a non-negative integer');
+
+    for (const malformed of ['1.5', '2oops', '0x']) {
+      const result = await runLinter(`--max-warnings ${malformed}`);
+      expect(result.success, malformed).toBe(false);
+      expect(result.stderr, malformed).toContain('must be a non-negative integer');
+    }
   });
 
   it('keeps progress output off stdout and reports the package version', async () => {

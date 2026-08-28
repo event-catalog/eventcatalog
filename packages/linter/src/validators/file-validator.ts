@@ -40,8 +40,6 @@ export interface FileReference {
 
 const FILE_REF_PREFIX = 'file://';
 
-const isRemote = (value: string): boolean => /^[a-z][a-z0-9+.-]*:\/\//i.test(value) && !value.startsWith(FILE_REF_PREFIX);
-
 const asString = (value: unknown): string | undefined => (typeof value === 'string' && value.trim() !== '' ? value : undefined);
 
 /** Resolves `file://` schema refs the same way core does. Returns undefined for anything else. */
@@ -78,7 +76,7 @@ export const extractFileReferences = (parsedFile: ParsedFile, options: FileExist
 
   const addLocal = (field: string, value: unknown, kind: FileReferenceKind) => {
     const str = asString(value);
-    if (!str || isRemote(str)) return;
+    if (!str) return;
     references.push({ field, value: str, resolvedPath: path.resolve(resourceDir, str), kind });
   };
 

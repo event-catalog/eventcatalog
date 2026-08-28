@@ -6,7 +6,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { generateConfig, initConfig, detectModuleFormat, ConfigExistsError, CONFIG_FILE_NAME } from '../src/init';
 import { RULES, RULE_NAMES } from '../src/rules';
-import { DEFAULT_RULES, loadConfig } from '../src/config';
+import { DEFAULT_RULES, loadConfig, loadConfigAsync } from '../src/config';
 
 const execAsync = promisify(exec);
 
@@ -121,6 +121,16 @@ describe('initConfig', () => {
   it('honours an explicit format', async () => {
     const result = await initConfig(rootDir, { format: 'esm' });
     expect(fs.readFileSync(result.configPath, 'utf-8')).toContain('export default {');
+  });
+
+  it('writes an ESM config that the linter can load in a type module catalog', async () => {
+    fs.writeFileSync(path.join(rootDir, 'package.json'), JSON.stringify({ type: 'module' }));
+
+    const result = await initConfig(rootDir);
+    const loaded = await loadConfigAsync(rootDir);
+
+    expect(result.format).toBe('esm');
+    expect(loaded.rules).toEqual(DEFAULT_RULES);
   });
 });
 

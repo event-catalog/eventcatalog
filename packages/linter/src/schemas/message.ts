@@ -13,6 +13,8 @@ const messageDetailsPanelSchema = z
   .object({
     producers: detailPanelPropertySchema,
     consumers: detailPanelPropertySchema,
+    triggers: detailPanelPropertySchema,
+    triggeredBy: detailPanelPropertySchema,
     channels: detailPanelPropertySchema,
     versions: detailPanelPropertySchema,
     repository: detailPanelPropertySchema,

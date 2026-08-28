@@ -107,6 +107,24 @@ describe('collectUnknownKeys', () => {
     expect(unknown.map((u) => u.path)).toEqual(['detailsPanel.ownerz']);
   });
 
+  it('accepts every message details panel field supported by core', () => {
+    for (const resourceType of ['event', 'command', 'query'] as const) {
+      const unknown = collectUnknownKeys(schemas[resourceType], {
+        id: 'order-message',
+        name: 'Order Message',
+        version: '1.0.0',
+        detailsPanel: {
+          producers: { visible: true },
+          consumers: { visible: true },
+          triggers: { visible: true },
+          triggeredBy: { visible: true },
+        },
+      });
+
+      expect(unknown, resourceType).toEqual([]);
+    }
+  });
+
   it('resolves the matching branch of a union (object form of specifications)', () => {
     const unknown = collectUnknownKeys(schemas.service, {
       ...validService,

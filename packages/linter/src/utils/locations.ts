@@ -52,7 +52,7 @@ export const parseFieldPath = (field: string): (string | number)[] => {
     if (match[2] !== undefined) {
       tokens.push(Number(match[2]));
     } else {
-      tokens.push(match[1]);
+      tokens.push(/^\d+$/.test(match[1]) ? Number(match[1]) : match[1]);
     }
   }
   return tokens;

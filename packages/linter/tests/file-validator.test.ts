@@ -123,8 +123,7 @@ describe('file-validator', () => {
         'specifications.asyncapiPath',
         'specifications.graphqlPath',
       ]);
-      // Remote specification is skipped
-      expect(extractFileReferences(arrayForm).map((r) => r.field)).toEqual(['specifications[0].path']);
+      expect(extractFileReferences(arrayForm).map((r) => r.field)).toEqual(['specifications[0].path', 'specifications[1].path']);
     });
 
     it('resolves data product contract paths', () => {
@@ -167,13 +166,14 @@ describe('file-validator', () => {
       );
     });
 
-    it('skips remote schema paths and empty values', () => {
+    it('treats URL-looking local path fields as filesystem paths and skips empty values', () => {
       const parsedFile = createParsedFile('events/OrderCreated/index.mdx', 'event', {
         schemaPath: 'https://schemas.example.com/order-created.json',
-        schemas: [{ file: '   ' }],
+        schemas: [{ file: 'https://schemas.example.com/order-v2.json' }, { file: '   ' }],
       });
 
-      expect(extractFileReferences(parsedFile)).toEqual([]);
+      expect(extractFileReferences(parsedFile).map((reference) => reference.field)).toEqual(['schemaPath', 'schemas[0].file']);
+      expect(validateFileReferencesForFile(parsedFile).map((error) => error.field)).toEqual(['schemaPath', 'schemas[0].file']);
     });
   });
 

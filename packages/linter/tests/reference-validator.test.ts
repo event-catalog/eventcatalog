@@ -264,6 +264,41 @@ describe('validateReferences', () => {
     expect(errors).toHaveLength(0);
   });
 
+  it('should validate message references nested under receives triggers', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('service', 'order-service', {
+        id: 'order-service',
+        version: '1.0.0',
+        receives: [
+          {
+            id: 'create-order',
+            triggers: [{ id: 'order-created', version: '2.0.0' }, { id: 'missing-event' }],
+          },
+        ],
+      }),
+      createParsedFile('command', 'create-order', { id: 'create-order', version: '1.0.0' }),
+      createParsedFile('event', 'order-created', { id: 'order-created', version: '1.0.0' }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+
+    expect(errors).toHaveLength(2);
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'receives[0].triggers[0]',
+          rule: 'refs/valid-version-range',
+          message: expect.stringContaining('does not have a version matching "2.0.0"'),
+        }),
+        expect.objectContaining({
+          field: 'receives[0].triggers[1]',
+          rule: 'refs/resource-exists',
+          message: expect.stringContaining('missing-event'),
+        }),
+      ])
+    );
+  });
+
   it('should validate domain references to agents, systems, data products, and flows', () => {
     const parsedFiles: ParsedFile[] = [
       createParsedFile('domain', 'sales', {

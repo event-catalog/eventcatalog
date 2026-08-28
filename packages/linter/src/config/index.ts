@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { pathToFileURL } from 'url';
 import { ValidationError } from '../types';
 import { RULES } from '../rules';
 
@@ -98,38 +99,60 @@ export const loadEventCatalogConfig = (rootDir: string): CatalogDependencies => 
   }
 };
 
+const defaultConfig = (): LinterConfig => ({
+  rules: DEFAULT_RULES,
+  ignorePatterns: DEFAULT_IGNORE_PATTERNS,
+  overrides: [],
+});
+
+const mergeConfig = (config: Record<string, any>): LinterConfig => ({
+  rules: { ...DEFAULT_RULES, ...config.rules },
+  ignorePatterns: [...DEFAULT_IGNORE_PATTERNS, ...(config.ignorePatterns || [])],
+  overrides: config.overrides || [],
+});
+
+const errorMessage = (error: unknown): string => {
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return String(error);
+};
+
+/** Loads CommonJS configs synchronously for backwards compatibility. */
 export const loadConfig = (rootDir: string): LinterConfig => {
   const configPath = path.join(rootDir, '.eventcatalogrc.js');
 
   if (!fs.existsSync(configPath)) {
-    // Return default config if no config file exists
-    return {
-      rules: DEFAULT_RULES,
-      ignorePatterns: DEFAULT_IGNORE_PATTERNS,
-      overrides: [],
-    };
+    return defaultConfig();
   }
 
   try {
-    // Clear module cache to ensure fresh load
     delete require.cache[require.resolve(configPath)];
-    const config = unwrapDefaultExport(require(configPath));
-
-    // Merge with defaults
-    const mergedConfig: LinterConfig = {
-      rules: { ...DEFAULT_RULES, ...config.rules },
-      ignorePatterns: [...DEFAULT_IGNORE_PATTERNS, ...(config.ignorePatterns || [])],
-      overrides: config.overrides || [],
-    };
-
-    return mergedConfig;
+    return mergeConfig(unwrapDefaultExport(require(configPath)));
   } catch (error) {
-    console.warn(`Warning: Could not load .eventcatalogrc.js: ${error instanceof Error ? error.message : String(error)}`);
-    return {
-      rules: DEFAULT_RULES,
-      ignorePatterns: DEFAULT_IGNORE_PATTERNS,
-      overrides: [],
-    };
+    console.warn(`Warning: Could not load .eventcatalogrc.js: ${errorMessage(error)}`);
+    return defaultConfig();
+  }
+};
+
+/** Loads CommonJS or ESM configs asynchronously on every supported Node version. */
+export const loadConfigAsync = async (rootDir: string): Promise<LinterConfig> => {
+  const configPath = path.join(rootDir, '.eventcatalogrc.js');
+
+  if (!fs.existsSync(configPath)) {
+    return defaultConfig();
+  }
+
+  try {
+    // Clear the CommonJS cache and add the mtime to the URL so repeated loads see edits.
+    delete require.cache[require.resolve(configPath)];
+    const configUrl = pathToFileURL(configPath);
+    configUrl.searchParams.set('mtime', String(fs.statSync(configPath).mtimeMs));
+    const config = unwrapDefaultExport(await import(configUrl.href));
+    return mergeConfig(config);
+  } catch (error) {
+    console.warn(`Warning: Could not load .eventcatalogrc.js: ${errorMessage(error)}`);
+    return defaultConfig();
   }
 };
 

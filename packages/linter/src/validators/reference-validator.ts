@@ -97,6 +97,14 @@ const addReferences = (references: ReferenceInfo[], values: unknown, possibleTyp
   });
 };
 
+const addTriggerReferences = (references: ReferenceInfo[], receives: unknown): void => {
+  if (!Array.isArray(receives)) return;
+  receives.forEach((receive, receiveIndex) => {
+    if (!receive || typeof receive !== 'object') return;
+    addReferences(references, (receive as Record<string, unknown>).triggers, MESSAGE_TYPES, `receives[${receiveIndex}].triggers`);
+  });
+};
+
 const addTypedReference = (references: ReferenceInfo[], value: unknown, field: string): void => {
   if (!value || typeof value !== 'object') return;
   const resourceType = normalizeResourceType((value as Record<string, unknown>).type);
@@ -307,11 +315,13 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
     addReferences(references, frontmatter.flows, ['flow'], 'flows');
     addReferences(references, frontmatter.sends, MESSAGE_TYPES, 'sends');
     addReferences(references, frontmatter.receives, MESSAGE_TYPES, 'receives');
+    addTriggerReferences(references, frontmatter.receives);
   }
 
   if (file.resourceType === 'service' || file.resourceType === 'agent') {
     addReferences(references, frontmatter.sends, MESSAGE_TYPES, 'sends');
     addReferences(references, frontmatter.receives, MESSAGE_TYPES, 'receives');
+    addTriggerReferences(references, frontmatter.receives);
     addReferences(references, frontmatter.writesTo, ['container'], 'writesTo');
     addReferences(references, frontmatter.readsFrom, ['container'], 'readsFrom');
     addReferences(references, frontmatter.flows, ['flow'], 'flows');

@@ -10,7 +10,7 @@ import { parseAllFiles } from '../parser';
 import { validateCatalog, validateUnrecognisedFiles } from '../validators';
 import { reportErrors } from '../reporters';
 import { LinterOptions } from '../types';
-import { loadConfig, loadEventCatalogConfig, shouldIgnoreFile, getEffectiveRules, applyRuleSeverity } from '../config';
+import { loadConfigAsync, loadEventCatalogConfig, shouldIgnoreFile, getEffectiveRules, applyRuleSeverity } from '../config';
 import { attachLocations } from '../utils/locations';
 import { initConfig, ConfigExistsError, CONFIG_FILE_NAME } from '../init';
 
@@ -24,8 +24,8 @@ const readVersion = (): string => {
 };
 
 const parseMaxWarnings = (value: string): number => {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed) || parsed < 0) {
+  const parsed = Number(value);
+  if (!/^\d+$/.test(value) || !Number.isSafeInteger(parsed)) {
     throw new InvalidArgumentError('must be a non-negative integer');
   }
   return parsed;
@@ -86,7 +86,7 @@ program
 
     try {
       // Load configuration
-      const config = loadConfig(rootDir);
+      const config = await loadConfigAsync(rootDir);
       const dependencies = loadEventCatalogConfig(rootDir);
       const ignorePatterns = config.ignorePatterns || [];
 

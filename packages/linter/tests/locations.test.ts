@@ -61,6 +61,7 @@ describe('parseFieldPath', () => {
   it('splits dotted and indexed paths', () => {
     expect(parseFieldPath('sends[0].to[1].id')).toEqual(['sends', 0, 'to', 1, 'id']);
     expect(parseFieldPath('owners[2]')).toEqual(['owners', 2]);
+    expect(parseFieldPath('sends.0.to.1.id')).toEqual(['sends', 0, 'to', 1, 'id']);
     expect(parseFieldPath('data-products')).toEqual(['data-products']);
     expect(parseFieldPath('specifications.openapiPath')).toEqual(['specifications', 'openapiPath']);
   });
@@ -82,6 +83,7 @@ describe('locateField', () => {
     expect(locateField(raw, 'sends[0].version')).toEqual({ line: 9, column: 14 });
     expect(locateField(raw, 'sends[0].to[0].id')).toEqual({ line: 11, column: 13 });
     expect(locateField(raw, 'sends[0].to[0].too', 'key')).toEqual({ line: 12, column: 9 });
+    expect(locateField(raw, 'sends.0.id')).toEqual({ line: 8, column: 9 });
   });
 
   it('points at the key line for a collection value', () => {
