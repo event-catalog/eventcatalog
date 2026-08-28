@@ -5,5 +5,9 @@
     "dependencies": {
         "@eventcatalog/connectors": "workspace:*",
         "@eventcatalog/core": "workspace:*"
+    },
+    "overrides": {
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0"
     }
 }

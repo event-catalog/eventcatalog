@@ -109,7 +109,7 @@ jobs:
           name: eventcatalog-packages-artifact
       - name: Install @eventcatalog packages
         working-directory: examples/${{ matrix.catalog }}/
-        run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz
+        run: npm install --legacy-peer-deps ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz
       - name: Build EventCatalog
         working-directory: examples/${{ matrix.catalog }}/
         run: npx eventcatalog build
