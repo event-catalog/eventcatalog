@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 4.9.0
+
+### Minor Changes
+
+- 679c0d8: fix(core): silence Astro 7.2.8 content reference errors for message schemas, fix dark-theme syntax colours on first load of light-mode schema pages, and stop TanStack Table warnings on the directory pages
+
+### Patch Changes
+
+- Updated dependencies [68881a4]
+  - @eventcatalog/linter@1.1.17
+
 ## 4.8.4
 
 ### Patch Changes
