@@ -23,3 +23,5 @@ minimumReleaseAgeExclude:
 peerDependencyRules:
   allowedVersions:
     'astro-expressive-code>astro': '7'
+    'use-resize-observer>react': '19'
+    'use-resize-observer>react-dom': '19'

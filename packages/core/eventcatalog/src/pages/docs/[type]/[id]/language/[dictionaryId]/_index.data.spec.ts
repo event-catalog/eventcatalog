@@ -26,7 +26,7 @@ const domain = {
   },
 } as any;
 
-const term = {
+const term: { id: string; name: string; summary?: string; editUrl?: string } = {
   id: 'Order',
   name: 'Order',
   summary: 'A confirmed intent to purchase',
