@@ -246,7 +246,8 @@ describe('validateReferences', () => {
 
     const errors = validateReferences(parsedFiles);
     expect(errors).toHaveLength(1);
-    expect(errors[0].message).toContain('version: 2.0.0');
+    expect(errors[0].message).toContain('does not have a version matching "2.0.0"');
+    expect(errors[0].message).toContain('Available versions: 1.0.0');
   });
 
   it('should check message references in multiple types', () => {
@@ -341,7 +342,7 @@ describe('validateReferences', () => {
     const errors = validateReferences(parsedFiles);
     expect(errors).toHaveLength(5);
     expect(errors.map((error) => error.field)).toEqual(
-      expect.arrayContaining(['services', 'flows', 'entities', 'containers', 'relationships'])
+      expect.arrayContaining(['services[0]', 'flows[0]', 'entities[0]', 'containers[0]', 'relationships[0]'])
     );
   });
 
@@ -707,7 +708,8 @@ describe('validateReferences', () => {
 
       const errors = validateReferences(parsedFiles);
       expect(errors).toHaveLength(1);
-      expect(errors[0].message).toContain('version: 0.1.x');
+      expect(errors[0].message).toContain('does not have a version matching "0.1.x"');
+      expect(errors[0].message).toContain('Available versions: 0.2.1, 0.0.1');
     });
 
     it('should reject semver patterns that do not match any available versions', () => {
@@ -723,7 +725,8 @@ describe('validateReferences', () => {
 
       const errors = validateReferences(parsedFiles);
       expect(errors).toHaveLength(1);
-      expect(errors[0].message).toContain('version: ^2.0.0');
+      expect(errors[0].message).toContain('does not have a version matching "^2.0.0"');
+      expect(errors[0].message).toContain('Available versions: 1.5.0, 1.2.0');
     });
 
     it('should handle resources with "latest" version when requested with patterns', () => {
@@ -790,7 +793,7 @@ describe('validateReferences', () => {
       const errors = validateReferences(parsedFiles);
       expect(errors).toHaveLength(1);
       expect(errors[0].type).toBe('reference');
-      expect(errors[0].field).toBe('domains');
+      expect(errors[0].field).toBe('domains[1]');
       expect(errors[0].message).toContain('missing-domain');
       expect(errors[0].message).toContain('does not exist');
     });
@@ -809,9 +812,9 @@ describe('validateReferences', () => {
       const errors = validateReferences(parsedFiles);
       expect(errors).toHaveLength(1);
       expect(errors[0].type).toBe('reference');
-      expect(errors[0].field).toBe('domains');
+      expect(errors[0].field).toBe('domains[0]');
       expect(errors[0].message).toContain('orders');
-      expect(errors[0].message).toContain('version: 2.0.0');
+      expect(errors[0].message).toContain('does not have a version matching "2.0.0"');
     });
 
     it('should support semver patterns in domain references', () => {
@@ -982,7 +985,8 @@ describe('validateReferences', () => {
 
       const errors = validateReferences(parsedFiles, dependencies);
       expect(errors).toHaveLength(1);
-      expect(errors[0].message).toContain('version: 2.0.0');
+      expect(errors[0].message).toContain('does not have a version matching "2.0.0"');
+      expect(errors[0].message).toContain('Available versions: 1.0.0');
     });
 
     it('should handle dependencies without version as latest', () => {

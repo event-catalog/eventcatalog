@@ -111,11 +111,18 @@ Arguments:
   directory              EventCatalog directory to lint (default: ".")
 
 Options:
-  -V, --version          output the version number
-  -v, --verbose          Show verbose output (default: false)
-  --fail-on-warning      Exit with non-zero code on warnings (default: false)
-  -h, --help             display help for command
+  -V, --version            output the version number
+  -v, --verbose            Show verbose output (default: false)
+  -q, --quiet              Report errors only (hide warnings) (default: false)
+  --fail-on-warning        Exit with non-zero code on warnings (same as --max-warnings 0) (default: false)
+  --max-warnings <number>  Exit with non-zero code when more than this many warnings are reported
+  --no-color               Disable coloured output
+  --init                   Create a commented .eventcatalogrc.js in the catalog directory and exit
+  --force                  Overwrite an existing .eventcatalogrc.js when used with --init
+  -h, --help               display help for command
 ```
+
+Progress output goes to stderr and is suppressed when the linter is not running in an interactive terminal (piped output, `CI=true`), so CI logs only contain the findings.
 
 ### Package.json Integration
 
@@ -170,7 +177,15 @@ The EventCatalog Linter supports optional configuration through a `.eventcatalog
 
 ### Configuration File
 
-Create a `.eventcatalogrc.js` file in your EventCatalog root directory:
+The quickest way to start is to let the linter scaffold one for you:
+
+```bash
+npx @eventcatalog/linter --init
+```
+
+This writes a `.eventcatalogrc.js` (using `export default` when your `package.json` has `"type": "module"`, `module.exports` otherwise) that lists every rule with its default severity, a one-line description, and example options, plus commented `ignorePatterns` / `overrides` sections. It refuses to overwrite an existing file unless you pass `--force`.
+
+Or create a `.eventcatalogrc.js` file in your EventCatalog root directory by hand:
 
 ```javascript
 // .eventcatalogrc.js
@@ -213,32 +228,58 @@ module.exports = {
 
 ### Available Rules
 
-| Rule Name                             | Description                                                       | Accepted Values        | Default |
-| ------------------------------------- | ----------------------------------------------------------------- | ---------------------- | ------- |
+| Rule Name                             | Description                                                                                                                                                                         | Accepted Values        | Default |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ------- |
 | **Schema Validation Rules**           |
-| `schema/required-fields`              | Validates that required fields are present in frontmatter         | `error`, `warn`, `off` | `error` |
-| `schema/valid-type`                   | Validates that field types are correct (strings, arrays, objects) | `error`, `warn`, `off` | `error` |
-| `schema/valid-semver`                 | Validates semantic version format (1.0.0, 2.1.3-beta)             | `error`, `warn`, `off` | `error` |
-| `schema/valid-email`                  | Validates email address format in user frontmatter                | `error`, `warn`, `off` | `error` |
-| `schema/validation-error`             | General schema validation errors                                  | `error`, `warn`, `off` | `error` |
+| `schema/required-fields`              | Validates that required fields are present in frontmatter                                                                                                                           | `error`, `warn`, `off` | `error` |
+| `schema/valid-type`                   | Validates that field types are correct (strings, arrays, objects)                                                                                                                   | `error`, `warn`, `off` | `error` |
+| `schema/valid-semver`                 | Validates version format: semver (`1.2.3`), number-like (`1`, `1.2`, `v1`, `V2`), `latest`, or a range                                                                              | `error`, `warn`, `off` | `error` |
+| `schema/valid-email`                  | Validates email address format in user frontmatter                                                                                                                                  | `error`, `warn`, `off` | `error` |
+| `schema/validation-error`             | General schema validation errors                                                                                                                                                    | `error`, `warn`, `off` | `error` |
+| `schema/unknown-field`                | Flags top-level frontmatter keys the resource schema doesn't know (typos, or custom fields missing the `x-` prefix) with a "did you mean" hint                                      | `error`, `warn`, `off` | `error` |
+| `schema/unknown-nested-field`         | Flags unknown keys inside nested objects (e.g. `sends[0].too`)                                                                                                                      | `error`, `warn`, `off` | `warn`  |
 | **Reference Validation Rules**        |
-| `refs/owner-exists`                   | Ensures referenced owners (users/teams) exist                     | `error`, `warn`, `off` | `error` |
-| `refs/valid-version-range`            | Validates version references and patterns                         | `error`, `warn`, `off` | `error` |
-| `refs/resource-exists`                | Ensures referenced resources exist                                | `error`, `warn`, `off` | `error` |
-| `refs/channel-exists`                 | Ensures channels referenced in sends/receives `to`/`from` exist   | `error`, `warn`, `off` | `error` |
-| `refs/container-exists`               | Ensures containers referenced in `writesTo`/`readsFrom` exist     | `error`, `warn`, `off` | `error` |
-| `refs/orphan-messages`                | Detects events/commands/queries with no producer and no consumer  | `error`, `warn`, `off` | `warn`  |
+| `refs/owner-exists`                   | Ensures referenced owners (users/teams) exist                                                                                                                                       | `error`, `warn`, `off` | `error` |
+| `refs/valid-version-range`            | Resource exists but no version matches the reference (lists the available versions); also flags version references that are not a version, range or `latest`                        | `error`, `warn`, `off` | `error` |
+| `refs/resource-exists`                | Ensures referenced resources exist, with "did you mean" hints for near-miss ids and a note when the id belongs to another resource type                                             | `error`, `warn`, `off` | `error` |
+| `refs/channel-exists`                 | Ensures channels referenced in sends/receives `to`/`from` exist                                                                                                                     | `error`, `warn`, `off` | `error` |
+| `refs/container-exists`               | Ensures containers referenced in `writesTo`/`readsFrom` exist                                                                                                                       | `error`, `warn`, `off` | `error` |
+| `refs/file-exists`                    | Ensures `schemaPath`, `schemas[]`, `specifications` paths, data product `contract.path` and `/public` icons resolve to real files                                                   | `error`, `warn`, `off` | `error` |
+| `refs/orphan-messages`                | Detects events/commands/queries with no producer and no consumer                                                                                                                    | `error`, `warn`, `off` | `warn`  |
 | **Best Practice Rules**               |
-| `best-practices/summary-required`     | Requires summary field for better documentation                   | `error`, `warn`, `off` | `error` |
-| `best-practices/owner-required`       | Requires at least one owner for accountability                    | `error`, `warn`, `off` | `error` |
-| `best-practices/description-required` | Requires markdown body content beyond just frontmatter            | `error`, `warn`, `off` | `warn`  |
-| `best-practices/schema-required`      | Requires `schemaPath` on events, commands, and queries            | `error`, `warn`, `off` | `warn`  |
+| `best-practices/summary-required`     | Requires summary field for better documentation                                                                                                                                     | `error`, `warn`, `off` | `error` |
+| `best-practices/owner-required`       | Requires at least one owner for accountability                                                                                                                                      | `error`, `warn`, `off` | `error` |
+| `best-practices/description-required` | Requires markdown body content beyond just frontmatter                                                                                                                              | `error`, `warn`, `off` | `warn`  |
+| `best-practices/schema-required`      | Requires `schemaPath` on events, commands, and queries                                                                                                                              | `error`, `warn`, `off` | `warn`  |
 | **Versioning Rules**                  |
-| `versions/no-deprecated-references`   | Warns when referencing a deprecated resource                      | `error`, `warn`, `off` | `warn`  |
+| `versions/no-deprecated-references`   | Warns when referencing a deprecated resource                                                                                                                                        | `error`, `warn`, `off` | `warn`  |
 | **Structural Rules**                  |
-| `structure/duplicate-resource-ids`    | Detects duplicate resources with same type, id, and version       | `error`, `warn`, `off` | `error` |
+| `structure/duplicate-resource-ids`    | Detects duplicate resources with same type, id, and version                                                                                                                         | `error`, `warn`, `off` | `error` |
+| `structure/unrecognised-file`         | Flags `.md`/`.mdx` files under resource folders that no scan pattern picks up (e.g. `events/OrderCreated.mdx` instead of `events/OrderCreated/index.mdx`) with a suggested location | `error`, `warn`, `off` | `warn`  |
 
 **Note**: Rules defaulting to `warn` will show warnings but won't fail the linter unless `--fail-on-warning` is used. You can promote them to `error` for stricter validation.
+
+#### Unknown field detection
+
+EventCatalog only accepts frontmatter keys defined in its schemas, plus custom properties prefixed with `x-`. The `schema/unknown-field` rule catches typos before they break your build or silently drop data:
+
+```
+services/order-service/index.mdx
+  ✖ error Unknown property "owner". Did you mean "owners"? [owner] (schema/unknown-field)
+  ✖ error Unknown property "costCenter". Custom properties must start with "x-". [costCenter] (schema/unknown-field)
+  ⚠ warning Unknown property "sends[0].too". Did you mean "to"? [sends[0].too] (schema/unknown-nested-field)
+```
+
+Both rules accept options. `allow` lists keys (or `prefix*` patterns) to ignore, and `suggestions: false` turns off the hints:
+
+```javascript
+module.exports = {
+  rules: {
+    'schema/unknown-field': ['error', { allow: ['costCenter', 'legacy*'] }],
+    'schema/unknown-nested-field': ['warn', { suggestions: false }],
+  },
+};
+```
 
 ### Configuration Examples
 
@@ -317,12 +358,12 @@ If no `.eventcatalogrc.js` file is found, the linter uses the default rules list
 
 - ✅ Required fields are present (`id`, `name`, `version`)
 - ✅ Field types are correct (strings, arrays, objects)
-- ✅ Semantic versions follow proper format (`1.0.0`, `2.1.3-beta`)
-- ✅ Version patterns supported (`latest`, `^1.0.0`, `~1.2.0`, `0.0.x`)
+- ✅ Versions use a format EventCatalog understands: semver (`1.0.0`, `2.1.3-beta`), number-like (`1`, `1.2`, `v1`, `V2`), `latest`, or a semver range (`^1.0.0`, `~1.2.0`, `0.0.x`, `>=2`)
 - ✅ URLs are valid format
 - ✅ Email addresses are valid format
 - ✅ Enum values are from allowed lists
 - ✅ Nested object structures are correct
+- ✅ Unknown or misspelled frontmatter keys are flagged with suggestions (custom keys must use the `x-` prefix)
 - ✅ Common resource configuration is supported, including `attachments`, `editUrl`, `diagrams`, `detailsPanel`, sidebar colors, and GraphQL specifications
 
 ### Reference Validation
@@ -342,10 +383,15 @@ If no `.eventcatalogrc.js` file is found, the linter uses the default rules list
 - ✅ Flow steps reference existing services/messages/agents/containers/data products
 - ✅ Entity properties reference existing entities
 - ✅ User/team owned resources and team members exist
-- ✅ Version-specific references are valid
+- ✅ Version-specific references resolve the same way EventCatalog does (`1`, `v1` and `1.0.0` are equivalent; ranges and `latest` supported). When a resource exists but the version doesn't, the available versions are listed; when the id is a near-miss (`OrderCreatd`) or belongs to another resource type, the message says so
 - ✅ Orphan messages (no producer and no consumer) are detected
 - ✅ References to deprecated resources are flagged
 - ✅ Duplicate resource IDs (same type, id, and version) are detected
+- ✅ Files referenced from frontmatter exist: `schemaPath`, `schemas[].file` / `path` / `file://` refs, `specifications` (`openapiPath`, `asyncapiPath`, `graphqlPath` or the array form), data product `outputs[].contract.path`, and `styles.icon` paths served from `public/` (configure with `['error', { icons: false, publicDir: 'static' }]`)
+
+### Catalog Structure
+
+- ✅ Markdown files under resource folders that EventCatalog would silently ignore are flagged, with the intended location suggested (`events/OrderCreated.mdx` → `events/OrderCreated/index.mdx`, `event/` → `events/`, `users/john/index.mdx` → `users/john.mdx`, missing `versioned/<version>/` folder, stray docs that belong in `docs/`)
 
 ### Documentation Quality
 
@@ -423,8 +469,7 @@ my-eventcatalog/
 $ eventcatalog-linter
 
 ✔ No problems found!
-
-  42 files checked
+  42 files checked, 3 files ignored
 ```
 
 ### ❌ Error Output
@@ -433,24 +478,26 @@ $ eventcatalog-linter
 $ eventcatalog-linter
 
 services/user-service/index.mdx
-  ✖ error version: Invalid semantic version format [version] (schema/valid-semver)
-  ⚠ warning Summary is required for better documentation [summary] (best-practices/summary-required)
+  2:1 ⚠ warning Summary is required for better documentation [summary] (best-practices/summary-required)
+  4:10 ✖ error version: Invalid semantic version format [version] (schema/valid-semver)
 
 ✖ 2 problems
 
 domains/sales/index.mdx
-  ✖ error Referenced service "order-service" does not exist [services] (refs/resource-exists)
+  9:9 ✖ error Referenced service "order-service" does not exist. Did you mean "orders-service"? [services[0]] (refs/resource-exists)
 
 ✖ 1 problem
 
 flows/user-registration/index.mdx
-  ✖ error Referenced service "notification-service" (version: 2.0.0) does not exist [steps[1].service] (refs/valid-version-range)
+  27:16 ✖ error Referenced service "notification-service" does not have a version matching "2.0.0". Available versions: 1.0.0 [steps[1].service] (refs/valid-version-range)
 
 ✖ 1 problem
 
-✖ 4 problems (3 errors, 1 warning)
-  3 files checked
+✖ 4 problems (3 errors, 1 warning) in 3 files
+  42 files checked
 ```
+
+Every finding is prefixed with its `line:column` in the file, so terminals and editors can jump straight to it. Findings about a frontmatter key point at the key, findings about a reference point at the value, missing fields point at the nearest parent, and body-content findings point at the first line after the frontmatter.
 
 ### 🔍 Verbose Output
 
@@ -458,17 +505,17 @@ flows/user-registration/index.mdx
 $ eventcatalog-linter --verbose
 
 services/user-service/index.mdx
-  ✖ error version: Invalid semantic version format [version] (schema/valid-semver)
+  4:10 ✖ error version: Invalid semantic version format [version] (schema/valid-semver)
 
 ✖ 1 problem
 
 domains/sales/index.mdx
-  ✖ error Referenced service "order-service" does not exist [services] (refs/resource-exists)
+  9:9 ✖ error Referenced service "order-service" does not exist [services[0]] (refs/resource-exists)
 
 ✖ 1 problem
 
-✖ 2 problems (2 errors, 0 warnings)
-  2 files checked
+✖ 2 problems (2 errors, 0 warnings) in 2 files
+  42 files checked
 ```
 
 ## 🧪 Validation Examples

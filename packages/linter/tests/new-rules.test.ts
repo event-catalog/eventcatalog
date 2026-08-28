@@ -109,7 +109,8 @@ describe('refs/channel-exists', () => {
     const errors = validateReferences(parsedFiles);
     const channelErrors = errors.filter((e) => e.rule === 'refs/channel-exists');
     expect(channelErrors).toHaveLength(1);
-    expect(channelErrors[0].message).toContain('version: 2.0.0');
+    expect(channelErrors[0].message).toContain('does not have a version matching "2.0.0"');
+    expect(channelErrors[0].message).toContain('Available versions: 1.0.0');
   });
 
   it('should validate channel references from domains', () => {
@@ -182,7 +183,7 @@ describe('refs/container-exists', () => {
     const containerErrors = errors.filter((e) => e.rule === 'refs/container-exists');
     expect(containerErrors).toHaveLength(1);
     expect(containerErrors[0].message).toContain('missing-db');
-    expect(containerErrors[0].field).toBe('writesTo');
+    expect(containerErrors[0].field).toBe('writesTo[0]');
   });
 
   it('should report error when container in readsFrom does not exist', () => {
@@ -198,7 +199,7 @@ describe('refs/container-exists', () => {
     const containerErrors = errors.filter((e) => e.rule === 'refs/container-exists');
     expect(containerErrors).toHaveLength(1);
     expect(containerErrors[0].message).toContain('missing-cache');
-    expect(containerErrors[0].field).toBe('readsFrom');
+    expect(containerErrors[0].field).toBe('readsFrom[0]');
   });
 
   it('should validate container version references', () => {

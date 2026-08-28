@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ValidationError } from '../types';
+import { RULES } from '../rules';
 
 export type RuleSeverity = 'error' | 'warn' | 'off';
 
@@ -22,27 +23,10 @@ export interface LinterConfig {
 
 export const DEFAULT_IGNORE_PATTERNS: string[] = ['dependencies/**'];
 
-export const DEFAULT_RULES: Record<string, RuleSeverity> = {
-  'schema/required-fields': 'error',
-  'schema/valid-semver': 'error',
-  'schema/valid-email': 'error',
-  'refs/owner-exists': 'error',
-  'refs/valid-version-range': 'error',
-  'refs/resource-exists': 'error',
-  'refs/channel-exists': 'error',
-  'refs/container-exists': 'error',
-  'refs/orphan-messages': 'warn',
-  'best-practices/summary-required': 'error',
-  'best-practices/owner-required': 'error',
-  'best-practices/description-required': 'warn',
-  'best-practices/schema-required': 'warn',
-  'naming/service-id-format': 'error',
-  'naming/event-id-format': 'error',
-  'versions/consistent-format': 'error',
-  'versions/no-deprecated': 'error',
-  'versions/no-deprecated-references': 'warn',
-  'structure/duplicate-resource-ids': 'error',
-};
+/** Default severity for every rule, derived from the rule registry. */
+export const DEFAULT_RULES: Record<string, RuleSeverity> = Object.fromEntries(
+  RULES.map((rule) => [rule.name, rule.default])
+) as Record<string, RuleSeverity>;
 
 export interface DependencyEntry {
   id: string;
