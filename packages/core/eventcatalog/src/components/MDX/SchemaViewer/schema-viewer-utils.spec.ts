@@ -9,7 +9,7 @@ const currentMessageSchema = {
     content: '{"type":"object","title":"OrderPlaced"}',
     default: true,
     message: {
-      collection: 'events',
+      collectionName: 'events',
       id: 'OrderPlaced',
       version: '1.0.0',
     },
@@ -42,7 +42,7 @@ describe('resolveSchemaViewer', () => {
         content: 'syntax = "proto3";\nmessage FraudCheckCompleted {\n  string transaction_id = 1;\n}',
         default: true,
         message: {
-          collection: 'events',
+          collectionName: 'events',
           id: 'FraudCheckCompleted',
           version: '1.0.0',
         },
@@ -75,7 +75,7 @@ describe('resolveSchemaViewer', () => {
         content: '{"this": "is not protobuf"}',
         default: true,
         message: {
-          collection: 'events',
+          collectionName: 'events',
           id: 'FraudCheckCompleted',
           version: '1.0.0',
         },

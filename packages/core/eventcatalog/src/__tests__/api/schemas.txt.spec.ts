@@ -33,7 +33,7 @@ vi.mock('astro:content', async (importOriginal) => {
               data: {
                 id: 'schema:events:OrderPlaced:1.0.0:schema.json',
                 message: {
-                  collection: 'events',
+                  collectionName: 'events',
                   id: 'OrderPlaced',
                   name: 'Order Placed',
                   version: '1.0.0',
@@ -46,7 +46,7 @@ vi.mock('astro:content', async (importOriginal) => {
               data: {
                 id: 'schema:commands:CreateOrder:1.0.0:schema.json',
                 message: {
-                  collection: 'commands',
+                  collectionName: 'commands',
                   id: 'CreateOrder',
                   name: 'Create Order',
                   version: '1.0.0',
@@ -59,7 +59,7 @@ vi.mock('astro:content', async (importOriginal) => {
               data: {
                 id: 'schema:queries:GetOrder:1.0.0:schema.json',
                 message: {
-                  collection: 'queries',
+                  collectionName: 'queries',
                   id: 'GetOrder',
                   name: 'Get Order',
                   version: '1.0.0',

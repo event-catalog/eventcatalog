@@ -1179,7 +1179,7 @@ const schemas = defineCollection({
       default: z.boolean().optional(),
       latest: z.boolean().optional(),
       message: z.object({
-        collection: z.enum(['events', 'commands', 'queries']),
+        collectionName: z.enum(['events', 'commands', 'queries']),
         id: z.string(),
         name: z.string().optional(),
         version: z.string(),

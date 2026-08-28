@@ -310,7 +310,7 @@ export async function getSchemaForResource(params: { resourceId: string; resourc
     const schemaEntries = await getCollection('schemas');
     const schemas = schemaEntries.filter(
       (schema) =>
-        schema.data.message.collection === params.resourceCollection &&
+        schema.data.message.collectionName === params.resourceCollection &&
         schema.data.message.id === params.resourceId &&
         schema.data.message.version === params.resourceVersion
     );

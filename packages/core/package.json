@@ -169,6 +169,7 @@
     "@types/shelljs": "^0.8.15",
     "@types/update-notifier": "^6.0.8",
     "@types/uuid": "^10.0.0",
+    "jsdom": "27.0.0",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.1.0",

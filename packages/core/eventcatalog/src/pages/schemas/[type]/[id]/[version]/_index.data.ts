@@ -32,7 +32,7 @@ export class Page extends HybridPage {
 
     const seenMessageSchemas = new Set<string>();
     const messageSchemas = schemas.filter((schema) => {
-      const key = `${schema.data.message.collection}:${schema.data.message.id}:${schema.data.message.version}`;
+      const key = `${schema.data.message.collectionName}:${schema.data.message.id}:${schema.data.message.version}`;
       if (seenMessageSchemas.has(key)) return false;
       seenMessageSchemas.add(key);
       return true;
@@ -41,17 +41,19 @@ export class Page extends HybridPage {
     // Generate paths for messages with schemas
     const messagePaths = messageSchemas
       .map((schema) => {
-        const item = itemsByKey.get(`${schema.data.message.collection}:${schema.data.message.id}:${schema.data.message.version}`);
+        const item = itemsByKey.get(
+          `${schema.data.message.collectionName}:${schema.data.message.id}:${schema.data.message.version}`
+        );
         if (!item) return null;
 
         return {
           params: {
-            type: schema.data.message.collection,
+            type: schema.data.message.collectionName,
             id: schema.data.message.id,
             version: schema.data.message.version,
           },
           props: {
-            type: schema.data.message.collection,
+            type: schema.data.message.collectionName,
             ...item,
             // Not everything needs the body of the page itself.
             body: undefined,
