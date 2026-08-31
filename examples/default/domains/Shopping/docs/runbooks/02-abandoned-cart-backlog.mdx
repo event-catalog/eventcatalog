@@ -1,0 +1,36 @@
+---
+title: Abandoned cart backlog
+summary: What to do when abandoned carts stop being pruned and the cart database starts to grow.
+badges:
+  - content: Sev 3
+    backgroundColor: yellow
+    textColor: yellow
+    icon: ArchiveBoxIcon
+---
+
+## Background
+
+Carts are transient. Any [[entity|cart]] in `OPEN` status with no activity for the retention window (currently **30 days**) is moved to `ABANDONED` and its rows are deleted from [[container|cart-database]] by a nightly pruning job inside [[system|cart-system]]. When that job stops running, nothing breaks immediately — but the `carts` and `cart_items` tables grow, [[service|cart-api]] latency creeps up as the `idx_carts_customer` index bloats, and eventually the database runs out of disk.
+
+## Symptoms
+
+- The `open_carts_older_than_30d` gauge on the Shopping health dashboard is above **zero** for more than 24 hours.
+- [[service|cart-api]] p95 latency on [[command|add-item-to-cart]] is rising with no matching rise in traffic.
+- The cart database disk usage alert has fired.
+
+## Steps
+
+1. **Check the prune job ran.** `cart prune status` reports the last run time and how many carts it moved to `ABANDONED`. If the last run was more than 25 hours ago, the job is stuck or was not scheduled.
+2. **Look at why it stopped.** The two usual reasons are a lock timeout — the job runs `DELETE … WHERE status = 'ABANDONED'` in batches of 5,000 and will back off if it cannot get a lock — or a failed deploy that removed the cron entry.
+3. **Run it by hand.** `cart prune run --batch-size 5000` is safe to run during business hours. It only touches carts that are already past the retention window and never touches `CHECKED_OUT` carts, which are deleted separately after the order is confirmed.
+4. **If the backlog is very large** (more than 500k carts), run with `--batch-size 1000` and `--sleep 500ms` between batches so [[command|checkout-cart]] traffic is not starved of connections.
+5. **Confirm recovery.** `open_carts_older_than_30d` should drop to zero and stay there after the next nightly run.
+
+## Do not
+
+- Do not `TRUNCATE` or bulk-delete from `carts` directly. Customers with an `OPEN` cart inside the retention window expect it to still be there when they come back.
+- Do not shorten the retention window as a shortcut. It is a product decision owned by [[team|shopping-platform]] and the storefront team, not an operational knob.
+
+## Escalation
+
+This is a **Sev 3** unless the disk alert has fired, in which case treat it as **Sev 2** and involve the database on-call before running any large prune.

@@ -1,0 +1,38 @@
+{
+  "sections": [
+    {
+      "section": "$quick-reference",
+      "title": "Overview"
+    },
+    {
+      "title": "Guides",
+      "icon": "BookOpen",
+      "pages": [
+        "[[doc|guides/integrating-with-reviews]]",
+        "[[doc|guides/moderation-lifecycle]]",
+        "[[doc|guides/rating-aggregation]]"
+      ]
+    },
+    "$architecture",
+    "$services",
+    "$flows",
+    "$entities",
+    {
+      "title": "Runbooks",
+      "icon": "Siren",
+      "pages": [
+        "[[doc|runbooks/on-call]]",
+        "[[doc|runbooks/moderation-queue-stuck]]",
+        {
+          "title": "Health dashboard",
+          "href": "https://grafana.acme.dev/d/reviews-overview"
+        },
+        {
+          "title": "Moderation queue dashboard",
+          "href": "https://grafana.acme.dev/d/reviews-moderation"
+        }
+      ]
+    },
+    "$owners"
+  ]
+}

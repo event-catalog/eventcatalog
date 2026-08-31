@@ -1,0 +1,36 @@
+---
+title: Shipments not dispatching
+summary: What to do when orders are packed but no shipment is being created with the carrier.
+badges:
+  - content: Sev 2
+    backgroundColor: orange
+    textColor: orange
+    icon: ExclamationTriangleIcon
+---
+
+## Symptoms
+
+- The `shipments_awaiting_dispatch` gauge on the fulfilment health dashboard is above **50**, or climbing steadily.
+- [[event|order-ready-for-shipping]] is being published (visible on the [[service|warehouse-service]] producer panel) but no matching [[event|shipment-created]] arrives from [[service|carrier-tracking-api]].
+- Warehouse staff report parcels piling up at the dispatch bay with no labels.
+
+## Likely causes
+
+1. [[service|shipping-api]] has stopped consuming. Check its consumer lag on the `order-ready-for-shipping` topic first.
+2. [[service|carrier-adapter]] is receiving 4xx responses from [[service|carrier-shipping-api]] and retrying. A `422` means the carrier rejected the address or service level; a `400` almost always means a mapping bug after a carrier API change.
+3. The carrier itself is down or rate-limiting us. Check their status page before assuming it is our fault.
+4. A single poison message — most often an address with a non-ISO `country` code — is blocking the partition.
+
+## Steps
+
+1. **Find the stage that is stuck.** Compare [[service|shipping-api]] consumer lag with the [[service|carrier-adapter]] outbound error rate. Only one of them is usually the problem.
+2. **If the shipping API is lagging:** restart it. It is stateless and safe to run with 2 replicas; each [[entity|shipment]] is keyed on `orderId` so a replayed event is a no-op.
+3. **If the adapter is seeing 422s:** pull the rejected [[command|create-shipment]] payloads from its logs. Fix bad addresses in the order admin tool and re-emit; do not edit the carrier request by hand.
+4. **If the adapter is seeing 400s:** the carrier changed their contract. Roll the adapter back to the previous release and raise a ticket — this is not fixable on call.
+5. **If there is a poison message:** move it to the dead-letter topic with the `fulfilment-dlq` tool so the partition drains, then deal with that one order manually.
+6. **If the carrier is down:** nothing to fix on our side. Post an update in `#warehouse-ops` with the expected recovery time so the floor team can plan, and watch the backlog drain when the carrier recovers — the adapter retries with backoff and will catch up on its own.
+7. Watch `shipments_awaiting_dispatch` recover. If it is not falling within 15 minutes of your fix, escalate.
+
+## Afterwards
+
+Check whether any `NEXT_DAY` shipments missed the carrier cut-off during the outage. Customer support will need the list of affected `orderId`s to proactively contact those customers.

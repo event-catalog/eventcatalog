@@ -1,0 +1,32 @@
+---
+title: Event versioning
+summary: How product events evolve, what counts as a breaking change, and how long old versions are supported.
+---
+
+Product events are a public contract. Every consumer of [[event|product-created]], [[event|product-updated]] and [[event|product-deleted]] depends on their shape, so changes follow a fixed set of rules.
+
+## What is a breaking change
+
+| Change | Breaking? |
+| --- | --- |
+| Adding an optional field | No |
+| Adding a value to an enum | No — consumers must ignore unknown values |
+| Removing or renaming a field | **Yes** |
+| Changing a field's type | **Yes** |
+| Making an optional field required | **Yes** |
+
+Non-breaking changes ship on the current version. Breaking changes ship as a new major version of the event, published **alongside** the old one.
+
+## Support window
+
+When a new major version is published, the previous version keeps being emitted for **90 days**. The catalog changelog for each event records the cut-off date. Consumers are expected to migrate inside that window; after it, the old version stops without further notice.
+
+## Finding out what changed
+
+- Each event page in this catalog has a **Changelog** tab listing every version and the diff between them.
+- Schema files are attached to each event page and are the source of truth — the examples in the docs are illustrative.
+- Breaking changes are announced in `#catalog-announcements` at least two weeks before the new version starts flowing.
+
+## Testing against a new version
+
+Point your consumer at the `catalog-events-preview` topic in the staging environment. It carries the next major version for two weeks before production, so you can validate deserialisation and idempotency handling without risk.

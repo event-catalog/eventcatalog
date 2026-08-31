@@ -1,0 +1,42 @@
+---
+title: Integrating with Fulfilment
+summary: How to reserve stock, check availability and follow an order from the warehouse to the customer's door.
+---
+
+Fulfilment is where an order stops being data and becomes a parcel. Most teams only ever touch it at two points: reserving stock during checkout, and reacting to shipping progress afterwards. This guide covers both, plus what you should **not** call directly.
+
+## Reserve stock during checkout
+
+Send [[command|reserve-inventory]] to [[service|inventory-service]] before you take payment. The service answers asynchronously with exactly one of:
+
+| Event | Meaning |
+| --- | --- |
+| [[event\|inventory-reserved]] | Stock is held. Carry `reservationId` through the rest of your saga |
+| [[event\|inventory-unavailable]] | Not enough stock. Tell the customer and stop |
+
+A reservation is a temporary hold, not a sale. If your saga fails after the hold — payment declined, customer abandons — send [[command|release-inventory]] with the `reservationId` so the stock goes back on sale. Reservations also expire on their own (see `expiresAt` on [[entity|inventory-reservation]]), but do not rely on that: expiry is a safety net for crashed callers, not a cleanup strategy.
+
+## Check availability on demand
+
+Use [[query|get-stock-level]] when you need a point-in-time number — a product page, an admin screen, a "only 3 left" badge. It returns `available` and `reserved` counts read straight from [[container|inventory-database]].
+
+- The response is a snapshot. Stock can be reserved by someone else between the read and your reservation, so always follow it with a real [[command|reserve-inventory]].
+- Do not query [[container|inventory-database]] or [[container|warehouse-database]] directly. Their schemas belong to [[system|inventory-system]] and [[system|warehouse-system]] and change without notice.
+
+## Follow the order after checkout
+
+Once the Ordering domain publishes [[event|order-completed]], Fulfilment takes over and emits progress events you can subscribe to:
+
+| Event | Published by | Use it to |
+| --- | --- | --- |
+| [[event\|order-packed]] | [[service\|picking-worker]] | Show "being packed" in the customer's order history |
+| [[event\|order-ready-for-shipping]] | [[service\|warehouse-service]] | Internal handoff to [[system\|shipping-system]]; rarely useful outside Fulfilment |
+| [[event\|shipment-created]] | [[service\|carrier-tracking-api]] | Send the tracking number to the customer |
+| [[event\|shipment-delivered]] | [[service\|carrier-tracking-api]] | Close the order, start the returns window |
+| [[event\|shipment-failed]] | [[service\|carrier-tracking-api]] | Trigger redelivery, refund or a support ticket. Check `reason` |
+
+All events are keyed on `orderId`. The carrier events also carry `shipmentId`; an order can have more than one shipment when it is split across parcels, so key your read models on the pair, not `orderId` alone. Carrier events come from an external system and can arrive out of order or twice — consumers must be idempotent.
+
+## Commands that are internal
+
+[[command|create-shipment]] is sent by [[service|carrier-adapter]] to the external [[system|carrier]] and nothing else should call it. If you think you need to create a shipment yourself, you almost certainly want to publish something the [[service|shipping-api]] can react to instead — talk to [[team|fulfilment-platform]] in `#fulfilment-support` first.

@@ -1,0 +1,37 @@
+---
+title: Reacting to payment events
+summary: How other teams find out whether an order was paid, refunded or blocked, without calling Stripe or touching the payment database.
+---
+
+The Payments domain is event-only. There is no query API for "has this order been paid?" — the answer arrives on Kafka, and every team that cares (ordering, fulfilment, notifications, finance) subscribes to the same events. This guide covers which events to subscribe to and the rules for consuming them.
+
+## The lifecycle in three stages
+
+Everything starts when the Ordering domain sends [[command|authorize-payment]] to [[service|payment-api]]. From there the [[service|payment-worker]] publishes a request, the external providers respond, and the worker records the result in [[container|payment-database]].
+
+| Stage | Event | Published by |
+| --- | --- | --- |
+| Request | [[event\|payment-requested]] | [[service\|payment-worker]] |
+| Fraud verdict | [[event\|fraud-check-passed]] / [[event\|fraud-check-failed]] | [[service\|fraud-api]] |
+| Outcome | [[event\|payment-succeeded]] / [[event\|payment-failed]] | [[service\|stripe-webhook-endpoint]] |
+| Refund | [[event\|refund-requested]] then [[event\|refund-processed]] | [[service\|payment-worker]], then Stripe |
+
+## Which event should you subscribe to?
+
+- **"Ship the order"** — [[event|payment-succeeded]]. Money has moved; this is the only event that means it.
+- **"Tell the customer it didn't work"** — [[event|payment-failed]]. The `reason` enum (`CARD_DECLINED`, `INSUFFICIENT_FUNDS`, `EXPIRED_CARD`, `PROCESSING_ERROR`) is safe to surface to customers; do not invent friendlier text per code.
+- **"The money went back"** — [[event|refund-processed]]. Finance keys ledger entries on `refundId`, not `paymentId`, because one payment can have several partial refunds.
+- **"Was it fraud?"** — [[event|fraud-check-failed]]. Only the Payments and Ordering domains should act on this; see [[doc|guides/payment-and-fraud-model]] before you build on it.
+
+[[event|payment-requested]] is an internal handshake between [[system|payment-processing-system]], [[system|stripe]] and [[system|fraud-detection]]. Do not treat it as "payment in progress" for customer-facing state — it can be followed by a failure seconds later.
+
+## Consumer rules
+
+1. **Be idempotent.** Stripe retries webhooks, and the outcomes topic ([[channel|payments.outcomes]]) is at-least-once. Use `paymentId` (or `refundId`) plus the event name as your idempotency key.
+2. **Do not assume ordering across topics.** A [[event|fraud-check-failed]] can arrive after a [[event|payment-succeeded]] for the same payment. The [[entity|payment]] aggregate in the payment database is the tie-breaker; if you need a consistent view, build a small read model rather than reasoning from a single event.
+3. **Amounts are integers in minor units.** `amount: 1999` with `currency: GBP` is £19.99. Never convert to floats.
+4. **Never read [[container|payment-database]] directly.** It is classified confidential and its schema is private to [[system|payment-processing-system]].
+
+## Getting access
+
+Topic ACLs are granted per consumer group. Ask in `#payments-support` with your group name and which of the events above you need; [[team|payments-platform]] approves within a working day.

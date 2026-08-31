@@ -1,0 +1,33 @@
+---
+title: Account status lifecycle
+summary: What ACTIVE, SUSPENDED and CLOSED mean, who can move a customer between them, and how each state should be treated downstream.
+---
+
+Every customer profile carries a `status`. It is a small enum, but almost every downstream feature has to make a decision based on it, so the rules are written down here.
+
+## The states
+
+| Status | Meaning | Can sign in? | Can place orders? |
+| --- | --- | --- | --- |
+| `ACTIVE` | The account is in good standing | Yes | Yes |
+| `SUSPENDED` | Temporarily blocked — usually fraud review or a payment dispute | No | No |
+| `CLOSED` | The customer has left or the account was terminated | No | No |
+
+## Transitions
+
+- A customer is always created as `ACTIVE` by [[command|register-customer]].
+- Only [[command|update-customer]] changes the status, and only the support tooling owned by [[team|customer-platform]] is allowed to send it with a `status` field. Storefront profile edits cannot change status.
+- `ACTIVE` ↔ `SUSPENDED` is reversible. `CLOSED` is terminal; a customer who returns registers again and gets a new `customerId`.
+- Every transition publishes [[event|customer-updated]] with `status` inside the `changes` object. That event is the only signal you should rely on — do not poll [[query|get-customer]] looking for changes.
+
+## What downstream teams should do
+
+**On `SUSPENDED`:** stop new activity but keep existing state. Do not cancel in-flight orders or delete saved data; the account may be reinstated within hours.
+
+**On `CLOSED`:** treat it as the start of a data-removal window. Anything you copied from a [[event|customer-registered]] or [[event|customer-updated]] event should be deleted or anonymised inside 30 days, unless you have a legal reason to keep it. The customer's [[entity|customer-address]] records are removed by this domain automatically.
+
+**On an unknown value:** do nothing. We reserve the right to add states, and consumers that fail closed on an unrecognised status have caused incidents before.
+
+## Status and authentication
+
+The [[system|identity-provider]] checks the account status before issuing a token, so a `SUSPENDED` or `CLOSED` customer will fail [[command|authenticate-customer]] with a `401` and no [[event|customer-authenticated]] will be published. There is a short propagation delay between the status change in [[container|customer-database]] and the identity side seeing it — see [[doc|runbooks/customer-events-lag]] if that delay grows.

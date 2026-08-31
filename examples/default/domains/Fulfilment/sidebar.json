@@ -1,0 +1,46 @@
+{
+  "sections": [
+    {
+      "section": "$quick-reference",
+      "title": "Overview"
+    },
+    {
+      "title": "Guides",
+      "icon": "BookOpen",
+      "pages": [
+        "[[doc|guides/integrating-with-fulfilment]]",
+        "[[doc|guides/fulfilment-data-model]]",
+        "[[doc|guides/order-lifecycle]]"
+      ]
+    },
+    {
+      "title": "Integration Events",
+      "icon": "Radio",
+      "pages": [
+        "[[event|shipment-created]]",
+        "[[event|shipment-delivered]]",
+        "[[event|shipment-failed]]"
+      ]
+    },
+    "$architecture",
+    "$systems",
+    "$entities",
+    {
+      "title": "Runbooks",
+      "icon": "Siren",
+      "pages": [
+        "[[doc|runbooks/on-call]]",
+        "[[doc|runbooks/shipments-not-dispatching]]",
+        {
+          "title": "Health dashboard",
+          "href": "https://grafana.acme.dev/d/fulfilment-overview"
+        },
+        {
+          "title": "Carrier status page",
+          "href": "https://status.carrier.example.com"
+        }
+      ]
+    },
+    "$owners"
+  ]
+}

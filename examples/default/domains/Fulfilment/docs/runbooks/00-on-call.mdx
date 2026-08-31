@@ -1,0 +1,36 @@
+---
+title: On-call checklist
+summary: What the Fulfilment on-call engineer checks at handover and how to triage a page.
+badges:
+  - content: Start here
+    backgroundColor: green
+    textColor: green
+    icon: RocketLaunchIcon
+---
+
+## At handover
+
+1. Open the fulfilment health dashboard and confirm all five panels are green: reservation error rate, `HELD` reservations past expiry, picking backlog, shipments awaiting dispatch, carrier webhook lag.
+2. Check `#fulfilment-support` for anything unresolved from the previous shift, and `#warehouse-ops` for anything the floor team has flagged.
+3. Confirm the carrier status page is clear. A carrier outage is the most common cause of a quiet-looking dashboard that is actually broken — nothing fails, events just stop.
+
+## Triage
+
+| Page | Start with |
+| --- | --- |
+| `InventoryService reserve 5xx` | [[service\|inventory-service]] logs and [[container\|inventory-database]] connection count; usually a bad deploy — roll back first |
+| `Expired HELD reservations > 500` | The expiry sweeper has stalled. Restart it, then confirm `RELEASED` rows are being written |
+| `Picking backlog > 200 jobs` | Ask `#warehouse-ops` before touching anything — it is usually a physical problem, not a software one |
+| `Shipments awaiting dispatch > 50` | [[doc\|runbooks/shipments-not-dispatching]] |
+| `Carrier webhook lag > 30m` | Carrier status page, then [[service\|carrier-tracking-api]] webhook delivery logs |
+
+## Escalation
+
+- Anything that stops checkout reserving stock is a **Sev 1** — customers cannot buy. Page the incident commander immediately.
+- Orders packed but not shipping is a **Sev 2** if it has been under two hours; it becomes a **Sev 1** if any `NEXT_DAY` shipment will miss its carrier cut-off.
+- Missing carrier tracking events are a **Sev 3** unless [[event|shipment-failed]] is also missing, in which case refunds and redeliveries are silently not happening — treat as **Sev 2**.
+- [[team|fulfilment-platform]] is the owning team; the team lead is the escalation point out of hours. For warehouse floor issues escalate to the warehouse shift manager, not engineering.
+
+## Before you sign off
+
+Leave a one-line summary in `#fulfilment-support` even if nothing happened, and note any shipments you manually re-dispatched so the next person does not re-dispatch them again.

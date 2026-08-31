@@ -1,0 +1,37 @@
+---
+title: Checkout saga and compensation
+summary: How checkout is coordinated across inventory, payments and order management, and what it means for the teams on the other end of each step.
+---
+
+Checkout at Acme is not a single transaction. It spans stock, money and the order record, each owned by a different team. The [[service|checkout-orchestrator]] coordinates them as a **saga**: an ordered list of steps where every step has a compensating action that undoes it if a later step fails. This guide explains the contract each step's owner is signing up to.
+
+## The steps
+
+When the [[domain|shopping]] domain checks out a cart, [[service|checkout-api]] validates the request and opens a [[entity|checkout-session]]. The orchestrator then runs the [[flow|checkout-saga]]:
+
+| Step | Command | Compensating action |
+| --- | --- | --- |
+| 1. Reserve inventory | [[command\|reserve-inventory]] | Release the reservation |
+| 2. Authorize payment | [[command\|authorize-payment]] | Void the authorization |
+| 3. Create the order | [[command\|create-order]] | None — this is the pivot; once it succeeds the saga cannot be undone, only cancelled |
+
+Step 3 hands the `paymentAuthorizationId` to [[service|order-service]], which persists the [[entity|order]] and publishes [[event|order-created]]. Funds are captured later, once the order moves to `CONFIRMED`.
+
+## What a failure looks like
+
+If step 1 fails (out of stock) the saga aborts immediately — nothing to compensate. If step 2 fails (declined) the orchestrator releases the reservation and aborts. In both cases **no order is created** and no order event is published. The customer sees a checkout error in the Shopping domain, not a cancelled order.
+
+The one exception is a failure *after* the pivot: if `CreateOrder` succeeds but a downstream check rejects the order, the orchestrator issues [[command|cancel-order]] and the order goes through [[flow|order-cancellation]] with reason `PAYMENT_FAILED` or `OUT_OF_STOCK`. Consumers of [[event|order-cancelled]] should treat these reasons as "unwind whatever you did for `order-created`".
+
+## Contract for step owners
+
+If your service handles one of the saga commands, the orchestrator relies on the following:
+
+1. **Idempotency.** Commands are retried on timeout. `ReserveInventory` and `AuthorizePayment` both carry the `checkoutSessionId`; a repeat call for the same session must return the original result, not create a second reservation or hold.
+2. **A definitive answer.** Return the documented status codes — `409` for a conflict, `402` for a declined payment — rather than a generic `500`. The orchestrator only compensates on a definitive failure; a `500` is retried, which is why a slow payment provider shows up as a stuck session rather than a failed checkout.
+3. **Compensation is always safe to call.** Releasing a reservation that already expired, or voiding an authorization that was never captured, must succeed. The orchestrator will call compensations more than once during recovery.
+4. **Timeouts are yours to enforce.** Reservations and authorizations must expire on their own. The orchestrator will try to release them, but a crash between steps means you cannot rely on it.
+
+## Timing
+
+A healthy saga completes in under two seconds. The `checkout_saga_duration_seconds` histogram on the Ordering health dashboard tracks it; anything over 30 seconds is a session that is probably stuck, and [[doc|runbooks/stuck-checkout-sessions]] covers what to do about it.

@@ -1,0 +1,33 @@
+---
+title: Search index lag
+summary: What to do when product changes stop showing up in search results.
+badges:
+  - content: Sev 2
+    backgroundColor: orange
+    textColor: orange
+    icon: ExclamationTriangleIcon
+---
+
+## Symptoms
+
+- Merchandising reports a product they updated minutes ago still shows the old price or name in search.
+- The `search_index_lag_seconds` gauge on the catalog health dashboard is above **120s**.
+- [[event|product-updated]] is being published (visible in the product-api consumer lag panel) but [[container|search-index]] documents are stale.
+
+## Likely causes
+
+1. [[service|search-indexer]] is failing to process events and is retrying. Check its error rate first.
+2. [[service|product-search-publisher]] has fallen behind draining the outbox in [[container|product-database]]. Check the `outbox_backlog` gauge.
+3. The search cluster is rejecting writes (disk pressure or a red index).
+
+## Steps
+
+1. **Confirm which stage is lagging.** Compare `outbox_backlog` (publisher side) with `indexer_consumer_lag` (indexer side). Only one of them is usually the problem.
+2. **If the indexer is failing:** look at its logs for the poison message. Move it to the dead-letter topic with the `catalog-dlq` tool and let the consumer continue. Raise a ticket to fix the underlying mapping bug.
+3. **If the publisher is behind:** it is almost always a database connection limit. Scale [[service|product-search-publisher]] to 2 replicas; it is safe to run in parallel because the outbox rows are claimed with `SELECT … FOR UPDATE SKIP LOCKED`.
+4. **If the cluster is rejecting writes:** page the search platform on-call. Do not delete indices.
+5. Watch `search_index_lag_seconds` recover. If it does not fall below 30s within 10 minutes, escalate.
+
+## If all else fails
+
+Run the [[doc|runbooks/reindexing-products]] runbook. A full reindex is safe but takes ~40 minutes for the current catalog size.

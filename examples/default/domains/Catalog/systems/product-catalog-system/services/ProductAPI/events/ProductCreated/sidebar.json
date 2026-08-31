@@ -1,0 +1,14 @@
+{
+  "sections": [
+    { "section": "$quick-reference", "title": "Overview" },
+    "$api-and-contracts",
+    "$producers",
+    "$consumers",
+    {
+      "title": "Related events",
+      "icon": "Radio",
+      "pages": ["[[event|product-updated]]", "[[event|product-deleted]]"]
+    },
+    "$owners"
+  ]
+}

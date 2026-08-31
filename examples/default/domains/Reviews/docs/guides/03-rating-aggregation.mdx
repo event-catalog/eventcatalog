@@ -1,0 +1,35 @@
+---
+title: Rating aggregation
+summary: How a product's star rating is calculated, where it is served from, and what to expect when it is out of date.
+---
+
+The star rating shown on a product card is a derived value. It is not stored on the review, and it is not the responsibility of whoever renders it. This guide explains how it is produced so consumers can reason about its freshness.
+
+## What is aggregated
+
+For each product, [[service|rating-aggregator]] maintains a [[entity|rating-summary]]: the average rating, the number of reviews behind it, and the time it was last recalculated. Only reviews in the `published` state count. A review that is later rejected on re-moderation is removed from the average the next time the product is recalculated.
+
+Helpful votes recorded by [[command|vote-review-helpful]] do **not** affect the rating. They order reviews within a product; they never weight the score.
+
+## How it is kept up to date
+
+1. [[service|review-moderation-worker]] publishes [[event|review-published]].
+2. [[service|rating-aggregator]] consumes it, reads every published review for that product from [[container|review-database]], and recomputes the summary from scratch. We recompute rather than increment so a replayed event can never double-count.
+3. The summary is written to [[container|rating-cache]] and [[event|rating-updated]] is published with the new value.
+
+Because the aggregator recomputes from the database on every event, it is safe to replay [[event|review-published]] from any offset. That is also how we rebuild the cache — see the "Rebuilding the rating cache" section of [[doc|runbooks/on-call]].
+
+## Where it is served from
+
+[[service|review-api]] reads the summary from [[container|rating-cache]] when serving [[query|get-product-reviews]]. The cache is Redis, transient, and explicitly not authoritative:
+
+- If a product has no entry in the cache, the API returns a rating of `null` with a count of `0`. Render "No reviews yet"; do not treat it as zero stars.
+- Entries are never expired by TTL. They are only overwritten by the aggregator or dropped during a rebuild.
+
+## Consistency expectations
+
+The path from a review being published to the new rating being served is asynchronous. Under normal load it completes in well under a second; during a moderation backlog or a cache rebuild it can lag by minutes. Consumers should:
+
+- Treat [[event|rating-updated]] as the signal that a rating changed, and re-read via [[query|get-product-reviews]] rather than trusting a locally cached value indefinitely.
+- Avoid deriving their own average from the review list. The list is paginated and moderation state can change between pages; the summary is the only figure that is guaranteed to be internally consistent.
+- Expect the count in [[event|rating-updated]] to occasionally go **down** — that is a review being withdrawn after a flag, not a bug.

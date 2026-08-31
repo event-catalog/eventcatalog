@@ -1,0 +1,35 @@
+---
+title: How discounts are calculated
+summary: What happens between a customer entering a promotion code and the discount appearing on their total.
+---
+
+Discounts are calculated exactly once per pricing pass, inside [[service|promotion-service]]. This guide walks through that pass so you can reason about why a cart got the discount it did — or didn't.
+
+## The request
+
+When [[service|cart-api]] handles [[command|checkout-cart]], it sends a [[command|calculate-discount]] request over [[channel|shopping.discount-commands]]. The request carries only what the Promotion Service needs to evaluate rules:
+
+- `cartId` and, if known, `customerId`
+- `subtotal` in minor units
+- `currency`
+- the optional `promotionCode` the customer entered
+
+The Promotion Service never sees the line items. Item-level promotions ("20% off shoes") are on the roadmap but are not supported today; if you need them, talk to [[team|shopping-platform]] first.
+
+## Evaluation order
+
+1. **Look up the code.** If a `promotionCode` was supplied, [[service|promotion-service]] loads the matching [[entity|promotion]] from [[container|promotion-database]]. An unknown code is not an error — it is treated as "no code" and the response carries `discount: 0`. Storefronts should show their own "code not recognised" message based on the empty `appliedPromotions` list.
+2. **Check the window.** The promotion must be `active` and the current time must fall between `startsAt` and `endsAt`.
+3. **Check eligibility.** `min_spend_cents` is compared against the `subtotal`, and `customer_segment`, when set, must match the segment attached to the `customerId`. Guest carts never match a segment-scoped promotion.
+4. **Apply the type.** `PERCENTAGE` promotions take `value`% of the subtotal, rounded **down** to the nearest minor unit. `FIXED_AMOUNT` promotions take `value` minor units, capped at the subtotal so the discount can never exceed what is being bought.
+5. **Publish.** The result is returned to the Cart API and published as [[event|discount-calculated]] with the `appliedPromotions` that contributed.
+
+Only one promotion applies per cart today. Stacking is disabled at the service level, not just in the merchandising tools, so two valid codes will never combine.
+
+## What the Cart API does with it
+
+[[service|cart-api]] subtracts `discount` from `subtotal` to produce `total`, persists nothing about the discount to [[container|cart-database]], and publishes [[event|cart-checked-out]] with all three figures. Downstream systems should trust the `total` on that event rather than recomputing it.
+
+## Failure modes
+
+If [[service|promotion-service]] is unavailable, the Cart API **fails the checkout** with a `409` rather than checking out without a discount. We chose this deliberately — a customer who entered a valid code and was charged full price is a worse outcome than a retry. See [[doc|runbooks/discounts-not-applying]] for what to do when this is happening at scale.

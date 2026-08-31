@@ -1,0 +1,42 @@
+---
+title: Integrating with Customers
+summary: How other teams read customer data and react to customer changes without coupling to the customer database.
+---
+
+The Customer domain is the source of truth for who our customers are. Ordering, payments, reviews and support all need customer data at some point — this guide covers the supported ways to get it.
+
+## Read customer data on demand
+
+Use [[query|get-customer]] on [[service|customer-api]] when you need the current state of a customer at request time (a checkout page, a support screen).
+
+- The response is the customer's **profile** — id, email, name and account status. It never includes credentials.
+- Never query [[container|customer-database]] directly. Its schema is private to [[system|customer-management-system]] and changes without notice.
+- A `404` means the customer does not exist. A `SUSPENDED` or `CLOSED` status is returned as a normal `200` — it is your job to decide what that means for your feature.
+
+## React to customer changes
+
+Subscribe to the domain events published by [[service|customer-api]] when you need to keep a local copy of customer data in sync or trigger downstream work:
+
+| Event | When it fires | What it carries |
+| --- | --- | --- |
+| [[event\|customer-registered]] | A new customer completes registration | The full customer profile |
+| [[event\|customer-updated]] | Any profile attribute changes | `customerId` plus a `changes` object containing only the fields that changed |
+
+Two things to get right when consuming these:
+
+1. **Consumers must be idempotent.** You may see the same event more than once. Use `eventId` as the idempotency key.
+2. **`customer-updated` is a partial.** The `changes` object only contains what changed. Merge it into your copy — do not treat missing fields as cleared.
+
+The `status` value on both events is one of `ACTIVE`, `SUSPENDED` or `CLOSED`. Treat unknown values as "do nothing" so we can add states later without breaking you.
+
+## React to sign-ins
+
+[[event|customer-authenticated]] is published by [[service|oauth-api]] in the [[system|identity-provider]] every time a customer signs in successfully. It carries the `customerId`, the authentication `method` (`PASSWORD`, `SSO` or `MFA`) and the source IP. It is intended for auditing, session tracking and fraud signals — **not** for authorising requests. Verify the access token instead.
+
+## Commands are internal
+
+[[command|register-customer]] and [[command|update-customer]] are only accepted from the storefront and the support tooling owned by [[team|customer-platform]]. [[command|authenticate-customer]] is only called by first-party login flows. If your team needs to change customer data, talk to us in `#customer-support` rather than calling these directly.
+
+## Personal data
+
+Everything in this domain is PII. Keep only the fields you need, respect the retention rules in [[doc|guides/customer-data-model]], and never log an email address or IP address in plain text.

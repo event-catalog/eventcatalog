@@ -1,0 +1,34 @@
+---
+title: On-call checklist
+summary: What the Catalog on-call engineer checks at handover and how to triage a page.
+badges:
+  - content: Start here
+    backgroundColor: green
+    textColor: green
+    icon: RocketLaunchIcon
+---
+
+## At handover
+
+1. Open the catalog health dashboard and confirm all four panels are green: API error rate, outbox backlog, indexer lag, search cluster health.
+2. Check `#catalog-support` for anything unresolved from the previous shift.
+3. Confirm `catalog reindex status` reports `idle` — a reindex left running across a handover is the most common surprise.
+
+## Triage
+
+| Page | Start with |
+| --- | --- |
+| `ProductAPI 5xx rate` | [[service\|product-api]] logs; usually a bad deploy — roll back first, investigate second |
+| `Outbox backlog growing` | [[doc\|runbooks/search-index-lag]] |
+| `Search index lag` | [[doc\|runbooks/search-index-lag]] |
+| `Search cluster red` | Page search platform on-call; do not touch indices |
+
+## Escalation
+
+- Anything affecting checkout (customers can't see prices or products) is a **Sev 1** — page the incident commander immediately.
+- Search-only degradation is **Sev 2** — fix within the hour, no incident channel needed unless it persists.
+- [[team|product-platform]] is the owning team; the team lead is the escalation point out of hours.
+
+## Before you sign off
+
+Leave a one-line summary in `#catalog-support` even if nothing happened. The next person will thank you.

@@ -1,0 +1,40 @@
+---
+title: Moderation queue stuck
+summary: What to do when submitted reviews stop being published or rejected and the moderation backlog grows.
+badges:
+  - content: Sev 2
+    backgroundColor: orange
+    textColor: orange
+    icon: ExclamationTriangleIcon
+---
+
+## Symptoms
+
+- Customers report a review they submitted hours ago still says "awaiting moderation".
+- The `moderation_queue_depth` gauge on the reviews health dashboard is climbing rather than oscillating.
+- [[event|review-submitted]] is being published at the normal rate, but [[event|review-published]] and [[event|review-rejected]] have dropped to near zero.
+- The count of [[entity|review]] rows in the `submitted` state in [[container|review-database]] keeps growing.
+
+## Likely causes
+
+1. [[service|review-moderation-worker]] is crash-looping on a poison message. Look for the same `reviewId` at the top of the logs on every restart.
+2. The classifier the worker calls for the spam and language checks is timing out. The worker retries with backoff, so throughput collapses long before the error rate looks alarming.
+3. The manual queue is full but nobody is working it — the automated screen is fine, and the backlog is entirely reviews waiting for a human.
+4. The worker has lost its database connection pool and is failing to write the [[entity|moderation-decision]] row, so it cannot acknowledge anything.
+
+## Steps
+
+1. **Work out which stage is stuck.** Compare `moderation_consumer_lag` (the worker is not keeping up with Kafka) with `moderation_manual_queue_depth` (the worker is fine, humans are the bottleneck). They point at different fixes.
+2. **If the manual queue is the problem:** this is not an engineering incident. Post the queue depth in `#reviews-support` and page the Trust & Safety duty moderator. Do not bulk-approve to clear it.
+3. **If the worker is crash-looping:** find the poison `reviewId` in the logs, move that message to the dead-letter topic with `reviews-dlq park <reviewId>`, and let the consumer continue. Raise a ticket to fix the underlying bug — it is usually an unexpected character set in the review body.
+4. **If the classifier is timing out:** the worker's circuit breaker should have opened; check that it has. If it has, reviews are being routed to the manual queue as designed and will drain once the classifier recovers. If it has not, restart the worker to reset the breaker state.
+5. **If the database pool is exhausted:** check the connection count on [[container|review-database]]. [[service|review-api]] and [[service|rating-aggregator]] share the instance; the aggregator is the usual culprit after a cache rebuild. Scale [[service|review-moderation-worker]] down to 1 replica until the count recovers, then back up.
+6. Watch `moderation_queue_depth` fall. Automated decisions should resume within a couple of minutes of the fix; if the queue is not visibly draining after 10 minutes, escalate to the team lead.
+
+## Flagged reviews
+
+[[event|review-flagged]] shares the same consumer, so a stuck worker also stops re-moderation. Once the backlog is cleared, check the `review_flag` table for flags older than the outage window and confirm each has a corresponding [[entity|moderation-decision]]. Any that do not can be re-queued with `reviews-dlq replay --flags-since <timestamp>`.
+
+## Afterwards
+
+Once published events resume, [[service|rating-aggregator]] will catch up on its own — expect a burst of [[event|rating-updated]] and a short spike in `aggregator_consumer_lag`. That is normal and does not need a cache rebuild.

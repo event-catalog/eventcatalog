@@ -1,0 +1,53 @@
+{
+  "sections": [
+    {
+      "section": "$quick-reference",
+      "title": "Overview"
+    },
+    {
+      "title": "Guides",
+      "icon": "BookOpen",
+      "pages": [
+        "[[doc|guides/integrating-with-the-catalog]]",
+        "[[doc|guides/product-data-model]]",
+        "[[doc|guides/event-versioning]]"
+      ]
+    },
+    {
+      "title": "Integration Events",
+      "icon": "Radio",
+      "pages": [
+        "[[event|product-created]]",
+        "[[event|product-updated]]",
+        "[[event|product-deleted]]"
+      ]
+    },
+    "$architecture",
+    "$systems",
+    "$entities",
+    {
+      "title": "Runbooks",
+      "icon": "Siren",
+      "pages": [
+        "[[doc|runbooks/on-call]]",
+        "[[doc|runbooks/search-index-lag]]",
+        "[[doc|runbooks/reindexing-products]]",
+        {
+          "title": "Health dashboard",
+          "href": "https://grafana.acme.dev/d/catalog-overview"
+        }
+      ]
+    },
+    {
+      "title": "Decisions",
+      "icon": "ClipboardList",
+      "collapsed": true,
+      "pages": [
+        "[[adr|adr-001-use-transactional-outbox]]",
+        "[[adr|adr-002-postgres-as-system-of-record]]",
+        "[[adr|adr-003-offload-async-work-to-worker]]"
+      ]
+    },
+    "$owners"
+  ]
+}

@@ -1,0 +1,45 @@
+---
+title: Cart and promotion model
+summary: The four entities behind a purchase, how they relate, and which identifiers to key on.
+---
+
+Four entities make up the Shopping domain. Two belong to [[system|cart-system]] and two to [[system|promotion-system]]. They are deliberately kept apart so promotion logic can change without touching cart persistence.
+
+## Cart
+
+[[entity|cart]] is the aggregate root of the Cart System. It carries the `cartId`, an optional `customerId` (guest carts have none until login), a `currency` and a `status`. **Key on `cartId`** — it is the identifier on every command and on [[event|cart-checked-out]].
+
+A cart moves through three states:
+
+| Status | Meaning |
+| --- | --- |
+| `OPEN` | The customer is still adding and removing items |
+| `CHECKED_OUT` | [[command\|checkout-cart]] succeeded; the cart is immutable from here on |
+| `ABANDONED` | No activity for the retention window; the cart is pruned and cannot be revived |
+
+Carts are transient. Once checked out, the order — not the cart — is the long-lived record. Do not build reporting on cart rows.
+
+## Cart item
+
+[[entity|cart-item]] is a single product line inside a cart: a `productId`, a `quantity` and the `unitPrice` captured when the item was added. The Cart System does **not** re-price items on every read; the unit price is snapshotted at add time and re-validated only at checkout. This is why an item added yesterday may show a different price at checkout.
+
+There is one cart item per `productId` per cart. Adding the same product twice increases `quantity` rather than creating a second line.
+
+## Promotion
+
+[[entity|promotion]] is the aggregate root of the Promotion System and lives in [[container|promotion-database]]. A promotion has a unique `code`, a `type` (`PERCENTAGE` or `FIXED_AMOUNT`), a `value`, a validity window (`startsAt` / `endsAt`) and a set of eligibility rules — currently a minimum spend and an optional customer segment.
+
+Promotions are managed by the merchandising tools owned by [[team|shopping-platform]]. Nothing in the domain's public API creates or edits them.
+
+## Discount
+
+[[entity|discount]] is the *result* of evaluating promotions against a specific cart. It is produced by [[command|calculate-discount]], carried on [[event|discount-calculated]], and folded into the `discount` and `total` fields of [[event|cart-checked-out]].
+
+A discount is never stored against the cart. It is recalculated every time the cart is priced, which means:
+
+- A promotion that expires between "add to cart" and "checkout" will simply not apply.
+- The `appliedPromotions` list on [[event|discount-calculated]] is the only record of *which* promotion produced a discount — persist it if you need it for reconciliation.
+
+## Money
+
+Every monetary field in this domain — `unitPrice`, `subtotal`, `discount`, `total`, promotion `value` — is an **integer in minor units** (pence, cents). Never send or expect decimals.
