@@ -51,10 +51,6 @@ const getEntityMapCollection = (props: any, mdxProp: any) => {
 };
 
 const components = (props: any) => {
-  // Occurrence counter so multiple <ArchitectureGraph/> tags on one page each get
-  // their own portal — MDX renders in document order, matching the body scan order
-  // the host pages use to render the islands.
-  let architectureGraphOccurrence = 0;
   return {
     Attachments: (mdxProp: any) => jsx(Attachments, { ...props, ...mdxProp }),
     CustomProperties: (mdxProp: any) => jsx(CustomProperties, { ...props, ...mdxProp }),
@@ -74,14 +70,7 @@ const components = (props: any) => {
     ADRTable: (mdxProp: any) => jsx(ADRTable, { ...props, ...mdxProp }),
     EntityPropertiesTable: (mdxProp: any) => jsx(EntityPropertiesTable, { ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
-    ArchitectureGraph: (mdxProp: any) =>
-      jsx(ArchitectureGraphPortal, {
-        ...props.data,
-        ...mdxProp,
-        occurrenceIndex: architectureGraphOccurrence++,
-        props,
-        mdxProp,
-      }),
+    ArchitectureGraph: (mdxProp: any) => jsx(ArchitectureGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     ComponentDiagram: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     ContextDiagram: (mdxProp: any) => jsx(ContextDiagramPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     SystemContextMap: (mdxProp: any) => jsx(SystemContextMapPortal, { ...mdxProp }),

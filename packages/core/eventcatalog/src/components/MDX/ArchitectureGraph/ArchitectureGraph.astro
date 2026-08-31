@@ -15,9 +15,9 @@ interface Props {
   showLegend?: boolean;
   /** Off by default — embedded graphs pin a lens rather than offer the picker */
   showLensPicker?: boolean;
-  // Override the DOM portal the graph mounts into. Defaults to
-  // `${id}-architecture-graph-portal` (or `catalog-architecture-graph-portal`).
-  portalId?: string;
+  // Position of this embed among the page's <ArchitectureGraph/> tags — pairs
+  // the island with its placeholder div by document order.
+  occurrenceIndex?: number;
   href?: {
     label: string;
     url: string;
@@ -32,7 +32,7 @@ const {
   showSearch = true,
   showLegend = true,
   showLensPicker = false,
-  portalId,
+  occurrenceIndex = 0,
   href,
 } = Astro.props;
 
@@ -47,7 +47,7 @@ const focusKey =
 
 <AstroArchitectureGraph
   client:only="react"
-  portalId={portalId ?? `${id ?? 'catalog'}-architecture-graph-portal`}
+  occurrenceIndex={occurrenceIndex}
   nodes={wire.nodes}
   links={wire.links}
   linkLabels={wire.linkLabels}
