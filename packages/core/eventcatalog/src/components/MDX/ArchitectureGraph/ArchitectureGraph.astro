@@ -1,0 +1,62 @@
+---
+import AstroArchitectureGraph from './AstroArchitectureGraph';
+import { getCatalogForceGraph, toCatalogForceGraphWire } from '@utils/node-graphs/catalog-force-graph';
+
+interface Props {
+  // Resource to focus the graph on (its neighbourhood fills the view). Omit both
+  // to render the whole catalog graph.
+  id?: string;
+  collection?: string;
+  /** Relationship hops rendered around the focused resource (1–3) */
+  depth?: number;
+  /** Lens to render: all | domains | systems | services | teams | messages */
+  lens?: string;
+  showSearch?: boolean;
+  showLegend?: boolean;
+  /** Off by default — embedded graphs pin a lens rather than offer the picker */
+  showLensPicker?: boolean;
+  // Override the DOM portal the graph mounts into. Defaults to
+  // `${id}-architecture-graph-portal` (or `catalog-architecture-graph-portal`).
+  portalId?: string;
+  href?: {
+    label: string;
+    url: string;
+  };
+}
+
+const {
+  id,
+  collection,
+  depth = 2,
+  lens,
+  showSearch = true,
+  showLegend = true,
+  showLensPicker = false,
+  portalId,
+  href,
+} = Astro.props;
+
+const graph = await getCatalogForceGraph();
+const wire = toCatalogForceGraphWire(graph);
+
+// Only focus a resource that exists in the graph — it holds latest versions
+// only, so e.g. an old-version page falls back to the whole catalog view
+const focusKey =
+  id && collection && graph.nodes.some((node) => node.id === `${collection}/${id}`) ? `${collection}/${id}` : undefined;
+---
+
+<AstroArchitectureGraph
+  client:only="react"
+  portalId={portalId ?? `${id ?? 'catalog'}-architecture-graph-portal`}
+  nodes={wire.nodes}
+  links={wire.links}
+  linkLabels={wire.linkLabels}
+  initialFocus={focusKey}
+  initialFocusDepth={depth}
+  initialLens={lens}
+  showSearch={showSearch}
+  showLegend={showLegend}
+  showLensPicker={showLensPicker}
+  href={href?.url}
+  hrefLabel={href?.label}
+/>

@@ -30,23 +30,40 @@ import { drag } from 'd3-drag';
 import { getColorForCollection, tailwind500RgbByColor } from '@utils/collection-colors';
 import { getIconForCollection } from '@utils/collections/icons';
 import { buildUrl } from '@utils/url-builder';
+import type { CatalogGraphWireLink, CatalogGraphWireNode } from '@utils/node-graphs/catalog-force-graph';
 
-/** Compact wire format — expanded client-side to keep the serialised page payload small. */
-export interface CatalogGraphWireNode {
-  /** Resource id, e.g. `InventoryService` */
-  id: string;
-  label: string;
-  collection: string;
-  version?: string;
-}
-
-/** [sourceIndex, targetIndex, labelIndex] into the nodes / linkLabels arrays */
-export type CatalogGraphWireLink = [number, number, number];
+export type { CatalogGraphWireLink, CatalogGraphWireNode };
 
 interface Props {
   nodes: CatalogGraphWireNode[];
   links: CatalogGraphWireLink[];
   linkLabels: string[];
+  /** Seed the initial lens. URL state wins when `syncUrl` is on. */
+  initialLens?: string;
+  /** Seed the initial focused node key, e.g. `domains/Orders`. URL state wins when `syncUrl` is on. */
+  initialFocus?: string;
+  /** Seed the initial focus depth (1–3). URL state wins when `syncUrl` is on. */
+  initialFocusDepth?: number;
+  /**
+   * Read the view state from the URL and mirror changes back into it — the
+   * standalone /visualiser/graph page. Off for graphs embedded in docs pages,
+   * which must not rewrite their host page's query string.
+   */
+  syncUrl?: boolean;
+  /** Show the lens picker / detail slider (hidden on embedded graphs, which pin a lens) */
+  showLensPicker?: boolean;
+  showSearch?: boolean;
+  showLegend?: boolean;
+  /** When off, plain scrolling over the canvas scrolls the page — zooming needs ctrl/cmd+scroll */
+  zoomOnScroll?: boolean;
+  /**
+   * Base URL of the standalone /visualiser/graph page. When set, an "open"
+   * link is rendered whose query string carries the CURRENT view state (focus,
+   * depth, lens, hidden collections), so the full page opens on exactly the
+   * view the embedded graph is showing.
+   */
+  openInGraphUrl?: string;
+  openInGraphLabel?: string;
 }
 
 interface GraphNode extends CatalogGraphWireNode {
@@ -243,7 +260,21 @@ const distanceToHull = (px: number, py: number, hull: [number, number][]) => {
   return min;
 };
 
-const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
+const CatalogForceGraph = ({
+  nodes,
+  links,
+  linkLabels,
+  initialLens,
+  initialFocus,
+  initialFocusDepth,
+  syncUrl = true,
+  showLensPicker = true,
+  openInGraphUrl,
+  openInGraphLabel,
+  showSearch = true,
+  showLegend = true,
+  zoomOnScroll = true,
+}: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -255,37 +286,51 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
   const iconSpritesRef = useRef(new Map<string, HTMLCanvasElement>());
   const drawRef = useRef<() => void>(() => {});
   // View state initialises from the URL so people can share what they're looking
-  // at (?lens=domains&focus=services/OrderService&depth=2&detail=3&hide=teams,entities)
+  // at (?lens=domains&focus=services/OrderService&depth=2&detail=3&hide=teams,entities).
+  // Embedded graphs (syncUrl off) seed from the initial* props instead — their
+  // host page's query string is not theirs to read or write.
+  const urlParam = (key: string) => (syncUrl ? new URLSearchParams(window.location.search).get(key) : null);
   const [hiddenCollections, setHiddenCollections] = useState<Set<string>>(() => {
-    const hide = new URLSearchParams(window.location.search).get('hide');
+    const hide = urlParam('hide');
     return new Set(hide ? hide.split(',').filter(Boolean) : []);
   });
   const [lensKey, setLensKey] = useState(() => {
-    const lens = new URLSearchParams(window.location.search).get('lens');
+    const lens = urlParam('lens') ?? initialLens;
     return lens && lens in LENSES ? lens : 'all';
   });
-  const [focusKey, setFocusKey] = useState<string | null>(() => new URLSearchParams(window.location.search).get('focus'));
+  const [focusKey, setFocusKey] = useState<string | null>(() => urlParam('focus') ?? initialFocus ?? null);
   const [focusDepth, setFocusDepth] = useState(() =>
-    Math.min(3, Math.max(1, Number(new URLSearchParams(window.location.search).get('depth')) || 1))
+    Math.min(3, Math.max(1, Number(urlParam('depth')) || initialFocusDepth || 1))
   );
   // How many hops of detail radiate out from a lens's anchor nodes (4 = everything)
-  const [lensDepth, setLensDepth] = useState(() =>
-    Math.min(MAX_LENS_DEPTH, Math.max(1, Number(new URLSearchParams(window.location.search).get('detail')) || 1))
-  );
+  const [lensDepth, setLensDepth] = useState(() => Math.min(MAX_LENS_DEPTH, Math.max(1, Number(urlParam('detail')) || 1)));
 
-  // Reflect the view state back into the URL (replaceState, so no history spam);
-  // unrelated params — e.g. the stress page's ?nodes — are preserved
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+  // Serialise the current view state into query params — shared between the
+  // URL sync below and the embedded graphs' "open in graph" link
+  const applyViewParams = (params: URLSearchParams) => {
     const setOrDelete = (key: string, value: string | null) => (value ? params.set(key, value) : params.delete(key));
     setOrDelete('lens', lensKey !== 'all' ? lensKey : null);
     setOrDelete('focus', focusKey);
     setOrDelete('depth', focusKey && focusDepth !== 1 ? String(focusDepth) : null);
     setOrDelete('detail', lensDepth !== 1 ? String(lensDepth) : null);
     setOrDelete('hide', hiddenCollections.size > 0 ? [...hiddenCollections].sort().join(',') : null);
-    const query = params.toString();
+    return params;
+  };
+
+  // Reflect the view state back into the URL (replaceState, so no history spam);
+  // unrelated params — e.g. the stress page's ?nodes — are preserved
+  useEffect(() => {
+    if (!syncUrl) return;
+    const query = applyViewParams(new URLSearchParams(window.location.search)).toString();
     window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
   }, [lensKey, focusKey, focusDepth, lensDepth, hiddenCollections]);
+
+  // The "open in graph" link tracks the live view, so what opens is what's shown
+  const openInGraphHref = (() => {
+    if (!openInGraphUrl) return undefined;
+    const query = applyViewParams(new URLSearchParams()).toString();
+    return `${openInGraphUrl}${query ? `?${query}` : ''}`;
+  })();
   const [searchValue, setSearchValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
@@ -989,6 +1034,8 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
           const [x, y] = pointerPosition(event);
           return !findNode(x, y);
         }
+        // Embedded graphs must not hijack page scrolling — zooming needs ctrl/cmd there
+        if (event.type === 'wheel' && !zoomOnScroll && !event.ctrlKey && !event.metaKey) return false;
         return !event.ctrlKey || event.type === 'wheel';
       })
       .on('zoom', (event) => {
@@ -1171,7 +1218,7 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
       resizeObserver.disconnect();
       themeObserver.disconnect();
     };
-  }, [viewNodes, viewLinks, lens, hiddenCollections, clusterAssignments, focusKey, focusAncestors]);
+  }, [viewNodes, viewLinks, lens, hiddenCollections, clusterAssignments, focusKey, focusAncestors, zoomOnScroll]);
 
   const toggleCollection = (collection: string) => {
     setHiddenCollections((current) => {
@@ -1205,138 +1252,158 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
         className="pointer-events-none absolute z-10 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] shadow-md transition-opacity duration-100"
         style={{ opacity: 0 }}
       />
-      <div className="absolute left-3 top-3 z-10 flex flex-col gap-2 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs shadow-xs">
-        <div className="flex items-center gap-2">
-          <label htmlFor="catalog-graph-lens" className="font-semibold text-[rgb(var(--ec-page-text))]">
-            Lens
-          </label>
-          <select
-            id="catalog-graph-lens"
-            value={lensKey}
-            onChange={(event) => {
-              // A new lens is a fresh view — drop any focus and legend filters
-              setLensKey(event.target.value);
-              setFocusKey(null);
-              setFocusDepth(1);
-              setHiddenCollections(new Set());
-            }}
-            title={lens.description}
-            className="rounded-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] px-2 py-1 text-[rgb(var(--ec-input-text))]"
+      {/* Top-left chrome stacks in one column so the link and lens picker never overlap */}
+      <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-2">
+        {showLensPicker && (
+          <div className="flex flex-col gap-2 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs shadow-xs">
+            <div className="flex items-center gap-2">
+              <label htmlFor="catalog-graph-lens" className="font-semibold text-[rgb(var(--ec-page-text))]">
+                Lens
+              </label>
+              <select
+                id="catalog-graph-lens"
+                value={lensKey}
+                onChange={(event) => {
+                  // A new lens is a fresh view — drop any focus and legend filters
+                  setLensKey(event.target.value);
+                  setFocusKey(null);
+                  setFocusDepth(1);
+                  setHiddenCollections(new Set());
+                }}
+                title={lens.description}
+                className="rounded-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] px-2 py-1 text-[rgb(var(--ec-input-text))]"
+              >
+                {Object.entries(LENSES).map(([key, { label }]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {lens.hubCollections && !focusedNode && (
+              <label
+                className="flex items-center gap-2 text-[rgb(var(--ec-page-text-muted))]"
+                title="How many relationship hops to show around the anchor nodes"
+              >
+                Detail
+                <input
+                  type="range"
+                  min={1}
+                  max={MAX_LENS_DEPTH}
+                  step={1}
+                  value={lensDepth}
+                  onChange={(event) => setLensDepth(Number(event.target.value))}
+                  className="w-24 accent-[rgb(var(--ec-accent))]"
+                />
+                <span className="w-5 text-[rgb(var(--ec-page-text))]">{lensDepth >= MAX_LENS_DEPTH ? 'All' : lensDepth}</span>
+              </label>
+            )}
+          </div>
+        )}
+        {openInGraphHref && (
+          <a
+            href={openInGraphHref}
+            className="rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] shadow-xs hover:bg-[rgb(var(--ec-accent-subtle))]"
           >
-            {Object.entries(LENSES).map(([key, { label }]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-        {lens.hubCollections && !focusedNode && (
-          <label
-            className="flex items-center gap-2 text-[rgb(var(--ec-page-text-muted))]"
-            title="How many relationship hops to show around the anchor nodes"
-          >
-            Detail
-            <input
-              type="range"
-              min={1}
-              max={MAX_LENS_DEPTH}
-              step={1}
-              value={lensDepth}
-              onChange={(event) => setLensDepth(Number(event.target.value))}
-              className="w-24 accent-[rgb(var(--ec-accent))]"
-            />
-            <span className="w-5 text-[rgb(var(--ec-page-text))]">{lensDepth >= MAX_LENS_DEPTH ? 'All' : lensDepth}</span>
-          </label>
+            {openInGraphLabel ?? 'Open full screen'} →
+          </a>
         )}
       </div>
-      <div className="absolute right-3 top-3 z-10 flex flex-col gap-2 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs shadow-xs">
-        <div ref={searchContainerRef} className="relative">
-          <input
-            type="text"
-            placeholder="Search &amp; focus…"
-            value={searchValue}
-            onChange={(event) => {
-              setSearchValue(event.target.value);
-              setShowSuggestions(true);
-              setSelectedSuggestionIndex(-1);
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            onKeyDown={handleSearchKeyDown}
-            className="w-56 rounded-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] py-1 pl-2 pr-7 text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
-          />
-          {searchValue && (
-            <button
-              type="button"
-              onClick={() => setSearchValue('')}
-              aria-label="Clear search"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
-            >
-              ×
-            </button>
-          )}
-          {showSuggestions && searchSuggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg">
-              {searchSuggestions.map((node, index) => {
-                const Icon = getIconForCollection(node.collection);
-                const chipStyle = collectionChipStyle(node.collection);
-                const isSelected = index === selectedSuggestionIndex;
-                return (
-                  <button
-                    key={node.key}
-                    type="button"
-                    onClick={() => selectSuggestion(node)}
-                    onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                    className={`flex w-full items-center gap-2 px-2 py-1.5 text-left ${isSelected ? 'bg-[rgb(var(--ec-accent-subtle))]' : ''}`}
-                  >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md" style={chipStyle}>
-                      <Icon width={13} height={13} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium text-[rgb(var(--ec-page-text))]">{node.label}</span>
-                      {node.version && (
-                        <span className="block truncate text-[10px] text-[rgb(var(--ec-page-text-muted))]">v{node.version}</span>
-                      )}
-                    </span>
-                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium" style={chipStyle}>
-                      {COLLECTION_LABELS[node.collection] ?? node.collection}
-                    </span>
-                  </button>
-                );
-              })}
+      {(showSearch || focusedNode) && (
+        // z-20: the search dropdown must paint over the Resources legend below it
+        <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-xs shadow-xs">
+          {showSearch && (
+            <div ref={searchContainerRef} className="relative">
+              <input
+                type="text"
+                placeholder="Search &amp; focus…"
+                value={searchValue}
+                onChange={(event) => {
+                  setSearchValue(event.target.value);
+                  setShowSuggestions(true);
+                  setSelectedSuggestionIndex(-1);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleSearchKeyDown}
+                className="w-56 rounded-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] py-1 pl-2 pr-7 text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+              />
+              {searchValue && (
+                <button
+                  type="button"
+                  onClick={() => setSearchValue('')}
+                  aria-label="Clear search"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
+                >
+                  ×
+                </button>
+              )}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg">
+                  {searchSuggestions.map((node, index) => {
+                    const Icon = getIconForCollection(node.collection);
+                    const chipStyle = collectionChipStyle(node.collection);
+                    const isSelected = index === selectedSuggestionIndex;
+                    return (
+                      <button
+                        key={node.key}
+                        type="button"
+                        onClick={() => selectSuggestion(node)}
+                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                        className={`flex w-full items-center gap-2 px-2 py-1.5 text-left ${isSelected ? 'bg-[rgb(var(--ec-accent-subtle))]' : ''}`}
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md" style={chipStyle}>
+                          <Icon width={13} height={13} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-medium text-[rgb(var(--ec-page-text))]">{node.label}</span>
+                          {node.version && (
+                            <span className="block truncate text-[10px] text-[rgb(var(--ec-page-text-muted))]">
+                              v{node.version}
+                            </span>
+                          )}
+                        </span>
+                        <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium" style={chipStyle}>
+                          {COLLECTION_LABELS[node.collection] ?? node.collection}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
+          {focusedNode && (
+            <>
+              <button
+                type="button"
+                onClick={() => setFocusKey(null)}
+                className="flex items-center gap-1 self-start rounded-full border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 text-[rgb(var(--ec-page-text))] hover:opacity-80"
+                title="Clear focus"
+              >
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ backgroundColor: nodeColor(focusedNode.collection) }}
+                />
+                Focused: {focusedNode.label}
+                <span aria-hidden="true">×</span>
+              </button>
+              <label className="flex items-center gap-2 text-[rgb(var(--ec-page-text-muted))]">
+                Depth
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={1}
+                  value={focusDepth}
+                  onChange={(event) => setFocusDepth(Number(event.target.value))}
+                  className="w-24 accent-[rgb(var(--ec-accent))]"
+                />
+                <span className="w-3 text-[rgb(var(--ec-page-text))]">{focusDepth}</span>
+              </label>
+            </>
+          )}
         </div>
-        {focusedNode && (
-          <>
-            <button
-              type="button"
-              onClick={() => setFocusKey(null)}
-              className="flex items-center gap-1 self-start rounded-full border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 text-[rgb(var(--ec-page-text))] hover:opacity-80"
-              title="Clear focus"
-            >
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: nodeColor(focusedNode.collection) }}
-              />
-              Focused: {focusedNode.label}
-              <span aria-hidden="true">×</span>
-            </button>
-            <label className="flex items-center gap-2 text-[rgb(var(--ec-page-text-muted))]">
-              Depth
-              <input
-                type="range"
-                min={1}
-                max={3}
-                step={1}
-                value={focusDepth}
-                onChange={(event) => setFocusDepth(Number(event.target.value))}
-                className="w-24 accent-[rgb(var(--ec-accent))]"
-              />
-              <span className="w-3 text-[rgb(var(--ec-page-text))]">{focusDepth}</span>
-            </label>
-          </>
-        )}
-      </div>
+      )}
       {focusedNode && (
         <div className="absolute bottom-3 left-3 z-10 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-3 text-xs shadow-xs">
           <div className="mb-2 font-semibold text-[rgb(var(--ec-page-text))]">You are here</div>
@@ -1377,28 +1444,30 @@ const CatalogForceGraph = ({ nodes, links, linkLabels }: Props) => {
           </ul>
         </div>
       )}
-      <div className="absolute bottom-3 right-3 z-10 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-3 text-xs shadow-xs">
-        <div className="mb-2 font-semibold text-[rgb(var(--ec-page-text))]">Resources</div>
-        <ul className="space-y-1">
-          {collectionsInGraph.map(({ collection, count }) => {
-            const hidden = hiddenCollections.has(collection);
-            return (
-              <li key={collection}>
-                <button
-                  type="button"
-                  onClick={() => toggleCollection(collection)}
-                  className={`flex w-full items-center gap-2 rounded-sm px-1 py-0.5 text-left hover:bg-[rgb(var(--ec-accent-subtle))] ${hidden ? 'opacity-40' : ''}`}
-                >
-                  <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: nodeColor(collection) }} />
-                  <span className="text-[rgb(var(--ec-page-text))]">
-                    {COLLECTION_LABELS[collection] ?? collection} ({count})
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      {showLegend && (
+        <div className="absolute bottom-3 right-3 z-10 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-3 text-xs shadow-xs">
+          <div className="mb-2 font-semibold text-[rgb(var(--ec-page-text))]">Resources</div>
+          <ul className="space-y-1">
+            {collectionsInGraph.map(({ collection, count }) => {
+              const hidden = hiddenCollections.has(collection);
+              return (
+                <li key={collection}>
+                  <button
+                    type="button"
+                    onClick={() => toggleCollection(collection)}
+                    className={`flex w-full items-center gap-2 rounded-sm px-1 py-0.5 text-left hover:bg-[rgb(var(--ec-accent-subtle))] ${hidden ? 'opacity-40' : ''}`}
+                  >
+                    <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: nodeColor(collection) }} />
+                    <span className="text-[rgb(var(--ec-page-text))]">
+                      {COLLECTION_LABELS[collection] ?? collection} ({count})
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

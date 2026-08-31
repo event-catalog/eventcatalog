@@ -35,6 +35,47 @@ export interface CatalogGraphLink {
   label: string;
 }
 
+/** Compact wire format — index-based links keep the payload Astro serialises into the island small. */
+export interface CatalogGraphWireNode {
+  /** Resource id, e.g. `InventoryService` — the client rebuilds the `${collection}/${id}` key */
+  id: string;
+  label: string;
+  collection: string;
+  version?: string;
+}
+
+/** [sourceIndex, targetIndex, labelIndex] into the nodes / linkLabels arrays */
+export type CatalogGraphWireLink = [number, number, number];
+
+/**
+ * Compacts the built graph for serialisation into a client island: node ids are
+ * stripped of their `${collection}/` prefix, link labels are deduped into one
+ * array, and each link becomes an index tuple. URLs are dropped server-side and
+ * rebuilt client-side.
+ */
+export const toCatalogForceGraphWire = ({ nodes, links }: { nodes: CatalogGraphNode[]; links: CatalogGraphLink[] }) => {
+  const nodeIndexById = new Map(nodes.map((node, index) => [node.id, index]));
+  const linkLabels = [...new Set(links.map((link) => link.label))];
+  const labelIndexByLabel = new Map(linkLabels.map((label, index) => [label, index]));
+
+  const wireNodes: CatalogGraphWireNode[] = nodes.map(({ id, label, collection, version }) => ({
+    id: id.slice(collection.length + 1),
+    label,
+    collection,
+    version,
+  }));
+
+  const wireLinks = links.map(
+    (link): CatalogGraphWireLink => [
+      nodeIndexById.get(link.source)!,
+      nodeIndexById.get(link.target)!,
+      labelIndexByLabel.get(link.label)!,
+    ]
+  );
+
+  return { nodes: wireNodes, links: wireLinks, linkLabels };
+};
+
 type AnyEntry = {
   collection?: string;
   data: { id: string; name?: string; version?: string; latestVersion?: string; visualiser?: boolean };

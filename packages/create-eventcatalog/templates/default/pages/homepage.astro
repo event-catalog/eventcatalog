@@ -2,8 +2,8 @@
 import { getCollection } from 'astro:content';
 
 // EventCatalog injects its components via Astro.props.components. Destructure the ones
-// this landing page uses (including the SystemContextMap embed).
-const { Tile, Tiles, SystemContextMap } = Astro.props.components;
+// this landing page uses (including the ArchitectureGraph and SystemContextMap embeds).
+const { Tile, Tiles, SystemContextMap, ArchitectureGraph } = Astro.props.components;
 
 // Count the catalog's top-level resources. We filter out versioned/ entries so each
 // resource is counted once (by its latest version).
@@ -49,6 +49,16 @@ const stats = [
     }
   </div>
 
+  {/* Architecture graph */}
+  <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-12 mb-2">Architecture</h2>
+  <p class="text-[rgb(var(--ec-page-text-muted))] font-light mb-2">
+    Every resource in the catalog and the relationships between them.
+  </p>
+</div>
+
+<ArchitectureGraph lens="domains" lensPicker="true" />
+
+<div class="not-prose">
   {/* System context map */}
   <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-12 mb-2">System context map</h2>
   <p class="text-[rgb(var(--ec-page-text-muted))] font-light mb-2">

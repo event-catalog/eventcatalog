@@ -35,6 +35,7 @@ import MermaidFileLoader from '@components/MDX/MermaidFileLoader/MermaidFileLoad
 import LikeC4View from '@components/MDX/LikeC4View/LikeC4View.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
+import ArchitectureGraphPortal from '@components/MDX/ArchitectureGraph/ArchitectureGraphPortal';
 import ContextDiagramPortal from '@components/MDX/ContextDiagram/ContextDiagramPortal';
 import SystemContextMapPortal from '@components/MDX/SystemContextMap/SystemContextMapPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -69,6 +70,7 @@ const components = (props: any) => {
     ADRTable: (mdxProp: any) => jsx(ADRTable, { ...props, ...mdxProp }),
     EntityPropertiesTable: (mdxProp: any) => jsx(EntityPropertiesTable, { ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
+    ArchitectureGraph: (mdxProp: any) => jsx(ArchitectureGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     ComponentDiagram: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     ContextDiagram: (mdxProp: any) => jsx(ContextDiagramPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     SystemContextMap: (mdxProp: any) => jsx(SystemContextMapPortal, { ...mdxProp }),

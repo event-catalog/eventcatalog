@@ -1,8 +1,7 @@
 ---
 import VisualiserLayout from '@layouts/VisualiserLayout.astro';
 import CatalogForceGraph from '@components/CatalogGraph/CatalogForceGraph';
-import type { CatalogGraphWireLink } from '@components/CatalogGraph/CatalogForceGraph';
-import { getCatalogForceGraph } from '@utils/node-graphs/catalog-force-graph';
+import { getCatalogForceGraph, toCatalogForceGraphWire } from '@utils/node-graphs/catalog-force-graph';
 import { isArchitectureGraphEnabled } from '@utils/feature';
 
 // Bail before building the graph — on very large catalogs the whole point of
@@ -11,29 +10,9 @@ if (!isArchitectureGraphEnabled()) {
   return new Response(null, { status: 404 });
 }
 
-const { nodes, links } = await getCatalogForceGraph();
-
 // Compact wire format: index-based links and client-derived URLs keep the
 // island props Astro serialises into the page small for large catalogs.
-const nodeIndexById = new Map(nodes.map((node, index) => [node.id, index]));
-const linkLabels = [...new Set(links.map((link) => link.label))];
-const labelIndexByLabel = new Map(linkLabels.map((label, index) => [label, index]));
-
-const wireNodes = nodes.map(({ id, label, collection, version }) => ({
-  // Node ids are `${collection}/${resourceId}` — send only the resource id, the client rebuilds the key
-  id: id.slice(collection.length + 1),
-  label,
-  collection,
-  version,
-}));
-
-const wireLinks = links.map(
-  (link): CatalogGraphWireLink => [
-    nodeIndexById.get(link.source)!,
-    nodeIndexById.get(link.target)!,
-    labelIndexByLabel.get(link.label)!,
-  ]
-);
+const { nodes: wireNodes, links: wireLinks, linkLabels } = toCatalogForceGraphWire(await getCatalogForceGraph());
 ---
 
 <VisualiserLayout title="Visualiser | Architecture Graph" description="Force-directed graph of every resource in the catalog">

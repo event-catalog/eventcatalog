@@ -14,9 +14,16 @@ import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
 import { getAdjacentPages, getNavigationItems } from '@enterprise/custom-documentation/utils/custom-docs';
 import CustomDocsNav from '@enterprise/custom-documentation/components/CustomDocsNav/CustomDocsNav.astro';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+import ArchitectureGraph from '@components/MDX/ArchitectureGraph/ArchitectureGraph.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
 
-import { isVisualiserEnabled, isMarkdownDownloadEnabled, isRSSEnabled, isEventCatalogChatEnabled } from '@utils/feature';
+import {
+  isVisualiserEnabled,
+  isMarkdownDownloadEnabled,
+  isRSSEnabled,
+  isEventCatalogChatEnabled,
+  isArchitectureGraphEnabled,
+} from '@utils/feature';
 
 const props = Astro.props;
 const doc = props.data;
@@ -47,6 +54,18 @@ const resolvedNodeGraphs = await Promise.all(
     };
   })
 );
+
+// Architecture graphs embedded via <ArchitectureGraph />. Custom docs have no
+// resource of their own, so with no `id` + `type` the whole catalog is rendered.
+const architectureGraphs = (getMDXComponentsByName(props.body, 'ArchitectureGraph') || []).map((graph: any) => ({
+  id: graph.id,
+  collection: graph.type ? resourceToCollectionMap[graph.type as keyof typeof resourceToCollectionMap] : undefined,
+  depth: graph.depth ? Number(graph.depth) : undefined,
+  lens: graph.lens,
+  search: parseMdxBooleanProp(graph.search, true),
+  legend: parseMdxBooleanProp(graph.legend, true),
+  lensPicker: parseMdxBooleanProp(graph.lensPicker, false),
+}));
 
 const { prev, next } = await getAdjacentPages(currentSlug);
 
@@ -169,6 +188,31 @@ const editUrl =
                   />
                 );
               })
+          }
+
+          {
+            architectureGraphs.length > 0 &&
+              architectureGraphs.map((graph: any) => (
+                <ArchitectureGraph
+                  id={graph.id}
+                  collection={graph.collection}
+                  depth={graph.depth}
+                  lens={graph.lens}
+                  showSearch={graph.search}
+                  showLegend={graph.legend}
+                  showLensPicker={graph.lensPicker}
+                  portalId={`${graph.id ?? (doc as any).id ?? 'catalog'}-architecture-graph-portal`}
+                  href={
+                    isArchitectureGraphEnabled()
+                      ? {
+                          label: 'Open full screen',
+                          // Base URL only — the graph appends its live view state (focus, depth, lens)
+                          url: buildUrl('/visualiser/graph'),
+                        }
+                      : undefined
+                  }
+                />
+              ))
           }
 
           <!-- Previous / Next Navigation -->
