@@ -11,6 +11,21 @@ describe('markdown', () => {
       const components = getMDXComponentsByName(markdown, 'SchemaViewer');
       expect(components).toEqual([{ id: 'test' }, { id: 'test2' }, {}]);
     });
+
+    it('ignores components inside fenced code blocks and inline code', () => {
+      const markdown = [
+        '<ArchitectureGraph id="real" />',
+        '```mdx',
+        '<ArchitectureGraph id="example" />',
+        '```',
+        '~~~',
+        '<ArchitectureGraph id="tilde-example" />',
+        '~~~',
+        'Use `<ArchitectureGraph id="inline" />` to embed the graph.',
+      ].join('\n');
+      const components = getMDXComponentsByName(markdown, 'ArchitectureGraph');
+      expect(components).toEqual([{ id: 'real' }]);
+    });
   });
 
   describe('parseMdxBooleanProp', () => {
