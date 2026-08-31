@@ -176,6 +176,13 @@ describe('applyCustomSidebar', () => {
       resource
     ) as NavNode[];
     expect(group.pages).toEqual([{ type: 'item', title: 'Mail', href: 'mailto:team@acme.dev', external: true }]);
+
+    const [prGroup] = applyCustomSidebar(
+      spec([{ title: 'X', pages: [{ title: 'Runbook', href: '//runbooks.acme.dev/orders' }] }]),
+      sections,
+      resource
+    ) as NavNode[];
+    expect(prGroup.pages).toEqual([{ type: 'item', title: 'Runbook', href: '//runbooks.acme.dev/orders', external: true }]);
   });
 
   it('renders nested groups as subtle subsections with path-based collapse keys', () => {

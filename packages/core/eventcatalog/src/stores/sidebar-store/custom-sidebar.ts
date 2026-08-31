@@ -424,7 +424,8 @@ const resolvePage = (
 
   if (typeof page !== 'string') {
     const href = interpolateResourcePlaceholders(page.href, resource);
-    const isExternal = EXTERNAL_HREF_PATTERN.test(href);
+    // Protocol-relative URLs (//host/path) are external too — buildUrl would mangle them.
+    const isExternal = EXTERNAL_HREF_PATTERN.test(href) || href.startsWith('//');
     return [
       {
         type: 'item',
