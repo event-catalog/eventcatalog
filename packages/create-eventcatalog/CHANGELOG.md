@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.9
+
+### Patch Changes
+
+- 75cd12d: feat(core): new `<ArchitectureGraph/>` MDX component to embed the D3 architecture graph in resource and custom documentation pages, focused on the page's resource
+
 ## 4.3.8
 
 ### Patch Changes
