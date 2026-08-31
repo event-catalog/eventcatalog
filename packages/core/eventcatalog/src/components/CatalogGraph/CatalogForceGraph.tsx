@@ -331,6 +331,13 @@ const CatalogForceGraph = ({
     const query = applyViewParams(new URLSearchParams()).toString();
     return `${openInGraphUrl}${query ? `?${query}` : ''}`;
   })();
+  // The island hydrates client-only, so the graph would otherwise pop in — fade
+  // it in on mount instead (the rAF lets the opacity-0 frame paint first)
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
   const [searchValue, setSearchValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
@@ -1238,7 +1245,10 @@ const CatalogForceGraph = ({
   const focusedNode = focusKey ? graph.nodes.find((n) => n.key === focusKey) : undefined;
 
   return (
-    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
+    <div
+      ref={containerRef}
+      className={`relative h-full w-full overflow-hidden motion-safe:transition-opacity motion-safe:duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}
+    >
       {/* Hidden icon sources: React renders them once, the sprite effect rasterises
           them for the canvas. Both lucide (color prop) and heroicons (currentColor
           via style) end up with white strokes. */}
