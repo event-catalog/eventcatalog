@@ -450,7 +450,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       }
       return acc;
     },
-    {} as Record<string, NavNode>
+    {} as Record<string, NavNode | string>
   );
 
   const domainNodes = domainsWithOwners.reduce(

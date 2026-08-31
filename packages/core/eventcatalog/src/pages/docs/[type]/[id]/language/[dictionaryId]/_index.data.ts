@@ -13,7 +13,7 @@ export const resolveUbiquitousLanguageTermEditUrl = ({
   collection,
   configEditUrl,
 }: {
-  term: Pick<DictionaryTerm, 'editUrl'>;
+  term: Pick<DictionaryTerm, 'id' | 'editUrl'>;
   collection: Pick<UbiquitousLanguage, 'filePath'> & { data: Pick<UbiquitousLanguage['data'], 'editUrl'> };
   configEditUrl?: string;
 }) =>

@@ -49,7 +49,9 @@ describe('useDarkMode', () => {
     });
 
     expect(container.textContent).toBe('light');
-    const hydrationWarnings = consoleError.mock.calls.filter((call) => String(call[0]).match(/did not match|hydrat/i));
+    const hydrationWarnings = consoleError.mock.calls.filter((call: Parameters<typeof console.error>) =>
+      String(call[0]).match(/did not match|hydrat/i)
+    );
     expect(hydrationWarnings).toEqual([]);
   });
 

@@ -29,6 +29,9 @@ jobs:
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             turbo-${{ runner.os }}-
+      - name: Check Core Types
+        run: pnpm run check
+        working-directory: packages/core
       - name: Test All Packages
         run: pnpm run test:ci
       - name: Build All Packages

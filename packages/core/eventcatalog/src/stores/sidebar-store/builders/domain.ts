@@ -327,7 +327,7 @@ export const buildDomainSections = (
                 `/docs/domains/${domain.data.id}/${domain.data.version}/graphql/${specification.filenameWithoutExtension}`
               ),
             })),
-          ],
+          ] as ChildRef[],
         }
       : null,
     systems: renderSystems
