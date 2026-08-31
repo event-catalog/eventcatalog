@@ -25,90 +25,73 @@ const editUrl = resolveUbiquitousLanguageTermEditUrl({
   configEditUrl: config.editUrl,
 });
 
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-});
+// Pass options per call rather than via `marked.setOptions`, which mutates module-global
+// state and leaks between pages (and between HMR reloads) in the same process.
+const renderMarkdown = (markdown: string) => marked.parse(markdown, { gfm: true, breaks: false }) as string;
 
+const TermIcon = ubiquitousLanguage.icon
+  ? ((LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[ubiquitousLanguage.icon] ?? null)
+  : null;
+
+// Badges double as navigation back up the hierarchy: the owning domain and its glossary.
 const badges = [
   {
     content: props.domain.name,
     icon: RectangleGroupIcon,
+    url: buildUrl(`/docs/${props.type}/${props.domainId}/${props.domain.latestVersion}`),
+  },
+  {
+    content: 'Ubiquitous Language',
+    icon: LucideIcons.BookOpen,
+    url: buildUrl(`/docs/${props.type}/${props.domainId}/language`),
   },
 ];
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={ubiquitousLanguage.summary}>
   <main
-    class="flex sm:px-8 docs-layout min-h-full max-w-7xl bg-[rgb(var(--ec-page-bg))]"
+    class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]"
     data-pagefind-body
     data-pagefind-meta={`title:${pageTitle}`}
   >
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-8 py-8 min-h-[50em]">
-        {/* Breadcrumb */}
-        <nav class="mb-4 flex items-center space-x-2 text-sm text-[rgb(var(--ec-page-text-muted))]" aria-label="Breadcrumb">
-          <a
-            href={buildUrl(`/docs/${props.type}/${props.domainId}/${props.domain.latestVersion}`)}
-            class="hover:text-[rgb(var(--ec-page-text))] hover:underline flex items-center gap-2"
-          >
-            <RectangleGroupIcon className="h-4 w-4" />
-            {props.domain.name}
-          </a>
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-          </svg>
-          <a
-            href={buildUrl(`/docs/${props.type}/${props.domainId}/language`)}
-            class="hover:text-[rgb(var(--ec-page-text))] hover:underline flex items-center gap-2"
-          >
-            {
-              (() => {
-                const BookOpen = LucideIcons.BookOpen;
-                //@ts-ignore
-                return <BookOpen className="h-4 w-4" />;
-              })()
-            }
-            Ubiquitous Language Explorer
-          </a>
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-          </svg>
-          <span class="text-[rgb(var(--ec-page-text))]">{ubiquitousLanguage.name}</span>
-        </nav>
-
-        <div class="border-b border-[rgb(var(--ec-page-border))] flex justify-between items-start md:pb-2">
-          <div>
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
-              {ubiquitousLanguage.name}
-            </h2>
-            <p class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{ubiquitousLanguage.summary}</p>
-            <!-- Add badge -->
-            {
-              badges && badges.length > 0 && (
-                <div class="flex flex-wrap gap-3 py-4">
-                  {badges.map((badge: any) => {
-                    return <Badge badge={badge} />;
-                  })}
-                </div>
-              )
-            }
+      <div class="w-full min-w-0 lg:mr-2 pr-24 py-8 min-h-[50em]">
+        {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro). */}
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
+          <div class="flex flex-col gap-4">
+            <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">Term</span>
+            <div class="flex items-center gap-3">
+              {
+                TermIcon && (
+                  <div class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-md bg-[rgb(var(--ec-accent-subtle))] shrink-0">
+                    <TermIcon className="w-5 h-5 md:w-6 md:h-6 text-[rgb(var(--ec-accent))]" />
+                  </div>
+                )
+              }
+              <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
+                {ubiquitousLanguage.name}
+              </h2>
+            </div>
+          </div>
+          {
+            ubiquitousLanguage.summary && (
+              <p class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{ubiquitousLanguage.summary}</p>
+            )
+          }
+          <div class="flex flex-wrap gap-1.5 pt-4 pb-1">
+            {badges.map((badge: any) => <Badge badge={badge} />)}
           </div>
         </div>
 
-        {
-          ubiquitousLanguage.description && (
-            <div class="prose prose-md py-4 max-w-none" set:html={marked.parse(ubiquitousLanguage.description)} />
-          )
-        }
-
-        {
-          !ubiquitousLanguage.description && (
-            <div class="prose prose-md py-4 max-w-none">
+        <div class="prose prose-md pt-8 pb-4 w-full text-[15px]">
+          {
+            ubiquitousLanguage.description ? (
+              <Fragment set:html={renderMarkdown(ubiquitousLanguage.description)} />
+            ) : (
               <p>No description for {ubiquitousLanguage.name} available.</p>
-            </div>
-          )
-        }
+            )
+          }
+        </div>
 
         <Footer />
         <div class="flex justify-end">

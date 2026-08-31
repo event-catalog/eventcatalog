@@ -6,6 +6,7 @@ export {
   getResourceDocCategoriesForResource,
   getResourceDocsForResource,
   getGroupedResourceDocsByType,
+  getResourceDocTypeLabel,
   type ResourceCollection,
   type ResourceDocEntry,
   type ResourceDocCategoryEntry,

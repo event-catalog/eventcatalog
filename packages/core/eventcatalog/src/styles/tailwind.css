@@ -20,6 +20,88 @@
   font-weight: 400;
 }
 
+/*
+ * Docs typography scale.
+ *
+ * Tailwind Typography's defaults are tuned for long-form articles: 1.75 line-height,
+ * paragraph gaps of 1.25em and heading gaps of 2em. Reference documentation (Stripe,
+ * GitHub, Vercel, Mintlify) measures at ~1.6 line-height, 1em paragraph gaps and heading
+ * gaps of ~1.5em with 500–600 weight headings. Tighten to match so pages read as reference
+ * material rather than essays.
+ *
+ * Scoped to `.docs-layout` (resource, resource-doc, resources, language pages) and
+ * `.custom-docs-shell` (custom documentation) so other
+ * prose surfaces — chat panel, admonitions on custom pages, the homepage — keep the plugin
+ * defaults. These rules are unlayered, so they win over the plugin's `@layer utilities`
+ * output regardless of source order; `h2 + *` etc. are restated because the plugin's
+ * zero-specificity `:where()` versions would otherwise lose to the rules above them.
+ */
+.docs-layout .prose,
+.custom-docs-shell .prose {
+  line-height: 1.6;
+}
+
+.docs-layout .prose p,
+.custom-docs-shell .prose p,
+.docs-layout .prose ul,
+.custom-docs-shell .prose ul,
+.docs-layout .prose ol,
+.custom-docs-shell .prose ol,
+.docs-layout .prose blockquote,
+.custom-docs-shell .prose blockquote,
+.docs-layout .prose table,
+.custom-docs-shell .prose table {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.docs-layout .prose li,
+.custom-docs-shell .prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.docs-layout .prose h2,
+.custom-docs-shell .prose h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+}
+
+.docs-layout .prose h3,
+.custom-docs-shell .prose h3 {
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.docs-layout .prose h4,
+.custom-docs-shell .prose h4 {
+  font-weight: 600;
+  margin-top: 1.4em;
+  margin-bottom: 0.4em;
+}
+
+.docs-layout .prose h2 + *,
+.custom-docs-shell .prose h2 + *,
+.docs-layout .prose h3 + *,
+.custom-docs-shell .prose h3 + *,
+.docs-layout .prose h4 + *,
+.custom-docs-shell .prose h4 + * {
+  margin-top: 0;
+}
+
+.docs-layout .prose > :first-child,
+.custom-docs-shell .prose > :first-child {
+  margin-top: 0;
+}
+
+.docs-layout .prose > :last-child,
+.custom-docs-shell .prose > :last-child {
+  margin-bottom: 0;
+}
+
 /* Dark mode uses data-theme attribute, not prefers-color-scheme */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 

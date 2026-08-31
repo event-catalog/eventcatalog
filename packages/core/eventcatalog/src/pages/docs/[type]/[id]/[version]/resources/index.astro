@@ -29,6 +29,8 @@ const hrefForResource = (collection: SystemResourceCollection, id: string, versi
   return buildUrl(`/docs/${collection}/${id}/${version}`);
 };
 
+const ownerTypeLabel = ownerCollection === 'domains' ? 'Domain' : 'System';
+
 const resources: SystemResourceItem[] = resourceGroups.flatMap(({ collection, items }) =>
   items.map((item: any) => ({
     collection,
@@ -45,16 +47,22 @@ const resources: SystemResourceItem[] = resourceGroups.flatMap(({ collection, it
 <VerticalSideBarLayout title={`${data.name} | Resources`}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]">
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
-        <div class="border-b border-[rgb(var(--ec-page-border))] pb-4">
-          <h2 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name} Resources</h2>
-          <h2 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">
-            A group of resources that are mapped to the {data.name}{' '}
-            {ownerCollection === 'domains' ? 'domain' : 'system'}.
-          </h2>
+      <div class="w-full min-w-0 lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
+        {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro). */}
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
+          <div class="flex flex-col gap-4">
+            <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">{ownerTypeLabel}</span>
+            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
+              {data.name} Resources
+            </h2>
+          </div>
+          <p class="text-base pt-4 pb-1 text-[rgb(var(--ec-page-text-muted))] font-light">
+            {resources.length} {resources.length === 1 ? 'resource' : 'resources'} mapped to the {data.name}{' '}
+            {ownerTypeLabel.toLowerCase()}.
+          </p>
         </div>
 
-        <div class="py-8 w-full">
+        <div class="pt-8 pb-4 w-full">
           <SystemResourcesTable resources={resources} client:only="react" />
         </div>
       </div>

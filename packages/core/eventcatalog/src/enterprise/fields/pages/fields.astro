@@ -1,4 +1,6 @@
 ---
+// Visualiser styles ship in the page head so ClientRouter navigations keep them (see NodeGraph.astro).
+import '@eventcatalog/visualiser/styles-core.css';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import FieldsExplorer from '@components/FieldsExplorer/FieldsExplorer';
 import { isEventCatalogScaleEnabled } from '@utils/feature';

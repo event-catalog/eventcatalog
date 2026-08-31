@@ -408,8 +408,8 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-6 pt-4">
+      <div class="w-full min-w-0 lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
           <div>
             <div>
               <div class="flex flex-col gap-4">
@@ -447,7 +447,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
               </div>
             </div>
 
-            <h2 class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
+            <p class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</p>
             {
               badges && (
                 <div class="flex flex-wrap gap-1.5 pt-4">
@@ -596,7 +596,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
           }
         </div>
 
-        <div class="prose prose-md py-4 w-full text-[15px]">
+        <div class="prose prose-md pt-8 pb-4 w-full text-[15px]">
           <Content components={components(props)} />
         </div>
         <div data-pagefind-ignore>

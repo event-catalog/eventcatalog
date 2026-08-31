@@ -71,6 +71,25 @@ type InferredResource = {
   resourceVersion: string;
 };
 
+const DOC_TYPE_LABELS: Record<string, string> = {
+  adrs: 'ADR',
+  runbooks: 'Runbook',
+  contracts: 'Contract',
+  troubleshooting: 'Troubleshooting',
+  guides: 'Guide',
+};
+
+/** Human label for a doc type folder, e.g. `guides` → "Guide", `release-notes` → "Release Notes". */
+export const getResourceDocTypeLabel = (type: string): string => {
+  if (DOC_TYPE_LABELS[type]) return DOC_TYPE_LABELS[type];
+  const normalized = type
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+  return normalized || 'Doc';
+};
+
 let memoryCache: ResourceDocEntry[] | null = null;
 let memoryCategoryCache: ResourceDocCategoryEntry[] | null = null;
 let memoryResourceLookupCache: Record<ResourceCollection, ResourceLookup> | null = null;
