@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 4.10.1
+
+### Patch Changes
+
+- ab6aa90: feat(core): fade in the architecture graph on mount instead of popping in after hydration
+- 75cd12d: feat(core): new `<ArchitectureGraph/>` MDX component to embed the D3 architecture graph in resource and custom documentation pages, focused on the page's resource
+
 ## 4.10.0
 
 ### Minor Changes
