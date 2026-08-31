@@ -195,7 +195,7 @@ export const buildServiceSections = (
               leftIcon: '/icons/graphql-black.svg',
               href: buildUrl(`${docsBasePath}/graphql/${specification.filenameWithoutExtension}`),
             })),
-          ],
+          ] as ChildRef[],
         }
       : null,
     'resource-groups': renderResourceGroups

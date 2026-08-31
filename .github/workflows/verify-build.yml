@@ -33,6 +33,9 @@ jobs:
         run: pnpm run test:ci
       - name: Build All Packages
         run: pnpm run build:bin
+      - name: Check Core Types
+        run: pnpm run check
+        working-directory: packages/core
       - name: Package SDK
         run: pnpm pack
         working-directory: packages/sdk

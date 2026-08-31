@@ -3,6 +3,7 @@
 // Run astro check with proper catalog directory setup
 import { join } from 'node:path';
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
 const __dirname = import.meta.dirname;
 
 const args = process.argv.slice(2);
@@ -70,6 +71,13 @@ const runWithFilteredOutput = async ({ command, cwd, env }) => {
     });
   });
 };
+
+// astro check needs the catalog's config/styles in the app directory. These are
+// generated at build time and absent on a clean checkout (both are gitignored),
+// so copy them across the same way scripts/ci/test.js does.
+for (const file of ['eventcatalog.config.js', 'eventcatalog.styles.css']) {
+  fs.copyFileSync(join(projectDIR, file), join(catalogDir, file));
+}
 
 await runWithFilteredOutput({
   command: `pnpm exec astro check --minimumSeverity error  --root ${catalogDir}`,

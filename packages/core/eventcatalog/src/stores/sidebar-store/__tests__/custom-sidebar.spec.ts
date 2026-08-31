@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { applyCustomSidebar, indexSidebarsByFolder, getSidebarForResource, parseResourceRef } from '../custom-sidebar';
-import type { SidebarSections, SidebarSpec } from '../custom-sidebar';
+import type { CustomSidebarResource, SidebarSections, SidebarSpec } from '../custom-sidebar';
 import type { NavNode } from '../builders/shared';
 
 vi.mock('@utils/url-builder', () => ({
@@ -272,7 +272,7 @@ describe('applyCustomSidebar', () => {
       ],
     } as any;
 
-    const pagesOf = (entries: string[], res = ownResource) =>
+    const pagesOf = (entries: string[], res: CustomSidebarResource = ownResource) =>
       (applyCustomSidebar(spec([{ title: 'X', pages: entries }]), sections, res, context)[0] as NavNode).pages;
 
     it("resolves this resource's own specification by filename", () => {
