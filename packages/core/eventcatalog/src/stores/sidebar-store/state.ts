@@ -692,6 +692,16 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     containers,
     channels,
     adrs,
+    // Included so data-product sidebar.json files resolve the same refs as every other
+    // resource (cross-resource specs, schema-existence checks, latest-only pins).
+    domains,
+    systems,
+    agents,
+    flows,
+    entities,
+    dataProducts,
+    diagrams,
+    schemas,
     resourceDocs,
     resourceDocCategories,
   };

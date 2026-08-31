@@ -328,6 +328,25 @@ describe('applyCustomSidebar', () => {
     });
   });
 
+  it('gives sibling groups with duplicate or empty slugs distinct collapse keys', () => {
+    const groups = applyCustomSidebar(
+      spec([
+        { title: 'Links', pages: [] },
+        { title: 'Links', pages: [] },
+        { title: 'リンク', pages: [] },
+        { title: 'ドキュメント', pages: [] },
+      ]),
+      sections,
+      resource
+    ) as NavNode[];
+    const keys = groups.map((group) => group.collapseKey);
+    expect(new Set(keys).size).toBe(4);
+    expect(keys[0]).toBe('custom:domains:Catalog:1.0.0:links');
+    expect(keys[1]).toBe('custom:domains:Catalog:1.0.0:links-2');
+    expect(keys[2]).toBe('custom:domains:Catalog:1.0.0:group');
+    expect(keys[3]).toBe('custom:domains:Catalog:1.0.0:group-2');
+  });
+
   it('fails the build with a helpful message for unknown or unprefixed sections', () => {
     expect(() => applyCustomSidebar(spec(['$nope']), sections, resource)).toThrow(
       /Unknown section "\$nope" in sidebar \(domains\/Catalog\/sidebar\.json\)\. Available sections for this resource: \$quick-reference, \$owners/

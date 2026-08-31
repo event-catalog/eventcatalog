@@ -186,6 +186,20 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 
+/**
+ * Collapse state is persisted per collapseKey, so sibling groups must never share one —
+ * duplicate titles (or titles that slugify to nothing, e.g. non-Latin) get a numeric
+ * suffix. Keys stay stable for the common unique-title case.
+ */
+const uniqueCollapseKey = (candidate: string, usedKeys: Set<string>): string => {
+  let key = candidate;
+  for (let n = 2; usedKeys.has(key); n++) {
+    key = `${candidate}-${n}`;
+  }
+  usedKeys.add(key);
+  return key;
+};
+
 const describeSource = (spec: SidebarSpec) => (spec.sourcePath ? ` (${spec.sourcePath})` : '');
 
 const formatTokenList = (sections: SidebarSections) =>
@@ -397,10 +411,11 @@ const resolvePage = (
   resource: CustomSidebarResource,
   context: CustomSidebarContext,
   spec: SidebarSpec,
+  usedCollapseKeys: Set<string>,
   parentKey: string
 ): ChildRef[] => {
   if (isNestedGroup(page)) {
-    return [resolveCustomGroup(page, sections, resource, context, spec, parentKey)];
+    return [resolveCustomGroup(page, sections, resource, context, spec, usedCollapseKeys, parentKey)];
   }
 
   if (typeof page !== 'string') {
@@ -507,11 +522,14 @@ const resolveCustomGroup = (
   resource: CustomSidebarResource,
   context: CustomSidebarContext,
   spec: SidebarSpec,
+  usedCollapseKeys: Set<string>,
   parentKey = ''
 ): NavNode => {
-  const collapseKey = parentKey
-    ? `${parentKey}:${slugify(group.title)}`
-    : `custom:${resource.collection}:${resource.id}:${resource.version}:${slugify(group.title)}`;
+  const slug = slugify(group.title) || 'group';
+  const collapseKey = uniqueCollapseKey(
+    parentKey ? `${parentKey}:${slug}` : `custom:${resource.collection}:${resource.id}:${resource.version}:${slug}`,
+    usedCollapseKeys
+  );
 
   return {
     type: 'group',
@@ -520,7 +538,7 @@ const resolveCustomGroup = (
     ...(parentKey ? { subtle: true } : {}),
     ...(group.collapsed !== undefined ? { collapsed: group.collapsed } : {}),
     collapseKey,
-    pages: group.pages.flatMap((page) => resolvePage(page, sections, resource, context, spec, collapseKey)),
+    pages: group.pages.flatMap((page) => resolvePage(page, sections, resource, context, spec, usedCollapseKeys, collapseKey)),
   };
 };
 
@@ -534,6 +552,7 @@ export const applyCustomSidebar = (
   resource: CustomSidebarResource,
   context: CustomSidebarContext = {}
 ): ChildRef[] => {
+  const usedCollapseKeys = new Set<string>();
   return spec.sections.flatMap((entry): ChildRef[] => {
     if (typeof entry === 'string') {
       return resolvePredefinedSection(entry, {}, sections, spec);
@@ -546,7 +565,7 @@ export const applyCustomSidebar = (
         spec
       );
     }
-    return [resolveCustomGroup(entry, sections, resource, context, spec)];
+    return [resolveCustomGroup(entry, sections, resource, context, spec, usedCollapseKeys)];
   });
 };
 
