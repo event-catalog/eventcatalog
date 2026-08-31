@@ -1,0 +1,36 @@
+---
+title: On-call checklist
+summary: What the Customer on-call engineer checks at handover and how to triage a page.
+badges:
+  - content: Start here
+    backgroundColor: green
+    textColor: green
+    icon: RocketLaunchIcon
+---
+
+## At handover
+
+1. Open the customer health dashboard and confirm all four panels are green: Customer API error rate, OAuth API login success rate, customer event publish lag, database connection pool.
+2. Check `#customer-support` for anything unresolved from the previous shift — in particular any open subject access or account closure requests, which have a legal clock on them.
+3. Confirm no bulk status change is in progress. A support script suspending accounts mid-handover is the most common surprise.
+
+## Triage
+
+| Page | Start with |
+| --- | --- |
+| `CustomerAPI 5xx rate` | [[service\|customer-api]] logs; usually a bad deploy — roll back first, investigate second |
+| `Login success rate < 95%` | [[doc\|runbooks/login-failures]] |
+| `Customer event lag` | [[doc\|runbooks/customer-events-lag]] |
+| `Customer DB pool exhausted` | [[container\|customer-database]] connection panel; scale [[service\|customer-api]] down, not up, until the pool recovers |
+| `User directory unreachable` | Page the identity platform on-call; do not restart [[container\|user-directory]] yourself |
+
+## Escalation
+
+- Customers unable to sign in or register is a **Sev 1** — page the incident commander immediately. Everything downstream of [[system|identity-provider]] stops working with it.
+- Stale profile data downstream (event lag) is **Sev 2** — fix within the hour, no incident channel needed unless it persists.
+- Any suspected exposure of credentials or PII from [[container|user-directory]] or [[container|customer-database]] is a **security incident** regardless of scale. Page security on-call and stop — do not investigate the data yourself.
+- [[team|customer-platform]] is the owning team; the team lead is the escalation point out of hours.
+
+## Before you sign off
+
+Leave a one-line summary in `#customer-support` even if nothing happened. The next person will thank you.

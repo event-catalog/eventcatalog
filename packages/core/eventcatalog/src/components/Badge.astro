@@ -23,6 +23,8 @@ type Props = {
 
 const { badge, className = '' } = Astro.props;
 const href = getBadgeHref(badge);
+// Only links that leave the catalog get the external-link arrow.
+const isExternalHref = !!href && (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//'));
 const Icon = badge.icon || badge.iconComponent;
 const hasThemedIcon = badge.iconURLLight && badge.iconURLDark;
 const classes = `
@@ -59,7 +61,7 @@ const classes = `
         <img src={badge.iconURL} class="w-3 h-3 flex-shrink-0 opacity-80" alt="" onerror="this.style.display='none'" />
       )}
       <span>{badge.content}</span>
-      <ArrowTopRightOnSquareIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-70" aria-hidden="true" />
+      {isExternalHref && <ArrowTopRightOnSquareIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-70" aria-hidden="true" />}
     </a>
   ) : (
     <span id={badge.id || undefined} class={classes} style={getBadgeStyle(badge)} title={badge.content}>

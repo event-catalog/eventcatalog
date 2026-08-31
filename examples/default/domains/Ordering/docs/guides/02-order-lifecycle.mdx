@@ -1,0 +1,52 @@
+---
+title: Order lifecycle
+summary: The order state machine — every status, which event announces each transition, and what consumers should do at each step.
+---
+
+An [[entity|order]] moves through a fixed set of statuses. Each accepted transition is persisted by [[service|order-service]] in [[container|order-database]], recorded as an [[entity|order-status-history]] row, and announced with a business event plus a generic [[event|order-status-changed]].
+
+## Statuses
+
+| Status | Meaning |
+| --- | --- |
+| `CREATED` | The [[flow\|checkout-saga]] finished and [[command\|create-order]] was accepted. Announced by [[event\|order-created]]. |
+| `CONFIRMED` | Validation passed and the payment authorization and stock reservation are secured. Announced by [[event\|order-confirmed]]. |
+| `ON_HOLD` | Progress is paused for a payment, fraud, address or inventory review. Announced by [[event\|order-placed-on-hold]]; leaving it is announced by [[event\|order-hold-released]]. |
+| `AWAITING_FULFILMENT` | Ready for the warehouse but not yet released. Only [[event\|order-status-changed]] is published for this step. |
+| `FULFILLING` | Released to a fulfilment location for picking and packing. Announced by [[event\|order-fulfilment-started]]. |
+| `COMPLETED` | Fully fulfilled. Terminal. Announced by [[event\|order-completed]]. |
+| `CANCELLED` | Cancelled by the customer or by a failed downstream step. Terminal. Announced by [[event\|order-cancelled]]. |
+| `ARCHIVED` | A terminal order moved out of operational storage. Announced by [[event\|order-archived]]. |
+
+## Allowed transitions
+
+```
+CREATED ──► CONFIRMED ──► AWAITING_FULFILMENT ──► FULFILLING ──► COMPLETED ──► ARCHIVED
+   │            │                  │                                              ▲
+   │            └──► ON_HOLD ◄─────┘   (hold released → back to previous status)  │
+   │                                                                              │
+   └──────────────────────► CANCELLED ────────────────────────────────────────────┘
+```
+
+- Cancellation is only accepted while the order is `CREATED`. Anything later must go through returns. The full decision path is in [[flow|order-cancellation]].
+- A hold always returns the order to the status it left. `ON_HOLD` is never terminal; every [[event|order-placed-on-hold]] carries a `reviewBy` deadline and an `ownerTeam` so operational tooling can escalate it.
+- `COMPLETED` and `CANCELLED` are terminal. The only transition out of either is to `ARCHIVED`, which happens on a retention schedule, not on demand.
+
+## Amendments
+
+Two events change an order *without* changing its status:
+
+- [[event|order-amended]] — a quantity adjustment, delivery method change or promotional correction, accepted only before fulfilment begins.
+- [[event|order-delivery-address-changed]] — a new validated delivery destination, accepted only before dispatch.
+
+Both carry a `revision` so a consumer can drop an update that is older than the one it has already applied. Consumers that hold their own copy of the order (fulfilment, customer communications) must handle these; consumers that only care about the outcome can ignore them.
+
+## Keying and ordering guarantees
+
+- `orderId` is the identifier on every event and is stable for the life of the order.
+- `sequence` on [[event|order-status-changed]] is monotonic per order. If you need to rebuild a timeline, sort by it rather than by `changedAt`.
+- Events for a single order are produced in order, but partitioning is by `orderId`, so there is no ordering guarantee *across* orders.
+
+## Seeing it in practice
+
+The [[flow|place-an-order]] flow walks the happy path from checkout to `CREATED`, including the compensation branch when a checkout step fails. The order's status history is available via [[query|get-order]].

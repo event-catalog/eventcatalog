@@ -3,6 +3,8 @@ import { getFlows } from '@utils/collections/flows';
 import { getNodesAndEdges } from '@utils/node-graphs/flows-node-graph';
 import Admonition from '@components/MDX/Admonition';
 import AstroNodeGraph from '../NodeGraph/AstroNodeGraph';
+// Visualiser styles ship in the page head so ClientRouter navigations keep them (see NodeGraph.astro).
+import '@eventcatalog/visualiser/styles-core.css';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { isVisualiserEnabled, isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';

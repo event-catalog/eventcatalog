@@ -1,0 +1,37 @@
+---
+title: Login failures
+summary: What to do when customers cannot sign in or the login success rate drops.
+badges:
+  - content: Sev 1
+    backgroundColor: red
+    textColor: red
+    icon: ExclamationTriangleIcon
+---
+
+## Symptoms
+
+- The `login_success_rate` panel on the customer health dashboard is below **95%**, or support reports customers stuck on the sign-in page.
+- [[command|authenticate-customer]] is returning `401` for customers who insist their password is correct, or `5xx` for everyone.
+- [[event|customer-authenticated]] volume has dropped sharply while sign-in attempts have not.
+
+## Likely causes
+
+1. [[service|oauth-api]] cannot reach [[container|user-directory]] — a connection limit, a failed migration, or a network policy change.
+2. A bad deploy of [[service|oauth-api]] broke credential verification or token issuing.
+3. A bulk status change has suspended more customers than intended, so the identity check is correctly rejecting them.
+4. Rate limiting is tripping on a legitimate traffic spike (marketing email, sale launch).
+
+## Steps
+
+1. **Separate `401` from `5xx`.** `5xx` means the service or its store is broken — go to step 2. A spike in `401` means the service is working and rejecting on purpose — go to step 4.
+2. **Check user directory connectivity.** Look at the OAuth API connection error rate. If it is elevated, check the [[container|user-directory]] connection panel and recent migrations. Do not restart the directory; page the identity platform on-call if it is unhealthy.
+3. **Check for a recent deploy.** If [[service|oauth-api]] deployed in the last hour, roll back first and investigate second. Verify with a synthetic login against a test account.
+4. **Check for a status change.** Query the customer-updated topic for a burst of `status: SUSPENDED` changes. If a support script has run away, stop it and reinstate accounts with [[command|update-customer]] — every reinstatement publishes a [[event|customer-updated]] event, so downstream systems will catch up on their own.
+5. **Check rate limits.** If sign-in attempts are far above baseline and the rejection reason is `rate_limited`, raise the per-IP limit temporarily and confirm the traffic is not credential stuffing before you do.
+6. Watch `login_success_rate` recover. If it is not back above 95% within 15 minutes, escalate to the incident commander.
+
+## What not to do
+
+- Never bypass credential verification, even temporarily, to "let customers in".
+- Never read credential rows from [[container|user-directory]] while debugging. If you need to prove a credential is wrong, use a test account.
+- Do not change [[service|customer-api]] — profile reads and writes are unaffected by an authentication outage and touching them widens the blast radius.

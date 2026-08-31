@@ -1,0 +1,37 @@
+---
+title: Discounts not applying
+summary: What to do when customers report a valid promotion code is being ignored, or checkouts are failing with 409.
+badges:
+  - content: Sev 2
+    backgroundColor: orange
+    textColor: orange
+    icon: ExclamationTriangleIcon
+---
+
+## Symptoms
+
+- Customer support reports "my code doesn't work" for a promotion that merchandising says is live.
+- The `checkout_409_rate` panel on the Shopping health dashboard is climbing. [[service|cart-api]] returns `409` when it cannot get a discount, so a spike here usually means [[service|promotion-service]] is unhealthy, not that customers are double-submitting.
+- [[event|discount-calculated]] volume has dropped while [[command|checkout-cart]] volume has not.
+
+## Likely causes
+
+1. **The promotion is misconfigured.** Wrong `starts_at`, `ends_at` in the past, `active = false`, or a `min_spend_cents` higher than merchandising intended. This is by far the most common cause and is not an incident.
+2. **The discount channel is backed up.** [[service|cart-api]] sends [[command|calculate-discount]] over [[channel|shopping.discount-commands]]; if the consumer lag on that channel is growing, checkouts time out waiting for a response.
+3. **[[service|promotion-service]] is failing.** A bad deploy, or [[container|promotion-database]] connection exhaustion.
+
+## Steps
+
+1. **Rule out configuration first.** Look the code up in [[container|promotion-database]] (read replica only) and check `active`, the validity window and `eligibility_rules`. If it is wrong, hand it to merchandising in `#shopping-support` — do not edit rows by hand. Remember that segment-scoped promotions never apply to guest carts; a "broken" code is often just a customer who is not logged in.
+2. **Check the channel.** Open the `discount_commands_consumer_lag` gauge. If it is above **5s**, the Promotion Service is not keeping up. Go to step 3.
+3. **Check the Promotion Service.** Look at its error rate and recent deploys. If a deploy landed in the last hour, roll back first and investigate second. If the errors are `too many connections`, restart the pods — the connection pool leaks on a known Go driver bug that is being tracked.
+4. **Confirm recovery.** `checkout_409_rate` should fall back under 0.5% within five minutes and [[event|discount-calculated]] volume should recover to match checkouts.
+
+## Do not
+
+- Do not "fix" the problem by letting checkouts proceed without a discount. The Cart API fails closed on purpose (see [[doc|guides/how-discounts-are-calculated]]); overriding that means charging customers full price for a code they entered correctly.
+- Do not replay [[command|calculate-discount]] messages from the channel. The Cart API has already returned a `409` to the customer; a late response has nowhere to go.
+
+## Escalation
+
+Anything that stops customers checking out for more than 10 minutes is a **Sev 1**. Page [[team|shopping-platform]]'s on-call lead and open an incident channel.

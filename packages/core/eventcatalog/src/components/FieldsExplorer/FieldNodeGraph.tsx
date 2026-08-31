@@ -224,11 +224,6 @@ function FieldNodeGraphInner({
   const { fitView } = useReactFlow();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Load visualiser styles (animations, hover effects, theme variables)
-  useEffect(() => {
-    import('@eventcatalog/visualiser/styles-core.css');
-  }, []);
-
   useEffect(() => {
     const timer = setTimeout(() => fitView({ padding: 0.2 }), 50);
     return () => clearTimeout(timer);

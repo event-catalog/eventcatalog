@@ -630,6 +630,42 @@
       "owners": ["product-platform"],
       "sidecars": [
         {
+          "path": "domains/Catalog/docs/guides/01-integrating-with-the-catalog.mdx",
+          "hash": "sha256:2bdac247ff8291af94cc576d939e2acf7024c7e6b862371a86408916009efdf2"
+        },
+        {
+          "path": "domains/Catalog/docs/guides/02-product-data-model.mdx",
+          "hash": "sha256:e0c429d72c592247a60b140ee30cfcf7731ccc342fb22062c2ff43b7a1b8f8ea"
+        },
+        {
+          "path": "domains/Catalog/docs/guides/03-event-versioning.mdx",
+          "hash": "sha256:fb1802cd11c693dfdd1e271a3ca8f0ef79f648ffdc50e831c5cf2bb85895bee0"
+        },
+        {
+          "path": "domains/Catalog/docs/guides/_category_.json",
+          "hash": "sha256:7387b6db78dc0aed63e1d654109db682d8d47213470bdd71dcbd5888590e0c21"
+        },
+        {
+          "path": "domains/Catalog/docs/runbooks/00-on-call.mdx",
+          "hash": "sha256:5f16c9267eac8c75ca58625eee5f25329fe939f98da32f49ee1744ec64d8f124"
+        },
+        {
+          "path": "domains/Catalog/docs/runbooks/01-search-index-lag.mdx",
+          "hash": "sha256:97c2b2c002bae7002ccaaba815efd1e04784839a0da5c93654321fa8ccb431b9"
+        },
+        {
+          "path": "domains/Catalog/docs/runbooks/02-reindexing-products.mdx",
+          "hash": "sha256:8efde565238ec0393971d09882f02854fdb5b711f8d60d4b7e31a7545ebf9c12"
+        },
+        {
+          "path": "domains/Catalog/docs/runbooks/_category_.json",
+          "hash": "sha256:efd0c585c3b7d6406b58ac9d5462cd91ff5ce25a4b9c98a4e130a5aa90143011"
+        },
+        {
+          "path": "domains/Catalog/sidebar.json",
+          "hash": "sha256:955f15ce2c9d8dbf196d606d18f539f1388d14f07b70848b1e03a7e64745bef4"
+        },
+        {
           "path": "domains/Catalog/ubiquitous-language.mdx",
           "hash": "sha256:8905dfccffdfc950d1f5aec2fda7c67045a3d3d536b972f1d835297a1284da3a"
         }
@@ -669,9 +705,45 @@
       "version": "1.0.0",
       "name": "Customer",
       "contentPath": "domains/Customer/index.mdx",
-      "contentHash": "sha256:df6811c1a5e418757516b27c54d30cd473af7bf5a017b58ba46e38d00d8f18c6",
+      "contentHash": "sha256:946e2c37e3b11a6693f41049d226764d86fb345c6e50e9f4898c1bed4d4659bb",
       "owners": ["customer-platform"],
       "sidecars": [
+        {
+          "path": "domains/Customer/docs/guides/01-integrating-with-customers.mdx",
+          "hash": "sha256:61542bd2acd4f30bd06a39a349b826fcee0a987db9f4069a092e0dceb84dff13"
+        },
+        {
+          "path": "domains/Customer/docs/guides/02-customer-data-model.mdx",
+          "hash": "sha256:2d46138a00d5e8a79232a2d67778d330bd440d98a91ef721790e0358b224e08d"
+        },
+        {
+          "path": "domains/Customer/docs/guides/03-account-status-lifecycle.mdx",
+          "hash": "sha256:33ac50b6cfb38f1bb14f5ccba0f381121b5338c34c2036dc5cfda1f32992049d"
+        },
+        {
+          "path": "domains/Customer/docs/guides/_category_.json",
+          "hash": "sha256:7387b6db78dc0aed63e1d654109db682d8d47213470bdd71dcbd5888590e0c21"
+        },
+        {
+          "path": "domains/Customer/docs/runbooks/00-on-call.mdx",
+          "hash": "sha256:d65a5b1b7921e38aebcdcd80519b80d79ee46729e05c8bfba517f41e0edee958"
+        },
+        {
+          "path": "domains/Customer/docs/runbooks/01-login-failures.mdx",
+          "hash": "sha256:b523d273f1c57c04a04aaaf55fed17d66ba9f97b9575add41a57101212477796"
+        },
+        {
+          "path": "domains/Customer/docs/runbooks/02-customer-events-lag.mdx",
+          "hash": "sha256:232652a2071afd241fde7705f1899f5d79da6d9a24c52d47007d934a9d060a79"
+        },
+        {
+          "path": "domains/Customer/docs/runbooks/_category_.json",
+          "hash": "sha256:efd0c585c3b7d6406b58ac9d5462cd91ff5ce25a4b9c98a4e130a5aa90143011"
+        },
+        {
+          "path": "domains/Customer/sidebar.json",
+          "hash": "sha256:d65edab1ae01531d840223c93b5e4a8e0e6df0d9d8625e6012e8a4247d160758"
+        },
         {
           "path": "domains/Customer/ubiquitous-language.mdx",
           "hash": "sha256:3e3c5f510f9807c7b83889b749414716a1669377aaa23ea79e13b38bca4237a4"
@@ -715,6 +787,38 @@
       "contentHash": "sha256:4c135222dcc67e7872a40668050b3056b98932a38cd21968b050c0f9bf37440a",
       "owners": ["fulfilment-platform"],
       "sidecars": [
+        {
+          "path": "domains/Fulfilment/docs/guides/01-integrating-with-fulfilment.mdx",
+          "hash": "sha256:966267510cc9374c522a37ece9bde47b7feca7222037a243f41e2bf45870511f"
+        },
+        {
+          "path": "domains/Fulfilment/docs/guides/02-fulfilment-data-model.mdx",
+          "hash": "sha256:a8b825a18ec86a1855715fbf74510bef3553ba5b5968b993f791ba617b9e8749"
+        },
+        {
+          "path": "domains/Fulfilment/docs/guides/03-order-lifecycle.mdx",
+          "hash": "sha256:75e4b03ad7df36ea443d6a29e274deda40b39d359cc260c174edbacd6fe5e54f"
+        },
+        {
+          "path": "domains/Fulfilment/docs/guides/_category_.json",
+          "hash": "sha256:7387b6db78dc0aed63e1d654109db682d8d47213470bdd71dcbd5888590e0c21"
+        },
+        {
+          "path": "domains/Fulfilment/docs/runbooks/00-on-call.mdx",
+          "hash": "sha256:8ad0ec20879dbf6e136b0074d42ef3464d332175bbf86f8be846f0666f786bf1"
+        },
+        {
+          "path": "domains/Fulfilment/docs/runbooks/01-shipments-not-dispatching.mdx",
+          "hash": "sha256:e620b9f34e3659575fbe67d9cd33692ad651528ce1c0f19fe257354d576a0a28"
+        },
+        {
+          "path": "domains/Fulfilment/docs/runbooks/_category_.json",
+          "hash": "sha256:efd0c585c3b7d6406b58ac9d5462cd91ff5ce25a4b9c98a4e130a5aa90143011"
+        },
+        {
+          "path": "domains/Fulfilment/sidebar.json",
+          "hash": "sha256:71fe44e57aaf5d3f9a0e015515c9194d19e0441a810ce7b25878810aeb2f0a5c"
+        },
         {
           "path": "domains/Fulfilment/ubiquitous-language.mdx",
           "hash": "sha256:513c1fd12c9612c7f8903004aeb8914408fa4355219bb4499f62636d55cc3f69"
@@ -767,6 +871,38 @@
       "owners": ["ordering-platform"],
       "sidecars": [
         {
+          "path": "domains/Ordering/docs/guides/01-integrating-with-ordering.mdx",
+          "hash": "sha256:4bfe58c11238664e4ecc663d3845ecc251322f88f3e9121c010b6a51cf2543de"
+        },
+        {
+          "path": "domains/Ordering/docs/guides/02-order-lifecycle.mdx",
+          "hash": "sha256:3acb26b86a0e281c8913315e43ea8b2e64ec7f43457048422f7cccb02a5fb4be"
+        },
+        {
+          "path": "domains/Ordering/docs/guides/03-checkout-saga-and-compensation.mdx",
+          "hash": "sha256:34af64e85effc7e2c23dd5b2c6a3dd23181d6dfb3663afdd8419c718d1052162"
+        },
+        {
+          "path": "domains/Ordering/docs/guides/_category_.json",
+          "hash": "sha256:7387b6db78dc0aed63e1d654109db682d8d47213470bdd71dcbd5888590e0c21"
+        },
+        {
+          "path": "domains/Ordering/docs/runbooks/00-on-call.mdx",
+          "hash": "sha256:afa0f14ad0ebcad428e3c86122cc45360493c8e291b564aff9df4ff8cc779169"
+        },
+        {
+          "path": "domains/Ordering/docs/runbooks/01-stuck-checkout-sessions.mdx",
+          "hash": "sha256:73069ba9765d63af40e59efa7e8ed0bcc756a6ef62ac6d0143254b57018e33aa"
+        },
+        {
+          "path": "domains/Ordering/docs/runbooks/_category_.json",
+          "hash": "sha256:efd0c585c3b7d6406b58ac9d5462cd91ff5ce25a4b9c98a4e130a5aa90143011"
+        },
+        {
+          "path": "domains/Ordering/sidebar.json",
+          "hash": "sha256:3f7bb1b0e385d707aced83503ddfb922c5d3a95bb66f55accd43ee78c6ae9510"
+        },
+        {
           "path": "domains/Ordering/ubiquitous-language.mdx",
           "hash": "sha256:3f5ece175b8fa2d82aa5f225095a505340a283470a14c5e05c95332a171d455b"
         }
@@ -815,6 +951,38 @@
       "contentHash": "sha256:82dcb892b91e5cec3d3abb0ef98f02637516314240070158adf365369ea009dc",
       "owners": ["payments-platform"],
       "sidecars": [
+        {
+          "path": "domains/Payments/docs/guides/01-reacting-to-payment-events.mdx",
+          "hash": "sha256:bb0e1a2495ff33d253eb2b8cdff3a016c43c6fbef0793bd1939cb98a1976803b"
+        },
+        {
+          "path": "domains/Payments/docs/guides/02-payment-and-fraud-model.mdx",
+          "hash": "sha256:0f7d55584eeda004ffef867abb5fc3346cd86495d81c052fff10a275fcb366eb"
+        },
+        {
+          "path": "domains/Payments/docs/guides/03-pci-what-you-must-never-log.mdx",
+          "hash": "sha256:95aae2c1680b6cfc39b2bec08b4f3bd9e9682d5aa6dbefea22a804f524e3d1a2"
+        },
+        {
+          "path": "domains/Payments/docs/guides/_category_.json",
+          "hash": "sha256:7387b6db78dc0aed63e1d654109db682d8d47213470bdd71dcbd5888590e0c21"
+        },
+        {
+          "path": "domains/Payments/docs/runbooks/01-payments-stuck-in-requested.mdx",
+          "hash": "sha256:b93b0d833a8ecd161dafd0e03e603bb3f195cdd983a975bd46db3cd9adb6aded"
+        },
+        {
+          "path": "domains/Payments/docs/runbooks/02-fraud-review-backlog.mdx",
+          "hash": "sha256:8880247506c547b57a3555787e23a94a6e77566fe6d2aada7ec49fde7f66a54e"
+        },
+        {
+          "path": "domains/Payments/docs/runbooks/_category_.json",
+          "hash": "sha256:efd0c585c3b7d6406b58ac9d5462cd91ff5ce25a4b9c98a4e130a5aa90143011"
+        },
+        {
+          "path": "domains/Payments/sidebar.json",
+          "hash": "sha256:99edb0bb15b1ed266140a67fca8588cd044ecc66cde0c62df89e97391983d713"
+        },
         {
           "path": "domains/Payments/ubiquitous-language.mdx",
           "hash": "sha256:37e3eff5e46d471656ac8b1f47a3168a8db31e411ce9ffbd2252df325003c07a"
@@ -873,6 +1041,40 @@
           "path": "asyncapi.yml",
           "name": "Reviews Eventing",
           "hash": "sha256:36358abda679dc19a2c22344a6b2eca4fc83a71a5485a31416356fda549e4fbb"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/docs/guides/01-integrating-with-reviews.mdx",
+          "hash": "sha256:9c3e476d7ae93a0d17fa77fe4b1c233142afcaed0d46afa65b3c54d5164dbddd"
+        },
+        {
+          "path": "domains/Reviews/docs/guides/02-moderation-lifecycle.mdx",
+          "hash": "sha256:ade1216baba1e77eeb805470a260717b8424766211b6932b0a6f5f0336dfc573"
+        },
+        {
+          "path": "domains/Reviews/docs/guides/03-rating-aggregation.mdx",
+          "hash": "sha256:d43f43f3827c5961b9acbe9686fc5fc08938d77a576aec17e001a1904a6681b6"
+        },
+        {
+          "path": "domains/Reviews/docs/guides/_category_.json",
+          "hash": "sha256:7387b6db78dc0aed63e1d654109db682d8d47213470bdd71dcbd5888590e0c21"
+        },
+        {
+          "path": "domains/Reviews/docs/runbooks/00-on-call.mdx",
+          "hash": "sha256:cdc42898321850e7ed16a8fdfa410bc41e8ffa9f01dfff1c19ad6117025bb029"
+        },
+        {
+          "path": "domains/Reviews/docs/runbooks/01-moderation-queue-stuck.mdx",
+          "hash": "sha256:9314016fec590982dff5ef330c1b24d19bb5b7d70cf55e8863db6ce7233c69c9"
+        },
+        {
+          "path": "domains/Reviews/docs/runbooks/_category_.json",
+          "hash": "sha256:efd0c585c3b7d6406b58ac9d5462cd91ff5ce25a4b9c98a4e130a5aa90143011"
+        },
+        {
+          "path": "domains/Reviews/sidebar.json",
+          "hash": "sha256:79744a37664c137194d27aab65f5b2b997f95200be17780a693adcd5528cb6ba"
         }
       ],
       "sends": [
@@ -978,6 +1180,38 @@
       "contentHash": "sha256:013ccf530b88fb9b343966f85b4fdc74062afab262dbc9bc5b306cfae046920e",
       "owners": ["shopping-platform"],
       "sidecars": [
+        {
+          "path": "domains/Shopping/docs/guides/01-integrating-with-shopping.mdx",
+          "hash": "sha256:c6652759755a5a928bf4ac6a3c12c167e098885b305e9e69c73d9eeb36425491"
+        },
+        {
+          "path": "domains/Shopping/docs/guides/02-cart-and-promotion-model.mdx",
+          "hash": "sha256:d3e5db6b8876723fd80a012c0c0266648cca4cff4423c7fdb1af763cec6e768d"
+        },
+        {
+          "path": "domains/Shopping/docs/guides/03-how-discounts-are-calculated.mdx",
+          "hash": "sha256:4ec75b1bf5f8d72c9849a651d830bd534a38bf9c693669d3231e12c86381def2"
+        },
+        {
+          "path": "domains/Shopping/docs/guides/_category_.json",
+          "hash": "sha256:7387b6db78dc0aed63e1d654109db682d8d47213470bdd71dcbd5888590e0c21"
+        },
+        {
+          "path": "domains/Shopping/docs/runbooks/01-discounts-not-applying.mdx",
+          "hash": "sha256:9160136e852f412e7b0969fae7b7b6f8844556653aeb01482933ea8990e0d3b2"
+        },
+        {
+          "path": "domains/Shopping/docs/runbooks/02-abandoned-cart-backlog.mdx",
+          "hash": "sha256:f02aaeb4967a12f46380f67f760d3a175b07ddc7d94d987b24ca544d5571d4ee"
+        },
+        {
+          "path": "domains/Shopping/docs/runbooks/_category_.json",
+          "hash": "sha256:efd0c585c3b7d6406b58ac9d5462cd91ff5ce25a4b9c98a4e130a5aa90143011"
+        },
+        {
+          "path": "domains/Shopping/sidebar.json",
+          "hash": "sha256:9c6bac91aa200aa95ab513bba9d0a7aa4af7907ea276d1f0fc9abf33f886ce14"
+        },
         {
           "path": "domains/Shopping/ubiquitous-language.mdx",
           "hash": "sha256:b8dd599829b78e570323150ad08bc65d01262413b9290a996ef63e9797e30f0d"
@@ -1718,6 +1952,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:4e56f2f940f9736a0c3eb42d219813ae908402e93fe928cbe79b510cc9863308"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductCreated/sidebar.json",
+          "hash": "sha256:cdb030836b21e5090c1dd8b09a889ea948e68f3b1ec4eda372ee5205dea7ae69"
         }
       ]
     },
@@ -2801,6 +3041,12 @@
           "path": "openapi.yml",
           "name": "Product API",
           "hash": "sha256:76d20efb09279ff1ccc0ea695f4b3a4c066bf5777a7b195bed66357a44468d18"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/sidebar.json",
+          "hash": "sha256:d11be81cac551fa3894c6a7c04e4a15ba0d02f78d1a757c15d7586c971000cd2"
         }
       ],
       "receives": [

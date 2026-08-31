@@ -5,6 +5,7 @@ import { getAdrNodeKey, getAdrsForResource, type Adr, type AdrResource } from '@
 import { buildUrl } from '@utils/url-builder';
 import {
   getGroupedResourceDocsByType,
+  getResourceDocTypeLabel,
   type ResourceCollection,
   type ResourceDocEntry,
   type ResourceDocCategoryEntry,
@@ -25,6 +26,7 @@ export type NavNode = {
   title: string;
   collapseKey?: string; // Stable key used to persist collapse state for inline groups
   collapsible?: boolean; // Set to false to keep a group expanded regardless of its size
+  collapsed?: boolean; // Explicit initial collapse state (from sidebar.json). Overrides size/collapsible heuristics.
   icon?: string; // Lucide icon name
   subtle?: boolean; // Render lightweight styling for nested subgroup headers
   leftIcon?: string; // Path to SVG icon shown on the left of the label
@@ -218,35 +220,13 @@ export const buildResourceDocsSection = (
     return null;
   }
 
-  const typeLabelMap: Record<string, string> = {
-    adrs: 'ADR',
-    runbooks: 'Runbook',
-    contracts: 'Contract',
-    troubleshooting: 'Troubleshooting',
-    guides: 'Guide',
-  };
-
-  const toTypeLabel = (value: string) => {
-    if (typeLabelMap[value]) {
-      return typeLabelMap[value];
-    }
-
-    const normalized = value
-      .split(/[-_\s]+/)
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
-
-    return normalized || 'Doc';
-  };
-
   return {
     type: 'group',
     title: 'Documentation',
     icon: 'BookText',
     pages: groupedDocs.map((group) => ({
       type: 'group',
-      title: group.label || toTypeLabel(group.type),
+      title: group.label || getResourceDocTypeLabel(group.type),
       subtle: true,
       pages: group.docs.map((doc) => ({
         type: 'item',

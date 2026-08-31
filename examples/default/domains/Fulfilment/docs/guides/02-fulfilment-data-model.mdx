@@ -1,0 +1,45 @@
+---
+title: Fulfilment data model
+summary: The four entities behind fulfilment, the states they move through, and which identifier to key on.
+---
+
+Fulfilment is modelled as four entities, each owned by one system. They are deliberately small: an order's journey is expressed by moving records between them rather than by one large aggregate.
+
+## Stock item
+
+[[entity|stock-item]] is [[system|inventory-system]]'s record of how many units of a product are physically on hand at a location. It carries `availableQuantity` and, in [[container|inventory-database]], a matching `reserved` count. **Key on `productId` + `locationId`.** Stock is never decremented by a reservation, only by a shipment consuming it — that is what keeps `available + reserved` equal to what is on the shelf.
+
+## Inventory reservation
+
+[[entity|inventory-reservation]] is a temporary hold on one or more stock items for a checkout. It is created by [[command|reserve-inventory]], confirmed by [[event|inventory-reserved]] and keyed on `reservationId`. A reservation moves through three states:
+
+| Status | Meaning |
+| --- | --- |
+| `HELD` | Stock is set aside; the checkout is still in progress |
+| `RELEASED` | [[command\|release-inventory]] was sent, or `expiresAt` passed. Stock is back on sale |
+| `CONSUMED` | The order shipped; the hold became a real decrement |
+
+`orderId` is optional on purpose — a reservation is taken against a `cartId` before the order exists and linked to the order later.
+
+## Warehouse pick
+
+[[entity|warehouse-pick]] is the operational task [[system|warehouse-system]] creates when [[event|order-completed]] arrives. It is keyed on `pickId` and has one line per product. [[service|warehouse-service]] creates it as `CREATED`; [[service|picking-worker]] moves it to `PICKING` as staff work through the lines and to `PACKED` when the last one is boxed, at which point [[event|order-packed]] and then [[event|order-ready-for-shipping]] are published.
+
+`assignedTo` may be a person or an automation lane, so do not assume it is a user id.
+
+## Shipment
+
+[[entity|shipment]] is the [[system|shipping-system]]'s view of a parcel in a carrier's hands. It is keyed on `shipmentId` and created when [[command|create-shipment]] is accepted. From there its `status` is driven entirely by the external [[system|carrier]]: [[event|shipment-created]] adds the `carrierReference` (the tracking number customers see), and [[event|shipment-delivered]] or [[event|shipment-failed]] close it out.
+
+One order can produce several shipments if it is split into parcels, which is why the carrier events carry both `shipmentId` and `orderId`.
+
+## Which id do I use?
+
+| If you are... | Key on |
+| --- | --- |
+| Reserving or releasing stock | `reservationId` |
+| Showing availability | `productId` |
+| Tracking an order's progress | `orderId` (plus `shipmentId` for carrier events) |
+| Talking to a carrier | `carrierReference` |
+
+The entity diagram on this domain shows the relationships between these four entities and the `order` and `product` entities they reference from other domains.

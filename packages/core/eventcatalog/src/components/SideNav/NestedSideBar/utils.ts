@@ -1,20 +1,66 @@
 // Shared utilities for NestedSideBar components
 
 export const SIDEBAR_GROUP_COLLAPSE_THRESHOLD = 5;
-const GROUP_TITLES_WITHOUT_COUNT = new Set(['Quick Reference', 'Architecture', 'Resources']);
 
+/**
+ * The user's overrides of each group's default collapse state, keyed by group id.
+ * A group is in at most one set; absence means "use the group's default".
+ */
 export type SectionCollapsePreferences = {
   expanded: Set<string>;
+  collapsed: Set<string>;
 };
 
-export const canCollapseGroup = (childCount: number, isTopLevel: boolean, collapsible = true): boolean =>
-  collapsible && !isTopLevel && childCount > SIDEBAR_GROUP_COLLAPSE_THRESHOLD;
+export const createSectionCollapsePreferences = (
+  expanded: Iterable<string> = [],
+  collapsed: Iterable<string> = []
+): SectionCollapsePreferences => ({
+  expanded: new Set(expanded),
+  collapsed: new Set(collapsed),
+});
 
-export const getGroupLabel = (title: string, childCount: number): string =>
-  GROUP_TITLES_WITHOUT_COUNT.has(title) ? title : `${title} (${childCount})`;
+/**
+ * Whether a group shows a caret and can be toggled. Every group inside a resource's sidebar
+ * can collapse (docs-sidebar behaviour); the root catalog level stays open. An explicit
+ * `collapsed` (set via sidebar.json) overrides every other rule, including `collapsible: false`.
+ */
+export const canCollapseGroup = (isTopLevel: boolean, collapsible = true, collapsed?: boolean): boolean => {
+  if (collapsed !== undefined) return true;
+  return collapsible && !isTopLevel;
+};
 
-export const isGroupCollapsed = (canCollapse: boolean, groupId: string, preferences: SectionCollapsePreferences): boolean => {
-  return canCollapse && !preferences.expanded.has(groupId);
+/**
+ * The state a group starts in before the user touches it: an explicit `collapsed` wins,
+ * otherwise long lists start collapsed and short ones start open.
+ */
+export const getDefaultCollapsedState = (childCount: number, collapsed?: boolean): boolean =>
+  collapsed ?? childCount > SIDEBAR_GROUP_COLLAPSE_THRESHOLD;
+
+export const isGroupCollapsed = (
+  canCollapse: boolean,
+  groupId: string,
+  preferences: SectionCollapsePreferences,
+  defaultCollapsed = true
+): boolean => {
+  if (!canCollapse) return false;
+  if (preferences.expanded.has(groupId)) return false;
+  if (preferences.collapsed.has(groupId)) return true;
+  return defaultCollapsed;
+};
+
+/** Flip a group's state, recording it as an override of its default. */
+export const toggleGroupCollapsed = (
+  groupId: string,
+  preferences: SectionCollapsePreferences,
+  defaultCollapsed = true
+): SectionCollapsePreferences => {
+  const next = createSectionCollapsePreferences(preferences.expanded, preferences.collapsed);
+  const isCurrentlyCollapsed = isGroupCollapsed(true, groupId, preferences, defaultCollapsed);
+  next.expanded.delete(groupId);
+  next.collapsed.delete(groupId);
+  if (isCurrentlyCollapsed) next.expanded.add(groupId);
+  else next.collapsed.add(groupId);
+  return next;
 };
 
 /**

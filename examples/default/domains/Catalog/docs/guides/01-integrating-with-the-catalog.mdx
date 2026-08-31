@@ -1,0 +1,33 @@
+---
+title: Integrating with the Catalog
+summary: How other teams read product data and react to product changes without coupling to the catalog database.
+---
+
+The Catalog domain is the source of truth for product data at Acme. Everything else — checkout, search, promotions, fulfilment — reads from it or reacts to it. This guide covers the two supported ways to integrate.
+
+## Read product data on demand
+
+Use [[query|get-product]] on [[service|product-api]] when you need the current state of a product at request time (a checkout page, an admin screen).
+
+- Responses are cached for 60 seconds at the edge; if you need strong consistency, pass `Cache-Control: no-cache`.
+- Never query [[container|product-database]] directly. Its schema is private to [[system|product-catalog-system]] and changes without notice.
+
+## React to product changes
+
+Subscribe to the domain events published by [[service|product-api]] when you need to keep a local read model in sync or trigger downstream work:
+
+| Event | When it fires |
+| --- | --- |
+| [[event\|product-created]] | A product is first published |
+| [[event\|product-updated]] | Any product attribute, price or variant changes |
+| [[event\|product-deleted]] | A product is withdrawn from sale |
+
+Events are published through a transactional outbox (see ADR-001), so you will never see an event for a change that was rolled back — but you **may** see the same event more than once. Consumers must be idempotent; use the `productId` + `version` pair on each event as the idempotency key.
+
+## Search
+
+If what you need is "find products matching…", don't build it yourself — call [[query|search-products]] on [[service|search-api]]. It is backed by [[container|search-index]], which [[flow|product-search-indexing]] keeps in sync with product events. Expect up to a few seconds of lag between a product change and it appearing in search results.
+
+## Commands are internal
+
+[[command|create-product]], [[command|update-product]] and [[command|delete-product]] are only accepted from the merchandising tools owned by [[team|product-platform]]. If your team needs to change product data, talk to us in `#catalog-support` rather than calling these directly.

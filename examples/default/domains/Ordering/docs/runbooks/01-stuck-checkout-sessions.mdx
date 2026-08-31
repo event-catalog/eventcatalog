@@ -1,0 +1,38 @@
+---
+title: Stuck checkout sessions
+summary: What to do when checkout sagas stop completing — customers see a spinner, and no order is created.
+badges:
+  - content: Sev 2
+    backgroundColor: orange
+    textColor: orange
+    icon: ExclamationTriangleIcon
+---
+
+## Symptoms
+
+- The `checkout_saga_duration_seconds` p99 on the Ordering health dashboard is above **30s**.
+- `ordering saga list --stuck` returns sessions whose [[entity|checkout-session]] status has been `RESERVING` or `AUTHORIZING` for more than a minute.
+- Shopping report customers pressing "Place order" and seeing a spinner or a timeout, with no confirmation email.
+- [[event|order-created]] volume drops on the dashboard while [[service|checkout-api]] request volume does not.
+
+## Likely causes
+
+1. A downstream step is timing out rather than failing. [[command|authorize-payment]] returning `500` (or nothing) is retried indefinitely; a declined `402` would have failed fast. The payment provider is the usual culprit.
+2. [[command|reserve-inventory]] is slow because the inventory service is under load — typically during a promotion.
+3. [[service|checkout-orchestrator]] itself has crashed mid-saga and the recovery loop is not picking sessions back up. Check its restart count.
+4. [[service|order-service]] is rejecting [[command|create-order]] with `409` for a `cartId` it has already seen, so the saga loops on the pivot step.
+
+## Steps
+
+1. **Find the stuck step.** Run `ordering saga list --stuck` and group by `currentStep`. It is almost always one step, and that tells you whose problem it is.
+2. **If stuck on `AUTHORIZING`:** check the payment provider status page and page the payments on-call. Do not void authorizations by hand yet — the orchestrator will compensate once the step returns a definitive answer.
+3. **If stuck on `RESERVING`:** page the inventory on-call. Reservations expire on their own, so a stuck session here is recoverable without manual cleanup.
+4. **If the orchestrator has restarted:** run `ordering saga resume --all`. Recovery replays compensations, which are safe to repeat (see [[doc|guides/checkout-saga-and-compensation]]).
+5. **If stuck on `CREATING_ORDER` with `409`s:** look up the order by `cartId` in [[service|order-service]] logs. If an order already exists, mark the session complete with `ordering saga complete <sessionId> --order <orderId>`. If not, the conflict is on `paymentAuthorizationId` and the session must be aborted: `ordering saga abort <sessionId>`, which releases the reservation and voids the authorization.
+6. Watch the p99 recover. If it is not below 5s within 10 minutes of the downstream fix, escalate to Sev 1 — customers cannot check out.
+
+## After the incident
+
+- Sessions aborted in step 5 produced no [[event|order-created]], so there is nothing to unwind downstream. Confirm that with a count of `checkout_session_aborted` against the dashboard.
+- Any session that was manually completed will have published [[event|order-created]] later than the order's `createdAt`. Warn the fulfilment team in `#ordering-support` so they are not surprised by an out-of-order [[event|order-confirmed]].
+- Open a ticket for the failing step's owner. A `500` that should have been a `402` or `409` is a bug in their contract, not ours.

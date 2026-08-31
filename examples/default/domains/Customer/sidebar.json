@@ -1,0 +1,38 @@
+{
+  "sections": [
+    {
+      "section": "$quick-reference",
+      "title": "Overview"
+    },
+    {
+      "title": "Guides",
+      "icon": "BookOpen",
+      "pages": [
+        "[[doc|guides/integrating-with-customers]]",
+        "[[doc|guides/customer-data-model]]",
+        "[[doc|guides/account-status-lifecycle]]"
+      ]
+    },
+    "$architecture",
+    "$systems",
+    "$entities",
+    {
+      "title": "Runbooks",
+      "icon": "Siren",
+      "pages": [
+        "[[doc|runbooks/on-call]]",
+        "[[doc|runbooks/login-failures]]",
+        "[[doc|runbooks/customer-events-lag]]",
+        {
+          "title": "Health dashboard",
+          "href": "https://grafana.acme.dev/d/customer-overview"
+        },
+        {
+          "title": "Login success rate",
+          "href": "https://grafana.acme.dev/d/customer-logins"
+        }
+      ]
+    },
+    "$owners"
+  ]
+}

@@ -3,6 +3,8 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 
 import LineageScenarioSwitcher from '@components/Lineage/LineageScenarioSwitcher';
 import AstroNodeGraph from '@components/MDX/NodeGraph/AstroNodeGraph';
+// Visualiser styles ship in the page head so ClientRouter navigations keep them (see NodeGraph.astro).
+import '@eventcatalog/visualiser/styles-core.css';
 import ResourceRef from '@components/MDX/ResourceRef/ResourceRef.astro';
 import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';

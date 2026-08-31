@@ -1,0 +1,37 @@
+{
+  "sections": [
+    {
+      "section": "$quick-reference",
+      "title": "Overview"
+    },
+    {
+      "title": "Guides",
+      "icon": "BookOpen",
+      "pages": [
+        "[[doc|guides/integrating-with-shopping]]",
+        "[[doc|guides/cart-and-promotion-model]]",
+        "[[doc|guides/how-discounts-are-calculated]]"
+      ]
+    },
+    "$architecture",
+    "$systems",
+    "$entities",
+    {
+      "title": "Runbooks",
+      "icon": "Siren",
+      "pages": [
+        "[[doc|runbooks/discounts-not-applying]]",
+        "[[doc|runbooks/abandoned-cart-backlog]]",
+        {
+          "title": "Health dashboard",
+          "href": "https://grafana.acme.dev/d/shopping-overview"
+        },
+        {
+          "title": "Checkout funnel",
+          "href": "https://grafana.acme.dev/d/shopping-checkout"
+        }
+      ]
+    },
+    "$owners"
+  ]
+}

@@ -1,0 +1,34 @@
+---
+title: Customer events lag
+summary: What to do when customer registrations and profile changes stop showing up downstream.
+badges:
+  - content: Sev 2
+    backgroundColor: orange
+    textColor: orange
+    icon: ExclamationTriangleIcon
+---
+
+## Symptoms
+
+- Support reports a customer who updated their email minutes ago still gets order confirmations at the old address.
+- The `customer_event_publish_lag_seconds` gauge on the customer health dashboard is above **60s**.
+- [[query|get-customer]] returns the new profile but consumers of [[event|customer-updated]] have not seen a change.
+- Newly registered customers can sign in but downstream systems have no record of them — [[event|customer-registered]] is not arriving.
+
+## Likely causes
+
+1. [[service|customer-api]] is writing to [[container|customer-database]] but its event publisher is failing or retrying. Check the publish error rate first.
+2. The broker is rejecting writes or a partition is under-replicated. Check broker health before touching the service.
+3. A consumer has fallen behind and is reporting lag that is actually theirs, not ours.
+
+## Steps
+
+1. **Confirm the lag is on our side.** Compare `customer_event_publish_lag_seconds` (publisher) with the consumer group lag of the team reporting the problem. If the publish lag is flat and theirs is growing, the fix is on their side — point them at [[doc|guides/integrating-with-customers]].
+2. **If the publisher is failing:** look at [[service|customer-api]] logs for the failing message. A poison message is usually a profile with a value the schema does not allow. Move it to the dead-letter topic with the `customer-dlq` tool and let the publisher continue. Raise a ticket to fix the validation gap in [[command|update-customer]].
+3. **If the broker is unhealthy:** page the messaging platform on-call. Do not delete or recreate topics; both customer events are replayed from the database and a lost topic means a full republish.
+4. **If it is a database issue:** publish lag often shows up alongside connection pool exhaustion. Scale [[service|customer-api]] down to relieve the pool rather than up.
+5. Watch `customer_event_publish_lag_seconds` recover. If it does not fall below 10s within 10 minutes, escalate.
+
+## Replaying events
+
+If events were lost rather than delayed, [[service|customer-api]] can republish [[event|customer-registered]] and [[event|customer-updated]] for a time window from the database. Republished events keep their original `eventId`, so idempotent consumers are unaffected. Announce the replay in `#customer-support` first — consumers who are not idempotent will see duplicates.

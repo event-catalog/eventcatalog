@@ -1199,6 +1199,73 @@ const schemas = defineCollection({
     .extend(baseSchema.shape),
 });
 
+// Optional `sidebar.json` next to a resource's index.mdx. When present it fully
+// replaces the generated sidebar for that resource (see stores/sidebar-store/custom-sidebar.ts).
+const sidebarLinkSchema = z
+  .object({
+    title: z.string(),
+    href: z.string(),
+    icon: z.string().optional(),
+  })
+  .strict();
+
+// { "title": "Runbooks", "icon": "Siren", "collapsed": true, "pages": [...] } (custom group).
+// Groups nest: a page can itself be a group, rendered as a subsection.
+type SidebarGroupInput = {
+  title: string;
+  icon?: string;
+  collapsed?: boolean;
+  pages: Array<string | z.input<typeof sidebarLinkSchema> | SidebarGroupInput>;
+};
+const sidebarGroupSchema: z.ZodType<SidebarGroupInput> = z.lazy(() =>
+  z
+    .object({
+      title: z.string(),
+      icon: z.string().optional(),
+      collapsed: z.boolean().optional(),
+      // "$quick-reference", "[[service|OrderService@1.0.0]]", "[[doc|guides/sla]]", { title, href } or a nested group
+      pages: z.array(z.union([z.string(), sidebarLinkSchema, sidebarGroupSchema])),
+    })
+    .strict()
+);
+
+const sidebarSchema = z
+  .object({
+    $schema: z.string().optional(),
+    sections: z.array(
+      z.union([
+        // "$quick-reference" (predefined section)
+        z.string(),
+        // { "section": "$owners", "title": "Team", "collapsed": false } (predefined section, adjusted)
+        z
+          .object({
+            section: z.string(),
+            title: z.string().optional(),
+            icon: z.string().optional(),
+            collapsed: z.boolean().optional(),
+          })
+          .strict(),
+        sidebarGroupSchema,
+      ])
+    ),
+  })
+  .strict();
+
+const sidebars = defineCollection({
+  loader: globWithSafeWatcher({
+    // Anchored to the resource roots (like resourceDocCategories) so an unrelated
+    // sidebar.json elsewhere in the project — or the public/generated mirror — is ignored.
+    pattern: withIgnoredBuildArtifacts(
+      withFederatedContent([
+        '{services,events,commands,queries,flows,containers,channels,entities,data-products,systems,agents,adrs}/**/sidebar.json',
+        'domains/**/sidebar.json',
+      ])
+    ),
+    base: projectDirBase,
+  }),
+  schema: sidebarSchema,
+});
+
 export const collections = {
   events,
   commands,
@@ -1236,4 +1303,7 @@ export const collections = {
 
   // Generated from message schema references
   schemas,
+
+  // Optional per-resource sidebar overrides (sidebar.json)
+  sidebars,
 };

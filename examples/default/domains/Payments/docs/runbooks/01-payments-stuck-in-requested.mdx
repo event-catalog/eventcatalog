@@ -1,0 +1,37 @@
+---
+title: Payments stuck in REQUESTED
+summary: What to do when charges are being requested but Stripe outcomes stop arriving and orders pile up unpaid.
+badges:
+  - content: Sev 1
+    backgroundColor: red
+    textColor: red
+    icon: ExclamationTriangleIcon
+---
+
+## Symptoms
+
+- The `payments_requested_age_p95_seconds` gauge on the payments health dashboard is above **300s**.
+- Ordering reports orders sitting in "awaiting payment" for more than five minutes.
+- [[event|payment-requested]] is being published at the normal rate, but [[event|payment-succeeded]] and [[event|payment-failed]] have dropped to near zero on [[channel|payments.outcomes]].
+
+This is a **Sev 1**: customers are being charged (or will be) without Acme recording it. Open an incident channel before you start.
+
+## Likely causes
+
+1. Stripe's [[service|stripe-webhook-endpoint]] is delivering but our ingress is rejecting the calls — almost always a rotated webhook signing secret after a deploy.
+2. Stripe is degraded. Check the Stripe status page before touching anything.
+3. [[service|payment-worker]] is consuming outcomes but failing to write them, so the payment stays `REQUESTED` in [[container|payment-database]].
+4. Charges are never reaching Stripe: [[service|stripe-payments-api]] is returning 4xx to the worker.
+
+## Steps
+
+1. **Find where the outcomes stop.** Compare the Stripe dashboard's "webhook delivery failures" with the `webhook_ingress_4xx` panel. If Stripe shows failed deliveries, it is cause 1.
+2. **If the signing secret is wrong:** roll back the last [[service|payment-worker]] deploy. The secret is injected at deploy time; rolling back restores the previous one. Then ask Stripe to replay failed webhooks from the dashboard — they are idempotent on our side.
+3. **If Stripe is degraded:** do nothing to the pipeline. Post the Stripe incident link in the channel and let requests queue. The worker will pick outcomes up when delivery resumes.
+4. **If the worker is failing writes:** check its logs for `payment-database` connection errors. Scale the worker down to one replica; if the database is at its connection limit, it is usually [[service|payment-api]] holding idle connections — restart it.
+5. **If charges never reach Stripe:** look at the worker's `stripe_request_errors` by status. A 401 is an expired API key (rotate it from the Payments vault); a 429 means we are being rate limited — reduce worker concurrency to 4.
+6. Watch `payments_requested_age_p95_seconds` fall. Payments that were charged while we were blind will resolve as their replayed webhooks arrive.
+
+## After recovery
+
+Run the reconciliation job (`payments reconcile --since <incident start>`). It lists every [[entity|payment]] that is still `REQUESTED` but has a matching charge in Stripe, and moves it to `SUCCEEDED` so the order can proceed. Review the list before confirming — do not bulk-approve. Never mark a payment `SUCCEEDED` by hand in the database.

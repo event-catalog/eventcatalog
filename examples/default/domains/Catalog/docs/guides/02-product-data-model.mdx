@@ -1,0 +1,26 @@
+---
+title: Product data model
+summary: The entities behind a product, how they relate, and which one you should key on.
+---
+
+Four entities make up the Catalog domain's model. Most integrations only ever need the first one.
+
+## Product
+
+[[entity|product]] is the unit merchandising manages and customers browse. It carries the identity (`productId`), the name and description, the category assignment and the default price. **Key on `productId`** — it is stable for the life of the product and is the identifier used on every event.
+
+## Product variant
+
+[[entity|product-variant]] is a sellable configuration of a product — a size, a colour, a bundle. A product has one or more variants; stock and SKU live on the variant, not the product. If you are integrating with fulfilment or inventory you will be dealing with variants.
+
+## Category
+
+[[entity|category]] is a tree used for navigation and merchandising rules. A product belongs to exactly one category. Category ids are stable, but the tree shape is not — do not hard-code paths like `Clothing > Shoes`.
+
+## Search document
+
+[[entity|search-document]] is the denormalised shape that [[service|search-indexer]] writes into [[container|search-index]]. It is derived from the three entities above and is **not** something to integrate with directly — treat it as an implementation detail of [[system|search-system]].
+
+## Seeing it visually
+
+The entity diagram on this domain shows the relationships and cardinalities between these four entities, with the fields each one owns.

@@ -72,4 +72,16 @@ describe('buildEntityNode', () => {
       ],
     });
   });
+
+  it('renders exactly the listed custom sidebar sections, in order', () => {
+    const entity = createEntity({ domains: [createDomain('Orders', '0.0.1')] as any });
+    const owners = [{ collection: 'teams', data: { id: 'ordering', name: 'Ordering Team' } }];
+
+    const result = buildEntityNode(entity, owners, emptyContext, {
+      sidebar: { sections: ['$owners', '$quick-reference'] },
+    });
+
+    const titles = (result.pages || []).map((page) => (typeof page === 'string' ? page : page.title));
+    expect(titles).toEqual(['Owners', 'Quick Reference']);
+  });
 });

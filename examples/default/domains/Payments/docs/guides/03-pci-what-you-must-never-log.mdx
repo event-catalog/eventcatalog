@@ -1,0 +1,41 @@
+---
+title: "PCI: what you must never log"
+summary: The data-handling rules every consumer of payment events must follow to keep Acme's PCI-DSS scope where it is.
+badges:
+  - content: Compliance
+    backgroundColor: red
+    textColor: red
+    icon: ShieldCheckIcon
+---
+
+Acme is PCI-DSS assessed with a deliberately small scope: card data is only ever handled by [[system|stripe]]. Nothing in [[system|payment-processing-system]] stores, transmits or logs a card number, and the events in this domain are designed so consumers cannot accidentally widen that scope. This guide is the short version of the rules; the assessor's evidence pack lives with [[team|payments-platform]].
+
+## What is on the events
+
+Every event in this domain carries only opaque identifiers and amounts. Take [[event|payment-succeeded]]: `paymentId`, `orderId`, an integer `amount` and `currency`, Stripe's `processorReference` and a timestamp. No PAN, no expiry, no CVV, no cardholder name. If you ever see a field that looks like card data on a payment event, that is an incident — page Payments immediately and do not forward the message.
+
+## Never log
+
+| Data | Where it could leak from | Rule |
+| --- | --- | --- |
+| Card numbers, expiry, CVV | Stripe SDK responses, browser payloads | Never present in our systems; if you find one, it is a Sev 1 |
+| `processorReference` | [[event\|payment-succeeded]] | Allowed in structured logs, **never** in customer-facing text or URLs |
+| `customerId` + `amount` together | [[event\|payment-requested]] | Fine in traces; do not export to analytics tools outside the EU |
+| Fraud `score` and `reason` | [[event\|fraud-check-failed]] | Internal only — never show a customer why they were declined for fraud |
+| Raw webhook bodies | [[service\|stripe-webhook-endpoint]] | Only the Payments ingress may persist them; 30-day retention |
+
+Note the difference between a **decline** ([[event|payment-failed]] with `CARD_DECLINED`) and a **fraud block** ([[event|fraud-check-failed]]). The first is safe to explain to the customer. The second is not: telling someone their payment was blocked for `VELOCITY` teaches fraudsters how the screen works.
+
+## Where data may live
+
+- [[container|payment-database]] is classified **confidential**, resident in `eu-west-1`, retained for seven years. It is the only approved store for payment and refund records.
+- Consumers may keep a local read model of payment *status* keyed by `paymentId` or `orderId`. Do not copy amounts into systems that are not in scope for SOC2.
+- Do not put `paymentId` in URLs that end up in browser history or referrer headers. Use `orderId` for customer-facing links.
+
+## Access to Stripe
+
+Nobody outside Payments has Stripe dashboard access, and that is intentional. If you need to look up a charge, ask in `#payments-support` with the `paymentId`; the on-call will look it up via [[service|stripe-payments-api]] and paste back the status, not the raw record.
+
+## If you are unsure
+
+Ask before you log. A question in `#payments-support` costs a minute; a PCI scope change costs the company a re-assessment.

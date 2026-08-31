@@ -1,0 +1,41 @@
+---
+title: Payment and fraud model
+summary: The four entities behind a payment, how they relate, and how a fraud verdict changes what a payment is allowed to do.
+---
+
+Four entities make up the Payments model. [[entity|payment]] is the aggregate root and the only one most teams need to think about; the others exist so every decision about money is auditable.
+
+## Payment
+
+[[entity|payment]] is Acme's record of intent and outcome for one order. It carries `paymentId`, the `orderId` it pays for, the `amount` and a `status` that moves through `REQUESTED` → `SUCCEEDED` or `FAILED`. **Key on `paymentId`** — it is stable regardless of how many times Stripe retries a webhook or in which order events arrive. Exactly one payment exists per order; a retried card attempt is the same payment moving from `FAILED` back to `REQUESTED`, not a new one.
+
+## Payment authorization
+
+[[entity|payment-authorization]] links Acme's payment to the provider's view of it. It records the `providerReference` Stripe issued and when the hold was granted. It is written when [[command|authorize-payment]] is handled by [[service|payment-api]] and is what the [[service|payment-worker]] uses to correlate a [[event|payment-succeeded]] or [[event|payment-failed]] back to the right payment. If you are reconciling against Stripe reports, this is the join key.
+
+## Refund
+
+[[entity|refund]] is a second aggregate root, owned by Payments but keyed on its own `refundId`. A payment can have many refunds (partial refunds are common), each with its own `status` of `REQUESTED`, `PROCESSED` or `FAILED`. A refund starts with [[event|refund-requested]] and completes with [[event|refund-processed]]. The sum of processed refunds can never exceed the payment amount — the worker rejects the request before it reaches Stripe.
+
+## Fraud check
+
+[[entity|fraud-check]] records the verdict from [[system|fraud-detection]]. The `result` is `passed`, `failed` or `review`, with a `score` between 0 and 1 attached to the event.
+
+| Result | Event | What Payments does |
+| --- | --- | --- |
+| `passed` | [[event\|fraud-check-passed]] | Nothing — the charge continues |
+| `failed` | [[event\|fraud-check-failed]] | Blocks the charge and the order is cancelled |
+| `review` | _(no event)_ | Holds the payment for a human decision |
+
+`review` verdicts are the ones to know about. They never produce an event; the payment sits in `REQUESTED` until an analyst resolves it, which is why [[doc|runbooks/fraud-review-backlog]] exists. A payment in review can still receive a [[event|payment-succeeded]] from Stripe — the charge and the screen run in parallel — and if the review later fails, the worker issues a refund automatically.
+
+## How they hang together
+
+```
+Order ──paysFor── Payment ──belongsTo── PaymentAuthorization
+                    │
+                    ├──refunds──── Refund (0..n)
+                    └──screens──── FraudCheck (1)
+```
+
+The entity diagram on this domain page shows the same relationships with the fields each entity owns. Everything here is persisted in [[container|payment-database]] and retained for seven years.

@@ -1,0 +1,32 @@
+---
+title: Customer data model
+summary: The entities behind a customer, how profile and identity are kept apart, and which id you should key on.
+---
+
+Four entities make up the Customer domain's model. They split cleanly across the two systems — profile data in the [[system|customer-management-system]], identity data in the [[system|identity-provider]] — and that split is deliberate.
+
+## Customer profile
+
+[[entity|customer-profile]] is the customer as the business sees them: `customerId`, `email`, `displayName` and `status`. It is an aggregate root, stored in [[container|customer-database]] and owned by [[service|customer-api]]. **Key on `customerId`** — it is stable for the life of the customer and is the identifier used on every event and query in this domain. Email is unique but it can change; never use it as a foreign key.
+
+The profile carries personal data and is tagged with a data steward. `email` and `displayName` are the fields returned for subject access requests.
+
+## Customer address
+
+[[entity|customer-address]] is a saved address attached to a profile. A customer has zero or more addresses; each carries an `addressId`, the owning `customerId`, an ISO `countryCode` and a `postalCode`. Addresses exist to support checkout and fulfilment, but they stay owned by this domain — copy the `addressId` onto your order rather than the address itself.
+
+## Customer account
+
+[[entity|customer-account]] is the identity used to authenticate a customer. It lives on the Identity Provider side of the boundary in [[container|user-directory]], links back to a profile through `customerId`, and records the `provider` and account lifecycle `status`. It is an aggregate root for the identity side, and it is **not** something order, payment or review services should ever query. If you think you need it, you almost certainly need the profile instead.
+
+## Authentication session
+
+[[entity|authentication-session]] is a successful sign-in: a `sessionId`, the `accountId` it belongs to, and `authenticatedAt` / `expiresAt` timestamps. It is what a [[event|customer-authenticated]] event describes. Sessions are short-lived and are not a durable record of the customer.
+
+## Why profile and identity are separate
+
+Credentials are the most sensitive thing we hold. Keeping them in a dedicated, regulated-classification store means the Customer Management System never sees a password hash, and a bug in a profile screen cannot leak one. The two systems only meet through `customerId`. The [[system|customer-management-system]] delegates authentication to the [[system|identity-provider]] and never reads the user directory.
+
+## Seeing it visually
+
+The entity diagram on this domain shows the relationships and cardinalities between these four entities, with the fields each one owns. The ubiquitous language page defines the domain terms — customer, identity, credential, account status — used throughout.

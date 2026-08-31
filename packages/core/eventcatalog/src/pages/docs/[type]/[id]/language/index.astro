@@ -19,6 +19,11 @@ const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) 
 const ubiquitousLanguageData = await getUbiquitousLanguageWithSubdomains(props);
 const ubiquitousLanguage = ubiquitousLanguageData.domain;
 const { subdomains, duplicateTerms } = ubiquitousLanguageData;
+
+const termCount =
+  (ubiquitousLanguage?.data.dictionary?.length ?? 0) +
+  subdomains.reduce((total, subdomain: any) => total + (subdomain.ubiquitousLanguage?.data.dictionary?.length ?? 0), 0);
+const ownerTypeLabel = props.collection === 'domains' ? 'Domain' : 'System';
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
@@ -28,26 +33,31 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
     data-pagefind-meta={`title:${pageTitle}`}
   >
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-24 py-8 min-h-[50em]">
-        {/* Title Section */}
-        <div class="relative border-b border-[rgb(var(--ec-page-border))] mb-6 pb-6">
-          <div class="xl:flex xl:items-start xl:justify-between">
-            <div class="min-w-0 flex-1">
-              <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">Ubiquitous Language</h1>
-              <p class="pt-2 text-base text-[rgb(var(--ec-page-text-muted))] font-light">
-                Browse and discover ubiquitous language terms in the {props.data.name} domain{
-                  subdomains.length > 0 ? ' and its subdomains' : ''
-                }
-              </p>
-            </div>
+      <div class="w-full min-w-0 lg:mr-2 pr-24 py-8 min-h-[50em]">
+        {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro). */}
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
+          <div class="flex flex-col gap-4">
+            <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">{ownerTypeLabel}</span>
+            <h1 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
+              Ubiquitous Language
+            </h1>
+          </div>
+          <p class="text-base pt-4 pb-1 text-[rgb(var(--ec-page-text-muted))] font-light">
+            {termCount} {termCount === 1 ? 'term' : 'terms'} used in the {props.data.name} {ownerTypeLabel.toLowerCase()}{
+              subdomains.length > 0 ? ' and its subdomains' : ''
+            }.
+          </p>
+        </div>
 
-            <div class="mt-4 xl:mt-0 xl:ml-4 xl:flex-shrink-0">
-              <div class="relative w-full xl:w-80">
+        {
+          !ubiquitousLanguage && termCount > 0 && (
+            <div class="pt-8">
+              <div class="relative w-full max-w-md">
                 <input
                   type="text"
                   id="searchInput"
                   placeholder="Search terms..."
-                  class="block w-full rounded-md border-0 py-1.5 pr-4 pl-10 text-sm font-light text-[rgb(var(--ec-header-text))] bg-[rgb(var(--ec-header-bg))] shadow-xs ring-1 ring-inset ring-[rgb(var(--ec-dropdown-border))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:outline-none"
+                  class="block w-full rounded-md border-0 py-2 pr-4 pl-10 text-sm font-light text-[rgb(var(--ec-header-text))] bg-[rgb(var(--ec-header-bg))] shadow-xs ring-1 ring-inset ring-[rgb(var(--ec-dropdown-border))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:outline-none"
                 />
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-4 w-4 text-[rgb(var(--ec-icon-color))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,8 +70,8 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          )
+        }
 
         {
           !ubiquitousLanguage && subdomains.length === 0 && (
@@ -82,7 +92,7 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
           )
         }
 
-        <div class="py-4 w-full min-h-[calc(100vh-10em)]">
+        <div class="pt-8 pb-4 w-full min-h-[calc(100vh-10em)]">
           {
             (ubiquitousLanguage || subdomains.some((s) => s.ubiquitousLanguage)) && (
               <div>
@@ -100,6 +110,23 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                             ({ubiquitousLanguage?.data?.dictionary?.length || 0} terms)
                           </span>
                         </h3>
+                      </div>
+                      <div class="relative w-64 flex-shrink-0">
+                        <input
+                          type="text"
+                          id="searchInput"
+                          placeholder="Search terms..."
+                          class="block w-full rounded-md border-0 py-1.5 pr-4 pl-9 text-sm font-light text-[rgb(var(--ec-header-text))] bg-[rgb(var(--ec-header-bg))] shadow-xs ring-1 ring-inset ring-[rgb(var(--ec-dropdown-border))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:outline-none"
+                        />
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg class="h-4 w-4 text-[rgb(var(--ec-icon-color))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                          </svg>
+                        </div>
                       </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-terms-grid="main">

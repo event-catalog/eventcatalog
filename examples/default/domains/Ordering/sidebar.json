@@ -1,0 +1,48 @@
+{
+  "sections": [
+    {
+      "section": "$quick-reference",
+      "title": "Overview"
+    },
+    {
+      "title": "Guides",
+      "icon": "BookOpen",
+      "pages": [
+        "[[doc|guides/integrating-with-ordering]]",
+        "[[doc|guides/order-lifecycle]]",
+        "[[doc|guides/checkout-saga-and-compensation]]"
+      ]
+    },
+    {
+      "title": "Integration Events",
+      "icon": "Radio",
+      "pages": [
+        "[[event|order-created]]",
+        "[[event|order-confirmed]]",
+        "[[event|order-completed]]",
+        "[[event|order-cancelled]]"
+      ]
+    },
+    "$architecture",
+    "$systems",
+    "$flows",
+    "$entities",
+    {
+      "title": "Runbooks",
+      "icon": "Siren",
+      "pages": [
+        "[[doc|runbooks/on-call]]",
+        "[[doc|runbooks/stuck-checkout-sessions]]",
+        {
+          "title": "Health dashboard",
+          "href": "https://grafana.acme.dev/d/ordering-overview"
+        },
+        {
+          "title": "Saga dashboard",
+          "href": "https://grafana.acme.dev/d/ordering-checkout-saga"
+        }
+      ]
+    },
+    "$owners"
+  ]
+}

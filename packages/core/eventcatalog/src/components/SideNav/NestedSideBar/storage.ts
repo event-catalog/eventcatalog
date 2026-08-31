@@ -1,4 +1,4 @@
-import type { SectionCollapsePreferences } from './utils';
+import { createSectionCollapsePreferences, type SectionCollapsePreferences } from './utils';
 
 // ============================================
 // Local Storage Persistence
@@ -7,6 +7,7 @@ import type { SectionCollapsePreferences } from './utils';
 const STORAGE_KEY = 'eventcatalog-sidebar-nav';
 const SECTION_PREFERENCES_KEY = 'eventcatalog-sidebar-sections:v2';
 const FAVORITES_KEY = 'eventcatalog-sidebar-favorites';
+const SCROLL_KEY = 'eventcatalog-sidebar-scroll';
 
 // ============================================
 // Types
@@ -48,12 +49,58 @@ export const loadState = (): PersistedState | null => {
 };
 
 // ============================================
+// Scroll position
+// ============================================
+
+/**
+ * The sidebar remounts on every full page load, which resets its scroll offset to the
+ * top. Persist offsets (per tab) so the list looks stationary when you follow a link near
+ * the bottom. A capped map keyed by drill-down path, so scrolling one level doesn't lose
+ * another level's offset (root -> drill in -> scroll -> back keeps the root position).
+ */
+const MAX_SCROLL_ENTRIES = 30;
+
+export const saveScrollPosition = (pathKey: string, scrollTop: number): void => {
+  try {
+    const stored = sessionStorage.getItem(SCROLL_KEY);
+    const parsed = stored ? JSON.parse(stored) : {};
+    const offsets: Record<string, number> = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    // Re-insert so the map stays ordered by recency, then drop the oldest beyond the cap.
+    delete offsets[pathKey];
+    offsets[pathKey] = scrollTop;
+    const keys = Object.keys(offsets);
+    for (const stale of keys.slice(0, Math.max(0, keys.length - MAX_SCROLL_ENTRIES))) {
+      delete offsets[stale];
+    }
+    sessionStorage.setItem(SCROLL_KEY, JSON.stringify(offsets));
+  } catch (e) {
+    console.warn('Failed to save sidebar scroll position:', e);
+  }
+};
+
+export const loadScrollPosition = (pathKey: string): number | null => {
+  try {
+    const stored = sessionStorage.getItem(SCROLL_KEY);
+    if (!stored) return null;
+    const offsets = JSON.parse(stored);
+    const scrollTop = offsets && typeof offsets === 'object' ? offsets[pathKey] : undefined;
+    return typeof scrollTop === 'number' ? scrollTop : null;
+  } catch (e) {
+    console.warn('Failed to load sidebar scroll position:', e);
+    return null;
+  }
+};
+
+// ============================================
 // Collapsed Sections
 // ============================================
 
 export const saveCollapsedSections = (preferences: SectionCollapsePreferences): void => {
   try {
-    localStorage.setItem(SECTION_PREFERENCES_KEY, JSON.stringify({ expanded: [...preferences.expanded] }));
+    localStorage.setItem(
+      SECTION_PREFERENCES_KEY,
+      JSON.stringify({ expanded: [...preferences.expanded], collapsed: [...preferences.collapsed] })
+    );
   } catch (e) {
     console.warn('Failed to save collapsed sections:', e);
   }
@@ -64,15 +111,16 @@ export const loadCollapsedSections = (): SectionCollapsePreferences => {
     const stored = localStorage.getItem(SECTION_PREFERENCES_KEY);
     if (stored) {
       const preferences = JSON.parse(stored);
-      return {
-        expanded: new Set(Array.isArray(preferences.expanded) ? preferences.expanded : []),
-      };
+      return createSectionCollapsePreferences(
+        Array.isArray(preferences.expanded) ? preferences.expanded : [],
+        Array.isArray(preferences.collapsed) ? preferences.collapsed : []
+      );
     }
 
-    return { expanded: new Set() };
+    return createSectionCollapsePreferences();
   } catch (e) {
     console.warn('Failed to load collapsed sections:', e);
-    return { expanded: new Set() };
+    return createSectionCollapsePreferences();
   }
 };
 

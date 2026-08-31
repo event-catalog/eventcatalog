@@ -1,0 +1,43 @@
+---
+title: On-call checklist
+summary: What the Ordering on-call engineer checks at handover, how to triage a page, and when to escalate.
+badges:
+  - content: Start here
+    backgroundColor: green
+    textColor: green
+    icon: RocketLaunchIcon
+---
+
+## At handover
+
+1. Open the Ordering health dashboard and confirm the five panels are green: Checkout API error rate, saga success rate, saga p99 duration, Order Service consumer lag, orders on hold past `reviewBy`.
+2. Check `#ordering-support` for anything unresolved from the previous shift.
+3. Confirm `ordering saga list --stuck` returns nothing. A session left half-compensated across a handover is the most common surprise.
+4. Glance at the orders-on-hold panel. Anything past its `reviewBy` deadline is someone else's queue, but you own chasing it.
+
+## Triage
+
+| Page | Start with |
+| --- | --- |
+| `CheckoutAPI 5xx rate` | [[service\|checkout-api]] logs; usually a bad deploy — roll back first, investigate second |
+| `Saga success rate < 99%` | Split by failing step on the dashboard. Step 1 is inventory, step 2 is payments — page that team. Step 3 is us: check [[service\|order-service]] |
+| `Saga p99 duration > 30s` | [[doc\|runbooks/stuck-checkout-sessions]] |
+| `OrderService consumer lag` | [[service\|order-service]] is behind on `ordering.commands`. Check [[container\|order-database]] connection pool saturation before scaling |
+| `Orders on hold past reviewBy` | Not an incident. Post the `holdId`s and `ownerTeam` from [[event\|order-placed-on-hold]] in `#ordering-support` and ping the owning team |
+| `OrderDatabase disk > 85%` | Confirm the archival job that publishes [[event\|order-archived]] has run this week; if it has, page the database platform on-call |
+
+## Escalation
+
+- Customers unable to check out, or orders created without a payment authorization, is a **Sev 1** — page the incident commander immediately and stop any deploy in progress.
+- Sagas failing at a single downstream step (inventory or payments) is a **Sev 2** owned by that team; we stay on the bridge because customers see it as a checkout failure.
+- Delayed lifecycle events (fulfilment starting late, confirmations arriving late) are **Sev 3** unless the lag exceeds 15 minutes.
+- [[team|ordering-platform]] is the owning team; the team lead is the escalation point out of hours.
+
+## Things not to do
+
+- Do not replay `ordering.commands` from an offset. [[command|create-order]] is not idempotent on `cartId` today; a replay creates duplicate orders.
+- Do not edit rows in [[container|order-database]] to "fix" a status. Statuses only change through [[service|order-service]] so that [[event|order-status-changed]] and the [[entity|order-status-history]] audit trail stay consistent.
+
+## Before you sign off
+
+Leave a one-line summary in `#ordering-support` even if nothing happened, and note any sessions you compensated by hand.

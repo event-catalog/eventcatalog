@@ -1,0 +1,46 @@
+---
+title: Moderation lifecycle
+summary: How a review moves from submitted to published or rejected, what the automated screen checks, and when a human gets involved.
+badges:
+  - content: Core concept
+    backgroundColor: purple
+    textColor: purple
+    icon: ShieldCheckIcon
+---
+
+Every review passes through moderation before a customer can see it. This guide explains the lifecycle so that teams building on top of reviews know what state a review can be in, and why.
+
+## States
+
+A [[entity|review]] has exactly three lifecycle states, and they only move forward:
+
+| State | Set by | Visible on storefront |
+| --- | --- | --- |
+| `submitted` | [[service\|review-api]] on [[command\|submit-review]] | No |
+| `published` | [[service\|review-moderation-worker]] on approval | Yes |
+| `rejected` | [[service\|review-moderation-worker]] on rejection | No — kept for audit only |
+
+A rejected review is never deleted and never resurrected. If a customer wants to try again they submit a new review, which starts the lifecycle from scratch.
+
+## The screen
+
+[[service|review-moderation-worker]] consumes [[event|review-submitted]] and runs the review through an automated screen. The end-to-end journey is drawn out in [[flow|review-submission]]. In order, the checks are:
+
+1. **Spam classification** — templated text, links, repeated submissions from one account.
+2. **Language policy** — prohibited or abusive language scored against a threshold.
+3. **Duplicate detection** — the same customer reviewing the same product twice.
+4. **Authenticity** — reviewer-risk signals such as account age and purchase history.
+
+Each check produces a confidence score. A review that clears every check with high confidence is published automatically; verified-purchase reviews and reviewers on the trusted fast-track policy clear faster. A review that clearly fails any check is rejected automatically.
+
+## The human queue
+
+Anything in between — a borderline score, or a check that could not run — lands in the manual moderation queue. A moderator approves or rejects it from the moderation console, and the worker publishes the outcome exactly as it would for an automated decision. Our target is a decision within **5 minutes** of submission for the automated path and **24 hours** for the manual queue. If the queue is growing rather than draining, follow [[doc|runbooks/moderation-queue-stuck]].
+
+## Recording the outcome
+
+Whatever the path, the worker writes a [[entity|moderation-decision]] to [[container|review-database]] alongside the review, then publishes [[event|review-published]] or [[event|review-rejected]]. The decision records the outcome and the reason it was reached, so we can answer "why was my review rejected?" and audit the classifier over time.
+
+## Re-moderation
+
+Publication is not the end. When a customer sends [[command|flag-review]], [[service|review-api]] records a [[entity|review-flag]] and publishes [[event|review-flagged]]. The worker picks the review up again and re-runs the screen with the flag reason as an extra signal. A review that fails on re-screen moves to `rejected` and a [[event|review-rejected]] is published — downstream consumers must handle a rejection for a review they have previously seen published. Its contribution to the product rating is removed on the next aggregation.

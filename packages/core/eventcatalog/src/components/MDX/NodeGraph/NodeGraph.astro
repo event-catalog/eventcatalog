@@ -1,5 +1,10 @@
 ---
 import AstroNodeGraph from './AstroNodeGraph';
+// Imported here (server side) rather than from the React island: Astro then emits it as a
+// <link> in the page head, which survives ClientRouter navigations. A dynamic import from the
+// island injects a <style> that the view-transition head swap removes — and the cached module
+// never re-injects it, leaving the graph unstyled until a full reload.
+import '@eventcatalog/visualiser/styles-core.css';
 import { getNodesAndEdges as getNodesAndEdgesForAgent } from '@utils/node-graphs/agents-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
 import {

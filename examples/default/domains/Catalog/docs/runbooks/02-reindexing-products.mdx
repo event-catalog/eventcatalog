@@ -1,0 +1,35 @@
+---
+title: Reindexing products
+summary: Rebuild the search index from the product system of record.
+---
+
+A full reindex replays every product from [[container|product-database]] through [[flow|product-search-indexing]] into a fresh index, then swaps the alias. It is safe to run during business hours: reads continue against the old index until the swap.
+
+## Before you start
+
+- Confirm nobody else is mid-reindex: `catalog reindex status` must report `idle`.
+- Check the search cluster has at least **2×** the current index size free. A reindex builds a second copy before swapping.
+- Post in `#catalog-support` so merchandising know that changes made during the run will be picked up by the swap, not immediately.
+
+## Run it
+
+```bash
+catalog reindex start --source product-database --target search-index
+catalog reindex status --watch
+```
+
+The command streams every product as a [[event|product-updated]]-shaped message onto the indexing topic. [[service|search-indexer]] writes them into `products-<timestamp>`. Progress is reported per 10k products; expect ~40 minutes.
+
+## Swap and verify
+
+When status reports `built`, swap the alias:
+
+```bash
+catalog reindex swap
+```
+
+Then verify with a few known queries through [[query|search-products]]. Spot-check a recently changed product to confirm the new index has it.
+
+## Rollback
+
+The previous index is kept for 24 hours. `catalog reindex rollback` re-points the alias at it. After 24 hours it is deleted automatically.

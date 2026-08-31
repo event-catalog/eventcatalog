@@ -24,7 +24,7 @@ const specifications = type === 'services' ? getSpecificationsForService(props) 
 <VerticalSideBarLayout title={pageTitle}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]">
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
+      <div class="w-full min-w-0 lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
         {type === 'domains' && <DomainGrid domain={domain} client:load />}
         {type === 'systems' && <SystemGrid system={props} client:load />}
         {

@@ -130,7 +130,11 @@ const apiAccessEnabled = isEventCatalogScaleEnabled();
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
-  <div class="h-[calc(100vh-4rem)] w-full overflow-hidden flex flex-col">
+  {/* The schema viewer is an app-style surface: pull it out of the content gutter so it sits flush against the sidebar. */}
+  <div
+    class="h-[calc(100vh-4rem)] overflow-hidden flex flex-col"
+    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);"
+  >
     {
       currentMessage ? (
         <SchemaPageViewer

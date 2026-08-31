@@ -1,0 +1,39 @@
+---
+title: Integrating with Reviews
+summary: How other teams show ratings and reviews on their surfaces, and react to review activity without coupling to our data stores.
+---
+
+The Reviews & Ratings domain owns everything a customer says about a product after they have bought it. Storefront, search, merchandising and the mobile apps all consume it. This guide covers the three supported ways to integrate; anything else is a conversation in `#reviews-support` first.
+
+## Read reviews and ratings on demand
+
+Call [[query|get-product-reviews]] on [[service|review-api]] when you need reviews for a product detail page or a comparison screen. The response carries the **published** reviews for the product plus its current aggregate rating (average score and count).
+
+- Only reviews in the `published` state are returned. Submitted and rejected reviews are never exposed, so you don't need to filter by status yourself.
+- The aggregate rating comes from [[container|rating-cache]] and is eventually consistent — see [[doc|guides/rating-aggregation]] for what "eventually" means in practice.
+- Never read [[container|review-database]] directly. Its schema is private to [[team|reviews-platform]] and the moderation columns in particular change without notice.
+
+## React to review activity
+
+Subscribe to the domain events when you need to keep a local read model in sync or trigger downstream work. The contracts are described in the AsyncAPI document on this domain page and each event has a JSON schema attached.
+
+| Event | When it fires | Typical consumer |
+| --- | --- | --- |
+| [[event\|rating-updated]] | A product's aggregate rating changed | Search ranking, product listing cards |
+| [[event\|review-published]] | A review passed moderation and is now visible | Notifications ("your review is live"), analytics |
+| [[event\|review-rejected]] | A review failed moderation | Customer comms, fraud tooling |
+| [[event\|review-helpful-voted]] | A customer marked a review as helpful | Personalisation |
+
+[[event|review-submitted]] and [[event|review-flagged]] are **internal** to the domain. They carry unmoderated content and exist only to drive [[service|review-moderation-worker]]; do not subscribe to them from outside [[team|reviews-platform]].
+
+All events are published to Kafka and may be delivered more than once. Use the `reviewId` on review events, and the `productId` + `updatedAt` pair on [[event|rating-updated]], as your idempotency key.
+
+## Submit, vote and flag
+
+Customer-facing surfaces send three commands to [[service|review-api]]:
+
+- [[command|submit-review]] — creates a review in the `submitted` state. It will not be visible until moderation completes; tell the customer that.
+- [[command|vote-review-helpful]] — records one helpful vote per customer per review. Repeat votes are idempotent, not additive.
+- [[command|flag-review]] — reports a published review for re-moderation. This is a customer action, not a moderation tool; it queues the review for another screen rather than hiding it immediately.
+
+The request shapes are in the OpenAPI document attached to this domain. Commands must be sent with the customer's session token — we reject anonymous submissions at the edge.

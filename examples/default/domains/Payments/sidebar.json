@@ -1,0 +1,46 @@
+{
+  "sections": [
+    {
+      "section": "$quick-reference",
+      "title": "Overview"
+    },
+    {
+      "title": "Guides",
+      "icon": "BookOpen",
+      "pages": [
+        "[[doc|guides/reacting-to-payment-events]]",
+        "[[doc|guides/payment-and-fraud-model]]",
+        "[[doc|guides/pci-what-you-must-never-log]]"
+      ]
+    },
+    {
+      "title": "Integration Events",
+      "icon": "Radio",
+      "pages": [
+        "[[event|payment-succeeded]]",
+        "[[event|payment-failed]]",
+        "[[event|refund-processed]]"
+      ]
+    },
+    "$architecture",
+    "$systems",
+    "$entities",
+    {
+      "title": "Runbooks",
+      "icon": "Siren",
+      "pages": [
+        "[[doc|runbooks/payments-stuck-in-requested]]",
+        "[[doc|runbooks/fraud-review-backlog]]",
+        {
+          "title": "Health dashboard",
+          "href": "https://grafana.acme.dev/d/payments-overview"
+        },
+        {
+          "title": "Stripe status",
+          "href": "https://status.stripe.com"
+        }
+      ]
+    },
+    "$owners"
+  ]
+}
