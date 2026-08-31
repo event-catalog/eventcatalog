@@ -10,6 +10,8 @@ import Footer from '@layouts/Footer.astro';
 
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+import ArchitectureGraph from '@components/MDX/ArchitectureGraph/ArchitectureGraph.astro';
+import { architectureGraphPortalId } from '@components/MDX/ArchitectureGraph/ArchitectureGraphPortal';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
 import VersionList from '@components/Lists/VersionList.astro';
@@ -65,6 +67,7 @@ import {
   isVisualiserEnabled,
   isRSSEnabled,
   isEventCatalogMCPEnabled,
+  isArchitectureGraphEnabled,
 } from '@utils/feature';
 import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
 
@@ -361,6 +364,20 @@ const contextDiagrams = contextDiagramSupported
     })
   : [];
 
+// Architecture graphs embedded via <ArchitectureGraph />. Renders the D3
+// catalog-wide force graph focused on the current resource's neighbourhood;
+// `id` + `type` focus another resource instead. Each renders into its own
+// portal, so it never collides with the page's NodeGraph.
+const architectureGraphs = (getMDXComponentsByName(props.body || '', 'ArchitectureGraph') || []).map((graph: any) => ({
+  id: graph.id ?? props.data.id,
+  collection: graph.type ? resourceToCollectionMap[graph.type as keyof typeof resourceToCollectionMap] : props.collection,
+  depth: graph.depth ? Number(graph.depth) : undefined,
+  lens: graph.lens,
+  search: parseMdxBooleanProp(graph.search, true),
+  legend: parseMdxBooleanProp(graph.legend, true),
+  lensPicker: parseMdxBooleanProp(graph.lensPicker, false),
+}));
+
 // Get props for the node graph (when no id is passed, we assume its the current page)
 const hasCurrentFlowEmbed =
   props.collection === 'flows' &&
@@ -647,6 +664,30 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                       ? {
                           label: 'Open Context Diagram',
                           url: diagram.visualiserUrl,
+                        }
+                      : undefined
+                  }
+                />
+              ))
+          }
+          {
+            architectureGraphs.length > 0 &&
+              architectureGraphs.map((graph: any, occurrenceIndex: number) => (
+                <ArchitectureGraph
+                  id={graph.id}
+                  collection={graph.collection}
+                  depth={graph.depth}
+                  lens={graph.lens}
+                  showSearch={graph.search}
+                  showLegend={graph.legend}
+                  showLensPicker={graph.lensPicker}
+                  portalId={architectureGraphPortalId(graph.id, occurrenceIndex)}
+                  href={
+                    isArchitectureGraphEnabled()
+                      ? {
+                          label: 'Open full screen',
+                          // Base URL only — the graph appends its live view state (focus, depth, lens)
+                          url: buildUrl('/visualiser/graph'),
                         }
                       : undefined
                   }

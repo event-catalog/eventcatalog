@@ -626,7 +626,7 @@
       "version": "1.0.0",
       "name": "Catalog",
       "contentPath": "domains/Catalog/index.mdx",
-      "contentHash": "sha256:1cb8e8ddd496e775dcc6d0e0a4eac85cc28066d248599a363d38c44f6c3a5801",
+      "contentHash": "sha256:f34e1362ab1fb1dfb9c3ed2836cd054f4858b6c764b0e0fe62185bb162bac779",
       "owners": ["product-platform"],
       "sidecars": [
         {
@@ -867,7 +867,7 @@
       "version": "1.0.0",
       "name": "Ordering",
       "contentPath": "domains/Ordering/index.mdx",
-      "contentHash": "sha256:b8897d88a778080bd1e00b8afba2566e855f59927a831e4e0197ce492401e07a",
+      "contentHash": "sha256:80d05ff89805888e594bdbea50854c8ae4b3e615ae0da6b8272e1e4de1d62249",
       "owners": ["ordering-platform"],
       "sidecars": [
         {
@@ -948,7 +948,7 @@
       "version": "1.0.0",
       "name": "Payments",
       "contentPath": "domains/Payments/index.mdx",
-      "contentHash": "sha256:82dcb892b91e5cec3d3abb0ef98f02637516314240070158adf365369ea009dc",
+      "contentHash": "sha256:271d5fc58b5ecdc3b02d1a1f3f3b9ed0fc4a1b48e07fb31a9bc0c726861464a9",
       "owners": ["payments-platform"],
       "sidecars": [
         {
@@ -2932,7 +2932,7 @@
       "version": "1.0.0",
       "name": "Payment API",
       "contentPath": "domains/Payments/systems/payment-processing-system/services/PaymentAPI/index.mdx",
-      "contentHash": "sha256:0678b124dbfa077a6f9957fb03f248ed4816dc25f5a8167c1fe17f0abf29144b",
+      "contentHash": "sha256:e6858bfb8b590d6cd310a33895cb7c864f04733148649b8bf5c829657cc377c5",
       "owners": ["payments-platform"],
       "receives": [
         {
@@ -3617,7 +3617,7 @@
       "version": "1.0.0",
       "name": "Checkout System",
       "contentPath": "domains/Ordering/systems/checkout-system/index.mdx",
-      "contentHash": "sha256:9df555d237da11df686f4346f18d7964902d39d5ca34ef4430c01a195ed93d66",
+      "contentHash": "sha256:13691e780cf7b2aeea12779097583d1094f5f6f4814f576a4eba3b7d9a2e62b3",
       "owners": ["ordering-platform"],
       "services": [
         {

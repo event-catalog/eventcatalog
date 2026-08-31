@@ -1,16 +1,19 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { getMDXComponentsByName } from '@utils/markdown';
+import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
+import { architectureGraphPortalId } from '@components/MDX/ArchitectureGraph/ArchitectureGraphPortal';
 import { resourceToCollectionMap } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
-import { isCustomLandingPageEnabled, isVisualiserEnabled } from '@utils/feature';
+import { isCustomLandingPageEnabled, isVisualiserEnabled, isArchitectureGraphEnabled } from '@utils/feature';
 import DefaultAstroLandingPage from './_index.astro';
 import config from '@config';
 
 let nodeGraphs: any[] = [];
 let systemContextMaps: any[] = [];
+let architectureGraphs: any[] = [];
 let CustomContent = null;
 let NodeGraph = null;
+let ArchitectureGraph = null;
 let customHomepageComponents: Record<string, any> = {};
 
 import path from 'path';
@@ -37,10 +40,18 @@ if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
   // The homepage can also embed the global System Context Map via <SystemContextMap />.
   systemContextMaps = getMDXComponentsByName(rawContent, 'SystemContextMap') || [];
 
+  // …and the catalog-wide Architecture Graph via <ArchitectureGraph />. With no
+  // `id` + `type` the whole catalog is rendered.
+  architectureGraphs = getMDXComponentsByName(rawContent, 'ArchitectureGraph') || [];
+
   // Avoid pulling visualizer CSS into the default homepage bundle.
   // Only load the NodeGraph component when the custom homepage actually uses a graph.
   if (nodeGraphs.length > 0 || systemContextMaps.length > 0) {
     NodeGraph = (await import('@components/MDX/NodeGraph/NodeGraph.astro')).default;
+  }
+  // Only build the catalog-wide graph data when the homepage actually embeds it.
+  if (architectureGraphs.length > 0) {
+    ArchitectureGraph = (await import('@components/MDX/ArchitectureGraph/ArchitectureGraph.astro')).default;
   }
 }
 
@@ -99,6 +110,27 @@ if (config.landingPage) {
                   ? {
                       label: 'Open in Visualiser',
                       url: buildUrl('/visualiser/system-context-map'),
+                    }
+                  : undefined
+              }
+            />
+          ))}
+        {ArchitectureGraph &&
+          architectureGraphs.map((graph: any, occurrenceIndex: number) => (
+            <ArchitectureGraph
+              id={graph.id}
+              collection={graph.type ? resourceToCollectionMap[graph.type as keyof typeof resourceToCollectionMap] : undefined}
+              depth={graph.depth ? Number(graph.depth) : undefined}
+              lens={graph.lens}
+              showSearch={parseMdxBooleanProp(graph.search, true)}
+              showLegend={parseMdxBooleanProp(graph.legend, true)}
+              showLensPicker={parseMdxBooleanProp(graph.lensPicker, false)}
+              portalId={architectureGraphPortalId(graph.id, occurrenceIndex)}
+              href={
+                isArchitectureGraphEnabled()
+                  ? {
+                      label: 'Open full screen',
+                      url: buildUrl('/visualiser/graph'),
                     }
                   : undefined
               }

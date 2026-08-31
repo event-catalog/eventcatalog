@@ -190,6 +190,12 @@ export default defineConfig({
         'semver',
         'diff',
         'diff2html',
+        // Used by the ArchitectureGraph embeds — discovering these lazily mid-session
+        // triggers a re-optimize that 504s every already-loaded chunk
+        'd3-force',
+        'd3-selection',
+        'd3-zoom',
+        'd3-drag',
       ],
     },
   },
