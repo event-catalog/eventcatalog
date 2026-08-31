@@ -115,6 +115,10 @@ const parseResourceLocator = (value: string): { type?: string; id: string; versi
 const SPEC_OWNER_COLLECTIONS: Record<string, keyof CustomSidebarContext> = {
   domain: 'domains',
   service: 'services',
+  // Messages extend the same base schema and get specification pages too.
+  event: 'events',
+  command: 'commands',
+  query: 'queries',
 };
 
 const SPEC_ROUTES: Record<string, { segment: string; icon: string }> = {

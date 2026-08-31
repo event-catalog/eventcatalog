@@ -1253,7 +1253,14 @@ const sidebarSchema = z
 
 const sidebars = defineCollection({
   loader: globWithSafeWatcher({
-    pattern: withIgnoredBuildArtifacts(withFederatedContent(['**/sidebar.json', '!**/node_modules/**'])),
+    // Anchored to the resource roots (like resourceDocCategories) so an unrelated
+    // sidebar.json elsewhere in the project — or the public/generated mirror — is ignored.
+    pattern: withIgnoredBuildArtifacts(
+      withFederatedContent([
+        '{services,events,commands,queries,flows,containers,channels,entities,data-products,systems,agents,adrs}/**/sidebar.json',
+        'domains/**/sidebar.json',
+      ])
+    ),
     base: projectDirBase,
   }),
   schema: sidebarSchema,

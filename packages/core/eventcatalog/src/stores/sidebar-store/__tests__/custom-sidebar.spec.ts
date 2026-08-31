@@ -299,6 +299,36 @@ describe('applyCustomSidebar', () => {
       ]);
     });
 
+    it('resolves specifications owned by messages', () => {
+      const messageContext = {
+        ...context,
+        events: [
+          {
+            collection: 'events',
+            data: {
+              id: 'order-created',
+              version: '1.0.0',
+              specifications: [{ type: 'asyncapi', path: 'asyncapi.yml', name: 'Order events' }],
+            },
+          },
+        ],
+      } as any;
+      const [group] = applyCustomSidebar(
+        spec([{ title: 'X', pages: ['[[spec|event/order-created/asyncapi.yml]]'] }]),
+        sections,
+        ownResource,
+        messageContext
+      ) as NavNode[];
+      expect(group.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Order events',
+          leftIcon: '/icons/asyncapi-black.svg',
+          href: '/base/docs/events/order-created/1.0.0/asyncapi/asyncapi',
+        },
+      ]);
+    });
+
     it('fails clearly when a spec cannot be found', () => {
       expect(() => pagesOf(['[[spec|nope.yml]]'])).toThrow(/"Catalog" has no specification file "nope.yml"/);
       expect(() => pagesOf(['[[spec|missing-service/openapi.yml]]'])).toThrow(/resource "missing-service" not found/);
