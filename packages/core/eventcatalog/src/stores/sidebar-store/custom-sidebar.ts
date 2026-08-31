@@ -87,6 +87,9 @@ export type CustomSidebarContext = {
   containers?: EntryLike[];
   entities?: EntryLike[];
   dataProducts?: EntryLike[];
+  adrs?: EntryLike[];
+  channels?: EntryLike[];
+  diagrams?: EntryLike[];
   events?: EntryLike[];
   commands?: EntryLike[];
   queries?: EntryLike[];
@@ -141,6 +144,9 @@ const LATEST_ONLY_COLLECTIONS: Record<string, keyof CustomSidebarContext> = {
   container: 'containers',
   entity: 'entities',
   'data-product': 'dataProducts',
+  adr: 'adrs',
+  channel: 'channels',
+  diagram: 'diagrams',
 };
 
 const RESOURCE_REF_PATTERN = /^\[\[([a-z-]+)\|([^[\]]+?)\]\]$/;
@@ -285,7 +291,18 @@ const resolveSpecPage = (
       ? [context[SPEC_OWNER_COLLECTIONS[locator.type]] as EntryLike[] | undefined]
       : [context.services, context.domains];
     const entry = findEntry(pools, locator.id, locator.version);
-    if (entry) owner = { collection: entry.collection, id: entry.data.id, version: entry.data.version, data: entry.data };
+    if (entry) {
+      owner = { collection: entry.collection, id: entry.data.id, version: entry.data.version, data: entry.data };
+    } else if (locator.version) {
+      // The id may exist at a different version: only the latest version's specifications
+      // can be referenced (state.ts loads these collections latest-only).
+      const latest = findEntry(pools, locator.id);
+      if (latest) {
+        throw new Error(
+          `Cannot resolve "[[spec|${target}]]" in sidebar${describeSource(spec)}: only the latest version (${latest.data.version}) of "${locator.id}" can be referenced. Drop the "@${locator.version}" to link its latest specifications.`
+        );
+      }
+    }
   }
 
   if (!owner) {
@@ -576,6 +593,9 @@ export const toCustomSidebarContext = (context: {
   containers?: unknown[];
   entities?: unknown[];
   dataProducts?: unknown[];
+  adrs?: unknown[];
+  channels?: unknown[];
+  diagrams?: unknown[];
   events?: unknown[];
   commands?: unknown[];
   queries?: unknown[];
@@ -591,6 +611,9 @@ export const toCustomSidebarContext = (context: {
   containers: context.containers as EntryLike[] | undefined,
   entities: context.entities as EntryLike[] | undefined,
   dataProducts: context.dataProducts as EntryLike[] | undefined,
+  adrs: context.adrs as EntryLike[] | undefined,
+  channels: context.channels as EntryLike[] | undefined,
+  diagrams: context.diagrams as EntryLike[] | undefined,
   events: context.events as EntryLike[] | undefined,
   commands: context.commands as EntryLike[] | undefined,
   queries: context.queries as EntryLike[] | undefined,

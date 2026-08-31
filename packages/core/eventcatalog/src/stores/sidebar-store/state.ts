@@ -442,7 +442,12 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     (acc, flow) => {
       const sidebar = getSidebarForResource(customSidebars, flow);
       const node = buildFlowNode(flow, context, { sidebar });
-      acc[`flow:${flow.data.id}:${flow.data.version}`] = sidebar ? node : withArchitectureDecisionsSection(node, flow, adrs);
+      const versionedKey = `flow:${flow.data.id}:${flow.data.version}`;
+      acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, flow, adrs);
+      if (flow.data.latestVersion === flow.data.version) {
+        // Store reference to versioned key instead of duplicating the full node
+        acc[`flow:${flow.data.id}`] = versionedKey;
+      }
       return acc;
     },
     {} as Record<string, NavNode>

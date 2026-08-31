@@ -302,7 +302,9 @@ describe('applyCustomSidebar', () => {
     it('fails clearly when a spec cannot be found', () => {
       expect(() => pagesOf(['[[spec|nope.yml]]'])).toThrow(/"Catalog" has no specification file "nope.yml"/);
       expect(() => pagesOf(['[[spec|missing-service/openapi.yml]]'])).toThrow(/resource "missing-service" not found/);
-      expect(() => pagesOf(['[[spec|service/product-api@9.9.9/events.yaml]]'])).toThrow(/resource "product-api" not found/);
+      expect(() => pagesOf(['[[spec|service/product-api@9.9.9/events.yaml]]'])).toThrow(
+        /only the latest version \(1\.0\.0\) of "product-api" can be referenced/
+      );
       expect(() => pagesOf(['[[spec|widget/thing/openapi.yml]]'])).toThrow(/Unknown resource type "widget"/);
       expect(() => pagesOf(['[[spec|openapi.yml]]'], resource)).toThrow(/resource not found/);
     });
@@ -359,6 +361,38 @@ describe('applyCustomSidebar', () => {
     expect(() => applyCustomSidebar(spec([{ title: 'X', pages: ['[[doc|guides/anything]]'] }]), sections, resource)).toThrow(
       /has no documentation pages/
     );
+  });
+
+  it('covers adrs, channels and diagrams in the latest-only pin guard', () => {
+    const context = {
+      adrs: [{ collection: 'adrs', data: { id: 'adr-1', version: '2.0.0' } }],
+      channels: [{ collection: 'channels', data: { id: 'orders-topic', version: '1.1.0' } }],
+    } as any;
+    expect(() => applyCustomSidebar(spec([{ title: 'X', pages: ['[[adr|adr-1@1.0.0]]'] }]), sections, resource, context)).toThrow(
+      /only the latest version \(2\.0\.0\) of a adr/
+    );
+    expect(() =>
+      applyCustomSidebar(spec([{ title: 'X', pages: ['[[channel|orders-topic@1.0.0]]'] }]), sections, resource, context)
+    ).toThrow(/only the latest version \(1\.1\.0\) of a channel/);
+  });
+
+  it('explains latest-only when a spec ref pins a historical owner version', () => {
+    const context = {
+      services: [
+        {
+          collection: 'services',
+          data: { id: 'orders', version: '2.0.0', specifications: [{ type: 'openapi', path: 'openapi.yml' }] },
+        },
+      ],
+    } as any;
+    expect(() =>
+      applyCustomSidebar(
+        spec([{ title: 'X', pages: ['[[spec|service/orders@1.0.0/openapi.yml]]'] }]),
+        sections,
+        resource,
+        context
+      )
+    ).toThrow(/only the latest version \(2\.0\.0\) of "orders" can be referenced/);
   });
 
   it('fails the build when pinning a historical version of a latest-only collection', () => {
