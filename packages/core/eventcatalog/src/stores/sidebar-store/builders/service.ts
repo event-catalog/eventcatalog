@@ -12,20 +12,70 @@ import {
   buildAttachmentsSection,
   buildDiagramNavItems,
   buildResourceDocsSection,
+  buildArchitectureDecisionsSection,
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 import { iconFieldsForResource } from '@utils/icon';
+import { resolveSidebarPages, toCustomSidebarContext, type SidebarSpec } from '../custom-sidebar';
 
 const uniqueRefs = (refs: string[]) => [...new Set(refs)];
 
-export const buildServiceNode = (
+/**
+ * Predefined sidebar sections for a service, keyed by the token users reference from
+ * `sidebar.json` (e.g. `$quick-reference`). Each token is the kebab-cased title of the
+ * section as it appears in the default sidebar.
+ */
+export type ServiceSectionKey =
+  | 'quick-reference'
+  | 'documentation'
+  | 'architecture'
+  | 'diagrams'
+  | 'api-and-contracts'
+  | 'resource-groups'
+  | 'state-and-persistence'
+  | 'entities'
+  | 'outbound-messages'
+  | 'inbound-messages'
+  | 'channels'
+  | 'flows'
+  | 'decision-records'
+  | 'owners'
+  | 'code'
+  | 'attachments';
+
+export type ServiceSections = Record<ServiceSectionKey, NavNode | NavNode[] | null>;
+
+/**
+ * Order of sections in the default (generated) sidebar. `decision-records` is deliberately
+ * absent — in default mode it is inserted before Owners by `withArchitectureDecisionsSection`
+ * in state.ts, and only becomes a first-class token for custom sidebars.
+ */
+export const DEFAULT_SERVICE_SECTION_ORDER: ServiceSectionKey[] = [
+  'quick-reference',
+  'documentation',
+  'architecture',
+  'diagrams',
+  'api-and-contracts',
+  'resource-groups',
+  'state-and-persistence',
+  'entities',
+  'outbound-messages',
+  'inbound-messages',
+  'channels',
+  'flows',
+  'owners',
+  'code',
+  'attachments',
+];
+
+export const buildServiceSections = (
   service: CollectionEntry<'services'>,
   owners: any[],
   context: ResourceGroupContext,
   serviceChannels: CollectionEntry<'channels'>[] = [],
   flowRefs: string[] = []
-): NavNode => {
+): ServiceSections => {
   const sendsMessages = service.data.sends || [];
   const receivesMessages = service.data.receives || [];
   const serviceEntities = service.data.entities || [];
@@ -72,6 +122,178 @@ export const buildServiceNode = (
   const diagramNavItems = buildDiagramNavItems(serviceDiagrams, context.diagrams);
   const hasDiagrams = diagramNavItems.length > 0;
 
+  return {
+    'quick-reference': buildQuickReferenceSection(
+      [
+        { title: 'Overview', href: buildUrl(docsBasePath) },
+        isChangelogEnabled() &&
+          shouldRenderSideBarSection(service, 'changelog') && {
+            title: 'Changelog',
+            href: buildUrl(`${docsBasePath}/changelog`),
+          },
+      ].filter(Boolean) as { title: string; href: string }[]
+    ),
+    documentation: docsSection,
+    architecture: {
+      type: 'group',
+      title: 'Architecture',
+      icon: 'Workflow',
+      pages: [
+        {
+          type: 'item',
+          title: 'Overview',
+          href: buildUrl(`/architecture/services/${service.data.id}/${service.data.version}`),
+        },
+        renderVisualiser && {
+          type: 'item',
+          title: 'Map',
+          href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`),
+        },
+        renderVisualiser &&
+          renderEntities && {
+            type: 'item',
+            title: 'Entity Map',
+            href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/entity-map`),
+          },
+        renderVisualiser &&
+          hasDataStores && {
+            type: 'item',
+            title: 'Data Dependency Graph',
+            href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/data`),
+          },
+      ].filter(Boolean) as ChildRef[],
+    },
+    diagrams: hasDiagrams
+      ? {
+          type: 'group',
+          title: 'Diagrams',
+          icon: 'FileImage',
+          pages: diagramNavItems,
+        }
+      : null,
+    'api-and-contracts': renderSpecifications
+      ? {
+          type: 'group',
+          title: 'API & Contracts',
+          icon: 'FileCode',
+          pages: [
+            ...openAPISpecifications.map((specification) => ({
+              type: 'item',
+              title: `${specification.name}`,
+              leftIcon: '/icons/openapi-black.svg',
+              href: buildUrl(`${docsBasePath}/spec/${specification.filenameWithoutExtension}`),
+            })),
+            ...asyncAPISpecifications.map((specification) => ({
+              type: 'item',
+              title: `${specification.name}`,
+              leftIcon: '/icons/asyncapi-black.svg',
+              href: buildUrl(`${docsBasePath}/asyncapi/${specification.filenameWithoutExtension}`),
+            })),
+            ...graphQLSpecifications.map((specification) => ({
+              type: 'item',
+              title: `${specification.name}`,
+              leftIcon: '/icons/graphql-black.svg',
+              href: buildUrl(`${docsBasePath}/graphql/${specification.filenameWithoutExtension}`),
+            })),
+          ],
+        }
+      : null,
+    'resource-groups': renderResourceGroups
+      ? (buildResourceGroupSections(resourceGroups, context).filter(Boolean) as NavNode[])
+      : null,
+    'state-and-persistence': hasDataStores
+      ? {
+          type: 'group',
+          title: 'State and Persistence',
+          icon: 'Database',
+          pages: dataStoresInService.map(
+            (dataStore) => `container:${(dataStore as any).data.id}:${(dataStore as any).data.version}`
+          ),
+        }
+      : null,
+    entities: renderEntities
+      ? {
+          type: 'group',
+          title: 'Entities',
+          icon: 'Box',
+          pages: serviceEntities.map((entity) => ({
+            type: 'item',
+            title: (entity as any).data?.name || (entity as any).data.id,
+            href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
+          })),
+        }
+      : null,
+    'outbound-messages':
+      sendsMessages.length > 0 && renderMessages
+        ? {
+            type: 'group',
+            title: 'Outbound Messages',
+            icon: 'Mail',
+            pages: sendsMessages.map(
+              (message) => `${pluralizeMessageType(message as any)}:${(message as any).data.id}:${(message as any).data.version}`
+            ),
+          }
+        : null,
+    'inbound-messages':
+      receivesMessages.length > 0 && renderMessages
+        ? {
+            type: 'group',
+            title: 'Inbound Messages',
+            icon: 'Mail',
+            pages: receivesMessages.map(
+              (receive) => `${pluralizeMessageType(receive as any)}:${(receive as any).data.id}:${(receive as any).data.version}`
+            ),
+          }
+        : null,
+    channels:
+      serviceChannels.length > 0
+        ? {
+            type: 'group',
+            title: 'Channels',
+            icon: 'ArrowRightLeft',
+            pages: serviceChannels.map((channel) => `channel:${(channel as any).data.id}:${(channel as any).data.version}`),
+          }
+        : null,
+    flows: hasFlows
+      ? {
+          type: 'group',
+          // If the service declares its own flows it owns them ("Flows"); otherwise it is
+          // only referenced as a step in someone else's flow ("Appears in flows").
+          title: serviceFlows.length > 0 ? 'Flows' : 'Appears in flows',
+          icon: 'Waypoints',
+          pages: serviceFlowRefs,
+        }
+      : null,
+    'decision-records': shouldRenderSideBarSection(service, 'architectureDecisions')
+      ? buildArchitectureDecisionsSection(service, context.adrs || [])
+      : null,
+    owners: renderOwners ? buildOwnersSection(owners) : null,
+    code: renderRepository ? buildRepositorySection(service.data.repository as { url: string; language: string }) : null,
+    attachments: hasAttachments ? buildAttachmentsSection(service.data.attachments as any[]) : null,
+  };
+};
+
+export type BuildServiceNodeOptions = {
+  /** A parsed `sidebar.json` for this service. When present it replaces the generated sidebar. */
+  sidebar?: SidebarSpec;
+};
+
+export const buildServiceNode = (
+  service: CollectionEntry<'services'>,
+  owners: any[],
+  context: ResourceGroupContext,
+  serviceChannels: CollectionEntry<'channels'>[] = [],
+  flowRefs: string[] = [],
+  options: BuildServiceNodeOptions = {}
+): NavNode => {
+  const sections = buildServiceSections(service, owners, context, serviceChannels, flowRefs);
+
+  const pages = resolveSidebarPages(sections, DEFAULT_SERVICE_SECTION_ORDER, {
+    sidebar: options.sidebar,
+    resource: { collection: 'services', id: service.data.id, version: service.data.version, entry: service },
+    context: toCustomSidebarContext(context),
+  });
+
   const isExternalSystem = !!service.data.externalSystem;
 
   return {
@@ -80,132 +302,6 @@ export const buildServiceNode = (
     badge: isExternalSystem ? 'External System' : 'Service',
     summary: service.data.summary,
     ...iconFieldsForResource(service.data, isExternalSystem ? 'Globe' : 'Server'),
-    pages: [
-      buildQuickReferenceSection(
-        [
-          { title: 'Overview', href: buildUrl(docsBasePath) },
-          isChangelogEnabled() &&
-            shouldRenderSideBarSection(service, 'changelog') && {
-              title: 'Changelog',
-              href: buildUrl(`${docsBasePath}/changelog`),
-            },
-        ].filter(Boolean) as { title: string; href: string }[]
-      ),
-      docsSection,
-      {
-        type: 'group',
-        title: 'Architecture',
-        icon: 'Workflow',
-        pages: [
-          {
-            type: 'item',
-            title: 'Overview',
-            href: buildUrl(`/architecture/services/${service.data.id}/${service.data.version}`),
-          },
-          renderVisualiser && {
-            type: 'item',
-            title: 'Map',
-            href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`),
-          },
-          renderVisualiser &&
-            renderEntities && {
-              type: 'item',
-              title: 'Entity Map',
-              href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/entity-map`),
-            },
-          renderVisualiser &&
-            hasDataStores && {
-              type: 'item',
-              title: 'Data Dependency Graph',
-              href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/data`),
-            },
-        ].filter(Boolean) as ChildRef[],
-      },
-      hasDiagrams && {
-        type: 'group',
-        title: 'Diagrams',
-        icon: 'FileImage',
-        pages: diagramNavItems,
-      },
-      renderSpecifications && {
-        type: 'group',
-        title: 'API & Contracts',
-        icon: 'FileCode',
-        pages: [
-          ...openAPISpecifications.map((specification) => ({
-            type: 'item',
-            title: `${specification.name}`,
-            leftIcon: '/icons/openapi-black.svg',
-            href: buildUrl(`${docsBasePath}/spec/${specification.filenameWithoutExtension}`),
-          })),
-          ...asyncAPISpecifications.map((specification) => ({
-            type: 'item',
-            title: `${specification.name}`,
-            leftIcon: '/icons/asyncapi-black.svg',
-            href: buildUrl(`${docsBasePath}/asyncapi/${specification.filenameWithoutExtension}`),
-          })),
-          ...graphQLSpecifications.map((specification) => ({
-            type: 'item',
-            title: `${specification.name}`,
-            leftIcon: '/icons/graphql-black.svg',
-            href: buildUrl(`${docsBasePath}/graphql/${specification.filenameWithoutExtension}`),
-          })),
-        ],
-      },
-      renderResourceGroups && buildResourceGroupSections(resourceGroups, context),
-      hasDataStores && {
-        type: 'group',
-        title: 'State and Persistence',
-        icon: 'Database',
-        pages: dataStoresInService.map(
-          (dataStore) => `container:${(dataStore as any).data.id}:${(dataStore as any).data.version}`
-        ),
-      },
-      renderEntities && {
-        type: 'group',
-        title: 'Entities',
-        icon: 'Box',
-        pages: serviceEntities.map((entity) => ({
-          type: 'item',
-          title: (entity as any).data?.name || (entity as any).data.id,
-          href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
-        })),
-      },
-      sendsMessages.length > 0 &&
-        renderMessages && {
-          type: 'group',
-          title: 'Outbound Messages',
-          icon: 'Mail',
-          pages: sendsMessages.map(
-            (message) => `${pluralizeMessageType(message as any)}:${(message as any).data.id}:${(message as any).data.version}`
-          ),
-        },
-      receivesMessages.length > 0 &&
-        renderMessages && {
-          type: 'group',
-          title: 'Inbound Messages',
-          icon: 'Mail',
-          pages: receivesMessages.map(
-            (receive) => `${pluralizeMessageType(receive as any)}:${(receive as any).data.id}:${(receive as any).data.version}`
-          ),
-        },
-      serviceChannels.length > 0 && {
-        type: 'group',
-        title: 'Channels',
-        icon: 'ArrowRightLeft',
-        pages: serviceChannels.map((channel) => `channel:${(channel as any).data.id}:${(channel as any).data.version}`),
-      },
-      hasFlows && {
-        type: 'group',
-        // If the service declares its own flows it owns them ("Flows"); otherwise it is
-        // only referenced as a step in someone else's flow ("Appears in flows").
-        title: serviceFlows.length > 0 ? 'Flows' : 'Appears in flows',
-        icon: 'Waypoints',
-        pages: serviceFlowRefs,
-      },
-      renderOwners && buildOwnersSection(owners),
-      renderRepository && buildRepositorySection(service.data.repository as { url: string; language: string }),
-      hasAttachments && buildAttachmentsSection(service.data.attachments as any[]),
-    ].filter(Boolean) as ChildRef[],
+    pages,
   };
 };

@@ -1,10 +1,16 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
-import { buildQuickReferenceSection, buildResourceDocsSection, shouldRenderSideBarSection } from './shared';
+import {
+  buildQuickReferenceSection,
+  buildResourceDocsSection,
+  shouldRenderSideBarSection,
+  buildArchitectureDecisionsSection,
+} from './shared';
 import { isChangelogEnabled } from '@utils/feature';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { pluralizeMessageType } from '@utils/collections/messages';
+import { resolveSidebarPages, toCustomSidebarContext, type SidebarSpec } from '../custom-sidebar';
 
 type VersionedEntry = { collection?: string; data: { id: string; version: string } };
 type VersionedEntryMap<T extends VersionedEntry> = Map<string, T[]>;
@@ -42,7 +48,43 @@ const resolveMessageStep = (
   return message ? `${pluralizeMessageType(message as any)}:${message.data.id}:${message.data.version}` : null;
 };
 
-export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceGroupContext): NavNode => {
+/**
+ * Predefined sidebar sections for a flow, keyed by the token users reference from
+ * `sidebar.json` (e.g. `$quick-reference`). Each token is the kebab-cased title of the
+ * section as it appears in the default sidebar.
+ */
+export type FlowSectionKey =
+  | 'quick-reference'
+  | 'documentation'
+  | 'architecture'
+  | 'messages'
+  | 'services'
+  | 'agents'
+  | 'subflows'
+  | 'data-stores'
+  | 'data-products'
+  | 'decision-records';
+
+export type FlowSections = Record<FlowSectionKey, NavNode | NavNode[] | null>;
+
+/**
+ * Order of sections in the default (generated) sidebar. `decision-records` is deliberately
+ * absent — in default mode it is appended by `withArchitectureDecisionsSection` in state.ts,
+ * and only becomes a first-class token for custom sidebars.
+ */
+export const DEFAULT_FLOW_SECTION_ORDER: FlowSectionKey[] = [
+  'quick-reference',
+  'documentation',
+  'architecture',
+  'messages',
+  'services',
+  'agents',
+  'subflows',
+  'data-stores',
+  'data-products',
+];
+
+export const buildFlowSections = (flow: CollectionEntry<'flows'>, context: ResourceGroupContext): FlowSections => {
   const docsSection = buildResourceDocsSection(
     'flows',
     flow.data.id,
@@ -112,71 +154,113 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
   );
 
   return {
+    'quick-reference': buildQuickReferenceSection(
+      [
+        { title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) },
+        isChangelogEnabled() &&
+          shouldRenderSideBarSection(flow, 'changelog') && {
+            title: 'Changelog',
+            href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}/changelog`),
+          },
+      ].filter(Boolean) as { title: string; href: string }[]
+    ),
+    documentation: docsSection,
+    architecture: {
+      type: 'group',
+      title: 'Architecture',
+      icon: 'Workflow',
+      pages: [
+        {
+          type: 'item',
+          title: 'Flow Diagram',
+          href: buildUrl(`/visualiser/flows/${flow.data.id}/${flow.data.version}`),
+        },
+      ].filter(Boolean) as ChildRef[],
+    },
+    messages:
+      messageRefs.length > 0
+        ? {
+            type: 'group',
+            title: 'Messages',
+            icon: 'Mail',
+            pages: messageRefs,
+          }
+        : null,
+    services:
+      serviceRefs.length > 0
+        ? {
+            type: 'group',
+            title: 'Services',
+            icon: 'Server',
+            pages: serviceRefs,
+          }
+        : null,
+    agents:
+      agentRefs.length > 0
+        ? {
+            type: 'group',
+            title: 'Agents',
+            icon: 'Bot',
+            pages: agentRefs,
+          }
+        : null,
+    subflows:
+      flowRefs.length > 0
+        ? {
+            type: 'group',
+            title: 'Subflows',
+            icon: 'Waypoints',
+            pages: flowRefs,
+          }
+        : null,
+    'data-stores':
+      containerRefs.length > 0
+        ? {
+            type: 'group',
+            title: 'Data Stores',
+            icon: 'Database',
+            pages: containerRefs,
+          }
+        : null,
+    'data-products':
+      dataProductRefs.length > 0
+        ? {
+            type: 'group',
+            title: 'Data Products',
+            icon: 'Package',
+            pages: dataProductRefs,
+          }
+        : null,
+    'decision-records': shouldRenderSideBarSection(flow, 'architectureDecisions')
+      ? buildArchitectureDecisionsSection(flow, context.adrs || [])
+      : null,
+  };
+};
+
+export type BuildFlowNodeOptions = {
+  /** A parsed `sidebar.json` for this flow. When present it replaces the generated sidebar. */
+  sidebar?: SidebarSpec;
+};
+
+export const buildFlowNode = (
+  flow: CollectionEntry<'flows'>,
+  context: ResourceGroupContext,
+  options: BuildFlowNodeOptions = {}
+): NavNode => {
+  const sections = buildFlowSections(flow, context);
+
+  const pages = resolveSidebarPages(sections, DEFAULT_FLOW_SECTION_ORDER, {
+    sidebar: options.sidebar,
+    resource: { collection: 'flows', id: flow.data.id, version: flow.data.version, entry: flow },
+    context: toCustomSidebarContext(context),
+  });
+
+  return {
     type: 'item',
     title: flow.data.name,
     icon: 'Waypoint',
     badge: 'Flow',
     summary: flow.data.summary,
-    pages: [
-      buildQuickReferenceSection(
-        [
-          { title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) },
-          isChangelogEnabled() &&
-            shouldRenderSideBarSection(flow, 'changelog') && {
-              title: 'Changelog',
-              href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}/changelog`),
-            },
-        ].filter(Boolean) as { title: string; href: string }[]
-      ),
-      docsSection,
-      {
-        type: 'group',
-        title: 'Architecture',
-        icon: 'Workflow',
-        pages: [
-          {
-            type: 'item',
-            title: 'Flow Diagram',
-            href: buildUrl(`/visualiser/flows/${flow.data.id}/${flow.data.version}`),
-          },
-        ].filter(Boolean) as ChildRef[],
-      },
-      messageRefs.length > 0 && {
-        type: 'group',
-        title: 'Messages',
-        icon: 'Mail',
-        pages: messageRefs,
-      },
-      serviceRefs.length > 0 && {
-        type: 'group',
-        title: 'Services',
-        icon: 'Server',
-        pages: serviceRefs,
-      },
-      agentRefs.length > 0 && {
-        type: 'group',
-        title: 'Agents',
-        icon: 'Bot',
-        pages: agentRefs,
-      },
-      flowRefs.length > 0 && {
-        type: 'group',
-        title: 'Subflows',
-        icon: 'Waypoints',
-        pages: flowRefs,
-      },
-      containerRefs.length > 0 && {
-        type: 'group',
-        title: 'Data Stores',
-        icon: 'Database',
-        pages: containerRefs,
-      },
-      dataProductRefs.length > 0 && {
-        type: 'group',
-        title: 'Data Products',
-        icon: 'Package',
-        pages: dataProductRefs,
-      },
-    ].filter(Boolean) as ChildRef[],
+    pages,
   };
 };

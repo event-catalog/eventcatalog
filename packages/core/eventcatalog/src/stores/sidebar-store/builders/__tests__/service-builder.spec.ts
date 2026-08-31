@@ -55,3 +55,18 @@ describe('buildServiceNode', () => {
     });
   });
 });
+
+describe('buildServiceNode with a custom sidebar', () => {
+  const owners = [{ collection: 'teams', data: { id: 'products', name: 'Products Team' } }];
+
+  it('renders exactly the listed sections, in order', () => {
+    const node = buildServiceNode(service, owners, emptyContext, [], [], {
+      sidebar: { sections: ['$owners', '$quick-reference'] },
+    });
+
+    expect((node.pages || []).map((page) => (typeof page === 'string' ? page : page.title))).toEqual([
+      'Owners',
+      'Quick Reference',
+    ]);
+  });
+});

@@ -1,30 +1,40 @@
 import { describe, expect, it } from 'vitest';
-import { canCollapseGroup, findNodeKeyByUrl, getGroupLabel, isGroupCollapsed } from './utils';
+import {
+  canCollapseGroup,
+  createSectionCollapsePreferences,
+  findNodeKeyByUrl,
+  getDefaultCollapsedState,
+  isGroupCollapsed,
+  toggleGroupCollapsed,
+} from './utils';
 
-const preferences = (expanded: string[] = []) => ({
-  expanded: new Set(expanded),
-});
+const preferences = (expanded: string[] = [], collapsed: string[] = []) => createSectionCollapsePreferences(expanded, collapsed);
 
 describe('sidebar group presentation', () => {
-  it('includes the visible child count in the group label', () => {
-    expect(getGroupLabel('Outbound Messages', 10)).toBe('Outbound Messages (10)');
+  it('keeps root-level groups expanded', () => {
+    expect(canCollapseGroup(true)).toBe(false);
   });
 
-  it.each(['Quick Reference', 'Architecture', 'Resources'])('does not include the child count for %s', (title) => {
-    expect(getGroupLabel(title, 10)).toBe(title);
-  });
-
-  it('keeps top-level groups expanded', () => {
-    expect(canCollapseGroup(6, true)).toBe(false);
-  });
-
-  it('only allows nested groups with more than five children to collapse', () => {
-    expect(canCollapseGroup(5, false)).toBe(false);
-    expect(canCollapseGroup(6, false)).toBe(true);
+  it('lets every group inside a resource sidebar collapse, whatever its size', () => {
+    expect(canCollapseGroup(false)).toBe(true);
+    expect(canCollapseGroup(false)).toBe(true);
   });
 
   it('keeps groups marked as non-collapsible expanded regardless of their size', () => {
-    expect(canCollapseGroup(100, false, false)).toBe(false);
+    expect(canCollapseGroup(false, false)).toBe(false);
+  });
+
+  it('starts long lists collapsed and short ones open unless told otherwise', () => {
+    expect(getDefaultCollapsedState(5)).toBe(false);
+    expect(getDefaultCollapsedState(6)).toBe(true);
+    expect(getDefaultCollapsedState(6, false)).toBe(false);
+    expect(getDefaultCollapsedState(2, true)).toBe(true);
+  });
+
+  it('always allows collapsing when an explicit collapsed state is set, overriding every other rule', () => {
+    expect(canCollapseGroup(false, true, true)).toBe(true);
+    expect(canCollapseGroup(false, true, false)).toBe(true);
+    expect(canCollapseGroup(true, false, true)).toBe(true);
   });
 });
 
@@ -39,6 +49,40 @@ describe('isGroupCollapsed', () => {
 
   it('uses an explicit expanded preference', () => {
     expect(isGroupCollapsed(true, 'outbound-messages', preferences(['outbound-messages']))).toBe(false);
+  });
+
+  it('starts expanded when the group defaults to expanded, until the user collapses it', () => {
+    expect(isGroupCollapsed(true, 'owners', preferences(), false)).toBe(false);
+    expect(isGroupCollapsed(true, 'owners', preferences([], ['owners']), false)).toBe(true);
+  });
+});
+
+describe('toggleGroupCollapsed', () => {
+  it('records the user overriding a collapsed-by-default group, then clears it on the way back', () => {
+    const opened = toggleGroupCollapsed('g', preferences());
+    expect([...opened.expanded]).toEqual(['g']);
+    expect(opened.collapsed.size).toBe(0);
+
+    const closedAgain = toggleGroupCollapsed('g', opened);
+    expect(closedAgain.expanded.size).toBe(0);
+    expect([...closedAgain.collapsed]).toEqual(['g']);
+  });
+
+  it('records the user overriding an expanded-by-default group', () => {
+    const closed = toggleGroupCollapsed('g', preferences(), false);
+    expect([...closed.collapsed]).toEqual(['g']);
+    expect(isGroupCollapsed(true, 'g', closed, false)).toBe(true);
+
+    const reopened = toggleGroupCollapsed('g', closed, false);
+    expect(reopened.collapsed.size).toBe(0);
+    expect([...reopened.expanded]).toEqual(['g']);
+  });
+
+  it('does not mutate the previous preferences', () => {
+    const before = preferences();
+    toggleGroupCollapsed('g', before);
+    expect(before.expanded.size).toBe(0);
+    expect(before.collapsed.size).toBe(0);
   });
 });
 

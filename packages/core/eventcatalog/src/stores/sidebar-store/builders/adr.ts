@@ -8,7 +8,7 @@ import {
   type AdrResource,
 } from '@utils/collections/adrs';
 import { collectionToResourceMap, createVersionedMap, findInMap } from '@utils/collections/util';
-import type { ChildRef, NavNode, ResourceGroupContext } from './shared';
+import type { NavNode, ResourceGroupContext } from './shared';
 import {
   buildAttachmentsSection,
   buildOwnersSection,
@@ -17,6 +17,7 @@ import {
   shouldRenderSideBarSection,
 } from './shared';
 import { isChangelogEnabled } from '@utils/feature';
+import { resolveSidebarPages, toCustomSidebarContext, type SidebarSpec } from '../custom-sidebar';
 
 const firstClassResourceCollections = [
   'agents',
@@ -102,13 +103,105 @@ const buildDecisionMakersSection = (decisionMakers: any[]): NavNode | null => {
   };
 };
 
-export const buildAdrNode = (adr: Adr, owners: any[], decisionMakers: any[], context: ResourceGroupContext): NavNode => {
+/**
+ * Predefined sidebar sections for a decision record, keyed by the token users reference from
+ * `sidebar.json` (e.g. `$quick-reference`). Each token is the kebab-cased title of the
+ * section as it appears in the default sidebar.
+ */
+export type AdrSectionKey =
+  | 'quick-reference'
+  | 'applies-to'
+  | 'supersedes'
+  | 'superseded-by'
+  | 'amends'
+  | 'amended-by'
+  | 'related-decisions'
+  | 'decision-makers'
+  | 'owners'
+  | 'code'
+  | 'attachments';
+
+export type AdrSections = Record<AdrSectionKey, NavNode | NavNode[] | null>;
+
+/** Order of sections in the default (generated) sidebar. */
+export const DEFAULT_ADR_SECTION_ORDER: AdrSectionKey[] = [
+  'quick-reference',
+  'applies-to',
+  'supersedes',
+  'superseded-by',
+  'amends',
+  'amended-by',
+  'related-decisions',
+  'decision-makers',
+  'owners',
+  'code',
+  'attachments',
+];
+
+export const buildAdrSections = (adr: Adr, owners: any[], decisionMakers: any[], context: ResourceGroupContext): AdrSections => {
   const relationships = getAdrRelationships(adr, context.adrs);
   const appliesToRefs = resolveAppliedResourceRefs(adr, context);
   const hasAttachments = adr.data.attachments && adr.data.attachments.length > 0;
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(adr, 'owners');
   const renderDecisionMakers = decisionMakers.length > 0 && shouldRenderSideBarSection(adr, 'decisionMakers');
   const renderRepository = adr.data.repository && shouldRenderSideBarSection(adr, 'repository');
+  const renderRelationships = shouldRenderSideBarSection(adr, 'relationships');
+
+  return {
+    'quick-reference': buildQuickReferenceSection(
+      [
+        { title: 'Overview', href: buildUrl(`/docs/adrs/${adr.data.id}/${adr.data.version}`) },
+        isChangelogEnabled() &&
+          shouldRenderSideBarSection(adr, 'changelog') && {
+            title: 'Changelog',
+            href: buildUrl(`/docs/adrs/${adr.data.id}/${adr.data.version}/changelog`),
+          },
+      ].filter(Boolean) as { title: string; href: string }[]
+    ),
+    'applies-to':
+      appliesToRefs.length > 0 && shouldRenderSideBarSection(adr, 'appliesTo')
+        ? {
+            type: 'group',
+            title: 'Applies to',
+            icon: 'GitBranch',
+            pages: appliesToRefs,
+          }
+        : null,
+    supersedes: renderRelationships ? buildAdrRelationshipSection('Supersedes', 'History', relationships.supersedes) : null,
+    'superseded-by': renderRelationships
+      ? buildAdrRelationshipSection('Superseded by', 'History', relationships.supersededBy)
+      : null,
+    amends: renderRelationships ? buildAdrRelationshipSection('Amends', 'Pencil', relationships.amends) : null,
+    'amended-by': renderRelationships ? buildAdrRelationshipSection('Amended by', 'Pencil', relationships.amendedBy) : null,
+    'related-decisions': renderRelationships
+      ? buildAdrRelationshipSection('Related decisions', 'Link', resolveAdrPointers(adr.data.related, context.adrs))
+      : null,
+    'decision-makers': renderDecisionMakers ? buildDecisionMakersSection(decisionMakers) : null,
+    owners: renderOwners ? buildOwnersSection(owners) : null,
+    code: renderRepository ? buildRepositorySection(adr.data.repository as { url: string; language: string }) : null,
+    attachments: hasAttachments ? buildAttachmentsSection(adr.data.attachments as any[]) : null,
+  };
+};
+
+export type BuildAdrNodeOptions = {
+  /** A parsed `sidebar.json` for this decision record. When present it replaces the generated sidebar. */
+  sidebar?: SidebarSpec;
+};
+
+export const buildAdrNode = (
+  adr: Adr,
+  owners: any[],
+  decisionMakers: any[],
+  context: ResourceGroupContext,
+  options: BuildAdrNodeOptions = {}
+): NavNode => {
+  const sections = buildAdrSections(adr, owners, decisionMakers, context);
+
+  const pages = resolveSidebarPages(sections, DEFAULT_ADR_SECTION_ORDER, {
+    sidebar: options.sidebar,
+    resource: { collection: 'adrs', id: adr.data.id, version: adr.data.version, entry: adr },
+    context: toCustomSidebarContext(context),
+  });
 
   return {
     type: 'item',
@@ -116,37 +209,6 @@ export const buildAdrNode = (adr: Adr, owners: any[], decisionMakers: any[], con
     badge: 'Decision record',
     summary: adr.data.summary,
     icon: 'ClipboardList',
-    pages: [
-      buildQuickReferenceSection(
-        [
-          { title: 'Overview', href: buildUrl(`/docs/adrs/${adr.data.id}/${adr.data.version}`) },
-          isChangelogEnabled() &&
-            shouldRenderSideBarSection(adr, 'changelog') && {
-              title: 'Changelog',
-              href: buildUrl(`/docs/adrs/${adr.data.id}/${adr.data.version}/changelog`),
-            },
-        ].filter(Boolean) as { title: string; href: string }[]
-      ),
-      appliesToRefs.length > 0 &&
-        shouldRenderSideBarSection(adr, 'appliesTo') && {
-          type: 'group',
-          title: 'Applies to',
-          icon: 'GitBranch',
-          pages: appliesToRefs,
-        },
-      shouldRenderSideBarSection(adr, 'relationships') &&
-        buildAdrRelationshipSection('Supersedes', 'History', relationships.supersedes),
-      shouldRenderSideBarSection(adr, 'relationships') &&
-        buildAdrRelationshipSection('Superseded by', 'History', relationships.supersededBy),
-      shouldRenderSideBarSection(adr, 'relationships') && buildAdrRelationshipSection('Amends', 'Pencil', relationships.amends),
-      shouldRenderSideBarSection(adr, 'relationships') &&
-        buildAdrRelationshipSection('Amended by', 'Pencil', relationships.amendedBy),
-      shouldRenderSideBarSection(adr, 'relationships') &&
-        buildAdrRelationshipSection('Related decisions', 'Link', resolveAdrPointers(adr.data.related, context.adrs)),
-      renderDecisionMakers && buildDecisionMakersSection(decisionMakers),
-      renderOwners && buildOwnersSection(owners),
-      renderRepository && buildRepositorySection(adr.data.repository as { url: string; language: string }),
-      hasAttachments && buildAttachmentsSection(adr.data.attachments as any[]),
-    ].filter(Boolean) as ChildRef[],
+    pages,
   };
 };

@@ -88,4 +88,24 @@ describe('buildAdrNode', () => {
       expect(appliesToSection).toBeUndefined();
     });
   });
+
+  describe('custom sidebar', () => {
+    it('renders only the referenced sections, in the order listed in sidebar.json', () => {
+      const adr = createMockAdr();
+      const owners = [{ id: 'user1', data: { id: 'user1', name: 'User One' }, collection: 'users' }];
+
+      const result = buildAdrNode(
+        adr,
+        owners,
+        [],
+        { ...emptyContext, adrs: [adr] },
+        {
+          sidebar: { sections: ['$owners', '$quick-reference'] },
+        }
+      );
+
+      const titles = (result.pages as any[]).map((p: any) => p.title);
+      expect(titles).toEqual(['Owners', 'Quick Reference']);
+    });
+  });
 });

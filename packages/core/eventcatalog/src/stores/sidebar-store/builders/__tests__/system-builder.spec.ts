@@ -364,4 +364,26 @@ describe('buildSystemNode', () => {
       expect(attachmentsSection).toBeUndefined();
     });
   });
+
+  describe('with a custom sidebar', () => {
+    const owners = [{ id: 'user1', data: { id: 'user1', name: 'User One' }, collection: 'users' }];
+    const titles = (node: ReturnType<typeof buildSystemNode>) =>
+      (node.pages || []).map((page) => (typeof page === 'string' ? page : page.title));
+
+    it('renders exactly the listed sections, in order', () => {
+      const system = createMockSystem({ services: [createMockService('OrdersService', '1.0.0')] as any });
+      const node = buildSystemNode(system, owners as any, emptyContext, {
+        sidebar: { sections: ['$owners', '$quick-reference'] },
+      });
+
+      expect(titles(node)).toEqual(['Owners', 'Quick Reference']);
+    });
+
+    it('renders resource subsections as top-level groups (not subtle) when used directly', () => {
+      const system = createMockSystem({ services: [createMockService('OrdersService', '1.0.0')] as any });
+      const node = buildSystemNode(system, [], emptyContext, { sidebar: { sections: ['$services'] } });
+
+      expect(node.pages).toEqual([{ type: 'group', title: 'Services', icon: 'Server', pages: ['service:OrdersService:1.0.0'] }]);
+    });
+  });
 });

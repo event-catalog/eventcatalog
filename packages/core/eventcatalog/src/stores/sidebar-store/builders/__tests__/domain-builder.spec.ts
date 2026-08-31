@@ -71,3 +71,61 @@ describe('buildDomainNode', () => {
     expect(getQuickReferenceLinks(createDomain())).not.toContainEqual(expect.objectContaining({ title: 'Domain Resources' }));
   });
 });
+
+describe('buildDomainNode with a custom sidebar', () => {
+  it('respects detailsPanel.architectureDecisions for $decision-records', () => {
+    const domain = createDomain({ detailsPanel: { architectureDecisions: { visible: false } } });
+    const context = {
+      ...emptyContext,
+      adrs: [
+        {
+          collection: 'adrs',
+          data: { id: 'adr-1', name: 'ADR 1', version: '1.0.0', appliesTo: [{ type: 'domain', id: 'Ordering' }] },
+        },
+      ],
+    };
+    const node = buildDomainNode(domain, [], context, { sidebar: { sections: ['$decision-records'] } });
+    expect(node.pages).toEqual([]);
+  });
+
+  const domain = createDomain({
+    systems: [resource('OrderingSystem')],
+    entities: [resource('Order')],
+    services: [resource('OrderService')],
+  });
+  const owners = [{ collection: 'teams', data: { id: 'ordering', name: 'Ordering Team' } }];
+
+  const titles = (node: ReturnType<typeof buildDomainNode>) =>
+    (node.pages || []).map((page) => (typeof page === 'string' ? page : page.title));
+
+  it('renders exactly the listed sections, in order', () => {
+    const node = buildDomainNode(domain, owners, emptyContext, {
+      sidebar: {
+        sections: [
+          '$quick-reference',
+          { title: 'Start here', icon: 'Star', pages: ['[[service|OrderService]]'] },
+          '$entities',
+          '$systems',
+          { section: '$owners', title: 'Team' },
+        ],
+      },
+    });
+
+    expect(titles(node)).toEqual(['Quick Reference', 'Start here', 'Entities', 'Systems', 'Team']);
+  });
+
+  it('renders resource subsections as top-level groups (not subtle) when used directly', () => {
+    const node = buildDomainNode(domain, owners, emptyContext, { sidebar: { sections: ['$services'] } });
+    expect(node.pages).toEqual([{ type: 'group', title: 'Services', icon: 'Server', pages: ['service:OrderService:1.0.0'] }]);
+  });
+
+  it('keeps the generated sidebar when no custom sidebar is given', () => {
+    expect(titles(buildDomainNode(domain, owners, emptyContext))).toEqual([
+      'Quick Reference',
+      'Architecture',
+      'Systems',
+      'Resources',
+      'Owners',
+    ]);
+  });
+});

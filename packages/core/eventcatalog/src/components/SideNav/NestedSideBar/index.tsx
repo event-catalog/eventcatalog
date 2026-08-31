@@ -1,10 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ChevronRight, ChevronLeft, ChevronDown, Home, Star } from 'lucide-react';
 import type { NavNode, ChildRef } from '@stores/sidebar-store/state';
-import { saveState, loadState, saveCollapsedSections, loadCollapsedSections } from './storage';
+import {
+  saveState,
+  loadState,
+  saveCollapsedSections,
+  loadCollapsedSections,
+  saveScrollPosition,
+  loadScrollPosition,
+} from './storage';
 import { useStore } from '@nanostores/react';
 import { sidebarStore } from '@stores/sidebar-store';
 import {
@@ -13,7 +20,14 @@ import {
   removeFavorite as removeFavoriteAction,
   type FavoriteItem,
 } from '@stores/favorites-store';
-import { canCollapseGroup, findNodeKeyByUrl, getBadgeClasses, getGroupLabel, isGroupCollapsed } from './utils';
+import {
+  canCollapseGroup,
+  findNodeKeyByUrl,
+  getBadgeClasses,
+  getDefaultCollapsedState,
+  isGroupCollapsed,
+  toggleGroupCollapsed,
+} from './utils';
 import { resolveIconUrl } from '@utils/icon';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
@@ -60,6 +74,7 @@ export default function NestedSideBar() {
   const [sectionCollapsePreferences, setSectionCollapsePreferences] = useState(loadCollapsedSections);
   const [showPathPreview, setShowPathPreview] = useState(false);
   const [showFullPath, setShowFullPath] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
 
   // Build a lookup map for faster URL navigation
   // Map format: "type:id" -> "nodeKey"
@@ -94,19 +109,9 @@ export default function NestedSideBar() {
   /**
    * Toggle section collapse state
    */
-  const toggleSectionCollapse = (sectionId: string) => {
+  const toggleSectionCollapse = (sectionId: string, defaultCollapsed = true) => {
     setSectionCollapsePreferences((previousPreferences) => {
-      const nextPreferences = {
-        expanded: new Set(previousPreferences.expanded),
-      };
-      const isCurrentlyCollapsed = isGroupCollapsed(true, sectionId, previousPreferences);
-
-      if (isCurrentlyCollapsed) {
-        nextPreferences.expanded.add(sectionId);
-      } else {
-        nextPreferences.expanded.delete(sectionId);
-      }
-
+      const nextPreferences = toggleGroupCollapsed(sectionId, previousPreferences, defaultCollapsed);
       saveCollapsedSections(nextPreferences);
       return nextPreferences;
     });
@@ -417,6 +422,50 @@ export default function NestedSideBar() {
   }, [isInitialized, findAndNavigateToUrl, currentPath]);
 
   /**
+   * Keep the selected item visible. On a full page load the nav remounts scrolled to the
+   * top, so first restore the offset saved for this drill-down path, then nudge the
+   * active item into view if it still isn't. `block: 'nearest'` never scrolls when the
+   * item is already visible, so clicking around near the top doesn't jump.
+   */
+  useEffect(() => {
+    if (!isInitialized) return;
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const pathKey = getCurrentPath().join('/') || 'root';
+    const savedScrollTop = loadScrollPosition(pathKey);
+    if (savedScrollTop !== null) nav.scrollTop = savedScrollTop;
+
+    const active = nav.querySelector<HTMLElement>('[data-active="true"]');
+    if (!active) return;
+
+    const navRect = nav.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    const isVisible = activeRect.top >= navRect.top && activeRect.bottom <= navRect.bottom;
+    if (!isVisible) active.scrollIntoView({ block: 'nearest' });
+  }, [isInitialized, currentPath, navigationStack, getCurrentPath]);
+
+  /**
+   * Persist the nav scroll offset as it changes.
+   */
+  useEffect(() => {
+    if (!isInitialized) return;
+    const nav = navRef.current;
+    if (!nav) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => saveScrollPosition(getCurrentPath().join('/') || 'root', nav.scrollTop), 150);
+    };
+    nav.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      clearTimeout(timer);
+      nav.removeEventListener('scroll', onScroll);
+    };
+  }, [isInitialized, navigationStack, getCurrentPath]);
+
+  /**
    * Check if a node is favorited
    * Note: This hook must be defined before any early returns to comply with Rules of Hooks
    */
@@ -658,14 +707,15 @@ export default function NestedSideBar() {
   };
 
   /**
-   * Render a group with its children
+   * Render a group with its children.
+   *
+   * Groups render as a docs-style tree: every group has its caret on the right; top-level
+   * sections also carry an icon tile. Each level's children hang off a vertical guide.
    */
-  const renderGroup = (group: NavNode, groupKey: string | null, index: number) => {
-    // Get optional icon for group
+  const renderGroup = (group: NavNode, groupKey: string | null, index: number, depth = 0) => {
     const GroupIcon = group.icon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[group.icon] : null;
-    const isSubtleGroup = group.subtle === true;
+    const isNested = depth > 0;
 
-    // Get visible children
     const visibleChildren =
       group.pages?.filter((childRef) => {
         const child = resolveRef(childRef);
@@ -673,46 +723,36 @@ export default function NestedSideBar() {
       }) ?? [];
 
     const groupId = groupKey || group.collapseKey || `${currentLevel.key ?? 'root'}:group:${group.title}`;
-    const canCollapse = canCollapseGroup(visibleChildren.length, isTopLevel, group.collapsible);
-    const isCollapsed = isGroupCollapsed(canCollapse, groupId, sectionCollapsePreferences);
-
-    // When a group's children are subtle subgroups (e.g. Resources > Services/Flows/Data Stores),
-    // they render flush under the parent icon instead of inside the indented border guide.
-    const hasSubtleChildren = visibleChildren.some((childRef) => {
-      const child = resolveRef(childRef);
-      return child && isGroup(child) && child.subtle === true;
-    });
-
-    const headerContent = (
+    const canCollapse = canCollapseGroup(isTopLevel, group.collapsible, group.collapsed);
+    const defaultCollapsed = getDefaultCollapsedState(visibleChildren.length, group.collapsed);
+    const isCollapsed = isGroupCollapsed(canCollapse, groupId, sectionCollapsePreferences, defaultCollapsed);
+    const header = isNested ? (
       <>
-        <div className="flex items-center gap-2">
-          {GroupIcon && (
-            <span
-              className={cn(
-                'flex items-center justify-center w-5 h-5 rounded',
-                isSubtleGroup
-                  ? 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-content-text-muted))]'
-                  : 'bg-[rgb(var(--ec-group-icon-bg))] text-[rgb(var(--ec-group-icon-text))]'
-              )}
-            >
-              <GroupIcon className="w-3 h-3" />
-            </span>
-          )}
-          <span
-            className={cn(
-              isSubtleGroup
-                ? 'text-[9px] font-semibold uppercase tracking-[0.1em] text-[rgb(var(--ec-content-text-muted))]'
-                : 'text-[12px] font-semibold tracking-tight text-[rgb(var(--ec-content-text))]'
-            )}
-          >
-            {getGroupLabel(group.title, visibleChildren.length)}
-          </span>
-        </div>
+        {GroupIcon && <GroupIcon className="w-3.5 h-3.5 flex-shrink-0 text-[rgb(var(--ec-content-text-muted))]" />}
+        <span className="text-[12px] font-medium text-[rgb(var(--ec-content-text))] truncate">{group.title}</span>
         {canCollapse && (
           <ChevronDown
             className={cn(
-              isSubtleGroup ? 'w-3.5 h-3.5' : 'w-4 h-4',
-              'text-[rgb(var(--ec-icon-color))] transition-transform',
+              'ml-auto w-3.5 h-3.5 flex-shrink-0 text-[rgb(var(--ec-icon-color))] transition-transform',
+              isCollapsed && '-rotate-90'
+            )}
+          />
+        )}
+      </>
+    ) : (
+      <>
+        {GroupIcon && (
+          <span className="flex items-center justify-center w-5 h-5 flex-shrink-0 rounded bg-[rgb(var(--ec-group-icon-bg))] text-[rgb(var(--ec-group-icon-text))]">
+            <GroupIcon className="w-3 h-3" />
+          </span>
+        )}
+        <span className="text-[12px] font-semibold tracking-tight text-[rgb(var(--ec-content-text))] truncate">
+          {group.title}
+        </span>
+        {canCollapse && (
+          <ChevronDown
+            className={cn(
+              'ml-auto w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))] transition-transform',
               isCollapsed && '-rotate-90'
             )}
           />
@@ -720,32 +760,30 @@ export default function NestedSideBar() {
       </>
     );
 
+    const headerClasses = cn(
+      'group flex items-center w-full rounded-md text-left transition-colors',
+      isNested ? 'gap-1.5 px-2 py-1.5' : 'gap-2 px-2 py-1.5',
+      canCollapse && 'cursor-pointer hover:bg-[rgb(var(--ec-content-hover))]'
+    );
+
+    // Top level: the guide line sits under the centre of the icon tile (8px padding + half of
+    // 20px). Nested: carets sit on the right, so the guide is simply inset from the label.
+    const childrenClasses = cn(
+      'flex flex-col gap-px mt-0.5 border-l border-[rgb(var(--ec-content-border))]',
+      isNested ? 'ml-3 pl-1.5' : 'ml-[18px] pl-2'
+    );
+
     return (
-      <div key={`group-${groupKey || index}`} className={cn(isSubtleGroup ? 'mb-2 last:mb-1' : 'mb-5 last:mb-2')}>
+      <div key={`group-${groupKey || index}`} className={cn(isNested ? 'mt-0.5' : 'mb-4 last:mb-1')}>
         {canCollapse ? (
-          <button
-            onClick={() => toggleSectionCollapse(groupId)}
-            className={cn(
-              'flex items-center justify-between w-full rounded-md transition-colors cursor-pointer',
-              isSubtleGroup
-                ? 'px-2 py-1 hover:bg-[rgb(var(--ec-content-hover))]/60'
-                : 'px-2 py-1.5 hover:bg-[rgb(var(--ec-content-hover))]'
-            )}
-          >
-            {headerContent}
+          <button type="button" onClick={() => toggleSectionCollapse(groupId, defaultCollapsed)} className={headerClasses}>
+            {header}
           </button>
         ) : (
-          <div className={cn('flex items-center justify-between', isSubtleGroup ? 'px-2 py-1' : 'px-2 py-1.5')}>
-            {headerContent}
-          </div>
+          <div className={headerClasses}>{header}</div>
         )}
         {!isCollapsed && (
-          <div
-            className={cn(
-              'flex flex-col gap-0.5 border-[rgb(var(--ec-content-border))]',
-              isSubtleGroup ? 'border-l ml-4 mt-1' : hasSubtleChildren ? 'mt-1' : 'border-l ml-4 mt-1'
-            )}
-          >
+          <div className={childrenClasses}>
             {visibleChildren.map((childRef, childIndex) => {
               const child = resolveRef(childRef);
               if (!child) return null;
@@ -753,22 +791,13 @@ export default function NestedSideBar() {
               const childKey = typeof childRef === 'string' ? childRef : null;
 
               if (isGroup(child)) {
-                // Skip nested groups with no visible children
                 if (!hasVisibleChildren(child)) return null;
-
-                return (
-                  <div
-                    key={`nested-group-${childKey || childIndex}`}
-                    className={cn(child.subtle ? 'mt-1' : 'ml-3 mt-1.5 pl-3 border-l border-[rgb(var(--ec-content-border))]')}
-                  >
-                    {renderGroup(child, childKey, childIndex)}
-                  </div>
-                );
+                return renderGroup(child, childKey, childIndex, depth + 1);
               }
-              // Inside a subtle subgroup (e.g. a domain's Resources > Services list) the
-              // section header already conveys the resource type, so suppress the default
-              // per-item icon and only keep a custom icon if one is defined.
-              return renderItem(child, childKey, childIndex, isSubtleGroup);
+
+              // Under a nested group the header already conveys the resource type, so the
+              // default per-collection glyph is dropped; custom icons still show.
+              return renderItem(child, childKey, childIndex, isNested);
             })}
           </div>
         )}
@@ -845,7 +874,7 @@ export default function NestedSideBar() {
     );
 
     const baseClasses =
-      'group flex items-center justify-between w-full px-3 py-1.5 border border-transparent cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
+      'group flex items-center justify-between w-full px-2 py-1.5 rounded-md cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
     const activeClasses = isActive ? 'bg-[rgb(var(--ec-rail-active-bg))] hover:bg-[rgb(var(--ec-rail-active-bg))]' : '';
 
@@ -857,6 +886,8 @@ export default function NestedSideBar() {
           href={item.href}
           title={item.title}
           target={item.external ? '_blank' : undefined}
+          aria-current={isActive ? 'page' : undefined}
+          data-active={isActive ? 'true' : undefined}
           className={cn(baseClasses, parentClasses, activeClasses)}
         >
           {content}
@@ -870,6 +901,7 @@ export default function NestedSideBar() {
         key={`item-${itemKey || index}`}
         title={item.title}
         onClick={() => handleDrillDown(item, itemKey)}
+        data-active={isActive ? 'true' : undefined}
         className={cn(baseClasses, parentClasses, activeClasses)}
       >
         {content}
@@ -1040,6 +1072,7 @@ export default function NestedSideBar() {
       {/* Navigation Content */}
       <nav
         key={animationKey}
+        ref={navRef}
         className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 px-2', getAnimationClass())}
         style={{
           scrollbarWidth: 'thin',

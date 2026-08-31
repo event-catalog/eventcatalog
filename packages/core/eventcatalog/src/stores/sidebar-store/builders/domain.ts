@@ -10,16 +10,75 @@ import {
   buildAttachmentsSection,
   buildDiagramNavItems,
   buildResourceDocsSection,
+  buildArchitectureDecisionsSection,
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 import { getSpecificationsForDomain, hasUbiquitousLanguageTermsWithSubdomainsInCollection } from '@utils/collections/domains';
 import { customIconFieldsForResource } from '@utils/icon';
+import { resolveSidebarPages, toCustomSidebarContext, type SidebarSpec } from '../custom-sidebar';
 
 // Sort resolved collection entries A-Z by their display name (falling back to id).
 const byResourceName = (a: any, b: any) => (a.data?.name || a.data?.id || '').localeCompare(b.data?.name || b.data?.id || '');
 
-export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
+/**
+ * Predefined sidebar sections for a domain, keyed by the token users reference from
+ * `sidebar.json` (e.g. `$quick-reference`). Each token is the kebab-cased title of the
+ * section as it appears in the default sidebar.
+ */
+export type DomainSectionKey =
+  | 'quick-reference'
+  | 'documentation'
+  | 'architecture'
+  | 'diagrams'
+  | 'api-and-contracts'
+  | 'systems'
+  | 'subdomains'
+  | 'resources'
+  | 'services'
+  | 'flows'
+  | 'entities'
+  | 'domain-events'
+  | 'external-events'
+  | 'resource-groups'
+  | 'agents'
+  | 'external-integrations'
+  | 'data-products'
+  | 'decision-records'
+  | 'owners'
+  | 'code'
+  | 'attachments';
+
+export type DomainSections = Record<DomainSectionKey, NavNode | NavNode[] | null>;
+
+/**
+ * Order of sections in the default (generated) sidebar. `decision-records` is deliberately
+ * absent — in default mode it is inserted before Owners by `withArchitectureDecisionsSection`
+ * in state.ts, and only becomes a first-class token for custom sidebars.
+ */
+export const DEFAULT_DOMAIN_SECTION_ORDER: DomainSectionKey[] = [
+  'quick-reference',
+  'documentation',
+  'architecture',
+  'diagrams',
+  'api-and-contracts',
+  'systems',
+  'subdomains',
+  'resources',
+  'resource-groups',
+  'agents',
+  'external-integrations',
+  'data-products',
+  'owners',
+  'code',
+  'attachments',
+];
+
+export const buildDomainSections = (
+  domain: CollectionEntry<'domains'>,
+  owners: any[],
+  context: ResourceGroupContext
+): DomainSections => {
   const agentsInDomain = domain.data.agents || [];
   const renderAgents = agentsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'agents');
 
@@ -117,6 +176,251 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const graphQLSpecifications = specifications.filter((specification) => specification.type === 'graphql');
   const renderSpecifications = hasSpecifications && shouldRenderSideBarSection(domain, 'specifications');
 
+  // Resource subsections. These are built once and shared between the "Resources"
+  // umbrella (where they render as subtle subgroups) and their standalone tokens
+  // (`$services`, `$entities`, ...) for custom sidebars.
+  const servicesSection: NavNode | null = renderServices
+    ? {
+        type: 'group',
+        title: 'Services',
+        icon: 'Server',
+        pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
+      }
+    : null;
+
+  const flowsSection: NavNode | null = hasFlows
+    ? {
+        type: 'group',
+        title: 'Flows',
+        icon: 'Waypoints',
+        pages: domainFlows.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+      }
+    : null;
+
+  const entitiesSection: NavNode | null = renderEntities
+    ? {
+        type: 'group',
+        title: 'Entities',
+        icon: 'Box',
+        pages: entitiesInDomain.map((entity) => ({
+          type: 'item',
+          title: (entity as any).data?.name || (entity as any).data.id,
+          href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
+        })),
+      }
+    : null;
+
+  const domainEventsSection: NavNode | null =
+    renderMessages && sendsMessages.length > 0
+      ? {
+          type: 'group',
+          title: 'Domain Events',
+          icon: 'Mail',
+          pages: sortedSendsMessages.map(
+            (message) => `${pluralizeMessageType(message as any)}:${(message as any).data.id}:${(message as any).data.version}`
+          ),
+        }
+      : null;
+
+  const externalEventsSection: NavNode | null =
+    renderMessages && receivesMessages.length > 0
+      ? {
+          type: 'group',
+          title: 'External Events',
+          icon: 'Mail',
+          pages: sortedReceivesMessages.map(
+            (receive) => `${pluralizeMessageType(receive as any)}:${(receive as any).data.id}:${(receive as any).data.version}`
+          ),
+        }
+      : null;
+
+  const resourceSubsections = [servicesSection, flowsSection, entitiesSection, domainEventsSection, externalEventsSection].filter(
+    Boolean
+  ) as NavNode[];
+
+  return {
+    'quick-reference': buildQuickReferenceSection(
+      [
+        { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
+        hasResources && {
+          title: 'Domain Resources',
+          href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}/resources`),
+        },
+        renderUbiquitousLanguage && {
+          title: 'Ubiquitous Language',
+          href: buildUrl(`/docs/domains/${domain.data.id}/language`),
+        },
+        isChangelogEnabled() &&
+          shouldRenderSideBarSection(domain, 'changelog') && {
+            title: 'Changelog',
+            href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}/changelog`),
+          },
+      ].filter(Boolean) as { title: string; href: string }[]
+    ),
+    documentation: docsSection,
+    architecture: {
+      type: 'group',
+      title: 'Architecture',
+      icon: 'Workflow',
+      pages: [
+        {
+          type: 'item',
+          title: 'Overview',
+          href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
+        },
+        renderSystems &&
+          renderVisualiser &&
+          hasSystemContext && {
+            type: 'item',
+            title: 'System Diagram',
+            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/systems-context`),
+          },
+        renderVisualiser &&
+          hasResourceDiagram && {
+            type: 'item',
+            title: 'Resource Diagram',
+            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
+          },
+        renderEntities &&
+          renderVisualiser && {
+            type: 'item',
+            title: 'Entity Diagram',
+            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
+          },
+      ].filter(Boolean) as ChildRef[],
+    },
+    diagrams: hasDiagrams
+      ? {
+          type: 'group',
+          title: 'Diagrams',
+          icon: 'FileImage',
+          pages: diagramNavItems,
+        }
+      : null,
+    'api-and-contracts': renderSpecifications
+      ? {
+          type: 'group',
+          title: 'API & Contracts',
+          icon: 'FileCode',
+          pages: [
+            ...openAPISpecifications.map((specification) => ({
+              type: 'item',
+              title: specification.name,
+              leftIcon: '/icons/openapi-black.svg',
+              href: buildUrl(
+                `/docs/domains/${domain.data.id}/${domain.data.version}/spec/${specification.filenameWithoutExtension}`
+              ),
+            })),
+            ...asyncAPISpecifications.map((specification) => ({
+              type: 'item',
+              title: specification.name,
+              leftIcon: '/icons/asyncapi-black.svg',
+              href: buildUrl(
+                `/docs/domains/${domain.data.id}/${domain.data.version}/asyncapi/${specification.filenameWithoutExtension}`
+              ),
+            })),
+            ...graphQLSpecifications.map((specification) => ({
+              type: 'item',
+              title: specification.name,
+              leftIcon: '/icons/graphql-black.svg',
+              href: buildUrl(
+                `/docs/domains/${domain.data.id}/${domain.data.version}/graphql/${specification.filenameWithoutExtension}`
+              ),
+            })),
+          ],
+        }
+      : null,
+    systems: renderSystems
+      ? {
+          type: 'group',
+          title: 'Systems',
+          icon: 'Group',
+          pages: systemsInDomain.map((system) => `system:${(system as any).data.id}:${(system as any).data.version}`),
+        }
+      : null,
+    subdomains: renderSubDomains
+      ? {
+          type: 'group',
+          title: 'Subdomains',
+          icon: 'Boxes',
+          pages: subDomains.map((domain) => `domain:${(domain as any).data.id}:${(domain as any).data.version}`),
+        }
+      : null,
+    resources:
+      resourceSubsections.length > 0
+        ? {
+            type: 'group',
+            title: 'Resources',
+            icon: 'Boxes',
+            // Resource type subsections are ordered A-Z by their title, and the
+            // resources within each subsection are ordered A-Z by name (sorted above).
+            pages: resourceSubsections
+              .map((section) => ({ ...section, subtle: true }))
+              .sort((a, b) => a.title.localeCompare(b.title)) as ChildRef[],
+          }
+        : null,
+    services: servicesSection,
+    flows: flowsSection,
+    entities: entitiesSection,
+    'domain-events': domainEventsSection,
+    'external-events': externalEventsSection,
+    'resource-groups': hasResourceGroups
+      ? (buildResourceGroupSections(resourceGroups, context).filter(Boolean) as NavNode[])
+      : null,
+    agents: renderAgents
+      ? {
+          type: 'group',
+          title: 'Agents In Domain',
+          icon: 'Bot',
+          pages: agentsInDomain.map((agent) => `agent:${(agent as any).data.id}:${(agent as any).data.version}`),
+        }
+      : null,
+    'external-integrations': renderExternalSystems
+      ? {
+          type: 'group',
+          title: 'External Integrations',
+          icon: 'Globe',
+          pages: externalSystemsInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
+        }
+      : null,
+    'data-products': renderDataProducts
+      ? {
+          type: 'group',
+          title: 'Data Products',
+          icon: 'Package',
+          pages: dataProductsInDomain.map(
+            (dataProduct) => `data-product:${(dataProduct as any).data.id}:${(dataProduct as any).data.version}`
+          ),
+        }
+      : null,
+    'decision-records': shouldRenderSideBarSection(domain, 'architectureDecisions')
+      ? buildArchitectureDecisionsSection(domain, context.adrs || [])
+      : null,
+    owners: renderOwners ? buildOwnersSection(owners) : null,
+    code: renderRepository ? buildRepositorySection(domain.data.repository as { url: string; language: string }) : null,
+    attachments: hasAttachments ? buildAttachmentsSection(domain.data.attachments as any[]) : null,
+  };
+};
+
+export type BuildDomainNodeOptions = {
+  /** A parsed `sidebar.json` for this domain. When present it replaces the generated sidebar. */
+  sidebar?: SidebarSpec;
+};
+
+export const buildDomainNode = (
+  domain: CollectionEntry<'domains'>,
+  owners: any[],
+  context: ResourceGroupContext,
+  options: BuildDomainNodeOptions = {}
+): NavNode => {
+  const sections = buildDomainSections(domain, owners, context);
+
+  const pages = resolveSidebarPages(sections, DEFAULT_DOMAIN_SECTION_ORDER, {
+    sidebar: options.sidebar,
+    resource: { collection: 'domains', id: domain.data.id, version: domain.data.version, entry: domain },
+    context: toCustomSidebarContext(context),
+  });
+
   return {
     type: 'item',
     title: domain.data.name,
@@ -126,192 +430,6 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
     // 'Domains' section header (and Domain badge) already convey the type, so the
     // default Boxes glyph on every item is redundant.
     ...customIconFieldsForResource(domain.data),
-    pages: [
-      buildQuickReferenceSection(
-        [
-          { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
-          hasResources && {
-            title: 'Domain Resources',
-            href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}/resources`),
-          },
-          renderUbiquitousLanguage && {
-            title: 'Ubiquitous Language',
-            href: buildUrl(`/docs/domains/${domain.data.id}/language`),
-          },
-          isChangelogEnabled() &&
-            shouldRenderSideBarSection(domain, 'changelog') && {
-              title: 'Changelog',
-              href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}/changelog`),
-            },
-        ].filter(Boolean) as { title: string; href: string }[]
-      ),
-      docsSection,
-      {
-        type: 'group',
-        title: 'Architecture',
-        icon: 'Workflow',
-        pages: [
-          {
-            type: 'item',
-            title: 'Overview',
-            href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
-          },
-          renderSystems &&
-            renderVisualiser &&
-            hasSystemContext && {
-              type: 'item',
-              title: 'System Diagram',
-              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/systems-context`),
-            },
-          renderVisualiser &&
-            hasResourceDiagram && {
-              type: 'item',
-              title: 'Resource Diagram',
-              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
-            },
-          renderEntities &&
-            renderVisualiser && {
-              type: 'item',
-              title: 'Entity Diagram',
-              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
-            },
-        ].filter(Boolean) as ChildRef[],
-      },
-      hasDiagrams && {
-        type: 'group',
-        title: 'Diagrams',
-        icon: 'FileImage',
-        pages: diagramNavItems,
-      },
-      renderSpecifications && {
-        type: 'group',
-        title: 'API & Contracts',
-        icon: 'FileCode',
-        pages: [
-          ...openAPISpecifications.map((specification) => ({
-            type: 'item',
-            title: specification.name,
-            leftIcon: '/icons/openapi-black.svg',
-            href: buildUrl(
-              `/docs/domains/${domain.data.id}/${domain.data.version}/spec/${specification.filenameWithoutExtension}`
-            ),
-          })),
-          ...asyncAPISpecifications.map((specification) => ({
-            type: 'item',
-            title: specification.name,
-            leftIcon: '/icons/asyncapi-black.svg',
-            href: buildUrl(
-              `/docs/domains/${domain.data.id}/${domain.data.version}/asyncapi/${specification.filenameWithoutExtension}`
-            ),
-          })),
-          ...graphQLSpecifications.map((specification) => ({
-            type: 'item',
-            title: specification.name,
-            leftIcon: '/icons/graphql-black.svg',
-            href: buildUrl(
-              `/docs/domains/${domain.data.id}/${domain.data.version}/graphql/${specification.filenameWithoutExtension}`
-            ),
-          })),
-        ],
-      },
-      renderSystems && {
-        type: 'group',
-        title: 'Systems',
-        icon: 'Group',
-        pages: systemsInDomain.map((system) => `system:${(system as any).data.id}:${(system as any).data.version}`),
-      },
-      renderSubDomains && {
-        type: 'group',
-        title: 'Subdomains',
-        icon: 'Boxes',
-        pages: subDomains.map((domain) => `domain:${(domain as any).data.id}:${(domain as any).data.version}`),
-      },
-      (renderServices ||
-        hasFlows ||
-        renderEntities ||
-        (renderMessages && (sendsMessages.length > 0 || receivesMessages.length > 0))) && {
-        type: 'group',
-        title: 'Resources',
-        icon: 'Boxes',
-        // Resource type subsections are ordered A-Z by their title, and the
-        // resources within each subsection are ordered A-Z by name (sorted above).
-        pages: (
-          [
-            renderServices && {
-              type: 'group',
-              title: 'Services',
-              subtle: true,
-              icon: 'Server',
-              pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
-            },
-            hasFlows && {
-              type: 'group',
-              title: 'Flows',
-              subtle: true,
-              icon: 'Waypoints',
-              pages: domainFlows.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
-            },
-            renderEntities && {
-              type: 'group',
-              title: 'Entities',
-              subtle: true,
-              icon: 'Box',
-              pages: entitiesInDomain.map((entity) => ({
-                type: 'item',
-                title: (entity as any).data?.name || (entity as any).data.id,
-                href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
-              })),
-            },
-            renderMessages &&
-              sendsMessages.length > 0 && {
-                type: 'group',
-                title: 'Domain Events',
-                subtle: true,
-                icon: 'Mail',
-                pages: sortedSendsMessages.map(
-                  (message) =>
-                    `${pluralizeMessageType(message as any)}:${(message as any).data.id}:${(message as any).data.version}`
-                ),
-              },
-            renderMessages &&
-              receivesMessages.length > 0 && {
-                type: 'group',
-                title: 'External Events',
-                subtle: true,
-                icon: 'Mail',
-                pages: sortedReceivesMessages.map(
-                  (receive) =>
-                    `${pluralizeMessageType(receive as any)}:${(receive as any).data.id}:${(receive as any).data.version}`
-                ),
-              },
-          ].filter(Boolean) as NavNode[]
-        ).sort((a, b) => a.title.localeCompare(b.title)) as ChildRef[],
-      },
-
-      ...(hasResourceGroups ? buildResourceGroupSections(resourceGroups, context) : []),
-      renderAgents && {
-        type: 'group',
-        title: 'Agents In Domain',
-        icon: 'Bot',
-        pages: agentsInDomain.map((agent) => `agent:${(agent as any).data.id}:${(agent as any).data.version}`),
-      },
-      renderExternalSystems && {
-        type: 'group',
-        title: 'External Integrations',
-        icon: 'Globe',
-        pages: externalSystemsInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
-      },
-      renderDataProducts && {
-        type: 'group',
-        title: 'Data Products',
-        icon: 'Package',
-        pages: dataProductsInDomain.map(
-          (dataProduct) => `data-product:${(dataProduct as any).data.id}:${(dataProduct as any).data.version}`
-        ),
-      },
-      renderOwners && buildOwnersSection(owners),
-      renderRepository && buildRepositorySection(domain.data.repository as { url: string; language: string }),
-      hasAttachments && buildAttachmentsSection(domain.data.attachments as any[]),
-    ].filter(Boolean) as ChildRef[],
+    pages,
   };
 };

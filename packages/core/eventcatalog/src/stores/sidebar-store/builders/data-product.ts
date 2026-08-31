@@ -1,18 +1,26 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
-import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
-import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildResourceDocsSection } from './shared';
+import type { NavNode, ResourceGroupContext } from './shared';
+import {
+  buildQuickReferenceSection,
+  buildOwnersSection,
+  shouldRenderSideBarSection,
+  buildResourceDocsSection,
+  buildArchitectureDecisionsSection,
+} from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { getItemsFromCollectionByIdAndSemverOrLatest, sortVersioned } from '@utils/collections/util';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
 import { iconFieldsForResource } from '@utils/icon';
+import { resolveSidebarPages, toCustomSidebarContext, type SidebarSpec } from '../custom-sidebar';
 
 type DataProductContext = Pick<
   ResourceGroupContext,
   'events' | 'commands' | 'queries' | 'services' | 'containers' | 'resourceDocs' | 'resourceDocCategories'
-> & {
-  channels: CollectionEntry<'channels'>[];
-};
+> &
+  Partial<Pick<ResourceGroupContext, 'adrs'>> & {
+    channels: CollectionEntry<'channels'>[];
+  };
 
 // Get highest version from matched items (semver ranges may return multiple matches)
 const getHighestVersion = <T extends { data: { version: string } }>(items: T[]): T | undefined => {
@@ -57,12 +65,46 @@ const resolvePointerToRef = (pointer: { id: string; version?: string }, context:
   return null;
 };
 
-export const buildDataProductNode = (
+/**
+ * Predefined sidebar sections for a data product, keyed by the token users reference from
+ * `sidebar.json` (e.g. `$quick-reference`). Each token is the kebab-cased title of the
+ * section as it appears in the default sidebar.
+ */
+export type DataProductSectionKey =
+  | 'quick-reference'
+  | 'documentation'
+  | 'architecture'
+  | 'inputs'
+  | 'outputs'
+  | 'data-contracts'
+  | 'appears-in-flows'
+  | 'decision-records'
+  | 'owners';
+
+export type DataProductSections = Record<DataProductSectionKey, NavNode | NavNode[] | null>;
+
+/**
+ * Order of sections in the default (generated) sidebar. `decision-records` is deliberately
+ * absent — in default mode it is inserted before Owners by `withArchitectureDecisionsSection`
+ * in state.ts, and only becomes a first-class token for custom sidebars.
+ */
+export const DEFAULT_DATA_PRODUCT_SECTION_ORDER: DataProductSectionKey[] = [
+  'quick-reference',
+  'documentation',
+  'architecture',
+  'inputs',
+  'outputs',
+  'data-contracts',
+  'appears-in-flows',
+  'owners',
+];
+
+export const buildDataProductSections = (
   dataProduct: CollectionEntry<'data-products'>,
   owners: any[],
   context: DataProductContext,
   flowRefs: string[] = []
-): NavNode => {
+): DataProductSections => {
   const inputs = dataProduct.data.inputs || [];
   const outputs = dataProduct.data.outputs || [];
 
@@ -94,61 +136,105 @@ export const buildDataProductNode = (
     }));
 
   return {
+    'quick-reference': buildQuickReferenceSection(
+      [
+        { title: 'Overview', href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}`) },
+        isChangelogEnabled() &&
+          shouldRenderSideBarSection(dataProduct, 'changelog') && {
+            title: 'Changelog',
+            href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}/changelog`),
+          },
+      ].filter(Boolean) as { title: string; href: string }[]
+    ),
+    documentation: docsSection,
+    architecture: renderVisualiser
+      ? {
+          type: 'group',
+          title: 'Architecture',
+          icon: 'Workflow',
+          pages: [
+            {
+              type: 'item',
+              title: 'Map',
+              href: buildUrl(`/visualiser/data-products/${dataProduct.data.id}/${dataProduct.data.version}`),
+            },
+          ],
+        }
+      : null,
+    inputs:
+      resolvedInputs.length > 0
+        ? {
+            type: 'group',
+            title: 'Inputs',
+            icon: 'ArrowDownToLine',
+            pages: resolvedInputs,
+          }
+        : null,
+    outputs:
+      resolvedOutputs.length > 0
+        ? {
+            type: 'group',
+            title: 'Outputs',
+            icon: 'ArrowUpFromLine',
+            pages: resolvedOutputs,
+          }
+        : null,
+    'data-contracts':
+      dataContracts.length > 0
+        ? {
+            type: 'group',
+            title: 'Data Contracts',
+            icon: 'FileCheck',
+            pages: dataContracts,
+          }
+        : null,
+    'appears-in-flows': renderFlows
+      ? {
+          type: 'group',
+          title: 'Appears in flows',
+          icon: 'Waypoints',
+          pages: flowRefs,
+          visible: flowRefs.length > 0,
+        }
+      : null,
+    'decision-records': shouldRenderSideBarSection(dataProduct, 'architectureDecisions')
+      ? buildArchitectureDecisionsSection(dataProduct, context.adrs || [])
+      : null,
+    owners: renderOwners ? buildOwnersSection(owners) : null,
+  };
+};
+
+export type BuildDataProductNodeOptions = {
+  /** A parsed `sidebar.json` for this data product. When present it replaces the generated sidebar. */
+  sidebar?: SidebarSpec;
+};
+
+export const buildDataProductNode = (
+  dataProduct: CollectionEntry<'data-products'>,
+  owners: any[],
+  context: DataProductContext,
+  flowRefs: string[] = [],
+  options: BuildDataProductNodeOptions = {}
+): NavNode => {
+  const sections = buildDataProductSections(dataProduct, owners, context, flowRefs);
+
+  const pages = resolveSidebarPages(sections, DEFAULT_DATA_PRODUCT_SECTION_ORDER, {
+    sidebar: options.sidebar,
+    resource: {
+      collection: 'data-products',
+      id: dataProduct.data.id,
+      version: dataProduct.data.version,
+      entry: dataProduct,
+    },
+    context: toCustomSidebarContext(context),
+  });
+
+  return {
     type: 'item',
     title: dataProduct.data.name,
     badge: 'Data Product',
     summary: dataProduct.data.summary,
     ...iconFieldsForResource(dataProduct.data, 'Package'),
-    pages: [
-      buildQuickReferenceSection(
-        [
-          { title: 'Overview', href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}`) },
-          isChangelogEnabled() &&
-            shouldRenderSideBarSection(dataProduct, 'changelog') && {
-              title: 'Changelog',
-              href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}/changelog`),
-            },
-        ].filter(Boolean) as { title: string; href: string }[]
-      ),
-      docsSection,
-      renderVisualiser && {
-        type: 'group',
-        title: 'Architecture',
-        icon: 'Workflow',
-        pages: [
-          {
-            type: 'item',
-            title: 'Map',
-            href: buildUrl(`/visualiser/data-products/${dataProduct.data.id}/${dataProduct.data.version}`),
-          },
-        ],
-      },
-      resolvedInputs.length > 0 && {
-        type: 'group',
-        title: 'Inputs',
-        icon: 'ArrowDownToLine',
-        pages: resolvedInputs,
-      },
-      resolvedOutputs.length > 0 && {
-        type: 'group',
-        title: 'Outputs',
-        icon: 'ArrowUpFromLine',
-        pages: resolvedOutputs,
-      },
-      dataContracts.length > 0 && {
-        type: 'group',
-        title: 'Data Contracts',
-        icon: 'FileCheck',
-        pages: dataContracts,
-      },
-      renderFlows && {
-        type: 'group',
-        title: 'Appears in flows',
-        icon: 'Waypoints',
-        pages: flowRefs,
-        visible: flowRefs.length > 0,
-      },
-      renderOwners && buildOwnersSection(owners),
-    ].filter(Boolean) as ChildRef[],
+    pages,
   };
 };

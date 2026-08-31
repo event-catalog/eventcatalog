@@ -526,4 +526,18 @@ describe('buildDataProductNode', () => {
       expect(ownersSection).toBeUndefined();
     });
   });
+
+  describe('custom sidebar', () => {
+    it('renders only the referenced sections, in the order listed in sidebar.json', () => {
+      const dataProduct = createMockDataProduct({ owners: [{ id: 'user1' }] });
+      const owners = [{ id: 'user1', data: { id: 'user1', name: 'User One' }, collection: 'users' }];
+
+      const result = buildDataProductNode(dataProduct, owners as any, emptyContext, [], {
+        sidebar: { sections: ['$owners', '$quick-reference'] },
+      });
+
+      const titles = (result.pages as any[]).map((p: any) => p.title);
+      expect(titles).toEqual(['Owners', 'Quick Reference']);
+    });
+  });
 });

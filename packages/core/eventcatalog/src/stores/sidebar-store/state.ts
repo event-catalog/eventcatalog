@@ -1,4 +1,5 @@
 import { getCollection } from 'astro:content';
+import { getSidebarForResource, indexSidebarsByFolder } from './custom-sidebar';
 import type { CollectionEntry } from 'astro:content';
 import { getAgents } from '@utils/collections/agents';
 import { getAdrAliasNodeKey, getAdrNodeKey, getAdrs, type Adr } from '@utils/collections/adrs';
@@ -296,6 +297,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ubiquitousLanguages,
     resourceDocs,
     resourceDocCategories,
+    customSidebarEntries,
   ] = await Promise.all([
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
     getSystems({ getAllVersions: false }),
@@ -316,7 +318,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getCollection('ubiquitousLanguages'),
     getResourceDocs(),
     getResourceDocCategories(),
+    getCollection('sidebars'),
   ]);
+
+  // Optional per-resource `sidebar.json` overrides, keyed by the folder they sit in.
+  const customSidebars = indexSidebarsByFolder(customSidebarEntries);
 
   // Calculate derived lists to avoid extra fetches
   const allSubDomainIds = new Set(domains.flatMap((d) => (d.data.domains || []).map((sd: any) => sd.data.id)));
@@ -433,11 +439,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const flowNodes = flows.reduce(
     (acc, flow) => {
-      acc[`flow:${flow.data.id}:${flow.data.version}`] = withArchitectureDecisionsSection(
-        buildFlowNode(flow, context),
-        flow,
-        adrs
-      );
+      const sidebar = getSidebarForResource(customSidebars, flow);
+      const node = buildFlowNode(flow, context, { sidebar });
+      acc[`flow:${flow.data.id}:${flow.data.version}`] = sidebar ? node : withArchitectureDecisionsSection(node, flow, adrs);
       return acc;
     },
     {} as Record<string, NavNode>
@@ -446,7 +450,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const domainNodes = domainsWithOwners.reduce(
     (acc, { domain, owners }) => {
       const versionedKey = `domain:${domain.data.id}:${domain.data.version}`;
-      acc[versionedKey] = withArchitectureDecisionsSection(buildDomainNode(domain, owners, context), domain, adrs);
+      const sidebar = getSidebarForResource(customSidebars, domain);
+      const domainNode = buildDomainNode(domain, owners, context, { sidebar });
+      // A custom sidebar decides for itself whether (and where) `$decision-records` renders.
+      acc[versionedKey] = sidebar ? domainNode : withArchitectureDecisionsSection(domainNode, domain, adrs);
       if (domain.data.latestVersion === domain.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`domain:${domain.data.id}`] = versionedKey;
@@ -538,11 +545,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     (acc, { agent, owners }) => {
       const versionedKey = `agent:${agent.data.id}:${agent.data.version}`;
       const agentChannels = agentChannelsMap.get(`${agent.data.id}:${agent.data.version}`) || [];
-      acc[versionedKey] = withArchitectureDecisionsSection(
-        buildAgentNode(agent, owners, context, agentChannels, flowRefsByAgent.get(versionedKey) || []),
-        agent,
-        adrs
-      );
+      const sidebar = getSidebarForResource(customSidebars, agent);
+      const node = buildAgentNode(agent, owners, context, agentChannels, flowRefsByAgent.get(versionedKey) || [], { sidebar });
+      acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, agent, adrs);
       if (agent.data.latestVersion === agent.data.version) {
         acc[`agent:${agent.data.id}`] = versionedKey;
       }
@@ -555,11 +560,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     (acc, { service, owners }) => {
       const versionedKey = `service:${service.data.id}:${service.data.version}`;
       const serviceChannels = serviceChannelsMap.get(`${service.data.id}:${service.data.version}`) || [];
-      acc[versionedKey] = withArchitectureDecisionsSection(
-        buildServiceNode(service, owners, context, serviceChannels, flowRefsByService.get(versionedKey) || []),
-        service,
-        adrs
-      );
+      const sidebar = getSidebarForResource(customSidebars, service);
+      const node = buildServiceNode(service, owners, context, serviceChannels, flowRefsByService.get(versionedKey) || [], {
+        sidebar,
+      });
+      acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, service, adrs);
       if (service.data.latestVersion === service.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`service:${service.data.id}`] = versionedKey;
@@ -612,14 +617,17 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       const hasFieldUsage = messagesWithFieldUsage.has(message.data.id);
       const triggers = getTriggersOfMessage(messageReceivers, message, messages);
       const triggeredBy = getTriggeredByOfMessage(messageReceivers, message, messages);
-      acc[versionedKey] = withArchitectureDecisionsSection(
-        buildMessageNode(message, owners, context, hasFieldUsage, flowRefsByMessage.get(versionedKey) || [], {
-          triggers,
-          triggeredBy,
-        }),
+      const sidebar = getSidebarForResource(customSidebars, message);
+      const node = buildMessageNode(
         message,
-        adrs
+        owners,
+        context,
+        hasFieldUsage,
+        flowRefsByMessage.get(versionedKey) || [],
+        { triggers, triggeredBy },
+        { sidebar }
       );
+      acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, message, adrs);
       if (message.data.latestVersion === message.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`${type}:${message.data.id}`] = versionedKey;
@@ -634,11 +642,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const containerNodes = containerWithOwners.reduce(
     (acc, { container, owners }) => {
       const versionedKey = `container:${container.data.id}:${container.data.version}`;
-      acc[versionedKey] = withArchitectureDecisionsSection(
-        buildContainerNode(container, owners, context, flowRefsByContainer.get(versionedKey) || []),
-        container,
-        adrs
-      );
+      const sidebar = getSidebarForResource(customSidebars, container);
+      const node = buildContainerNode(container, owners, context, flowRefsByContainer.get(versionedKey) || [], { sidebar });
+      acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, container, adrs);
       if (container.data.latestVersion === container.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`container:${container.data.id}`] = versionedKey;
@@ -651,7 +657,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const systemNodes = systemWithOwners.reduce(
     (acc, { system, owners }) => {
       const versionedKey = `system:${system.data.id}:${system.data.version}`;
-      acc[versionedKey] = withArchitectureDecisionsSection(buildSystemNode(system, owners, context), system, adrs);
+      const sidebar = getSidebarForResource(customSidebars, system);
+      const node = buildSystemNode(system, owners, context, { sidebar });
+      acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, system, adrs);
       if (system.data.latestVersion === system.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`system:${system.data.id}`] = versionedKey;
@@ -676,6 +684,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     services,
     containers,
     channels,
+    adrs,
     resourceDocs,
     resourceDocCategories,
   };
@@ -685,11 +694,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const dataProductNodes = dataProductWithOwners.reduce(
     (acc, { dataProduct, owners }) => {
       const versionedKey = `data-product:${dataProduct.data.id}:${dataProduct.data.version}`;
-      acc[versionedKey] = withArchitectureDecisionsSection(
-        buildDataProductNode(dataProduct, owners, dataProductContext, flowRefsByDataProduct.get(versionedKey) || []),
-        dataProduct,
-        adrs
-      );
+      const sidebar = getSidebarForResource(customSidebars, dataProduct);
+      const node = buildDataProductNode(dataProduct, owners, dataProductContext, flowRefsByDataProduct.get(versionedKey) || [], {
+        sidebar,
+      });
+      acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, dataProduct, adrs);
       if (dataProduct.data.latestVersion === dataProduct.data.version) {
         acc[`data-product:${dataProduct.data.id}`] = versionedKey;
       }
@@ -701,7 +710,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const adrNodes = adrsWithOwners.reduce(
     (acc, { adr, owners, decisionMakers }) => {
       const versionedKey = getAdrNodeKey(adr);
-      acc[versionedKey] = buildAdrNode(adr, owners, decisionMakers, context);
+      acc[versionedKey] = buildAdrNode(adr, owners, decisionMakers, context, {
+        sidebar: getSidebarForResource(customSidebars, adr),
+      });
       if (adr.data.latestVersion === adr.data.version) {
         acc[getAdrAliasNodeKey(adr)] = versionedKey;
       }
@@ -713,7 +724,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const entityNodes = entitiesWithOwners.reduce(
     (acc, { entity, owners }) => {
       const versionedKey = `entity:${entity.data.id}:${entity.data.version}`;
-      acc[versionedKey] = withArchitectureDecisionsSection(buildEntityNode(entity, owners, context), entity, adrs);
+      const sidebar = getSidebarForResource(customSidebars, entity);
+      const node = buildEntityNode(entity, owners, context, { sidebar });
+      acc[versionedKey] = sidebar ? node : withArchitectureDecisionsSection(node, entity, adrs);
       if (entity.data.latestVersion === entity.data.version) {
         acc[`entity:${entity.data.id}`] = versionedKey;
       }
