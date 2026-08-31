@@ -2,11 +2,19 @@
 // rarely used, but useful for components that need to know how many times
 // the user wants to render a component in a markdown file
 export const getMDXComponentsByName = (document: string, componentName: string) => {
+  // Fenced code blocks and inline code are documentation, not rendered
+  // components — strip them so example snippets don't count as occurrences
+  // (hosts pair islands with rendered placeholders by occurrence).
+  const renderedContent = document
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/~~~[\s\S]*?~~~/g, '')
+    .replace(/`[^`\n]*`/g, '');
+
   // Define regex pattern to match self-closing MDX components with or without props.
   const pattern = new RegExp(`<${componentName}(\\s+[^>]*)?\\s*\\/>`, 'g');
 
   // Find all matches of the pattern
-  const matches = [...document.matchAll(pattern)];
+  const matches = [...renderedContent.matchAll(pattern)];
 
   // Extract the properties of each SchemaViewer
   const components = matches.map((match) => {
