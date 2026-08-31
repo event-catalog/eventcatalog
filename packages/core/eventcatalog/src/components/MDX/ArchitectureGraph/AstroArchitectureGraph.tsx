@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CatalogForceGraph from '@components/CatalogGraph/CatalogForceGraph';
+import { ARCHITECTURE_GRAPH_PORTAL_SELECTOR } from '@components/MDX/ArchitectureGraph/ArchitectureGraphPortal';
 import type { CatalogGraphWireLink, CatalogGraphWireNode } from '@utils/node-graphs/catalog-force-graph';
 
 interface Props {
-  /** DOM id of the placeholder div ArchitectureGraphPortal rendered into the MDX content */
-  portalId: string;
+  /** Position of this island among the page's <ArchitectureGraph/> embeds — it
+   * mounts into the placeholder div at the same position in document order */
+  occurrenceIndex?: number;
   nodes: CatalogGraphWireNode[];
   links: CatalogGraphWireLink[];
   linkLabels: string[];
@@ -24,12 +26,13 @@ interface Props {
 // The island mounts outside the MDX content, finds the placeholder div the MDX
 // component map emitted, and portals the graph into it — same pattern as the
 // visualiser's NodeGraph.
-const AstroArchitectureGraph = ({ portalId, href, hrefLabel, ...graphProps }: Props) => {
+const AstroArchitectureGraph = ({ occurrenceIndex = 0, href, hrefLabel, ...graphProps }: Props) => {
   const [container, setContainer] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
-    setContainer(document.getElementById(portalId));
-  }, [portalId]);
+    const portals = document.querySelectorAll<HTMLElement>(ARCHITECTURE_GRAPH_PORTAL_SELECTOR);
+    setContainer(portals[occurrenceIndex] ?? null);
+  }, [occurrenceIndex]);
 
   if (!container) return null;
 
