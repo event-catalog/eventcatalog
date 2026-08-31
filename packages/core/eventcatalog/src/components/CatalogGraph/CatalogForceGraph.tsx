@@ -1030,6 +1030,9 @@ const CatalogForceGraph = ({
       .scaleExtent([0.1, 4])
       // Let node drags win over panning: ignore presses that start on a node
       .filter((event) => {
+        // Embedded graphs must not trap touch scrolling — a one-finger swipe over
+        // the canvas scrolls the page; a two-finger gesture pans/zooms the graph
+        if (event.type === 'touchstart' && !zoomOnScroll && event.touches.length < 2) return false;
         if (event.type === 'mousedown' || event.type === 'touchstart') {
           const [x, y] = pointerPosition(event);
           return !findNode(x, y);
@@ -1047,6 +1050,9 @@ const CatalogForceGraph = ({
       });
 
     const dragBehaviour = drag<HTMLCanvasElement, unknown>()
+      // On embeds, touch node-drags would also swallow page swipes that happen to
+      // start on a node — leave touch to the page there (tap-to-focus still works)
+      .filter((event) => (zoomOnScroll || event.type !== 'touchstart') && !event.ctrlKey && !event.button)
       .subject((event) => {
         const [x, y] = pointerPosition(event.sourceEvent);
         const node = findNode(x, y);

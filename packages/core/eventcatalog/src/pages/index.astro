@@ -1,6 +1,7 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { getMDXComponentsByName, parseMdxBooleanProp } from '@utils/markdown';
+import { architectureGraphPortalId } from '@components/MDX/ArchitectureGraph/ArchitectureGraphPortal';
 import { resourceToCollectionMap } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
 import { isCustomLandingPageEnabled, isVisualiserEnabled, isArchitectureGraphEnabled } from '@utils/feature';
@@ -115,7 +116,7 @@ if (config.landingPage) {
             />
           ))}
         {ArchitectureGraph &&
-          architectureGraphs.map((graph: any) => (
+          architectureGraphs.map((graph: any, occurrenceIndex: number) => (
             <ArchitectureGraph
               id={graph.id}
               collection={graph.type ? resourceToCollectionMap[graph.type as keyof typeof resourceToCollectionMap] : undefined}
@@ -124,7 +125,7 @@ if (config.landingPage) {
               showSearch={parseMdxBooleanProp(graph.search, true)}
               showLegend={parseMdxBooleanProp(graph.legend, true)}
               showLensPicker={parseMdxBooleanProp(graph.lensPicker, false)}
-              portalId={`${graph.id ?? 'catalog'}-architecture-graph-portal`}
+              portalId={architectureGraphPortalId(graph.id, occurrenceIndex)}
               href={
                 isArchitectureGraphEnabled()
                   ? {

@@ -11,6 +11,7 @@ import Footer from '@layouts/Footer.astro';
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import ArchitectureGraph from '@components/MDX/ArchitectureGraph/ArchitectureGraph.astro';
+import { architectureGraphPortalId } from '@components/MDX/ArchitectureGraph/ArchitectureGraphPortal';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
 import VersionList from '@components/Lists/VersionList.astro';
@@ -671,7 +672,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
           }
           {
             architectureGraphs.length > 0 &&
-              architectureGraphs.map((graph: any) => (
+              architectureGraphs.map((graph: any, occurrenceIndex: number) => (
                 <ArchitectureGraph
                   id={graph.id}
                   collection={graph.collection}
@@ -680,7 +681,7 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                   showSearch={graph.search}
                   showLegend={graph.legend}
                   showLensPicker={graph.lensPicker}
-                  portalId={`${graph.id}-architecture-graph-portal`}
+                  portalId={architectureGraphPortalId(graph.id, occurrenceIndex)}
                   href={
                     isArchitectureGraphEnabled()
                       ? {

@@ -15,6 +15,7 @@ import { getAdjacentPages, getNavigationItems } from '@enterprise/custom-documen
 import CustomDocsNav from '@enterprise/custom-documentation/components/CustomDocsNav/CustomDocsNav.astro';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import ArchitectureGraph from '@components/MDX/ArchitectureGraph/ArchitectureGraph.astro';
+import { architectureGraphPortalId } from '@components/MDX/ArchitectureGraph/ArchitectureGraphPortal';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
 
 import {
@@ -192,7 +193,7 @@ const editUrl =
 
           {
             architectureGraphs.length > 0 &&
-              architectureGraphs.map((graph: any) => (
+              architectureGraphs.map((graph: any, occurrenceIndex: number) => (
                 <ArchitectureGraph
                   id={graph.id}
                   collection={graph.collection}
@@ -201,7 +202,7 @@ const editUrl =
                   showSearch={graph.search}
                   showLegend={graph.legend}
                   showLensPicker={graph.lensPicker}
-                  portalId={`${graph.id ?? (doc as any).id ?? 'catalog'}-architecture-graph-portal`}
+                  portalId={architectureGraphPortalId(graph.id ?? (doc as any).id, occurrenceIndex)}
                   href={
                     isArchitectureGraphEnabled()
                       ? {
