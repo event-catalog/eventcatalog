@@ -1247,7 +1247,7 @@ const CatalogForceGraph = ({
   return (
     <div
       ref={containerRef}
-      className={`relative h-full w-full overflow-hidden transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className={`relative h-full w-full overflow-hidden motion-safe:transition-opacity motion-safe:duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}
     >
       {/* Hidden icon sources: React renders them once, the sprite effect rasterises
           them for the canvas. Both lucide (color prop) and heroicons (currentColor
