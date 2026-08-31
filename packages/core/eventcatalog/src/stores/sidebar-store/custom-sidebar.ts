@@ -73,6 +73,12 @@ type EntryLike = { collection: string; data: Record<string, any> };
 
 export type CustomSidebarContext = {
   resourceDocs?: ResourceDocEntry[];
+  /**
+   * Whether the resource-docs feature is available on this plan. When explicitly false
+   * (community mode) `[[doc|…]]` refs render nothing — the pages they'd link to don't
+   * exist — instead of failing the build. Missing docs still fail when the feature is on.
+   */
+  resourceDocsEnabled?: boolean;
   domains?: EntryLike[];
   services?: EntryLike[];
   systems?: EntryLike[];
@@ -206,7 +212,9 @@ const resolveDocPage = (
   resource: CustomSidebarResource,
   context: CustomSidebarContext,
   spec: SidebarSpec
-): NavNode => {
+): NavNode | null => {
+  if (context.resourceDocsEnabled === false) return null;
+
   const [docType, ...rest] = ref.id.split('/');
   const docId = rest.join('/');
 
@@ -404,7 +412,8 @@ const resolvePage = (
   }
 
   if (ref.type === 'doc') {
-    return [resolveDocPage(ref, resource, context, spec)];
+    const docPage = resolveDocPage(ref, resource, context, spec);
+    return docPage ? [docPage] : [];
   }
   if (ref.type === 'spec') {
     return [resolveSpecPage(ref.id, resource, context, spec)];
@@ -558,6 +567,7 @@ export const resolveSidebarPages = <K extends string>(
  */
 export const toCustomSidebarContext = (context: {
   resourceDocs?: ResourceDocEntry[];
+  resourceDocsEnabled?: boolean;
   domains?: unknown[];
   services?: unknown[];
   systems?: unknown[];
@@ -572,6 +582,7 @@ export const toCustomSidebarContext = (context: {
   schemas?: unknown[];
 }): CustomSidebarContext => ({
   resourceDocs: context.resourceDocs,
+  resourceDocsEnabled: context.resourceDocsEnabled,
   domains: context.domains as EntryLike[] | undefined,
   services: context.services as EntryLike[] | undefined,
   systems: context.systems as EntryLike[] | undefined,

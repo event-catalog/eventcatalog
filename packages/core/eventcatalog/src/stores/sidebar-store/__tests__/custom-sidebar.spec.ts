@@ -333,6 +333,13 @@ describe('applyCustomSidebar', () => {
     expect(() => applyCustomSidebar(spec(['owners']), sections, resource)).toThrow(/did you mean "\$owners"/);
   });
 
+  it('renders nothing for doc refs when the resource-docs feature is disabled (community mode)', () => {
+    const [group] = applyCustomSidebar(spec([{ title: 'X', pages: ['[[doc|guides/anything]]'] }]), sections, resource, {
+      resourceDocsEnabled: false,
+    }) as NavNode[];
+    expect(group.pages).toEqual([]);
+  });
+
   it('fails the build when a doc ref does not resolve, listing the available docs', () => {
     const resourceDocs = [
       {
