@@ -75,6 +75,12 @@ export type CustomSidebarContext = {
   resourceDocs?: ResourceDocEntry[];
   domains?: EntryLike[];
   services?: EntryLike[];
+  systems?: EntryLike[];
+  agents?: EntryLike[];
+  flows?: EntryLike[];
+  containers?: EntryLike[];
+  entities?: EntryLike[];
+  dataProducts?: EntryLike[];
   events?: EntryLike[];
   commands?: EntryLike[];
   queries?: EntryLike[];
@@ -112,6 +118,23 @@ const MESSAGE_COLLECTIONS: Record<string, keyof CustomSidebarContext> = {
   event: 'events',
   command: 'commands',
   query: 'queries',
+};
+
+/**
+ * Sidebar nodes exist for every version of a message, but only the latest version of the
+ * other collections (state.ts loads them with `getAllVersions: false`). A ref pinned to a
+ * historical version of those would silently render nothing, so fail the build instead.
+ * Maps ref types to the context collection we can validate against.
+ */
+const LATEST_ONLY_COLLECTIONS: Record<string, keyof CustomSidebarContext> = {
+  domain: 'domains',
+  service: 'services',
+  system: 'systems',
+  agent: 'agents',
+  flow: 'flows',
+  container: 'containers',
+  entity: 'entities',
+  'data-product': 'dataProducts',
 };
 
 const RESOURCE_REF_PATTERN = /^\[\[([a-z-]+)\|([^[\]]+?)\]\]$/;
@@ -193,18 +216,24 @@ const resolveDocPage = (
     );
   }
 
-  const doc = (context.resourceDocs || []).find(
+  const docsForResource = (context.resourceDocs || []).filter(
     (entry) =>
       entry.data.resourceCollection === resource.collection &&
       entry.data.resourceId === resource.id &&
-      entry.data.resourceVersion === resource.version &&
-      entry.data.type === docType &&
-      entry.data.id === docId
+      entry.data.resourceVersion === resource.version
   );
+  const doc = docsForResource.find((entry) => entry.data.type === docType && entry.data.id === docId);
+
+  if (!doc) {
+    const available = docsForResource.map((entry) => `${entry.data.type}/${entry.data.id}`).join(', ');
+    throw new Error(
+      `Cannot resolve "[[doc|${ref.id}]]" in sidebar${describeSource(spec)}: ${resource.id} v${resource.version} has no documentation page "${ref.id}".${available ? ` Available: ${available}.` : ' This resource has no documentation pages.'}`
+    );
+  }
 
   return {
     type: 'item',
-    title: doc?.data.title || docId,
+    title: doc.data.title || docId,
     href: buildUrl(
       `/docs/${resource.collection}/${resource.id}/${resource.version}/${encodeURIComponent(docType)}/${encodeURIComponent(docId)}`
     ),
@@ -391,6 +420,18 @@ const resolvePage = (
     );
   }
 
+  // Only messages have sidebar nodes for every version; pinning a historical version of a
+  // latest-only collection would silently render nothing, so fail loudly when we can tell.
+  if (ref.version && LATEST_ONLY_COLLECTIONS[ref.type]) {
+    const pool = context[LATEST_ONLY_COLLECTIONS[ref.type]] as EntryLike[] | undefined;
+    const latest = pool?.find((entry) => entry.data.id === ref.id);
+    if (latest && latest.data.version !== ref.version) {
+      throw new Error(
+        `Cannot resolve "${page}" in sidebar${describeSource(spec)}: only the latest version (${latest.data.version}) of a ${ref.type} can be referenced in a sidebar. Drop the "@${ref.version}" to link the latest version.`
+      );
+    }
+  }
+
   // Unversioned keys are aliases to the latest version in the node map.
   return [ref.version ? `${prefix}:${ref.id}:${ref.version}` : `${prefix}:${ref.id}`];
 };
@@ -519,6 +560,12 @@ export const toCustomSidebarContext = (context: {
   resourceDocs?: ResourceDocEntry[];
   domains?: unknown[];
   services?: unknown[];
+  systems?: unknown[];
+  agents?: unknown[];
+  flows?: unknown[];
+  containers?: unknown[];
+  entities?: unknown[];
+  dataProducts?: unknown[];
   events?: unknown[];
   commands?: unknown[];
   queries?: unknown[];
@@ -527,6 +574,12 @@ export const toCustomSidebarContext = (context: {
   resourceDocs: context.resourceDocs,
   domains: context.domains as EntryLike[] | undefined,
   services: context.services as EntryLike[] | undefined,
+  systems: context.systems as EntryLike[] | undefined,
+  agents: context.agents as EntryLike[] | undefined,
+  flows: context.flows as EntryLike[] | undefined,
+  containers: context.containers as EntryLike[] | undefined,
+  entities: context.entities as EntryLike[] | undefined,
+  dataProducts: context.dataProducts as EntryLike[] | undefined,
   events: context.events as EntryLike[] | undefined,
   commands: context.commands as EntryLike[] | undefined,
   queries: context.queries as EntryLike[] | undefined,

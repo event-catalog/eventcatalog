@@ -85,7 +85,6 @@ describe('applyCustomSidebar', () => {
             '[[event|OrderPlaced]]',
             '[[adr|adr-001-outbox]]',
             '[[doc|guides/sla]]',
-            '[[doc|guides/missing]]',
             { title: 'On-call', href: 'https://runbooks.acme.dev/orders' },
             { title: 'Internal', href: '/docs/domains/Catalog/1.0.0/resources' },
           ],
@@ -108,7 +107,6 @@ describe('applyCustomSidebar', () => {
       'event:OrderPlaced',
       'adr:adr-001-outbox',
       { type: 'item', title: 'SLA & error budgets', href: '/base/docs/domains/Catalog/1.0.0/guides/sla' },
-      { type: 'item', title: 'missing', href: '/base/docs/domains/Catalog/1.0.0/guides/missing' },
       { type: 'item', title: 'On-call', href: 'https://runbooks.acme.dev/orders', external: true },
       { type: 'item', title: 'Internal', href: '/base/docs/domains/Catalog/1.0.0/resources' },
     ]);
@@ -333,6 +331,44 @@ describe('applyCustomSidebar', () => {
       /Unknown section "\$nope" in sidebar \(domains\/Catalog\/sidebar\.json\)\. Available sections for this resource: \$quick-reference, \$owners/
     );
     expect(() => applyCustomSidebar(spec(['owners']), sections, resource)).toThrow(/did you mean "\$owners"/);
+  });
+
+  it('fails the build when a doc ref does not resolve, listing the available docs', () => {
+    const resourceDocs = [
+      {
+        data: {
+          resourceCollection: 'domains',
+          resourceId: 'Catalog',
+          resourceVersion: '1.0.0',
+          type: 'guides',
+          id: 'sla',
+          title: 'SLA',
+        },
+      },
+    ] as any;
+    expect(() =>
+      applyCustomSidebar(spec([{ title: 'X', pages: ['[[doc|guides/missing]]'] }]), sections, resource, { resourceDocs })
+    ).toThrow(/has no documentation page "guides\/missing"\. Available: guides\/sla\./);
+    expect(() => applyCustomSidebar(spec([{ title: 'X', pages: ['[[doc|guides/anything]]'] }]), sections, resource)).toThrow(
+      /has no documentation pages/
+    );
+  });
+
+  it('fails the build when pinning a historical version of a latest-only collection', () => {
+    const context = {
+      services: [{ collection: 'services', data: { id: 'orders', name: 'Orders', version: '2.0.0' } }],
+    } as any;
+    expect(() =>
+      applyCustomSidebar(spec([{ title: 'X', pages: ['[[service|orders@1.0.0]]'] }]), sections, resource, context)
+    ).toThrow(/only the latest version \(2\.0\.0\) of a service can be referenced/);
+    // Pinning the latest version is fine, and unknown ids keep the silent resource-ref contract.
+    const [group] = applyCustomSidebar(
+      spec([{ title: 'X', pages: ['[[service|orders@2.0.0]]', '[[service|ghost@1.0.0]]'] }]),
+      sections,
+      resource,
+      context
+    ) as NavNode[];
+    expect(group.pages).toEqual(['service:orders:2.0.0', 'service:ghost:1.0.0']);
   });
 
   it('fails the build for pages it cannot resolve', () => {
