@@ -570,6 +570,28 @@ const diagramId = props.data.id;
         const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs');
         const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
 
+        const iconPacks = window.eventcatalog?.mermaid?.iconPacks || [];
+        if (iconPacks.length > 0) {
+          mermaid.registerIconPacks(
+            iconPacks.map((name) => ({
+              name,
+              loader: () =>
+                fetch(`https://cdn.jsdelivr.net/npm/@iconify-json/${name}@1/icons.json`)
+                  .then((res) => {
+                    if (!res.ok) {
+                      console.error(`[EventCatalog] Failed to load icon pack "${name}" from CDN (HTTP ${res.status})`);
+                      return null;
+                    }
+                    return res.json();
+                  })
+                  .catch((err) => {
+                    console.error(`[EventCatalog] Error loading icon pack "${name}":`, err);
+                    return null;
+                  }),
+            }))
+          );
+        }
+
         mermaid.initialize({
           maxTextSize: window.eventcatalog?.mermaid?.maxTextSize || 100000,
           startOnLoad: false,

@@ -14,6 +14,9 @@ const zoomInstances = new Map<string, any>();
 const resizeObservers = new Map<string, ResizeObserver>();
 const fullscreenHandlers = new Map<string, () => void>();
 
+// Track registered icon pack names to avoid re-registering on subsequent renders
+const registeredIconPacks = new Set<string>();
+
 // Abort flag for cancelling in-progress renders during cleanup
 let renderingAborted = false;
 
@@ -551,6 +554,35 @@ export async function initMermaidZoom(
 }
 
 /**
+ * Builds the mermaid `registerIconPacks` descriptor array for a list of Iconify pack names.
+ *
+ * - `logos` is resolved from the bundled `@iconify-json/logos` package (no network request).
+ * - Every other name is fetched lazily from jsDelivr so only the packs that are actually used
+ *   in a diagram trigger a network request.
+ */
+export function buildIconPackDescriptors(iconPacks: string[]): Array<{ name: string; loader: () => Promise<any> }> {
+  return iconPacks.map((name) => ({
+    name,
+    loader:
+      name === 'logos'
+        ? () => import('@iconify-json/logos').then((m) => m.icons)
+        : () =>
+            fetch(`https://cdn.jsdelivr.net/npm/@iconify-json/${name}@1/icons.json`)
+              .then((res) => {
+                if (!res.ok) {
+                  console.error(`[EventCatalog] Failed to load icon pack "${name}" from CDN (HTTP ${res.status})`);
+                  return null;
+                }
+                return res.json();
+              })
+              .catch((err) => {
+                console.error(`[EventCatalog] Error loading icon pack "${name}":`, err);
+                return null;
+              }),
+  }));
+}
+
+/**
  * High-level function to render Mermaid diagrams with zoom
  */
 export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, mermaidConfig?: any): Promise<void> {
@@ -563,15 +595,15 @@ export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, m
 
   // Apply any custom mermaid configuration
   if (mermaidConfig) {
-    const { icons } = await import('@iconify-json/logos');
     const { iconPacks = [], enableSupportForElkLayout = false } = mermaidConfig;
 
     if (iconPacks.length > 0) {
-      const iconPacksToRegister = iconPacks.map((name: string) => ({
-        name,
-        icons,
-      }));
-      mermaid.registerIconPacks(iconPacksToRegister);
+      const newPacks: string[] = (iconPacks as string[]).filter((name: string) => !registeredIconPacks.has(name));
+
+      if (newPacks.length > 0) {
+        mermaid.registerIconPacks(buildIconPackDescriptors(newPacks));
+        newPacks.forEach((name: string) => registeredIconPacks.add(name));
+      }
     }
 
     if (enableSupportForElkLayout) {
