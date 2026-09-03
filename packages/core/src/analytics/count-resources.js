@@ -60,7 +60,7 @@ export async function countResources(projectDir) {
  * @returns {Promise<string>} - Short hex digest of the catalog content
  */
 export async function hashCatalogContent(projectDir) {
-  const hash = createHash('md5');
+  const hash = createHash('sha256');
   const files = new Set();
   for (const pattern of Object.values(RESOURCE_PATTERNS).flat()) {
     for (const file of await glob(pattern, { cwd: projectDir, ignore: DEFAULT_IGNORES })) {
