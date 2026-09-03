@@ -410,6 +410,14 @@ program
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
+    // Fire-and-forget so dev startup never waits on telemetry
+    void logBuild(dir, {
+      isEventCatalogStarterEnabled: isEventCatalogStarter,
+      isEventCatalogScaleEnabled: isEventCatalogScale,
+      isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
+      command: 'dev',
+    });
+
     // Build fields index if running in SSR mode
     if (isServer) {
       try {
@@ -511,6 +519,7 @@ program
       isEventCatalogStarterEnabled: isEventCatalogStarter,
       isEventCatalogScaleEnabled: isEventCatalogScale,
       isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
+      command: 'build',
     });
 
     await resolveCatalogDependencies(dir, core);

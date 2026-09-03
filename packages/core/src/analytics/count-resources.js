@@ -1,4 +1,7 @@
 import { glob } from 'glob';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 const RESOURCE_PATTERNS = {
   adrs: ['**/adrs/*/index.@(md|mdx)'],
@@ -47,6 +50,32 @@ export async function countResources(projectDir) {
     counts[type] = total;
   }
   return counts;
+}
+
+/**
+ * Digest of the catalog's documentation content. Resource counts only move when
+ * things are added or removed; this also changes when existing docs are edited,
+ * so telemetry can tell "docs changed" apart from a plain redeploy.
+ * @param {string} projectDir - Path to the catalog directory
+ * @returns {Promise<string>} - Short hex digest of the catalog content
+ */
+export async function hashCatalogContent(projectDir) {
+  const hash = createHash('md5');
+  const files = new Set();
+  for (const pattern of Object.values(RESOURCE_PATTERNS).flat()) {
+    for (const file of await glob(pattern, { cwd: projectDir, ignore: DEFAULT_IGNORES })) {
+      files.add(file);
+    }
+  }
+  for (const file of [...files].sort()) {
+    try {
+      hash.update(file);
+      hash.update(await readFile(path.join(projectDir, file)));
+    } catch {
+      // unreadable file — leave it out of the digest
+    }
+  }
+  return hash.digest('hex').slice(0, 16);
 }
 
 /**

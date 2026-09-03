@@ -1,6 +1,6 @@
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { raiseEvent } from './analytics.js';
-import { countResources, serializeCounts } from './count-resources.js';
+import { countResources, hashCatalogContent, serializeCounts } from './count-resources.js';
 
 const getFeatures = async (configFile) => {
   return {
@@ -88,8 +88,10 @@ const reportCloudResourceInventory = async (configFile, resourceCounts) => {
  *
  * @param {string} projectDir
  */
-const main = async (projectDir, { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isBackstagePluginEnabled }) => {
-  // if (process.env.NODE_ENV === 'CI') return;
+const main = async (
+  projectDir,
+  { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isBackstagePluginEnabled, command = 'build' }
+) => {
   try {
     await verifyRequiredFieldsAreInCatalogConfigFile(projectDir);
     const configFile = await getEventCatalogConfigFile(projectDir);
@@ -111,13 +113,20 @@ const main = async (projectDir, { isEventCatalogStarterEnabled, isEventCatalogSc
 
     const features = await getFeatures(configFile);
     const resourceCounts = await countResources(projectDir);
+    const contentHash = await hashCatalogContent(projectDir);
 
     await reportCloudResourceInventory(configFile, resourceCounts);
 
     await raiseEvent({
-      command: 'build',
+      command,
       org: organizationName,
       cId,
+      // CI redeploys and human-run builds are different signals; tag rather than suppress
+      ci: process.env.CI ? 'true' : 'false',
+      // The commercial plan, separate from the generators list, so telemetry joins cleanly to licensing
+      plan: isEventCatalogScaleEnabled ? 'scale' : isEventCatalogStarterEnabled ? 'starter' : 'none',
+      backstage: isBackstagePluginEnabled ? 'true' : 'false',
+      contentHash,
       generators: generatorNames.toString(),
       features: Object.keys(features)
         .map((feature) => `${feature}:${features[feature]}`)
