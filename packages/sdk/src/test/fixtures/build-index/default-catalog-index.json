@@ -626,7 +626,7 @@
       "version": "1.0.0",
       "name": "Catalog",
       "contentPath": "domains/Catalog/index.mdx",
-      "contentHash": "sha256:f34e1362ab1fb1dfb9c3ed2836cd054f4858b6c764b0e0fe62185bb162bac779",
+      "contentHash": "sha256:d981afe5b9957e4e76ada79a294f5b520c992a152b8e9b947085f40d653c001b",
       "owners": ["product-platform"],
       "sidecars": [
         {
@@ -784,7 +784,7 @@
       "version": "1.0.0",
       "name": "Fulfilment",
       "contentPath": "domains/Fulfilment/index.mdx",
-      "contentHash": "sha256:4c135222dcc67e7872a40668050b3056b98932a38cd21968b050c0f9bf37440a",
+      "contentHash": "sha256:7d93fe273b2b35f6bba4d03748e2e41a969d1d95264e4e4a4c7c6a942a85e187",
       "owners": ["fulfilment-platform"],
       "sidecars": [
         {
@@ -867,7 +867,7 @@
       "version": "1.0.0",
       "name": "Ordering",
       "contentPath": "domains/Ordering/index.mdx",
-      "contentHash": "sha256:80d05ff89805888e594bdbea50854c8ae4b3e615ae0da6b8272e1e4de1d62249",
+      "contentHash": "sha256:b343c252eebe8d3d4afb0b7963da18ba66496f4854022036784fcb9eab38fdc4",
       "owners": ["ordering-platform"],
       "sidecars": [
         {
@@ -948,7 +948,7 @@
       "version": "1.0.0",
       "name": "Payments",
       "contentPath": "domains/Payments/index.mdx",
-      "contentHash": "sha256:271d5fc58b5ecdc3b02d1a1f3f3b9ed0fc4a1b48e07fb31a9bc0c726861464a9",
+      "contentHash": "sha256:3af19203a35d7d45a5b9bd26d2e97cdab085d63143c77f0a4d26477b38c85b02",
       "owners": ["payments-platform"],
       "sidecars": [
         {
@@ -1177,7 +1177,7 @@
       "version": "1.0.0",
       "name": "Shopping",
       "contentPath": "domains/Shopping/index.mdx",
-      "contentHash": "sha256:013ccf530b88fb9b343966f85b4fdc74062afab262dbc9bc5b306cfae046920e",
+      "contentHash": "sha256:0977f45bb05ff1d8b85c9229f0440d69620bbe3fedfb1d0fd099dcdaaa3d3bcd",
       "owners": ["shopping-platform"],
       "sidecars": [
         {
