@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.10.5
+
+### Patch Changes
+
+- b2dc248: chore(core): add content hash, plan, ci and command fields to build telemetry
+
 ## 4.10.4
 
 ### Patch Changes
