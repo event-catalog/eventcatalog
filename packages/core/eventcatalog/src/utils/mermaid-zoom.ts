@@ -1,6 +1,6 @@
 /**
  * Diagram Zoom Utility
- * Provides pan/zoom functionality for Mermaid and PlantUML diagrams with Mintlify-style controls,
+ * Provides pan/zoom functionality for Mermaid and PlantUML diagrams with hover-revealed controls,
  * smooth (CSS transform) transitions and a fullscreen modal viewer.
  *
  * NOTE: A standalone version of this code also exists in the embed page at:
@@ -68,7 +68,7 @@ export function destroyZoomInstances(): void {
 }
 
 /**
- * Diagram control options (Mintlify-style)
+ * Diagram control options
  */
 export type ControlsPlacement = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
