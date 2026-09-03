@@ -22,8 +22,13 @@ const getAuthProviders = async () => {
     // GitHub provider
     if (authConfig.providers?.github) {
       const githubConfig = authConfig.providers.github;
+      // GitHub sends an RFC 9207 `iss` parameter on OAuth callbacks. Pin the issuer so
+      // validation works even when the resolved @auth/core copy predates the upstream
+      // default (auth-astro's peer range can hoist an older @auth/core in user projects).
+      const githubBaseUrl = githubConfig?.enterprise?.baseUrl ?? 'https://github.com';
       providers.push(
         GitHub({
+          issuer: `${githubBaseUrl}/login/oauth`,
           ...githubConfig,
         })
       );
