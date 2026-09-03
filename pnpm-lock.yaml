@@ -209,7 +209,7 @@ importers:
         specifier: ^6.0.17
         version: 6.0.17(zod@4.3.6)
       astro:
-        specifier: ^7.2.8
+        specifier: 7.2.8
         version: 7.2.8(@astrojs/markdown-remark@7.2.4)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@22.19.21)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
       astro-expressive-code:
         specifier: ^0.44.0
