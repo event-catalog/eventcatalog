@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 4.10.4
+
+### Patch Changes
+
+- 7192a9b: Fix mermaid `iconPacks` so extra Iconify collections (e.g. openmoji, mdi) load from their own packs instead of always using logos.
+- 1592c57: fix(auth): pin issuer on the GitHub auth provider so RFC 9207 `iss` validation no longer fails with `unexpected "iss" (issuer) response parameter value` when an older @auth/core copy is hoisted in user projects
+
 ## 4.10.3
 
 ### Patch Changes
