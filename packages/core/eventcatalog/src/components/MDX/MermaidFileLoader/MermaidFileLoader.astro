@@ -3,7 +3,9 @@ import fs from 'fs';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import Admonition from '@components/MDX/Admonition';
 
-const { file: mermaidFile, filePath } = Astro.props;
+// `placement` and `actions` configure the interactive controls, e.g.
+// <MermaidFileLoader file="diagram.mmd" placement="top-left" actions={false} />
+const { file: mermaidFile, filePath, placement, actions } = Astro.props;
 
 // const escapeHtml = (str: string) => str.replace(/[&<>"']/g, (c) => escapeMap[c]);
 let isValidMermaidFile = mermaidFile.endsWith('.mmd') || mermaidFile.endsWith('.mermaid');
@@ -48,8 +50,13 @@ if (isValidMermaidFile) {
 {
   mermaidFileContent && isValidMermaidFile && (
     <div class="mermaid-block pb-4">
-      <div class="mermaid border border-gray-200 rounded-lg p-1" data-content={mermaidFileContent}>
-        <p>Loading graph...</p>
+      <div
+        class="mermaid border border-[rgb(var(--ec-page-border))] rounded-lg p-1"
+        data-content={mermaidFileContent}
+        data-placement={placement}
+        data-actions={actions !== undefined ? String(actions) : undefined}
+      >
+        <p class="text-[rgb(var(--ec-page-text-muted))]">Loading graph...</p>
       </div>
     </div>
   )

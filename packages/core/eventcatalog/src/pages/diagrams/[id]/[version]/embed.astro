@@ -73,16 +73,6 @@ const diagramId = props.data.id;
         display: block;
       }
 
-      /* Zoom controls styling - must stay as CSS since svg-pan-zoom injects them */
-      .svg-pan-zoom-control {
-        fill: rgb(var(--ec-page-text-muted)) !important;
-        cursor: pointer;
-      }
-
-      .svg-pan-zoom-control:hover {
-        fill: rgb(var(--ec-page-text)) !important;
-      }
-
       /* Prose styles */
       .prose {
         max-width: none;
@@ -216,351 +206,702 @@ const diagramId = props.data.id;
       // Store zoom instances for cleanup
       const zoomInstances = new Map();
 
-      function createZoomControls(onZoomIn, onZoomOut, onFitView) {
-        // Detect dark mode
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      // ---------------------------------------------------------------------------
+      // Diagram pan/zoom, controls and fullscreen modal
+      // (kept in sync with eventcatalog/src/utils/mermaid-zoom.ts)
+      // ---------------------------------------------------------------------------
+      const CONTROLS_PLACEMENTS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+      const DEFAULT_PLACEMENT = 'top-right';
+      const CONTROLS_MIN_HEIGHT = 120;
+      const PAN_STEP = 60;
+      const ZOOM_STEP = 1.2;
+      const TRANSITION_MS = 150;
+      const FIT_PADDING = 16;
+      const STYLE_ID = 'ec-diagram-styles';
+      let closeOpenModal = null;
 
-        // Use explicit colors based on theme
-        const bgColor = isDark ? '#161b22' : '#ffffff';
-        const borderColor = isDark ? '#30363d' : '#e2e8f0';
-        const iconColor = isDark ? '#8b949e' : '#64748b';
-        const iconHoverColor = isDark ? '#f0f6fc' : '#0f172a';
-        const hoverBgColor = isDark ? '#21262d' : '#f1f5f9';
+      const DIAGRAM_STYLES = `
+.mermaid-zoom-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.ec-diagram-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+.ec-diagram-viewport.is-panning {
+  cursor: grabbing;
+}
+.ec-diagram-viewport--modal {
+  touch-action: none;
+  background-image: radial-gradient(rgb(var(--ec-page-text, 15 23 42) / 0.08) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.ec-diagram-content {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transition: transform ${TRANSITION_MS}ms ease-out;
+  will-change: transform;
+}
+/* Element selectors bump specificity above the page's global ".mermaid svg" rules */
+div.ec-diagram-content > svg {
+  display: block;
+  margin: 0;
+  max-width: none !important;
+}
+.ec-diagram-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: rgb(var(--ec-card-bg, 255 255 255));
+  color: rgb(var(--ec-page-text, 15 23 42));
+  border: 1px solid rgb(var(--ec-page-border, 226 232 240));
+  transition: background-color 0.15s, transform 0.1s;
+}
+.ec-diagram-btn:hover {
+  background: rgb(var(--ec-content-hover, 241 245 249));
+}
+.ec-diagram-btn:active {
+  transform: scale(0.95);
+}
+.ec-diagram-btn:focus-visible {
+  outline: 2px solid rgb(var(--ec-accent, 59 130 246));
+  outline-offset: 1px;
+}
+button.ec-diagram-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+}
+.ec-diagram-btn.ec-diagram-btn--success {
+  color: #10b981;
+}
+.ec-diagram-controls {
+  position: absolute;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(3, 28px);
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.ec-diagram-controls[data-placement="top-left"] { top: 8px; left: 8px; }
+.ec-diagram-controls[data-placement="top-right"] { top: 8px; right: 8px; }
+.ec-diagram-controls[data-placement="bottom-left"] { bottom: 8px; left: 8px; }
+.ec-diagram-controls[data-placement="bottom-right"] { bottom: 8px; right: 8px; }
+.mermaid-zoom-container:hover .ec-diagram-controls,
+.mermaid-zoom-container:focus-within .ec-diagram-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (pointer: coarse) {
+  .ec-diagram-controls { opacity: 1; pointer-events: auto; }
+}
+@media print {
+  .ec-diagram-controls { display: none; }
+}
+.ec-diagram-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgb(0 0 0 / 0.4);
+  opacity: 0;
+  transition: opacity 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ec-diagram-modal-backdrop.is-open {
+  opacity: 1;
+}
+.ec-diagram-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  padding: 16px;
+}
+@media (min-width: 640px) {
+  .ec-diagram-modal { padding: 24px; }
+}
+.ec-diagram-modal__dialog {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgb(var(--ec-page-bg, 255 255 255));
+  box-shadow:
+    0 0 0 1px rgb(var(--ec-page-border, 226 232 240)),
+    0 25px 50px -12px rgb(0 0 0 / 0.25);
+  transform: scale(0.96);
+  opacity: 0;
+  transition:
+    transform 250ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ec-diagram-modal.is-open .ec-diagram-modal__dialog {
+  transform: none;
+  opacity: 1;
+}
+.ec-diagram-modal.is-closing .ec-diagram-modal__dialog,
+.ec-diagram-modal-backdrop.is-closing {
+  transition-duration: 150ms;
+}
+.ec-diagram-modal__toolbar {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ec-diagram-modal__zoom {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  min-width: 56px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid rgb(var(--ec-page-border, 226 232 240));
+  background: rgb(var(--ec-card-bg, 255 255 255));
+  color: rgb(var(--ec-page-text, 15 23 42));
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ec-diagram-modal__close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 10;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ec-diagram-content,
+  .ec-diagram-controls,
+  .ec-diagram-modal-backdrop,
+  .ec-diagram-modal__dialog {
+    transition: none;
+  }
+}
+`;
 
-        const controls = document.createElement('div');
-        controls.className = 'mermaid-zoom-controls';
-        controls.style.cssText = `
-          position: absolute;
-          bottom: 12px;
-          left: 12px;
-          display: flex;
-          flex-direction: column;
-          background: ${bgColor};
-          border-radius: 6px;
-          box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-          border: 1px solid ${borderColor};
-          overflow: hidden;
-          z-index: 10;
-        `;
+      function ensureDiagramStyles() {
+        if (document.getElementById(STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = STYLE_ID;
+        style.textContent = DIAGRAM_STYLES;
+        document.head.appendChild(style);
+      }
 
-        const createButton = (svg, title, onClick, isLast = false) => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.title = title;
-          btn.innerHTML = svg;
-          btn.onclick = onClick;
-          btn.style.cssText = `
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 26px;
-            height: 26px;
-            padding: 0;
-            margin: 0;
-            border: none;
-            background: ${bgColor};
-            color: ${iconColor};
-            cursor: pointer;
-            transition: background-color 0.15s, color 0.15s;
-            line-height: 1;
-            ${!isLast ? `border-bottom: 1px solid ${borderColor};` : ''}
-          `;
-          // Ensure SVG is properly centered
-          const svgEl = btn.querySelector('svg');
-          if (svgEl) {
-            svgEl.style.display = 'block';
-          }
-          btn.onmouseenter = () => {
-            btn.style.backgroundColor = hoverBgColor;
-            btn.style.color = iconHoverColor;
-          };
-          btn.onmouseleave = () => {
-            btn.style.backgroundColor = bgColor;
-            btn.style.color = iconColor;
-          };
-          return btn;
+      const icon = (paths, strokeWidth = 2) =>
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+
+      const ICONS = {
+        fullscreen: icon('<path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>'),
+        close: icon('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+        panUp: icon('<path d="m18 15-6-6-6 6"/>', 2.5),
+        panDown: icon('<path d="m6 9 6 6 6-6"/>', 2.5),
+        panLeft: icon('<path d="m15 18-6-6 6-6"/>', 2.5),
+        panRight: icon('<path d="m9 18 6-6-6-6"/>', 2.5),
+        zoomIn: icon('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/>'),
+        zoomOut: icon('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>'),
+        reset: icon('<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>', 2.5),
+        copy: icon(
+          '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>'
+        ),
+        check: icon('<path d="M20 6 9 17l-5-5"/>', 2.5),
+      };
+
+      function createControlButton(svg, label, onClick) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ec-diagram-btn';
+        btn.title = label;
+        btn.setAttribute('aria-label', label);
+        btn.innerHTML = svg;
+        btn.onclick = onClick;
+        return btn;
+      }
+
+      function createCopyButton(diagramContent) {
+        let copyTimeout;
+        const button = createControlButton(ICONS.copy, 'Copy diagram code', () => {
+          navigator.clipboard.writeText(diagramContent).catch((err) => {
+            console.warn('Failed to copy diagram code:', err);
+          });
+          button.innerHTML = ICONS.check;
+          button.classList.add('ec-diagram-btn--success');
+          button.title = 'Copied!';
+          if (copyTimeout) clearTimeout(copyTimeout);
+          copyTimeout = setTimeout(() => {
+            button.innerHTML = ICONS.copy;
+            button.classList.remove('ec-diagram-btn--success');
+            button.title = 'Copy diagram code';
+          }, 2000);
+        });
+        return button;
+      }
+
+      function resolvePlacement(value) {
+        return CONTROLS_PLACEMENTS.includes(value) ? value : DEFAULT_PLACEMENT;
+      }
+
+      function resolveActions(value) {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        return undefined;
+      }
+
+      function getControlOptionsFromElement(element) {
+        return {
+          placement: resolvePlacement(element.getAttribute('data-placement')),
+          actions: resolveActions(element.getAttribute('data-actions')),
+        };
+      }
+
+      /**
+       * Pan/zoom engine: applies translate/scale to the content element. Button/keyboard changes
+       * are animated with a CSS transition; drag, wheel and pinch changes are instant.
+       */
+      function createPanZoom(viewport, content, contentWidth, contentHeight, options = {}) {
+        const { minScale = 0.1, maxScale = 8, wheelZoom = false, onChange } = options;
+
+        let scale = 1;
+        let x = 0;
+        let y = 0;
+
+        const clamp = (value) => Math.min(maxScale, Math.max(minScale, value));
+
+        const apply = (animate) => {
+          content.style.transitionDuration = animate ? `${TRANSITION_MS}ms` : '0ms';
+          content.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+          if (onChange) onChange(scale);
         };
 
-        const plusSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
-        const minusSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
-        const fitSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
+        const fit = (animate = false) => {
+          const vw = viewport.clientWidth;
+          const vh = viewport.clientHeight;
+          if (vw <= 0 || vh <= 0) return;
+          scale = clamp(Math.min((vw - FIT_PADDING * 2) / contentWidth, (vh - FIT_PADDING * 2) / contentHeight, 1));
+          x = (vw - contentWidth * scale) / 2;
+          y = (vh - contentHeight * scale) / 2;
+          apply(animate);
+        };
 
-        controls.appendChild(createButton(plusSvg, 'Zoom in', onZoomIn));
-        controls.appendChild(createButton(minusSvg, 'Zoom out', onZoomOut));
-        controls.appendChild(createButton(fitSvg, 'Fit view', onFitView, true));
+        const zoomTo = (next, ox, oy, animate) => {
+          const target = clamp(next);
+          const ratio = target / scale;
+          x = ox - (ox - x) * ratio;
+          y = oy - (oy - y) * ratio;
+          scale = target;
+          apply(animate);
+        };
+
+        const zoomAtCenter = (factor) => zoomTo(scale * factor, viewport.clientWidth / 2, viewport.clientHeight / 2, true);
+
+        const panBy = (dx, dy) => {
+          x += dx;
+          y += dy;
+          apply(true);
+        };
+
+        const pointers = new Map();
+        let dragStart = null;
+        let pinchStart = null;
+
+        const pointerDistance = () => {
+          const [a, b] = Array.from(pointers.values());
+          return Math.hypot(a.x - b.x, a.y - b.y);
+        };
+
+        const pointerMidpoint = () => {
+          const [a, b] = Array.from(pointers.values());
+          const rect = viewport.getBoundingClientRect();
+          return { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top };
+        };
+
+        const onPointerDown = (event) => {
+          if (event.pointerType === 'mouse' && event.button !== 0) return;
+          if (event.target.closest('button')) return;
+          viewport.setPointerCapture(event.pointerId);
+          pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+          if (pointers.size === 1) {
+            dragStart = { px: event.clientX, py: event.clientY, x, y };
+            viewport.classList.add('is-panning');
+          } else if (pointers.size === 2) {
+            dragStart = null;
+            pinchStart = { distance: pointerDistance(), scale };
+          }
+        };
+
+        const onPointerMove = (event) => {
+          if (!pointers.has(event.pointerId)) return;
+          pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+          if (pointers.size === 2 && pinchStart) {
+            const mid = pointerMidpoint();
+            zoomTo((pinchStart.scale * pointerDistance()) / pinchStart.distance, mid.x, mid.y, false);
+          } else if (pointers.size === 1 && dragStart) {
+            x = dragStart.x + (event.clientX - dragStart.px);
+            y = dragStart.y + (event.clientY - dragStart.py);
+            apply(false);
+          }
+        };
+
+        const onPointerUp = (event) => {
+          if (!pointers.has(event.pointerId)) return;
+          pointers.delete(event.pointerId);
+          try {
+            viewport.releasePointerCapture(event.pointerId);
+          } catch (e) {}
+
+          if (pointers.size === 0) {
+            dragStart = null;
+            pinchStart = null;
+            viewport.classList.remove('is-panning');
+          } else if (pointers.size === 1) {
+            const [remaining] = Array.from(pointers.values());
+            pinchStart = null;
+            dragStart = { px: remaining.x, py: remaining.y, x, y };
+          }
+        };
+
+        const onWheel = (event) => {
+          if (!wheelZoom) return;
+          event.preventDefault();
+          const rect = viewport.getBoundingClientRect();
+          const delta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
+          zoomTo(scale * Math.exp(-delta * 0.0015), event.clientX - rect.left, event.clientY - rect.top, false);
+        };
+
+        const onDoubleClick = (event) => {
+          if (event.target.closest('button')) return;
+          const rect = viewport.getBoundingClientRect();
+          zoomTo(scale * ZOOM_STEP * ZOOM_STEP, event.clientX - rect.left, event.clientY - rect.top, true);
+        };
+
+        viewport.addEventListener('pointerdown', onPointerDown);
+        viewport.addEventListener('pointermove', onPointerMove);
+        viewport.addEventListener('pointerup', onPointerUp);
+        viewport.addEventListener('pointercancel', onPointerUp);
+        viewport.addEventListener('wheel', onWheel, { passive: false });
+        viewport.addEventListener('dblclick', onDoubleClick);
+
+        return {
+          fit,
+          zoomIn: () => zoomAtCenter(ZOOM_STEP),
+          zoomOut: () => zoomAtCenter(1 / ZOOM_STEP),
+          panBy,
+          getScale: () => scale,
+          destroy: () => {
+            viewport.removeEventListener('pointerdown', onPointerDown);
+            viewport.removeEventListener('pointermove', onPointerMove);
+            viewport.removeEventListener('pointerup', onPointerUp);
+            viewport.removeEventListener('pointercancel', onPointerUp);
+            viewport.removeEventListener('wheel', onWheel);
+            viewport.removeEventListener('dblclick', onDoubleClick);
+            pointers.clear();
+          },
+        };
+      }
+
+      function createViewport(svgElement, width, height, modal = false) {
+        const viewport = document.createElement('div');
+        viewport.className = modal ? 'ec-diagram-viewport ec-diagram-viewport--modal' : 'ec-diagram-viewport';
+
+        const content = document.createElement('div');
+        content.className = 'ec-diagram-content';
+        content.style.width = `${width}px`;
+        content.style.height = `${height}px`;
+
+        svgElement.setAttribute('width', String(width));
+        svgElement.setAttribute('height', String(height));
+        svgElement.style.width = `${width}px`;
+        svgElement.style.height = `${height}px`;
+        svgElement.style.maxWidth = 'none';
+
+        content.appendChild(svgElement);
+        viewport.appendChild(content);
+        return { viewport, content };
+      }
+
+      /**
+       * Opens the diagram in a fullscreen modal viewer with its own zoom toolbar.
+       */
+      function openDiagramModal(source) {
+        ensureDiagramStyles();
+        if (closeOpenModal) closeOpenModal();
+
+        const previouslyFocused = document.activeElement;
+        const previousBodyOverflow = document.body.style.overflow;
+
+        const backdrop = document.createElement('div');
+        backdrop.className = 'ec-diagram-modal-backdrop';
+
+        const root = document.createElement('div');
+        root.className = 'ec-diagram-modal';
+
+        const dialog = document.createElement('div');
+        dialog.className = 'ec-diagram-modal__dialog';
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-label', 'Diagram');
+
+        const { viewport, content } = createViewport(source.svg.cloneNode(true), source.width, source.height, true);
+        viewport.tabIndex = 0;
+        viewport.setAttribute('role', 'application');
+        viewport.setAttribute(
+          'aria-label',
+          'Diagram viewer. Use the arrow keys to pan, plus and minus to zoom, and zero to reset.'
+        );
+
+        const zoomStatus = document.createElement('span');
+        zoomStatus.className = 'ec-diagram-modal__zoom';
+        zoomStatus.setAttribute('role', 'status');
+        zoomStatus.textContent = '100%';
+
+        const panZoom = createPanZoom(viewport, content, source.width, source.height, {
+          wheelZoom: true,
+          onChange: (scale) => {
+            zoomStatus.textContent = `${Math.round(scale * 100)}%`;
+          },
+        });
+
+        let closed = false;
+        const close = () => {
+          if (closed) return;
+          closed = true;
+          closeOpenModal = null;
+          document.removeEventListener('keydown', onKeyDown);
+          panZoom.destroy();
+          root.classList.add('is-closing');
+          backdrop.classList.add('is-closing');
+          root.classList.remove('is-open');
+          backdrop.classList.remove('is-open');
+          document.body.style.overflow = previousBodyOverflow;
+          setTimeout(() => {
+            root.remove();
+            backdrop.remove();
+          }, 150);
+          if (previouslyFocused && previouslyFocused.focus) previouslyFocused.focus({ preventScroll: true });
+        };
+        closeOpenModal = close;
+
+        const onKeyDown = (event) => {
+          switch (event.key) {
+            case 'Escape':
+              close();
+              break;
+            case 'ArrowUp':
+              panZoom.panBy(0, PAN_STEP);
+              break;
+            case 'ArrowDown':
+              panZoom.panBy(0, -PAN_STEP);
+              break;
+            case 'ArrowLeft':
+              panZoom.panBy(PAN_STEP, 0);
+              break;
+            case 'ArrowRight':
+              panZoom.panBy(-PAN_STEP, 0);
+              break;
+            case '+':
+            case '=':
+              panZoom.zoomIn();
+              break;
+            case '-':
+            case '_':
+              panZoom.zoomOut();
+              break;
+            case '0':
+              panZoom.fit(true);
+              break;
+            default:
+              return;
+          }
+          event.preventDefault();
+        };
+
+        const toolbar = document.createElement('div');
+        toolbar.className = 'ec-diagram-modal__toolbar';
+        toolbar.appendChild(createControlButton(ICONS.zoomOut, 'Zoom out', () => panZoom.zoomOut()));
+        toolbar.appendChild(zoomStatus);
+        toolbar.appendChild(createControlButton(ICONS.zoomIn, 'Zoom in', () => panZoom.zoomIn()));
+        toolbar.appendChild(createControlButton(ICONS.reset, 'Reset view', () => panZoom.fit(true)));
+        if (source.diagramContent) {
+          toolbar.appendChild(createCopyButton(source.diagramContent));
+        }
+
+        const closeBtn = createControlButton(ICONS.close, 'Close fullscreen', close);
+        closeBtn.classList.add('ec-diagram-modal__close');
+
+        dialog.appendChild(viewport);
+        dialog.appendChild(toolbar);
+        dialog.appendChild(closeBtn);
+        root.appendChild(dialog);
+
+        backdrop.addEventListener('click', close);
+        root.addEventListener('click', (event) => {
+          if (event.target === root) close();
+        });
+        document.addEventListener('keydown', onKeyDown);
+
+        document.body.appendChild(backdrop);
+        document.body.appendChild(root);
+        document.body.style.overflow = 'hidden';
+
+        panZoom.fit(false);
+        viewport.focus({ preventScroll: true });
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            backdrop.classList.add('is-open');
+            root.classList.add('is-open');
+          });
+        });
+      }
+
+      /**
+       * 3x3 grid of inline controls:
+       *   [fullscreen] [pan up]   [zoom in]
+       *   [pan left]   [reset]    [pan right]
+       *   [copy]       [pan down] [zoom out]
+       */
+      function createDiagramControls(panZoom, { placement, source }) {
+        const controls = document.createElement('div');
+        controls.className = 'ec-diagram-controls';
+        controls.setAttribute('data-placement', placement);
+        controls.setAttribute('role', 'toolbar');
+        controls.setAttribute('aria-label', 'Diagram controls');
+
+        let copyBtn;
+        if (source.diagramContent) {
+          copyBtn = createCopyButton(source.diagramContent);
+        } else {
+          copyBtn = document.createElement('div');
+          copyBtn.setAttribute('aria-hidden', 'true');
+        }
+
+        [
+          createControlButton(ICONS.fullscreen, 'Open fullscreen', () => openDiagramModal(source)),
+          createControlButton(ICONS.panUp, 'Pan up', () => panZoom.panBy(0, PAN_STEP)),
+          createControlButton(ICONS.zoomIn, 'Zoom in', () => panZoom.zoomIn()),
+          createControlButton(ICONS.panLeft, 'Pan left', () => panZoom.panBy(PAN_STEP, 0)),
+          createControlButton(ICONS.reset, 'Reset view', () => panZoom.fit(true)),
+          createControlButton(ICONS.panRight, 'Pan right', () => panZoom.panBy(-PAN_STEP, 0)),
+          copyBtn,
+          createControlButton(ICONS.panDown, 'Pan down', () => panZoom.panBy(0, -PAN_STEP)),
+          createControlButton(ICONS.zoomOut, 'Zoom out', () => panZoom.zoomOut()),
+        ].forEach((btn) => controls.appendChild(btn));
 
         return controls;
       }
 
-      // Icons for toolbar
-      const ICONS = {
-        presentation: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605"></path></svg>`,
-        copy: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z"></path></svg>`,
-        check: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
-      };
+      const TRIM_PADDING = 8;
+      const TRIM_THRESHOLD = 16;
 
-      function createToolbarButton(icon, tooltipText, onClick, tooltipPosition = 'bottom') {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const bgColor = isDark ? '#161b22' : '#ffffff';
-        const iconColor = isDark ? '#8b949e' : '#64748b';
-        const iconHoverColor = isDark ? '#f0f6fc' : '#0f172a';
-        const hoverBgColor = isDark ? '#21262d' : '#f1f5f9';
+      // Tighten over-allocated viewBoxes (e.g. mermaid C4 diagrams) around the drawn content
+      function trimSvgViewBox(svgElement) {
+        const viewBox = svgElement.getAttribute('viewBox');
+        if (!viewBox) return;
+        const [vx, vy, vw, vh] = viewBox.split(/[\s,]+/).map(Number);
+        if (!(vw > 0 && vh > 0)) return;
 
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'position: relative;';
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.innerHTML = icon;
-        btn.style.cssText = `
-          all: unset;
-          box-sizing: border-box;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 40px;
-          height: 40px;
-          min-width: 40px;
-          min-height: 40px;
-          padding: 0;
-          margin: 0;
-          border: none;
-          border-radius: 6px;
-          background: ${bgColor};
-          color: ${iconColor};
-          cursor: pointer;
-          transition: background-color 0.15s, color 0.15s;
-          box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-        `;
-
-        const svgEl = btn.querySelector('svg');
-        if (svgEl) svgEl.style.cssText = 'display: block; width: 20px; height: 20px;';
-
-        btn.onmouseenter = () => {
-          btn.style.backgroundColor = hoverBgColor;
-          btn.style.color = iconHoverColor;
-        };
-        btn.onmouseleave = () => {
-          btn.style.backgroundColor = bgColor;
-          btn.style.color = iconColor;
-        };
-        btn.onclick = onClick;
-
-        const tooltip = document.createElement('div');
-        tooltip.textContent = tooltipText;
-
-        // Position tooltip based on tooltipPosition parameter
-        let tooltipStyles = `
-          position: absolute;
-          padding: 4px 8px;
-          background: #1f2937;
-          color: white;
-          font-size: 12px;
-          border-radius: 4px;
-          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-          white-space: nowrap;
-          pointer-events: none;
-          opacity: 0;
-          transition: opacity 0.15s;
-          z-index: 50;
-        `;
-
-        if (tooltipPosition === 'right') {
-          tooltipStyles += `
-            top: 50%;
-            left: 100%;
-            transform: translateY(-50%);
-            margin-left: 8px;
-          `;
-        } else if (tooltipPosition === 'left') {
-          tooltipStyles += `
-            top: 50%;
-            right: 100%;
-            transform: translateY(-50%);
-            margin-right: 8px;
-          `;
-        } else {
-          // Default: bottom
-          tooltipStyles += `
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            margin-top: 8px;
-          `;
+        let bbox;
+        try {
+          bbox = svgElement.getBBox();
+        } catch (e) {
+          return;
         }
+        if (!(bbox.width > 0 && bbox.height > 0)) return;
 
-        tooltip.style.cssText = tooltipStyles;
+        const slack = Math.max(bbox.x - vx, bbox.y - vy, vx + vw - (bbox.x + bbox.width), vy + vh - (bbox.y + bbox.height));
+        if (slack <= TRIM_THRESHOLD) return;
 
-        wrapper.onmouseenter = () => (tooltip.style.opacity = '1');
-        wrapper.onmouseleave = () => (tooltip.style.opacity = '0');
-
-        wrapper.appendChild(btn);
-        wrapper.appendChild(tooltip);
-        return { wrapper, btn, tooltip, iconColor };
+        const x = Math.max(vx, bbox.x - TRIM_PADDING);
+        const y = Math.max(vy, bbox.y - TRIM_PADDING);
+        const width = Math.min(vx + vw, bbox.x + bbox.width + TRIM_PADDING) - x;
+        const height = Math.min(vy + vh, bbox.y + bbox.height + TRIM_PADDING) - y;
+        svgElement.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
       }
 
-      function createFullscreenButton(onClick) {
-        const { wrapper } = createToolbarButton(ICONS.presentation, 'Presentation Mode', onClick, 'right');
-        wrapper.style.cssText = 'position: absolute; top: 12px; left: 12px; z-index: 10;';
-        return wrapper;
-      }
-
-      function createCopyButton(onCopy) {
-        const copy = createToolbarButton(
-          ICONS.copy,
-          'Copy diagram code',
-          () => {
-            onCopy();
-            copy.btn.innerHTML = ICONS.check;
-            copy.btn.style.color = '#10b981';
-            copy.tooltip.textContent = 'Copied!';
-            const svgEl = copy.btn.querySelector('svg');
-            if (svgEl) svgEl.style.cssText = 'display: block; width: 20px; height: 20px;';
-
-            setTimeout(() => {
-              copy.btn.innerHTML = ICONS.copy;
-              copy.btn.style.color = copy.iconColor;
-              copy.tooltip.textContent = 'Copy diagram code';
-              const svgEl = copy.btn.querySelector('svg');
-              if (svgEl) svgEl.style.cssText = 'display: block; width: 20px; height: 20px;';
-            }, 2000);
-          },
-          'left'
-        );
-        copy.wrapper.style.cssText = 'position: absolute; top: 12px; right: 12px; z-index: 10;';
-        return copy.wrapper;
-      }
-
-      function toggleFullscreen(container) {
-        if (!document.fullscreenElement) {
-          container.requestFullscreen().catch((err) => console.warn('Fullscreen error:', err));
-        } else {
-          document.exitFullscreen();
-        }
-      }
-
-      async function initMermaidZoom(svgElement, container, id, diagramContent) {
-        const { default: svgPanZoom } = await import('https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/+esm');
-
-        // Get the natural dimensions from viewBox or getBBox
-        let width, height;
+      function getSvgDimensions(svgElement) {
+        let width = 0;
+        let height = 0;
+        trimSvgViewBox(svgElement);
         const viewBox = svgElement.getAttribute('viewBox');
         if (viewBox) {
           const parts = viewBox.split(/[\s,]+/).map(Number);
           width = parts[2];
           height = parts[3];
-        } else {
-          const bbox = svgElement.getBBox();
-          width = bbox.width;
-          height = bbox.height;
-          if (width > 0 && height > 0) {
-            svgElement.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${width} ${height}`);
-          }
         }
+        if (!(width > 0 && height > 0)) {
+          try {
+            const bbox = svgElement.getBBox();
+            width = bbox.width;
+            height = bbox.height;
+            if (width > 0 && height > 0 && !viewBox) {
+              svgElement.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${width} ${height}`);
+            }
+          } catch (e) {}
+        }
+        if (!(width > 0 && height > 0)) {
+          width = svgElement.clientWidth || parseFloat(svgElement.getAttribute('width') || '0') || 800;
+          height = svgElement.clientHeight || parseFloat(svgElement.getAttribute('height') || '0') || 400;
+        }
+        return { width, height };
+      }
+
+      async function initMermaidZoom(svgElement, container, id, diagramContent, controlOptions = {}) {
+        ensureDiagramStyles();
+
+        const { placement = DEFAULT_PLACEMENT, actions } = controlOptions;
+        const { width, height } = getSvgDimensions(svgElement);
 
         // Set container height based on SVG aspect ratio, capped for usability
-        if (width > 0 && height > 0) {
-          const containerWidth = container.clientWidth || 800;
-          const aspectRatio = height / width;
-          const calculatedHeight = Math.min(Math.max(containerWidth * aspectRatio, 200), 500);
-          container.style.height = `${calculatedHeight}px`;
+        const containerWidth = container.clientWidth || 800;
+        container.style.height = `${Math.min(Math.max(containerWidth * (height / width), 200), 500)}px`;
+
+        const { viewport, content } = createViewport(svgElement, width, height);
+        container.innerHTML = '';
+        container.appendChild(viewport);
+
+        const panZoom = createPanZoom(viewport, content, width, height);
+        zoomInstances.set(id, panZoom);
+        panZoom.fit(false);
+
+        // Add interactive controls. By default they are only shown for diagrams taller than 120px.
+        const showControls = actions ?? height > CONTROLS_MIN_HEIGHT;
+        if (showControls) {
+          const source = { svg: svgElement, width, height, diagramContent };
+          container.appendChild(createDiagramControls(panZoom, { placement, source }));
         }
 
-        // SVG needs to fill the container for svg-pan-zoom
-        svgElement.style.width = '100%';
-        svgElement.style.height = '100%';
-        svgElement.removeAttribute('height');
-        svgElement.removeAttribute('width');
-
-        try {
-          const instance = svgPanZoom(svgElement, {
-            zoomEnabled: true,
-            controlIconsEnabled: false,
-            fit: true,
-            center: true,
-            minZoom: 0.5,
-            maxZoom: 10,
-            zoomScaleSensitivity: 0.15,
-            dblClickZoomEnabled: true,
-            mouseWheelZoomEnabled: false, // Disabled to avoid hijacking page scroll
-            preventMouseEventsDefault: true,
-            panEnabled: true,
-          });
-
-          zoomInstances.set(id, instance);
-
-          // Update cursor during pan
-          container.addEventListener('mousedown', () => {
-            container.style.cursor = 'grabbing';
-          });
-          container.addEventListener('mouseup', () => {
-            container.style.cursor = 'grab';
-          });
-          container.addEventListener('mouseleave', () => {
-            container.style.cursor = 'grab';
-          });
-
-          // Add custom controls
-          const controls = createZoomControls(
-            () => instance.zoomIn(),
-            () => instance.zoomOut(),
-            () => {
-              instance.fit();
-              instance.center();
-            }
-          );
-          container.appendChild(controls);
-
-          // Add fullscreen button (top-left)
-          const fullscreenBtn = createFullscreenButton(() => toggleFullscreen(container));
-          container.appendChild(fullscreenBtn);
-
-          // Add copy button (top-right) if diagram content is available
-          if (diagramContent) {
-            const copyBtn = createCopyButton(() => {
-              navigator.clipboard.writeText(diagramContent).catch((err) => {
-                console.warn('Failed to copy:', err);
-              });
-            });
-            container.appendChild(copyBtn);
+        const resizeObserver = new ResizeObserver(() => {
+          if (container.clientWidth > 0 && container.clientHeight > 0) {
+            panZoom.fit(false);
           }
-
-          // Handle fullscreen changes
-          document.addEventListener('fullscreenchange', () => {
-            const isFullscreen = document.fullscreenElement === container;
-            if (isFullscreen) {
-              instance.enableMouseWheelZoom();
-              const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-              container.style.background = isDark ? '#0d1117' : '#ffffff';
-            } else {
-              instance.disableMouseWheelZoom();
-              container.style.background = '';
-            }
-            setTimeout(() => {
-              if (container.clientWidth > 0 && container.clientHeight > 0) {
-                try {
-                  instance.resize();
-                  instance.fit();
-                  instance.center();
-                } catch (e) {}
-              }
-            }, 100);
-          });
-
-          // Resize handler for responsiveness
-          const resizeObserver = new ResizeObserver(() => {
-            if (container.clientWidth > 0 && container.clientHeight > 0) {
-              try {
-                instance.resize();
-                instance.fit();
-                instance.center();
-              } catch (e) {}
-            }
-          });
-          resizeObserver.observe(container);
-        } catch (e) {
-          console.warn('Failed to initialize zoom on mermaid diagram:', e);
-        }
+        });
+        resizeObserver.observe(container);
       }
 
       async function renderMermaid() {
@@ -608,8 +949,8 @@ const diagramId = props.data.id;
 
             // Create zoom container with inline styles (no Tailwind in embed)
             const container = document.createElement('div');
-            container.style.cssText =
-              'position: relative; width: 100%; min-height: 200px; overflow: hidden; margin: 1em 0; cursor: grab;';
+            container.className = 'mermaid-zoom-container';
+            container.style.cssText = 'min-height: 200px; margin: 1em 0;';
 
             // Insert the rendered SVG
             container.innerHTML = result.svg;
@@ -621,7 +962,7 @@ const diagramId = props.data.id;
             // Initialize zoom on the SVG
             const svgElement = container.querySelector('svg');
             if (svgElement) {
-              await initMermaidZoom(svgElement, container, id, content);
+              await initMermaidZoom(svgElement, container, id, content, getControlOptionsFromElement(graph));
             }
           } catch (e) {
             console.error('Mermaid render error:', e);
@@ -637,7 +978,6 @@ const diagramId = props.data.id;
         if (blocks.length === 0) return;
 
         const { deflate } = await import('https://cdn.jsdelivr.net/npm/pako@2.1.0/+esm');
-        const { default: svgPanZoom } = await import('https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/+esm');
 
         function encode64(data) {
           const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
@@ -681,8 +1021,8 @@ const diagramId = props.data.id;
 
             // Create zoom container
             const container = document.createElement('div');
-            container.style.cssText =
-              'position: relative; width: 100%; min-height: 200px; overflow: hidden; margin: 1em 0; cursor: grab;';
+            container.className = 'mermaid-zoom-container';
+            container.style.cssText = 'min-height: 200px; margin: 1em 0;';
             container.innerHTML = svgText;
 
             block.innerHTML = '';

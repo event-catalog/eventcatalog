@@ -68,6 +68,42 @@ The **Payments** domain is responsible for moving money. It authorizes and captu
 
 The **Payment Processing System** is the internal orchestrator. When the Ordering domain authorizes a payment, it requests payment via the external **Stripe** system and, in parallel, asks **Fraud Detection** to screen the payment. Stripe reports back whether the payment succeeded or failed, and the Payment Processing System records the outcome.
 
+## Value Chain
+
+A Wardley map of the Payments domain. Card processing and fraud screening are commodities we buy from providers, so the value we add is in orchestration, refunds and the compliance posture around them.
+
+```mermaid
+wardley-beta
+title Payments value chain
+
+anchor Shopper [0.96, 0.60]
+anchor Finance Team [0.96, 0.30]
+component Pay for Order [0.86, 0.58]
+component Refund Order [0.80, 0.34]
+component Payment Orchestration [0.70, 0.44]
+component Fraud Screening [0.56, 0.64]
+component Card Processing [0.46, 0.86]
+component PCI Compliance [0.38, 0.72]
+component Payment Ledger [0.26, 0.60]
+component Cloud Compute [0.10, 0.94]
+
+Shopper -> Pay for Order
+Finance Team -> Refund Order
+Pay for Order -> Payment Orchestration
+Refund Order -> Payment Orchestration
+Payment Orchestration -> Fraud Screening
+Payment Orchestration -> Card Processing
+Payment Orchestration -> Payment Ledger
+Card Processing -> PCI Compliance
+Payment Ledger -> Cloud Compute
+
+evolve Fraud Screening 0.82
+evolve Payment Ledger 0.80
+
+note "In house rules engine is being replaced by a managed fraud provider" [0.62, 0.30]
+note "Ledger moving to a hosted double entry service" [0.20, 0.36]
+```
+
 ## System Diagram
 
 The systems in this domain, how they relate, and the people who interact with them.
