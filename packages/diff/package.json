@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/diff",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Compare two EventCatalog indexes and produce a versioned ArchitectureDiff document",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
