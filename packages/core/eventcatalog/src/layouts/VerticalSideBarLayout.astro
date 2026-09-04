@@ -432,6 +432,10 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
     <script is:inline define:vars={{ verticalNavAutoCollapsePaths }}>
       (() => {
         const verticalNavStorageKey = 'eventcatalog-vertical-nav-collapsed';
+        const embedded = new URLSearchParams(window.location.search).get('embed') === 'true';
+
+        document.documentElement.setAttribute('data-embedded', embedded ? 'true' : 'false');
+
         const routeShouldAutoCollapseVerticalNav = (pathname) =>
           verticalNavAutoCollapsePaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 
@@ -513,6 +517,15 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       }
       .app-shell--with-sidebar {
         margin-left: calc(var(--ec-vertical-nav-width) + var(--ec-sidebar-panel-width));
+      }
+      :root[data-embedded='true'] #eventcatalog-vertical-nav,
+      :root[data-embedded='true'] #eventcatalog-header,
+      :root[data-embedded='true'] #eventcatalog-header-spacer,
+      :root[data-embedded='true'] #sidebar {
+        display: none !important;
+      }
+      :root[data-embedded='true'] .app-shell {
+        margin-left: 0 !important;
       }
       .vertical-nav-rail {
         width: var(--ec-vertical-nav-width);
@@ -1087,6 +1100,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
     const urlSearchParams = new URLSearchParams(window.location.search);
     const params = Object.fromEntries(urlSearchParams.entries());
     const embeded = params.embed === 'true' ? true : false;
+    document.documentElement.setAttribute('data-embedded', embeded ? 'true' : 'false');
     const content = document.getElementById('content');
     const shell = document.querySelector('.app-shell');
     const app = document.getElementById('eventcatalog-application');
@@ -1130,6 +1144,7 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         'eventcatalog-vertical-nav',
         'eventcatalog-header',
         'eventcatalog-header-spacer',
+        'sidebar',
         'visualiser-footer',
         // /discover page elements
         'discover-collection-tabs',

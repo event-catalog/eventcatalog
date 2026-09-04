@@ -14,6 +14,15 @@ const getDefaultTheme = (): Theme => {
   return DEFAULT_THEME;
 };
 
+const getEmbeddedTheme = (): Theme | null => {
+  if (typeof window === 'undefined') return null;
+
+  const params = new URLSearchParams(window.location.search);
+  const requestedTheme = params.get('theme');
+  const embedded = params.get('embed') === 'true';
+  return embedded && (requestedTheme === 'light' || requestedTheme === 'dark') ? requestedTheme : null;
+};
+
 // Apply theme to document via data-theme attribute
 const applyTheme = (theme: Theme) => {
   if (typeof document !== 'undefined') {
@@ -25,6 +34,13 @@ const applyTheme = (theme: Theme) => {
 const initStore = () => {
   if (typeof window !== 'undefined') {
     try {
+      const embeddedTheme = getEmbeddedTheme();
+      if (embeddedTheme) {
+        themeStore.set(embeddedTheme);
+        applyTheme(embeddedTheme);
+        return;
+      }
+
       const stored = localStorage.getItem(THEME_KEY) as Theme | null;
       if (stored && (stored === 'light' || stored === 'dark')) {
         // User has explicitly chosen a theme, use that
@@ -49,6 +65,8 @@ if (typeof window !== 'undefined') {
   // Listen for system preference changes
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (getEmbeddedTheme()) return;
+
       // Only follow system preference if user hasn't explicitly set a theme
       const stored = localStorage.getItem(THEME_KEY);
       if (!stored) {

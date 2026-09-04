@@ -812,6 +812,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
     <div className="flex h-full min-h-0" style={{ ['--ec-discover-sidebar-width' as any]: '320px' }}>
       {/* Filter Sidebar */}
       <div
+        id="discover-filter-sidebar"
         className="fixed left-[var(--ec-vertical-nav-width)] top-0 z-20 flex h-screen w-[320px] flex-shrink-0 flex-col border-r border-[rgb(var(--ec-content-border))] bg-[rgb(var(--ec-rail-bg))]"
         style={{ width: 'var(--ec-discover-sidebar-width, 320px)' }}
       >
@@ -1180,6 +1181,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
 
       {/* Main Table */}
       <div
+        id="discover-results"
         className="flex-1 min-w-0 flex flex-col overflow-hidden"
         style={{ marginLeft: 'var(--ec-discover-sidebar-width, 320px)' }}
       >

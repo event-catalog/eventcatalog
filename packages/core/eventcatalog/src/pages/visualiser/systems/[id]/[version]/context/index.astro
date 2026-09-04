@@ -17,9 +17,9 @@ const {
 ---
 
 <VisualiserLayout title={`Visualiser | ${props.data.name} - System Context`} description={props.data.summary}>
-  <div class="p-2">
+  <div id="system-context-map-page" class="p-2">
     <div
-      class="h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
+      class="system-context-map-viewport h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
       id={`${id}-portal`}
       transition:name="visualiser-graph"
     >
@@ -37,15 +37,13 @@ const {
   <ClientRouter />
 </VisualiserLayout>
 
-<script define:vars={{ id }}>
-  document.addEventListener('DOMContentLoaded', () => {
-    const urlSearchParams = new URLSearchParams(window.location.search);
-    const params = Object.fromEntries(urlSearchParams.entries());
-    const embeded = params.embed === 'true' ? true : false;
-    const viewport = document.getElementById(`${id}-portal`);
+<style is:global>
+  html[data-embedded='true'] #system-context-map-page {
+    box-sizing: border-box;
+    height: 100vh;
+  }
 
-    if (embeded) {
-      viewport.style.height = 'calc(100vh - 30px)';
-    }
-  });
-</script>
+  html[data-embedded='true'] #system-context-map-page .system-context-map-viewport {
+    height: 100%;
+  }
+</style>
