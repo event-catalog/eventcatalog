@@ -37,6 +37,8 @@ export type IndexResourceType =
 
 export type IndexSchema = Omit<SchemaPointer, 'file'> & {
   hash?: string;
+  /** Raw schema file text. Only present when the index was built with `includeSchemaContent`. */
+  content?: string;
 };
 
 export type IndexSpecification = Specification & {

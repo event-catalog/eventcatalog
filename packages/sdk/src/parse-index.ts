@@ -105,6 +105,7 @@ const IndexSchemaPointerSchema = z
     environments: z.array(z.string()).optional(),
     default: z.boolean().optional(),
     hash: contentHash.optional(),
+    content: z.string().optional(),
   })
   .strict();
 

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "refs": {
+    "a": {
+      "source": "acme/catalog",
+      "commit": "abc1234"
+    },
+    "b": {
+      "source": "acme/catalog",
+      "commit": "def5678"
+    }
+  },
+  "compatibility": {
+    "strategy": "full"
+  },
+  "summary": {
+    "breaking": false,
+    "resourcesAdded": 0,
+    "resourcesRemoved": 0,
+    "resourcesChanged": 0,
+    "edgesAdded": 0,
+    "edgesRemoved": 0,
+    "schemaChanges": 0,
+    "schemaBreaking": 0,
+    "schemaUnknown": 0
+  },
+  "resources": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "edges": {
+    "added": [],
+    "removed": []
+  },
+  "schemaChanges": [],
+  "impact": []
+}
