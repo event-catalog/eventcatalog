@@ -25,10 +25,18 @@ const catalogTheme = config.theme || 'default';
           return 'dark';
         }
 
+        function getEmbeddedTheme() {
+          const params = new URLSearchParams(window.location.search);
+          const requestedTheme = params.get('theme');
+          const embedded = params.get('embed') === 'true';
+          return embedded && (requestedTheme === 'light' || requestedTheme === 'dark') ? requestedTheme : null;
+        }
+
         function applyTheme() {
-          // Check localStorage first, fall back to dark mode
+          // An embed can request its own theme without changing the user's saved catalog preference.
+          const embeddedTheme = getEmbeddedTheme();
           const stored = localStorage.getItem('eventcatalog-theme');
-          const theme = stored === 'light' || stored === 'dark' ? stored : getDefaultTheme();
+          const theme = embeddedTheme || (stored === 'light' || stored === 'dark' ? stored : getDefaultTheme());
           document.documentElement.setAttribute('data-theme', theme);
           // Also ensure catalog theme is set (for page transitions)
           document.documentElement.setAttribute('data-catalog-theme', catalogTheme);

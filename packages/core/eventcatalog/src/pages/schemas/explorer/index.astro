@@ -17,8 +17,18 @@ const apiAccessEnabled = isEventCatalogScaleEnabled();
     #eventcatalog-header {
       left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-schema-sidebar-width, 360px)) !important;
     }
+    :root[data-embedded='true'] #schema-explorer-sidebar {
+      display: none !important;
+    }
+    :root[data-embedded='true'] #schema-explorer-content {
+      margin-left: 0 !important;
+    }
+    :root[data-embedded='true'] #schema-explorer-page {
+      height: 100dvh !important;
+    }
   </style>
   <main
+    id="schema-explorer-page"
     class="min-h-0 overflow-hidden bg-[rgb(var(--ec-page-bg))]"
     style={`--ec-schema-sidebar-width: 360px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);`}
   >

@@ -20,9 +20,9 @@ const {
 ---
 
 <VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
-  <div class="p-2">
+  <div id="visualiser-page" class="p-2">
     <div
-      class="h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
+      class="visualiser-viewport h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
       id={`${id}-portal`}
       transition:name="visualiser-graph"
     >
@@ -45,15 +45,13 @@ const {
   <ClientRouter />
 </VisualiserLayout>
 
-<script define:vars={{ id }}>
-  document.addEventListener('DOMContentLoaded', () => {
-    const urlSearchParams = new URLSearchParams(window.location.search);
-    const params = Object.fromEntries(urlSearchParams.entries());
-    const embeded = params.embed === 'true' ? true : false;
-    const viewport = document.getElementById(`${id}-portal`);
+<style is:global>
+  html[data-embedded='true'] #visualiser-page {
+    box-sizing: border-box;
+    height: 100vh;
+  }
 
-    if (embeded) {
-      viewport.style.height = 'calc(100vh - 30px)';
-    }
-  });
-</script>
+  html[data-embedded='true'] #visualiser-page .visualiser-viewport {
+    height: 100%;
+  }
+</style>

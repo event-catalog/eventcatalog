@@ -384,6 +384,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
       />
       <div className="flex flex-1 min-h-0 gap-0 overflow-hidden">
         <div
+          id="schema-explorer-sidebar"
           className="fixed top-0 z-20 flex h-screen flex-col overflow-hidden border-r border-[rgb(var(--ec-page-border))] bg-linear-to-b from-[rgb(var(--ec-page-bg))] via-[rgb(var(--ec-page-bg))] to-[rgb(var(--ec-accent)/0.06)]"
           style={{ left: 'var(--ec-vertical-nav-width)', width: 'var(--ec-schema-sidebar-width, 360px)' }}
         >
@@ -583,6 +584,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         </div>
 
         <div
+          id="schema-explorer-content"
           className="flex-1 min-h-0 min-w-0 overflow-hidden bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]"
           style={{ marginLeft: 'var(--ec-schema-sidebar-width, 360px)' }}
         >

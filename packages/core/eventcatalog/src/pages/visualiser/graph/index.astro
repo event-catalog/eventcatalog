@@ -16,9 +16,25 @@ const { nodes: wireNodes, links: wireLinks, linkLabels } = toCatalogForceGraphWi
 ---
 
 <VisualiserLayout title="Visualiser | Architecture Graph" description="Force-directed graph of every resource in the catalog">
-  <div class="m-4">
-    <div class="h-[calc(100vh-130px)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md overflow-hidden">
+  <div id="architecture-graph-page" class="m-4">
+    <div
+      id="architecture-graph-container"
+      class="h-[calc(100vh-130px)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md overflow-hidden"
+    >
       <CatalogForceGraph nodes={wireNodes} links={wireLinks} linkLabels={linkLabels} client:only="react" />
     </div>
   </div>
 </VisualiserLayout>
+
+<style is:global>
+  html[data-embedded='true'] #architecture-graph-page {
+    box-sizing: border-box;
+    height: 100vh;
+    margin: 0;
+    padding: 1rem;
+  }
+
+  html[data-embedded='true'] #architecture-graph-container {
+    height: 100%;
+  }
+</style>

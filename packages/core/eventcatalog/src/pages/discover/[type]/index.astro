@@ -444,8 +444,18 @@ const title = `${currentTypeConfig.label} (${data.length})`;
     #eventcatalog-header {
       left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-discover-sidebar-width, 320px)) !important;
     }
+    :root[data-embedded='true'] #discover-filter-sidebar {
+      display: none !important;
+    }
+    :root[data-embedded='true'] #discover-results {
+      margin-left: 0 !important;
+    }
+    :root[data-embedded='true'] #discover-page {
+      height: 100dvh !important;
+    }
   </style>
   <main
+    id="discover-page"
     class="ml-0 flex h-full min-h-0 flex-col overflow-hidden bg-[rgb(var(--ec-page-bg))]"
     style={`--ec-discover-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);`}
   >
