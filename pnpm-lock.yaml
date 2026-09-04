@@ -541,7 +541,7 @@ importers:
   packages/diff:
     dependencies:
       '@eventcatalog/sdk':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../sdk
       semver:
         specifier: ^7.7.2
