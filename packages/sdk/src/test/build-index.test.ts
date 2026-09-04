@@ -14,6 +14,7 @@ const rawHashFile = (contentPath: string) =>
     .digest('hex');
 
 const hashFile = (contentPath: string) => `sha256:${rawHashFile(contentPath)}`;
+const readFile = (contentPath: string) => fs.readFileSync(path.join(CATALOG_PATH, contentPath), 'utf8');
 
 beforeEach(() => {
   fs.rmSync(CATALOG_PATH, { recursive: true, force: true });
@@ -1614,6 +1615,86 @@ describe('buildIndex', () => {
           },
         ],
       });
+    });
+
+    it('embeds raw schema content when `includeSchemaContent` is true', async () => {
+      const avro = '{"type":"record","name":"PaymentCaptured","fields":[]}';
+      const json = '{"type":"object","properties":{}}';
+      await sdk.writeEvent({
+        id: 'payment-captured',
+        name: 'Payment Captured',
+        version: '2.0.0',
+        markdown: '# Payment Captured',
+        schemas: [
+          { id: 'avro', file: 'schema.avsc', format: 'avro', default: true },
+          { id: 'json', path: 'schema.json', format: 'json-schema' },
+        ],
+      });
+      await sdk.addFileToEvent('payment-captured', { fileName: 'schema.avsc', content: avro });
+      await sdk.addFileToEvent('payment-captured', { fileName: 'schema.json', content: json });
+
+      const index = await sdk.buildIndex({ source: 'acme/payments', commit: '4a1b7e2', includeSchemaContent: true });
+
+      expect(index.resources[0].schemas).toEqual([
+        {
+          id: 'avro',
+          path: 'schema.avsc',
+          format: 'avro',
+          default: true,
+          hash: hashFile('events/payment-captured/schema.avsc'),
+          content: readFile('events/payment-captured/schema.avsc'),
+        },
+        {
+          id: 'json',
+          path: 'schema.json',
+          format: 'json-schema',
+          hash: hashFile('events/payment-captured/schema.json'),
+          content: readFile('events/payment-captured/schema.json'),
+        },
+      ]);
+    });
+
+    it('embeds schema content without hashes when `includeSchemaContent` is true and `hashContent` is false', async () => {
+      const avro = '{"type":"record","name":"PaymentCaptured","fields":[]}';
+      await sdk.writeEvent({
+        id: 'payment-captured',
+        name: 'Payment Captured',
+        version: '2.0.0',
+        markdown: '# Payment Captured',
+        schemaPath: 'schema.avsc',
+      });
+      await sdk.addSchemaToEvent('payment-captured', { fileName: 'schema.avsc', schema: avro });
+
+      const index = await sdk.buildIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        hashContent: false,
+        includeSchemaContent: true,
+      });
+
+      expect(index.resources[0]).not.toHaveProperty('contentHash');
+      expect(index.resources[0].schemas).toEqual([
+        { path: 'schema.avsc', default: true, content: readFile('events/payment-captured/schema.avsc') },
+      ]);
+      expect(JSON.parse(index.resources[0].schemas![0].content!)).toEqual(JSON.parse(avro));
+    });
+
+    it('does not embed schema content by default', async () => {
+      await sdk.writeEvent({
+        id: 'payment-captured',
+        name: 'Payment Captured',
+        version: '2.0.0',
+        markdown: '# Payment Captured',
+        schemaPath: 'schema.avsc',
+      });
+      await sdk.addSchemaToEvent('payment-captured', {
+        fileName: 'schema.avsc',
+        schema: '{"type":"record","name":"PaymentCaptured","fields":[]}',
+      });
+
+      const index = await sdk.buildIndex({ source: 'acme/payments', commit: '4a1b7e2' });
+
+      expect(index.resources[0].schemas?.[0]).not.toHaveProperty('content');
     });
 
     it('does not hash schemas when `hashContent` is false', async () => {

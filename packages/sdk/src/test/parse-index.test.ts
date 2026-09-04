@@ -57,6 +57,31 @@ describe('parseIndex', () => {
     expect(parseIndex(index)).toEqual(index);
   });
 
+  it('parses embedded schema content', () => {
+    const index = {
+      ...validIndex,
+      resources: [
+        {
+          type: 'event',
+          id: 'payment-requested',
+          version: '2.0.0',
+          name: 'Payment Requested',
+          contentPath: 'events/payment-requested/index.mdx',
+          schemas: [
+            {
+              path: 'schema.json',
+              format: 'json-schema',
+              hash: 'sha256:3e63897b7cc3a92411599289d00d686f1b1fc8e336927efa46101c8943410c70',
+              content: '{"type":"object","properties":{}}',
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(parseIndex(index)).toEqual(index);
+  });
+
   it('rejects an unsupported index version', () => {
     expect(() => parseIndex({ ...validIndex, indexVersion: 2 })).toThrow(
       new InvalidIndexError([{ path: ['indexVersion'], message: 'Invalid input: expected 1' }])

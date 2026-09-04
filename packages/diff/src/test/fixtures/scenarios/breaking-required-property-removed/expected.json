@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "refs": {
+    "a": {
+      "source": "acme/catalog",
+      "commit": "abc1234"
+    },
+    "b": {
+      "source": "acme/catalog",
+      "commit": "def5678"
+    }
+  },
+  "compatibility": {
+    "strategy": "full"
+  },
+  "summary": {
+    "breaking": true,
+    "resourcesAdded": 0,
+    "resourcesRemoved": 0,
+    "resourcesChanged": 0,
+    "edgesAdded": 0,
+    "edgesRemoved": 0,
+    "schemaChanges": 1,
+    "schemaBreaking": 1,
+    "schemaUnknown": 0
+  },
+  "resources": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "edges": {
+    "added": [],
+    "removed": []
+  },
+  "schemaChanges": [
+    {
+      "message": {
+        "type": "event",
+        "id": "order-created",
+        "version": {
+          "a": "1.0.0",
+          "b": "1.0.0"
+        }
+      },
+      "change": "modified",
+      "before": {
+        "path": "schema.json",
+        "hash": "sha256:e8eb015db559f7afbfa9c5f44583254c2c634975e450a42a15fed62973c90c2b"
+      },
+      "after": {
+        "path": "schema.json",
+        "hash": "sha256:d7903c9db989ea3edc6c9bb87092d8c5a71c507d1075970512feff280748715a"
+      },
+      "strategy": "full",
+      "breaking": true,
+      "direction": "forward",
+      "ops": [
+        {
+          "op": "remove",
+          "path": "/properties/customerId",
+          "kind": "property.removed",
+          "reason": "property removed",
+          "breaking": false
+        },
+        {
+          "op": "replace",
+          "path": "/properties/customerId",
+          "kind": "required.removed",
+          "reason": "property is no longer required",
+          "breaking": true
+        }
+      ]
+    }
+  ],
+  "impact": [
+    {
+      "message": {
+        "type": "event",
+        "id": "order-created",
+        "version": "1.0.0"
+      },
+      "reason": "schema_breaking_change",
+      "direction": "forward",
+      "producers": [
+        {
+          "type": "service",
+          "id": "orders-service",
+          "version": "3.1.0",
+          "owners": ["team-orders"]
+        }
+      ],
+      "consumers": [
+        {
+          "type": "service",
+          "id": "payment-service",
+          "version": "2.0.0",
+          "owners": ["team-payments"]
+        }
+      ]
+    }
+  ]
+}

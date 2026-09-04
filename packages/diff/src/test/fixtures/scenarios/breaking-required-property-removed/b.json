@@ -1,0 +1,54 @@
+{
+  "indexVersion": 1,
+  "source": "acme/catalog",
+  "commit": "def5678",
+  "resources": [
+    {
+      "type": "event",
+      "id": "order-created",
+      "version": "1.0.0",
+      "name": "Order Created",
+      "contentPath": "events/order-created/index.mdx",
+      "contentHash": "sha256:7a4ebbd6cdbb418b6cadaaeb771e8c2b948e5756333d659a6eb29df44a24bfae",
+      "owners": ["team-orders"],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:d7903c9db989ea3edc6c9bb87092d8c5a71c507d1075970512feff280748715a",
+          "content": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"orderId\"\n  ],\n  \"properties\": {\n    \"orderId\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "orders-service",
+      "version": "3.1.0",
+      "name": "Orders Service",
+      "contentPath": "services/orders-service/index.mdx",
+      "contentHash": "sha256:ae99e36b006e8c01215ed0b8379c4a7eaccffad03344de13f50876c224b07cda",
+      "owners": ["team-orders"],
+      "sends": [
+        {
+          "id": "order-created",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "payment-service",
+      "version": "2.0.0",
+      "name": "Payment Service",
+      "contentPath": "services/payment-service/index.mdx",
+      "contentHash": "sha256:8ed758ac399464871bd5bf73cfeeda466e531267a1869a4e00096cec57822bc0",
+      "owners": ["team-payments"],
+      "receives": [
+        {
+          "id": "order-created",
+          "version": "1.0.0"
+        }
+      ]
+    }
+  ]
+}

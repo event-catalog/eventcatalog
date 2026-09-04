@@ -1,0 +1,59 @@
+{
+  "name": "@eventcatalog/diff",
+  "version": "0.0.0",
+  "description": "Compare two EventCatalog indexes and produce a versioned ArchitectureDiff document",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:bin": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rimraf dist",
+    "test": "vitest --run",
+    "test:ci": "vitest --run",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:diff": "prettier --list-different ."
+  },
+  "keywords": [
+    "eventcatalog",
+    "diff",
+    "event-driven-architecture",
+    "schema",
+    "breaking-changes"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog.git",
+    "directory": "packages/diff"
+  },
+  "author": "EventCatalog",
+  "license": "MIT",
+  "dependencies": {
+    "@eventcatalog/sdk": "workspace:*",
+    "semver": "^7.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3",
+    "vitest": "^3.2.4",
+    "@types/semver": "^7.5.8"
+  }
+}

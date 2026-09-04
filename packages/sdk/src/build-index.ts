@@ -47,6 +47,11 @@ type BuildIndexOptions = {
   commit: string;
   hashContent?: boolean;
   includeFederated?: boolean;
+  /**
+   * When true, the raw text of every message schema file is embedded in the index
+   * alongside its hash. Off by default so federation payloads stay small.
+   */
+  includeSchemaContent?: boolean;
 };
 
 type IndexableResource = {
@@ -229,7 +234,12 @@ const normalizeAssets = async (directory: string, hashContent: boolean, ignoreRu
   return assets.length === 0 ? undefined : assets;
 };
 
-const normalizeSchemas = async (resource: IndexableResource, resourcePath: string, hashContent: boolean) => {
+const normalizeSchemas = async (
+  resource: IndexableResource,
+  resourcePath: string,
+  hashContent: boolean,
+  includeSchemaContent: boolean
+) => {
   const schemas = resource.schemas ?? (resource.schemaPath ? [{ path: resource.schemaPath, default: true }] : undefined);
 
   if (schemas === undefined) return undefined;
@@ -237,17 +247,14 @@ const normalizeSchemas = async (resource: IndexableResource, resourcePath: strin
   return Promise.all(
     schemas.map(async ({ file, ...schema }) => {
       const schemaPath = file ?? schema.path;
+      const readSchema = schemaPath && (hashContent || includeSchemaContent);
+      const bytes = readSchema ? await fs.readFile(path.join(path.dirname(resourcePath), schemaPath)) : undefined;
 
       return {
         ...schema,
         ...(schemaPath === undefined ? {} : { path: schemaPath }),
-        ...(hashContent && schemaPath
-          ? {
-              hash: `sha256:${createHash('sha256')
-                .update(await fs.readFile(path.join(path.dirname(resourcePath), schemaPath)))
-                .digest('hex')}`,
-            }
-          : {}),
+        ...(bytes && hashContent ? { hash: `sha256:${createHash('sha256').update(bytes).digest('hex')}` } : {}),
+        ...(bytes && includeSchemaContent ? { content: bytes.toString('utf8') } : {}),
       };
     })
   );
@@ -324,12 +331,13 @@ const toIndexResource = async (
   type: IndexResourceType,
   resource: IndexableResource,
   hashContent: boolean,
+  includeSchemaContent: boolean,
   sourcePath: string,
   resourceDirectories: Set<string>,
   ignoreRules?: ignore.Ignore
 ): Promise<IndexResource> => {
   const { id, version, name } = resource;
-  const schemas = await normalizeSchemas(resource, sourcePath, hashContent);
+  const schemas = await normalizeSchemas(resource, sourcePath, hashContent, includeSchemaContent);
   const specifications = await normalizeSpecifications(resource, sourcePath, hashContent);
   const representedPaths = new Set(
     [
@@ -404,7 +412,13 @@ const toIndexResource = async (
 
 export const buildIndex =
   (directory: string) =>
-  async ({ source, commit, hashContent = true, includeFederated = true }: BuildIndexOptions): Promise<Index> => {
+  async ({
+    source,
+    commit,
+    hashContent = true,
+    includeFederated = true,
+    includeSchemaContent = false,
+  }: BuildIndexOptions): Promise<Index> => {
     const ignoreRules = await loadIgnoreRules(directory);
     const [
       domains,
@@ -495,7 +509,16 @@ export const buildIndex =
     );
     const resources = await Promise.all(
       locatedResources.map(({ type, resource, sourcePath }) =>
-        toIndexResource(directory, type, resource, hashContent, sourcePath, resourceDirectories, ignoreRules)
+        toIndexResource(
+          directory,
+          type,
+          resource,
+          hashContent,
+          includeSchemaContent,
+          sourcePath,
+          resourceDirectories,
+          ignoreRules
+        )
       )
     );
     const assets = await normalizeAssets(directory, hashContent, ignoreRules);
