@@ -20,7 +20,7 @@ export interface Owner {
 }
 
 export interface SchemaItem {
-  collection: CollectionMessageTypes | 'services' | 'data-products';
+  collection: CollectionMessageTypes | 'services' | 'domains' | 'data-products';
   data: {
     id: string;
     name: string;
@@ -29,9 +29,12 @@ export interface SchemaItem {
     schemaPath?: string;
     producers?: Producer[];
     consumers?: Consumer[];
+    producerName?: string;
     owners?: Owner[];
   };
   schemaContent?: string;
+  /** Internal URL for loading this version's content without embedding it in the page. */
+  contentUrl?: string;
   schemaExtension?: string;
   specType?: string;
   specName?: string;
@@ -42,6 +45,12 @@ export interface SchemaItem {
   dataProductVersion?: string;
   // Examples
   examples?: MessageExample[];
+}
+
+export interface SchemaDetails {
+  schemaContent: string;
+  examples: MessageExample[];
+  data?: Pick<SchemaItem['data'], 'producers' | 'consumers'>;
 }
 
 export interface VersionDiff {

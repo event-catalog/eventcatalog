@@ -36,10 +36,10 @@ function getSpecFile(item: SchemaItem): string {
  * multiple specs of the same type (e.g. two OpenAPI specs).
  */
 function getGroupKey(item: SchemaItem): string {
-  if (item.collection === 'services') {
-    return `${item.data.id}__${item.specType || 'unknown'}__${getSpecFile(item)}`;
+  if (item.collection === 'services' || item.collection === 'domains') {
+    return `${item.collection}__${item.data.id}__${item.specType || 'unknown'}__${getSpecFile(item)}`;
   }
-  return item.data.id;
+  return `${item.collection}__${item.data.id}`;
 }
 
 interface SchemaExplorerProps {
@@ -110,7 +110,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     params.set('version', message.data.version);
     params.set('collection', message.collection);
 
-    if (message.collection === 'services') {
+    if (message.collection === 'services' || message.collection === 'domains') {
       params.set('specType', message.specType || 'unknown');
       const specFile = getSpecFile(message);
       if (specFile) {
@@ -242,7 +242,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         const versionMatch = msg.data.version === version;
         const collectionMatch = !collection || msg.collection === collection;
 
-        if (msg.collection === 'services') {
+        if (msg.collection === 'services' || msg.collection === 'domains') {
           const specTypeMatch = !specType || msg.specType === specType;
           const msgSpecFile = getSpecFile(msg);
           const specFilenameMatch = !specFilename || msgSpecFile === specFilename;
