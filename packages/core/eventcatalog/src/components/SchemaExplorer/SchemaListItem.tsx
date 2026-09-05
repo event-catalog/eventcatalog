@@ -11,6 +11,8 @@ interface SchemaListItemProps {
 }
 
 function getNamespace(message: SchemaItem): string | null {
+  if (message.data.producerName) return message.data.producerName;
+
   const producers = message.data.producers || [];
   const firstProducer = producers[0];
 
