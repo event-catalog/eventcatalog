@@ -1,0 +1,8 @@
+{
+  "name": "perf-large-example-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@eventcatalog/core": "workspace:*"
+  }
+}
