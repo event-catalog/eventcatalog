@@ -228,4 +228,84 @@ describe('compactVisualiserGraph', () => {
     });
     expect((nodes[0].data as any).messages[0].message.producers).toBeUndefined();
   });
+
+  it('preserves entity properties and aggregateRoot so Entity nodes keep relationship handles', () => {
+    const { nodes } = compactVisualiserGraph(
+      [
+        {
+          id: 'Order-1.0.0',
+          type: 'entities',
+          position: { x: 0, y: 0 },
+          data: {
+            mode: 'full',
+            entity: collectionEntry('entities', {
+              id: 'Order',
+              name: 'Order',
+              version: '1.0.0',
+              aggregateRoot: true,
+              properties: [
+                { name: 'id', type: 'string', required: true },
+                {
+                  name: 'customer',
+                  type: 'Customer',
+                  references: 'Customer',
+                  referencesIdentifier: 'id',
+                  relationType: 'hasOne',
+                },
+              ],
+            }),
+          },
+        },
+      ],
+      []
+    );
+
+    const entity = (nodes[0].data as any).entity;
+    expect(entity.data).toMatchObject({
+      id: 'Order',
+      name: 'Order',
+      version: '1.0.0',
+      aggregateRoot: true,
+      properties: [
+        { name: 'id', type: 'string', required: true },
+        {
+          name: 'customer',
+          type: 'Customer',
+          references: 'Customer',
+          referencesIdentifier: 'id',
+          relationType: 'hasOne',
+        },
+      ],
+    });
+    expect(entity.body).toBeUndefined();
+    expect(entity.filePath).toBeUndefined();
+    expect(JSON.stringify(entity)).not.toContain('Markdown body');
+  });
+
+  it('preserves flow sidebar.badge so Flow nodes keep their configured label', () => {
+    const { nodes } = compactVisualiserGraph(
+      [
+        {
+          id: 'PaymentFlow-1.0.0',
+          type: 'flows',
+          position: { x: 0, y: 0 },
+          data: {
+            mode: 'simple',
+            label: undefined,
+            flow: collectionEntry('flows', {
+              id: 'PaymentFlow',
+              name: 'Payment Flow',
+              version: '1.0.0',
+              sidebar: { badge: 'Subflow' },
+            }),
+          },
+        },
+      ],
+      []
+    );
+
+    expect((nodes[0].data as any).flow.data.sidebar).toEqual({ badge: 'Subflow' });
+    expect((nodes[0].data as any).flow.body).toBeUndefined();
+    expect((nodes[0].data as any).flow.filePath).toBeUndefined();
+  });
 });

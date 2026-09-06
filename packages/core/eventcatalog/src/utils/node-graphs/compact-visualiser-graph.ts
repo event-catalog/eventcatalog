@@ -32,6 +32,9 @@ const RESOURCE_DATA_KEYS = [
   'type',
   'container_type',
   'schemas',
+  'properties',
+  'aggregateRoot',
+  'sidebar',
 ] as const;
 
 const RESOURCE_OBJECT_KEYS = new Set([
