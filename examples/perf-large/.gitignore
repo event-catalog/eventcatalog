@@ -5,3 +5,4 @@ teams/
 dist/
 .eventcatalog-core/
 benchmark-*.json
+eventcatalog.styles.css
