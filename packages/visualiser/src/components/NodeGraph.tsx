@@ -117,6 +117,7 @@ import {
 } from "../utils/message-group-expansion";
 import { AllNotesModal, getNotesFromNode } from "./NotesToolbarButton";
 import { setBuildUrlFn } from "../utils/url-builder";
+import { layoutDagreGraph } from "../utils/utils/utils";
 import { PortalContainerProvider } from "../context/PortalContainerContext";
 import type { DslGraph } from "../types";
 import dagre from "dagre";
@@ -757,7 +758,7 @@ const NodeGraphBuilder = ({
         }
       });
 
-      dagre.layout(g);
+      layoutDagreGraph(g);
 
       // Apply dagre positions to top-level nodes
       const positioned = nextNodes.map((node) => {
@@ -888,7 +889,7 @@ const NodeGraphBuilder = ({
           g.setEdge(e.source, e.target);
         }
       });
-      dagre.layout(g);
+      layoutDagreGraph(g);
 
       let minX = Infinity;
       let minY = Infinity;

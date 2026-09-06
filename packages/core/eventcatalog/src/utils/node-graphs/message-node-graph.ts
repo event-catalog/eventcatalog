@@ -1,7 +1,6 @@
 // import { getColor } from '@utils/colors';
 import { getEvents } from '@utils/collections/events';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import dagre from 'dagre';
 import {
   calculatedNodes,
   createDagreGraph,
@@ -12,6 +11,7 @@ import {
   getEdgeLabelForMessageAsSource,
   getEdgeLabelForServiceAsTarget,
   versionMatches,
+  layoutDagreGraph,
 } from './utils/utils';
 import { MarkerType, type Node, type Edge } from '@xyflow/react';
 import {
@@ -691,7 +691,7 @@ const getNodesAndEdges = async ({
   });
 
   // Render the diagram in memory getting hte X and Y
-  dagre.layout(flow);
+  layoutDagreGraph(flow);
 
   return {
     nodes: calculatedNodes(flow, nodes),

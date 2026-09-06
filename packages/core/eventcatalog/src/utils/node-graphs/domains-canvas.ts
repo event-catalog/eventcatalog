@@ -1,11 +1,11 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import dagre from 'dagre';
 import {
   generateIdForNode,
   createDagreGraph,
   calculatedNodes,
   createEdge,
   getOperationFields,
+  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
 import { findInMap, createVersionedMap } from '@utils/collections/util';
 import type { Node, Edge } from '@xyflow/react';
@@ -247,7 +247,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   });
 
   // Calculate layout using dagre
-  dagre.layout(dagreGraph);
+  layoutDagreGraph(dagreGraph);
 
   // Apply calculated positions to nodes
   const layoutedDomainNodes = calculatedNodes(dagreGraph, domainNodes);

@@ -1,5 +1,4 @@
 import type { CollectionEntry } from 'astro:content';
-import dagre from 'dagre';
 import {
   calculatedNodes,
   createDagreGraph,
@@ -10,6 +9,7 @@ import {
   buildContextMenuForResource,
   DEFAULT_NODE_WIDTH,
   DEFAULT_NODE_HEIGHT,
+  layoutDagreGraph,
 } from './utils/utils';
 import { MarkerType } from '@xyflow/react';
 import { findMatchingNodes } from '@utils/collections/util';
@@ -299,7 +299,7 @@ export const getNodesAndEdges = async ({
 
   // Render the diagram in memory getting hte X and Y
   if (layout) {
-    dagre.layout(flow);
+    layoutDagreGraph(flow);
   }
 
   return {

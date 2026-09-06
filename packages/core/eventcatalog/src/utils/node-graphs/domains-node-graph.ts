@@ -1,5 +1,4 @@
 import { getCollection } from 'astro:content';
-import dagre from 'dagre';
 import {
   createDagreGraph,
   calculatedNodes,
@@ -7,6 +6,7 @@ import {
   getEdgeLabelForServiceAsTarget,
   generatedIdForEdge,
   createEdge,
+  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import { getNodesAndEdges as getAgentsNodeAndEdges } from './agents-node-graph';
@@ -176,7 +176,7 @@ export const getNodesAndEdges = async ({
   }
 
   if (layout) {
-    dagre.layout(flow);
+    layoutDagreGraph(flow);
   }
 
   return {

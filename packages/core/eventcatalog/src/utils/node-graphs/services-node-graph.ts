@@ -1,5 +1,4 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import dagre from 'dagre';
 import {
   createDagreGraph,
   generateIdForNode,
@@ -14,6 +13,7 @@ import {
   DEFAULT_NODE_HEIGHT,
   partitionMessagesByGroup,
   getOperationFields,
+  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
 
 const sanitizeGroupId = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
@@ -636,7 +636,7 @@ export const getNodesAndEdges = async ({
 
   if (layout) {
     // Render the diagram in memory getting the X and Y
-    dagre.layout(flow);
+    layoutDagreGraph(flow);
   }
 
   // Find any duplicated edges, and merge them into one edge

@@ -1,5 +1,4 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import dagre from 'dagre';
 import {
   buildContextMenuForAgent,
   buildContextMenuForMessage,
@@ -17,6 +16,7 @@ import {
   getOperationFields,
   DEFAULT_NODE_WIDTH,
   DEFAULT_NODE_HEIGHT,
+  layoutDagreGraph,
 } from './utils/utils';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getChannelChain, getChannels } from '@utils/collections/channels';
@@ -457,7 +457,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
   });
 
   if (layout) {
-    dagre.layout(flow);
+    layoutDagreGraph(flow);
   }
 
   return {

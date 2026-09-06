@@ -1,6 +1,11 @@
 import { getCollection } from 'astro:content';
-import dagre from 'dagre';
-import { createDagreGraph, calculatedNodes, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from '@utils/node-graphs/utils/utils';
+import {
+  createDagreGraph,
+  calculatedNodes,
+  DEFAULT_NODE_WIDTH,
+  DEFAULT_NODE_HEIGHT,
+  layoutDagreGraph,
+} from '@utils/node-graphs/utils/utils';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import { getNodesAndEdges as getContainerNodeAndEdges } from './container-node-graph';
 import merge from 'lodash.merge';
@@ -121,7 +126,7 @@ export const getNodesAndEdges = async ({
   }
 
   if (layout) {
-    dagre.layout(flow);
+    layoutDagreGraph(flow);
   }
 
   let laidOutNodes = calculatedNodes(flow, Array.from(nodes.values()));
