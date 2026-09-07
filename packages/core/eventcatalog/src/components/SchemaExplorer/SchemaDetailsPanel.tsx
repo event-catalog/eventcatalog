@@ -24,7 +24,8 @@ import ExamplesViewer from './ExamplesViewer';
 import VersionHistoryModal from './VersionHistoryModal';
 import SchemaCodeModal from './SchemaCodeModal';
 import SchemaViewerModal from './SchemaViewerModal';
-import { copyToClipboard, downloadSchema, getSchemaTypeLabel, ICON_SPECS, extractServiceName } from './utils';
+import { copyToClipboard, downloadSchema, getSchemaTypeLabel, ICON_SPECS, getSchemaRelationshipReference } from './utils';
+import { createSchemaDetailsLoader, useSchemaDetails } from './useSchemaDetails';
 import { parseProtobufSchema } from '@utils/protobuf-schema';
 import type { SchemaItem, VersionDiff, Owner, Producer, Consumer } from './types';
 
@@ -39,7 +40,7 @@ interface SchemaDetailsPanelProps {
 }
 
 export default function SchemaDetailsPanel({
-  message,
+  message: metadataMessage,
   availableVersions,
   selectedVersion,
   onVersionChange,
@@ -47,6 +48,9 @@ export default function SchemaDetailsPanel({
   showOwners = true,
   showProducersConsumers = true,
 }: SchemaDetailsPanelProps) {
+  const [loadDetails] = useState(createSchemaDetailsLoader);
+  const content = useSchemaDetails(metadataMessage, loadDetails);
+  const message = content.message!;
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'code' | 'schema' | 'diff' | 'api' | 'examples'>('code');
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
@@ -88,18 +92,23 @@ export default function SchemaDetailsPanel({
     setIsDiffModalOpen(false);
   }, [schemaResourceKey, defaultFromVersion, defaultToVersion]);
 
-  const diffFromItem = useMemo(
+  const diffFromMetadata = useMemo(
     () => uniqueAvailableVersions.find((version) => version.data.version === diffFromVersion),
     [diffFromVersion, uniqueAvailableVersions]
   );
-  const diffToItem = useMemo(
+  const diffToMetadata = useMemo(
     () => uniqueAvailableVersions.find((version) => version.data.version === diffToVersion),
     [diffToVersion, uniqueAvailableVersions]
   );
+  const comparing = activeTab === 'diff' || isDiffModalOpen;
+  const fromContent = useSchemaDetails(diffFromMetadata, loadDetails, comparing);
+  const toContent = useSchemaDetails(diffToMetadata, loadDetails, comparing);
+  const diffFromItem = fromContent.message;
+  const diffToItem = toContent.message;
   const hasDiffFromContent = !!diffFromItem?.schemaContent?.trim();
   const hasDiffToContent = !!diffToItem?.schemaContent?.trim();
   const selectedDiff: VersionDiff | null = useMemo(() => {
-    if (!diffFromItem || !diffToItem) return null;
+    if (!comparing || !diffFromItem || !diffToItem) return null;
     if (diffFromItem.data.version === diffToItem.data.version) return null;
     if (!diffFromItem.schemaContent?.trim() || !diffToItem.schemaContent?.trim()) return null;
 
@@ -126,7 +135,7 @@ export default function SchemaDetailsPanel({
       fromContent: diffFromItem.schemaContent,
       toContent: diffToItem.schemaContent,
     };
-  }, [diffFromItem, diffToItem]);
+  }, [comparing, diffFromItem, diffToItem]);
   const selectedDiffs = selectedDiff ? [selectedDiff] : [];
 
   // Check if this is a JSON schema
@@ -359,7 +368,9 @@ export default function SchemaDetailsPanel({
 
         {/* Tab content */}
         <div className="flex-1 min-h-0 overflow-hidden p-6">
-          {activeTab === 'examples' && examples.length > 0 ? (
+          {content.loading || content.error ? (
+            <SchemaLoadingState loading={content.loading} error={content.error} retry={content.retry} />
+          ) : activeTab === 'examples' && examples.length > 0 ? (
             <ExamplesViewer examples={examples} />
           ) : activeTab === 'api' ? (
             <ApiContentViewer
@@ -416,7 +427,16 @@ export default function SchemaDetailsPanel({
                 </button>
               </div>
               <div className="min-h-0 flex-1 overflow-hidden">
-                {diffFromVersion === diffToVersion ? (
+                {fromContent.loading || toContent.loading || fromContent.error || toContent.error ? (
+                  <SchemaLoadingState
+                    loading={fromContent.loading || toContent.loading}
+                    error={fromContent.error || toContent.error}
+                    retry={() => {
+                      fromContent.retry();
+                      toContent.retry();
+                    }}
+                  />
+                ) : diffFromVersion === diffToVersion ? (
                   <div className="flex h-full items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
                     <p className="text-sm">Select two different versions</p>
                   </div>
@@ -525,11 +545,11 @@ export default function SchemaDetailsPanel({
               </div>
               <div className="space-y-1">
                 {producers.map((producer: Producer, idx: number) => {
-                  const serviceName = extractServiceName(producer.id);
+                  const { id: serviceName, version } = getSchemaRelationshipReference(producer);
                   return (
                     <a
                       key={`${producer.id}-${idx}`}
-                      href={buildUrl(`/docs/services/${serviceName}/${producer.version}`)}
+                      href={buildUrl(`/docs/services/${serviceName}/${version}`)}
                       className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.55)] hover:text-[rgb(var(--ec-accent))]"
                     >
                       <ServerIcon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
@@ -551,11 +571,11 @@ export default function SchemaDetailsPanel({
               </div>
               <div className="space-y-1">
                 {consumers.map((consumer: Consumer, idx: number) => {
-                  const serviceName = extractServiceName(consumer.id);
+                  const { id: serviceName, version } = getSchemaRelationshipReference(consumer);
                   return (
                     <a
                       key={`${consumer.id}-${idx}`}
-                      href={buildUrl(`/docs/services/${serviceName}/${consumer.version}`)}
+                      href={buildUrl(`/docs/services/${serviceName}/${version}`)}
                       className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.55)] hover:text-[rgb(var(--ec-accent))]"
                     >
                       <ServerIcon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
@@ -612,6 +632,32 @@ export default function SchemaDetailsPanel({
         parsedAvroSchema={parsedAvroSchema}
         parsedProtoSchema={parsedProtoSchema}
       />
+    </div>
+  );
+}
+
+function SchemaLoadingState({ loading, error, retry }: { loading: boolean; error?: string; retry: () => void }) {
+  if (!error) {
+    if (!loading) return null;
+    return (
+      <div role="status" className="flex h-full items-center justify-center gap-2 text-sm text-[rgb(var(--ec-page-text-muted))]">
+        <span
+          aria-hidden="true"
+          className="h-4 w-4 rounded-full border-2 border-[rgb(var(--ec-page-border))] border-t-[rgb(var(--ec-page-text-muted))] motion-safe:animate-spin"
+        />
+        <span>Loading schema…</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-3 text-[rgb(var(--ec-page-text-muted))]" role="alert">
+      <p>{error}</p>
+      {error && (
+        <button type="button" onClick={retry} className="text-[rgb(var(--ec-accent))] hover:underline">
+          Try again
+        </button>
+      )}
     </div>
   );
 }

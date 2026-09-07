@@ -41,6 +41,18 @@ export function extractServiceName(refId: string): string {
   return match ? match[1] : refId;
 }
 
+/** Resolve both enriched collection entries and compact explorer references. */
+export function getSchemaRelationshipReference(reference: {
+  id: string;
+  version?: string;
+  data?: { id: string; version: string };
+}) {
+  return {
+    id: reference.data?.id ?? reference.id,
+    version: reference.data?.version ?? reference.version,
+  };
+}
+
 export const getLanguageForHighlight = (extension?: string): string => {
   if (!extension) return 'json';
   const ext = extension.toLowerCase();
