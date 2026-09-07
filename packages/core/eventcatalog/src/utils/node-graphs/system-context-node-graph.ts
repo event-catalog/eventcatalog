@@ -1,6 +1,5 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import dagre from 'dagre';
 import {
   createDagreGraph,
   calculatedNodes,
@@ -8,6 +7,7 @@ import {
   generateIdForNode,
   buildContextMenuForSystem,
   DEFAULT_NODE_HEIGHT,
+  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
 import { MarkerType } from '@xyflow/react';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
@@ -302,7 +302,7 @@ const buildContextGraphFromSeeds = ({
   edges.forEach((edge) => flow.setEdge(edge.source, edge.target));
 
   if (layout) {
-    dagre.layout(flow);
+    layoutDagreGraph(flow);
   }
 
   return {

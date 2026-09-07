@@ -1,5 +1,4 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import dagre from 'dagre';
 import {
   createDagreGraph,
   generateIdForNode,
@@ -10,6 +9,7 @@ import {
   buildContextMenuForResource,
   DEFAULT_NODE_WIDTH,
   DEFAULT_NODE_HEIGHT,
+  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
 
 import { findInMap, createVersionedMap, mergeMaps, collectionToResourceMap } from '@utils/collections/util';
@@ -220,7 +220,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
 
   if (layout) {
     // Render the diagram in memory getting the X and Y
-    dagre.layout(flow);
+    layoutDagreGraph(flow);
   }
 
   // Find any duplicated edges, and merge them into one edge

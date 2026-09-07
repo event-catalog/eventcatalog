@@ -1,5 +1,4 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import dagre from 'dagre';
 import {
   createDagreGraph,
   calculatedNodes,
@@ -7,6 +6,7 @@ import {
   DEFAULT_NODE_HEIGHT,
   buildContextMenuForResource,
   buildContextMenuForService,
+  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
 import { MarkerType } from '@xyflow/react';
 import type { Node as NodeType } from '@xyflow/react';
@@ -321,7 +321,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     graph.setEdge(edge.source, edge.target);
   });
 
-  dagre.layout(graph);
+  layoutDagreGraph(graph);
 
   return {
     nodes: calculatedNodes(graph, nodes),

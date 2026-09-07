@@ -109,6 +109,34 @@ export const createDagreGraph = ({ ranksep = 180, nodesep = 50, ...rest }: any) 
   return graph;
 };
 
+/**
+ * network-simplex produces the nicest layered layout but is O(V·E) and hangs on
+ * large architecture maps. tight-tree keeps the same LR layering with far less
+ * work. Callers can still force a ranker via createDagreGraph({ ranker }).
+ */
+export const LARGE_GRAPH_NODE_THRESHOLD = 80;
+export const LARGE_GRAPH_EDGE_THRESHOLD = 200;
+export const LARGE_GRAPH_RANKER = 'tight-tree';
+
+export const selectDagreRanker = (nodeCount: number, edgeCount: number, explicitRanker?: string) => {
+  if (explicitRanker) return explicitRanker;
+  if (nodeCount >= LARGE_GRAPH_NODE_THRESHOLD || edgeCount >= LARGE_GRAPH_EDGE_THRESHOLD) {
+    return LARGE_GRAPH_RANKER;
+  }
+  return undefined;
+};
+
+export const layoutDagreGraph = (flow: dagre.graphlib.Graph) => {
+  const label = (flow.graph() || {}) as { ranker?: string };
+  const nodeCount = flow.nodeCount();
+  const edgeCount = flow.edgeCount();
+  const ranker = selectDagreRanker(nodeCount, edgeCount, label.ranker);
+  if (ranker && label.ranker !== ranker) {
+    flow.setGraph({ ...label, ranker });
+  }
+  dagre.layout(flow);
+};
+
 export const createEdge = (edgeOptions: Edge) => {
   return {
     label: 'subscribed by',
@@ -430,8 +458,8 @@ export const getNodesAndEdgesFromDagre = ({
     flow.setEdge(edge.source, edge.target);
   });
 
-  // Render the diagram in memory getting hte X and Y
-  dagre.layout(flow);
+  // Render the diagram in memory getting the X and Y
+  layoutDagreGraph(flow);
 
   return {
     nodes: calculatedNodes(flow, nodes),
