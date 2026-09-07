@@ -31,6 +31,7 @@ import { getNodesAndEdges as getNodesAndEdgesForChannel } from '@utils/node-grap
 import config from '@config';
 import { isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
+import { compactVisualiserGraph } from '@utils/node-graphs/compact-visualiser-graph';
 
 const isChatEnabled = isEventCatalogChatEnabled();
 
@@ -198,13 +199,16 @@ if (collection === 'services-containers') {
 const resourceKey = buildResourceKey(collection, id, version);
 const savedLayout = await loadSavedLayout(resourceKey);
 const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
+// Drop hydrated collection entries / markdown bodies before Astro serialises
+// the graph into the page. Visualiser components only need a small field set.
+const { nodes: clientNodes, edges: clientEdges } = compactVisualiserGraph(nodesWithLayout as any[], edges as any[]);
 ---
 
 <div>
   <AstroNodeGraph
     id={id}
-    nodes={nodesWithLayout}
-    edges={edges}
+    nodes={clientNodes}
+    edges={clientEdges}
     title={title}
     hrefLabel={href?.label}
     href={href?.url}

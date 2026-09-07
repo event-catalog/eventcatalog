@@ -42,6 +42,7 @@ import {
   withArchitectureDecisionsSection,
 } from './builders/shared';
 import { isArchitectureGraphEnabled, isChangelogEnabled, isResourceDocsEnabled } from '@utils/feature';
+import { collectMessageIdsWithFieldUsage } from '@utils/collections/field-usage';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -580,34 +581,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
-  // Build a set of message IDs that have field usage declared by any resource that can receive messages.
-  // We use raw collections because the hydrated resources replace
-  // sends/receives pointers with resolved message entries, which strips the fields property.
-  const messagesWithFieldUsage = new Set<string>();
-  for (const agent of rawAgents) {
-    for (const pointer of agent.data.sends || []) {
-      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
-    }
-    for (const pointer of agent.data.receives || []) {
-      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
-    }
-  }
-  for (const service of rawServices) {
-    for (const pointer of service.data.sends || []) {
-      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
-    }
-    for (const pointer of service.data.receives || []) {
-      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
-    }
-  }
-  for (const domain of rawDomains) {
-    for (const pointer of domain.data.sends || []) {
-      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
-    }
-    for (const pointer of domain.data.receives || []) {
-      if (pointer.fields?.length) messagesWithFieldUsage.add(pointer.id);
-    }
-  }
+  // Raw collections keep send/receive pointers (and their `fields`) which hydration strips.
+  const messagesWithFieldUsage = collectMessageIdsWithFieldUsage(rawAgents, rawServices, rawDomains);
 
   const flowRefsByMessage = buildFlowReferencesByMessage({
     flows,
