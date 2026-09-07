@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 4.10.9
+
+### Patch Changes
+
+- 65d02d1: Stop prerendering Field Usage pages for messages with no field-level lineage. The sidebar already hid those links; static builds still emitted a full HTML page per event/command/query. On a synthetic catalog of 8 domains / 64 services / 640 events this removed 640 pages and cut total HTML from 199.45 MB to 163.58 MB (−18%, −35.9 MB). Also compact NodeGraph island props so docs/visualiser pages no longer embed markdown bodies or hydrated producer/consumer trees.
+- d2a6402: Use dagre's tight-tree ranker for large node graphs so domain and architecture maps layout in hundreds of milliseconds instead of several seconds.
+- Updated dependencies [d2a6402]
+  - @eventcatalog/visualiser@4.1.4
+
 ## 4.10.8
 
 ### Patch Changes

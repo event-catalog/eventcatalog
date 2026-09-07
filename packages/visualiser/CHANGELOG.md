@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 4.1.4
+
+### Patch Changes
+
+- d2a6402: Use dagre's tight-tree ranker for large node graphs so domain and architecture maps layout in hundreds of milliseconds instead of several seconds.
+
 ## 4.1.3
 
 ### Patch Changes
