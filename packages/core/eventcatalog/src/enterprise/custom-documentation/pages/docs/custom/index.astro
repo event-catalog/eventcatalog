@@ -21,7 +21,7 @@ import {
   isVisualiserEnabled,
   isMarkdownDownloadEnabled,
   isRSSEnabled,
-  isEventCatalogChatEnabled,
+  isEventCatalogChatVisible,
   isArchitectureGraphEnabled,
 } from '@utils/feature';
 
@@ -152,11 +152,11 @@ const editUrl =
                 client:only="react"
                 variant="toolbar"
                 schemas={[]}
-                chatEnabled={isEventCatalogChatEnabled()}
+                chatEnabled={isEventCatalogChatVisible()}
                 markdownDownloadEnabled={isMarkdownDownloadEnabled()}
                 rssFeedEnabled={isRSSEnabled()}
                 editUrl={editUrl}
-                preferChatAsDefault={isEventCatalogChatEnabled()}
+                preferChatAsDefault={isEventCatalogChatVisible()}
               />
             </div>
           </div>

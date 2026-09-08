@@ -7,10 +7,10 @@ import AstroNodeGraph from '../NodeGraph/AstroNodeGraph';
 import '@eventcatalog/visualiser/styles-core.css';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { getServices } from '@utils/collections/services';
-import { isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
+import { isEventCatalogChatVisible, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 
-const isChatEnabled = isEventCatalogChatEnabled();
+const isChatEnabled = isEventCatalogChatVisible();
 
 const { id, version = 'latest', maxHeight, includeKey = true, entities, collection = 'domains', ...rest } = Astro.props;
 let resource = null;

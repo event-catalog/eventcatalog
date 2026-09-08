@@ -6,12 +6,12 @@ import AstroNodeGraph from '../NodeGraph/AstroNodeGraph';
 // Visualiser styles ship in the page head so ClientRouter navigations keep them (see NodeGraph.astro).
 import '@eventcatalog/visualiser/styles-core.css';
 import { getVersionFromCollection } from '@utils/collections/versions';
-import { isVisualiserEnabled, isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
+import { isVisualiserEnabled, isEventCatalogChatVisible, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 import { randomUUID } from 'node:crypto';
 import { parseMdxBooleanProp } from '@utils/markdown';
 
-const isChatEnabled = isEventCatalogChatEnabled();
+const isChatEnabled = isEventCatalogChatVisible();
 
 const { id, version = 'latest', maxHeight, mode = 'simple' } = Astro.props;
 const includeKey = parseMdxBooleanProp(Astro.props.legend ?? Astro.props.includeKey, true);

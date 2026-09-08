@@ -12,7 +12,7 @@ import js from '@asyncapi/react-component/browser/standalone/without-parser.js?u
 import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
-import { isEventCatalogChatEnabled } from '@utils/feature';
+import { isEventCatalogChatVisible } from '@utils/feature';
 import Config from '@utils/eventcatalog-config/catalog';
 import { Page } from './_[filename].data';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
@@ -148,7 +148,7 @@ const renderedComponent = renderToString(component);
 const pageTitle = `${collection} | ${data.name} | AsyncApi Spec`.replace(/^\w/, (c) => c.toUpperCase());
 
 // Chat configuration
-const chatEnabled = isEventCatalogChatEnabled();
+const chatEnabled = isEventCatalogChatVisible();
 const chatQuery = `Tell me about the AsyncAPI specification for "${data.name}" (version ${data.version})`;
 
 // Index only the latest version

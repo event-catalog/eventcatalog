@@ -5,6 +5,7 @@ import {
   isCustomDocsEnabled,
   isResourceDocsEnabled,
   isEventCatalogChatEnabled,
+  isEventCatalogChatVisible,
   isEventCatalogUpgradeEnabled,
   isCustomLandingPageEnabled,
   isMarkdownDownloadEnabled,
@@ -131,6 +132,34 @@ describe('features', () => {
       delete process.env.EVENTCATALOG_STARTER;
       delete process.env.EVENTCATALOG_SCALE;
       expect(isResourceDocsEnabled()).toBe(false);
+    });
+  });
+
+  describe('isEventCatalogChatVisible', () => {
+    const originalChat = config.chat;
+
+    afterEach(() => {
+      config.chat = originalChat;
+    });
+
+    it('shows Ask AI by default without a plan, server mode, or configuration file', () => {
+      delete process.env.EVENTCATALOG_STARTER;
+      delete process.env.EVENTCATALOG_SCALE;
+      config.output = 'static';
+      config.chat = undefined;
+      expect(isEventCatalogChatVisible()).toBe(true);
+      expect(isEventCatalogChatEnabled()).toBe(false);
+    });
+
+    it('shows Ask AI when chat settings omit enabled', () => {
+      config.chat = {};
+      expect(isEventCatalogChatVisible()).toBe(true);
+    });
+
+    it('hides Ask AI when explicitly disabled', () => {
+      config.chat = { enabled: false };
+      expect(isEventCatalogChatVisible()).toBe(false);
+      expect(isEventCatalogChatEnabled()).toBe(false);
     });
   });
 

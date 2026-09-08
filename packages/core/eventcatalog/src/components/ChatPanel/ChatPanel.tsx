@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react';
-import { X, Square, Trash2, BookOpen, Copy, Check, Maximize2, Minimize2, Wrench, ChevronDown, MessageSquare } from 'lucide-react';
+import { X, Square, Trash2, Sparkles, Copy, Check, Maximize2, Minimize2, Wrench, ChevronDown, MessageSquare } from 'lucide-react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import ReactMarkdown from 'react-markdown';
@@ -9,6 +9,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Popover from '@radix-ui/react-popover';
 import { buildUrl } from '@utils/url-builder';
+import OfflineReply, { offlineReplyText } from './OfflineReply';
 
 interface ToolMetadata {
   name: string;
@@ -18,6 +19,44 @@ interface ToolMetadata {
 
 // CSS keyframes - defined once outside component to avoid re-injection
 const CHAT_PANEL_STYLES = `
+  @keyframes ec-chat-breathe {
+    0%, 100% { transform: scale(1); opacity: .7; }
+    50% { transform: scale(1.06); opacity: 1; }
+  }
+  @keyframes ec-chat-dot {
+    0%, 80%, 100% { transform: translateY(0); opacity: .35; }
+    40% { transform: translateY(-3px); opacity: 1; }
+  }
+  .ec-chat-surface { font-weight: 400; }
+  .ec-chat-avatar { background: rgb(var(--ec-accent) / .06); animation: ec-chat-breathe 5s ease-in-out infinite; }
+  .ec-chat-suggestion { width: fit-content; max-width: 100%; transition: background 180ms, transform 180ms; }
+  .ec-chat-suggestion:hover { transform: translateX(3px); }
+  .ec-chat-message { animation: fadeInUp 280ms ease-out both; }
+  .ec-chat-offline > * { animation: fadeInUp 350ms ease-out both; }
+  .ec-chat-offline > :nth-child(2) { animation-delay: 100ms; }
+  .ec-chat-offline > :nth-child(3) { animation-delay: 220ms; }
+  .ec-chat-offline > :nth-child(4) { animation-delay: 340ms; }
+  .ec-chat-dot { width: 4px; height: 4px; border-radius: 50%; background: rgb(var(--ec-accent)); animation: ec-chat-dot 1.2s infinite; }
+  .ec-chat-dot:nth-child(2) { animation-delay: 150ms; }
+  .ec-chat-dot:nth-child(3) { animation-delay: 300ms; }
+  .ec-chat-composer {
+    border-radius: 20px;
+    border-color: rgb(var(--ec-accent) / .22);
+    background: rgb(var(--ec-page-bg));
+    box-shadow: 0 0 0 3px rgb(var(--ec-accent) / .04), 0 8px 28px rgb(var(--ec-accent) / .04);
+    transition: border-color 200ms, box-shadow 200ms;
+  }
+  .ec-chat-composer:focus-within { border-color: rgb(var(--ec-accent) / .5); box-shadow: 0 0 0 3px rgb(var(--ec-accent) / .09); }
+  .ec-chat-composer textarea { display: block; resize: none; min-height: 104px; padding: 14px 16px 46px; border-radius: 20px; }
+  .ec-chat-composer-actions { top: auto; bottom: 10px; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .ec-chat-surface, .ec-chat-surface *, #eventcatalog-header, #eventcatalog-application {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -335,26 +374,27 @@ const getSuggestedQuestions = (pathname: string): SuggestedQuestion[] => {
 };
 
 interface ChatPanelProps {
+  configured?: boolean;
   isOpen: boolean;
   onClose: () => void;
 }
 
 const PANEL_WIDTH = 400;
 
-// Staggered fade-in animation styles (delays account for 800ms panel slide)
+// Staggered fade-in animation styles (delays account for 420ms panel slide)
 const fadeInStyles = {
   header: {
     animation: 'fadeIn 0.5s ease-out 0.3s both',
   },
   welcome: {
-    animation: 'fadeIn 0.6s ease-out 0.4s both',
+    animation: 'fadeInUp 0.45s ease-out 0.12s both',
   },
   // Label and questions will be staggered individually in the component
   questionsLabel: {
     animation: 'fadeIn 0.5s ease-out 0.7s both',
   },
   getQuestionStyle: (index: number) => ({
-    animation: `fadeIn 0.5s ease-out ${0.85 + index * 0.12}s both`,
+    animation: `fadeIn 0.5s ease-out ${0.22 + index * 0.07}s both`,
   }),
   inputFocus: {
     animation: 'focusIn 0.6s ease-out 1.4s both',
@@ -436,12 +476,14 @@ const getCompletedTools = (message: { parts?: Array<any> }): string[] => {
 };
 
 // Skeleton loading component - memoized since it never changes
-const SkeletonLoader = memo(() => (
-  <div className="animate-pulse space-y-3">
-    <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded w-[90%]" />
-    <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded w-[75%]" />
-    <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded w-[85%]" />
-    <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded w-[60%]" />
+const SkeletonLoader = memo(({ label = 'Thinking it through…' }: { label?: string }) => (
+  <div role="status" className="ec-chat-message flex items-center gap-3 py-3 text-xs text-[rgb(var(--ec-page-text-muted))]">
+    <span className="flex items-center gap-1" aria-hidden="true">
+      <span className="ec-chat-dot" />
+      <span className="ec-chat-dot" />
+      <span className="ec-chat-dot" />
+    </span>
+    {label}
   </div>
 ));
 SkeletonLoader.displayName = 'SkeletonLoader';
@@ -517,13 +559,22 @@ const modalMarkdownComponents = {
   ),
 };
 
-const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const modalInputRef = useRef<HTMLInputElement>(null);
+const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const modalInputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const modalMessagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
+  const [isSetupThinking, setIsSetupThinking] = useState(false);
+  const setupReplyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (setupReplyTimer.current !== null) clearTimeout(setupReplyTimer.current);
+    },
+    []
+  );
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [pathname, setPathname] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -543,7 +594,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
   // Fetch available tools when panel opens
   useEffect(() => {
-    if (isOpen && tools.length === 0) {
+    if (configured && isOpen && tools.length === 0) {
       fetch(chatApiUrl)
         .then((res) => res.json())
         .then((data) => {
@@ -555,7 +606,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           // Silently fail - tools info is optional
         });
     }
-  }, [isOpen, tools.length]);
+  }, [configured, isOpen, tools.length, chatApiUrl]);
 
   // Get current URL (pathname + search) on mount and when panel opens
   useEffect(() => {
@@ -624,7 +675,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
   const isStreaming = status === 'streaming' && assistantHasContent;
   const isThinking =
-    isWaitingForResponse || (messages.length > 0 && (status === 'submitted' || status === 'streaming') && !assistantHasContent);
+    isSetupThinking ||
+    isWaitingForResponse ||
+    (messages.length > 0 && (status === 'submitted' || status === 'streaming') && !assistantHasContent);
   const isLoading = isThinking || isStreaming;
 
   // Get currently running tools from the last assistant message
@@ -643,12 +696,13 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
   // Focus modal input when fullscreen opens
   useEffect(() => {
-    if (isFullscreen && !isLoading) {
-      setTimeout(() => {
+    if (isOpen && isFullscreen && !isLoading) {
+      const timer = setTimeout(() => {
         modalInputRef.current?.focus();
       }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [isFullscreen, isLoading]);
+  }, [isOpen, isFullscreen, isLoading]);
 
   // Handle escape key to close
   useEffect(() => {
@@ -657,23 +711,24 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         onClose();
       }
       // Focus input on CMD+I or CTRL+I
-      if ((e.metaKey || e.ctrlKey) && e.key === 'i' && isOpen) {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'i' && isOpen) {
         e.preventDefault();
-        inputRef.current?.focus();
+        (isFullscreen ? modalInputRef : inputRef).current?.focus();
       }
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen, isFullscreen, onClose]);
 
   // Focus input when opened and not loading
   useEffect(() => {
-    if (isOpen && !isLoading) {
-      setTimeout(() => {
+    if (isOpen && !isFullscreen && !isLoading) {
+      const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [isOpen, isLoading]);
+  }, [isOpen, isFullscreen, isLoading]);
 
   // Add/remove padding to main application and header when sidebar panel is open
   useEffect(() => {
@@ -683,31 +738,23 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
     const elements = [appEl, headerEl].filter(Boolean) as HTMLElement[];
 
-    elements.forEach((el) => {
-      // Add transition if not already present
-      if (!el.style.transition) {
-        el.style.transition = 'padding-right 800ms cubic-bezier(0.16, 1, 0.3, 1)';
-      }
-
-      // Only add padding when panel is open AND not in fullscreen mode
-      if (isOpen && !isFullscreen) {
-        el.style.paddingRight = `${PANEL_WIDTH}px`;
-      } else {
-        el.style.paddingRight = '0';
-      }
-    });
-
-    // Hide docs sidebar when chat panel is open
-    if (docsSidebarEl) {
-      if (isOpen && !isFullscreen) {
-        docsSidebarEl.style.display = 'none';
-      } else {
-        docsSidebarEl.style.display = '';
-      }
-    }
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const updateLayout = () => {
+      const pushContent = desktop.matches && isOpen && !isFullscreen;
+      elements.forEach((el) => {
+        if (!el.style.transition) {
+          el.style.transition = 'padding-right 420ms cubic-bezier(0.16, 1, 0.3, 1)';
+        }
+        el.style.paddingRight = pushContent ? `${PANEL_WIDTH}px` : '0';
+      });
+      if (docsSidebarEl) docsSidebarEl.style.display = pushContent ? 'none' : '';
+    };
+    updateLayout();
+    desktop.addEventListener('change', updateLayout);
 
     // Cleanup on unmount
     return () => {
+      desktop.removeEventListener('change', updateLayout);
       elements.forEach((el) => {
         el.style.paddingRight = '0';
       });
@@ -722,11 +769,48 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     (text: string) => {
       if (!text.trim() || isLoading) return;
       setInputValue('');
+      if (!configured) {
+        setMessages((previous) => [...previous, { id: crypto.randomUUID(), role: 'user', parts: [{ type: 'text', text }] }]);
+        setIsSetupThinking(true);
+        setupReplyTimer.current = setTimeout(() => {
+          setMessages((previous) => [
+            ...previous,
+            {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              parts: [
+                {
+                  type: 'text',
+                  text: offlineReplyText,
+                },
+              ],
+            },
+          ]);
+          setupReplyTimer.current = null;
+          setIsSetupThinking(false);
+        }, 1200);
+        return;
+      }
       setIsWaitingForResponse(true);
       sendMessage({ text });
     },
-    [isLoading, sendMessage]
+    [configured, isLoading, sendMessage, setMessages]
   );
+
+  const stopResponse = useCallback(() => {
+    if (setupReplyTimer.current !== null) {
+      clearTimeout(setupReplyTimer.current);
+      setupReplyTimer.current = null;
+    }
+    setIsSetupThinking(false);
+    setIsWaitingForResponse(false);
+    stop();
+  }, [stop]);
+
+  const clearMessages = useCallback(() => {
+    stopResponse();
+    setMessages([]);
+  }, [stopResponse, setMessages]);
 
   // Handle suggested action clicks
   const handleSuggestedAction = useCallback(
@@ -738,7 +822,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
   // Handle input enter key
   const handleInputKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         submitMessage(inputValue);
@@ -769,13 +853,17 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
       {/* Panel - hidden when fullscreen modal is open */}
       {!isFullscreen && (
         <div
-          className="fixed top-0 right-0 h-[100vh] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
+          ref={(element) => {
+            element?.toggleAttribute('inert', !isOpen);
+          }}
+          aria-hidden={!isOpen}
+          className="ec-chat-surface fixed top-0 right-0 h-[100dvh] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
           style={{
-            width: `${PANEL_WIDTH}px`,
-            transform: isOpen ? 'translateX(0)' : `translateX(${PANEL_WIDTH}px)`,
-            transition: 'transform 800ms cubic-bezier(0.16, 1, 0.3, 1)',
+            width: `min(${PANEL_WIDTH}px, 100vw)`,
+            transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform 420ms cubic-bezier(0.16, 1, 0.3, 1)',
             background: `
-              radial-gradient(ellipse 100% 40% at 50% 100%, rgb(var(--ec-accent) / 0.15) 0%, transparent 100%),
+              radial-gradient(ellipse 100% 40% at 50% 100%, rgb(var(--ec-accent) / 0.045) 0%, transparent 100%),
               rgb(var(--ec-page-bg))
             `,
           }}
@@ -784,8 +872,8 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           <div className="flex-none shrink-0 border-b border-[rgb(var(--ec-page-border))]">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center space-x-2">
-                <BookOpen size={16} className="text-[rgb(var(--ec-accent))]" />
-                <span className="font-medium text-[rgb(var(--ec-header-text))] text-sm">EventCatalog Assistant</span>
+                <Sparkles size={16} className="text-[rgb(var(--ec-accent))]" />
+                <span className="font-medium text-[rgb(var(--ec-header-text))] text-sm">Assistant</span>
               </div>
               <div className="flex items-center space-x-1">
                 {tools.length > 0 && (
@@ -838,7 +926,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 </button>
                 {hasMessages && (
                   <button
-                    onClick={() => setMessages([])}
+                    onClick={clearMessages}
                     className="p-2 rounded-lg hover:bg-[rgb(var(--ec-header-border))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-header-text))] transition-colors"
                     aria-label="Clear chat"
                     title="Clear chat"
@@ -855,21 +943,6 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 </button>
               </div>
             </div>
-            {/* Thinking indicator */}
-            {isThinking && (
-              <div className="px-4 pb-2 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-[rgb(var(--ec-accent))] rounded-full animate-pulse" />
-                <span className="text-xs text-[rgb(var(--ec-icon-color))]">
-                  {runningTools.length > 0 ? (
-                    <>
-                      Using <span className="font-medium text-[rgb(var(--ec-accent))]">{runningTools[0]}</span>...
-                    </>
-                  ) : (
-                    'Thinking...'
-                  )}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Content */}
@@ -886,23 +959,23 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   >
                     {/* Icon with circular background */}
                     <div className="relative mb-6">
-                      <div className="w-32 h-32 rounded-full bg-[rgb(var(--ec-accent)/0.15)] flex items-center justify-center">
-                        <MessageSquare size={56} className="text-[rgb(var(--ec-accent))]" strokeWidth={1.5} />
+                      <div className="ec-chat-avatar w-24 h-24 rounded-full flex items-center justify-center">
+                        <MessageSquare size={42} className="text-[rgb(var(--ec-accent))]" strokeWidth={1.5} />
                       </div>
                     </div>
-                    <h2 className="text-lg font-semibold text-[rgb(var(--ec-accent))] mb-1">{greeting}</h2>
+                    <h2 className="text-lg font-medium text-[rgb(var(--ec-page-text))] mb-1">{greeting}</h2>
                     <p className="text-sm font-normal text-[rgb(var(--ec-content-text))]">
                       I'm here to help with your architecture
                     </p>
                   </div>
 
                   {/* Suggested questions - pill style */}
-                  <div className="flex-none space-y-2">
+                  <div className="flex-none flex flex-col items-start gap-2">
                     {suggestedQuestions.map((question, index) => (
                       <button
                         key={index}
                         onClick={() => handleSuggestedAction(question.prompt)}
-                        className="w-full text-left px-4 py-2.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text)/0.05)] hover:bg-[rgb(var(--ec-accent)/0.15)] rounded-full transition-all duration-200"
+                        className="ec-chat-suggestion text-left px-3 py-2 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-accent)/0.04)] hover:bg-[rgb(var(--ec-accent)/0.09)] rounded-full transition-all duration-200"
                         style={isOpen ? fadeInStyles.getQuestionStyle(index) : undefined}
                       >
                         {question.label}
@@ -919,11 +992,16 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     const completedTools = message.role === 'assistant' ? getCompletedTools(message) : [];
                     const isLastMessage = messageIndex === messages.length - 1;
                     return (
-                      <div key={message.id} className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+                      <div
+                        key={message.id}
+                        className={`ec-chat-message ${!configured && message.role === 'assistant' ? 'ec-chat-setup' : ''} flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
+                      >
                         {message.role === 'user' ? (
                           <div className="max-w-[85%] rounded-2xl rounded-br-md px-4 py-2.5 bg-[rgb(var(--ec-page-text)/0.05)]">
                             <p className="text-sm font-normal whitespace-pre-wrap text-[rgb(var(--ec-page-text))]">{content}</p>
                           </div>
+                        ) : !configured ? (
+                          <OfflineReply />
                         ) : (
                           <>
                             {/* Tools used indicator */}
@@ -956,7 +1034,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                                   <button
                                     key={index}
                                     onClick={() => handleSuggestedAction(suggestion)}
-                                    className="px-4 py-2.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text)/0.05)] hover:bg-[rgb(var(--ec-accent)/0.15)] rounded-full transition-all duration-200 text-left"
+                                    className="ec-chat-suggestion px-3 py-2 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-accent)/0.04)] hover:bg-[rgb(var(--ec-accent)/0.09)] rounded-full transition-all duration-200 text-left"
                                     style={fadeInStyles.getFollowUpStyle(index)}
                                   >
                                     {suggestion}
@@ -973,7 +1051,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   {/* Skeleton loading indicator */}
                   {isThinking && (
                     <div className="w-full">
-                      <SkeletonLoader />
+                      <SkeletonLoader label={runningTools.length > 0 ? `Using ${runningTools[0]}…` : undefined} />
                     </div>
                   )}
 
@@ -1008,10 +1086,11 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             {/* Input area (Fixed at bottom) */}
             <div className="flex-none px-4 py-3" key={isOpen ? 'input-open' : 'input-closed'}>
               <form onSubmit={handleSubmit}>
-                <div className="relative bg-[rgb(var(--ec-page-bg)/0.5)] backdrop-blur-sm rounded-xl border border-[rgb(var(--ec-accent)/0.3)] focus-within:border-[rgb(var(--ec-accent)/0.5)] focus-within:ring-2 focus-within:ring-[rgb(var(--ec-accent)/0.1)] transition-all">
-                  <input
+                <div className="ec-chat-composer relative bg-[rgb(var(--ec-page-bg)/0.5)] backdrop-blur-sm rounded-xl border border-[rgb(var(--ec-accent)/0.3)] focus-within:border-[rgb(var(--ec-accent)/0.5)] focus-within:ring-2 focus-within:ring-[rgb(var(--ec-accent)/0.1)] transition-all">
+                  <textarea
                     ref={inputRef}
-                    type="text"
+                    rows={2}
+                    aria-label="Ask AI a question"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleInputKeyDown}
@@ -1019,11 +1098,21 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     disabled={isLoading}
                     className="w-full px-4 py-3 pr-16 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-hidden text-sm disabled:opacity-50 rounded-xl"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
-                    {isStreaming ? (
+                  <div className="absolute bottom-4 left-4 right-20 truncate text-[10px] text-[rgb(var(--ec-page-text-muted))]">
+                    <span className="mr-1.5 rounded bg-[rgb(var(--ec-accent)/0.08)] px-1 py-0.5 font-medium text-[rgb(var(--ec-accent))]">
+                      AI
+                    </span>
+                    {configured
+                      ? pageContext
+                        ? `Based on ${pageContext.name}`
+                        : 'Your architecture, connected'
+                      : 'Explore your catalog with AI'}
+                  </div>
+                  <div className="ec-chat-composer-actions absolute right-2 z-10">
+                    {isStreaming || isSetupThinking ? (
                       <button
                         type="button"
-                        onClick={() => stop()}
+                        onClick={stopResponse}
                         className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                         aria-label="Stop generating"
                       >
@@ -1074,10 +1163,10 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300]" />
           <Dialog.Content
-            className="fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-hidden border border-[rgb(var(--ec-page-border))]"
+            className="ec-chat-surface fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-hidden border border-[rgb(var(--ec-page-border))]"
             style={{
               background: `
-                radial-gradient(ellipse 100% 40% at 50% 100%, rgb(var(--ec-accent) / 0.15) 0%, transparent 100%),
+                radial-gradient(ellipse 100% 40% at 50% 100%, rgb(var(--ec-accent) / 0.045) 0%, transparent 100%),
                 rgb(var(--ec-page-bg))
               `,
             }}
@@ -1086,7 +1175,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             <div className="flex items-center justify-between px-5 py-3 border-b border-[rgb(var(--ec-page-border))] flex-shrink-0">
               <div className="flex items-center space-x-2.5">
                 <div className="p-1.5 bg-[rgb(var(--ec-accent-subtle))] rounded-lg">
-                  <BookOpen size={18} className="text-[rgb(var(--ec-accent))]" />
+                  <Sparkles size={18} className="text-[rgb(var(--ec-accent))]" />
                 </div>
                 <Dialog.Title className="text-base font-medium text-[rgb(var(--ec-page-text))]">Ask AI</Dialog.Title>
               </div>
@@ -1137,7 +1226,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 )}
                 {hasMessages && (
                   <button
-                    onClick={() => setMessages([])}
+                    onClick={clearMessages}
                     className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                     aria-label="Clear chat"
                     title="Clear chat"
@@ -1166,22 +1255,6 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
               </div>
             </div>
 
-            {/* Thinking indicator */}
-            {isThinking && (
-              <div className="px-5 py-2 flex items-center gap-2 border-b border-[rgb(var(--ec-page-border))]">
-                <div className="w-1.5 h-1.5 bg-[rgb(var(--ec-accent))] rounded-full animate-pulse" />
-                <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">
-                  {runningTools.length > 0 ? (
-                    <>
-                      Using <span className="font-medium text-[rgb(var(--ec-accent))]">{runningTools[0]}</span>...
-                    </>
-                  ) : (
-                    'Thinking...'
-                  )}
-                </span>
-              </div>
-            )}
-
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto px-6 py-6">
               {!hasMessages ? (
@@ -1191,11 +1264,11 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   <div className="flex-1 flex flex-col justify-center items-center text-center">
                     {/* Icon with circular background */}
                     <div className="relative mb-8">
-                      <div className="w-40 h-40 rounded-full bg-[rgb(var(--ec-accent)/0.15)] flex items-center justify-center">
-                        <MessageSquare size={72} className="text-[rgb(var(--ec-accent))]" strokeWidth={1.5} />
+                      <div className="ec-chat-avatar w-28 h-28 rounded-full flex items-center justify-center">
+                        <MessageSquare size={48} className="text-[rgb(var(--ec-accent))]" strokeWidth={1.5} />
                       </div>
                     </div>
-                    <h2 className="text-2xl font-semibold text-[rgb(var(--ec-accent))] mb-2">{greeting}</h2>
+                    <h2 className="text-2xl font-medium text-[rgb(var(--ec-page-text))] mb-2">{greeting}</h2>
                     <p className="font-normal text-[rgb(var(--ec-content-text))] text-center">
                       I'm here to help with your architecture
                     </p>
@@ -1207,7 +1280,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                       <button
                         key={index}
                         onClick={() => handleSuggestedAction(question.prompt)}
-                        className="px-4 py-2.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text)/0.05)] hover:bg-[rgb(var(--ec-accent)/0.15)] rounded-full transition-all duration-200 text-left"
+                        className="ec-chat-suggestion px-3 py-2 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-accent)/0.04)] hover:bg-[rgb(var(--ec-accent)/0.09)] rounded-full transition-all duration-200 text-left"
                       >
                         {question.label}
                       </button>
@@ -1223,11 +1296,16 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     const completedTools = message.role === 'assistant' ? getCompletedTools(message) : [];
                     const isLastMessage = messageIndex === messages.length - 1;
                     return (
-                      <div key={message.id} className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+                      <div
+                        key={message.id}
+                        className={`ec-chat-message ${!configured && message.role === 'assistant' ? 'ec-chat-setup' : ''} flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
+                      >
                         {message.role === 'user' ? (
                           <div className="max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 bg-[rgb(var(--ec-page-text)/0.05)]">
                             <p className="text-sm font-normal whitespace-pre-wrap text-[rgb(var(--ec-page-text))]">{content}</p>
                           </div>
+                        ) : !configured ? (
+                          <OfflineReply />
                         ) : (
                           <>
                             {/* Tools used indicator */}
@@ -1260,7 +1338,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                                   <button
                                     key={index}
                                     onClick={() => handleSuggestedAction(suggestion)}
-                                    className="px-4 py-2.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text)/0.05)] hover:bg-[rgb(var(--ec-accent)/0.15)] rounded-full transition-all duration-200 text-left"
+                                    className="ec-chat-suggestion px-3 py-2 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-accent)/0.04)] hover:bg-[rgb(var(--ec-accent)/0.09)] rounded-full transition-all duration-200 text-left"
                                     style={fadeInStyles.getFollowUpStyle(index)}
                                   >
                                     {suggestion}
@@ -1276,7 +1354,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
                   {isThinking && (
                     <div className="w-full max-w-md">
-                      <SkeletonLoader />
+                      <SkeletonLoader label={runningTools.length > 0 ? `Using ${runningTools[0]}…` : undefined} />
                     </div>
                   )}
 
@@ -1300,10 +1378,11 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             {/* Modal Input area */}
             <div className="flex-shrink-0 px-6 py-4">
               <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-                <div className="relative bg-[rgb(var(--ec-page-bg)/0.5)] backdrop-blur-sm rounded-xl border border-[rgb(var(--ec-accent)/0.3)] focus-within:border-[rgb(var(--ec-accent)/0.5)] focus-within:ring-2 focus-within:ring-[rgb(var(--ec-accent)/0.1)] transition-all">
-                  <input
+                <div className="ec-chat-composer relative bg-[rgb(var(--ec-page-bg)/0.5)] backdrop-blur-sm rounded-xl border border-[rgb(var(--ec-accent)/0.3)] focus-within:border-[rgb(var(--ec-accent)/0.5)] focus-within:ring-2 focus-within:ring-[rgb(var(--ec-accent)/0.1)] transition-all">
+                  <textarea
                     ref={modalInputRef}
-                    type="text"
+                    rows={2}
+                    aria-label="Ask AI a question"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleInputKeyDown}
@@ -1311,11 +1390,21 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     disabled={isLoading}
                     className="w-full px-4 py-3.5 pr-20 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-hidden text-sm disabled:opacity-50 rounded-xl"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
-                    {isStreaming ? (
+                  <div className="absolute bottom-4 left-4 right-20 truncate text-[10px] text-[rgb(var(--ec-page-text-muted))]">
+                    <span className="mr-1.5 rounded bg-[rgb(var(--ec-accent)/0.08)] px-1 py-0.5 font-medium text-[rgb(var(--ec-accent))]">
+                      AI
+                    </span>
+                    {configured
+                      ? pageContext
+                        ? `Based on ${pageContext.name}`
+                        : 'Your architecture, connected'
+                      : 'Explore your catalog with AI'}
+                  </div>
+                  <div className="ec-chat-composer-actions absolute right-2 z-10">
+                    {isStreaming || isSetupThinking ? (
                       <button
                         type="button"
-                        onClick={() => stop()}
+                        onClick={stopResponse}
                         className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                         aria-label="Stop generating"
                       >

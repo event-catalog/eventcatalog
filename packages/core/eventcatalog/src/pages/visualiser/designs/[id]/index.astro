@@ -4,11 +4,11 @@ import AstroNodeGraph from '@components/MDX/NodeGraph/AstroNodeGraph';
 import '@eventcatalog/visualiser/styles-core.css';
 import { ClientRouter } from 'astro:transitions';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { isEventCatalogChatEnabled } from '@utils/feature';
+import { isEventCatalogChatVisible } from '@utils/feature';
 
 import { Page } from './_index.data';
 
-const isChatEnabled = isEventCatalogChatEnabled();
+const isChatEnabled = isEventCatalogChatVisible();
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
