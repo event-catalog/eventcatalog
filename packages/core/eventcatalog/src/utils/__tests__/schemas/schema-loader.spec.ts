@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -8,6 +8,31 @@ import { getMessageSchemasFromFrontmatter, loadMessageSchemas } from '@utils/col
 const originalScale = process.env.EVENTCATALOG_SCALE;
 
 describe('schema-loader', () => {
+  it('excludes dependency schemas while retaining nested and federated message schemas', async () => {
+    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-discovery-'));
+    const messages = [
+      ['domains/Orders/services/Shipping/events/Shipped', 'Shipped'],
+      ['federated/orders/events/Confirmed', 'Confirmed'],
+      ['node_modules/core/events/Fixture', 'Fixture'],
+      ['federated/orders/node_modules/sdk/events/NestedFixture', 'NestedFixture'],
+    ];
+    try {
+      for (const [relativeDir, id] of messages) {
+        const directory = path.join(catalogDir, relativeDir);
+        await mkdir(directory, { recursive: true });
+        await writeFile(path.join(directory, 'schema.json'), '{"type":"object"}');
+        await writeFile(
+          path.join(directory, 'index.mdx'),
+          `---\nid: ${id}\nname: ${id}\nversion: 1.0.0\nschemaPath: schema.json\n---\n`
+        );
+      }
+      const schemas = await loadMessageSchemas({ base: catalogDir, pattern: ['**/events/*/index.{md,mdx}'] });
+      expect(schemas.map((schema) => schema.message.id).sort()).toEqual(['Confirmed', 'Shipped']);
+    } finally {
+      await rm(catalogDir, { recursive: true, force: true });
+    }
+  });
+
   beforeEach(() => {
     delete process.env.EVENTCATALOG_SCALE;
   });

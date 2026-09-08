@@ -1107,7 +1107,7 @@ const teams = defineCollection({
 
 const designs = defineCollection({
   loader: async () => {
-    const data = await globPackage('**/**/*.ecstudio', { cwd: projectDirBase, ignore: ['dist/**'] });
+    const data = await globPackage('**/**/*.ecstudio', { cwd: projectDirBase, ignore: ['dist/**', '**/node_modules/**'] });
     // File all the files in the designs folder
     // Limit 3 designs community edition?
     const files = data.reduce<{ id: string; name: string }[]>((acc, filePath) => {

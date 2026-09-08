@@ -17,6 +17,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { eventCatalogLikeC4 } from './src/plugins/likec4';
 import { loadAstroCompressIntegration } from './src/plugins/astro-compress';
 import { astroTrailingSlashEndpointFix } from './src/plugins/astro-trailing-slash-endpoint-fix';
+import { linkValidation } from './src/plugins/link-validation';
 
 import rehypeExpressiveCode from 'rehype-expressive-code';
 
@@ -111,6 +112,7 @@ export default defineConfig({
     effectiveOutput !== 'server' && compress && (await loadAstroCompressIntegration(projectDirectory)),
     ecstudioWatcher(),
     eventCatalogIntegration(),
+    linkValidation(config.linkValidation),
   ].filter(Boolean),
   vite: {
     plugins: [
