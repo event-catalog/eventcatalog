@@ -8,7 +8,7 @@ import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import Badge from '@components/Badge.astro';
 import { buildUrl } from '@utils/url-builder';
 import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
-import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled, isResourceDocsEnabled } from '@utils/feature';
+import { isEventCatalogChatVisible, isMarkdownDownloadEnabled, isResourceDocsEnabled } from '@utils/feature';
 import { getIcon } from '@utils/badges';
 import { collectionToResourceMap } from '@utils/collections/util';
 import { getResourceDocTypeLabel } from '@utils/collections/resource-docs';
@@ -38,7 +38,7 @@ const singularResourceName =
   collectionToResourceMap[props.data.resourceCollection as keyof typeof collectionToResourceMap] ??
   props.data.resourceCollection.slice(0, props.data.resourceCollection.length - 1);
 const typeLabel = getResourceDocTypeLabel(props.data.type);
-const chatEnabled = isEventCatalogChatEnabled();
+const chatEnabled = isEventCatalogChatVisible();
 const chatQuery = `Tell me about the ${props.data.type} doc "${title}" for ${props.data.resourceId} (version ${props.data.version})`;
 
 const pagefindAttributes =
@@ -60,11 +60,17 @@ const pagefindAttributes =
             <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">{typeLabel}</span>
             <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{title}</h2>
           </div>
-          {props.data.summary && <p class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</p>}
+          {
+            props.data.summary && (
+              <p class="text-base pt-4 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</p>
+            )
+          }
           {
             badges.length > 0 && (
               <div class="flex flex-wrap gap-1.5 pt-4">
-                {badges.map((badge: any) => <Badge badge={badge} />)}
+                {badges.map((badge: any) => (
+                  <Badge badge={badge} />
+                ))}
               </div>
             )
           }

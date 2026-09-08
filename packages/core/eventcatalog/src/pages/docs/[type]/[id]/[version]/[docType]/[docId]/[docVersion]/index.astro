@@ -8,7 +8,7 @@ import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import Badge from '@components/Badge.astro';
 import { buildUrl } from '@utils/url-builder';
 import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
-import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled, isResourceDocsEnabled } from '@utils/feature';
+import { isEventCatalogChatVisible, isMarkdownDownloadEnabled, isResourceDocsEnabled } from '@utils/feature';
 import { getResourceDocTypeLabel } from '@utils/collections/resource-docs';
 import { getIcon } from '@utils/badges';
 import { collectionToResourceMap } from '@utils/collections/util';
@@ -37,7 +37,7 @@ const docsBasePath = `/docs/${props.data.resourceCollection}/${props.data.resour
 const singularResourceName =
   collectionToResourceMap[props.data.resourceCollection as keyof typeof collectionToResourceMap] ??
   props.data.resourceCollection.slice(0, props.data.resourceCollection.length - 1);
-const chatEnabled = isEventCatalogChatEnabled();
+const chatEnabled = isEventCatalogChatVisible();
 const chatQuery = `Tell me about the ${props.data.type} doc "${title}" for ${props.data.resourceId} (version ${props.data.version})`;
 
 const pagefindAttributes =
@@ -69,7 +69,9 @@ const pagefindAttributes =
           {
             badges.length > 0 && (
               <div class="flex flex-wrap gap-1.5 pt-4">
-                {badges.map((badge: any) => <Badge badge={badge} />)}
+                {badges.map((badge: any) => (
+                  <Badge badge={badge} />
+                ))}
               </div>
             )
           }

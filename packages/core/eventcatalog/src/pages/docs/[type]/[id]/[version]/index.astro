@@ -61,7 +61,7 @@ import { getIcon } from '@utils/badges';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
 import {
-  isEventCatalogChatEnabled,
+  isEventCatalogChatVisible,
   isMarkdownDownloadEnabled,
   isVisualiserEnabled,
   isRSSEnabled,
@@ -479,11 +479,11 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
                 variant="toolbar"
                 schemas={schemasForResource}
                 chatQuery={generatePromptForResource(props)}
-                chatEnabled={isEventCatalogChatEnabled()}
+                chatEnabled={isEventCatalogChatVisible()}
                 markdownDownloadEnabled={isMarkdownDownloadEnabled()}
                 rssFeedEnabled={isRSSEnabled()}
                 editUrl={editUrl}
-                preferChatAsDefault={isEventCatalogChatEnabled()}
+                preferChatAsDefault={isEventCatalogChatVisible()}
                 mcpServerUrl={mcpServerUrl}
                 resourceName={props.data.name}
                 mcpResourceType={mcpResourceType}

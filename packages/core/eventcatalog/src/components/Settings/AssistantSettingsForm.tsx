@@ -76,34 +76,39 @@ export const AssistantSettingsForm = ({ canEdit, initial, chatAvailable, hasPlan
       <Row
         title="Assistant Agent"
         description="Assistant agent that answers questions about your architecture directly in your catalog."
-        canEdit={canEdit && chatAvailable}
+        canEdit={canEdit}
         dirty={dirty}
         saving={saving}
-        onSave={chatAvailable ? save : undefined}
+        onSave={save}
       >
-        {chatAvailable ? (
-          <div className="space-y-3">
-            <ToggleRow
-              icon={<MessageSquare className="h-4 w-4" aria-hidden />}
-              label={chatEnabled ? 'Enabled' : 'Disabled'}
-              hint={chatEnabled ? 'Chat is available to readers of this catalog.' : 'Chat is hidden from the catalog.'}
-              checked={chatEnabled}
-              disabled={!canEdit}
-              onChange={setChatEnabled}
-            />
-            {chatEnabled && <ConfigurationRequired />}
-          </div>
-        ) : !hasPlan ? (
-          <UpgradeRequired
-            tier="Starter and Scale"
-            blurb="The EventCatalog Assistant is part of our paid plans. Upgrade to give your team a built-in AI agent that answers questions about your architecture."
-            docsUrl={ASSISTANT_DOCS_URL}
+        <div className="space-y-3">
+          <ToggleRow
+            icon={<MessageSquare className="h-4 w-4" aria-hidden />}
+            label={chatEnabled ? 'Enabled' : 'Disabled'}
+            hint={
+              chatEnabled
+                ? 'Event Catalog Assistant is visible in this catalog.'
+                : 'Event Catalog Assistant is hidden from this catalog.'
+            }
+            checked={chatEnabled}
+            disabled={!canEdit}
+            onChange={setChatEnabled}
           />
-        ) : !inSSR ? (
-          <AssistantNeedsSSR />
-        ) : !hasChatConfigFile ? (
-          <AssistantNeedsConfigFile />
-        ) : null}
+          {chatEnabled &&
+            (chatAvailable ? (
+              <ConfigurationRequired />
+            ) : !hasPlan ? (
+              <UpgradeRequired
+                tier="Starter and Scale"
+                blurb="The EventCatalog Assistant is part of our paid plans. Upgrade to give your team a built-in AI agent that answers questions about your architecture."
+                docsUrl={ASSISTANT_DOCS_URL}
+              />
+            ) : !inSSR ? (
+              <AssistantNeedsSSR />
+            ) : !hasChatConfigFile ? (
+              <AssistantNeedsConfigFile />
+            ) : null)}
+        </div>
       </Row>
     </form>
   );

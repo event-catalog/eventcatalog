@@ -1,6 +1,7 @@
 import config from '../../eventcatalog.config.js';
 
 // Open-source feature flags
+export const isEventCatalogChatVisible = () => config?.chat?.enabled ?? true;
 export const isSSR = () => config?.output === 'server';
 export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;
 // Opt-in while in beta — building the whole-catalog graph is unproven on very large catalogs

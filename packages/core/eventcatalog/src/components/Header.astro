@@ -2,7 +2,12 @@
 import catalog from '@utils/eventcatalog-config/catalog';
 import Search from '@components/Search/Search.astro';
 import { buildUrl } from '@utils/url-builder';
-import { showEventCatalogBranding, showCustomBranding, isEventCatalogChatEnabled } from '@utils/feature';
+import {
+  showEventCatalogBranding,
+  showCustomBranding,
+  isEventCatalogChatVisible,
+  isEventCatalogChatEnabled,
+} from '@utils/feature';
 import { getSession } from 'auth-astro/server';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import { EnvironmentDropdown } from './EnvironmentDropdown';
@@ -33,15 +38,15 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
     : 'left: var(--ec-vertical-nav-width, 14rem);'}
 >
   <div class="px-6">
-    <div class="flex justify-between items-center">
-      <div class="hidden lg:flex flex-grow items-center">
-        <div class="w-full max-w-xl">
+    <div class="flex justify-between items-center gap-4">
+      <div class="hidden lg:flex min-w-0 flex-1 items-center gap-3">
+        <div class="min-w-0 flex-1 max-w-xl">
           <Search />
         </div>
-        {isEventCatalogChatEnabled() && <ChatPanelButton client:idle />}
+        {isEventCatalogChatVisible() && <ChatPanelButton configured={isEventCatalogChatEnabled()} client:idle />}
       </div>
 
-      <div class="hidden md:block w-3/12">
+      <div class="hidden md:block shrink-0 ml-auto">
         {
           session ? (
             <div class="flex items-center space-x-4 justify-end pr-2">

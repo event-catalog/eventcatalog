@@ -7,7 +7,7 @@ import config from '@config';
 import { buildUrl } from '@utils/url-builder';
 import { GitCompare, X, AlignLeft, HistoryIcon } from 'lucide-react';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
-import { isLLMSTxtEnabled, isEventCatalogChatEnabled } from '@utils/feature';
+import { isLLMSTxtEnabled, isEventCatalogChatVisible } from '@utils/feature';
 
 import { Page } from './_index.data';
 
@@ -21,7 +21,7 @@ const pageTitle = `Diagram | ${props.data.name}`;
 const currentVersion = props.data.version;
 const allVersions = props.allVersions || [currentVersion];
 const hasMultipleVersions = allVersions.length > 1;
-const chatEnabled = isEventCatalogChatEnabled();
+const chatEnabled = isEventCatalogChatVisible();
 const markdownDownloadEnabled = isLLMSTxtEnabled();
 const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${props.data.version})`;
 ---

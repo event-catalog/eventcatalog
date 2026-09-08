@@ -29,11 +29,11 @@ import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForChannel } from '@utils/node-graphs/channel-node-graph';
 import config from '@config';
-import { isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
+import { isEventCatalogChatVisible, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 import { compactVisualiserGraph } from '@utils/node-graphs/compact-visualiser-graph';
 
-const isChatEnabled = isEventCatalogChatEnabled();
+const isChatEnabled = isEventCatalogChatVisible();
 
 interface Props {
   id: string;

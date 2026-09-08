@@ -7,10 +7,10 @@ import AstroNodeGraph from '../NodeGraph/AstroNodeGraph';
 // Visualiser styles ship in the page head so ClientRouter navigations keep them (see NodeGraph.astro).
 import '@eventcatalog/visualiser/styles-core.css';
 
-import { isVisualiserEnabled, isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
+import { isVisualiserEnabled, isEventCatalogChatVisible, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 
-const isChatEnabled = isEventCatalogChatEnabled();
+const isChatEnabled = isEventCatalogChatVisible();
 
 let design: any;
 let id = 'design';
