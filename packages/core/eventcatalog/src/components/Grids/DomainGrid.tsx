@@ -17,6 +17,7 @@ import {
 import { buildUrl } from '@utils/url-builder';
 import { BoxIcon, Group as GroupIcon } from 'lucide-react';
 import { getSpecUrl, getSpecIcon, getSpecLabel, getServiceSpecifications } from './specification-utils';
+import { getMessageLinkProps } from './message-link';
 
 // ============================================
 // Types
@@ -64,12 +65,8 @@ export const EntityBadge = memo(({ entity }: { entity: any }) => {
 });
 
 const MessageLink = memo(({ message }: { message: any }) => {
-  const data = message?.data || message;
-  const collection = message?.collection || 'events';
-  const { Icon, color } = getMessageIcon(collection);
-  const id = data?.id || message?.id;
-  const name = data?.name || data?.id || id;
-  const version = data?.version || message?.data?.version || 'latest';
+  const { collection, name, version, href } = getMessageLinkProps(message);
+  const { Icon, color } = getMessageIcon(collection || '');
 
   const iconStyles: Record<string, string> = {
     orange: 'text-orange-500',
@@ -78,14 +75,25 @@ const MessageLink = memo(({ message }: { message: any }) => {
     gray: 'text-gray-500',
   };
 
-  return (
-    <a
-      href={buildUrl(`/docs/${collection}/${id}/${version}`)}
-      className="flex items-center gap-2 py-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors group"
-    >
+  const content = (
+    <>
       <Icon className={`h-4 w-4 flex-shrink-0 ${iconStyles[color]}`} />
-      <span className="group-hover:underline">{name}</span>
+      <span className={href ? 'group-hover:underline' : undefined}>{name}</span>
       <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{version}</span>
+    </>
+  );
+
+  const className =
+    'flex items-center gap-2 py-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors group';
+
+  // Missing collection means an unhydrated pointer — do not guess `/docs/events/...`.
+  if (!href) {
+    return <span className={className}>{content}</span>;
+  }
+
+  return (
+    <a href={buildUrl(href)} className={className}>
+      {content}
     </a>
   );
 });

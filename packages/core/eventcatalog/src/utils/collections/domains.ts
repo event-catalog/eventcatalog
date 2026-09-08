@@ -4,6 +4,7 @@ import path from 'path';
 import type { CollectionMessageTypes } from '@types';
 import type { Agent, Service } from './types';
 import { createVersionedMap, findInMap, processSpecifications } from '@utils/collections/util';
+import { hydrateAgents, hydrateServices } from '@utils/collections/hydrate-services';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
@@ -18,86 +19,6 @@ interface Props {
 
 // Simple in-memory cache variable
 let memoryCache: Record<string, Domain[]> = {};
-
-// Helper to hydrate services
-const hydrateServices = (
-  servicesList: any[],
-  serviceMap: Map<string, any[]>,
-  messageMap: Map<string, any[]>,
-  containerMap: Map<string, any[]>
-) => {
-  return servicesList
-    .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
-    .filter((s) => !!s)
-    .map((service) => {
-      // Hydrate service messages and containers
-      const sends = (service.data.sends || [])
-        .map((msg: any) => findInMap(messageMap, msg.id, msg.version))
-        .filter((m: any) => !!m);
-
-      const receives = (service.data.receives || [])
-        .map((msg: any) => findInMap(messageMap, msg.id, msg.version))
-        .filter((m: any) => !!m);
-
-      const readsFrom = (service.data.readsFrom || [])
-        .map((c: any) => findInMap(containerMap, c.id, c.version))
-        .filter((c: any) => !!c);
-
-      const writesTo = (service.data.writesTo || [])
-        .map((c: any) => findInMap(containerMap, c.id, c.version))
-        .filter((c: any) => !!c);
-
-      return {
-        ...service,
-        data: {
-          ...service.data,
-          sends: sends as any,
-          receives: receives as any,
-          readsFrom: readsFrom as any,
-          writesTo: writesTo as any,
-        },
-      };
-    });
-};
-
-const hydrateAgents = (
-  agentsList: any[],
-  agentMap: Map<string, any[]>,
-  messageMap: Map<string, any[]>,
-  containerMap: Map<string, any[]>
-) => {
-  return agentsList
-    .map((agent: { id: string; version: string | undefined }) => findInMap(agentMap, agent.id, agent.version))
-    .filter((a) => !!a)
-    .map((agent) => {
-      const sends = (agent.data.sends || [])
-        .map((msg: any) => findInMap(messageMap, msg.id, msg.version))
-        .filter((m: any) => !!m);
-
-      const receives = (agent.data.receives || [])
-        .map((msg: any) => findInMap(messageMap, msg.id, msg.version))
-        .filter((m: any) => !!m);
-
-      const readsFrom = (agent.data.readsFrom || [])
-        .map((c: any) => findInMap(containerMap, c.id, c.version))
-        .filter((c: any) => !!c);
-
-      const writesTo = (agent.data.writesTo || [])
-        .map((c: any) => findInMap(containerMap, c.id, c.version))
-        .filter((c: any) => !!c);
-
-      return {
-        ...agent,
-        data: {
-          ...agent.data,
-          sends: sends as any,
-          receives: receives as any,
-          readsFrom: readsFrom as any,
-          writesTo: writesTo as any,
-        },
-      };
-    });
-};
 
 // --- MAIN FUNCTION ---
 

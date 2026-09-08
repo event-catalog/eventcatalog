@@ -168,6 +168,7 @@ export const mockCommands = [
     collection: 'commands',
     data: {
       id: 'PlaceOrder',
+      name: 'Place Order',
       version: '1.0.0',
     },
   },
@@ -177,6 +178,7 @@ export const mockCommands = [
     collection: 'commands',
     data: {
       id: 'PlaceOrder',
+      name: 'Place Order',
       version: '1.5.0',
     },
   },
@@ -186,6 +188,7 @@ export const mockCommands = [
     collection: 'commands',
     data: {
       id: 'PlaceOrder',
+      name: 'Place Order',
       version: '1.7.7',
     },
   },

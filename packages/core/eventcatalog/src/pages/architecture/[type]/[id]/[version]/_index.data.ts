@@ -3,10 +3,26 @@ import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import type { PageTypes } from '@types';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getDomains } from '@utils/collections/domains';
-import { getServices } from '@utils/collections/services';
 import { getSystems } from '@utils/collections/systems';
 
 const architecturePageTypes: PageTypes[] = ['services', 'domains', 'systems'];
+
+/**
+ * Architecture grids render service sends/receives as docs links, so domains and
+ * systems must hydrate those messages (collection + name). `pageDataLoader`
+ * uses the cheaper unenriched path used by docs/sidebar.
+ */
+export const loadArchitectureItems = (type: PageTypes) => {
+  if (type === 'domains') {
+    return getDomains({ enrichServices: true });
+  }
+
+  if (type === 'systems') {
+    return getSystems({ enrichServices: true });
+  }
+
+  return pageDataLoader[type as PageTypes]();
+};
 
 /**
  * Documentation page class for all collection types with versioning
@@ -17,11 +33,7 @@ export class Page extends HybridPage {
       return [];
     }
 
-    const domains = await getDomains({ enrichServices: true });
-    const services = await getServices();
-    const systems = await getSystems();
-
-    const pageData = [services, domains, systems];
+    const pageData = await Promise.all(architecturePageTypes.map((type) => loadArchitectureItems(type)));
 
     return pageData.flatMap((items, index) =>
       items.map((item) => ({
@@ -47,8 +59,7 @@ export class Page extends HybridPage {
       return null;
     }
 
-    // Get all items of the specified type
-    const items = await pageDataLoader[type as PageTypes]();
+    const items = await loadArchitectureItems(type as PageTypes);
 
     // Find the specific item by id and version
     const item = items.find((i) => i.data.id === id && i.data.version === version);
