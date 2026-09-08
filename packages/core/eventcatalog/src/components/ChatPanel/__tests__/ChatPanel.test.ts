@@ -17,6 +17,10 @@ describe('Ask AI setup experience', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() }))
+    );
     vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
     fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ tools: [] })));
     vi.stubGlobal('fetch', fetchMock);
@@ -100,6 +104,32 @@ describe('Ask AI setup experience', () => {
     await act(async () => container.querySelector<HTMLButtonElement>('button[aria-label="Close chat panel"]')!.click());
     await act(async () => vi.advanceTimersByTime(100));
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it('opens from a page action on mobile without squeezing the page, and adapts when resized', async () => {
+    const media = { matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() };
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => media)
+    );
+    const app = document.createElement('div');
+    app.id = 'eventcatalog-application';
+    document.body.appendChild(app);
+    try {
+      await act(async () => root.render(createElement(ChatPanelButton, { configured: false })));
+      await act(async () => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat')));
+      expect(container.querySelector('.ec-chat-surface')?.hasAttribute('inert')).toBe(false);
+      expect(app.style.paddingRight).toBe('0px');
+      const updateLayout = media.addEventListener.mock.calls.at(-1)![1];
+      media.matches = true;
+      await act(async () => updateLayout());
+      expect(app.style.paddingRight).toBe('400px');
+      media.matches = false;
+      await act(async () => updateLayout());
+      expect(app.style.paddingRight).toBe('0px');
+    } finally {
+      app.remove();
+    }
   });
 
   it('loads available tools when the configured assistant opens', async () => {

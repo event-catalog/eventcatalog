@@ -39,8 +39,8 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 >
   <div class="px-6">
     <div class="flex justify-between items-center gap-4">
-      <div class="hidden lg:flex min-w-0 flex-1 items-center gap-3">
-        <div class="min-w-0 flex-1 max-w-xl">
+      <div class="flex min-w-0 flex-1 items-center gap-3">
+        <div class="hidden lg:block min-w-0 flex-1 max-w-xl">
           <Search />
         </div>
         {isEventCatalogChatVisible() && <ChatPanelButton configured={isEventCatalogChatEnabled()} client:idle />}

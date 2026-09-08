@@ -738,31 +738,23 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
 
     const elements = [appEl, headerEl].filter(Boolean) as HTMLElement[];
 
-    elements.forEach((el) => {
-      // Add transition if not already present
-      if (!el.style.transition) {
-        el.style.transition = 'padding-right 420ms cubic-bezier(0.16, 1, 0.3, 1)';
-      }
-
-      // Only add padding when panel is open AND not in fullscreen mode
-      if (isOpen && !isFullscreen) {
-        el.style.paddingRight = `${PANEL_WIDTH}px`;
-      } else {
-        el.style.paddingRight = '0';
-      }
-    });
-
-    // Hide docs sidebar when chat panel is open
-    if (docsSidebarEl) {
-      if (isOpen && !isFullscreen) {
-        docsSidebarEl.style.display = 'none';
-      } else {
-        docsSidebarEl.style.display = '';
-      }
-    }
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const updateLayout = () => {
+      const pushContent = desktop.matches && isOpen && !isFullscreen;
+      elements.forEach((el) => {
+        if (!el.style.transition) {
+          el.style.transition = 'padding-right 420ms cubic-bezier(0.16, 1, 0.3, 1)';
+        }
+        el.style.paddingRight = pushContent ? `${PANEL_WIDTH}px` : '0';
+      });
+      if (docsSidebarEl) docsSidebarEl.style.display = pushContent ? 'none' : '';
+    };
+    updateLayout();
+    desktop.addEventListener('change', updateLayout);
 
     // Cleanup on unmount
     return () => {
+      desktop.removeEventListener('change', updateLayout);
       elements.forEach((el) => {
         el.style.paddingRight = '0';
       });
