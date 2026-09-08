@@ -132,6 +132,8 @@ export const scanCatalogFiles = async (rootDir: string): Promise<CatalogFile[]> 
       absolute: true,
       onlyFiles: true,
       followSymbolicLinks: false,
+      // Builds copy resource files into dist/generated; these are not catalog inputs.
+      ignore: ['**/dist/**', '**/node_modules/**'],
     });
 
     for (const filePath of foundFiles) {

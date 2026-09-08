@@ -280,6 +280,17 @@ export interface Config {
   host?: string | boolean;
   trailingSlash?: boolean;
   output?: 'server' | 'static';
+  /** Validate internal links and anchors after static builds. Set false to disable. */
+  linkValidation?:
+    | false
+    | {
+        /** @default 'warn' */
+        onBrokenLinks?: 'warn' | 'error' | 'ignore';
+        /** @default 'warn' */
+        onBrokenAnchors?: 'warn' | 'error' | 'ignore';
+        /** Glob patterns for destination URL paths, relative to the catalog base (e.g. /api/**). */
+        ignore?: string[];
+      };
   server?: {
     allowedHosts?: string[] | true;
   };

@@ -5,6 +5,30 @@ import path from 'path';
 import { extractResourceInfo, scanCatalogFiles } from '../src/scanner';
 
 describe('extractResourceInfo', () => {
+  it('excludes generated resources and dependency fixtures while preserving nested and federated content', async () => {
+    const rootDir = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-linter-artifacts-'));
+    const sources = ['domains/orders/services/orders-api/index.mdx', 'federated/payments/events/paid/index.mdx'];
+    const artifacts = [
+      'dist/generated/domains/orders/services/orders-api/index.mdx',
+      'dist/generated/events/paid/index.mdx',
+      'federated/payments/dist/events/paid/index.mdx',
+      'node_modules/example/events/paid/index.mdx',
+      'node_modules/example/entities/order/index.mdx',
+      'federated/payments/node_modules/example/containers/database/index.mdx',
+    ];
+    try {
+      for (const file of [...sources, ...artifacts]) {
+        const filePath = path.join(rootDir, file);
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, '---\nid: test\nname: Test\nversion: 1.0.0\n---\n');
+      }
+      const files = await scanCatalogFiles(rootDir);
+      expect(files.map((file) => file.relativePath).sort()).toEqual(sources.sort());
+    } finally {
+      await fs.rm(rootDir, { recursive: true, force: true });
+    }
+  });
+
   it('should extract simple resource id', () => {
     const result = extractResourceInfo('services/user-service/index.mdx', 'service');
     expect(result).toEqual({ id: 'user-service' });

@@ -16,6 +16,12 @@ import { getCollection } from 'astro:content';
 import { getServiceSpecifications, getSpecUrl, getSpecLabel } from '@components/Grids/specification-utils';
 import { getResourceReferenceStyle } from '@utils/resource-reference-colors';
 import { isIconPath, resolveIconUrl } from '@utils/icon';
+import {
+  getResourceReferenceUrl,
+  isVersionedReference,
+  resolveMessageReference,
+  resolveOwnerReference,
+} from '@utils/resource-reference-links';
 
 interface Props {
   type:
@@ -157,18 +163,16 @@ try {
     }
 
     const resourcesCollection = (await getCollection(collection as any)) as { data: { id: string; version: string } }[];
-    const resources = getItemsFromCollectionByIdAndSemverOrLatest(resourcesCollection, resourceId, version);
+    const resources = isVersionedReference(collection)
+      ? getItemsFromCollectionByIdAndSemverOrLatest(resourcesCollection, resourceId, version)
+      : resourcesCollection.filter((item) => item.data.id === resourceId);
 
     if (resources.length === 0) {
       throw new Error(`Resource not found: ${resourceId}`);
     }
 
     resource = resources[0];
-    // Diagrams use /diagrams/ path, other resources use /docs/{collection}/
-    href =
-      type === 'diagram'
-        ? buildUrl(`/diagrams/${resourceId}/${resource.data.version}`)
-        : buildUrl(`/docs/${collection}/${resourceId}/${resource.data.version}`);
+    href = getResourceReferenceUrl(collection, resourceId, resource.data.version);
   }
 } catch (error) {
   hasError = true;
@@ -180,7 +184,7 @@ const maxSummaryLength = 120;
 const summary = resource?.data?.summary || '';
 const truncatedSummary = summary.length > maxSummaryLength ? summary.slice(0, maxSummaryLength) + '...' : summary;
 
-const isVersionedResource = type !== 'doc';
+const isVersionedResource = type !== 'doc' && isVersionedReference(collection);
 
 // Only these types have visualizers
 const hasVisualizer = ['agent', 'domain', 'service', 'event', 'query', 'command', 'container', 'system'].includes(type);
@@ -191,7 +195,7 @@ const isDeprecated = deprecation?.isMarkedAsDeprecated || false;
 const resourceIconUrl = isIconPath(resource?.data?.styles?.icon) ? resolveIconUrl(resource.data.styles.icon) : null;
 
 // Get owners (first 2)
-const owners = resource?.data?.owners?.slice(0, 2) || [];
+const owners = await Promise.all((resource?.data?.owners?.slice(0, 2) || []).map(resolveOwnerReference));
 
 // Check if message type has a schema
 const isMessageType = ['event', 'command', 'query'].includes(type);
@@ -207,39 +211,16 @@ const receives = resource?.data?.receives || [];
 const isService = type === 'service' || type === 'agent';
 const supportsSpecifications = type === 'service';
 
-// Helper to resolve message version and collection - use specified version or fetch from collection
-const resolveMessage = async (msg: any): Promise<{ version: string | null; collection: string | null }> => {
-  // If version is specified and not "latest", use it (assume event as default collection)
-  if (msg.version && msg.version !== 'latest') {
-    return { version: msg.version, collection: 'events' };
-  }
-
-  // Try to find the message in events, commands, or queries collections
-  const collections = ['events', 'commands', 'queries'];
-  for (const col of collections) {
-    try {
-      const items = (await getCollection(col as any)) as { data: { id: string; version: string } }[];
-      const found = getItemsFromCollectionByIdAndSemverOrLatest(items, msg.id);
-      if (found.length > 0 && found[0].data.version && found[0].data.version !== 'latest') {
-        return { version: found[0].data.version, collection: col };
-      }
-    } catch (e) {
-      // Collection might not exist or item not found, continue
-    }
-  }
-  return { version: null, collection: null };
-};
-
 // Resolve versions and collections for messages to show
 const sendsWithVersions = await Promise.all(
   sends.slice(0, maxMessages).map(async (msg: any) => {
-    const resolved = await resolveMessage(msg);
+    const resolved = await resolveMessageReference(msg);
     return { ...msg, resolvedVersion: resolved.version, resolvedCollection: resolved.collection };
   })
 );
 const receivesWithVersions = await Promise.all(
   receives.slice(0, maxMessages).map(async (msg: any) => {
-    const resolved = await resolveMessage(msg);
+    const resolved = await resolveMessageReference(msg);
     return { ...msg, resolvedVersion: resolved.version, resolvedCollection: resolved.collection };
   })
 );
@@ -422,15 +403,16 @@ const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
                     <span class="text-[rgb(var(--ec-page-text-muted))]">Owner</span>
                     <span class="font-mono text-[rgb(var(--ec-page-text))]">
                       {owners.map((o: any, idx: number) => {
-                        const ownerId = typeof o === 'string' ? o : o.id;
+                        const ownerId = o.id;
                         return (
                           <>
-                            <a
-                              href={buildUrl(`/docs/users/${ownerId}`)}
-                              class="hover:underline hover:text-[rgb(var(--ec-accent))]"
-                            >
-                              {ownerId}
-                            </a>
+                            {o.href ? (
+                              <a href={o.href} class="hover:underline hover:text-[rgb(var(--ec-accent))]">
+                                {ownerId}
+                              </a>
+                            ) : (
+                              <span>{ownerId}</span>
+                            )}
                             {idx < owners.length - 1 && ', '}
                           </>
                         );

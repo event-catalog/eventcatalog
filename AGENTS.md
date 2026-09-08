@@ -61,4 +61,6 @@ Use `<type>(<scope>): <imperative summary>` when possible. For PRs:
 
 ## Important
 
+Do not create or update project documentation unless the user explicitly asks. Do not add documentation as an automatic follow-up to code changes; the user will tell you when documentation is needed.
+
 Never start the catalog, the catalog is already running.

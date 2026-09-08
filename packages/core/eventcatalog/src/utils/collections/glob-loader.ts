@@ -6,11 +6,13 @@ import { fileURLToPath } from 'url';
 export type GlobOptions = Parameters<typeof glob>[0];
 
 export const withIgnoredBuildArtifacts = (patterns: string | string[]) => {
+  // Dependencies can contain entire example catalogs, including duplicate resource IDs.
+  // Exclude them in every mode, including astro check and the development watcher.
+  const ignoredArtifacts = ['!**/node_modules/**'];
   if (process.env.IGNORE_BUILD_ARTIFACTS === 'true') {
-    const ignoredArtifacts = ['!dist/**', '!**/dist/**'];
-    return Array.isArray(patterns) ? [...patterns, ...ignoredArtifacts] : [patterns, ...ignoredArtifacts];
+    ignoredArtifacts.push('!dist/**', '!**/dist/**');
   }
-  return patterns;
+  return [...(Array.isArray(patterns) ? patterns : [patterns]), ...ignoredArtifacts];
 };
 
 const toPatterns = (patterns: string | string[]) => (Array.isArray(patterns) ? patterns : [patterns]);

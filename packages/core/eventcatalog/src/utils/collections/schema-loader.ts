@@ -450,7 +450,7 @@ const loadMessageSchemaResources = async ({ pattern, base }: SchemaLoaderOptions
     cwd: base,
     absolute: true,
     nodir: true,
-    ignore: ['dist/**', '**/dist/**'],
+    ignore: ['dist/**', '**/dist/**', '**/node_modules/**'],
   });
 
   const schemas = await Promise.all(
