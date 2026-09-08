@@ -1,0 +1,51 @@
+{
+  "name": "@eventcatalog/auth-astro",
+  "version": "0.1.0",
+  "description": "auth-astro@4.2.0 vendored with a patched @auth/core peer (>=0.41.3) for EventCatalog.",
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./module.d.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./server": "./server.ts",
+    "./client": "./client.ts",
+    "./components": "./components.ts"
+  },
+  "files": [
+    "index.ts",
+    "server.ts",
+    "client.ts",
+    "components.ts",
+    "module.d.ts",
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=17.4"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog.git",
+    "directory": "packages/auth-astro"
+  },
+  "author": "nowaythatworked <jan.czekala99@web.de>",
+  "contributors": [
+    "Otterlord <otterlord.dev@gmail.com>",
+    "tajkirkpatrick"
+  ],
+  "peerDependencies": {
+    "@auth/core": ">=0.41.3",
+    "astro": ">=4.0.0"
+  },
+  "dependencies": {
+    "set-cookie-parser": "^2.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.12.0"
+  }
+}

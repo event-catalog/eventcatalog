@@ -5,7 +5,7 @@ const { title, logo } = config;
 import { join } from 'node:path';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import { buildUrl } from '@utils/url-builder';
-import { getSession } from 'auth-astro/server';
+import { getSession } from '@eventcatalog/auth-astro/server';
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
@@ -408,7 +408,7 @@ const providerConfig = {
 </html>
 
 <script>
-  import { signIn } from 'auth-astro/client';
+  import { signIn } from '@eventcatalog/auth-astro/client';
 
   // Add event listeners to all provider login buttons
   const providerButtons = document.querySelectorAll('.provider-login-btn');

@@ -21,6 +21,23 @@ importers:
         specifier: ^2.8.4
         version: 2.8.4
 
+
+  packages/auth-astro:
+    dependencies:
+      '@auth/core':
+        specifier: '>=0.41.3'
+        version: 0.41.3
+      astro:
+        specifier: '>=4.0.0'
+        version: 7.2.8(@astrojs/markdown-remark@7.2.4)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@22.19.21)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+      set-cookie-parser:
+        specifier: ^2.5.1
+        version: 2.7.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.12.0
+        version: 22.19.21
+
   packages/breaking-changes:
     devDependencies:
       '@types/node':
@@ -139,6 +156,9 @@ importers:
       '@auth/core':
         specifier: ^0.41.3
         version: 0.41.3
+      '@eventcatalog/auth-astro':
+        specifier: workspace:*
+        version: link:../auth-astro
       '@eventcatalog/license':
         specifier: ^0.0.8
         version: 0.0.8
@@ -217,9 +237,6 @@ importers:
       astro-seo:
         specifier: ^0.8.4
         version: 0.8.4(prettier-plugin-astro@0.14.1)(prettier@3.6.2)(typescript@5.9.3)
-      auth-astro:
-        specifier: ^4.2.0
-        version: 4.2.0(@auth/core@0.41.3)(astro@7.2.8(@astrojs/markdown-remark@7.2.4)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@22.19.21)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
       boxen:
         specifier: ^8.0.1
         version: 8.0.1
@@ -4140,13 +4157,6 @@ packages:
 
   atomically@2.0.3:
     resolution: {integrity: sha512-kU6FmrwZ3Lx7/7y3hPS5QnbJfaohcIul5fGqf7ok+4KklIEk9tJ0C2IQPdacSbVUWv6zVHXEBWoWd6NrVMT7Cw==}
-
-  auth-astro@4.2.0:
-    resolution: {integrity: sha512-Jx0dFAvwJ5UJ6E/2J6rqPNhXzTX6Fj18sIq12U7n+J15TV7etpXSHFPPcQdAmfDmX3RCURp253Vxe4l/keNW1g==}
-    engines: {node: '>=17.4'}
-    peerDependencies:
-      '@auth/core': ^0.37.3
-      astro: '>=4.0.0'
 
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
@@ -12701,12 +12711,6 @@ snapshots:
     dependencies:
       stubborn-fs: 1.2.5
       when-exit: 2.1.4
-
-  auth-astro@4.2.0(@auth/core@0.41.3)(astro@7.2.8(@astrojs/markdown-remark@7.2.4)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@22.19.21)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)):
-    dependencies:
-      '@auth/core': 0.41.3
-      astro: 7.2.8(@astrojs/markdown-remark@7.2.4)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@22.19.21)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
-      set-cookie-parser: 2.7.1
 
   available-typed-arrays@1.0.7:
     dependencies:

@@ -5,7 +5,7 @@
 
 // src/middleware/auth.ts
 import type { MiddlewareHandler } from 'astro';
-import { getSession } from 'auth-astro/server';
+import { getSession } from '@eventcatalog/auth-astro/server';
 import { isAuthEnabled, isEventCatalogMCPAuthEnabled } from '@utils/feature';
 import jwt from 'jsonwebtoken';
 import { isLLMSTxtEnabled } from '@utils/feature';

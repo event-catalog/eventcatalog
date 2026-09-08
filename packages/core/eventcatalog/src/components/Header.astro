@@ -3,7 +3,7 @@ import catalog from '@utils/eventcatalog-config/catalog';
 import Search from '@components/Search/Search.astro';
 import { buildUrl } from '@utils/url-builder';
 import { showEventCatalogBranding, showCustomBranding, isEventCatalogChatEnabled } from '@utils/feature';
-import { getSession } from 'auth-astro/server';
+import { getSession } from '@eventcatalog/auth-astro/server';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
@@ -205,7 +205,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 <!-- Spacer to prevent content from being hidden under the fixed header -->
 
 <script>
-  import { signOut } from 'auth-astro/client';
+  import { signOut } from '@eventcatalog/auth-astro/client';
 
   function initializeHeader() {
     const menuToggle = document.getElementById('menu-toggle');

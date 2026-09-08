@@ -53,6 +53,7 @@ examples/default/public/ai
 examples/default/eventcatalog.chat.js
 examples/default/exports/
 **/[...auth].ts
+!packages/auth-astro/src/api/[...auth].ts
 
 .astro/
 
