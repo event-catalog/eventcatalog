@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
+import { hydrateServices } from '@utils/collections/hydrate-services';
 import { createVersionedMap, findInMap } from './util';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
@@ -7,24 +8,28 @@ export type System = CollectionEntry<'systems'>;
 
 interface Props {
   getAllVersions?: boolean;
+  enrichServices?: boolean;
 }
 
 // cache for build time
 let memoryCache: Record<string, System[]> = {};
 
-export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise<System[]> => {
-  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+export const getSystems = async ({ getAllVersions = true, enrichServices = false }: Props = {}): Promise<System[]> => {
+  const cacheKey = `${getAllVersions ? 'allVersions' : 'currentVersions'}-${enrichServices ? 'enriched' : 'simple'}`;
 
   if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0 && CACHE_ENABLED) {
     return memoryCache[cacheKey];
   }
 
-  const [allSystems, allServices, allFlows, allEntities, allContainers] = await Promise.all([
+  const [allSystems, allServices, allFlows, allEntities, allContainers, allEvents, allCommands, allQueries] = await Promise.all([
     getCollection('systems'),
     getCollection('services'),
     getCollection('flows'),
     getCollection('entities'),
     getCollection('containers'),
+    enrichServices ? getCollection('events') : Promise.resolve([]),
+    enrichServices ? getCollection('commands') : Promise.resolve([]),
+    enrichServices ? getCollection('queries') : Promise.resolve([]),
   ]);
 
   // Build optimized map of id -> versions (sorted latest first)
@@ -33,6 +38,7 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
   const flowMap = createVersionedMap(allFlows);
   const entityMap = createVersionedMap(allEntities);
   const containerMap = createVersionedMap(allContainers);
+  const messageMap = createVersionedMap([...allEvents, ...allCommands, ...allQueries]);
 
   // Filter systems
   const targetSystems = allSystems.filter((system) => {
@@ -47,10 +53,14 @@ export const getSystems = async ({ getAllVersions = true }: Props = {}): Promise
     const latestVersion = systemVersions[0]?.data.version || system.data.version;
     const versions = systemVersions.map((s) => s.data.version);
 
-    // Resolve service pointers to their full collection entries
-    const services = (system.data.services || [])
-      .map((service: { id: string; version?: string }) => findInMap(serviceMap, service.id, service.version))
-      .filter((s): s is NonNullable<typeof s> => !!s);
+    // Resolve service pointers to their full collection entries.
+    // Architecture grids need sends/receives hydrated so command/query links
+    // keep the correct collection instead of falling back to events.
+    const services = enrichServices
+      ? hydrateServices(system.data.services || [], serviceMap, messageMap, containerMap)
+      : (system.data.services || [])
+          .map((service: { id: string; version?: string }) => findInMap(serviceMap, service.id, service.version))
+          .filter((s): s is NonNullable<typeof s> => !!s);
 
     // Resolve flow pointers to their full collection entries
     const flows = (system.data.flows || [])

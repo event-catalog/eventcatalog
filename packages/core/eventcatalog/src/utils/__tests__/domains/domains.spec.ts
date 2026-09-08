@@ -99,6 +99,38 @@ describe('Domains', () => {
       expect(checkout.data.services.map((service: any) => service.data.id)).toEqual(['OrderService', 'PaymentService']);
       expect(checkout.data.agents.map((agent: any) => agent.data.id)).toEqual(['FraudReviewAgent']);
     });
+
+    it('leaves service receives and sends as id/version pointers when services are not enriched', async () => {
+      const domains = await getDomains();
+      const checkout = domains.find((domain) => domain.data.id === 'Checkout');
+      const orderService = (checkout?.data.services as any[])?.find(
+        (service) => service.data.id === 'OrderService' && service.data.version === '1.0.0'
+      );
+
+      expect(orderService.data.receives).toEqual([{ id: 'PlaceOrder', version: '>1.5.0' }]);
+      expect(orderService.data.sends).toEqual([{ id: 'OrderPlaced', version: '0.0.1' }]);
+    });
+
+    it('hydrates service receives and sends with collection and name when enrichServices is true', async () => {
+      const domains = await getDomains({ enrichServices: true });
+      const checkout = domains.find((domain) => domain.data.id === 'Checkout');
+      const orderService = (checkout?.data.services as any[])?.find(
+        (service) => service.data.id === 'OrderService' && service.data.version === '1.0.0'
+      );
+
+      expect(orderService.data.receives).toEqual([
+        expect.objectContaining({
+          collection: 'commands',
+          data: expect.objectContaining({ id: 'PlaceOrder', name: 'Place Order', version: '1.7.7' }),
+        }),
+      ]);
+      expect(orderService.data.sends).toEqual([
+        expect.objectContaining({
+          collection: 'events',
+          data: expect.objectContaining({ id: 'OrderPlaced', version: '0.0.1' }),
+        }),
+      ]);
+    });
   });
 
   describe('ubiquitous-language', () => {
