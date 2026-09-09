@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.10.13
+
+### Patch Changes
+
+- 8ec3e6c: Show the Assistant by default with bring-your-own-model setup guidance and an option to hide it. Refresh the Ask and search UI, add the keyboard shortcut, and prevent focus from entering the closed assistant sidebar.
+
 ## 4.10.12
 
 ### Patch Changes

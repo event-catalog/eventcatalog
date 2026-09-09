@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.11
+
+### Patch Changes
+
+- 790d5c8: Disable RSS by default in catalogs created using the default template.
+
 ## 4.3.10
 
 ### Patch Changes
