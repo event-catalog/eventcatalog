@@ -69,12 +69,14 @@ describe('ProtobufSchemaViewer', () => {
         map<string, Status> status_by_key = 2 [(buf.validate.field).map = {
           values: { enum: { not_in: [0, 2] } }
         }];
+        Status status = 3 [(buf.validate.field).enum.const = 2];
       }
     `);
 
     const html = renderToStaticMarkup(<ProtobufSchemaViewer schema={schema} />);
     const repeatedField = html.slice(html.indexOf('>statuses</span>'), html.indexOf('>status_by_key</span>'));
-    const mapField = html.slice(html.indexOf('>status_by_key</span>'), html.indexOf('>Enum:</span>'));
+    const mapField = html.slice(html.indexOf('>status_by_key</span>'), html.indexOf('>status</span>'));
+    const directField = html.slice(html.indexOf('>status</span>'), html.indexOf('>Enum:</span>'));
 
     expect(repeatedField).toContain('STATUS_ACTIVE');
     expect(repeatedField).not.toContain('STATUS_UNSPECIFIED');
@@ -82,5 +84,8 @@ describe('ProtobufSchemaViewer', () => {
     expect(mapField).toContain('STATUS_ACTIVE');
     expect(mapField).not.toContain('STATUS_UNSPECIFIED');
     expect(mapField).not.toContain('STATUS_ARCHIVED');
+    expect(directField).toContain('STATUS_ARCHIVED');
+    expect(directField).not.toContain('STATUS_UNSPECIFIED');
+    expect(directField).not.toContain('STATUS_ACTIVE');
   });
 });

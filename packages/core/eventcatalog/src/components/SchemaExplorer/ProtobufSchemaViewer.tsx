@@ -118,6 +118,7 @@ const ProtobufFieldRow = ({ field, level, expand, showRequired, registry, packag
   const fullType = formatProtobufType(field);
   const displayType = formatProtobufType(field, true);
   const enumRuleScope = field.map ? 'map.values.enum' : field.label === 'repeated' ? 'repeated.items.enum' : 'enum';
+  const enumConstant = validationRules.find((rule) => rule.path === `${enumRuleScope}.const`);
   const enumIncludes = validationRules.find((rule) => rule.path === `${enumRuleScope}.in`);
   const enumExcludes = validationRules.find((rule) => rule.path === `${enumRuleScope}.not_in`);
   const normalizeRuleValues = (value: unknown) => (Array.isArray(value) ? value : value === undefined ? [] : [value]);
@@ -125,7 +126,11 @@ const ProtobufFieldRow = ({ field, level, expand, showRequired, registry, packag
   const excludedEnumValues = normalizeRuleValues(enumExcludes?.value);
   const displayedEnumValues = nestedEnum?.values.filter((value) => {
     const matches = (candidate: unknown) => String(candidate) === String(value.value) || candidate === value.name;
-    return (includedEnumValues.length === 0 || includedEnumValues.some(matches)) && !excludedEnumValues.some(matches);
+    return (
+      (!enumConstant || matches(enumConstant.value)) &&
+      (includedEnumValues.length === 0 || includedEnumValues.some(matches)) &&
+      !excludedEnumValues.some(matches)
+    );
   });
 
   useEffect(() => {
