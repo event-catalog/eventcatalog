@@ -42,6 +42,9 @@ jobs:
           EVENTCATALOG_DOCS_SOURCE: ${{ github.workspace }}/.eventcatalog-docs/docs
         run: node scripts/sync-core-docs.mjs
 
+      - name: Remove docs checkout
+        run: rm -rf .eventcatalog-docs
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
