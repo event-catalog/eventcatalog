@@ -32,10 +32,6 @@ This will output one directory
 
 - `dist` - Your EventCatalog as Static HTML
 
-### Link validation
-
-Static builds check internal links and anchors and report warnings by default. See [link validation](/docs/development/deployment/link-validation) to fail builds on broken links, ignore destinations, or disable the check.
-
 ### Passing custom options
 
 <AddedIn version="2.16.5" />

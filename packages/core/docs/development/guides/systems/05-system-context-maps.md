@@ -65,5 +65,3 @@ The goal of systems is to let users move through your architecture at the right 
 - Drill into the resources inside that system to inspect APIs, messages, services, data stores, and flows.
 
 This gives teams a path from architecture overview to implementation detail without forcing every user to start at the lowest level.
-
-Want every resource in one graph instead, including catalogs without systems? See the [architecture graph](/docs/development/guides/architecture-graph).

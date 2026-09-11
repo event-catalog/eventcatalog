@@ -29,11 +29,11 @@ These plugins are maintained by the EventCatalog team and are updated regularly,
 - [OpenAPI Plugin](/docs/plugins/openapi/intro) - Generate documentation from your OpenAPI files
 - [GraphQL Plugin](/docs/plugins/graphql/intro) - Generate documentation from your GraphQL files
 - [Github Plugin](/docs/plugins/github/intro) - Sync your schemas from GitHub to EventCatalog
-- [Backstage Plugin](/docs/plugins/backstage/overview) - Embed EventCatalog documentation and visualizations in Backstage
+- [Backstage Plugin](/docs/plugins/backstage/intro) - Use EventCatalog features within Backstage
 - [Amazon EventBridge](/docs/plugins/eventbridge/intro) - Sync Amazon EventBridge schemas to EventCatalog
 - [Amazon API Gateway](/docs/plugins/amazon-apigateway/intro) - Generate documentation from your Amazon API Gateway
 - [Confluent Schema Registry](/docs/plugins/confluent-schema-registry/intro) - Sync your schemas from Confluent Schema Registry to EventCatalog
-- [EventCatalog Federation](/docs/federation/overview) - Merge multiple EventCatalog instances into a single catalog.
+- [EventCatalog Federation](/docs/plugins/eventcatalog-federation/introduction) - Merge multiple EventCatalog instances into a single catalog.
 
 #### Community plugins
 

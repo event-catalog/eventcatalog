@@ -22,8 +22,8 @@ High level documentation requires an EventCatalog Scale license key. You can get
 
 High level documentation is split into two parts:
 
-1. [Creating your documentation (markdown files)](#creating-documentation)
-2. [Configuring your sidebar (eventcatalog.config.js)](#sidebar-configuration)
+1. [Creating your documentation (markdown files)](#creating-your-documentation)
+2. [Configuring your sidebar (eventcatalog.config.js)](#configuring-your-sidebar)
 
 ### Creating documentation
 

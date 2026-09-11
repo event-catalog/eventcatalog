@@ -40,7 +40,7 @@ To add a new domain create a new folder within the `/domains` folder with an `in
 - `/domains/{Domain Name}/index.mdx` 
   - (example `/domains/Orders/index.mdx`)
 
-The `index.mdx` contents are split into two sections, [**frontmatter**](/docs/development/guides/domains/reference) and the [**markdown content**](#adding-content-to-your-domain).
+The `index.mdx` contents are split into two sections, [**frontmatter**](/docs/development/guides/domains/reference) and the [**markdown content**](#adding-content).
 
 _Here is an example of what a domain markdown file may look like._
 

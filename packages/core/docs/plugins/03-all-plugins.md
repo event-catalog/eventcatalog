@@ -19,8 +19,8 @@ Automate and sync your data from a wide range of systems to EventCatalog.
 | [Apicurio Registry](/docs/plugins/apicurio/intro) | Import schemas and specifications from Apicurio Registry into EventCatalog |
 | [Azure Schema Registry](/docs/plugins/azure-schema-registry/intro) | Import schemas from Azure Schema Registry into EventCatalog |
 | [Github Plugin](/docs/plugins/github/intro) | Sync your schemas from GitHub to EventCatalog |
-| [Backstage Plugin](/docs/plugins/backstage/overview) | Embed EventCatalog documentation and visualizations in Backstage |
+| [Backstage Plugin](/docs/plugins/backstage/intro) | Use EventCatalog features within Backstage |
 | [Amazon EventBridge](/docs/plugins/eventbridge/intro) | Sync Amazon EventBridge schemas to EventCatalog |
 | [Amazon API Gateway](/docs/plugins/amazon-apigateway/intro) | Generate documentation from your Amazon API Gateway |
 | [Confluent Schema Registry](/docs/plugins/confluent-schema-registry/intro) | Sync your schemas from Confluent Schema Registry to EventCatalog |
-| [EventCatalog Federation](/docs/federation/overview) | Merge multiple EventCatalog instances into a single catalog. |
+| [EventCatalog Federation](/docs/plugins/eventcatalog-federation/introduction) | Merge multiple EventCatalog instances into a single catalog. |

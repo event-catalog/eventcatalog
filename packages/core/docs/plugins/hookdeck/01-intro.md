@@ -18,7 +18,7 @@ Using the EventCatalog Hookdeck plugin you can extract information from Hookdeck
 The Hookdeck plugin can provide you with the following features:
 
 - ⭐️ [Generate EventCatalog Services](#generate-services) from Hookdeck Sources and Destinations
-- ⭐️ [Auto-generate EventCatalog Messages](#generate-message) from Hookdeck Requests and Events
+- ⭐️ [Auto-generate EventCatalog Messages](#generate-messages) from Hookdeck Requests and Events
 - ⭐️ [Auto-generate EventCatalog Message Schemas](#generate-schemas) from Hookdeck Requests and Events
 - ⭐️ [Provide insight into Hookdeck Filters](#filtered-messages) by indicating Requests that are received by an EventCatalog Service but are not connected to destination Service.
 

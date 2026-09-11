@@ -17,8 +17,8 @@ Services in EventCatalog allow you to attach one or more AsyncAPI specifications
 
 You have two options for adding AsyncAPI specifications to your service:
 
-- [Adding AsyncAPI files to EventCatalog](#adding-asyncapi-files-to-eventcatalog)
-- [Reference the AsyncAPI file from a remote URL](#remote-asyncapi-files)
+- [Adding AsyncAPI files to EventCatalog](#adding-asyncapi-specifications-to-eventcatalog)
+- [Reference the AsyncAPI file from a remote URL](#reference-the-asyncapi-file-from-a-remote-url)
 
 :::tip Why not automate your EventCatalog from your AsyncAPI files?
   Did you know you can automate your documentation, visualizations and owners using your AsyncAPI Files?
@@ -66,7 +66,7 @@ Then you need to reference the file in the service frontmatter.
 ---
 ```  
 
-### Remote AsyncAPI files
+### Remove AsyncAPI file
 
 This can be useful if you want to keep your AsyncAPI files in a remote repository and render them in EventCatalog.
 

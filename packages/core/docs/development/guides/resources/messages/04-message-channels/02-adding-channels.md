@@ -184,7 +184,7 @@ id: inventory.{env}.events
 # rest of channel markdown...
 
 # You can define one or many protocols
-# list of protocols: https://eventcatalog.dev/docs/development/guides/resources/messages/message-channels/introduction#supported-channel-protocols
+# list of protocols: https://eventcatalog.dev/docs/development/guides/resources/messages/message-channels/introduction#protocols
 protocols:
   - http
   - kafka
@@ -194,7 +194,7 @@ protocols:
 
 These protocols will be displayed on your channel page and the visualizer.
 
-You can get [the list of protocols here](/docs/development/guides/resources/messages/message-channels/introduction#supported-channel-protocols).
+You can get [the list of protocols here](/docs/development/guides/resources/messages/message-channels/introduction#protocols).
 
 ### Setting a delivery guarantee
 
