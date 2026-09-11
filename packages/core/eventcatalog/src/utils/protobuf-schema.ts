@@ -68,6 +68,74 @@ const isIdentifierChar = (char: string) => /[A-Za-z0-9_.]/.test(char);
 const isNumberStart = (char: string) => /[0-9-]/.test(char);
 const isNumberChar = (char: string) => /[0-9a-fA-FxX.+-]/.test(char);
 
+const SIMPLE_STRING_ESCAPES: Record<string, string> = {
+  a: '\u0007',
+  b: '\b',
+  f: '\f',
+  n: '\n',
+  r: '\r',
+  t: '\t',
+  v: '\u000b',
+  '?': '?',
+  '\\': '\\',
+  "'": "'",
+  '"': '"',
+};
+
+function decodeStringEscape(content: string, start: number, line: number): { value: string; nextIndex: number } {
+  const escapeType = content[start + 1];
+  if (!escapeType) throw new Error(`Unterminated string escape at line ${line}`);
+
+  if (escapeType in SIMPLE_STRING_ESCAPES) {
+    return { value: SIMPLE_STRING_ESCAPES[escapeType], nextIndex: start + 2 };
+  }
+
+  if (escapeType === 'x' || escapeType === 'X') {
+    const digits = content.slice(start + 2).match(/^[0-9a-fA-F]{1,2}/)?.[0];
+    if (!digits) throw new Error(`Invalid hexadecimal string escape at line ${line}`);
+    return { value: String.fromCodePoint(Number.parseInt(digits, 16)), nextIndex: start + 2 + digits.length };
+  }
+
+  if (/[0-7]/.test(escapeType)) {
+    const digits = content.slice(start + 1).match(/^[0-7]{1,3}/)![0];
+    return { value: String.fromCodePoint(Number.parseInt(digits, 8)), nextIndex: start + 1 + digits.length };
+  }
+
+  if (escapeType === 'u' || escapeType === 'U') {
+    const digitCount = escapeType === 'u' ? 4 : 8;
+    const digits = content.slice(start + 2, start + 2 + digitCount);
+    if (digits.length !== digitCount || !/^[0-9a-fA-F]+$/.test(digits)) {
+      throw new Error(`Invalid Unicode string escape at line ${line}`);
+    }
+
+    const codePoint = Number.parseInt(digits, 16);
+    if (codePoint > 0x10ffff) throw new Error(`Unicode string escape is out of range at line ${line}`);
+    return { value: String.fromCodePoint(codePoint), nextIndex: start + 2 + digitCount };
+  }
+
+  throw new Error(`Invalid string escape "\\${escapeType}" at line ${line}`);
+}
+
+function parseIntegerOptionValue(value: string): number | string | undefined {
+  const sign = value.startsWith('-') ? -1n : 1n;
+  const unsignedValue = value.startsWith('-') || value.startsWith('+') ? value.slice(1) : value;
+  let magnitude: bigint;
+
+  if (/^0[xX][0-9a-fA-F]+$/.test(unsignedValue)) {
+    magnitude = BigInt(unsignedValue);
+  } else if (/^0[0-7]*$/.test(unsignedValue)) {
+    magnitude = BigInt(`0o${unsignedValue.slice(1) || '0'}`);
+  } else if (/^[1-9][0-9]*$/.test(unsignedValue)) {
+    magnitude = BigInt(unsignedValue);
+  } else {
+    return undefined;
+  }
+
+  const parsedValue = sign * magnitude;
+  if (parsedValue < BigInt(Number.MIN_SAFE_INTEGER) || parsedValue > BigInt(Number.MAX_SAFE_INTEGER)) return value;
+  return Number(parsedValue);
+}
+
 function tokenize(content: string): { tokens: Token[]; trailingComments: Map<number, string> } {
   const tokens: Token[] = [];
   const trailingComments = new Map<number, string>();
@@ -140,8 +208,9 @@ function tokenize(content: string): { tokens: Token[]; trailingComments: Map<num
       i++;
       while (i < content.length && content[i] !== quote) {
         if (content[i] === '\\') {
-          value += content[i + 1];
-          i += 2;
+          const decodedEscape = decodeStringEscape(content, i, line);
+          value += decodedEscape.value;
+          i = decodedEscape.nextIndex;
           continue;
         }
         if (content[i] === '\n') line++;
@@ -317,6 +386,9 @@ class ProtobufParser {
     }
     if (valueToken.value === 'true') return true;
     if (valueToken.value === 'false') return false;
+
+    const integerValue = parseIntegerOptionValue(valueToken.value);
+    if (integerValue !== undefined) return integerValue;
 
     const numericValue = Number(valueToken.value);
     if (Number.isNaN(numericValue)) return valueToken.value;

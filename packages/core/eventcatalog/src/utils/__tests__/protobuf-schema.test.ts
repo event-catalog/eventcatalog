@@ -305,6 +305,33 @@ describe('parseProtobufSchema', () => {
     expect(schema.messages[0].fields[0].options).toEqual([{ name: 'json_name', value: 'journey_reference' }]);
   });
 
+  it('decodes protobuf escape sequences in string option values', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        string note = 1 [(rule).const = "line\\nbreak " "\\x41\\101\\u0042\\U00000043"];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([{ name: '(rule).const', value: 'line\nbreak AABC' }]);
+  });
+
+  it('parses integer field options using protobuf radix rules', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        int32 duration = 1 [(rule).gte = 020, (rule).lte = 0x20];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      { name: '(rule).gte', value: 16 },
+      { name: '(rule).lte', value: 32 },
+    ]);
+  });
+
   it('parses bracketed extension keys in aggregate field options', () => {
     const schema = parseProtobufSchema(`
       syntax = "proto3";
