@@ -17,6 +17,14 @@ export interface ProtobufField {
   map?: { keyType: string; valueType: string };
   oneof?: string;
   doc?: string;
+  options?: ProtobufOption[];
+}
+
+export type ProtobufOptionValue = string | number | boolean | ProtobufOptionValue[] | { [key: string]: ProtobufOptionValue };
+
+export interface ProtobufOption {
+  name: string;
+  value: ProtobufOptionValue;
 }
 
 export interface ProtobufEnumValue {
@@ -59,6 +67,81 @@ const isIdentifierStart = (char: string) => /[A-Za-z_]/.test(char);
 const isIdentifierChar = (char: string) => /[A-Za-z0-9_.]/.test(char);
 const isNumberStart = (char: string) => /[0-9-]/.test(char);
 const isNumberChar = (char: string) => /[0-9a-fA-FxX.+-]/.test(char);
+
+const UTF8_ENCODER = new TextEncoder();
+const UTF8_DECODER = new TextDecoder('utf-8', { fatal: true });
+
+const SIMPLE_STRING_ESCAPES: Record<string, number> = {
+  a: 0x07,
+  b: 0x08,
+  f: 0x0c,
+  n: 0x0a,
+  r: 0x0d,
+  t: 0x09,
+  v: 0x0b,
+  '?': 0x3f,
+  '\\': 0x5c,
+  "'": 0x27,
+  '"': 0x22,
+};
+
+function decodeStringEscape(content: string, start: number, line: number): { bytes: number[]; nextIndex: number } {
+  const escapeType = content[start + 1];
+  if (!escapeType) throw new Error(`Unterminated string escape at line ${line}`);
+
+  if (escapeType in SIMPLE_STRING_ESCAPES) {
+    return { bytes: [SIMPLE_STRING_ESCAPES[escapeType]], nextIndex: start + 2 };
+  }
+
+  if (escapeType === 'x' || escapeType === 'X') {
+    const digits = content.slice(start + 2).match(/^[0-9a-fA-F]{1,2}/)?.[0];
+    if (!digits) throw new Error(`Invalid hexadecimal string escape at line ${line}`);
+    return { bytes: [Number.parseInt(digits, 16)], nextIndex: start + 2 + digits.length };
+  }
+
+  if (/[0-7]/.test(escapeType)) {
+    const digits = content.slice(start + 1).match(/^[0-7]{1,3}/)![0];
+    const byte = Number.parseInt(digits, 8);
+    if (byte > 0xff) throw new Error(`Octal string escape is out of byte range at line ${line}`);
+    return { bytes: [byte], nextIndex: start + 1 + digits.length };
+  }
+
+  if (escapeType === 'u' || escapeType === 'U') {
+    const digitCount = escapeType === 'u' ? 4 : 8;
+    const digits = content.slice(start + 2, start + 2 + digitCount);
+    if (digits.length !== digitCount || !/^[0-9a-fA-F]+$/.test(digits)) {
+      throw new Error(`Invalid Unicode string escape at line ${line}`);
+    }
+
+    const codePoint = Number.parseInt(digits, 16);
+    if (codePoint > 0x10ffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) {
+      throw new Error(`Unicode string escape is out of range at line ${line}`);
+    }
+    return { bytes: [...UTF8_ENCODER.encode(String.fromCodePoint(codePoint))], nextIndex: start + 2 + digitCount };
+  }
+
+  throw new Error(`Invalid string escape "\\${escapeType}" at line ${line}`);
+}
+
+function parseIntegerOptionValue(value: string): number | string | undefined {
+  const sign = value.startsWith('-') ? -1n : 1n;
+  const unsignedValue = value.startsWith('-') || value.startsWith('+') ? value.slice(1) : value;
+  let magnitude: bigint;
+
+  if (/^0[xX][0-9a-fA-F]+$/.test(unsignedValue)) {
+    magnitude = BigInt(unsignedValue);
+  } else if (/^0[0-7]*$/.test(unsignedValue)) {
+    magnitude = BigInt(`0o${unsignedValue.slice(1) || '0'}`);
+  } else if (/^[1-9][0-9]*$/.test(unsignedValue)) {
+    magnitude = BigInt(unsignedValue);
+  } else {
+    return undefined;
+  }
+
+  const parsedValue = sign * magnitude;
+  if (parsedValue < BigInt(Number.MIN_SAFE_INTEGER) || parsedValue > BigInt(Number.MAX_SAFE_INTEGER)) return value;
+  return Number(parsedValue);
+}
 
 function tokenize(content: string): { tokens: Token[]; trailingComments: Map<number, string> } {
   const tokens: Token[] = [];
@@ -128,17 +211,30 @@ function tokenize(content: string): { tokens: Token[]; trailingComments: Map<num
     // String literal
     if (char === '"' || char === "'") {
       const quote = char;
-      let value = '';
+      const bytes: number[] = [];
       i++;
+      const rawValueStart = i;
+      let plainTextStart = i;
       while (i < content.length && content[i] !== quote) {
         if (content[i] === '\\') {
-          value += content[i + 1];
-          i += 2;
+          bytes.push(...UTF8_ENCODER.encode(content.slice(plainTextStart, i)));
+          const decodedEscape = decodeStringEscape(content, i, line);
+          bytes.push(...decodedEscape.bytes);
+          i = decodedEscape.nextIndex;
+          plainTextStart = i;
           continue;
         }
         if (content[i] === '\n') line++;
-        value += content[i];
         i++;
+      }
+      bytes.push(...UTF8_ENCODER.encode(content.slice(plainTextStart, i)));
+      if (i >= content.length) throw new Error(`Unterminated string literal at line ${line}`);
+      const rawValue = content.slice(rawValueStart, i);
+      let value: string;
+      try {
+        value = UTF8_DECODER.decode(Uint8Array.from(bytes));
+      } catch {
+        value = rawValue;
       }
       i++;
       pushToken({ value, line, isString: true });
@@ -156,6 +252,18 @@ function tokenize(content: string): { tokens: Token[]; trailingComments: Map<num
     if (isIdentifierStart(char) || (char === '.' && isIdentifierStart(content[i + 1] || ''))) {
       let value = char === '.' ? '.' : '';
       if (char === '.') i++;
+      while (i < content.length && isIdentifierChar(content[i])) {
+        value += content[i];
+        i++;
+      }
+      pushToken({ value, line });
+      continue;
+    }
+
+    // Signed symbolic floating-point values used by protobuf options (for example +inf).
+    if ((char === '+' || char === '-') && isIdentifierStart(content[i + 1] || '')) {
+      let value = char;
+      i++;
       while (i < content.length && isIdentifierChar(content[i])) {
         value += content[i];
         i++;
@@ -232,16 +340,101 @@ class ProtobufParser {
     }
   }
 
-  // Skip field options like [deprecated = true, (custom) = "value"]
-  private skipFieldOptions() {
-    if (this.peek()?.value !== '[') return;
-    let depth = 0;
-    while (this.pos < this.tokens.length) {
-      const token = this.next();
-      if (token.value === '[') depth++;
-      if (token.value === ']') depth--;
-      if (depth === 0) return;
+  private parseAggregateOptionKey(): string {
+    if (this.peek()?.value !== '[') return this.next().value;
+
+    this.next();
+    const nameParts: string[] = [];
+    while (this.peek() && this.peek()!.value !== ']') nameParts.push(this.next().value);
+    this.expect(']');
+    return `[${nameParts.join('')}]`;
+  }
+
+  private parseOptionValue(): ProtobufOptionValue {
+    const token = this.peek();
+    if (!token) throw new Error('Unexpected end of protobuf option');
+
+    if (token.value === '{' || token.value === '<') {
+      const openingToken = this.next().value;
+      const closingToken = openingToken === '{' ? '}' : '>';
+      const value: { [key: string]: ProtobufOptionValue } = {};
+
+      while (this.peek() && this.peek()!.value !== closingToken) {
+        if (this.peek()!.value === ',' || this.peek()!.value === ';') {
+          this.next();
+          continue;
+        }
+
+        const key = this.parseAggregateOptionKey();
+        if (this.peek()?.value === ':') this.next();
+        const entryValue = this.parseOptionValue();
+        const existingValue = value[key];
+        value[key] =
+          existingValue === undefined
+            ? entryValue
+            : Array.isArray(existingValue)
+              ? [...existingValue, entryValue]
+              : [existingValue, entryValue];
+      }
+
+      this.expect(closingToken);
+      return value;
     }
+
+    if (token.value === '[') {
+      this.next();
+      const values: ProtobufOptionValue[] = [];
+
+      while (this.peek() && this.peek()!.value !== ']') {
+        if (this.peek()!.value === ',' || this.peek()!.value === ';') {
+          this.next();
+          continue;
+        }
+        values.push(this.parseOptionValue());
+      }
+
+      this.expect(']');
+      return values;
+    }
+
+    const valueToken = this.next();
+    if (valueToken.isString) {
+      let value = valueToken.value;
+      while (this.peek()?.isString) value += this.next().value;
+      return value;
+    }
+    if (valueToken.value === 'true') return true;
+    if (valueToken.value === 'false') return false;
+
+    const integerValue = parseIntegerOptionValue(valueToken.value);
+    if (integerValue !== undefined) return integerValue;
+
+    const numericValue = Number(valueToken.value);
+    if (Number.isNaN(numericValue)) return valueToken.value;
+    if (Number.isInteger(numericValue) && !Number.isSafeInteger(numericValue)) return valueToken.value;
+    return numericValue;
+  }
+
+  private parseFieldOptions(): ProtobufOption[] {
+    if (this.peek()?.value !== '[') return [];
+
+    this.next();
+    const options: ProtobufOption[] = [];
+
+    while (this.peek() && this.peek()!.value !== ']') {
+      if (this.peek()!.value === ',') {
+        this.next();
+        continue;
+      }
+
+      const nameParts: string[] = [];
+      while (this.peek() && this.peek()!.value !== '=') nameParts.push(this.next().value);
+      this.expect('=');
+      options.push({ name: nameParts.join(''), value: this.parseOptionValue() });
+    }
+
+    this.expect(']');
+    return options;
   }
 
   private getTrailingDoc(line: number): string | undefined {
@@ -384,7 +577,7 @@ class ProtobufParser {
     const name = this.next().value;
     this.expect('=');
     const numberToken = this.next();
-    this.skipFieldOptions();
+    const options = this.parseFieldOptions();
     const terminator = this.expect(';');
 
     const parsedNumber = Number.parseInt(numberToken.value, 10);
@@ -396,6 +589,7 @@ class ProtobufParser {
       label,
       oneof,
       doc: firstToken.doc || typeToken.doc || this.getTrailingDoc(terminator.line),
+      ...(options.length > 0 ? { options } : {}),
     };
   }
 
@@ -409,7 +603,7 @@ class ProtobufParser {
     const name = this.next().value;
     this.expect('=');
     const numberToken = this.next();
-    this.skipFieldOptions();
+    const options = this.parseFieldOptions();
     const terminator = this.expect(';');
 
     const parsedNumber = Number.parseInt(numberToken.value, 10);
@@ -420,6 +614,7 @@ class ProtobufParser {
       map: { keyType, valueType },
       number: Number.isNaN(parsedNumber) ? undefined : parsedNumber,
       doc: keyword.doc || this.getTrailingDoc(terminator.line),
+      ...(options.length > 0 ? { options } : {}),
     };
   }
 
@@ -452,7 +647,7 @@ class ProtobufParser {
       const valueToken = this.next();
       this.expect('=');
       const numberToken = this.next();
-      this.skipFieldOptions();
+      this.parseFieldOptions();
       const terminator = this.expect(';');
 
       const parsedNumber = Number.parseInt(numberToken.value, 10);

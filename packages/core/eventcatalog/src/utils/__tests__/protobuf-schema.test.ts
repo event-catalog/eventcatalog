@@ -197,6 +197,164 @@ describe('parseProtobufSchema', () => {
     expect(order.fields[1].type).toBe('google.protobuf.Timestamp');
   });
 
+  it('parses direct and aggregate field options', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        string id = 1 [
+          (buf.validate.field).required = true,
+          (buf.validate.field).string.uuid = true
+        ];
+        Status status = 2 [(buf.validate.field).enum = {
+          defined_only: true
+          not_in: [0]
+        }];
+      }
+
+      enum Status {
+        STATUS_UNSPECIFIED = 0;
+        STATUS_ACTIVE = 1;
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      { name: '(buf.validate.field).required', value: true },
+      { name: '(buf.validate.field).string.uuid', value: true },
+    ]);
+    expect(schema.messages[0].fields[1].options).toEqual([
+      {
+        name: '(buf.validate.field).enum',
+        value: { defined_only: true, not_in: [0] },
+      },
+    ]);
+  });
+
+  it('parses nested repeated and map validation options', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        repeated string stops = 1 [(buf.validate.field).repeated = {
+          min_items: 2
+          max_items: 10
+          unique: true
+          items: { string: { min_len: 3 } }
+        }];
+        map<string, string> labels = 2 [(buf.validate.field).map = {
+          max_pairs: 5
+          keys: { string: { min_len: 1 } }
+          values: { string: { max_len: 100 } }
+        }];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      {
+        name: '(buf.validate.field).repeated',
+        value: {
+          min_items: 2,
+          max_items: 10,
+          unique: true,
+          items: { string: { min_len: 3 } },
+        },
+      },
+    ]);
+    expect(schema.messages[0].fields[1].options).toEqual([
+      {
+        name: '(buf.validate.field).map',
+        value: {
+          max_pairs: 5,
+          keys: { string: { min_len: 1 } },
+          values: { string: { max_len: 100 } },
+        },
+      },
+    ]);
+  });
+
+  it('preserves precise integers and parses signed option values', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Measurement {
+        int64 sequence = 1 [(buf.validate.field).int64.const = 9223372036854775807];
+        double score = 2 [(buf.validate.field).double = { gte: -1.5, lt: +inf }];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      { name: '(buf.validate.field).int64.const', value: '9223372036854775807' },
+    ]);
+    expect(schema.messages[0].fields[1].options).toEqual([
+      {
+        name: '(buf.validate.field).double',
+        value: { gte: -1.5, lt: '+inf' },
+      },
+    ]);
+  });
+
+  it('concatenates adjacent string literals in field option values', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        string reference = 1 [json_name = "journey_" "reference"];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([{ name: 'json_name', value: 'journey_reference' }]);
+  });
+
+  it('decodes protobuf escape sequences in string option values', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        string note = 1 [(rule).const = "line\\nbreak " "\\x41\\101\\u0042\\U00000043"];
+        string destination = 2 [(rule).const = "\\303\\251"];
+        bytes opaque = 3 [(rule).const = "\\377"];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([{ name: '(rule).const', value: 'line\nbreak AABC' }]);
+    expect(schema.messages[0].fields[1].options).toEqual([{ name: '(rule).const', value: 'é' }]);
+    expect(schema.messages[0].fields[2].options).toEqual([{ name: '(rule).const', value: '\\377' }]);
+  });
+
+  it('parses integer field options using protobuf radix rules', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        int32 duration = 1 [(rule).gte = 020, (rule).lte = 0x20];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      { name: '(rule).gte', value: 16 },
+      { name: '(rule).lte', value: 32 },
+    ]);
+  });
+
+  it('parses bracketed extension keys in aggregate field options', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        string reference = 1 [(datahub.v1.gdpr_rule) = {
+          [datahub.v1.classification]: "personal"
+        }];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      {
+        name: '(datahub.v1.gdpr_rule)',
+        value: { '[datahub.v1.classification]': 'personal' },
+      },
+    ]);
+  });
+
   it('parses fully-qualified type names with a leading dot', () => {
     const schema = parseProtobufSchema(`
       syntax = "proto3";

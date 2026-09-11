@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { ProtobufSchema, ProtobufMessage, ProtobufEnum, ProtobufField } from '@utils/protobuf-schema';
+import {
+  formatProtobufOptionValue,
+  formatProtovalidateRule,
+  getCustomFieldAnnotations,
+  getProtovalidateRules,
+  isProtovalidateRequired,
+} from './protobuf-validation';
 
 interface ProtobufSchemaViewerProps {
   schema: ProtobufSchema;
@@ -63,9 +70,21 @@ function lookupType<T>(map: Map<string, T>, typeName: string, packageName?: stri
   return undefined;
 }
 
-function formatProtobufType(field: ProtobufField): string {
-  if (field.map) return field.type;
-  return field.label ? `${field.label} ${field.type}` : field.type;
+function compactTypeName(typeName: string): string {
+  const normalized = typeName.startsWith('.') ? typeName.slice(1) : typeName;
+  return normalized.split('.').pop() ?? normalized;
+}
+
+function formatProtobufType(field: ProtobufField, compact = false): string {
+  const type = field.map
+    ? compact
+      ? `map<${field.map.keyType}, ${compactTypeName(field.map.valueType)}>`
+      : field.type
+    : compact
+      ? compactTypeName(field.type)
+      : field.type;
+
+  return field.label ? `${field.label} ${type}` : type;
 }
 
 function countFields(messages: ProtobufMessage[]): number {
@@ -92,7 +111,27 @@ const ProtobufFieldRow = ({ field, level, expand, showRequired, registry, packag
   const nestedEnum = nestedMessage ? undefined : lookupType(registry.enums, targetTypeName, packageName);
   const isCyclic = nestedMessage ? ancestors.includes(nestedMessage.name) : false;
   const hasNested = !!nestedMessage && nestedMessage.fields.length > 0 && !isCyclic;
-  const isRequired = field.label === 'required';
+  const hasRequiredAnnotation = isProtovalidateRequired(field);
+  const isRequired = hasRequiredAnnotation || field.label === 'required';
+  const validationRules = getProtovalidateRules(field).filter((rule) => rule.path !== 'required');
+  const customAnnotations = getCustomFieldAnnotations(field);
+  const fullType = formatProtobufType(field);
+  const displayType = formatProtobufType(field, true);
+  const enumRuleScope = field.map ? 'map.values.enum' : field.label === 'repeated' ? 'repeated.items.enum' : 'enum';
+  const enumConstant = validationRules.find((rule) => rule.path === `${enumRuleScope}.const`);
+  const enumIncludes = validationRules.find((rule) => rule.path === `${enumRuleScope}.in`);
+  const enumExcludes = validationRules.find((rule) => rule.path === `${enumRuleScope}.not_in`);
+  const normalizeRuleValues = (value: unknown) => (Array.isArray(value) ? value : value === undefined ? [] : [value]);
+  const includedEnumValues = normalizeRuleValues(enumIncludes?.value);
+  const excludedEnumValues = normalizeRuleValues(enumExcludes?.value);
+  const displayedEnumValues = nestedEnum?.values.filter((value) => {
+    const matches = (candidate: unknown) => String(candidate) === String(value.value) || candidate === value.name;
+    return (
+      (!enumConstant || matches(enumConstant.value)) &&
+      (includedEnumValues.length === 0 || includedEnumValues.some(matches)) &&
+      !excludedEnumValues.some(matches)
+    );
+  });
 
   useEffect(() => {
     setIsExpanded(expand);
@@ -116,40 +155,83 @@ const ProtobufFieldRow = ({ field, level, expand, showRequired, registry, packag
         )}
 
         <div className="flex-grow">
-          <div className="flex justify-between items-baseline">
-            <div>
-              <span className="proto-field-name font-semibold text-[rgb(var(--ec-page-text))] text-sm">{field.name}</span>
-              <span className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs">{formatProtobufType(field)}</span>
-              {field.number !== undefined && (
-                <span className="ml-1.5 text-[rgb(var(--ec-page-text-muted))] font-mono text-xs">= {field.number}</span>
-              )}
-              {field.oneof && (
-                <span className="ml-1.5 text-[rgb(var(--ec-page-text-muted))] text-xs bg-[rgb(var(--ec-content-hover))] px-1 rounded">
-                  oneof {field.oneof}
+          <div className="-mx-1 rounded px-1 transition-colors hover:bg-[rgb(var(--ec-content-hover))]">
+            <div className="flex justify-between items-baseline">
+              <div>
+                <span className="proto-field-name font-semibold text-[rgb(var(--ec-page-text))] text-sm">{field.name}</span>
+                <span
+                  className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs"
+                  title={displayType === fullType ? undefined : fullType}
+                >
+                  {displayType}
                 </span>
+                {field.number !== undefined && (
+                  <span className="ml-1.5 text-[rgb(var(--ec-page-text-muted))] font-mono text-xs">= {field.number}</span>
+                )}
+                {field.oneof && (
+                  <span className="ml-1.5 text-[rgb(var(--ec-page-text-muted))] text-xs bg-[rgb(var(--ec-content-hover))] px-1 rounded">
+                    oneof {field.oneof}
+                  </span>
+                )}
+              </div>
+              {(hasRequiredAnnotation || (showRequired && isRequired)) && (
+                <span className="text-red-600 dark:text-red-400 text-xs ml-3 flex-shrink-0">required</span>
               )}
             </div>
-            {showRequired && isRequired && (
-              <span className="text-red-600 dark:text-red-400 text-xs ml-3 flex-shrink-0">required</span>
+
+            {field.doc && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-0.5">{field.doc}</p>}
+
+            {validationRules.length > 0 && (
+              <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-0.5 space-y-0">
+                {validationRules.map((rule, index) => {
+                  const display = formatProtovalidateRule(rule);
+                  return (
+                    <div key={`${rule.path}-${index}`}>
+                      {display.label}
+                      {display.value !== undefined && (
+                        <>
+                          :{' '}
+                          <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                            {display.value}
+                          </code>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {customAnnotations.length > 0 && (
+              <div className="mt-0.5 space-y-0 text-xs text-gray-400 dark:text-gray-500">
+                {customAnnotations.map((annotation, index) => (
+                  <div key={`${annotation.name}-${index}`} className="flex max-w-full flex-wrap items-baseline gap-x-1">
+                    <span>Annotation:</span>
+                    <code className="break-all font-mono text-gray-500 dark:text-gray-400">{annotation.name}</code>
+                    <span>=</span>
+                    <code className="font-medium text-gray-500 dark:text-gray-400">
+                      {formatProtobufOptionValue(annotation.value)}
+                    </code>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Show enum values if the field type resolves to an enum */}
+            {nestedEnum && displayedEnumValues && displayedEnumValues.length > 0 && (
+              <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-0.5">
+                <span className="text-xs inline-block">Allowed values:</span>
+                {displayedEnumValues.map((value) => (
+                  <span key={value.name} className="text-xs">
+                    {' '}
+                    <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                      {value.name}
+                    </code>
+                  </span>
+                ))}
+              </div>
             )}
           </div>
-
-          {field.doc && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-0.5">{field.doc}</p>}
-
-          {/* Show enum values if the field type resolves to an enum */}
-          {nestedEnum && nestedEnum.values.length > 0 && (
-            <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-0.5">
-              <span className="text-xs inline-block">Allowed values:</span>
-              {nestedEnum.values.map((value) => (
-                <span key={value.name} className="text-xs">
-                  {' '}
-                  <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
-                    {value.name}
-                  </code>
-                </span>
-              ))}
-            </div>
-          )}
 
           {/* Nested fields for message types */}
           {hasNested && nestedMessage && (

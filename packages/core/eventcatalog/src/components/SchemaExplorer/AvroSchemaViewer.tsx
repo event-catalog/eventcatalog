@@ -138,27 +138,29 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
 
         {/* Field details */}
         <div className="flex-grow min-w-0">
-          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
-            <span className="avro-field-name font-semibold text-[rgb(var(--ec-page-text))] text-sm">{field.name}</span>
-            <span className="text-[rgb(var(--ec-accent))] font-mono text-xs">{formatAvroType(field.type)}</span>
-            {showRequired && isRequired && (
-              <span className="text-red-600 dark:text-red-400 text-xs ml-auto flex-shrink-0">required</span>
+          <div className="-mx-1 rounded px-1 transition-colors hover:bg-[rgb(var(--ec-content-hover))]">
+            <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+              <span className="avro-field-name font-semibold text-[rgb(var(--ec-page-text))] text-sm">{field.name}</span>
+              <span className="text-[rgb(var(--ec-accent))] font-mono text-xs">{formatAvroType(field.type)}</span>
+              {showRequired && isRequired && (
+                <span className="text-red-600 dark:text-red-400 text-xs ml-auto flex-shrink-0">required</span>
+              )}
+            </div>
+
+            {field.doc && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-1">{field.doc}</p>}
+
+            {/* Show enum values if present */}
+            {enumType && enumType.symbols && (
+              <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
+                Values:{' '}
+                {enumType.symbols.map((s: string) => (
+                  <code key={s} className="bg-[rgb(var(--ec-content-hover))] px-1 rounded mx-0.5 text-[rgb(var(--ec-page-text))]">
+                    {s}
+                  </code>
+                ))}
+              </div>
             )}
           </div>
-
-          {field.doc && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-1">{field.doc}</p>}
-
-          {/* Show enum values if present */}
-          {enumType && enumType.symbols && (
-            <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
-              Values:{' '}
-              {enumType.symbols.map((s: string) => (
-                <code key={s} className="bg-[rgb(var(--ec-content-hover))] px-1 rounded mx-0.5 text-[rgb(var(--ec-page-text))]">
-                  {s}
-                </code>
-              ))}
-            </div>
-          )}
 
           {/* Nested fields for record types */}
           {hasNested && recordType && (

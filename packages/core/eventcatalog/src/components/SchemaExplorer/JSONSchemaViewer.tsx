@@ -315,86 +315,88 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
         )}
 
         <div className="flex-grow">
-          <div className="flex justify-between items-baseline">
-            <div>
-              <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">{name}</span>
-              <span className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs">
-                {hasVariants ? (details.variantType === 'anyOf' ? 'anyOf' : 'oneOf') : formatType(details.type)}
-                {hasType(details.type, 'array') && details.items?.type ? `[${formatType(details.items.type)}]` : ''}
-                {details.format ? `<${details.format}>` : ''}
-                {details._refPath && (
-                  <span className="text-blue-600 dark:text-blue-400 ml-1">→ {details._refName || details._refPath}</span>
-                )}
-                {details._refNotFound && <span className="text-red-600 dark:text-red-400 ml-1">❌ ref not found</span>}
-                {details.const !== undefined && (
-                  <span>
-                    constant: <code>{details.const}</code>
-                  </span>
-                )}
-              </span>
+          <div className="-mx-1 rounded px-1 transition-colors hover:bg-[rgb(var(--ec-content-hover))]">
+            <div className="flex justify-between items-baseline">
+              <div>
+                <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">{name}</span>
+                <span className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs">
+                  {hasVariants ? (details.variantType === 'anyOf' ? 'anyOf' : 'oneOf') : formatType(details.type)}
+                  {hasType(details.type, 'array') && details.items?.type ? `[${formatType(details.items.type)}]` : ''}
+                  {details.format ? `<${details.format}>` : ''}
+                  {details._refPath && (
+                    <span className="text-blue-600 dark:text-blue-400 ml-1">→ {details._refName || details._refPath}</span>
+                  )}
+                  {details._refNotFound && <span className="text-red-600 dark:text-red-400 ml-1">❌ ref not found</span>}
+                  {details.const !== undefined && (
+                    <span>
+                      constant: <code>{details.const}</code>
+                    </span>
+                  )}
+                </span>
+              </div>
+              {isRequired && <span className="text-red-600 dark:text-red-400 text-xs ml-3 flex-shrink-0">required</span>}
             </div>
-            {isRequired && <span className="text-red-600 dark:text-red-400 text-xs ml-3 flex-shrink-0">required</span>}
-          </div>
 
-          {details.description && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-0.5">{details.description}</p>}
-          {details.title && details.title !== details.description && (
-            <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-0.5 italic">Title: {details.title}</p>
-          )}
+            {details.description && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-0.5">{details.description}</p>}
+            {details.title && details.title !== details.description && (
+              <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-0.5 italic">Title: {details.title}</p>
+            )}
 
-          <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-0.5 space-y-0">
-            {details.pattern && (
-              <div>
-                Match pattern:{' '}
-                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
-                  {details.pattern}
-                </code>
-              </div>
-            )}
-            {details.minimum !== undefined && (
-              <div>
-                Minimum:{' '}
-                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
-                  {details.minimum}
-                </code>
-              </div>
-            )}
-            {details.maximum !== undefined && (
-              <div>
-                Maximum:{' '}
-                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
-                  {details.maximum}
-                </code>
-              </div>
-            )}
-            {details.minLength !== undefined && (
-              <div>
-                Min length:{' '}
-                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
-                  {details.minLength}
-                </code>
-              </div>
-            )}
-            {details.maxLength !== undefined && (
-              <div>
-                Max length:{' '}
-                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
-                  {details.maxLength}
-                </code>
-              </div>
-            )}
-            {details.enum && (
-              <div>
-                <span className="text-xs inline-block">Allowed values:</span>
-                {details.enum.map((val: any, idx: number) => (
-                  <span key={idx} className="text-xs">
-                    {' '}
-                    <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
-                      {val}
-                    </code>
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-0.5 space-y-0">
+              {details.pattern && (
+                <div>
+                  Match pattern:{' '}
+                  <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                    {details.pattern}
+                  </code>
+                </div>
+              )}
+              {details.minimum !== undefined && (
+                <div>
+                  Minimum:{' '}
+                  <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                    {details.minimum}
+                  </code>
+                </div>
+              )}
+              {details.maximum !== undefined && (
+                <div>
+                  Maximum:{' '}
+                  <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                    {details.maximum}
+                  </code>
+                </div>
+              )}
+              {details.minLength !== undefined && (
+                <div>
+                  Min length:{' '}
+                  <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                    {details.minLength}
+                  </code>
+                </div>
+              )}
+              {details.maxLength !== undefined && (
+                <div>
+                  Max length:{' '}
+                  <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                    {details.maxLength}
+                  </code>
+                </div>
+              )}
+              {details.enum && (
+                <div>
+                  <span className="text-xs inline-block">Allowed values:</span>
+                  {details.enum.map((val: any, idx: number) => (
+                    <span key={idx} className="text-xs">
+                      {' '}
+                      <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                        {val}
+                      </code>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {(hasNestedProperties || hasArrayItems || hasVariants) && (
