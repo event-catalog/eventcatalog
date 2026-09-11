@@ -293,6 +293,37 @@ describe('parseProtobufSchema', () => {
     ]);
   });
 
+  it('concatenates adjacent string literals in field option values', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        string reference = 1 [json_name = "journey_" "reference"];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([{ name: 'json_name', value: 'journey_reference' }]);
+  });
+
+  it('parses bracketed extension keys in aggregate field options', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        string reference = 1 [(datahub.v1.gdpr_rule) = {
+          [datahub.v1.classification]: "personal"
+        }];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      {
+        name: '(datahub.v1.gdpr_rule)',
+        value: { '[datahub.v1.classification]': 'personal' },
+      },
+    ]);
+  });
+
   it('parses fully-qualified type names with a leading dot', () => {
     const schema = parseProtobufSchema(`
       syntax = "proto3";

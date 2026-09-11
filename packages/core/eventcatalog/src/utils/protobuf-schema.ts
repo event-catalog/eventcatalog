@@ -252,6 +252,16 @@ class ProtobufParser {
     }
   }
 
+  private parseAggregateOptionKey(): string {
+    if (this.peek()?.value !== '[') return this.next().value;
+
+    this.next();
+    const nameParts: string[] = [];
+    while (this.peek() && this.peek()!.value !== ']') nameParts.push(this.next().value);
+    this.expect(']');
+    return `[${nameParts.join('')}]`;
+  }
+
   private parseOptionValue(): ProtobufOptionValue {
     const token = this.peek();
     if (!token) throw new Error('Unexpected end of protobuf option');
@@ -267,7 +277,7 @@ class ProtobufParser {
           continue;
         }
 
-        const key = this.next().value;
+        const key = this.parseAggregateOptionKey();
         if (this.peek()?.value === ':') this.next();
         const entryValue = this.parseOptionValue();
         const existingValue = value[key];
@@ -300,7 +310,11 @@ class ProtobufParser {
     }
 
     const valueToken = this.next();
-    if (valueToken.isString) return valueToken.value;
+    if (valueToken.isString) {
+      let value = valueToken.value;
+      while (this.peek()?.isString) value += this.next().value;
+      return value;
+    }
     if (valueToken.value === 'true') return true;
     if (valueToken.value === 'false') return false;
 
