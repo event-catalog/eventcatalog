@@ -1,0 +1,12 @@
+{
+  "label": "How-to guides",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "federation/how-to",
+    "title": "Federation how-to guides",
+    "description": "Task-focused guides for configuring, running, and operating EventCatalog Federation."
+  }
+}

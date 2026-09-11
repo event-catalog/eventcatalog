@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.10.14
+
+### Patch Changes
+
+- 089076b: Render Protovalidate and custom field annotations in the Protobuf schema viewer, and add property hover feedback across schema formats.
+
 ## 4.10.13
 
 ### Patch Changes

@@ -1,0 +1,12 @@
+{
+  "label": "How-to guides",
+  "position": 3,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "development/developer-tools/eventcatalog-linter/how-to",
+    "title": "Linter how-to guides",
+    "description": "Task-focused guides for configuring rules, running the linter in CI, and fixing what it reports."
+  }
+}
