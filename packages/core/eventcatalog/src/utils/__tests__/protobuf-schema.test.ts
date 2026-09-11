@@ -311,10 +311,14 @@ describe('parseProtobufSchema', () => {
 
       message Journey {
         string note = 1 [(rule).const = "line\\nbreak " "\\x41\\101\\u0042\\U00000043"];
+        string destination = 2 [(rule).const = "\\303\\251"];
+        bytes opaque = 3 [(rule).const = "\\377"];
       }
     `);
 
     expect(schema.messages[0].fields[0].options).toEqual([{ name: '(rule).const', value: 'line\nbreak AABC' }]);
+    expect(schema.messages[0].fields[1].options).toEqual([{ name: '(rule).const', value: 'é' }]);
+    expect(schema.messages[0].fields[2].options).toEqual([{ name: '(rule).const', value: '\\377' }]);
   });
 
   it('parses integer field options using protobuf radix rules', () => {

@@ -51,4 +51,36 @@ describe('ProtobufSchemaViewer', () => {
     expect(html).toContain('(datahub.v1.gdpr_rule).string');
     expect(html).toContain('>true</code>');
   });
+
+  it('filters enum values using repeated-item and map-value constraints', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      enum Status {
+        STATUS_UNSPECIFIED = 0;
+        STATUS_ACTIVE = 1;
+        STATUS_ARCHIVED = 2;
+      }
+
+      message Journey {
+        repeated Status statuses = 1 [(buf.validate.field).repeated = {
+          items: { enum: { in: [1] } }
+        }];
+        map<string, Status> status_by_key = 2 [(buf.validate.field).map = {
+          values: { enum: { not_in: [0, 2] } }
+        }];
+      }
+    `);
+
+    const html = renderToStaticMarkup(<ProtobufSchemaViewer schema={schema} />);
+    const repeatedField = html.slice(html.indexOf('>statuses</span>'), html.indexOf('>status_by_key</span>'));
+    const mapField = html.slice(html.indexOf('>status_by_key</span>'), html.indexOf('>Enum:</span>'));
+
+    expect(repeatedField).toContain('STATUS_ACTIVE');
+    expect(repeatedField).not.toContain('STATUS_UNSPECIFIED');
+    expect(repeatedField).not.toContain('STATUS_ARCHIVED');
+    expect(mapField).toContain('STATUS_ACTIVE');
+    expect(mapField).not.toContain('STATUS_UNSPECIFIED');
+    expect(mapField).not.toContain('STATUS_ARCHIVED');
+  });
 });

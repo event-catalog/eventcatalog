@@ -117,8 +117,9 @@ const ProtobufFieldRow = ({ field, level, expand, showRequired, registry, packag
   const customAnnotations = getCustomFieldAnnotations(field);
   const fullType = formatProtobufType(field);
   const displayType = formatProtobufType(field, true);
-  const enumIncludes = validationRules.find((rule) => rule.path === 'enum.in');
-  const enumExcludes = validationRules.find((rule) => rule.path === 'enum.not_in');
+  const enumRuleScope = field.map ? 'map.values.enum' : field.label === 'repeated' ? 'repeated.items.enum' : 'enum';
+  const enumIncludes = validationRules.find((rule) => rule.path === `${enumRuleScope}.in`);
+  const enumExcludes = validationRules.find((rule) => rule.path === `${enumRuleScope}.not_in`);
   const normalizeRuleValues = (value: unknown) => (Array.isArray(value) ? value : value === undefined ? [] : [value]);
   const includedEnumValues = normalizeRuleValues(enumIncludes?.value);
   const excludedEnumValues = normalizeRuleValues(enumExcludes?.value);
