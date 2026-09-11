@@ -35,7 +35,7 @@ Each service in the `services` array requires the following properties:
 | `owners` | string[] | No | Owners of the service. You can assign EventCatalog users or teams to services. Setting owners on the service will also set the owners of the messages in the GraphQL schema. If owners are already set on any resource, those owners are persisted. |
 | `name` | string | No | Display name for the service. If not provided, the `id` will be used. |
 | `summary` | string | No | Short summary of the service. |
-| `generateMarkdown` | function | - | Function to override the default markdown generation for the service. See [Markdown templates](#markdown-templates) for more information. |
+| `generateMarkdown` | function | - | Function to override the default markdown generation for the service. |
 | `writesTo` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service writes to. (Added in v0.4.4) |
 | `readsFrom` | array[\{id: string, version?: string\}] | No | Array of [data stores](/docs/development/guides/resources/data/introduction) id and version (optional) that the service reads from. (Added in v0.4.0) |
 
@@ -49,7 +49,7 @@ Each service in the `services` array requires the following properties:
 | `domain.version` | string | - | Domain version |
 | `domain.owners` | string[] | - | Owners of the domain. If owners are already set on the domain, those owners are persisted. |
 | `domain.markdown` | string | - | Custom markdown content for the domain. |
-| `messages.generateMarkdown` | function | - | Function to override the default markdown generation for the message. See [Markdown templates](#markdown-templates) for more information. |
+| `messages.generateMarkdown` | function | - | Function to override the default markdown generation for the message. |
 | `writeFilesToRoot` | boolean | `false` | Write GraphQL messages to root instead of service folder. By default all domains, services and messages will be grouped in the folder directory structure. |
 
 ## Example Configuration

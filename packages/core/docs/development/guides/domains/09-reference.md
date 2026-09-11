@@ -26,11 +26,19 @@ Subdomains can be created inside a domain:
 /domains/{Domain Name}/subdomains/{Subdomain Name}/index.mdx
 ```
 
+Ubiquitous language for a domain is documented in a sidecar file:
+
+```txt
+/domains/{Domain Name}/ubiquitous-language.mdx
+```
+
 ## Routes
 
 | Route | Description |
 |-------|-------------|
 | `/docs/domains/{domain-id}/{version}` | Domain documentation page. |
+| `/docs/domains/{domain-id}/language` | Ubiquitous language dictionary. |
+| `/docs/domains/{domain-id}/language/{term-id}` | Ubiquitous language term page. |
 | `/visualiser/domains/{domain-id}/{version}` | Domain resource diagram. |
 | `/visualiser/domains/{domain-id}/{version}/systems-context` | System context map for systems inside a domain. |
 | `/visualiser/domains/{domain-id}/{version}/entity-map` | Entity map for entities inside a domain. |
@@ -487,6 +495,8 @@ Override the default edit URL for the page. This is used to navigate the user to
 editUrl: https://github.com/event-catalog/eventcatalog/edit/main/domains/Orders/index.mdx
 ---
 ```
+
+Ubiquitous language dictionaries also support `editUrl` on the file and on each term. See [ubiquitous language `editUrl`](/docs/development/guides/domains/ownership-and-language/adding-ubiquitous-language#editUrl).
 
 ### `attachments` {#attachments}
 

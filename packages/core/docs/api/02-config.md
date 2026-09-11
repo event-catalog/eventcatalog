@@ -78,7 +78,7 @@ The output type for your EventCatalog, choose from `static` or `server`.
 :::info "What is the difference between static and server?"
 
 - `static` - The default output type for EventCatalog. This will output a static website that you can host anywhere.
-- `server` - This will output a Node.js server that you can host anywhere. This is required for certain features like the [EventCatalog Chat](/features/ai-assistant) (bring your own keys). The easiest way to host this is with our [Docker image](/docs/development/deployment/hosting-options#hosting-a-server).
+- `server` - This will output a Node.js server that you can host anywhere. This is required for certain features like the [EventCatalog Chat](/features/ai-assistant) (bring your own keys). The easiest way to host this is with our [Docker image](/docs/development/deployment/hosting-options#hosting-as-a-server).
 
 :::
 
@@ -122,6 +122,54 @@ module.exports = {
   trailingSlash: true,
 };
 ```
+
+### `linkValidation` {#linkValidation}
+
+- Type: `object` | `false`
+- Default: `{ onBrokenLinks: 'warn', onBrokenAnchors: 'warn' }`
+
+Checks internal links and anchors after a static build and reports any that are broken. Validation is skipped in SSR mode. Set to `false` to turn off the check entirely.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  linkValidation: {
+    onBrokenLinks: 'warn',
+    onBrokenAnchors: 'warn',
+    ignore: ['/api/**'],
+  },
+};
+```
+
+#### `linkValidation.onBrokenLinks`
+
+- Type: `'warn' | 'error' | 'ignore'`
+- Default: `'warn'`
+
+What to do when a link points to a page that does not exist. `error` fails the build, `warn` logs the problem but still builds, `ignore` skips the check.
+
+#### `linkValidation.onBrokenAnchors`
+
+- Type: `'warn' | 'error' | 'ignore'`
+- Default: `'warn'`
+
+What to do when a link points to a valid page but an anchor (`#section`) that does not exist on it.
+
+#### `linkValidation.ignore`
+
+- Type: `string[]`
+- Default: `[]`
+
+Glob patterns for destination URL paths to skip, relative to your catalog's [`base`](#base), starting with `/`. Patterns exclude the base prefix, query string, and anchor. For example, with `base: '/catalog'`, use `/docs/legacy/**` to ignore `/catalog/docs/legacy/example#section`. Use this for links you know are valid but EventCatalog cannot verify, such as pages rendered outside the build.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  linkValidation: {
+    ignore: ['/api/**', '/docs/legacy/*'],
+  },
+};
+```
+
+See the [link validation guide](/docs/development/deployment/link-validation) for what gets checked and how to use this in CI.
 
 ### `port` {#port}
 
@@ -449,6 +497,11 @@ module.exports = {
       // The render mode for channels in the visualiser
       // Flat or single
       renderMode: 'flat'
+    },
+
+    // Opt-in, catalog-wide force-directed graph at /visualiser/graph
+    architectureGraph: {
+      enabled: true
     }
   }
 };
@@ -459,6 +512,7 @@ module.exports = {
 | ------------- | ----------- | ----------- | ----------- |
 | `visualiser.enabled` | `true` or `false` | `true` | **Enabled or disables the visualiser**. Setting this to false will not render any visualiser pages in your catalog and also remove references to the visualiser features in your catalog. _(Added in 2.65.1)_ |
 | `visualiser.channels.renderMode` | `flat` or `single` | `flat` | The render mode for the visualiser. `flat` means the channel node is duplicated for each message. `single` means the channel node is a single node for all messages. Depending on your use case/preferences you may want to use one or the other. |
+| `visualiser.architectureGraph.enabled` | `true` or `false` | `false` | Enables the [architecture graph](/docs/development/guides/architecture-graph) at `/visualiser/graph`. Opt-in while in beta. _(Added in 4.5.0)_ |
 
 
 

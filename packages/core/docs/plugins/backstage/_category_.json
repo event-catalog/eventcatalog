@@ -1,11 +1,12 @@
 {
   "label": "Backstage Plugin",
+  "position": 8,
   "collapsible": true,
   "collapsed": true,
   "link": {
     "type": "generated-index",
     "slug": "backstage",
-    "title": "Backstage",
-    "description": "Backstage integration with EventCatalog"
+    "title": "EventCatalog for Backstage",
+    "description": "Embed EventCatalog documentation, diagrams, schemas, and flows in Backstage."
   }
 }

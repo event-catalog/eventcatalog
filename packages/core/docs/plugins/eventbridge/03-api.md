@@ -198,9 +198,9 @@ List of services to add and what events they publish (sends) and consume (receiv
 | ------------- | -------- | ----------------------------------------------------------------------------- |
 | id            | required | Id of the service, this will also be used as the folder name of your service. |
 | version            | required | The version of the service |
-| sends            | optional | The events the service sends (publishes). You can use [EventCatalog filters](/docs/plugins/eventbridge/intro#using-filters-to-map-events-to-your-services) to match your events. |
+| sends            | optional | The events the service sends (publishes). You can use [EventCatalog filters](/docs/plugins/eventbridge/features#using-filters-to-map-events-to-your-services) to match your events. |
 | sends.eventBusName            | optional | The name of the EventBus for the matched events. This will be displayed as an EventCatalog Channel. |
-| receives            | optional | The events the service receives (consumes). You can use [EventCatalog filters](/docs/plugins/eventbridge/intro#using-filters-to-map-events-to-your-services) to match your events. |
+| receives            | optional | The events the service receives (consumes). You can use [EventCatalog filters](/docs/plugins/eventbridge/features#using-filters-to-map-events-to-your-services) to match your events. |
 | receives.eventBusName            | optional | The name of the EventBus for the matched events. This will be displayed as an EventCatalog Channel. |
 | writesTo            | optional | Array of [data stores](/docs/development/guides/resources/data/introduction) ids that the service writes to. (Added in v3.2.2) |
 | readsFrom            | optional | Array of [data stores](/docs/development/guides/resources/data/introduction) ids that the service reads from. (Added in v3.2.2) |
@@ -333,7 +333,7 @@ AWS credentials to use for your plugin.
 ];
 ```
 
-If you are using credentials you will want to create a user with limited permissions. [See the documentation to get started](/docs/plugins/eventbridge/intro#aws-configuration).
+If you are using credentials you will want to create a user with limited permissions. [See the documentation to get started](/docs/plugins/eventbridge/api#credentials).
 
 ### `domain` {#domain}
 

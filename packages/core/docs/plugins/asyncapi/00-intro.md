@@ -38,10 +38,10 @@ The EventCatalog AsyncAPI plugin can provide you with many features:
 - ⭐️ Generate domains, services and messages into your catalog from your AsyncAPI specification files
 - ⭐️ [Automate your EventCatalog and fetch AsyncAPI files by URL](/docs/plugins/asyncapi/features#fetch-asyncapi-files-by-url)
 - ⭐️ [Map commands, queries and events from your OpenAPI file using custom extensions](/docs/plugins/asyncapi/features#mapping-messages-events-commands-or-queries)
-- ⭐️ [Automatically version your changes in EventCatalog in sync with your AsyncAPI versions](#automatic-versioning)
-- ⭐️ [Allow you to write and persist custom markdown between changes](#persist-markdown)
-- ⭐️ [Display your message schemas in the catalog](#downloading-schemas)
-- ⭐️ [Fetch AsyncAPI files from any URL](#fetch-asyncapi-files-by-url)
+- ⭐️ [Automatically version your changes in EventCatalog in sync with your AsyncAPI versions](/docs/plugins/asyncapi/features#automatic-versioning)
+- ⭐️ [Allow you to write and persist custom markdown between changes](/docs/plugins/asyncapi/features#persist-markdown)
+- ⭐️ [Display your message schemas in the catalog](/docs/plugins/asyncapi/features#downloading-schemas)
+- ⭐️ [Fetch AsyncAPI files from any URL](/docs/plugins/asyncapi/features#fetch-asyncapi-files-by-url)
 - ⭐️ Ability to download your message schemas and AsyncAPI files (also versioned)
 - ⭐️ Ability to draft services and endpoints in EventCatalog from your AsyncAPI files
 - ⭐️ and more....

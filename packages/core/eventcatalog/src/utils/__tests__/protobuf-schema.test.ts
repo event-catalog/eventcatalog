@@ -197,6 +197,102 @@ describe('parseProtobufSchema', () => {
     expect(order.fields[1].type).toBe('google.protobuf.Timestamp');
   });
 
+  it('parses direct and aggregate field options', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        string id = 1 [
+          (buf.validate.field).required = true,
+          (buf.validate.field).string.uuid = true
+        ];
+        Status status = 2 [(buf.validate.field).enum = {
+          defined_only: true
+          not_in: [0]
+        }];
+      }
+
+      enum Status {
+        STATUS_UNSPECIFIED = 0;
+        STATUS_ACTIVE = 1;
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      { name: '(buf.validate.field).required', value: true },
+      { name: '(buf.validate.field).string.uuid', value: true },
+    ]);
+    expect(schema.messages[0].fields[1].options).toEqual([
+      {
+        name: '(buf.validate.field).enum',
+        value: { defined_only: true, not_in: [0] },
+      },
+    ]);
+  });
+
+  it('parses nested repeated and map validation options', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Journey {
+        repeated string stops = 1 [(buf.validate.field).repeated = {
+          min_items: 2
+          max_items: 10
+          unique: true
+          items: { string: { min_len: 3 } }
+        }];
+        map<string, string> labels = 2 [(buf.validate.field).map = {
+          max_pairs: 5
+          keys: { string: { min_len: 1 } }
+          values: { string: { max_len: 100 } }
+        }];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      {
+        name: '(buf.validate.field).repeated',
+        value: {
+          min_items: 2,
+          max_items: 10,
+          unique: true,
+          items: { string: { min_len: 3 } },
+        },
+      },
+    ]);
+    expect(schema.messages[0].fields[1].options).toEqual([
+      {
+        name: '(buf.validate.field).map',
+        value: {
+          max_pairs: 5,
+          keys: { string: { min_len: 1 } },
+          values: { string: { max_len: 100 } },
+        },
+      },
+    ]);
+  });
+
+  it('preserves precise integers and parses signed option values', () => {
+    const schema = parseProtobufSchema(`
+      syntax = "proto3";
+
+      message Measurement {
+        int64 sequence = 1 [(buf.validate.field).int64.const = 9223372036854775807];
+        double score = 2 [(buf.validate.field).double = { gte: -1.5, lt: +inf }];
+      }
+    `);
+
+    expect(schema.messages[0].fields[0].options).toEqual([
+      { name: '(buf.validate.field).int64.const', value: '9223372036854775807' },
+    ]);
+    expect(schema.messages[0].fields[1].options).toEqual([
+      {
+        name: '(buf.validate.field).double',
+        value: { gte: -1.5, lt: '+inf' },
+      },
+    ]);
+  });
+
   it('parses fully-qualified type names with a leading dot', () => {
     const schema = parseProtobufSchema(`
       syntax = "proto3";

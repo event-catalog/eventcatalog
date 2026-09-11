@@ -17,8 +17,8 @@ Services in EventCatalog allow you to attach one or more OpenAPI specifications 
 
 You have two options for adding OpenAPI specifications to your service:
 
-- [Adding OpenAPI files to EventCatalog](#adding-openapi-specifications-to-eventcatalog)
-- [Reference the OpenAPI file from a remote URL](#reference-the-openapi-file-from-a-remote-url)
+- [Adding OpenAPI files to EventCatalog](#adding-openapi-files-to-eventcatalog)
+- [Reference the OpenAPI file from a remote URL](#remote-openapi-files)
 
 :::tip Why not automate your EventCatalog from your OpenAPI files?
   Did you know you can automate your documentation, visualizations and owners using your OpenAPI Files?

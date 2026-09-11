@@ -9,7 +9,7 @@ description: Pick and customize the documentation sidebar.
 
 import AddedIn from '@site/src/components/MDX/AddedIn';
 
-The documentation sidebar is a [context aware sidebar](#what-is-context-aware-sidebar) that is shown on the `/docs/` pages.
+The documentation sidebar is a [context aware sidebar](#what-is-a-context-aware-sidebar) that is shown on the `/docs/` pages.
 
 Clicking on any resource in the sidebar will show you related information to that selected resource ([see demo](https://demo.eventcatalog.dev/)).
 
@@ -56,9 +56,9 @@ You can specify the following options in the `navigation.pages` property:
 
 - [Top level options](#top-level-options) 
   - Useful if you want to show the top-level resources in your catalog in the sidebar. For example high level domains and let your users drill down.
-- [List all resources (by type)](#list-all-resources-type)
+- [List all resources (by type)](#list-all-resources-by-type)
   - Useful if you want to show all resources of a specific type in the sidebar. For example all domains, services, messages, etc.
-- [Pick specific resources to show](#pick-specific-resources-to-show)
+- [Pick specific resources to show](#chose-which-resources-to-show)
   - Useful if you want to show a specific resource or a group of resources in the sidebar. For example a specific domain, service, message, etc.
 - [Custom groups and links](#custom-groups-and-links)
   - Useful if you want to create custom groups and links to external pages in the sidebar. For example a group of resources, or a link to an external page.

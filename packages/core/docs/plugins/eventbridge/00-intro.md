@@ -35,10 +35,10 @@ Using the EventCatalog EventBridge generator you can automate and generate your 
 The EventCatalog Amazon EventBridge plugin can provide you with many features:
 
 - ⭐️ Generate domains, services, channels and messages into your catalog
-- ⭐️ [Automatically version your changes in EventCatalog in sync with your registry versions](#automatic-versioning)
-- ⭐️ [Allow you to write and persist custom markdown between changes](#persist-markdown)
-- ⭐️ [Display your JSONDraft and OpenAPI schemas for each event in EventCatalog](#downloading-schemas)
-- ⭐️ [Filter events to match to your services](#using-filters-to-map-events-to-your-services)
+- ⭐️ [Automatically version your changes in EventCatalog in sync with your registry versions](/docs/plugins/eventbridge/features#automatic-versioning)
+- ⭐️ [Allow you to write and persist custom markdown between changes](/docs/plugins/eventbridge/features#persist-markdown)
+- ⭐️ [Display your JSONDraft and OpenAPI schemas for each event in EventCatalog](/docs/plugins/eventbridge/features#downloading-schemas)
+- ⭐️ [Filter events to match to your services](/docs/plugins/eventbridge/features#using-filters-to-map-events-to-your-services)
 - ⭐️ Visualize your architecture
 - ⭐️ Download schemas and code bindings
 - ⭐️ and more....
@@ -49,7 +49,7 @@ The EventCatalog Amazon EventBridge plugin can provide you with many features:
 
 EventCatalog supports [generators](/docs/plugins/generators). These are scripts or plugins that can be run to integrate with any external API, system or specification files. EventCatalog also provides an [SDK](/docs/sdk) to give developers easier access to their catalogs through custom scripts or generators.
 
-The EventCatalog EventBridge plugin let's you map your events into domains and services. You can use [custom filters (prefix, suffix, detailType and source)](#using-filters-to-map-events-to-your-services) to map which events you want your service to produce and consume.
+The EventCatalog EventBridge plugin let's you map your events into domains and services. You can use [custom filters (prefix, suffix, detailType and source)](/docs/plugins/eventbridge/features#using-filters-to-map-events-to-your-services) to map which events you want your service to produce and consume.
 
 You can also use the EventCatalog plugin to map ALL events from your registry into your system and not map them into services if you wish to have a direct import.
 

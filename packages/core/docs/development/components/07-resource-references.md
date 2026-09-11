@@ -108,6 +108,8 @@ Without a version, the reference uses the latest version. Pin versions when docu
 Our legacy [[service|PaymentService@0.9.0]] is being replaced by [[service|PaymentGatewayService]].
 ```
 
+Users, teams, and custom docs are not versioned, so references like `[[user|dboyne]]` and `[[team|backend-team]]` always link straight to the resource.
+
 ## Interactive tooltips
 
 Hover over any reference to see detailed information without leaving the page.
@@ -118,6 +120,10 @@ Hover over any reference to see detailed information without leaving the page.
 </div>
 
 Tooltips show different information based on resource type.
+
+Owner links open the matching user or team profile. If an owner is not defined in your catalog, its ID appears as plain text.
+
+In service and agent tooltips, sent and received messages link to their matching event, command, or query documentation, including when a message version is specified.
 
 ### Combine with other components
 
@@ -133,4 +139,4 @@ The [[service|OrdersService]] coordinates between inventory and payment:
 
 ### Review references regularly
 
-Regularly audit references to ensure they point to current resources and remove outdated links.
+Regularly audit references to ensure they point to current resources and remove outdated links. [Link validation](/docs/development/deployment/link-validation) reports broken internal links and anchors after a static build.

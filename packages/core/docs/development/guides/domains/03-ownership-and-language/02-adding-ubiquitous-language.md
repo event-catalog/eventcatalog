@@ -23,6 +23,8 @@ The contents of the file should be a list of terms used in your domain.
 
 Each term should have a name, summary, description and icon. The icon is optional and can be used to visually represent the term. You can find a list of icons [here](https://lucide.dev/). Use the PascalCase React component name for Lucide icons, for example `file-text` should be configured as `FileText`.
 
+You can optionally set [`editUrl`](#editUrl) on the dictionary file or on an individual term.
+
 ```md title="/domains/Orders/ubiquitous-language.md"
 ---
 dictionary:
@@ -57,6 +59,33 @@ dictionary:
 ---
 
 ```
+
+### `editUrl` {#editUrl}
+
+<AddedIn version="4.8.2" />
+
+Override the default edit URL for a ubiquitous language term page. This is used to navigate the user to the edit page, for example GitHub or GitLab.
+
+Set `editUrl` on the dictionary file, on an individual term, or both. This is useful when dictionary content is generated from an external source (for example a custom generator plugin) so **Edit this page** on `/docs/domains/{id}/language/{termId}` points at the real source file, not the generated MDX.
+
+```md title="/domains/Orders/ubiquitous-language.md"
+---
+editUrl: https://github.com/your-org/glossary/edit/main/domains/Orders/ubiquitous-language.md
+dictionary:
+  - id: Purchase Order
+    name: Purchase Order
+    summary: "A mystical document issued by a buyer to a seller."
+    editUrl: https://github.com/your-org/glossary/edit/main/terms/purchase-order.md
+---
+```
+
+EventCatalog resolves the link in this order:
+
+1. Per-term `editUrl` on a dictionary item
+2. File-level `editUrl` on `ubiquitous-language.mdx`
+3. Fallback to the site-wide [`editUrl`](/docs/api/config#editUrl) in `eventcatalog.config.js` plus the dictionary file path
+
+Per-term `editUrl` takes precedence over the file-level value.
 
 ### Viewing the ubiquitous language in EventCatalog
 

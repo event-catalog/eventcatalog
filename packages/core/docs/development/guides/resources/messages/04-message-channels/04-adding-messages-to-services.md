@@ -184,6 +184,14 @@ routes:
 ---
 ```
 
+Finally, we create the `payment.queue`.
+
+```md title="/channels/payment.queue/index.mdx (example)"
+---
+id: payment.queue
+---
+```
+
 EventCatalog will understand the channel routes and relationships and create a visual representation of the channels and their relationships.
 
 ![Example](../../../img/channels/channel-chains.png)

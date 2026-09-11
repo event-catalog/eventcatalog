@@ -97,6 +97,35 @@ export default {
 
 The host must match the **Authorization callback URL** on your GitHub OAuth app (`https://catalog.example.com/api/auth/callback/github`). Not needed on Vercel, Cloudflare Pages, or local dev. See the [Auth.js reference](https://authjs.dev/reference/core#redirectproxyurl) for more.
 
+## Issuer validation
+
+<AddedIn version="4.10.3" />
+
+GitHub OAuth callbacks include an `iss` parameter, and EventCatalog now sets the correct `issuer` on the GitHub provider automatically, using `https://github.com/login/oauth` for github.com or `{enterprise.baseUrl}/login/oauth` when you configure `providers.github.enterprise.baseUrl` for GitHub Enterprise Server. You can still override it by setting `issuer` explicitly in your provider config.
+
+```js title="eventcatalog.auth.js"
+export default {
+  providers: {
+    github: {
+      clientId: process.env.AUTH_GITHUB_CLIENT_ID,
+      clientSecret: process.env.AUTH_GITHUB_CLIENT_SECRET,
+      issuer: 'https://github.com/login/oauth',
+    },
+  },
+};
+```
+
+### Fix "unexpected iss" errors on older versions
+
+If you're running an EventCatalog version before `4.10.3`, sign-in can fail with users redirected to `/auth/error?error=Configuration` and logs showing:
+
+```
+[auth][cause] OperationProcessingError: unexpected "iss" (issuer) response parameter value
+[auth][details] { "expected": "https://authjs.dev", "provider": "github" }
+```
+
+This happens because GitHub now sends an `iss` parameter on OAuth callbacks, but the GitHub provider had no `issuer` configured, so validation fell back to a placeholder value. Upgrading to `4.10.3` or later fixes this by default. If you can't upgrade yet, set `issuer` explicitly on the GitHub provider as shown above.
+
 ## Found an issue?
 
 Remember to setup the prerequisites for this guide:

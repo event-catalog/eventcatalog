@@ -54,3 +54,20 @@ In custom documentation pages, `id`, `version`, and `type` are all required. A `
 | `search` | boolean | No | Show or hide the search bar. Accepts `true`/`false` or `"true"`/`"false"`. Defaults to `true`. |
 | `legend` | boolean | No | Show or hide the legend. Accepts `true`/`false` or `"true"`/`"false"`. Defaults to `true`. |
 | `mode` | string | No | `"simple"` or `"full"`. Defaults to `"simple"`. |
+
+### Embed the Architecture Graph (ArchitectureGraph)
+
+You can also embed the catalog-wide [architecture graph](/docs/development/guides/architecture-graph) into your custom documentation pages using the `ArchitectureGraph` component.
+
+```md
+This is my custom documentation page, here is the whole catalog graph:
+
+<ArchitectureGraph />
+
+<!-- Or focus the graph on a specific resource -->
+<ArchitectureGraph id="Orders" type="domain" />
+```
+
+Unlike `NodeGraph`, no props are required — without `id` and `type` the whole catalog is rendered. No `version` is needed; the graph always shows the latest version of each resource.
+
+[See the ArchitectureGraph component reference for the full list of props](/docs/development/components/components/architecture-graph).

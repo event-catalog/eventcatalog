@@ -34,7 +34,7 @@ The EventCatalog OpenAPI plugin can provide you with many features:
 - ⭐️ [Automate your EventCatalog and fetch OpenAPI files by URL](/docs/plugins/openapi/features#fetch-openapi-files-by-url)
 - ⭐️ [Map commands, queries and events from your OpenAPI file using custom extensions](/docs/plugins/openapi/features#mapping-messages-as-commands-queries-or-events)
 - ⭐️ [Add semantic meaning to your OpenAPI files, persist this meaning between versions](/docs/plugins/openapi/features#persist-markdown)
-- ⭐️ [Automatically version your changes in EventCatalog in sync with your OpenAPI versions](#automatic-versioning)
+- ⭐️ [Automatically version your changes in EventCatalog in sync with your OpenAPI versions](/docs/plugins/openapi/features#automatic-versioning)
 - ⭐️ [Render and display your OpenAPI specification in EventCatalog](/docs/plugins/openapi/intro)
 - ⭐️ Display your endpoints and parameters in the catalog
 - ⭐️ Ability to download your schemas and OpenAPI files (also versioned)

@@ -17,6 +17,14 @@ export interface ProtobufField {
   map?: { keyType: string; valueType: string };
   oneof?: string;
   doc?: string;
+  options?: ProtobufOption[];
+}
+
+export type ProtobufOptionValue = string | number | boolean | ProtobufOptionValue[] | { [key: string]: ProtobufOptionValue };
+
+export interface ProtobufOption {
+  name: string;
+  value: ProtobufOptionValue;
 }
 
 export interface ProtobufEnumValue {
@@ -164,6 +172,18 @@ function tokenize(content: string): { tokens: Token[]; trailingComments: Map<num
       continue;
     }
 
+    // Signed symbolic floating-point values used by protobuf options (for example +inf).
+    if ((char === '+' || char === '-') && isIdentifierStart(content[i + 1] || '')) {
+      let value = char;
+      i++;
+      while (i < content.length && isIdentifierChar(content[i])) {
+        value += content[i];
+        i++;
+      }
+      pushToken({ value, line });
+      continue;
+    }
+
     if (isNumberStart(char)) {
       let value = content[i];
       i++;
@@ -232,16 +252,84 @@ class ProtobufParser {
     }
   }
 
-  // Skip field options like [deprecated = true, (custom) = "value"]
-  private skipFieldOptions() {
-    if (this.peek()?.value !== '[') return;
-    let depth = 0;
-    while (this.pos < this.tokens.length) {
-      const token = this.next();
-      if (token.value === '[') depth++;
-      if (token.value === ']') depth--;
-      if (depth === 0) return;
+  private parseOptionValue(): ProtobufOptionValue {
+    const token = this.peek();
+    if (!token) throw new Error('Unexpected end of protobuf option');
+
+    if (token.value === '{' || token.value === '<') {
+      const openingToken = this.next().value;
+      const closingToken = openingToken === '{' ? '}' : '>';
+      const value: { [key: string]: ProtobufOptionValue } = {};
+
+      while (this.peek() && this.peek()!.value !== closingToken) {
+        if (this.peek()!.value === ',' || this.peek()!.value === ';') {
+          this.next();
+          continue;
+        }
+
+        const key = this.next().value;
+        if (this.peek()?.value === ':') this.next();
+        const entryValue = this.parseOptionValue();
+        const existingValue = value[key];
+        value[key] =
+          existingValue === undefined
+            ? entryValue
+            : Array.isArray(existingValue)
+              ? [...existingValue, entryValue]
+              : [existingValue, entryValue];
+      }
+
+      this.expect(closingToken);
+      return value;
     }
+
+    if (token.value === '[') {
+      this.next();
+      const values: ProtobufOptionValue[] = [];
+
+      while (this.peek() && this.peek()!.value !== ']') {
+        if (this.peek()!.value === ',' || this.peek()!.value === ';') {
+          this.next();
+          continue;
+        }
+        values.push(this.parseOptionValue());
+      }
+
+      this.expect(']');
+      return values;
+    }
+
+    const valueToken = this.next();
+    if (valueToken.isString) return valueToken.value;
+    if (valueToken.value === 'true') return true;
+    if (valueToken.value === 'false') return false;
+
+    const numericValue = Number(valueToken.value);
+    if (Number.isNaN(numericValue)) return valueToken.value;
+    if (Number.isInteger(numericValue) && !Number.isSafeInteger(numericValue)) return valueToken.value;
+    return numericValue;
+  }
+
+  private parseFieldOptions(): ProtobufOption[] {
+    if (this.peek()?.value !== '[') return [];
+
+    this.next();
+    const options: ProtobufOption[] = [];
+
+    while (this.peek() && this.peek()!.value !== ']') {
+      if (this.peek()!.value === ',') {
+        this.next();
+        continue;
+      }
+
+      const nameParts: string[] = [];
+      while (this.peek() && this.peek()!.value !== '=') nameParts.push(this.next().value);
+      this.expect('=');
+      options.push({ name: nameParts.join(''), value: this.parseOptionValue() });
+    }
+
+    this.expect(']');
+    return options;
   }
 
   private getTrailingDoc(line: number): string | undefined {
@@ -384,7 +472,7 @@ class ProtobufParser {
     const name = this.next().value;
     this.expect('=');
     const numberToken = this.next();
-    this.skipFieldOptions();
+    const options = this.parseFieldOptions();
     const terminator = this.expect(';');
 
     const parsedNumber = Number.parseInt(numberToken.value, 10);
@@ -396,6 +484,7 @@ class ProtobufParser {
       label,
       oneof,
       doc: firstToken.doc || typeToken.doc || this.getTrailingDoc(terminator.line),
+      ...(options.length > 0 ? { options } : {}),
     };
   }
 
@@ -409,7 +498,7 @@ class ProtobufParser {
     const name = this.next().value;
     this.expect('=');
     const numberToken = this.next();
-    this.skipFieldOptions();
+    const options = this.parseFieldOptions();
     const terminator = this.expect(';');
 
     const parsedNumber = Number.parseInt(numberToken.value, 10);
@@ -420,6 +509,7 @@ class ProtobufParser {
       map: { keyType, valueType },
       number: Number.isNaN(parsedNumber) ? undefined : parsedNumber,
       doc: keyword.doc || this.getTrailingDoc(terminator.line),
+      ...(options.length > 0 ? { options } : {}),
     };
   }
 
@@ -452,7 +542,7 @@ class ProtobufParser {
       const valueToken = this.next();
       this.expect('=');
       const numberToken = this.next();
-      this.skipFieldOptions();
+      this.parseFieldOptions();
       const terminator = this.expect(';');
 
       const parsedNumber = Number.parseInt(numberToken.value, 10);
