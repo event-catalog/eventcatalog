@@ -18,6 +18,30 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify docs repository access is configured
+        env:
+          DOCS_REPOSITORY_TOKEN: ${{ secrets.DOCS_REPOSITORY_TOKEN }}
+        run: |
+          if [ -z "$DOCS_REPOSITORY_TOKEN" ]; then
+            echo "::error::DOCS_REPOSITORY_TOKEN must have read-only Contents access to event-catalog/website"
+            exit 1
+          fi
+
+      - name: Checkout EventCatalog docs
+        uses: actions/checkout@v4
+        with:
+          repository: event-catalog/website
+          ref: main
+          path: .eventcatalog-docs
+          sparse-checkout: docs
+          persist-credentials: false
+          token: ${{ secrets.DOCS_REPOSITORY_TOKEN }}
+
+      - name: Sync EventCatalog docs
+        env:
+          EVENTCATALOG_DOCS_SOURCE: ${{ github.workspace }}/.eventcatalog-docs/docs
+        run: node scripts/sync-core-docs.mjs
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
