@@ -1,0 +1,12 @@
+{
+  "label": "Legacy Federation",
+  "position": 6,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "federation/legacy-federation",
+    "title": "Legacy Federation",
+    "description": "Documentation for the legacy @eventcatalog/generator-federation implementation."
+  }
+}

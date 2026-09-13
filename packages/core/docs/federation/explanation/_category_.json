@@ -1,0 +1,12 @@
+{
+  "label": "Explanation",
+  "position": 5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "federation/explanation",
+    "title": "Federation explanation",
+    "description": "Conceptual guides that explain composition, ownership, resolution, generated output, caching, and the federation lockfile."
+  }
+}
