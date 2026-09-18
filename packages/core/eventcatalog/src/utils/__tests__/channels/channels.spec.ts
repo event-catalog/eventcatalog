@@ -133,6 +133,22 @@ describe('channels', () => {
       expect(connectedChannels).toEqual([sourceChannel, firstRouteChannel, secondRouteChannel, targetChannel]);
     });
 
+    it('returns an empty array if the source or target channel is missing', () => {
+      const targetChannel = {
+        id: 'SNSChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'SNSChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      expect(getChannelChain(undefined, targetChannel, [targetChannel])).toEqual([]);
+      expect(getChannelChain(targetChannel, undefined, [targetChannel])).toEqual([]);
+      expect(getChannelChain(undefined, undefined, [])).toEqual([]);
+    });
+
     it('returns an empty array if the channels are not connected', () => {
       const sourceChannel = {
         id: 'EventBridgeChannel',
@@ -160,6 +176,22 @@ describe('channels', () => {
   });
 
   describe('isChannelsConnected', () => {
+    it('returns false if the source or target channel is missing', () => {
+      const targetChannel = {
+        id: 'SNSChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'SNSChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      expect(isChannelsConnected(undefined, targetChannel, [targetChannel])).toBe(false);
+      expect(isChannelsConnected(targetChannel, undefined, [targetChannel])).toBe(false);
+      expect(isChannelsConnected(undefined, undefined, [])).toBe(false);
+    });
+
     it('returns true if the channels are connected through a route', () => {
       const sourceChannel = {
         id: 'EventBridgeChannel',

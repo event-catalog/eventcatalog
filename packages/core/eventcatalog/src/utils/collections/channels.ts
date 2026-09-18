@@ -118,11 +118,15 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
 
 // Could be recursive, we need to keep going until we find a loop or until we reach the target channel
 export const isChannelsConnected = (
-  sourceChannel: CollectionEntry<'channels'>,
-  targetChannel: CollectionEntry<'channels'>,
+  sourceChannel: CollectionEntry<'channels'> | undefined,
+  targetChannel: CollectionEntry<'channels'> | undefined,
   channels: CollectionEntry<'channels'>[],
   visited: Set<string> = new Set()
 ) => {
+  if (!sourceChannel?.data || !targetChannel?.data) {
+    return false;
+  }
+
   // Create a unique key for this channel (id + version to handle multiple versions)
   const channelKey = `${sourceChannel.data.id}:${sourceChannel.data.version}`;
 
@@ -159,10 +163,14 @@ export const isChannelsConnected = (
 
 // Go from the source to the target channel and return the channel chain
 export const getChannelChain = (
-  sourceChannel: CollectionEntry<'channels'>,
-  targetChannel: CollectionEntry<'channels'>,
+  sourceChannel: CollectionEntry<'channels'> | undefined,
+  targetChannel: CollectionEntry<'channels'> | undefined,
   channels: CollectionEntry<'channels'>[]
 ): CollectionEntry<'channels'>[] => {
+  if (!sourceChannel?.data || !targetChannel?.data) {
+    return [];
+  }
+
   // Base case: we've reached the target channel
   if (sourceChannel.data.id === targetChannel.data.id && sourceChannel.data.version === targetChannel.data.version) {
     return [sourceChannel];

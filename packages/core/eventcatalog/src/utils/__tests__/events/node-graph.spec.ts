@@ -307,6 +307,43 @@ describe('Events NodeGraph', () => {
       expect(edges).toEqual([]);
     });
 
+    it('does not crash when producer or consumer channel refs are missing from the catalog', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'DanglingChannelEvent', version: '1.0.0' });
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'DanglingChannelEvent-1.0.0', type: 'events' }),
+          expect.objectContaining({ id: 'AllocationService-1.0.0', type: 'services' }),
+          expect.objectContaining({ id: 'WdpsService-1.0.0', type: 'services' }),
+          expect.objectContaining({ id: 'EmailChannel-1.0.0', type: 'channels' }),
+        ])
+      );
+
+      expect(nodes.find((node: { id: string }) => node.id === 'MissingProducerChannel-1.0.0')).toBeUndefined();
+      expect(nodes.find((node: { id: string }) => node.id === 'MissingConsumerChannel-1.0.0')).toBeUndefined();
+
+      expect(edges).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'AllocationService-1.0.0-DanglingChannelEvent-1.0.0',
+            source: 'AllocationService-1.0.0',
+            target: 'DanglingChannelEvent-1.0.0',
+          }),
+          expect.objectContaining({
+            id: 'DanglingChannelEvent-1.0.0-EmailChannel-1.0.0',
+            source: 'DanglingChannelEvent-1.0.0',
+            target: 'EmailChannel-1.0.0',
+            label: 'routes to',
+          }),
+          expect.objectContaining({
+            id: 'EmailChannel-1.0.0-WdpsService-1.0.0',
+            source: 'EmailChannel-1.0.0',
+            target: 'WdpsService-1.0.0',
+          }),
+        ])
+      );
+    });
+
     it('should return nodes and edges for a given event using semver range', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'InventoryAdjusted', version: '1.5.1' });
 

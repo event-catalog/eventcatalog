@@ -103,6 +103,52 @@ export const mockServices = [
       ],
     },
   },
+  {
+    id: 'AllocationService',
+    slug: 'AllocationService',
+    collection: 'services',
+    data: {
+      id: 'AllocationService',
+      version: '1.0.0',
+      sends: [
+        {
+          id: 'DanglingChannelEvent',
+          version: '1.0.0',
+          to: [
+            {
+              id: 'MissingProducerChannel',
+              version: '1.0.0',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: 'WdpsService',
+    slug: 'WdpsService',
+    collection: 'services',
+    data: {
+      id: 'WdpsService',
+      version: '1.0.0',
+      receives: [
+        {
+          id: 'DanglingChannelEvent',
+          version: '1.0.0',
+          from: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+            {
+              id: 'MissingConsumerChannel',
+              version: '1.0.0',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 export const mockChannels = [
@@ -187,6 +233,15 @@ export const mockEvents = [
     collection: 'events',
     data: {
       id: 'DataProductEvent',
+      version: '1.0.0',
+    },
+  },
+  {
+    id: 'DanglingChannelEvent',
+    slug: 'DanglingChannelEvent',
+    collection: 'events',
+    data: {
+      id: 'DanglingChannelEvent',
       version: '1.0.0',
     },
   },
