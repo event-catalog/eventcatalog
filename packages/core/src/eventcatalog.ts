@@ -29,6 +29,7 @@ import {
   type FederationProgressEvent,
 } from './federation/federate';
 import { getFederationDiagnosticCounts, getVisibleFederationDiagnostics } from './federation/diagnostics';
+import { getEventCatalogUpdateMessage } from './update-check';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -331,11 +332,9 @@ Upgrade now: npm i @eventcatalog/core@beta`;
 
   const pkg = { name: '@eventcatalog/core', version: installedVersion };
   const notifier = updateNotifier({ pkg, updateCheckInterval: 0 });
+  const message = getEventCatalogUpdateMessage(installedVersion, notifier.update?.latest);
 
-  if (notifier.update) {
-    const message = `EventCatalog update available ${notifier.update.current} → ${notifier.update.latest}
-Run npm i @eventcatalog/core to update`;
-
+  if (message) {
     console.log(
       boxen(message, {
         padding: 1,
