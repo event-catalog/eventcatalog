@@ -31,6 +31,15 @@ function formatType(type: any): string {
   return type ?? '';
 }
 
+function getForbiddenVariantProperties(variant: any): string[] {
+  const forbiddenRequired = variant?.not?.required;
+
+  // `not: { required: ['field'] }` forbids that field from being present. When
+  // multiple fields are listed, JSON Schema only forbids them being present
+  // together, so none of them can safely be hidden individually.
+  return Array.isArray(forbiddenRequired) && forbiddenRequired.length === 1 ? forbiddenRequired : [];
+}
+
 // Helper function to count properties recursively
 function countProperties(obj: any): number {
   if (!obj || typeof obj !== 'object') return 0;
@@ -173,26 +182,35 @@ function processSchema(schema: any, rootSchema?: any): any {
     const variantsArray = schema.oneOf || schema.anyOf;
     const variantType = schema.oneOf ? 'oneOf' : 'anyOf';
 
+    const processedProperties = schema.properties
+      ? Object.fromEntries(
+          Object.entries(schema.properties).map(([key, prop]: [string, any]) => [key, processSchema(prop, root)])
+        )
+      : {};
+
     const processedVariants = variantsArray.map((variant: any, index: number) => {
       const processedVariant = processSchema(variant, root);
+      const forbiddenProperties = new Set(getForbiddenVariantProperties(processedVariant));
+      const properties = Object.fromEntries(
+        Object.entries({ ...processedProperties, ...(processedVariant.properties || {}) }).filter(
+          ([propertyName]) => !forbiddenProperties.has(propertyName)
+        )
+      );
+
       return {
+        ...processedVariant,
         title: processedVariant.title || variant.title || processedVariant.$id || `Option ${index + 1}`,
         description: processedVariant.description || variant.description,
-        required: processedVariant.required || variant.required || [],
-        properties: processedVariant.properties || {},
+        required: [...new Set([...(schema.required || []), ...(processedVariant.required || variant.required || [])])],
+        properties,
         type: processedVariant.type || variant.type || 'object',
-        ...processedVariant,
       };
     });
 
     return {
       ...schema,
       type: schema.type || 'object',
-      properties: schema.properties
-        ? Object.fromEntries(
-            Object.entries(schema.properties).map(([key, prop]: [string, any]) => [key, processSchema(prop, root)])
-          )
-        : {},
+      properties: processedProperties,
       variants: processedVariants,
       variantType,
     };
@@ -462,6 +480,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                 <div className="mt-1 border-l border-dashed border-[rgb(var(--ec-page-border))] pl-3 ml-1.5">
                   <span className="text-xs italic text-[rgb(var(--ec-page-text-muted))] block mb-1">Item Details:</span>
                   {details.items.properties &&
+                    !details.items.variants &&
                     Object.entries(details.items.properties).map(([itemPropName, itemPropDetails]: [string, any]) => (
                       <SchemaProperty
                         key={itemPropName}
@@ -823,7 +842,7 @@ export default function JSONSchemaViewer({
           // Determine which properties to display
           const propsToDisplay =
             variants && variants.length > 0 && variants[selectedVariantIndex]?.properties
-              ? { ...properties, ...variants[selectedVariantIndex].properties }
+              ? variants[selectedVariantIndex].properties
               : properties;
           const requiredProps = variants && variants.length > 0 ? variants[selectedVariantIndex]?.required || [] : required;
 
