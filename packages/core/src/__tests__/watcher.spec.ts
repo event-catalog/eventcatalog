@@ -41,5 +41,17 @@ describe('watcher', () => {
         '**//Users/bob/source/my-catalog/node_modules/@eventcatalog/core/!(/Users/bob/source/my-catalog)**',
       ]);
     });
+
+    it('notifies the search indexer when a catalog resource changes', async () => {
+      const onChange = vi.fn();
+      const unsubscribe = await watch('/catalog', '/catalog/.astro/eventcatalog', onChange);
+      const events = [{ path: '/catalog/events/OrderPlaced/schema.json', type: 'update' }];
+
+      subscribe.mock.calls[0][1](null, events);
+
+      expect(onChange).toHaveBeenCalledWith(null, events);
+      await unsubscribe();
+      expect((await subscribe.mock.results[0].value).unsubscribe).toHaveBeenCalledOnce();
+    });
   });
 });

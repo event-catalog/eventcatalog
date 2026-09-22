@@ -42,6 +42,7 @@ const RESOURCE_COLLECTIONS: Record<string, { docsPath: string; type: string }> =
 const IGNORED_GLOBS = [
   '**/.git/**',
   '**/.eventcatalog-core/**',
+  '**/.astro/**',
   '**/dist/**',
   '**/node_modules/**',
   '**/public/**',

@@ -7,7 +7,9 @@ dist/
 # dependencies
 node_modules/
 
-# EventCatalog files
+# Legacy generated files from pre-integration development. Keep these ignored
+# while old checkouts migrate; the runtime no longer creates them. Matching
+# package.json files exclusions keep leftovers (including config) out of releases.
 src/content/*
 !src/content/config.ts
 public/generated/*

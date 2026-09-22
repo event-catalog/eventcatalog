@@ -1,4 +1,5 @@
 .eventcatalog-core/
+.astro/
 .git/
 dist/
 node_modules/

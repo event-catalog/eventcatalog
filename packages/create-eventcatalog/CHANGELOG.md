@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.12-beta.0
+
+### Patch Changes
+
+- Exclude generated `.astro/` caches from the Docker build context in all catalog templates.
+
 ## 4.3.11
 
 ### Patch Changes

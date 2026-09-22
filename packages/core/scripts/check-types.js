@@ -1,16 +1,16 @@
 #!/usr/bin/env node
+import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
 
 // Run astro check with proper catalog directory setup
-import { join } from 'node:path';
-import { spawn } from 'node:child_process';
-import fs from 'node:fs';
+import { join, relative } from 'node:path';
+import { execFileSync, spawn } from 'node:child_process';
 const __dirname = import.meta.dirname;
 
 const args = process.argv.slice(2);
 const catalog = args[0] || 'default';
 
-const catalogDir = join(__dirname, '../eventcatalog/');
 const projectDIR = join(__dirname, `../../../examples/${catalog}`);
+const { runtimeDirectory: catalogDir } = getRuntimePaths(projectDIR);
 
 const shouldFilterAstroLine = (line) => {
   return line.includes('[glob-loader]') || /The collection.*does not exist/.test(line);
@@ -72,15 +72,24 @@ const runWithFilteredOutput = async ({ command, cwd, env }) => {
   });
 };
 
-// astro check needs the catalog's config/styles in the app directory. These are
-// generated at build time and absent on a clean checkout (both are gitignored),
-// so copy them across the same way scripts/ci/test.js does.
-for (const file of ['eventcatalog.config.js', 'eventcatalog.styles.css']) {
-  fs.copyFileSync(join(projectDIR, file), join(catalogDir, file));
-}
+// Check the same runtime bootstrap used by the CLI, including user components
+// and pages, without copying the application into the catalog.
+// Deliberately build the complete package first: Astro config also needs the
+// generated dependency-facade manifest. This costs a build on every check, but
+// keeps clean-checkout checks independent of stale or missing dist artifacts.
+execFileSync(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['run', 'build:bin'], {
+  cwd: join(__dirname, '..'),
+  stdio: 'inherit',
+});
+const { prepareCatalogRuntime } = await import('../dist/catalog-runtime.js');
+prepareCatalogRuntime({
+  projectDirectory: projectDIR,
+  catalogDirectory: catalogDir,
+  packageDirectory: join(__dirname, '../eventcatalog'),
+});
 
 await runWithFilteredOutput({
-  command: `pnpm exec astro check --minimumSeverity error  --root ${catalogDir}`,
+  command: `pnpm exec astro check --minimumSeverity error --root ${projectDIR} --config ${relative(projectDIR, join(__dirname, '../eventcatalog/astro.config.mjs'))} --tsconfig ${join(catalogDir, 'tsconfig.json')}`,
   cwd: process.cwd(),
   env: {
     PATH: process.env.PATH,

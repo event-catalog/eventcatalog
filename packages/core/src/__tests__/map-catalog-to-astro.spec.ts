@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { expect, describe, it } from 'vitest';
-import { mapCatalogToAstro } from '../map-catalog-to-astro';
+import { mapCatalogToAstro } from './fixtures/legacy-map-catalog-to-astro';
 
 const PROJECT_DIR = path.join(__dirname, 'example-catalog');
 const ASTRO_DIR = path.join(__dirname, 'tmp-astro');

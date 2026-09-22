@@ -5,11 +5,11 @@ import http from 'node:http';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { generate } from './generate';
 import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
 import { watch } from './watcher';
-import { catalogToAstro } from './catalog-to-astro-content-directory';
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
@@ -20,9 +20,10 @@ import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
-import { linkCoreNodeModules, resolveInstalledCoreNodeModules } from './core-node-modules';
-import { pruneExcludedCoreEntries, shouldCopyCoreEntry } from './copy-core';
+import { clearCatalogCache, prepareCatalogRuntime } from './catalog-runtime';
+import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
 import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
+import { getAstroConfigPath } from './astro-config-path';
 import {
   federateCatalog,
   FederationConflictError,
@@ -32,6 +33,7 @@ import {
 import { getFederationDiagnosticCounts, getVisibleFederationDiagnostics } from './federation/diagnostics';
 import { getEventCatalogUpdateMessage, resolveInstalledCoreVersion } from './update-check';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const astroCli = path.join(path.dirname(createRequire(import.meta.url).resolve('astro/package.json')), 'bin/astro.mjs');
 const program = new Command().version(VERSION);
 
 import { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isFeatureEnabled } from '@eventcatalog/license';
@@ -39,11 +41,12 @@ import { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isFeatureEnab
 // The users dierctory
 const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
 
-// The tmp core directory
-const core = path.resolve(process.env.CATALOG_DIR || join(dir, '.eventcatalog-core'));
-
 // The project itself
 const eventCatalogDir = path.resolve(join(currentDir, '../eventcatalog/'));
+const astroConfigPath = () => getAstroConfigPath(dir, join(eventCatalogDir, 'astro.config.mjs'));
+
+// Astro runs in the user's project. Only generated metadata lives in its cache.
+const { runtimeDirectory: core } = getRuntimePaths(dir);
 
 const getInstalledEventCatalogVersion = () => {
   try {
@@ -203,25 +206,26 @@ const replaceAstroReadyVersionLine = (line: string) => {
 
 const runCommandWithFilteredOutput = async ({
   command,
+  args = [],
   cwd,
   env,
   shouldFilterLine,
   transformLine = (line) => line,
 }: {
   command: string;
+  args?: string[];
   cwd: string;
   env: NodeJS.ProcessEnv;
   shouldFilterLine: (line: string) => boolean;
   transformLine?: (line: string) => string;
 }) => {
   await new Promise<void>((resolve, reject) => {
-    const child = spawn(command, {
+    const child = spawn(command, args, {
       cwd,
       env: {
         ...process.env,
         ...env,
       },
-      shell: true,
       stdio: ['inherit', 'pipe', 'pipe'],
     });
 
@@ -268,40 +272,20 @@ const runCommandWithFilteredOutput = async ({
         resolve();
         return;
       }
-      reject(new Error(`Command failed with exit code ${code}: ${command}`));
+      reject(new Error(`Command failed with exit code ${code}: ${command} ${args.join(' ')}`));
     });
   });
 };
 
-const copyCore = () => {
-  // make sure the core folder exists
-  ensureDir(core);
-
-  if (eventCatalogDir === core) {
-    // Still need to copy the .env file
-    // This is used for development purposes as it's not possible cp a dir to itself.
-    // Into development usually core is the root equals to eventCatalogDir.
-    return;
-  }
-
-  // Copy required eventcatlog files into users directory
-  fs.cpSync(eventCatalogDir, core, {
-    recursive: true,
-    filter: (src) => shouldCopyCoreEntry(eventCatalogDir, src),
+const prepareCore = () =>
+  prepareCatalogRuntime({
+    projectDirectory: dir,
+    catalogDirectory: core,
+    packageDirectory: eventCatalogDir,
   });
 
-  // cpSync does not delete destination files that the filter skips, so an upgrade
-  // would otherwise keep spec files copied by an older release.
-  pruneExcludedCoreEntries(core);
-
-  const coreNodeModules = path.join(core, 'node_modules');
-  const installedCoreNodeModules = resolveInstalledCoreNodeModules(currentDir);
-
-  linkCoreNodeModules({ coreNodeModules, installedCoreNodeModules });
-};
-
 const clearCore = () => {
-  if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
+  clearCatalogCache(dir);
 };
 
 const checkForUpdate = () => {
@@ -365,11 +349,9 @@ program
   .command('dev')
   .description('Run development server of EventCatalog')
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
-  .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
+  .option('--force-recreate', 'Clear and regenerate the entire .astro cache, including content and metadata', false)
   .option('--no-prewarm', 'Disable automatic dev prewarm request')
   .action(async (options, command: Command) => {
-    // // Copy EventCatalog core over
-    // // Copy EventCatalog core over
     logger.welcome();
     logger.info('Setting up EventCatalog...', 'eventcatalog');
 
@@ -389,21 +371,18 @@ program
 
     if (options.forceRecreate) clearCore();
 
-    // Verify required fields (e.g. cId) are in the config file before copying to .eventcatalog-core.
-    // This must happen before copyCore() so that the config is stable when Astro starts.
+    // Verify required fields (e.g. cId) before preparing the runtime so that the config is stable when Astro starts.
     // Otherwise, writing the config after the server starts triggers a Vite config dependency
     // change restart, which races with the initial dependency scan and floods the terminal with errors.
     await verifyRequiredFieldsAreInCatalogConfigFile(dir);
 
-    copyCore();
+    prepareCore();
 
     await resolveCatalogDependencies(dir, core);
 
     // Run any migrations for the catalog
     await runMigrations(dir);
 
-    // Move files like public directory to the root of the eventcatalog-core directory
-    await catalogToAstro(dir, core);
     const config = await getEventCatalogConfigFile(dir);
 
     // Check if backstage is enabled
@@ -450,9 +429,9 @@ program
 
     let watchUnsub;
     try {
-      watchUnsub = await watch(dir, core, shouldBuildIndexedSearch ? createDevSearchIndexWatcher({ config }) : undefined);
-
-      const args = command.args.join(' ').trim();
+      if (shouldBuildIndexedSearch) {
+        watchUnsub = await watch(dir, core, createDevSearchIndexWatcher({ config }));
+      }
 
       if (options.prewarm) {
         const prewarmPort = await resolveDevPort({
@@ -466,8 +445,9 @@ program
       }
 
       await runCommandWithFilteredOutput({
-        command: `npx astro dev ${args}`,
-        cwd: core,
+        command: process.execPath,
+        args: [astroCli, 'dev', '--config', astroConfigPath(), ...command.args],
+        cwd: dir,
         env: {
           PROJECT_DIR: dir,
           CATALOG_DIR: core,
@@ -504,10 +484,10 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
-    // Verify required fields (e.g. cId) before copying to .eventcatalog-core
+    // Verify required fields (e.g. cId) before preparing the runtime
     await verifyRequiredFieldsAreInCatalogConfigFile(dir);
 
-    copyCore();
+    prepareCore();
 
     // Check if backstage is enabled
     const isBackstagePluginEnabled = await isFeatureEnabled(
@@ -531,8 +511,6 @@ program
     // Run any migrations for the catalog
     await runMigrations(dir);
 
-    await catalogToAstro(dir, core);
-
     // Build fields index if running in SSR mode
     if (isServer) {
       try {
@@ -550,10 +528,10 @@ program
 
     checkForUpdate();
 
-    const args = command.args.join(' ').trim();
     await runCommandWithFilteredOutput({
-      command: `npx astro build ${args}`,
-      cwd: core,
+      command: process.execPath,
+      args: [astroCli, 'build', '--config', astroConfigPath(), ...command.args],
+      cwd: dir,
       env: {
         PROJECT_DIR: dir,
         CATALOG_DIR: core,
@@ -594,8 +572,9 @@ const previewCatalog = async ({
   isEventCatalogScale: boolean;
 }) => {
   await runCommandWithFilteredOutput({
-    command: `npx astro preview ${command.args.join(' ').trim()}`,
-    cwd: core,
+    command: process.execPath,
+    args: [astroCli, 'preview', '--config', astroConfigPath(), ...command.args],
+    cwd: dir,
     env: {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,
@@ -618,8 +597,9 @@ const startServerCatalog = async ({
 }) => {
   const serverEntryPath = path.join(dir, 'dist', 'server', 'entry.mjs');
   await runCommandWithFilteredOutput({
-    command: `node "${serverEntryPath}"`,
-    cwd: core,
+    command: process.execPath,
+    args: [serverEntryPath],
+    cwd: dir,
     env: {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,

@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* Core templates live in the installed package, which automatic scanning skips. */
+@source '../';
+
 @plugin "@tailwindcss/typography";
 
 /*

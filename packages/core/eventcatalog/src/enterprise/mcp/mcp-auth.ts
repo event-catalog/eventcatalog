@@ -5,7 +5,7 @@
 
 import jwt, { type Algorithm, type JwtPayload } from 'jsonwebtoken';
 import { createPublicKey, type JsonWebKey, type KeyObject } from 'node:crypto';
-import config from '../../../eventcatalog.config.js';
+import config from '@config';
 import type { Config } from '../../../../src/eventcatalog.config';
 
 type ConfiguredMcpAuth = NonNullable<NonNullable<Config['mcp']>['auth']>;

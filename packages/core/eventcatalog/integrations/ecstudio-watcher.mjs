@@ -8,19 +8,21 @@ export default function ecstudioWatcher() {
           return;
         }
 
-        // Get the project root directory - server.config.root is already a string path
-        const rootDir = server.config.root;
-        const isEcstudioFile = (path) => path.endsWith('.ecstudio') && !path.includes('public/generated') && !path.includes('public\\generated');
-        
+        // Vite resolves dependencies from Core's package, while designs belong
+        // to the user's catalog and must be watched at their original paths.
+        const rootDir = process.env.PROJECT_DIR || process.cwd();
+        const isEcstudioFile = (path) =>
+          path.endsWith('.ecstudio') && !path.includes('public/generated') && !path.includes('public\\generated');
+
         // Set up chokidar to watch for new .ecstudio files
         server.watcher
           .on('add', async (path) => {
             if (isEcstudioFile(path)) {
               console.log(`New .ecstudio file detected: ${path}`);
-              
+
               // Add the new file to the watcher and refresh content
               server.watcher.add(path);
-              
+
               if (refreshContent) {
                 try {
                   await refreshContent();
@@ -34,7 +36,7 @@ export default function ecstudioWatcher() {
           .on('unlink', async (path) => {
             if (isEcstudioFile(path)) {
               console.log(`Removed .ecstudio file: ${path}`);
-              
+
               if (refreshContent) {
                 try {
                   await refreshContent();
@@ -54,7 +56,7 @@ export default function ecstudioWatcher() {
 
         // Also add the root directory to watch for new files
         server.watcher.add(rootDir);
-        
+
         // console.log('Set up dynamic .ecstudio file watcher with content refresh');
       },
     },
