@@ -12,6 +12,7 @@ import { remarkMarkdownCodeGroup } from '../../remark-plugins/markdown-code-grou
 import { MarkdownCodeGroup } from '../MDX/CodeGroup/MarkdownCodeGroup';
 import { MarkdownColumns, MarkdownColumn } from '../MDX/Columns/MarkdownColumns';
 import { remarkMarkdownColumns } from '../../remark-plugins/markdown-columns';
+import { getLanguageForHighlight } from './utils';
 
 interface ExamplesViewerProps {
   examples: MessageExample[];
@@ -137,9 +138,7 @@ const markdownComponents = {
   },
 };
 
-/**
- * Lists every Markdown example for the message, rendered in full.
- */
+/** Lists every usage example, rendering Markdown as prose and other formats as source. */
 export default function ExamplesViewer({ examples }: ExamplesViewerProps) {
   if (examples.length === 0) {
     return (
@@ -158,14 +157,25 @@ export default function ExamplesViewer({ examples }: ExamplesViewerProps) {
             id={`example-${example.fileName.replace(/[^a-zA-Z0-9]+/g, '-')}`}
             className="w-full py-8 pr-8 first:pt-0 last:pb-0"
           >
-            <div className={PROSE_CLASS}>
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMarkdownColumns, remarkMarkdownCodeGroup]}
-                components={markdownComponents}
-              >
-                {example.content}
-              </ReactMarkdown>
-            </div>
+            {example.summary && <p className="mb-4 text-sm text-[rgb(var(--ec-page-text-muted))]">{example.summary}</p>}
+            {example.renderMode === 'markdown' ? (
+              <div className={PROSE_CLASS}>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkMarkdownColumns, remarkMarkdownCodeGroup]}
+                  components={markdownComponents}
+                >
+                  {example.content}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <CodeBlock language={getLanguageForHighlight(example.extension)} code={example.content} />
+            )}
+            {example.usage && (
+              <div className="mt-5">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">Usage</h3>
+                <CodeBlock language="bash" code={example.usage} />
+              </div>
+            )}
           </section>
         ))}
       </div>

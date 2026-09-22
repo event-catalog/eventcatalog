@@ -21,7 +21,7 @@ const exampleEntry = getExampleEntriesForMessage(await getCollection('examples')
   (entry) => path.relative(examplesDir, entry.filePath ?? '').replace(/\\/g, '/') === example.fileName
 );
 const Content = exampleEntry ? (await render(exampleEntry)).Content : undefined;
-const exampleHtml = Content ? '' : await marked.parse(example.content);
+const exampleHtml = !Content && example.renderMode === 'markdown' ? await marked.parse(example.content) : '';
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={`Example: ${example.title} for ${data.name}`}>
@@ -33,7 +33,8 @@ const exampleHtml = Content ? '' : await marked.parse(example.content);
             {example.title}
           </h1>
           <h2 class="text-lg text-[rgb(var(--ec-page-text-muted))] font-medium mb-1">
-            Example for {data.name} <span class="text-[rgb(var(--ec-page-text-muted))]">(v{data.version})</span>
+            Example for {data.name}
+            <span class="text-[rgb(var(--ec-page-text-muted))]">(v{data.version})</span>
           </h2>
         </div>
 
@@ -44,8 +45,22 @@ const exampleHtml = Content ? '' : await marked.parse(example.content);
               <div class="prose prose-md max-w-none">
                 <Content components={components(props)} />
               </div>
-            ) : (
+            ) : example.renderMode === 'markdown' ? (
               <div class="prose prose-md max-w-none" set:html={exampleHtml} />
+            ) : (
+              <pre class="overflow-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))] p-5 text-sm">
+                <code>{example.content}</code>
+              </pre>
+            )
+          }
+          {
+            example.usage && (
+              <section class="mt-6">
+                <h2 class="mb-2 text-sm font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">Usage</h2>
+                <pre class="overflow-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))] p-5 text-sm">
+                  <code>{example.usage}</code>
+                </pre>
+              </section>
             )
           }
         </div>

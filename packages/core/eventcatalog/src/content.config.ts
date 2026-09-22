@@ -1193,6 +1193,10 @@ const schemas = defineCollection({
         url: z.string().optional(),
         ref: z.string().optional(),
         branch: z.string().optional(),
+        repository: z.string().optional(),
+        commit: z.string().optional(),
+        createdAt: z.string().optional(),
+        updatedAt: z.string().optional(),
       }),
       readOnly: z.boolean().optional(),
     })

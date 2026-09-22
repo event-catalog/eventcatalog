@@ -220,20 +220,41 @@ const initialTab = Astro.url.searchParams.get('tab') ?? undefined;
           showOwners={true}
           showProducersConsumers={true}
           initialTab={initialTab}
-          hasRenderedExamples={renderedExamples.length > 0}
+          hasRenderedExamples={(currentMessage.examples?.length ?? 0) > 0}
         >
-          {renderedExamples.length > 0 && (
+          {(currentMessage.examples?.length ?? 0) > 0 && (
             <div slot="examples" class="divide-y divide-[rgb(var(--ec-page-border))]">
-              {renderedExamples.map(({ Content, ...example }) => (
-                <section
-                  id={`example-${example.fileName.replace(/[^a-zA-Z0-9]+/g, '-')}`}
-                  class="w-full pr-12 py-8 first:pt-0 last:pb-0"
-                >
-                  <div class="prose prose-sm max-w-none prose-h1:mt-0 prose-h1:text-4xl prose-h1:font-bold prose-h1:tracking-tight prose-headings:text-[rgb(var(--ec-page-text))] prose-p:text-[rgb(var(--ec-page-text-muted))] prose-li:text-[rgb(var(--ec-page-text-muted))] prose-strong:text-[rgb(var(--ec-page-text))] prose-a:text-[rgb(var(--ec-accent))] prose-blockquote:border-[rgb(var(--ec-page-border))] prose-hr:border-[rgb(var(--ec-page-border))]">
-                    <Content components={exampleComponents} />
-                  </div>
-                </section>
-              ))}
+              {currentMessage.examples?.map((example) => {
+                const rendered = renderedExamples.find((candidate) => candidate.fileName === example.fileName);
+                const Content = rendered?.Content;
+                return (
+                  <section
+                    id={`example-${example.fileName.replace(/[^a-zA-Z0-9]+/g, '-')}`}
+                    class="w-full pr-12 py-8 first:pt-0 last:pb-0"
+                  >
+                    {example.summary && <p class="mb-4 text-sm text-[rgb(var(--ec-page-text-muted))]">{example.summary}</p>}
+                    {Content ? (
+                      <div class="prose prose-sm max-w-none prose-h1:mt-0 prose-h1:text-4xl prose-h1:font-bold prose-h1:tracking-tight prose-headings:text-[rgb(var(--ec-page-text))] prose-p:text-[rgb(var(--ec-page-text-muted))] prose-li:text-[rgb(var(--ec-page-text-muted))] prose-strong:text-[rgb(var(--ec-page-text))] prose-a:text-[rgb(var(--ec-accent))] prose-blockquote:border-[rgb(var(--ec-page-border))] prose-hr:border-[rgb(var(--ec-page-border))]">
+                        <Content components={exampleComponents} />
+                      </div>
+                    ) : (
+                      <pre class="overflow-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))] p-5 text-sm">
+                        <code>{example.content}</code>
+                      </pre>
+                    )}
+                    {example.usage && (
+                      <div class="mt-5">
+                        <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">
+                          Usage
+                        </h3>
+                        <pre class="overflow-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))] p-5 text-sm">
+                          <code>{example.usage}</code>
+                        </pre>
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
             </div>
           )}
         </SchemaPageViewer>

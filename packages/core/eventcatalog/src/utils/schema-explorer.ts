@@ -50,22 +50,29 @@ async function buildRegistry() {
   type RelationshipResource = (typeof services)[number] | (typeof agents)[number] | (typeof dataProductsForRelationships)[number];
   const relationshipResources: RelationshipResource[] = [...services, ...agents, ...dataProductsForRelationships];
   const resourcesByReference = new Map<string, RelationshipResource>();
-  const latestResourceById = new Map<string, RelationshipResource>();
+  const latestResourceByCollectionAndId = new Map<string, RelationshipResource>();
   for (const resource of relationshipResources) {
-    resourcesByReference.set(`${resource.data.id}:${resource.data.version}`, resource);
-    if (!latestResourceById.has(resource.data.id)) latestResourceById.set(resource.data.id, resource);
+    const collectionAndId = `${resource.collection}:${resource.data.id}`;
+    resourcesByReference.set(`${collectionAndId}:${resource.data.version}`, resource);
+    if (!latestResourceByCollectionAndId.has(collectionAndId)) latestResourceByCollectionAndId.set(collectionAndId, resource);
   }
   const toSchemaRelationships = (references: unknown): Producer[] =>
-    ((references as { id: string; version: string }[] | undefined) ?? []).map((reference) => {
-      const resource = resourcesByReference.get(`${reference.id}:${reference.version}`) ?? latestResourceById.get(reference.id);
-      return {
-        id: reference.id,
-        version: reference.version,
-        ...(resource ? { collection: resource.collection as Producer['collection'] } : {}),
-        ...(resource?.data.name ? { name: resource.data.name } : {}),
-        ...(resource?.data.summary ? { summary: resource.data.summary } : {}),
-      };
-    });
+    ((references as { id: string; version: string; collection?: Producer['collection'] }[] | undefined) ?? []).map(
+      (reference) => {
+        const collection = reference.collection ?? 'services';
+        const collectionAndId = `${collection}:${reference.id}`;
+        const resource =
+          resourcesByReference.get(`${collectionAndId}:${reference.version}`) ??
+          latestResourceByCollectionAndId.get(collectionAndId);
+        return {
+          id: reference.id,
+          version: reference.version,
+          collection,
+          ...(resource?.data.name ? { name: resource.data.name } : {}),
+          ...(resource?.data.summary ? { summary: resource.data.summary } : {}),
+        };
+      }
+    );
   const toMessageChannels = (channels: unknown): MessageChannel[] =>
     ((channels as { data: { id: string; version: string; name?: string } }[] | undefined) ?? []).map((channel) => ({
       id: channel.data.id,

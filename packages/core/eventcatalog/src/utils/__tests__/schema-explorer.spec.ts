@@ -11,6 +11,7 @@ const fixtures = vi.hoisted(() => ({
   services: [] as any[],
   domains: [] as any[],
   products: [] as any[],
+  agents: [] as any[],
   flows: [] as any[],
 }));
 vi.mock('astro:content', () => ({
@@ -28,7 +29,7 @@ vi.mock('@utils/collections/domains', () => ({
   getSpecificationsForDomain: (s: any) => s.data.specifications || [],
 }));
 vi.mock('@utils/collections/data-products', () => ({ getDataProducts: vi.fn(async () => fixtures.products) }));
-vi.mock('@utils/collections/agents', () => ({ getAgents: vi.fn(async () => []) }));
+vi.mock('@utils/collections/agents', () => ({ getAgents: vi.fn(async () => fixtures.agents) }));
 vi.mock('@utils/collections/owners', () => ({ getOwner: vi.fn() }));
 vi.mock('@utils/resource-files', () => ({
   resourceFileExists: vi.fn(() => true),
@@ -74,8 +75,8 @@ describe('schema explorer content delivery', () => {
         ...resource('events'),
         data: {
           ...resource('events').data,
-          producers: [{ id: 'OrderProducer', version: '1.0.0' }],
-          consumers: [{ id: 'OrderConsumer', version: '2.0.0' }],
+          producers: [{ id: 'OrderProducer', version: '1.0.0', collection: 'services' }],
+          consumers: [{ id: 'OrderConsumer', version: '2.0.0', collection: 'services' }],
         },
       },
     ];
@@ -105,6 +106,7 @@ describe('schema explorer content delivery', () => {
         },
       },
     ];
+    fixtures.agents = [];
     fixtures.flows = [
       {
         collection: 'flows',
@@ -180,6 +182,54 @@ describe('schema explorer content delivery', () => {
     });
     expect(getExamplesForResource).toHaveBeenCalledTimes(1);
     expect(readResourceFile).not.toHaveBeenCalled();
+  });
+
+  it('keeps colliding relationship IDs distinct by resource collection', async () => {
+    const shared = { id: 'SharedProducer', version: '1.0.0' };
+    fixtures.events[0].data.producers = [
+      { ...shared, collection: 'services' },
+      { ...shared, collection: 'agents' },
+      { ...shared, collection: 'data-products' },
+    ];
+    fixtures.services = [
+      { collection: 'services', filePath: '/catalog/services/shared/index.mdx', data: { ...shared, name: 'Shared service' } },
+    ];
+    fixtures.agents = [
+      { collection: 'agents', filePath: '/catalog/agents/shared/index.mdx', data: { ...shared, name: 'Shared agent' } },
+    ];
+    fixtures.products = [
+      {
+        collection: 'data-products',
+        filePath: '/catalog/data-products/shared/index.mdx',
+        data: { ...shared, name: 'Shared data product', outputs: [] },
+      },
+    ];
+
+    const item = (await getSchemaMetadata()).find((candidate) => candidate.collection === 'events')!;
+    const details = await getSchemaDetails(keyOf(item.contentUrl!));
+
+    expect(details?.data?.producers).toEqual([
+      { ...shared, collection: 'services', name: 'Shared service' },
+      { ...shared, collection: 'agents', name: 'Shared agent' },
+      { ...shared, collection: 'data-products', name: 'Shared data product' },
+    ]);
+  });
+
+  it('preserves remote source metadata for the schema details panel', async () => {
+    fixtures.schemas[0].data.ref = 'git://contracts/Orders/schema.json';
+    fixtures.schemas[0].data.source = {
+      provider: 'git',
+      path: 'contracts/Orders/schema.json',
+      url: 'https://github.com/acme/contracts/blob/main/contracts/Orders/schema.json',
+      repository: 'acme/contracts',
+      commit: 'abc1234',
+      createdAt: '2026-09-01T10:00:00Z',
+      updatedAt: '2026-09-20T12:30:00Z',
+    };
+
+    const item = (await getSchemaMetadata()).find((candidate) => candidate.collection === 'events')!;
+
+    expect(item.source).toEqual(fixtures.schemas[0].data.source);
   });
 
   it('still serves schema content and relationships when examples cannot be read', async () => {
@@ -276,8 +326,13 @@ describe('schema explorer content delivery', () => {
     const producers = Array.from({ length: 1000 }, (_, index) => ({
       id: index === 0 ? 'OrderProducer' : `Producer${index}`,
       version: '1.0.0',
+      collection: 'services',
     }));
-    const consumers = Array.from({ length: 1000 }, (_, index) => ({ id: `Consumer${index}`, version: '2.0.0' }));
+    const consumers = Array.from({ length: 1000 }, (_, index) => ({
+      id: `Consumer${index}`,
+      version: '2.0.0',
+      collection: 'services',
+    }));
     fixtures.events.forEach((event) => {
       event.data.producers = producers;
       event.data.consumers = consumers;

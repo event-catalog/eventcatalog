@@ -47,7 +47,13 @@ describe('getExamplesForResource', () => {
     const examples = getExamplesForResource(resource);
 
     expect(examples.map((example) => example.fileName)).toEqual(['alpha.md', 'beta.md']);
-    expect(examples[0]).toEqual({ fileName: 'alpha.md', title: 'Alpha', content: '# Alpha\n\nFirst example.' });
+    expect(examples[0]).toEqual({
+      fileName: 'alpha.md',
+      title: 'Alpha',
+      extension: 'md',
+      renderMode: 'markdown',
+      content: '# Alpha\n\nFirst example.',
+    });
   });
 
   it('returns empty array when no examples directory exists', () => {
@@ -61,7 +67,7 @@ describe('getExamplesForResource', () => {
     expect(getExamplesForResource(resource)).toEqual([]);
   });
 
-  it('ignores files that are not markdown', () => {
+  it('preserves non-Markdown example formats as source', () => {
     const resource = createResource('event4');
     createExamples('event4', {
       'payload.json': '{"orderId": "abc"}',
@@ -71,7 +77,11 @@ describe('getExamplesForResource', () => {
 
     const examples = getExamplesForResource(resource);
 
-    expect(examples.map((example) => example.fileName)).toEqual(['walkthrough.mdx']);
+    expect(examples.map((example) => example.fileName)).toEqual(['notes.txt', 'payload.json', 'walkthrough.mdx']);
+    expect(examples.slice(0, 2).map(({ extension, renderMode }) => ({ extension, renderMode }))).toEqual([
+      { extension: 'txt', renderMode: 'code' },
+      { extension: 'json', renderMode: 'code' },
+    ]);
   });
 
   it('includes markdown files from nested directories', () => {
@@ -100,6 +110,40 @@ describe('getExamplesForResource', () => {
     expect(example.title).toBe('Basic order');
     expect(example.content).toBe(markdown.trim());
   });
+
+  it('keeps legacy config metadata and excludes the config file', () => {
+    const resource = createResource('event7');
+    createExamples('event7', {
+      'payload.json': '{"orderId":"abc"}',
+      'examples.config.yaml':
+        'payload.json:\n  name: Basic payload\n  summary: A minimal order.\n  usage: curl http://localhost\n',
+    });
+
+    expect(getExamplesForResource(resource)).toEqual([
+      {
+        fileName: 'payload.json',
+        title: 'Basic payload',
+        extension: 'json',
+        renderMode: 'code',
+        summary: 'A minimal order.',
+        usage: 'curl http://localhost',
+        content: '{"orderId":"abc"}',
+      },
+    ]);
+  });
+
+  it('renders MDX with unsupported components as source in the client explorer', () => {
+    const resource = createResource('event8');
+    createExamples('event8', {
+      'supported.mdx': '<Columns><Column>Body</Column></Columns>',
+      'unsupported.mdx': '<Mermaid diagram="graph TD" />',
+    });
+
+    expect(getExamplesForResource(resource).map(({ fileName, renderMode }) => ({ fileName, renderMode }))).toEqual([
+      { fileName: 'supported.mdx', renderMode: 'markdown' },
+      { fileName: 'unsupported.mdx', renderMode: 'code' },
+    ]);
+  });
 });
 
 describe('parseExampleFile', () => {
@@ -107,6 +151,8 @@ describe('parseExampleFile', () => {
     expect(parseExampleFile('basic-order.md', '# Basic order\n\nBody text.')).toEqual({
       fileName: 'basic-order.md',
       title: 'Basic order',
+      extension: 'md',
+      renderMode: 'markdown',
       content: '# Basic order\n\nBody text.',
     });
   });
@@ -117,6 +163,8 @@ describe('parseExampleFile', () => {
     expect(parseExampleFile('multi.md', raw)).toEqual({
       fileName: 'multi.md',
       title: 'Multi item order',
+      extension: 'md',
+      renderMode: 'markdown',
       summary: 'Several line items.',
       content: '# Ignored heading\n\nBody.',
     });
@@ -126,6 +174,8 @@ describe('parseExampleFile', () => {
     expect(parseExampleFile('nested/out_of-stock.md', 'Body only.')).toEqual({
       fileName: 'nested/out_of-stock.md',
       title: 'Out of stock',
+      extension: 'md',
+      renderMode: 'markdown',
       content: 'Body only.',
     });
   });
