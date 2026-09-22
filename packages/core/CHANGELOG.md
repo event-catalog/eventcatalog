@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 4.12.0-beta.2
+
+### Patch Changes
+
+- eea6cb8: Use hot reload for custom homepage edits instead of restarting Astro on every save, avoiding disconnected module transport errors during rapid edits.
+- eea6cb8: fix(core): silence harmless "use astro:head-inject" module level directive warnings during builds
+
 ## 4.12.0-beta.1
 
 ### Patch Changes

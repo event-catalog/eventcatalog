@@ -13,7 +13,9 @@
     "@eventcatalog/visualiser": "4.1.4"
   },
   "changesets": [
+    "calm-homepage-reloads",
     "ignore-astro-docker-cache",
+    "quiet-head-inject-warnings",
     "tidy-catalog-runtime",
     "wider-docs-content"
   ]
