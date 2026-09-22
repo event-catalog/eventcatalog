@@ -6,7 +6,41 @@
   "properties": {
     "paymentId": { "type": "string", "format": "uuid" },
     "orderId": { "type": "string", "format": "uuid" },
-    "customerId": { "type": "string", "format": "uuid" },
+    "payer": {
+      "type": "object",
+      "description": "The user or customer account responsible for the payment",
+      "additionalProperties": false,
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The authenticated user requesting the payment"
+        },
+        "customerId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The customer account requesting the payment"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The contact email shared by both payer types"
+        }
+      },
+      "required": ["email"],
+      "oneOf": [
+        {
+          "title": "Authenticated user",
+          "required": ["userId"],
+          "not": { "required": ["customerId"] }
+        },
+        {
+          "title": "Customer account",
+          "required": ["customerId"],
+          "not": { "required": ["userId"] }
+        }
+      ]
+    },
     "amount": {
       "type": "integer",
       "minimum": 0,
@@ -15,5 +49,5 @@
     "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
     "requestedAt": { "type": "string", "format": "date-time" }
   },
-  "required": ["paymentId", "orderId", "amount", "currency", "requestedAt"]
+  "required": ["paymentId", "orderId", "payer", "amount", "currency", "requestedAt"]
 }
