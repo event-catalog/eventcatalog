@@ -43,8 +43,11 @@ const EMPTY_COLLECTION_MESSAGE =
 
 const ANSI_PATTERN = /\u001B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g;
 
-/** Timestamp text, then Astro's `[WARN]` label and optional `[content]` tag. */
-const ASTRO_WARN_PREFIX = /^[^[\]]*\[WARN\](?:\s+\[[^\]]+\])*\s*$/;
+/**
+ * Timestamp text, then Astro's content logger prefix: `[WARN] [content]`.
+ * A `[WARN]` line from any other label, such as `[build]`, is not this warning.
+ */
+const ASTRO_CONTENT_WARN_PREFIX = /^[^[\]]*\[WARN\]\s+\[content\](?:\s+\[[^\]]+\])*\s*$/;
 
 export function collectionNameFromEmptyWarning(message) {
   const match = message.match(EMPTY_COLLECTION_MESSAGE);
@@ -66,7 +69,7 @@ export function isIntentionalEmptyCollectionMessage(message) {
 /**
  * Matches the warning as Astro prints it: a bare message, or the node/console logger line
  * `<time> [WARN] [content] <message>`, including ANSI color on the prefix.
- * Extra diagnostic text and `[ERROR]` lines are left alone.
+ * The same sentence from another logger label, extra diagnostic text, and `[ERROR]` lines stay visible.
  */
 export function isIntentionalEmptyCollectionLine(line) {
   const plain = line.replace(ANSI_PATTERN, '').replace(/\r/g, '').trim();
@@ -78,7 +81,7 @@ export function isIntentionalEmptyCollectionLine(line) {
   if (!isIntentionalEmptyCollectionMessage(message)) return false;
 
   const before = plain.slice(0, start).trim();
-  return before.length === 0 || ASTRO_WARN_PREFIX.test(before);
+  return before.length === 0 || ASTRO_CONTENT_WARN_PREFIX.test(before);
 }
 
 export function wrapLoggerDestination(destination) {

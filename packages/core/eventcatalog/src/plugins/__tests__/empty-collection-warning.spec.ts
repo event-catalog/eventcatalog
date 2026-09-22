@@ -84,6 +84,8 @@ describe('empty EventCatalog collection warnings', () => {
     expect(isIntentionalEmptyCollectionLine(`11:09:22 [WARN] [content] ${message}`)).toBe(true);
     expect(isIntentionalEmptyCollectionLine(`11:09:22 PM [WARN] [content] ${message}`)).toBe(true);
     expect(isIntentionalEmptyCollectionLine(colored)).toBe(true);
+    expect(isIntentionalEmptyCollectionLine(`11:09:22 [WARN] [build] ${message}`)).toBe(false);
+    expect(isIntentionalEmptyCollectionLine(`[WARN] [router] ${message}`)).toBe(false);
   });
 
   it('leaves real content errors and longer diagnostics visible', () => {

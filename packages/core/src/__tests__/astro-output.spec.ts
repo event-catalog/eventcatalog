@@ -35,6 +35,14 @@ describe('Astro output filters', () => {
       expect(shouldFilterLine(`11:09:22 [WARN] [content] ${message}`)).toBe(true);
       expect(shouldFilterLine(colored)).toBe(true);
       expect(shouldFilterLine(`11:09:22 [WARN] [content] ${message.replace('queries', 'containers')}`)).toBe(true);
+      expect(shouldFilterLine(message.replace('queries', 'events'))).toBe(true);
+    });
+
+    it('does not filter the same message from a non-content logger', () => {
+      const message = 'The collection "events" does not exist or is empty. Please check your content config file for errors.';
+
+      expect(shouldFilterLine(`11:09:22 [WARN] [build] ${message}`)).toBe(false);
+      expect(shouldFilterLine(`[WARN] [router] ${message}`)).toBe(false);
     });
 
     it('keeps real content-config errors and warnings for unknown collections', () => {
