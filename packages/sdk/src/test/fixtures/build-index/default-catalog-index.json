@@ -434,6 +434,12 @@
           "default": true,
           "hash": "sha256:1c256e3ebfe23092b811d630de911f55e2a36ffaf3381ff310c22f0ac965522e"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/commands/UpdateProduct/examples/index.mdx",
+          "hash": "sha256:8b3f0a630e687aee926ec80851c91698f3d87045b31c7f2ab9cb35be70d6721a"
+        }
       ]
     },
     {
@@ -1553,6 +1559,12 @@
           "default": true,
           "hash": "sha256:683cf1c4ed93d60c43f21a6cfd9e80451a007b6dddd062f92a6726fef758a7d4"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/systems/customer-management-system/services/CustomerAPI/events/CustomerRegistered/examples/index.mdx",
+          "hash": "sha256:bf292aa640477dcb26ba46c4df28b8b25ad641a235baf6e67d97fcf2a85ddaa7"
+        }
       ]
     },
     {
@@ -1697,6 +1709,12 @@
           "default": true,
           "hash": "sha256:d31eab8d4640bfce048a3e3fc675bba0b00e9be3e8dfdf36049ae17f4827adb6"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderCancelled/examples/index.mdx",
+          "hash": "sha256:8c31f543c20c179e966e737d01833dcaf47e067f22b668d82a4e4d2d113dbf1b"
+        }
       ]
     },
     {
@@ -1744,6 +1762,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:af211dfb2198f3db831ec1336b73325f270259adf5e4fd0c955d46d5b0799c27"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderCreated/examples/index.mdx",
+          "hash": "sha256:2aa2da43bfd6ff0c19cd5e18a912a1cda90dc9247fdac1a3d943b7153f28bb16"
         }
       ]
     },
@@ -1905,6 +1929,12 @@
           "default": true,
           "hash": "sha256:518debd8c9f350ef5803e25f387de149f1c9394bd3332e735906430e633b9bb7"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Payments/systems/stripe/services/StripeWebhookEndpoint/events/PaymentFailed/examples/index.mdx",
+          "hash": "sha256:e1fd7d3957d3e09c56259d95756eb414f452fe65c58a091390ed073fd8337180"
+        }
       ]
     },
     {
@@ -1937,6 +1967,12 @@
           "default": true,
           "hash": "sha256:e15ad586af41416bff2552b281bc0c7830adb5a9f373c852d3ed3b8a66efd1b5"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Payments/systems/stripe/services/StripeWebhookEndpoint/events/PaymentSucceeded/examples/index.mdx",
+          "hash": "sha256:ded36b46aa5af3c0cdecb5d60eb3ed0402d9888959b3236636043fedd55924d2"
+        }
       ]
     },
     {
@@ -1955,6 +1991,10 @@
         }
       ],
       "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductCreated/examples/index.mdx",
+          "hash": "sha256:6b11d9472740e3259ad91295429d25f9b3d499c783e3a280908511b9c00369c3"
+        },
         {
           "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductCreated/sidebar.json",
           "hash": "sha256:cdb030836b21e5090c1dd8b09a889ea948e68f3b1ec4eda372ee5205dea7ae69"
@@ -1990,6 +2030,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:9f712814510b4abd5d8f0b0defaa2daf33afa0a01e2437c3610c814cccfe0956"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductUpdated/examples/index.mdx",
+          "hash": "sha256:494dd14929d689a1c23464a0263298f63b6c828910277f942f3c1611dd3f4133"
         }
       ]
     },

@@ -727,6 +727,36 @@ describe('buildIndex', () => {
       });
     });
 
+    it('indexes an examples index file as a sidecar without treating it as a message resource', async () => {
+      await sdk.writeEvent({
+        id: 'payment-captured',
+        name: 'Payment Captured',
+        version: '1.0.0',
+        markdown: '# Payment Captured',
+      });
+      fs.mkdirSync(path.join(CATALOG_PATH, 'events/payment-captured/examples'), { recursive: true });
+      fs.writeFileSync(path.join(CATALOG_PATH, 'events/payment-captured/examples/index.mdx'), '# Usage examples');
+
+      const index = await sdk.buildIndex({ source: 'acme/payments', commit: '4a1b7e2' });
+
+      expect(index.resources).toEqual([
+        {
+          type: 'event',
+          id: 'payment-captured',
+          version: '1.0.0',
+          name: 'Payment Captured',
+          contentPath: 'events/payment-captured/index.mdx',
+          contentHash: hashFile('events/payment-captured/index.mdx'),
+          sidecars: [
+            {
+              path: 'events/payment-captured/examples/index.mdx',
+              hash: hashFile('events/payment-captured/examples/index.mdx'),
+            },
+          ],
+        },
+      ]);
+    });
+
     it('indexes arbitrary files within each resource boundary as sidecars', async () => {
       await sdk.writeDomain({
         id: 'payments',

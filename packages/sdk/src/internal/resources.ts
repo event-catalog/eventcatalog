@@ -204,7 +204,7 @@ export const getResources = async (
 ): Promise<Resource[] | undefined> => {
   const ignoreList = latestOnly ? `**/versioned/**` : '';
   const filePattern = pattern || `${catalogDir}/**/${type}/**/index.{md,mdx}`;
-  const files = await getFiles(filePattern, [ignoreList, ...ignore]);
+  const files = await getFiles(filePattern, ['**/examples/**', ignoreList, ...ignore]);
 
   if (files.length === 0) return;
 
