@@ -1,0 +1,221 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a price change
+
+Publish an update that only changes the price. The event carries the changed fields, not the whole product, so consumers merge it into their copy.
+
+### Payload details
+
+- `eventId` uniquely identifies this event; `occurredAt` records when the change happened in UTC.
+- `productId` identifies the product that changed.
+- `changes` contains only the fields that changed. Here the price was reduced to **4,499 pence (£44.99)**.
+- `changes.price` uses integer minor units; `changes.currency` is `GBP`.
+
+### Using this example
+
+Use this to check that consumers merge `changes` into their stored product rather than replacing it. Fields not present in `changes`, such as the name and description, must stay as they were.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductUpdated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript product-updated.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("ProductUpdated", {
+  eventId: "9e1a8891-9647-62fa-b66d-029ae3ab2c09",
+  occurredAt: "2026-09-11T11:00:00Z",
+  productId: "0f8fad5b-d9cb-469f-a165-70867728950e",
+  changes: {
+    price: 4499,
+    currency: "GBP",
+  },
+});
+```
+
+```python product_updated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("ProductUpdated", {
+    "eventId": "9e1a8891-9647-62fa-b66d-029ae3ab2c09",
+    "occurredAt": "2026-09-11T11:00:00Z",
+    "productId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+    "changes": {
+        "price": 4499,
+        "currency": "GBP",
+    },
+})
+```
+
+```java ProductUpdated.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class ProductUpdated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("ProductUpdated", Map.of(
+      "eventId", "9e1a8891-9647-62fa-b66d-029ae3ab2c09",
+      "occurredAt", "2026-09-11T11:00:00Z",
+      "productId", "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "changes", Map.of(
+        "price", 4499,
+        "currency", "GBP"
+      )
+    ));
+  }
+}
+```
+
+```csharp ProductUpdated.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("ProductUpdated", new {
+    eventId = "9e1a8891-9647-62fa-b66d-029ae3ab2c09",
+    occurredAt = "2026-09-11T11:00:00Z",
+    productId = "0f8fad5b-d9cb-469f-a165-70867728950e",
+    changes = new {
+        price = 4499,
+        currency = "GBP"
+    }
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a product archived
+
+Publish a status-only change that takes a product off sale.
+
+### Payload details
+
+- `changes` contains a single field, `status`, set to `ARCHIVED`.
+- No other product fields are sent, because nothing else changed.
+
+### Using this example
+
+Use this to check that search and storefront consumers remove `ARCHIVED` products. Archiving is reversible: a later update with status `ACTIVE` puts the product back on sale.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductUpdated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript product-updated.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("ProductUpdated", {
+  eventId: "af2b99a2-a758-73ab-c77e-13abf4bc3d1a",
+  occurredAt: "2026-09-11T11:30:00Z",
+  productId: "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+  changes: {
+    status: "ARCHIVED",
+  },
+});
+```
+
+```python product_updated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("ProductUpdated", {
+    "eventId": "af2b99a2-a758-73ab-c77e-13abf4bc3d1a",
+    "occurredAt": "2026-09-11T11:30:00Z",
+    "productId": "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+    "changes": {
+        "status": "ARCHIVED",
+    },
+})
+```
+
+```java ProductUpdated.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class ProductUpdated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("ProductUpdated", Map.of(
+      "eventId", "af2b99a2-a758-73ab-c77e-13abf4bc3d1a",
+      "occurredAt", "2026-09-11T11:30:00Z",
+      "productId", "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+      "changes", Map.of(
+        "status", "ARCHIVED"
+      )
+    ));
+  }
+}
+```
+
+```csharp ProductUpdated.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("ProductUpdated", new {
+    eventId = "af2b99a2-a758-73ab-c77e-13abf4bc3d1a",
+    occurredAt = "2026-09-11T11:30:00Z",
+    productId = "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+    changes = new {
+        status = "ARCHIVED"
+    }
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

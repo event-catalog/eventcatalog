@@ -1,3 +1,6 @@
+import type { SchemaRelationshipCollection } from './types';
+import { buildUrl } from '@utils/url-builder';
+
 // Schema types that should use SVG icons
 export const ICON_SPECS: Record<string, string> = {
   openapi: 'openapi',
@@ -45,13 +48,37 @@ export function extractServiceName(refId: string): string {
 export function getSchemaRelationshipReference(reference: {
   id: string;
   version?: string;
-  data?: { id: string; version: string };
+  collection?: string;
+  name?: string;
+  summary?: string;
+  data?: { id: string; version: string; name?: string; summary?: string };
 }) {
+  const collection = (
+    reference.collection === 'agents' || reference.collection === 'data-products' || reference.collection === 'flows'
+      ? reference.collection
+      : 'services'
+  ) as SchemaRelationshipCollection;
   return {
     id: reference.data?.id ?? reference.id,
     version: reference.data?.version ?? reference.version,
+    collection,
+    name: reference.data?.name ?? reference.name,
+    summary: reference.data?.summary ?? reference.summary,
   };
 }
+
+export const SCHEMA_RELATIONSHIP_LABELS: Record<SchemaRelationshipCollection, string> = {
+  services: 'Service',
+  agents: 'Agent',
+  'data-products': 'Data Product',
+  flows: 'Flow',
+};
+
+export const getSchemaRelationshipHref = (reference: {
+  id: string;
+  version?: string;
+  collection: SchemaRelationshipCollection;
+}) => buildUrl(`/docs/${reference.collection}/${reference.id}/${reference.version}`);
 
 export const getLanguageForHighlight = (extension?: string): string => {
   if (!extension) return 'json';

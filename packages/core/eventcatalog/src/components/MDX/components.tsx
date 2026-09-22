@@ -22,6 +22,9 @@ import ResourceGroupTable from '@components/MDX/ResourceGroupTable/ResourceGroup
 import EntityPropertiesTable from '@components/MDX/EntityPropertiesTable/EntityPropertiesTable.astro';
 import Tabs from '@components/MDX/Tabs/Tabs.astro';
 import TabItem from '@components/MDX/Tabs/TabItem.astro';
+import CodeGroup from '@components/MDX/CodeGroup/CodeGroup.astro';
+import Columns from '@components/MDX/Columns/Columns.astro';
+import Column from '@components/MDX/Columns/Column.astro';
 import ResourceLink from '@components/MDX/ResourceLink/ResourceLink.astro';
 import ResourceRef from '@components/MDX/ResourceRef/ResourceRef.astro';
 import Link from '@components/MDX/Link/Link.astro';
@@ -85,6 +88,9 @@ const components = (props: any) => {
     Step,
     Steps,
     TabItem,
+    CodeGroup,
+    Columns,
+    Column,
     Tabs,
     Tile,
     Tiles,

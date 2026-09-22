@@ -1,0 +1,229 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a new customer
+
+Publish the typical registration: a customer who completed sign-up and provided their name. Welcome emails and CRM sync consume this shape.
+
+### Payload details
+
+- `eventId` uniquely identifies this event; `occurredAt` records when the registration happened in UTC.
+- `customer.customerId` identifies the customer; `customer.email` is the address they registered with.
+- `customer.name` is the display name the customer entered.
+- `customer.status` is `ACTIVE`.
+
+### Using this example
+
+Use this as the baseline when testing consumers. The welcome email should address the customer by name, and CRM sync should create a contact with all four fields.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerRegistered schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript customer-registered.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("CustomerRegistered", {
+  eventId: "b03ca9b3-b869-84bc-d88f-24bc05cd4e2b",
+  occurredAt: "2026-09-11T06:20:11Z",
+  customer: {
+    customerId: "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    email: "amara.okafor@example.com",
+    name: "Amara Okafor",
+    status: "ACTIVE",
+  },
+});
+```
+
+```python customer_registered.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("CustomerRegistered", {
+    "eventId": "b03ca9b3-b869-84bc-d88f-24bc05cd4e2b",
+    "occurredAt": "2026-09-11T06:20:11Z",
+    "customer": {
+        "customerId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+        "email": "amara.okafor@example.com",
+        "name": "Amara Okafor",
+        "status": "ACTIVE",
+    },
+})
+```
+
+```java CustomerRegistered.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class CustomerRegistered {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("CustomerRegistered", Map.of(
+      "eventId", "b03ca9b3-b869-84bc-d88f-24bc05cd4e2b",
+      "occurredAt", "2026-09-11T06:20:11Z",
+      "customer", Map.of(
+        "customerId", "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+        "email", "amara.okafor@example.com",
+        "name", "Amara Okafor",
+        "status", "ACTIVE"
+      )
+    ));
+  }
+}
+```
+
+```csharp CustomerRegistered.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("CustomerRegistered", new {
+    eventId = "b03ca9b3-b869-84bc-d88f-24bc05cd4e2b",
+    occurredAt = "2026-09-11T06:20:11Z",
+    customer = new {
+        customerId = "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+        email = "amara.okafor@example.com",
+        name = "Amara Okafor",
+        status = "ACTIVE"
+    }
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish an email-only registration
+
+Publish a registration where no name was provided. This shows the optional `name` field being absent.
+
+### Payload details
+
+- `customer.name` is omitted rather than sent as an empty string.
+- The remaining fields match the new customer example.
+
+### Using this example
+
+Use this to check that consumers do not assume a display name exists. The welcome email should fall back to a generic greeting, and CRM sync should leave the name blank.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerRegistered schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript customer-registered.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("CustomerRegistered", {
+  eventId: "c14dbac4-c97a-95cd-e99a-35cd16de5f3c",
+  occurredAt: "2026-09-11T06:25:48Z",
+  customer: {
+    customerId: "7a0a2a00-9c97-e122-c53e-11d05ad75a00",
+    email: "guest-4821@example.com",
+    status: "ACTIVE",
+  },
+});
+```
+
+```python customer_registered.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("CustomerRegistered", {
+    "eventId": "c14dbac4-c97a-95cd-e99a-35cd16de5f3c",
+    "occurredAt": "2026-09-11T06:25:48Z",
+    "customer": {
+        "customerId": "7a0a2a00-9c97-e122-c53e-11d05ad75a00",
+        "email": "guest-4821@example.com",
+        "status": "ACTIVE",
+    },
+})
+```
+
+```java CustomerRegistered.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class CustomerRegistered {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("CustomerRegistered", Map.of(
+      "eventId", "c14dbac4-c97a-95cd-e99a-35cd16de5f3c",
+      "occurredAt", "2026-09-11T06:25:48Z",
+      "customer", Map.of(
+        "customerId", "7a0a2a00-9c97-e122-c53e-11d05ad75a00",
+        "email", "guest-4821@example.com",
+        "status", "ACTIVE"
+      )
+    ));
+  }
+}
+```
+
+```csharp CustomerRegistered.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("CustomerRegistered", new {
+    eventId = "c14dbac4-c97a-95cd-e99a-35cd16de5f3c",
+    occurredAt = "2026-09-11T06:25:48Z",
+    customer = new {
+        customerId = "7a0a2a00-9c97-e122-c53e-11d05ad75a00",
+        email = "guest-4821@example.com",
+        status = "ACTIVE"
+    }
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

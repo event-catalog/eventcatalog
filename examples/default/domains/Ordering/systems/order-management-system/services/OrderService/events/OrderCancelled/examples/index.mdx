@@ -1,0 +1,206 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a customer-requested cancellation
+
+Publish a cancellation made by the customer from their account before fulfilment started.
+
+### Payload details
+
+- `orderId` identifies the cancelled order; `customerId` identifies the customer who cancelled it.
+- `reason` is `CUSTOMER_REQUESTED`.
+- `cancelledAt` records when the cancellation happened in UTC.
+
+### Using this example
+
+Use this to check that consumers release any reserved inventory and refund any captured payment for the order.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderCancelled schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript order-cancelled.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("OrderCancelled", {
+  orderId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  customerId: "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+  reason: "CUSTOMER_REQUESTED",
+  cancelledAt: "2026-09-11T10:15:00Z",
+});
+```
+
+```python order_cancelled.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("OrderCancelled", {
+    "orderId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    "customerId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    "reason": "CUSTOMER_REQUESTED",
+    "cancelledAt": "2026-09-11T10:15:00Z",
+})
+```
+
+```java OrderCancelled.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class OrderCancelled {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("OrderCancelled", Map.of(
+      "orderId", "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+      "customerId", "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "reason", "CUSTOMER_REQUESTED",
+      "cancelledAt", "2026-09-11T10:15:00Z"
+    ));
+  }
+}
+```
+
+```csharp OrderCancelled.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("OrderCancelled", new {
+    orderId = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    customerId = "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    reason = "CUSTOMER_REQUESTED",
+    cancelledAt = "2026-09-11T10:15:00Z"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish an out-of-stock cancellation
+
+Publish a cancellation made by the system because inventory could not be reserved. No customer initiated it, so `customerId` is omitted.
+
+### Payload details
+
+- `reason` is `OUT_OF_STOCK`.
+- `customerId` is absent, because the cancellation was not initiated by a customer.
+- `orderId` and `cancelledAt` are present as in every cancellation.
+
+<Admonition type="warning" title="Optional field">
+  `customerId` is not present on system-initiated cancellations. Look the customer up by `orderId` instead of assuming the field exists.
+</Admonition>
+
+<Steps>
+  <Step title="Release inventory">Consumers holding reservations for this order should release them.</Step>
+  <Step title="Notify the customer">Send the out-of-stock notification using the order's contact details.</Step>
+</Steps>
+
+### Using this example
+
+Use this to check that consumers handle a missing `customerId` and follow the steps above.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderCancelled schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript order-cancelled.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("OrderCancelled", {
+  orderId: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+  reason: "OUT_OF_STOCK",
+  cancelledAt: "2026-09-11T10:42:31Z",
+});
+```
+
+```python order_cancelled.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("OrderCancelled", {
+    "orderId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    "reason": "OUT_OF_STOCK",
+    "cancelledAt": "2026-09-11T10:42:31Z",
+})
+```
+
+```java OrderCancelled.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class OrderCancelled {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("OrderCancelled", Map.of(
+      "orderId", "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      "reason", "OUT_OF_STOCK",
+      "cancelledAt", "2026-09-11T10:42:31Z"
+    ));
+  }
+}
+```
+
+```csharp OrderCancelled.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("OrderCancelled", new {
+    orderId = "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    reason = "OUT_OF_STOCK",
+    cancelledAt = "2026-09-11T10:42:31Z"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

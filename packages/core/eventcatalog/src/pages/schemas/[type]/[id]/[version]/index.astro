@@ -1,6 +1,8 @@
 ---
 import type { PageTypes } from '@types';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
+import components from '@components/MDX/components';
+import { getExampleEntriesForMessage, getExampleEntryDetails } from '@utils/collections/examples';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { Page } from './_index.data';
 import SchemaPageViewer from '@components/SchemaExplorer/SchemaPageViewer';
@@ -9,8 +11,24 @@ import { sortVersioned } from '@utils/collections/util';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 import path from 'node:path';
-import type { SchemaItem } from '@components/SchemaExplorer/types';
+import type { FlowUsage, SchemaItem } from '@components/SchemaExplorer/types';
 import { getExamplesForResource } from '@utils/collections/examples';
+import { getSchemaRelationshipReference } from '@components/SchemaExplorer/utils';
+import { getSchemaExtensionForFormat } from '@utils/collections/schemas';
+import { getFlowsForMessages } from '@utils/collections/flows';
+import { attachFlowGraphs, getMessageUsageGraph } from '@utils/schema-usage-graph';
+// Ships the visualiser CSS in the page head so it survives ClientRouter navigations (see NodeGraph.astro).
+import '@eventcatalog/visualiser/styles-core.css';
+
+/** Reduce hydrated resource entries to the details the schema page renders. */
+const toSchemaRelationships = (references: any[] | undefined) =>
+  (references ?? []).map((reference) => getSchemaRelationshipReference(reference));
+const toMessageChannels = (channels: any[] | undefined) =>
+  (channels ?? []).map((channel) => ({
+    id: channel.data.id,
+    version: channel.data.version,
+    ...(channel.data.name ? { name: channel.data.name } : {}),
+  }));
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -26,6 +44,14 @@ const contractPath = Astro.url.searchParams.get('contract') || (props as any).co
 
 let currentMessage: SchemaItem | null = null;
 let sortedVersions: SchemaItem[] = [];
+// Examples rendered through the MDX pipeline so they can use EventCatalog's components.
+let renderedExamples: {
+  fileName: string;
+  title: string;
+  summary?: string;
+  Content: Awaited<ReturnType<typeof render>>['Content'];
+}[] = [];
+let exampleComponents: ReturnType<typeof components> | undefined;
 let pageTitle = `${type} | ${data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 
 if (isDataProduct && contractPath) {
@@ -79,6 +105,7 @@ if (isDataProduct && contractPath) {
   // Handle regular messages (events, commands, queries)
   const [allItems, schemaEntries] = await Promise.all([pageDataLoader[type](), getCollection('schemas')]);
   const versions = allItems.filter((item) => item.data.id === data.id);
+  const flowsByMessage = await getFlowsForMessages(versions);
   const schemasForMessage = schemaEntries.filter(
     (schema) => schema.data.message.collectionName === type && schema.data.message.id === data.id
   );
@@ -89,44 +116,81 @@ if (isDataProduct && contractPath) {
   };
 
   // Transform to SchemaItems
-  const availableVersions = versions
-    .map((message) => {
-      try {
-        const schema = getSchemaForVersion(message.data.version);
-        if (!schema) return null;
+  const availableVersions = (
+    await Promise.all(
+      versions.map(async (message) => {
+        try {
+          const schema = getSchemaForVersion(message.data.version);
+          const messageFlows: FlowUsage[] =
+            flowsByMessage.get(`${message.collection}:${message.data.id}:${message.data.version}`) ?? [];
+          if (!schema) return null;
 
-        const schemaPath = schema.data.file || schema.data.source.path || '';
-        const schemaExtension = path.extname(schemaPath).slice(1);
+          const schemaPath = schema.data.file || schema.data.source.path || '';
+          const schemaExtension = path.extname(schemaPath).slice(1) || getSchemaExtensionForFormat(schema.data.format);
 
-        return {
-          collection: message.collection,
-          data: {
-            id: message.data.id,
-            name: schema.data.message.name || message.data.name,
-            version: message.data.version,
-            summary: schema.data.message.summary || message.data.summary,
-            schemaPath,
-            // @ts-ignore
-            producers: message.data.producers || [],
-            // @ts-ignore
-            consumers: message.data.consumers || [],
-          },
-          schemaContent: schema.data.content || '',
-          schemaExtension,
-          examples: getExamplesForResource(message),
-        } as SchemaItem;
-      } catch (error) {
-        console.error(`Error reading schema for ${message.data.id}:`, error);
-        return null;
-      }
-    })
-    .filter((v): v is SchemaItem => v !== null);
+          return {
+            collection: message.collection,
+            data: {
+              id: message.data.id,
+              name: schema.data.message.name || message.data.name,
+              version: message.data.version,
+              summary: schema.data.message.summary || message.data.summary,
+              schemaPath,
+              // @ts-ignore
+              producers: toSchemaRelationships(message.data.producers),
+              // @ts-ignore
+              consumers: toSchemaRelationships(message.data.consumers),
+              flows: await (message.data.version === data.version
+                ? attachFlowGraphs(messageFlows, { id: message.data.id, version: message.data.version })
+                : messageFlows),
+              // @ts-ignore
+              channels: toMessageChannels(message.data.messageChannels),
+            },
+            schemaContent: schema.data.content || '',
+            schemaExtension,
+            ...(schema.data.name ? { schemaName: schema.data.name } : {}),
+            ...(schema.data.ref ? { schemaRef: schema.data.ref, source: schema.data.source } : {}),
+            examples: getExamplesForResource(message),
+            // Only the version being viewed needs the usage graph; other versions load their own page.
+            ...(message.data.version === data.version
+              ? {
+                  graph: await getMessageUsageGraph({
+                    collection: message.collection,
+                    id: message.data.id,
+                    version: message.data.version,
+                  }),
+                }
+              : {}),
+          } as SchemaItem;
+        } catch (error) {
+          console.error(`Error reading schema for ${message.data.id}:`, error);
+          return null;
+        }
+      })
+    )
+  ).filter((v): v is SchemaItem => v !== null);
 
   sortedVersions = sortVersioned(availableVersions, (item) => item.data.version);
   currentMessage = sortedVersions.find((v) => v.data.version === data.version) ?? null;
+
+  const messageEntry = versions.find((item) => item.data.version === data.version);
+  if (messageEntry?.filePath) {
+    const exampleEntries = getExampleEntriesForMessage(await getCollection('examples'), messageEntry.filePath);
+    const examplesDir = path.join(path.dirname(messageEntry.filePath), 'examples');
+    renderedExamples = await Promise.all(
+      exampleEntries.map(async (entry) => ({
+        ...getExampleEntryDetails(entry, examplesDir),
+        Content: (await render(entry)).Content,
+      }))
+    );
+    exampleComponents = components(messageEntry);
+  }
 }
 
 const apiAccessEnabled = isEventCatalogScaleEnabled();
+// Render the requested tab on the server so the page does not flash the default tab before hydration.
+// Static builds cannot see the query string, so the panel also restores the tab on the client.
+const initialTab = Astro.url.searchParams.get('tab') ?? undefined;
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
@@ -134,11 +198,16 @@ const apiAccessEnabled = isEventCatalogScaleEnabled();
     :root[data-embedded='true'] #schema-detail-page {
       height: 100dvh !important;
     }
+    .react-flow__attribution {
+      display: none;
+    }
   </style>
-  {/* The schema viewer is an app-style surface: pull it out of the content gutter so it sits flush against the sidebar. */}
+  {
+    /* The schema viewer is an app-style surface: pull it out of the content gutter so it sits flush against the sidebar. The page scrolls normally; the embedded layout below pins it to the viewport instead. */
+  }
   <div
     id="schema-detail-page"
-    class="h-[calc(100vh-4rem)] overflow-hidden flex flex-col"
+    class="min-h-[calc(100vh-4rem)] flex flex-col"
     style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1);"
   >
     {
@@ -148,9 +217,26 @@ const apiAccessEnabled = isEventCatalogScaleEnabled();
           message={currentMessage}
           availableVersions={sortedVersions}
           apiAccessEnabled={apiAccessEnabled}
-          showOwners={false}
-          showProducersConsumers={false}
-        />
+          showOwners={true}
+          showProducersConsumers={true}
+          initialTab={initialTab}
+          hasRenderedExamples={renderedExamples.length > 0}
+        >
+          {renderedExamples.length > 0 && (
+            <div slot="examples" class="divide-y divide-[rgb(var(--ec-page-border))]">
+              {renderedExamples.map(({ Content, ...example }) => (
+                <section
+                  id={`example-${example.fileName.replace(/[^a-zA-Z0-9]+/g, '-')}`}
+                  class="w-full pr-12 py-8 first:pt-0 last:pb-0"
+                >
+                  <div class="prose prose-sm max-w-none prose-h1:mt-0 prose-h1:text-4xl prose-h1:font-bold prose-h1:tracking-tight prose-headings:text-[rgb(var(--ec-page-text))] prose-p:text-[rgb(var(--ec-page-text-muted))] prose-li:text-[rgb(var(--ec-page-text-muted))] prose-strong:text-[rgb(var(--ec-page-text))] prose-a:text-[rgb(var(--ec-accent))] prose-blockquote:border-[rgb(var(--ec-page-border))] prose-hr:border-[rgb(var(--ec-page-border))]">
+                    <Content components={exampleComponents} />
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+        </SchemaPageViewer>
       ) : (
         <div class="p-8 flex items-center justify-center h-full text-[rgb(var(--ec-page-text-muted))]">
           Schema not found or could not be loaded.

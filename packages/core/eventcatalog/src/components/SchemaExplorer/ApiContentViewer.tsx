@@ -134,7 +134,7 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
                 className="rounded-md border bg-[rgb(var(--ec-content-hover)/0.45)] px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))]"
                 style={{ borderColor: boxBorderColor }}
               >
-                application/json
+                text/plain
               </code>
             </div>
             <div className="flex items-center justify-between gap-4 border-t px-4 py-3" style={{ borderColor: dividerColor }}>

@@ -3,6 +3,8 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import SchemaExplorer from '@components/SchemaExplorer/SchemaExplorer';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { Page } from './_index.data';
+// Ships the visualiser CSS in the page head for the Usage tab's node graph (see NodeGraph.astro).
+import '@eventcatalog/visualiser/styles-core.css';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -14,6 +16,9 @@ const apiAccessEnabled = isEventCatalogScaleEnabled();
 
 <VerticalSideBarLayout title="Schema Explorer - EventCatalog" showNestedSideBar={false}>
   <style is:global>
+    .react-flow__attribution {
+      display: none;
+    }
     #eventcatalog-header {
       left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-schema-sidebar-width, 360px)) !important;
     }

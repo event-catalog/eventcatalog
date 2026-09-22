@@ -1,0 +1,12 @@
+---
+import CodeGroup from './CodeGroup';
+import { parseCodePanels } from './parse-panels';
+interface Props {
+  dropdown?: boolean;
+  className?: string;
+}
+const { dropdown = false, className } = Astro.props;
+const items = parseCodePanels(await Astro.slots.render('default'));
+---
+
+<CodeGroup client:load items={items} dropdown={dropdown} className={className} />

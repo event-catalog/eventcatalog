@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { Fragment, useState, useMemo, useEffect, useRef } from 'react';
 import * as Diff from 'diff';
 import { html } from 'diff2html';
 import 'diff2html/bundles/css/diff2html.min.css';
@@ -9,10 +9,12 @@ import {
   ClipboardDocumentIcon,
   TableCellsIcon,
   CodeBracketIcon,
-  ClockIcon,
   GlobeAltIcon,
   ServerIcon,
-  BookOpenIcon,
+  CodeBracketSquareIcon,
+  RectangleStackIcon,
+  ArrowsRightLeftIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { buildUrl } from '@utils/url-builder';
@@ -21,13 +23,287 @@ import SchemaContentViewer from './SchemaContentViewer';
 import DiffViewer from './DiffViewer';
 import ApiContentViewer from './ApiContentViewer';
 import ExamplesViewer from './ExamplesViewer';
+import SchemaUsage from './SchemaUsage';
+import SchemaFlows from './SchemaFlows';
 import VersionHistoryModal from './VersionHistoryModal';
 import SchemaCodeModal from './SchemaCodeModal';
 import SchemaViewerModal from './SchemaViewerModal';
-import { copyToClipboard, downloadSchema, getSchemaTypeLabel, ICON_SPECS, getSchemaRelationshipReference } from './utils';
+import {
+  copyToClipboard,
+  downloadSchema,
+  getSchemaTypeLabel,
+  ICON_SPECS,
+  getSchemaRelationshipReference,
+  getSchemaRelationshipHref,
+  SCHEMA_RELATIONSHIP_LABELS,
+} from './utils';
 import { createSchemaDetailsLoader, useSchemaDetails } from './useSchemaDetails';
 import { parseProtobufSchema } from '@utils/protobuf-schema';
-import type { SchemaItem, VersionDiff, Owner, Producer, Consumer } from './types';
+import type { SchemaItem, SchemaSourceInfo, SchemaRelationshipCollection, VersionDiff, Owner, Producer } from './types';
+
+const MESSAGE_TYPE_LABELS: Partial<Record<SchemaItem['collection'], string>> = {
+  events: 'Event',
+  commands: 'Command',
+  queries: 'Query',
+};
+
+const SCHEMA_SOURCE_PROVIDER_LABELS: Record<string, string> = {
+  git: 'Git',
+  http: 'HTTP',
+};
+
+const getSchemaSourceLabel = (source: SchemaSourceInfo) => {
+  const provider = SCHEMA_SOURCE_PROVIDER_LABELS[source.provider] ?? source.provider;
+  return source.ref ? `${provider} (${source.ref})` : provider;
+};
+
+const formatSchemaUpdatedAt = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+type MetadataRow = { label: string; value: React.ReactNode; title?: string };
+
+const MetadataEmpty = () => <span className="text-[rgb(var(--ec-page-text-muted)/0.6)]">-</span>;
+
+const MetadataTable = ({ title, rows }: { title: string; rows: MetadataRow[] }) => (
+  <section className="overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border)/0.72)] bg-[rgb(var(--ec-dropdown-bg)/0.66)] dark:border-white/10">
+    <div className="border-b border-[rgb(var(--ec-page-border)/0.6)] bg-[rgb(var(--ec-content-hover)/0.45)] px-4 py-2.5 dark:border-white/10">
+      <h3 className="text-[11px] font-medium uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">{title}</h3>
+    </div>
+    <dl className="divide-y divide-[rgb(var(--ec-page-border)/0.5)] dark:divide-white/8">
+      {rows.map((row) => (
+        <div key={row.label} className="grid grid-cols-[10rem_1fr] gap-4 px-4 py-2.5 text-sm" title={row.title}>
+          <dt className="text-[rgb(var(--ec-page-text-muted))]">{row.label}</dt>
+          <dd className="min-w-0 break-words font-medium text-[rgb(var(--ec-page-text))]">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+);
+
+const formatSchemaDateTime = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+};
+
+const SchemaMetadata = ({ message, owners }: { message: SchemaItem; owners: Owner[] }) => {
+  const { color } = getCollectionStyles(message.collection);
+  const source = message.source;
+  const schemaRows: MetadataRow[] = [
+    { label: 'Name', value: message.data.name },
+    ...(message.schemaName && message.schemaName !== message.data.name ? [{ label: 'Schema', value: message.schemaName }] : []),
+    { label: 'Format', value: getSchemaTypeLabel(message.schemaExtension) },
+    {
+      label: MESSAGE_TYPE_LABELS[message.collection] ? 'Message Type' : 'Resource',
+      value: (
+        <span className={`capitalize text-${color}-500`}>{MESSAGE_TYPE_LABELS[message.collection] ?? message.collection}</span>
+      ),
+    },
+    { label: 'Version', value: <span className="font-mono text-xs tabular-nums">v{message.data.version}</span> },
+    ...(message.data.schemaPath
+      ? [{ label: 'File', value: <span className="font-mono text-xs">{message.data.schemaPath}</span> }]
+      : []),
+    {
+      label: 'Created',
+      value: source?.createdAt ? formatSchemaDateTime(source.createdAt) : <MetadataEmpty />,
+    },
+    {
+      label: 'Updated',
+      value: source?.updatedAt ? formatSchemaDateTime(source.updatedAt) : <MetadataEmpty />,
+    },
+  ];
+
+  const sourceRows: MetadataRow[] = source
+    ? [
+        { label: 'Source', value: getSchemaSourceLabel(source) },
+        ...(message.schemaRef
+          ? [{ label: 'Reference', value: <span className="font-mono text-xs">{message.schemaRef}</span> }]
+          : []),
+        ...(source.path ? [{ label: 'Location', value: <span className="font-mono text-xs">{source.path}</span> }] : []),
+        ...(source.repository
+          ? [{ label: 'Repository', value: <span className="font-mono text-xs">{source.repository}</span> }]
+          : []),
+        ...(source.commit ? [{ label: 'Commit', value: <span className="font-mono text-xs">{source.commit}</span> }] : []),
+        ...(source.url
+          ? [
+              {
+                label: 'Link',
+                value: (
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[rgb(var(--ec-accent))] hover:underline"
+                  >
+                    <span className="break-all">{source.url}</span>
+                    <ArrowTopRightOnSquareIcon className="h-3 w-3 flex-shrink-0" />
+                  </a>
+                ),
+              },
+            ]
+          : []),
+      ]
+    : [{ label: 'Source', value: 'Local file' }];
+
+  const ownerRows: MetadataRow[] = [
+    {
+      label: owners.length === 1 ? 'Owner' : 'Owners',
+      value:
+        owners.length > 0 ? (
+          <span className="flex flex-wrap gap-x-3 gap-y-1">
+            {owners.map((owner, idx) => (
+              <a key={`${owner.id}-${idx}`} href={owner.href} className="hover:text-[rgb(var(--ec-accent))] hover:underline">
+                {owner.name}
+              </a>
+            ))}
+          </span>
+        ) : (
+          <MetadataEmpty />
+        ),
+    },
+  ];
+
+  return (
+    <div className="h-full space-y-4 overflow-auto pr-1">
+      <MetadataTable title="Schema" rows={schemaRows} />
+      <MetadataTable title="Source" rows={sourceRows} />
+      <MetadataTable title="Ownership" rows={ownerRows} />
+    </div>
+  );
+};
+
+const SchemaVersionsTable = ({
+  versions,
+  currentVersion,
+  onSelect,
+  onCompare,
+}: {
+  versions: SchemaItem[];
+  currentVersion: string;
+  onSelect: (version: string) => void;
+  /** Opens a diff between the given version and the one being viewed. */
+  onCompare?: (version: string) => void;
+}) => (
+  <div className="overflow-auto rounded-xl border border-[rgb(var(--ec-page-border)/0.72)] bg-[rgb(var(--ec-dropdown-bg)/0.66)] dark:border-white/10">
+    <table className="min-w-full divide-y divide-[rgb(var(--ec-page-border)/0.62)] dark:divide-white/10">
+      <thead className="sticky top-0 z-10 bg-[rgb(var(--ec-content-hover)/0.45)]">
+        <tr>
+          <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">
+            Version
+          </th>
+          <th className="w-full px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">
+            Summary
+          </th>
+          <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">
+            Format
+          </th>
+          <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">
+            Updated
+          </th>
+          {onCompare && <th className="px-4 py-2.5" />}
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-[rgb(var(--ec-page-border)/0.5)] dark:divide-white/8">
+        {versions.map((version, idx) => {
+          const isCurrent = version.data.version === currentVersion;
+          const isLatest = idx === 0;
+          return (
+            <tr
+              key={`${version.data.version}-${idx}`}
+              onClick={() => onSelect(version.data.version)}
+              className={`group cursor-pointer transition-colors ${
+                isCurrent
+                  ? 'bg-[rgb(var(--ec-accent-subtle)/0.55)]'
+                  : 'bg-transparent hover:bg-[rgb(var(--ec-content-hover)/0.38)]'
+              }`}
+            >
+              <td className="whitespace-nowrap px-4 py-3 text-sm">
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onSelect(version.data.version);
+                  }}
+                  className="inline-flex items-center gap-2 text-left"
+                >
+                  <span
+                    className={`h-2 w-2 flex-shrink-0 rounded-full ${
+                      isCurrent
+                        ? 'bg-[rgb(var(--ec-accent))]'
+                        : 'bg-[rgb(var(--ec-page-border))] group-hover:bg-[rgb(var(--ec-page-text-muted))]'
+                    }`}
+                  />
+                  <span className="font-mono text-xs tabular-nums text-[rgb(var(--ec-page-text))]">v{version.data.version}</span>
+                  {isLatest && (
+                    <span className="rounded bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-accent))]">
+                      latest
+                    </span>
+                  )}
+                  {isCurrent && <span className="text-[10px] font-medium text-[rgb(var(--ec-page-text-muted))]">viewing</span>}
+                </button>
+              </td>
+              <td className="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                {version.data.summary ? <p className="line-clamp-2 max-w-2xl">{version.data.summary}</p> : <span>-</span>}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                {getSchemaTypeLabel(version.schemaExtension)}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                {version.source?.updatedAt ? formatSchemaUpdatedAt(version.source.updatedAt) : '-'}
+              </td>
+              {onCompare && (
+                <td className="whitespace-nowrap px-4 py-3 text-right text-xs">
+                  {!isCurrent && (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onCompare(version.data.version);
+                      }}
+                      className="font-medium text-[rgb(var(--ec-accent))] hover:underline"
+                    >
+                      Compare with v{currentVersion}
+                    </button>
+                  )}
+                </td>
+              )}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+);
+
+type SchemaTabId = 'code' | 'schema' | 'api' | 'examples' | 'usage' | 'flows' | 'versions' | 'metadata';
+
+/** Values used in the `tab` query parameter so a tab can be linked to directly. */
+const SCHEMA_TAB_SLUGS: Record<SchemaTabId, string> = {
+  code: 'schema',
+  schema: 'properties',
+  metadata: 'details',
+  versions: 'versions',
+  examples: 'examples',
+  usage: 'producers-consumers',
+  flows: 'flows',
+  api: 'api',
+};
+
+const DEFAULT_SCHEMA_TAB: SchemaTabId = 'code';
+
+const getTabIdFromSlug = (slug: string | null): SchemaTabId | undefined =>
+  (Object.keys(SCHEMA_TAB_SLUGS) as SchemaTabId[]).find((id) => SCHEMA_TAB_SLUGS[id] === slug);
+
+const writeTabToUrl = (tab: SchemaTabId) => {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  if (tab === DEFAULT_SCHEMA_TAB) url.searchParams.delete('tab');
+  else url.searchParams.set('tab', SCHEMA_TAB_SLUGS[tab]);
+  window.history.replaceState(window.history.state, '', url);
+};
 
 interface SchemaDetailsPanelProps {
   message: SchemaItem;
@@ -37,6 +313,10 @@ interface SchemaDetailsPanelProps {
   apiAccessEnabled?: boolean;
   showOwners?: boolean;
   showProducersConsumers?: boolean;
+  /** Tab slug from the URL, when the server could read it. Lets the first render show the right tab. */
+  initialTab?: string;
+  /** Examples already rendered on the server (MDX with EventCatalog components). Falls back to Markdown rendering when absent. */
+  renderedExamples?: React.ReactNode;
 }
 
 export default function SchemaDetailsPanel({
@@ -47,26 +327,29 @@ export default function SchemaDetailsPanel({
   apiAccessEnabled = false,
   showOwners = true,
   showProducersConsumers = true,
+  initialTab,
+  renderedExamples,
 }: SchemaDetailsPanelProps) {
   const [loadDetails] = useState(createSchemaDetailsLoader);
   const content = useSchemaDetails(metadataMessage, loadDetails);
   const message = content.message!;
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'code' | 'schema' | 'diff' | 'api' | 'examples'>('code');
+  const [activeTab, setActiveTab] = useState<SchemaTabId>(() => getTabIdFromSlug(initialTab ?? null) ?? DEFAULT_SCHEMA_TAB);
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [isSchemaViewerModalOpen, setIsSchemaViewerModalOpen] = useState(false);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
+  const [isVersionMenuOpen, setIsVersionMenuOpen] = useState(false);
+  const versionMenuRef = useRef<HTMLDivElement>(null);
 
-  const hasMultipleVersions = availableVersions.length > 1;
   const { color } = getCollectionStyles(message.collection);
   const ext = message.schemaExtension?.toLowerCase() || '';
   const iconSpec = ICON_SPECS[ext];
   const owners = message.data.owners || [];
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
-  const filename = message.data.schemaPath?.split('/').pop() || `${message.data.id}.${ext || 'json'}`;
+  const flows = message.data.flows || [];
 
   const uniqueAvailableVersions = useMemo(
     () =>
@@ -75,6 +358,8 @@ export default function SchemaDetailsPanel({
       ),
     [availableVersions]
   );
+  // Several schemas can share one message version, so count distinct versions only.
+  const hasMultipleVersions = uniqueAvailableVersions.length > 1;
   const defaultToVersion = uniqueAvailableVersions[0]?.data.version || '';
   const defaultFromVersion = uniqueAvailableVersions[1]?.data.version || defaultToVersion;
   const [diffFromVersion, setDiffFromVersion] = useState(defaultFromVersion);
@@ -100,7 +385,12 @@ export default function SchemaDetailsPanel({
     () => uniqueAvailableVersions.find((version) => version.data.version === diffToVersion),
     [diffToVersion, uniqueAvailableVersions]
   );
-  const comparing = activeTab === 'diff' || isDiffModalOpen;
+  const comparing = (activeTab === 'versions' && hasMultipleVersions) || isDiffModalOpen;
+
+  const compareWithCurrent = (version: string) => {
+    setDiffFromVersion(version);
+    setDiffToVersion(message.data.version);
+  };
   const fromContent = useSchemaDetails(diffFromMetadata, loadDetails, comparing);
   const toContent = useSchemaDetails(diffToMetadata, loadDetails, comparing);
   const diffFromItem = fromContent.message;
@@ -212,18 +502,21 @@ export default function SchemaDetailsPanel({
 
   const isCopied = copiedId === message.data.id;
   const docsUrl = buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`);
-  const sidebarCardClass = 'rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg)/0.66)] px-4 py-4';
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       if (!actionsMenuRef.current?.contains(event.target as Node)) {
         setIsActionsOpen(false);
       }
+      if (!versionMenuRef.current?.contains(event.target as Node)) {
+        setIsVersionMenuOpen(false);
+      }
     };
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsActionsOpen(false);
+        setIsVersionMenuOpen(false);
       }
     };
 
@@ -237,21 +530,63 @@ export default function SchemaDetailsPanel({
   }, []);
 
   const hasParsedSchema = !!parsedSchema || !!parsedAvroSchema || !!parsedProtoSchema;
-  // Build tabs
-  const tabs: { id: string; label: string; icon: React.ReactNode }[] = [
-    { id: 'code', label: 'Schema', icon: <CodeBracketIcon className="h-3.5 w-3.5" /> },
+  // Build tabs in three groups: the contract itself, who uses it, then reference material.
+  type SchemaTab = { id: SchemaTabId; label: string; icon: React.ReactNode; group: 'contract' | 'usage' | 'reference' };
+  const tabs: SchemaTab[] = [
+    { id: 'code', label: 'Schema', icon: <CodeBracketIcon className="h-3.5 w-3.5" />, group: 'contract' },
   ];
   if (hasParsedSchema) {
-    tabs.push({ id: 'schema', label: 'Properties', icon: <TableCellsIcon className="h-3.5 w-3.5" /> });
+    tabs.push({ id: 'schema', label: 'Properties', icon: <TableCellsIcon className="h-3.5 w-3.5" />, group: 'contract' });
   }
   const examples = message.examples || [];
-  if (examples.length > 0) {
-    tabs.push({ id: 'examples', label: 'Usage Examples', icon: <BookOpenIcon className="h-3.5 w-3.5" /> });
+  if (examples.length > 0 || renderedExamples) {
+    tabs.push({ id: 'examples', label: 'Examples', icon: <CodeBracketSquareIcon className="h-3.5 w-3.5" />, group: 'contract' });
   }
-  if (hasMultipleVersions) {
-    tabs.push({ id: 'diff', label: 'Changes', icon: <ClockIcon className="h-3.5 w-3.5" /> });
+  const usageCount = producers.length + consumers.length;
+  const showUsageTab = showProducersConsumers && message.collection !== 'services' && usageCount > 0;
+  if (showUsageTab) {
+    tabs.push({
+      id: 'usage',
+      label: 'Producers & Consumers',
+      icon: <ServerIcon className="h-3.5 w-3.5" />,
+      group: 'usage',
+    });
   }
-  tabs.push({ id: 'api', label: 'API', icon: <GlobeAltIcon className="h-3.5 w-3.5" /> });
+  const showFlowsTab = message.collection !== 'services' && flows.length > 0;
+  if (showFlowsTab) {
+    tabs.push({
+      id: 'flows',
+      label: `Flows (${flows.length})`,
+      icon: <ArrowsRightLeftIcon className="h-3.5 w-3.5" />,
+      group: 'usage',
+    });
+  }
+  tabs.push({
+    id: 'versions',
+    label: `Versions (${uniqueAvailableVersions.length})`,
+    icon: <RectangleStackIcon className="h-3.5 w-3.5" />,
+    group: 'reference',
+  });
+  tabs.push({ id: 'metadata', label: 'Details', icon: <InformationCircleIcon className="h-3.5 w-3.5" />, group: 'reference' });
+  tabs.push({ id: 'api', label: 'API', icon: <GlobeAltIcon className="h-3.5 w-3.5" />, group: 'reference' });
+
+  const availableTabIds = tabs.map((tab) => tab.id).join(',');
+  const selectTab = (tab: SchemaTabId) => {
+    setActiveTab(tab);
+    writeTabToUrl(tab);
+  };
+
+  // Restore the tab named in the URL once the available tabs are known (static builds cannot resolve it on the
+  // server), and fall back to the default when the requested tab does not exist for this message.
+  useEffect(() => {
+    const available = availableTabIds.split(',');
+    const requested = getTabIdFromSlug(new URLSearchParams(window.location.search).get('tab'));
+    if (requested && available.includes(requested)) {
+      setActiveTab(requested);
+    } else {
+      setActiveTab((current) => (available.includes(current) ? current : DEFAULT_SCHEMA_TAB));
+    }
+  }, [availableTabIds]);
 
   return (
     <div className="flex h-full min-h-0 bg-[rgb(var(--ec-page-bg))] overflow-hidden">
@@ -270,14 +605,54 @@ export default function SchemaDetailsPanel({
                   )}
                 </div>
                 <h2 className="text-xl font-semibold text-[rgb(var(--ec-page-text))] truncate">{message.data.name}</h2>
-                <span className="flex-shrink-0 text-xs font-mono tabular-nums text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-md">
-                  v{message.data.version}
-                </span>
-                <span
-                  className={`flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-${color}-500/10 text-${color}-400 capitalize`}
-                >
-                  {message.collection}
-                </span>
+                <div className="relative flex-shrink-0" ref={versionMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsVersionMenuOpen((prev) => !prev)}
+                    aria-expanded={isVersionMenuOpen}
+                    aria-haspopup="listbox"
+                    title="Switch version"
+                    className="inline-flex items-center gap-1 rounded-md border border-transparent bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 font-mono text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))] transition-colors hover:border-[rgb(var(--ec-page-border))] hover:text-[rgb(var(--ec-page-text))]"
+                  >
+                    v{message.data.version}
+                    <ChevronDownIcon className={`h-3 w-3 transition-transform ${isVersionMenuOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isVersionMenuOpen && (
+                    <ul
+                      role="listbox"
+                      aria-label="Versions"
+                      className="absolute left-0 top-[calc(100%+0.4rem)] z-20 max-h-72 min-w-[12rem] overflow-y-auto rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] py-1 shadow-xl"
+                    >
+                      {uniqueAvailableVersions.map((version, idx) => {
+                        const isCurrent = version.data.version === message.data.version;
+                        return (
+                          <li key={`${version.data.version}-${idx}`} role="option" aria-selected={isCurrent}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsVersionMenuOpen(false);
+                                if (!isCurrent) onVersionChange(version.data.version);
+                              }}
+                              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-[rgb(var(--ec-content-hover))] ${
+                                isCurrent ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
+                              }`}
+                            >
+                              <CheckIcon
+                                className={`h-3.5 w-3.5 flex-shrink-0 ${isCurrent ? 'text-[rgb(var(--ec-accent))]' : 'invisible'}`}
+                              />
+                              <span className="font-mono tabular-nums">v{version.data.version}</span>
+                              {idx === 0 && (
+                                <span className="ml-auto rounded bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-accent))]">
+                                  latest
+                                </span>
+                              )}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
               </div>
               {message.data.summary && (
                 <p className="mt-3 text-sm leading-relaxed text-[rgb(var(--ec-page-text-muted))]">{message.data.summary}</p>
@@ -349,19 +724,24 @@ export default function SchemaDetailsPanel({
         {/* Tabs */}
         <div className="flex-shrink-0 px-6">
           <div className="flex items-center gap-1 border-b border-[rgb(var(--ec-page-border))]">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
-                    : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-page-border))]'
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
+            {tabs.map((tab, index) => (
+              <Fragment key={tab.id}>
+                {index > 0 && tabs[index - 1].group !== tab.group && (
+                  <span aria-hidden="true" className="mx-2 h-4 w-px bg-[rgb(var(--ec-page-border))]" />
+                )}
+                <button
+                  onClick={() => selectTab(tab.id)}
+                  data-tab-group={tab.group}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-page-text))]'
+                      : 'border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-page-border))]'
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              </Fragment>
             ))}
           </div>
         </div>
@@ -370,8 +750,98 @@ export default function SchemaDetailsPanel({
         <div className="flex-1 min-h-0 overflow-hidden p-6">
           {content.loading || content.error ? (
             <SchemaLoadingState loading={content.loading} error={content.error} retry={content.retry} />
+          ) : activeTab === 'examples' && renderedExamples ? (
+            <div className="h-full overflow-auto pr-1">{renderedExamples}</div>
           ) : activeTab === 'examples' && examples.length > 0 ? (
             <ExamplesViewer examples={examples} />
+          ) : activeTab === 'metadata' ? (
+            <SchemaMetadata message={message} owners={showOwners ? owners : []} />
+          ) : activeTab === 'versions' ? (
+            <div className="h-full space-y-4 overflow-auto pr-1">
+              <SchemaVersionsTable
+                versions={uniqueAvailableVersions}
+                currentVersion={message.data.version}
+                onSelect={onVersionChange}
+                onCompare={hasMultipleVersions ? compareWithCurrent : undefined}
+              />
+              {hasMultipleVersions && (
+                <div className="flex flex-col">
+                  <div className="mb-4 flex flex-shrink-0 flex-col gap-3 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] p-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+                      <label className="flex flex-col gap-1.5">
+                        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[rgb(var(--ec-page-text-muted))]">
+                          From
+                        </span>
+                        <select
+                          value={diffFromVersion}
+                          onChange={(event) => setDiffFromVersion(event.target.value)}
+                          className="h-9 rounded-md border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-sm font-mono tabular-nums text-[rgb(var(--ec-page-text))] outline-hidden transition-colors focus:border-[rgb(var(--ec-accent))] focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
+                        >
+                          {uniqueAvailableVersions.map((version) => (
+                            <option key={`from-${version.data.version}`} value={version.data.version}>
+                              v{version.data.version}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="flex flex-col gap-1.5">
+                        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[rgb(var(--ec-page-text-muted))]">
+                          To
+                        </span>
+                        <select
+                          value={diffToVersion}
+                          onChange={(event) => setDiffToVersion(event.target.value)}
+                          className="h-9 rounded-md border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-sm font-mono tabular-nums text-[rgb(var(--ec-page-text))] outline-hidden transition-colors focus:border-[rgb(var(--ec-accent))] focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
+                        >
+                          {uniqueAvailableVersions.map((version) => (
+                            <option key={`to-${version.data.version}`} value={version.data.version}>
+                              v{version.data.version}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsDiffModalOpen(true)}
+                        disabled={!selectedDiff}
+                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+                        Expand
+                      </button>
+                    </div>
+                  </div>
+                  <div className="min-h-[16rem] overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))]">
+                    {fromContent.loading || toContent.loading || fromContent.error || toContent.error ? (
+                      <SchemaLoadingState
+                        loading={fromContent.loading || toContent.loading}
+                        error={fromContent.error || toContent.error}
+                        retry={() => {
+                          fromContent.retry();
+                          toContent.retry();
+                        }}
+                      />
+                    ) : diffFromVersion === diffToVersion ? (
+                      <div className="flex h-full items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
+                        <p className="text-sm">Select two different versions</p>
+                      </div>
+                    ) : !hasDiffFromContent || !hasDiffToContent ? (
+                      <div className="flex h-full items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
+                        <p className="text-sm">No schema content available</p>
+                      </div>
+                    ) : (
+                      <DiffViewer diffs={selectedDiffs} apiAccessEnabled={apiAccessEnabled} />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : activeTab === 'usage' && showUsageTab ? (
+            <SchemaUsage message={message} />
+          ) : activeTab === 'flows' && showFlowsTab ? (
+            <SchemaFlows message={message} flows={flows} />
           ) : activeTab === 'api' ? (
             <ApiContentViewer
               message={message}
@@ -379,76 +849,6 @@ export default function SchemaDetailsPanel({
               copiedId={copiedId}
               apiAccessEnabled={apiAccessEnabled}
             />
-          ) : activeTab === 'diff' && hasMultipleVersions ? (
-            <div className="flex h-full min-h-0 flex-col overflow-hidden">
-              <div className="mb-4 flex flex-shrink-0 flex-col gap-3 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-content-hover)/0.45)] p-3 sm:flex-row sm:items-end sm:justify-between">
-                <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label className="flex flex-col gap-1.5">
-                    <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[rgb(var(--ec-page-text-muted))]">
-                      From
-                    </span>
-                    <select
-                      value={diffFromVersion}
-                      onChange={(event) => setDiffFromVersion(event.target.value)}
-                      className="h-9 rounded-md border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-sm font-mono tabular-nums text-[rgb(var(--ec-page-text))] outline-hidden transition-colors focus:border-[rgb(var(--ec-accent))] focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
-                    >
-                      {uniqueAvailableVersions.map((version) => (
-                        <option key={`from-${version.data.version}`} value={version.data.version}>
-                          v{version.data.version}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="flex flex-col gap-1.5">
-                    <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[rgb(var(--ec-page-text-muted))]">
-                      To
-                    </span>
-                    <select
-                      value={diffToVersion}
-                      onChange={(event) => setDiffToVersion(event.target.value)}
-                      className="h-9 rounded-md border border-[rgb(var(--ec-dropdown-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-sm font-mono tabular-nums text-[rgb(var(--ec-page-text))] outline-hidden transition-colors focus:border-[rgb(var(--ec-accent))] focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)]"
-                    >
-                      {uniqueAvailableVersions.map((version) => (
-                        <option key={`to-${version.data.version}`} value={version.data.version}>
-                          v{version.data.version}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsDiffModalOpen(true)}
-                  disabled={!selectedDiff}
-                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-dropdown-bg))] px-3 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
-                  Expand
-                </button>
-              </div>
-              <div className="min-h-0 flex-1 overflow-hidden">
-                {fromContent.loading || toContent.loading || fromContent.error || toContent.error ? (
-                  <SchemaLoadingState
-                    loading={fromContent.loading || toContent.loading}
-                    error={fromContent.error || toContent.error}
-                    retry={() => {
-                      fromContent.retry();
-                      toContent.retry();
-                    }}
-                  />
-                ) : diffFromVersion === diffToVersion ? (
-                  <div className="flex h-full items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
-                    <p className="text-sm">Select two different versions</p>
-                  </div>
-                ) : !hasDiffFromContent || !hasDiffToContent ? (
-                  <div className="flex h-full items-center justify-center text-[rgb(var(--ec-page-text-muted))]">
-                    <p className="text-sm">No schema content available</p>
-                  </div>
-                ) : (
-                  <DiffViewer diffs={selectedDiffs} apiAccessEnabled={apiAccessEnabled} />
-                )}
-              </div>
-            </div>
           ) : (
             <SchemaContentViewer
               message={message}
@@ -467,144 +867,6 @@ export default function SchemaDetailsPanel({
                     : undefined
               }
             />
-          )}
-        </div>
-      </div>
-
-      {/* Right sidebar - spans full height */}
-      <div className="h-full w-80 flex-shrink-0 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] px-3 py-4">
-        <div className="space-y-3">
-          {/* Details section */}
-          <div className={sidebarCardClass}>
-            <h3 className="mb-4 text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">Details</h3>
-            <dl className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <dt className="text-xs text-[rgb(var(--ec-page-text-muted))]">Format</dt>
-                <dd className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">
-                  {getSchemaTypeLabel(message.schemaExtension)}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-xs text-[rgb(var(--ec-page-text-muted))]">Resource</dt>
-                <dd className={`text-xs font-medium text-${color}-400 capitalize`}>{message.collection}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-xs text-[rgb(var(--ec-page-text-muted))]">Filename</dt>
-                <dd className="max-w-[11rem] truncate text-xs font-medium text-[rgb(var(--ec-page-text-muted))]" title={filename}>
-                  {filename}
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          {/* Versions section */}
-          <div className={sidebarCardClass}>
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 className="text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">Versions</h3>
-            </div>
-            <div className="space-y-1">
-              {availableVersions
-                .filter((v, idx, arr) => arr.findIndex((a) => a.data.version === v.data.version) === idx)
-                .map((v, idx) => {
-                  const isActive = v.data.version === message.data.version;
-                  const isLatest = idx === 0;
-                  return (
-                    <button
-                      key={`${v.data.version}-${idx}`}
-                      onClick={() => onVersionChange(v.data.version)}
-                      className={`w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors ${
-                        isActive
-                          ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-page-text))]'
-                          : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-bg)/0.55)]'
-                      }`}
-                    >
-                      <div
-                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                          isActive ? 'bg-[rgb(var(--ec-accent))]' : 'bg-[rgb(var(--ec-page-border))]'
-                        }`}
-                      />
-                      <span className="text-xs font-mono tabular-nums">v{v.data.version}</span>
-                      {isLatest && (
-                        <span className="text-[10px] font-medium text-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 rounded">
-                          latest
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-            </div>
-          </div>
-
-          {/* Schema producers section */}
-          {showProducersConsumers && producers.length > 0 && message.collection !== 'services' && (
-            <div className={sidebarCardClass}>
-              <div className="mb-2.5 flex items-center justify-between gap-3">
-                <h3 className="text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">
-                  Schema Producers ({producers.length})
-                </h3>
-              </div>
-              <div className="space-y-1">
-                {producers.map((producer: Producer, idx: number) => {
-                  const { id: serviceName, version } = getSchemaRelationshipReference(producer);
-                  return (
-                    <a
-                      key={`${producer.id}-${idx}`}
-                      href={buildUrl(`/docs/services/${serviceName}/${version}`)}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.55)] hover:text-[rgb(var(--ec-accent))]"
-                    >
-                      <ServerIcon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
-                      {serviceName}
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Schema consumers section */}
-          {showProducersConsumers && consumers.length > 0 && message.collection !== 'services' && (
-            <div className={sidebarCardClass}>
-              <div className="mb-2.5 flex items-center justify-between gap-3">
-                <h3 className="text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">
-                  Schema Consumers ({consumers.length})
-                </h3>
-              </div>
-              <div className="space-y-1">
-                {consumers.map((consumer: Consumer, idx: number) => {
-                  const { id: serviceName, version } = getSchemaRelationshipReference(consumer);
-                  return (
-                    <a
-                      key={`${consumer.id}-${idx}`}
-                      href={buildUrl(`/docs/services/${serviceName}/${version}`)}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.55)] hover:text-[rgb(var(--ec-accent))]"
-                    >
-                      <ServerIcon className="h-3.5 w-3.5 flex-shrink-0 text-[rgb(var(--ec-page-text-muted))]" />
-                      {serviceName}
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Owners section */}
-          {showOwners && owners.length > 0 && (
-            <div className={sidebarCardClass}>
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="text-[0.8rem] font-semibold text-[rgb(var(--ec-page-text))]">Owners</h3>
-              </div>
-              <div className="space-y-1">
-                {owners.map((owner: Owner, idx: number) => (
-                  <a
-                    key={`${owner.id}-${idx}`}
-                    href={owner.href}
-                    className="block rounded-lg px-2 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] transition-colors hover:bg-[rgb(var(--ec-page-bg)/0.55)] hover:text-[rgb(var(--ec-accent))]"
-                  >
-                    {owner.name}
-                  </a>
-                ))}
-              </div>
-            </div>
           )}
         </div>
       </div>

@@ -1266,10 +1266,34 @@ const sidebars = defineCollection({
   schema: sidebarSchema,
 });
 
+/**
+ * Usage examples: Markdown or MDX files inside a message's `examples/` folder. Loaded as a
+ * collection so they render through the MDX pipeline with EventCatalog's custom components.
+ */
+const examples = defineCollection({
+  loader: globWithSafeWatcher({
+    pattern: withIgnoredBuildArtifacts([
+      '**/events/*/examples/**/*.(md|mdx)',
+      '**/events/*/versioned/*/examples/**/*.(md|mdx)',
+      '**/commands/*/examples/**/*.(md|mdx)',
+      '**/commands/*/versioned/*/examples/**/*.(md|mdx)',
+      '**/queries/*/examples/**/*.(md|mdx)',
+      '**/queries/*/versioned/*/examples/**/*.(md|mdx)',
+    ]),
+    base: projectDirBase,
+    generateId: ({ entry }) => entry,
+  }),
+  schema: z.object({
+    title: z.string().optional(),
+    summary: z.string().optional(),
+  }),
+});
+
 export const collections = {
   events,
   commands,
   queries,
+  examples,
   services,
   agents,
   adrs,

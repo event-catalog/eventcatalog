@@ -11,8 +11,11 @@ const fixtures = vi.hoisted(() => ({
   services: [] as any[],
   domains: [] as any[],
   products: [] as any[],
+  flows: [] as any[],
 }));
-vi.mock('astro:content', () => ({ getCollection: vi.fn(async () => fixtures.schemas) }));
+vi.mock('astro:content', () => ({
+  getCollection: vi.fn(async (name: string) => (name === 'flows' ? fixtures.flows : fixtures.schemas)),
+}));
 vi.mock('@utils/collections/events', () => ({ getEvents: vi.fn(async () => fixtures.events) }));
 vi.mock('@utils/collections/commands', () => ({ getCommands: vi.fn(async () => []) }));
 vi.mock('@utils/collections/queries', () => ({ getQueries: vi.fn(async () => []) }));
@@ -25,6 +28,7 @@ vi.mock('@utils/collections/domains', () => ({
   getSpecificationsForDomain: (s: any) => s.data.specifications || [],
 }));
 vi.mock('@utils/collections/data-products', () => ({ getDataProducts: vi.fn(async () => fixtures.products) }));
+vi.mock('@utils/collections/agents', () => ({ getAgents: vi.fn(async () => []) }));
 vi.mock('@utils/collections/owners', () => ({ getOwner: vi.fn() }));
 vi.mock('@utils/resource-files', () => ({
   resourceFileExists: vi.fn(() => true),
@@ -36,6 +40,10 @@ vi.mock('@utils/collections/examples', () => ({
   ]),
 }));
 vi.mock('@utils/feature', () => ({ isSSR: () => fixtures.ssr }));
+vi.mock('@utils/schema-usage-graph', () => ({
+  getMessageUsageGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
+  attachFlowGraphs: vi.fn(async (flows: any[]) => flows.map((flow) => ({ ...flow, graph: { nodes: [], edges: [] } }))),
+}));
 
 import { readResourceFile } from '@utils/resource-files';
 import { getExamplesForResource } from '@utils/collections/examples';
@@ -48,6 +56,13 @@ const resource = (collection: string, version = '1.0.0') => ({
 });
 const spec = (path: string) => ({ path, type: 'openapi', name: path, filenameWithoutExtension: path.replace('.yaml', '') });
 const keyOf = (url: string) => url.split('/').pop()!.replace('.json', '');
+const checkoutFlowUsage = {
+  id: 'Checkout',
+  version: '1.0.0',
+  name: 'Checkout flow',
+  summary: 'Places an order.',
+  graph: { nodes: [], edges: [] },
+};
 
 describe('schema explorer content delivery', () => {
   beforeEach(() => {
@@ -88,6 +103,25 @@ describe('schema explorer content delivery', () => {
           ...resource('data-products').data,
           outputs: [{ contract: { name: 'Contract', path: 'contract.json', type: 'json-schema' } }],
         },
+      },
+    ];
+    fixtures.flows = [
+      {
+        collection: 'flows',
+        data: {
+          id: 'Checkout',
+          name: 'Checkout flow',
+          version: '1.0.0',
+          summary: 'Places an order.',
+          steps: [
+            { id: 'start', title: 'Order placed', message: { id: 'Orders', version: '1.0.0' }, next_step: 'pay' },
+            { id: 'pay', title: 'Take payment' },
+          ],
+        },
+      },
+      {
+        collection: 'flows',
+        data: { id: 'Other', version: '1.0.0', steps: [{ id: 'start', message: { id: 'Unrelated', version: '1.0.0' } }] },
       },
     ];
   });
@@ -138,7 +172,12 @@ describe('schema explorer content delivery', () => {
     expect(details?.schemaContent).toBe('schema content');
     expect(details?.examples[0].content).toBe('example content');
     expect(item.data.producerName).toBe('OrderProducer');
-    expect(details?.data).toEqual({ producers: fixtures.events[0].data.producers, consumers: fixtures.events[0].data.consumers });
+    expect(details?.data).toEqual({
+      producers: fixtures.events[0].data.producers,
+      consumers: fixtures.events[0].data.consumers,
+      flows: [checkoutFlowUsage],
+      channels: [],
+    });
     expect(getExamplesForResource).toHaveBeenCalledTimes(1);
     expect(readResourceFile).not.toHaveBeenCalled();
   });
@@ -156,9 +195,12 @@ describe('schema explorer content delivery', () => {
       expect(await response.json()).toEqual({
         schemaContent: 'schema content',
         examples: [],
+        graph: { nodes: [], edges: [] },
         data: {
           producers: fixtures.events[0].data.producers,
           consumers: fixtures.events[0].data.consumers,
+          flows: [checkoutFlowUsage],
+          channels: [],
         },
       });
       expect(log).toHaveBeenCalledWith('Error reading examples for Orders:', error);
@@ -174,7 +216,7 @@ describe('schema explorer content delivery', () => {
       const enriched = { id: `${id}-3.0.0`, data: { id, version: '3.0.0' } };
       for (const reference of [compact, enriched]) {
         const resolved = getSchemaRelationshipReference(reference);
-        expect(resolved).toEqual(compact);
+        expect(resolved).toMatchObject({ ...compact, collection: 'services' });
         expect(buildUrl(`/docs/services/${resolved.id}/${resolved.version}`)).toBe(`/docs/services/${id}/3.0.0`);
       }
     }
@@ -213,6 +255,8 @@ describe('schema explorer content delivery', () => {
         expect(details.data).toEqual({
           producers: fixtures.events[0].data.producers,
           consumers: fixtures.events[0].data.consumers,
+          flows: [checkoutFlowUsage],
+          channels: [],
         });
       }
     }
@@ -242,7 +286,7 @@ describe('schema explorer content delivery', () => {
     expect(JSON.stringify(dense)).toBe(sparse);
     const selected = dense.find((item) => item.data.id === 'Message42')!;
     const details = await getSchemaDetails(keyOf(selected.contentUrl!));
-    expect(details?.data).toEqual({ producers, consumers });
+    expect(details?.data).toEqual({ producers, consumers, flows: [], channels: [] });
     expect(getExamplesForResource).toHaveBeenCalledTimes(1);
   });
 });

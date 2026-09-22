@@ -1,0 +1,188 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Send a price update
+
+Send a partial update that changes only the price. Fields that are omitted are left untouched.
+
+### Payload details
+
+- `productId` identifies the product to update.
+- `price` uses integer minor units; `currency` is `GBP`.
+- Only the fields you want to change are sent. Omitted fields keep their current values.
+
+### Using this example
+
+Use this to check that the Product API applies a partial update without clearing the name, description or category. A successful update results in a ProductUpdated event with the same changes.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the UpdateProduct schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript update-product.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.send("UpdateProduct", {
+  productId: "0f8fad5b-d9cb-469f-a165-70867728950e",
+  price: 4499,
+  currency: "GBP",
+});
+```
+
+```python update_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.send("UpdateProduct", {
+    "productId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+    "price": 4499,
+    "currency": "GBP",
+})
+```
+
+```java UpdateProduct.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class UpdateProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.send("UpdateProduct", Map.of(
+      "productId", "0f8fad5b-d9cb-469f-a165-70867728950e",
+      "price", 4499,
+      "currency", "GBP"
+    ));
+  }
+}
+```
+
+```csharp UpdateProduct.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.SendAsync("UpdateProduct", new {
+    productId = "0f8fad5b-d9cb-469f-a165-70867728950e",
+    price = 4499,
+    currency = "GBP"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Send an archive request
+
+Send a status-only update that takes the product off sale.
+
+### Payload details
+
+- `status` is set to `ARCHIVED`.
+- No other fields are sent.
+
+### Using this example
+
+Use this to check that archiving is reversible. Sending `status` as `ACTIVE` again puts the product back on sale.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the UpdateProduct schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript update-product.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.send("UpdateProduct", {
+  productId: "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+  status: "ARCHIVED",
+});
+```
+
+```python update_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.send("UpdateProduct", {
+    "productId": "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+    "status": "ARCHIVED",
+})
+```
+
+```java UpdateProduct.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class UpdateProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.send("UpdateProduct", Map.of(
+      "productId", "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+      "status", "ARCHIVED"
+    ));
+  }
+}
+```
+
+```csharp UpdateProduct.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.SendAsync("UpdateProduct", new {
+    productId = "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+    status = "ARCHIVED"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
