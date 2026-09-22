@@ -25,6 +25,7 @@
   },
   "pnpm": {
     "overrides": {
+      "mdast-util-to-hast": "13.2.1",
       "prismjs": ">=1.30.0"
     }
   },
