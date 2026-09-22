@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { shouldCopyCoreEntry } from '../copy-core';
+import { pruneExcludedCoreEntries, shouldCopyCoreEntry } from '../copy-core';
 
 const sourceRoot = path.join('/catalog', 'node_modules', '@eventcatalog', 'core', 'eventcatalog');
 const entry = (...parts: string[]) => path.join(sourceRoot, ...parts);
@@ -87,6 +87,53 @@ describe('shouldCopyCoreEntry', () => {
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
+  });
+});
+
+describe('pruneExcludedCoreEntries', () => {
+  it('removes spec files and __tests__ directories left by an older copy', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'eventcatalog-prune-core-'));
+    const coreDir = path.join(root, '.eventcatalog-core');
+
+    try {
+      const files: Record<string, string> = {
+        [path.join('src', 'components', 'MDX', 'CodeGroup', 'CodeGroup.tsx')]: 'export const CodeGroup = {};\n',
+        [path.join('src', 'components', 'MDX', 'CodeGroup', 'code-group.spec.tsx')]: 'import { it } from "vitest";\n',
+        [path.join('src', 'components', 'EnvironmentDropdown.test.ts')]: 'import { it } from "vitest";\n',
+        [path.join('src', 'utils', '__tests__', 'events.spec.ts')]: 'import { it } from "vitest";\n',
+        [path.join('src', 'utils', 'remote-spec.ts')]: 'export const remoteSpec = {};\n',
+        [path.join('.astro', 'settings.json')]: '{}\n',
+        [path.join('dist', 'server', 'entry.mjs')]: 'export {};\n',
+        [path.join('node_modules', 'vitest', 'index.js')]: 'export {};\n',
+        [path.join('node_modules', 'some-pkg', 'foo.spec.ts')]: 'import { it } from "vitest";\n',
+      };
+
+      for (const [relativePath, contents] of Object.entries(files)) {
+        const filePath = path.join(coreDir, relativePath);
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+        fs.writeFileSync(filePath, contents);
+      }
+
+      pruneExcludedCoreEntries(coreDir);
+
+      expect(fs.existsSync(path.join(coreDir, 'src', 'components', 'MDX', 'CodeGroup', 'CodeGroup.tsx'))).toBe(true);
+      expect(fs.existsSync(path.join(coreDir, 'src', 'utils', 'remote-spec.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(coreDir, '.astro', 'settings.json'))).toBe(true);
+      expect(fs.existsSync(path.join(coreDir, 'dist', 'server', 'entry.mjs'))).toBe(true);
+      expect(fs.existsSync(path.join(coreDir, 'node_modules', 'vitest', 'index.js'))).toBe(true);
+      expect(fs.existsSync(path.join(coreDir, 'node_modules', 'some-pkg', 'foo.spec.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(coreDir, 'src', 'components', 'MDX', 'CodeGroup', 'code-group.spec.tsx'))).toBe(false);
+      expect(fs.existsSync(path.join(coreDir, 'src', 'components', 'EnvironmentDropdown.test.ts'))).toBe(false);
+      expect(fs.existsSync(path.join(coreDir, 'src', 'utils', '__tests__'))).toBe(false);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('does nothing when the core directory is missing', () => {
+    const missing = path.join(os.tmpdir(), 'eventcatalog-prune-core-missing', String(Date.now()));
+
+    expect(() => pruneExcludedCoreEntries(missing)).not.toThrow();
   });
 });
 
