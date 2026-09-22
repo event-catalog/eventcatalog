@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.11.2
+
+### Patch Changes
+
+- c2abff9: Reissue the 4.11.1 fixes in a new patch release after the previous npm publication stalled during verification.
+
 ## 4.11.1
 
 ### Patch Changes
