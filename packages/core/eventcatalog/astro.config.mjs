@@ -34,6 +34,7 @@ import preprocessExpressiveCodeConfig from './integrations/expressive-code-confi
 import catalogAssets from './integrations/catalog-assets.mjs';
 import runtimeDependencies from './integrations/runtime-dependencies.mjs';
 import { getRuntimePaths } from './integrations/runtime-paths.mjs';
+import { clientDependencies } from './integrations/client-dependencies.mjs';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const { runtimeDirectory } = getRuntimePaths(projectDirectory, process.env.CATALOG_DIR);
@@ -218,29 +219,7 @@ export default defineConfig({
     },
     optimizeDeps: {
       exclude: [],
-      // Pre-bundle heavy dependencies so Vite doesn't discover and transform
-      // them lazily on first request. This significantly reduces initial page
-      // load time in dev mode.
-      include: [
-        'lucide-react',
-        '@heroicons/react/24/outline',
-        '@heroicons/react/24/solid',
-        '@heroicons/react/20/solid',
-        '@headlessui/react',
-        '@nanostores/react',
-        'nanostores',
-        'react',
-        'react-dom',
-        'semver',
-        'diff',
-        'diff2html',
-        // Used by the ArchitectureGraph embeds — discovering these lazily mid-session
-        // triggers a re-optimize that 504s every already-loaded chunk
-        'd3-force',
-        'd3-selection',
-        'd3-zoom',
-        'd3-drag',
-      ],
+      include: clientDependencies,
     },
   },
 });
