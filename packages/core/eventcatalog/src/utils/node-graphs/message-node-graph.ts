@@ -515,19 +515,21 @@ const getNodesAndEdges = async ({
           (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
         )?.from ?? [];
 
-      for (const producerChannel of producerChannels) {
-        const producerChannelValue = findInMap(
-          channelMap,
-          producerChannel.id,
-          producerChannel.version
-        ) as CollectionEntry<'channels'>;
+      const resolvedProducerChannels = producerChannels
+        .map(
+          (producerChannel) =>
+            findInMap(channelMap, producerChannel.id, producerChannel.version) as CollectionEntry<'channels'> | undefined
+        )
+        .filter((resolved): resolved is CollectionEntry<'channels'> => resolved !== undefined);
+      const resolvedConsumerChannels = consumerChannels
+        .map(
+          (consumerChannel) =>
+            findInMap(channelMap, consumerChannel.id, consumerChannel.version) as CollectionEntry<'channels'> | undefined
+        )
+        .filter((resolved): resolved is CollectionEntry<'channels'> => resolved !== undefined);
 
-        for (const consumerChannel of consumerChannels) {
-          const consumerChannelValue = findInMap(
-            channelMap,
-            consumerChannel.id,
-            consumerChannel.version
-          ) as CollectionEntry<'channels'>;
+      for (const producerChannelValue of resolvedProducerChannels) {
+        for (const consumerChannelValue of resolvedConsumerChannels) {
           const channelChainToRender = getChannelChain(producerChannelValue, consumerChannelValue, channels);
 
           // If there is a chain between them we need to render them al
@@ -573,8 +575,8 @@ const getNodesAndEdges = async ({
         }
       }
 
-      // If producer does not have a any channels defined, we need to connect the message to the consumer directly
-      if (producerChannels.length === 0 && channel) {
+      // If producer does not have any resolved channels, connect via the consumer channel
+      if (resolvedProducerChannels.length === 0 && channel) {
         // Create the channel node
         nodes.push(
           createNode({
