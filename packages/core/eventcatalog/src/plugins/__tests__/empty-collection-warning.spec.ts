@@ -8,6 +8,12 @@ import {
   wrapLoggerDestination,
 } from '../empty-collection-warning.mjs';
 
+type QuietLoggerEvent = {
+  level?: string;
+  label?: string | null;
+  message?: string;
+};
+
 const emptyCollectionMessage = (name: string) =>
   `The collection "${name}" does not exist or is empty. Please check your content config file for errors.`;
 
@@ -101,9 +107,9 @@ describe('empty EventCatalog collection warnings', () => {
   });
 
   it('drops only the known empty-collection warning from a logger destination', () => {
-    const written: unknown[] = [];
+    const written: QuietLoggerEvent[] = [];
     const destination = wrapLoggerDestination({
-      write: (event) => {
+      write: (event: QuietLoggerEvent) => {
         written.push(event);
       },
     });
