@@ -116,6 +116,15 @@ jobs:
       - name: Build EventCatalog
         working-directory: examples/${{ matrix.catalog }}/
         run: npx eventcatalog build
+      - name: Upload failed prerender output
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-prerender-${{ matrix.os }}-${{ matrix.catalog }}
+          path: examples/${{ matrix.catalog }}/dist/.prerender/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Smoke test SSR artifact
         if: matrix.output == 'server'
         run: node packages/core/scripts/ci/smoke-ssr.mjs examples/${{ matrix.catalog }}
