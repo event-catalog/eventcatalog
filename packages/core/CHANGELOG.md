@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 4.11.0
+
+### Minor Changes
+
+- fcb955a: Add a richer schema explorer with examples, usage, flows, version comparison, metadata, and improved MDX layouts. Preserve MDX example indexes as SDK resource sidecars without treating them as resource definitions.
+
+### Patch Changes
+
+- Updated dependencies [fcb955a]
+  - @eventcatalog/sdk@2.29.1
+  - @eventcatalog/linter@1.1.20
+
 ## 4.10.15
 
 ### Patch Changes

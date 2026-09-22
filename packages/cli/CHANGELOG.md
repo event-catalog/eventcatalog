@@ -1,5 +1,12 @@
 # @eventcatalog/cli
 
+## 1.0.9
+
+### Patch Changes
+
+- Updated dependencies [fcb955a]
+  - @eventcatalog/sdk@2.29.1
+
 ## 1.0.8
 
 ### Patch Changes

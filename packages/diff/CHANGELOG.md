@@ -1,5 +1,12 @@
 # @eventcatalog/diff
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [fcb955a]
+  - @eventcatalog/sdk@2.29.1
+
 ## 0.1.0
 
 ### Minor Changes

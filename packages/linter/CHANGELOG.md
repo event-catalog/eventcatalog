@@ -1,5 +1,12 @@
 # @eventcatalog/linter
 
+## 1.1.20
+
+### Patch Changes
+
+- Updated dependencies [fcb955a]
+  - @eventcatalog/sdk@2.29.1
+
 ## 1.1.19
 
 ### Patch Changes
