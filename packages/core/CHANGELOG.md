@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 4.11.1
+
+### Patch Changes
+
+- fe845e7: Exclude colocated test and spec files from the published package and from `.eventcatalog-core`, and remove copies left behind by older installs, so Vite does not scan `vitest` imports during `dev`.
+- 92a8d1e: Only show the EventCatalog update banner when a newer published version exists. Compare the running `@eventcatalog/core` version, not the catalog dependency range, so a range like `^4.10.0` still reports a real update. A stale check no longer suggests downgrading (for example 4.11.0 → 4.10.10).
+- 9f09296: Prevent static builds from crashing when a message NodeGraph references a producer or consumer channel that is missing from the catalog. Unresolved channel refs now skip chain lookup and fall back to the existing direct-connect path.
+- d18c6ca: Quiet Astro's empty content-collection warnings for unused EventCatalog collections during build and dev, while still showing real content errors.
+
 ## 4.11.0
 
 ### Minor Changes
