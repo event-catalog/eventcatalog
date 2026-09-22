@@ -53,7 +53,7 @@ const pagefindAttributes =
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 pr-24 py-8 bg-[rgb(var(--ec-page-bg))]">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
         {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro) so docs feel like part of the resource. */}
         <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
           <div class="flex flex-col gap-4">
@@ -107,7 +107,7 @@ const pagefindAttributes =
         </div>
       </div>
       <aside
-        class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-10 bg-[rgb(var(--ec-page-bg))]"
+        class="hidden xl:block sticky top-[4rem] self-start w-[280px] max-h-[calc(100vh-4rem)] overflow-y-auto py-2 flex-shrink-0 pr-4 bg-[rgb(var(--ec-page-bg))]"
       >
         <div class="mt-8 space-y-8">
           <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2 mb-4">
