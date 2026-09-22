@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.12.0-beta.3
+
+### Patch Changes
+
+- 5ae63b4: Fix visualiser and AI assistant loading in installed catalogs during development by prebundling their browser dependencies.
+
 ## 4.12.0-beta.2
 
 ### Patch Changes
