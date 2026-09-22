@@ -146,3 +146,46 @@ export const getFlowsNotInAnyResource = async (): Promise<Flow[]> => {
   });
   return flowsNotInAnyResource;
 };
+
+/** A flow that includes a message in one of its steps, reduced to what the schema pages display. */
+export interface FlowReference {
+  id: string;
+  version: string;
+  name?: string;
+  summary?: string;
+}
+
+/**
+ * Finds the flows whose steps send or receive each of the given messages. Step pointers are
+ * matched the same way flow diagrams resolve them (exact version, then semver range, then
+ * latest). Returns a map keyed by `${collection}:${id}:${version}` of the resolved message.
+ */
+export const getFlowsForMessages = async (
+  messages: { collection: string; data: { id: string; version: string } }[]
+): Promise<Map<string, FlowReference[]>> => {
+  const flows = await getCollection('flows');
+  const messageMap = createVersionedMap(messages);
+  const flowsByMessage = new Map<string, FlowReference[]>();
+
+  for (const flow of flows) {
+    if (flow.data.hidden === true) continue;
+    const reference: FlowReference = {
+      id: flow.data.id,
+      version: flow.data.version,
+      ...(flow.data.name ? { name: flow.data.name } : {}),
+      ...(flow.data.summary ? { summary: flow.data.summary } : {}),
+    };
+    const seen = new Set<string>();
+    for (const step of flow.data.steps ?? []) {
+      if (!step.message) continue;
+      const message = findInMap(messageMap, step.message.id, step.message.version);
+      if (!message) continue;
+      const key = `${message.collection}:${message.data.id}:${message.data.version}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      flowsByMessage.set(key, [...(flowsByMessage.get(key) ?? []), reference]);
+    }
+  }
+
+  return flowsByMessage;
+};

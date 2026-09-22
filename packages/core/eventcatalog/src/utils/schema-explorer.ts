@@ -1,15 +1,19 @@
 import { createHash } from 'node:crypto';
-import type { SchemaItem, SchemaDetails, Producer, Consumer } from '@components/SchemaExplorer/types';
+import type { SchemaItem, SchemaDetails, Producer, Consumer, MessageChannel } from '@components/SchemaExplorer/types';
 import { getEvents } from '@utils/collections/events';
 import { getCommands } from '@utils/collections/commands';
 import { getQueries } from '@utils/collections/queries';
 import { getServices, getSpecificationsForService } from '@utils/collections/services';
 import { getDomains, getSpecificationsForDomain } from '@utils/collections/domains';
 import { getDataProducts } from '@utils/collections/data-products';
+import { getAgents } from '@utils/collections/agents';
+import { getFlowsForMessages } from '@utils/collections/flows';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
+import { getSchemaExtensionForFormat } from '@utils/collections/schemas';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 import { getExamplesForResource } from '@utils/collections/examples';
+import { attachFlowGraphs, getMessageUsageGraph } from '@utils/schema-usage-graph';
 import { getCollection } from 'astro:content';
 import path from 'path';
 
@@ -37,12 +41,51 @@ async function buildRegistry() {
 
   // Fetch all services
   const services = await getServices({ getAllVersions: true });
+  // Producers and consumers can be services, agents, or data products. Index all three so
+  // compact { id, version } references can be resolved to a resource for display.
+  const [agents, dataProductsForRelationships] = await Promise.all([
+    getAgents({ getAllVersions: true }),
+    getDataProducts({ getAllVersions: true }),
+  ]);
+  type RelationshipResource = (typeof services)[number] | (typeof agents)[number] | (typeof dataProductsForRelationships)[number];
+  const relationshipResources: RelationshipResource[] = [...services, ...agents, ...dataProductsForRelationships];
+  const resourcesByReference = new Map<string, RelationshipResource>();
+  const latestResourceByCollectionAndId = new Map<string, RelationshipResource>();
+  for (const resource of relationshipResources) {
+    const collectionAndId = `${resource.collection}:${resource.data.id}`;
+    resourcesByReference.set(`${collectionAndId}:${resource.data.version}`, resource);
+    if (!latestResourceByCollectionAndId.has(collectionAndId)) latestResourceByCollectionAndId.set(collectionAndId, resource);
+  }
+  const toSchemaRelationships = (references: unknown): Producer[] =>
+    ((references as { id: string; version: string; collection?: Producer['collection'] }[] | undefined) ?? []).map(
+      (reference) => {
+        const collection = reference.collection ?? 'services';
+        const collectionAndId = `${collection}:${reference.id}`;
+        const resource =
+          resourcesByReference.get(`${collectionAndId}:${reference.version}`) ??
+          latestResourceByCollectionAndId.get(collectionAndId);
+        return {
+          id: reference.id,
+          version: reference.version,
+          collection,
+          ...(resource?.data.name ? { name: resource.data.name } : {}),
+          ...(resource?.data.summary ? { summary: resource.data.summary } : {}),
+        };
+      }
+    );
+  const toMessageChannels = (channels: unknown): MessageChannel[] =>
+    ((channels as { data: { id: string; version: string; name?: string } }[] | undefined) ?? []).map((channel) => ({
+      id: channel.data.id,
+      version: channel.data.version,
+      ...(channel.data.name ? { name: channel.data.name } : {}),
+    }));
 
   // Combine all messages
   const allMessages = [...events, ...commands, ...queries];
   const messagesBySchemaReference = new Map(
     allMessages.map((message) => [`${message.collection}:${message.data.id}:${message.data.version}`, message])
   );
+  const flowsByMessage = await getFlowsForMessages(allMessages);
 
   // Read message schemas from the generated schemas collection.
   const messagesWithSchemas = await Promise.all(
@@ -51,11 +94,16 @@ async function buildRegistry() {
         `${schema.data.message.collectionName}:${schema.data.message.id}:${schema.data.message.version}`
       );
       const schemaPath = schema.data.file || schema.data.source.path || '';
-      const schemaExtension = path.extname(schemaPath).slice(1) || schema.data.format;
+      const schemaExtension = path.extname(schemaPath).slice(1) || getSchemaExtensionForFormat(schema.data.format);
       // The collection types describe raw content references. With
-      // hydrateServices: false, the loaders return compact { id, version } pairs.
-      const producers = (message?.data.producers || []) as unknown as Producer[];
-      const consumers = (message?.data.consumers || []) as unknown as Consumer[];
+      // hydrateServices: false, the loaders return compact { id, version } pairs,
+      // so look the service name and summary up for display.
+      const producers = toSchemaRelationships(message?.data.producers);
+      const consumers = toSchemaRelationships(message?.data.consumers);
+      const channels = toMessageChannels(message?.data.messageChannels);
+      const flows =
+        flowsByMessage.get(`${schema.data.message.collectionName}:${schema.data.message.id}:${schema.data.message.version}`) ??
+        [];
 
       return {
         collection: schema.data.message.collectionName,
@@ -70,22 +118,40 @@ async function buildRegistry() {
           // regardless of how many resources reference the message.
           producerName: producers[0]?.id,
         },
-        loadDetails: () => {
+        loadDetails: async () => {
           let examples: SchemaDetails['examples'] = [];
+          let graph: SchemaDetails['graph'];
           if (message) {
             try {
               examples = getExamplesForResource(message);
             } catch (error) {
               console.error(`Error reading examples for ${message.data.id}:`, error);
             }
+            try {
+              graph = await getMessageUsageGraph({
+                collection: message.collection,
+                id: message.data.id,
+                version: message.data.version,
+              });
+            } catch (error) {
+              console.error(`Error building usage graph for ${message.data.id}:`, error);
+            }
           }
           return {
             schemaContent: schema.data.content || '',
             examples,
-            data: { producers, consumers },
+            ...(graph ? { graph } : {}),
+            data: {
+              producers,
+              consumers,
+              flows: await attachFlowGraphs(flows, { id: schema.data.message.id, version: schema.data.message.version }),
+              channels,
+            },
           };
         },
         schemaExtension,
+        ...(schema.data.name ? { schemaName: schema.data.name } : {}),
+        ...(schema.data.ref ? { schemaRef: schema.data.ref, source: schema.data.source } : {}),
       };
     })
   );

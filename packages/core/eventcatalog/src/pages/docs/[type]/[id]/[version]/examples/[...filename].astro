@@ -1,9 +1,12 @@
 ---
-import { Code } from 'astro-expressive-code/components';
+import { marked } from 'marked';
+import path from 'node:path';
+import { getCollection, render } from 'astro:content';
+import components from '@components/MDX/components';
+import { getExampleEntriesForMessage } from '@utils/collections/examples';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Footer from '@layouts/Footer.astro';
 import { Page } from './_[...filename].data';
-import { getLanguageForHighlight } from '@components/SchemaExplorer/utils';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -12,7 +15,13 @@ const props = await Page.getData(Astro);
 const { collection, data, example } = props;
 
 const pageTitle = `${collection} | ${data.name} | ${example.title}`.replace(/^\w/, (c: string) => c.toUpperCase());
-const lang = getLanguageForHighlight(example.extension);
+// Prefer the MDX pipeline so EventCatalog components work; fall back to plain Markdown.
+const examplesDir = path.join(path.dirname(props.filePath ?? ''), 'examples');
+const exampleEntry = getExampleEntriesForMessage(await getCollection('examples'), props.filePath).find(
+  (entry) => path.relative(examplesDir, entry.filePath ?? '').replace(/\\/g, '/') === example.fileName
+);
+const Content = exampleEntry ? (await render(exampleEntry)).Content : undefined;
+const exampleHtml = !Content && example.renderMode === 'markdown' ? await marked.parse(example.content) : '';
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={`Example: ${example.title} for ${data.name}`}>
@@ -24,14 +33,36 @@ const lang = getLanguageForHighlight(example.extension);
             {example.title}
           </h1>
           <h2 class="text-lg text-[rgb(var(--ec-page-text-muted))] font-medium mb-1">
-            Example for {data.name} <span class="text-[rgb(var(--ec-page-text-muted))]">(v{data.version})</span>
+            Example for {data.name}
+            <span class="text-[rgb(var(--ec-page-text-muted))]">(v{data.version})</span>
           </h2>
         </div>
 
         <div class="mt-6">
-          <div class="not-prose overflow-x-auto">
-            <Code code={example.content} title={example.fileName} lang={lang} />
-          </div>
+          {example.summary && <p class="mb-4 text-[rgb(var(--ec-page-text-muted))]">{example.summary}</p>}
+          {
+            Content ? (
+              <div class="prose prose-md max-w-none">
+                <Content components={components(props)} />
+              </div>
+            ) : example.renderMode === 'markdown' ? (
+              <div class="prose prose-md max-w-none" set:html={exampleHtml} />
+            ) : (
+              <pre class="overflow-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))] p-5 text-sm">
+                <code>{example.content}</code>
+              </pre>
+            )
+          }
+          {
+            example.usage && (
+              <section class="mt-6">
+                <h2 class="mb-2 text-sm font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">Usage</h2>
+                <pre class="overflow-auto rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-code-bg))] p-5 text-sm">
+                  <code>{example.usage}</code>
+                </pre>
+              </section>
+            )
+          }
         </div>
 
         <Footer />

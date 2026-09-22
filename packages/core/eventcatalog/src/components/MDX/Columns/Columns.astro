@@ -1,0 +1,14 @@
+---
+import { getColumnsLayout, columnsClass, gridClass } from './layout';
+interface Props {
+  cols?: number;
+  ratio?: string;
+  className?: string;
+}
+const { cols = 2, ratio, className } = Astro.props;
+const { template } = getColumnsLayout(cols, ratio);
+---
+
+<div class:list={[columnsClass, className]} style={{ '--ec-columns-template': template }}>
+  <div class={gridClass}><slot /></div>
+</div>

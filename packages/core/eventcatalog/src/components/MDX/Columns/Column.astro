@@ -1,0 +1,10 @@
+---
+import { columnClass, stickyClass } from './layout';
+interface Props {
+  sticky?: boolean;
+  className?: string;
+}
+const { sticky = false, className } = Astro.props;
+---
+
+<div class:list={[columnClass, sticky && stickyClass, className]} data-sticky={String(sticky)}><slot /></div>

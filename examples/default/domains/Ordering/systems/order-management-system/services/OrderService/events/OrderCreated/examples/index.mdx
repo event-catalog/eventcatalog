@@ -1,0 +1,376 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a single-item order
+
+Publish an order containing one T-shirt after checkout succeeds. Consumers can use the event to reserve stock, start fulfilment, or send an order confirmation.
+
+### Payload details
+
+- `orderId` identifies the order; `customerId` identifies the customer.
+- `items` contains the SKU, quantity, and unit price for each line.
+- `total` and `unitPrice` use integer minor units; `currency` is `GBP`.
+- `status` is `created`, and `createdAt` records the creation time in UTC.
+
+The total is **4,999 pence (£49.99)**: one T-shirt at 4,999 pence.
+
+### Using this example
+
+Use this as a baseline when testing consumers. The single line makes it easy to check field mappings and handling of the initial `created` status.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("OrderCreated", {
+  orderId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  customerId: "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+  total: 4999,
+  currency: "GBP",
+  status: "created",
+  items: [
+    { sku: "SKU-TSHIRT-BLK-M", quantity: 1, unitPrice: 4999 }
+  ],
+  createdAt: "2026-09-11T08:12:45Z",
+});
+```
+
+```python publish_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("OrderCreated", {
+    "orderId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    "customerId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    "total": 4999,
+    "currency": "GBP",
+    "status": "created",
+    "items": [
+        {"sku": "SKU-TSHIRT-BLK-M", "quantity": 1, "unitPrice": 4999}
+    ],
+    "createdAt": "2026-09-11T08:12:45Z",
+})
+```
+
+```java PublishOrder.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("OrderCreated", Map.of(
+      "orderId", "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+      "customerId", "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "total", 4999,
+      "currency", "GBP",
+      "status", "created",
+      "items", List.of(
+        Map.of("sku", "SKU-TSHIRT-BLK-M", "quantity", 1, "unitPrice", 4999)
+      ),
+      "createdAt", "2026-09-11T08:12:45Z"
+    ));
+  }
+}
+```
+
+```csharp PublishOrder.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("OrderCreated", new {
+    orderId = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    customerId = "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    total = 4999,
+    currency = "GBP",
+    status = "created",
+    items = new[] {
+        new { sku = "SKU-TSHIRT-BLK-M", quantity = 1, unitPrice = 4999 }
+    },
+    createdAt = "2026-09-11T08:12:45Z"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a multi-item order
+
+Publish an order containing two T-shirts and one cap. Each line preserves the quantity and price recorded at checkout, so downstream consumers can process the complete order.
+
+### Payload details
+
+- `orderId` identifies the order; `customerId` identifies the customer.
+- `items` contains the SKU, quantity, and unit price for each line.
+- `total` and `unitPrice` use integer minor units; `currency` is `GBP`.
+- `status` is `created`, and `createdAt` records the creation time in UTC.
+
+The total is **15,997 pence (£159.97)**: two T-shirts at 4,999 pence each, plus one cap at 5,999 pence.
+
+### Using this example
+
+When testing a consumer, check that it processes every line and multiplies each unit price by its quantity. Reading only the first item would miss the cap.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("OrderCreated", {
+  orderId: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+  customerId: "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+  total: 15997,
+  currency: "GBP",
+  status: "created",
+  items: [
+    { sku: "SKU-TSHIRT-BLK-M", quantity: 2, unitPrice: 4999 },
+    { sku: "SKU-CAP-NVY", quantity: 1, unitPrice: 5999 }
+  ],
+  createdAt: "2026-09-11T09:03:10Z",
+});
+```
+
+```python publish_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("OrderCreated", {
+    "orderId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    "customerId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    "total": 15997,
+    "currency": "GBP",
+    "status": "created",
+    "items": [
+        {"sku": "SKU-TSHIRT-BLK-M", "quantity": 2, "unitPrice": 4999},
+        {"sku": "SKU-CAP-NVY", "quantity": 1, "unitPrice": 5999}
+    ],
+    "createdAt": "2026-09-11T09:03:10Z",
+})
+```
+
+```java PublishOrder.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("OrderCreated", Map.of(
+      "orderId", "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      "customerId", "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "total", 15997,
+      "currency", "GBP",
+      "status", "created",
+      "items", List.of(
+        Map.of("sku", "SKU-TSHIRT-BLK-M", "quantity", 2, "unitPrice", 4999),
+        Map.of("sku", "SKU-CAP-NVY", "quantity", 1, "unitPrice", 5999)
+      ),
+      "createdAt", "2026-09-11T09:03:10Z"
+    ));
+  }
+}
+```
+
+```csharp PublishOrder.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("OrderCreated", new {
+    orderId = "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    customerId = "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    total = 15997,
+    currency = "GBP",
+    status = "created",
+    items = new[] {
+        new { sku = "SKU-TSHIRT-BLK-M", quantity = 2, unitPrice = 4999 },
+        new { sku = "SKU-CAP-NVY", quantity = 1, unitPrice = 5999 }
+    },
+    createdAt = "2026-09-11T09:03:10Z"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 3. Publish a bulk order
+
+Publish an order for ten T-shirts in a single line item. This example shows how the same schema handles larger quantities without repeating the line for every unit.
+
+### Payload details
+
+- `orderId` identifies the order; `customerId` identifies the customer.
+- `items` contains the SKU, quantity, and unit price for each line.
+- `total` and `unitPrice` use integer minor units; `currency` is `GBP`.
+- `status` is `created`, and `createdAt` records the creation time in UTC.
+
+The total is **49,990 pence (£499.90)**: ten T-shirts at 4,999 pence each. The unit price stays unchanged; the order total reflects the quantity.
+
+### Using this example
+
+Use this to check that inventory reserves ten units and fulfilment requests ten units, even though `items` contains just one entry. Consumers should use `quantity` when calculating totals and stock requirements.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("OrderCreated", {
+  orderId: "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+  customerId: "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+  total: 49990,
+  currency: "GBP",
+  status: "created",
+  items: [
+    { sku: "SKU-TSHIRT-BLK-M", quantity: 10, unitPrice: 4999 }
+  ],
+  createdAt: "2026-09-11T10:30:00Z",
+});
+```
+
+```python publish_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("OrderCreated", {
+    "orderId": "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+    "customerId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    "total": 49990,
+    "currency": "GBP",
+    "status": "created",
+    "items": [
+        {"sku": "SKU-TSHIRT-BLK-M", "quantity": 10, "unitPrice": 4999}
+    ],
+    "createdAt": "2026-09-11T10:30:00Z",
+})
+```
+
+```java PublishOrder.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("OrderCreated", Map.of(
+      "orderId", "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+      "customerId", "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "total", 49990,
+      "currency", "GBP",
+      "status", "created",
+      "items", List.of(
+        Map.of("sku", "SKU-TSHIRT-BLK-M", "quantity", 10, "unitPrice", 4999)
+      ),
+      "createdAt", "2026-09-11T10:30:00Z"
+    ));
+  }
+}
+```
+
+```csharp PublishOrder.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("OrderCreated", new {
+    orderId = "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+    customerId = "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    total = 49990,
+    currency = "GBP",
+    status = "created",
+    items = new[] {
+        new { sku = "SKU-TSHIRT-BLK-M", quantity = 10, unitPrice = 4999 }
+    },
+    createdAt = "2026-09-11T10:30:00Z"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

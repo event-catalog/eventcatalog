@@ -287,9 +287,8 @@ describe('hydrateProducersAndConsumers', () => {
         hydrate: false,
       });
 
-      // Should only have id and version
-      expect(producers[0]).toEqual({ id: 'ServiceThatProducesMessages', version: '1.0.0' });
-      expect(producers[0]).not.toHaveProperty('collection');
+      // Compact references retain the collection so IDs shared by different resource types stay unambiguous.
+      expect(producers[0]).toEqual({ id: 'ServiceThatProducesMessages', version: '1.0.0', collection: 'services' });
     });
   });
 

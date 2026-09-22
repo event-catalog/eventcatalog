@@ -636,6 +636,7 @@ describe('hydrate', () => {
       'services/payment-service/index.mdx': Buffer.from('# Payment Service'),
       'services/payment-service/schema.sql': Buffer.from('CREATE TABLE payments;'),
       'services/payment-service/attachments/context.txt': Buffer.from('Payment context'),
+      'services/payment-service/examples/index.mdx': Buffer.from('# Usage examples'),
     };
     const fetch = vi.fn<Fetcher>().mockImplementation(async (request) => files[request.path]);
     const graph: ResolvedGraph = {
@@ -655,6 +656,10 @@ describe('hydrate', () => {
             {
               path: 'services/payment-service/attachments/context.txt',
               hash: 'sha256:8b0484119548bb106d52c15578fe3caa6f2aad64ef08e943d8c53ab544ef5e26',
+            },
+            {
+              path: 'services/payment-service/examples/index.mdx',
+              hash: 'sha256:b97e35aafd9923abab3b53ec95b52854e76ecad12d1a4947c1b90cbec22cd6ce',
             },
           ],
           resolvedFrom: {
@@ -698,21 +703,30 @@ describe('hydrate', () => {
           path: 'services/payment-service/attachments/context.txt',
         },
       ],
+      [
+        {
+          source: 'acme/payments',
+          commit: '4a1b7e2',
+          path: 'services/payment-service/examples/index.mdx',
+        },
+      ],
     ]);
     await expect(
       Promise.all([
         fs.readFile(path.join(outDir, 'acme-payments--bf264d5186bc', 'services/payment-service/index.mdx')),
         fs.readFile(path.join(outDir, 'acme-payments--bf264d5186bc', 'services/payment-service/schema.sql')),
         fs.readFile(path.join(outDir, 'acme-payments--bf264d5186bc', 'services/payment-service/attachments/context.txt')),
+        fs.readFile(path.join(outDir, 'acme-payments--bf264d5186bc', 'services/payment-service/examples/index.mdx')),
       ])
     ).resolves.toEqual([
       files['services/payment-service/index.mdx'],
       files['services/payment-service/schema.sql'],
       files['services/payment-service/attachments/context.txt'],
+      files['services/payment-service/examples/index.mdx'],
     ]);
     expect(result).toEqual({
-      fetched: 3,
-      written: 3,
+      fetched: 4,
+      written: 4,
     });
   });
 

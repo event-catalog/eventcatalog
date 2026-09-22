@@ -39,6 +39,21 @@ export const getSchemaURL = (resource: CollectionEntry<PageTypes> | any) => {
   return path.join(publicPath, schemaFilePath ?? '');
 };
 
+/** File extension EventCatalog uses for a schema format, for schemas that have no file name. */
+export const getSchemaExtensionForFormat = (format?: string) => {
+  switch (format?.toLowerCase()) {
+    case 'jsonschema':
+    case 'json':
+      return 'json';
+    case 'avro':
+      return 'avsc';
+    case 'protobuf':
+      return 'proto';
+    default:
+      return format ?? '';
+  }
+};
+
 export const getSchemaFormatFromURL = (url: string) => {
   const pathParts = url.split('.');
   const format = pathParts[pathParts.length - 1];

@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import remarkDirective from 'remark-directive';
 import { remarkDirectives } from './src/remark-plugins/directives';
 import { remarkResourceRef } from './src/remark-plugins/resource-ref';
+import { remarkCodeGroup } from './src/remark-plugins/code-group';
 import node from '@astrojs/node';
 import remarkComment from 'remark-comment';
 import rehypeSlug from 'rehype-slug';
@@ -41,7 +42,7 @@ const effectiveOutput = isDevMode ? 'server' : config.output || 'static';
 const searchType = config.search?.type || 'resource';
 
 const markdownRemarkPlugins = [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml];
-const mdxRemarkPlugins = [...markdownRemarkPlugins, remarkResourceRef];
+const mdxRemarkPlugins = [...markdownRemarkPlugins, remarkResourceRef, remarkCodeGroup];
 const mdxRehypePlugins = [
   [
     rehypeExpressiveCode,

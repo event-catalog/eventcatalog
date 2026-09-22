@@ -49,7 +49,7 @@ export const hydrateProducersAndConsumers = ({
   const toResult = <T extends CollectionEntry<'agents'> | CollectionEntry<'services'> | CollectionEntry<'data-products'>>(
     resource: T
   ) => {
-    if (!hydrate) return { id: resource.data.id, version: resource.data.version };
+    if (!hydrate) return { id: resource.data.id, version: resource.data.version, collection: resource.collection };
     return resource;
   };
 
@@ -193,7 +193,7 @@ export const lookupProducersAndConsumers = ({ message, index, hydrate = true }: 
   const toResult = <T extends CollectionEntry<'agents'> | CollectionEntry<'services'> | CollectionEntry<'data-products'>>(
     resource: T
   ) => {
-    if (!hydrate) return { id: resource.data.id, version: resource.data.version };
+    if (!hydrate) return { id: resource.data.id, version: resource.data.version, collection: resource.collection };
     return resource;
   };
 

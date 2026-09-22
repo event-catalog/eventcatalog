@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import SchemaDetailsPanel from './SchemaDetailsPanel';
 import type { SchemaItem } from './types';
 
@@ -7,6 +8,11 @@ interface SchemaPageViewerProps {
   apiAccessEnabled?: boolean;
   showOwners?: boolean;
   showProducersConsumers?: boolean;
+  /** Tab requested in the URL, resolved on the server to avoid a flash of the default tab. */
+  initialTab?: string;
+  /** Examples rendered on the server through the MDX pipeline, passed as the `examples` slot. */
+  examples?: ReactNode;
+  hasRenderedExamples?: boolean;
 }
 
 export default function SchemaPageViewer({
@@ -15,6 +21,9 @@ export default function SchemaPageViewer({
   apiAccessEnabled = false,
   showOwners = true,
   showProducersConsumers = true,
+  initialTab,
+  examples,
+  hasRenderedExamples = false,
 }: SchemaPageViewerProps) {
   const handleVersionChange = (version: string) => {
     // Construct new URL
@@ -32,6 +41,8 @@ export default function SchemaPageViewer({
       apiAccessEnabled={apiAccessEnabled}
       showOwners={showOwners}
       showProducersConsumers={showProducersConsumers}
+      initialTab={initialTab}
+      renderedExamples={hasRenderedExamples ? examples : undefined}
     />
   );
 }

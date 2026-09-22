@@ -1,0 +1,259 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish an active product
+
+Publish a fully described product that goes straight on sale. Consumers such as search indexing, the storefront and pricing can use it to make the product visible immediately.
+
+### Payload details
+
+- `eventId` uniquely identifies this event; `occurredAt` records when the product was created in UTC.
+- `product.productId` identifies the product; `product.sku` is the stock keeping unit used by inventory.
+- `product.price` uses integer minor units; `product.currency` is `GBP`.
+- `product.description` and `product.category` are present because the product is complete.
+- `product.status` is `ACTIVE`, so the product is visible to customers.
+
+### Using this example
+
+Use this as the baseline when testing consumers. Search indexing should index it, and the storefront should show it at **4,999 pence (£49.99)**.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript product-created.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("ProductCreated", {
+  eventId: "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  occurredAt: "2026-09-11T07:30:00Z",
+  product: {
+    productId: "0f8fad5b-d9cb-469f-a165-70867728950e",
+    sku: "SKU-TSHIRT-BLK-M",
+    name: "Classic T-Shirt (Black, M)",
+    description: "100% organic cotton crew neck t-shirt.",
+    price: 4999,
+    currency: "GBP",
+    category: "apparel",
+    status: "ACTIVE",
+  },
+});
+```
+
+```python product_created.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("ProductCreated", {
+    "eventId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "occurredAt": "2026-09-11T07:30:00Z",
+    "product": {
+        "productId": "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "sku": "SKU-TSHIRT-BLK-M",
+        "name": "Classic T-Shirt (Black, M)",
+        "description": "100% organic cotton crew neck t-shirt.",
+        "price": 4999,
+        "currency": "GBP",
+        "category": "apparel",
+        "status": "ACTIVE",
+    },
+})
+```
+
+```java ProductCreated.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class ProductCreated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("ProductCreated", Map.of(
+      "eventId", "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "occurredAt", "2026-09-11T07:30:00Z",
+      "product", Map.of(
+        "productId", "0f8fad5b-d9cb-469f-a165-70867728950e",
+        "sku", "SKU-TSHIRT-BLK-M",
+        "name", "Classic T-Shirt (Black, M)",
+        "description", "100% organic cotton crew neck t-shirt.",
+        "price", 4999,
+        "currency", "GBP",
+        "category", "apparel",
+        "status", "ACTIVE"
+      )
+    ));
+  }
+}
+```
+
+```csharp ProductCreated.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("ProductCreated", new {
+    eventId = "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    occurredAt = "2026-09-11T07:30:00Z",
+    product = new {
+        productId = "0f8fad5b-d9cb-469f-a165-70867728950e",
+        sku = "SKU-TSHIRT-BLK-M",
+        name = "Classic T-Shirt (Black, M)",
+        description = "100% organic cotton crew neck t-shirt.",
+        price = 4999,
+        currency = "GBP",
+        category = "apparel",
+        status = "ACTIVE"
+    }
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a draft product
+
+Publish a product that has been created without a description or category and is not yet visible to customers. This shows the optional fields being absent.
+
+### Payload details
+
+- `product.description` and `product.category` are omitted rather than sent as empty strings.
+- `product.status` is `DRAFT`, so the product must not be indexed or sold.
+- The remaining fields match the active product example.
+
+### Using this example
+
+Use this to check that consumers tolerate missing optional fields and respect the `DRAFT` status. Search indexing must skip it, and the storefront must not show it.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript product-created.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("ProductCreated", {
+  eventId: "8d0f7780-8536-51ef-a55c-f18fd2fa1bf8",
+  occurredAt: "2026-09-11T07:45:00Z",
+  product: {
+    productId: "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+    sku: "SKU-CAP-NVY",
+    name: "Baseball Cap (Navy)",
+    price: 5999,
+    currency: "GBP",
+    status: "DRAFT",
+  },
+});
+```
+
+```python product_created.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("ProductCreated", {
+    "eventId": "8d0f7780-8536-51ef-a55c-f18fd2fa1bf8",
+    "occurredAt": "2026-09-11T07:45:00Z",
+    "product": {
+        "productId": "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+        "sku": "SKU-CAP-NVY",
+        "name": "Baseball Cap (Navy)",
+        "price": 5999,
+        "currency": "GBP",
+        "status": "DRAFT",
+    },
+})
+```
+
+```java ProductCreated.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class ProductCreated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("ProductCreated", Map.of(
+      "eventId", "8d0f7780-8536-51ef-a55c-f18fd2fa1bf8",
+      "occurredAt", "2026-09-11T07:45:00Z",
+      "product", Map.of(
+        "productId", "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+        "sku", "SKU-CAP-NVY",
+        "name", "Baseball Cap (Navy)",
+        "price", 5999,
+        "currency", "GBP",
+        "status", "DRAFT"
+      )
+    ));
+  }
+}
+```
+
+```csharp ProductCreated.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("ProductCreated", new {
+    eventId = "8d0f7780-8536-51ef-a55c-f18fd2fa1bf8",
+    occurredAt = "2026-09-11T07:45:00Z",
+    product = new {
+        productId = "1a9fbe6c-eadc-57a0-b276-81978839a61f",
+        sku = "SKU-CAP-NVY",
+        name = "Baseball Cap (Navy)",
+        price = 5999,
+        currency = "GBP",
+        status = "DRAFT"
+    }
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

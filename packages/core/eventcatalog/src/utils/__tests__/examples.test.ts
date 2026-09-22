@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { getExamplesForResource } from '@utils/collections/examples';
+import {
+  getExamplesForResource,
+  getExampleEntriesForMessage,
+  getExampleEntryDetails,
+  parseExampleFile,
+} from '@utils/collections/examples';
 
 const TEST_DIR = path.join(__dirname, '__test-examples-tmp__');
 
@@ -17,6 +22,7 @@ const createExamples = (subdir: string, files: Record<string, string>) => {
   const examplesDir = path.join(TEST_DIR, subdir, 'examples');
   fs.mkdirSync(examplesDir, { recursive: true });
   for (const [name, content] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(examplesDir, name)), { recursive: true });
     fs.writeFileSync(path.join(examplesDir, name), content);
   }
 };
@@ -31,163 +37,214 @@ afterEach(() => {
 });
 
 describe('getExamplesForResource', () => {
-  it('returns examples from a message examples directory sorted alphabetically', () => {
+  it('returns markdown examples sorted alphabetically', () => {
     const resource = createResource('event1');
     createExamples('event1', {
-      'beta.json': '{"b": true}',
-      'alpha.json': '{"a": true}',
+      'beta.md': '# Beta\n\nSecond example.',
+      'alpha.md': '# Alpha\n\nFirst example.',
     });
 
     const examples = getExamplesForResource(resource);
 
-    expect(examples).toHaveLength(2);
-    expect(examples[0].fileName).toBe('alpha.json');
-    expect(examples[1].fileName).toBe('beta.json');
+    expect(examples.map((example) => example.fileName)).toEqual(['alpha.md', 'beta.md']);
+    expect(examples[0]).toEqual({
+      fileName: 'alpha.md',
+      title: 'Alpha',
+      extension: 'md',
+      renderMode: 'markdown',
+      content: '# Alpha\n\nFirst example.',
+    });
   });
 
   it('returns empty array when no examples directory exists', () => {
-    const resource = createResource('event2');
-
-    const examples = getExamplesForResource(resource);
-
-    expect(examples).toEqual([]);
+    expect(getExamplesForResource(createResource('event2'))).toEqual([]);
   });
 
   it('returns empty array when examples directory is empty', () => {
     const resource = createResource('event3');
     fs.mkdirSync(path.join(TEST_DIR, 'event3', 'examples'), { recursive: true });
 
-    const examples = getExamplesForResource(resource);
-
-    expect(examples).toEqual([]);
+    expect(getExamplesForResource(resource)).toEqual([]);
   });
 
-  it('extracts title from file name by removing extension', () => {
+  it('preserves non-Markdown example formats as source', () => {
     const resource = createResource('event4');
-    createExamples('event4', { 'my-example.json': '{}' });
-
-    const examples = getExamplesForResource(resource);
-
-    expect(examples[0].title).toBe('my-example');
-    expect(examples[0].extension).toBe('json');
-  });
-
-  it('reads file content for each example', () => {
-    const resource = createResource('event5');
-    createExamples('event5', { 'payload.json': '{"orderId": "abc"}' });
-
-    const examples = getExamplesForResource(resource);
-
-    expect(examples[0].content).toBe('{"orderId": "abc"}');
-  });
-
-  it('supports multiple file formats', () => {
-    const resource = createResource('event6');
-    createExamples('event6', {
-      'example.json': '{}',
-      'example.yaml': 'key: value',
-      'example.xml': '<root/>',
-      'example.proto': 'message Test {}',
+    createExamples('event4', {
+      'payload.json': '{"orderId": "abc"}',
+      'notes.txt': 'not an example',
+      'walkthrough.mdx': 'Some **markdown**.',
     });
 
     const examples = getExamplesForResource(resource);
 
-    expect(examples).toHaveLength(4);
-    expect(examples.map((e) => e.extension)).toEqual(['json', 'proto', 'xml', 'yaml']);
+    expect(examples.map((example) => example.fileName)).toEqual(['notes.txt', 'payload.json', 'walkthrough.mdx']);
+    expect(examples.slice(0, 2).map(({ extension, renderMode }) => ({ extension, renderMode }))).toEqual([
+      { extension: 'txt', renderMode: 'code' },
+      { extension: 'json', renderMode: 'code' },
+    ]);
   });
 
-  it('includes files from nested directories inside examples folder', () => {
-    const resource = createResource('event7');
-    createExamples('event7', { 'root.json': '{}' });
-    fs.mkdirSync(path.join(TEST_DIR, 'event7', 'examples', 'errors'), { recursive: true });
-    fs.writeFileSync(path.join(TEST_DIR, 'event7', 'examples', 'errors', 'not-found.json'), '{"error": true}');
+  it('includes markdown files from nested directories', () => {
+    const resource = createResource('event5');
+    createExamples('event5', {
+      'domestic/basic.md': '# Basic\n\nDomestic.',
+      'international/eu.md': '# EU\n\nInternational.',
+    });
 
     const examples = getExamplesForResource(resource);
 
-    expect(examples).toHaveLength(2);
-    expect(examples[0].fileName).toBe(path.join('errors', 'not-found.json'));
-    expect(examples[0].title).toBe('not-found');
-    expect(examples[0].content).toBe('{"error": true}');
-    expect(examples[1].fileName).toBe('root.json');
+    expect(examples.map((example) => example.fileName)).toEqual(['domestic/basic.md', 'international/eu.md']);
   });
 
   it('returns empty array when resource has no filePath', () => {
-    const examples = getExamplesForResource({});
-
-    expect(examples).toEqual([]);
+    expect(getExamplesForResource({})).toEqual([]);
   });
 
-  it('excludes examples.config.yaml from the returned examples', () => {
+  it('keeps fenced code blocks in the markdown body', () => {
+    const resource = createResource('event6');
+    const markdown = '# Basic order\n\nA simple order.\n\n```json\n{"orderId": "abc"}\n```\n';
+    createExamples('event6', { 'basic-order.md': markdown });
+
+    const [example] = getExamplesForResource(resource);
+
+    expect(example.title).toBe('Basic order');
+    expect(example.content).toBe(markdown.trim());
+  });
+
+  it('keeps legacy config metadata and excludes the config file', () => {
+    const resource = createResource('event7');
+    createExamples('event7', {
+      'payload.json': '{"orderId":"abc"}',
+      'examples.config.yaml':
+        'payload.json:\n  name: Basic payload\n  summary: A minimal order.\n  usage: curl http://localhost\n',
+    });
+
+    expect(getExamplesForResource(resource)).toEqual([
+      {
+        fileName: 'payload.json',
+        title: 'Basic payload',
+        extension: 'json',
+        renderMode: 'code',
+        summary: 'A minimal order.',
+        usage: 'curl http://localhost',
+        content: '{"orderId":"abc"}',
+      },
+    ]);
+  });
+
+  it('renders MDX with unsupported components as source in the client explorer', () => {
     const resource = createResource('event8');
     createExamples('event8', {
-      'basic.json': '{}',
-      'examples.config.yaml': 'basic.json:\n  name: Basic\n',
+      'supported.mdx': '<Columns><Column>Body</Column></Columns>',
+      'unsupported.mdx': '<Mermaid diagram="graph TD" />',
     });
 
-    const examples = getExamplesForResource(resource);
-
-    expect(examples).toHaveLength(1);
-    expect(examples[0].fileName).toBe('basic.json');
+    expect(getExamplesForResource(resource).map(({ fileName, renderMode }) => ({ fileName, renderMode }))).toEqual([
+      { fileName: 'supported.mdx', renderMode: 'markdown' },
+      { fileName: 'unsupported.mdx', renderMode: 'code' },
+    ]);
   });
+});
 
-  it('uses name from config file as title when provided', () => {
-    const resource = createResource('event9');
-    createExamples('event9', {
-      'basic.json': '{}',
-      'examples.config.yaml': 'basic.json:\n  name: My Custom Name\n',
+describe('parseExampleFile', () => {
+  it('uses the first level-one heading as the title and keeps the body as written', () => {
+    expect(parseExampleFile('basic-order.md', '# Basic order\n\nBody text.')).toEqual({
+      fileName: 'basic-order.md',
+      title: 'Basic order',
+      extension: 'md',
+      renderMode: 'markdown',
+      content: '# Basic order\n\nBody text.',
     });
-
-    const examples = getExamplesForResource(resource);
-
-    expect(examples[0].title).toBe('My Custom Name');
   });
 
-  it('falls back to file name as title when config has no name', () => {
-    const resource = createResource('event10');
-    createExamples('event10', {
-      'basic.json': '{}',
-      'examples.config.yaml': 'basic.json:\n  summary: Just a summary\n',
+  it('prefers a frontmatter title and summary and strips the frontmatter', () => {
+    const raw = '---\ntitle: Multi item order\nsummary: Several line items.\n---\n\n# Ignored heading\n\nBody.';
+
+    expect(parseExampleFile('multi.md', raw)).toEqual({
+      fileName: 'multi.md',
+      title: 'Multi item order',
+      extension: 'md',
+      renderMode: 'markdown',
+      summary: 'Several line items.',
+      content: '# Ignored heading\n\nBody.',
     });
-
-    const examples = getExamplesForResource(resource);
-
-    expect(examples[0].title).toBe('basic');
   });
 
-  it('includes summary and usage from config file', () => {
-    const resource = createResource('event11');
-    createExamples('event11', {
-      'basic.json': '{}',
-      'examples.config.yaml':
-        'basic.json:\n  name: Basic Example\n  summary: A basic payload\n  usage: "curl http://localhost"\n',
+  it('falls back to a humanised file name when there is no title', () => {
+    expect(parseExampleFile('nested/out_of-stock.md', 'Body only.')).toEqual({
+      fileName: 'nested/out_of-stock.md',
+      title: 'Out of stock',
+      extension: 'md',
+      renderMode: 'markdown',
+      content: 'Body only.',
     });
-
-    const examples = getExamplesForResource(resource);
-
-    expect(examples[0].summary).toBe('A basic payload');
-    expect(examples[0].usage).toBe('curl http://localhost');
   });
 
-  it('returns no summary or usage when config file does not exist', () => {
-    const resource = createResource('event12');
-    createExamples('event12', { 'basic.json': '{}' });
+  it('normalises windows path separators in file names', () => {
+    expect(parseExampleFile('domestic\\basic.md', 'Body.').fileName).toBe('domestic/basic.md');
+  });
+});
 
-    const examples = getExamplesForResource(resource);
+describe('getExampleEntriesForMessage', () => {
+  const entries = [
+    { id: 'events/OrderCreated/examples/beta.md', filePath: '/catalog/events/OrderCreated/examples/beta.md', data: {} },
+    { id: 'events/OrderCreated/examples/alpha.mdx', filePath: '/catalog/events/OrderCreated/examples/alpha.mdx', data: {} },
+    {
+      id: 'events/OrderCreated/versioned/1.0.0/examples/old.md',
+      filePath: '/catalog/events/OrderCreated/versioned/1.0.0/examples/old.md',
+      data: {},
+    },
+    { id: 'events/OrderCancelled/examples/other.md', filePath: '/catalog/events/OrderCancelled/examples/other.md', data: {} },
+  ];
 
-    expect(examples[0].summary).toBeUndefined();
-    expect(examples[0].usage).toBeUndefined();
+  it('returns the entries under the examples folder beside the message, sorted by path', () => {
+    const matched = getExampleEntriesForMessage(entries, '/catalog/events/OrderCreated/index.mdx');
+
+    expect(matched.map((entry) => entry.id)).toEqual([
+      'events/OrderCreated/examples/alpha.mdx',
+      'events/OrderCreated/examples/beta.md',
+    ]);
   });
 
-  it('supports examples.config.json as an alternative config format', () => {
-    const resource = createResource('event13');
-    createExamples('event13', {
-      'basic.json': '{}',
-      'examples.config.json': JSON.stringify({ 'basic.json': { name: 'From JSON Config' } }),
-    });
+  it('keeps versioned message examples separate from the latest version', () => {
+    const matched = getExampleEntriesForMessage(entries, '/catalog/events/OrderCreated/versioned/1.0.0/index.mdx');
 
-    const examples = getExamplesForResource(resource);
+    expect(matched.map((entry) => entry.id)).toEqual(['events/OrderCreated/versioned/1.0.0/examples/old.md']);
+  });
 
-    expect(examples).toHaveLength(1);
-    expect(examples[0].title).toBe('From JSON Config');
+  it('returns nothing without a message file path', () => {
+    expect(getExampleEntriesForMessage(entries, undefined)).toEqual([]);
+  });
+});
+
+describe('getExampleEntryDetails', () => {
+  it('derives the title from the first heading', () => {
+    const details = getExampleEntryDetails(
+      { id: 'x', filePath: '/catalog/events/OrderCreated/examples/basic-order.md', body: '# Basic order\n\nBody', data: {} },
+      '/catalog/events/OrderCreated/examples'
+    );
+
+    expect(details).toEqual({ fileName: 'basic-order.md', title: 'Basic order', summary: undefined });
+  });
+
+  it('prefers frontmatter title and summary and falls back to the file name', () => {
+    expect(
+      getExampleEntryDetails(
+        {
+          id: 'x',
+          filePath: '/catalog/events/OrderCreated/examples/nested/eu-order.mdx',
+          body: 'No heading here.',
+          data: { title: 'EU order', summary: 'Ships to the EU.' },
+        },
+        '/catalog/events/OrderCreated/examples'
+      )
+    ).toEqual({ fileName: 'nested/eu-order.mdx', title: 'EU order', summary: 'Ships to the EU.' });
+
+    expect(
+      getExampleEntryDetails(
+        { id: 'x', filePath: '/catalog/events/OrderCreated/examples/multi_item.md', body: 'Body', data: {} },
+        '/catalog/events/OrderCreated/examples'
+      ).title
+    ).toBe('Multi item');
   });
 });

@@ -1,0 +1,200 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a card declined failure
+
+Publish a failure where the card issuer declined the charge. The customer can retry with another payment method.
+
+### Payload details
+
+- `paymentId` identifies the payment attempt; `orderId` identifies the order it was for.
+- `reason` is `CARD_DECLINED`.
+- `failedAt` records when the failure happened in UTC.
+
+### Using this example
+
+Use this to check that consumers keep the order open and prompt the customer to retry, rather than cancelling the order.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript payment-failed.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("PaymentFailed", {
+  paymentId: "c2f1a6e4-2d3b-4c1e-9f8a-7b6c5d4e3f21",
+  orderId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  reason: "CARD_DECLINED",
+  failedAt: "2026-09-11T08:13:02Z",
+});
+```
+
+```python payment_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("PaymentFailed", {
+    "paymentId": "c2f1a6e4-2d3b-4c1e-9f8a-7b6c5d4e3f21",
+    "orderId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    "reason": "CARD_DECLINED",
+    "failedAt": "2026-09-11T08:13:02Z",
+})
+```
+
+```java PaymentFailed.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PaymentFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("PaymentFailed", Map.of(
+      "paymentId", "c2f1a6e4-2d3b-4c1e-9f8a-7b6c5d4e3f21",
+      "orderId", "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+      "reason", "CARD_DECLINED",
+      "failedAt", "2026-09-11T08:13:02Z"
+    ));
+  }
+}
+```
+
+```csharp PaymentFailed.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("PaymentFailed", new {
+    paymentId = "c2f1a6e4-2d3b-4c1e-9f8a-7b6c5d4e3f21",
+    orderId = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    reason = "CARD_DECLINED",
+    failedAt = "2026-09-11T08:13:02Z"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a processing error
+
+Publish a failure where the payment processor returned an error unrelated to the card.
+
+### Payload details
+
+- `reason` is `PROCESSING_ERROR`.
+- The remaining fields match the card declined example.
+
+### Using this example
+
+Use this to check that consumers treat the failure as retryable on the platform side. The customer should not be asked to act.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript payment-failed.js
+import { EventsClient } from "@acme/events";
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+await client.publish("PaymentFailed", {
+  paymentId: "d3e2b7f5-3e4c-4d2f-8a9b-8c7d6e5f4a32",
+  orderId: "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+  reason: "PROCESSING_ERROR",
+  failedAt: "2026-09-11T09:04:55Z",
+});
+```
+
+```python payment_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(
+    api_key=os.environ["ACME_API_KEY"]
+)
+
+client.publish("PaymentFailed", {
+    "paymentId": "d3e2b7f5-3e4c-4d2f-8a9b-8c7d6e5f4a32",
+    "orderId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    "reason": "PROCESSING_ERROR",
+    "failedAt": "2026-09-11T09:04:55Z",
+})
+```
+
+```java PaymentFailed.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PaymentFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    client.publish("PaymentFailed", Map.of(
+      "paymentId", "d3e2b7f5-3e4c-4d2f-8a9b-8c7d6e5f4a32",
+      "orderId", "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      "reason", "PROCESSING_ERROR",
+      "failedAt", "2026-09-11T09:04:55Z"
+    ));
+  }
+}
+```
+
+```csharp PaymentFailed.cs
+using System;
+using Acme.Events;
+
+var client = new EventsClient(
+    Environment.GetEnvironmentVariable("ACME_API_KEY")
+);
+
+await client.PublishAsync("PaymentFailed", new {
+    paymentId = "d3e2b7f5-3e4c-4d2f-8a9b-8c7d6e5f4a32",
+    orderId = "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    reason = "PROCESSING_ERROR",
+    failedAt = "2026-09-11T09:04:55Z"
+});
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

@@ -129,7 +129,7 @@ describe('resolve', () => {
       });
     });
 
-    it('preserves generic sidecars without adding entities or edges', () => {
+    it('preserves generic and example sidecars without adding entities or edges', () => {
       const index = anIndex({
         source: 'acme/payments',
         commit: '4a1b7e2',
@@ -149,6 +149,10 @@ describe('resolve', () => {
               {
                 path: 'services/payment-service/attachments/context.txt',
                 hash: 'sha256:b75e20',
+              },
+              {
+                path: 'services/payment-service/examples/index.mdx',
+                hash: 'sha256:7bb96a',
               },
             ],
           },
@@ -172,6 +176,10 @@ describe('resolve', () => {
               {
                 path: 'services/payment-service/attachments/context.txt',
                 hash: 'sha256:b75e20',
+              },
+              {
+                path: 'services/payment-service/examples/index.mdx',
+                hash: 'sha256:7bb96a',
               },
             ],
             resolvedFrom: {
