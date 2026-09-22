@@ -24,7 +24,8 @@ export function getPackageRoutes(pagesDirectory = path.join(packageDirectory, 's
   const routes = [];
   const visit = (directory, segments = []) => {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-      if (entry.name.startsWith('_') || entry.name.startsWith('.')) continue;
+      if (entry.name.startsWith('_') || (entry.name.startsWith('.') && !(entry.isDirectory() && entry.name === '.well-known')))
+        continue;
       const entrypoint = path.join(directory, entry.name);
       if (entry.isDirectory()) {
         visit(entrypoint, [...segments, entry.name]);

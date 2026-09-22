@@ -11,7 +11,7 @@ import eventCatalogRuntime, {
   packageDirectory,
   userConfigPlugin,
 } from '../../eventcatalog/integrations/eventcatalog-runtime.mjs';
-import { getRuntimeDependencyPath } from '../../eventcatalog/integrations/runtime-dependencies.mjs';
+import runtimeDependencies, { getRuntimeDependencyPath } from '../../eventcatalog/integrations/runtime-dependencies.mjs';
 import { createRuntimeDependencyManifest } from '../../eventcatalog/integrations/runtime-dependency-manifest.mjs';
 
 const directories: string[] = [];
@@ -33,13 +33,51 @@ describe('package-owned Astro runtime', () => {
     );
     expect(
       getRuntimeDependencyPath('@headlessui/react', 'prerender', specifiers, new URL('file:///installed/dependencies/'))
-    ).toBe(`/installed/dependencies/${filename}`);
+    ).toBe(`file:///installed/dependencies/${filename}`);
     expect(getRuntimeDependencyPath('@astrojs/react/server.js', 'ssr', specifiers)).toBe('@astrojs/react/server.js');
     expect(getRuntimeDependencyPath('node:fs', 'ssr', specifiers)).toBe('node:fs');
     expect(getRuntimeDependencyPath('astro/assets/services/sharp', 'ssr', specifiers)).toBe(
       '@eventcatalog/core/dist/runtime-dependencies/astro__assets__services__sharp.mjs'
     );
   });
+  it.each([
+    ['file:///D:/installed/dependencies/', 'file:///D:/installed/dependencies/react.mjs'],
+    ['file:///D:/catalog%20with%20spaces/%23dependencies/', 'file:///D:/catalog%20with%20spaces/%23dependencies/react.mjs'],
+  ])('uses an ESM file URL for prerender dependencies in %s', (directory, expected) => {
+    const manifest = createRuntimeDependencyManifest(['react']);
+    expect(getRuntimeDependencyPath('react', 'prerender', manifest, new URL(directory))).toBe(expected);
+  });
+
+  it('uses filesystem paths for external prerender require calls while keeping ESM imports as file URLs', async () => {
+    const readManifest = vi.spyOn(fs, 'readFileSync').mockReturnValueOnce(JSON.stringify({ react: 'react.mjs' }));
+    const plugin = runtimeDependencies();
+    readManifest.mockRestore();
+    const context = { environment: { name: 'prerender' }, resolve: vi.fn().mockResolvedValue({ id: 'react', external: true }) };
+    const options = { kind: 'require-call' };
+    const resolved = await plugin.resolveId.call(context, 'react', '/entry.cjs', options);
+    expect(resolved).toEqual({
+      id: path.resolve(packageDirectory, '../dist/runtime-dependencies/react.mjs'),
+      external: 'absolute',
+    });
+    expect(context.resolve).toHaveBeenCalledWith('react', '/entry.cjs', { ...options, skipSelf: true });
+    const paths = plugin.configEnvironment('prerender').build.rolldownOptions.output.paths;
+    expect(paths(resolved.id)).toBe(resolved.id);
+    expect(paths('react')).toMatch(/^file:\/\//);
+  });
+
+  it('preserves bundled dependencies, ESM resolution, and deployed SSR require calls', async () => {
+    const readManifest = vi.spyOn(fs, 'readFileSync').mockReturnValueOnce(JSON.stringify({ react: 'react.mjs' }));
+    const plugin = runtimeDependencies();
+    readManifest.mockRestore();
+    const context = { environment: { name: 'prerender' }, resolve: vi.fn().mockResolvedValue({ id: 'react', external: false }) };
+    await expect(plugin.resolveId.call(context, 'react', '/entry.cjs', { kind: 'require-call' })).resolves.toBeUndefined();
+    context.resolve.mockClear();
+    await expect(plugin.resolveId.call(context, 'react', '/entry.mjs', { kind: 'import-statement' })).resolves.toBeUndefined();
+    context.environment.name = 'ssr';
+    await expect(plugin.resolveId.call(context, 'react', '/entry.cjs', { kind: 'require-call' })).resolves.toBeUndefined();
+    expect(context.resolve).not.toHaveBeenCalled();
+  });
+
   it('injects package routes with Astro index and endpoint conventions, excluding helpers and tests', () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'eventcatalog-routes-'));
     directories.push(directory);
@@ -48,6 +86,9 @@ describe('package-owned Astro runtime', () => {
       'docs/[type]/[id]/index.astro',
       'docs/[type]/[id]/[version].mdx.ts',
       'llms.txt.ts',
+      '.well-known/api-catalog.ts',
+      '.well-known/_helper.ts',
+      '.hidden/endpoint.ts',
       '_index.data.ts',
       '_private/index.astro',
       'api/.hidden.ts',
@@ -60,6 +101,7 @@ describe('package-owned Astro runtime', () => {
       fs.writeFileSync(path.join(directory, file), '');
     }
     expect(getPackageRoutes(directory)).toEqual([
+      { pattern: '/.well-known/api-catalog', entrypoint: path.join(directory, '.well-known/api-catalog.ts') },
       { pattern: '/api/search.json', entrypoint: path.join(directory, 'api/search.json.ts') },
       { pattern: '/docs/[type]/[id]/[version].mdx', entrypoint: path.join(directory, 'docs/[type]/[id]/[version].mdx.ts') },
       { pattern: '/docs/[type]/[id]', entrypoint: path.join(directory, 'docs/[type]/[id]/index.astro') },
