@@ -847,8 +847,10 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
 
   return (
     <>
-      {/* Keyframes for fade-in animation - using constant to avoid re-injection */}
-      <style>{CHAT_PANEL_STYLES}</style>
+      {/* Keyframes for fade-in animation - using constant to avoid re-injection.
+          Injected raw: React 18's server renderer escapes the `>` selectors in
+          text children, which the client doesn't, causing a hydration mismatch. */}
+      <style dangerouslySetInnerHTML={{ __html: CHAT_PANEL_STYLES }} />
 
       {/* Panel - hidden when fullscreen modal is open */}
       {!isFullscreen && (

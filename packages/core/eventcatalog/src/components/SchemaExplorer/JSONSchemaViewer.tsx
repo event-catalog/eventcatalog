@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useId } from 'react';
 
 interface JSONSchemaViewerProps {
   schema: any;
@@ -293,7 +293,8 @@ const NestedVariantSelector = ({
 const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, expand }: SchemaPropertyProps) => {
   const [isExpanded, setIsExpanded] = useState(expand);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-  const contentId = useRef(`prop-${name}-${level}-${Math.random().toString(36).substring(2, 7)}`).current;
+  // useId keeps the server and client IDs identical during hydration.
+  const contentId = `prop-${name}-${level}-${useId()}`;
 
   useEffect(() => {
     setIsExpanded(expand);

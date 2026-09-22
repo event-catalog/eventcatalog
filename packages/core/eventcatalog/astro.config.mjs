@@ -34,7 +34,7 @@ import preprocessExpressiveCodeConfig from './integrations/expressive-code-confi
 import catalogAssets from './integrations/catalog-assets.mjs';
 import runtimeDependencies from './integrations/runtime-dependencies.mjs';
 import { getRuntimePaths } from './integrations/runtime-paths.mjs';
-import { clientDependencies } from './integrations/client-dependencies.mjs';
+import { collectClientDependencies } from './integrations/client-dependencies.mjs';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const { runtimeDirectory } = getRuntimePaths(projectDirectory, process.env.CATALOG_DIR);
@@ -219,7 +219,7 @@ export default defineConfig({
     },
     optimizeDeps: {
       exclude: [],
-      include: clientDependencies,
+      include: collectClientDependencies(),
     },
   },
 });
