@@ -1919,7 +1919,7 @@
         {
           "path": "schema.json",
           "default": true,
-          "hash": "sha256:d3e85e0309df030d8b835bddee99acab7349ee87c34655ae4ca953d44f723ffb"
+          "hash": "sha256:2023717f331e24b33fd9044a9a83b1f6f044a5858f107907a67a6da90da91c19"
         }
       ]
     },
