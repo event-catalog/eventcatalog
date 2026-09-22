@@ -7,7 +7,8 @@ import { execFileSync, spawn } from 'node:child_process';
 const __dirname = import.meta.dirname;
 
 const args = process.argv.slice(2);
-const catalog = args[0] || 'default';
+const skipBuild = args.includes('--skip-build');
+const catalog = args.find((arg) => arg !== '--skip-build') || 'default';
 
 const projectDIR = join(__dirname, `../../../examples/${catalog}`);
 const { runtimeDirectory: catalogDir } = getRuntimePaths(projectDIR);
@@ -74,13 +75,14 @@ const runWithFilteredOutput = async ({ command, cwd, env }) => {
 
 // Check the same runtime bootstrap used by the CLI, including user components
 // and pages, without copying the application into the catalog.
-// Deliberately build the complete package first: Astro config also needs the
-// generated dependency-facade manifest. This costs a build on every check, but
-// keeps clean-checkout checks independent of stale or missing dist artifacts.
-execFileSync(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['run', 'build:bin'], {
-  cwd: join(__dirname, '..'),
-  stdio: 'inherit',
-});
+// Standalone checks build the package, including the dependency-facade manifest.
+// CI can reuse the outputs of its successful build:bin prerequisite.
+if (!skipBuild) {
+  execFileSync(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['run', 'build:bin'], {
+    cwd: join(__dirname, '..'),
+    stdio: 'inherit',
+  });
+}
 const { prepareCatalogRuntime } = await import('../dist/catalog-runtime.js');
 prepareCatalogRuntime({
   projectDirectory: projectDIR,
