@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 4.10.15
+
+### Patch Changes
+
+- 42aa409: Fix JSON Schema `oneOf` and `anyOf` options whose properties are declared on the parent schema.
+- 51d5514: chore(core): upgrade astro to 7.3.3 and related @astrojs packages
+
 ## 4.10.14
 
 ### Patch Changes
