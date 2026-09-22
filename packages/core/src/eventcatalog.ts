@@ -30,6 +30,7 @@ import {
   type FederationProgressEvent,
 } from './federation/federate';
 import { getFederationDiagnosticCounts, getVisibleFederationDiagnostics } from './federation/diagnostics';
+import { getEventCatalogUpdateMessage, resolveInstalledCoreVersion } from './update-check';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -304,16 +305,16 @@ const clearCore = () => {
 };
 
 const checkForUpdate = () => {
-  const installedVersion = getInstalledEventCatalogVersion();
+  const declaredVersion = getInstalledEventCatalogVersion();
 
-  if (!installedVersion) return;
+  if (!declaredVersion) return;
 
   // Check if user is on version < 3 and notify about V3
-  const majorVersion = parseInt(installedVersion.replace(/[^0-9.]/g, '').split('.')[0], 10);
+  const majorVersion = parseInt(declaredVersion.replace(/[^0-9.]/g, '').split('.')[0], 10);
   if (majorVersion < 3) {
     const v3Message = `🚀 EventCatalog V3 is now available in beta!
 
-You are currently on version ${installedVersion}.
+You are currently on version ${declaredVersion}.
 V3 brings exciting new features and improvements.
 
 Upgrade now: npm i @eventcatalog/core@beta`;
@@ -329,13 +330,16 @@ Upgrade now: npm i @eventcatalog/core@beta`;
     return;
   }
 
+  // Compare the running package, not the catalog dependency specifier.
+  // That specifier is often a range (`^4.10.0`), which is not an installed version.
+  const installedVersion = resolveInstalledCoreVersion(VERSION, declaredVersion);
+  if (!installedVersion) return;
+
   const pkg = { name: '@eventcatalog/core', version: installedVersion };
   const notifier = updateNotifier({ pkg, updateCheckInterval: 0 });
+  const message = getEventCatalogUpdateMessage(installedVersion, notifier.update?.latest);
 
-  if (notifier.update) {
-    const message = `EventCatalog update available ${notifier.update.current} → ${notifier.update.latest}
-Run npm i @eventcatalog/core to update`;
-
+  if (message) {
     console.log(
       boxen(message, {
         padding: 1,
