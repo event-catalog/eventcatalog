@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { userConfigPlugin } from './eventcatalog/integrations/eventcatalog-runtime.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectory = process.env.PROJECT_DIR || path.resolve(__dirname, '../../examples/default');
@@ -12,6 +13,9 @@ export default defineConfig({
     __EC_TRAILING_SLASH__: false,
   },
   plugins: [
+    // Match the application build so config-time imports share @config mocks,
+    // including imports that omit the source module's .ts extension.
+    userConfigPlugin(projectDirectory),
     tsconfigPaths({
       projects: [path.resolve(__dirname, 'eventcatalog/tsconfig.json')],
     }),
@@ -32,12 +36,6 @@ export default defineConfig({
     alias: {
       'astro:content': path.resolve(__dirname, './src/__mocks__/astro-content.ts'),
       '@config': path.join(projectDirectory, 'eventcatalog.config.js'),
-      // Config-time imports and runtime @config imports share the test catalog;
-      // existing application tests can mock either route to that configuration.
-      [path.resolve(__dirname, 'eventcatalog/src/utils/eventcatalog-config/source.ts')]: path.join(
-        projectDirectory,
-        'eventcatalog.config.js'
-      ),
       '@eventcatalog/connectors': path.resolve(__dirname, 'node_modules/@eventcatalog/connectors/dist/index.mjs'),
       '@eventcatalog/license': path.resolve(__dirname, 'node_modules/@eventcatalog/license/dist/index.js'),
       '@eventcatalog/sdk': path.resolve(__dirname, 'node_modules/@eventcatalog/sdk/dist/index.mjs'),
