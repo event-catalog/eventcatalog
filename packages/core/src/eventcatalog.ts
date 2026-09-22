@@ -21,6 +21,7 @@ import { logger } from './utils/cli-logger';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
 import { linkCoreNodeModules, resolveInstalledCoreNodeModules } from './core-node-modules';
+import { pruneExcludedCoreEntries, shouldCopyCoreEntry } from './copy-core';
 import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
 import {
   federateCatalog,
@@ -285,13 +286,12 @@ const copyCore = () => {
   // Copy required eventcatlog files into users directory
   fs.cpSync(eventCatalogDir, core, {
     recursive: true,
-    filter: (src) => {
-      const relativePath = path.relative(eventCatalogDir, src);
-      const pathParts = relativePath.split(path.sep);
-
-      return !pathParts.some((part) => ['.astro', 'dist', 'node_modules'].includes(part));
-    },
+    filter: (src) => shouldCopyCoreEntry(eventCatalogDir, src),
   });
+
+  // cpSync does not delete destination files that the filter skips, so an upgrade
+  // would otherwise keep spec files copied by an older release.
+  pruneExcludedCoreEntries(core);
 
   const coreNodeModules = path.join(core, 'node_modules');
   const installedCoreNodeModules = resolveInstalledCoreNodeModules(currentDir);

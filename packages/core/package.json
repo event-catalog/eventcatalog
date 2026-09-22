@@ -27,6 +27,7 @@
     "!eventcatalog/dist/",
     "!eventcatalog/node_modules/",
     "!eventcatalog/**/__tests__/",
+    "!eventcatalog/**/*.{spec,test}.{js,jsx,cjs,mjs,ts,tsx,cts,mts}",
     "bin/",
     "dist/"
   ],
