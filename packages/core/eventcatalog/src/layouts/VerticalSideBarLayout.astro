@@ -18,6 +18,7 @@ import Header from '../components/Header.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
 import SearchDataLoader from '../components/Search/SearchDataLoader.astro';
 import config from '@config';
+import { formatDocumentTitle, getCatalogName, resolvePageTitle } from '@utils/catalog-title';
 import { getCollection } from 'astro:content';
 import '@fontsource/inter';
 import '@fontsource/inter/400.css'; // Specify weight
@@ -422,12 +423,15 @@ const clientNavigationItems = navigationGroups.flatMap((group) =>
   }))
 );
 const { title, description, showNestedSideBar = true, showHeader = true, reducedContentPadding = false } = Astro.props;
+const catalogName = getCatalogName(config);
+const pageTitle = resolvePageTitle(title, catalogName);
+const documentTitle = formatDocumentTitle(title, catalogName);
 
 const canPageBeEmbedded = isEmbedEnabled();
 const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/docs', true)];
 ---
 
-<BaseLayout title={`EventCatalog | ${title}`} description={description} ogTitle={title}>
+<BaseLayout title={documentTitle} description={description} ogTitle={pageTitle}>
   <Fragment slot="head">
     <script is:inline define:vars={{ verticalNavAutoCollapsePaths }}>
       (() => {

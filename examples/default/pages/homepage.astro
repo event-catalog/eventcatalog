@@ -1,9 +1,14 @@
 ---
 import { getCollection } from 'astro:content';
+import config from '@config';
+import { getCatalogName } from '@utils/catalog-title';
 
 // EventCatalog injects its components via Astro.props.components. Destructure the ones
 // this landing page uses (including the ArchitectureGraph and SystemContextMap embeds).
 const { Tile, Tiles, SystemContextMap, ArchitectureGraph } = Astro.props.components;
+
+// Brand the landing page from eventcatalog.config.js (title, organizationName, or logo text).
+const catalogName = getCatalogName(config);
 
 // Count the catalog's top-level resources. We filter out versioned/ entries so each
 // resource is counted once (by its latest version).
@@ -25,9 +30,9 @@ const stats = [
 <div class="not-prose">
   {/* Hero */}
   <div class="pb-8 border-b border-[rgb(var(--ec-page-border))]">
-    <h1 class="text-4xl md:text-5xl font-bold text-[rgb(var(--ec-page-text))]">Acme Inc Catalog</h1>
+    <h1 class="text-4xl md:text-5xl font-bold text-[rgb(var(--ec-page-text))]">{catalogName}</h1>
     <p class="mt-3 text-lg text-[rgb(var(--ec-page-text-muted))] max-w-3xl font-light">
-      Discover, explore our architecture that powers Acme Inc — our
+      Discover, explore our architecture that powers {catalogName} — our
       domains, the systems inside them, and the services and messages that connect everything.
     </p>
   </div>
@@ -72,7 +77,7 @@ const stats = [
     icon="UserGroupIcon"
     href="/docs/domains/customer/1.0.0"
     title="Customer"
-    description="Customer profiles and authentication across Acme Inc."
+    description={`Customer profiles and authentication across ${catalogName}.`}
   />
   <Tile
     icon="ShoppingCartIcon"

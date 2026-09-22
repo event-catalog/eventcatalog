@@ -9,6 +9,8 @@ import { getContainers } from '@utils/collections/containers';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionTypes } from '@types';
 import { isVisualiserEnabled } from '@utils/feature';
+import config from '@config';
+import { formatDocumentTitle, getCatalogName } from '@utils/catalog-title';
 
 export async function getStaticPaths() {
   if (!isVisualiserEnabled()) {
@@ -44,6 +46,7 @@ export async function getStaticPaths() {
 
 const props = Astro.props;
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
+const documentTitle = formatDocumentTitle(pageTitle, getCatalogName(config));
 
 const { pathname } = Astro.url;
 
@@ -53,7 +56,7 @@ const redirectUrl = buildUrl(pathname + '/' + props.data.latestVersion, false, t
 <!doctype html>
 <html lang="en">
   <head>
-    <Seo title={`EventCatalog | ${pageTitle}`} ogTitle={pageTitle} />
+    <Seo title={documentTitle} ogTitle={pageTitle} />
   </head>
   <body>
     <p>You are being redirected to <a href={redirectUrl}>{redirectUrl}</a></p>

@@ -1,6 +1,8 @@
 ---
 import Seo from '@components/Seo.astro';
 import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+import { formatDocumentTitle, getCatalogName } from '@utils/catalog-title';
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -9,6 +11,7 @@ export const getStaticPaths = Page.getStaticPaths;
 const props = await Page.getData(Astro);
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
+const documentTitle = formatDocumentTitle(pageTitle, getCatalogName(config));
 
 const { pathname } = Astro.url;
 const redirectUrl = buildUrl(pathname + '/' + props.data.latestVersion, false, true);
@@ -17,7 +20,7 @@ const redirectUrl = buildUrl(pathname + '/' + props.data.latestVersion, false, t
 <!doctype html>
 <html lang="en">
   <head>
-    <Seo title={`EventCatalog | ${pageTitle}`} ogTitle={pageTitle} />
+    <Seo title={documentTitle} ogTitle={pageTitle} />
   </head>
   <body>
     <p>You are being redirected to <a href={redirectUrl}>{redirectUrl}</a></p>

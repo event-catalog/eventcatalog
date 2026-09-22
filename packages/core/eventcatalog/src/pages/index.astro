@@ -7,6 +7,7 @@ import { isCustomLandingPageEnabled, isVisualiserEnabled, isArchitectureGraphEna
 import DefaultAstroLandingPage from './_index.astro';
 import CustomHomepage from 'virtual:eventcatalog/homepage';
 import config from '@config';
+import { getCatalogName } from '@utils/catalog-title';
 
 let nodeGraphs: any[] = [];
 let systemContextMaps: any[] = [];
@@ -22,6 +23,7 @@ import { existsSync, readFileSync } from 'fs';
 const props = Astro.props;
 
 const pathToUserDefinedLandingPage = path.join(process.env.PROJECT_DIR || '', 'pages/homepage.astro');
+const catalogName = getCatalogName(config);
 
 if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
   CustomContent = CustomHomepage;
@@ -60,7 +62,7 @@ if (config.landingPage) {
 
 {
   CustomContent ? (
-    <VerticalSideBarLayout title="EventCatalog" reducedContentPadding>
+    <VerticalSideBarLayout title={catalogName} reducedContentPadding>
       <main class="flex docs-layout h-full">
         <div class="flex docs-layout w-full">
           <div class="w-full overflow-y-auto py-8">
