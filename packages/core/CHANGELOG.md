@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.12.0-beta.1
+
+### Patch Changes
+
+- 979ecd7: fix(core): reduce padding around documentation pages so content has more room on laptops and desktops
+
 ## 4.12.0-beta.0
 
 ### Minor Changes
