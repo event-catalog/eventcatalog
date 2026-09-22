@@ -27,6 +27,32 @@ describe('Astro output filters', () => {
         shouldFilterLine('The collection "events" does not exist or is empty. Please check your content config file for errors.')
       ).toBe(true);
     });
+
+    it('filters Astro empty-collection warnings for unused EventCatalog collections', () => {
+      const message = 'The collection "queries" does not exist or is empty. Please check your content config file for errors.';
+      const colored = `\u001b[33m\u001b[1m11:09:22\u001b[22m [WARN] [content]\u001b[39m ${message}`;
+
+      expect(shouldFilterLine(`11:09:22 [WARN] [content] ${message}`)).toBe(true);
+      expect(shouldFilterLine(colored)).toBe(true);
+      expect(shouldFilterLine(`11:09:22 [WARN] [content] ${message.replace('queries', 'containers')}`)).toBe(true);
+    });
+
+    it('keeps real content-config errors and warnings for unknown collections', () => {
+      expect(shouldFilterLine('11:09:22 [WARN] [content] Content config not loaded')).toBe(false);
+      expect(shouldFilterLine('11:09:22 [ERROR] [content] events → OrderCreated data does not match collection schema.')).toBe(
+        false
+      );
+      expect(
+        shouldFilterLine(
+          '11:09:22 [ERROR] [content] The collection "events" does not exist or is empty. Please check your content config file for errors.'
+        )
+      ).toBe(false);
+      expect(
+        shouldFilterLine(
+          '11:09:22 [WARN] [content] The collection "blog" does not exist or is empty. Please check your content config file for errors.'
+        )
+      ).toBe(false);
+    });
   });
 
   describe('development output', () => {

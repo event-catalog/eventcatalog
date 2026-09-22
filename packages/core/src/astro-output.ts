@@ -1,12 +1,10 @@
+import { isIntentionalEmptyCollectionLine } from '../eventcatalog/src/plugins/empty-collection-warning.mjs';
+
 export const createAstroLineFilter = () => {
   return (line: string) => {
     const isIgnoredGetStaticPathsWarning = line.includes('[router]') && line.includes('getStaticPaths() ignored in dynamic page');
 
-    return (
-      line.includes('[glob-loader]') ||
-      isIgnoredGetStaticPathsWarning ||
-      /^\s*The collection ".*" does not exist or is empty\. Please check your content config file for errors\.\s*$/.test(line)
-    );
+    return line.includes('[glob-loader]') || isIgnoredGetStaticPathsWarning || isIntentionalEmptyCollectionLine(line);
   };
 };
 

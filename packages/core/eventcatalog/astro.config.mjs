@@ -98,6 +98,12 @@ export default defineConfig({
 
   // just turn this off for all users (for now...)
   devToolbar: { enabled: false },
+
+  // Unused resource types are valid. Astro otherwise warns on every getCollection()
+  // call for those empty collections ("check your content config file for errors").
+  logger: {
+    entrypoint: new URL('./src/plugins/quiet-empty-collections-logger.mjs', import.meta.url),
+  },
   integrations: [
     react(),
     // Options are loaded automatically from ec.config.mjs.
