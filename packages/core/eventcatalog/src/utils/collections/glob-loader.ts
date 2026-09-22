@@ -1,4 +1,4 @@
-import { glob } from 'astro/loaders';
+import { glob, type Loader } from 'astro/loaders';
 import picomatch from 'picomatch';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -36,7 +36,7 @@ const matchesGlobPattern = (entry: string, patterns: string | string[]) => {
   return picomatch.isMatch(entry, positivePatterns) && !picomatch.isMatch(entry, negativePatterns);
 };
 
-export const globWithSafeWatcher = (options: GlobOptions) => {
+export const globWithSafeWatcher = (options: GlobOptions): Loader => {
   const loader = glob(options);
 
   return {
