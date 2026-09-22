@@ -6,6 +6,10 @@ on:
       - master
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     name: Lint
@@ -19,10 +23,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.x
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Installation
         run: pnpm i
       - name: Prettier Code
         run: pnpm run format:diff
       # - name: Lint Catalog (EventCatalog Linter)
-        # run: pnpm run lint:catalog
+      # run: pnpm run lint:catalog

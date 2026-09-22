@@ -7,9 +7,13 @@ on:
       - master
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-test:
-    name: Build and Test All Packages
+  build-packages:
+    name: Build Package Artifacts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +23,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.x
-          cache: 'pnpm'
+          cache: "pnpm"
       - name: Installation
         run: pnpm i
       - name: Turbo Cache
@@ -29,13 +33,8 @@ jobs:
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             turbo-${{ runner.os }}-
-      - name: Test All Packages
-        run: pnpm run test:ci
       - name: Build All Packages
         run: pnpm run build:bin
-      - name: Check Core Types
-        run: pnpm run check
-        working-directory: packages/core
       - name: Package SDK
         run: pnpm pack
         working-directory: packages/sdk
@@ -74,10 +73,43 @@ jobs:
             connectors-package.tgz
             visualiser-package.tgz
 
+  build-and-test:
+    name: Build and Test All Packages
+    needs: build-packages
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      # Preserve the existing required check when artifact preparation fails.
+      - name: Require successful package build
+        if: needs.build-packages.result != 'success'
+        run: exit 1
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: "pnpm"
+      - name: Installation
+        run: pnpm i
+      - name: Restore package build cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+      # Turbo restores the package outputs before running tests. If the cache
+      # is unavailable, its build:bin prerequisites rebuild them instead.
+      - name: Test All Packages
+        run: pnpm run test:ci
+      - name: Check Core Types
+        run: pnpm run check --skip-build
+        working-directory: packages/core
+
   build-eventcatalog:
     name: Build EventCatalog (${{ matrix.label }})
     timeout-minutes: 10
-    needs: build-and-test
+    needs: build-packages
     strategy:
       matrix:
         include:
@@ -100,12 +132,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.x
+      - name: Locate npm cache
+        id: npm-cache
+        shell: bash
+        run: echo "directory=$(npm config get cache)" >> "$GITHUB_OUTPUT"
       - name: Cache npm
         uses: actions/cache@v4
         with:
-          path: ~/.npm
-          key: npm-${{ runner.os }}-${{ matrix.catalog }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: npm-${{ runner.os }}-${{ matrix.catalog }}-
+          path: ${{ steps.npm-cache.outputs.directory }}
+          key: npm-v2-${{ runner.os }}-${{ runner.arch }}-${{ matrix.catalog }}-${{ hashFiles('pnpm-lock.yaml', 'packages/*/package.json') }}
+          restore-keys: npm-v2-${{ runner.os }}-${{ runner.arch }}-${{ matrix.catalog }}-
       - name: Download package artifacts
         uses: actions/download-artifact@v4
         with:
