@@ -1,15 +1,16 @@
 #!/usr/bin/env node
+import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
 
-// This is used for CI on vercel. Must copy files before building.
-import { join } from 'node:path';
+// This is used for CI on Vercel.
+import { join, relative } from 'node:path';
 import { execFileSync, execSync, spawn } from 'node:child_process';
 const __dirname = import.meta.dirname;
 
 const args = process.argv.slice(2);
 const catalog = args[0] || 'default';
 
-const catalogDir = join(__dirname, '../eventcatalog/');
 const projectDIR = join(__dirname, `../../../examples/${catalog}`);
+const { runtimeDirectory: catalogDir } = getRuntimePaths(projectDIR);
 const cliEntryPoint = join(__dirname, '../bin/eventcatalog.js');
 
 const shouldFilterAstroLine = (line) => {
@@ -99,7 +100,7 @@ const run = async () => {
 
   // Type check
   await runWithFilteredOutput({
-    command: `pnpm exec astro check --minimumSeverity error --root ${catalogDir}`,
+    command: `pnpm exec astro check --minimumSeverity error --root ${projectDIR} --config ${relative(projectDIR, join(__dirname, '../eventcatalog/astro.config.mjs'))} --tsconfig ${join(catalogDir, 'tsconfig.json')}`,
     cwd: process.cwd(),
     env: {
       PATH: process.env.PATH,

@@ -5,7 +5,7 @@ const config = vi.hoisted(() => ({
   mcp: {} as { enabled?: boolean },
 }));
 
-vi.mock('../../../eventcatalog.config.js', () => ({ default: config }));
+vi.mock('../../utils/eventcatalog-config/source', () => ({ default: config }));
 
 import { isEventCatalogMCPEnabled } from '../feature';
 

@@ -1,5 +1,7 @@
 import path from 'node:path';
 
+// Snapshot of the former mirroring paths, retained only to check URL compatibility.
+
 // Code files in the top-level `pages/` directory become routes in the Astro app
 // (custom pages). Everything else in `pages/` keeps the collection behaviour.
 const CUSTOM_PAGE_EXTENSIONS = ['.astro', '.ts', '.js', '.mjs'];

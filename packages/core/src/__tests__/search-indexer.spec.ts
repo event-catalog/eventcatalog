@@ -49,6 +49,19 @@ Read [[service|OrdersService]] and [the guide](/docs/custom/guide).
 });
 
 describe('collectSearchRecords', () => {
+  it('ignores current Astro metadata and legacy copied catalogs', async () => {
+    const projectDir = await createTempCatalog();
+    for (const directory of ['.astro', '.eventcatalog-core']) {
+      const resourceDirectory = path.join(projectDir, directory, 'services', 'CachedService');
+      await fs.mkdir(resourceDirectory, { recursive: true });
+      await fs.writeFile(
+        path.join(resourceDirectory, 'index.md'),
+        '---\nid: CachedService\nname: Cached\nversion: 1.0.0\n---\nCached content'
+      );
+    }
+
+    expect(await collectSearchRecords({ projectDir, config })).toEqual([]);
+  });
   it('indexes resource pages from source Markdown', async () => {
     const projectDir = await createTempCatalog();
     await fs.mkdir(path.join(projectDir, 'services', 'OrdersService'), { recursive: true });

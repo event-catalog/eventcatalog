@@ -17,8 +17,9 @@ export interface CustomPageRoute {
 export const DEFAULT_CUSTOM_PAGES_PREFIX = 'custom';
 
 /**
- * Tracks the routable files during dev so route injection re-runs when files
- * are added or removed. Never a route itself.
+ * Older Core versions wrote this file beside copied custom pages. Retain the
+ * exclusion so a leftover manifest can never become a JSON endpoint. The current
+ * manifest lives in .astro/eventcatalog, outside the user's pages directory.
  */
 export const CUSTOM_PAGES_MANIFEST_FILENAME = '.routes-manifest.json';
 

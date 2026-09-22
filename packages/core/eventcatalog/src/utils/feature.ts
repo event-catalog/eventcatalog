@@ -1,4 +1,5 @@
-import config from '../../eventcatalog.config.js';
+// Feature checks also run during Astro config evaluation, before @config exists.
+import config from './eventcatalog-config/source';
 
 // Open-source feature flags
 export const isEventCatalogChatVisible = () => config?.chat?.enabled ?? true;

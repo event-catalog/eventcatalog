@@ -1,0 +1,19 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@eventcatalog/breaking-changes": "0.2.0",
+    "@eventcatalog/cli": "1.0.9",
+    "@eventcatalog/connectors": "0.2.1",
+    "@eventcatalog/core": "4.11.1",
+    "@eventcatalog/create-eventcatalog": "4.3.11",
+    "@eventcatalog/diff": "0.1.1",
+    "@eventcatalog/linter": "1.1.20",
+    "@eventcatalog/sdk": "2.29.1",
+    "@eventcatalog/visualiser": "4.1.4"
+  },
+  "changesets": [
+    "ignore-astro-docker-cache",
+    "tidy-catalog-runtime"
+  ]
+}

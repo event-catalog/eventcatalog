@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -9,8 +10,8 @@ async function main() {
   const args = process.argv.slice(2);
   const catalog = args[0] || 'default';
 
-  const catalogDir = join(__dirname, '../eventcatalog/');
   const projectDIR = join(__dirname, `../../../examples/${catalog}`);
+  const { runtimeDirectory: catalogDir } = getRuntimePaths(projectDIR);
   const connectorsPackage = join(__dirname, '../../connectors/package.json');
 
   if (existsSync(connectorsPackage)) {

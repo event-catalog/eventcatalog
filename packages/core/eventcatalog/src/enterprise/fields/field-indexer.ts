@@ -7,6 +7,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { FieldsDatabase } from './fields-db';
 import { extractSchemaFieldsDeep } from './field-extractor';
+import { getRuntimePaths } from '../../../integrations/runtime-paths.mjs';
 
 function detectFormat(fileName: string): string {
   const ext = path.extname(fileName).toLowerCase();
@@ -33,8 +34,10 @@ export async function buildFieldsIndex(catalogDir: string, outputDir?: string): 
   const sdkModule = await import('@eventcatalog/sdk');
   const sdk = sdkModule.default(catalogDir);
 
-  const dbDir = path.join(outputDir || catalogDir, '.eventcatalog');
-  const dbPath = path.join(dbDir, 'fields.db');
+  // Preserve the public indexer's default output directory; CLI callers pass
+  // the generated runtime directory explicitly.
+  const { fieldsDatabasePath: dbPath } = getRuntimePaths(catalogDir, outputDir || catalogDir);
+  const dbDir = path.dirname(dbPath);
 
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });

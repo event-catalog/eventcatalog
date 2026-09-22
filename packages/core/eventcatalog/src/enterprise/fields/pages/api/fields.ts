@@ -6,10 +6,11 @@
 import type { APIRoute } from 'astro';
 import { Hono } from 'hono';
 import { getFieldsDatabase } from '@enterprise/fields/fields-db';
-import path from 'node:path';
+import { getRuntimePaths } from '../../../../../integrations/runtime-paths.mjs';
 
-const catalogDirectory = process.env.CATALOG_DIR || process.cwd();
-const dbPath = path.join(catalogDirectory, '.eventcatalog', 'fields.db');
+// The CLI builds the index at this same path. Shipping it with dist-only SSR
+// deployments is a separate artifact-lifecycle issue, not solved by a fallback.
+const { fieldsDatabasePath: dbPath } = getRuntimePaths(process.env.PROJECT_DIR || process.cwd(), process.env.CATALOG_DIR);
 
 const app = new Hono().basePath('/api/schemas/fields');
 

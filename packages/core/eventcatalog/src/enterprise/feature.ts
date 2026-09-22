@@ -11,7 +11,8 @@
 
 import fs from 'fs';
 import { join } from 'path';
-import config from '../../eventcatalog.config.js';
+// Feature checks also run during Astro config evaluation, before @config exists.
+import config from '../utils/eventcatalog-config/source';
 
 // Inline isSSR to avoid circular dependency with ../utils/feature (which re-exports from this file)
 const isSSR = () => config?.output === 'server';

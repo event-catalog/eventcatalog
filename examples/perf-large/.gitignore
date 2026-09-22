@@ -4,5 +4,6 @@ users/
 teams/
 dist/
 .eventcatalog-core/
+.astro/
 benchmark-*.json
 eventcatalog.styles.css

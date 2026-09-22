@@ -86,7 +86,7 @@ let dataProducts: any[] = [];
 // Try and load any custom styles if they exist
 if (isCustomStylesEnabled()) {
   try {
-    await import('../../eventcatalog.styles.css');
+    await import('@catalog/styles');
   } catch (error) {}
 }
 

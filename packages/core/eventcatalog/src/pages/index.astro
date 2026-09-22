@@ -5,6 +5,7 @@ import { resourceToCollectionMap } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
 import { isCustomLandingPageEnabled, isVisualiserEnabled, isArchitectureGraphEnabled } from '@utils/feature';
 import DefaultAstroLandingPage from './_index.astro';
+import CustomHomepage from 'virtual:eventcatalog/homepage';
 import config from '@config';
 
 let nodeGraphs: any[] = [];
@@ -23,9 +24,7 @@ const props = Astro.props;
 const pathToUserDefinedLandingPage = path.join(process.env.PROJECT_DIR || '', 'pages/homepage.astro');
 
 if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
-  const customPages = import.meta.glob('/src/custom-pages/homepage.astro', { eager: true });
-  // @ts-ignore
-  CustomContent = Object.values(customPages)[0]?.default || null;
+  CustomContent = CustomHomepage;
 
   const [{ default: pageComponents }, { default: mdxComponents }] = await Promise.all([
     import('@components/MDX/page-components'),

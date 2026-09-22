@@ -3,7 +3,6 @@ import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
-import { searchForWorkspaceRoot } from 'vite';
 import { mermaid } from './src/remark-plugins/mermaid';
 import { plantuml } from './src/remark-plugins/plantuml';
 import { join } from 'node:path';
@@ -22,24 +21,36 @@ import { linkValidation } from './src/plugins/link-validation';
 
 import rehypeExpressiveCode from 'rehype-expressive-code';
 
-/** @type {import('bin/eventcatalog.config').Config} */
-import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 // Expressive Code options (including the non-serializable `themeCssSelector`
-// function) live in ec.config.mjs. The `expressiveCode()` integration loads that
-// file automatically; the rehype plugin used by mdx() below needs it passed
-// explicitly, so we import it here to keep a single source of truth.
+// function) live in the package's ec.config.mjs. Both the integration's
+// preprocessors and the rehype plugin below load those same package defaults.
 import expressiveCodeConfig from './ec.config.mjs';
 import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
 import eventCatalogIntegration from './src/enterprise/integrations/eventcatalog-features.ts';
+import eventCatalogRuntime, { getDevServerFileSystem, packageDirectory } from './integrations/eventcatalog-runtime.mjs';
+import config from './src/utils/eventcatalog-config/source.ts';
+import preprocessExpressiveCodeConfig from './integrations/expressive-code-config.mjs';
+import catalogAssets from './integrations/catalog-assets.mjs';
+import runtimeDependencies from './integrations/runtime-dependencies.mjs';
+import { getRuntimePaths } from './integrations/runtime-paths.mjs';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
+const { runtimeDirectory } = getRuntimePaths(projectDirectory, process.env.CATALOG_DIR);
 const base = config.base || '/';
 const host = config.host || false;
 const compress = config.compress ?? false;
 const isDevMode = process.env.EVENTCATALOG_DEV_MODE === 'true';
 const effectiveOutput = isDevMode ? 'server' : config.output || 'static';
 const searchType = config.search?.type || 'resource';
+const bundledRuntimeDependencies = [
+  '@xyflow/react',
+  '@eventcatalog/core',
+  '@astrojs/react',
+  '@astrojs/node',
+  '@astrojs/internal-helpers',
+];
+const externalRuntimeDependencies = ['astro/assets/services/sharp'];
 
 const markdownRemarkPlugins = [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml];
 const mdxRemarkPlugins = [...markdownRemarkPlugins, remarkResourceRef, remarkCodeGroup];
@@ -62,6 +73,9 @@ const mdxRehypePlugins = [
 
 // https://astro.build/config
 export default defineConfig({
+  root: projectDirectory,
+  srcDir: runtimeDirectory,
+  publicDir: join(projectDirectory, 'public'),
   base,
   server: {
     port: config.port || 3000,
@@ -105,9 +119,14 @@ export default defineConfig({
     entrypoint: new URL('./src/plugins/quiet-empty-collections-logger.mjs', import.meta.url),
   },
   integrations: [
+    eventCatalogRuntime({ projectDirectory, runtimeDirectory }),
     react(),
-    // Options are loaded automatically from ec.config.mjs.
-    expressiveCode(),
+    expressiveCode({
+      customConfigPreprocessors: {
+        preprocessAstroIntegrationConfig: preprocessExpressiveCodeConfig,
+        preprocessComponentConfig: `export { default } from ${JSON.stringify(join(packageDirectory, 'integrations/expressive-code-config.mjs'))};`,
+      },
+    }),
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
@@ -116,13 +135,31 @@ export default defineConfig({
         rehypePlugins: mdxRehypePlugins,
       }),
     }),
+    catalogAssets({ projectDirectory, generatedDirectory: join(runtimeDirectory, 'public') }),
     effectiveOutput !== 'server' && compress && (await loadAstroCompressIntegration(projectDirectory)),
     ecstudioWatcher(),
     eventCatalogIntegration(),
     linkValidation(config.linkValidation),
   ].filter(Boolean),
   vite: {
+    // Resolve Core's private dependencies from the installed package (including
+    // strict pnpm layouts), while Astro owns the user's project and content.
+    root: packageDirectory,
+    // User components must share the renderer's React, even if the catalog has
+    // installed its own version. Preserve the former copied-component contract.
+    resolve: { dedupe: ['react', 'react-dom'] },
+    envDir: projectDirectory,
+    cacheDir: join(runtimeDirectory, 'vite'),
+    environments: {
+      prerender: {
+        resolve: {
+          noExternal: bundledRuntimeDependencies,
+          external: externalRuntimeDependencies,
+        },
+      },
+    },
     plugins: [
+      runtimeDependencies(),
       tailwindcss(),
       ...(await eventCatalogLikeC4(projectDirectory)),
       ...(config.trailingSlash === true ? [astroTrailingSlashEndpointFix()] : []),
@@ -139,34 +176,23 @@ export default defineConfig({
       __EC_SEARCH_TYPE__: JSON.stringify(searchType),
     },
     server: {
-      fs: {
-        allow: ['..', './node_modules/@fontsource', projectDirectory, searchForWorkspaceRoot(process.cwd())],
-      },
-      // Prevent stale FSEvents from triggering a config-dependency restart on first run.
-      // During startup, catalogToAstro copies eventcatalog.config.js into .eventcatalog-core
-      // shortly before Astro/Vite begins watching. On macOS, FSEvents can deliver buffered
-      // notifications for those recent writes, causing Vite to restart mid-dep-scan.
-      // awaitWriteFinish makes chokidar verify the file is stable before emitting events,
-      // filtering out those stale notifications.
-      watch: {
-        awaitWriteFinish: {
-          stabilityThreshold: 100,
-          pollInterval: 50,
-        },
-      },
+      fs: getDevServerFileSystem({ projectDirectory }),
       ...(config.server?.allowedHosts ? { allowedHosts: config.server?.allowedHosts } : {}),
       // Pre-transform critical modules during startup so they're ready when
       // the first page request arrives. Without this, Vite transforms each
       // module on-demand during the first request, adding seconds to TTFB.
       warmup: {
         ssrFiles: [
-          './src/pages/index.astro',
-          './src/pages/_index.astro',
-          './src/layouts/VerticalSideBarLayout.astro',
-          './src/components/Header.astro',
-          './src/components/SideNav/SideNav.astro',
+          join(packageDirectory, 'src/pages/index.astro'),
+          join(packageDirectory, 'src/pages/_index.astro'),
+          join(packageDirectory, 'src/layouts/VerticalSideBarLayout.astro'),
+          join(packageDirectory, 'src/components/Header.astro'),
+          join(packageDirectory, 'src/components/SideNav/SideNav.astro'),
         ],
-        clientFiles: ['./src/components/SideNav/NestedSideBar/index.tsx', './src/components/Search/SearchModal.tsx'],
+        clientFiles: [
+          join(packageDirectory, 'src/components/SideNav/NestedSideBar/index.tsx'),
+          join(packageDirectory, 'src/components/Search/SearchModal.tsx'),
+        ],
       },
     },
     worker: {
@@ -178,8 +204,8 @@ export default defineConfig({
       },
     },
     ssr: {
-      noExternal: ['@xyflow/react'],
-      external: ['eventcatalog.auth.js', 'eventcatalog.chat.js'],
+      noExternal: bundledRuntimeDependencies,
+      external: ['eventcatalog.auth.js', 'eventcatalog.chat.js', ...externalRuntimeDependencies],
     },
     optimizeDeps: {
       exclude: [],
