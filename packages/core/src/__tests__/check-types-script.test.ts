@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { execFileSync, spawn, prepareCatalogRuntime } = vi.hoisted(() => ({
@@ -10,14 +11,31 @@ const { execFileSync, spawn, prepareCatalogRuntime } = vi.hoisted(() => ({
 }));
 
 vi.mock('node:child_process', () => ({ execFileSync, spawn }));
-vi.mock('../../dist/catalog-runtime.js', () => ({ prepareCatalogRuntime }));
 
 const originalArgv = process.argv;
-const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
+let repoRoot: string;
+let scriptPath: string;
+let runtimePath: string;
+const runScript = () => import(scriptPath);
 
 beforeEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
+  // Run the unchanged script in a disposable package, with a resolvable runtime
+  // stub. Package-scoped tests must not require or modify Core's build output.
+  repoRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'eventcatalog-check-types-')));
+  const coreDirectory = path.join(repoRoot, 'packages/core');
+  scriptPath = path.join(coreDirectory, 'scripts/check-types.js');
+  runtimePath = path.join(coreDirectory, 'dist/catalog-runtime.js');
+  for (const file of ['scripts/check-types.js', 'eventcatalog/integrations/runtime-paths.mjs']) {
+    const destination = path.join(coreDirectory, file);
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.copyFileSync(new URL(`../../${file}`, import.meta.url), destination);
+  }
+  fs.writeFileSync(path.join(repoRoot, 'package.json'), JSON.stringify({ type: 'module' }));
+  fs.mkdirSync(path.dirname(runtimePath), { recursive: true });
+  fs.writeFileSync(runtimePath, 'export function prepareCatalogRuntime() { throw new Error("Runtime mock not applied"); }');
+  vi.doMock(runtimePath, () => ({ prepareCatalogRuntime }));
   spawn.mockImplementation(() => {
     const child = Object.assign(new EventEmitter(), { stdout: new EventEmitter(), stderr: new EventEmitter() });
     queueMicrotask(() => child.emit('close', 0));
@@ -27,12 +45,14 @@ beforeEach(() => {
 
 afterEach(() => {
   process.argv = originalArgv;
+  vi.doUnmock(runtimePath);
+  fs.rmSync(repoRoot, { recursive: true, force: true });
 });
 
 describe('Core type-check script', () => {
   it('builds Core before preparing the runtime for a standalone check', async () => {
     process.argv = ['node', 'check-types.js'];
-    await import('../../scripts/check-types.js');
+    await runScript();
 
     expect(execFileSync).toHaveBeenCalledWith(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['run', 'build:bin'], {
       cwd: path.join(repoRoot, 'packages/core'),
@@ -48,7 +68,7 @@ describe('Core type-check script', () => {
     [['ssr', '--skip-build'], 'ssr'],
   ])('reuses built outputs with arguments %j and still checks the selected catalog', async (args, catalog) => {
     process.argv = ['node', 'check-types.js', ...args];
-    await import('../../scripts/check-types.js');
+    await runScript();
 
     expect(execFileSync).not.toHaveBeenCalled();
     expect(prepareCatalogRuntime).toHaveBeenCalledWith({
@@ -67,7 +87,7 @@ describe('Core type-check script', () => {
       throw new Error('Package build failed');
     });
 
-    await expect(import('../../scripts/check-types.js')).rejects.toThrow('Package build failed');
+    await expect(runScript()).rejects.toThrow('Package build failed');
     expect(prepareCatalogRuntime).not.toHaveBeenCalled();
     expect(spawn).not.toHaveBeenCalled();
   });
@@ -80,6 +100,6 @@ describe('Core type-check script', () => {
       return child;
     });
 
-    await expect(import('../../scripts/check-types.js')).rejects.toThrow('Command failed with exit code 1');
+    await expect(runScript()).rejects.toThrow('Command failed with exit code 1');
   });
 });
