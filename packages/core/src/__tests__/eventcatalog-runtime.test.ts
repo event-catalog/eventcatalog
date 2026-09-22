@@ -234,7 +234,7 @@ describe('package-owned Astro runtime', () => {
     expect(watcher.listenerCount('unlink')).toBe(0);
   });
 
-  it('registers all routes from the installed package and watches the original user configuration', () => {
+  it('registers package routes and watches configuration without restarting Astro for homepage edits', () => {
     const injectRoute = vi.fn();
     const updateConfig = vi.fn();
     const addWatchFile = vi.fn();
@@ -248,7 +248,7 @@ describe('package-owned Astro runtime', () => {
       entrypoint: path.join(packageDirectory, 'src/pages/docs/[type]/[id]/[version]/index.astro'),
     });
     expect(injectRoute.mock.calls.every(([route]) => route.entrypoint.startsWith(packageDirectory))).toBe(true);
-    expect(addWatchFile).toHaveBeenCalledWith('/catalog/eventcatalog.config.js');
+    expect(addWatchFile.mock.calls).toEqual([['/catalog/eventcatalog.config.js'], ['/catalog/eventcatalog.styles.css']]);
     expect(updateConfig).toHaveBeenCalledOnce();
   });
 });

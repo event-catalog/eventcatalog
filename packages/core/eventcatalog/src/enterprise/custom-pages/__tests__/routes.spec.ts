@@ -100,6 +100,16 @@ describe('custom-pages routes', () => {
       expect(getCustomPageRoutes(customPagesDir, 'custom')).toEqual([]);
     });
 
+    it('tracks homepage additions and removals in the restart manifest, but leaves it unchanged for edits', () => {
+      expect(listCustomPageFiles(customPagesDir)).toEqual([]);
+      write('homepage.astro', '<h1>Original homepage</h1>');
+      expect(listCustomPageFiles(customPagesDir)).toEqual(['homepage.astro']);
+      write('homepage.astro', '<h1>Updated homepage</h1>');
+      expect(listCustomPageFiles(customPagesDir)).toEqual(['homepage.astro']);
+      fs.unlinkSync(path.join(customPagesDir, 'homepage.astro'));
+      expect(listCustomPageFiles(customPagesDir)).toEqual([]);
+    });
+
     it('skips underscore-prefixed files and directories', () => {
       write('_partial.astro');
       write('_components/Card.astro');

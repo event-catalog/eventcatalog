@@ -202,6 +202,15 @@ export default defineConfig({
       commonjsOptions: {
         transformMixedEsModules: true,
       },
+      rolldownOptions: {
+        onLog(level, log, handler) {
+          // Astro marks every MDX content entry with "use astro:head-inject". Rolldown
+          // warns that the directive may be dropped when chunking, but Astro never reads
+          // it after bundling, so this is one harmless warning per MDX file.
+          if (log.code === 'MODULE_LEVEL_DIRECTIVE' && log.message?.includes('use astro:head-inject')) return;
+          handler(level, log);
+        },
+      },
     },
     ssr: {
       noExternal: bundledRuntimeDependencies,
