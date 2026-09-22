@@ -8,4 +8,4 @@ Keep `.astro/` in `.gitignore` and `.dockerignore`. `dev --force-recreate` now r
 
 Custom components share Core's React and React DOM instances, including when the project has its own React installation.
 
-Preserve API catalog discovery under `/.well-known`, configuration loading for CommonJS projects, and Windows prerender dependency imports.
+Preserve API catalog discovery under `/.well-known`, configuration loading for CommonJS projects, and Windows prerender dependency imports and client script paths.

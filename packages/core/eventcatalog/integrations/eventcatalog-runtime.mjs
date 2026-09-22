@@ -113,6 +113,7 @@ export function catalogStylesPlugin(projectDirectory, runtimeDirectory, coreDire
 }
 
 const isWithin = (file, directory) => file === directory || file.startsWith(`${directory}${path.sep}`);
+const toModuleId = (file) => file.replace(/\\/g, '/');
 
 export function customSourcesPlugin(projectDirectory) {
   const localDirectory = path.join(projectDirectory, 'components');
@@ -184,7 +185,7 @@ export function customSourcesPlugin(projectDirectory) {
     },
     resolveId(id, importer) {
       if (id === 'virtual:eventcatalog/homepage') return homepageModule;
-      if (id === '@catalog/styles') return fs.existsSync(stylePath) ? stylePath : emptyStyles;
+      if (id === '@catalog/styles') return fs.existsSync(stylePath) ? toModuleId(stylePath) : emptyStyles;
       // Astro can turn an import from an original user component into a
       // root-relative URL (e.g. /components/Card.astro?astro&type=style). Vite's
       // root is Core, so retry those URL paths against the catalog. This is not
@@ -193,7 +194,9 @@ export function customSourcesPlugin(projectDirectory) {
         const [source, query] = id.split('?');
         const projectFile = path.resolve(projectDirectory, `.${source}`);
         if (fs.existsSync(projectFile) && fs.statSync(projectFile).isFile()) {
-          return projectFile + (query === undefined ? '' : `?${query}`);
+          // Astro normalizes compiler filenames to forward slashes. Keep Vite's
+          // module IDs identical so its client-script manifest uses the same keys.
+          return toModuleId(projectFile) + (query === undefined ? '' : `?${query}`);
         }
       }
       const [source, query] = id.split('?');
@@ -201,7 +204,7 @@ export function customSourcesPlugin(projectDirectory) {
       if (source.startsWith('@catalog/components/')) {
         relative = source.slice('@catalog/components/'.length);
       } else if (source.startsWith('.') && importer) {
-        const parent = importer.split('?')[0];
+        const parent = path.normalize(importer.split('?')[0]);
         const directory = [localDirectory, federatedDirectory].find((directory) => isWithin(parent, directory));
         if (directory) relative = path.relative(directory, path.resolve(path.dirname(parent), source));
       }
@@ -210,12 +213,14 @@ export function customSourcesPlugin(projectDirectory) {
       const federated = path.resolve(federatedDirectory, relative);
       if (!isWithin(local, localDirectory) || !isWithin(federated, federatedDirectory)) return;
       const resolved = resolveFile(local) || resolveFile(federated);
-      return resolved ? resolved + (query === undefined ? '' : `?${query}`) : undefined;
+      return resolved ? toModuleId(resolved) + (query === undefined ? '' : `?${query}`) : undefined;
     },
     load(id) {
       if (id === emptyStyles) return '';
       if (id === homepageModule) {
-        return fs.existsSync(homepage) ? `export { default } from ${JSON.stringify(homepage)};` : 'export default null;';
+        return fs.existsSync(homepage)
+          ? `export { default } from ${JSON.stringify(toModuleId(homepage))};`
+          : 'export default null;';
       }
     },
   };

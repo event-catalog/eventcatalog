@@ -171,6 +171,26 @@ describe('package-owned Astro runtime', () => {
     expect(plugin.resolveId('@catalog/styles')).toBe(path.join(directory, 'eventcatalog.styles.css'));
   });
 
+  it.each(['', '?astro&type=script&index=0&lang.ts'])(
+    'normalizes Windows project-relative route IDs before Astro discovers scripts (%s)',
+    (query) => {
+      const file = 'D:\\catalog\\node_modules\\@eventcatalog\\core\\eventcatalog\\src\\pages\\index.astro';
+      const url = '/node_modules/@eventcatalog/core/eventcatalog/src/pages/index.astro';
+      const resolve = vi.spyOn(path, 'resolve').mockReturnValue(file);
+      const exists = vi.spyOn(fs, 'existsSync').mockImplementation((candidate) => candidate === file);
+      const stat = vi.spyOn(fs, 'statSync').mockReturnValue({ isFile: () => true } as fs.Stats);
+      try {
+        expect(customSourcesPlugin('D:\\catalog').resolveId(url + query)).toBe(
+          'D:/catalog/node_modules/@eventcatalog/core/eventcatalog/src/pages/index.astro' + query
+        );
+      } finally {
+        resolve.mockRestore();
+        exists.mockRestore();
+        stat.mockRestore();
+      }
+    }
+  );
+
   it('refreshes component resolution when overrides are added or removed without restarting on the initial scan or edits', async () => {
     vi.useFakeTimers();
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'eventcatalog-component-watch-'));
