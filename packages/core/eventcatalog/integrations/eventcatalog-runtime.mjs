@@ -234,7 +234,10 @@ export default function eventCatalogRuntime({ projectDirectory, runtimeDirectory
         for (const route of getPackageRoutes()) injectRoute(route);
         addWatchFile(path.join(projectDirectory, 'eventcatalog.config.js'));
         addWatchFile(path.join(projectDirectory, 'eventcatalog.styles.css'));
-        addWatchFile(path.join(projectDirectory, 'pages/homepage.astro'));
+        // The virtual homepage imports the user's Astro file, so Vite handles
+        // edits through HMR. Registering it as config restarts Astro on every
+        // save and can disconnect in-flight module loads. Adding/removing it
+        // is already covered by the custom-pages manifest watcher.
         updateConfig({
           vite: {
             resolve: { alias: getRuntimeAliases({ projectDirectory, runtimeDirectory }) },
