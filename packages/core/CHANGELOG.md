@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.12.0-beta.5
+
+### Patch Changes
+
+- ef7f3f5: chore(core): upgrade the EventCatalog Assistant to Vercel AI SDK v7
+
 ## 4.12.0-beta.4
 
 ### Patch Changes
