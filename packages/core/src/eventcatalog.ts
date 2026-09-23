@@ -20,7 +20,7 @@ import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
-import { clearCatalogCache, prepareCatalogRuntime } from './catalog-runtime';
+import { clearCatalogCache, hasLegacyCatalogRuntime, prepareCatalogRuntime } from './catalog-runtime';
 import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
 import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
 import { getAstroConfigPath } from './astro-config-path';
@@ -277,12 +277,20 @@ const runCommandWithFilteredOutput = async ({
   });
 };
 
-const prepareCore = () =>
+const prepareCore = () => {
+  if (hasLegacyCatalogRuntime(dir)) {
+    logger.warning(
+      'The .eventcatalog-core/ directory is no longer used. You can delete it once older EventCatalog processes have stopped.',
+      'eventcatalog'
+    );
+  }
+
   prepareCatalogRuntime({
     projectDirectory: dir,
     catalogDirectory: core,
     packageDirectory: eventCatalogDir,
   });
+};
 
 const clearCore = () => {
   clearCatalogCache(dir);
