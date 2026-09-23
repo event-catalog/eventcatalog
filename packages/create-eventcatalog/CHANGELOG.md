@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.13
+
+### Patch Changes
+
+- 92829ed: feat(create-eventcatalog): add TypeScript, Python and Java usage examples to every message in the default template
+
 ## 4.3.12
 
 ### Patch Changes
