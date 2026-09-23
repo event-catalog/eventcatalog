@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.12.0-beta.6
+
+### Patch Changes
+
+- 98f3000: fix(core): let `dev` and `build` tell you when an unused `.eventcatalog-core/` directory from an older version can be deleted
+
 ## 4.12.0-beta.5
 
 ### Patch Changes
