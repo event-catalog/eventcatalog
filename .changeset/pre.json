@@ -17,6 +17,7 @@
     "calm-homepage-reloads",
     "discover-installed-client-dependencies",
     "fix-installed-client-dependencies",
+    "fix-system-changelog-badge",
     "ignore-astro-docker-cache",
     "pad-custom-pages",
     "quiet-head-inject-warnings",

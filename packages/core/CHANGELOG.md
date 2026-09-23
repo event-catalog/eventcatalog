@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.12.0-beta.9
+
+### Patch Changes
+
+- 6a7441b: Fix static builds crashing on system changelog pages when changelogs are enabled.
+
 ## 4.12.0-beta.8
 
 ### Patch Changes
