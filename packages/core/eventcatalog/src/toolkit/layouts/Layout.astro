@@ -13,11 +13,13 @@ interface Props {
   sidebar?: boolean;
   /** Show the EventCatalog header (search, navigation). Defaults to true. */
   showHeader?: boolean;
+  /** Render content edge-to-edge without EventCatalog's page padding. Defaults to false. */
+  fullWidth?: boolean;
 }
 
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 
-const { title, description, sidebar = true, showHeader = true } = Astro.props;
+const { title, description, sidebar = true, showHeader = true, fullWidth = false } = Astro.props;
 ---
 
 <VerticalSideBarLayout
@@ -25,7 +27,10 @@ const { title, description, sidebar = true, showHeader = true } = Astro.props;
   description={description}
   showHeader={showHeader}
   showNestedSideBar={sidebar}
-  wrapContent={false}
+  wrapContent={!fullWidth}
 >
-  <slot />
+  {/* Full-width pages keep control of their layout, so only the theme text color is inherited. */}
+  <div class:list={['text-[rgb(var(--ec-page-text))]', fullWidth ? 'contents' : 'py-8']}>
+    <slot />
+  </div>
 </VerticalSideBarLayout>
