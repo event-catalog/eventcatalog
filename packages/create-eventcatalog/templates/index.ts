@@ -148,15 +148,18 @@ export const installTemplate = async ({
   fs.writeFileSync(path.join(root, 'CLAUDE.md'), CLAUDE_RULES);
 
   const cId = v4();
+  // trial start date (unix ms), stored as a number
+  const tsd = Date.now();
 
   // update the properties in the eventcatalog.config.js
   const eventCatalogConfigPath = path.join(root, 'eventcatalog.config.js');
   let eventCatalogConfig = fs.readFileSync(eventCatalogConfigPath, 'utf8');
   eventCatalogConfig = eventCatalogConfig.replace(/<organizationName>/g, organizationName);
   eventCatalogConfig = eventCatalogConfig.replace(/<cId>/g, cId);
+  eventCatalogConfig = eventCatalogConfig.replace(/'<tsd>'/g, String(tsd));
   fs.writeFileSync(eventCatalogConfigPath, eventCatalogConfig);
 
-  await raiseEvent({ command: 'create', org: organizationName, cId });
+  await raiseEvent({ command: 'create', org: organizationName, cId, tsd });
 
   if (!eslint) {
     // remove un-necessary template file if eslint is not desired

@@ -5,6 +5,7 @@ interface EventMetadata {
   command: string;
   org: string;
   cId: string;
+  tsd: number;
 }
 
 async function raiseEvent(eventData: EventMetadata): Promise<void> {

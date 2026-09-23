@@ -95,7 +95,7 @@ const main = async (
   try {
     await verifyRequiredFieldsAreInCatalogConfigFile(projectDir);
     const configFile = await getEventCatalogConfigFile(projectDir);
-    const { cId, organizationName, generators = [] } = configFile;
+    const { cId, tsd, organizationName, generators = [] } = configFile;
     let generatorNames = generators.length > 0 ? generators.map((generator) => generator[0]) : ['none'];
 
     // Check if EventCatalog Pro is enabled
@@ -121,6 +121,8 @@ const main = async (
       command,
       org: organizationName,
       cId,
+      // Trial start date (unix ms) from eventcatalog.config.js
+      tsd,
       // CI redeploys and human-run builds are different signals; tag rather than suppress
       ci: process.env.CI ? 'true' : 'false',
       // The commercial plan, separate from the generators list, so telemetry joins cleanly to licensing

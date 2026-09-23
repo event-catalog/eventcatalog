@@ -267,6 +267,8 @@ type ScalarConfiguration = any;
 
 export interface Config {
   cId: string;
+  /** Trial start date (unix timestamp in ms), added automatically by EventCatalog */
+  tsd?: number;
   title: string;
   organizationName: string;
   tagline?: string | false;

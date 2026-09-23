@@ -7,6 +7,7 @@ const CATALOG_DIR = path.join(__dirname, 'example-catalog');
 import { expect, describe, it } from 'vitest';
 import {
   addPropertyToFrontMatter,
+  addTrialStartDateToCatalogConfigFile,
   getEventCatalogConfigFile,
   verifyRequiredFieldsAreInCatalogConfigFile,
   writeEventCatalogConfigFile,
@@ -192,6 +193,87 @@ describe('catalog-to-astro-content-directory', () => {
 
       // cId: '2aa9384e-b0f3-4ea3-a6e0-97188f4027cb' expect this to be there, but the uiid dan be anything
       expect(file).toContain("cId: '");
+    });
+
+    it('if tsd (trial start date) is not in the config file it is added as a number under the cId with a comment', async () => {
+      const config = await getEventCatalogConfigFile(CATALOG_DIR);
+      expect(config.tsd).toBeUndefined();
+
+      await verifyRequiredFieldsAreInCatalogConfigFile(CATALOG_DIR);
+
+      const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+
+      expect(file).toMatch(/cId: '[^']+',\n  \/\/ required by eventcatalog\n  tsd: \d+,/);
+
+      const updatedConfig = await getEventCatalogConfigFile(CATALOG_DIR);
+      expect(typeof updatedConfig.tsd).toBe('number');
+    });
+
+    it('if tsd (trial start date) is already in the config file it is not changed', async () => {
+      await verifyRequiredFieldsAreInCatalogConfigFile(CATALOG_DIR);
+      const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+
+      await verifyRequiredFieldsAreInCatalogConfigFile(CATALOG_DIR);
+      const fileAfterSecondRun = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+
+      expect(fileAfterSecondRun).toEqual(file);
+      expect(fileAfterSecondRun.match(/tsd:/g)).toHaveLength(1);
+    });
+  });
+
+  describe('addTrialStartDateToCatalogConfigFile', () => {
+    it('adds the tsd under the cId, adding a trailing comma to the cId when it is missing', async () => {
+      const configPath = path.join(CATALOG_DIR, 'eventcatalog.config.js');
+      const file = await fs.readFile(configPath, 'utf8');
+      await fs.writeFile(configPath, file.replace(/};\s*$/, "  cId: 'my-catalog-id'\n};\n"));
+
+      await addTrialStartDateToCatalogConfigFile(CATALOG_DIR, { cId: 'my-catalog-id', tsd: 1700000000000 });
+
+      const updatedFile = await fs.readFile(configPath, 'utf8');
+      expect(updatedFile).toContain("  cId: 'my-catalog-id',\n  // required by eventcatalog\n  tsd: 1700000000000,\n};");
+
+      const config = await getEventCatalogConfigFile(CATALOG_DIR);
+      expect(config.tsd).toBe(1700000000000);
+    });
+
+    it('adds the tsd under the catalog cId, not a nested cId that appears earlier in the file', async () => {
+      const configPath = path.join(CATALOG_DIR, 'eventcatalog.config.js');
+      const file = await fs.readFile(configPath, 'utf8');
+      await fs.writeFile(
+        configPath,
+        file
+          .replace('export default {', "export default {\n  nested: {\n    cId: 'nested-id',\n  },")
+          .replace(/};\s*$/, "  cId: 'my-catalog-id',\n};\n")
+      );
+
+      await addTrialStartDateToCatalogConfigFile(CATALOG_DIR, { cId: 'my-catalog-id', tsd: 1700000000000 });
+
+      const updatedFile = await fs.readFile(configPath, 'utf8');
+      expect(updatedFile).toContain("    cId: 'nested-id',\n  },");
+      expect(updatedFile).toContain("  cId: 'my-catalog-id',\n  // required by eventcatalog\n  tsd: 1700000000000,\n};");
+
+      const config = await getEventCatalogConfigFile(CATALOG_DIR);
+      expect(config.tsd).toBe(1700000000000);
+      expect(config.nested).toEqual({ cId: 'nested-id' });
+    });
+
+    it('does not add a second tsd when the file already has one', async () => {
+      const configPath = path.join(CATALOG_DIR, 'eventcatalog.config.js');
+      const file = await fs.readFile(configPath, 'utf8');
+      await fs.writeFile(configPath, file.replace(/};\s*$/, "  cId: 'my-catalog-id',\n  tsd: 1600000000000,\n};\n"));
+
+      await addTrialStartDateToCatalogConfigFile(CATALOG_DIR, { cId: 'my-catalog-id', tsd: 1700000000000 });
+
+      const updatedFile = await fs.readFile(configPath, 'utf8');
+      expect(updatedFile.match(/tsd:/g)).toHaveLength(1);
+      expect(updatedFile).toContain('tsd: 1600000000000,');
+    });
+
+    it('adds the tsd to the start of the config when no cId can be found', async () => {
+      await addTrialStartDateToCatalogConfigFile(CATALOG_DIR, { tsd: 1700000000000 });
+
+      const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+      expect(file).toContain('export default {\n  // required by eventcatalog\n  tsd: 1700000000000,');
     });
   });
 
