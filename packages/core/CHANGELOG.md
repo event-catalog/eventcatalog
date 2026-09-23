@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.12.0-beta.7
+
+### Patch Changes
+
+- 6b668af: fix(core): custom pages using `@catalog/layouts/Layout.astro` now get the same page padding and theme text color as built-in pages, so content is readable in dark mode. Pass `fullWidth` to the layout to render content edge-to-edge.
+
 ## 4.12.0-beta.6
 
 ### Patch Changes

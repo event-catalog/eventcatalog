@@ -17,6 +17,7 @@
     "discover-installed-client-dependencies",
     "fix-installed-client-dependencies",
     "ignore-astro-docker-cache",
+    "pad-custom-pages",
     "quiet-head-inject-warnings",
     "tidy-catalog-runtime",
     "upgrade-ai-sdk-v7",
