@@ -41,12 +41,18 @@ export const writeEventCatalogConfigFile = async (projectDirectory, newConfig) =
   }
 };
 
-// Adds the trial start date (tsd) to the config file, placed directly under the cId if it can be found
-export const addTrialStartDateToCatalogConfigFile = async (projectDirectory, tsd = Date.now()) => {
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Adds the trial start date (tsd) to the config file, placed directly under the catalog's cId if it can be found
+export const addTrialStartDateToCatalogConfigFile = async (projectDirectory, { cId, tsd = Date.now() } = {}) => {
   const configFilePath = path.join(projectDirectory, 'eventcatalog.config.js');
   const content = await readFile(configFilePath, 'utf8');
 
-  const cIdMatch = content.match(/^([ \t]*)cId\s*:\s*(['"`])[^'"`\n]*\2(\s*,)?/m);
+  // Never add a second tsd, even if the existing one could not be loaded from the config
+  if (/^[ \t]*tsd\s*:/m.test(content)) return;
+
+  // Match the catalog's own cId value so a nested cId (e.g. in generator options) is never picked
+  const cIdMatch = cId ? content.match(new RegExp(`^([ \\t]*)cId\\s*:\\s*(['"\`])${escapeRegExp(cId)}\\2(\\s*,)?`, 'm')) : null;
 
   if (cIdMatch) {
     const indent = cIdMatch[1];
@@ -80,12 +86,15 @@ export const verifyRequiredFieldsAreInCatalogConfigFile = async (projectDirector
   try {
     const config = await getEventCatalogConfigFile(projectDirectory);
 
-    if (!config.cId) {
-      await writeEventCatalogConfigFile(projectDirectory, { cId: uuidV4() });
+    let cId = config.cId;
+
+    if (!cId) {
+      cId = uuidV4();
+      await writeEventCatalogConfigFile(projectDirectory, { cId });
     }
 
     if (config.tsd === undefined || config.tsd === null) {
-      await addTrialStartDateToCatalogConfigFile(projectDirectory);
+      await addTrialStartDateToCatalogConfigFile(projectDirectory, { cId });
     }
   } catch (error) {
     // fail silently, it's overly important
