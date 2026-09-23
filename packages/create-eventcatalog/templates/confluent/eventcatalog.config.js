@@ -39,6 +39,8 @@ export default {
   },
   // required random generated id used by eventcatalog
   cId: '<cId>',
+  // required by eventcatalog
+  tsd: '<tsd>',
   // This lets you copy markdown contents from EventCatalog to your clipboard
   // Including schemas for your events and services
   llmsTxt: {

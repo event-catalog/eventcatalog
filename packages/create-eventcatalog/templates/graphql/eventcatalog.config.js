@@ -73,4 +73,6 @@ export default {
   ],
   // required random generated id used by eventcatalog
   cId: '<cId>',
+  // required by eventcatalog
+  tsd: '<tsd>',
 };

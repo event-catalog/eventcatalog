@@ -41,6 +41,40 @@ export const writeEventCatalogConfigFile = async (projectDirectory, newConfig) =
   }
 };
 
+// Adds the trial start date (tsd) to the config file, placed directly under the cId if it can be found
+export const addTrialStartDateToCatalogConfigFile = async (projectDirectory, tsd = Date.now()) => {
+  const configFilePath = path.join(projectDirectory, 'eventcatalog.config.js');
+  const content = await readFile(configFilePath, 'utf8');
+
+  const cIdMatch = content.match(/^([ \t]*)cId\s*:\s*(['"`])[^'"`\n]*\2(\s*,)?/m);
+
+  if (cIdMatch) {
+    const indent = cIdMatch[1];
+    const cIdEnd = cIdMatch.index + cIdMatch[0].length;
+    const hasTrailingComma = Boolean(cIdMatch[3]);
+    const lineEnd = content.indexOf('\n', cIdEnd) === -1 ? content.length : content.indexOf('\n', cIdEnd);
+
+    const updated =
+      content.slice(0, cIdEnd) +
+      (hasTrailingComma ? '' : ',') +
+      content.slice(cIdEnd, lineEnd) +
+      `\n${indent}// required by eventcatalog\n${indent}tsd: ${tsd},` +
+      content.slice(lineEnd);
+
+    await writeFile(configFilePath, updated);
+    return;
+  }
+
+  // No cId found, add it to the start of the config object
+  const startIndex = content.indexOf('export default {');
+  if (startIndex === -1) return;
+
+  const insertPosition = content.indexOf('{', startIndex) + 1;
+  const updated =
+    content.slice(0, insertPosition) + `\n  // required by eventcatalog\n  tsd: ${tsd},` + content.slice(insertPosition);
+  await writeFile(configFilePath, updated);
+};
+
 // Check the eventcatalog.config.js and add any missing required fields on it
 export const verifyRequiredFieldsAreInCatalogConfigFile = async (projectDirectory) => {
   try {
@@ -48,6 +82,10 @@ export const verifyRequiredFieldsAreInCatalogConfigFile = async (projectDirector
 
     if (!config.cId) {
       await writeEventCatalogConfigFile(projectDirectory, { cId: uuidV4() });
+    }
+
+    if (config.tsd === undefined || config.tsd === null) {
+      await addTrialStartDateToCatalogConfigFile(projectDirectory);
     }
   } catch (error) {
     // fail silently, it's overly important

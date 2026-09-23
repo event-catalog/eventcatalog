@@ -44,6 +44,8 @@ export default {
   },
   // required random generated id used by eventcatalog
   cId: '<cId>',
+  // required by eventcatalog
+  tsd: '<tsd>',
   // Just import all events into the Catalog from a registry
   generators: [
     '@eventcatalog/generator-eventbridge',
