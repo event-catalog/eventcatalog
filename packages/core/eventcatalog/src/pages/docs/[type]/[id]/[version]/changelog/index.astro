@@ -1,15 +1,7 @@
 ---
 import Footer from '@layouts/Footer.astro';
 import { getChangeLogs } from '@utils/collections/changelogs';
-import {
-  RectangleGroupIcon,
-  ServerIcon,
-  BoltIcon,
-  ChatBubbleLeftIcon,
-  MagnifyingGlassIcon,
-  QueueListIcon,
-} from '@heroicons/react/24/outline';
-import { DatabaseIcon } from 'lucide-react';
+import { getChangelogResourceBadge } from '@utils/changelog-resource-badge';
 import { render, getEntry } from 'astro:content';
 import mdxComponents from '@components/MDX/components';
 import 'diff2html/bundles/css/diff2html.min.css';
@@ -20,7 +12,6 @@ import { getDiffsForCurrentAndPreviousVersion } from '@utils/file-diffs';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Badge from '@components/Badge.astro';
 import { ClientRouter } from 'astro:transitions';
-import { isChangelogEnabled } from '@utils/feature';
 
 import { Page } from './_index.data';
 
@@ -72,33 +63,7 @@ const logListPromise = logsToRender.map(async (log, index) => {
 
 const logList = await Promise.all(logListPromise);
 
-const createResourceBadge = (content: string, icon: any) => ({ content, icon, textColor: 'gray' });
-
-const getBadge = () => {
-  if (props.collection === 'services') {
-    return createResourceBadge('Service', ServerIcon);
-  }
-  if (props.collection === 'events') {
-    return createResourceBadge('Event', BoltIcon);
-  }
-  if (props.collection === 'commands') {
-    return createResourceBadge('Command', ChatBubbleLeftIcon);
-  }
-  if (props.collection === 'queries') {
-    return createResourceBadge('Query', MagnifyingGlassIcon);
-  }
-  if (props.collection === 'domains') {
-    return createResourceBadge('Domain', RectangleGroupIcon);
-  }
-  if (props.collection === 'containers') {
-    return createResourceBadge('Container', DatabaseIcon);
-  }
-  if (props.collection === 'flows') {
-    return createResourceBadge('Flow', QueueListIcon);
-  }
-};
-
-const badges = [getBadge()];
+const badges = [getChangelogResourceBadge(props.collection)].filter((badge) => badge != null);
 ---
 
 <VerticalSideBarLayout title="ChangeLog">
@@ -140,9 +105,9 @@ const badges = [getBadge()];
         <h2 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{props.data.name} (Changelog)</h2>
         <h2 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
         {
-          badges && (
+          badges.length > 0 && (
             <div class="flex flex-wrap py-2 pt-4">
-              {badges.map((badge: any) => (
+              {badges.map((badge) => (
                 <Badge badge={badge} className="mr-2 px-2 py-1 rounded-md" />
               ))}
             </div>
@@ -188,7 +153,7 @@ const badges = [getBadge()];
                   )}
                   {log.badges && (
                     <div class="flex flex-wrap">
-                      {log.badges.map((badge: any) => (
+                      {log.badges.filter(Boolean).map((badge: any) => (
                         <Badge badge={badge} className="mr-2 px-2 py-1 rounded-md" />
                       ))}
                     </div>
