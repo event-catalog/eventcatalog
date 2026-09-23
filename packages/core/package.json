@@ -70,7 +70,7 @@
     "turbo:build": "turbo run build:bin"
   },
   "dependencies": {
-    "@ai-sdk/react": "^3.0.17",
+    "@ai-sdk/react": "^4.0.109",
     "@astrojs/markdown-remark": "^7.3.1",
     "@astrojs/mdx": "^8.0.1",
     "@astrojs/node": "^11.1.6",
@@ -102,7 +102,7 @@
     "@tailwindcss/vite": "^4.3.1",
     "@tanstack/react-table": "^8.17.3",
     "@xyflow/react": "^12.3.6",
-    "ai": "^6.0.17",
+    "ai": "^7.0.106",
     "astro": "7.3.3",
     "astro-expressive-code": "^0.44.0",
     "astro-seo": "^0.8.4",
