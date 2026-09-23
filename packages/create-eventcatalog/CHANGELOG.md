@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.3.12-beta.1
+
+### Patch Changes
+
+- 5d91d02: feat(core): add `tsd` (trial start date) to `eventcatalog.config.js` on new catalogs and on dev/build for existing catalogs, and include it in create, dev and build analytics events
+
 ## 4.3.12-beta.0
 
 ### Patch Changes
