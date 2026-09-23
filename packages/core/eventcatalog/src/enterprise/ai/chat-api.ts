@@ -4,7 +4,16 @@
  */
 
 import type { APIContext } from 'astro';
-import { convertToModelMessages, stepCountIs, streamText, tool, type LanguageModel, type ModelMessage, type UIMessage } from 'ai';
+import {
+  convertToModelMessages,
+  createUIMessageStreamResponse,
+  isStepCount,
+  streamText,
+  toUIMessageStream,
+  tool,
+  type LanguageModel,
+  type UIMessage,
+} from 'ai';
 import { join } from 'node:path';
 import { isEventCatalogScaleEnabled, isEventCatalogStarterEnabled } from '@utils/feature';
 import { getCollection, getEntry } from 'astro:content';
@@ -211,204 +220,198 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
   const referrer = request.headers.get('referer');
 
   try {
-    const result = await streamText({
+    const tools = {
+      getResources: tool({
+        description: toolDescriptions.getResources,
+        inputSchema: z.object({
+          collection: collectionSchema.describe('The collection to get the resources from'),
+        }),
+        execute: async ({ collection }) => {
+          const result = await getResourcesImpl({ collection });
+          if ('error' in result) return result;
+          return result.resources;
+        },
+      }),
+      getResource: tool({
+        description: toolDescriptions.getResource,
+        inputSchema: z.object({
+          collection: collectionSchema.describe('The collection to get the resource from'),
+          id: z.string().describe('The id of the resource to get'),
+          version: z.string().describe('The version of the resource to get'),
+        }),
+        execute: async ({ collection, id, version }) => {
+          return await getResourceImpl({ collection, id, version });
+        },
+      }),
+      getProducersAndConsumersFromSchema: tool({
+        description: 'Use this tool to get the producers and consumers for a schema by its id and version',
+        inputSchema: z.object({
+          collection: messageCollectionSchema.describe('The collection to get the producers and consumers from'),
+          id: z.string().describe('The id of the message to get the producers and consumers for'),
+          version: z.string().describe('The version of the message to get the producers and consumers for'),
+        }),
+        execute: async ({ collection, id, version }) => {
+          const resource = await getEntry(collection as any, `${id}-${version}`);
+          const producers = resource.data.producers || [];
+          const consumers = resource.data.consumers || [];
+          return {
+            producers,
+            consumers,
+          };
+        },
+      }),
+      getMessagesProducedOrConsumedByResource: tool({
+        description: toolDescriptions.getMessagesProducedOrConsumedByResource,
+        inputSchema: z.object({
+          resourceId: z.string().describe('The id of the resource to get the messages produced or consumed for'),
+          resourceVersion: z.string().describe('The version of the resource to get the messages produced or consumed for'),
+          resourceCollection: resourceCollectionSchema
+            .describe('The collection of the resource to get the messages produced or consumed for')
+            .default('services'),
+        }),
+        execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
+          return await getMessagesImpl({ resourceId, resourceVersion, resourceCollection });
+        },
+      }),
+      getProducerAndConsumerForMessage: tool({
+        description: 'Use this tool to get the producers and consumers for a message by its id and version',
+        inputSchema: z.object({
+          messageId: z.string().describe('The id of the message to get the producers and consumers for'),
+          messageVersion: z.string().describe('The version of the message to get the producers and consumers for'),
+          messageCollection: messageCollectionSchema
+            .describe('The collection of the message to get the producers and consumers for')
+            .default('events'),
+        }),
+        execute: async ({ messageId, messageVersion, messageCollection }) => {
+          const services = await getCollection('services');
+          const message = await getEntry(messageCollection as any, `${messageId}-${messageVersion}`);
+          const consumers = await getProducersOfMessage(services, message as any);
+          return consumers;
+        },
+      }),
+      getConsumersOfMessage: tool({
+        description: 'Use this tool to get the consumers for a message by its id and version',
+        inputSchema: z.object({
+          messageId: z.string().describe('The id of the message to get the consumers for'),
+          messageVersion: z.string().describe('The version of the message to get the consumers for'),
+          messageCollection: messageCollectionSchema
+            .describe('The collection of the message to get the consumers for')
+            .default('events'),
+        }),
+        execute: async ({ messageId, messageVersion, messageCollection }) => {
+          const services = await getCollection('services');
+          const message = await getEntry(messageCollection as any, `${messageId}-${messageVersion}`);
+          const consumers = await getConsumersOfMessage(services, message as any);
+          return consumers;
+        },
+      }),
+      getSchemaForResource: tool({
+        description: toolDescriptions.getSchemaForResource,
+        inputSchema: z.object({
+          resourceId: z.string().describe('The id of the resource to get the schema for'),
+          resourceVersion: z.string().describe('The version of the resource to get the schema for'),
+          resourceCollection: resourceCollectionSchema
+            .describe('The collection of the resource to get the schema for')
+            .default('services'),
+        }),
+        execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
+          return await getSchemaImpl({ resourceId, resourceVersion, resourceCollection });
+        },
+      }),
+      getDataProductInputs: tool({
+        description: toolDescriptions.getDataProductInputs,
+        inputSchema: z.object({
+          dataProductId: z.string().describe('The id of the data product to get the inputs for'),
+          dataProductVersion: z.string().describe('The version of the data product to get the inputs for'),
+        }),
+        execute: async ({ dataProductId, dataProductVersion }) => {
+          return await getDataProductInputsImpl({ dataProductId, dataProductVersion });
+        },
+      }),
+      getDataProductOutputs: tool({
+        description: toolDescriptions.getDataProductOutputs,
+        inputSchema: z.object({
+          dataProductId: z.string().describe('The id of the data product to get the outputs for'),
+          dataProductVersion: z.string().describe('The version of the data product to get the outputs for'),
+        }),
+        execute: async ({ dataProductId, dataProductVersion }) => {
+          return await getDataProductOutputsImpl({ dataProductId, dataProductVersion });
+        },
+      }),
+      getArchitectureDiagramAsMermaid: tool({
+        description: toolDescriptions.getArchitectureDiagramAsMermaid,
+        inputSchema: z.object({
+          resourceId: z.string().describe('The id of the resource to get the architecture diagram for'),
+          resourceVersion: z.string().describe('The version of the resource to get the architecture diagram for'),
+          resourceCollection: visualiserCollectionSchema
+            .describe(
+              'The collection of the resource (events, commands, queries, services, domains, systems, flows, containers, data-products)'
+            )
+            .default('services'),
+        }),
+        execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
+          return await getArchitectureDiagramImpl({ resourceId, resourceVersion, resourceCollection });
+        },
+      }),
+      getCustomDocs: tool({
+        description: toolDescriptions.getCustomDocs,
+        inputSchema: z.object({
+          cursor: z.string().optional().describe('Pagination cursor from previous response'),
+          search: z.string().optional().describe('Search term to filter docs by title, id, or summary (case-insensitive)'),
+        }),
+        execute: async ({ cursor, search }) => {
+          return await getCustomDocsImpl({ cursor, search });
+        },
+      }),
+      searchCustomDocs: tool({
+        description: toolDescriptions.searchCustomDocs,
+        inputSchema: z.object({
+          query: z.string().describe('Full-text search query, e.g. keywords describing the topic to find'),
+          limit: z.number().optional().describe('Maximum number of results to return (default 10)'),
+        }),
+        execute: async ({ query, limit }) => {
+          return await searchCustomDocsImpl({ query, limit });
+        },
+      }),
+      getCustomDoc: tool({
+        description: toolDescriptions.getCustomDoc,
+        inputSchema: z.object({
+          id: z.string().describe('The id or slug of the custom documentation page'),
+          section: z.string().optional().describe('Optional section heading to return only that section of the page'),
+        }),
+        execute: async ({ id, section }) => {
+          return await getCustomDocImpl({ id, section });
+        },
+      }),
+      suggestFollowUpQuestions: tool({
+        description:
+          'Use this tool after answering a question to suggest 2-3 relevant follow-up questions the user might want to ask. These will be displayed as clickable suggestions.',
+        inputSchema: z.object({
+          questions: z.array(z.string()).min(1).max(3).describe('Array of 2-3 follow-up questions relevant to the conversation'),
+        }),
+        execute: async ({ questions }) => {
+          // This tool doesn't need to do anything - it just returns the questions
+          // which will be captured by the UI
+          return { suggestions: questions };
+        },
+      }),
+      ...extendedTools,
+    };
+
+    const result = streamText({
       model,
-      system: getBaseSystemPrompt(referrer ?? ''),
+      instructions: getBaseSystemPrompt(referrer ?? ''),
       messages: await convertToModelMessages(messages),
       temperature: modelConfiguration?.temperature ?? 0.7,
-      stopWhen: stepCountIs(5),
-      // maxTokens: 4000, // Increased to handle large tool results
+      stopWhen: isStepCount(5),
       onError: (error) => {
         console.error('[Chat] On error', error);
       },
-      // maxOutputTokens: 40000,
-      // tools: tools,
-      tools: {
-        getResources: tool({
-          description: toolDescriptions.getResources,
-          inputSchema: z.object({
-            collection: collectionSchema.describe('The collection to get the resources from'),
-          }),
-          execute: async ({ collection }) => {
-            const result = await getResourcesImpl({ collection });
-            if ('error' in result) return result;
-            return result.resources;
-          },
-        }),
-        getResource: tool({
-          description: toolDescriptions.getResource,
-          inputSchema: z.object({
-            collection: collectionSchema.describe('The collection to get the resource from'),
-            id: z.string().describe('The id of the resource to get'),
-            version: z.string().describe('The version of the resource to get'),
-          }),
-          execute: async ({ collection, id, version }) => {
-            return await getResourceImpl({ collection, id, version });
-          },
-        }),
-        getProducersAndConsumersFromSchema: tool({
-          description: 'Use this tool to get the producers and consumers for a schema by its id and version',
-          inputSchema: z.object({
-            collection: messageCollectionSchema.describe('The collection to get the producers and consumers from'),
-            id: z.string().describe('The id of the message to get the producers and consumers for'),
-            version: z.string().describe('The version of the message to get the producers and consumers for'),
-          }),
-          execute: async ({ collection, id, version }) => {
-            const resource = await getEntry(collection as any, `${id}-${version}`);
-            const producers = resource.data.producers || [];
-            const consumers = resource.data.consumers || [];
-            return {
-              producers,
-              consumers,
-            };
-          },
-        }),
-        getMessagesProducedOrConsumedByResource: tool({
-          description: toolDescriptions.getMessagesProducedOrConsumedByResource,
-          inputSchema: z.object({
-            resourceId: z.string().describe('The id of the resource to get the messages produced or consumed for'),
-            resourceVersion: z.string().describe('The version of the resource to get the messages produced or consumed for'),
-            resourceCollection: resourceCollectionSchema
-              .describe('The collection of the resource to get the messages produced or consumed for')
-              .default('services'),
-          }),
-          execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
-            return await getMessagesImpl({ resourceId, resourceVersion, resourceCollection });
-          },
-        }),
-        getProducerAndConsumerForMessage: tool({
-          description: 'Use this tool to get the producers and consumers for a message by its id and version',
-          inputSchema: z.object({
-            messageId: z.string().describe('The id of the message to get the producers and consumers for'),
-            messageVersion: z.string().describe('The version of the message to get the producers and consumers for'),
-            messageCollection: messageCollectionSchema
-              .describe('The collection of the message to get the producers and consumers for')
-              .default('events'),
-          }),
-          execute: async ({ messageId, messageVersion, messageCollection }) => {
-            const services = await getCollection('services');
-            const message = await getEntry(messageCollection as any, `${messageId}-${messageVersion}`);
-            const consumers = await getProducersOfMessage(services, message as any);
-            return consumers;
-          },
-        }),
-        getConsumersOfMessage: tool({
-          description: 'Use this tool to get the consumers for a message by its id and version',
-          inputSchema: z.object({
-            messageId: z.string().describe('The id of the message to get the consumers for'),
-            messageVersion: z.string().describe('The version of the message to get the consumers for'),
-            messageCollection: messageCollectionSchema
-              .describe('The collection of the message to get the consumers for')
-              .default('events'),
-          }),
-          execute: async ({ messageId, messageVersion, messageCollection }) => {
-            const services = await getCollection('services');
-            const message = await getEntry(messageCollection as any, `${messageId}-${messageVersion}`);
-            const consumers = await getConsumersOfMessage(services, message as any);
-            return consumers;
-          },
-        }),
-        getSchemaForResource: tool({
-          description: toolDescriptions.getSchemaForResource,
-          inputSchema: z.object({
-            resourceId: z.string().describe('The id of the resource to get the schema for'),
-            resourceVersion: z.string().describe('The version of the resource to get the schema for'),
-            resourceCollection: resourceCollectionSchema
-              .describe('The collection of the resource to get the schema for')
-              .default('services'),
-          }),
-          execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
-            return await getSchemaImpl({ resourceId, resourceVersion, resourceCollection });
-          },
-        }),
-        getDataProductInputs: tool({
-          description: toolDescriptions.getDataProductInputs,
-          inputSchema: z.object({
-            dataProductId: z.string().describe('The id of the data product to get the inputs for'),
-            dataProductVersion: z.string().describe('The version of the data product to get the inputs for'),
-          }),
-          execute: async ({ dataProductId, dataProductVersion }) => {
-            return await getDataProductInputsImpl({ dataProductId, dataProductVersion });
-          },
-        }),
-        getDataProductOutputs: tool({
-          description: toolDescriptions.getDataProductOutputs,
-          inputSchema: z.object({
-            dataProductId: z.string().describe('The id of the data product to get the outputs for'),
-            dataProductVersion: z.string().describe('The version of the data product to get the outputs for'),
-          }),
-          execute: async ({ dataProductId, dataProductVersion }) => {
-            return await getDataProductOutputsImpl({ dataProductId, dataProductVersion });
-          },
-        }),
-        getArchitectureDiagramAsMermaid: tool({
-          description: toolDescriptions.getArchitectureDiagramAsMermaid,
-          inputSchema: z.object({
-            resourceId: z.string().describe('The id of the resource to get the architecture diagram for'),
-            resourceVersion: z.string().describe('The version of the resource to get the architecture diagram for'),
-            resourceCollection: visualiserCollectionSchema
-              .describe(
-                'The collection of the resource (events, commands, queries, services, domains, systems, flows, containers, data-products)'
-              )
-              .default('services'),
-          }),
-          execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
-            return await getArchitectureDiagramImpl({ resourceId, resourceVersion, resourceCollection });
-          },
-        }),
-        getCustomDocs: tool({
-          description: toolDescriptions.getCustomDocs,
-          inputSchema: z.object({
-            cursor: z.string().optional().describe('Pagination cursor from previous response'),
-            search: z.string().optional().describe('Search term to filter docs by title, id, or summary (case-insensitive)'),
-          }),
-          execute: async ({ cursor, search }) => {
-            return await getCustomDocsImpl({ cursor, search });
-          },
-        }),
-        searchCustomDocs: tool({
-          description: toolDescriptions.searchCustomDocs,
-          inputSchema: z.object({
-            query: z.string().describe('Full-text search query, e.g. keywords describing the topic to find'),
-            limit: z.number().optional().describe('Maximum number of results to return (default 10)'),
-          }),
-          execute: async ({ query, limit }) => {
-            return await searchCustomDocsImpl({ query, limit });
-          },
-        }),
-        getCustomDoc: tool({
-          description: toolDescriptions.getCustomDoc,
-          inputSchema: z.object({
-            id: z.string().describe('The id or slug of the custom documentation page'),
-            section: z.string().optional().describe('Optional section heading to return only that section of the page'),
-          }),
-          execute: async ({ id, section }) => {
-            return await getCustomDocImpl({ id, section });
-          },
-        }),
-        suggestFollowUpQuestions: tool({
-          description:
-            'Use this tool after answering a question to suggest 2-3 relevant follow-up questions the user might want to ask. These will be displayed as clickable suggestions.',
-          inputSchema: z.object({
-            questions: z
-              .array(z.string())
-              .min(1)
-              .max(3)
-              .describe('Array of 2-3 follow-up questions relevant to the conversation'),
-          }),
-          execute: async ({ questions }) => {
-            // This tool doesn't need to do anything - it just returns the questions
-            // which will be captured by the UI
-            return { suggestions: questions };
-          },
-        }),
-        ...extendedTools,
-      },
+      tools,
     });
-    return result.toUIMessageStreamResponse({
-      headers: {
-        'Content-Type': 'text/event-stream',
-      },
+
+    return createUIMessageStreamResponse({
+      stream: toUIMessageStream({ stream: result.stream, tools }),
     });
   } catch (err: any) {
     console.error('[Chat] Error during streaming:', err);

@@ -110,8 +110,8 @@ importers:
   packages/core:
     dependencies:
       '@ai-sdk/react':
-        specifier: ^3.0.17
-        version: 3.0.17(react@18.3.1)(zod@4.3.6)
+        specifier: ^4.0.109
+        version: 4.0.109(react@18.3.1)(zod@4.3.6)
       '@astrojs/markdown-remark':
         specifier: ^7.3.1
         version: 7.3.1
@@ -123,7 +123,7 @@ importers:
         version: 11.1.6(astro@7.3.3(@astrojs/markdown-remark@7.3.1)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@22.19.21)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
       '@astrojs/react':
         specifier: ^6.0.6
-        version: 6.0.6(@types/node@22.19.21)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(esbuild@0.25.10)(jiti@2.7.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+        version: 6.0.6(@types/node@22.19.21)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(esbuild@0.28.1)(jiti@2.7.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
       '@astrojs/rss':
         specifier: ^4.0.19
         version: 4.0.19
@@ -198,7 +198,7 @@ importers:
         version: 0.5.19(tailwindcss@4.3.1)
       '@tailwindcss/vite':
         specifier: ^4.3.1
-        version: 4.3.1(vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
+        version: 4.3.1(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
       '@tanstack/react-table':
         specifier: ^8.17.3
         version: 8.21.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -206,8 +206,8 @@ importers:
         specifier: ^12.3.6
         version: 12.8.6(@types/react@19.2.13)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       ai:
-        specifier: ^6.0.17
-        version: 6.0.17(zod@4.3.6)
+        specifier: ^7.0.106
+        version: 7.0.106(zod@4.3.6)
       astro:
         specifier: 7.3.3
         version: 7.3.3(@astrojs/markdown-remark@7.3.1)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@22.19.21)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
@@ -457,10 +457,10 @@ importers:
         version: 8.5.0(jiti@2.7.0)(postcss@8.5.15)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.9.0)
       vite:
         specifier: ^8.1.0
-        version: 8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+        version: 8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
       vite-tsconfig-paths:
         specifier: ^4.3.2
-        version: 4.3.2(typescript@5.9.3)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
+        version: 4.3.2(typescript@5.9.3)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
       vitest:
         specifier: ^4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@22.19.21)(jiti@2.7.0)(jsdom@27.0.0(postcss@8.5.15))(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
@@ -772,15 +772,15 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/gateway@3.0.9':
-    resolution: {integrity: sha512-EA5dZIukimwoJ9HIPuuREotAqaTItpdc/yImzVF0XGNg7B0YRJmYI8Uq3aCMr87vjr1YB1cWUfnrTt6OJ9eHiQ==}
-    engines: {node: '>=18'}
+  '@ai-sdk/gateway@4.0.86':
+    resolution: {integrity: sha512-sPqb9+Uparn18A7zf6GDXXIx/+tsdA7V43NyL+HaHMBl7wrFaO9fBEf4/FoiKn1D/zv0Cc3PgpJX9JsuG7MKeg==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@4.0.4':
-    resolution: {integrity: sha512-VxhX0B/dWGbpNHxrKCWUAJKXIXV015J4e7qYjdIU9lLWeptk0KMLGcqkB4wFxff5Njqur8dt8wRi1MN9lZtDqg==}
-    engines: {node: '>=18'}
+  '@ai-sdk/mcp@2.0.53':
+    resolution: {integrity: sha512-ZSBMHWb7xswRKB/CLY6N9amjtWmqaAJ6efo6pJwJ8uj+0BEiA4kQFdRLWH3lnxpv1EQRX3jGJ9P9z7iN201qjg==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
@@ -790,13 +790,23 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
+  '@ai-sdk/provider-utils@5.0.44':
+    resolution: {integrity: sha512-TZGr0Al1mMnRh7Wd+3qTnSdWvBDIst2Abl8mglkob8rbXF1TG5xoeVLV19rD/AtB+NL/LUPITdbQ0EFGHRBcSw==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/provider@3.0.2':
     resolution: {integrity: sha512-HrEmNt/BH/hkQ7zpi2o6N3k1ZR1QTb7z85WYhYygiTxOQuaml4CMtHCWRbric5WPU+RNsYI7r1EpyVQMKO1pYw==}
     engines: {node: '>=18'}
 
-  '@ai-sdk/react@3.0.17':
-    resolution: {integrity: sha512-7BoLTK9RkUe3hdl/UL2FsRoEfPUsvHCWmFWy6NzRatTy+Xtg7AImyuyTK8gPymEdqpPdKCcMxJQU6e0UAtOwLQ==}
-    engines: {node: '>=18'}
+  '@ai-sdk/provider@4.0.17':
+    resolution: {integrity: sha512-VYMBxIQdcHqbIf1j+YZlI9Ati6LZ4wJe0GGd4z4a5H/KxTggjeOiyaVYTnfF7LHZK5jMQ+rofmzz4QPqf++NUw==}
+    engines: {node: '>=22'}
+
+  '@ai-sdk/react@4.0.109':
+    resolution: {integrity: sha512-K0jozjURls86QQFa1Uh4vnO9DrPLebRBMDu9hiyuKRpi6foEKHRKisZQ7l5IWKwTr6shXWjHFpffDGumiB/ptA==}
+    engines: {node: '>=22'}
     peerDependencies:
       react: ^18 || ~19.0.1 || ~19.1.2 || ^19.2.1
 
@@ -3738,6 +3748,10 @@ packages:
     resolution: {integrity: sha512-Fw28YZpRnA3cAHHDlkt7xQHiJ0fcL+NRcIqsocZQUSmbzeIKRpwttJjik5ZGanXP+vlA4SbTg+AbA3bP363l+w==}
     engines: {node: '>= 20'}
 
+  '@vercel/oidc@3.2.0':
+    resolution: {integrity: sha512-UycprH3T6n3jH0k44NHMa7pnFHGu/N05MjojYr+Mc6I7obkoLIJujSWwin1pCvdy/eOxrI/l3uDLQsmcrOb4ug==}
+    engines: {node: '>= 20'}
+
   '@vitejs/plugin-react@5.1.4':
     resolution: {integrity: sha512-VIcFLdRi/VYRU8OL/puL7QXMYafHmqOnwTZY50U1JPlCNj30PxCMx65c494b1K9be9hX83KVt0+gTEwTWLqToA==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -3947,6 +3961,9 @@ packages:
     peerDependencies:
       vue: ^3.5.0
 
+  '@workflow/serde@4.1.0':
+    resolution: {integrity: sha512-pav4F2BoirECWR7Nf1TKt+2eETcBj7jj4cBefQ8VXQCA6NPkaKeLfj/zMgi+3zYV5ZIBT4GuUiphsj0/b9hPQQ==}
+
   '@xyflow/react@12.8.6':
     resolution: {integrity: sha512-SksAm2m4ySupjChphMmzvm55djtgMDPr+eovPDdTnyGvShf73cvydfoBfWDFllooIQ4IaiUL5yfxHRwU0c37EA==}
     peerDependencies:
@@ -3981,15 +3998,15 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@6.0.17:
-    resolution: {integrity: sha512-Lfv5s4SKvKOLfXPxgVoXvE39adKVq9JE5DpUODRSg7Sd0loVIEDLeUIooXI22WBvt90+YvYRIHvc1s1ZlpY6xQ==}
+  ai@6.0.33:
+    resolution: {integrity: sha512-bVokbmy2E2QF6Efl+5hOJx5MRWoacZ/CZY/y1E+VcewknvGlgaiCzMu8Xgddz6ArFJjiMFNUPHKxAhIePE4rmg==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  ai@6.0.33:
-    resolution: {integrity: sha512-bVokbmy2E2QF6Efl+5hOJx5MRWoacZ/CZY/y1E+VcewknvGlgaiCzMu8Xgddz6ArFJjiMFNUPHKxAhIePE4rmg==}
-    engines: {node: '>=18'}
+  ai@7.0.106:
+    resolution: {integrity: sha512-0W9AlZfyhOlPyE9ZXCFisg0uxxrmQMGdoVUz0ewRg5J+xAhVBomSspktqYeGWABFbQrYyWRVibnvSf24pTeE2w==}
+    engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
@@ -5061,6 +5078,10 @@ packages:
 
   eventsource-parser@3.0.6:
     resolution: {integrity: sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg==}
+    engines: {node: '>=18.0.0'}
+
+  eventsource-parser@3.1.1:
+    resolution: {integrity: sha512-EKN1vKAMcZ8MlYMpaNuxN6R9yakzH6uajHcHVTqWJzvu5pWw9DyhbP35HH8MVBQ+dZjAfDxk+A8NiR9KWaXiyQ==}
     engines: {node: '>=18.0.0'}
 
   eventsource@3.0.7:
@@ -7744,8 +7765,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  swr@2.3.6:
-    resolution: {integrity: sha512-wfHRmHWk/isGNMwlLGlZX5Gzz/uTgo0o2IRuTMcf4CPuPFJZlq0rDaKUx+ozB5nBOReNV1kiOyzMfj+MBMikLw==}
+  swr@2.5.1:
+    resolution: {integrity: sha512-BRw55e8r0B7SpDN20CAzoQAHl7y1yP7/Zt7oqUjMv0vSt2u2Xnkm88Ws+VypbV9BXHQVuSuyVq7zMjO16wSExw==}
     peerDependencies:
       react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -8044,6 +8065,10 @@ packages:
 
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
+
+  undici@7.29.1:
+    resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
+    engines: {node: '>=20.18.1'}
 
   undici@8.10.0:
     resolution: {integrity: sha512-HvltHd7avK13QIw/oLe4qoOLyoVSoafqJ2jYOrtMRBkbYT31eiBQ8O0ehRKZiEZCMEyLFQNIADpgCWC5fALvYQ==}
@@ -8849,18 +8874,19 @@ snapshots:
       '@vercel/oidc': 3.1.0
       zod: 4.3.6
 
-  '@ai-sdk/gateway@3.0.9(zod@4.3.6)':
+  '@ai-sdk/gateway@4.0.86(zod@4.3.6)':
     dependencies:
-      '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.6)
-      '@vercel/oidc': 3.1.0
+      '@ai-sdk/provider': 4.0.17
+      '@ai-sdk/provider-utils': 5.0.44(zod@4.3.6)
+      '@vercel/oidc': 3.2.0
       zod: 4.3.6
 
-  '@ai-sdk/provider-utils@4.0.4(zod@4.3.6)':
+  '@ai-sdk/mcp@2.0.53(zod@4.3.6)':
     dependencies:
-      '@ai-sdk/provider': 3.0.2
-      '@standard-schema/spec': 1.1.0
-      eventsource-parser: 3.0.6
+      '@ai-sdk/provider': 4.0.17
+      '@ai-sdk/provider-utils': 5.0.44(zod@4.3.6)
+      cross-spawn: 7.0.6
+      pkce-challenge: 5.0.1
       zod: 4.3.6
 
   '@ai-sdk/provider-utils@4.0.5(zod@4.3.6)':
@@ -8870,16 +8896,31 @@ snapshots:
       eventsource-parser: 3.0.6
       zod: 4.3.6
 
+  '@ai-sdk/provider-utils@5.0.44(zod@4.3.6)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.17
+      '@standard-schema/spec': 1.1.0
+      '@workflow/serde': 4.1.0
+      eventsource-parser: 3.1.1
+      undici: 7.29.1
+      zod: 4.3.6
+
   '@ai-sdk/provider@3.0.2':
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/react@3.0.17(react@18.3.1)(zod@4.3.6)':
+  '@ai-sdk/provider@4.0.17':
     dependencies:
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.6)
-      ai: 6.0.17(zod@4.3.6)
+      json-schema: 0.4.0
+
+  '@ai-sdk/react@4.0.109(react@18.3.1)(zod@4.3.6)':
+    dependencies:
+      '@ai-sdk/mcp': 2.0.53(zod@4.3.6)
+      '@ai-sdk/provider': 4.0.17
+      '@ai-sdk/provider-utils': 5.0.44(zod@4.3.6)
+      ai: 7.0.106(zod@4.3.6)
       react: 18.3.1
-      swr: 2.3.6(react@18.3.1)
+      swr: 2.5.1(react@18.3.1)
       throttleit: 2.1.0
     transitivePeerDependencies:
       - zod
@@ -9120,17 +9161,17 @@ snapshots:
     dependencies:
       prismjs: 1.30.0
 
-  '@astrojs/react@6.0.6(@types/node@22.19.21)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(esbuild@0.25.10)(jiti@2.7.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)':
+  '@astrojs/react@6.0.6(@types/node@22.19.21)(@types/react-dom@19.2.3(@types/react@19.2.13))(@types/react@19.2.13)(esbuild@0.28.1)(jiti@2.7.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)':
     dependencies:
       '@astrojs/internal-helpers': 0.11.0
       '@types/react': 19.2.13
       '@types/react-dom': 19.2.3(@types/react@19.2.13)
-      '@vitejs/plugin-react': 5.2.0(vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
+      '@vitejs/plugin-react': 5.2.0(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
       devalue: 5.8.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       ultrahtml: 1.6.0
-      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
     transitivePeerDependencies:
       - '@types/node'
       - '@vitejs/devtools'
@@ -11763,12 +11804,12 @@ snapshots:
       postcss-selector-parser: 6.0.10
       tailwindcss: 4.3.1
 
-  '@tailwindcss/vite@4.3.1(vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))':
+  '@tailwindcss/vite@4.3.1(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))':
     dependencies:
       '@tailwindcss/node': 4.3.1
       '@tailwindcss/oxide': 4.3.1
       tailwindcss: 4.3.1
-      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
 
   '@tanstack/react-table@8.21.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
@@ -12125,6 +12166,8 @@ snapshots:
 
   '@vercel/oidc@3.1.0': {}
 
+  '@vercel/oidc@3.2.0': {}
+
   '@vitejs/plugin-react@5.1.4(vite@7.1.9(@types/node@25.0.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))':
     dependencies:
       '@babel/core': 7.29.0
@@ -12137,7 +12180,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitejs/plugin-react@5.2.0(vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))':
+  '@vitejs/plugin-react@5.2.0(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.29.0)
@@ -12145,7 +12188,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-rc.3
       '@types/babel__core': 7.20.5
       react-refresh: 0.18.0
-      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -12424,6 +12467,8 @@ snapshots:
     dependencies:
       vue: 3.5.32(typescript@5.9.3)
 
+  '@workflow/serde@4.1.0': {}
+
   '@xyflow/react@12.8.6(@types/react@19.2.13)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@xyflow/system': 0.0.70
@@ -12466,20 +12511,19 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@6.0.17(zod@4.3.6):
-    dependencies:
-      '@ai-sdk/gateway': 3.0.9(zod@4.3.6)
-      '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.6)
-      '@opentelemetry/api': 1.9.0
-      zod: 4.3.6
-
   ai@6.0.33(zod@4.3.6):
     dependencies:
       '@ai-sdk/gateway': 3.0.13(zod@4.3.6)
       '@ai-sdk/provider': 3.0.2
       '@ai-sdk/provider-utils': 4.0.5(zod@4.3.6)
       '@opentelemetry/api': 1.9.0
+      zod: 4.3.6
+
+  ai@7.0.106(zod@4.3.6):
+    dependencies:
+      '@ai-sdk/gateway': 4.0.86(zod@4.3.6)
+      '@ai-sdk/provider': 4.0.17
+      '@ai-sdk/provider-utils': 5.0.44(zod@4.3.6)
       zod: 4.3.6
 
   ajv-draft-04@1.0.0(ajv@8.17.1):
@@ -12640,7 +12684,7 @@ snapshots:
       unstorage: 1.17.5
       verkit: 0.4.0
       vite: 8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
-      vitefu: 1.1.2(vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
+      vitefu: 1.1.2(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0))
       xxhash-wasm: 1.1.0
       yargs-parser: 22.0.0
       zod: 4.6.5
@@ -13773,6 +13817,8 @@ snapshots:
   eventemitter3@5.0.1: {}
 
   eventsource-parser@3.0.6: {}
+
+  eventsource-parser@3.1.1: {}
 
   eventsource@3.0.7:
     dependencies:
@@ -17092,7 +17138,7 @@ snapshots:
       picocolors: 1.1.1
       sax: 1.6.1
 
-  swr@2.3.6(react@18.3.1):
+  swr@2.5.1(react@18.3.1):
     dependencies:
       dequal: 2.0.3
       react: 18.3.1
@@ -17391,6 +17437,8 @@ snapshots:
 
   undici-types@7.16.0: {}
 
+  undici@7.29.1: {}
+
   undici@8.10.0: {}
 
   unhead@2.1.13:
@@ -17608,13 +17656,13 @@ snapshots:
       - tsx
       - yaml
 
-  vite-tsconfig-paths@4.3.2(typescript@5.9.3)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)):
+  vite-tsconfig-paths@4.3.2(typescript@5.9.3)(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)):
     dependencies:
       debug: 4.4.3
       globrex: 0.1.2
       tsconfck: 3.1.6(typescript@5.9.3)
     optionalDependencies:
-      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -17687,22 +17735,6 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.9.0
 
-  vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0):
-    dependencies:
-      lightningcss: 1.32.0
-      picomatch: 4.0.4
-      postcss: 8.5.15
-      rolldown: 1.1.3
-      tinyglobby: 0.2.17
-    optionalDependencies:
-      '@types/node': 22.19.21
-      esbuild: 0.25.10
-      fsevents: 2.3.3
-      jiti: 2.7.0
-      terser: 5.46.0
-      tsx: 4.21.0
-      yaml: 2.9.0
-
   vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
@@ -17719,9 +17751,9 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.9.0
 
-  vitefu@1.1.2(vite@8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)):
+  vitefu@1.1.2(vite@8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)):
     optionalDependencies:
-      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.25.10)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
+      vite: 8.1.0(@types/node@22.19.21)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
 
   vitest@3.2.4(@types/debug@4.1.12)(@types/node@20.19.19)(jiti@2.7.0)(jsdom@27.0.0(postcss@8.5.15))(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0):
     dependencies:

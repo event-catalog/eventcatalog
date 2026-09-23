@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@ai-sdk/openai": "^4.0.70",
         "@eventcatalog/connectors": "workspace:*",
         "@eventcatalog/core": "workspace:*"
     }
