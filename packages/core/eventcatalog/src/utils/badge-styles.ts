@@ -201,7 +201,9 @@ const resolveBadgeColor = (color: string | undefined, kind: BadgeColorKind) => {
   return undefined;
 };
 
-export const getBadgeStyle = (badge: Badge) => {
+export const getBadgeStyle = (badge?: Badge | null) => {
+  if (!badge) return '';
+
   const backgroundColor = resolveBadgeColor(badge.backgroundColor, 'background');
   const color = resolveBadgeColor(badge.textColor, 'text');
 
@@ -210,7 +212,9 @@ export const getBadgeStyle = (badge: Badge) => {
     .join(' ');
 };
 
-export const getBadgeReactStyle = (badge: Badge) => {
+export const getBadgeReactStyle = (badge?: Badge | null) => {
+  if (!badge) return {};
+
   const backgroundColor = resolveBadgeColor(badge.backgroundColor, 'background');
   const color = resolveBadgeColor(badge.textColor, 'text');
 
@@ -220,8 +224,8 @@ export const getBadgeReactStyle = (badge: Badge) => {
   };
 };
 
-export const getBadgeHref = (badge: Badge) => {
-  if (!badge.url) return undefined;
+export const getBadgeHref = (badge?: Badge | null) => {
+  if (!badge?.url) return undefined;
 
   const url = badge.url.trim();
   if (!url) return undefined;

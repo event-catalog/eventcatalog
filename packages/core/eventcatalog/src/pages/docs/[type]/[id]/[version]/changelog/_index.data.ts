@@ -1,4 +1,5 @@
 import { isSSR, isChangelogEnabled } from '@utils/feature';
+import { changelogResourceCollections } from '@utils/changelog-resource-badge';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import type { PageTypes } from '@types';
 
@@ -14,17 +15,7 @@ export class Page extends HybridPage {
 
     const { pageDataLoader } = await import('@utils/page-loaders/page-data-loader');
 
-    const itemTypes: PageTypes[] = [
-      'agents',
-      'events',
-      'commands',
-      'queries',
-      'services',
-      'domains',
-      'systems',
-      'flows',
-      'containers',
-    ];
+    const itemTypes: PageTypes[] = [...changelogResourceCollections];
     const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
     return allItems.flatMap((items, index) =>

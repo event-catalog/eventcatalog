@@ -1,5 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getBadgeHref } from '../badge-styles';
+import { getBadgeHref, getBadgeReactStyle, getBadgeStyle } from '../badge-styles';
+
+describe('badge styles', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('does not throw when a badge is missing', () => {
+    expect(getBadgeHref(undefined)).toBeUndefined();
+    expect(getBadgeHref(null)).toBeUndefined();
+    expect(getBadgeStyle(undefined)).toBe('');
+    expect(getBadgeStyle(null)).toBe('');
+    expect(getBadgeReactStyle(undefined)).toEqual({});
+    expect(getBadgeReactStyle(null)).toEqual({});
+  });
+});
 
 describe('getBadgeHref', () => {
   afterEach(() => {
