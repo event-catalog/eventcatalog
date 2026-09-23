@@ -20,6 +20,7 @@
     "quiet-head-inject-warnings",
     "tidy-catalog-runtime",
     "upgrade-ai-sdk-v7",
+    "warn-legacy-runtime-folder",
     "wider-docs-content"
   ]
 }
