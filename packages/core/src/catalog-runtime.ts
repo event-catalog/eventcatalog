@@ -20,6 +20,13 @@ const writeIfChanged = (file: string, content: string) => {
 
 const importPath = (file: string) => file.replace(/\\/g, '/');
 
+/**
+ * Versions before 4.12 copied the application into `.eventcatalog-core/`. It is
+ * left in place because an older EventCatalog process may still be using it.
+ */
+export const hasLegacyCatalogRuntime = (projectDirectory: string) =>
+  fs.existsSync(path.join(projectDirectory, '.eventcatalog-core'));
+
 /** Clear all generated Astro state, not just EventCatalog's bootstrap files. */
 export const clearCatalogCache = (projectDirectory: string) => {
   const { cacheDirectory } = getRuntimePaths(projectDirectory);

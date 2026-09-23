@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { clearCatalogCache, prepareCatalogRuntime } from '../catalog-runtime';
+import { clearCatalogCache, hasLegacyCatalogRuntime, prepareCatalogRuntime } from '../catalog-runtime';
 
 describe('prepareCatalogRuntime', () => {
   let directory: string;
@@ -101,6 +101,17 @@ describe('prepareCatalogRuntime', () => {
     prepare();
     expect(fs.statSync(wrapper).mtimeMs).toBe(1000);
     expect(fs.readFileSync(path.join(legacyPages, 'index.astro'), 'utf8')).toBe('legacy');
+  });
+
+  it('detects a legacy runtime left in the project by an older version', () => {
+    fs.mkdirSync(projectDirectory, { recursive: true });
+    expect(hasLegacyCatalogRuntime(projectDirectory)).toBe(false);
+
+    prepare();
+    expect(hasLegacyCatalogRuntime(projectDirectory)).toBe(false);
+
+    fs.mkdirSync(path.join(projectDirectory, '.eventcatalog-core/src'), { recursive: true });
+    expect(hasLegacyCatalogRuntime(projectDirectory)).toBe(true);
   });
 
   it('refuses to write runtime files into the installed application or project root', () => {
