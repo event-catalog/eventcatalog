@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 4.12.1
+
+### Patch Changes
+
+- 92829ed: fix(core): remove the auth-astro dependency so npm no longer installs a vulnerable @auth/core (<=0.41.2) in catalog projects
+- 92829ed: fix(core): the header profile menu now opens on click so signed-in users can sign out, with a refreshed avatar and account menu
+
 ## 4.12.0
 
 ### Minor Changes
@@ -141,6 +148,7 @@
 ### Patch Changes
 
 - 55c993d: Add build-time link validation for static catalogs and fix broken resource reference links
+
   - New `linkValidation` config option checks internal links and anchors in generated HTML after static builds (warns by default, can be set to `error` or `ignore`, supports `ignore` globs)
   - `<ResourceRef>` now links teams, users, and custom pages without a version segment, resolves owners to the correct users or teams page, and resolves messages to the collection they actually live in
   - Catalog discovery, schema loading, design discovery, and the linter scanner now exclude `node_modules` so dependency example catalogs are never loaded as catalog resources
@@ -878,6 +886,7 @@
 ### Patch Changes
 
 - 3334ab1: Add Microsoft Entra directory connector for syncing users and teams from Microsoft Entra ID (Azure AD).
+
   - `@eventcatalog/connectors`: new `microsoftEntraDirectory` connector export and docs
   - `@eventcatalog/sdk`: `Team`/`User` source now supports an optional `id`, and `User.avatarUrl` is now optional
   - `@eventcatalog/core`: render the Microsoft Entra directory source badge with an Azure icon
@@ -1239,6 +1248,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
@@ -1699,9 +1709,11 @@
 - 0f946fe: Fix NodeGraph version-specific channel routing and add semver/x-pattern version matching support
 
   **Bug Fix:**
+
   - Fixed NodeGraph visualisation incorrectly routing all event versions to the same channel instead of their version-specific channels when a service sends multiple versions of the same event to different channels
 
   **New Features:**
+
   - Services can now use semver range patterns (^1.0.0, ~1.2.0) and x-patterns (1.x, 1.2.x) in their `sends` and `receives` configurations, and these will correctly resolve in the graph visualiser
 
 ## 3.15.6
@@ -1879,6 +1891,7 @@
 ### Patch Changes
 
 - be0ba03: fix(schema-viewer): add support for oneOf and anyOf JSON Schema keywords
+
   - Add handling for `anyOf` in processSchema function (was missing entirely)
   - Fix `oneOf` rendering to show selected variant's properties instead of merged properties
   - Add variant selector UI for nested `oneOf`/`anyOf` within properties
@@ -2591,6 +2604,7 @@
   Addresses issues #1652 and #1644 by improving the path resolution logic in the `resolveProjectPath` function with full cross-platform compatibility. This fix ensures that paths starting with `../` are resolved correctly on Windows, macOS, and Linux systems.
 
   **Key improvements:**
+
   - Normalizes path separators (`/` and `\`) for cross-platform compatibility
   - Prevents `../` paths from incorrectly resolving outside the project directory
   - Fixes OpenAPI specifications and schemas failing to load after version 2.54.4
@@ -2605,6 +2619,7 @@
 - 2d563c9: fix(core): resolve SchemaViewer path resolution for relative paths
 
   Fixes SchemaViewer components failing to load schema files with paths starting with "../". The issue was caused by inconsistent path resolution logic in SchemaViewerRoot.astro.
+
   - Added resolveProjectPath function to handle "../" paths correctly
   - Updated getAbsoluteFilePathForAstroFile to use the new path resolution logic
   - SchemaViewerRoot.astro now uses resolveProjectPath for consistent path handling
