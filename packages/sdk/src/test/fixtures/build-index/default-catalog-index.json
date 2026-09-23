@@ -162,6 +162,12 @@
           "default": true,
           "hash": "sha256:c8585c8107da10c4c9c02dc4384f8ccadaffc43a28a985197a2045791bfbd298"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/cart-system/services/CartAPI/commands/AddItemToCart/examples/index.mdx",
+          "hash": "sha256:f7af5cc17d453b668c65a8b20c8bde62ef5ac3c003577ad9765f269d074de156"
+        }
       ]
     },
     {
@@ -177,6 +183,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:c1e2a8315c1ec4b3f85888ca623f642859a3c3f44028bdabbc10b53c959c82a1"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/systems/identity-provider/services/OAuthAPI/commands/AuthenticateCustomer/examples/index.mdx",
+          "hash": "sha256:7dab85b7c1d57a8a8b0873f2317f19f8c32da305eb8b20fc969749b0f59ecc4d"
         }
       ]
     },
@@ -194,6 +206,12 @@
           "default": true,
           "hash": "sha256:e4461a01e92ca0d396b19f884d426f81a305cda3594a80d65b3c953f557b6a82"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/checkout-system/services/CheckoutOrchestrator/commands/AuthorizePayment/examples/index.mdx",
+          "hash": "sha256:dd601b37d50457b931ace83f5d25fdd72af84b3328114d46b6b15f096862bc48"
+        }
       ]
     },
     {
@@ -209,6 +227,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:e72302bd6fa5fee8e82c156594d7e07c818b4e79608c677a7cda02ffc509b6a9"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/promotion-system/services/PromotionService/commands/CalculateDiscount/examples/index.mdx",
+          "hash": "sha256:010a32fdbb2d820298f457a58dc91586e4e79bc239fb4aea3db50ad903e041f4"
         }
       ]
     },
@@ -226,6 +250,12 @@
           "default": true,
           "hash": "sha256:a9ab236c652dee4791b6ca16ae9e3200a7138c4b5d53969a380506e4580b24d7"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/commands/CancelOrder/examples/index.mdx",
+          "hash": "sha256:daf351a309e6fb71d4e987ffd6e49dd453da148046485546daa44466feee26a9"
+        }
       ]
     },
     {
@@ -241,6 +271,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:6806eb7322e799445b36aeb1fd260c1987d217eaaacabe92da6c0e544059a858"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/cart-system/services/CartAPI/commands/CheckoutCart/examples/index.mdx",
+          "hash": "sha256:dca1e76e36b2e47954fdf794c8e89eee0ccf556b697b7cf7bcaa06ba54873fc4"
         }
       ]
     },
@@ -258,6 +294,12 @@
           "default": true,
           "hash": "sha256:0651de9a9cf07a1f34b50d31cfaee4d63e92c252d1e6cc516b24040ba48b1b11"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/commands/CreateOrder/examples/index.mdx",
+          "hash": "sha256:9def4bacbe92e9ac30d3948db073186e6141ee738f06aff155d9d659dc26bab0"
+        }
       ]
     },
     {
@@ -273,6 +315,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:18ce94dae333fc5613ebc7597f570276b59f92cbea28cfe811f6e8fa67b26a8d"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/commands/CreateProduct/examples/index.mdx",
+          "hash": "sha256:2efb5c509b5cf2d6f1459bf2a81839e1c611155a9ebf673e96348c3db283e0d5"
         }
       ]
     },
@@ -290,6 +338,12 @@
           "default": true,
           "hash": "sha256:55f240b44883de5870b5be707a5eb29e313fedb59bb1a408dadb20076fb8b1a3"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/shipping-system/services/CarrierAdapter/commands/CreateShipment/examples/index.mdx",
+          "hash": "sha256:f279c498ea57724e6cfd508ef6ae7df9fb47c53786b0e2fe706ce77e40018c53"
+        }
       ]
     },
     {
@@ -305,6 +359,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:4a98cac6c02570a0694601d00e8f6203aff37494d8c17c05da89ddf2c3a383bf"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/commands/DeleteProduct/examples/index.mdx",
+          "hash": "sha256:3610863e08354241c36ecb7aca16fddf39541e4a4dc8d03de9553f7edd2ddd43"
         }
       ]
     },
@@ -322,6 +382,12 @@
           "default": true,
           "hash": "sha256:f169779389b0873e1bc342c81e85c19055acb6a8c791be8ca3e996084179c433"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewAPI/commands/flag-review/examples/index.mdx",
+          "hash": "sha256:4a1207a6ff2577ce3190362699093b12853d175e0c5ce8f600b68200f59e4c61"
+        }
       ]
     },
     {
@@ -337,6 +403,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:507be509dba1127f205108d03b241401c5d520b961bac2a925ed765c369b2bcd"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/systems/customer-management-system/services/CustomerAPI/commands/RegisterCustomer/examples/index.mdx",
+          "hash": "sha256:7baf5ff5ceab5996287991247cb6c0bb7df89f533b0683ff76b87bf9de5394b9"
         }
       ]
     },
@@ -354,6 +426,12 @@
           "default": true,
           "hash": "sha256:6ee6aae45206b2d45b1046d92b6fcdcff3451cbd8fdfbe323e84f7036ea28363"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/inventory-system/services/InventoryService/commands/ReleaseInventory/examples/index.mdx",
+          "hash": "sha256:75ab48ec302414e44641936b19dd9e3ebe886b0f35c3415794970bca9954dd98"
+        }
       ]
     },
     {
@@ -369,6 +447,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:3bd7afab3da2ca6ee11af44879ca30c7ef9bb7fcf9c84708629ba90e6492ebc3"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/cart-system/services/CartAPI/commands/RemoveItemFromCart/examples/index.mdx",
+          "hash": "sha256:e7892532cf8b7957f00bd83944e37dbea655e2c7512c8262555eb923810894e4"
         }
       ]
     },
@@ -386,6 +470,12 @@
           "default": true,
           "hash": "sha256:25bc5b0a2439ca62a56ec7ea4a591b4775c9831bf3ddb672a0bb25e71c8df32d"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/checkout-system/services/CheckoutOrchestrator/commands/ReserveInventory/examples/index.mdx",
+          "hash": "sha256:5cb4b9932fcd5d3af92442bee5161306c0788b8cfecf0fddfb082e691c16deb7"
+        }
       ]
     },
     {
@@ -402,6 +492,12 @@
           "default": true,
           "hash": "sha256:97756439908e0cf16a584ab8b9eaf95adea9ed64b8b16be21978f94449a9471c"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewAPI/commands/submit-review/examples/index.mdx",
+          "hash": "sha256:4b7f159f0db0543e6b5c21bc74682abf8beccad62adeb07790107fb4ad4058f7"
+        }
       ]
     },
     {
@@ -417,6 +513,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:2c12ab3f8c9a9b3441d5b6b43b75ad310a56e44acda390807973be4f52b19ad4"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/systems/customer-management-system/services/CustomerAPI/commands/UpdateCustomer/examples/index.mdx",
+          "hash": "sha256:faf8b55afe005c3bebf4f301ac583d41afbcfc53d2b9d08d081a5ec9d17c92c6"
         }
       ]
     },
@@ -455,6 +557,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:0f74b9169425cdbadd8eedf1c9838b2b0ad0a6882a1ce658159e2783c054d03e"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewAPI/commands/vote-review-helpful/examples/index.mdx",
+          "hash": "sha256:93c54b2ed228c64e3577aebd3fceecc028782f92ee59f663c0a0e63542fba4ef"
         }
       ]
     },
@@ -1527,6 +1635,12 @@
           "default": true,
           "hash": "sha256:90ba194f031512ff883f3071d3e724776d7a223707a64c86a9a245edfa7bcfda"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/cart-system/services/CartAPI/events/CartCheckedOut/examples/index.mdx",
+          "hash": "sha256:17a63facb99da3d73d0f9ea254405201d411825746ac6a92c8789f7e3a4d4440"
+        }
       ]
     },
     {
@@ -1542,6 +1656,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:9f6b870488245af477a0d485f3eb9dcb08429d10962ff4a330aa6420679a66f1"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/systems/identity-provider/services/OAuthAPI/events/CustomerAuthenticated/examples/index.mdx",
+          "hash": "sha256:d73316dd46f863a821433abc33a7a56944e6d28cacc497968c7dc186bd858763"
         }
       ]
     },
@@ -1581,6 +1701,12 @@
           "default": true,
           "hash": "sha256:ce0ac8a2426ae5278304c59b43170407eaca73236cea49135dca9cc4840723bb"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/systems/customer-management-system/services/CustomerAPI/events/CustomerUpdated/examples/index.mdx",
+          "hash": "sha256:b401b05411c90ab3561ea31890d33f1df324154deb076e221d278997a16e7643"
+        }
       ]
     },
     {
@@ -1596,6 +1722,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:b36ccc2449721581564bcfd9bc8a81959e699d9bde1ea94a2df35070f8c413d1"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Shopping/systems/promotion-system/services/PromotionService/events/DiscountCalculated/examples/index.mdx",
+          "hash": "sha256:8fabc2355f6fa89300819a0bee0aa83804aab87dd8527968249069e171d0c8c2"
         }
       ]
     },
@@ -1613,6 +1745,12 @@
           "default": true,
           "hash": "sha256:e8943b1f8cf2e26a2b4755fa95c3a572d2c60daf9b43d98b9313d0db374ae207"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Payments/systems/fraud-detection/services/FraudAPI/events/FraudCheckFailed/examples/index.mdx",
+          "hash": "sha256:169539c04149da031aafa14abef8603a7061b874ccf008b84f79bd5f8aa2664e"
+        }
       ]
     },
     {
@@ -1628,6 +1766,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:386e8ac47d5600ac1a0e00253636781f27485935281350874b3ca1c063662426"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Payments/systems/fraud-detection/services/FraudAPI/events/FraudCheckPassed/examples/index.mdx",
+          "hash": "sha256:97559ef0ef6d598c5e014f5e403928d47f9609d8fbb3d171dae98caf868243c5"
         }
       ]
     },
@@ -1645,6 +1789,12 @@
           "default": true,
           "hash": "sha256:dc94c50a007e3a70156977a49ac5e3987064402c79ecef1bcd5815b2b1a9440a"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/inventory-system/services/InventoryService/events/InventoryReserved/examples/index.mdx",
+          "hash": "sha256:593c55245c80acf94bab19debf69db44eb9cf8f735bafb42935c10b3ef54e844"
+        }
       ]
     },
     {
@@ -1660,6 +1810,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:582fe4df41a588009893340367fa13148fdfcfd44955296c81ca2c52e699e99c"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/inventory-system/services/InventoryService/events/InventoryUnavailable/examples/index.mdx",
+          "hash": "sha256:4274c72b5f31c17fd581a19ebf75f96bf62571b201f7dc33c79829229567ece4"
         }
       ]
     },
@@ -1677,6 +1833,12 @@
           "default": true,
           "hash": "sha256:f33ed0af94cf82f717def635e1e1620a7f898d0d364fea39fde0d4c3e18ea9cf"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderAmended/examples/index.mdx",
+          "hash": "sha256:f154211a23a4658cd1c8f70fe0b4440b6fcbf6e489f636603b10e33facd1bb34"
+        }
       ]
     },
     {
@@ -1692,6 +1854,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:f6d7182cf40649839fe9cd71c915ced965a07efbca4155e348d2a0e433e9b999"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderArchived/examples/index.mdx",
+          "hash": "sha256:4645137cfeeedd42c7b513fdc32cc2514d764466abcd6813c0f7eec5a6ebe7cd"
         }
       ]
     },
@@ -1731,6 +1899,12 @@
           "default": true,
           "hash": "sha256:06a78ae6837672a16a6e613b648beb67739a1ac6f199fa85a9afcf357e3e27e4"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderCompleted/examples/index.mdx",
+          "hash": "sha256:ccd5aefd245b2b45763ee90e23e4088748a315586fdf5a423a5d12a50de1aeb1"
+        }
       ]
     },
     {
@@ -1746,6 +1920,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:6fe7b47557ad2e57357794cb689889b82519ea9d69fa63a6fc1bcfeb0ea68920"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderConfirmed/examples/index.mdx",
+          "hash": "sha256:51fa868bc0591ca399995ac5912d6fd09a7a92580a89d1115c35e79d406969e7"
         }
       ]
     },
@@ -1817,6 +1997,12 @@
           "default": true,
           "hash": "sha256:efc8a656bcaf388324237b4968f9b5fbd28a60584ad06a2ef458ac41b544854f"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderDeliveryAddressChanged/examples/index.mdx",
+          "hash": "sha256:c73330007afd6bd3be2733d12891302d96a9911bda0d00cfd6d133dfe2d280ff"
+        }
       ]
     },
     {
@@ -1832,6 +2018,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:7567fc4be8858b2c433a094254eef992365af572bcf11e9d917dcfcba04d9539"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderFulfilmentStarted/examples/index.mdx",
+          "hash": "sha256:5133da5e00dcff37eb03c3feceac3bb9a2aef64002a5c32ab339bdb6d0f7f1f8"
         }
       ]
     },
@@ -1849,6 +2041,12 @@
           "default": true,
           "hash": "sha256:c8883752252f08165f0d0b82d10df5b5d8624d94e36276ad22313bf9579ac056"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderHoldReleased/examples/index.mdx",
+          "hash": "sha256:98b2139b1736d29216eb46404e850344aa6fc90f79f17e06a514f0dc1d2ab3d2"
+        }
       ]
     },
     {
@@ -1864,6 +2062,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:15d36e04f5ef8b8d7534d3ab11bd74c2138c0ec6edbd09d436cf0ce75dcbe73c"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/warehouse-system/services/PickingWorker/events/OrderPacked/examples/index.mdx",
+          "hash": "sha256:c92571d76de5b3e46d1176f9c4c5b75893dccade054818a632f25bdb7a974db4"
         }
       ]
     },
@@ -1881,6 +2085,12 @@
           "default": true,
           "hash": "sha256:1fa646b5128121dc7a1f070f425a03ab0b512ade24944ff4fd98695f7e0ff6b2"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderPlacedOnHold/examples/index.mdx",
+          "hash": "sha256:3b2e32f203e02183894e7c73d683e86dd4479c8056e63ebabc4cf6a99ecf5f00"
+        }
       ]
     },
     {
@@ -1897,6 +2107,12 @@
           "default": true,
           "hash": "sha256:026538a49f5715f66e2c54b1bbbdaa42078264dba3eb8320f4147680a2bd5892"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/warehouse-system/services/WarehouseService/events/OrderReadyForShipping/examples/index.mdx",
+          "hash": "sha256:efc384d99af43768617bbeda3e645a4a95f5ba6b20f5c127f5a741f97543db1f"
+        }
       ]
     },
     {
@@ -1912,6 +2128,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:41ccc4618a4899d5f5ec486148b10bb9af53a1c16580c08f1e6e154c979a78fa"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/events/OrderStatusChanged/examples/index.mdx",
+          "hash": "sha256:116214e93dd4980e981a8930e029aa8cf4a2b4472c42db6af0b159eb72f40c6c"
         }
       ]
     },
@@ -1950,6 +2172,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:2023717f331e24b33fd9044a9a83b1f6f044a5858f107907a67a6da90da91c19"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Payments/systems/payment-processing-system/services/PaymentWorker/events/PaymentRequested/examples/index.mdx",
+          "hash": "sha256:4c73c8e8866b608076f65b3f56d3fc1119c4e89c76a73dec084e46ceedfe1636"
         }
       ]
     },
@@ -2015,6 +2243,12 @@
           "default": true,
           "hash": "sha256:edc48129f8b3941c8c5ebc44ac2afd09572db433587ef1cf8e78f3f583c3b00d"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/events/ProductDeleted/examples/index.mdx",
+          "hash": "sha256:2cf3cb4085eaed505029e49251a29a213e4b3a243b36f15fa236f5521e5317f0"
+        }
       ]
     },
     {
@@ -2053,6 +2287,12 @@
           "default": true,
           "hash": "sha256:ac253fc46f7d986e7192b79e7197d3f83e6222a1a4d5feb02e5d54a47ec2e0f8"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/RatingAggregator/events/rating-updated/examples/index.mdx",
+          "hash": "sha256:0dbc9172b95f618a3661f3152b0e01c9c6f73a75f2e1b62ac189aeb0858df0c4"
+        }
       ]
     },
     {
@@ -2068,6 +2308,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:a4f12e2962254dda385b2bf0b20078e59f5d746660940c1eaabd7bf9492beafd"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Payments/systems/stripe/services/StripeWebhookEndpoint/events/RefundProcessed/examples/index.mdx",
+          "hash": "sha256:d312f3b3386ed5018810ca4703c29eec150c4f13566fd13cacb309ef5b22e00b"
         }
       ]
     },
@@ -2085,6 +2331,12 @@
           "default": true,
           "hash": "sha256:1324237f388090a263700d9ac55dd44ca0305b7594d37803022cf145c6f54ea3"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Payments/systems/payment-processing-system/services/PaymentWorker/events/RefundRequested/examples/index.mdx",
+          "hash": "sha256:689cd3e9a7b2ad91adfc2146ab7a326f3e0c190f1ee5f2dc4cadeb8b9351e941"
+        }
       ]
     },
     {
@@ -2100,6 +2352,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:bfad84a870f1580599e26a02ea5145338a8d1255357751697fe5bbc6b7db3e3b"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewAPI/events/review-flagged/examples/index.mdx",
+          "hash": "sha256:9eee12f991d264a2419b27111447d902a62b80dbfb14ff148b397549fe9729d6"
         }
       ]
     },
@@ -2117,6 +2375,12 @@
           "default": true,
           "hash": "sha256:8f6865aecc46a4e67a8b22de31409dd228996e3879bf28d65e1e3b1bc434be52"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewAPI/events/review-helpful-voted/examples/index.mdx",
+          "hash": "sha256:3ef65b6c0be5c468bc175d1d5c7dac7a849230f44f94532df7025affb534e5c0"
+        }
       ]
     },
     {
@@ -2132,6 +2396,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:4a1870933a64fb56d6e7c6a06d5509d34e0c42661dcbbe277c0d5c80133df293"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewModerationWorker/events/review-published/examples/index.mdx",
+          "hash": "sha256:12733dbcaf6d0d41e29494ae8b99175134e6dfb9414ecc3824583fb4a8b8e270"
         }
       ]
     },
@@ -2149,6 +2419,12 @@
           "default": true,
           "hash": "sha256:5cea41ad2843f285af04bdfa634d0ecc8d31492ae4430ca0af44d6faa08d0a47"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewModerationWorker/events/review-rejected/examples/index.mdx",
+          "hash": "sha256:999509756700e24480c64bacd03b58fdd1c3857b306c49991cee209d204da1a5"
+        }
       ]
     },
     {
@@ -2164,6 +2440,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:05564754b8f093f5ac760602a9762df04005e9797ac275d670066210006c9e0e"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewAPI/events/review-submitted/examples/index.mdx",
+          "hash": "sha256:583280f7e639b9185fa3d279b44308172febed29effa079648ec3e8ae78bf105"
         }
       ]
     },
@@ -2181,6 +2463,12 @@
           "default": true,
           "hash": "sha256:c5b489386d762f6eeadf2667a9f1397646ae2b43ca8065cc118e4080b3acea7b"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/carrier/services/CarrierTrackingAPI/events/ShipmentCreated/examples/index.mdx",
+          "hash": "sha256:78f06dcc80d640a9d0dfd9597b67c3d8b564fa2a952f785661a7446bf12bd5db"
+        }
       ]
     },
     {
@@ -2197,6 +2485,12 @@
           "default": true,
           "hash": "sha256:72cdaf9a911ea867115b9c4a0cd515352b71d888db90afae76ba573b2ceaa110"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/carrier/services/CarrierTrackingAPI/events/ShipmentDelivered/examples/index.mdx",
+          "hash": "sha256:d1b09ea0559bdc68eb854bba5db16f40d24ccdb8785496f1d03448d037d972d7"
+        }
       ]
     },
     {
@@ -2212,6 +2506,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:452721b4301f092406e121da29da4ef1cbb91141e0926bb4155eb41ee18870ab"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/carrier/services/CarrierTrackingAPI/events/ShipmentFailed/examples/index.mdx",
+          "hash": "sha256:e618aaa8596dbfe6be85773affd05acab8dc1f2648b28b33a06dd764c046054d"
         }
       ]
     },
@@ -2464,6 +2764,12 @@
           "default": true,
           "hash": "sha256:a3c81226be8efcccd946d5d9f26c07e2cc210c28c39ebc7b1b1eceb27555db76"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Customer/systems/customer-management-system/services/CustomerAPI/queries/GetCustomer/examples/index.mdx",
+          "hash": "sha256:3ad93eb8c18535f780d659ba44ea6f3b7fe837c54f9fb6b44e2792119d9b9812"
+        }
       ]
     },
     {
@@ -2479,6 +2785,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:2d5caf6b8503c08eabfb55e4f75e5501d3d4f9db1d8b20e3c0553de5710b2197"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Ordering/systems/order-management-system/services/OrderService/queries/GetOrder/examples/index.mdx",
+          "hash": "sha256:9b6548a19043c82976a6c2b6c4ee918761e71ca5b676c9defd882906377f145b"
         }
       ]
     },
@@ -2496,6 +2808,12 @@
           "default": true,
           "hash": "sha256:6d6523bb91ee98b4d2a5cce4cb896111534d660c531d2f2306367c5f9c436116"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/product-catalog-system/services/ProductAPI/queries/GetProduct/examples/index.mdx",
+          "hash": "sha256:c3305be7232d006d90315038c8d007537b80ae1551d1d52763a5b59630e3dc2b"
+        }
       ]
     },
     {
@@ -2511,6 +2829,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:c49dcaabed69d060555f983d64153aafc3e645d34fb26852146af432b7f35b33"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Reviews/services/ReviewAPI/queries/get-product-reviews/examples/index.mdx",
+          "hash": "sha256:30c78d76ae195840e01568575f3102be33eda13fcd4da7faa1baf6f5f8df56f6"
         }
       ]
     },
@@ -2528,6 +2852,12 @@
           "default": true,
           "hash": "sha256:f6c62d0e5e0995ad9b503225f79fd013b660ab5bd16bcb33e9598ca29c96bf9d"
         }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Fulfilment/systems/inventory-system/services/InventoryService/queries/GetStockLevel/examples/index.mdx",
+          "hash": "sha256:4da56cb5591cd8bde9a42c0fcafac6d665c3595168a228707e631c1b3f2d6d64"
+        }
       ]
     },
     {
@@ -2543,6 +2873,12 @@
           "path": "schema.json",
           "default": true,
           "hash": "sha256:03c6b246f91ac07b2f7e8206afb75a26265dafc2b5ec88a1938434f947f12387"
+        }
+      ],
+      "sidecars": [
+        {
+          "path": "domains/Catalog/systems/search-system/services/SearchAPI/queries/SearchProducts/examples/index.mdx",
+          "hash": "sha256:2ee02d35a1daee60ec66c44d610268f74ee6800945205ef25e774bf11dded472"
         }
       ]
     },
