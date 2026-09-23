@@ -1,0 +1,188 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Record a move into fulfilment
+
+Record the bulk order moving from `AWAITING_FULFILMENT` to `FULFILLING` when it is released to the warehouse. Order history, support tools and search projections use this to update the order timeline.
+
+### Payload details
+
+- `previousStatus` is `AWAITING_FULFILMENT` and `newStatus` is `FULFILLING`.
+- `sequence` is `3`: this is the third transition for the order, after `CREATED` to `CONFIRMED` and `CONFIRMED` to `AWAITING_FULFILMENT`.
+- `changeReason` gives a short explanation, and `correlationId` links the change to the request that caused it.
+- `changedAt` records the transition time in UTC.
+
+### Using this example
+
+Use this to check that projections apply transitions in `sequence` order and ignore any event whose `sequence` is lower than one they have already applied.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderStatusChanged schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-status-changed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'c2a6a826-8661-4bc7-aaf7-83fa8e7940d4',
+  previousStatus: 'AWAITING_FULFILMENT',
+  newStatus: 'FULFILLING',
+  sequence: 3,
+  changeReason: 'Released to warehouse wh-london-02',
+  correlationId: 'c1e3a5b7-9d2f-4b6a-8e0c-2a4c6e8f0b13',
+  changedAt: '2026-09-11T11:02:05Z',
+};
+
+await client.publish('OrderStatusChanged', event);
+```
+
+```python publish_order_status_changed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+    "previousStatus": "AWAITING_FULFILMENT",
+    "newStatus": "FULFILLING",
+    "sequence": 3,
+    "changeReason": "Released to warehouse wh-london-02",
+    "correlationId": "c1e3a5b7-9d2f-4b6a-8e0c-2a4c6e8f0b13",
+    "changedAt": "2026-09-11T11:02:05Z",
+}
+
+client.publish("OrderStatusChanged", event)
+```
+
+```java PublishOrderStatusChanged.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderStatusChanged {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+      "previousStatus", "AWAITING_FULFILMENT",
+      "newStatus", "FULFILLING",
+      "sequence", 3,
+      "changeReason", "Released to warehouse wh-london-02",
+      "correlationId", "c1e3a5b7-9d2f-4b6a-8e0c-2a4c6e8f0b13",
+      "changedAt", "2026-09-11T11:02:05Z"
+    );
+
+    client.publish("OrderStatusChanged", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Record a cancellation
+
+Record the order that was cancelled because stock could not be reserved. It goes straight from `CREATED` to `CANCELLED`, and only the required fields are sent.
+
+### Payload details
+
+- `previousStatus` is `CREATED` and `newStatus` is `CANCELLED`.
+- `sequence` is `1`, because this is the order's first and only transition.
+- `changeReason` and `correlationId` are omitted.
+
+### Using this example
+
+Use this to check that consumers handle a terminal status and do not require the optional fields. For the cancellation reason, consumers should use the `OrderCancelled` event.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderStatusChanged schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-status-changed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: '3f2504e0-4f89-11d3-9a0c-0305e82c3301',
+  previousStatus: 'CREATED',
+  newStatus: 'CANCELLED',
+  sequence: 1,
+  changedAt: '2026-09-11T10:42:31Z',
+};
+
+await client.publish('OrderStatusChanged', event);
+```
+
+```python publish_order_status_changed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    "previousStatus": "CREATED",
+    "newStatus": "CANCELLED",
+    "sequence": 1,
+    "changedAt": "2026-09-11T10:42:31Z",
+}
+
+client.publish("OrderStatusChanged", event)
+```
+
+```java PublishOrderStatusChanged.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderStatusChanged {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      "previousStatus", "CREATED",
+      "newStatus", "CANCELLED",
+      "sequence", 1,
+      "changedAt", "2026-09-11T10:42:31Z"
+    );
+
+    client.publish("OrderStatusChanged", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

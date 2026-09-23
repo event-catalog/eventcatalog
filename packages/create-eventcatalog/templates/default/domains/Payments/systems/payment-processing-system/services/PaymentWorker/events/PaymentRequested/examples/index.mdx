@@ -1,0 +1,191 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Request a charge for a signed-in customer
+
+A signed-in customer checks out a T-shirt and a cap. The PaymentWorker publishes `PaymentRequested` so Stripe charges the card, and Fraud Detection screens the payment in parallel.
+
+### Payload details
+
+- `paymentId` is the new payment created by the PaymentWorker; `orderId` links it back to the order.
+- `customerId` is included because the shopper has an account, which lets Fraud Detection use their history.
+- `amount` is in minor units: a £24.99 T-shirt plus a £17.99 cap.
+- `currency` is the ISO 4217 code `GBP`.
+
+The charge is **4,298 pence (£42.98)**.
+
+### Using this example
+
+Consumers should charge exactly `amount` in `currency` and carry `paymentId` through to the `PaymentSucceeded` or `PaymentFailed` reply.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentRequested schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-payment-requested.ts
+import { EventsClient } from '@acme/events';
+import type { PaymentRequested } from './schemas/payment-requested';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: PaymentRequested = {
+  paymentId: '586e57ab-77a9-406a-945d-4619c76a582e',
+  orderId: '971b5a4b-6885-405c-899b-5e0f428016c1',
+  customerId: '74ea26c5-fb6c-4000-a036-f1749f67032c',
+  amount: 4298,
+  currency: 'GBP',
+  requestedAt: '2026-09-11T08:12:45Z',
+};
+
+await client.publish('PaymentRequested', event);
+```
+
+```python publish_payment_requested.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "586e57ab-77a9-406a-945d-4619c76a582e",
+    "orderId": "971b5a4b-6885-405c-899b-5e0f428016c1",
+    "customerId": "74ea26c5-fb6c-4000-a036-f1749f67032c",
+    "amount": 4298,
+    "currency": "GBP",
+    "requestedAt": "2026-09-11T08:12:45Z",
+}
+
+client.publish("PaymentRequested", event)
+```
+
+```java PublishPaymentRequested.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentRequested {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "586e57ab-77a9-406a-945d-4619c76a582e",
+      "orderId", "971b5a4b-6885-405c-899b-5e0f428016c1",
+      "customerId", "74ea26c5-fb6c-4000-a036-f1749f67032c",
+      "amount", 4298,
+      "currency", "GBP",
+      "requestedAt", "2026-09-11T08:12:45Z"
+    );
+
+    client.publish("PaymentRequested", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Request a charge for a guest checkout
+
+A guest shopper in Ireland buys three hoodies without an account. The PaymentWorker publishes `PaymentRequested` with only the required fields.
+
+### Payload details
+
+- `customerId` is omitted because guest checkouts have no customer account.
+- `amount` is three hoodies at €54.99 each, in cents.
+- `currency` is `EUR`.
+
+The charge is **16,497 cents (€164.97)**.
+
+### Using this example
+
+Use this payload to check that Fraud Detection and Stripe handle a missing `customerId` without failing.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentRequested schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-payment-requested.ts
+import { EventsClient } from '@acme/events';
+import type { PaymentRequested } from './schemas/payment-requested';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: PaymentRequested = {
+  paymentId: '41651c3f-fa8e-40fc-a217-a83929d15081',
+  orderId: 'e39a80be-526e-4009-a22a-40c847cff088',
+  amount: 16497,
+  currency: 'EUR',
+  requestedAt: '2026-09-14T19:03:27Z',
+};
+
+await client.publish('PaymentRequested', event);
+```
+
+```python publish_payment_requested.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "41651c3f-fa8e-40fc-a217-a83929d15081",
+    "orderId": "e39a80be-526e-4009-a22a-40c847cff088",
+    "amount": 16497,
+    "currency": "EUR",
+    "requestedAt": "2026-09-14T19:03:27Z",
+}
+
+client.publish("PaymentRequested", event)
+```
+
+```java PublishPaymentRequested.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentRequested {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "41651c3f-fa8e-40fc-a217-a83929d15081",
+      "orderId", "e39a80be-526e-4009-a22a-40c847cff088",
+      "amount", 16497,
+      "currency", "EUR",
+      "requestedAt", "2026-09-14T19:03:27Z"
+    );
+
+    client.publish("PaymentRequested", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

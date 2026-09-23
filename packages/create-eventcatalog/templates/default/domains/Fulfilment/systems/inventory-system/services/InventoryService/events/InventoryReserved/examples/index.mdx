@@ -1,0 +1,227 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a reservation for a multi-item order
+
+The Inventory Service publishes this event when it holds stock for every item in an order. The checkout saga in the Ordering domain consumes it and continues placing the order.
+
+### Payload details
+
+- `reservationId` is the ID to use later in `ReleaseInventory`.
+- `orderId` and `cartId` link the reservation to the order and the cart it came from.
+- `items` holds 2 T-shirts and 1 cap, each by `productId` and `quantity`.
+- `reservedAt` is the UTC time the stock was held.
+
+In total, **3 units** are reserved across 2 products.
+
+### Using this example
+
+The checkout saga should move on to payment for this order. Tests can check that both line items are reserved in full.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the InventoryReserved schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-inventory-reserved.ts
+import { EventsClient } from '@acme/events';
+import type { InventoryReserved } from './schemas/inventory-reserved';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: InventoryReserved = {
+  reservationId: '4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86',
+  orderId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27',
+  cartId: '7a1e5c9b-3f8d-4b2e-a6c4-9d0f1b7e3a58',
+  items: [
+    {
+      productId: '0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95',
+      quantity: 2,
+    },
+    {
+      productId: '6c1f9a4e-3d7b-4a2c-8f5e-9b0d2c7a1e38',
+      quantity: 1,
+    },
+  ],
+  reservedAt: '2026-09-14T08:12:45Z',
+};
+
+await client.publish('InventoryReserved', event);
+```
+
+```python publish_inventory_reserved.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reservationId": "4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86",
+    "orderId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+    "cartId": "7a1e5c9b-3f8d-4b2e-a6c4-9d0f1b7e3a58",
+    "items": [
+        {
+            "productId": "0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95",
+            "quantity": 2,
+        },
+        {
+            "productId": "6c1f9a4e-3d7b-4a2c-8f5e-9b0d2c7a1e38",
+            "quantity": 1,
+        },
+    ],
+    "reservedAt": "2026-09-14T08:12:45Z",
+}
+
+client.publish("InventoryReserved", event)
+```
+
+```java PublishInventoryReserved.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishInventoryReserved {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reservationId", "4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86",
+      "orderId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+      "cartId", "7a1e5c9b-3f8d-4b2e-a6c4-9d0f1b7e3a58",
+      "items", List.of(
+        Map.of(
+          "productId", "0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95",
+          "quantity", 2
+        ),
+        Map.of(
+          "productId", "6c1f9a4e-3d7b-4a2c-8f5e-9b0d2c7a1e38",
+          "quantity", 1
+        )
+      ),
+      "reservedAt", "2026-09-14T08:12:45Z"
+    );
+
+    client.publish("InventoryReserved", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a reservation for a cart
+
+Stock can be held for a cart before the order exists. The event then links to the cart only and holds a single hoodie.
+
+### Payload details
+
+- `cartId` is set and `orderId` is omitted because no order has been created yet.
+- `items` holds 1 hoodie.
+- `reservationId`, `items` and `reservedAt` are the required fields.
+
+### Using this example
+
+Use this payload to check that consumers match a reservation by `cartId` when `orderId` is missing.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the InventoryReserved schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-inventory-reserved.ts
+import { EventsClient } from '@acme/events';
+import type { InventoryReserved } from './schemas/inventory-reserved';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: InventoryReserved = {
+  reservationId: '8f3d6b2a-1e9c-4a7f-b5d8-2c0e4a9f6b13',
+  cartId: '2c8f0b6d-5a3e-4c9f-8d1b-6e4a7c0f2b91',
+  items: [
+    {
+      productId: 'd2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72',
+      quantity: 1,
+    },
+  ],
+  reservedAt: '2026-09-14T10:58:21Z',
+};
+
+await client.publish('InventoryReserved', event);
+```
+
+```python publish_inventory_reserved.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reservationId": "8f3d6b2a-1e9c-4a7f-b5d8-2c0e4a9f6b13",
+    "cartId": "2c8f0b6d-5a3e-4c9f-8d1b-6e4a7c0f2b91",
+    "items": [
+        {
+            "productId": "d2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72",
+            "quantity": 1,
+        },
+    ],
+    "reservedAt": "2026-09-14T10:58:21Z",
+}
+
+client.publish("InventoryReserved", event)
+```
+
+```java PublishInventoryReserved.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishInventoryReserved {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reservationId", "8f3d6b2a-1e9c-4a7f-b5d8-2c0e4a9f6b13",
+      "cartId", "2c8f0b6d-5a3e-4c9f-8d1b-6e4a7c0f2b91",
+      "items", List.of(
+        Map.of(
+          "productId", "d2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72",
+          "quantity", 1
+        )
+      ),
+      "reservedAt", "2026-09-14T10:58:21Z"
+    );
+
+    client.publish("InventoryReserved", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

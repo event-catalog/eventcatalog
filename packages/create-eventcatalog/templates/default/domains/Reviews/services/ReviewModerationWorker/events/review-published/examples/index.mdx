@@ -1,0 +1,183 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish an approved five-star review
+
+The Review Moderation Worker has screened the T-shirt review and found no problems, so the review is now visible on the storefront. The Rating Aggregator consumes this event to recalculate the product's rating.
+
+### Payload details
+
+- `reviewId` is the review that passed moderation.
+- `productId` is `prod_tshirt_classic_white`, the product whose rating needs updating.
+- `customerId` is included (`cust_4821`) so consumers can link the review to its author.
+- `rating` is `5`, which the aggregator adds to the product's totals.
+- `publishedAt` is when the review went live, shortly after it was submitted.
+
+### Using this example
+
+The Rating Aggregator should add this `rating` to the product's totals and publish `RatingUpdated` for the same `productId`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewPublished schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-review-published.ts
+import { EventsClient } from '@acme/events';
+import type { ReviewPublished } from './schemas/review-published';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: ReviewPublished = {
+  reviewId: '3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90',
+  productId: 'prod_tshirt_classic_white',
+  customerId: 'cust_4821',
+  rating: 5,
+  publishedAt: '2026-09-14T18:23:02Z',
+};
+
+await client.publish('ReviewPublished', event);
+```
+
+```python publish_review_published.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+    "productId": "prod_tshirt_classic_white",
+    "customerId": "cust_4821",
+    "rating": 5,
+    "publishedAt": "2026-09-14T18:23:02Z",
+}
+
+client.publish("ReviewPublished", event)
+```
+
+```java PublishReviewPublished.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewPublished {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+      "productId", "prod_tshirt_classic_white",
+      "customerId", "cust_4821",
+      "rating", 5,
+      "publishedAt", "2026-09-14T18:23:02Z"
+    );
+
+    client.publish("ReviewPublished", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish an approved review with only required fields
+
+The two-star hoodie review passes moderation. This event carries only the fields the Rating Aggregator needs.
+
+### Payload details
+
+- `customerId` is optional and left out; the aggregator only needs the product and the rating.
+- `productId` is `prod_hoodie_oversized_grey`.
+- `rating` is `2`, so the product's average rating will drop.
+- `publishedAt` is when the review became visible.
+
+### Using this example
+
+Use this payload to check that consumers do not depend on `customerId` and that low ratings update the average correctly.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewPublished schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-review-published.ts
+import { EventsClient } from '@acme/events';
+import type { ReviewPublished } from './schemas/review-published';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: ReviewPublished = {
+  reviewId: 'a7c4e2d9-1b3f-4c8a-b6e5-9d0f2a1c3e47',
+  productId: 'prod_hoodie_oversized_grey',
+  rating: 2,
+  publishedAt: '2026-09-15T09:05:38Z',
+};
+
+await client.publish('ReviewPublished', event);
+```
+
+```python publish_review_published.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "a7c4e2d9-1b3f-4c8a-b6e5-9d0f2a1c3e47",
+    "productId": "prod_hoodie_oversized_grey",
+    "rating": 2,
+    "publishedAt": "2026-09-15T09:05:38Z",
+}
+
+client.publish("ReviewPublished", event)
+```
+
+```java PublishReviewPublished.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewPublished {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "a7c4e2d9-1b3f-4c8a-b6e5-9d0f2a1c3e47",
+      "productId", "prod_hoodie_oversized_grey",
+      "rating", 2,
+      "publishedAt", "2026-09-15T09:05:38Z"
+    );
+
+    client.publish("ReviewPublished", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

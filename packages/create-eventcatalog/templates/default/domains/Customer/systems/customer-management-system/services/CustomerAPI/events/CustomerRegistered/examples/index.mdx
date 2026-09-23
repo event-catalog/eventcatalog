@@ -1,0 +1,201 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a registration with the customer's name
+
+A shopper has signed up from the sign-up page with their full name. The Customer API publishes this event so downstream systems can onboard them, for example by sending a welcome email with a first-order discount.
+
+### Payload details
+
+- `eventId` is a unique UUID for this event, used by consumers to ignore duplicates.
+- `occurredAt` is the ISO-8601 UTC time the customer registered.
+- `customer.customerId` is the new customer's UUID, and `customer.email` is their sign-in address.
+- `customer.name` is included because the customer supplied it at sign-up.
+- `customer.status` is `ACTIVE`, the normal status for a newly registered account.
+
+### Using this example
+
+Use this to check that consumers create their own customer record keyed on `customer.customerId`, and that replaying the same `eventId` does not send a second welcome email.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerRegistered schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-customer-registered.ts
+import { EventsClient } from '@acme/events';
+import type { CustomerRegistered } from './schemas/customer-registered';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CustomerRegistered = {
+  eventId: '5e7d1a90-2c4b-4f3e-8a6d-1b9c0e2f4a57',
+  occurredAt: '2026-03-14T10:22:05Z',
+  customer: {
+    customerId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c',
+    email: 'amelia.hart@example.com',
+    name: 'Amelia Hart',
+    status: 'ACTIVE',
+  },
+};
+
+await client.publish('CustomerRegistered', event);
+```
+
+```python publish_customer_registered.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "5e7d1a90-2c4b-4f3e-8a6d-1b9c0e2f4a57",
+    "occurredAt": "2026-03-14T10:22:05Z",
+    "customer": {
+        "customerId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+        "email": "amelia.hart@example.com",
+        "name": "Amelia Hart",
+        "status": "ACTIVE",
+    },
+}
+
+client.publish("CustomerRegistered", event)
+```
+
+```java PublishCustomerRegistered.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishCustomerRegistered {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "5e7d1a90-2c4b-4f3e-8a6d-1b9c0e2f4a57",
+      "occurredAt", "2026-03-14T10:22:05Z",
+      "customer", Map.of(
+        "customerId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+        "email", "amelia.hart@example.com",
+        "name", "Amelia Hart",
+        "status", "ACTIVE"
+      )
+    );
+
+    client.publish("CustomerRegistered", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a registration without a name
+
+A shopper registered at checkout with only an email address and password, so the event carries no name. Consumers must handle this case, for example by greeting the customer without a first name.
+
+### Payload details
+
+- `eventId` and `occurredAt` identify this event and when the registration happened.
+- `customer` contains only the required fields: `customerId`, `email` and `status`.
+- `customer.name` is omitted because the customer did not provide one.
+- `customer.status` is `ACTIVE`.
+
+### Using this example
+
+Use this to check that consumers do not fail when `customer.name` is missing, and that any welcome email falls back to a generic greeting.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerRegistered schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-customer-registered.ts
+import { EventsClient } from '@acme/events';
+import type { CustomerRegistered } from './schemas/customer-registered';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CustomerRegistered = {
+  eventId: 'a1c3e5f7-9b2d-4a6c-8e0f-2d4b6a8c0e13',
+  occurredAt: '2026-09-02T18:47:31Z',
+  customer: {
+    customerId: 'c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13',
+    email: 'tom.okafor@example.co.uk',
+    status: 'ACTIVE',
+  },
+};
+
+await client.publish('CustomerRegistered', event);
+```
+
+```python publish_customer_registered.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "a1c3e5f7-9b2d-4a6c-8e0f-2d4b6a8c0e13",
+    "occurredAt": "2026-09-02T18:47:31Z",
+    "customer": {
+        "customerId": "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+        "email": "tom.okafor@example.co.uk",
+        "status": "ACTIVE",
+    },
+}
+
+client.publish("CustomerRegistered", event)
+```
+
+```java PublishCustomerRegistered.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishCustomerRegistered {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "a1c3e5f7-9b2d-4a6c-8e0f-2d4b6a8c0e13",
+      "occurredAt", "2026-09-02T18:47:31Z",
+      "customer", Map.of(
+        "customerId", "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+        "email", "tom.okafor@example.co.uk",
+        "status", "ACTIVE"
+      )
+    );
+
+    client.publish("CustomerRegistered", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

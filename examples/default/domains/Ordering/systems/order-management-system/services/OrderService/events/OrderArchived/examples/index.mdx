@@ -1,0 +1,194 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Archive a completed order
+
+Archive the bulk order once its operational retention period ends. Because it involved a payment, it is kept as a financial record.
+
+### Payload details
+
+- `terminalStatus` is `COMPLETED`, and `retentionCategory` is `FINANCIAL_RECORD`.
+- `archiveReference` is the location of the archived order in long-term storage.
+- `recordChecksum` is the lowercase SHA-256 hex digest of the archived record.
+- `terminalAt` is when the order was completed, and `archivedAt` is when it moved to the archive.
+
+### Using this example
+
+Use this to check that support and reporting tools switch to reading from `archiveReference`, and verify the file against `recordChecksum` before trusting it.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderArchived schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-archived.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'c2a6a826-8661-4bc7-aaf7-83fa8e7940d4',
+  terminalStatus: 'COMPLETED',
+  retentionCategory: 'FINANCIAL_RECORD',
+  archiveReference: 'orders/2026/09/c2a6a826-8661-4bc7-aaf7-83fa8e7940d4.json',
+  recordChecksum: '3f7a9c1e5b2d8f4a6c0e9b7d3f1a5c8e2b4d6f0a9c7e5b3d1f8a6c4e2b0d9f7a',
+  terminalAt: '2026-09-14T15:40:12Z',
+  archivedAt: '2027-09-14T02:00:00Z',
+};
+
+await client.publish('OrderArchived', event);
+```
+
+```python publish_order_archived.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+    "terminalStatus": "COMPLETED",
+    "retentionCategory": "FINANCIAL_RECORD",
+    "archiveReference": "orders/2026/09/c2a6a826-8661-4bc7-aaf7-83fa8e7940d4.json",
+    "recordChecksum": "3f7a9c1e5b2d8f4a6c0e9b7d3f1a5c8e2b4d6f0a9c7e5b3d1f8a6c4e2b0d9f7a",
+    "terminalAt": "2026-09-14T15:40:12Z",
+    "archivedAt": "2027-09-14T02:00:00Z",
+}
+
+client.publish("OrderArchived", event)
+```
+
+```java PublishOrderArchived.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderArchived {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+      "terminalStatus", "COMPLETED",
+      "retentionCategory", "FINANCIAL_RECORD",
+      "archiveReference", "orders/2026/09/c2a6a826-8661-4bc7-aaf7-83fa8e7940d4.json",
+      "recordChecksum", "3f7a9c1e5b2d8f4a6c0e9b7d3f1a5c8e2b4d6f0a9c7e5b3d1f8a6c4e2b0d9f7a",
+      "terminalAt", "2026-09-14T15:40:12Z",
+      "archivedAt", "2027-09-14T02:00:00Z"
+    );
+
+    client.publish("OrderArchived", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Archive a cancelled order under legal hold
+
+Archive an order that was cancelled because of stock problems and is now part of a customer dispute. The legal hold stops it being deleted at the end of the normal retention period.
+
+### Payload details
+
+- `terminalStatus` is `CANCELLED`, and `retentionCategory` is `LEGAL_HOLD`.
+- `terminalAt` matches the time the order was cancelled.
+- `archiveReference` and `recordChecksum` are required for every archived order.
+
+### Using this example
+
+Use this to check that retention jobs never delete records in the `LEGAL_HOLD` category, whatever their age.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderArchived schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-archived.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: '3f2504e0-4f89-11d3-9a0c-0305e82c3301',
+  terminalStatus: 'CANCELLED',
+  retentionCategory: 'LEGAL_HOLD',
+  archiveReference: 'orders/2026/09/3f2504e0-4f89-11d3-9a0c-0305e82c3301.json',
+  recordChecksum: 'b81e4d07c9a3f25e6d18a0c7b4f9e3d25a6c1b8e0f7d4a93c2e5b1f06d8a7c4e',
+  terminalAt: '2026-09-11T10:42:31Z',
+  archivedAt: '2027-09-11T02:00:00Z',
+};
+
+await client.publish('OrderArchived', event);
+```
+
+```python publish_order_archived.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+    "terminalStatus": "CANCELLED",
+    "retentionCategory": "LEGAL_HOLD",
+    "archiveReference": "orders/2026/09/3f2504e0-4f89-11d3-9a0c-0305e82c3301.json",
+    "recordChecksum": "b81e4d07c9a3f25e6d18a0c7b4f9e3d25a6c1b8e0f7d4a93c2e5b1f06d8a7c4e",
+    "terminalAt": "2026-09-11T10:42:31Z",
+    "archivedAt": "2027-09-11T02:00:00Z",
+}
+
+client.publish("OrderArchived", event)
+```
+
+```java PublishOrderArchived.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderArchived {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      "terminalStatus", "CANCELLED",
+      "retentionCategory", "LEGAL_HOLD",
+      "archiveReference", "orders/2026/09/3f2504e0-4f89-11d3-9a0c-0305e82c3301.json",
+      "recordChecksum", "b81e4d07c9a3f25e6d18a0c7b4f9e3d25a6c1b8e0f7d4a93c2e5b1f06d8a7c4e",
+      "terminalAt", "2026-09-11T10:42:31Z",
+      "archivedAt", "2027-09-11T02:00:00Z"
+    );
+
+    client.publish("OrderArchived", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

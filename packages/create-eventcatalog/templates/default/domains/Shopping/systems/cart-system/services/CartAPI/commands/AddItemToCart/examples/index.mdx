@@ -1,0 +1,171 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Add a single T-shirt to a cart
+
+A shopper taps **Add to basket** on a T-shirt product page. The storefront sends `AddItemToCart` to the Cart API, which adds the line to the cart and saves it to the cart database.
+
+### Payload details
+
+- `cartId` identifies the shopper's open cart.
+- `productId` is the catalogue ID of the T-shirt.
+- `quantity` is `1`, the storefront default for a single click.
+
+### Using this example
+
+Check that the cart now holds one T-shirt line with a quantity of 1, and that a second identical command increases the quantity to 2 rather than adding a new line.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the AddItemToCart schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-add-item-to-cart.ts
+import { EventsClient } from '@acme/events';
+import type { AddItemToCart } from './schemas/add-item-to-cart';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: AddItemToCart = {
+  cartId: 'a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24',
+  productId: '0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93',
+  quantity: 1,
+};
+
+await client.send('AddItemToCart', command);
+```
+
+```python send_add_item_to_cart.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+    "productId": "0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93",
+    "quantity": 1,
+}
+
+client.send("AddItemToCart", command)
+```
+
+```java SendAddItemToCart.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendAddItemToCart {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+      "productId", "0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93",
+      "quantity", 1
+    );
+
+    client.send("AddItemToCart", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Add several caps in one go
+
+A shopper picks a quantity of 3 in the quantity selector before adding a cap to the same cart. The Cart API adds all three units in one command.
+
+### Payload details
+
+- `cartId` is the same cart as in the first example.
+- `productId` is the catalogue ID of the cap.
+- `quantity` is `3`; it must be at least 1.
+
+### Using this example
+
+Check that the cap line has a quantity of 3, and that a `quantity` of 0 is rejected with a `400` response.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the AddItemToCart schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-add-item-to-cart.ts
+import { EventsClient } from '@acme/events';
+import type { AddItemToCart } from './schemas/add-item-to-cart';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: AddItemToCart = {
+  cartId: 'a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24',
+  productId: '8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46',
+  quantity: 3,
+};
+
+await client.send('AddItemToCart', command);
+```
+
+```python send_add_item_to_cart.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+    "productId": "8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46",
+    "quantity": 3,
+}
+
+client.send("AddItemToCart", command)
+```
+
+```java SendAddItemToCart.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendAddItemToCart {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+      "productId", "8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46",
+      "quantity", 3
+    );
+
+    client.send("AddItemToCart", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

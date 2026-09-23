@@ -1,0 +1,192 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a stored five-star review
+
+The Review API has accepted a `SubmitReview` command for the classic white T-shirt and stored the review. It publishes this event so the Review Moderation Worker can screen the review before it goes live.
+
+### Payload details
+
+- `reviewId` matches the id sent in the original `SubmitReview` command.
+- `productId` is `prod_tshirt_classic_white` and `customerId` is `cust_4821`.
+- `rating` is `5`; `title` and `body` carry the text the moderation worker screens.
+- `submittedAt` is when the customer submitted the review, not when moderation happens.
+
+### Using this example
+
+A moderation consumer should pick up this event, screen the `title` and `body`, and then publish either `ReviewPublished` or `ReviewRejected` for the same `reviewId`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewSubmitted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-review-submitted.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  reviewId: '3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90',
+  productId: 'prod_tshirt_classic_white',
+  customerId: 'cust_4821',
+  rating: 5,
+  title: 'Perfect everyday tee',
+  body: 'Soft, thick cotton and it kept its shape after washing.',
+  submittedAt: '2026-09-14T18:22:10Z',
+};
+
+await client.publish('ReviewSubmitted', event);
+```
+
+```python publish_review_submitted.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+    "productId": "prod_tshirt_classic_white",
+    "customerId": "cust_4821",
+    "rating": 5,
+    "title": "Perfect everyday tee",
+    "body": "Soft, thick cotton and it kept its shape after washing.",
+    "submittedAt": "2026-09-14T18:22:10Z",
+}
+
+client.publish("ReviewSubmitted", event)
+```
+
+```java PublishReviewSubmitted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewSubmitted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+      "productId", "prod_tshirt_classic_white",
+      "customerId", "cust_4821",
+      "rating", 5,
+      "title", "Perfect everyday tee",
+      "body", "Soft, thick cotton and it kept its shape after washing.",
+      "submittedAt", "2026-09-14T18:22:10Z"
+    );
+
+    client.publish("ReviewSubmitted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a review that has no title
+
+A customer left a two-star review for the oversized grey hoodie without a title. The event still goes to the moderation worker, with the optional `title` left out.
+
+### Payload details
+
+- `title` is omitted because the customer did not provide one.
+- `productId` is `prod_hoodie_oversized_grey` and `customerId` is `cust_1057`.
+- `rating` is `2`.
+- `body` holds the short review text for moderation.
+
+### Using this example
+
+Check that consumers handle a missing `title` and do not treat a low `rating` as a reason to reject the review.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewSubmitted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-review-submitted.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  reviewId: 'a7c4e2d9-1b3f-4c8a-b6e5-9d0f2a1c3e47',
+  productId: 'prod_hoodie_oversized_grey',
+  customerId: 'cust_1057',
+  rating: 2,
+  body: 'Nice fabric but the sleeves are too long for a size M.',
+  submittedAt: '2026-09-15T09:04:33Z',
+};
+
+await client.publish('ReviewSubmitted', event);
+```
+
+```python publish_review_submitted.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "a7c4e2d9-1b3f-4c8a-b6e5-9d0f2a1c3e47",
+    "productId": "prod_hoodie_oversized_grey",
+    "customerId": "cust_1057",
+    "rating": 2,
+    "body": "Nice fabric but the sleeves are too long for a size M.",
+    "submittedAt": "2026-09-15T09:04:33Z",
+}
+
+client.publish("ReviewSubmitted", event)
+```
+
+```java PublishReviewSubmitted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewSubmitted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "a7c4e2d9-1b3f-4c8a-b6e5-9d0f2a1c3e47",
+      "productId", "prod_hoodie_oversized_grey",
+      "customerId", "cust_1057",
+      "rating", 2,
+      "body", "Nice fabric but the sleeves are too long for a size M.",
+      "submittedAt", "2026-09-15T09:04:33Z"
+    );
+
+    client.publish("ReviewSubmitted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

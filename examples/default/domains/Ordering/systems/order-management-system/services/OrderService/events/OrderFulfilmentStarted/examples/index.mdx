@@ -1,0 +1,197 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Start expedited home delivery
+
+Publish when the bulk order of ten T-shirts is released to the London warehouse for picking and packing. Customer communications use the estimated dispatch time to update delivery expectations.
+
+### Payload details
+
+- `fulfilmentId` identifies the warehouse job; `warehouseId` is `wh-london-02`.
+- `itemCount` is `10`, one for each T-shirt.
+- `priority` is `EXPEDITED` because the customer upgraded to express delivery, and `deliveryMethod` is `HOME_DELIVERY`.
+- `estimatedDispatchAt` and `startedAt` are in UTC.
+
+### Using this example
+
+Use this to check that notifications show the estimated dispatch time, and that analytics measure the time from confirmation to `startedAt`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderFulfilmentStarted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-fulfilment-started.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'c2a6a826-8661-4bc7-aaf7-83fa8e7940d4',
+  fulfilmentId: '8d3e6f1a-2b4c-4d5e-9f7a-1c2b3d4e5f60',
+  warehouseId: 'wh-london-02',
+  itemCount: 10,
+  priority: 'EXPEDITED',
+  deliveryMethod: 'HOME_DELIVERY',
+  estimatedDispatchAt: '2026-09-11T16:00:00Z',
+  startedAt: '2026-09-11T11:02:05Z',
+};
+
+await client.publish('OrderFulfilmentStarted', event);
+```
+
+```python publish_order_fulfilment_started.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+    "fulfilmentId": "8d3e6f1a-2b4c-4d5e-9f7a-1c2b3d4e5f60",
+    "warehouseId": "wh-london-02",
+    "itemCount": 10,
+    "priority": "EXPEDITED",
+    "deliveryMethod": "HOME_DELIVERY",
+    "estimatedDispatchAt": "2026-09-11T16:00:00Z",
+    "startedAt": "2026-09-11T11:02:05Z",
+}
+
+client.publish("OrderFulfilmentStarted", event)
+```
+
+```java PublishOrderFulfilmentStarted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderFulfilmentStarted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+      "fulfilmentId", "8d3e6f1a-2b4c-4d5e-9f7a-1c2b3d4e5f60",
+      "warehouseId", "wh-london-02",
+      "itemCount", 10,
+      "priority", "EXPEDITED",
+      "deliveryMethod", "HOME_DELIVERY",
+      "estimatedDispatchAt", "2026-09-11T16:00:00Z",
+      "startedAt", "2026-09-11T11:02:05Z"
+    );
+
+    client.publish("OrderFulfilmentStarted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Start standard click and collect
+
+Publish when an order for two T-shirts and a cap is released to the Manchester warehouse for collection in store. The dispatch time is not known yet, so it is left out.
+
+### Payload details
+
+- `deliveryMethod` is `CLICK_AND_COLLECT` and `priority` is `STANDARD`.
+- `itemCount` is `3`: two T-shirts and one cap.
+- `estimatedDispatchAt` is omitted, because the store transfer has not been scheduled.
+
+### Using this example
+
+Use this to check that consumers send a collection message rather than a delivery message, and do not show a dispatch time when `estimatedDispatchAt` is missing.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderFulfilmentStarted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-fulfilment-started.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'b7e1c9d4-3a2f-4e6b-8c5d-9f0a1b2c3d4e',
+  fulfilmentId: '2f4a6c8e-0b1d-4f3a-a5c7-e9b1d3f5a7c2',
+  warehouseId: 'wh-manchester-01',
+  itemCount: 3,
+  priority: 'STANDARD',
+  deliveryMethod: 'CLICK_AND_COLLECT',
+  startedAt: '2026-09-12T08:20:00Z',
+};
+
+await client.publish('OrderFulfilmentStarted', event);
+```
+
+```python publish_order_fulfilment_started.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "b7e1c9d4-3a2f-4e6b-8c5d-9f0a1b2c3d4e",
+    "fulfilmentId": "2f4a6c8e-0b1d-4f3a-a5c7-e9b1d3f5a7c2",
+    "warehouseId": "wh-manchester-01",
+    "itemCount": 3,
+    "priority": "STANDARD",
+    "deliveryMethod": "CLICK_AND_COLLECT",
+    "startedAt": "2026-09-12T08:20:00Z",
+}
+
+client.publish("OrderFulfilmentStarted", event)
+```
+
+```java PublishOrderFulfilmentStarted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderFulfilmentStarted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "b7e1c9d4-3a2f-4e6b-8c5d-9f0a1b2c3d4e",
+      "fulfilmentId", "2f4a6c8e-0b1d-4f3a-a5c7-e9b1d3f5a7c2",
+      "warehouseId", "wh-manchester-01",
+      "itemCount", 3,
+      "priority", "STANDARD",
+      "deliveryMethod", "CLICK_AND_COLLECT",
+      "startedAt", "2026-09-12T08:20:00Z"
+    );
+
+    client.publish("OrderFulfilmentStarted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

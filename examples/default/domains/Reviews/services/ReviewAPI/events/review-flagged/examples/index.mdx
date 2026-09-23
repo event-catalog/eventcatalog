@@ -1,0 +1,184 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish the first flag on a review
+
+The Review API has recorded a customer's off-topic report against a navy baseball cap review. It publishes this event so the Review Moderation Worker can screen the review again.
+
+### Payload details
+
+- `reviewId` is the flagged review.
+- `productId` is `prod_cap_baseball_navy`, added so consumers do not need to look up the review.
+- `reason` is `off_topic`, copied from the `FlagReview` command.
+- `flagCount` is `1`, meaning this is the first flag the review has received.
+- `flaggedAt` matches the time the flag was raised.
+
+### Using this example
+
+A moderation consumer should queue the review for another screening and decide whether to leave it live or publish `ReviewRejected`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewFlagged schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-review-flagged.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  reviewId: 'b2d6f8a1-4c3e-4a9b-9f7d-5e1c3a8b0d24',
+  productId: 'prod_cap_baseball_navy',
+  reason: 'off_topic',
+  flagCount: 1,
+  flaggedAt: '2026-09-16T12:40:18Z',
+};
+
+await client.publish('ReviewFlagged', event);
+```
+
+```python publish_review_flagged.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "b2d6f8a1-4c3e-4a9b-9f7d-5e1c3a8b0d24",
+    "productId": "prod_cap_baseball_navy",
+    "reason": "off_topic",
+    "flagCount": 1,
+    "flaggedAt": "2026-09-16T12:40:18Z",
+}
+
+client.publish("ReviewFlagged", event)
+```
+
+```java PublishReviewFlagged.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewFlagged {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "b2d6f8a1-4c3e-4a9b-9f7d-5e1c3a8b0d24",
+      "productId", "prod_cap_baseball_navy",
+      "reason", "off_topic",
+      "flagCount", 1,
+      "flaggedAt", "2026-09-16T12:40:18Z"
+    );
+
+    client.publish("ReviewFlagged", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a repeat abuse flag
+
+A moderator flags a sunset graphic T-shirt review for abuse after two customers have already reported it. The rising `flagCount` tells the moderation worker this review needs urgent attention.
+
+### Payload details
+
+- `productId` is `prod_tshirt_graphic_sunset`.
+- `reason` is `abuse`, the reason on the latest flag.
+- `flagCount` is `3`: the total number of flags on this review, including this one.
+- `flaggedAt` is the time of the latest flag.
+
+### Using this example
+
+Use this payload to test any priority rules, for example that reviews with an `abuse` flag or a high `flagCount` are screened first.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewFlagged schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-review-flagged.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  reviewId: 'd8a3c5e7-2f1b-4e9d-b4a6-7c0e3f5a1b82',
+  productId: 'prod_tshirt_graphic_sunset',
+  reason: 'abuse',
+  flagCount: 3,
+  flaggedAt: '2026-09-17T08:15:00Z',
+};
+
+await client.publish('ReviewFlagged', event);
+```
+
+```python publish_review_flagged.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "d8a3c5e7-2f1b-4e9d-b4a6-7c0e3f5a1b82",
+    "productId": "prod_tshirt_graphic_sunset",
+    "reason": "abuse",
+    "flagCount": 3,
+    "flaggedAt": "2026-09-17T08:15:00Z",
+}
+
+client.publish("ReviewFlagged", event)
+```
+
+```java PublishReviewFlagged.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewFlagged {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "d8a3c5e7-2f1b-4e9d-b4a6-7c0e3f5a1b82",
+      "productId", "prod_tshirt_graphic_sunset",
+      "reason", "abuse",
+      "flagCount", 3,
+      "flaggedAt", "2026-09-17T08:15:00Z"
+    );
+
+    client.publish("ReviewFlagged", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

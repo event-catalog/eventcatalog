@@ -1,0 +1,190 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a voucher discount
+
+The Promotion Service has applied the `AUTUMN10` voucher to a cart. It publishes `DiscountCalculated` so the Cart System can price the cart and analytics can track voucher use.
+
+### Payload details
+
+- `eventId` and `occurredAt` identify the event and when the discount was calculated (UTC).
+- `cartId` is the cart the discount applies to.
+- `discount` is 1,000 pence in `GBP`.
+- `appliedPromotions` lists the promotion that was used.
+
+The discount is **1,000 pence (£10.00)**, 10% of a 10,000 pence subtotal.
+
+### Using this example
+
+Check that the cart is priced with a 1,000 pence discount and that analytics records one use of `AUTUMN10`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the DiscountCalculated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-discount-calculated.ts
+import { EventsClient } from '@acme/events';
+import type { DiscountCalculated } from './schemas/discount-calculated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: DiscountCalculated = {
+  eventId: 'b2e8f4a6-7c3d-4b9e-a1f5-3c6d8e0a2b47',
+  occurredAt: '2026-09-14T17:30:02Z',
+  cartId: 'a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24',
+  discount: 1000,
+  currency: 'GBP',
+  appliedPromotions: ['AUTUMN10'],
+};
+
+await client.publish('DiscountCalculated', event);
+```
+
+```python publish_discount_calculated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "b2e8f4a6-7c3d-4b9e-a1f5-3c6d8e0a2b47",
+    "occurredAt": "2026-09-14T17:30:02Z",
+    "cartId": "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+    "discount": 1000,
+    "currency": "GBP",
+    "appliedPromotions": ["AUTUMN10"],
+}
+
+client.publish("DiscountCalculated", event)
+```
+
+```java PublishDiscountCalculated.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishDiscountCalculated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "b2e8f4a6-7c3d-4b9e-a1f5-3c6d8e0a2b47",
+      "occurredAt", "2026-09-14T17:30:02Z",
+      "cartId", "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+      "discount", 1000,
+      "currency", "GBP",
+      "appliedPromotions", List.of("AUTUMN10")
+    );
+
+    client.publish("DiscountCalculated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a zero discount
+
+No promotion applies to a cart of two T-shirts, but the Promotion Service still publishes the result so every checkout has a matching discount record.
+
+### Payload details
+
+- `cartId` is the cart being priced.
+- `discount` is `0` in `GBP`.
+- `appliedPromotions` is omitted because nothing was applied.
+
+### Using this example
+
+Check that consumers handle a zero discount and a missing `appliedPromotions` list without errors.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the DiscountCalculated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-discount-calculated.ts
+import { EventsClient } from '@acme/events';
+import type { DiscountCalculated } from './schemas/discount-calculated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: DiscountCalculated = {
+  eventId: 'd9c5a1e7-4f2b-4d8c-9e6a-0b3f7c1d5e89',
+  occurredAt: '2026-09-11T08:12:43Z',
+  cartId: 'c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f',
+  discount: 0,
+  currency: 'GBP',
+};
+
+await client.publish('DiscountCalculated', event);
+```
+
+```python publish_discount_calculated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "d9c5a1e7-4f2b-4d8c-9e6a-0b3f7c1d5e89",
+    "occurredAt": "2026-09-11T08:12:43Z",
+    "cartId": "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "discount": 0,
+    "currency": "GBP",
+}
+
+client.publish("DiscountCalculated", event)
+```
+
+```java PublishDiscountCalculated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishDiscountCalculated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "d9c5a1e7-4f2b-4d8c-9e6a-0b3f7c1d5e89",
+      "occurredAt", "2026-09-11T08:12:43Z",
+      "cartId", "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+      "discount", 0,
+      "currency", "GBP"
+    );
+
+    client.publish("DiscountCalculated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

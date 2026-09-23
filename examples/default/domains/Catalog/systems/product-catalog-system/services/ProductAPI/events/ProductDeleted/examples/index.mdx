@@ -1,0 +1,173 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a deletion without a reason
+
+A bucket hat listing added by mistake has been removed through the Product API. No reason was given, so the event carries only the required fields. The Search System removes the product from its index.
+
+### Payload details
+
+- `eventId` is unique to this event and can be used to ignore duplicate deliveries.
+- `occurredAt` is the ISO-8601 UTC time the product was deleted.
+- `productId` identifies the product to remove.
+- `reason` is optional and omitted.
+
+### Using this example
+
+A consumer should remove the product by `productId` and must not fail when `reason` is missing.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductDeleted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-product-deleted.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  eventId: '6a8c0e2f-4b6d-4e8a-9c1f-3d5b7a9e1c46',
+  occurredAt: '2026-09-19T16:45:03Z',
+  productId: 'e4f6a8b0-2c4d-4e6f-8a0b-1c3d5e7f9a12',
+};
+
+await client.publish('ProductDeleted', event);
+```
+
+```python publish_product_deleted.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "6a8c0e2f-4b6d-4e8a-9c1f-3d5b7a9e1c46",
+    "occurredAt": "2026-09-19T16:45:03Z",
+    "productId": "e4f6a8b0-2c4d-4e6f-8a0b-1c3d5e7f9a12",
+}
+
+client.publish("ProductDeleted", event)
+```
+
+```java PublishProductDeleted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishProductDeleted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "6a8c0e2f-4b6d-4e8a-9c1f-3d5b7a9e1c46",
+      "occurredAt", "2026-09-19T16:45:03Z",
+      "productId", "e4f6a8b0-2c4d-4e6f-8a0b-1c3d5e7f9a12"
+    );
+
+    client.publish("ProductDeleted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a discontinued product
+
+The Tie-Dye T-Shirt has been retired because it will not be restocked. The event includes the reason so downstream systems can report on why products leave the catalog.
+
+### Payload details
+
+- `productId` identifies the Tie-Dye T-Shirt.
+- `reason` is `DISCONTINUED`, copied from the DeleteProduct command.
+- `occurredAt` records when the product was removed.
+
+### Using this example
+
+Check that the product is removed from the search index and that `reason` is recorded, so a discontinued line can be told apart from a `DUPLICATE` or `MERCHANT_REQUEST` removal.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductDeleted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-product-deleted.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  eventId: '7b9d1f3a-5c7e-4a9b-b0d2-4e6f8a0c2e57',
+  occurredAt: '2026-09-20T11:20:30Z',
+  productId: '5c7e9a1b-3d5f-4a7c-9e1b-2d4f6a8c0e35',
+  reason: 'DISCONTINUED',
+};
+
+await client.publish('ProductDeleted', event);
+```
+
+```python publish_product_deleted.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "7b9d1f3a-5c7e-4a9b-b0d2-4e6f8a0c2e57",
+    "occurredAt": "2026-09-20T11:20:30Z",
+    "productId": "5c7e9a1b-3d5f-4a7c-9e1b-2d4f6a8c0e35",
+    "reason": "DISCONTINUED",
+}
+
+client.publish("ProductDeleted", event)
+```
+
+```java PublishProductDeleted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishProductDeleted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "7b9d1f3a-5c7e-4a9b-b0d2-4e6f8a0c2e57",
+      "occurredAt", "2026-09-20T11:20:30Z",
+      "productId", "5c7e9a1b-3d5f-4a7c-9e1b-2d4f6a8c0e35",
+      "reason", "DISCONTINUED"
+    );
+
+    client.publish("ProductDeleted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

@@ -1,0 +1,205 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a price change
+
+The Classic Crew Neck T-Shirt has been marked down, so ProductUpdated is published with only the fields that changed. The Search System re-indexes the product so results show the new price.
+
+### Payload details
+
+- `productId` identifies the T-shirt that changed.
+- `changes` holds only the changed fields: `price` and `currency`.
+- `changes.price` is `1499` in minor units, down from `1999`.
+- `occurredAt` is the ISO-8601 UTC time the update was applied.
+
+The new price is **1,499 pence (£14.99)**, **500 pence (£5.00)** less than before.
+
+### Using this example
+
+A consumer should update only the fields in `changes` and leave the rest of its copy of the product untouched.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductUpdated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-product-updated.ts
+import { EventsClient } from '@acme/events';
+import type { ProductUpdated } from './schemas/product-updated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: ProductUpdated = {
+  eventId: 'f1a3c5e7-9b2d-4f6a-8c0e-3b5d7f9a1c24',
+  occurredAt: '2026-09-18T09:00:00Z',
+  productId: '4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13',
+  changes: {
+    price: 1499,
+    currency: 'GBP',
+  },
+};
+
+await client.publish('ProductUpdated', event);
+```
+
+```python publish_product_updated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "f1a3c5e7-9b2d-4f6a-8c0e-3b5d7f9a1c24",
+    "occurredAt": "2026-09-18T09:00:00Z",
+    "productId": "4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13",
+    "changes": {
+        "price": 1499,
+        "currency": "GBP",
+    },
+}
+
+client.publish("ProductUpdated", event)
+```
+
+```java PublishProductUpdated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishProductUpdated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "f1a3c5e7-9b2d-4f6a-8c0e-3b5d7f9a1c24",
+      "occurredAt", "2026-09-18T09:00:00Z",
+      "productId", "4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13",
+      "changes", Map.of(
+        "price", 1499,
+        "currency", "GBP"
+      )
+    );
+
+    client.publish("ProductUpdated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a product launch with several changes
+
+The Embroidered Logo Cap has moved from draft to live with its final name, description and category. All four changes come from one UpdateProduct command, so they arrive in a single event.
+
+### Payload details
+
+- `changes.name` and `changes.description` replace the text shown to shoppers.
+- `changes.category` is `caps`, so the product can now be found with a category filter.
+- `changes.status` is `ACTIVE`, moving the cap out of `DRAFT`.
+- Price is not in `changes`, so it is unchanged.
+
+### Using this example
+
+Check that a consumer applies every field in `changes` together, and that a search for "cap" now returns the product.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductUpdated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-product-updated.ts
+import { EventsClient } from '@acme/events';
+import type { ProductUpdated } from './schemas/product-updated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: ProductUpdated = {
+  eventId: '0e2c4a6f-8d1b-4b3e-a5c7-9f1d3b5e7a80',
+  occurredAt: '2026-09-15T14:05:12Z',
+  productId: 'a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71',
+  changes: {
+    name: 'Embroidered Logo Cap - Navy',
+    description: 'Six-panel cotton twill cap with an adjustable strap.',
+    category: 'caps',
+    status: 'ACTIVE',
+  },
+};
+
+await client.publish('ProductUpdated', event);
+```
+
+```python publish_product_updated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "0e2c4a6f-8d1b-4b3e-a5c7-9f1d3b5e7a80",
+    "occurredAt": "2026-09-15T14:05:12Z",
+    "productId": "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71",
+    "changes": {
+        "name": "Embroidered Logo Cap - Navy",
+        "description": "Six-panel cotton twill cap with an adjustable strap.",
+        "category": "caps",
+        "status": "ACTIVE",
+    },
+}
+
+client.publish("ProductUpdated", event)
+```
+
+```java PublishProductUpdated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishProductUpdated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "0e2c4a6f-8d1b-4b3e-a5c7-9f1d3b5e7a80",
+      "occurredAt", "2026-09-15T14:05:12Z",
+      "productId", "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71",
+      "changes", Map.of(
+        "name", "Embroidered Logo Cap - Navy",
+        "description", "Six-panel cotton twill cap with an adjustable strap.",
+        "category", "caps",
+        "status", "ACTIVE"
+      )
+    );
+
+    client.publish("ProductUpdated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

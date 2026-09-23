@@ -8,7 +8,7 @@ import {
   isEventCatalogChatVisible,
   isEventCatalogChatEnabled,
 } from '@utils/feature';
-import { getSession } from 'auth-astro/server';
+import { getSession } from '@utils/auth-astro/server';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
@@ -28,6 +28,27 @@ const logo = {
 };
 
 const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalog/eventcatalog';
+
+const user = session?.user as { name?: string; email?: string; image?: string; provider?: string } | undefined;
+const userName = user?.name || user?.email || 'User';
+const userInitials =
+  userName
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase() || 'U';
+// Google avatar URLs are blocked by some browsers' tracking protection, so fall back to initials
+const userImage = user?.image && !user.image.includes('googleusercontent.com') ? user.image : undefined;
+const providerNames: Record<string, string> = {
+  github: 'GitHub',
+  google: 'Google',
+  okta: 'Okta',
+  auth0: 'Auth0',
+  'microsoft-entra-id': 'Microsoft Entra ID',
+};
+const providerName = user?.provider ? providerNames[user.provider] || user.provider : undefined;
 ---
 
 <nav
@@ -58,46 +79,90 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 <button
                   id="profile-menu-button"
                   type="button"
-                  class="flex items-center focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 rounded-full"
+                  class="group flex items-center gap-1 rounded-full p-0.5 pr-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] hover:bg-[rgb(var(--ec-dropdown-hover))] aria-expanded:bg-[rgb(var(--ec-dropdown-hover))] transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[rgb(var(--ec-accent))]"
                   aria-expanded="false"
-                  aria-haspopup="true"
-                  aria-label="User menu"
+                  aria-haspopup="menu"
+                  aria-controls="profile-dropdown"
+                  aria-label={`Account menu for ${userName}`}
                 >
-                  {session.user?.image && !session.user?.image?.includes('googleusercontent.com') ? (
+                  {userImage ? (
                     <img
-                      src={session.user.image}
-                      alt={session.user?.name || 'User'}
-                      class="h-9 w-9 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-all shadow-xs"
+                      src={userImage}
+                      alt=""
+                      class="h-8 w-8 rounded-full object-cover ring-1 ring-[rgb(var(--ec-page-border))]"
                     />
                   ) : (
-                    <div class="h-9 w-9 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-all bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600 shadow-xs">
-                      {session.user?.name
-                        ? session.user.name
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .substring(0, 2)
-                            .toUpperCase()
-                        : 'U'}
-                    </div>
+                    <span class="h-8 w-8 rounded-full bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))] ring-1 ring-[rgb(var(--ec-page-border))] flex items-center justify-center text-xs font-semibold">
+                      {userInitials}
+                    </span>
                   )}
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-4 w-4 transition-transform group-aria-expanded:rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
                 </button>
                 <div
                   id="profile-dropdown"
-                  class="ec-hidden absolute right-0 mt-2 w-48 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-md py-1 z-50 border-2 border-[rgb(var(--ec-dropdown-border))] overflow-hidden"
+                  role="menu"
+                  aria-labelledby="profile-menu-button"
+                  class="ec-hidden absolute right-0 mt-2 w-64 bg-[rgb(var(--ec-dropdown-bg))] rounded-xl shadow-lg z-50 border border-[rgb(var(--ec-dropdown-border))] overflow-hidden"
                 >
-                  <div class="px-4 py-2 text-sm text-[rgb(var(--ec-dropdown-text))] border-b border-[rgb(var(--ec-dropdown-border))]">
-                    <div class="font-semibold">{session.user?.name || 'User'}</div>
-                    {session.user?.email && (
-                      <div class="text-[rgb(var(--ec-icon-color))] text-xs mt-0.5">{session.user.email}</div>
+                  <div class="flex items-center gap-3 px-4 py-3 border-b border-[rgb(var(--ec-dropdown-border))]">
+                    {userImage ? (
+                      <img
+                        src={userImage}
+                        alt=""
+                        class="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-[rgb(var(--ec-page-border))]"
+                      />
+                    ) : (
+                      <span class="h-10 w-10 shrink-0 rounded-full bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))] flex items-center justify-center text-sm font-semibold">
+                        {userInitials}
+                      </span>
                     )}
+                    <div class="min-w-0">
+                      <div class="truncate text-sm font-semibold text-[rgb(var(--ec-dropdown-text))]">{userName}</div>
+                      {user?.email && user.email !== userName && (
+                        <div class="truncate text-xs font-normal text-[rgb(var(--ec-page-text-muted))]">{user.email}</div>
+                      )}
+                      {providerName && (
+                        <div class="truncate text-xs font-normal text-[rgb(var(--ec-page-text-muted))]">
+                          Signed in with {providerName}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <button
-                    id="signout-btn"
-                    class="block w-full text-left px-4 py-2 text-sm text-[rgb(var(--ec-dropdown-text))] hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors font-medium"
-                  >
-                    Sign out
-                  </button>
+                  <div class="p-1">
+                    <button
+                      id="signout-btn"
+                      type="button"
+                      role="menuitem"
+                      class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-[rgb(var(--ec-dropdown-text))] hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-hidden focus-visible:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-4 w-4 text-[rgb(var(--ec-icon-color))]"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" x2="9" y1="12" y2="12" />
+                      </svg>
+                      Sign out
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -210,9 +275,15 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 <!-- Spacer to prevent content from being hidden under the fixed header -->
 
 <script>
-  import { signOut } from 'auth-astro/client';
+  import { signOut } from '@utils/auth-astro/client';
 
   function initializeHeader() {
+    // ClientRouter fires astro:page-load on the first load too, and the header persists across
+    // navigations. Bind once per element so clicks don't toggle the menus open and shut again.
+    const header = document.getElementById('eventcatalog-header');
+    if (!header || header.dataset.initialized === 'true') return;
+    header.dataset.initialized = 'true';
+
     const menuToggle = document.getElementById('menu-toggle');
     const mobileMenu = document.getElementById('mobile-menu');
 
@@ -261,10 +332,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
     }
   }
 
-  // Initialize on first load
   initializeHeader();
-
-  // Re-initialize after Astro view transitions (needed because of transition:persist on header)
   document.addEventListener('astro:page-load', initializeHeader);
 </script>
 

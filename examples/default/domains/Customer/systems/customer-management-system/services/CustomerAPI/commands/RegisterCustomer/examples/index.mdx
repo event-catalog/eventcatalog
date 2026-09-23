@@ -1,0 +1,166 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Register a customer with only the required fields
+
+A shopper signs up at checkout using just an email address and password so they can finish buying a hoodie quickly. The Customer API creates the account and publishes `CustomerRegistered`.
+
+### Payload details
+
+- `email` is the customer's address. It must be unique, so a second registration with the same email is rejected with a `409`.
+- `password` is the initial password and must be at least 8 characters.
+- `name` is optional and is left out here. The customer can add it later with `UpdateCustomer`.
+
+### Using this example
+
+Use this to check that a registration with no `name` succeeds, and that the password is hashed before storage and never logged or echoed back.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the RegisterCustomer schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-register-customer.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  email: 'tom.okafor@example.co.uk',
+  password: 'Hoodie-Season-2026',
+};
+
+await client.send('RegisterCustomer', command);
+```
+
+```python send_register_customer.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "email": "tom.okafor@example.co.uk",
+    "password": "Hoodie-Season-2026",
+}
+
+client.send("RegisterCustomer", command)
+```
+
+```java SendRegisterCustomer.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendRegisterCustomer {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "email", "tom.okafor@example.co.uk",
+      "password", "Hoodie-Season-2026"
+    );
+
+    client.send("RegisterCustomer", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Register a customer with their full name
+
+A shopper creates an account from the sign-up page and fills in every field, including their name, so it can be used on order confirmations and delivery labels.
+
+### Payload details
+
+- `email` is the customer's unique address, used for sign-in and order emails.
+- `name` is the customer's full name. When supplied it must be at least 1 character.
+- `password` meets the 8-character minimum.
+
+### Using this example
+
+Use this to check that `name` is stored and carried through to the `CustomerRegistered` event, and that registering the same `email` again returns a `409`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the RegisterCustomer schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-register-customer.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  email: 'amelia.hart@example.com',
+  name: 'Amelia Hart',
+  password: 'Blue-Tshirt-42!',
+};
+
+await client.send('RegisterCustomer', command);
+```
+
+```python send_register_customer.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "email": "amelia.hart@example.com",
+    "name": "Amelia Hart",
+    "password": "Blue-Tshirt-42!",
+}
+
+client.send("RegisterCustomer", command)
+```
+
+```java SendRegisterCustomer.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendRegisterCustomer {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "email", "amelia.hart@example.com",
+      "name", "Amelia Hart",
+      "password", "Blue-Tshirt-42!"
+    );
+
+    client.send("RegisterCustomer", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

@@ -1,0 +1,227 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a newly created draft product
+
+The Product API has just stored the Embroidered Logo Cap as a draft, so ProductCreated is published with only the required product fields. The Search System consumes it to index the new product.
+
+### Payload details
+
+- `eventId` is unique to this event; consumers can use it to ignore duplicate deliveries.
+- `occurredAt` is the ISO-8601 UTC time the product was created.
+- `product.status` is `DRAFT`, so the product is not yet on sale.
+- `product.price` is `1499` in minor units, with `product.currency` set to `GBP`.
+- `product.description` and `product.category` are optional and omitted.
+
+The price is **1,499 pence (£14.99)**.
+
+### Using this example
+
+Use this to check how the search consumer handles `DRAFT` products and products without a category, for example indexing them without showing them to shoppers.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-product-created.ts
+import { EventsClient } from '@acme/events';
+import type { ProductCreated } from './schemas/product-created';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: ProductCreated = {
+  eventId: 'b2d4f6a8-0c1e-4a3b-9d5f-7e9a1c3b5d6e',
+  occurredAt: '2026-09-11T08:12:45Z',
+  product: {
+    productId: 'a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71',
+    sku: 'CAP-LOGO-NVY',
+    name: 'Embroidered Logo Cap',
+    price: 1499,
+    currency: 'GBP',
+    status: 'DRAFT',
+  },
+};
+
+await client.publish('ProductCreated', event);
+```
+
+```python publish_product_created.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "b2d4f6a8-0c1e-4a3b-9d5f-7e9a1c3b5d6e",
+    "occurredAt": "2026-09-11T08:12:45Z",
+    "product": {
+        "productId": "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71",
+        "sku": "CAP-LOGO-NVY",
+        "name": "Embroidered Logo Cap",
+        "price": 1499,
+        "currency": "GBP",
+        "status": "DRAFT",
+    },
+}
+
+client.publish("ProductCreated", event)
+```
+
+```java PublishProductCreated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishProductCreated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "b2d4f6a8-0c1e-4a3b-9d5f-7e9a1c3b5d6e",
+      "occurredAt", "2026-09-11T08:12:45Z",
+      "product", Map.of(
+        "productId", "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71",
+        "sku", "CAP-LOGO-NVY",
+        "name", "Embroidered Logo Cap",
+        "price", 1499,
+        "currency", "GBP",
+        "status", "DRAFT"
+      )
+    );
+
+    client.publish("ProductCreated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish an active product with full details
+
+The Heavyweight Zip Hoodie was created as `ACTIVE` with every field filled in. The Search System indexes it straight away so shoppers can find it.
+
+### Payload details
+
+- `eventId` and `occurredAt` identify this event and when the product was created.
+- `product.productId` is the identifier the Product API assigned to the hoodie.
+- `product.sku` is `HOODIE-ZIP-GRY-L`.
+- `product.description` and `product.category` (`hoodies`) are both present, so the search document can be fully populated.
+- `product.status` is `ACTIVE`, so the product is on sale.
+
+The price is **4,999 pence (£49.99)**.
+
+### Using this example
+
+A search consumer should index every field, including `category` for filtering, and the product should appear in results for a search such as "hoodie".
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ProductCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-product-created.ts
+import { EventsClient } from '@acme/events';
+import type { ProductCreated } from './schemas/product-created';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: ProductCreated = {
+  eventId: 'd8f0a2c4-6e8b-4d1f-b3a5-9c7e1f2a4b68',
+  occurredAt: '2026-09-12T10:30:00Z',
+  product: {
+    productId: 'c9e1f3a5-6b2d-4f7e-a8c0-1d3e5f7a9b24',
+    sku: 'HOODIE-ZIP-GRY-L',
+    name: 'Heavyweight Zip Hoodie',
+    description: 'Brushed-back cotton hoodie with a full-length zip.',
+    price: 4999,
+    currency: 'GBP',
+    category: 'hoodies',
+    status: 'ACTIVE',
+  },
+};
+
+await client.publish('ProductCreated', event);
+```
+
+```python publish_product_created.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "d8f0a2c4-6e8b-4d1f-b3a5-9c7e1f2a4b68",
+    "occurredAt": "2026-09-12T10:30:00Z",
+    "product": {
+        "productId": "c9e1f3a5-6b2d-4f7e-a8c0-1d3e5f7a9b24",
+        "sku": "HOODIE-ZIP-GRY-L",
+        "name": "Heavyweight Zip Hoodie",
+        "description": "Brushed-back cotton hoodie with a full-length zip.",
+        "price": 4999,
+        "currency": "GBP",
+        "category": "hoodies",
+        "status": "ACTIVE",
+    },
+}
+
+client.publish("ProductCreated", event)
+```
+
+```java PublishProductCreated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishProductCreated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "d8f0a2c4-6e8b-4d1f-b3a5-9c7e1f2a4b68",
+      "occurredAt", "2026-09-12T10:30:00Z",
+      "product", Map.of(
+        "productId", "c9e1f3a5-6b2d-4f7e-a8c0-1d3e5f7a9b24",
+        "sku", "HOODIE-ZIP-GRY-L",
+        "name", "Heavyweight Zip Hoodie",
+        "description", "Brushed-back cotton hoodie with a full-length zip.",
+        "price", 4999,
+        "currency", "GBP",
+        "category", "hoodies",
+        "status", "ACTIVE"
+      )
+    );
+
+    client.publish("ProductCreated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

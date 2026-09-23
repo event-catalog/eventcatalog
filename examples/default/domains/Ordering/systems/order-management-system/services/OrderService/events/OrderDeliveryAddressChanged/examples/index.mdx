@@ -1,0 +1,227 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a customer address correction
+
+Publish the corrected delivery address after the customer fixed a mistyped postcode from their account. Fulfilment and carrier integrations use the new address for dispatch.
+
+### Payload details
+
+- `addressRevision` is `2`, the first change after the original address.
+- `previousPostalCode` is the postcode being replaced.
+- `deliveryAddress` is the full new address, including the optional `line2`.
+- `changedBy` identifies the customer who made the change.
+
+### Using this example
+
+Use this to check that carrier integrations replace the whole address, and ignore any update whose `addressRevision` is lower than the one they already hold.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderDeliveryAddressChanged schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-delivery-address-changed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: '4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68',
+  addressRevision: 2,
+  previousPostalCode: 'M4 1HQ',
+  deliveryAddress: {
+    recipientName: 'Sam Patel',
+    line1: '27 Oldham Street',
+    line2: 'Flat 3',
+    city: 'Manchester',
+    postalCode: 'M1 1JQ',
+    countryCode: 'GB',
+  },
+  changedBy: 'customer:6f9619ff-8b86-d011-b42d-00cf4fc964ff',
+  changedAt: '2026-09-12T09:58:10Z',
+};
+
+await client.publish('OrderDeliveryAddressChanged', event);
+```
+
+```python publish_order_delivery_address_changed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68",
+    "addressRevision": 2,
+    "previousPostalCode": "M4 1HQ",
+    "deliveryAddress": {
+        "recipientName": "Sam Patel",
+        "line1": "27 Oldham Street",
+        "line2": "Flat 3",
+        "city": "Manchester",
+        "postalCode": "M1 1JQ",
+        "countryCode": "GB",
+    },
+    "changedBy": "customer:6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    "changedAt": "2026-09-12T09:58:10Z",
+}
+
+client.publish("OrderDeliveryAddressChanged", event)
+```
+
+```java PublishOrderDeliveryAddressChanged.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderDeliveryAddressChanged {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68",
+      "addressRevision", 2,
+      "previousPostalCode", "M4 1HQ",
+      "deliveryAddress", Map.of(
+        "recipientName", "Sam Patel",
+        "line1", "27 Oldham Street",
+        "line2", "Flat 3",
+        "city", "Manchester",
+        "postalCode", "M1 1JQ",
+        "countryCode", "GB"
+      ),
+      "changedBy", "customer:6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "changedAt", "2026-09-12T09:58:10Z"
+    );
+
+    client.publish("OrderDeliveryAddressChanged", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a second change by a support agent
+
+Publish a new address for an Irish order after the customer phoned support to send it to their office instead. This is the second time the address has changed.
+
+### Payload details
+
+- `addressRevision` is `3`.
+- `deliveryAddress` has no `line2`, and `countryCode` is `IE` with an Eircode in `postalCode`.
+- `changedBy` identifies the support agent who made the change.
+
+### Using this example
+
+Use this to check that consumers accept addresses without `line2` and handle non-UK postcode formats.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderDeliveryAddressChanged schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-delivery-address-changed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'f1d3b5a7-9c8e-4d2f-a6b4-3e5c7a9b1d02',
+  addressRevision: 3,
+  previousPostalCode: 'D04 C932',
+  deliveryAddress: {
+    recipientName: 'Niamh Byrne',
+    line1: '12 Harcourt Street',
+    city: 'Dublin',
+    postalCode: 'D02 X285',
+    countryCode: 'IE',
+  },
+  changedBy: 'support-agent:maya.chen',
+  changedAt: '2026-09-13T08:20:00Z',
+};
+
+await client.publish('OrderDeliveryAddressChanged', event);
+```
+
+```python publish_order_delivery_address_changed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "f1d3b5a7-9c8e-4d2f-a6b4-3e5c7a9b1d02",
+    "addressRevision": 3,
+    "previousPostalCode": "D04 C932",
+    "deliveryAddress": {
+        "recipientName": "Niamh Byrne",
+        "line1": "12 Harcourt Street",
+        "city": "Dublin",
+        "postalCode": "D02 X285",
+        "countryCode": "IE",
+    },
+    "changedBy": "support-agent:maya.chen",
+    "changedAt": "2026-09-13T08:20:00Z",
+}
+
+client.publish("OrderDeliveryAddressChanged", event)
+```
+
+```java PublishOrderDeliveryAddressChanged.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderDeliveryAddressChanged {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "f1d3b5a7-9c8e-4d2f-a6b4-3e5c7a9b1d02",
+      "addressRevision", 3,
+      "previousPostalCode", "D04 C932",
+      "deliveryAddress", Map.of(
+        "recipientName", "Niamh Byrne",
+        "line1", "12 Harcourt Street",
+        "city", "Dublin",
+        "postalCode", "D02 X285",
+        "countryCode", "IE"
+      ),
+      "changedBy", "support-agent:maya.chen",
+      "changedAt", "2026-09-13T08:20:00Z"
+    );
+
+    client.publish("OrderDeliveryAddressChanged", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

@@ -1,0 +1,203 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Fetch an active product
+
+The storefront product page asks the Product API for the Classic Crew Neck T-Shirt. The Product API reads it from the product database and returns every field.
+
+### Payload details
+
+- `request.productId` is the UUID of the product to fetch, taken from the page URL.
+- The response includes the optional `description` and `category` as well as the required fields.
+- `status` is `ACTIVE`, so the product can be shown and sold.
+- `price` is `1999` in minor units, with `currency` set to `GBP`.
+
+The price is **1,999 pence (£19.99)**.
+
+### Example response
+
+```json
+{
+  "productId": "4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13",
+  "sku": "TSHIRT-CREW-BLK-M",
+  "name": "Classic Crew Neck T-Shirt",
+  "description": "Midweight organic cotton T-shirt with a ribbed collar.",
+  "price": 1999,
+  "currency": "GBP",
+  "category": "t-shirts",
+  "status": "ACTIVE"
+}
+```
+
+### Using this example
+
+Use this to check that the product page renders the name, description and formatted price, and that the returned `productId` matches the one requested.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetProduct schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-get-product.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  productId: '4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13',
+};
+
+const product = await client.query('GetProduct', request);
+
+console.log(product.status, product.price);
+```
+
+```python query_get_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "productId": "4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13",
+}
+
+product = client.query("GetProduct", request)
+
+print(product["status"], product["price"])
+```
+
+```java QueryGetProduct.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "productId", "4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13"
+    );
+
+    var product = client.query("GetProduct", request);
+
+    System.out.println(product.get("status") + " " + product.get("price"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Fetch a draft product with required fields only
+
+A merchandiser opens the Embroidered Logo Cap in the back office before launch. It is still a draft, so the response has only the required fields.
+
+### Payload details
+
+- `request.productId` is the UUID of the draft cap.
+- `status` is `DRAFT`, so the product must not be shown to shoppers.
+- `description` and `category` are absent because they have not been set yet.
+- `price` is `1499` in minor units, with `currency` set to `GBP`.
+
+The price is **1,499 pence (£14.99)**.
+
+### Example response
+
+```json
+{
+  "productId": "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71",
+  "sku": "CAP-LOGO-NVY",
+  "name": "Embroidered Logo Cap",
+  "price": 1499,
+  "currency": "GBP",
+  "status": "DRAFT"
+}
+```
+
+### Using this example
+
+Check that callers cope with a missing `description` and `category`, and that storefront code hides products whose `status` is `DRAFT`.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetProduct schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-get-product.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  productId: 'a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71',
+};
+
+const product = await client.query('GetProduct', request);
+
+console.log(product.status, product.price);
+```
+
+```python query_get_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "productId": "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71",
+}
+
+product = client.query("GetProduct", request)
+
+print(product["status"], product["price"])
+```
+
+```java QueryGetProduct.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "productId", "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71"
+    );
+
+    var product = client.query("GetProduct", request);
+
+    System.out.println(product.get("status") + " " + product.get("price"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

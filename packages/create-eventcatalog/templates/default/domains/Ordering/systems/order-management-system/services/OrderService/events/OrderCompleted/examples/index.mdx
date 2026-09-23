@@ -1,0 +1,171 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish completion of a UK order
+
+The T-shirts and cap from a UK order are delivered two days after purchase. The Order Service publishes this event to mark the end of the order's happy path.
+
+### Payload details
+
+- `orderId` is the order that was fulfilled.
+- `customerId` identifies the customer, so they can be asked for a review.
+- `completedAt` is the ISO-8601 UTC time the delivery was confirmed.
+
+### Using this example
+
+Consumers should close out fulfilment, capture the payment and move the order to completed in reporting.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderCompleted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-order-completed.ts
+import { EventsClient } from '@acme/events';
+import type { OrderCompleted } from './schemas/order-completed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: OrderCompleted = {
+  orderId: '4c7e9a2b-1d3f-4b5a-8e6c-2f9d0a1b3c5e',
+  customerId: '3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d',
+  completedAt: '2026-09-13T14:27:09Z',
+};
+
+await client.publish('OrderCompleted', event);
+```
+
+```python publish_order_completed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "4c7e9a2b-1d3f-4b5a-8e6c-2f9d0a1b3c5e",
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+    "completedAt": "2026-09-13T14:27:09Z",
+}
+
+client.publish("OrderCompleted", event)
+```
+
+```java PublishOrderCompleted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderCompleted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "4c7e9a2b-1d3f-4b5a-8e6c-2f9d0a1b3c5e",
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+      "completedAt", "2026-09-13T14:27:09Z"
+    );
+
+    client.publish("OrderCompleted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish completion of an international order
+
+A hoodie shipped to Ireland takes five days to arrive. When the carrier confirms delivery, the Order Service publishes this event.
+
+### Payload details
+
+- `orderId` is the euro order created on 14 September.
+- `customerId` identifies the customer in Ireland.
+- `completedAt` is five days after the order was created, which reporting can use to track international delivery times.
+
+### Using this example
+
+Use this to check that consumers work out delivery time from the order's creation time and `completedAt`, whatever the currency or destination.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderCompleted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-order-completed.ts
+import { EventsClient } from '@acme/events';
+import type { OrderCompleted } from './schemas/order-completed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: OrderCompleted = {
+  orderId: 'b5d8e1f2-6a3c-4d7b-9f0e-3a4b5c6d7e8f',
+  customerId: '8a7c6e5d-2b1f-4c3a-9e8d-7f6a5b4c3d2e',
+  completedAt: '2026-09-19T11:48:32Z',
+};
+
+await client.publish('OrderCompleted', event);
+```
+
+```python publish_order_completed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "b5d8e1f2-6a3c-4d7b-9f0e-3a4b5c6d7e8f",
+    "customerId": "8a7c6e5d-2b1f-4c3a-9e8d-7f6a5b4c3d2e",
+    "completedAt": "2026-09-19T11:48:32Z",
+}
+
+client.publish("OrderCompleted", event)
+```
+
+```java PublishOrderCompleted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderCompleted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "b5d8e1f2-6a3c-4d7b-9f0e-3a4b5c6d7e8f",
+      "customerId", "8a7c6e5d-2b1f-4c3a-9e8d-7f6a5b4c3d2e",
+      "completedAt", "2026-09-19T11:48:32Z"
+    );
+
+    client.publish("OrderCompleted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

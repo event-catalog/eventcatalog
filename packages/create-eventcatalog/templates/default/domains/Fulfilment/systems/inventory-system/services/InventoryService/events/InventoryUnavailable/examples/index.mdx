@@ -1,0 +1,229 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a sold-out item for an order
+
+The Inventory Service publishes this event when it cannot reserve stock for an order. The checkout saga consumes it, fails checkout and cancels the order.
+
+### Payload details
+
+- `orderId` and `cartId` identify the order and the cart that was checked out.
+- `unavailableItems` lists the hoodie: `requested` is `1` and `available` is `0`.
+- `checkedAt` is the UTC time of the stock check.
+
+### Using this example
+
+The checkout saga should cancel the order and tell the customer the hoodie is sold out.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the InventoryUnavailable schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-inventory-unavailable.ts
+import { EventsClient } from '@acme/events';
+import type { InventoryUnavailable } from './schemas/inventory-unavailable';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: InventoryUnavailable = {
+  orderId: 'c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53',
+  cartId: '2c8f0b6d-5a3e-4c9f-8d1b-6e4a7c0f2b91',
+  unavailableItems: [
+    {
+      productId: 'd2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72',
+      requested: 1,
+      available: 0,
+    },
+  ],
+  checkedAt: '2026-09-20T17:03:44Z',
+};
+
+await client.publish('InventoryUnavailable', event);
+```
+
+```python publish_inventory_unavailable.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+    "cartId": "2c8f0b6d-5a3e-4c9f-8d1b-6e4a7c0f2b91",
+    "unavailableItems": [
+        {
+            "productId": "d2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72",
+            "requested": 1,
+            "available": 0,
+        },
+    ],
+    "checkedAt": "2026-09-20T17:03:44Z",
+}
+
+client.publish("InventoryUnavailable", event)
+```
+
+```java PublishInventoryUnavailable.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishInventoryUnavailable {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+      "cartId", "2c8f0b6d-5a3e-4c9f-8d1b-6e4a7c0f2b91",
+      "unavailableItems", List.of(
+        Map.of(
+          "productId", "d2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72",
+          "requested", 1,
+          "available", 0
+        )
+      ),
+      "checkedAt", "2026-09-20T17:03:44Z"
+    );
+
+    client.publish("InventoryUnavailable", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a partial shortage for a cart
+
+A cart asks for more T-shirts and caps than are left. The event lists every short item and links to the cart only, because no order exists yet.
+
+### Payload details
+
+- `unavailableItems` has two entries: 3 T-shirts requested with 1 available, and 2 caps requested with 0 available.
+- `cartId` is set; `orderId` is omitted.
+- `unavailableItems` and `checkedAt` are the only required fields.
+
+The cart is short by **4 units**: 2 T-shirts and 2 caps.
+
+### Using this example
+
+Consumers should show the customer the `available` count for each item so they can reduce the quantity and try again.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the InventoryUnavailable schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-inventory-unavailable.ts
+import { EventsClient } from '@acme/events';
+import type { InventoryUnavailable } from './schemas/inventory-unavailable';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: InventoryUnavailable = {
+  cartId: 'f5d3a8e2-0c7b-4e1f-9a6d-3b8c5e2f0a47',
+  unavailableItems: [
+    {
+      productId: '0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95',
+      requested: 3,
+      available: 1,
+    },
+    {
+      productId: '6c1f9a4e-3d7b-4a2c-8f5e-9b0d2c7a1e38',
+      requested: 2,
+      available: 0,
+    },
+  ],
+  checkedAt: '2026-09-14T08:10:02Z',
+};
+
+await client.publish('InventoryUnavailable', event);
+```
+
+```python publish_inventory_unavailable.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "cartId": "f5d3a8e2-0c7b-4e1f-9a6d-3b8c5e2f0a47",
+    "unavailableItems": [
+        {
+            "productId": "0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95",
+            "requested": 3,
+            "available": 1,
+        },
+        {
+            "productId": "6c1f9a4e-3d7b-4a2c-8f5e-9b0d2c7a1e38",
+            "requested": 2,
+            "available": 0,
+        },
+    ],
+    "checkedAt": "2026-09-14T08:10:02Z",
+}
+
+client.publish("InventoryUnavailable", event)
+```
+
+```java PublishInventoryUnavailable.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishInventoryUnavailable {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "cartId", "f5d3a8e2-0c7b-4e1f-9a6d-3b8c5e2f0a47",
+      "unavailableItems", List.of(
+        Map.of(
+          "productId", "0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95",
+          "requested", 3,
+          "available", 1
+        ),
+        Map.of(
+          "productId", "6c1f9a4e-3d7b-4a2c-8f5e-9b0d2c7a1e38",
+          "requested", 2,
+          "available", 0
+        )
+      ),
+      "checkedAt", "2026-09-14T08:10:02Z"
+    );
+
+    client.publish("InventoryUnavailable", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

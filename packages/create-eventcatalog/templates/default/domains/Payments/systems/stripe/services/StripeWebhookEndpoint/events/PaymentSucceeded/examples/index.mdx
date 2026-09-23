@@ -1,0 +1,190 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Confirm a card charge with a Stripe reference
+
+Stripe charges the card for the T-shirt and cap order. The StripeWebhookEndpoint publishes `PaymentSucceeded` and the PaymentWorker records the payment as succeeded.
+
+### Payload details
+
+- `paymentId` and `orderId` match the original `PaymentRequested` event.
+- `amount` and `currency` are what Stripe actually charged, in pence.
+- `processorReference` is Stripe's charge ID, kept for reconciliation and refunds.
+
+The customer was charged **4,298 pence (£42.98)**.
+
+### Using this example
+
+Consumers should check that `amount` and `currency` match the requested charge before marking the payment as succeeded.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentSucceeded schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-payment-succeeded.ts
+import { EventsClient } from '@acme/events';
+import type { PaymentSucceeded } from './schemas/payment-succeeded';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: PaymentSucceeded = {
+  paymentId: '586e57ab-77a9-406a-945d-4619c76a582e',
+  orderId: '971b5a4b-6885-405c-899b-5e0f428016c1',
+  amount: 4298,
+  currency: 'GBP',
+  processorReference: 'ch_3PqL8x2eZvKYlo2C1a9bR4tD',
+  succeededAt: '2026-09-11T08:12:52Z',
+};
+
+await client.publish('PaymentSucceeded', event);
+```
+
+```python publish_payment_succeeded.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "586e57ab-77a9-406a-945d-4619c76a582e",
+    "orderId": "971b5a4b-6885-405c-899b-5e0f428016c1",
+    "amount": 4298,
+    "currency": "GBP",
+    "processorReference": "ch_3PqL8x2eZvKYlo2C1a9bR4tD",
+    "succeededAt": "2026-09-11T08:12:52Z",
+}
+
+client.publish("PaymentSucceeded", event)
+```
+
+```java PublishPaymentSucceeded.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentSucceeded {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "586e57ab-77a9-406a-945d-4619c76a582e",
+      "orderId", "971b5a4b-6885-405c-899b-5e0f428016c1",
+      "amount", 4298,
+      "currency", "GBP",
+      "processorReference", "ch_3PqL8x2eZvKYlo2C1a9bR4tD",
+      "succeededAt", "2026-09-11T08:12:52Z"
+    );
+
+    client.publish("PaymentSucceeded", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Confirm a charge without a processor reference
+
+Stripe confirms the guest hoodie payment. The webhook arrives without a charge ID, so only the required fields are published.
+
+### Payload details
+
+- `processorReference` is optional and omitted here.
+- `amount` is three hoodies at €54.99 each, in cents.
+- `currency` is `EUR`.
+
+The customer was charged **16,497 cents (€164.97)**.
+
+### Using this example
+
+Use this payload to check that the PaymentWorker records the payment even when `processorReference` is missing.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentSucceeded schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-payment-succeeded.ts
+import { EventsClient } from '@acme/events';
+import type { PaymentSucceeded } from './schemas/payment-succeeded';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: PaymentSucceeded = {
+  paymentId: '41651c3f-fa8e-40fc-a217-a83929d15081',
+  orderId: 'e39a80be-526e-4009-a22a-40c847cff088',
+  amount: 16497,
+  currency: 'EUR',
+  succeededAt: '2026-09-14T19:03:34Z',
+};
+
+await client.publish('PaymentSucceeded', event);
+```
+
+```python publish_payment_succeeded.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "41651c3f-fa8e-40fc-a217-a83929d15081",
+    "orderId": "e39a80be-526e-4009-a22a-40c847cff088",
+    "amount": 16497,
+    "currency": "EUR",
+    "succeededAt": "2026-09-14T19:03:34Z",
+}
+
+client.publish("PaymentSucceeded", event)
+```
+
+```java PublishPaymentSucceeded.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentSucceeded {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "41651c3f-fa8e-40fc-a217-a83929d15081",
+      "orderId", "e39a80be-526e-4009-a22a-40c847cff088",
+      "amount", 16497,
+      "currency", "EUR",
+      "succeededAt", "2026-09-14T19:03:34Z"
+    );
+
+    client.publish("PaymentSucceeded", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

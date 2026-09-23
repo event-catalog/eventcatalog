@@ -1,0 +1,198 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Sign a customer in from the storefront
+
+A customer signs in on the web storefront to view their orders. The OAuth API checks the credentials against the user directory, returns an access token and publishes `CustomerAuthenticated`.
+
+### Payload details
+
+- `request.email` and `request.password` are the credentials the customer typed in.
+- `response.accessToken` is the token the storefront sends with later API calls.
+- `response.tokenType` is always `Bearer`.
+- `response.expiresIn` is the token lifetime in seconds: **3,600 seconds (1 hour)**.
+
+### Example response
+
+```json
+{
+  "accessToken": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIzZjJiOGMxZSJ9.kX9vQ2Lm",
+  "tokenType": "Bearer",
+  "expiresIn": 3600
+}
+```
+
+### Using this example
+
+Use this to check that a valid sign-in returns a `Bearer` token, and that the client refreshes or re-authenticates before `expiresIn` runs out.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the AuthenticateCustomer schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-authenticate-customer.ts
+import { EventsClient } from '@acme/events';
+import type { AuthenticateCustomerRequest, AuthenticateCustomerResponse } from './schemas/authenticate-customer';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const request: AuthenticateCustomerRequest = {
+  email: 'amelia.hart@example.com',
+  password: 'Blue-Tshirt-42!',
+};
+
+const token: AuthenticateCustomerResponse = await client.send('AuthenticateCustomer', request);
+
+console.log(token.tokenType, token.expiresIn);
+```
+
+```python send_authenticate_customer.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "email": "amelia.hart@example.com",
+    "password": "Blue-Tshirt-42!",
+}
+
+token = client.send("AuthenticateCustomer", request)
+
+print(token["tokenType"], token["expiresIn"])
+```
+
+```java SendAuthenticateCustomer.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendAuthenticateCustomer {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "email", "amelia.hart@example.com",
+      "password", "Blue-Tshirt-42!"
+    );
+
+    var token = client.send("AuthenticateCustomer", request);
+
+    System.out.println(token.get("tokenType") + " " + token.get("expiresIn"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Sign a customer in during checkout
+
+A returning customer signs in part-way through checking out a basket of caps. The OAuth API issues a short-lived token that only needs to last until the order is placed.
+
+### Payload details
+
+- `request.email` and `request.password` are the customer's credentials.
+- `response.tokenType` is `Bearer`.
+- `response.expiresIn` is **900 seconds (15 minutes)**, so the client must handle the token expiring and ask the customer to sign in again.
+
+### Example response
+
+```json
+{
+  "accessToken": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjOWE0ZTJmNyJ9.pR4tZ8Wn",
+  "tokenType": "Bearer",
+  "expiresIn": 900
+}
+```
+
+### Using this example
+
+Use this to check that the client reads `expiresIn` rather than assuming a fixed lifetime, and prompts for sign-in again once the token has expired.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the AuthenticateCustomer schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-authenticate-customer.ts
+import { EventsClient } from '@acme/events';
+import type { AuthenticateCustomerRequest, AuthenticateCustomerResponse } from './schemas/authenticate-customer';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const request: AuthenticateCustomerRequest = {
+  email: 'tom.okafor@example.co.uk',
+  password: 'Hoodie-Season-2026',
+};
+
+const token: AuthenticateCustomerResponse = await client.send('AuthenticateCustomer', request);
+
+console.log(token.tokenType, token.expiresIn);
+```
+
+```python send_authenticate_customer.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "email": "tom.okafor@example.co.uk",
+    "password": "Hoodie-Season-2026",
+}
+
+token = client.send("AuthenticateCustomer", request)
+
+print(token["tokenType"], token["expiresIn"])
+```
+
+```java SendAuthenticateCustomer.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendAuthenticateCustomer {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "email", "tom.okafor@example.co.uk",
+      "password", "Hoodie-Season-2026"
+    );
+
+    var token = client.send("AuthenticateCustomer", request);
+
+    System.out.println(token.get("tokenType") + " " + token.get("expiresIn"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

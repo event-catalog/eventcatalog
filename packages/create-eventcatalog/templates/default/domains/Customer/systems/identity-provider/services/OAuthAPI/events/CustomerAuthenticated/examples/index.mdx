@@ -1,0 +1,276 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a password sign-in
+
+A customer signed in on the web storefront with their email and password. The OAuth API publishes this event so auditing and security monitoring can record the sign-in.
+
+### Payload details
+
+- `eventId` is a unique UUID for this event, and `occurredAt` is the ISO-8601 UTC time of the sign-in.
+- `customerId` identifies the customer who signed in.
+- `method` is `PASSWORD`, meaning the customer used their email and password.
+- `ipAddress` is the IPv4 address the sign-in came from.
+
+### Using this example
+
+Use this to check that audit consumers store the `method` and `ipAddress`, and that security monitoring can compare the address with the customer's usual locations.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerAuthenticated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-customer-authenticated.ts
+import { EventsClient } from '@acme/events';
+import type { CustomerAuthenticated } from './schemas/customer-authenticated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CustomerAuthenticated = {
+  eventId: '0d2f4b6a-8c1e-4a3b-9d5f-7e9a1c3b5d48',
+  occurredAt: '2026-09-18T19:41:07Z',
+  customerId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c',
+  method: 'PASSWORD',
+  ipAddress: '203.0.113.24',
+};
+
+await client.publish('CustomerAuthenticated', event);
+```
+
+```python publish_customer_authenticated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "0d2f4b6a-8c1e-4a3b-9d5f-7e9a1c3b5d48",
+    "occurredAt": "2026-09-18T19:41:07Z",
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+    "method": "PASSWORD",
+    "ipAddress": "203.0.113.24",
+}
+
+client.publish("CustomerAuthenticated", event)
+```
+
+```java PublishCustomerAuthenticated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishCustomerAuthenticated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "0d2f4b6a-8c1e-4a3b-9d5f-7e9a1c3b5d48",
+      "occurredAt", "2026-09-18T19:41:07Z",
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+      "method", "PASSWORD",
+      "ipAddress", "203.0.113.24"
+    );
+
+    client.publish("CustomerAuthenticated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a single sign-on sign-in
+
+A customer signed in through a third-party single sign-on provider. The sign-in was relayed by the provider, so the OAuth API has no client IP address to report.
+
+### Payload details
+
+- `eventId` and `occurredAt` identify this event and when the sign-in happened.
+- `customerId` identifies the customer who signed in.
+- `method` is `SSO`.
+- `ipAddress` is optional and is omitted here.
+
+### Using this example
+
+Use this to check that consumers accept an event with no `ipAddress` and still record the sign-in against the customer.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerAuthenticated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-customer-authenticated.ts
+import { EventsClient } from '@acme/events';
+import type { CustomerAuthenticated } from './schemas/customer-authenticated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CustomerAuthenticated = {
+  eventId: 'b8d0f2a4-6e8c-4b1d-a3f5-0c2e4a6b8d59',
+  occurredAt: '2026-09-20T07:15:52Z',
+  customerId: 'c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13',
+  method: 'SSO',
+};
+
+await client.publish('CustomerAuthenticated', event);
+```
+
+```python publish_customer_authenticated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "b8d0f2a4-6e8c-4b1d-a3f5-0c2e4a6b8d59",
+    "occurredAt": "2026-09-20T07:15:52Z",
+    "customerId": "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+    "method": "SSO",
+}
+
+client.publish("CustomerAuthenticated", event)
+```
+
+```java PublishCustomerAuthenticated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishCustomerAuthenticated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "b8d0f2a4-6e8c-4b1d-a3f5-0c2e4a6b8d59",
+      "occurredAt", "2026-09-20T07:15:52Z",
+      "customerId", "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+      "method", "SSO"
+    );
+
+    client.publish("CustomerAuthenticated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 3. Publish a multi-factor sign-in
+
+A customer signed in from a new phone and completed a one-time code challenge. Security monitoring treats multi-factor sign-ins from new devices as lower risk than a password alone.
+
+### Payload details
+
+- `eventId` and `occurredAt` identify this event and when the sign-in happened.
+- `customerId` is the same customer as in example 1.
+- `method` is `MFA`, meaning a second factor was verified as well as the password.
+- `ipAddress` is an IPv6 address, which the schema accepts as a plain string.
+
+### Using this example
+
+Use this to check that consumers handle every `method` value (`PASSWORD`, `SSO` and `MFA`) and store IPv6 addresses without truncating them.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerAuthenticated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-customer-authenticated.ts
+import { EventsClient } from '@acme/events';
+import type { CustomerAuthenticated } from './schemas/customer-authenticated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CustomerAuthenticated = {
+  eventId: '2a4c6e8f-0b1d-4c3e-8f5a-7b9d1e3f5a60',
+  occurredAt: '2026-09-21T12:30:44Z',
+  customerId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c',
+  method: 'MFA',
+  ipAddress: '2001:db8:85a3::8a2e:370:7334',
+};
+
+await client.publish('CustomerAuthenticated', event);
+```
+
+```python publish_customer_authenticated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "2a4c6e8f-0b1d-4c3e-8f5a-7b9d1e3f5a60",
+    "occurredAt": "2026-09-21T12:30:44Z",
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+    "method": "MFA",
+    "ipAddress": "2001:db8:85a3::8a2e:370:7334",
+}
+
+client.publish("CustomerAuthenticated", event)
+```
+
+```java PublishCustomerAuthenticated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishCustomerAuthenticated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "2a4c6e8f-0b1d-4c3e-8f5a-7b9d1e3f5a60",
+      "occurredAt", "2026-09-21T12:30:44Z",
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+      "method", "MFA",
+      "ipAddress", "2001:db8:85a3::8a2e:370:7334"
+    );
+
+    client.publish("CustomerAuthenticated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

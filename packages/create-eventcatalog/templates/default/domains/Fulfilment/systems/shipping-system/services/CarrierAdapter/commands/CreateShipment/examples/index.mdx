@@ -1,0 +1,206 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Send a next-day shipment for one parcel
+
+The Carrier Adapter sends this command once an order is ready for shipping and the customer paid for next-day delivery. The carrier creates the shipment and replies with `ShipmentCreated`.
+
+### Payload details
+
+- `orderId` is the packed order being dispatched.
+- `carrier` is `Royal Mail`, the carrier chosen for UK next-day orders.
+- `service` is `NEXT_DAY`, the fastest of the three service levels.
+- `parcelCount` is `1`: two T-shirts and a cap fit in one mailing bag.
+- `destination` is a UK address, so `country` is the two-letter code `GB`.
+
+### Using this example
+
+A carrier stub should accept this command and book one next-day parcel to the Manchester address. Use it to check that `service` and `parcelCount` are passed to the carrier unchanged.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CreateShipment schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-create-shipment.ts
+import { EventsClient } from '@acme/events';
+import type { CreateShipment } from './schemas/create-shipment';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: CreateShipment = {
+  orderId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27',
+  carrier: 'Royal Mail',
+  service: 'NEXT_DAY',
+  parcelCount: 1,
+  destination: {
+    line1: '14 Victoria Road',
+    city: 'Manchester',
+    postcode: 'M14 5RT',
+    country: 'GB',
+  },
+};
+
+await client.send('CreateShipment', command);
+```
+
+```python send_create_shipment.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "orderId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+    "carrier": "Royal Mail",
+    "service": "NEXT_DAY",
+    "parcelCount": 1,
+    "destination": {
+        "line1": "14 Victoria Road",
+        "city": "Manchester",
+        "postcode": "M14 5RT",
+        "country": "GB",
+    },
+}
+
+client.send("CreateShipment", command)
+```
+
+```java SendCreateShipment.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCreateShipment {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "orderId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+      "carrier", "Royal Mail",
+      "service", "NEXT_DAY",
+      "parcelCount", 1,
+      "destination", Map.of(
+        "line1", "14 Victoria Road",
+        "city", "Manchester",
+        "postcode", "M14 5RT",
+        "country", "GB"
+      )
+    );
+
+    client.send("CreateShipment", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Send a shipment with only the required fields
+
+This is the smallest valid command: the order and where it is going. It is used when the order has no delivery preference and the Carrier Adapter leaves carrier and service selection to its own configuration.
+
+### Payload details
+
+- `orderId` and `destination` are the only required fields.
+- `carrier`, `service` and `parcelCount` are omitted, not set to null.
+- `destination.country` is `IE` for an order going to Dublin.
+
+### Using this example
+
+Use this payload to test that the handler accepts a command without the optional fields and does not fail on missing `carrier` or `service`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CreateShipment schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-create-shipment.ts
+import { EventsClient } from '@acme/events';
+import type { CreateShipment } from './schemas/create-shipment';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: CreateShipment = {
+  orderId: 'c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53',
+  destination: {
+    line1: '22 Harcourt Street',
+    city: 'Dublin',
+    postcode: 'D02 H364',
+    country: 'IE',
+  },
+};
+
+await client.send('CreateShipment', command);
+```
+
+```python send_create_shipment.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "orderId": "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+    "destination": {
+        "line1": "22 Harcourt Street",
+        "city": "Dublin",
+        "postcode": "D02 H364",
+        "country": "IE",
+    },
+}
+
+client.send("CreateShipment", command)
+```
+
+```java SendCreateShipment.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCreateShipment {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "orderId", "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+      "destination", Map.of(
+        "line1", "22 Harcourt Street",
+        "city", "Dublin",
+        "postcode", "D02 H364",
+        "country", "IE"
+      )
+    );
+
+    client.send("CreateShipment", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

@@ -1,0 +1,184 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Confirm a full refund
+
+Stripe completes the full refund for the cancelled T-shirt and cap order. The StripeWebhookEndpoint publishes `RefundProcessed` and the PaymentWorker records the refund as complete.
+
+### Payload details
+
+- `refundId` matches the `RefundRequested` event that started the refund.
+- `paymentId` is the original charge that was refunded.
+- `amount` is the full original charge, in pence.
+
+The customer received **4,298 pence (£42.98)**.
+
+### Using this example
+
+Consumers should match `refundId` to the pending refund and mark it complete. Tests can assert that `amount` equals the requested refund.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the RefundProcessed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-refund-processed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  refundId: 'b5e477d7-f910-43f5-a371-e9f3f53cfaa2',
+  paymentId: '586e57ab-77a9-406a-945d-4619c76a582e',
+  amount: 4298,
+  currency: 'GBP',
+  processedAt: '2026-09-11T14:05:31Z',
+};
+
+await client.publish('RefundProcessed', event);
+```
+
+```python publish_refund_processed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "refundId": "b5e477d7-f910-43f5-a371-e9f3f53cfaa2",
+    "paymentId": "586e57ab-77a9-406a-945d-4619c76a582e",
+    "amount": 4298,
+    "currency": "GBP",
+    "processedAt": "2026-09-11T14:05:31Z",
+}
+
+client.publish("RefundProcessed", event)
+```
+
+```java PublishRefundProcessed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishRefundProcessed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "refundId", "b5e477d7-f910-43f5-a371-e9f3f53cfaa2",
+      "paymentId", "586e57ab-77a9-406a-945d-4619c76a582e",
+      "amount", 4298,
+      "currency", "GBP",
+      "processedAt", "2026-09-11T14:05:31Z"
+    );
+
+    client.publish("RefundProcessed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Confirm a partial refund
+
+Stripe refunds one returned hoodie from the guest order. Only part of the original €164.97 payment is returned.
+
+### Payload details
+
+- `amount` is one hoodie at €54.99, in cents.
+- `currency` is `EUR`, the same as the original charge.
+
+The customer received **5,499 cents (€54.99)**; 10,998 cents (€109.98) stays charged.
+
+### Using this example
+
+Use this payload to check that consumers record a partial refund without marking the whole payment as refunded.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the RefundProcessed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-refund-processed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  refundId: 'f57e3268-60d1-4b1d-96e9-c27d47992d47',
+  paymentId: '41651c3f-fa8e-40fc-a217-a83929d15081',
+  amount: 5499,
+  currency: 'EUR',
+  processedAt: '2026-09-21T09:40:22Z',
+};
+
+await client.publish('RefundProcessed', event);
+```
+
+```python publish_refund_processed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "refundId": "f57e3268-60d1-4b1d-96e9-c27d47992d47",
+    "paymentId": "41651c3f-fa8e-40fc-a217-a83929d15081",
+    "amount": 5499,
+    "currency": "EUR",
+    "processedAt": "2026-09-21T09:40:22Z",
+}
+
+client.publish("RefundProcessed", event)
+```
+
+```java PublishRefundProcessed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishRefundProcessed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "refundId", "f57e3268-60d1-4b1d-96e9-c27d47992d47",
+      "paymentId", "41651c3f-fa8e-40fc-a217-a83929d15081",
+      "amount", 5499,
+      "currency", "EUR",
+      "processedAt", "2026-09-21T09:40:22Z"
+    );
+
+    client.publish("RefundProcessed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

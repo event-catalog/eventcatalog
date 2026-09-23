@@ -1,0 +1,205 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Calculate a voucher discount
+
+During checkout, the Cart API sends `CalculateDiscount` with the customer's `AUTUMN10` code. The Promotion Service checks the promotion rules and returns the discount, and also publishes `DiscountCalculated`.
+
+### Payload details
+
+- `cartId` and `customerId` identify the cart and its owner.
+- `subtotal` is 10,000 pence, the cart total before discounts.
+- `currency` is `GBP`.
+- `promotionCode` is `AUTUMN10`, a 10% off voucher.
+- The response `discount` is in pence, and `appliedPromotions` lists the promotions used.
+
+10% of 10,000 pence gives a discount of **1,000 pence (£10.00)**.
+
+### Example response
+
+```json
+{
+  "discount": 1000,
+  "appliedPromotions": ["AUTUMN10"]
+}
+```
+
+### Using this example
+
+Check that the discount is 1,000 pence and that `AUTUMN10` appears in `appliedPromotions`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CalculateDiscount schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-calculate-discount.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  cartId: 'a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24',
+  customerId: '3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60',
+  subtotal: 10000,
+  currency: 'GBP',
+  promotionCode: 'AUTUMN10',
+};
+
+const result = await client.send('CalculateDiscount', request);
+
+console.log(result.discount, result.appliedPromotions);
+```
+
+```python send_calculate_discount.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "cartId": "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+    "customerId": "3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60",
+    "subtotal": 10000,
+    "currency": "GBP",
+    "promotionCode": "AUTUMN10",
+}
+
+result = client.send("CalculateDiscount", request)
+print(result["discount"], result.get("appliedPromotions", []))
+```
+
+```java SendCalculateDiscount.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCalculateDiscount {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "cartId", "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+      "customerId", "3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60",
+      "subtotal", 10000,
+      "currency", "GBP",
+      "promotionCode", "AUTUMN10"
+    );
+
+    var result = client.send("CalculateDiscount", request);
+    System.out.println(result.get("discount"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Price a cart with no applicable promotions
+
+A customer checks out two T-shirts without a voucher. The Cart API still asks the Promotion Service for a discount, in case an automatic promotion applies.
+
+### Payload details
+
+- `cartId` identifies the cart.
+- `customerId` and `promotionCode` are optional and omitted here, so only automatic promotions are checked.
+- `subtotal` is 4,000 pence (£40.00) in `GBP`.
+- The response `discount` is `0` and `appliedPromotions` is omitted.
+
+### Example response
+
+```json
+{
+  "discount": 0
+}
+```
+
+### Using this example
+
+Check that the Cart API accepts a zero discount and a missing `appliedPromotions` list, and keeps the total at 4,000 pence.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CalculateDiscount schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-calculate-discount.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  cartId: 'c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f',
+  subtotal: 4000,
+  currency: 'GBP',
+};
+
+const result = await client.send('CalculateDiscount', request);
+
+console.log(result.discount, result.appliedPromotions);
+```
+
+```python send_calculate_discount.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "cartId": "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "subtotal": 4000,
+    "currency": "GBP",
+}
+
+result = client.send("CalculateDiscount", request)
+print(result["discount"], result.get("appliedPromotions", []))
+```
+
+```java SendCalculateDiscount.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCalculateDiscount {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "cartId", "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+      "subtotal", 4000,
+      "currency", "GBP"
+    );
+
+    var result = client.send("CalculateDiscount", request);
+    System.out.println(result.get("discount"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

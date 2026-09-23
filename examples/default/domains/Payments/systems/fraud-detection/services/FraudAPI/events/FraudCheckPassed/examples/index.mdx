@@ -1,0 +1,171 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Pass a low-risk payment with a score
+
+Fraud Detection screens the T-shirt and cap payment from a returning customer and finds it low risk. The FraudAPI publishes `FraudCheckPassed` so the Payment Processing System lets the charge go ahead.
+
+### Payload details
+
+- `paymentId` and `orderId` match the `PaymentRequested` event that was screened.
+- `score` is `0.08` on a 0 to 1 scale, where lower is safer.
+- `checkedAt` is when the screening finished.
+
+### Using this example
+
+Consumers should mark the payment as cleared for `paymentId`. Tests can also assert that `score` is between 0 and 1.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the FraudCheckPassed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-fraud-check-passed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  paymentId: '586e57ab-77a9-406a-945d-4619c76a582e',
+  orderId: '971b5a4b-6885-405c-899b-5e0f428016c1',
+  score: 0.08,
+  checkedAt: '2026-09-11T08:12:47Z',
+};
+
+await client.publish('FraudCheckPassed', event);
+```
+
+```python publish_fraud_check_passed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "586e57ab-77a9-406a-945d-4619c76a582e",
+    "orderId": "971b5a4b-6885-405c-899b-5e0f428016c1",
+    "score": 0.08,
+    "checkedAt": "2026-09-11T08:12:47Z",
+}
+
+client.publish("FraudCheckPassed", event)
+```
+
+```java PublishFraudCheckPassed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishFraudCheckPassed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "586e57ab-77a9-406a-945d-4619c76a582e",
+      "orderId", "971b5a4b-6885-405c-899b-5e0f428016c1",
+      "score", 0.08,
+      "checkedAt", "2026-09-11T08:12:47Z"
+    );
+
+    client.publish("FraudCheckPassed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Pass a payment without a score
+
+The guest hoodie order is cleared by an allowlist rule, so no risk model runs. The FraudAPI publishes `FraudCheckPassed` with only the required fields.
+
+### Payload details
+
+- `score` is optional and omitted because no model scored the payment.
+- `paymentId` and `orderId` identify the guest payment that was screened.
+
+### Using this example
+
+Use this payload to check that consumers do not depend on `score` being present.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the FraudCheckPassed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-fraud-check-passed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  paymentId: '41651c3f-fa8e-40fc-a217-a83929d15081',
+  orderId: 'e39a80be-526e-4009-a22a-40c847cff088',
+  checkedAt: '2026-09-14T19:03:29Z',
+};
+
+await client.publish('FraudCheckPassed', event);
+```
+
+```python publish_fraud_check_passed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "41651c3f-fa8e-40fc-a217-a83929d15081",
+    "orderId": "e39a80be-526e-4009-a22a-40c847cff088",
+    "checkedAt": "2026-09-14T19:03:29Z",
+}
+
+client.publish("FraudCheckPassed", event)
+```
+
+```java PublishFraudCheckPassed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishFraudCheckPassed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "41651c3f-fa8e-40fc-a217-a83929d15081",
+      "orderId", "e39a80be-526e-4009-a22a-40c847cff088",
+      "checkedAt", "2026-09-14T19:03:29Z"
+    );
+
+    client.publish("FraudCheckPassed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

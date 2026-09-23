@@ -1,0 +1,182 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a shipment with a delivery estimate
+
+The Carrier Tracking API publishes this event after it accepts a `CreateShipment` command. Acme Inc consumes it to send the customer a tracking number and an expected delivery date.
+
+### Payload details
+
+- `shipmentId` is the carrier's ID for the shipment; `orderId` links it to the order.
+- `trackingNumber` is the number the customer uses on the carrier's tracking page.
+- `carrier` is `Royal Mail`.
+- `estimatedDelivery` is a calendar date (`YYYY-MM-DD`), not a timestamp.
+- `createdAt` is the UTC time the carrier created the shipment.
+
+### Using this example
+
+A consumer should store the tracking number against the order and show `estimatedDelivery` in the dispatch email.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ShipmentCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-shipment-created.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  shipmentId: '1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79',
+  orderId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27',
+  trackingNumber: 'RM482913765GB',
+  carrier: 'Royal Mail',
+  estimatedDelivery: '2026-09-15',
+  createdAt: '2026-09-14T10:05:33Z',
+};
+
+await client.publish('ShipmentCreated', event);
+```
+
+```python publish_shipment_created.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "shipmentId": "1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79",
+    "orderId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+    "trackingNumber": "RM482913765GB",
+    "carrier": "Royal Mail",
+    "estimatedDelivery": "2026-09-15",
+    "createdAt": "2026-09-14T10:05:33Z",
+}
+
+client.publish("ShipmentCreated", event)
+```
+
+```java PublishShipmentCreated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishShipmentCreated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "shipmentId", "1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79",
+      "orderId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+      "trackingNumber", "RM482913765GB",
+      "carrier", "Royal Mail",
+      "estimatedDelivery", "2026-09-15",
+      "createdAt", "2026-09-14T10:05:33Z"
+    );
+
+    client.publish("ShipmentCreated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a shipment with only the required fields
+
+Some carriers do not return a carrier name or a delivery estimate when they create a shipment. The event then carries only the IDs, the tracking number and the time.
+
+### Payload details
+
+- `shipmentId`, `orderId`, `trackingNumber` and `createdAt` are the only required fields.
+- `carrier` and `estimatedDelivery` are omitted, not set to null.
+
+### Using this example
+
+Use this payload to check that the dispatch email still sends when there is no `estimatedDelivery` to show.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ShipmentCreated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-shipment-created.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  shipmentId: '9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14',
+  orderId: 'c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53',
+  trackingNumber: 'JD0146000062518374',
+  createdAt: '2026-09-14T11:41:09Z',
+};
+
+await client.publish('ShipmentCreated', event);
+```
+
+```python publish_shipment_created.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "shipmentId": "9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14",
+    "orderId": "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+    "trackingNumber": "JD0146000062518374",
+    "createdAt": "2026-09-14T11:41:09Z",
+}
+
+client.publish("ShipmentCreated", event)
+```
+
+```java PublishShipmentCreated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishShipmentCreated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "shipmentId", "9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14",
+      "orderId", "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+      "trackingNumber", "JD0146000062518374",
+      "createdAt", "2026-09-14T11:41:09Z"
+    );
+
+    client.publish("ShipmentCreated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

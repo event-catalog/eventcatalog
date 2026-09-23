@@ -1,0 +1,209 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a customer quantity change
+
+Publish the change made when the customer increased their T-shirt order from one to two from their account. Projections use it to update the order without replaying its full history.
+
+### Payload details
+
+- `revision` is `2`, the first amendment after the original order.
+- `changedFields` contains only `items`.
+- `previousTotal` and `newTotal` are in integer minor units; `currency` is `GBP`.
+- `amendedBy` identifies the customer, and the optional `reason` is omitted.
+
+The total goes from **4,999 pence (£49.99)** to **9,998 pence (£99.98)**: two T-shirts at 4,999 pence each.
+
+### Using this example
+
+Use this to check that consumers update the order total and, where needed, request payment for the **4,999 pence** difference.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderAmended schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-amended.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+  revision: 2,
+  changedFields: ['items'],
+  previousTotal: 4999,
+  newTotal: 9998,
+  currency: 'GBP',
+  amendedBy: 'customer:6f9619ff-8b86-d011-b42d-00cf4fc964ff',
+  amendedAt: '2026-09-11T08:40:22Z',
+};
+
+await client.publish('OrderAmended', event);
+```
+
+```python publish_order_amended.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    "revision": 2,
+    "changedFields": ["items"],
+    "previousTotal": 4999,
+    "newTotal": 9998,
+    "currency": "GBP",
+    "amendedBy": "customer:6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    "amendedAt": "2026-09-11T08:40:22Z",
+}
+
+client.publish("OrderAmended", event)
+```
+
+```java PublishOrderAmended.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishOrderAmended {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+      "revision", 2,
+      "changedFields", List.of("items"),
+      "previousTotal", 4999,
+      "newTotal", 9998,
+      "currency", "GBP",
+      "amendedBy", "customer:6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "amendedAt", "2026-09-11T08:40:22Z"
+    );
+
+    client.publish("OrderAmended", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a support discount and delivery upgrade
+
+Publish a change made by a support agent who applied a team-order discount and upgraded the bulk order to express delivery before fulfilment started.
+
+### Payload details
+
+- `changedFields` lists both `promotionCode` and `deliveryMethod`.
+- `amendedBy` identifies the support agent, and `reason` explains the change for audit.
+- `revision` is `2`, the first amendment to this order.
+
+The total goes from **49,990 pence (£499.90)** to **45,586 pence (£455.86)**: a 10% discount of 4,999 pence, plus 595 pence for express delivery.
+
+### Using this example
+
+Use this to check that consumers handle more than one changed field in a single amendment, and that fulfilment picks up the new delivery method before work starts.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderAmended schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-amended.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'c2a6a826-8661-4bc7-aaf7-83fa8e7940d4',
+  revision: 2,
+  changedFields: ['promotionCode', 'deliveryMethod'],
+  previousTotal: 49990,
+  newTotal: 45586,
+  currency: 'GBP',
+  amendedBy: 'support-agent:priya.shah',
+  reason: 'Applied BULK10 team-order discount and upgraded to express delivery',
+  amendedAt: '2026-09-11T10:45:00Z',
+};
+
+await client.publish('OrderAmended', event);
+```
+
+```python publish_order_amended.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+    "revision": 2,
+    "changedFields": ["promotionCode", "deliveryMethod"],
+    "previousTotal": 49990,
+    "newTotal": 45586,
+    "currency": "GBP",
+    "amendedBy": "support-agent:priya.shah",
+    "reason": "Applied BULK10 team-order discount and upgraded to express delivery",
+    "amendedAt": "2026-09-11T10:45:00Z",
+}
+
+client.publish("OrderAmended", event)
+```
+
+```java PublishOrderAmended.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishOrderAmended {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+      "revision", 2,
+      "changedFields", List.of("promotionCode", "deliveryMethod"),
+      "previousTotal", 49990,
+      "newTotal", 45586,
+      "currency", "GBP",
+      "amendedBy", "support-agent:priya.shah",
+      "reason", "Applied BULK10 team-order discount and upgraded to express delivery",
+      "amendedAt", "2026-09-11T10:45:00Z"
+    );
+
+    client.publish("OrderAmended", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

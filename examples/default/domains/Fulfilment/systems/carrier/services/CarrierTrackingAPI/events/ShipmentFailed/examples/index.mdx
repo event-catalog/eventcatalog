@@ -1,0 +1,262 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a failed delivery attempt
+
+The Carrier Tracking API publishes this event when the driver cannot deliver, for example because nobody is home. Acme Inc consumes it to book a redelivery and tell the customer.
+
+### Payload details
+
+- `shipmentId` and `orderId` identify the shipment and the order.
+- `reason` is `FAILED_DELIVERY`: the parcel is still with the carrier.
+- `failedAt` is the UTC time of the failed attempt.
+
+### Using this example
+
+A consumer should start the redelivery flow for this `reason` and must not issue a refund.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ShipmentFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-shipment-failed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  shipmentId: '1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79',
+  orderId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27',
+  reason: 'FAILED_DELIVERY',
+  failedAt: '2026-09-15T12:48:19Z',
+};
+
+await client.publish('ShipmentFailed', event);
+```
+
+```python publish_shipment_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "shipmentId": "1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79",
+    "orderId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+    "reason": "FAILED_DELIVERY",
+    "failedAt": "2026-09-15T12:48:19Z",
+}
+
+client.publish("ShipmentFailed", event)
+```
+
+```java PublishShipmentFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishShipmentFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "shipmentId", "1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79",
+      "orderId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+      "reason", "FAILED_DELIVERY",
+      "failedAt", "2026-09-15T12:48:19Z"
+    );
+
+    client.publish("ShipmentFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a lost parcel
+
+The carrier publishes this event when it cannot find the parcel in its network. Acme Inc consumes it to send a replacement or refund the customer.
+
+### Payload details
+
+- `reason` is `LOST`: the parcel will not arrive.
+- `failedAt` is the UTC time the carrier declared the parcel lost.
+
+### Using this example
+
+A consumer should start the replacement or refund flow for this `reason` instead of booking a redelivery.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ShipmentFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-shipment-failed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  shipmentId: '9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14',
+  orderId: 'c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53',
+  reason: 'LOST',
+  failedAt: '2026-09-19T16:02:37Z',
+};
+
+await client.publish('ShipmentFailed', event);
+```
+
+```python publish_shipment_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "shipmentId": "9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14",
+    "orderId": "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+    "reason": "LOST",
+    "failedAt": "2026-09-19T16:02:37Z",
+}
+
+client.publish("ShipmentFailed", event)
+```
+
+```java PublishShipmentFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishShipmentFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "shipmentId", "9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14",
+      "orderId", "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+      "reason", "LOST",
+      "failedAt", "2026-09-19T16:02:37Z"
+    );
+
+    client.publish("ShipmentFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 3. Publish a parcel returned to sender
+
+The carrier publishes this event when it sends the parcel back to the warehouse, for example after several failed attempts. Acme Inc consumes it to contact the customer and restock the items when they arrive.
+
+### Payload details
+
+- `reason` is `RETURNED_TO_SENDER`: the parcel is on its way back to the warehouse.
+- `failedAt` is the UTC time the carrier started the return.
+
+### Using this example
+
+A consumer should expect the goods back at the warehouse for this `reason` and contact the customer about a new delivery or a refund.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ShipmentFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-shipment-failed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  shipmentId: '1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79',
+  orderId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27',
+  reason: 'RETURNED_TO_SENDER',
+  failedAt: '2026-09-18T08:30:00Z',
+};
+
+await client.publish('ShipmentFailed', event);
+```
+
+```python publish_shipment_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "shipmentId": "1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79",
+    "orderId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+    "reason": "RETURNED_TO_SENDER",
+    "failedAt": "2026-09-18T08:30:00Z",
+}
+
+client.publish("ShipmentFailed", event)
+```
+
+```java PublishShipmentFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishShipmentFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "shipmentId", "1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79",
+      "orderId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+      "reason", "RETURNED_TO_SENDER",
+      "failedAt", "2026-09-18T08:30:00Z"
+    );
+
+    client.publish("ShipmentFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
