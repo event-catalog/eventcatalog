@@ -1,0 +1,208 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a packed single-parcel order
+
+The Warehouse Service publishes this event after `OrderPacked` arrives for an order. The Shipping System consumes it and sends `CreateShipment` to the carrier.
+
+### Payload details
+
+- `orderId` and `customerId` link the event back to the order and the customer.
+- `parcelCount` is `1`, so the carrier books a single parcel.
+- `shippingAddress` is a UK address with `country` set to `GB`.
+- `readyAt` is the UTC time the order was marked ready, three minutes after packing finished.
+
+### Using this example
+
+A Shipping System consumer should turn this event into a `CreateShipment` command with the same `orderId`, parcel count and address.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderReadyForShipping schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-order-ready-for-shipping.ts
+import { EventsClient } from '@acme/events';
+import type { OrderReadyForShipping } from './schemas/order-ready-for-shipping';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: OrderReadyForShipping = {
+  orderId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27',
+  customerId: 'a4c9e2f1-6b7d-4c3e-8f5a-2d1b9e7c6a40',
+  parcelCount: 1,
+  shippingAddress: {
+    line1: '14 Victoria Road',
+    city: 'Manchester',
+    postcode: 'M14 5RT',
+    country: 'GB',
+  },
+  readyAt: '2026-09-14T09:45:12Z',
+};
+
+await client.publish('OrderReadyForShipping', event);
+```
+
+```python publish_order_ready_for_shipping.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+    "customerId": "a4c9e2f1-6b7d-4c3e-8f5a-2d1b9e7c6a40",
+    "parcelCount": 1,
+    "shippingAddress": {
+        "line1": "14 Victoria Road",
+        "city": "Manchester",
+        "postcode": "M14 5RT",
+        "country": "GB",
+    },
+    "readyAt": "2026-09-14T09:45:12Z",
+}
+
+client.publish("OrderReadyForShipping", event)
+```
+
+```java PublishOrderReadyForShipping.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderReadyForShipping {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+      "customerId", "a4c9e2f1-6b7d-4c3e-8f5a-2d1b9e7c6a40",
+      "parcelCount", 1,
+      "shippingAddress", Map.of(
+        "line1", "14 Victoria Road",
+        "city", "Manchester",
+        "postcode", "M14 5RT",
+        "country", "GB"
+      ),
+      "readyAt", "2026-09-14T09:45:12Z"
+    );
+
+    client.publish("OrderReadyForShipping", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish with only the required fields
+
+The Warehouse Service may not have the customer or parcel details to hand, for example when an order was packed by hand. The event then carries only the order, the address and the time.
+
+### Payload details
+
+- `orderId`, `shippingAddress` and `readyAt` are the only required fields.
+- `customerId` and `parcelCount` are omitted, not set to null.
+- `shippingAddress.country` is `IE` for an order going to Dublin.
+
+### Using this example
+
+Use this payload to check that consumers handle a missing `parcelCount` and `customerId` without failing.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderReadyForShipping schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-order-ready-for-shipping.ts
+import { EventsClient } from '@acme/events';
+import type { OrderReadyForShipping } from './schemas/order-ready-for-shipping';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: OrderReadyForShipping = {
+  orderId: 'c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53',
+  shippingAddress: {
+    line1: '22 Harcourt Street',
+    city: 'Dublin',
+    postcode: 'D02 H364',
+    country: 'IE',
+  },
+  readyAt: '2026-09-14T11:20:03Z',
+};
+
+await client.publish('OrderReadyForShipping', event);
+```
+
+```python publish_order_ready_for_shipping.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+    "shippingAddress": {
+        "line1": "22 Harcourt Street",
+        "city": "Dublin",
+        "postcode": "D02 H364",
+        "country": "IE",
+    },
+    "readyAt": "2026-09-14T11:20:03Z",
+}
+
+client.publish("OrderReadyForShipping", event)
+```
+
+```java PublishOrderReadyForShipping.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderReadyForShipping {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+      "shippingAddress", Map.of(
+        "line1", "22 Harcourt Street",
+        "city", "Dublin",
+        "postcode", "D02 H364",
+        "country", "IE"
+      ),
+      "readyAt", "2026-09-14T11:20:03Z"
+    );
+
+    client.publish("OrderReadyForShipping", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

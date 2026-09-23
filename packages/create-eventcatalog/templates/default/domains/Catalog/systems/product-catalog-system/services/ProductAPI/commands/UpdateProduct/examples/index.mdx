@@ -1,0 +1,182 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Reduce the price of a T-shirt
+
+The Classic Crew Neck T-Shirt is marked down for a weekend promotion. Only the price fields are sent, so the rest of the product stays as it is, and the Product API publishes a ProductUpdated event with the new price.
+
+### Payload details
+
+- `productId` identifies the T-shirt and matches the `{productId}` in the request path.
+- `price` is `1499` in minor units, replacing the previous price of `1999`.
+- `currency` is sent with the price so the new amount is unambiguous.
+- `name`, `description`, `category` and `status` are not sent, so they do not change.
+
+The new price is **1,499 pence (£14.99)**, a reduction of **500 pence (£5.00)** from £19.99.
+
+### Using this example
+
+Check that only `price` and `currency` change on the stored product, and that the ProductUpdated event lists just those two fields in `changes`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the UpdateProduct schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-update-product.ts
+import { EventsClient } from '@acme/events';
+import type { UpdateProduct } from './schemas/update-product';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: UpdateProduct = {
+  productId: '4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13',
+  price: 1499,
+  currency: 'GBP',
+};
+
+await client.send('UpdateProduct', command);
+```
+
+```python send_update_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "productId": "4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13",
+    "price": 1499,
+    "currency": "GBP",
+}
+
+client.send("UpdateProduct", command)
+```
+
+```java SendUpdateProduct.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendUpdateProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "productId", "4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13",
+      "price", 1499,
+      "currency", "GBP"
+    );
+
+    client.send("UpdateProduct", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Launch a draft product with final copy
+
+The Embroidered Logo Cap was created as a draft. Before launch, the merchandiser renames it, adds its description and category, and moves it to `ACTIVE` in a single update.
+
+### Payload details
+
+- `productId` identifies the draft cap.
+- `name` adds the colour to the display name.
+- `description` and `category` are set for the first time; `category` is `caps`.
+- `status` changes from `DRAFT` to `ACTIVE`, making the cap visible to shoppers.
+- `price` and `currency` are not sent, so the cap stays at 1,499 pence (£14.99).
+
+### Using this example
+
+A handler should apply all four fields in one write, return `200` and publish a single ProductUpdated event whose `changes` contains the same four fields.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the UpdateProduct schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-update-product.ts
+import { EventsClient } from '@acme/events';
+import type { UpdateProduct } from './schemas/update-product';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: UpdateProduct = {
+  productId: 'a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71',
+  name: 'Embroidered Logo Cap - Navy',
+  description: 'Six-panel cotton twill cap with an adjustable strap.',
+  category: 'caps',
+  status: 'ACTIVE',
+};
+
+await client.send('UpdateProduct', command);
+```
+
+```python send_update_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "productId": "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71",
+    "name": "Embroidered Logo Cap - Navy",
+    "description": "Six-panel cotton twill cap with an adjustable strap.",
+    "category": "caps",
+    "status": "ACTIVE",
+}
+
+client.send("UpdateProduct", command)
+```
+
+```java SendUpdateProduct.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendUpdateProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "productId", "a7c4e2d9-1b3f-4c8a-8e5d-2f6b9a0c3d71",
+      "name", "Embroidered Logo Cap - Navy",
+      "description", "Six-panel cotton twill cap with an adjustable strap.",
+      "category", "caps",
+      "status", "ACTIVE"
+    );
+
+    client.send("UpdateProduct", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

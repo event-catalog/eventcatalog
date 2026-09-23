@@ -1,0 +1,177 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Authorise payment for a UK cart
+
+Once stock is reserved for two T-shirts and a cap, the Checkout Orchestrator asks the payment provider to place a hold for the cart total. The funds are captured after the order is created.
+
+### Payload details
+
+- `cartId` matches the cart whose stock has just been reserved.
+- `customerId` identifies the paying customer.
+- `amount` is in pence: 2 × 1,999 (T-shirts) + 1 × 1,499 (cap).
+- `currency` is `GBP`, a three-letter ISO 4217 code.
+
+The amount to authorise is **5,497 pence (£54.97)**.
+
+### Using this example
+
+The payment handler should place a hold of exactly 5,497 pence on the customer's payment method and return an authorisation ID for the `CreateOrder` step.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the AuthorizePayment schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-authorize-payment.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  cartId: 'c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+  customerId: '3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d',
+  amount: 5497,
+  currency: 'GBP',
+};
+
+await client.send('AuthorizePayment', command);
+```
+
+```python send_authorize_payment.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+    "amount": 5497,
+    "currency": "GBP",
+}
+
+client.send("AuthorizePayment", command)
+```
+
+```java SendAuthorizePayment.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendAuthorizePayment {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+      "amount", 5497,
+      "currency", "GBP"
+    );
+
+    client.send("AuthorizePayment", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Authorise a euro payment with only the required fields
+
+A cart with one hoodie is priced in euros. The orchestrator sends only the required fields, leaving out the optional `customerId`.
+
+### Payload details
+
+- `cartId` identifies the cart; there is no `customerId`.
+- `amount` is in cents: 1 × 5,799 for the hoodie.
+- `currency` is `EUR`, showing that amounts are not always in pounds.
+
+The amount to authorise is **5,799 cents (€57.99)**.
+
+### Using this example
+
+Use this to check that the payment handler reads `amount` in the minor units of `currency`, and does not need a `customerId` to authorise.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the AuthorizePayment schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-authorize-payment.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  cartId: 'd2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+  amount: 5799,
+  currency: 'EUR',
+};
+
+await client.send('AuthorizePayment', command);
+```
+
+```python send_authorize_payment.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "d2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+    "amount": 5799,
+    "currency": "EUR",
+}
+
+client.send("AuthorizePayment", command)
+```
+
+```java SendAuthorizePayment.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendAuthorizePayment {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "d2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+      "amount", 5799,
+      "currency", "EUR"
+    );
+
+    client.send("AuthorizePayment", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

@@ -1,0 +1,184 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Get the stock level of a product in stock
+
+A product page or the checkout asks the Inventory Service how many of a T-shirt it can still sell. The response comes straight from the inventory database.
+
+### Payload details
+
+- The request has one field, `productId`, for the T-shirt.
+- `available` is `42`: units that can still be sold.
+- `reserved` is `6`: units held for checkouts in progress.
+
+### Example response
+
+```json
+{
+  "productId": "0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95",
+  "available": 42,
+  "reserved": 6
+}
+```
+
+### Using this example
+
+A caller should show the product as in stock because `available` is above zero. Use this pair to test stock badges and quantity limits.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetStockLevel schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-get-stock-level.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  productId: '0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95',
+};
+
+const stock = await client.query('GetStockLevel', request);
+
+console.log(stock.available, stock.reserved);
+```
+
+```python query_get_stock_level.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "productId": "0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95",
+}
+
+stock = client.query("GetStockLevel", request)
+print(stock["available"], stock["reserved"])
+```
+
+```java QueryGetStockLevel.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetStockLevel {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "productId", "0b8e3d5f-9c2a-4f1e-b7d6-4a2c8e0f3b95"
+    );
+
+    var stock = client.query("GetStockLevel", request);
+    System.out.println(stock.get("available") + " " + stock.get("reserved"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Get the stock level of a sold-out product
+
+The same query for a hoodie that has sold out. No units are held for checkouts, so the Inventory Service leaves out `reserved`.
+
+### Payload details
+
+- The request asks for the hoodie's `productId`.
+- `available` is `0`: the hoodie cannot be sold.
+- `reserved` is omitted, not set to null.
+
+### Example response
+
+```json
+{
+  "productId": "d2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72",
+  "available": 0
+}
+```
+
+### Using this example
+
+A caller should show the hoodie as out of stock and must not treat the missing `reserved` field as an error.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetStockLevel schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-get-stock-level.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  productId: 'd2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72',
+};
+
+const stock = await client.query('GetStockLevel', request);
+
+console.log(stock.productId, stock.available);
+```
+
+```python query_get_stock_level.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "productId": "d2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72",
+}
+
+stock = client.query("GetStockLevel", request)
+print(stock["productId"], stock["available"])
+```
+
+```java QueryGetStockLevel.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetStockLevel {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "productId", "d2a5e8c1-7f4b-4e9d-a3c6-1b8f0e5d9a72"
+    );
+
+    var stock = client.query("GetStockLevel", request);
+    System.out.println(stock.get("productId") + " " + stock.get("available"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

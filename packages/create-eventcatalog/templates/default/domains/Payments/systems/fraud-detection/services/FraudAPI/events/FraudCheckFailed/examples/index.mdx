@@ -1,0 +1,271 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Fail a payment with a high risk score
+
+A new account places a large order for hoodies from an unusual location. The risk model scores it highly, and the FraudAPI publishes `FraudCheckFailed` so the Payment Processing System blocks the charge and cancels the order.
+
+### Payload details
+
+- `reason` is `HIGH_RISK_SCORE`: the model score is above the block threshold.
+- `score` is `0.93` on a 0 to 1 scale, where higher is riskier.
+- `paymentId` and `orderId` identify the blocked payment and order.
+
+### Using this example
+
+Consumers should stop the charge for `paymentId` and cancel `orderId`. Tests can assert that the score is kept for review.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the FraudCheckFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-fraud-check-failed.ts
+import { EventsClient } from '@acme/events';
+import type { FraudCheckFailed } from './schemas/fraud-check-failed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: FraudCheckFailed = {
+  paymentId: '428dc169-43a6-479d-9661-5b07984cb556',
+  orderId: '2d7ef31b-211a-4dbc-898a-0b095e7b909c',
+  score: 0.93,
+  reason: 'HIGH_RISK_SCORE',
+  checkedAt: '2026-09-16T02:47:13Z',
+};
+
+await client.publish('FraudCheckFailed', event);
+```
+
+```python publish_fraud_check_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "428dc169-43a6-479d-9661-5b07984cb556",
+    "orderId": "2d7ef31b-211a-4dbc-898a-0b095e7b909c",
+    "score": 0.93,
+    "reason": "HIGH_RISK_SCORE",
+    "checkedAt": "2026-09-16T02:47:13Z",
+}
+
+client.publish("FraudCheckFailed", event)
+```
+
+```java PublishFraudCheckFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishFraudCheckFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "428dc169-43a6-479d-9661-5b07984cb556",
+      "orderId", "2d7ef31b-211a-4dbc-898a-0b095e7b909c",
+      "score", 0.93,
+      "reason", "HIGH_RISK_SCORE",
+      "checkedAt", "2026-09-16T02:47:13Z"
+    );
+
+    client.publish("FraudCheckFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Fail a payment from a blocklisted card
+
+A cap order is paid with a card on the blocklist. The FraudAPI rejects it straight away without running the risk model.
+
+### Payload details
+
+- `reason` is `BLOCKLISTED`: the card or customer matched a blocklist entry.
+- `score` is omitted because a rule, not the model, made the decision.
+
+### Using this example
+
+Use this payload to check that consumers block the payment even when `score` is missing.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the FraudCheckFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-fraud-check-failed.ts
+import { EventsClient } from '@acme/events';
+import type { FraudCheckFailed } from './schemas/fraud-check-failed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: FraudCheckFailed = {
+  paymentId: 'dfdffee1-3e4d-4fa3-b86e-ebe0cd93ca60',
+  orderId: '76d60366-d78a-4e10-b1ad-832445febfa1',
+  reason: 'BLOCKLISTED',
+  checkedAt: '2026-09-17T11:20:05Z',
+};
+
+await client.publish('FraudCheckFailed', event);
+```
+
+```python publish_fraud_check_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "dfdffee1-3e4d-4fa3-b86e-ebe0cd93ca60",
+    "orderId": "76d60366-d78a-4e10-b1ad-832445febfa1",
+    "reason": "BLOCKLISTED",
+    "checkedAt": "2026-09-17T11:20:05Z",
+}
+
+client.publish("FraudCheckFailed", event)
+```
+
+```java PublishFraudCheckFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishFraudCheckFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "dfdffee1-3e4d-4fa3-b86e-ebe0cd93ca60",
+      "orderId", "76d60366-d78a-4e10-b1ad-832445febfa1",
+      "reason", "BLOCKLISTED",
+      "checkedAt", "2026-09-17T11:20:05Z"
+    );
+
+    client.publish("FraudCheckFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 3. Fail a payment for too many attempts
+
+The same card is used for many T-shirt orders within a few minutes. The FraudAPI flags the pattern and publishes `FraudCheckFailed`.
+
+### Payload details
+
+- `reason` is `VELOCITY`: too many payment attempts in a short time.
+- `score` is `0.67`, which is moderate on its own; the velocity rule caused the failure.
+
+### Using this example
+
+Consumers should block this payment. Tests can check that the order is cancelled based on `reason`, not on `score` alone.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the FraudCheckFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-fraud-check-failed.ts
+import { EventsClient } from '@acme/events';
+import type { FraudCheckFailed } from './schemas/fraud-check-failed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: FraudCheckFailed = {
+  paymentId: '0c3b8e41-5a7f-4d26-9e18-b4f2a6d09c75',
+  orderId: '99027891-075d-4561-91f8-da95f34e4a57',
+  score: 0.67,
+  reason: 'VELOCITY',
+  checkedAt: '2026-09-18T16:55:41Z',
+};
+
+await client.publish('FraudCheckFailed', event);
+```
+
+```python publish_fraud_check_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "0c3b8e41-5a7f-4d26-9e18-b4f2a6d09c75",
+    "orderId": "99027891-075d-4561-91f8-da95f34e4a57",
+    "score": 0.67,
+    "reason": "VELOCITY",
+    "checkedAt": "2026-09-18T16:55:41Z",
+}
+
+client.publish("FraudCheckFailed", event)
+```
+
+```java PublishFraudCheckFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishFraudCheckFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "0c3b8e41-5a7f-4d26-9e18-b4f2a6d09c75",
+      "orderId", "99027891-075d-4561-91f8-da95f34e4a57",
+      "score", 0.67,
+      "reason", "VELOCITY",
+      "checkedAt", "2026-09-18T16:55:41Z"
+    );
+
+    client.publish("FraudCheckFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

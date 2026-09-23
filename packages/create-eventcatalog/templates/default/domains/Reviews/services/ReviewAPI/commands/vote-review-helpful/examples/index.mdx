@@ -1,0 +1,178 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Mark a review as helpful
+
+A shopper finds the five-star review of the classic white T-shirt useful and taps "Helpful". The storefront sends this command to the Review API, which updates the count and publishes `ReviewHelpfulVoted`.
+
+### Payload details
+
+- `reviewId` is the review being voted on.
+- `customerId` is `cust_3314`; each customer can hold one helpful vote per review.
+- `vote` is `helpful`, which adds a vote.
+- `votedAt` is when the customer tapped the button.
+
+### Using this example
+
+Check that the review's helpful count goes up by one and that sending the same vote again does not count twice.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the VoteReviewHelpful schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-vote-review-helpful.ts
+import { EventsClient } from '@acme/events';
+import type { VoteReviewHelpful } from './schemas/vote-review-helpful';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: VoteReviewHelpful = {
+  reviewId: '3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90',
+  customerId: 'cust_3314',
+  vote: 'helpful',
+  votedAt: '2026-09-18T10:02:11Z',
+};
+
+await client.send('VoteReviewHelpful', command);
+```
+
+```python send_vote_review_helpful.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "reviewId": "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+    "customerId": "cust_3314",
+    "vote": "helpful",
+    "votedAt": "2026-09-18T10:02:11Z",
+}
+
+client.send("VoteReviewHelpful", command)
+```
+
+```java SendVoteReviewHelpful.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendVoteReviewHelpful {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "reviewId", "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+      "customerId", "cust_3314",
+      "vote", "helpful",
+      "votedAt", "2026-09-18T10:02:11Z"
+    );
+
+    client.send("VoteReviewHelpful", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Remove a helpful vote
+
+The same shopper changes their mind a few seconds later and taps "Helpful" again to undo the vote.
+
+### Payload details
+
+- `reviewId` and `customerId` match the earlier vote.
+- `vote` is `remove`, which takes away the customer's existing vote.
+- `votedAt` is later than the original vote.
+
+### Using this example
+
+Use this payload to test that removing a vote lowers the helpful count by one, and that removing a vote that does not exist leaves the count unchanged.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the VoteReviewHelpful schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-vote-review-helpful.ts
+import { EventsClient } from '@acme/events';
+import type { VoteReviewHelpful } from './schemas/vote-review-helpful';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: VoteReviewHelpful = {
+  reviewId: '3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90',
+  customerId: 'cust_3314',
+  vote: 'remove',
+  votedAt: '2026-09-18T10:02:47Z',
+};
+
+await client.send('VoteReviewHelpful', command);
+```
+
+```python send_vote_review_helpful.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "reviewId": "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+    "customerId": "cust_3314",
+    "vote": "remove",
+    "votedAt": "2026-09-18T10:02:47Z",
+}
+
+client.send("VoteReviewHelpful", command)
+```
+
+```java SendVoteReviewHelpful.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendVoteReviewHelpful {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "reviewId", "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+      "customerId", "cust_3314",
+      "vote", "remove",
+      "votedAt", "2026-09-18T10:02:47Z"
+    );
+
+    client.send("VoteReviewHelpful", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

@@ -1,0 +1,194 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Fetch an active customer's profile
+
+The storefront account page asks the Customer API for the signed-in customer so it can show their name and email address. The Customer API reads the record from the customer database and returns it.
+
+### Payload details
+
+- `request.customerId` is the UUID of the customer to look up, taken from the customer's session.
+- The response includes every field: `email`, `name` and `registeredAt` alongside the required `customerId` and `status`.
+- `status` is `ACTIVE`, so the customer can browse, check out and manage their account as normal.
+- `registeredAt` is an ISO-8601 UTC timestamp showing when the account was created.
+
+### Example response
+
+```json
+{
+  "customerId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+  "email": "amelia.hart@example.com",
+  "name": "Amelia Hart",
+  "status": "ACTIVE",
+  "registeredAt": "2026-03-14T10:22:05Z"
+}
+```
+
+### Using this example
+
+Use this to check that the account page renders the customer's name and email, and that the returned `customerId` matches the one requested.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetCustomer schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript query-get-customer.ts
+import { EventsClient } from '@acme/events';
+import type { GetCustomerRequest, GetCustomerResponse } from './schemas/get-customer';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const request: GetCustomerRequest = {
+  customerId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c',
+};
+
+const customer: GetCustomerResponse = await client.query('GetCustomer', request);
+
+console.log(customer.name, customer.email);
+```
+
+```python query_get_customer.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+}
+
+customer = client.query("GetCustomer", request)
+
+print(customer["name"], customer["email"])
+```
+
+```java QueryGetCustomer.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetCustomer {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c"
+    );
+
+    var customer = client.query("GetCustomer", request);
+
+    System.out.println(customer.get("name") + " " + customer.get("email"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Check a suspended customer before checkout
+
+Before accepting an order, the checkout flow queries the customer to confirm the account is in good standing. This customer has been suspended, so checkout should stop and point them to support.
+
+### Payload details
+
+- `request.customerId` identifies the customer placing the order.
+- The response contains only the required fields: `customerId`, `email` and `status`. The optional `name` and `registeredAt` are omitted.
+- `status` is `SUSPENDED`, which means the account exists but must not be allowed to place orders.
+
+### Example response
+
+```json
+{
+  "customerId": "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+  "email": "tom.okafor@example.co.uk",
+  "status": "SUSPENDED"
+}
+```
+
+### Using this example
+
+Use this to check that callers cope with a response that has no `name` or `registeredAt`, and that checkout blocks any customer whose `status` is not `ACTIVE`.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetCustomer schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript query-get-customer.ts
+import { EventsClient } from '@acme/events';
+import type { GetCustomerRequest, GetCustomerResponse } from './schemas/get-customer';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const request: GetCustomerRequest = {
+  customerId: 'c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13',
+};
+
+const customer: GetCustomerResponse = await client.query('GetCustomer', request);
+
+console.log(customer.status, customer.email);
+```
+
+```python query_get_customer.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "customerId": "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+}
+
+customer = client.query("GetCustomer", request)
+
+print(customer["status"], customer["email"])
+```
+
+```java QueryGetCustomer.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetCustomer {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "customerId", "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13"
+    );
+
+    var customer = client.query("GetCustomer", request);
+
+    System.out.println(customer.get("status") + " " + customer.get("email"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

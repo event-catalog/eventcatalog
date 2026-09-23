@@ -1,0 +1,210 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Request a payment for a customer account
+
+Request a charge for the ten-T-shirt bulk order placed by a customer account. The Payment Worker publishes this for Stripe to take the payment, and Fraud Detection screens it at the same time.
+
+### Payload details
+
+- `paymentId` identifies this charge attempt; `orderId` links it to the bulk order.
+- `payer` uses the customer-account shape: `customerId` and `email`, with no `userId`.
+- `amount` is in integer minor units and `currency` is `GBP`.
+- `requestedAt` records when the charge was requested, in UTC.
+
+The amount is **49,990 pence (£499.90)**: ten T-shirts at 4,999 pence each.
+
+### Using this example
+
+Use this to check that consumers read the payer from `customerId` and match the charge to the order by `orderId` when Stripe replies with a success or failure.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentRequested schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-payment-requested.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  paymentId: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+  orderId: 'c2a6a826-8661-4bc7-aaf7-83fa8e7940d4',
+  payer: {
+    customerId: '6f9619ff-8b86-d011-b42d-00cf4fc964ff',
+    email: 'sam.patel@example.com',
+  },
+  amount: 49990,
+  currency: 'GBP',
+  requestedAt: '2026-09-11T10:30:20Z',
+};
+
+await client.publish('PaymentRequested', event);
+```
+
+```python publish_payment_requested.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "orderId": "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+    "payer": {
+        "customerId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+        "email": "sam.patel@example.com",
+    },
+    "amount": 49990,
+    "currency": "GBP",
+    "requestedAt": "2026-09-11T10:30:20Z",
+}
+
+client.publish("PaymentRequested", event)
+```
+
+```java PublishPaymentRequested.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentRequested {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+      "orderId", "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+      "payer", Map.of(
+        "customerId", "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+        "email", "sam.patel@example.com"
+      ),
+      "amount", 49990,
+      "currency", "GBP",
+      "requestedAt", "2026-09-11T10:30:20Z"
+    );
+
+    client.publish("PaymentRequested", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Request a payment for an authenticated user
+
+Request a charge in euros for an order placed by a signed-in user in Ireland. The payer is identified by their user account rather than a customer account.
+
+### Payload details
+
+- `payer` uses the authenticated-user shape: `userId` and `email`. It must not include `customerId` as well.
+- `amount` is in cents because `currency` is `EUR`.
+- `paymentId`, `orderId` and `requestedAt` are required, as in every payment request.
+
+The amount is **8,498 cents (€84.98)**: one hoodie at 5,999 cents plus one cap at 2,499 cents.
+
+### Using this example
+
+Use this to check that consumers support both payer shapes and do not assume `customerId` is always present. It also checks that amounts are read in the minor unit of `currency`, not always in pence.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentRequested schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-payment-requested.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  paymentId: '3b8f2d6e-9a1c-4e7b-b5d3-6c0e8f2a4d19',
+  orderId: 'f1d3b5a7-9c8e-4d2f-a6b4-3e5c7a9b1d02',
+  payer: {
+    userId: 'e2f4a6c8-1b3d-4e5f-9a7b-c8d0e2f4a6b1',
+    email: 'niamh.byrne@example.ie',
+  },
+  amount: 8498,
+  currency: 'EUR',
+  requestedAt: '2026-09-13T07:55:00Z',
+};
+
+await client.publish('PaymentRequested', event);
+```
+
+```python publish_payment_requested.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "3b8f2d6e-9a1c-4e7b-b5d3-6c0e8f2a4d19",
+    "orderId": "f1d3b5a7-9c8e-4d2f-a6b4-3e5c7a9b1d02",
+    "payer": {
+        "userId": "e2f4a6c8-1b3d-4e5f-9a7b-c8d0e2f4a6b1",
+        "email": "niamh.byrne@example.ie",
+    },
+    "amount": 8498,
+    "currency": "EUR",
+    "requestedAt": "2026-09-13T07:55:00Z",
+}
+
+client.publish("PaymentRequested", event)
+```
+
+```java PublishPaymentRequested.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentRequested {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "3b8f2d6e-9a1c-4e7b-b5d3-6c0e8f2a4d19",
+      "orderId", "f1d3b5a7-9c8e-4d2f-a6b4-3e5c7a9b1d02",
+      "payer", Map.of(
+        "userId", "e2f4a6c8-1b3d-4e5f-9a7b-c8d0e2f4a6b1",
+        "email", "niamh.byrne@example.ie"
+      ),
+      "amount", 8498,
+      "currency", "EUR",
+      "requestedAt", "2026-09-13T07:55:00Z"
+    );
+
+    client.publish("PaymentRequested", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

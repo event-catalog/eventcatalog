@@ -1,0 +1,177 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a higher helpful count
+
+A customer has marked the classic white T-shirt review as helpful. The Review API publishes the new total so the storefront can keep its "most helpful" ordering up to date.
+
+### Payload details
+
+- `reviewId` is the review whose count changed.
+- `productId` is `prod_tshirt_classic_white`, so consumers can refresh that product's review list.
+- `helpfulCount` is `13`, the new total after the vote (it was 12).
+- `updatedAt` is when the count changed.
+
+### Using this example
+
+Consumers should store `helpfulCount` as the latest total and use `updatedAt` to ignore older, out-of-order events.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewHelpfulVoted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-review-helpful-voted.ts
+import { EventsClient } from '@acme/events';
+import type { ReviewHelpfulVoted } from './schemas/review-helpful-voted';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: ReviewHelpfulVoted = {
+  reviewId: '3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90',
+  productId: 'prod_tshirt_classic_white',
+  helpfulCount: 13,
+  updatedAt: '2026-09-18T10:02:12Z',
+};
+
+await client.publish('ReviewHelpfulVoted', event);
+```
+
+```python publish_review_helpful_voted.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+    "productId": "prod_tshirt_classic_white",
+    "helpfulCount": 13,
+    "updatedAt": "2026-09-18T10:02:12Z",
+}
+
+client.publish("ReviewHelpfulVoted", event)
+```
+
+```java PublishReviewHelpfulVoted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewHelpfulVoted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+      "productId", "prod_tshirt_classic_white",
+      "helpfulCount", 13,
+      "updatedAt", "2026-09-18T10:02:12Z"
+    );
+
+    client.publish("ReviewHelpfulVoted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a lower helpful count after a vote is removed
+
+The customer removes their vote, so the Review API publishes the reduced total for the same review.
+
+### Payload details
+
+- `helpfulCount` is `12`, back to the total before the earlier vote.
+- `updatedAt` is later than the previous event for this review.
+
+### Using this example
+
+Use this payload with the first example to test that consumers keep the latest `helpfulCount` when events arrive out of order.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewHelpfulVoted schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-review-helpful-voted.ts
+import { EventsClient } from '@acme/events';
+import type { ReviewHelpfulVoted } from './schemas/review-helpful-voted';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: ReviewHelpfulVoted = {
+  reviewId: '3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90',
+  productId: 'prod_tshirt_classic_white',
+  helpfulCount: 12,
+  updatedAt: '2026-09-18T10:02:48Z',
+};
+
+await client.publish('ReviewHelpfulVoted', event);
+```
+
+```python publish_review_helpful_voted.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+    "productId": "prod_tshirt_classic_white",
+    "helpfulCount": 12,
+    "updatedAt": "2026-09-18T10:02:48Z",
+}
+
+client.publish("ReviewHelpfulVoted", event)
+```
+
+```java PublishReviewHelpfulVoted.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewHelpfulVoted {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "3f2b8c1e-5d4a-4e7b-9a1c-6b2d8e4f7a90",
+      "productId", "prod_tshirt_classic_white",
+      "helpfulCount", 12,
+      "updatedAt", "2026-09-18T10:02:48Z"
+    );
+
+    client.publish("ReviewHelpfulVoted", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

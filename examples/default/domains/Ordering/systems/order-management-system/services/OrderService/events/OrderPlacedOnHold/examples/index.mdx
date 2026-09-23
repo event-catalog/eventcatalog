@@ -1,0 +1,191 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Hold an order for address verification
+
+Pause an order because the courier could not validate the delivery postcode. Fulfilment stops work, and the customer sees a short message explaining the delay.
+
+### Payload details
+
+- `reason` is `ADDRESS_VERIFICATION`, and `ownerTeam` routes the hold to `ordering-operations`.
+- `holdId` identifies this hold; the matching `OrderHoldReleased` event uses the same value.
+- `customerMessage` is the text shown to the customer (at most 280 characters).
+- `reviewBy` is the deadline for resolving the hold, and `placedAt` records when it started.
+
+### Using this example
+
+Use this to check that fulfilment pauses the order and that customer-facing systems show `customerMessage` as it is.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderPlacedOnHold schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-placed-on-hold.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: '4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68',
+  holdId: 'b2c4e6a8-0d1f-4b3a-9c5e-7d9f1b3a5c70',
+  reason: 'ADDRESS_VERIFICATION',
+  ownerTeam: 'ordering-operations',
+  customerMessage: 'We are checking your delivery address with our courier. No action is needed yet.',
+  reviewBy: '2026-09-12T13:00:00Z',
+  placedAt: '2026-09-12T09:15:20Z',
+};
+
+await client.publish('OrderPlacedOnHold', event);
+```
+
+```python publish_order_placed_on_hold.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68",
+    "holdId": "b2c4e6a8-0d1f-4b3a-9c5e-7d9f1b3a5c70",
+    "reason": "ADDRESS_VERIFICATION",
+    "ownerTeam": "ordering-operations",
+    "customerMessage": "We are checking your delivery address with our courier. No action is needed yet.",
+    "reviewBy": "2026-09-12T13:00:00Z",
+    "placedAt": "2026-09-12T09:15:20Z",
+}
+
+client.publish("OrderPlacedOnHold", event)
+```
+
+```java PublishOrderPlacedOnHold.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderPlacedOnHold {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68",
+      "holdId", "b2c4e6a8-0d1f-4b3a-9c5e-7d9f1b3a5c70",
+      "reason", "ADDRESS_VERIFICATION",
+      "ownerTeam", "ordering-operations",
+      "customerMessage", "We are checking your delivery address with our courier. No action is needed yet.",
+      "reviewBy", "2026-09-12T13:00:00Z",
+      "placedAt", "2026-09-12T09:15:20Z"
+    );
+
+    client.publish("OrderPlacedOnHold", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Hold an order for fraud review
+
+Pause a large hoodie order flagged by fraud screening. The review is internal, so no customer message is sent.
+
+### Payload details
+
+- `reason` is `FRAUD_REVIEW`, and `ownerTeam` is `payments-risk`.
+- `customerMessage` is omitted, so the customer is not told about the review.
+- `reviewBy` is four hours after `placedAt`.
+
+### Using this example
+
+Use this to check that customer-facing systems show nothing when `customerMessage` is missing, and that operational tooling escalates the hold if it is still open after `reviewBy`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderPlacedOnHold schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-placed-on-hold.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'a3c5e7f9-1b2d-4f6a-8c0e-2d4f6a8b0c1e',
+  holdId: '0f1e2d3c-4b5a-4968-8776-a5b4c3d2e1f0',
+  reason: 'FRAUD_REVIEW',
+  ownerTeam: 'payments-risk',
+  reviewBy: '2026-09-12T15:30:00Z',
+  placedAt: '2026-09-12T11:30:00Z',
+};
+
+await client.publish('OrderPlacedOnHold', event);
+```
+
+```python publish_order_placed_on_hold.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "a3c5e7f9-1b2d-4f6a-8c0e-2d4f6a8b0c1e",
+    "holdId": "0f1e2d3c-4b5a-4968-8776-a5b4c3d2e1f0",
+    "reason": "FRAUD_REVIEW",
+    "ownerTeam": "payments-risk",
+    "reviewBy": "2026-09-12T15:30:00Z",
+    "placedAt": "2026-09-12T11:30:00Z",
+}
+
+client.publish("OrderPlacedOnHold", event)
+```
+
+```java PublishOrderPlacedOnHold.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderPlacedOnHold {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "a3c5e7f9-1b2d-4f6a-8c0e-2d4f6a8b0c1e",
+      "holdId", "0f1e2d3c-4b5a-4968-8776-a5b4c3d2e1f0",
+      "reason", "FRAUD_REVIEW",
+      "ownerTeam", "payments-risk",
+      "reviewBy", "2026-09-12T15:30:00Z",
+      "placedAt", "2026-09-12T11:30:00Z"
+    );
+
+    client.publish("OrderPlacedOnHold", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

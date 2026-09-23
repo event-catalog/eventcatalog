@@ -1,0 +1,181 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Flag an off-topic review with notes
+
+A shopper reading reviews for the navy baseball cap reports one that only complains about delivery times. The storefront sends this command to the Review API, which records the flag and publishes `ReviewFlagged`.
+
+### Payload details
+
+- `reviewId` is the published review being reported.
+- `flaggedBy` is the customer id `cust_2290`.
+- `reason` is `off_topic`, one of `spam`, `abuse`, `off_topic`, `inappropriate` or `other`.
+- `notes` (optional, max 1,000 characters) gives the moderator some context.
+- `flaggedAt` is when the customer sent the report.
+
+### Using this example
+
+Check that the Review API stores the flag and publishes `ReviewFlagged` with the same `reviewId` and `reason`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the FlagReview schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-flag-review.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  reviewId: 'b2d6f8a1-4c3e-4a9b-9f7d-5e1c3a8b0d24',
+  flaggedBy: 'cust_2290',
+  reason: 'off_topic',
+  notes: 'This is about delivery times, not the cap itself.',
+  flaggedAt: '2026-09-16T12:40:18Z',
+};
+
+await client.send('FlagReview', command);
+```
+
+```python send_flag_review.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "reviewId": "b2d6f8a1-4c3e-4a9b-9f7d-5e1c3a8b0d24",
+    "flaggedBy": "cust_2290",
+    "reason": "off_topic",
+    "notes": "This is about delivery times, not the cap itself.",
+    "flaggedAt": "2026-09-16T12:40:18Z",
+}
+
+client.send("FlagReview", command)
+```
+
+```java SendFlagReview.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendFlagReview {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "reviewId", "b2d6f8a1-4c3e-4a9b-9f7d-5e1c3a8b0d24",
+      "flaggedBy", "cust_2290",
+      "reason", "off_topic",
+      "notes", "This is about delivery times, not the cap itself.",
+      "flaggedAt", "2026-09-16T12:40:18Z"
+    );
+
+    client.send("FlagReview", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Flag an abusive review as a moderator
+
+A moderator doing a routine check spots an abusive review on the sunset graphic T-shirt and flags it from the moderation console, without adding notes.
+
+### Payload details
+
+- `flaggedBy` is the moderator id `mod_017`; the same field holds customer or moderator ids.
+- `reason` is `abuse`.
+- `notes` is omitted because it is optional.
+- `flaggedAt` is the UTC time of the flag.
+
+### Using this example
+
+Use this payload to test that flags from moderators and customers follow the same path, and that a missing `notes` field is accepted.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the FlagReview schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-flag-review.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  reviewId: 'd8a3c5e7-2f1b-4e9d-b4a6-7c0e3f5a1b82',
+  flaggedBy: 'mod_017',
+  reason: 'abuse',
+  flaggedAt: '2026-09-17T08:15:00Z',
+};
+
+await client.send('FlagReview', command);
+```
+
+```python send_flag_review.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "reviewId": "d8a3c5e7-2f1b-4e9d-b4a6-7c0e3f5a1b82",
+    "flaggedBy": "mod_017",
+    "reason": "abuse",
+    "flaggedAt": "2026-09-17T08:15:00Z",
+}
+
+client.send("FlagReview", command)
+```
+
+```java SendFlagReview.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendFlagReview {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "reviewId", "d8a3c5e7-2f1b-4e9d-b4a6-7c0e3f5a1b82",
+      "flaggedBy", "mod_017",
+      "reason", "abuse",
+      "flaggedAt", "2026-09-17T08:15:00Z"
+    );
+
+    client.send("FlagReview", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

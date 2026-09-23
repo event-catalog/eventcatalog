@@ -1,0 +1,246 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Release stock after a failed checkout
+
+The checkout saga sends this command when payment fails after stock was reserved. The Inventory Service puts the reserved units back on sale.
+
+### Payload details
+
+- `reservationId` is the reservation from the earlier `InventoryReserved` event.
+- `reason` is `CHECKOUT_FAILED`.
+
+### Using this example
+
+The handler should return the reserved units to `available` stock and record `CHECKOUT_FAILED` as the reason.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the ReleaseInventory schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-release-inventory.ts
+import { EventsClient } from '@acme/events';
+import type { ReleaseInventory } from './schemas/release-inventory';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: ReleaseInventory = {
+  reservationId: '4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86',
+  reason: 'CHECKOUT_FAILED',
+};
+
+await client.send('ReleaseInventory', command);
+```
+
+```python send_release_inventory.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "reservationId": "4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86",
+    "reason": "CHECKOUT_FAILED",
+}
+
+client.send("ReleaseInventory", command)
+```
+
+```java SendReleaseInventory.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendReleaseInventory {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "reservationId", "4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86",
+      "reason", "CHECKOUT_FAILED"
+    );
+
+    client.send("ReleaseInventory", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Release stock for a cancelled order
+
+The Ordering domain sends this command when a customer cancels an order before it is picked. The reserved hoodie goes back on sale.
+
+### Payload details
+
+- `reservationId` is the reservation held for the order.
+- `reason` is `ORDER_CANCELLED`.
+
+### Using this example
+
+The handler should release the reservation and must not start a picking job for the cancelled order.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the ReleaseInventory schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-release-inventory.ts
+import { EventsClient } from '@acme/events';
+import type { ReleaseInventory } from './schemas/release-inventory';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: ReleaseInventory = {
+  reservationId: '8f3d6b2a-1e9c-4a7f-b5d8-2c0e4a9f6b13',
+  reason: 'ORDER_CANCELLED',
+};
+
+await client.send('ReleaseInventory', command);
+```
+
+```python send_release_inventory.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "reservationId": "8f3d6b2a-1e9c-4a7f-b5d8-2c0e4a9f6b13",
+    "reason": "ORDER_CANCELLED",
+}
+
+client.send("ReleaseInventory", command)
+```
+
+```java SendReleaseInventory.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendReleaseInventory {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "reservationId", "8f3d6b2a-1e9c-4a7f-b5d8-2c0e4a9f6b13",
+      "reason", "ORDER_CANCELLED"
+    );
+
+    client.send("ReleaseInventory", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 3. Release an expired reservation
+
+A clean-up job sends this command when a reservation was held too long without an order, for example when a customer leaves the checkout page open.
+
+### Payload details
+
+- `reservationId` is the stale reservation.
+- `reason` is `EXPIRED`.
+
+### Using this example
+
+The handler should release the reservation and should be idempotent, because the clean-up job may send the same command again.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the ReleaseInventory schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-release-inventory.ts
+import { EventsClient } from '@acme/events';
+import type { ReleaseInventory } from './schemas/release-inventory';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: ReleaseInventory = {
+  reservationId: '4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86',
+  reason: 'EXPIRED',
+};
+
+await client.send('ReleaseInventory', command);
+```
+
+```python send_release_inventory.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "reservationId": "4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86",
+    "reason": "EXPIRED",
+}
+
+client.send("ReleaseInventory", command)
+```
+
+```java SendReleaseInventory.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendReleaseInventory {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "reservationId", "4e9a1c7d-6b2f-4d8e-9c3a-7f5b0d1e2a86",
+      "reason", "EXPIRED"
+    );
+
+    client.send("ReleaseInventory", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

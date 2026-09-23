@@ -1,0 +1,166 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Update a customer's name and email
+
+A customer changes their surname and email address from the account settings page. The Customer API applies the partial update and publishes `CustomerUpdated` with the new values.
+
+### Payload details
+
+- `customerId` identifies the customer to update and is the only required field.
+- `email` and `name` are the new values. Only the fields supplied are changed.
+- `status` is omitted, so the account status stays as it is.
+
+### Using this example
+
+Use this to check that only `email` and `name` change, that the new `email` is still unique, and that the `CustomerUpdated` event lists exactly these two fields in `changes`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the UpdateCustomer schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-update-customer.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  customerId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c',
+  email: 'amelia.hart-jones@example.com',
+  name: 'Amelia Hart-Jones',
+};
+
+await client.send('UpdateCustomer', command);
+```
+
+```python send_update_customer.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+    "email": "amelia.hart-jones@example.com",
+    "name": "Amelia Hart-Jones",
+}
+
+client.send("UpdateCustomer", command)
+```
+
+```java SendUpdateCustomer.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendUpdateCustomer {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+      "email", "amelia.hart-jones@example.com",
+      "name", "Amelia Hart-Jones"
+    );
+
+    client.send("UpdateCustomer", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Suspend a customer's account
+
+The fraud team suspends an account after a chargeback on a cap order. Only the status changes, so the command carries just the customer ID and the new status.
+
+### Payload details
+
+- `customerId` identifies the account to suspend.
+- `status` is `SUSPENDED`. The other allowed values are `ACTIVE` and `CLOSED`.
+- `email` and `name` are omitted, so they stay unchanged.
+
+### Using this example
+
+Use this to check that a status-only update leaves the profile fields untouched and that the customer can no longer check out while `SUSPENDED`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the UpdateCustomer schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-update-customer.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  customerId: 'c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13',
+  status: 'SUSPENDED',
+};
+
+await client.send('UpdateCustomer', command);
+```
+
+```python send_update_customer.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "customerId": "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+    "status": "SUSPENDED",
+}
+
+client.send("UpdateCustomer", command)
+```
+
+```java SendUpdateCustomer.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendUpdateCustomer {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "customerId", "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+      "status", "SUSPENDED"
+    );
+
+    client.send("UpdateCustomer", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

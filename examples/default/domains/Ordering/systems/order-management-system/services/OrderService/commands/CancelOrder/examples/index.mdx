@@ -1,0 +1,161 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Cancel an order at the customer's request
+
+Shortly after ordering a hoodie and two caps, the customer changes their mind and cancels from their account page. The storefront sends this command to the Order Service.
+
+### Payload details
+
+- `orderId` identifies the order to cancel; it must not be completed yet.
+- `reason` is `CUSTOMER_REQUESTED`, the customer's own choice.
+
+### Using this example
+
+The Order Service should release the reserved stock, void the payment authorisation and publish `OrderCancelled` with the same `orderId` and `reason`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CancelOrder schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-cancel-order.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  orderId: 'e3f4a5b6-7c8d-4e9f-a0b1-c2d3e4f5a6b7',
+  reason: 'CUSTOMER_REQUESTED',
+};
+
+await client.send('CancelOrder', command);
+```
+
+```python send_cancel_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "orderId": "e3f4a5b6-7c8d-4e9f-a0b1-c2d3e4f5a6b7",
+    "reason": "CUSTOMER_REQUESTED",
+}
+
+client.send("CancelOrder", command)
+```
+
+```java SendCancelOrder.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCancelOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "orderId", "e3f4a5b6-7c8d-4e9f-a0b1-c2d3e4f5a6b7",
+      "reason", "CUSTOMER_REQUESTED"
+    );
+
+    client.send("CancelOrder", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Cancel an order flagged as fraud
+
+The fraud team reviews a suspicious order and blocks it before it ships. Their tooling sends this command so the order never reaches fulfilment.
+
+### Payload details
+
+- `orderId` identifies the flagged order.
+- `reason` is `FRAUD`, which downstream systems can use to skip customer notifications and refund flows.
+
+### Using this example
+
+Use this to check that the handler accepts the `FRAUD` reason and that the resulting `OrderCancelled` event carries it unchanged.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CancelOrder schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-cancel-order.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  orderId: 'a6b7c8d9-0e1f-4a2b-8c3d-e4f5a6b7c8d9',
+  reason: 'FRAUD',
+};
+
+await client.send('CancelOrder', command);
+```
+
+```python send_cancel_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "orderId": "a6b7c8d9-0e1f-4a2b-8c3d-e4f5a6b7c8d9",
+    "reason": "FRAUD",
+}
+
+client.send("CancelOrder", command)
+```
+
+```java SendCancelOrder.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCancelOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "orderId", "a6b7c8d9-0e1f-4a2b-8c3d-e4f5a6b7c8d9",
+      "reason", "FRAUD"
+    );
+
+    client.send("CancelOrder", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

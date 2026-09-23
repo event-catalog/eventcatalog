@@ -1,0 +1,171 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a signed-for delivery
+
+The Carrier Tracking API publishes this event when the driver hands the parcel to the customer and captures a signature. Acme Inc consumes it to close the order and ask for feedback.
+
+### Payload details
+
+- `shipmentId` and `orderId` link the delivery to the shipment and the order.
+- `deliveredAt` is the UTC time of the delivery scan.
+- `signedBy` is the name the driver captured at the door.
+
+### Using this example
+
+A consumer should mark the order as delivered and can show `signedBy` on the order history page.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ShipmentDelivered schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-shipment-delivered.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  shipmentId: '1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79',
+  orderId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27',
+  deliveredAt: '2026-09-15T13:26:41Z',
+  signedBy: 'Priya Shah',
+};
+
+await client.publish('ShipmentDelivered', event);
+```
+
+```python publish_shipment_delivered.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "shipmentId": "1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79",
+    "orderId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+    "deliveredAt": "2026-09-15T13:26:41Z",
+    "signedBy": "Priya Shah",
+}
+
+client.publish("ShipmentDelivered", event)
+```
+
+```java PublishShipmentDelivered.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishShipmentDelivered {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "shipmentId", "1d7f4a9c-2e8b-4b5d-9a3c-6e0f8b2d4c79",
+      "orderId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+      "deliveredAt", "2026-09-15T13:26:41Z",
+      "signedBy", "Priya Shah"
+    );
+
+    client.publish("ShipmentDelivered", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a delivery left without a signature
+
+When a parcel goes through the letterbox or is left in a safe place, no signature is captured. The event then has only the required fields.
+
+### Payload details
+
+- `shipmentId`, `orderId` and `deliveredAt` are the only required fields.
+- `signedBy` is omitted, not set to null or an empty string.
+
+### Using this example
+
+Use this payload to check that consumers close the order without a `signedBy` value and do not show an empty name to the customer.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ShipmentDelivered schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-shipment-delivered.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  shipmentId: '9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14',
+  orderId: 'c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53',
+  deliveredAt: '2026-09-16T10:04:55Z',
+};
+
+await client.publish('ShipmentDelivered', event);
+```
+
+```python publish_shipment_delivered.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "shipmentId": "9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14",
+    "orderId": "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+    "deliveredAt": "2026-09-16T10:04:55Z",
+}
+
+client.publish("ShipmentDelivered", event)
+```
+
+```java PublishShipmentDelivered.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishShipmentDelivered {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "shipmentId", "9a2c6e8f-4b1d-4d7a-8e5c-3f9b0a6d2e14",
+      "orderId", "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+      "deliveredAt", "2026-09-16T10:04:55Z"
+    );
+
+    client.publish("ShipmentDelivered", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

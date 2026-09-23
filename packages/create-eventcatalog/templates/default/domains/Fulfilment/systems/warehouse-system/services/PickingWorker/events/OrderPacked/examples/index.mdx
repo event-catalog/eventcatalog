@@ -1,0 +1,172 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish an order packed from a picking job
+
+The Picking Worker publishes this event when every item in a picking job is picked and packed. The Warehouse Service consumes it and publishes `OrderReadyForShipping`.
+
+### Payload details
+
+- `orderId` is the order that was packed.
+- `pickingJobId` is the picking job that collected the items from the shelves.
+- `parcelCount` is `1`: two T-shirts and a cap fit in one mailing bag.
+- `packedAt` is the UTC time the parcel was sealed.
+
+### Using this example
+
+A Warehouse Service consumer should mark the order as ready and publish `OrderReadyForShipping` with the same `orderId`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderPacked schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-order-packed.ts
+import { EventsClient } from '@acme/events';
+import type { OrderPacked } from './schemas/order-packed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: OrderPacked = {
+  orderId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27',
+  pickingJobId: 'e8d2a7b4-1c9f-4a6e-b3d5-7f0c2e9a8b61',
+  parcelCount: 1,
+  packedAt: '2026-09-14T09:42:08Z',
+};
+
+await client.publish('OrderPacked', event);
+```
+
+```python publish_order_packed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+    "pickingJobId": "e8d2a7b4-1c9f-4a6e-b3d5-7f0c2e9a8b61",
+    "parcelCount": 1,
+    "packedAt": "2026-09-14T09:42:08Z",
+}
+
+client.publish("OrderPacked", event)
+```
+
+```java PublishOrderPacked.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderPacked {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b27",
+      "pickingJobId", "e8d2a7b4-1c9f-4a6e-b3d5-7f0c2e9a8b61",
+      "parcelCount", 1,
+      "packedAt", "2026-09-14T09:42:08Z"
+    );
+
+    client.publish("OrderPacked", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish an order packed by hand
+
+Some orders are packed at a manual packing bench without a picking job, for example a replacement hoodie. The event then carries only the order and the time.
+
+### Payload details
+
+- `orderId` and `packedAt` are the only required fields.
+- `pickingJobId` is omitted because no picking job was used.
+- `parcelCount` is omitted, not set to null.
+
+### Using this example
+
+Use this payload to check that the Warehouse Service still marks the order ready when `pickingJobId` and `parcelCount` are missing.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderPacked schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-order-packed.ts
+import { EventsClient } from '@acme/events';
+import type { OrderPacked } from './schemas/order-packed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: OrderPacked = {
+  orderId: 'c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53',
+  packedAt: '2026-09-14T11:17:30Z',
+};
+
+await client.publish('OrderPacked', event);
+```
+
+```python publish_order_packed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+    "packedAt": "2026-09-14T11:17:30Z",
+}
+
+client.publish("OrderPacked", event)
+```
+
+```java PublishOrderPacked.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderPacked {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "c7e41d92-5b3a-4f86-a1d4-8e2f9b6c0d53",
+      "packedAt", "2026-09-14T11:17:30Z"
+    );
+
+    client.publish("OrderPacked", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

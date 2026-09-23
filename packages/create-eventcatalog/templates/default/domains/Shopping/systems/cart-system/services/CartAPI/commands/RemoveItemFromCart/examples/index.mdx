@@ -1,0 +1,170 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Remove a T-shirt line completely
+
+A shopper clicks **Remove** next to the T-shirt in their basket. The storefront sends `RemoveItemFromCart` without a quantity, so the Cart API deletes the whole line.
+
+### Payload details
+
+- `cartId` identifies the shopper's cart.
+- `productId` is the T-shirt to remove.
+- `quantity` is omitted, which means "remove the item entirely".
+
+### Using this example
+
+Check that the T-shirt line no longer exists in the cart, whatever quantity it had before.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the RemoveItemFromCart schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-remove-item-from-cart.ts
+import { EventsClient } from '@acme/events';
+import type { RemoveItemFromCart } from './schemas/remove-item-from-cart';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: RemoveItemFromCart = {
+  cartId: 'a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24',
+  productId: '0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93',
+};
+
+await client.send('RemoveItemFromCart', command);
+```
+
+```python send_remove_item_from_cart.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+    "productId": "0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93",
+}
+
+client.send("RemoveItemFromCart", command)
+```
+
+```java SendRemoveItemFromCart.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendRemoveItemFromCart {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+      "productId", "0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93"
+    );
+
+    client.send("RemoveItemFromCart", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Reduce the number of caps
+
+The shopper has three caps in the cart and lowers the quantity to one. The storefront sends `RemoveItemFromCart` with a quantity of 2, and the Cart API decreases the line.
+
+### Payload details
+
+- `cartId` is the same cart as in the first example.
+- `productId` is the cap.
+- `quantity` is `2`, the number of units to take away (minimum 1).
+
+The cap line goes from **3 units to 1 unit**.
+
+### Using this example
+
+Check that the cap line keeps 1 unit, and that removing a product that is not in the cart returns a `404` response.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the RemoveItemFromCart schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-remove-item-from-cart.ts
+import { EventsClient } from '@acme/events';
+import type { RemoveItemFromCart } from './schemas/remove-item-from-cart';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: RemoveItemFromCart = {
+  cartId: 'a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24',
+  productId: '8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46',
+  quantity: 2,
+};
+
+await client.send('RemoveItemFromCart', command);
+```
+
+```python send_remove_item_from_cart.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+    "productId": "8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46",
+    "quantity": 2,
+}
+
+client.send("RemoveItemFromCart", command)
+```
+
+```java SendRemoveItemFromCart.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendRemoveItemFromCart {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+      "productId", "8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46",
+      "quantity", 2
+    );
+
+    client.send("RemoveItemFromCart", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

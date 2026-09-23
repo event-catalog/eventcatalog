@@ -1,0 +1,340 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Fetch a newly created order
+
+Right after checkout, the order confirmation page queries the Order Service for the new order. It is still `CREATED` because it has not been fulfilled yet.
+
+### Payload details
+
+- `request.orderId` is the ID returned when the order was created.
+- `status` is `CREATED`.
+- `items` has 2 lines: 2 × T-shirt at 1,999 pence and 1 × cap at 1,499 pence.
+- `total` and `currency` give the order value; `createdAt` is when it was stored.
+
+The total is **5,497 pence (£54.97)**.
+
+### Example response
+
+```json
+{
+  "orderId": "4c7e9a2b-1d3f-4b5a-8e6c-2f9d0a1b3c5e",
+  "customerId": "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+  "status": "CREATED",
+  "items": [
+    {
+      "productId": "5e8f2a1b-3c4d-4e5f-8a6b-7c8d9e0f1a2b",
+      "quantity": 2,
+      "unitPrice": 1999
+    },
+    {
+      "productId": "6f9a3b2c-4d5e-4f6a-9b7c-8d9e0f1a2b3c",
+      "quantity": 1,
+      "unitPrice": 1499
+    }
+  ],
+  "total": 5497,
+  "currency": "GBP",
+  "createdAt": "2026-09-11T08:12:45Z"
+}
+```
+
+### Using this example
+
+Check that the page lists both lines, shows £54.97 and that the returned `orderId` matches the one requested.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetOrder schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-get-order.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  orderId: '4c7e9a2b-1d3f-4b5a-8e6c-2f9d0a1b3c5e',
+};
+
+const order = await client.query('GetOrder', request);
+
+console.log(order.status, order.total);
+```
+
+```python query_get_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "orderId": "4c7e9a2b-1d3f-4b5a-8e6c-2f9d0a1b3c5e",
+}
+
+order = client.query("GetOrder", request)
+
+print(order["status"], order["total"])
+```
+
+```java QueryGetOrder.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "orderId", "4c7e9a2b-1d3f-4b5a-8e6c-2f9d0a1b3c5e"
+    );
+
+    var order = client.query("GetOrder", request);
+
+    System.out.println(
+      order.get("status") + " " + order.get("total")
+    );
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Fetch a completed euro order
+
+A support agent looks up an order from Ireland after the customer asks about a return. The order has been delivered, so its status is `COMPLETED`.
+
+### Payload details
+
+- `request.orderId` identifies the order being looked up.
+- `status` is `COMPLETED`.
+- `items` has one line: 1 × hoodie at 5,799 cents.
+- `currency` is `EUR`, so `unitPrice` and `total` are in cents.
+
+The total is **5,799 cents (€57.99)**.
+
+### Example response
+
+```json
+{
+  "orderId": "b5d8e1f2-6a3c-4d7b-9f0e-3a4b5c6d7e8f",
+  "customerId": "8a7c6e5d-2b1f-4c3a-9e8d-7f6a5b4c3d2e",
+  "status": "COMPLETED",
+  "items": [
+    {
+      "productId": "7a0b4c3d-5e6f-4a7b-8c8d-9e0f1a2b3c4d",
+      "quantity": 1,
+      "unitPrice": 5799
+    }
+  ],
+  "total": 5799,
+  "currency": "EUR",
+  "createdAt": "2026-09-14T17:03:10Z"
+}
+```
+
+### Using this example
+
+Use this to check that support tooling shows the order as delivered and formats the total in euros.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetOrder schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-get-order.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  orderId: 'b5d8e1f2-6a3c-4d7b-9f0e-3a4b5c6d7e8f',
+};
+
+const order = await client.query('GetOrder', request);
+
+console.log(order.status, order.total);
+```
+
+```python query_get_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "orderId": "b5d8e1f2-6a3c-4d7b-9f0e-3a4b5c6d7e8f",
+}
+
+order = client.query("GetOrder", request)
+
+print(order["status"], order["total"])
+```
+
+```java QueryGetOrder.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "orderId", "b5d8e1f2-6a3c-4d7b-9f0e-3a4b5c6d7e8f"
+    );
+
+    var order = client.query("GetOrder", request);
+
+    System.out.println(
+      order.get("status") + " " + order.get("total")
+    );
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 3. Fetch a cancelled order
+
+The customer opens their order history after cancelling a hoodie-and-caps order. The query returns the order with status `CANCELLED`, still showing what was ordered.
+
+### Payload details
+
+- `request.orderId` identifies the cancelled order.
+- `status` is `CANCELLED`.
+- `items` has 2 lines: 1 × hoodie at 4,999 pence and 2 × cap at 1,499 pence.
+- `total` is still returned so the history shows the value of the cancelled order.
+
+The total is **4,999 + 2,998 = 7,997 pence (£79.97)**.
+
+### Example response
+
+```json
+{
+  "orderId": "e3f4a5b6-7c8d-4e9f-a0b1-c2d3e4f5a6b7",
+  "customerId": "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+  "status": "CANCELLED",
+  "items": [
+    {
+      "productId": "7a0b4c3d-5e6f-4a7b-8c8d-9e0f1a2b3c4d",
+      "quantity": 1,
+      "unitPrice": 4999
+    },
+    {
+      "productId": "6f9a3b2c-4d5e-4f6a-9b7c-8d9e0f1a2b3c",
+      "quantity": 2,
+      "unitPrice": 1499
+    }
+  ],
+  "total": 7997,
+  "currency": "GBP",
+  "createdAt": "2026-09-12T19:45:22Z"
+}
+```
+
+### Using this example
+
+Use this to check that the order history marks the order as cancelled and does not offer tracking or returns for it.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetOrder schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-get-order.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  orderId: 'e3f4a5b6-7c8d-4e9f-a0b1-c2d3e4f5a6b7',
+};
+
+const order = await client.query('GetOrder', request);
+
+console.log(order.status, order.total);
+```
+
+```python query_get_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "orderId": "e3f4a5b6-7c8d-4e9f-a0b1-c2d3e4f5a6b7",
+}
+
+order = client.query("GetOrder", request)
+
+print(order["status"], order["total"])
+```
+
+```java QueryGetOrder.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "orderId", "e3f4a5b6-7c8d-4e9f-a0b1-c2d3e4f5a6b7"
+    );
+
+    var order = client.query("GetOrder", request);
+
+    System.out.println(
+      order.get("status") + " " + order.get("total")
+    );
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

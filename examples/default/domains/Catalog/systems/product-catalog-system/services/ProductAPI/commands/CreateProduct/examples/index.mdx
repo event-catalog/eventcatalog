@@ -1,0 +1,192 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Create a draft product with required fields only
+
+A merchandiser adds a new cap to the catalog with only the fields the Product API needs. Because `status` is left out, the product is stored as a draft and the Product API publishes a ProductCreated event.
+
+### Payload details
+
+- `sku` is `CAP-LOGO-NVY`. It must be unique across the catalog; a clash returns `409`.
+- `name` is the display name shown to shoppers.
+- `price` is `1499` in minor units, with `currency` set to `GBP`.
+- `status` is omitted, so the Product API defaults it to `DRAFT`.
+- `description` and `category` are optional and can be added later with UpdateProduct.
+
+The price is **1,499 pence (£14.99)**.
+
+### Using this example
+
+A handler should accept this command, default the status to `DRAFT`, return `201` and publish a ProductCreated event whose `product.status` is `DRAFT`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CreateProduct schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-create-product.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  sku: 'CAP-LOGO-NVY',
+  name: 'Embroidered Logo Cap',
+  price: 1499,
+  currency: 'GBP',
+};
+
+await client.send('CreateProduct', command);
+```
+
+```python send_create_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "sku": "CAP-LOGO-NVY",
+    "name": "Embroidered Logo Cap",
+    "price": 1499,
+    "currency": "GBP",
+}
+
+client.send("CreateProduct", command)
+```
+
+```java SendCreateProduct.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCreateProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "sku", "CAP-LOGO-NVY",
+      "name", "Embroidered Logo Cap",
+      "price", 1499,
+      "currency", "GBP"
+    );
+
+    client.send("CreateProduct", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Create an active product with every field
+
+The new hoodie is ready to sell, so it is created with a description, category and `ACTIVE` status in one request. It becomes searchable once the Search System indexes the resulting ProductCreated event.
+
+### Payload details
+
+- `sku` is `HOODIE-ZIP-GRY-L` (zip hoodie, grey, large).
+- `description` holds the long-form copy for the product page.
+- `category` is `hoodies`, which the Search System uses for filtering.
+- `status` is `ACTIVE`, so the product skips the draft stage and goes live straight away.
+- `price` is `4999` in minor units, with `currency` set to `GBP`.
+
+The price is **4,999 pence (£49.99)**.
+
+### Using this example
+
+Check that every optional field is stored exactly as sent and copied into the ProductCreated event, and that `status` is `ACTIVE` rather than the default.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CreateProduct schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-create-product.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  sku: 'HOODIE-ZIP-GRY-L',
+  name: 'Heavyweight Zip Hoodie',
+  description: 'Brushed-back cotton hoodie with a full-length zip.',
+  price: 4999,
+  currency: 'GBP',
+  category: 'hoodies',
+  status: 'ACTIVE',
+};
+
+await client.send('CreateProduct', command);
+```
+
+```python send_create_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "sku": "HOODIE-ZIP-GRY-L",
+    "name": "Heavyweight Zip Hoodie",
+    "description": "Brushed-back cotton hoodie with a full-length zip.",
+    "price": 4999,
+    "currency": "GBP",
+    "category": "hoodies",
+    "status": "ACTIVE",
+}
+
+client.send("CreateProduct", command)
+```
+
+```java SendCreateProduct.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCreateProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "sku", "HOODIE-ZIP-GRY-L",
+      "name", "Heavyweight Zip Hoodie",
+      "description", "Brushed-back cotton hoodie with a full-length zip.",
+      "price", 4999,
+      "currency", "GBP",
+      "category", "hoodies",
+      "status", "ACTIVE"
+    );
+
+    client.send("CreateProduct", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

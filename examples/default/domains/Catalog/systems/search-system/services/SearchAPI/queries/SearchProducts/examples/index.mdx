@@ -1,0 +1,366 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Search by keyword with default paging
+
+A shopper types "hoodie" into the storefront search box. Only the search term is sent, so the Search API applies its default paging and returns the matches ranked by relevance.
+
+### Payload details
+
+- `request.query` is the free-text term `hoodie`.
+- `filters`, `page` and `pageSize` are omitted, so the defaults of page `1` and `20` results per page apply.
+- `total` is `2`, so every match fits on the first page.
+- Each result has a `score`; higher scores are more relevant and come first.
+- `price` values are in minor units: `4999` and `4499`.
+
+The two hoodies cost **4,999 pence (£49.99)** and **4,499 pence (£44.99)**.
+
+### Example response
+
+```json
+{
+  "total": 2,
+  "page": 1,
+  "pageSize": 20,
+  "results": [
+    {
+      "productId": "c9e1f3a5-6b2d-4f7e-a8c0-1d3e5f7a9b24",
+      "sku": "HOODIE-ZIP-GRY-L",
+      "name": "Heavyweight Zip Hoodie",
+      "category": "hoodies",
+      "price": 4999,
+      "currency": "GBP",
+      "score": 12.84
+    },
+    {
+      "productId": "8d0f2b4e-6a8c-4e1a-b3d5-7f9b1d3e5a60",
+      "sku": "HOODIE-OTH-BLK-M",
+      "name": "Oversized Pullover Hoodie",
+      "category": "hoodies",
+      "price": 4499,
+      "currency": "GBP",
+      "score": 9.37
+    }
+  ]
+}
+```
+
+### Using this example
+
+Use this to check that the results page lists both hoodies in `score` order and shows no pagination controls.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the SearchProducts schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-search-products.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  query: 'hoodie',
+};
+
+const result = await client.query('SearchProducts', request);
+
+console.log(result.total, result.page);
+```
+
+```python query_search_products.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "query": "hoodie",
+}
+
+result = client.query("SearchProducts", request)
+
+print(result["total"], result["page"])
+```
+
+```java QuerySearchProducts.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QuerySearchProducts {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "query", "hoodie"
+    );
+
+    var result = client.query("SearchProducts", request);
+
+    System.out.println(result.get("total") + " " + result.get("page"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Filter and page through T-shirt results
+
+A shopper searches for "t-shirt", narrows the results to active T-shirts between £10 and £25, and moves to the second page of a two-per-page listing.
+
+### Payload details
+
+- `filters.category` is `t-shirts` and `filters.status` is `ACTIVE`.
+- `filters.minPrice` is `1000` and `filters.maxPrice` is `2500`, both in minor units.
+- `page` is `2` and `pageSize` is `2`, so this response holds the 3rd and 4th matches.
+- `total` is `5`, so there are three pages in all.
+
+The price range is **1,000 to 2,500 pence (£10.00 to £25.00)**; the results cost **2,200 pence (£22.00)** and **1,999 pence (£19.99)**.
+
+### Example response
+
+```json
+{
+  "total": 5,
+  "page": 2,
+  "pageSize": 2,
+  "results": [
+    {
+      "productId": "9e1a3c5f-7b9d-4f2a-8c4e-6a8b0d2f4c71",
+      "sku": "TSHIRT-POCKET-WHT-L",
+      "name": "Pocket T-Shirt",
+      "category": "t-shirts",
+      "price": 2200,
+      "currency": "GBP",
+      "score": 7.91
+    },
+    {
+      "productId": "4c8e2a6f-1d3b-4f5a-9e7c-0b2d4f6a8c13",
+      "sku": "TSHIRT-CREW-BLK-M",
+      "name": "Classic Crew Neck T-Shirt",
+      "category": "t-shirts",
+      "price": 1999,
+      "currency": "GBP",
+      "score": 7.45
+    }
+  ]
+}
+```
+
+### Using this example
+
+Check that every result falls inside the price range and category, and that the UI shows page 2 of 3 with links to the previous and next pages.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the SearchProducts schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-search-products.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  query: 't-shirt',
+  filters: {
+    category: 't-shirts',
+    status: 'ACTIVE',
+    minPrice: 1000,
+    maxPrice: 2500,
+  },
+  page: 2,
+  pageSize: 2,
+};
+
+const result = await client.query('SearchProducts', request);
+
+console.log(result.total, result.page);
+```
+
+```python query_search_products.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "query": "t-shirt",
+    "filters": {
+        "category": "t-shirts",
+        "status": "ACTIVE",
+        "minPrice": 1000,
+        "maxPrice": 2500,
+    },
+    "page": 2,
+    "pageSize": 2,
+}
+
+result = client.query("SearchProducts", request)
+
+print(result["total"], result["page"])
+```
+
+```java QuerySearchProducts.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QuerySearchProducts {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "query", "t-shirt",
+      "filters", Map.of(
+        "category", "t-shirts",
+        "status", "ACTIVE",
+        "minPrice", 1000,
+        "maxPrice", 2500
+      ),
+      "page", 2,
+      "pageSize", 2
+    );
+
+    var result = client.query("SearchProducts", request);
+
+    System.out.println(result.get("total") + " " + result.get("page"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 3. Handle a search with no matches
+
+A shopper searches for "scarf" within the `accessories` category, but the shop does not sell scarves. The Search API still returns a valid response, with no results.
+
+### Payload details
+
+- `request.query` is `scarf` and `filters.category` is `accessories`.
+- `total` is `0` and `results` is an empty array.
+- `page` and `pageSize` still show the defaults that were applied.
+
+### Example response
+
+```json
+{
+  "total": 0,
+  "page": 1,
+  "pageSize": 20,
+  "results": []
+}
+```
+
+### Using this example
+
+Use this to check that the storefront shows a friendly "no results" message instead of an error when `results` is empty.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the SearchProducts schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript query-search-products.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const request = {
+  query: 'scarf',
+  filters: {
+    category: 'accessories',
+  },
+};
+
+const result = await client.query('SearchProducts', request);
+
+console.log(result.total, result.page);
+```
+
+```python query_search_products.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "query": "scarf",
+    "filters": {
+        "category": "accessories",
+    },
+}
+
+result = client.query("SearchProducts", request)
+
+print(result["total"], result["page"])
+```
+
+```java QuerySearchProducts.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QuerySearchProducts {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "query", "scarf",
+      "filters", Map.of(
+        "category", "accessories"
+      )
+    );
+
+    var result = client.query("SearchProducts", request);
+
+    System.out.println(result.get("total") + " " + result.get("page"));
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

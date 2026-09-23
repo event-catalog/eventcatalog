@@ -1,0 +1,161 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Delete a product without a reason
+
+An admin removes a bucket hat listing that was added by mistake. No reason is given, so only the product identifier is sent. On success the Product API returns `204` and publishes a ProductDeleted event.
+
+### Payload details
+
+- `productId` identifies the product to remove and matches the `{productId}` in the request path.
+- `reason` is optional and is left out here.
+
+### Using this example
+
+Check that the product is removed, `204` is returned and the ProductDeleted event has no `reason`. Sending the same command again should return `404`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the DeleteProduct schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-delete-product.ts
+import { EventsClient } from '@acme/events';
+import type { DeleteProduct } from './schemas/delete-product';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: DeleteProduct = {
+  productId: 'e4f6a8b0-2c4d-4e6f-8a0b-1c3d5e7f9a12',
+};
+
+await client.send('DeleteProduct', command);
+```
+
+```python send_delete_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "productId": "e4f6a8b0-2c4d-4e6f-8a0b-1c3d5e7f9a12",
+}
+
+client.send("DeleteProduct", command)
+```
+
+```java SendDeleteProduct.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendDeleteProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "productId", "e4f6a8b0-2c4d-4e6f-8a0b-1c3d5e7f9a12"
+    );
+
+    client.send("DeleteProduct", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Retire a discontinued product
+
+The Tie-Dye T-Shirt has sold out and will not be restocked, so it is removed from the catalog with the reason `DISCONTINUED`.
+
+### Payload details
+
+- `productId` identifies the Tie-Dye T-Shirt.
+- `reason` is `DISCONTINUED`. The allowed values are `DISCONTINUED`, `DUPLICATE`, `MERCHANT_REQUEST` and `OTHER`.
+- The reason is passed on in the ProductDeleted event for downstream systems and reporting.
+
+### Using this example
+
+Check that `reason` is carried through to the ProductDeleted event, so consumers can tell a discontinued line from, for example, a duplicate listing.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the DeleteProduct schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-delete-product.ts
+import { EventsClient } from '@acme/events';
+import type { DeleteProduct } from './schemas/delete-product';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: DeleteProduct = {
+  productId: '5c7e9a1b-3d5f-4a7c-9e1b-2d4f6a8c0e35',
+  reason: 'DISCONTINUED',
+};
+
+await client.send('DeleteProduct', command);
+```
+
+```python send_delete_product.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "productId": "5c7e9a1b-3d5f-4a7c-9e1b-2d4f6a8c0e35",
+    "reason": "DISCONTINUED",
+}
+
+client.send("DeleteProduct", command)
+```
+
+```java SendDeleteProduct.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendDeleteProduct {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "productId", "5c7e9a1b-3d5f-4a7c-9e1b-2d4f6a8c0e35",
+      "reason", "DISCONTINUED"
+    );
+
+    client.send("DeleteProduct", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

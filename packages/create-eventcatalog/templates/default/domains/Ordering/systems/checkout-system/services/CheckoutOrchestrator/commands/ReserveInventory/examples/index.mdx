@@ -1,0 +1,215 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Reserve stock for a multi-item cart
+
+A signed-in customer checks out a cart with two T-shirts and a cap. The Checkout Orchestrator sends this command first, so the stock is held while payment is authorised.
+
+### Payload details
+
+- `cartId` identifies the cart being checked out; the same ID is used for the payment authorisation and the order that follow.
+- `customerId` is included because the customer is signed in, so the reservation can be traced back to them.
+- `items` holds one entry per product: 2 Classic White T-shirts and 1 Logo Cap, each identified by its `productId`.
+- Every `quantity` is a whole number of at least 1.
+
+In total, **3 units** across **2 products** are reserved.
+
+### Using this example
+
+The inventory handler should hold 2 T-shirts and 1 cap against this `cartId` and reply with a successful reservation. Release the hold if the saga later compensates.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the ReserveInventory schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-reserve-inventory.ts
+import { EventsClient } from '@acme/events';
+import type { ReserveInventory } from './schemas/reserve-inventory';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: ReserveInventory = {
+  cartId: 'c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+  customerId: '3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d',
+  items: [
+    {
+      productId: '5e8f2a1b-3c4d-4e5f-8a6b-7c8d9e0f1a2b',
+      quantity: 2,
+    },
+    {
+      productId: '6f9a3b2c-4d5e-4f6a-9b7c-8d9e0f1a2b3c',
+      quantity: 1,
+    },
+  ],
+};
+
+await client.send('ReserveInventory', command);
+```
+
+```python send_reserve_inventory.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+    "items": [
+        {
+            "productId": "5e8f2a1b-3c4d-4e5f-8a6b-7c8d9e0f1a2b",
+            "quantity": 2,
+        },
+        {
+            "productId": "6f9a3b2c-4d5e-4f6a-9b7c-8d9e0f1a2b3c",
+            "quantity": 1,
+        },
+    ],
+}
+
+client.send("ReserveInventory", command)
+```
+
+```java SendReserveInventory.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class SendReserveInventory {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+      "items", List.of(
+        Map.of(
+          "productId", "5e8f2a1b-3c4d-4e5f-8a6b-7c8d9e0f1a2b",
+          "quantity", 2
+        ),
+        Map.of(
+          "productId", "6f9a3b2c-4d5e-4f6a-9b7c-8d9e0f1a2b3c",
+          "quantity", 1
+        )
+      )
+    );
+
+    client.send("ReserveInventory", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Reserve a single item with only the required fields
+
+A cart holds one hoodie and the orchestrator has no customer to attach. It sends the smallest valid command: the cart and its items.
+
+### Payload details
+
+- `cartId` is the only identifier sent; the optional `customerId` is omitted.
+- `items` holds a single entry: 1 Heavyweight Hoodie.
+- `productId` and `quantity` are both required for every item.
+
+### Using this example
+
+Use this to check that the inventory handler accepts a reservation without a `customerId` and keys the hold on `cartId` alone.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the ReserveInventory schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-reserve-inventory.ts
+import { EventsClient } from '@acme/events';
+import type { ReserveInventory } from './schemas/reserve-inventory';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: ReserveInventory = {
+  cartId: 'd2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+  items: [
+    {
+      productId: '7a0b4c3d-5e6f-4a7b-8c8d-9e0f1a2b3c4d',
+      quantity: 1,
+    },
+  ],
+};
+
+await client.send('ReserveInventory', command);
+```
+
+```python send_reserve_inventory.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "d2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+    "items": [
+        {
+            "productId": "7a0b4c3d-5e6f-4a7b-8c8d-9e0f1a2b3c4d",
+            "quantity": 1,
+        },
+    ],
+}
+
+client.send("ReserveInventory", command)
+```
+
+```java SendReserveInventory.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class SendReserveInventory {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "d2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+      "items", List.of(
+        Map.of(
+          "productId", "7a0b4c3d-5e6f-4a7b-8c8d-9e0f1a2b3c4d",
+          "quantity", 1
+        )
+      )
+    );
+
+    client.send("ReserveInventory", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

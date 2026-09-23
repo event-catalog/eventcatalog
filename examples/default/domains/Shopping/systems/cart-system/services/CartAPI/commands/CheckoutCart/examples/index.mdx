@@ -1,0 +1,166 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Check out without a promotion code
+
+A returning customer clicks **Checkout** with a basket of T-shirts and no voucher. The Cart API prices the cart and, on success, publishes `CartCheckedOut`.
+
+### Payload details
+
+- `cartId` is the cart being checked out.
+- `customerId` is the signed-in customer.
+- `promotionCode` is omitted, so only automatic promotions can apply.
+
+### Using this example
+
+Check that the cart is locked and a `CartCheckedOut` event is published for the same `cartId` and `customerId`. A second checkout of the same cart should return `409`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CheckoutCart schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-checkout-cart.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  cartId: 'c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f',
+  customerId: '7a1e5c9d-8b3f-4f2a-a6d4-2e9c0b7f3d51',
+};
+
+await client.send('CheckoutCart', command);
+```
+
+```python send_checkout_cart.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "customerId": "7a1e5c9d-8b3f-4f2a-a6d4-2e9c0b7f3d51",
+}
+
+client.send("CheckoutCart", command)
+```
+
+```java SendCheckoutCart.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCheckoutCart {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+      "customerId", "7a1e5c9d-8b3f-4f2a-a6d4-2e9c0b7f3d51"
+    );
+
+    client.send("CheckoutCart", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Check out with an autumn voucher
+
+A customer enters the voucher code `AUTUMN10` at checkout. The Cart API asks the Promotion Service to calculate the discount before it completes the checkout.
+
+### Payload details
+
+- `cartId` is the cart holding T-shirts, a hoodie and a cap.
+- `customerId` is the customer who owns the cart.
+- `promotionCode` is `AUTUMN10`, a 10% off voucher.
+
+### Using this example
+
+Check that a `CalculateDiscount` command is sent with the promotion code, and that the resulting `CartCheckedOut` event includes the discount.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CheckoutCart schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript send-checkout-cart.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const command = {
+  cartId: 'a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24',
+  customerId: '3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60',
+  promotionCode: 'AUTUMN10',
+};
+
+await client.send('CheckoutCart', command);
+```
+
+```python send_checkout_cart.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+    "customerId": "3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60",
+    "promotionCode": "AUTUMN10",
+}
+
+client.send("CheckoutCart", command)
+```
+
+```java SendCheckoutCart.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class SendCheckoutCart {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+      "customerId", "3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60",
+      "promotionCode", "AUTUMN10"
+    );
+
+    client.send("CheckoutCart", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

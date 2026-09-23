@@ -1,0 +1,181 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a small rise in a product's rating
+
+A five-star review for the classic white T-shirt has just been published. The Rating Aggregator recalculates the product's rating and publishes this event so the storefront and search can refresh it.
+
+### Payload details
+
+- `productId` is `prod_tshirt_classic_white`.
+- `reviewCount` is `128`: the 127 earlier published reviews plus the new one.
+- `averageRating` is `4.6`, rounded to two decimal places and within the 0 to 5 range.
+- `updatedAt` is when the aggregate was recalculated.
+
+The product now has **589 stars across 128 reviews**, so the average is 589 / 128 = **4.60** (up from 584 / 127 = 4.598).
+
+### Using this example
+
+Consumers should replace any cached rating for this `productId` with `averageRating` and `reviewCount` rather than trying to apply a delta.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the RatingUpdated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-rating-updated.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  productId: 'prod_tshirt_classic_white',
+  averageRating: 4.6,
+  reviewCount: 128,
+  updatedAt: '2026-09-14T18:23:05Z',
+};
+
+await client.publish('RatingUpdated', event);
+```
+
+```python publish_rating_updated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "productId": "prod_tshirt_classic_white",
+    "averageRating": 4.6,
+    "reviewCount": 128,
+    "updatedAt": "2026-09-14T18:23:05Z",
+}
+
+client.publish("RatingUpdated", event)
+```
+
+```java PublishRatingUpdated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishRatingUpdated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "productId", "prod_tshirt_classic_white",
+      "averageRating", 4.6,
+      "reviewCount", 128,
+      "updatedAt", "2026-09-14T18:23:05Z"
+    );
+
+    client.publish("RatingUpdated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a drop in a product's rating
+
+A two-star review for the oversized grey hoodie has been published. With only a few reviews, one low rating moves the average noticeably.
+
+### Payload details
+
+- `productId` is `prod_hoodie_oversized_grey`.
+- `reviewCount` is `7`: six earlier reviews plus the new two-star review.
+- `averageRating` is `4.14`, rounded to two decimal places.
+- `updatedAt` is when the aggregate was recalculated.
+
+The six earlier reviews had **27 stars** (average 4.50). Adding 2 gives **29 stars across 7 reviews**, so the average is 29 / 7 = **4.14**.
+
+### Using this example
+
+Use this payload to check that product pages and search results show the lower rating, and that any "4.5 stars and up" filter no longer includes this product.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the RatingUpdated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-rating-updated.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  productId: 'prod_hoodie_oversized_grey',
+  averageRating: 4.14,
+  reviewCount: 7,
+  updatedAt: '2026-09-15T09:05:41Z',
+};
+
+await client.publish('RatingUpdated', event);
+```
+
+```python publish_rating_updated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "productId": "prod_hoodie_oversized_grey",
+    "averageRating": 4.14,
+    "reviewCount": 7,
+    "updatedAt": "2026-09-15T09:05:41Z",
+}
+
+client.publish("RatingUpdated", event)
+```
+
+```java PublishRatingUpdated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishRatingUpdated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "productId", "prod_hoodie_oversized_grey",
+      "averageRating", 4.14,
+      "reviewCount", 7,
+      "updatedAt", "2026-09-15T09:05:41Z"
+    );
+
+    client.publish("RatingUpdated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

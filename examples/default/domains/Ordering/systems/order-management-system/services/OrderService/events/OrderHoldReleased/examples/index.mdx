@@ -1,0 +1,194 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Release an address verification hold
+
+Release the address hold automatically once the customer has corrected their postcode and the courier has validated the new address. The order goes back into the fulfilment queue.
+
+### Payload details
+
+- `holdId` matches the hold from `OrderPlacedOnHold`, and `previousReason` is `ADDRESS_VERIFICATION`.
+- `releasedBy` identifies the automated address verification policy.
+- `nextStatus` is `AWAITING_FULFILMENT`.
+- `resolution` records how the concern was resolved, for support and audit.
+
+### Using this example
+
+Use this to check that consumers close the hold with the matching `holdId` and that fulfilment picks the order up again.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderHoldReleased schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-hold-released.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: '4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68',
+  holdId: 'b2c4e6a8-0d1f-4b3a-9c5e-7d9f1b3a5c70',
+  previousReason: 'ADDRESS_VERIFICATION',
+  resolution: 'Customer corrected the postcode and the courier validated the new address',
+  releasedBy: 'address-verification-policy:v3',
+  nextStatus: 'AWAITING_FULFILMENT',
+  releasedAt: '2026-09-12T10:02:48Z',
+};
+
+await client.publish('OrderHoldReleased', event);
+```
+
+```python publish_order_hold_released.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68",
+    "holdId": "b2c4e6a8-0d1f-4b3a-9c5e-7d9f1b3a5c70",
+    "previousReason": "ADDRESS_VERIFICATION",
+    "resolution": "Customer corrected the postcode and the courier validated the new address",
+    "releasedBy": "address-verification-policy:v3",
+    "nextStatus": "AWAITING_FULFILMENT",
+    "releasedAt": "2026-09-12T10:02:48Z",
+}
+
+client.publish("OrderHoldReleased", event)
+```
+
+```java PublishOrderHoldReleased.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderHoldReleased {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "4e9d1b7a-8c2f-4a6e-b3d5-1f7c9e2a4b68",
+      "holdId", "b2c4e6a8-0d1f-4b3a-9c5e-7d9f1b3a5c70",
+      "previousReason", "ADDRESS_VERIFICATION",
+      "resolution", "Customer corrected the postcode and the courier validated the new address",
+      "releasedBy", "address-verification-policy:v3",
+      "nextStatus", "AWAITING_FULFILMENT",
+      "releasedAt", "2026-09-12T10:02:48Z"
+    );
+
+    client.publish("OrderHoldReleased", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Release a fraud review hold
+
+Release the fraud hold on the hoodie order after an analyst confirmed the buyer. The hold was placed before confirmation, so the order returns to `CONFIRMED`.
+
+### Payload details
+
+- `previousReason` is `FRAUD_REVIEW`, and `releasedBy` identifies the analyst.
+- `nextStatus` is `CONFIRMED`, not `AWAITING_FULFILMENT`.
+- `releasedAt` is before the `reviewBy` deadline on the original hold.
+
+### Using this example
+
+Use this to check that consumers move the order to `nextStatus` from the event, rather than assuming every released order goes straight to fulfilment.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderHoldReleased schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-hold-released.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'a3c5e7f9-1b2d-4f6a-8c0e-2d4f6a8b0c1e',
+  holdId: '0f1e2d3c-4b5a-4968-8776-a5b4c3d2e1f0',
+  previousReason: 'FRAUD_REVIEW',
+  resolution: 'Manual review confirmed the buyer, a school ordering staff uniforms',
+  releasedBy: 'fraud-analyst:tom.okafor',
+  nextStatus: 'CONFIRMED',
+  releasedAt: '2026-09-12T12:47:05Z',
+};
+
+await client.publish('OrderHoldReleased', event);
+```
+
+```python publish_order_hold_released.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "a3c5e7f9-1b2d-4f6a-8c0e-2d4f6a8b0c1e",
+    "holdId": "0f1e2d3c-4b5a-4968-8776-a5b4c3d2e1f0",
+    "previousReason": "FRAUD_REVIEW",
+    "resolution": "Manual review confirmed the buyer, a school ordering staff uniforms",
+    "releasedBy": "fraud-analyst:tom.okafor",
+    "nextStatus": "CONFIRMED",
+    "releasedAt": "2026-09-12T12:47:05Z",
+}
+
+client.publish("OrderHoldReleased", event)
+```
+
+```java PublishOrderHoldReleased.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderHoldReleased {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "a3c5e7f9-1b2d-4f6a-8c0e-2d4f6a8b0c1e",
+      "holdId", "0f1e2d3c-4b5a-4968-8776-a5b4c3d2e1f0",
+      "previousReason", "FRAUD_REVIEW",
+      "resolution", "Manual review confirmed the buyer, a school ordering staff uniforms",
+      "releasedBy", "fraud-analyst:tom.okafor",
+      "nextStatus", "CONFIRMED",
+      "releasedAt", "2026-09-12T12:47:05Z"
+    );
+
+    client.publish("OrderHoldReleased", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

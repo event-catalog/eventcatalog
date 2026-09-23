@@ -1,0 +1,199 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Confirm a paid order
+
+Confirm the ten-T-shirt bulk order after the payment is authorised and stock is reserved. Fulfilment, customer notifications and analytics treat this as the signal that the order can go ahead.
+
+### Payload details
+
+- `confirmationNumber` is the customer-facing reference in the `ORD-` plus eight digits format.
+- `paymentAuthorizationId` and `inventoryReservationId` point to the secured payment and stock reservation.
+- `total` is in integer minor units and `currency` is `GBP`.
+- `confirmedAt` records when the order was confirmed, in UTC.
+
+The confirmed total is **49,990 pence (£499.90)**: ten T-shirts at 4,999 pence each.
+
+### Using this example
+
+Use this to check that fulfilment starts only after confirmation, and that the confirmation email shows `confirmationNumber` rather than the internal `orderId`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderConfirmed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-confirmed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: 'c2a6a826-8661-4bc7-aaf7-83fa8e7940d4',
+  customerId: '6f9619ff-8b86-d011-b42d-00cf4fc964ff',
+  confirmationNumber: 'ORD-10452230',
+  paymentAuthorizationId: 'pa_7c21e9d4',
+  inventoryReservationId: 'res_60318',
+  total: 49990,
+  currency: 'GBP',
+  confirmedAt: '2026-09-11T10:31:12Z',
+};
+
+await client.publish('OrderConfirmed', event);
+```
+
+```python publish_order_confirmed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+    "customerId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    "confirmationNumber": "ORD-10452230",
+    "paymentAuthorizationId": "pa_7c21e9d4",
+    "inventoryReservationId": "res_60318",
+    "total": 49990,
+    "currency": "GBP",
+    "confirmedAt": "2026-09-11T10:31:12Z",
+}
+
+client.publish("OrderConfirmed", event)
+```
+
+```java PublishOrderConfirmed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderConfirmed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "c2a6a826-8661-4bc7-aaf7-83fa8e7940d4",
+      "customerId", "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "confirmationNumber", "ORD-10452230",
+      "paymentAuthorizationId", "pa_7c21e9d4",
+      "inventoryReservationId", "res_60318",
+      "total", 49990,
+      "currency", "GBP",
+      "confirmedAt", "2026-09-11T10:31:12Z"
+    );
+
+    client.publish("OrderConfirmed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Confirm a free replacement order
+
+Confirm a free replacement cap sent after the customer reported a damaged item. There is nothing to charge, so no payment is authorised.
+
+### Payload details
+
+- `total` is `0` and `paymentAuthorizationId` is omitted.
+- `inventoryReservationId` is still present, because the replacement cap has to be reserved.
+- `confirmationNumber`, `currency` and `confirmedAt` are required as usual.
+
+### Using this example
+
+Use this to check that consumers accept a zero total and do not expect `paymentAuthorizationId` on every confirmation. Finance projections should record the order without a matching payment.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the OrderConfirmed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-order-confirmed.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  orderId: '5a8f3c2e-1d4b-4e7a-9c6f-8b2e0d1a7f43',
+  customerId: '6f9619ff-8b86-d011-b42d-00cf4fc964ff',
+  confirmationNumber: 'ORD-10452317',
+  inventoryReservationId: 'res_60342',
+  total: 0,
+  currency: 'GBP',
+  confirmedAt: '2026-09-12T14:05:40Z',
+};
+
+await client.publish('OrderConfirmed', event);
+```
+
+```python publish_order_confirmed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "orderId": "5a8f3c2e-1d4b-4e7a-9c6f-8b2e0d1a7f43",
+    "customerId": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+    "confirmationNumber": "ORD-10452317",
+    "inventoryReservationId": "res_60342",
+    "total": 0,
+    "currency": "GBP",
+    "confirmedAt": "2026-09-12T14:05:40Z",
+}
+
+client.publish("OrderConfirmed", event)
+```
+
+```java PublishOrderConfirmed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishOrderConfirmed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "orderId", "5a8f3c2e-1d4b-4e7a-9c6f-8b2e0d1a7f43",
+      "customerId", "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "confirmationNumber", "ORD-10452317",
+      "inventoryReservationId", "res_60342",
+      "total", 0,
+      "currency", "GBP",
+      "confirmedAt", "2026-09-12T14:05:40Z"
+    );
+
+    client.publish("OrderConfirmed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

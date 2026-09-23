@@ -1,0 +1,194 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a profile change
+
+A customer changed their surname and email address in account settings. The Customer API publishes this event so systems such as order notifications and marketing can update their copy of the customer.
+
+### Payload details
+
+- `eventId` is a unique UUID for this event, and `occurredAt` is the ISO-8601 UTC time of the change.
+- `customerId` identifies the customer that changed.
+- `changes` holds only the fields that changed, with their new values: `email` and `name`.
+- `status` is not in `changes`, so it did not change.
+
+### Using this example
+
+Use this to check that consumers apply only the fields present in `changes` and leave everything else as it was.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerUpdated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-customer-updated.ts
+import { EventsClient } from '@acme/events';
+import type { CustomerUpdated } from './schemas/customer-updated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CustomerUpdated = {
+  eventId: '7b9d2f4a-6c8e-4a1b-b3d5-9f1e3a5c7b20',
+  occurredAt: '2026-09-11T08:12:45Z',
+  customerId: '3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c',
+  changes: {
+    email: 'amelia.hart-jones@example.com',
+    name: 'Amelia Hart-Jones',
+  },
+};
+
+await client.publish('CustomerUpdated', event);
+```
+
+```python publish_customer_updated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "7b9d2f4a-6c8e-4a1b-b3d5-9f1e3a5c7b20",
+    "occurredAt": "2026-09-11T08:12:45Z",
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+    "changes": {
+        "email": "amelia.hart-jones@example.com",
+        "name": "Amelia Hart-Jones",
+    },
+}
+
+client.publish("CustomerUpdated", event)
+```
+
+```java PublishCustomerUpdated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishCustomerUpdated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "7b9d2f4a-6c8e-4a1b-b3d5-9f1e3a5c7b20",
+      "occurredAt", "2026-09-11T08:12:45Z",
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c21-5d8e6f0a1b2c",
+      "changes", Map.of(
+        "email", "amelia.hart-jones@example.com",
+        "name", "Amelia Hart-Jones"
+      )
+    );
+
+    client.publish("CustomerUpdated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a status change
+
+The fraud team suspended an account after a chargeback. The event carries a single change, so consumers such as checkout and order fulfilment can stop processing new orders for this customer.
+
+### Payload details
+
+- `eventId` and `occurredAt` identify this event and when the account was suspended.
+- `customerId` identifies the suspended customer.
+- `changes.status` is `SUSPENDED`. The schema requires at least one field in `changes`, and here there is exactly one.
+- `email` and `name` are not in `changes`, so they did not change.
+
+### Using this example
+
+Use this to check that consumers react to a `status` change on its own, for example by blocking checkout for `SUSPENDED` customers.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CustomerUpdated schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-customer-updated.ts
+import { EventsClient } from '@acme/events';
+import type { CustomerUpdated } from './schemas/customer-updated';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CustomerUpdated = {
+  eventId: 'e4f6a8b0-3c5d-4e7f-9a1b-6c8d0e2f4a36',
+  occurredAt: '2026-09-15T14:03:19Z',
+  customerId: 'c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13',
+  changes: {
+    status: 'SUSPENDED',
+  },
+};
+
+await client.publish('CustomerUpdated', event);
+```
+
+```python publish_customer_updated.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "e4f6a8b0-3c5d-4e7f-9a1b-6c8d0e2f4a36",
+    "occurredAt": "2026-09-15T14:03:19Z",
+    "customerId": "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+    "changes": {
+        "status": "SUSPENDED",
+    },
+}
+
+client.publish("CustomerUpdated", event)
+```
+
+```java PublishCustomerUpdated.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishCustomerUpdated {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "e4f6a8b0-3c5d-4e7f-9a1b-6c8d0e2f4a36",
+      "occurredAt", "2026-09-15T14:03:19Z",
+      "customerId", "c9a4e2f7-1b3d-4c8e-a5f6-7d2e9b0c4a13",
+      "changes", Map.of(
+        "status", "SUSPENDED"
+      )
+    );
+
+    client.publish("CustomerUpdated", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

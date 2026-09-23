@@ -1,4 +1,4 @@
-import { defineConfig } from 'auth-astro';
+import { defineConfig } from '@utils/auth-astro/config';
 import { join } from 'node:path';
 import GitHub from '@auth/core/providers/github';
 import Okta from '@auth/core/providers/okta';
@@ -22,9 +22,8 @@ const getAuthProviders = async () => {
     // GitHub provider
     if (authConfig.providers?.github) {
       const githubConfig = authConfig.providers.github;
-      // GitHub sends an RFC 9207 `iss` parameter on OAuth callbacks. Pin the issuer so
-      // validation works even when the resolved @auth/core copy predates the upstream
-      // default (auth-astro's peer range can hoist an older @auth/core in user projects).
+      // GitHub sends an RFC 9207 `iss` parameter on OAuth callbacks. Pin the issuer,
+      // including for GitHub Enterprise base URLs, so validation works.
       const githubBaseUrl = githubConfig?.enterprise?.baseUrl ?? 'https://github.com';
       providers.push(
         GitHub({

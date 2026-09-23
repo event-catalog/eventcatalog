@@ -1,0 +1,275 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Publish a single-item checkout
+
+A customer checks out a cart with two T-shirts and no voucher. The Cart API publishes `CartCheckedOut`, and downstream systems use it to create the order and take payment.
+
+### Payload details
+
+- `eventId` and `occurredAt` identify this event and when the checkout happened (UTC).
+- `items` holds one line: 2 T-shirts at a `unitPrice` of 2,000 pence each.
+- `subtotal` and `discount` are omitted because no discount applied.
+- `currency` is `GBP`, so all amounts are in pence.
+
+The total is **2 × 2,000 = 4,000 pence (£40.00)**.
+
+### Using this example
+
+Check that the order created from this event has one line and a total of 4,000 pence, and that a missing `discount` is treated as zero.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CartCheckedOut schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-cart-checked-out.ts
+import { EventsClient } from '@acme/events';
+import type { CartCheckedOut } from './schemas/cart-checked-out';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CartCheckedOut = {
+  eventId: 'e4b7c1d9-2f6a-4e8b-a3c5-7d9f1b3e5a02',
+  occurredAt: '2026-09-11T08:12:45Z',
+  cartId: 'c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f',
+  customerId: '7a1e5c9d-8b3f-4f2a-a6d4-2e9c0b7f3d51',
+  items: [
+    {
+      productId: '0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93',
+      quantity: 2,
+      unitPrice: 2000,
+    },
+  ],
+  total: 4000,
+  currency: 'GBP',
+};
+
+await client.publish('CartCheckedOut', event);
+```
+
+```python publish_cart_checked_out.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "e4b7c1d9-2f6a-4e8b-a3c5-7d9f1b3e5a02",
+    "occurredAt": "2026-09-11T08:12:45Z",
+    "cartId": "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+    "customerId": "7a1e5c9d-8b3f-4f2a-a6d4-2e9c0b7f3d51",
+    "items": [
+        {
+            "productId": "0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93",
+            "quantity": 2,
+            "unitPrice": 2000,
+        },
+    ],
+    "total": 4000,
+    "currency": "GBP",
+}
+
+client.publish("CartCheckedOut", event)
+```
+
+```java PublishCartCheckedOut.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishCartCheckedOut {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "e4b7c1d9-2f6a-4e8b-a3c5-7d9f1b3e5a02",
+      "occurredAt", "2026-09-11T08:12:45Z",
+      "cartId", "c1d2e3f4-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+      "customerId", "7a1e5c9d-8b3f-4f2a-a6d4-2e9c0b7f3d51",
+      "items", List.of(
+        Map.of(
+          "productId", "0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93",
+          "quantity", 2,
+          "unitPrice", 2000
+        )
+      ),
+      "total", 4000,
+      "currency", "GBP"
+    );
+
+    client.publish("CartCheckedOut", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Publish a multi-item checkout with a discount
+
+A customer checks out T-shirts, a hoodie and a cap with the `AUTUMN10` voucher. The event carries the subtotal, the discount and the final total so consumers do not need to reprice the cart.
+
+### Payload details
+
+- `items` has three lines: 2 T-shirts at 2,000, 1 hoodie at 4,500 and 1 cap at 1,500 pence.
+- `subtotal` is the total before discounts.
+- `discount` is the 10% voucher saving.
+- `total` is `subtotal` minus `discount`.
+
+The subtotal is **4,000 + 4,500 + 1,500 = 10,000 pence (£100.00)**, the discount is **1,000 pence (£10.00)** and the total is **9,000 pence (£90.00)**.
+
+### Using this example
+
+Check that the payment is taken for 9,000 pence, not the subtotal, and that the order has three lines.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the CartCheckedOut schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-cart-checked-out.ts
+import { EventsClient } from '@acme/events';
+import type { CartCheckedOut } from './schemas/cart-checked-out';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: CartCheckedOut = {
+  eventId: 'f6a2d8c4-9b1e-4a7d-b5c3-1e7f9a2d4c68',
+  occurredAt: '2026-09-14T17:30:05Z',
+  cartId: 'a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24',
+  customerId: '3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60',
+  items: [
+    {
+      productId: '0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93',
+      quantity: 2,
+      unitPrice: 2000,
+    },
+    {
+      productId: '5b9d3e7f-1a2c-4b6d-8e0f-2c4a6e8b0d15',
+      quantity: 1,
+      unitPrice: 4500,
+    },
+    {
+      productId: '8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46',
+      quantity: 1,
+      unitPrice: 1500,
+    },
+  ],
+  subtotal: 10000,
+  discount: 1000,
+  total: 9000,
+  currency: 'GBP',
+};
+
+await client.publish('CartCheckedOut', event);
+```
+
+```python publish_cart_checked_out.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "eventId": "f6a2d8c4-9b1e-4a7d-b5c3-1e7f9a2d4c68",
+    "occurredAt": "2026-09-14T17:30:05Z",
+    "cartId": "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+    "customerId": "3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60",
+    "items": [
+        {
+            "productId": "0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93",
+            "quantity": 2,
+            "unitPrice": 2000,
+        },
+        {
+            "productId": "5b9d3e7f-1a2c-4b6d-8e0f-2c4a6e8b0d15",
+            "quantity": 1,
+            "unitPrice": 4500,
+        },
+        {
+            "productId": "8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46",
+            "quantity": 1,
+            "unitPrice": 1500,
+        },
+    ],
+    "subtotal": 10000,
+    "discount": 1000,
+    "total": 9000,
+    "currency": "GBP",
+}
+
+client.publish("CartCheckedOut", event)
+```
+
+```java PublishCartCheckedOut.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class PublishCartCheckedOut {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "eventId", "f6a2d8c4-9b1e-4a7d-b5c3-1e7f9a2d4c68",
+      "occurredAt", "2026-09-14T17:30:05Z",
+      "cartId", "a7c3e9f1-2b4d-4e6a-8f1c-3d5b7e9a1c24",
+      "customerId", "3f2c8a91-6b4e-4d7a-9c1f-8e5b2a7d4c60",
+      "items", List.of(
+        Map.of(
+          "productId", "0e8f4b2a-7c1d-4f3e-9a5b-6d2c8e1f7a93",
+          "quantity", 2,
+          "unitPrice", 2000
+        ),
+        Map.of(
+          "productId", "5b9d3e7f-1a2c-4b6d-8e0f-2c4a6e8b0d15",
+          "quantity", 1,
+          "unitPrice", 4500
+        ),
+        Map.of(
+          "productId", "8d4f6a2c-3e5b-4c7d-9f1a-5b7d9e3c1a46",
+          "quantity", 1,
+          "unitPrice", 1500
+        )
+      ),
+      "subtotal", 10000,
+      "discount", 1000,
+      "total", 9000,
+      "currency", "GBP"
+    );
+
+    client.publish("CartCheckedOut", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

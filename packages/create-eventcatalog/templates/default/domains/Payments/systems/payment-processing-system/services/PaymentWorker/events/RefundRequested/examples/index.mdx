@@ -1,0 +1,194 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Request a full refund for a cancelled order
+
+The customer cancels their T-shirt and cap order before it is dispatched. The PaymentWorker publishes `RefundRequested` so Stripe returns the full charge.
+
+### Payload details
+
+- `refundId` identifies this refund; `paymentId` is the original charge being refunded.
+- `orderId` is included so the refund can be traced back to the cancelled order.
+- `amount` matches the original charge, in pence.
+- `reason` is free text recorded for support and reporting.
+
+The refund is **4,298 pence (£42.98)**, the full amount of the original payment.
+
+### Using this example
+
+Consumers should refund `amount` against `paymentId` and reply with a `RefundProcessed` event that carries the same `refundId`.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the RefundRequested schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-refund-requested.ts
+import { EventsClient } from '@acme/events';
+import type { RefundRequested } from './schemas/refund-requested';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: RefundRequested = {
+  refundId: 'b5e477d7-f910-43f5-a371-e9f3f53cfaa2',
+  paymentId: '586e57ab-77a9-406a-945d-4619c76a582e',
+  orderId: '971b5a4b-6885-405c-899b-5e0f428016c1',
+  amount: 4298,
+  currency: 'GBP',
+  reason: 'Order cancelled by customer before dispatch',
+  requestedAt: '2026-09-11T14:05:10Z',
+};
+
+await client.publish('RefundRequested', event);
+```
+
+```python publish_refund_requested.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "refundId": "b5e477d7-f910-43f5-a371-e9f3f53cfaa2",
+    "paymentId": "586e57ab-77a9-406a-945d-4619c76a582e",
+    "orderId": "971b5a4b-6885-405c-899b-5e0f428016c1",
+    "amount": 4298,
+    "currency": "GBP",
+    "reason": "Order cancelled by customer before dispatch",
+    "requestedAt": "2026-09-11T14:05:10Z",
+}
+
+client.publish("RefundRequested", event)
+```
+
+```java PublishRefundRequested.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishRefundRequested {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "refundId", "b5e477d7-f910-43f5-a371-e9f3f53cfaa2",
+      "paymentId", "586e57ab-77a9-406a-945d-4619c76a582e",
+      "orderId", "971b5a4b-6885-405c-899b-5e0f428016c1",
+      "amount", 4298,
+      "currency", "GBP",
+      "reason", "Order cancelled by customer before dispatch",
+      "requestedAt", "2026-09-11T14:05:10Z"
+    );
+
+    client.publish("RefundRequested", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Request a partial refund for a returned item
+
+The guest shopper returns one of the three hoodies. The PaymentWorker publishes `RefundRequested` for that item only, using just the required fields.
+
+### Payload details
+
+- `paymentId` is the original €164.97 charge; only part of it is refunded.
+- `amount` is one hoodie at €54.99, in cents.
+- `orderId` and `reason` are optional and omitted here.
+
+The refund is **5,499 cents (€54.99)**, leaving 10,998 cents (€109.98) charged.
+
+### Using this example
+
+Use this payload to check that consumers support partial refunds, where `amount` is less than the original charge.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the RefundRequested schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-refund-requested.ts
+import { EventsClient } from '@acme/events';
+import type { RefundRequested } from './schemas/refund-requested';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: RefundRequested = {
+  refundId: 'f57e3268-60d1-4b1d-96e9-c27d47992d47',
+  paymentId: '41651c3f-fa8e-40fc-a217-a83929d15081',
+  amount: 5499,
+  currency: 'EUR',
+  requestedAt: '2026-09-21T09:40:00Z',
+};
+
+await client.publish('RefundRequested', event);
+```
+
+```python publish_refund_requested.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "refundId": "f57e3268-60d1-4b1d-96e9-c27d47992d47",
+    "paymentId": "41651c3f-fa8e-40fc-a217-a83929d15081",
+    "amount": 5499,
+    "currency": "EUR",
+    "requestedAt": "2026-09-21T09:40:00Z",
+}
+
+client.publish("RefundRequested", event)
+```
+
+```java PublishRefundRequested.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishRefundRequested {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "refundId", "f57e3268-60d1-4b1d-96e9-c27d47992d47",
+      "paymentId", "41651c3f-fa8e-40fc-a217-a83929d15081",
+      "amount", 5499,
+      "currency", "EUR",
+      "requestedAt", "2026-09-21T09:40:00Z"
+    );
+
+    client.publish("RefundRequested", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

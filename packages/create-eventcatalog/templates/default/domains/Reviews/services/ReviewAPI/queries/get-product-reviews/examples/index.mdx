@@ -1,0 +1,259 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Get the latest reviews with default paging
+
+The product page for the navy baseball cap loads its reviews. Only `productId` is sent, so the Review API uses its defaults.
+
+### Payload details
+
+- `productId` is `prod_cap_baseball_navy`.
+- `page`, `pageSize` and `sort` are omitted, so the defaults apply: page `1`, `20` reviews per page, sorted `newest` first.
+- The response contains the aggregate rating and both published reviews for the cap, newest first.
+
+The two reviews have 5 + 4 = **9 stars**, so `averageRating` is 9 / 2 = **4.5**.
+
+### Example response
+
+```json
+{
+  "productId": "prod_cap_baseball_navy",
+  "averageRating": 4.5,
+  "reviewCount": 2,
+  "page": 1,
+  "pageSize": 20,
+  "reviews": [
+    {
+      "reviewId": "f1c7a9e3-6d2b-4f8a-8c4e-0b9d7a3f2e15",
+      "customerId": "cust_5502",
+      "rating": 5,
+      "title": "Great fit, adjustable strap",
+      "body": "Fits well and the colour has not faded in the sun.",
+      "helpfulCount": 3,
+      "publishedAt": "2026-09-12T15:31:07Z"
+    },
+    {
+      "reviewId": "b2d6f8a1-4c3e-4a9b-9f7d-5e1c3a8b0d24",
+      "customerId": "cust_6178",
+      "rating": 4,
+      "title": "Arrived a day late",
+      "body": "Took a day longer than expected, but the cap is solid.",
+      "helpfulCount": 0,
+      "publishedAt": "2026-09-10T11:08:52Z"
+    }
+  ]
+}
+```
+
+### Using this example
+
+Check that the defaults are applied when paging and sort fields are left out, and that only published reviews are returned.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetProductReviews schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript query-get-product-reviews.ts
+import { EventsClient } from '@acme/events';
+import type { GetProductReviewsRequest, GetProductReviewsResponse } from './schemas/get-product-reviews';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const request: GetProductReviewsRequest = {
+  productId: 'prod_cap_baseball_navy',
+};
+
+const reviews: GetProductReviewsResponse = await client.query('GetProductReviews', request);
+
+console.log(reviews.averageRating, reviews.reviewCount);
+```
+
+```python query_get_product_reviews.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "productId": "prod_cap_baseball_navy",
+}
+
+reviews = client.query("GetProductReviews", request)
+
+print(reviews["averageRating"], reviews["reviewCount"])
+```
+
+```java QueryGetProductReviews.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetProductReviews {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "productId", "prod_cap_baseball_navy"
+    );
+
+    var reviews = client.query(
+      "GetProductReviews",
+      request
+    );
+
+    System.out.println(
+      reviews.get("averageRating") + " "
+        + reviews.get("reviewCount")
+    );
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Get a page of the most helpful reviews
+
+A compact "Most helpful reviews" widget on the classic white T-shirt page shows two reviews at a time. The shopper moves to the second page.
+
+### Payload details
+
+- `productId` is `prod_tshirt_classic_white`.
+- `page` is `2` and `pageSize` is `2` (the schema allows 1 to 100).
+- `sort` is `most_helpful`, one of `newest`, `highest`, `lowest` or `most_helpful`.
+- The response is ordered by `helpfulCount`, highest first; the top two reviews were on page 1.
+
+### Example response
+
+```json
+{
+  "productId": "prod_tshirt_classic_white",
+  "averageRating": 4.6,
+  "reviewCount": 128,
+  "page": 2,
+  "pageSize": 2,
+  "reviews": [
+    {
+      "reviewId": "0e5a3b7c-8d1f-4a2e-9b6c-3f8d1e7a5c49",
+      "customerId": "cust_2764",
+      "rating": 4,
+      "title": "Soft but runs slightly large",
+      "body": "Really soft cotton. Size down for a closer fit.",
+      "helpfulCount": 9,
+      "publishedAt": "2026-08-02T19:45:13Z"
+    },
+    {
+      "reviewId": "6a9d2e4f-1c8b-4d7a-a3e5-8b0c6f2d9e71",
+      "customerId": "cust_8841",
+      "rating": 5,
+      "title": "Survived 30 washes",
+      "body": "Still white and still in shape after months of washing.",
+      "helpfulCount": 7,
+      "publishedAt": "2026-07-21T08:17:36Z"
+    }
+  ]
+}
+```
+
+### Using this example
+
+Use this payload to test paging and sorting together: `reviewCount` stays the product total while `reviews` holds only the requested page.
+
+The examples use a **fictional Acme Events SDK** to query a payload matching the GetProductReviews schema. The package names and query methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript query-get-product-reviews.ts
+import { EventsClient } from '@acme/events';
+import type { GetProductReviewsRequest, GetProductReviewsResponse } from './schemas/get-product-reviews';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const request: GetProductReviewsRequest = {
+  productId: 'prod_tshirt_classic_white',
+  page: 2,
+  pageSize: 2,
+  sort: 'most_helpful',
+};
+
+const reviews: GetProductReviewsResponse = await client.query('GetProductReviews', request);
+
+console.log(reviews.averageRating, reviews.reviewCount);
+```
+
+```python query_get_product_reviews.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+request = {
+    "productId": "prod_tshirt_classic_white",
+    "page": 2,
+    "pageSize": 2,
+    "sort": "most_helpful",
+}
+
+reviews = client.query("GetProductReviews", request)
+
+print(reviews["averageRating"], reviews["reviewCount"])
+```
+
+```java QueryGetProductReviews.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class QueryGetProductReviews {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var request = Map.of(
+      "productId", "prod_tshirt_classic_white",
+      "page", 2,
+      "pageSize", 2,
+      "sort", "most_helpful"
+    );
+
+    var reviews = client.query(
+      "GetProductReviews",
+      request
+    );
+
+    System.out.println(
+      reviews.get("averageRating") + " "
+        + reviews.get("reviewCount")
+    );
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

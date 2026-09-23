@@ -1,0 +1,246 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Create a multi-item order with its payment authorisation
+
+Stock is reserved and payment is authorised for two T-shirts and a cap. As the final step of the checkout saga, the Checkout Orchestrator sends this command to the Order Service.
+
+### Payload details
+
+- `cartId` and `customerId` link the order to the checked-out cart and the customer.
+- `items` has 2 lines: 2 × Classic White T-shirt at 1,999 pence and 1 × Logo Cap at 1,499 pence. `unitPrice` is per unit, in minor units.
+- `total` is the sum of `quantity` × `unitPrice` across all lines.
+- `currency` is `GBP`.
+- `paymentAuthorizationId` references the hold placed by `AuthorizePayment`, so the funds can be captured.
+
+The total is **3,998 + 1,499 = 5,497 pence (£54.97)**.
+
+### Using this example
+
+The Order Service should store both lines, check that `total` equals the sum of the lines, and publish `OrderCreated` with a total of 5,497 `GBP`.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CreateOrder schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-create-order.ts
+import { EventsClient } from '@acme/events';
+import type { CreateOrder } from './schemas/create-order';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: CreateOrder = {
+  cartId: 'c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+  customerId: '3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d',
+  items: [
+    {
+      productId: '5e8f2a1b-3c4d-4e5f-8a6b-7c8d9e0f1a2b',
+      quantity: 2,
+      unitPrice: 1999,
+    },
+    {
+      productId: '6f9a3b2c-4d5e-4f6a-9b7c-8d9e0f1a2b3c',
+      quantity: 1,
+      unitPrice: 1499,
+    },
+  ],
+  total: 5497,
+  currency: 'GBP',
+  paymentAuthorizationId: 'auth_7Hk2Qp9LmX4v',
+};
+
+await client.send('CreateOrder', command);
+```
+
+```python send_create_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "customerId": "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+    "items": [
+        {
+            "productId": "5e8f2a1b-3c4d-4e5f-8a6b-7c8d9e0f1a2b",
+            "quantity": 2,
+            "unitPrice": 1999,
+        },
+        {
+            "productId": "6f9a3b2c-4d5e-4f6a-9b7c-8d9e0f1a2b3c",
+            "quantity": 1,
+            "unitPrice": 1499,
+        },
+    ],
+    "total": 5497,
+    "currency": "GBP",
+    "paymentAuthorizationId": "auth_7Hk2Qp9LmX4v",
+}
+
+client.send("CreateOrder", command)
+```
+
+```java SendCreateOrder.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class SendCreateOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "c1a2b3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "customerId", "3f2b8c1e-7a4d-4e9b-9c6f-1d2e3a4b5c6d",
+      "items", List.of(
+        Map.of(
+          "productId", "5e8f2a1b-3c4d-4e5f-8a6b-7c8d9e0f1a2b",
+          "quantity", 2,
+          "unitPrice", 1999
+        ),
+        Map.of(
+          "productId", "6f9a3b2c-4d5e-4f6a-9b7c-8d9e0f1a2b3c",
+          "quantity", 1,
+          "unitPrice", 1499
+        )
+      ),
+      "total", 5497,
+      "currency", "GBP",
+      "paymentAuthorizationId", "auth_7Hk2Qp9LmX4v"
+    );
+
+    client.send("CreateOrder", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Create a single-item euro order
+
+A customer in Ireland buys one hoodie priced in euros. The command carries only the required fields and leaves out `paymentAuthorizationId`.
+
+### Payload details
+
+- `items` has one line: 1 × Heavyweight Hoodie at 5,799 cents.
+- `total` equals that single line.
+- `currency` is `EUR`, so `unitPrice` and `total` are in cents.
+- `paymentAuthorizationId` is optional and omitted here.
+
+The total is **5,799 cents (€57.99)**.
+
+### Using this example
+
+Use this to check that the Order Service creates an order without a `paymentAuthorizationId` and keeps the `EUR` currency on the resulting `OrderCreated` event.
+
+The examples use a **fictional Acme Events SDK** to send a payload matching the CreateOrder schema. The package names and send methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript send-create-order.ts
+import { EventsClient } from '@acme/events';
+import type { CreateOrder } from './schemas/create-order';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const command: CreateOrder = {
+  cartId: 'd2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+  customerId: '8a7c6e5d-2b1f-4c3a-9e8d-7f6a5b4c3d2e',
+  items: [
+    {
+      productId: '7a0b4c3d-5e6f-4a7b-8c8d-9e0f1a2b3c4d',
+      quantity: 1,
+      unitPrice: 5799,
+    },
+  ],
+  total: 5799,
+  currency: 'EUR',
+};
+
+await client.send('CreateOrder', command);
+```
+
+```python send_create_order.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+command = {
+    "cartId": "d2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+    "customerId": "8a7c6e5d-2b1f-4c3a-9e8d-7f6a5b4c3d2e",
+    "items": [
+        {
+            "productId": "7a0b4c3d-5e6f-4a7b-8c8d-9e0f1a2b3c4d",
+            "quantity": 1,
+            "unitPrice": 5799,
+        },
+    ],
+    "total": 5799,
+    "currency": "EUR",
+}
+
+client.send("CreateOrder", command)
+```
+
+```java SendCreateOrder.java
+import com.acme.events.EventsClient;
+import java.util.List;
+import java.util.Map;
+
+public class SendCreateOrder {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var command = Map.of(
+      "cartId", "d2b3c4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+      "customerId", "8a7c6e5d-2b1f-4c3a-9e8d-7f6a5b4c3d2e",
+      "items", List.of(
+        Map.of(
+          "productId", "7a0b4c3d-5e6f-4a7b-8c8d-9e0f1a2b3c4d",
+          "quantity", 1,
+          "unitPrice", 5799
+        )
+      ),
+      "total", 5799,
+      "currency", "EUR"
+    );
+
+    client.send("CreateOrder", command);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

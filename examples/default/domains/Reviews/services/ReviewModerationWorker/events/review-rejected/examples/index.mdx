@@ -1,0 +1,176 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Reject a spam review
+
+A review on the navy baseball cap contains a promotional link for a discount site. The Review Moderation Worker rejects it as spam, so it is kept for audit but never shown on the storefront.
+
+### Payload details
+
+- `reviewId` identifies the rejected review.
+- `productId` is `prod_cap_baseball_navy`.
+- `reason` is `spam`, one of `spam`, `abuse`, `off_topic` or `policy_violation`.
+- `rejectedAt` is when the moderation decision was made.
+
+### Using this example
+
+Check that the review stays hidden, the product's rating is not changed, and the `reason` is recorded against the review for audit.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewRejected schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-review-rejected.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  reviewId: 'c9e1f4a2-7b6d-4d3c-8e2f-1a5b9c7d0e63',
+  productId: 'prod_cap_baseball_navy',
+  reason: 'spam',
+  rejectedAt: '2026-09-16T07:41:19Z',
+};
+
+await client.publish('ReviewRejected', event);
+```
+
+```python publish_review_rejected.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "c9e1f4a2-7b6d-4d3c-8e2f-1a5b9c7d0e63",
+    "productId": "prod_cap_baseball_navy",
+    "reason": "spam",
+    "rejectedAt": "2026-09-16T07:41:19Z",
+}
+
+client.publish("ReviewRejected", event)
+```
+
+```java PublishReviewRejected.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewRejected {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "c9e1f4a2-7b6d-4d3c-8e2f-1a5b9c7d0e63",
+      "productId", "prod_cap_baseball_navy",
+      "reason", "spam",
+      "rejectedAt", "2026-09-16T07:41:19Z"
+    );
+
+    client.publish("ReviewRejected", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Reject a review that breaks the content policy
+
+A review on the black zip hoodie includes a delivery driver's full name and phone number. Sharing personal details breaks the review policy, so the worker rejects it.
+
+### Payload details
+
+- `productId` is `prod_hoodie_zip_black`.
+- `reason` is `policy_violation`, used when a review is on topic but breaks a content rule.
+- `rejectedAt` is the UTC time of the decision.
+
+### Using this example
+
+Use this payload to test that each `reason` value maps to the right message shown to the customer who wrote the review.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the ReviewRejected schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```javascript publish-review-rejected.js
+import { EventsClient } from '@acme/events';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY,
+});
+
+const event = {
+  reviewId: 'e4b7d1c3-9a2f-4b6e-a8d5-2c7f0e9b1a36',
+  productId: 'prod_hoodie_zip_black',
+  reason: 'policy_violation',
+  rejectedAt: '2026-09-16T14:02:55Z',
+};
+
+await client.publish('ReviewRejected', event);
+```
+
+```python publish_review_rejected.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "reviewId": "e4b7d1c3-9a2f-4b6e-a8d5-2c7f0e9b1a36",
+    "productId": "prod_hoodie_zip_black",
+    "reason": "policy_violation",
+    "rejectedAt": "2026-09-16T14:02:55Z",
+}
+
+client.publish("ReviewRejected", event)
+```
+
+```java PublishReviewRejected.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishReviewRejected {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "reviewId", "e4b7d1c3-9a2f-4b6e-a8d5-2c7f0e9b1a36",
+      "productId", "prod_hoodie_zip_black",
+      "reason", "policy_violation",
+      "rejectedAt", "2026-09-16T14:02:55Z"
+    );
+
+    client.publish("ReviewRejected", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>

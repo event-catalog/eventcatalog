@@ -1,0 +1,265 @@
+<Columns cols={2}>
+
+<Column>
+
+## 1. Report a declined card
+
+The customer's bank declines the card for a hoodie order. The StripeWebhookEndpoint publishes `PaymentFailed` and the PaymentWorker records the payment as failed, which leads to the order being cancelled.
+
+### Payload details
+
+- `reason` is `CARD_DECLINED`: the issuing bank refused the charge.
+- `paymentId` and `orderId` identify the failed payment and its order.
+- `failedAt` is when Stripe reported the failure.
+
+### Using this example
+
+Consumers should mark the payment as failed and start cancelling `orderId`. The customer can be asked to try another card.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-payment-failed.ts
+import { EventsClient } from '@acme/events';
+import type { PaymentFailed } from './schemas/payment-failed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: PaymentFailed = {
+  paymentId: '428dc169-43a6-479d-9661-5b07984cb556',
+  orderId: '2d7ef31b-211a-4dbc-898a-0b095e7b909c',
+  reason: 'CARD_DECLINED',
+  failedAt: '2026-09-16T02:47:20Z',
+};
+
+await client.publish('PaymentFailed', event);
+```
+
+```python publish_payment_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "428dc169-43a6-479d-9661-5b07984cb556",
+    "orderId": "2d7ef31b-211a-4dbc-898a-0b095e7b909c",
+    "reason": "CARD_DECLINED",
+    "failedAt": "2026-09-16T02:47:20Z",
+}
+
+client.publish("PaymentFailed", event)
+```
+
+```java PublishPaymentFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "428dc169-43a6-479d-9661-5b07984cb556",
+      "orderId", "2d7ef31b-211a-4dbc-898a-0b095e7b909c",
+      "reason", "CARD_DECLINED",
+      "failedAt", "2026-09-16T02:47:20Z"
+    );
+
+    client.publish("PaymentFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 2. Report an expired card
+
+A customer pays for a cap with a saved card that has expired. Stripe rejects the charge and the StripeWebhookEndpoint publishes `PaymentFailed`.
+
+### Payload details
+
+- `reason` is `EXPIRED_CARD`: the card's expiry date has passed.
+- This is caused by the customer's card details, so retrying the same card will not help.
+
+### Using this example
+
+Use this payload to check that consumers prompt the customer to update their card rather than retrying.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-payment-failed.ts
+import { EventsClient } from '@acme/events';
+import type { PaymentFailed } from './schemas/payment-failed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: PaymentFailed = {
+  paymentId: 'dfdffee1-3e4d-4fa3-b86e-ebe0cd93ca60',
+  orderId: '76d60366-d78a-4e10-b1ad-832445febfa1',
+  reason: 'EXPIRED_CARD',
+  failedAt: '2026-09-17T11:20:09Z',
+};
+
+await client.publish('PaymentFailed', event);
+```
+
+```python publish_payment_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "dfdffee1-3e4d-4fa3-b86e-ebe0cd93ca60",
+    "orderId": "76d60366-d78a-4e10-b1ad-832445febfa1",
+    "reason": "EXPIRED_CARD",
+    "failedAt": "2026-09-17T11:20:09Z",
+}
+
+client.publish("PaymentFailed", event)
+```
+
+```java PublishPaymentFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "dfdffee1-3e4d-4fa3-b86e-ebe0cd93ca60",
+      "orderId", "76d60366-d78a-4e10-b1ad-832445febfa1",
+      "reason", "EXPIRED_CARD",
+      "failedAt", "2026-09-17T11:20:09Z"
+    );
+
+    client.publish("PaymentFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
+
+---
+
+<Columns cols={2}>
+
+<Column>
+
+## 3. Report a processing error
+
+Stripe has a temporary problem while charging a T-shirt order. The StripeWebhookEndpoint publishes `PaymentFailed` even though the card itself is fine.
+
+### Payload details
+
+- `reason` is `PROCESSING_ERROR`: the failure is on the processor side, not the customer's card.
+- This is the only reason in the schema where a retry may succeed.
+
+### Using this example
+
+Use this payload to test retry handling: consumers may retry the charge before cancelling the order.
+
+The examples use a **fictional Acme Events SDK** to publish a payload matching the PaymentFailed schema. The package names and publish methods are illustrative.
+
+</Column>
+
+<Column>
+
+<CodeGroup dropdown>
+
+```typescript publish-payment-failed.ts
+import { EventsClient } from '@acme/events';
+import type { PaymentFailed } from './schemas/payment-failed';
+
+const client = new EventsClient({
+  apiKey: process.env.ACME_API_KEY!,
+});
+
+const event: PaymentFailed = {
+  paymentId: '0c3b8e41-5a7f-4d26-9e18-b4f2a6d09c75',
+  orderId: '99027891-075d-4561-91f8-da95f34e4a57',
+  reason: 'PROCESSING_ERROR',
+  failedAt: '2026-09-18T16:55:48Z',
+};
+
+await client.publish('PaymentFailed', event);
+```
+
+```python publish_payment_failed.py
+import os
+from acme_events import EventsClient
+
+client = EventsClient(api_key=os.environ["ACME_API_KEY"])
+
+event = {
+    "paymentId": "0c3b8e41-5a7f-4d26-9e18-b4f2a6d09c75",
+    "orderId": "99027891-075d-4561-91f8-da95f34e4a57",
+    "reason": "PROCESSING_ERROR",
+    "failedAt": "2026-09-18T16:55:48Z",
+}
+
+client.publish("PaymentFailed", event)
+```
+
+```java PublishPaymentFailed.java
+import com.acme.events.EventsClient;
+import java.util.Map;
+
+public class PublishPaymentFailed {
+  public static void main(String[] args) {
+    var client = new EventsClient(
+      System.getenv("ACME_API_KEY")
+    );
+
+    var event = Map.of(
+      "paymentId", "0c3b8e41-5a7f-4d26-9e18-b4f2a6d09c75",
+      "orderId", "99027891-075d-4561-91f8-da95f34e4a57",
+      "reason", "PROCESSING_ERROR",
+      "failedAt", "2026-09-18T16:55:48Z"
+    );
+
+    client.publish("PaymentFailed", event);
+  }
+}
+```
+
+</CodeGroup>
+
+</Column>
+
+</Columns>
