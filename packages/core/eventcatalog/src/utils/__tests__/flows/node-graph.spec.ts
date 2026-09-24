@@ -124,9 +124,30 @@ describe('Flows NodeGraph', () => {
         },
       ];
 
-      expect(nodes).toEqual(expect.arrayContaining(expectedNodes));
+      expect(nodes).toEqual(expect.arrayContaining(expectedNodes.map((node: any) => expect.objectContaining(node))));
 
       expect(edges).toEqual(expect.arrayContaining([expect.objectContaining(expectedEdges[0])]));
+    });
+
+    it('lays the flow out, positioning its steps and routing its edges', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
+
+      const stepOne = nodes.find((node: any) => node.id === 'step-1');
+      const stepTwo = nodes.find((node: any) => node.id === 'step-2');
+      // Left to right: the next step comes after the one before it
+      expect(stepTwo!.position.x).toBeGreaterThan(stepOne!.position.x);
+
+      const edge = edges.find((e: any) => e.id === 'step-1-step-2');
+      expect(edge?.type).toBe('flow-edge');
+      expect(edge?.data?.route?.points.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('returns the flow without positions when layout is false', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0', layout: false });
+
+      expect(nodes.map((node: any) => node.id)).toEqual(['step-1', 'step-2', 'step-3', 'step-4']);
+      nodes.forEach((node: any) => expect(node.position).toEqual({ x: 0, y: 0 }));
+      edges.forEach((edge: any) => expect(edge.data?.route).toBeUndefined());
     });
 
     it('attaches a contextMenu to message step nodes so right-click shows the custom menu (issue #2216)', async () => {
@@ -403,7 +424,7 @@ describe('Flows NodeGraph', () => {
           },
         ];
 
-        expect(nodes).toEqual(expect.arrayContaining(expectedNodes));
+        expect(nodes).toEqual(expect.arrayContaining(expectedNodes.map((node: any) => expect.objectContaining(node))));
         expect(edges).toEqual(expect.arrayContaining([expect.objectContaining(expectedEdges[0])]));
       });
     });

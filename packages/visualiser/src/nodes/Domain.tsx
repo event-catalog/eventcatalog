@@ -10,6 +10,7 @@ import { buildUrl } from "../utils/url-builder";
 import { getIcon } from "../utils/badges";
 import { memo, useState, useCallback, useMemo } from "react";
 import { HANDLE_LEFT_STYLE, HANDLE_RIGHT_STYLE } from "./shared-styles";
+import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 
 interface DomainData {
   id: string;
@@ -95,6 +96,17 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
     <ContextMenu.Root>
       <ContextMenu.Trigger>
         <div className="w-full rounded-lg border-2 border-yellow-400 bg-[rgb(var(--ec-card-bg))] shadow-lg">
+          {/* Lets edges connect to the domain itself, not only its services */}
+          <Handle
+            type="target"
+            position={Position.Left}
+            style={HIDDEN_HANDLE_STYLE}
+          />
+          <Handle
+            type="source"
+            position={Position.Right}
+            style={HIDDEN_HANDLE_STYLE}
+          />
           <div className="bg-[rgb(var(--ec-domain-header-bg,253_224_71)/0.2)] px-3 py-2 flex items-center space-x-2">
             {Icon && <Icon className="w-4 h-4 text-yellow-500" />}
             <div>

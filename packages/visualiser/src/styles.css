@@ -1,6 +1,6 @@
 @import "tailwindcss/theme";
 @import "tailwindcss/utilities";
-@import '@xyflow/react/dist/style.css';
+@import "@xyflow/react/dist/style.css";
 
 @source "../src/**/*.{js,ts,jsx,tsx}";
 @source "../src/safelist.txt";
@@ -13,6 +13,9 @@
  */
 
 :root {
+  /* Accent of the host catalog theme (used by the canvas toolbar) */
+  --ec-catalog-accent: 79 70 229;
+
   /* Background colors */
   --ec-page-bg: 255, 255, 255;
   --ec-card-bg: 255, 255, 255;
@@ -116,9 +119,9 @@
   --ec-custom-node-bg: #f8fbff;
   --ec-message-group-node-bg: #f9f5ff;
   --ec-deprecated-stripe: rgba(239, 68, 68, 0.3);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -168,52 +171,117 @@
 
 /* Node handle pulse animations (shared across all node types) */
 @keyframes ec-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(251, 146, 60, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(251, 146, 60, 0);
+  }
 }
 @keyframes ec-service-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(236, 72, 153, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(236, 72, 153, 0);
+  }
 }
 @keyframes ec-svc-msg-in {
-  0% { transform: translateX(-18px) scale(0.7); opacity: 0; }
-  30% { opacity: 0.7; }
-  70% { opacity: 0.7; }
-  100% { transform: translateX(0) scale(0.5); opacity: 0; }
+  0% {
+    transform: translateX(-18px) scale(0.7);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.7;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(0) scale(0.5);
+    opacity: 0;
+  }
 }
 @keyframes ec-svc-msg-out {
-  0% { transform: translateX(0) scale(0.5); opacity: 0; }
-  30% { opacity: 0.7; }
-  70% { opacity: 0.7; }
-  100% { transform: translateX(18px) scale(0.7); opacity: 0; }
+  0% {
+    transform: translateX(0) scale(0.5);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.7;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(18px) scale(0.7);
+    opacity: 0;
+  }
 }
 @keyframes ec-command-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(59, 130, 246, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(59, 130, 246, 0);
+  }
 }
 @keyframes ec-query-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(34, 197, 94, 0);
+  }
 }
 @keyframes ec-data-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(59, 130, 246, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(59, 130, 246, 0);
+  }
 }
 @keyframes ec-channel-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(107, 114, 128, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(107, 114, 128, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(107, 114, 128, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(107, 114, 128, 0);
+  }
 }
 @keyframes ec-actor-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(234, 179, 8, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(234, 179, 8, 0);
+  }
 }
 @keyframes ec-external-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(168, 85, 247, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(168, 85, 247, 0);
+  }
 }
 @keyframes ec-dp-handle-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
-  50% { box-shadow: 0 0 0 5px rgba(99, 102, 241, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(99, 102, 241, 0);
+  }
 }
 
 /* ReactFlow customizations */
@@ -232,6 +300,63 @@
 /* Smooth transition when expanding/collapsing message groups */
 .ec-animating-layout .react-flow__node {
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Nodes and edges added or removed when changing the level of detail */
+.react-flow__node.ec-enter,
+.react-flow__edge.ec-enter {
+  animation: ec-fade-in 0.5s ease-out;
+}
+
+/* Animations rather than transitions: leaving nodes and edges move to the end
+   of the graph, and a moved element doesn't transition */
+.react-flow__node.ec-exit,
+.react-flow__edge.ec-exit {
+  animation: ec-fade-out 0.4s ease-in forwards;
+}
+
+/* Kept out of sight while the graph's first layout is worked out */
+.react-flow.ec-laying-out .react-flow__viewport {
+  opacity: 0;
+}
+
+/* A group shrinking back into the node it expanded from */
+.react-flow__node.ec-morph-exit {
+  animation: ec-fade-out 0.5s ease-in forwards;
+}
+
+/* Highlighting cross-domain communication (canvas toolbar): edges to or from
+   other domains stand out in the accent colour, the rest fade back */
+.react-flow.ec-highlight-cross-domain
+  .react-flow__edge:not(:has(.ec-cross-domain)),
+.react-flow.ec-highlight-cross-domain .ec-edge-label:not(.ec-cross-domain) {
+  opacity: 0.15;
+}
+.react-flow.ec-highlight-cross-domain .react-flow__edge-path.ec-cross-domain {
+  stroke: rgb(var(--ec-catalog-accent, 79 70 229)) !important;
+  stroke-width: 3px !important;
+}
+.react-flow.ec-highlight-cross-domain .ec-edge-label.ec-cross-domain {
+  border-color: rgb(var(--ec-catalog-accent, 79 70 229)) !important;
+  color: rgb(var(--ec-catalog-accent, 79 70 229)) !important;
+}
+
+@keyframes ec-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes ec-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .react-flow__edge-path {
@@ -296,8 +421,13 @@
 }
 
 @keyframes ec-node-pulse {
-  0%, 100% { outline-color: rgba(37, 99, 235, 0.8); }
-  50% { outline-color: rgba(37, 99, 235, 0.2); }
+  0%,
+  100% {
+    outline-color: rgba(37, 99, 235, 0.8);
+  }
+  50% {
+    outline-color: rgba(37, 99, 235, 0.2);
+  }
 }
 
 [data-theme="dark"] .ec-edge-hover-node {
@@ -306,8 +436,13 @@
 }
 
 @keyframes ec-node-pulse-dark {
-  0%, 100% { outline-color: rgba(0, 217, 255, 0.8); }
-  50% { outline-color: rgba(0, 217, 255, 0.2); }
+  0%,
+  100% {
+    outline-color: rgba(0, 217, 255, 0.8);
+  }
+  50% {
+    outline-color: rgba(0, 217, 255, 0.2);
+  }
 }
 
 /* Edge label theming for default ReactFlow edges */
@@ -357,7 +492,9 @@
   cursor: pointer;
   color: #94a3b8;
   flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .ec-notes-close-btn:hover {

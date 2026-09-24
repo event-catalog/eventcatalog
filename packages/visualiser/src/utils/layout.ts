@@ -1,44 +1,34 @@
-import dagre from "dagre";
 import { MarkerType, type Node, type Edge } from "@xyflow/react";
 import type { GraphNode, GraphEdge } from "../types";
-
-const GROUP_HEADER_HEIGHT = 44;
-const GROUP_CONTENT_PADDING_TOP = 50;
-const GROUP_CONTENT_PADDING_BOTTOM = 30;
-const GROUP_PADDING_X = 60;
+import { layoutWithElk } from "./elk-layout";
 
 const EMPTY_GROUP_WIDTH = 200;
 const EMPTY_GROUP_HEIGHT = 80;
 
-const defaultSizes: Record<string, { w: number; h: number }> = {
-  service: { w: 300, h: 140 },
-  agent: { w: 300, h: 140 },
-  "agent-tool": { w: 260, h: 120 },
-  agentTool: { w: 260, h: 120 },
-  event: { w: 240, h: 140 },
-  command: { w: 300, h: 120 },
-  query: { w: 300, h: 120 },
-  channel: { w: 300, h: 140 },
-  container: { w: 300, h: 140 },
-  "data-product": { w: 300, h: 140 },
-  data: { w: 320, h: 120 },
-  domain: { w: 300, h: 120 },
-  flow: { w: 300, h: 140 },
-  actor: { w: 240, h: 100 },
-  "external-system": { w: 300, h: 100 },
-  step: { w: 280, h: 100 },
-  "message-group": { w: 350, h: 200 },
+const defaultSizes: Record<string, { width: number; height: number }> = {
+  service: { width: 300, height: 140 },
+  agent: { width: 300, height: 140 },
+  "agent-tool": { width: 260, height: 120 },
+  agentTool: { width: 260, height: 120 },
+  event: { width: 240, height: 140 },
+  command: { width: 300, height: 120 },
+  query: { width: 300, height: 120 },
+  channel: { width: 300, height: 140 },
+  container: { width: 300, height: 140 },
+  "data-product": { width: 300, height: 140 },
+  data: { width: 320, height: 120 },
+  domain: { width: 300, height: 120 },
+  flow: { width: 300, height: 140 },
+  actor: { width: 240, height: 100 },
+  "external-system": { width: 300, height: 100 },
+  step: { width: 280, height: 100 },
+  "message-group": { width: 350, height: 200 },
+  group: { width: EMPTY_GROUP_WIDTH, height: EMPTY_GROUP_HEIGHT },
 };
-const fallbackSize = { w: 280, h: 100 };
+const fallbackSize = { width: 280, height: 100 };
 
-export function getNodeSize(
-  type: string,
-  nodeWidth?: number,
-  nodeHeight?: number,
-) {
-  const size = defaultSizes[type] || fallbackSize;
-  return { w: nodeWidth ?? size.w, h: nodeHeight ?? size.h };
-}
+const getNodeSize = (node: Node) =>
+  defaultSizes[node.type || ""] || fallbackSize;
 
 export function buildNodeData(
   node: GraphNode,
@@ -173,392 +163,69 @@ export function buildNodeData(
   }
 }
 
-export function layoutGraph(
+/**
+ * Lays a DSL graph out (left to right), as React Flow nodes and edges. Domains,
+ * and nodes other nodes sit in, become groups sized to fit their children.
+ */
+export async function layoutGraph(
   nodes: GraphNode[],
   edges: GraphEdge[],
-  options: {
-    rankdir?: string;
-    nodesep?: number;
-    ranksep?: number;
-    edgesep?: number;
-  } = {},
-  style?: string,
-): { nodes: Node[]; edges: Edge[] } {
+  { style }: { style?: string } = {},
+): Promise<{ nodes: Node[]; edges: Edge[] }> {
   if (nodes.length === 0) {
     return { nodes: [], edges: [] };
   }
 
-  const { rankdir = "LR", nodesep = 80, ranksep = 140, edgesep = 40 } = options;
-
-  function nodeSize(type: string) {
-    return getNodeSize(type);
-  }
-
-  // All domain nodes become groups
-  const domainNodeIds = new Set(
-    nodes.filter((n) => n.type === "domain").map((n) => n.id),
-  );
-
-  const parentNodeIds = new Set(
-    nodes.filter((n) => n.parentId).map((n) => n.parentId!),
-  );
-
-  const allGroupIds = new Set([...domainNodeIds, ...parentNodeIds]);
-
-  const childNodeIds = new Set<string>();
-  for (const node of nodes) {
-    if (node.parentId && allGroupIds.has(node.parentId)) {
-      childNodeIds.add(node.id);
-    }
-  }
-
-  // If no groups, use flat layout
-  if (allGroupIds.size === 0) {
-    return flatLayout(
-      nodes,
-      edges,
-      { rankdir, nodesep, ranksep, edgesep },
-      nodeSize,
-      style,
-    );
-  }
-
-  // Grouped layout
-  const groupChildren = new Map<string, GraphNode[]>();
-  for (const id of allGroupIds) {
-    groupChildren.set(id, []);
-  }
-  for (const node of nodes) {
-    if (
-      node.parentId &&
-      node.parentId !== node.id &&
-      allGroupIds.has(node.parentId)
-    ) {
-      groupChildren.get(node.parentId)!.push(node);
-    }
-  }
-
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
-  const groupSizes = new Map<string, { width: number; height: number }>();
-  const groupInternalLayouts = new Map<
-    string,
-    {
-      childPositions: Map<
-        string,
-        { x: number; y: number; w: number; h: number }
-      >;
-      width: number;
-      height: number;
+  const groupIds = new Set(
+    nodes
+      .filter(
+        (n) => n.type === "domain" || nodes.some((c) => c.parentId === n.id),
+      )
+      .map((n) => n.id),
+  );
+
+  const layoutNodes: Node[] = nodes.map((node) => {
+    const parentId =
+      node.parentId && node.parentId !== node.id && groupIds.has(node.parentId)
+        ? node.parentId
+        : undefined;
+    const placement = {
+      id: node.id,
+      position: { x: 0, y: 0 },
+      ...(parentId ? { parentId, extent: "parent" as const } : {}),
+    };
+    if (!groupIds.has(node.id)) {
+      return {
+        ...placement,
+        type: node.type,
+        data: buildNodeData(node, style),
+      };
     }
-  >();
-
-  const computing = new Set<string>();
-
-  function computeGroupSize(groupId: string): {
-    width: number;
-    height: number;
-  } {
-    if (groupSizes.has(groupId)) return groupSizes.get(groupId)!;
-
-    // Cycle guard: if we're already computing this group, treat it as empty
-    if (computing.has(groupId)) {
-      const size = { width: EMPTY_GROUP_WIDTH, height: EMPTY_GROUP_HEIGHT };
-      groupSizes.set(groupId, size);
-      return size;
-    }
-    computing.add(groupId);
-
-    try {
-      const children = groupChildren.get(groupId) || [];
-
-      if (children.length === 0) {
-        const size = { width: EMPTY_GROUP_WIDTH, height: EMPTY_GROUP_HEIGHT };
-        groupSizes.set(groupId, size);
-        groupInternalLayouts.set(groupId, {
-          childPositions: new Map(),
-          width: size.width,
-          height: size.height,
-        });
-        return size;
-      }
-
-      for (const child of children) {
-        if (allGroupIds.has(child.id)) {
-          computeGroupSize(child.id);
-        }
-      }
-
-      const ig = new dagre.graphlib.Graph();
-      ig.setDefaultEdgeLabel(() => ({}));
-      ig.setGraph({
-        rankdir,
-        nodesep: Math.max(nodesep, 80),
-        ranksep: Math.max(ranksep, 100),
-        edgesep,
-      });
-
-      for (const child of children) {
-        if (allGroupIds.has(child.id)) {
-          const childSize = groupSizes.get(child.id)!;
-          ig.setNode(child.id, {
-            width: childSize.width,
-            height: childSize.height,
-          });
-        } else {
-          const s = nodeSize(child.type);
-          ig.setNode(child.id, { width: s.w, height: s.h });
-        }
-      }
-
-      const childIdSet = new Set(children.map((c) => c.id));
-      for (const edge of edges) {
-        if (childIdSet.has(edge.source) && childIdSet.has(edge.target)) {
-          ig.setEdge(edge.source, edge.target);
-        }
-      }
-
-      dagre.layout(ig);
-
-      const childPositions = new Map<
-        string,
-        { x: number; y: number; w: number; h: number }
-      >();
-      let minX = Infinity,
-        minY = Infinity,
-        maxX = -Infinity,
-        maxY = -Infinity;
-
-      for (const child of children) {
-        const pos = ig.node(child.id);
-        if (!pos) continue;
-        const left = pos.x - pos.width / 2;
-        const top = pos.y - pos.height / 2;
-        const right = pos.x + pos.width / 2;
-        const bottom = pos.y + pos.height / 2;
-        childPositions.set(child.id, {
-          x: left,
-          y: top,
-          w: pos.width,
-          h: pos.height,
-        });
-        minX = Math.min(minX, left);
-        minY = Math.min(minY, top);
-        maxX = Math.max(maxX, right);
-        maxY = Math.max(maxY, bottom);
-      }
-
-      const contentH = maxY - minY;
-      const contentW = maxX - minX;
-      const totalW = contentW + GROUP_PADDING_X * 2;
-      const totalH =
-        GROUP_HEADER_HEIGHT +
-        GROUP_CONTENT_PADDING_TOP +
-        contentH +
-        GROUP_CONTENT_PADDING_BOTTOM;
-      const contentTop = GROUP_HEADER_HEIGHT + GROUP_CONTENT_PADDING_TOP;
-
-      for (const [id, pos] of childPositions) {
-        childPositions.set(id, {
-          x: pos.x - minX + GROUP_PADDING_X,
-          y: pos.y - minY + contentTop,
-          w: pos.w,
-          h: pos.h,
-        });
-      }
-
-      groupSizes.set(groupId, { width: totalW, height: totalH });
-      groupInternalLayouts.set(groupId, {
-        childPositions,
-        width: totalW,
-        height: totalH,
-      });
-      return { width: totalW, height: totalH };
-    } finally {
-      computing.delete(groupId);
-    }
-  }
-
-  for (const groupId of allGroupIds) {
-    computeGroupSize(groupId);
-  }
-
-  const topLevelGroupIds = new Set<string>();
-  for (const groupId of allGroupIds) {
-    const node = nodeById.get(groupId);
-    if (!node?.parentId || !allGroupIds.has(node.parentId)) {
-      topLevelGroupIds.add(groupId);
-    }
-  }
-
-  const outerG = new dagre.graphlib.Graph();
-  outerG.setDefaultEdgeLabel(() => ({}));
-  outerG.setGraph({ rankdir, nodesep, ranksep, edgesep });
-
-  for (const groupId of topLevelGroupIds) {
-    const size = groupSizes.get(groupId)!;
-    outerG.setNode(groupId, { width: size.width, height: size.height });
-  }
-
-  for (const node of nodes) {
-    if (allGroupIds.has(node.id) || childNodeIds.has(node.id)) continue;
-    const s = nodeSize(node.type);
-    outerG.setNode(node.id, { width: s.w, height: s.h });
-  }
-
-  const outerEdgeSet = new Set<string>();
-  for (const edge of edges) {
-    const srcIsChild = childNodeIds.has(edge.source);
-    const tgtIsChild = childNodeIds.has(edge.target);
-    const srcIsGroup = allGroupIds.has(edge.source);
-    const tgtIsGroup = allGroupIds.has(edge.target);
-
-    if (srcIsChild && tgtIsChild) continue;
-    if (srcIsGroup || tgtIsGroup) continue;
-
-    let src = edge.source;
-    let tgt = edge.target;
-
-    if (srcIsChild) {
-      let parent = nodeById.get(edge.source)?.parentId;
-      while (parent && !topLevelGroupIds.has(parent)) {
-        parent = nodeById.get(parent)?.parentId;
-      }
-      if (parent) src = parent;
-    }
-    if (tgtIsChild) {
-      let parent = nodeById.get(edge.target)?.parentId;
-      while (parent && !topLevelGroupIds.has(parent)) {
-        parent = nodeById.get(parent)?.parentId;
-      }
-      if (parent) tgt = parent;
-    }
-
-    const key = `${src}->${tgt}`;
-    if (!outerEdgeSet.has(key)) {
-      outerEdgeSet.add(key);
-      outerG.setEdge(src, tgt);
-    }
-  }
-
-  dagre.layout(outerG);
-
-  const outerPositions = new Map<
-    string,
-    { x: number; y: number; width: number; height: number }
-  >();
-  outerG.nodes().forEach((id: string) => {
-    const pos = outerG.node(id);
-    if (pos) {
-      outerPositions.set(id, {
-        x: pos.x,
-        y: pos.y,
-        width: pos.width,
-        height: pos.height,
-      });
-    }
+    return {
+      ...placement,
+      type: "group",
+      data: {
+        mode: "full",
+        domain: {
+          name: node.label,
+          version: (node.metadata.version as string) || "",
+          summary: (node.metadata.summary as string) || "",
+        },
+      },
+      // Groups with children are sized to fit them when laid out
+      style: {
+        width: EMPTY_GROUP_WIDTH,
+        height: EMPTY_GROUP_HEIGHT,
+        background: "transparent",
+        border: "none",
+        padding: 0,
+      },
+    };
   });
 
-  const layoutNodes: Node[] = [];
-
-  function emitGroup(groupId: string, parentGroupId?: string) {
-    const node = nodeById.get(groupId);
-    if (!node) return;
-
-    const layout = groupInternalLayouts.get(groupId);
-    if (!layout) return;
-
-    const base = {
-      name: node.label,
-      version: (node.metadata.version as string) || "",
-      summary: (node.metadata.summary as string) || "",
-    };
-
-    if (parentGroupId) {
-      const parentLayout = groupInternalLayouts.get(parentGroupId);
-      const childPos = parentLayout?.childPositions.get(groupId);
-      if (!childPos) return;
-
-      layoutNodes.push({
-        id: groupId,
-        type: "group",
-        position: { x: childPos.x, y: childPos.y },
-        parentId: parentGroupId,
-        extent: "parent",
-        data: { mode: "full", domain: base },
-        style: {
-          width: layout.width,
-          height: layout.height,
-          background: "transparent",
-          border: "none",
-          padding: 0,
-        },
-      });
-    } else {
-      const outerPos = outerPositions.get(groupId);
-      if (!outerPos) return;
-
-      // Use internal layout dimensions for centering (dagre may report different width/height)
-      layoutNodes.push({
-        id: groupId,
-        type: "group",
-        position: {
-          x: outerPos.x - layout.width / 2,
-          y: outerPos.y - layout.height / 2,
-        },
-        data: { mode: "full", domain: base },
-        style: {
-          width: layout.width,
-          height: layout.height,
-          background: "transparent",
-          border: "none",
-          padding: 0,
-        },
-      });
-    }
-
-    const children = groupChildren.get(groupId) || [];
-    for (const child of children) {
-      if (allGroupIds.has(child.id)) {
-        emitGroup(child.id, groupId);
-      }
-    }
-    for (const child of children) {
-      if (allGroupIds.has(child.id)) continue;
-      const childPos = layout.childPositions.get(child.id);
-      if (!childPos) continue;
-
-      layoutNodes.push({
-        id: child.id,
-        type: child.type,
-        position: { x: childPos.x, y: childPos.y },
-        parentId: groupId,
-        extent: "parent",
-        data: buildNodeData(child, style),
-      });
-    }
-  }
-
-  for (const groupId of topLevelGroupIds) {
-    emitGroup(groupId);
-  }
-
-  for (const node of nodes) {
-    if (allGroupIds.has(node.id) || childNodeIds.has(node.id)) continue;
-    const pos = outerPositions.get(node.id);
-    if (!pos) continue;
-
-    layoutNodes.push({
-      id: node.id,
-      type: node.type,
-      position: { x: pos.x - pos.width / 2, y: pos.y - pos.height / 2 },
-      data: buildNodeData(node, style),
-    });
-  }
-
   const layoutEdges: Edge[] = edges
-    .filter(
-      (edge) => !allGroupIds.has(edge.source) && !allGroupIds.has(edge.target),
-    )
+    .filter((edge) => !groupIds.has(edge.source) && !groupIds.has(edge.target))
     .map((edge) => {
       const collection = getMessageCollection(edge, nodeById);
       const isFlowStep = edge.type === "flow-step";
@@ -586,7 +253,10 @@ export function layoutGraph(
       };
     });
 
-  return { nodes: layoutNodes, edges: layoutEdges };
+  return layoutWithElk(
+    { nodes: layoutNodes, edges: layoutEdges },
+    { sizeOf: getNodeSize },
+  );
 }
 
 const MESSAGE_TYPES = new Set(["event", "command", "query"]);
@@ -604,72 +274,4 @@ function getMessageCollection(
     return `${sourceNode.type}s`;
   }
   return targetNode ? `${targetNode.type}s` : undefined;
-}
-
-function flatLayout(
-  nodes: GraphNode[],
-  edges: GraphEdge[],
-  graphOpts: {
-    rankdir: string;
-    nodesep: number;
-    ranksep: number;
-    edgesep: number;
-  },
-  nodeSize: (type: string) => { w: number; h: number },
-  style?: string,
-): { nodes: Node[]; edges: Edge[] } {
-  const g = new dagre.graphlib.Graph();
-  g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph(graphOpts);
-
-  nodes.forEach((node) => {
-    const s = nodeSize(node.type);
-    g.setNode(node.id, { width: s.w, height: s.h });
-  });
-
-  edges.forEach((edge) => {
-    g.setEdge(edge.source, edge.target);
-  });
-
-  dagre.layout(g);
-
-  const layoutNodes: Node[] = nodes.map((node) => {
-    const pos = g.node(node.id);
-    return {
-      id: node.id,
-      type: node.type,
-      position: { x: pos.x - pos.width / 2, y: pos.y - pos.height / 2 },
-      data: buildNodeData(node, style),
-    };
-  });
-
-  const nodeById = new Map(nodes.map((n) => [n.id, n]));
-  const layoutEdges: Edge[] = edges.map((edge) => {
-    const collection = getMessageCollection(edge, nodeById);
-    const isFlowStep = edge.type === "flow-step";
-    const isCalls = edge.type === "calls";
-    const isBidirectional = edge.type === "reads-writes";
-    const arrowMarker = {
-      type: MarkerType.ArrowClosed,
-      width: 20,
-      height: 20,
-      color: "rgb(var(--ec-page-text-muted))",
-    };
-    return {
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      label: isBidirectional
-        ? "reads/writes"
-        : isFlowStep
-          ? edge.label || undefined
-          : edge.label || edge.type,
-      type: isFlowStep ? "flow-edge" : isCalls ? "step" : "animated",
-      markerEnd: arrowMarker,
-      ...(isBidirectional ? { markerStart: arrowMarker } : {}),
-      data: { edgeType: edge.type, message: { collection } },
-    };
-  });
-
-  return { nodes: layoutNodes, edges: layoutEdges };
 }

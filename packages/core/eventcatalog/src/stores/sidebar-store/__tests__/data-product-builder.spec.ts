@@ -126,7 +126,7 @@ describe('buildDataProductNode', () => {
       expect(archSection).toBeDefined();
       expect((archSection as any)?.pages).toContainEqual({
         type: 'item',
-        title: 'Map',
+        title: 'Diagram',
         href: '/visualiser/data-products/TestDataProduct/1.0.0',
       });
     });

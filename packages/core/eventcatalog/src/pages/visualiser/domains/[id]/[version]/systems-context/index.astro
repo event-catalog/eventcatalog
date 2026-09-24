@@ -1,7 +1,5 @@
 ---
-import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
-import VisualiserLayout from '@layouts/VisualiserLayout.astro';
-import { ClientRouter } from 'astro:transitions';
+import { buildUrl } from '@utils/url-builder';
 
 import { Page } from './_index.data';
 
@@ -11,41 +9,6 @@ export const getStaticPaths = Page.getStaticPaths;
 // Get data
 const props = await Page.getData(Astro);
 
-const {
-  data: { id },
-} = props;
+// The System Diagram is now level 1 of the domain's visualiser page
+return Astro.redirect(buildUrl(`/visualiser/domains/${props.data.id}/${props.data.version}?level=1`));
 ---
-
-<VisualiserLayout title={`Visualiser | ${props.data.name} - System Context`} description={props.data.summary}>
-  <div class="p-2">
-    <div
-      class="h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
-      id={`${id}-portal`}
-      transition:name="visualiser-graph"
-    >
-    </div>
-    <NodeGraph
-      id={id}
-      collection="domains-systems-context"
-      title={`${props.data.name} (v${props.data.version}) - System Context`}
-      mode="full"
-      linkTo="visualiser"
-      version={props.data.version}
-      linksToVisualiser={false}
-    />
-  </div>
-  <ClientRouter />
-</VisualiserLayout>
-
-<script define:vars={{ id }}>
-  document.addEventListener('DOMContentLoaded', () => {
-    const urlSearchParams = new URLSearchParams(window.location.search);
-    const params = Object.fromEntries(urlSearchParams.entries());
-    const embeded = params.embed === 'true' ? true : false;
-    const viewport = document.getElementById(`${id}-portal`);
-
-    if (embeded) {
-      viewport.style.height = 'calc(100vh - 30px)';
-    }
-  });
-</script>

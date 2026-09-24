@@ -43,6 +43,17 @@ interface AstroNodeGraphProps {
   isDevMode?: boolean;
   resourceKey?: string;
   disableMessageAnimation?: boolean;
+  // A simpler graph shown as level 1 (e.g. a system's context diagram)
+  overviewGraph?: {
+    nodes: Node[];
+    edges: Edge[];
+    label: string;
+    resourceKey?: string;
+  };
+  // This graph laid out with its messages and channels hidden (level 2), if precomputed
+  hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
+  // The kind of diagram, so the level is remembered for each kind
+  preferenceScope?: string;
 }
 
 const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: AstroNodeGraphProps) => {

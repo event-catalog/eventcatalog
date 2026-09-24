@@ -1,7 +1,5 @@
 ---
-import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
-import VisualiserLayout from '@layouts/VisualiserLayout.astro';
-import { ClientRouter } from 'astro:transitions';
+import { buildUrl } from '@utils/url-builder';
 
 import { Page } from './_index.data';
 
@@ -11,39 +9,6 @@ export const getStaticPaths = Page.getStaticPaths;
 // Get data
 const props = await Page.getData(Astro);
 
-const {
-  data: { id },
-} = props;
+// The System Context diagram is now level 1 of the system's visualiser page
+return Astro.redirect(buildUrl(`/visualiser/systems/${props.data.id}/${props.data.version}?level=1`));
 ---
-
-<VisualiserLayout title={`Visualiser | ${props.data.name} - System Context`} description={props.data.summary}>
-  <div id="system-context-map-page" class="p-2">
-    <div
-      class="system-context-map-viewport h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
-      id={`${id}-portal`}
-      transition:name="visualiser-graph"
-    >
-    </div>
-    <NodeGraph
-      id={id}
-      collection="systems-context"
-      title={`${props.data.name} (v${props.data.version}) - System Context`}
-      mode="full"
-      linkTo="visualiser"
-      version={props.data.version}
-      linksToVisualiser={false}
-    />
-  </div>
-  <ClientRouter />
-</VisualiserLayout>
-
-<style is:global>
-  html[data-embedded='true'] #system-context-map-page {
-    box-sizing: border-box;
-    height: 100vh;
-  }
-
-  html[data-embedded='true'] #system-context-map-page .system-context-map-viewport {
-    height: 100%;
-  }
-</style>

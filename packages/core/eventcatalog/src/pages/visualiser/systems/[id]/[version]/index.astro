@@ -1,0 +1,56 @@
+---
+import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+import VisualiserLayout from '@layouts/VisualiserLayout.astro';
+import { buildUrl } from '@utils/url-builder';
+import { ClientRouter } from 'astro:transitions';
+
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+// Get data
+const props = await Page.getData(Astro);
+
+const {
+  data: { id },
+} = props;
+---
+
+<VisualiserLayout title={`Visualiser | ${props.data.name} (systems)`} description={props.data.summary}>
+  <div id="system-visualiser-page" class="p-2">
+    <div
+      class="system-visualiser-viewport h-[calc(100vh-5rem)] w-full relative border border-[rgb(var(--ec-page-border))]"
+      id={`${id}-portal`}
+      transition:name="visualiser-graph"
+    >
+    </div>
+    <NodeGraph
+      id={id}
+      collection="systems-levels"
+      overview={{ label: 'system context' }}
+      title={`${props.data.name} (v${props.data.version})`}
+      mode="full"
+      linkTo="visualiser"
+      version={props.data.version}
+      linksToVisualiser={false}
+      zoomOnScroll={true}
+      href={{
+        label: `Open documentation for ${props.data.name} v${props.data.version}`,
+        url: buildUrl(`/docs/systems/${props.data.id}/${props.data.version}`),
+      }}
+    />
+  </div>
+  <ClientRouter />
+</VisualiserLayout>
+
+<style is:global>
+  html[data-embedded='true'] #system-visualiser-page {
+    box-sizing: border-box;
+    height: 100vh;
+  }
+
+  html[data-embedded='true'] #system-visualiser-page .system-visualiser-viewport {
+    height: 100%;
+  }
+</style>

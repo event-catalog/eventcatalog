@@ -11,6 +11,7 @@ import { memo } from "react";
 import { LINE_CLAMP_STYLE, useDarkMode } from "./shared-styles";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 import { TruncatedResourceName } from "./TruncatedResourceName";
+import { FocusedResourceIndicator } from "./FocusedResourceIndicator";
 
 interface SystemData {
   id: string;
@@ -30,6 +31,8 @@ interface Data {
   containersCount?: number;
   // Total messages handled by the system's services (sends + receives).
   messagesCount?: number;
+  // The system being viewed on this page
+  isFocused?: boolean;
 }
 
 function classNames(...classes: any) {
@@ -52,6 +55,7 @@ export default memo(function SystemNode({ data }: any) {
     entitiesCount = 0,
     containersCount = 0,
     messagesCount = 0,
+    isFocused = false,
   } = data as Data;
   const { id, version, name, summary, scope } = system;
   const isExternal = scope === "external";
@@ -98,6 +102,7 @@ export default memo(function SystemNode({ data }: any) {
         boxShadow: "0 2px 12px rgba(139, 92, 246, 0.15)",
       }}
     >
+      {isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}

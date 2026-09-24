@@ -2,6 +2,8 @@ import { memo, useMemo } from "react";
 import { BaseEdge, getSmoothStepPath } from "@xyflow/react";
 import { EDGE_WARNING_STYLE, EDGE_DEFAULT_STYLE } from "../nodes/shared-styles";
 import EdgeLabel from "./EdgeLabel";
+import { useRoute } from "./route";
+import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
 
 /** Map collection type → envelope fill color (module-level, zero allocation). */
 function messageColor(collection: string): string {
@@ -26,19 +28,36 @@ const AnimatedMessageEdge = memo(
     targetY,
     sourcePosition,
     targetPosition,
+    source,
+    target,
+    sourceHandleId,
+    targetHandleId,
     data,
     label = "",
     markerEnd,
     markerStart,
   }: any) => {
-    const [edgePath, labelX, labelY] = getSmoothStepPath({
-      sourceX,
-      sourceY,
-      sourcePosition,
-      targetX,
-      targetY,
-      targetPosition,
-    });
+    const [edgePath, labelX, labelY, zIndex] = useRoute(
+      {
+        data,
+        source,
+        target,
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+        sourceHandleId,
+        targetHandleId,
+      },
+      getSmoothStepPath({
+        sourceX,
+        sourceY,
+        sourcePosition,
+        targetX,
+        targetY,
+        targetPosition,
+      }),
+    );
 
     const collection = data?.message?.collection;
     const opacity = data?.opacity ?? 1;
@@ -98,6 +117,8 @@ const AnimatedMessageEdge = memo(
       [edgePath, id, customColors.join(","), opacity, randomDelay],
     );
 
+    const crossDomain = isCrossDomain(data);
+
     return (
       <>
         <BaseEdge
@@ -106,9 +127,16 @@ const AnimatedMessageEdge = memo(
           markerEnd={markerEnd}
           markerStart={markerStart}
           style={warning ? EDGE_WARNING_STYLE : EDGE_DEFAULT_STYLE}
+          className={crossDomain ? CROSS_DOMAIN_CLASS : undefined}
         />
         {animatedNodes}
-        <EdgeLabel label={label} labelX={labelX} labelY={labelY} />
+        <EdgeLabel
+          zIndex={zIndex}
+          crossDomain={crossDomain}
+          label={label}
+          labelX={labelX}
+          labelY={labelY}
+        />
       </>
     );
   },

@@ -252,17 +252,30 @@ describe('Domains Canvas', () => {
       expect(paymentCompletedEdges.length).toBeGreaterThan(0);
     });
 
-    it('should position nodes using dagre layout', async () => {
+    it('should lay out the domains and messages together', async () => {
       const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
 
-      // All nodes should have calculated positions
+      // Domains and messages stay split apart after the layout
+      expect(domainNodes.every((node) => node.type === 'domains')).toBe(true);
+      expect(messageNodes.every((node) => node.type !== 'domains')).toBe(true);
+
+      // All nodes should have calculated (top-left) positions
       [...domainNodes, ...messageNodes].forEach((node) => {
-        expect(node.position).toBeDefined();
         expect(node.position.x).toBeTypeOf('number');
         expect(node.position.y).toBeTypeOf('number');
-        // Dagre should position nodes, not at origin
-        expect(node.position.x !== 0 || node.position.y !== 0).toBe(true);
+        expect(node.origin).toEqual([0, 0]);
       });
+
+      // No two nodes are laid out in the same place
+      const positions = [...domainNodes, ...messageNodes].map((node) => `${node.position.x},${node.position.y}`);
+      expect(new Set(positions).size).toBe(positions.length);
+
+      // Edges are routed and keep their handles on the domain's services
+      edges.forEach((edge) => {
+        expect((edge.data as any)?.route?.points.length).toBeGreaterThanOrEqual(2);
+      });
+      const publishes = edges.find((e) => e.data?.type === 'domain-to-message');
+      expect(publishes?.sourceHandle).toMatch(/-source$/);
     });
 
     it('should not create duplicate message nodes for the same relationship', async () => {

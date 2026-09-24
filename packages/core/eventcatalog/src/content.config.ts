@@ -493,6 +493,8 @@ const services = defineCollection({
         'systems/*/services/*/versioned/*/index.(md|mdx)',
         'domains/*/systems/*/services/*/index.(md|mdx)',
         'domains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
+        'domains/*/subdomains/*/systems/*/services/*/index.(md|mdx)',
+        'domains/*/subdomains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
 
         // Capture services in the root
         'services/*/index.(md|mdx)', // ✅ Capture only services markdown files

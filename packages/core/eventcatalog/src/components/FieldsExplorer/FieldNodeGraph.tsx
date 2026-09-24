@@ -211,23 +211,28 @@ function FieldNodeGraphInner({
   occurrences,
   onClose,
 }: FieldNodeGraphProps) {
-  const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => getNodesAndEdges({ fieldPath, fieldType, occurrences }),
-    [fieldPath, fieldType, occurrences]
-  );
-
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
-  const edgesRef = useRef(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const edgesRef = useRef(edges);
   edgesRef.current = edges;
 
   const { fitView } = useReactFlow();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Laying the graph out is async, so it's shown (and fitted) once it's ready
   useEffect(() => {
-    const timer = setTimeout(() => fitView({ padding: 0.2 }), 50);
-    return () => clearTimeout(timer);
-  }, [fitView]);
+    let cancelled = false;
+    getNodesAndEdges({ fieldPath, fieldType, occurrences }).then((graph) => {
+      if (cancelled) return;
+      setNodes(graph.nodes);
+      setEdges(graph.edges);
+      // Called straight after setNodes so React Flow fits once they're measured
+      fitView({ padding: 0.2 });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fieldPath, fieldType, occurrences, setNodes, setEdges, fitView]);
 
   // Unique messages, producers, consumers for the details panel
   const uniqueMessages = useMemo(() => {

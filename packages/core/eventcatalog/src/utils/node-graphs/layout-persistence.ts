@@ -55,7 +55,7 @@ export async function loadSavedLayout(resourceKey: string): Promise<SavedLayout 
 
 /**
  * Applies saved positions to nodes. Nodes with saved positions get them applied,
- * nodes without saved positions keep their Dagre-calculated positions.
+ * nodes without saved positions keep their laid out positions.
  */
 export function applyLayoutToNodes<T extends { id: string; position: { x: number; y: number } }>(
   nodes: T[],
@@ -63,7 +63,7 @@ export function applyLayoutToNodes<T extends { id: string; position: { x: number
 ): T[];
 export function applyLayoutToNodes(nodes: any[], savedLayout: SavedLayout | null): any[] {
   if (!savedLayout) {
-    return nodes; // No saved layout, use original Dagre positions
+    return nodes; // No saved layout, use the laid out positions
   }
 
   return nodes.map((node) => {
@@ -75,7 +75,7 @@ export function applyLayoutToNodes(nodes: any[], savedLayout: SavedLayout | null
         position: { x: savedPosition.x, y: savedPosition.y },
       };
     }
-    // Keep Dagre-calculated position for new/unmatched nodes
+    // Keep the laid out position for new/unmatched nodes
     return node;
   });
 }

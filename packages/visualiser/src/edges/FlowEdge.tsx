@@ -6,6 +6,8 @@ import {
   type EdgeProps as XYFlowEdgeProps,
 } from "@xyflow/react";
 import { EDGE_FLOW_BASE_STYLE } from "../nodes/shared-styles";
+import { useRoute } from "./route";
+import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
 
 interface EdgeData {
   message?: {
@@ -43,20 +45,37 @@ export default memo(function CustomEdge({
   targetY,
   sourcePosition,
   targetPosition,
+  source,
+  target,
+  sourceHandleId,
+  targetHandleId,
   style = EMPTY_STYLE,
   markerEnd,
   label,
   labelStyle,
   data,
 }: CustomEdgeProps) {
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  });
+  const [edgePath, labelX, labelY, zIndex] = useRoute(
+    {
+      data,
+      source,
+      target,
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+      sourceHandleId,
+      targetHandleId,
+    },
+    getSmoothStepPath({
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+    }),
+  );
 
   const randomDelay = useMemo(() => Math.random() * 1, []);
   const collection = data?.message?.collection;
@@ -67,19 +86,26 @@ export default memo(function CustomEdge({
     [style],
   );
 
+  // In the edge's layer, so the label isn't drawn on top of nodes
+  const crossDomain = isCrossDomain(data);
   const labelPositionStyle = useMemo(
     () => ({
       position: "absolute" as const,
       transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-      zIndex: 1000,
+      zIndex,
       ...(labelStyle as any),
     }),
-    [labelX, labelY, labelStyle],
+    [labelX, labelY, labelStyle, zIndex],
   );
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={mergedStyle} />
+      <BaseEdge
+        path={edgePath}
+        markerEnd={markerEnd}
+        style={mergedStyle}
+        className={crossDomain ? CROSS_DOMAIN_CLASS : undefined}
+      />
       {data?.animated && (
         <g
           className={`ec-animated-msg z-30 ${opacity === 1 ? "opacity-100" : "opacity-10"}`}
@@ -106,7 +132,7 @@ export default memo(function CustomEdge({
         <EdgeLabelRenderer>
           <div
             style={labelPositionStyle}
-            className="nodrag nopan max-w-[120px] text-xs bg-[rgb(var(--ec-card-bg))] px-2 py-1 rounded border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] font-medium shadow-sm text-center"
+            className={`ec-edge-label ${crossDomain ? CROSS_DOMAIN_CLASS : ""} nodrag nopan max-w-[120px] text-xs bg-[rgb(var(--ec-card-bg))] px-2 py-1 rounded border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] font-medium shadow-sm text-center`}
           >
             {label}
           </div>

@@ -1,20 +1,20 @@
 .tooltip {
-    visibility: hidden;
-    position: absolute;
-  }
-  .has-tooltip:hover .tooltip {
-    visibility: visible;
-    z-index: 100;
-  }
+  visibility: hidden;
+  position: absolute;
+}
+.has-tooltip:hover .tooltip {
+  visibility: visible;
+  z-index: 100;
+}
 
-  .pill-item:hover {
-    background: linear-gradient(to left, rgb(var(--ec-accent-gradient-from)), rgb(var(--ec-accent-gradient-to)));
-    color: white;
-    font-weight: normal;
-  }
+.pill-item:hover {
+  background: linear-gradient(to left, rgb(var(--ec-accent-gradient-from)), rgb(var(--ec-accent-gradient-to)));
+  color: white;
+  font-weight: normal;
+}
 
-  .owner-item:hover {
-    background: linear-gradient(to left, rgb(var(--ec-accent-gradient-from)), rgb(var(--ec-accent-gradient-to)));
-    color: white;
-    font-weight: normal;
-  }
+.owner-item:hover {
+  background: linear-gradient(to left, rgb(var(--ec-accent-gradient-from)), rgb(var(--ec-accent-gradient-to)));
+  color: white;
+  font-weight: normal;
+}

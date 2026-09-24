@@ -1,31 +1,16 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import {
-  createDagreGraph,
-  calculatedNodes,
-  createEdge,
-  generateIdForNode,
-  buildContextMenuForSystem,
-  DEFAULT_NODE_HEIGHT,
-  layoutDagreGraph,
-} from '@utils/node-graphs/utils/utils';
+import { createEdge, generateIdForNode, buildContextMenuForSystem } from '@utils/node-graphs/utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { MarkerType } from '@xyflow/react';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
-
-type DagreGraph = any;
 
 interface NodesAndEdgesProps {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   layout?: boolean;
 }
-
-// System nodes are wider than the default to fit the system name + summary comfortably.
-const SYSTEM_NODE_WIDTH = 270;
-// Actor nodes are narrower than systems — a compact pill with an icon + name.
-const ACTOR_NODE_WIDTH = 180;
 
 type SystemActor = {
   id: string;
@@ -52,7 +37,6 @@ interface ContextGraphFromSeedsProps {
   seedSystems: CollectionEntry<'systems'>[];
   systemMap: Map<string, CollectionEntry<'systems'>[]>;
   serviceMap: Map<string, CollectionEntry<'services'>[]>;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   layout?: boolean;
 }
@@ -67,15 +51,13 @@ interface ContextGraphFromSeedsProps {
  * (relationships without a label are intentionally not drawn). Actors are rendered
  * inline and deduped across all systems.
  */
-const buildContextGraphFromSeeds = ({
+const buildContextGraphFromSeeds = async ({
   seedSystems,
   systemMap,
   serviceMap,
-  defaultFlow,
   mode = 'simple',
   layout = true,
 }: ContextGraphFromSeedsProps) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 280, nodesep: 80, edgesep: 50 });
   const nodes = new Map<string, any>();
   const edges = new Map<string, any>();
 
@@ -89,8 +71,6 @@ const buildContextGraphFromSeeds = ({
     }, 0);
   };
 
-  // Actor node ids, tracked so they can be sized differently during layout.
-  const actorNodeIds = new Set<string>();
   // System node ids, tracked so we can detect reciprocal system-to-system
   // relationships and collapse them into a single double-headed edge.
   const systemNodeIds = new Set<string>();
@@ -118,7 +98,6 @@ const buildContextGraphFromSeeds = ({
     const nodeId = `actor-${actor.id}`;
     if (nodes.has(nodeId)) return nodeId;
 
-    actorNodeIds.add(nodeId);
     nodes.set(nodeId, {
       id: nodeId,
       type: 'context-actor',
@@ -292,30 +271,15 @@ const buildContextGraphFromSeeds = ({
     mergedEdgeKeys.add(reverseId);
   }
 
-  // Lay the graph out
-  nodes.forEach((node) =>
-    flow.setNode(node.id, {
-      width: actorNodeIds.has(node.id) ? ACTOR_NODE_WIDTH : SYSTEM_NODE_WIDTH,
-      height: DEFAULT_NODE_HEIGHT,
-    })
-  );
-  edges.forEach((edge) => flow.setEdge(edge.source, edge.target));
-
-  if (layout) {
-    layoutDagreGraph(flow);
-  }
-
-  return {
-    nodes: calculatedNodes(flow, Array.from(nodes.values())),
-    edges: [...edges.values()],
-  };
+  const graph = { nodes: [...nodes.values()], edges: [...edges.values()] };
+  return layout ? layoutNodeGraph(graph) : graph;
 };
 
 /**
  * Builds the System Diagram for a single system, seeding the traversal from
  * that system and walking its relationships and actors outward.
  */
-export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', layout = true }: NodesAndEdgesProps) => {
+export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = true }: NodesAndEdgesProps) => {
   const [allSystems, allServices] = await Promise.all([getCollection('systems'), getCollection('services')]);
   const systemMap = createVersionedMap(allSystems);
   const serviceMap = createVersionedMap(allServices);
@@ -327,7 +291,14 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
     return { nodes: [], edges: [] };
   }
 
-  return buildContextGraphFromSeeds({ seedSystems: [rootSystem], systemMap, serviceMap, defaultFlow, mode, layout });
+  const graph = await buildContextGraphFromSeeds({ seedSystems: [rootSystem], systemMap, serviceMap, mode, layout });
+
+  // Mark the system being viewed, like other resource graphs do
+  const rootNodeId = generateIdForNode(rootSystem);
+  return {
+    ...graph,
+    nodes: graph.nodes.map((node: any) => (node.id === rootNodeId ? { ...node, data: { ...node.data, isFocused: true } } : node)),
+  };
 };
 
 /**
@@ -336,13 +307,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
  * the domain's systems plus any related systems they point at (or that point at them),
  * with actors rendered inline — giving a single context view across the domain.
  */
-export const getNodesAndEdgesForDomainSystems = async ({
-  id,
-  version,
-  defaultFlow,
-  mode = 'simple',
-  layout = true,
-}: NodesAndEdgesProps) => {
+export const getNodesAndEdgesForDomainSystems = async ({ id, version, mode = 'simple', layout = true }: NodesAndEdgesProps) => {
   const [allDomains, allSystems, allServices] = await Promise.all([
     getCollection('domains'),
     getCollection('systems'),
@@ -367,11 +332,10 @@ export const getNodesAndEdgesForDomainSystems = async ({
     return { nodes: [], edges: [] };
   }
 
-  return buildContextGraphFromSeeds({ seedSystems, systemMap, serviceMap, defaultFlow, mode, layout });
+  return buildContextGraphFromSeeds({ seedSystems, systemMap, serviceMap, mode, layout });
 };
 
 interface AllSystemsProps {
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   layout?: boolean;
 }
@@ -381,7 +345,7 @@ interface AllSystemsProps {
  * seed, so the traversal draws all systems, the relationships between them, and the
  * actors around them — a single map of how every system in the catalog relates.
  */
-export const getNodesAndEdgesForAllSystems = async ({ defaultFlow, mode = 'simple', layout = true }: AllSystemsProps = {}) => {
+export const getNodesAndEdgesForAllSystems = async ({ mode = 'simple', layout = true }: AllSystemsProps = {}) => {
   const [allSystems, allServices] = await Promise.all([getCollection('systems'), getCollection('services')]);
   const systemMap = createVersionedMap(allSystems);
   const serviceMap = createVersionedMap(allServices);
@@ -396,5 +360,5 @@ export const getNodesAndEdgesForAllSystems = async ({ defaultFlow, mode = 'simpl
     return { nodes: [], edges: [] };
   }
 
-  return buildContextGraphFromSeeds({ seedSystems, systemMap, serviceMap, defaultFlow, mode, layout });
+  return buildContextGraphFromSeeds({ seedSystems, systemMap, serviceMap, mode, layout });
 };

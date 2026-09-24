@@ -18,14 +18,15 @@ describe('Containers NodeGraph', () => {
     it('should return the correct nodes and edges for a given container', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'OrderDatabase', version: '1.0.0' });
 
-      expect(nodes).toEqual([
+      // The service both writes to and reads from the container, but is only rendered once
+      expect(nodes).toMatchObject([
         {
           id: 'SubscriptionService-0.0.1',
           type: undefined,
           sourcePosition: 'right',
           targetPosition: 'left',
           data: expect.objectContaining({ mode: 'simple', service: { ...mockServices[0].data } }),
-          position: { x: 75, y: 60 },
+          position: { x: expect.any(Number), y: expect.any(Number) },
         },
         {
           id: 'OrderDatabase-1.0.0',
@@ -42,20 +43,12 @@ describe('Containers NodeGraph', () => {
               }),
             ]),
           }),
-          position: { x: 525, y: 60 },
+          position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'data',
-        },
-        {
-          id: 'SubscriptionService-0.0.1',
-          sourcePosition: 'left',
-          targetPosition: 'right',
-          data: expect.objectContaining({ title: 'SubscriptionService', mode: 'simple', service: { ...mockServices[0].data } }),
-          position: { x: 75, y: 60 },
-          type: undefined,
         },
       ]);
 
-      expect(edges).toEqual([
+      expect(edges).toMatchObject([
         {
           label: 'reads from \n (undefined)',
           animated: false,
@@ -96,7 +89,7 @@ describe('Containers NodeGraph', () => {
             strokeWidth: 1,
             stroke: 'var(--ec-edge-stroke, #6b7280)',
           },
-          id: 'OrderDatabase-1.0.0-SubscriptionService-0.0.1-both',
+          id: 'SubscriptionService-0.0.1-OrderDatabase-1.0.0-both',
           source: 'SubscriptionService-0.0.1',
           target: 'OrderDatabase-1.0.0',
           type: 'multiline',
@@ -107,6 +100,9 @@ describe('Containers NodeGraph', () => {
           },
         },
       ]);
+
+      // Edges are routed by the layout
+      edges.forEach((edge: any) => expect(edge.data.route.points.length).toBeGreaterThan(1));
     });
 
     it('returns empty nodes and edges if no container is found', async () => {

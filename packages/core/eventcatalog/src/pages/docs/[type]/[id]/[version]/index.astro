@@ -342,8 +342,8 @@ const flowEmbeds = getMDXComponentsByName(props.body || '', 'Flow') || [];
 // portal so it doesn't collide with the page's default diagram.
 //
 // The underlying graph + visualiser link differ per page type:
-//   - systems → `systems-context`, links to /visualiser/systems/:id/:version/context
-//   - domains → `domains-systems-context`, links to /visualiser/domains/:id/:version/systems-context
+//   - systems → `systems-context`, links to level 1 of /visualiser/systems/:id/:version
+//   - domains → `domains-systems-context`, links to level 1 of /visualiser/domains/:id/:version
 const contextDiagramSupported = props.collection === 'systems' || props.collection === 'domains';
 const contextDiagrams = contextDiagramSupported
   ? (getMDXComponentsByName(props.body || '', 'ContextDiagram') || []).map((diagram: any) => {
@@ -357,8 +357,8 @@ const contextDiagrams = contextDiagramSupported
         graphCollection: props.collection === 'domains' ? 'domains-systems-context' : 'systems-context',
         visualiserUrl:
           props.collection === 'domains'
-            ? buildUrl(`/visualiser/domains/${id}/${version}/systems-context`)
-            : buildUrl(`/visualiser/systems/${id}/${version}/context`),
+            ? buildUrl(`/visualiser/domains/${id}/${version}?level=1`)
+            : buildUrl(`/visualiser/systems/${id}/${version}?level=1`),
       };
     })
   : [];
@@ -624,11 +624,15 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
             nodeGraphs.length > 0 &&
               nodeGraphs.map((nodeGraph: any) => {
                 const collection = resourceToCollectionMap[nodeGraph.type as keyof typeof resourceToCollectionMap];
+                // A domain's graph is its Diagram page's (opening at level 1: the
+                // domain, its systems and the domains it talks to)
+                const isDomain = collection === 'domains';
                 return (
                   <NodeGraph
                     id={nodeGraph.id}
                     version={nodeGraph.version}
-                    collection={collection}
+                    collection={isDomain ? 'domains-levels' : collection}
+                    overview={isDomain ? { label: 'domains it talks to' } : undefined}
                     title={nodeGraph.title}
                     mode={nodeGraph.mode || 'simple'}
                     linksToVisualiser={true}

@@ -13,7 +13,7 @@
 
 /* Default/Light theme */
 :root,
-:root[data-theme="light"] {
+:root[data-theme='light'] {
   /* Header */
   --ec-header-bg: 255 255 255; /* #ffffff */
   --ec-header-text: 15 23 42; /* #0f172a (slate-900) */
@@ -30,6 +30,9 @@
   --ec-accent-text: 88 28 135; /* #581c87 (purple-900) */
   --ec-accent-gradient-from: 126 34 206; /* #7e22ce (purple-700) */
   --ec-accent-gradient-to: 88 28 135; /* #581c87 (purple-900) */
+  /* Resolved on :root for every theme, so the visualiser (which overrides
+     --ec-accent with its own palette) can still use the catalog's accent */
+  --ec-catalog-accent: var(--ec-accent);
 
   /* Buttons */
   --ec-button-bg: 15 23 42; /* #0f172a */
@@ -163,7 +166,7 @@
 }
 
 /* Dark theme */
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   /*
    * Modern dark theme inspired by Mintlify
    * Uses deep blacks with subtle cool undertones for a refined look
@@ -317,7 +320,7 @@
 }
 
 /* Dark mode prose overrides for documentation content */
-:root[data-theme="dark"] .prose {
+:root[data-theme='dark'] .prose {
   --tw-prose-body: rgb(139 148 158); /* #8b949e - muted body text */
   --tw-prose-headings: rgb(201 209 217); /* #c9d1d9 - soft white headings */
   --tw-prose-lead: rgb(110 118 129); /* #6e7681 */
@@ -341,44 +344,44 @@
  * light-theme Tailwind colors. Keep that content readable without changing
  * the appearance of other custom prose elements.
  */
-:root[data-theme="dark"] .prose .rounded-full.text-gray-900.border-gray-300 {
+:root[data-theme='dark'] .prose .rounded-full.text-gray-900.border-gray-300 {
   color: rgb(var(--ec-page-text));
   border-color: rgb(var(--ec-page-border));
 }
 
-:root[data-theme="dark"] .prose code {
+:root[data-theme='dark'] .prose code {
   background-color: rgb(33 38 45); /* #21262d */
   border-radius: 0.25rem;
   padding: 0.125rem 0.375rem;
 }
 
-:root[data-theme="dark"] .prose pre {
+:root[data-theme='dark'] .prose pre {
   background-color: rgb(22 27 34); /* #161b22 */
   border: 1px solid rgb(33 38 45); /* #21262d */
 }
 
-:root[data-theme="dark"] .prose a {
+:root[data-theme='dark'] .prose a {
   color: rgb(168 85 247); /* purple-500 */
 }
 
-:root[data-theme="dark"] .prose a:hover {
+:root[data-theme='dark'] .prose a:hover {
   color: rgb(192 132 252); /* purple-400 */
 }
 
-:root[data-theme="dark"] .prose strong {
+:root[data-theme='dark'] .prose strong {
   color: rgb(240 246 252); /* #f0f6fc */
 }
 
-:root[data-theme="dark"] .prose table th {
+:root[data-theme='dark'] .prose table th {
   color: rgb(240 246 252); /* #f0f6fc */
 }
 
-:root[data-theme="dark"] .prose table td {
+:root[data-theme='dark'] .prose table td {
   border-color: rgb(33 38 45); /* #21262d */
 }
 
 /* Invert dark SVG icons in dark mode so they stay visible */
-:root[data-theme="dark"] .ec-themed-icon {
+:root[data-theme='dark'] .ec-themed-icon {
   filter: invert(1);
 }
 

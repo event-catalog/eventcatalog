@@ -11,7 +11,6 @@ import {
   Sparkles,
   Zap,
   EyeOff,
-  ExternalLink,
   Save,
   RotateCcw,
   Loader2,
@@ -33,6 +32,9 @@ interface VisualizerDropdownContentProps {
   hideChannels: boolean;
   toggleChannelsVisibility: () => void;
   hasChannels: boolean;
+  hideMessages: boolean;
+  toggleMessagesVisibility: () => void;
+  hasMessages: boolean;
   showMinimap: boolean;
   setShowMinimap: (value: boolean) => void;
   handleFitView: () => void;
@@ -43,7 +45,6 @@ interface VisualizerDropdownContentProps {
   handleExportVisual: () => void;
   setIsShareModalOpen: (value: boolean) => void;
   toggleFullScreen: () => void;
-  openStudioModal: () => void;
   isDevMode?: boolean;
   onSaveLayout?: () => Promise<boolean>;
   onResetLayout?: () => Promise<boolean>;
@@ -62,6 +63,9 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
       hideChannels,
       toggleChannelsVisibility,
       hasChannels,
+      hideMessages,
+      toggleMessagesVisibility,
+      hasMessages,
       showMinimap,
       setShowMinimap,
       handleFitView,
@@ -72,7 +76,6 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
       handleExportVisual,
       setIsShareModalOpen,
       toggleFullScreen,
-      openStudioModal,
       isDevMode = false,
       onSaveLayout,
       onResetLayout,
@@ -178,17 +181,36 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
 
                 {hasChannels && (
                   <DropdownMenu.CheckboxItem
-                    checked={hideChannels}
+                    checked={hideChannels || hideMessages}
                     onCheckedChange={toggleChannelsVisibility}
-                    className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2"
+                    disabled={hideMessages}
+                    className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2 data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
                   >
                     <EyeOff className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
                     <span className="flex-1 font-normal">Hide channels</span>
                     <div
-                      className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${hideChannels ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
+                      className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${hideChannels || hideMessages ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
                     >
                       <div
-                        className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-all duration-200 ${hideChannels ? "left-3.5" : "left-0.5"}`}
+                        className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-all duration-200 ${hideChannels || hideMessages ? "left-3.5" : "left-0.5"}`}
+                      />
+                    </div>
+                  </DropdownMenu.CheckboxItem>
+                )}
+
+                {hasMessages && (
+                  <DropdownMenu.CheckboxItem
+                    checked={hideMessages}
+                    onCheckedChange={toggleMessagesVisibility}
+                    className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2"
+                  >
+                    <EyeOff className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                    <span className="flex-1 font-normal">Hide messages</span>
+                    <div
+                      className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${hideMessages ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
+                    >
+                      <div
+                        className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-all duration-200 ${hideMessages ? "left-3.5" : "left-0.5"}`}
                       />
                     </div>
                   </DropdownMenu.CheckboxItem>
@@ -365,18 +387,6 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
           >
             <PresentationChartLineIcon className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
             <span className="flex-1 font-normal">Start Presentation</span>
-          </DropdownMenu.Item>
-
-          {/* Open in EventCatalog Studio */}
-          <DropdownMenu.Separator className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
-          <DropdownMenu.Item
-            onClick={openStudioModal}
-            className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
-          >
-            <ExternalLink className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
-            <span className="flex-1 font-normal">
-              Open in EventCatalog Studio
-            </span>
           </DropdownMenu.Item>
         </>
       );

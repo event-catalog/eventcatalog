@@ -3,7 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  // `layout` is graph layout without React, for laying graphs out on the server
+  entry: ['src/index.ts', 'src/layout.ts'],
   format: ['cjs', 'esm'],
   dts: true,
   splitting: false,
@@ -21,6 +22,9 @@ export default defineConfig({
     '@radix-ui/react-tooltip',
     'html-to-image',
     'mermaid',
+    // Loaded when first needed (see utils/elk-layout.ts), so kept out of the bundle
+    'elkjs',
+    'elkjs/lib/elk.bundled.js',
   ],
   loader: {
     '.svg': 'text',

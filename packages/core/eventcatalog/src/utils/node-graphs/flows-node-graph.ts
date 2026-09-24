@@ -1,25 +1,15 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import {
-  createDagreGraph,
-  calculatedNodes,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
-  buildContextMenuForResource,
-  buildContextMenuForService,
-  layoutDagreGraph,
-} from '@utils/node-graphs/utils/utils';
+import { buildContextMenuForResource, buildContextMenuForService } from '@utils/node-graphs/utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { MarkerType } from '@xyflow/react';
 import type { Node as NodeType } from '@xyflow/react';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 
-type DagreGraph = any;
-
 interface Props {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
-  renderAllEdges?: boolean;
+  layout?: boolean;
 }
 
 interface Maps {
@@ -139,7 +129,7 @@ const buildFlowGraphInternal = (
     return { ...step, type: 'step' };
   });
 
-  hydratedSteps.forEach((step: any, index: number) => {
+  hydratedSteps.forEach((step: any) => {
     const node: NodeType = {
       id: stepNodeId(step.id),
       sourcePosition: 'right',
@@ -150,7 +140,7 @@ const buildFlowGraphInternal = (
         showTarget: true,
         showSource: true,
       },
-      position: { x: 250, y: index * 150 },
+      position: { x: 0, y: 0 },
       type: step.type,
     } as NodeType;
 
@@ -271,9 +261,7 @@ const buildFlowGraphInternal = (
   return { nodes, edges };
 };
 
-export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
-  const graph = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 200 });
-
+export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = true }: Props) => {
   const [flows, events, commands, queries, agents, services, containers, dataProducts] = await Promise.all([
     getCollection('flows'),
     getCollection('events'),
@@ -313,18 +301,5 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     new Set([`${flow.data.id}@${flow.data.version}`])
   );
 
-  nodes.forEach((node: any) => {
-    graph.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  });
-
-  edges.forEach((edge: any) => {
-    graph.setEdge(edge.source, edge.target);
-  });
-
-  layoutDagreGraph(graph);
-
-  return {
-    nodes: calculatedNodes(graph, nodes),
-    edges: edges,
-  };
+  return layout ? await layoutNodeGraph({ nodes, edges }) : { nodes, edges };
 };

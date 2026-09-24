@@ -97,6 +97,21 @@ describe('Domains NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
+    it('lays the domain graph out, routing its edges', async () => {
+      const { edges } = await getNodesAndEdges({ id: 'Shipping', version: '0.0.1', mode: 'simple' });
+
+      expect(edges.length).toBeGreaterThan(0);
+      edges.forEach((edge: any) => expect(edge.data?.route?.points.length).toBeGreaterThanOrEqual(2));
+    });
+
+    it('returns the domain graph without positions when layout is false', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Shipping', version: '0.0.1', mode: 'simple', layout: false });
+
+      expect(nodes.length).toBeGreaterThan(0);
+      nodes.forEach((node: any) => expect(node.position).toEqual({ x: 0, y: 0 }));
+      edges.forEach((edge: any) => expect(edge.data?.route).toBeUndefined());
+    });
+
     it('should return a list of nodes and edges with a domain has subdomains', async () => {
       // @ts-ignore
       const { nodes, edges } = await getNodesAndEdges({ id: 'Shipping', version: '0.0.1' });

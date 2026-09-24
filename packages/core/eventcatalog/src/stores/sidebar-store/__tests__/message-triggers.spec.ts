@@ -42,7 +42,7 @@ describe('message trigger sidebar sections', () => {
     const architecture = findGroup(node, 'Architecture');
 
     expect(quickReference?.pages).toEqual([{ type: 'item', title: 'Overview', href: '/docs/commands/CreateUser/1.0.0' }]);
-    expect(architecture?.pages).toEqual([{ type: 'item', title: 'Map', href: '/visualiser/commands/CreateUser/1.0.0' }]);
+    expect(architecture?.pages).toEqual([{ type: 'item', title: 'Diagram', href: '/visualiser/commands/CreateUser/1.0.0' }]);
   });
 
   it('adds trigger paths below the message map when a relationship exists', () => {
@@ -55,7 +55,7 @@ describe('message trigger sidebar sections', () => {
     });
 
     expect(findGroup(node, 'Architecture')?.pages).toEqual([
-      { type: 'item', title: 'Map', href: '/visualiser/commands/CreateUser/1.0.0' },
+      { type: 'item', title: 'Diagram', href: '/visualiser/commands/CreateUser/1.0.0' },
       { type: 'item', title: 'Trigger paths', href: '/triggers/commands/CreateUser/1.0.0' },
     ]);
   });

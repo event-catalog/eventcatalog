@@ -1,16 +1,12 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import {
-  createDagreGraph,
   generateIdForNode,
   generatedIdForEdge,
-  calculatedNodes,
   createEdge,
   getColorFromString,
   buildContextMenuForResource,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
-  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 
 import { findInMap, createVersionedMap, mergeMaps, collectionToResourceMap } from '@utils/collections/util';
 import { MarkerType } from '@xyflow/react';
@@ -19,12 +15,9 @@ import { getProducersOfMessage } from '@utils/collections/services';
 import type { CollectionMessageTypes } from '@types';
 import { getNodesAndEdgesForProducedMessage } from './message-node-graph';
 
-type DagreGraph = any;
-
 interface Props {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   layout?: boolean;
 }
@@ -35,10 +28,9 @@ const getNodePropertyFromCollectionType = (type: string) => {
   return collectionToResourceMap[type as keyof typeof collectionToResourceMap];
 };
 
-export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', layout = true }: Props) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
-  let nodes = [] as any,
-    edges = [] as any;
+export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = true }: Props) => {
+  let nodes: any[] = [],
+    edges: any[] = [];
 
   const [dataProducts, containers, services, events, queries, commands, channels] = await Promise.all([
     getCollection('data-products'),
@@ -93,6 +85,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
 
       nodes.push({
         id: generateIdForNode(inputResource),
+        position: { x: 0, y: 0 },
         sourcePosition: 'right',
         targetPosition: 'left',
         data: { mode, [nodeDataKey]: { ...inputResource?.data } },
@@ -149,6 +142,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   // The data product itself
   nodes.push({
     id: generateIdForNode(dataProduct),
+    position: { x: 0, y: 0 },
     sourcePosition: 'right',
     targetPosition: 'left',
     data: {
@@ -181,6 +175,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
 
       nodes.push({
         id: generateIdForNode(outputResource),
+        position: { x: 0, y: 0 },
         sourcePosition: 'right',
         targetPosition: 'left',
         data: { mode, [nodeDataKey]: { ...outputResource?.data } },
@@ -210,19 +205,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     );
   });
 
-  nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  });
-
-  edges.forEach((edge: any) => {
-    flow.setEdge(edge.source, edge.target);
-  });
-
-  if (layout) {
-    // Render the diagram in memory getting the X and Y
-    layoutDagreGraph(flow);
-  }
-
   // Find any duplicated edges, and merge them into one edge
   const uniqueEdgesById = new Map<string, any>();
   edges.forEach((edge: any) => {
@@ -232,8 +214,10 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   });
   const uniqueEdges = Array.from(uniqueEdgesById.values());
 
-  return {
-    nodes: calculatedNodes(flow, nodes),
+  const graph = {
+    nodes: nodes.map((node: any) => ({ ...node, position: node.position ?? { x: 0, y: 0 } })),
     edges: uniqueEdges,
   };
+
+  return layout ? await layoutNodeGraph(graph) : graph;
 };
