@@ -6,7 +6,7 @@ import {
   getResourceDocCategories,
   getResourceDocs,
   getResourceDocsForResource,
-} from '@enterprise/collections/resource-docs-utils';
+} from '@utils/collections/resource-docs';
 
 const mockDomains = [
   {
