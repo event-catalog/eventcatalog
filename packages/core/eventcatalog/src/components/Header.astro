@@ -7,6 +7,7 @@ import { isAuthEnabled, isSSR, isEventCatalogChatVisible, isEventCatalogChatEnab
 import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
 import ThemeToggle from './ThemeToggle';
+import TrialBadge from './TrialBadge.astro';
 
 const { showNestedSideBar = true } = Astro.props;
 
@@ -22,6 +23,15 @@ const logo = {
 };
 
 const repositoryUrl = catalog?.repositoryUrl;
+
+// Header icons match the theme toggle: a 20px icon in a padded button, coloured with the theme's icon colour
+const headerIconLinkClass =
+  'block p-2 rounded-md text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors';
+const headerIconClass = 'block h-5 w-5 bg-current';
+const iconMask = (name: string) => {
+  const url = buildUrl(`/icons/${name}.svg`, true);
+  return `mask: url("${url}") center / contain no-repeat; -webkit-mask: url("${url}") center / contain no-repeat;`;
+};
 
 const user = session?.user as { name?: string; email?: string; image?: string; provider?: string } | undefined;
 const userName = user?.name || user?.email || 'User';
@@ -64,7 +74,8 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
       <div class="hidden md:block shrink-0 ml-auto">
         {
           session ? (
-            <div class="flex items-center space-x-4 justify-end pr-2">
+            <div class="flex items-center gap-3 justify-end pr-2">
+              <TrialBadge />
               {catalog.environments && catalog.environments.length > 0 && (
                 <EnvironmentDropdown environments={catalog.environments} client:idle />
               )}
@@ -162,7 +173,8 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
             </div>
           ) : (
             <>
-              <div class="flex items-center space-x-4 justify-end pr-2">
+              <div class="flex items-center gap-3 justify-end pr-2">
+                <TrialBadge />
                 {catalog.environments && catalog.environments.length > 0 && (
                   <EnvironmentDropdown environments={catalog.environments} client:idle />
                 )}
@@ -174,50 +186,33 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
                     Sign In
                   </button>
                 )}
-                <ThemeToggle client:idle />
-                <ul class="flex space-x-4">
+                <ul class="flex items-center gap-1">
+                  <li>
+                    <ThemeToggle client:idle />
+                  </li>
                   {repositoryUrl && (
                     <li>
-                      <a
-                        href={repositoryUrl}
-                        class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors focus:outline-hidden"
-                        aria-label="View repository on GitHub"
-                      >
-                        <img
-                          src={buildUrl('/icons/github.svg', true)}
-                          alt=""
-                          class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity ec-themed-icon"
-                          aria-hidden="true"
-                        />
+                      <a href={repositoryUrl} class={headerIconLinkClass} aria-label="View repository on GitHub">
+                        <span class={headerIconClass} style={iconMask('github')} aria-hidden="true" />
                       </a>
                     </li>
                   )}
                   <li>
                     <a
                       href="https://discord.com/invite/3rjaZMmrAm"
-                      class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
+                      class={headerIconLinkClass}
                       aria-label="Join our Discord community"
                     >
-                      <img
-                        src={buildUrl('/icons/discord.svg', true)}
-                        alt=""
-                        class="h-6 w-6 hover:opacity-100 transition-opacity ec-themed-icon"
-                        aria-hidden="true"
-                      />
+                      <span class={headerIconClass} style={iconMask('discord')} aria-hidden="true" />
                     </a>
                   </li>
                   <li>
                     <a
                       href="https://github.com/event-catalog/eventcatalog"
-                      class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
+                      class={headerIconLinkClass}
                       aria-label="View EventCatalog on GitHub"
                     >
-                      <img
-                        src={buildUrl('/icons/github.svg', true)}
-                        alt=""
-                        class="h-6 w-6 hover:opacity-100 transition-opacity ec-themed-icon"
-                        aria-hidden="true"
-                      />
+                      <span class={headerIconClass} style={iconMask('github')} aria-hidden="true" />
                     </a>
                   </li>
                 </ul>
