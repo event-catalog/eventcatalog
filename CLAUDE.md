@@ -292,7 +292,6 @@ When building features used by both AI Chat and MCP Server, add shared logic to 
 ### Working with Packages
 
 - **Core** depends on **SDK** and **Visualiser** via `workspace:*` references
-- **Playground** depends on **Visualiser** and **Language Server**
 - **Visualiser** is standalone (no internal workspace dependencies)
 - Changes to workspace dependencies are automatically picked up in development
 - Build commands run via Turbo (handles dependency ordering and caching)
