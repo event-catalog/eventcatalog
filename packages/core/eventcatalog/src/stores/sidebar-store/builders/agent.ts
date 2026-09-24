@@ -126,7 +126,7 @@ export const buildAgentSections = (
           pages: [
             {
               type: 'item',
-              title: 'Map',
+              title: 'Diagram',
               href: buildUrl(`/visualiser/agents/${agent.data.id}/${agent.data.version}`),
             },
           ].filter(Boolean) as ChildRef[],

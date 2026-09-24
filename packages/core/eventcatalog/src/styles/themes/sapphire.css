@@ -6,8 +6,8 @@
  */
 
 /* Sapphire Light Mode */
-:root[data-catalog-theme="sapphire"],
-:root[data-catalog-theme="sapphire"][data-theme="light"] {
+:root[data-catalog-theme='sapphire'],
+:root[data-catalog-theme='sapphire'][data-theme='light'] {
   /* Header - clean white with subtle blue tint */
   --ec-header-bg: 255 255 255; /* #ffffff */
   --ec-header-text: 15 23 42; /* #0f172a */
@@ -110,7 +110,7 @@
 }
 
 /* Sapphire Dark Mode */
-:root[data-catalog-theme="sapphire"][data-theme="dark"] {
+:root[data-catalog-theme='sapphire'][data-theme='dark'] {
   /* Header - matches page bg for unified look */
   --ec-header-bg: 2 6 23; /* #020617 slate-950 - matches page bg */
   --ec-header-text: 226 232 240; /* #e2e8f0 */
@@ -209,7 +209,7 @@
 }
 
 /* Sapphire theme prose overrides */
-:root[data-catalog-theme="sapphire"][data-theme="dark"] .prose {
+:root[data-catalog-theme='sapphire'][data-theme='dark'] .prose {
   --tw-prose-body: rgb(148 163 184); /* slate-400 */
   --tw-prose-headings: rgb(226 232 240); /* slate-200 */
   --tw-prose-lead: rgb(100 116 139); /* slate-500 */
@@ -228,19 +228,19 @@
   --tw-prose-td-borders: rgb(30 41 59); /* slate-800 */
 }
 
-:root[data-catalog-theme="sapphire"][data-theme="dark"] .prose code {
+:root[data-catalog-theme='sapphire'][data-theme='dark'] .prose code {
   background-color: rgb(30 41 59); /* slate-800 */
 }
 
-:root[data-catalog-theme="sapphire"][data-theme="dark"] .prose pre {
+:root[data-catalog-theme='sapphire'][data-theme='dark'] .prose pre {
   background-color: rgb(15 23 42); /* slate-900 */
   border: 1px solid rgb(30 41 59); /* slate-800 */
 }
 
-:root[data-catalog-theme="sapphire"][data-theme="dark"] .prose a {
+:root[data-catalog-theme='sapphire'][data-theme='dark'] .prose a {
   color: rgb(96 165 250); /* blue-400 */
 }
 
-:root[data-catalog-theme="sapphire"][data-theme="dark"] .prose a:hover {
+:root[data-catalog-theme='sapphire'][data-theme='dark'] .prose a:hover {
   color: rgb(147 197 253); /* blue-300 */
 }

@@ -155,7 +155,7 @@ export const buildDataProductSections = (
           pages: [
             {
               type: 'item',
-              title: 'Map',
+              title: 'Diagram',
               href: buildUrl(`/visualiser/data-products/${dataProduct.data.id}/${dataProduct.data.version}`),
             },
           ],

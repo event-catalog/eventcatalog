@@ -122,7 +122,7 @@ export const buildContainerSections = (
           pages: [
             {
               type: 'item',
-              title: 'Map',
+              title: 'Diagram',
               href: buildUrl(`/visualiser/containers/${container.data.id}/${container.data.version}`),
             },
           ],

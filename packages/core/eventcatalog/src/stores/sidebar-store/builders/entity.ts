@@ -97,7 +97,7 @@ export const buildEntitySections = (
           icon: 'Workflow',
           pages: entityMapTargets.map((target) => ({
             type: 'item',
-            title: entityMapTargets.length === 1 ? 'Entity Map' : `${target.label} Entity Map`,
+            title: entityMapTargets.length === 1 ? 'Entity Diagram' : `${target.label} Entity Diagram`,
             href: target.href,
           })),
         }

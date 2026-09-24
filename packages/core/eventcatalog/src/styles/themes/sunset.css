@@ -6,8 +6,8 @@
  */
 
 /* Sunset Light Mode */
-:root[data-catalog-theme="sunset"],
-:root[data-catalog-theme="sunset"][data-theme="light"] {
+:root[data-catalog-theme='sunset'],
+:root[data-catalog-theme='sunset'][data-theme='light'] {
   /* Header - clean white */
   --ec-header-bg: 255 255 255; /* #ffffff */
   --ec-header-text: 23 23 23; /* #171717 neutral-900 */
@@ -110,7 +110,7 @@
 }
 
 /* Sunset Dark Mode */
-:root[data-catalog-theme="sunset"][data-theme="dark"] {
+:root[data-catalog-theme='sunset'][data-theme='dark'] {
   /* Header - matches page bg for unified look */
   --ec-header-bg: 10 10 10; /* #0a0a0a neutral-950 - matches page bg */
   --ec-header-text: 245 245 245; /* #f5f5f5 neutral-100 */
@@ -209,7 +209,7 @@
 }
 
 /* Sunset theme prose overrides */
-:root[data-catalog-theme="sunset"][data-theme="dark"] .prose {
+:root[data-catalog-theme='sunset'][data-theme='dark'] .prose {
   --tw-prose-body: rgb(163 163 163); /* neutral-400 */
   --tw-prose-headings: rgb(245 245 245); /* neutral-100 */
   --tw-prose-lead: rgb(115 115 115); /* neutral-500 */
@@ -228,19 +228,19 @@
   --tw-prose-td-borders: rgb(38 38 38); /* neutral-800 */
 }
 
-:root[data-catalog-theme="sunset"][data-theme="dark"] .prose code {
+:root[data-catalog-theme='sunset'][data-theme='dark'] .prose code {
   background-color: rgb(38 38 38); /* neutral-800 */
 }
 
-:root[data-catalog-theme="sunset"][data-theme="dark"] .prose pre {
+:root[data-catalog-theme='sunset'][data-theme='dark'] .prose pre {
   background-color: rgb(23 23 23); /* neutral-900 */
   border: 1px solid rgb(38 38 38); /* neutral-800 */
 }
 
-:root[data-catalog-theme="sunset"][data-theme="dark"] .prose a {
+:root[data-catalog-theme='sunset'][data-theme='dark'] .prose a {
   color: rgb(251 146 60); /* orange-400 */
 }
 
-:root[data-catalog-theme="sunset"][data-theme="dark"] .prose a:hover {
+:root[data-catalog-theme='sunset'][data-theme='dark'] .prose a:hover {
   color: rgb(253 186 116); /* orange-300 */
 }

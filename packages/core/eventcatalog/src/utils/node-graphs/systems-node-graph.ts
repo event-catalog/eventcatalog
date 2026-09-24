@@ -1,22 +1,13 @@
 import { getCollection } from 'astro:content';
-import {
-  createDagreGraph,
-  calculatedNodes,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
-  layoutDagreGraph,
-} from '@utils/node-graphs/utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import { getNodesAndEdges as getContainerNodeAndEdges } from './container-node-graph';
 import merge from 'lodash.merge';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 
-type DagreGraph = any;
-
 interface NodesAndEdgesProps {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   group?: boolean;
   // When true, wraps the whole system graph in a single parent boundary node
@@ -29,14 +20,12 @@ interface NodesAndEdgesProps {
 export const getNodesAndEdges = async ({
   id,
   version,
-  defaultFlow,
   mode = 'simple',
   group = false,
   wrapInSystemGroup = false,
   channelRenderMode = 'flat',
   layout = true,
 }: NodesAndEdgesProps) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 50, edgesep: 50 });
   let nodes = new Map(),
     edges = new Map();
 
@@ -80,7 +69,6 @@ export const getNodesAndEdges = async ({
     const { nodes: serviceNodes, edges: serviceEdges } = await getServicesNodeAndEdges({
       id: service.id,
       version: service.version,
-      defaultFlow: flow,
       mode,
       renderAllEdges: true,
       channelRenderMode,
@@ -105,7 +93,6 @@ export const getNodesAndEdges = async ({
     const { nodes: containerNodes, edges: containerEdges } = await getContainerNodeAndEdges({
       id: container.id,
       version: container.version,
-      defaultFlow: flow,
       mode,
       channelRenderMode,
       layout: false,
@@ -118,6 +105,12 @@ export const getNodesAndEdges = async ({
     containerEdges.forEach((e) => edges.set(e.id, e));
   }
 
+  // The graphs merged above each mark their own service / data store as the one
+  // being viewed, but here the system is (see the system group below)
+  nodes.forEach((n) => {
+    if (n.data?.isFocused) nodes.set(n.id, { ...n, data: { ...n.data, isFocused: false } });
+  });
+
   // Add group node to the graph (used when a system is rendered inside another view)
   if (group) {
     nodes.forEach((n) => {
@@ -125,89 +118,36 @@ export const getNodesAndEdges = async ({
     });
   }
 
-  if (layout) {
-    layoutDagreGraph(flow);
-  }
-
-  let laidOutNodes = calculatedNodes(flow, Array.from(nodes.values()));
-
   // Wrap everything inside a single parent "system group" boundary node, so all
-  // the services / data stores / messages visibly belong to one system. We only
-  // do this when this graph owns its own layout (`layout` true) — when it's
-  // being merged into a larger graph (e.g. a domain view) the host owns grouping.
-  if (wrapInSystemGroup && layout && laidOutNodes.length > 0) {
-    laidOutNodes = wrapNodesInSystemGroup(laidOutNodes, flow, system);
-  }
-
-  return {
-    nodes: laidOutNodes,
+  // the services / data stores / messages visibly belong to one system
+  const graph = {
+    nodes: wrapInSystemGroup && nodes.size > 0 ? wrapNodesInSystemGroup([...nodes.values()], system) : [...nodes.values()],
     edges: [...edges.values()],
   };
+
+  return layout ? layoutNodeGraph(graph) : graph;
 };
 
-// Padding around the children inside the group box, and headroom for the header banner.
-const GROUP_PADDING_X = 100;
-const GROUP_PADDING_Y = 100;
-const GROUP_HEADER_HEIGHT = 64;
-
 /**
- * Wraps a set of already-laid-out nodes in one parent `system-group` node.
- *
- * The rest of the app uses dagre's node position directly as the ReactFlow
- * position, so we stay in that same coordinate space. Child nodes under a
- * `parentId` are positioned relative to the parent, so we:
- *   1. compute the bounding box of all nodes (using dagre position + size),
- *   2. create a parent group node at the box origin (minus padding/header),
- *   3. re-home every node as a child, offset by the group origin.
+ * Wraps a system's nodes in one parent `system-group` node (sized to fit them
+ * when the graph is laid out), so they visibly belong to the system.
  */
-const wrapNodesInSystemGroup = (laidOutNodes: any[], flow: DagreGraph, system: any) => {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-
-  for (const node of laidOutNodes) {
-    const dims = flow.node(node.id) || {};
-    const width = dims.width ?? DEFAULT_NODE_WIDTH;
-    const height = dims.height ?? DEFAULT_NODE_HEIGHT;
-
-    minX = Math.min(minX, node.position.x);
-    minY = Math.min(minY, node.position.y);
-    maxX = Math.max(maxX, node.position.x + width);
-    maxY = Math.max(maxY, node.position.y + height);
-  }
-
-  // Origin of the group box (room for padding + the header banner at the top).
-  const groupX = minX - GROUP_PADDING_X;
-  const groupY = minY - GROUP_PADDING_Y - GROUP_HEADER_HEIGHT;
-  const groupWidth = maxX - minX + GROUP_PADDING_X * 2;
-  const groupHeight = maxY - minY + GROUP_PADDING_Y * 2 + GROUP_HEADER_HEIGHT;
-
+const wrapNodesInSystemGroup = (systemNodes: any[], system: any) => {
   const groupId = `system-group-${system.data.id}-${system.data.version}`;
 
   const groupNode = {
     id: groupId,
     type: 'system-group',
-    position: { x: groupX, y: groupY },
+    position: { x: 0, y: 0 },
     draggable: false,
     selectable: false,
-    style: { width: groupWidth, height: groupHeight },
     data: {
       system: { name: system.data.name, version: system.data.version },
+      // The system is the resource being viewed on its own diagram
+      isFocused: true,
     },
   };
 
-  // Re-home each node as a child, with its position relative to the group origin.
-  const childNodes = laidOutNodes.map((node) => ({
-    ...node,
-    parentId: groupId,
-    extent: 'parent',
-    position: {
-      x: node.position.x - groupX,
-      y: node.position.y - groupY,
-    },
-  }));
-
-  // Parent must come before its children in the array for ReactFlow.
-  return [groupNode, ...childNodes];
+  // Parent must come before its children in the array for React Flow
+  return [groupNode, ...systemNodes.map((node) => ({ ...node, parentId: groupId, extent: 'parent' }))];
 };

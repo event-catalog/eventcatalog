@@ -50,6 +50,7 @@ import {
   Boxes,
   Box,
   type LucideIcon,
+  Waypoints,
 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { toPng } from "html-to-image";
@@ -67,6 +68,7 @@ import { View as ViewNode } from "../nodes/view";
 import { Actor as ActorNode } from "../nodes/actor";
 import ContextActorNode from "../nodes/ContextActor";
 import SystemGroupNode from "../nodes/SystemGroupNode";
+import DomainCardNode from "../nodes/DomainCard";
 import { ExternalSystem as ExternalSystemNode } from "../nodes/external-system";
 import { Note as NoteNode } from "../nodes/note";
 import { Field as FieldNode } from "../nodes/field";
@@ -97,10 +99,14 @@ import {
 } from "../edges/LabelledEdge";
 import VisualiserSearch, { type VisualiserSearchRef } from "./VisualiserSearch";
 import StepWalkthrough from "./StepWalkthrough";
-import StudioModal from "./StudioModal";
+import CanvasToolbar from "./CanvasToolbar";
 import FocusModeModal from "./FocusModeModal";
 import MermaidView from "./MermaidView";
-import { useChannelVisibility } from "../hooks/use-channel-visibility";
+import { setLevelInUrl, useNodeVisibility } from "../hooks/use-node-visibility";
+import type { GraphTransition } from "../utils/animate-layout";
+import { layoutWithElk, type EdgeRoute } from "../utils/elk-layout";
+import { applyMessageAnimation } from "../utils/message-animation";
+import { isMessageNode } from "../utils/hide-messages";
 import VisualizerDropdownContent from "./VisualizerDropdownContent";
 import NodeContextMenu from "./NodeContextMenu";
 import { convertToMermaid } from "../utils/export-mermaid";
@@ -117,10 +123,8 @@ import {
 } from "../utils/message-group-expansion";
 import { AllNotesModal, getNotesFromNode } from "./NotesToolbarButton";
 import { setBuildUrlFn } from "../utils/url-builder";
-import { layoutDagreGraph } from "../utils/utils/utils";
 import { PortalContainerProvider } from "../context/PortalContainerContext";
 import type { DslGraph } from "../types";
-import dagre from "dagre";
 
 // Minimum pixel change to detect layout modifications (avoids floating point comparison issues)
 const POSITION_CHANGE_THRESHOLD = 1;
@@ -130,7 +134,50 @@ const LARGE_GRAPH_NODE_THRESHOLD = 30;
 
 // Static props for ReactFlow - defined outside component to avoid new references on every render
 const NODE_ORIGIN: [number, number] = [0.1, 0.1];
-const INITIAL_FIT_VIEW_OPTIONS = { padding: 0.2, duration: 0 } as const;
+
+// Nodes levels 2 and 3 are about: services, data stores, messages and channels
+const LEVEL_NODE_TYPES = [
+  "services",
+  "service",
+  "agents",
+  "agent",
+  "externalSystem",
+  "data",
+  "data-products",
+  "events",
+  "event",
+  "commands",
+  "command",
+  "queries",
+  "query",
+  "messageGroup",
+  "messageGroupExpanded",
+  "channels",
+  "channel",
+];
+
+// Nodes a level 1 (context) graph has, besides notes
+const CONTEXT_NODE_TYPES = [
+  "domains",
+  "domain",
+  "domain-group",
+  "context-domain",
+  "systems",
+  "system",
+  "external-system",
+  "externalSystem",
+  "context-actor",
+  "actor",
+  "actors",
+  "note",
+  "notes",
+];
+// Not zoomed in past full size, e.g. on a graph with a single small node
+const INITIAL_FIT_VIEW_OPTIONS = {
+  padding: 0.2,
+  duration: 0,
+  maxZoom: 1,
+} as const;
 const MINIMAP_STYLE = {
   backgroundColor: "rgb(var(--ec-page-bg))",
   border: "1px solid rgb(var(--ec-page-border))",
@@ -153,11 +200,15 @@ const EXPANDED_WRAPPER_TYPES = new Set([
 const isExpandedWrapper = (type: string | undefined) =>
   type != null && EXPANDED_WRAPPER_TYPES.has(type);
 
+// Boundaries around other nodes, left out of the legend
+const GROUP_NODE_TYPES = ["group", "system-group", "domain-group"];
+
 type LegendEntry = { count: number; colorClass: string; groupId?: string };
 
 // Friendly labels for legend keys that differ from their raw node type.
 const LEGEND_LABELS: Record<string, string> = {
   "context-actor": "Actors",
+  "context-domain": "Domains",
 };
 
 const getLegendLabel = (key: string) => LEGEND_LABELS[key] ?? key;
@@ -180,6 +231,7 @@ const LEGEND_ICONS: Record<string, { Icon: LucideIcon; colorClass: string }> = {
   system: { Icon: GroupIcon, colorClass: "text-purple-600" },
   actor: { Icon: User, colorClass: "text-yellow-500" },
   "context-actor": { Icon: User, colorClass: "text-yellow-500" },
+  "context-domain": { Icon: Boxes, colorClass: "text-yellow-500" },
   data: { Icon: Database, colorClass: "text-blue-600" },
   "data-products": { Icon: Boxes, colorClass: "text-indigo-600" },
   field: { Icon: Box, colorClass: "text-cyan-600" },
@@ -189,13 +241,18 @@ const getLegendIcon = (key: string) => LEGEND_ICONS[key];
 
 const LegendPanel = memo(function LegendPanel({
   legend,
+  hiddenKeys,
   showMinimap,
   onLegendClick,
 }: {
   legend: Record<string, LegendEntry>;
+  /** Entries whose nodes are hidden, shown faded */
+  hiddenKeys: string[];
   showMinimap: boolean;
-  onLegendClick: (key: string, groupId?: string) => void;
+  onLegendClick: (key: string) => void;
 }) {
+  if (Object.keys(legend).length === 0) return null;
+
   return (
     <Panel
       position="bottom-right"
@@ -203,31 +260,31 @@ const LegendPanel = memo(function LegendPanel({
     >
       <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] font-light px-4 text-[12px] shadow-md py-1 rounded-md">
         <ul className="m-0 p-0 ">
-          {Object.entries(legend).map(
-            ([key, { count, colorClass, groupId }]) => {
-              const legendIcon = getLegendIcon(key);
-              return (
-                <li
-                  key={key}
-                  className="flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] hover:underline"
-                  onClick={() => onLegendClick(key, groupId)}
-                >
-                  {legendIcon ? (
-                    <legendIcon.Icon
-                      className={`w-3 h-3 shrink-0 ${legendIcon.colorClass}`}
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <span className={`w-2 h-2 block ${colorClass}`} />
-                  )}
-                  <span className="block capitalize">
-                    {getLegendLabel(key)} ({count})
-                  </span>
-                </li>
-              );
-            },
-          )}
+          {Object.entries(legend).map(([key, { count, colorClass }]) => {
+            const legendIcon = getLegendIcon(key);
+            const hidden = hiddenKeys.includes(key);
+            return (
+              <li
+                key={key}
+                title={`${hidden ? "Show" : "Hide"} ${getLegendLabel(key)}`}
+                className={`flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] hover:underline transition-opacity ${hidden ? "opacity-40" : ""}`}
+                onClick={() => onLegendClick(key)}
+              >
+                {legendIcon ? (
+                  <legendIcon.Icon
+                    className={`w-3 h-3 shrink-0 ${legendIcon.colorClass}`}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <span className={`w-2 h-2 block ${colorClass}`} />
+                )}
+                <span className="block capitalize">
+                  {getLegendLabel(key)} ({count})
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </Panel>
@@ -250,8 +307,6 @@ interface Props {
   showSearch?: boolean;
   zoomOnScroll?: boolean;
   designId?: string;
-  isStudioModalOpen?: boolean;
-  setIsStudioModalOpen?: (isOpen: boolean) => void;
   isChatEnabled?: boolean;
   maxTextSize?: number;
   isDevMode?: boolean;
@@ -265,6 +320,24 @@ interface Props {
    * flows, e.g. the System Diagram.
    */
   disableMessageAnimation?: boolean;
+  /** Description of the overview graph shown as level 1 (see `overviewGraph`) */
+  overviewLabel?: string;
+  /** True while the overview graph is shown */
+  isOverview?: boolean;
+  /**
+   * Switches between the overview graph and this graph, passing this graph's
+   * current state for the next one to animate from
+   */
+  onShowOverview?: (show: boolean, from: GraphTransition) => void;
+  /** The graph switched away from to show this one, to animate from */
+  transitionFrom?: GraphTransition;
+  /** This graph laid out with its messages and channels hidden, if precomputed */
+  hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
+  /** Legend entries hidden to start with (kept when switching graphs) */
+  initialHiddenLegendKeys?: string[];
+  onHiddenLegendKeysChange?: (keys: string[]) => void;
+  /** The kind of diagram, so the level is remembered for each kind */
+  preferenceScope?: string;
   /** When set, the graph will zoom to this node id. */
   focusNodeId?: string;
   /** Optional token to force repeated focus for the same node id. */
@@ -408,14 +481,20 @@ const NodeGraphBuilder = ({
   showFlowWalkthrough = true,
   showSearch = true,
   zoomOnScroll = false,
-  isStudioModalOpen,
-  setIsStudioModalOpen = () => {},
   isChatEnabled = false,
   maxTextSize,
   isDevMode = false,
   resourceKey,
   animated,
   disableMessageAnimation = false,
+  overviewLabel,
+  isOverview = false,
+  onShowOverview,
+  transitionFrom,
+  hiddenMessagesGraph,
+  initialHiddenLegendKeys,
+  onHiddenLegendKeysChange,
+  preferenceScope,
   focusNodeId,
   focusRequestId,
   fitRequestId,
@@ -484,6 +563,8 @@ const NodeGraphBuilder = ({
       "data-products": wrapWithContextMenu(DataProductNode),
       group: GroupNode,
       "system-group": SystemGroupNode,
+      "domain-group": SystemGroupNode,
+      "context-domain": DomainCardNode,
       note: memo((props: any) => <NoteNode {...props} readOnly={true} />),
       field: wrapWithContextMenu(FieldNode),
       messageGroup: MessageGroupNode,
@@ -505,8 +586,15 @@ const NodeGraphBuilder = ({
   );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const { fitView, getNodes, getIntersectingNodes, getZoom, setCenter } =
-    useReactFlow();
+  const {
+    fitView,
+    getNodes,
+    getIntersectingNodes,
+    getZoom,
+    setCenter,
+    getEdges,
+    getViewport,
+  } = useReactFlow();
   const storeApi = useStoreApi();
   const previousGraphInputRef = useRef({
     nodes: initialNodes,
@@ -539,6 +627,11 @@ const NodeGraphBuilder = ({
   }, [initialNodes, initialEdges, setNodes, setEdges, fitView]);
 
   const [animateMessages, setAnimateMessages] = useState(true);
+  // Showing or hiding nodes swaps the edges, so new edges animate the same way
+  const prepareEdges = useCallback(
+    (eds: Edge[]) => applyMessageAnimation(eds, animateMessages),
+    [animateMessages],
+  );
   const [_activeStepIndex, _setActiveStepIndex] = useState<number | null>(null);
   const [_isFullscreen, _setIsFullscreen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -550,7 +643,6 @@ const NodeGraphBuilder = ({
   const initialPositionsRef = useRef<Record<string, { x: number; y: number }>>(
     {},
   );
-  // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 
@@ -657,13 +749,155 @@ const NodeGraphBuilder = ({
     () => initialNodes.some((node: any) => node.type === "channels"),
     [initialNodes],
   );
-  const { hideChannels, toggleChannelsVisibility } = useChannelVisibility({
+  const hasMessages = useMemo(
+    () => initialNodes.some(isMessageNode),
+    [initialNodes],
+  );
+  // Graphs levels don't apply to (e.g. an entity map) don't show them
+  const hasLevels = useMemo(
+    () =>
+      initialNodes.some((node: Node) =>
+        LEVEL_NODE_TYPES.includes(node.type || ""),
+      ),
+    [initialNodes],
+  );
+  // Only domains, systems and actors (e.g. a context diagram): a level 1 graph
+  const isContextGraph = useMemo(
+    () =>
+      initialNodes.every((node: Node) =>
+        CONTEXT_NODE_TYPES.includes(node.type || ""),
+      ),
+    [initialNodes],
+  );
+  // Cross-domain communication to highlight (e.g. on a domain's diagram).
+  // Only where the toolbar is, to turn it on and off (not e.g. docs embeds).
+  const hasOtherDomains = useMemo(
+    () =>
+      mode === "full" &&
+      initialNodes.some((node: Node<any>) => !!node.data?.otherDomain),
+    [initialNodes, mode],
+  );
+  // The legend (set once worked out below), for which nodes its entries list
+  const legendRef = useRef<Record<string, LegendEntry>>({});
+  const matchesLegendKey = useCallback((node: Node<any>, key: string) => {
+    const groupId = legendRef.current[key]?.groupId;
+    return groupId ? node.data?.group?.id === groupId : node.type === key;
+  }, []);
+  const {
+    hideChannels,
+    toggleChannelsVisibility,
+    hideMessages,
+    toggleMessagesVisibility,
+    setDetailLevel,
+    isLayingOut,
+    hiddenLegendKeys,
+    toggleLegendKey,
+    highlightCrossDomain,
+    toggleHighlightCrossDomain,
+  } = useNodeVisibility({
     nodes,
     edges,
     setNodes,
     setEdges,
-    skipProcessing: !hasChannels,
+    hasChannels,
+    hasMessages,
+    transitionFrom,
+    nodeOrigin: NODE_ORIGIN,
+    hiddenMessagesGraph,
+    prepareEdges,
+    matchesLegendKey,
+    initialHiddenLegendKeys,
+    onHiddenLegendKeysChange,
+    // The page's kind (the same for its overview and detail graphs), else
+    // e.g. "services" from "services/OrderService/1.0.0"
+    preferenceScope: preferenceScope ?? resourceKey?.split("/")[0],
   });
+
+  // Switching to or from the overview graph swaps graphs. The next graph
+  // animates from this one's current state (see `transitionFrom`).
+  const switchGraph = useCallback(
+    (showOverview: boolean) =>
+      onShowOverview?.(showOverview, {
+        nodes: getNodes(),
+        edges: getEdges(),
+        viewport: getViewport(),
+      }),
+    [onShowOverview, getNodes, getEdges, getViewport],
+  );
+
+  // Levels of detail for the toolbar. With an overview graph (e.g. a system's
+  // context diagram) that becomes level 1, followed by the detail levels.
+  // Levels of detail for the toolbar, the same on every page: L1 the overview
+  // (domains, systems and their relationships), L2 services and data stores,
+  // and L3 adding messages and channels. Levels a diagram doesn't have are
+  // greyed out, e.g. L1 on a service's diagram.
+  const levels = useMemo(() => {
+    if (!overviewLabel && !isContextGraph && !hasLevels) return [];
+    const selectDetailLevel = (level: 2 | 3) => {
+      if (isOverview) switchGraph(false);
+      setDetailLevel(level);
+    };
+    // With an overview graph (level 1), this graph is the detail levels
+    const hasDetail = !!overviewLabel || !isContextGraph;
+    return [
+      {
+        description: overviewLabel ?? "domains, systems and relationships",
+        active: isOverview || (!overviewLabel && isContextGraph),
+        disabledReason:
+          !overviewLabel && !isContextGraph
+            ? "Not available here: this diagram has no overview of domains or systems"
+            : undefined,
+        onSelect: () => {
+          if (overviewLabel && !isOverview) switchGraph(true);
+        },
+      },
+      {
+        description: "services and data stores",
+        active:
+          !isOverview && !isContextGraph && (hideMessages || !hasMessages),
+        disabledReason: hasDetail
+          ? undefined
+          : "Not available here: this diagram only shows domains, systems and their relationships",
+        onSelect: () => selectDetailLevel(2),
+      },
+      {
+        description: "messages and channels",
+        active: !isOverview && hasMessages && !hideMessages,
+        // The overview doesn't know if the detail has messages, so allows it
+        disabledReason:
+          isOverview || hasMessages
+            ? undefined
+            : "Not available here: this diagram has no messages or channels",
+        onSelect: () => selectDetailLevel(3),
+      },
+    ];
+  }, [
+    overviewLabel,
+    isOverview,
+    isContextGraph,
+    hasLevels,
+    hideMessages,
+    hasMessages,
+    setDetailLevel,
+    switchGraph,
+  ]);
+  // Tools for the kind of resource shown, in the canvas toolbar
+  const canvasTools = useMemo(
+    () =>
+      hasOtherDomains
+        ? [
+            {
+              label: highlightCrossDomain
+                ? "Stop highlighting cross-domain communication"
+                : "Highlight cross-domain communication",
+              icon: <Waypoints className="w-4 h-4" />,
+              active: highlightCrossDomain,
+              onClick: toggleHighlightCrossDomain,
+            },
+          ]
+        : [],
+    [hasOtherDomains, highlightCrossDomain, toggleHighlightCrossDomain],
+  );
   const searchRef = useRef<VisualiserSearchRef>(null);
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const scrollableContainerRef = useRef<HTMLElement | null>(null);
@@ -673,6 +907,8 @@ const NodeGraphBuilder = ({
   nodesRef.current = nodes;
   const edgesRef = useRef(edges);
   edgesRef.current = edges;
+  // Sub-flows are laid out when expanded (async), so only the latest is applied
+  const subFlowLayoutRun = useRef(0);
   const hideChannelsRef = useRef(hideChannels);
   hideChannelsRef.current = hideChannels;
 
@@ -712,113 +948,6 @@ const NodeGraphBuilder = ({
     setTimeout(() => wrapper.classList.remove("ec-animating-layout"), 400);
   }, []);
 
-  const relayoutGraph = useCallback(
-    (
-      nextNodes: Node[],
-      nextEdges: Edge[],
-      anchor?: { id: string; position: { x: number; y: number } },
-    ) => {
-      const g = new dagre.graphlib.Graph({ compound: true });
-      g.setGraph({ rankdir: "LR", ranksep: 300, nodesep: 50 });
-      g.setDefaultEdgeLabel(() => ({}));
-
-      // Add nodes to dagre — skip children (they're positioned relative to parent)
-      nextNodes.forEach((node) => {
-        if (node.parentId) return;
-        const w =
-          (node.style?.width as number) ||
-          (node.type === "messageGroupExpanded" ? 380 : 150);
-        const h =
-          (node.style?.height as number) ||
-          (node.type === "messageGroupExpanded" ? 0 : 120);
-
-        // For expanded groups, calculate height from child count
-        if (node.type === "messageGroupExpanded") {
-          const children = nextNodes.filter((n) => n.parentId === node.id);
-          const childHeight = children.length * 190 + 100; // 190px per child + padding
-          g.setNode(node.id, { width: w, height: childHeight });
-        } else {
-          g.setNode(node.id, { width: w, height: h });
-        }
-      });
-
-      // Add edges — only between top-level nodes or from top-level to parent of child
-      nextEdges.forEach((edge) => {
-        const sourceNode = nextNodes.find((n) => n.id === edge.source);
-        const targetNode = nextNodes.find((n) => n.id === edge.target);
-        const sourceTop = sourceNode?.parentId || edge.source;
-        const targetTop = targetNode?.parentId || edge.target;
-        // Only add edge if both endpoints are in the dagre graph
-        if (
-          g.hasNode(sourceTop) &&
-          g.hasNode(targetTop) &&
-          sourceTop !== targetTop
-        ) {
-          g.setEdge(sourceTop, targetTop);
-        }
-      });
-
-      layoutDagreGraph(g);
-
-      // Apply dagre positions to top-level nodes
-      const positioned = nextNodes.map((node) => {
-        if (node.parentId) {
-          const parent = nextNodes.find((n) => n.id === node.parentId);
-
-          // Sub-flow expansion: children keep the LR positions already computed
-          // when the sub-flow was expanded. Leave them alone so the inner graph
-          // renders in true graph order, not a vertical stack.
-          if (parent?.type === "flowExpanded") {
-            return node;
-          }
-
-          // Message groups: simple vertical stack, centred within the container.
-          const parentWidth = (parent?.style?.width as number) || 380;
-          const childWidth = 240; // initial estimate, refined by post-render measurement
-          const xOffset = Math.max(20, (parentWidth - childWidth) / 2);
-          const siblings = nextNodes.filter(
-            (n) => n.parentId === node.parentId,
-          );
-          const index = siblings.indexOf(node);
-          return {
-            ...node,
-            position: { x: xOffset, y: 70 + index * 190 },
-          };
-        }
-
-        const pos = g.node(node.id);
-        if (!pos) return node;
-        // dagre returns center positions — convert to top-left for ReactFlow
-        return {
-          ...node,
-          position: { x: pos.x - pos.width / 2, y: pos.y - pos.height / 2 },
-        };
-      });
-
-      if (!anchor) return positioned;
-
-      const positionedAnchor = positioned.find((node) => node.id === anchor.id);
-      if (!positionedAnchor) return positioned;
-
-      const offset = {
-        x: anchor.position.x - positionedAnchor.position.x,
-        y: anchor.position.y - positionedAnchor.position.y,
-      };
-
-      return positioned.map((node) => {
-        if (node.parentId) return node;
-        return {
-          ...node,
-          position: {
-            x: node.position.x + offset.x,
-            y: node.position.y + offset.y,
-          },
-        };
-      });
-    },
-    [],
-  );
-
   const makeRoomForRenderedExpandedGroup = useCallback(
     (
       groupNodeId: string,
@@ -857,82 +986,6 @@ const NodeGraphBuilder = ({
     [getIntersectingNodes, setNodes],
   );
 
-  // Lay a sub-flow's internal nodes out with dagre LR and return positioned
-  // children, a per-id position map, and the tightest container bounding box
-  // so the wrapper can size itself to fit. `sizeOf` supplies per-child width
-  // and height — callers pass either estimated constants (initial layout) or
-  // measured DOM dimensions (post-paint).
-  const layoutSubFlowChildren = useCallback(
-    (
-      children: Node[],
-      edges: Edge[],
-      sizeOf: (n: Node) => { w: number; h: number },
-      opts: {
-        padding: number;
-        headerH: number;
-        fallbackW?: number;
-        fallbackH?: number;
-      },
-    ) => {
-      const { padding, headerH, fallbackW = 240, fallbackH = 120 } = opts;
-
-      const g = new dagre.graphlib.Graph();
-      g.setGraph({ rankdir: "LR", ranksep: 360, nodesep: 200 });
-      g.setDefaultEdgeLabel(() => ({}));
-      const childIds = new Set(children.map((c) => c.id));
-      children.forEach((c) => {
-        const { w, h } = sizeOf(c);
-        g.setNode(c.id, { width: w, height: h });
-      });
-      edges.forEach((e) => {
-        if (childIds.has(e.source) && childIds.has(e.target)) {
-          g.setEdge(e.source, e.target);
-        }
-      });
-      layoutDagreGraph(g);
-
-      let minX = Infinity;
-      let minY = Infinity;
-      let maxX = -Infinity;
-      let maxY = -Infinity;
-      const positions = new Map<string, { x: number; y: number }>();
-      children.forEach((c) => {
-        const pos = g.node(c.id);
-        if (!pos) return;
-        const x = pos.x - pos.width / 2;
-        const y = pos.y - pos.height / 2;
-        positions.set(c.id, { x, y });
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x + pos.width);
-        maxY = Math.max(maxY, y + pos.height);
-      });
-
-      const offsetX = padding - (Number.isFinite(minX) ? minX : 0);
-      const offsetY = headerH + padding - (Number.isFinite(minY) ? minY : 0);
-      const positioned = children.map((c) => {
-        const p = positions.get(c.id);
-        if (!p) return c;
-        return { ...c, position: { x: p.x + offsetX, y: p.y + offsetY } };
-      });
-      // Translate positions too so callers that read the map see the final coords.
-      const finalPositions = new Map<string, { x: number; y: number }>();
-      positions.forEach((p, id) =>
-        finalPositions.set(id, { x: p.x + offsetX, y: p.y + offsetY }),
-      );
-
-      const width = Number.isFinite(minX)
-        ? maxX - minX + padding * 2
-        : fallbackW + padding * 2;
-      const height = Number.isFinite(minY)
-        ? maxY - minY + headerH + padding * 2
-        : fallbackH + headerH + padding * 2;
-
-      return { positioned, positions: finalPositions, width, height };
-    },
-    [],
-  );
-
   // Read from refs inside the callback to avoid nodes/edges in the dependency array.
   // This prevents the callback from being recreated on every drag tick (Rule 2).
   const handleCollapseGroup = useCallback(
@@ -956,6 +1009,8 @@ const NodeGraphBuilder = ({
       // Find the expanded container node to get its data
       const expandedNode = currentNodes.find((n) => n.id === groupNodeId);
       if (!expandedNode || !isExpandedWrapper(expandedNode.type)) return;
+      // A sub-flow still being laid out would expand into the collapsed graph
+      subFlowLayoutRun.current++;
 
       // The wrapper carries a pre-expansion snapshot — use it so nested
       // wrappers (created mid-session and therefore absent from initialNodes)
@@ -967,6 +1022,7 @@ const NodeGraphBuilder = ({
             edges: Edge[];
             nodeIds: string[];
             nodePositions?: Record<string, { x: number; y: number }>;
+            edgeRoutes?: Record<string, EdgeRoute>;
           }
         | undefined;
       const originalNode =
@@ -1061,17 +1117,14 @@ const NodeGraphBuilder = ({
             !childNodeIds.has(edge.target) &&
             !isDownstreamEdge(edge),
         );
-        return [...without, ...originalEdges];
+        // Edges go back to the routes they had before the expand
+        return [...without, ...originalEdges].map((edge) => {
+          const route = stashed?.edgeRoutes?.[edge.id];
+          return route ? { ...edge, data: { ...edge.data, route } } : edge;
+        });
       });
     },
-    [
-      initialNodes,
-      initialEdges,
-      setNodes,
-      setEdges,
-      relayoutGraph,
-      animateLayout,
-    ],
+    [initialNodes, initialEdges, setNodes, setEdges, animateLayout],
   );
 
   // Store initial node positions for change detection (dev mode only)
@@ -1479,27 +1532,12 @@ const NodeGraphBuilder = ({
         const subFlowNodes: any[] = flowData.expandedNodes || [];
         const subFlowEdges: any[] = flowData.expandedEdges || [];
 
-        const initialChildNodes: Node[] = subFlowNodes.map((child) => ({
+        const childNodes: Node[] = subFlowNodes.map((child) => ({
           ...child,
           parentId: flowNodeId,
           extent: "parent" as const,
           position: { x: 0, y: 0 },
         }));
-
-        const CHILD_PADDING = 60;
-        const HEADER_H = 60;
-        const EST_W = 240;
-        const EST_H = 120;
-        const {
-          positioned: childNodes,
-          width: containerWidth,
-          height: containerHeight,
-        } = layoutSubFlowChildren(
-          initialChildNodes,
-          subFlowEdges as Edge[],
-          () => ({ w: EST_W, h: EST_H }),
-          { padding: CHILD_PADDING, headerH: HEADER_H },
-        );
 
         // Capture the node, its edges, and the set of node ids as they are
         // right now so collapse can (a) restore the pre-expansion node/edges
@@ -1509,6 +1547,17 @@ const NodeGraphBuilder = ({
           (e) => e.source === flowNodeId || e.target === flowNodeId,
         );
         const preExpansionNodeIds = nodesRef.current.map((n) => n.id);
+        // Where everything was, so collapsing puts the graph back as it was
+        const preExpansionPositions = Object.fromEntries(
+          nodesRef.current
+            .filter((n) => !n.parentId)
+            .map((n) => [n.id, n.position]),
+        );
+        const preExpansionRoutes = Object.fromEntries(
+          edgesRef.current
+            .filter((e) => e.data?.route)
+            .map((e) => [e.id, e.data!.route as EdgeRoute]),
+        );
 
         const expandedContainerNode: Node = {
           id: flowNodeId,
@@ -1521,11 +1570,12 @@ const NodeGraphBuilder = ({
               node,
               edges: preExpansionEdges,
               nodeIds: preExpansionNodeIds,
+              nodePositions: preExpansionPositions,
+              edgeRoutes: preExpansionRoutes,
             },
           },
+          // Sized to fit its children when the graph is laid out
           style: {
-            width: containerWidth,
-            height: containerHeight,
             background: "transparent",
             border: "none",
             padding: 0,
@@ -1583,84 +1633,30 @@ const NodeGraphBuilder = ({
           }
         }
 
-        animateLayout();
-
-        setNodes((prev) => {
-          const without = prev.filter((n) => n.id !== flowNodeId);
-          const next = [...without, expandedContainerNode, ...childNodes];
-          const nextEdges = [
+        // Lay the graph out again with the sub-flow expanded in place (only
+        // the latest layout is applied)
+        const run = ++subFlowLayoutRun.current;
+        const currentNodes = nodesRef.current;
+        layoutWithElk({
+          nodes: [
+            ...currentNodes.filter((n) => n.id !== flowNodeId),
+            expandedContainerNode,
+            ...childNodes,
+          ],
+          edges: [
             ...currentEdges.filter(
               (e) => e.source !== flowNodeId && e.target !== flowNodeId,
             ),
             ...subFlowEdges,
             ...stitchedPredecessors,
             ...stitchedSuccessors,
-          ];
-          return relayoutGraph(next, nextEdges);
-        });
-        setEdges((prev) => {
-          const without = prev.filter(
-            (e) => e.source !== flowNodeId && e.target !== flowNodeId,
-          );
-          return [
-            ...without,
-            ...subFlowEdges,
-            ...stitchedPredecessors,
-            ...stitchedSuccessors,
-          ];
-        });
-
-        // Once React has painted, re-run the LR layout with measured node
-        // sizes so the container sizes itself to real content.
-        requestAnimationFrame(() => {
-          const currentChildren = nodesRef.current.filter(
-            (n) => n.parentId === flowNodeId,
-          );
-          if (currentChildren.length === 0) return;
-
-          const measurements = new Map<string, { w: number; h: number }>();
-          currentChildren.forEach((n) => {
-            const el = document.querySelector(
-              `[data-id="${n.id}"]`,
-            ) as HTMLElement | null;
-            measurements.set(n.id, {
-              w: el?.offsetWidth ?? EST_W,
-              h: el?.offsetHeight ?? EST_H,
-            });
-          });
-
-          const {
-            positions,
-            width: actualContainerW,
-            height: actualContainerH,
-          } = layoutSubFlowChildren(
-            currentChildren,
-            subFlowEdges as Edge[],
-            (n) => measurements.get(n.id) ?? { w: EST_W, h: EST_H },
-            { padding: CHILD_PADDING, headerH: HEADER_H },
-          );
-
-          setNodes((prev) =>
-            prev.map((n) => {
-              if (n.id === flowNodeId) {
-                return {
-                  ...n,
-                  style: {
-                    ...n.style,
-                    width: actualContainerW,
-                    height: actualContainerH,
-                  },
-                };
-              }
-              if (n.parentId !== flowNodeId) return n;
-              const p = positions.get(n.id);
-              if (!p) return n;
-              return { ...n, position: { x: p.x, y: p.y } };
-            }),
-          );
-        });
-
-        requestAnimationFrame(() => {
+          ],
+        }).then((expanded) => {
+          if (run !== subFlowLayoutRun.current) return;
+          animateLayout();
+          setNodes(expanded.nodes);
+          setEdges(expanded.edges);
+          // Called straight after setNodes so React Flow fits once they're measured
           fitView({ duration: 400, padding: 0.2 });
         });
 
@@ -1702,7 +1698,7 @@ const NodeGraphBuilder = ({
 
   // Handle fit to view
   const handleFitView = useCallback(() => {
-    fitView({ duration: 400, padding: 0.2 });
+    fitView({ maxZoom: 1, duration: 400, padding: 0.2 });
   }, [fitView]);
 
   // animate messages, between views
@@ -1742,37 +1738,14 @@ const NodeGraphBuilder = ({
   }, [animated, disableMessageAnimation, initialNodes.length]);
 
   useEffect(() => {
-    setEdges((eds) =>
-      eds.map((edge) => {
-        const preservesOwnRenderer =
-          edge.type === "flow-edge" ||
-          edge.type === "multiline" ||
-          edge.type === "default" ||
-          edge.type === "step" ||
-          edge.type === "smoothstep" ||
-          edge.data?.animated === false;
-
-        return {
-          ...edge,
-          animated: preservesOwnRenderer ? false : animateMessages,
-          type: preservesOwnRenderer
-            ? edge.type || "default"
-            : animateMessages
-              ? "animated"
-              : "smoothstep",
-          data: {
-            ...edge.data,
-            animateMessages: preservesOwnRenderer ? false : animateMessages,
-            animated: preservesOwnRenderer ? false : animateMessages,
-          },
-        };
-      }),
-    );
+    setEdges((eds) => applyMessageAnimation(eds, animateMessages));
   }, [animateMessages]);
 
   useEffect(() => {
+    // The switch animation fits the view after switching graphs
+    if (transitionFrom) return;
     setTimeout(() => {
-      fitView({ duration: 800 });
+      fitView({ maxZoom: 1, duration: 800 });
     }, 150);
   }, []);
 
@@ -1856,7 +1829,7 @@ const NodeGraphBuilder = ({
   const handlePaneClick = useCallback(() => {
     searchRef.current?.hideSuggestions();
     resetNodesAndEdges();
-    fitView({ duration: 800 });
+    fitView({ maxZoom: 1, duration: 800 });
   }, [resetNodesAndEdges, fitView]);
 
   const handleNodeSelect = useCallback(
@@ -1868,7 +1841,7 @@ const NodeGraphBuilder = ({
 
   const handleSearchClear = useCallback(() => {
     resetNodesAndEdges();
-    fitView({ duration: 800 });
+    fitView({ maxZoom: 1, duration: 800 });
   }, [resetNodesAndEdges, fitView]);
 
   const downloadImage = useCallback((dataUrl: string, filename?: string) => {
@@ -1877,10 +1850,6 @@ const NodeGraphBuilder = ({
     a.setAttribute("href", dataUrl);
     a.click();
   }, []);
-
-  const openStudioModal = useCallback(() => {
-    setIsStudioModalOpen(true);
-  }, [setIsStudioModalOpen]);
 
   const openChat = useCallback(() => {
     window.dispatchEvent(new CustomEvent("eventcatalog:open-chat"));
@@ -1998,47 +1967,6 @@ const NodeGraphBuilder = ({
       });
   }, [getNodes, storeApi, downloadImage, title]);
 
-  const handleLegendClick = useCallback(
-    (collectionType: string, groupId?: string) => {
-      const isLegendTarget = (node: Node<any>) => {
-        if (groupId) {
-          return node.data.group && node.data.group?.id === groupId;
-        }
-        return node.type === collectionType;
-      };
-
-      const updatedNodes = nodes.map((node: Node<any>) => {
-        if (isLegendTarget(node)) {
-          return { ...node, style: { ...node.style, opacity: 1 } };
-        }
-        return { ...node, style: { ...node.style, opacity: 0.1 } };
-      });
-
-      const updatedEdges = edges.map((edge) => {
-        return {
-          ...edge,
-          data: { ...edge.data, opacity: 0.1 },
-          style: { ...edge.style, opacity: 0.1 },
-          labelStyle: { ...edge.labelStyle, opacity: 0.1 },
-          animated: animateMessages,
-        };
-      });
-
-      setNodes(updatedNodes);
-      setEdges(updatedEdges);
-
-      const targetNodes = updatedNodes.filter(isLegendTarget);
-      if (targetNodes.length === 0) return;
-
-      fitView({
-        padding: 0.2,
-        duration: 800,
-        nodes: targetNodes,
-      });
-    },
-    [nodes, edges, setNodes, setEdges, fitView],
-  );
-
   const getNodesByCollectionWithColors = useCallback((nodes: Node<any>[]) => {
     const colorClasses = {
       events: "bg-orange-600",
@@ -2102,7 +2030,8 @@ const NodeGraphBuilder = ({
         node,
       ) => {
         const collection = node.type;
-        if (collection) {
+        // Group boundaries aren't something to count or hide
+        if (collection && !GROUP_NODE_TYPES.includes(collection)) {
           if (acc[collection]) {
             acc[collection].count += 1;
           } else {
@@ -2133,10 +2062,24 @@ const NodeGraphBuilder = ({
   }
   const legendKey = legendKeyRef.current;
 
-  const legend = useMemo(
+  const graphLegend = useMemo(
     () => getNodesByCollectionWithColors(nodes),
     [getNodesByCollectionWithColors, legendKey],
   );
+  // Hidden entries stay listed (their nodes are no longer in the graph), in the
+  // order entries were first listed
+  // Starting with the whole graph's, for entries already hidden
+  const legendEntries = useRef<Record<string, LegendEntry> | null>(null);
+  const legend = useMemo(() => {
+    legendEntries.current ??= getNodesByCollectionWithColors(initialNodes);
+    Object.assign(legendEntries.current, graphLegend);
+    return Object.fromEntries(
+      Object.entries(legendEntries.current).filter(
+        ([key]) => key in graphLegend || hiddenLegendKeys.includes(key),
+      ),
+    );
+  }, [graphLegend, hiddenLegendKeys]);
+  legendRef.current = legend;
 
   // Stable key derived from node IDs — only changes when nodes are added/removed,
   // not when positions change during drag. Used by search, legend, and notes.
@@ -2341,6 +2284,9 @@ const NodeGraphBuilder = ({
                         hideChannels={hideChannels}
                         toggleChannelsVisibility={toggleChannelsVisibility}
                         hasChannels={hasChannels}
+                        hideMessages={hideMessages}
+                        toggleMessagesVisibility={toggleMessagesVisibility}
+                        hasMessages={hasMessages}
                         showMinimap={showMinimap}
                         setShowMinimap={setShowMinimap}
                         handleFitView={handleFitView}
@@ -2351,7 +2297,6 @@ const NodeGraphBuilder = ({
                         handleExportVisual={handleExportVisual}
                         setIsShareModalOpen={setIsShareModalOpen}
                         toggleFullScreen={toggleFullScreen}
-                        openStudioModal={openStudioModal}
                         isDevMode={isDevMode}
                         onSaveLayout={handleSaveLayout}
                         onResetLayout={handleResetLayout}
@@ -2391,14 +2336,20 @@ const NodeGraphBuilder = ({
             minZoom={0.07}
             nodes={nodes}
             edges={edges}
-            fitView
+            // After switching graphs, start where the last one was and let the
+            // switch animation fit the view
+            fitView={!transitionFrom}
             fitViewOptions={INITIAL_FIT_VIEW_OPTIONS}
+            defaultViewport={transitionFrom?.viewport}
             onNodesChange={handleNodesChange}
             onEdgesChange={onEdgesChange}
             onEdgeMouseEnter={handleEdgeMouseEnter}
             onEdgeMouseLeave={handleEdgeMouseLeave}
             connectionLineType={ConnectionLineType.SmoothStep}
             nodeOrigin={NODE_ORIGIN}
+            // Selected nodes aren't raised, as their edges would be raised with
+            // them and drawn over other nodes
+            elevateNodesOnSelect={false}
             onNodeClick={handleNodeClick}
             onNodeMouseEnter={handleNodeMouseEnter}
             onNodeMouseLeave={handleNodeMouseLeave}
@@ -2408,7 +2359,11 @@ const NodeGraphBuilder = ({
             onNodeDragStart={startInteraction}
             onNodeDragStop={endInteraction}
             zoomOnScroll={zoomOnScroll}
-            className="relative"
+            className={`relative${isLayingOut ? " ec-laying-out" : ""}${
+              hasOtherDomains && highlightCrossDomain
+                ? " ec-highlight-cross-domain"
+                : ""
+            }`}
           >
             <Panel
               position="top-center"
@@ -2450,6 +2405,9 @@ const NodeGraphBuilder = ({
                           hideChannels={hideChannels}
                           toggleChannelsVisibility={toggleChannelsVisibility}
                           hasChannels={hasChannels}
+                          hideMessages={hideMessages}
+                          toggleMessagesVisibility={toggleMessagesVisibility}
+                          hasMessages={hasMessages}
                           showMinimap={showMinimap}
                           setShowMinimap={setShowMinimap}
                           handleFitView={handleFitView}
@@ -2462,7 +2420,6 @@ const NodeGraphBuilder = ({
                           handleExportVisual={handleExportVisual}
                           setIsShareModalOpen={setIsShareModalOpen}
                           toggleFullScreen={toggleFullScreen}
-                          openStudioModal={openStudioModal}
                           isDevMode={isDevMode}
                           onSaveLayout={handleSaveLayout}
                           onResetLayout={handleResetLayout}
@@ -2540,6 +2497,21 @@ const NodeGraphBuilder = ({
               <Background color="var(--ec-bg-dots)" gap={16} />
             )}
             {includeBackground && <Controls />}
+            {mode === "full" && (
+              <CanvasToolbar
+                levels={levels}
+                tools={canvasTools}
+                animateMessages={animateMessages}
+                toggleAnimateMessages={toggleAnimateMessages}
+                // Nothing to simulate without edges
+                hideAnimateMessages={
+                  disableMessageAnimation || edges.length === 0
+                }
+                showMinimap={showMinimap}
+                setShowMinimap={setShowMinimap}
+                handleFitView={handleFitView}
+              />
+            )}
             {showMinimap && (
               <MiniMap
                 nodeStrokeWidth={3}
@@ -2586,16 +2558,13 @@ const NodeGraphBuilder = ({
             {includeKey && (
               <LegendPanel
                 legend={legend}
+                hiddenKeys={hiddenLegendKeys}
                 showMinimap={showMinimap}
-                onLegendClick={handleLegendClick}
+                onLegendClick={toggleLegendKey}
               />
             )}
           </ReactFlow>
         )}
-        <StudioModal
-          isOpen={isStudioModalOpen || false}
-          onClose={() => setIsStudioModalOpen(false)}
-        />
         <FocusModeModal
           isOpen={focusModeOpen}
           onClose={() => {
@@ -2721,6 +2690,24 @@ interface NodeGraphProps {
    * flows, e.g. the System Diagram.
    */
   disableMessageAnimation?: boolean;
+  /**
+   * A simpler graph shown as level 1 in the toolbar (e.g. a system's context
+   * diagram), before this graph's detail levels.
+   */
+  overviewGraph?: {
+    nodes: Node[];
+    edges: Edge[];
+    /** Describes the level, e.g. "system context" */
+    label: string;
+    resourceKey?: string;
+  };
+  /**
+   * This graph laid out with its messages and channels hidden (level 2). Used
+   * instead of hiding them and laying the graph out again in the browser.
+   */
+  hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
+  /** The kind of diagram (e.g. "services"), so the level is remembered for each kind */
+  preferenceScope?: string;
   /** When set, the graph will zoom to this node id. */
   focusNodeId?: string;
   /** Optional token to force repeated focus for the same node id. */
@@ -2763,6 +2750,10 @@ const NodeGraph = ({
   isDevMode = false,
   resourceKey,
   animated: animatedProp,
+  disableMessageAnimation,
+  overviewGraph,
+  hiddenMessagesGraph,
+  preferenceScope,
   focusNodeId,
   focusRequestId,
   fitRequestId,
@@ -2772,15 +2763,22 @@ const NodeGraph = ({
   onSaveLayout,
   onResetLayout,
 }: NodeGraphProps) => {
-  // When a DslGraph is provided, run layout internally using dagre.
-  const graphLayout = useMemo(() => {
-    if (!graph) return null;
-    return layoutGraph(
-      graph.nodes,
-      graph.edges,
-      { rankdir: "LR", nodesep: 60, ranksep: 120 },
-      graph.options?.style,
-    );
+  // When a DslGraph is provided, lay it out here (rendered once laid out)
+  const [graphLayout, setGraphLayout] = useState<{
+    nodes: Node[];
+    edges: Edge[];
+  } | null>(null);
+  useEffect(() => {
+    if (!graph) return setGraphLayout(null);
+    let current = true;
+    layoutGraph(graph.nodes, graph.edges, {
+      style: graph.options?.style,
+    }).then((layout) => {
+      if (current) setGraphLayout(layout);
+    });
+    return () => {
+      current = false;
+    };
   }, [graph]);
   const nodes = graphLayout?.nodes ?? nodesProp ?? [];
   const edges = graphLayout?.edges ?? edgesProp ?? [];
@@ -2798,13 +2796,31 @@ const NodeGraph = ({
   const animated = animatedProp ?? graph?.options?.animated;
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
-  const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
-
-  const openStudioModal = useCallback(() => {
-    setIsStudioModalOpen(true);
-  }, []);
-
   const containerToRenderInto = portalId || `${id}-portal`;
+
+  // Level 1 shows the overview graph when there is one. A diagram with one
+  // opens at it, unless the URL asks for another level (`?level=2|3`).
+  const [showOverview, setShowOverview] = useState(() => {
+    if (!overviewGraph) return false;
+    const level = new URLSearchParams(window.location.search).get("level");
+    return level === null || level === "1";
+  });
+  // The graph being switched away from, for the next one to animate from
+  const [transitionFrom, setTransitionFrom] = useState<GraphTransition>();
+  const handleShowOverview = useCallback(
+    (show: boolean, from: GraphTransition) => {
+      setTransitionFrom(from);
+      setShowOverview(show);
+      if (show) setLevelInUrl(1);
+    },
+    [],
+  );
+  const overview = showOverview ? overviewGraph : undefined;
+  // Legend entries hidden, kept when switching between the graphs
+  const hiddenLegendKeys = useRef<string[]>([]);
+  const handleHiddenLegendKeysChange = useCallback((keys: string[]) => {
+    hiddenLegendKeys.current = keys;
+  }, []);
 
   useEffect(() => {
     // @ts-ignore
@@ -2819,15 +2835,16 @@ const NodeGraph = ({
     }
   }, []);
 
-  if (!elem) return null;
+  if (!elem || (graph && !graphLayout)) return null;
 
   return (
     <div>
       {createPortal(
-        <ReactFlowProvider>
+        // Remount when switching graphs so each starts from a clean state
+        <ReactFlowProvider key={overview ? "overview" : "graph"}>
           <NodeGraphBuilder
-            edges={edges}
-            nodes={nodes}
+            edges={overview?.edges ?? edges}
+            nodes={overview?.nodes ?? nodes}
             title={title}
             linkTo={linkTo}
             includeKey={includeKey}
@@ -2838,13 +2855,20 @@ const NodeGraph = ({
             showSearch={showSearch}
             zoomOnScroll={zoomOnScroll}
             designId={designId || id}
-            isStudioModalOpen={isStudioModalOpen}
-            setIsStudioModalOpen={setIsStudioModalOpen}
             isChatEnabled={isChatEnabled}
             maxTextSize={maxTextSize}
             isDevMode={isDevMode}
-            resourceKey={resourceKey}
+            resourceKey={overview ? overview.resourceKey : resourceKey}
             animated={animated}
+            disableMessageAnimation={disableMessageAnimation || !!overview}
+            overviewLabel={overviewGraph?.label}
+            isOverview={!!overview}
+            onShowOverview={handleShowOverview}
+            transitionFrom={transitionFrom}
+            hiddenMessagesGraph={overview ? undefined : hiddenMessagesGraph}
+            initialHiddenLegendKeys={hiddenLegendKeys.current}
+            preferenceScope={preferenceScope}
+            onHiddenLegendKeysChange={handleHiddenLegendKeysChange}
             focusNodeId={focusNodeId}
             focusRequestId={focusRequestId}
             fitRequestId={fitRequestId}

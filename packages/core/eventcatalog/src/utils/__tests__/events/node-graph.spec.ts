@@ -300,6 +300,27 @@ describe('Events NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
+    it('lays the graph out, giving every edge a route to be drawn along', async () => {
+      const { edges } = await getNodesAndEdges({ id: 'OrderCreatedEvent', version: '0.0.1' });
+
+      expect(edges.length).toBeGreaterThan(0);
+      for (const edge of edges) {
+        expect(edge.data.route).toBeDefined();
+      }
+    });
+
+    it('returns the graph without laying it out when layout is false', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'OrderCreatedEvent', version: '0.0.1', layout: false });
+
+      expect(nodes.length).toBeGreaterThan(0);
+      for (const node of nodes) {
+        expect(node.position).toEqual({ x: 0, y: 0 });
+      }
+      for (const edge of edges) {
+        expect(edge.data.route).toBeUndefined();
+      }
+    });
+
     it('returns empty nodes and edges if no event is found', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownEvent', version: '1.0.0' });
 

@@ -57,6 +57,15 @@ describe('System Context NodeGraph', () => {
     });
   });
 
+  it('marks the requested system as the one being viewed', async () => {
+    setSystems([makeSystem('Shipping', { relationships: [{ id: 'Carrier' }] }), makeSystem('Carrier')]);
+
+    const { nodes } = await getNodesAndEdges({ id: 'Shipping', version: '1.0.0' });
+
+    expect(nodes.find((node: any) => node.id === 'Shipping-1.0.0')?.data.isFocused).toBe(true);
+    expect(nodes.find((node: any) => node.id === 'Carrier-1.0.0')?.data.isFocused).toBeUndefined();
+  });
+
   describe('reciprocal system relationships', () => {
     it('collapses two reciprocal relationships into a single double-headed edge', async () => {
       setSystems([

@@ -146,20 +146,14 @@ export const buildServiceSections = (
         },
         renderVisualiser && {
           type: 'item',
-          title: 'Map',
+          title: 'Diagram',
           href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`),
         },
         renderVisualiser &&
           renderEntities && {
             type: 'item',
-            title: 'Entity Map',
+            title: 'Entity Diagram',
             href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/entity-map`),
-          },
-        renderVisualiser &&
-          hasDataStores && {
-            type: 'item',
-            title: 'Data Dependency Graph',
-            href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/data`),
           },
       ].filter(Boolean) as ChildRef[],
     },

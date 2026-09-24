@@ -818,7 +818,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
               pages: [
                 {
                   type: 'item',
-                  title: 'Map',
+                  title: 'Diagram',
                   href: buildUrl(`/visualiser/${channel.collection}/${channel.data.id}/${channel.data.version}`),
                 },
               ],
@@ -879,7 +879,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
               ? [
                   {
                     type: 'item' as const,
-                    title: 'System Context Map',
+                    title: 'System Context Diagram',
                     href: buildUrl('/visualiser/system-context-map'),
                   },
                 ]
@@ -1172,7 +1172,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       pages: [
         {
           type: 'item',
-          title: 'System Context Map',
+          title: 'System Context Diagram',
           href: buildUrl('/visualiser/system-context-map'),
         },
       ],

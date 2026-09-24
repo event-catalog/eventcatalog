@@ -11,6 +11,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./layout": {
+      "types": "./dist/layout.d.ts",
+      "import": "./dist/layout.mjs",
+      "require": "./dist/layout.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./styles-core.css": "./dist/styles-core.css"
   },
@@ -51,7 +56,7 @@
     "@radix-ui/react-dropdown-menu": "^2.1.4",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@xyflow/react": "^12.6.1",
-    "dagre": "^0.8.5",
+    "elkjs": "^0.10.2",
     "html-to-image": "^1.11.11",
     "lucide-react": "^0.510.0",
     "marked": "^16.1.2",
@@ -60,7 +65,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.5",
-    "@types/dagre": "^0.7.53",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "@vitejs/plugin-react": "^5.1.4",

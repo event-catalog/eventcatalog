@@ -1,46 +1,31 @@
 import type { CollectionEntry } from 'astro:content';
 import {
-  calculatedNodes,
-  createDagreGraph,
   createEdge,
   generatedIdForEdge,
   generateIdForNode,
   buildContextMenuForService,
   buildContextMenuForResource,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
-  layoutDagreGraph,
 } from './utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { MarkerType } from '@xyflow/react';
 import { findMatchingNodes } from '@utils/collections/util';
 import { getContainers } from '@utils/collections/containers';
 
-type DagreGraph = any;
-
 interface Props {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   channelRenderMode?: 'flat' | 'single';
   collection?: CollectionEntry<'containers'>[];
   layout?: boolean;
 }
 
-export const getNodesAndEdges = async ({
-  id,
-  version,
-  defaultFlow,
-  mode = 'simple',
-  channelRenderMode = 'flat',
-  layout = true,
-}: Props) => {
+export const getNodesAndEdges = async ({ id, version, mode = 'simple', channelRenderMode = 'flat', layout = true }: Props) => {
   // 1. Fetch data
   const containers = await getContainers();
 
-  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
-  const nodes = [] as any,
-    edges = [] as any;
+  const nodes: any[] = [],
+    edges: any[] = [];
 
   // Optimized: Use find since we're looking for a specific item
   const container = containers.find((container) => container.data.id === id && container.data.version === version);
@@ -80,7 +65,7 @@ export const getNodesAndEdges = async ({
           repository: service.data.repository as { url: string },
         }),
       },
-      position: { x: 250, y: 0 },
+      position: { x: 0, y: 0 },
     });
 
     if (!bothSentAndReceived.includes(service)) {
@@ -116,7 +101,7 @@ export const getNodesAndEdges = async ({
           version: dataProduct.data.version,
         }),
       },
-      position: { x: 250, y: 0 },
+      position: { x: 0, y: 0 },
     });
 
     if (!dataProductsBothSentAndReceived.includes(dataProduct)) {
@@ -244,7 +229,7 @@ export const getNodesAndEdges = async ({
     if (container) {
       edges.push(
         createEdge({
-          id: generatedIdForEdge(container, _service) + '-both',
+          id: generatedIdForEdge(_service, container) + '-both',
           source: generateIdForNode(_service),
           target: generateIdForNode(container),
           label: `read and writes to \n (${container.data.technology})`,
@@ -269,7 +254,7 @@ export const getNodesAndEdges = async ({
     if (container) {
       edges.push(
         createEdge({
-          id: generatedIdForEdge(container, _dataProduct) + '-both',
+          id: generatedIdForEdge(_dataProduct, container) + '-both',
           source: generateIdForNode(_dataProduct),
           target: generateIdForNode(container),
           label: `read and writes to \n (${container.data.technology})`,
@@ -289,21 +274,9 @@ export const getNodesAndEdges = async ({
     }
   });
 
-  nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  });
+  // Resources that both read and write are added twice (as a writer and as a reader), keep the first
+  const uniqueNodes = nodes.filter((node: any, index: number) => nodes.findIndex((n: any) => n.id === node.id) === index);
+  const graph = { nodes: uniqueNodes, edges };
 
-  edges.forEach((edge: any) => {
-    flow.setEdge(edge.source, edge.target);
-  });
-
-  // Render the diagram in memory getting hte X and Y
-  if (layout) {
-    layoutDagreGraph(flow);
-  }
-
-  return {
-    nodes: calculatedNodes(flow, nodes),
-    edges,
-  };
+  return layout ? await layoutNodeGraph(graph) : graph;
 };

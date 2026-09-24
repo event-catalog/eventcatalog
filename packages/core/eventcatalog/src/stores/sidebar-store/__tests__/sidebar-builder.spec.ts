@@ -308,7 +308,7 @@ describe('getNestedSideBarData', () => {
         pages: [
           {
             type: 'item',
-            title: 'System Context Map',
+            title: 'System Context Diagram',
             href: '/visualiser/system-context-map',
           },
         ],
@@ -341,7 +341,7 @@ describe('getNestedSideBarData', () => {
         expect(diagramsNode.pages).toEqual([
           {
             type: 'item',
-            title: 'System Context Map',
+            title: 'System Context Diagram',
             href: '/visualiser/system-context-map',
           },
           {
@@ -706,7 +706,7 @@ describe('getNestedSideBarData', () => {
       });
     });
 
-    it('lists an Architecture section with Overview and Resource Diagram links for the system', async () => {
+    it('lists an Architecture section with Overview and Diagram links for the system', async () => {
       mockSystems.push({
         id: 'CoreMonolith',
         name: 'Core Monolith',
@@ -730,7 +730,7 @@ describe('getNestedSideBarData', () => {
           },
           {
             type: 'item',
-            title: 'Resource Diagram',
+            title: 'Diagram',
             href: '/visualiser/systems/CoreMonolith/1.0.0',
           },
         ],
@@ -837,12 +837,12 @@ describe('getNestedSideBarData', () => {
         pages: [
           {
             type: 'item',
-            title: 'Domain Entity Map',
+            title: 'Domain Entity Diagram',
             href: '/visualiser/domains/Shipping/0.0.1/entity-map',
           },
           {
             type: 'item',
-            title: 'Service Entity Map',
+            title: 'Service Entity Diagram',
             href: '/visualiser/services/OrdersService/0.0.1/entity-map',
           },
         ],
@@ -1036,7 +1036,7 @@ describe('getNestedSideBarData', () => {
     });
 
     describe('Architecture section', () => {
-      it('lists the Overview and Resource Diagram links when the domain has resources to draw', async () => {
+      it('lists the Overview and Diagram links', async () => {
         const { writeDomain, writeService } = utils(CATALOG_FOLDER);
         await writeDomain({
           id: 'Shipping',
@@ -1056,7 +1056,7 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Resource Diagram',
+          title: 'Diagram',
           href: '/visualiser/domains/Shipping/0.0.1',
         });
         expect(domainNode).toHaveNavigationLink({
@@ -1066,7 +1066,7 @@ describe('getNestedSideBarData', () => {
         });
       });
 
-      it('does not list the Resource Diagram link when the domain has no resources to draw', async () => {
+      it('lists the Diagram link in place of the System and Resource Diagram links, even for an empty domain', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
         await writeDomain({
           id: 'Shipping',
@@ -1077,10 +1077,20 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        expect(domainNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Diagram',
+          href: '/visualiser/domains/Shipping/0.0.1',
+        });
         expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Resource Diagram',
           href: '/visualiser/domains/Shipping/0.0.1',
+        });
+        expect(domainNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'System Diagram',
+          href: '/visualiser/domains/Shipping/0.0.1/systems-context',
         });
         // The Architecture Overview link is always present.
         expect(domainNode).toHaveNavigationLink({
@@ -1106,7 +1116,7 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Resource Diagram',
+          title: 'Diagram',
           href: '/visualiser/domains/Shipping/0.0.1',
         });
 
@@ -2062,7 +2072,7 @@ describe('getNestedSideBarData', () => {
         });
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Diagram',
           href: '/visualiser/services/ShippingService/0.0.1',
         });
       });
@@ -2083,7 +2093,7 @@ describe('getNestedSideBarData', () => {
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Diagram',
           href: '/visualiser/services/ShippingService/0.0.1',
         });
 
@@ -2283,6 +2293,13 @@ describe('getNestedSideBarData', () => {
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         const stateAndPersistenceSection = getChildNodeByTitle('State and Persistence', serviceNode.pages ?? []);
         expect(stateAndPersistenceSection.pages).toEqual(['container:Order:0.0.1']);
+        // The data stores are shown at level 2 of the service's Diagram, so
+        // there's no separate Data Dependency Graph
+        expect(serviceNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Data Dependency Graph',
+          href: '/visualiser/services/ShippingService/0.0.1/data',
+        });
       });
     });
 
@@ -2745,7 +2762,7 @@ describe('getNestedSideBarData', () => {
         });
         expect(agentNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Diagram',
           href: '/visualiser/agents/FraudReviewAgent/0.0.1',
         });
       });
@@ -2986,7 +3003,7 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Diagram',
           href: '/visualiser/events/PaymentProcessed/0.0.1',
         });
       });
@@ -3007,7 +3024,7 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Diagram',
           href: '/visualiser/events/PaymentProcessed/0.0.1',
         });
 
@@ -3791,7 +3808,7 @@ describe('getNestedSideBarData', () => {
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
         expect(containerNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Diagram',
           href: '/visualiser/containers/PaymentDataStore/0.0.1',
         });
       });
@@ -3813,7 +3830,7 @@ describe('getNestedSideBarData', () => {
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
         expect(containerNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Map',
+          title: 'Diagram',
           href: '/visualiser/containers/PaymentDataStore/0.0.1',
         });
 
@@ -4455,7 +4472,7 @@ describe('getNestedSideBarData', () => {
           pages: [
             {
               type: 'item',
-              title: 'Map',
+              title: 'Diagram',
               href: '/visualiser/channels/PaymentChannel/0.0.1',
             },
           ],
@@ -4939,7 +4956,7 @@ describe('getNestedSideBarData', () => {
       expect(systemNode.pages).toEqual([
         {
           type: 'item',
-          title: 'System Context Map',
+          title: 'System Context Diagram',
           href: '/visualiser/system-context-map',
         },
       ]);

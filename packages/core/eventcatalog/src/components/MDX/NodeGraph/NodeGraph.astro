@@ -23,6 +23,8 @@ import {
   getNodesAndEdgesForDomainSystems as getNodesAndEdgesForDomainSystemsContext,
   getNodesAndEdgesForAllSystems as getNodesAndEdgesForSystemContextMap,
 } from '@utils/node-graphs/system-context-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForSystemLevels } from '@utils/node-graphs/system-levels-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDomainLevels } from '@utils/node-graphs/domain-levels-node-graph';
 import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
@@ -56,6 +58,9 @@ interface Props {
   portalId?: string;
   // Disable + hide the "Simulate Messages" animation (e.g. on the Context Diagram).
   disableMessageAnimation?: boolean;
+  // Labels level 1 of a levels page (`systems-levels` or `domains-levels`): a
+  // system's context diagram, or a domain's systems and the domains they talk to.
+  overview?: { label: string };
 }
 
 const {
@@ -72,6 +77,7 @@ const {
   zoomOnScroll = false,
   portalId,
   disableMessageAnimation,
+  overview,
 } = Astro.props;
 
 let nodes = [],
@@ -155,6 +161,25 @@ if (collection === 'systems-context') {
   edges = fetchedEdges;
 }
 
+// Levels pages: a system's resource diagram inside its context diagram, or a
+// domain's systems expanded with the other domains they talk to. Level 1 (the
+// overview) and the level without messages are built from the same graph.
+let levelsOverview: { nodes: any[]; edges: any[] } | undefined;
+let hiddenMessagesGraph: { nodes: any[]; edges: any[] } | undefined;
+if (collection === 'systems-levels' || collection === 'domains-levels') {
+  const getLevels = collection === 'systems-levels' ? getNodesAndEdgesForSystemLevels : getNodesAndEdgesForDomainLevels;
+  const levels = await getLevels({
+    id,
+    version,
+    mode,
+    channelRenderMode: config.visualiser?.channels?.renderMode === 'single' ? 'single' : 'flat',
+  });
+  nodes = levels.nodes;
+  edges = levels.edges;
+  levelsOverview = levels.overview;
+  hiddenMessagesGraph = compactVisualiserGraph(levels.hiddenMessages.nodes, levels.hiddenMessages.edges);
+}
+
 if (collection === 'domains-systems-context') {
   const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForDomainSystemsContext({
     id,
@@ -184,17 +209,6 @@ if (collection === 'services-entities') {
   edges = fetchedEdges;
 }
 
-if (collection === 'services-containers') {
-  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForService({
-    id,
-    version,
-    renderMessages: false,
-    mode: 'full',
-  });
-  nodes = fetchedNodes;
-  edges = fetchedEdges;
-}
-
 // Load and apply saved layout if it exists (dev mode feature)
 const resourceKey = buildResourceKey(collection, id, version);
 const savedLayout = await loadSavedLayout(resourceKey);
@@ -202,6 +216,22 @@ const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
 // Drop hydrated collection entries / markdown bodies before Astro serialises
 // the graph into the page. Visualiser components only need a small field set.
 const { nodes: clientNodes, edges: clientEdges } = compactVisualiserGraph(nodesWithLayout as any[], edges as any[]);
+
+let overviewGraph;
+if (overview && levelsOverview) {
+  // The system context keeps the key its own page used, so saved layouts carry over
+  const overviewResourceKey = buildResourceKey(
+    collection === 'systems-levels' ? 'systems-context' : `${collection}-overview`,
+    id,
+    version
+  );
+  const overviewLayout = await loadSavedLayout(overviewResourceKey);
+  overviewGraph = {
+    ...compactVisualiserGraph(applyLayoutToNodes(levelsOverview.nodes, overviewLayout), levelsOverview.edges),
+    label: overview.label,
+    resourceKey: overviewResourceKey,
+  };
+}
 ---
 
 <div>
@@ -226,6 +256,9 @@ const { nodes: clientNodes, edges: clientEdges } = compactVisualiserGraph(nodesW
     resourceKey={resourceKey}
     portalId={portalId}
     disableMessageAnimation={disableMessageAnimation ?? collection === 'systems-context'}
+    overviewGraph={overviewGraph}
+    hiddenMessagesGraph={hiddenMessagesGraph}
+    preferenceScope={collection}
   />
 </div>
 

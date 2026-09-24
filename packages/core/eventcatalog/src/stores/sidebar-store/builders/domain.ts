@@ -94,15 +94,6 @@ export const buildDomainSections = (
   const systemsInDomain = domain.data.systems || [];
   const renderSystems = systemsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'systems');
 
-  // The domain's System Diagram only has something to show when at least one of
-  // its systems takes part in a context graph (declares relationships or actors). This
-  // mirrors the guard that generates the visualiser page, so we never link to a page
-  // that wasn't generated.
-  const hasSystemContext = systemsInDomain.some((system: any) => {
-    const data = system?.data || system;
-    return (data?.relationships || []).length > 0 || (data?.actors || []).length > 0;
-  });
-
   const subDomains = domain.data.domains || [];
   const renderSubDomains = subDomains.length > 0 && shouldRenderSideBarSection(domain, 'subdomains');
 
@@ -152,16 +143,6 @@ export const buildDomainSections = (
     entitiesInDomain.length > 0 ||
     sendsMessages.length > 0 ||
     receivesMessages.length > 0;
-
-  // The Resource Diagram renders the domain's services, agents, data products and
-  // subdomains (see domains-node-graph). Only link to it when there's something to
-  // draw — otherwise the visualiser page is empty.
-  const hasResourceDiagram =
-    servicesInDomain.length > 0 ||
-    externalSystemsInDomain.length > 0 ||
-    agentsInDomain.length > 0 ||
-    dataProductsInDomain.length > 0 ||
-    subDomains.length > 0;
 
   // Diagrams
   const domainDiagrams = domain.data.diagrams || [];
@@ -268,19 +249,13 @@ export const buildDomainSections = (
           title: 'Overview',
           href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
         },
-        renderSystems &&
-          renderVisualiser &&
-          hasSystemContext && {
-            type: 'item',
-            title: 'System Diagram',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/systems-context`),
-          },
-        renderVisualiser &&
-          hasResourceDiagram && {
-            type: 'item',
-            title: 'Resource Diagram',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
-          },
+        // The domain's diagram, with levels from the domains it talks to down to
+        // its messages
+        renderVisualiser && {
+          type: 'item',
+          title: 'Diagram',
+          href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
+        },
         renderEntities &&
           renderVisualiser && {
             type: 'item',

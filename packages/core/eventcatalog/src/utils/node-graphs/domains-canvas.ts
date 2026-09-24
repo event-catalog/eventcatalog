@@ -1,12 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import {
-  generateIdForNode,
-  createDagreGraph,
-  calculatedNodes,
-  createEdge,
-  getOperationFields,
-  layoutDagreGraph,
-} from '@utils/node-graphs/utils/utils';
+import { generateIdForNode, createEdge, getOperationFields } from '@utils/node-graphs/utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { findInMap, createVersionedMap } from '@utils/collections/util';
 import type { Node, Edge } from '@xyflow/react';
 import { getDomains } from '@utils/collections/domains';
@@ -27,9 +21,6 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   const domainNodes: Node[] = [];
   const messageNodes: Node[] = [];
   const edges: Edge[] = [];
-
-  // Create dagre graph for layout
-  const dagreGraph = createDagreGraph({ ranksep: 400, nodesep: 200 });
 
   // Create a map to store domain data for calculating relationships
   const domainDataMap = new Map();
@@ -54,11 +45,11 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
       messagesCount: totalMessages,
     });
 
-    // Domain Overview Node (position will be calculated by dagre)
+    // Domain Overview Node (positioned when the graph is laid out)
     domainNodes.push({
       id: domainNodeId,
       type: 'domains',
-      position: { x: 0, y: 0 }, // Temporary position, will be calculated by dagre
+      position: { x: 0, y: 0 }, // Placeholder, positioned when the graph is laid out
       data: {
         mode: 'full',
         domain: {
@@ -173,7 +164,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
         messageNodes.push({
           id: messageNodeId,
           type: messageObject.collection, // events, commands, or queries
-          position: { x: 0, y: 0 }, // Temporary position, will be calculated by dagre
+          position: { x: 0, y: 0 }, // Placeholder, positioned when the graph is laid out
           data: {
             mode: 'simple',
             message: { ...messageObject.data, ...getOperationFields(messageObject.data) },
@@ -235,27 +226,13 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
     }
   });
 
-  // Add all nodes to dagre graph for layout calculation
-  const allNodes = [...domainNodes, ...messageNodes];
-
-  allNodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: 250, height: 120 });
-  });
-
-  edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
-
-  // Calculate layout using dagre
-  layoutDagreGraph(dagreGraph);
-
-  // Apply calculated positions to nodes
-  const layoutedDomainNodes = calculatedNodes(dagreGraph, domainNodes);
-  const layoutedMessageNodes = calculatedNodes(dagreGraph, messageNodes);
+  // Lay the domains and messages out together, then split them back apart
+  const domainNodeIds = new Set(domainNodes.map((node) => node.id));
+  const layouted = await layoutNodeGraph({ nodes: [...domainNodes, ...messageNodes], edges });
 
   return {
-    domainNodes: layoutedDomainNodes,
-    messageNodes: layoutedMessageNodes,
-    edges,
+    domainNodes: layouted.nodes.filter((node) => domainNodeIds.has(node.id)),
+    messageNodes: layouted.nodes.filter((node) => !domainNodeIds.has(node.id)),
+    edges: layouted.edges,
   };
 };

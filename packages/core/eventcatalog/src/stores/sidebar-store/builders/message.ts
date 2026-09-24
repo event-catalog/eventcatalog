@@ -153,7 +153,7 @@ export const buildMessageSections = (
           pages: [
             {
               type: 'item',
-              title: 'Map',
+              title: 'Diagram',
               href: buildUrl(`/visualiser/${collection}/${message.data.id}/${message.data.version}`),
             },
             ...(hasTriggerPaths
