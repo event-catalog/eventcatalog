@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getTrialStatus, TRIAL_LENGTH_DAYS } from '../trial';
+import { getLicenseDaysLeft, getTrialStatus, TRIAL_LENGTH_DAYS } from '../trial';
 
 const DAY = 24 * 60 * 60 * 1000;
 const start = Date.UTC(2026, 0, 1);
@@ -27,5 +27,14 @@ describe('getTrialStatus', () => {
     for (const tsd of [undefined, null, '<tsd>', NaN, 0, -1]) {
       expect(getTrialStatus(tsd, start)).toBeUndefined();
     }
+  });
+});
+
+describe('getLicenseDaysLeft', () => {
+  it('stays quiet until fewer than 14 days are left', () => {
+    expect(getLicenseDaysLeft(new Date(start + 30 * DAY), start)).toBeUndefined();
+    expect(getLicenseDaysLeft(new Date(start + 14 * DAY), start)).toBeUndefined();
+    expect(getLicenseDaysLeft(new Date(start + 13 * DAY), start)).toBe(13);
+    expect(getLicenseDaysLeft(new Date(start + DAY / 2), start)).toBe(1);
   });
 });

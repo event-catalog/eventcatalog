@@ -83,3 +83,5 @@ docs/superpowers/*
 .worktrees/
 .pnpm-store/
 federationv2.md
+# EventCatalog license files used for local testing, never commit them
+license.jwt

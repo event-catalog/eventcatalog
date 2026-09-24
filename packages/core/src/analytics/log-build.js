@@ -1,6 +1,7 @@
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { raiseEvent } from './analytics.js';
 import { countResources, hashCatalogContent, serializeCounts } from './count-resources.js';
+import { getLicenseAnalytics } from '../utils/license-status';
 
 const getFeatures = async (configFile) => {
   return {
@@ -87,9 +88,9 @@ const reportCloudResourceInventory = async (configFile, resourceCounts) => {
 /**
  *
  * @param {string} projectDir
- * @param {{ command?: 'build' | 'dev' }} [options]
+ * @param {{ command?: 'build' | 'dev', license?: import('../utils/license-status').LicenseStatus }} [options]
  */
-const main = async (projectDir, { command = 'build' } = {}) => {
+const main = async (projectDir, { command = 'build', license } = {}) => {
   try {
     await verifyRequiredFieldsAreInCatalogConfigFile(projectDir);
     const configFile = await getEventCatalogConfigFile(projectDir);
@@ -108,6 +109,8 @@ const main = async (projectDir, { command = 'build' } = {}) => {
       cId,
       // Trial start date (unix ms) from eventcatalog.config.js
       tsd,
+      // Commercial license or trial, and when each expires (unix ms)
+      ...getLicenseAnalytics(license, tsd),
       // CI redeploys and human-run builds are different signals; tag rather than suppress
       ci: process.env.CI ? 'true' : 'false',
       contentHash,
