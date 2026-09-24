@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import type { AstroIntegration } from 'astro';
 import fs from 'node:fs';
 import path from 'path';
@@ -13,14 +8,10 @@ import config from '../../utils/eventcatalog-config/source';
 import {
   isEventCatalogChatEnabled,
   isAuthEnabled,
-  isEventCatalogScaleEnabled,
   isEventCatalogMCPEnabled,
   isEventCatalogMCPAuthEnabled,
   isFullCatalogAPIEnabled,
   isDevMode,
-  isIntegrationsEnabled,
-  isCustomDocsEnabled,
-  isCustomPagesEnabled,
   isSSR,
 } from '../../utils/feature';
 import { getCustomPageRoutes, isApiRoute, listCustomPageFiles, resolveCustomPagesPrefix } from '../custom-pages/routes';
@@ -119,7 +110,7 @@ export default function eventCatalogIntegration(): AstroIntegration {
           });
         }
 
-        // Handle routes for MCP Server (requires SSR + Scale)
+        // Handle routes for MCP Server (requires SSR)
         if (isEventCatalogMCPEnabled()) {
           params.injectRoute({
             pattern: '/docs/mcp/[...path]',
@@ -143,45 +134,29 @@ export default function eventCatalogIntegration(): AstroIntegration {
           configureAuthentication(params);
         }
 
-        // Custom documentation routes (Starter/Scale plan)
-        if (isCustomDocsEnabled()) {
-          params.injectRoute({
-            pattern: '/docs/custom',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/root-index.astro'),
-          });
-          params.injectRoute({
-            pattern: '/docs/custom/[...path]',
-            entrypoint: path.join(
-              packageDirectory,
-              'src/enterprise/custom-documentation/pages/docs/custom/[...path]/index.astro'
-            ),
-          });
-          params.injectRoute({
-            pattern: '/docs/custom/[...path].mdx',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/[...path].mdx.ts'),
-          });
-        } else {
-          // Show feature page for non-paying users
-          params.injectRoute({
-            pattern: '/docs/custom',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/feature.astro'),
-          });
-        }
+        // Custom documentation routes
+        params.injectRoute({
+          pattern: '/docs/custom',
+          entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/root-index.astro'),
+        });
+        params.injectRoute({
+          pattern: '/docs/custom/[...path]',
+          entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/[...path]/index.astro'),
+        });
+        params.injectRoute({
+          pattern: '/docs/custom/[...path].mdx',
+          entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/[...path].mdx.ts'),
+        });
 
-        // Schema API routes (Scale plan)
-        if (isEventCatalogScaleEnabled()) {
-          params.injectRoute({
-            pattern: '/api/schemas/[collection]/[id]/[version]',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/api/schemas/[collection]/[id]/[version]/index.ts'),
-          });
-          params.injectRoute({
-            pattern: '/api/schemas/services/[id]/[version]/[specification]',
-            entrypoint: path.join(
-              packageDirectory,
-              'src/enterprise/api/schemas/services/[id]/[version]/[specification]/index.ts'
-            ),
-          });
-        }
+        // Schema API routes
+        params.injectRoute({
+          pattern: '/api/schemas/[collection]/[id]/[version]',
+          entrypoint: path.join(packageDirectory, 'src/enterprise/api/schemas/[collection]/[id]/[version]/index.ts'),
+        });
+        params.injectRoute({
+          pattern: '/api/schemas/services/[id]/[version]/[specification]',
+          entrypoint: path.join(packageDirectory, 'src/enterprise/api/schemas/services/[id]/[version]/[specification]/index.ts'),
+        });
 
         // Full catalog API route (opt-in)
         if (isFullCatalogAPIEnabled()) {
@@ -203,22 +178,13 @@ export default function eventCatalogIntegration(): AstroIntegration {
           });
         }
 
-        // User-defined pages and API routes (Scale plan)
-        if (isCustomPagesEnabled()) {
-          configureCustomPages(params);
-        } else if (listCustomPageFiles(customPagesDirectory).length > 0) {
-          console.warn('[EventCatalog] Custom pages require the Scale plan. The routes for your pages will not be served.');
-        }
+        // User-defined pages and API routes
+        configureCustomPages(params);
 
         // Keep routes in sync during dev — a manifest change restarts the dev
         // server so injectRoute runs again with the new file list
         writeCustomPagesManifest();
         params.addWatchFile(customPagesManifest);
-
-        // Warn if integrations are configured without Scale plan
-        if (config.integrations && !isIntegrationsEnabled()) {
-          console.warn('[EventCatalog] Integrations require the Scale plan. Analytics integrations will not be loaded.');
-        }
 
         // Dev-only routes for visualizer layout persistence
         if (isDevMode()) {

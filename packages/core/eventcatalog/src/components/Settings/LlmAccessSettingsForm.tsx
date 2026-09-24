@@ -4,27 +4,18 @@ import { Bot, FileText } from 'lucide-react';
 import { aiSettingsSchema } from '@utils/eventcatalog-config/config-schema';
 import { ReadOnlyBanner } from './ReadOnlyBanner';
 import { Row } from './Row';
-import { ToggleRow, UpgradeRequired, UrlPanel } from './SettingsShared';
+import { ToggleRow, UrlPanel } from './SettingsShared';
 
 interface Props {
   canEdit: boolean;
   initial: { llmsTxtEnabled: boolean; chatEnabled: boolean };
-  hasScalePlan: boolean;
   apiBase: string;
   llmsTxtUrl: string;
   llmsFullTxtUrl: string;
   schemasTxtUrl: string;
 }
 
-export const LlmAccessSettingsForm = ({
-  canEdit,
-  initial,
-  hasScalePlan,
-  apiBase,
-  llmsTxtUrl,
-  llmsFullTxtUrl,
-  schemasTxtUrl,
-}: Props) => {
+export const LlmAccessSettingsForm = ({ canEdit, initial, apiBase, llmsTxtUrl, llmsFullTxtUrl, schemasTxtUrl }: Props) => {
   const [llmsTxtEnabled, setLlmsTxtEnabled] = useState(initial.llmsTxtEnabled);
   const [pristine, setPristine] = useState(initial.llmsTxtEnabled);
   const [saving, setSaving] = useState(false);
@@ -108,14 +99,7 @@ export const LlmAccessSettingsForm = ({
         canEdit={false}
         dirty={false}
       >
-        {hasScalePlan ? (
-          <SchemasTxtAvailable url={schemasTxtUrl} />
-        ) : (
-          <UpgradeRequired
-            tier="Scale"
-            blurb="The schema index is a Scale-plan feature. Upgrade to publish a machine-readable catalogue of your schemas alongside llms.txt."
-          />
-        )}
+        <SchemasTxtAvailable url={schemasTxtUrl} />
       </Row>
     </form>
   );

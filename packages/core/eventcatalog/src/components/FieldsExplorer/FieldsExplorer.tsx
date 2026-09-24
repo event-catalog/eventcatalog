@@ -1,204 +1,10 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Lock, Search, X, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X, AlertTriangle } from 'lucide-react';
 import FieldFilters from './FieldFilters';
 import FieldsTable from './FieldsTable';
 import type { FieldResult } from './FieldsTable';
 import FieldNodeGraph from './FieldNodeGraph';
 import { buildUrl } from '@utils/url-builder';
-
-function DummyNode({
-  type,
-  name,
-  version,
-  className,
-}: {
-  type: 'service' | 'event' | 'field';
-  name: string;
-  version?: string;
-  className?: string;
-}) {
-  const styles = {
-    service: { border: 'border-pink-500', badge: 'bg-pink-500', label: 'SERVICE' },
-    event: { border: 'border-orange-500', badge: 'bg-orange-500', label: 'EVENT' },
-    field: { border: 'border-cyan-500', badge: 'bg-cyan-500', label: 'FIELD' },
-  };
-  const s = styles[type];
-  return (
-    <div
-      className={`relative rounded-xl border-2 ${s.border} bg-[rgb(var(--ec-card-bg))] px-3 pt-4 pb-2.5 min-w-[140px] ${className || ''}`}
-    >
-      <div
-        className={`absolute -top-2.5 left-2.5 ${s.badge} text-white text-[7px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded`}
-      >
-        {s.label}
-      </div>
-      <div className="text-[11px] font-semibold text-[rgb(var(--ec-page-text))]">{name}</div>
-      {version && <div className="text-[9px] text-[rgb(var(--ec-page-text-muted))]">v{version}</div>}
-    </div>
-  );
-}
-
-function DummyEdge({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-1">
-      <div className="w-8 h-px bg-[rgb(var(--ec-page-border))]" />
-      <span className="text-[8px] text-[rgb(var(--ec-page-text-muted))] whitespace-nowrap">{label}</span>
-      <div className="w-8 h-px bg-[rgb(var(--ec-page-border))]" />
-    </div>
-  );
-}
-
-function FieldLineageUpgradeModal({ fieldPath, onClose }: { fieldPath: string; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div
-        className="w-[90vw] h-[80vh] max-w-[1400px] rounded-xl border shadow-2xl flex flex-col overflow-hidden relative"
-        style={{
-          backgroundColor: 'rgb(var(--ec-page-bg))',
-          borderColor: 'rgb(var(--ec-page-border))',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div
-          className="flex items-center justify-between px-5 py-3 border-b flex-shrink-0"
-          style={{ borderColor: 'rgb(var(--ec-page-border))' }}
-        >
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold" style={{ color: 'rgb(var(--ec-page-text))' }}>
-              Field Traceability
-            </h3>
-            <code
-              className="px-2 py-0.5 rounded text-xs font-mono"
-              style={{
-                backgroundColor: 'rgb(var(--ec-accent) / 0.1)',
-                color: 'rgb(var(--ec-accent))',
-              }}
-            >
-              {fieldPath}
-            </code>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg transition-colors hover:bg-[rgb(var(--ec-content-hover))] flex-shrink-0"
-            style={{ color: 'rgb(var(--ec-icon-color))' }}
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Blurred dummy content */}
-        <div className="flex-1 relative overflow-hidden">
-          {/* Fake graph + side panel */}
-          <div className="absolute inset-0 flex blur-[2px] opacity-60 select-none pointer-events-none">
-            {/* Fake graph area */}
-            <div className="flex-1 flex items-center justify-center p-8">
-              <div className="flex items-center gap-3">
-                {/* Producer services */}
-                <div className="flex flex-col gap-6">
-                  <DummyNode type="service" name="Billing Service" version="1.2.0" />
-                  <DummyNode type="service" name="Order Service" version="2.0.1" />
-                </div>
-                {/* Edges to events */}
-                <div className="flex flex-col gap-12">
-                  <DummyEdge label="produces" />
-                  <DummyEdge label="produces" />
-                </div>
-                {/* Events */}
-                <div className="flex flex-col gap-6">
-                  <DummyNode type="event" name="Payment Due" version="0.0.1" />
-                  <DummyNode type="event" name="Order Created" version="1.0.0" />
-                </div>
-                {/* Edges to field */}
-                <div className="flex flex-col gap-12">
-                  <DummyEdge label="contains" />
-                  <DummyEdge label="contains" />
-                </div>
-                {/* Field */}
-                <div className="flex flex-col gap-6">
-                  <DummyNode type="field" name={fieldPath} />
-                </div>
-                {/* Edges to consumers */}
-                <div className="flex flex-col gap-12">
-                  <DummyEdge label="consumed by" />
-                </div>
-                {/* Consumer services */}
-                <div className="flex flex-col gap-6">
-                  <DummyNode type="service" name="Notification Service" version="0.0.2" />
-                </div>
-              </div>
-            </div>
-            {/* Fake side panel */}
-            <div className="w-[280px] flex-shrink-0 border-l border-[rgb(var(--ec-page-border))] p-4 space-y-4">
-              <div>
-                <div className="text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider mb-2">
-                  Field
-                </div>
-                <div className="text-sm font-mono font-semibold text-[rgb(var(--ec-page-text))]">{fieldPath}</div>
-                <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">string</div>
-              </div>
-              <div>
-                <div className="text-[11px] font-medium text-amber-500 uppercase tracking-wider mb-2">Type Conflict</div>
-                <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5 space-y-1">
-                  <div className="text-xs text-amber-600">Inconsistent types detected</div>
-                  <div className="flex justify-between text-xs">
-                    <code className="font-mono">string</code>
-                    <span className="text-[rgb(var(--ec-page-text-muted))]">3 schemas</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <code className="font-mono">integer</code>
-                    <span className="text-[rgb(var(--ec-page-text-muted))]">1 schema</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider mb-2">
-                  Messages (3)
-                </div>
-                <div className="space-y-1.5">
-                  <div className="rounded-lg border border-[rgb(var(--ec-page-border)/0.5)] bg-[rgb(var(--ec-card-bg))] px-2.5 py-2 text-xs">
-                    Payment Due
-                  </div>
-                  <div className="rounded-lg border border-[rgb(var(--ec-page-border)/0.5)] bg-[rgb(var(--ec-card-bg))] px-2.5 py-2 text-xs">
-                    Order Created
-                  </div>
-                  <div className="rounded-lg border border-[rgb(var(--ec-page-border)/0.5)] bg-[rgb(var(--ec-card-bg))] px-2.5 py-2 text-xs">
-                    Invoice Generated
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Upgrade prompt overlay */}
-          <div className="absolute inset-0 flex items-center justify-center bg-[rgb(var(--ec-page-bg)/0.5)]">
-            <div className="text-center max-w-lg px-6 py-8 rounded-2xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] shadow-2xl">
-              <div className="w-12 h-12 rounded-full bg-[rgb(var(--ec-accent)/0.1)] flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-6 h-6 text-[rgb(var(--ec-accent))]" />
-              </div>
-              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))] mb-2">Field Lineage & Traceability</h3>
-              <p className="text-sm text-[rgb(var(--ec-page-text-muted))] mb-5 leading-relaxed">
-                See which services produce and consume this field, detect type conflicts across schemas, and trace field usage
-                across your entire event-driven architecture.
-              </p>
-              <a
-                href="https://eventcatalog.cloud/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-[rgb(var(--ec-accent))] hover:opacity-90 transition-opacity"
-              >
-                Start your 14-day free trial
-              </a>
-              <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-3">
-                Available with EventCatalog Scale. No credit card required.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 interface Facets {
   formats: { value: string; count: number }[];
@@ -223,11 +29,7 @@ interface SelectedField {
   occurrences: FieldResult[];
 }
 
-interface FieldsExplorerProps {
-  isScaleEnabled?: boolean;
-}
-
-export default function FieldsExplorer({ isScaleEnabled = false }: FieldsExplorerProps) {
+export default function FieldsExplorer() {
   const [fields, setFields] = useState<FieldResult[]>([]);
   const [total, setTotal] = useState(0);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -325,18 +127,6 @@ export default function FieldsExplorer({ isScaleEnabled = false }: FieldsExplore
 
   // Open modal: fetch all occurrences for the field path, then show modal
   const handleSelectField = useCallback(async (fieldPath: string) => {
-    // Non-scale users get the locked upgrade modal
-    if (!isScaleEnabled) {
-      setSelectedField({
-        path: fieldPath,
-        type: 'unknown',
-        description: '',
-        required: false,
-        occurrences: [],
-      });
-      return;
-    }
-
     try {
       // Fetch all pages of occurrences for this field path
       let allOccurrences: FieldResult[] = [];
@@ -446,7 +236,6 @@ export default function FieldsExplorer({ isScaleEnabled = false }: FieldsExplore
               conflictingOnly={conflictingOnly}
               onConflictingOnlyChange={setConflictingOnly}
               facets={filterFacets}
-              isScaleEnabled={isScaleEnabled}
             />
           </div>
         </div>
@@ -485,7 +274,7 @@ export default function FieldsExplorer({ isScaleEnabled = false }: FieldsExplore
           )}
 
           {/* Table */}
-          <FieldsTable fields={fields} onSelectField={handleSelectField} isLoading={isLoading} isScaleEnabled={isScaleEnabled} />
+          <FieldsTable fields={fields} onSelectField={handleSelectField} isLoading={isLoading} />
 
           {/* Pagination */}
           <div className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-t border-[rgb(var(--ec-page-border))]">
@@ -524,10 +313,7 @@ export default function FieldsExplorer({ isScaleEnabled = false }: FieldsExplore
         </div>
 
         {/* Field Detail Modal with Node Graph */}
-        {selectedField && !isScaleEnabled && (
-          <FieldLineageUpgradeModal fieldPath={selectedField.path} onClose={() => setSelectedField(null)} />
-        )}
-        {selectedField && isScaleEnabled && (
+        {selectedField && (
           <FieldNodeGraph
             fieldPath={selectedField.path}
             fieldType={selectedField.type}

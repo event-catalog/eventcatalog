@@ -4,19 +4,18 @@ import { ExternalLink, MessageSquare, ServerCog, Wrench } from 'lucide-react';
 import { aiSettingsSchema } from '@utils/eventcatalog-config/config-schema';
 import { ReadOnlyBanner } from './ReadOnlyBanner';
 import { Row, cn } from './Row';
-import { ASSISTANT_CONFIGURATION_DOCS_URL, ASSISTANT_DOCS_URL, ToggleRow, UpgradeRequired } from './SettingsShared';
+import { ASSISTANT_CONFIGURATION_DOCS_URL, ASSISTANT_DOCS_URL, ToggleRow } from './SettingsShared';
 
 interface Props {
   canEdit: boolean;
   initial: { chatEnabled: boolean; llmsTxtEnabled: boolean };
   chatAvailable: boolean;
-  hasPlan: boolean;
   inSSR: boolean;
   hasChatConfigFile: boolean;
   apiBase: string;
 }
 
-export const AssistantSettingsForm = ({ canEdit, initial, chatAvailable, hasPlan, inSSR, hasChatConfigFile, apiBase }: Props) => {
+export const AssistantSettingsForm = ({ canEdit, initial, chatAvailable, inSSR, hasChatConfigFile, apiBase }: Props) => {
   const [chatEnabled, setChatEnabled] = useState(initial.chatEnabled);
   const [pristine, setPristine] = useState(initial.chatEnabled);
   const [saving, setSaving] = useState(false);
@@ -97,12 +96,6 @@ export const AssistantSettingsForm = ({ canEdit, initial, chatAvailable, hasPlan
           {chatEnabled &&
             (chatAvailable ? (
               <ConfigurationRequired />
-            ) : !hasPlan ? (
-              <UpgradeRequired
-                tier="Starter and Scale"
-                blurb="The EventCatalog Assistant is part of our paid plans. Upgrade to give your team a built-in AI agent that answers questions about your architecture."
-                docsUrl={ASSISTANT_DOCS_URL}
-              />
             ) : !inSSR ? (
               <AssistantNeedsSSR />
             ) : !hasChatConfigFile ? (

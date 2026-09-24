@@ -1,5 +1,4 @@
 import { ClipboardDocumentIcon, CheckIcon, GlobeAltIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
-import { LockClosedIcon } from '@heroicons/react/24/solid';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
@@ -11,10 +10,9 @@ interface ApiContentViewerProps {
   message: SchemaItem;
   onCopy: (content: string, id: string) => void;
   copiedId: string | null;
-  apiAccessEnabled?: boolean;
 }
 
-export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessEnabled = false }: ApiContentViewerProps) {
+export default function ApiContentViewer({ message, onCopy, copiedId }: ApiContentViewerProps) {
   const isDarkMode = useDarkMode();
   const dividerColor = isDarkMode ? 'rgb(var(--ec-page-text-muted) / 0.13)' : 'rgb(var(--ec-page-border))';
   const boxBorderColor = isDarkMode ? 'rgb(var(--ec-page-text-muted) / 0.17)' : 'rgb(var(--ec-page-border))';
@@ -36,35 +34,6 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
   const schemaTypeLabel = getSchemaTypeLabel(message.schemaExtension);
   const lineCount = exampleResponse.split('\n').length;
   const byteSize = new TextEncoder().encode(exampleResponse).length;
-
-  if (!apiAccessEnabled) {
-    return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="max-w-md text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[rgb(var(--ec-accent)/0.3)] bg-[rgb(var(--ec-accent-subtle))]">
-            <LockClosedIcon className="h-8 w-8 text-[rgb(var(--ec-accent))]" />
-          </div>
-          <h3 className="mb-2 text-lg font-semibold text-[rgb(var(--ec-page-text))]">API Access</h3>
-          <p className="mb-6 text-sm text-[rgb(var(--ec-page-text-muted))]">
-            Access your schemas programmatically via REST API. Perfect for CI/CD pipelines, automation, and integrations with your
-            development workflow.
-          </p>
-          <a
-            href="https://eventcatalog.cloud"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg bg-[rgb(var(--ec-accent))] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[rgb(var(--ec-accent-hover))]"
-          >
-            Upgrade to Scale
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-          <p className="mt-3 text-xs text-[rgb(var(--ec-page-text-muted))]">Start your 14-day free trial</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-full overflow-auto pr-1">

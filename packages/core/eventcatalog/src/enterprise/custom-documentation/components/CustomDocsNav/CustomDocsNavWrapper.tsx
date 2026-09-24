@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import CustomDocsNav from './';
 import type { SidebarSection } from './types';
 

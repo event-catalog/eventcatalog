@@ -5,8 +5,6 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { getMessageSchemasFromFrontmatter, loadMessageSchemas } from '@utils/collections/schema-loader';
 
-const originalScale = process.env.EVENTCATALOG_SCALE;
-
 describe('schema-loader', () => {
   it('excludes dependency schemas while retaining nested and federated message schemas', async () => {
     const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-discovery-'));
@@ -31,18 +29,6 @@ describe('schema-loader', () => {
     } finally {
       await rm(catalogDir, { recursive: true, force: true });
     }
-  });
-
-  beforeEach(() => {
-    delete process.env.EVENTCATALOG_SCALE;
-  });
-
-  afterEach(() => {
-    if (originalScale === undefined) {
-      delete process.env.EVENTCATALOG_SCALE;
-      return;
-    }
-    process.env.EVENTCATALOG_SCALE = originalScale;
   });
 
   it('normalizes legacy schemaPath into a generated message schema resource', () => {
@@ -449,49 +435,7 @@ schemas:
     });
   });
 
-  it('requires EventCatalog Scale when schema sources are configured', async () => {
-    const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
-    const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
-
-    await mkdir(messageDir, { recursive: true });
-    await writeFile(
-      path.join(messageDir, 'index.mdx'),
-      `---
-id: OrderPlaced
-name: Order placed
-version: 1.0.0
-schemas:
-  - ref: git://contracts/events/OrderPlaced.schema.json
----
-`
-    );
-
-    await expect(
-      loadMessageSchemas(
-        {
-          base: catalogDir,
-          pattern: ['**/events/*/index.{md,mdx}'],
-        },
-        [
-          {
-            type: 'schemas',
-            name: 'contracts',
-            canResolve: (id) => id.startsWith('git://contracts/'),
-            resolve: async (id) => ({
-              id,
-              content: '{}',
-              source: {
-                provider: 'git',
-              },
-            }),
-          },
-        ]
-      )
-    ).rejects.toThrow('Schema sources require EventCatalog Scale.');
-  });
-
   it('loads external schema entries from configured schema sources', async () => {
-    process.env.EVENTCATALOG_SCALE = 'true';
     const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
     const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
     const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
@@ -566,7 +510,6 @@ schemas:
   });
 
   it('uses the schema ref basename when an external schema source does not return a name', async () => {
-    process.env.EVENTCATALOG_SCALE = 'true';
     const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
     const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
     const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
@@ -617,7 +560,6 @@ schemas:
   });
 
   it('keeps distinct collection entries when multiple message versions reference the same external schema', async () => {
-    process.env.EVENTCATALOG_SCALE = 'true';
     const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
     const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
     const eventDir = path.join(catalogDir, 'events', 'UserCreated');
@@ -694,7 +636,6 @@ schemas:
   });
 
   it('passes the referencing message file path to configured schema sources', async () => {
-    process.env.EVENTCATALOG_SCALE = 'true';
     const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
     const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
     const messageDir = path.join(catalogDir, 'events', 'OrderPlaced');
@@ -741,7 +682,6 @@ schemas:
   });
 
   it('reports the message that referenced an external schema when the source cannot resolve it', async () => {
-    process.env.EVENTCATALOG_SCALE = 'true';
     const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
     const catalogDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-schema-loader-'));
     const messageDir = path.join(catalogDir, 'events', 'DeliveryFailed');

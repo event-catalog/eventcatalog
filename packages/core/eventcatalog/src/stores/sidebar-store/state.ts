@@ -41,7 +41,7 @@ import {
   shouldRenderSideBarSection,
   withArchitectureDecisionsSection,
 } from './builders/shared';
-import { isArchitectureGraphEnabled, isChangelogEnabled, isResourceDocsEnabled } from '@utils/feature';
+import { isArchitectureGraphEnabled, isChangelogEnabled } from '@utils/feature';
 import { collectMessageIdsWithFieldUsage } from '@utils/collections/field-usage';
 
 export type { NavigationData, NavNode, ChildRef };
@@ -335,7 +335,6 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const messages = [...allEvents, ...allCommands, ...allQueries];
 
   const context = {
-    resourceDocsEnabled: isResourceDocsEnabled(),
     agents,
     services,
     domains,
@@ -659,7 +658,6 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   );
 
   const dataProductContext = {
-    resourceDocsEnabled: isResourceDocsEnabled(),
     events,
     commands,
     queries,

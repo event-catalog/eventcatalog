@@ -2,14 +2,8 @@
 import catalog from '@utils/eventcatalog-config/catalog';
 import Search from '@components/Search/Search.astro';
 import { buildUrl } from '@utils/url-builder';
-import {
-  showEventCatalogBranding,
-  showCustomBranding,
-  isEventCatalogChatVisible,
-  isEventCatalogChatEnabled,
-} from '@utils/feature';
 import { getSession } from '@utils/auth-astro/server';
-import { isAuthEnabled, isSSR } from '@utils/feature';
+import { isAuthEnabled, isSSR, isEventCatalogChatVisible, isEventCatalogChatEnabled } from '@utils/feature';
 import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
 import ThemeToggle from './ThemeToggle';
@@ -27,7 +21,7 @@ const logo = {
   text: catalog?.logo?.text || 'EventCatalog',
 };
 
-const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalog/eventcatalog';
+const repositoryUrl = catalog?.repositoryUrl;
 
 const user = session?.user as { name?: string; email?: string; image?: string; provider?: string } | undefined;
 const userName = user?.name || user?.email || 'User';
@@ -181,40 +175,8 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
                   </button>
                 )}
                 <ThemeToggle client:idle />
-                {showEventCatalogBranding() && (
-                  <ul class="flex space-x-4">
-                    <li>
-                      <a
-                        href="https://discord.com/invite/3rjaZMmrAm"
-                        class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
-                        aria-label="Join our Discord community"
-                      >
-                        <img
-                          src={buildUrl('/icons/discord.svg', true)}
-                          alt=""
-                          class="h-6 w-6 hover:opacity-100 transition-opacity ec-themed-icon"
-                          aria-hidden="true"
-                        />
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="https://github.com/event-catalog/eventcatalog"
-                        class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
-                        aria-label="View EventCatalog on GitHub"
-                      >
-                        <img
-                          src={buildUrl('/icons/github.svg', true)}
-                          alt=""
-                          class="h-6 w-6 hover:opacity-100 transition-opacity ec-themed-icon"
-                          aria-hidden="true"
-                        />
-                      </a>
-                    </li>
-                  </ul>
-                )}
-                {showCustomBranding() && !showEventCatalogBranding() && (
-                  <ul class="flex space-x-4">
+                <ul class="flex space-x-4">
+                  {repositoryUrl && (
                     <li>
                       <a
                         href={repositoryUrl}
@@ -229,8 +191,36 @@ const providerName = user?.provider ? providerNames[user.provider] || user.provi
                         />
                       </a>
                     </li>
-                  </ul>
-                )}
+                  )}
+                  <li>
+                    <a
+                      href="https://discord.com/invite/3rjaZMmrAm"
+                      class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
+                      aria-label="Join our Discord community"
+                    >
+                      <img
+                        src={buildUrl('/icons/discord.svg', true)}
+                        alt=""
+                        class="h-6 w-6 hover:opacity-100 transition-opacity ec-themed-icon"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://github.com/event-catalog/eventcatalog"
+                      class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
+                      aria-label="View EventCatalog on GitHub"
+                    >
+                      <img
+                        src={buildUrl('/icons/github.svg', true)}
+                        alt=""
+                        class="h-6 w-6 hover:opacity-100 transition-opacity ec-themed-icon"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  </li>
+                </ul>
               </div>
             </>
           )

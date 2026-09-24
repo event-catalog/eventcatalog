@@ -77,8 +77,7 @@ vi.mock('astro:content', async (importOriginal) => {
 });
 
 describe('api/schemas.txt', () => {
-  it('returns a list of schemas for events, commands, queries, and services when EventCatalog Scale is enabled', async () => {
-    process.env.EVENTCATALOG_SCALE = 'true';
+  it('returns a list of schemas for events, commands, queries, and services', async () => {
     const response = await GET({ request: new Request('http://localhost:4321/api/schemas.txt') } as any);
     expect(response.status).toBe(200);
 
@@ -99,13 +98,5 @@ List of schemas for events, commands, queries, and services in EventCatalog.
 - [OrderService - 1.0.0 - openapi specification](http://localhost:4321/api/schemas/services/OrderService/1.0.0/openapi) - Specification for Order Service summary
 - [OrderService - 1.0.0 - asyncapi specification](http://localhost:4321/api/schemas/services/OrderService/1.0.0/asyncapi) - Specification for Order Service summary
 - [OrderService - 1.0.0 - graphql specification](http://localhost:4321/api/schemas/services/OrderService/1.0.0/graphql) - Specification for Order Service summary`);
-  });
-  it('returns an error when EventCatalog Scale is disabled', async () => {
-    process.env.EVENTCATALOG_SCALE = 'false';
-    const response = await GET({ request: new Request('http://localhost:4321/api/schemas.txt') } as any);
-    expect(response.status).toBe(501);
-    expect(await response.text()).toEqual(
-      '{"error":"feature_not_available_on_server","message":"Schema API is not enabled for this deployment and supported in EventCatalog Scale."}'
-    );
   });
 });

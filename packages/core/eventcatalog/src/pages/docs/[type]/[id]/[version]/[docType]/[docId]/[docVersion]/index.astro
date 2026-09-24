@@ -8,7 +8,7 @@ import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import Badge from '@components/Badge.astro';
 import { buildUrl } from '@utils/url-builder';
 import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
-import { isEventCatalogChatVisible, isMarkdownDownloadEnabled, isResourceDocsEnabled } from '@utils/feature';
+import { isEventCatalogChatVisible, isMarkdownDownloadEnabled } from '@utils/feature';
 import { getResourceDocTypeLabel } from '@utils/collections/resource-docs';
 import { getIcon } from '@utils/badges';
 import { collectionToResourceMap } from '@utils/collections/util';
@@ -17,10 +17,6 @@ import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
-
-if (!isResourceDocsEnabled()) {
-  return Astro.redirect(buildUrl('/docs/custom/feature'));
-}
 
 const props = await Page.getData(Astro);
 const { Content, headings } = await render(props);

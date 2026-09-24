@@ -1,7 +1,10 @@
+import fs from 'node:fs';
+import { join } from 'node:path';
 // Feature checks also run during Astro config evaluation, before @config exists.
 import config from './eventcatalog-config/source';
 
-// Open-source feature flags
+const projectDirectory = () => process.env.PROJECT_DIR || process.cwd();
+
 export const isEventCatalogChatVisible = () => config?.chat?.enabled ?? true;
 export const isSSR = () => config?.output === 'server';
 export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;
@@ -15,25 +18,13 @@ export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? true;
 export const isFullCatalogAPIEnabled = () => config?.api?.fullCatalogAPIEnabled ?? false;
 export const isDevMode = () => process.env.EVENTCATALOG_DEV_MODE === 'true';
 
-// Re-export enterprise feature flags for backwards compatibility.
-// These functions are subject to the EventCatalog Commercial License.
-// See /packages/core/eventcatalog/src/enterprise/LICENSE
-export {
-  isEventCatalogStarterEnabled,
-  isEventCatalogScaleEnabled,
-  isPrivateRemoteSchemaEnabled,
-  isEmbedEnabled,
-  showEventCatalogBranding,
-  showCustomBranding,
-  isCustomDocsEnabled,
-  isResourceDocsEnabled,
-  isEventCatalogChatEnabled,
-  isEventCatalogUpgradeEnabled,
-  isCustomLandingPageEnabled,
-  isCustomPagesEnabled,
-  isAuthEnabled,
-  isCustomStylesEnabled,
-  isEventCatalogMCPEnabled,
-  isEventCatalogMCPAuthEnabled,
-  isIntegrationsEnabled,
-} from '../enterprise/feature';
+// The assistant needs a model configured (eventcatalog.chat.js) and a server to run on
+export const isEventCatalogChatEnabled = () =>
+  fs.existsSync(join(projectDirectory(), 'eventcatalog.chat.js')) && isSSR() && isEventCatalogChatVisible();
+
+// Authentication needs providers configured (eventcatalog.auth.js) and a server to run on
+export const isAuthEnabled = () =>
+  (config?.auth?.enabled ?? false) && fs.existsSync(join(projectDirectory(), 'eventcatalog.auth.js')) && isSSR();
+
+export const isEventCatalogMCPEnabled = () => isSSR() && (config?.mcp?.enabled ?? true);
+export const isEventCatalogMCPAuthEnabled = () => isEventCatalogMCPEnabled() && (config?.mcp?.auth?.enabled ?? false);

@@ -310,7 +310,6 @@ interface SchemaDetailsPanelProps {
   availableVersions: SchemaItem[];
   selectedVersion: string | null;
   onVersionChange: (version: string) => void;
-  apiAccessEnabled?: boolean;
   showOwners?: boolean;
   showProducersConsumers?: boolean;
   /** Tab slug from the URL, when the server could read it. Lets the first render show the right tab. */
@@ -324,7 +323,6 @@ export default function SchemaDetailsPanel({
   availableVersions,
   selectedVersion,
   onVersionChange,
-  apiAccessEnabled = false,
   showOwners = true,
   showProducersConsumers = true,
   initialTab,
@@ -832,7 +830,7 @@ export default function SchemaDetailsPanel({
                         <p className="text-sm">No schema content available</p>
                       </div>
                     ) : (
-                      <DiffViewer diffs={selectedDiffs} apiAccessEnabled={apiAccessEnabled} />
+                      <DiffViewer diffs={selectedDiffs} />
                     )}
                   </div>
                 </div>
@@ -843,12 +841,7 @@ export default function SchemaDetailsPanel({
           ) : activeTab === 'flows' && showFlowsTab ? (
             <SchemaFlows message={message} flows={flows} />
           ) : activeTab === 'api' ? (
-            <ApiContentViewer
-              message={message}
-              onCopy={handleCopyCustom}
-              copiedId={copiedId}
-              apiAccessEnabled={apiAccessEnabled}
-            />
+            <ApiContentViewer message={message} onCopy={handleCopyCustom} copiedId={copiedId} />
           ) : (
             <SchemaContentViewer
               message={message}
@@ -877,7 +870,6 @@ export default function SchemaDetailsPanel({
         onOpenChange={setIsDiffModalOpen}
         diffs={selectedDiffs}
         messageName={message.data.name}
-        apiAccessEnabled={apiAccessEnabled}
       />
       <SchemaCodeModal
         isOpen={isCodeModalOpen}

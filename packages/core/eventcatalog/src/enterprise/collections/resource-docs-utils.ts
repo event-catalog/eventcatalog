@@ -1,14 +1,8 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import { getCollection, type CollectionEntry } from 'astro:content';
 import fs from 'node:fs';
 import path from 'node:path';
 import { coerce, rcompare } from 'semver';
 import { sortVersioned } from '../../utils/collections/util';
-import { isResourceDocsEnabled } from '../feature';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
@@ -389,10 +383,6 @@ const resolveResourceFromPath = (
 };
 
 export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
-  if (!isResourceDocsEnabled()) {
-    return [];
-  }
-
   if (memoryCache && CACHE_ENABLED) {
     return memoryCache;
   }
@@ -504,10 +494,6 @@ export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
 };
 
 export const getResourceDocCategories = async (): Promise<ResourceDocCategoryEntry[]> => {
-  if (!isResourceDocsEnabled()) {
-    return [];
-  }
-
   if (memoryCategoryCache && CACHE_ENABLED) {
     return memoryCategoryCache;
   }

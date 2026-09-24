@@ -205,5 +205,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 # License
 
-EventCatalog Core uses a mixed-license model. Most files are licensed under MIT; the Enterprise and Federation paths
-identified in [LICENSE](./LICENSE) use the EventCatalog Commercial License.
+`@eventcatalog/core` 5.0.0 (including its pre-releases) and later is licensed under the
+[Business Source License 1.1](./LICENSE). Releases up to and including 4.x remain available under the MIT
+License (see [NOTICE](./NOTICE)).

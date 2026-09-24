@@ -36,8 +36,6 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const astroCli = path.join(path.dirname(createRequire(import.meta.url).resolve('astro/package.json')), 'bin/astro.mjs');
 const program = new Command().version(VERSION);
 
-import { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isFeatureEnabled } from '@eventcatalog/license';
-
 // The users dierctory
 const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
 
@@ -393,21 +391,8 @@ program
 
     const config = await getEventCatalogConfigFile(dir);
 
-    // Check if backstage is enabled
-    const canEmbedPages = await isFeatureEnabled(
-      '@eventcatalog/backstage-plugin-eventcatalog',
-      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
-    );
-    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
-    const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
     // Fire-and-forget so dev startup never waits on telemetry
-    void logBuild(dir, {
-      isEventCatalogStarterEnabled: isEventCatalogStarter,
-      isEventCatalogScaleEnabled: isEventCatalogScale,
-      isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
-      command: 'dev',
-    });
+    void logBuild(dir, { command: 'dev' });
 
     // Build fields index if running in SSR mode
     if (isServer) {
@@ -459,9 +444,6 @@ program
         env: {
           PROJECT_DIR: dir,
           CATALOG_DIR: core,
-          ENABLE_EMBED: String(canEmbedPages || isEventCatalogScale),
-          EVENTCATALOG_STARTER: String(isEventCatalogStarter),
-          EVENTCATALOG_SCALE: String(isEventCatalogScale),
           EVENTCATALOG_DEV_MODE: 'true',
           IGNORE_BUILD_ARTIFACTS: 'true',
           NODE_NO_WARNINGS: '1',
@@ -497,22 +479,7 @@ program
 
     prepareCore();
 
-    // Check if backstage is enabled
-    const isBackstagePluginEnabled = await isFeatureEnabled(
-      '@eventcatalog/backstage-plugin-eventcatalog',
-      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
-    );
-    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
-    const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
-    const canEmbedPages = isBackstagePluginEnabled || isEventCatalogScale;
-
-    await logBuild(dir, {
-      isEventCatalogStarterEnabled: isEventCatalogStarter,
-      isEventCatalogScaleEnabled: isEventCatalogScale,
-      isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
-      command: 'build',
-    });
+    await logBuild(dir, { command: 'build' });
 
     await resolveCatalogDependencies(dir, core);
 
@@ -543,9 +510,6 @@ program
       env: {
         PROJECT_DIR: dir,
         CATALOG_DIR: core,
-        ENABLE_EMBED: String(canEmbedPages),
-        EVENTCATALOG_STARTER: String(isEventCatalogStarter),
-        EVENTCATALOG_SCALE: String(isEventCatalogScale),
         IGNORE_BUILD_ARTIFACTS: 'true',
       },
       shouldFilterLine: createAstroLineFilter(),
@@ -568,17 +532,7 @@ program
     }
   });
 
-const previewCatalog = async ({
-  command,
-  canEmbedPages = false,
-  isEventCatalogStarter = false,
-  isEventCatalogScale = false,
-}: {
-  command: Command;
-  canEmbedPages: boolean;
-  isEventCatalogStarter: boolean;
-  isEventCatalogScale: boolean;
-}) => {
+const previewCatalog = async ({ command }: { command: Command }) => {
   await runCommandWithFilteredOutput({
     command: process.execPath,
     args: [astroCli, 'preview', '--config', astroConfigPath(), ...command.args],
@@ -586,23 +540,12 @@ const previewCatalog = async ({
     env: {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,
-      ENABLE_EMBED: String(canEmbedPages),
-      EVENTCATALOG_STARTER: String(isEventCatalogStarter),
-      EVENTCATALOG_SCALE: String(isEventCatalogScale),
     },
     shouldFilterLine: createAstroLineFilter(),
   });
 };
 
-const startServerCatalog = async ({
-  canEmbedPages = false,
-  isEventCatalogStarter = false,
-  isEventCatalogScale = false,
-}: {
-  canEmbedPages: boolean;
-  isEventCatalogStarter: boolean;
-  isEventCatalogScale: boolean;
-}) => {
+const startServerCatalog = async () => {
   const serverEntryPath = path.join(dir, 'dist', 'server', 'entry.mjs');
   await runCommandWithFilteredOutput({
     command: process.execPath,
@@ -611,9 +554,6 @@ const startServerCatalog = async ({
     env: {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,
-      ENABLE_EMBED: String(canEmbedPages),
-      EVENTCATALOG_STARTER: String(isEventCatalogStarter),
-      EVENTCATALOG_SCALE: String(isEventCatalogScale),
     },
     shouldFilterLine: createAstroLineFilter(),
   });
@@ -631,19 +571,7 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
-    const canEmbedPages = await isFeatureEnabled(
-      '@eventcatalog/backstage-plugin-eventcatalog',
-      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
-    );
-    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
-    const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
-    await previewCatalog({
-      command,
-      canEmbedPages: canEmbedPages || isEventCatalogScale,
-      isEventCatalogStarter,
-      isEventCatalogScale,
-    });
+    await previewCatalog({ command });
   });
 
 program
@@ -658,28 +586,12 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
-    const canEmbedPages = await isFeatureEnabled(
-      '@eventcatalog/backstage-plugin-eventcatalog',
-      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
-    );
-    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
-    const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
     const isServerOutput = await isOutputServer();
 
     if (isServerOutput) {
-      await startServerCatalog({
-        canEmbedPages: canEmbedPages || isEventCatalogScale,
-        isEventCatalogStarter,
-        isEventCatalogScale,
-      });
+      await startServerCatalog();
     } else {
-      await previewCatalog({
-        command,
-        canEmbedPages: canEmbedPages || isEventCatalogScale,
-        isEventCatalogStarter,
-        isEventCatalogScale,
-      });
+      await previewCatalog({ command });
     }
   });
 

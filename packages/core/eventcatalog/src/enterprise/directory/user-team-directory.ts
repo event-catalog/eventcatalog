@@ -1,6 +1,5 @@
 import type { Loader } from 'astro/loaders';
 import pc from 'picocolors';
-import { isEventCatalogScaleEnabled } from '../feature';
 import { EventCatalogStore } from '../../stores/eventcatalog-store';
 import { globWithSafeWatcher, type GlobOptions } from '../../utils/collections/glob-loader';
 
@@ -69,10 +68,6 @@ export const userTeamDirectoryLoader = ({
       if (sources.length === 0) {
         await directoryStore?.clearCollectionIfStoreExists(collection);
         return;
-      }
-
-      if (!isEventCatalogScaleEnabled()) {
-        throw new Error('Directory sources require EventCatalog Scale.');
       }
 
       const loadEntries = collection === 'users' ? 'loadUsers' : 'loadTeams';

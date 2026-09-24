@@ -8,7 +8,6 @@ import { Page } from './_index.data';
 import SchemaPageViewer from '@components/SchemaExplorer/SchemaPageViewer';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { sortVersioned } from '@utils/collections/util';
-import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 import path from 'node:path';
 import type { FlowUsage, SchemaItem } from '@components/SchemaExplorer/types';
@@ -187,7 +186,6 @@ if (isDataProduct && contractPath) {
   }
 }
 
-const apiAccessEnabled = isEventCatalogScaleEnabled();
 // Render the requested tab on the server so the page does not flash the default tab before hydration.
 // Static builds cannot see the query string, so the panel also restores the tab on the client.
 const initialTab = Astro.url.searchParams.get('tab') ?? undefined;
@@ -216,7 +214,6 @@ const initialTab = Astro.url.searchParams.get('tab') ?? undefined;
           client:load
           message={currentMessage}
           availableVersions={sortedVersions}
-          apiAccessEnabled={apiAccessEnabled}
           showOwners={true}
           showProducersConsumers={true}
           initialTab={initialTab}

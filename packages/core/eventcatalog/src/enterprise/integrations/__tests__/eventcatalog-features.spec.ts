@@ -8,14 +8,10 @@ vi.mock('../../../utils/eventcatalog-config/source', () => ({ default: {} }));
 vi.mock('../../../utils/feature', () => ({
   isEventCatalogChatEnabled: () => true,
   isAuthEnabled: () => true,
-  isEventCatalogScaleEnabled: () => true,
   isEventCatalogMCPEnabled: () => true,
   isEventCatalogMCPAuthEnabled: () => true,
   isFullCatalogAPIEnabled: () => true,
   isDevMode: () => true,
-  isIntegrationsEnabled: () => true,
-  isCustomDocsEnabled: () => true,
-  isCustomPagesEnabled: () => true,
   isSSR: () => true,
 }));
 

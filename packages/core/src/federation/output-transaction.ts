@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/src/federation/LICENSE
- */
-
 import fs from 'node:fs/promises';
 import path from 'node:path';
 

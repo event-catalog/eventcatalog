@@ -1,15 +1,9 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import type { APIRoute } from 'astro';
 import { Hono, type Context } from 'hono';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { z } from 'zod';
 import { join } from 'node:path';
-import { isEventCatalogScaleEnabled } from '@utils/feature';
 import * as catalogTools from '@enterprise/tools/catalog-tools';
 import { getCollection } from 'astro:content';
 import { createMcpAuthErrorResponse, validateMcpRequest } from './mcp-auth';
@@ -50,7 +44,7 @@ let extendedToolNames: string[] = [];
 try {
   const providerConfiguration = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.chat.js'));
 
-  if (isEventCatalogScaleEnabled() && providerConfiguration.tools) {
+  if (providerConfiguration.tools) {
     extendedTools = providerConfiguration.tools;
     extendedToolNames = Object.keys(extendedTools);
   }
@@ -709,7 +703,7 @@ for (const kind of ['domain', 'system'] as const) {
 app.post('/', (c: Context) => handleMcpRequest(c));
 
 // Astro API route handler - delegates all requests to Hono
-// Note: SSR and Scale plan checks are handled at build time by the integration
+// Note: SSR checks are handled at build time by the integration
 // This route is only injected when isEventCatalogMCPEnabled() returns true
 export const ALL: APIRoute = async ({ request }) => {
   return app.fetch(request);

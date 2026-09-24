@@ -1,32 +1,21 @@
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const config = vi.hoisted(() => ({
   output: 'server' as 'server' | 'static',
   mcp: {} as { enabled?: boolean },
 }));
 
-vi.mock('../../utils/eventcatalog-config/source', () => ({ default: config }));
+vi.mock('../eventcatalog-config/source', () => ({ default: config }));
 
 import { isEventCatalogMCPEnabled } from '../feature';
 
-const originalScale = process.env.EVENTCATALOG_SCALE;
-
 describe('MCP feature configuration', () => {
   beforeEach(() => {
-    process.env.EVENTCATALOG_SCALE = 'true';
     config.output = 'server';
     config.mcp = {};
   });
 
-  afterAll(() => {
-    if (originalScale === undefined) {
-      delete process.env.EVENTCATALOG_SCALE;
-    } else {
-      process.env.EVENTCATALOG_SCALE = originalScale;
-    }
-  });
-
-  it('enables MCP by default in server mode with EventCatalog Scale', () => {
+  it('enables MCP by default in server mode', () => {
     expect(isEventCatalogMCPEnabled()).toBe(true);
   });
 
@@ -44,12 +33,6 @@ describe('MCP feature configuration', () => {
 
   it('does not enable MCP outside server mode', () => {
     config.output = 'static';
-
-    expect(isEventCatalogMCPEnabled()).toBe(false);
-  });
-
-  it('does not enable MCP without EventCatalog Scale', () => {
-    process.env.EVENTCATALOG_SCALE = 'false';
 
     expect(isEventCatalogMCPEnabled()).toBe(false);
   });

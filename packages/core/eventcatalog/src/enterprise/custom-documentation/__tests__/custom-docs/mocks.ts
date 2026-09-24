@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 export const mockDocs = [
   {
     id: 'docs/auto-generated/01-introduction',

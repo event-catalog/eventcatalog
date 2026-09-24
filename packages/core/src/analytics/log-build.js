@@ -87,29 +87,14 @@ const reportCloudResourceInventory = async (configFile, resourceCounts) => {
 /**
  *
  * @param {string} projectDir
+ * @param {{ command?: 'build' | 'dev' }} [options]
  */
-const main = async (
-  projectDir,
-  { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isBackstagePluginEnabled, command = 'build' }
-) => {
+const main = async (projectDir, { command = 'build' } = {}) => {
   try {
     await verifyRequiredFieldsAreInCatalogConfigFile(projectDir);
     const configFile = await getEventCatalogConfigFile(projectDir);
     const { cId, tsd, organizationName, generators = [] } = configFile;
-    let generatorNames = generators.length > 0 ? generators.map((generator) => generator[0]) : ['none'];
-
-    // Check if EventCatalog Pro is enabled
-    if (isEventCatalogStarterEnabled) {
-      generatorNames.push('@eventcatalog/eventcatalog-starter');
-    }
-
-    if (isEventCatalogScaleEnabled) {
-      generatorNames.push('@eventcatalog/eventcatalog-scale');
-    }
-
-    if (isBackstagePluginEnabled) {
-      generatorNames.push('@eventcatalog/backstage-plugin-eventcatalog');
-    }
+    const generatorNames = generators.length > 0 ? generators.map((generator) => generator[0]) : ['none'];
 
     const features = await getFeatures(configFile);
     const resourceCounts = await countResources(projectDir);
@@ -125,9 +110,6 @@ const main = async (
       tsd,
       // CI redeploys and human-run builds are different signals; tag rather than suppress
       ci: process.env.CI ? 'true' : 'false',
-      // The commercial plan, separate from the generators list, so telemetry joins cleanly to licensing
-      plan: isEventCatalogScaleEnabled ? 'scale' : isEventCatalogStarterEnabled ? 'starter' : 'none',
-      backstage: isBackstagePluginEnabled ? 'true' : 'false',
       contentHash,
       generators: generatorNames.toString(),
       features: Object.keys(features)

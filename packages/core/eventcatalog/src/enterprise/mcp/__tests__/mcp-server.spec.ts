@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock astro:content
@@ -80,7 +75,6 @@ vi.mock('@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js', () => (
 // Mock the feature utilities
 vi.mock('@utils/feature', () => ({
   isSSR: vi.fn(() => true),
-  isEventCatalogScaleEnabled: vi.fn(() => true),
   isEventCatalogMCPEnabled: vi.fn(() => true),
   isEventCatalogMCPAuthEnabled: vi.fn(() => false),
 }));
@@ -102,7 +96,7 @@ vi.mock('node:fs', () => ({
   },
 }));
 
-import { isSSR, isEventCatalogScaleEnabled } from '@utils/feature';
+import { isSSR } from '@utils/feature';
 
 // ============================================
 // createToolHandler Tests (Unit Tests)
@@ -135,7 +129,6 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(isSSR).mockReturnValue(true);
-    vi.mocked(isEventCatalogScaleEnabled).mockReturnValue(true);
   });
 
   it('should handle GET requests', async () => {
@@ -196,7 +189,6 @@ describe('MCP Protocol Endpoint (POST /docs/mcp/)', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(isSSR).mockReturnValue(true);
-    vi.mocked(isEventCatalogScaleEnabled).mockReturnValue(true);
   });
 
   it('should accept POST requests', async () => {
@@ -284,7 +276,7 @@ describe('MCP Route Configuration', () => {
 
 // ============================================
 // Feature Gating Integration Tests
-// Note: SSR and Scale checks are now handled at build time
+// Note: SSR checks are now handled at build time
 // by the eventcatalog-features integration. The route is only
 // injected when isEventCatalogMCPEnabled() returns true.
 // ============================================
@@ -292,7 +284,7 @@ describe('MCP Route Configuration', () => {
 describe('MCP Feature Gating (Integration Level)', () => {
   it('should require isEventCatalogMCPEnabled to be true for route injection', async () => {
     const { isEventCatalogMCPEnabled } = await import('@utils/feature');
-    // When MCP is enabled (SSR + Scale), the route should be injected
+    // When MCP is enabled (SSR), the route should be injected
     // This test verifies the feature check function exists and works
     expect(typeof isEventCatalogMCPEnabled).toBe('function');
   });

@@ -1,16 +1,13 @@
 import { ExternalLink, Server, ServerCog } from 'lucide-react';
 import { Row } from './Row';
-import { LiveCard, MCP_DOCS_URL, UpgradeRequired, UrlPanel } from './SettingsShared';
+import { LiveCard, MCP_DOCS_URL, UrlPanel } from './SettingsShared';
 
 interface Props {
-  hasScalePlan: boolean;
   inSSR: boolean;
   mcpUrl: string;
 }
 
-export const McpSettingsForm = ({ hasScalePlan, inSSR, mcpUrl }: Props) => {
-  const mcpAvailable = hasScalePlan && inSSR;
-
+export const McpSettingsForm = ({ inSSR, mcpUrl }: Props) => {
   return (
     <div className="divide-y divide-[rgb(var(--ec-page-border))]">
       <Row
@@ -19,17 +16,7 @@ export const McpSettingsForm = ({ hasScalePlan, inSSR, mcpUrl }: Props) => {
         canEdit={false}
         dirty={false}
       >
-        {mcpAvailable ? (
-          <McpAvailable url={mcpUrl} />
-        ) : !hasScalePlan ? (
-          <UpgradeRequired
-            tier="Scale"
-            blurb="The MCP Server is a Scale-plan feature. Upgrade to expose your catalog to AI agents over the Model Context Protocol."
-            docsUrl={MCP_DOCS_URL}
-          />
-        ) : (
-          <McpNeedsSSR />
-        )}
+        {inSSR ? <McpAvailable url={mcpUrl} /> : <McpNeedsSSR />}
       </Row>
     </div>
   );

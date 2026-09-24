@@ -1,17 +1,15 @@
 ---
 import config from '@config';
-import { isIntegrationsEnabled } from '@utils/feature';
 
 const integrations = config.integrations;
 const cloudAnalytics = config.cloud?.analytics;
-const enabled = isIntegrationsEnabled() && integrations;
-const hasProviders = enabled && (integrations?.ga4 || integrations?.gtm || integrations?.posthog);
+const hasProviders = !!(integrations?.ga4 || integrations?.gtm || integrations?.posthog);
 const debug = integrations?.debug ?? false;
 const cloudDebug = cloudAnalytics?.debug ?? debug;
 const cloudAnalyticsEndpoint = cloudAnalytics?.endpoint || 'https://api.ecingest.dev/v1/analytics/ingest';
 const isCloudAnalyticsEnabled = cloudAnalytics?.enabled === true && !!cloudAnalytics?.trackingId;
 // Render the manager if there are providers OR if debug mode is on (so users can verify the pipeline)
-const shouldRender = isCloudAnalyticsEnabled || (enabled && (hasProviders || debug));
+const shouldRender = isCloudAnalyticsEnabled || (!!integrations && (hasProviders || debug));
 
 // Build script contents in frontmatter to avoid Prettier/JSX parsing issues with braces in inline scripts
 const ga4ConfigScript = integrations?.ga4

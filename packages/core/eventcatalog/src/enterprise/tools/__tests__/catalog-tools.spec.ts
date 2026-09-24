@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { CollectionKey } from 'astro:content';
 import fs from 'node:fs';
