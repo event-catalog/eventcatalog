@@ -1,0 +1,46 @@
+---
+import catalog from '@utils/eventcatalog-config/catalog';
+import { isDevMode } from '@utils/feature';
+import { getTrialStatus, TRIAL_LENGTH_DAYS } from '@utils/trial';
+
+// Only shown while running `eventcatalog dev`, never in built or served catalogs
+const trial = isDevMode() ? getTrialStatus(catalog?.tsd) : undefined;
+
+const label = trial?.ended ? 'Trial ended' : `Trial · ${trial?.daysLeft} ${trial?.daysLeft === 1 ? 'day' : 'days'} left`;
+const title = trial?.ended
+  ? `Your ${TRIAL_LENGTH_DAYS}-day EventCatalog trial ended on ${trial.endsAt.toLocaleDateString()}. Learn about licensing.`
+  : `You're on a ${TRIAL_LENGTH_DAYS}-day EventCatalog trial, ending on ${trial?.endsAt.toLocaleDateString()}. Learn about licensing.`;
+---
+
+{
+  trial && (
+    <a
+      href="https://www.eventcatalog.dev/license-faq"
+      target="_blank"
+      rel="noopener noreferrer"
+      title={title}
+      data-trial-ended={trial.ended ? 'true' : undefined}
+      class:list={[
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+        trial.ended
+          ? 'border-[rgb(var(--ec-badge-color-amber-text)/0.3)] bg-[rgb(var(--ec-badge-color-amber-background))] text-[rgb(var(--ec-badge-color-amber-text))] hover:opacity-90'
+          : 'border-[rgb(var(--ec-accent)/0.3)] bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.15)]',
+      ]}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-3.5 w-3.5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+      {label}
+    </a>
+  )
+}
