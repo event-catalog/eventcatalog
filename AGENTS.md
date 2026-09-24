@@ -48,6 +48,14 @@ Federation is a three-stage pipeline in `packages/sdk`: `buildIndex` discovers a
 - Run the relevant focused tests and the complete SDK suite (`pnpm --filter @eventcatalog/sdk test`) before considering federation-related work complete.
 - When filesystem output changes, rerun the default-catalog federation integration review and inspect the diff against `examples/default` so missing, extra, or stale files are deliberate.
 
+## Visualiser Levels
+Visualiser diagrams use the same three levels of detail everywhere, shown as L1, L2 and L3 in the canvas toolbar (and `?level=1|2|3` in the URL):
+- **L1**: high-level things: domains, systems and the relationships between them (e.g. a context diagram).
+- **L2**: services, data stores and how they connect, without messages or channels.
+- **L3**: adds the messages and channels.
+
+The toolbar always shows all three. Levels a diagram doesn't have are greyed out, e.g. a service's diagram (or a domain without systems) opens at L2 with L1 greyed out, and a context diagram is L1 with L2 and L3 greyed out. When adding or changing a diagram, decide which levels it has and keep its content to what each level describes.
+
 ## Commit & Pull Request Guidelines
 Recent history favors Conventional Commit style with scopes:
 - `feat(cli): add import command`
