@@ -18,6 +18,7 @@ import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
+import { getLicenseStatus, printLicenseStatus } from './utils/license-status';
 import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
 import { clearCatalogCache, hasLegacyCatalogRuntime, prepareCatalogRuntime } from './catalog-runtime';
@@ -391,8 +392,11 @@ program
 
     const config = await getEventCatalogConfigFile(dir);
 
+    const license = await getLicenseStatus(dir);
+    printLicenseStatus(license, config?.tsd);
+
     // Fire-and-forget so dev startup never waits on telemetry
-    void logBuild(dir, { command: 'dev' });
+    void logBuild(dir, { command: 'dev', license });
 
     // Build fields index if running in SSR mode
     if (isServer) {
@@ -477,9 +481,13 @@ program
     // Verify required fields (e.g. cId) before preparing the runtime
     await verifyRequiredFieldsAreInCatalogConfigFile(dir);
 
+    const config = await getEventCatalogConfigFile(dir);
+    const license = await getLicenseStatus(dir);
+    printLicenseStatus(license, config?.tsd);
+
     prepareCore();
 
-    await logBuild(dir, { command: 'build' });
+    await logBuild(dir, { command: 'build', license });
 
     await resolveCatalogDependencies(dir, core);
 
@@ -518,7 +526,6 @@ program
     if (await isIndexedSearchEnabled()) {
       await warnIfIndexedSearchUsesAuth();
 
-      const config = await getEventCatalogConfigFile(dir);
       const outDir = path.resolve(dir, await getProjectOutDir());
 
       logger.info('Building indexed search...', 'search');

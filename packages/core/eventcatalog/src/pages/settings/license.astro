@@ -1,0 +1,18 @@
+---
+import SettingsLayout from '@layouts/SettingsLayout.astro';
+import { LicenseSettings, type LicenseProps } from '@components/Settings/LicenseSettings';
+import catalog from '@utils/eventcatalog-config/catalog';
+import { getLicenseStatus } from '@utils/license';
+
+const status = await getLicenseStatus();
+// Dates as unix ms, so the page can count the days left in the browser (it's prerendered in static builds)
+const license: LicenseProps =
+  status.state === 'licensed' || status.state === 'expired'
+    ? { ...status, issuedAt: status.issuedAt?.getTime(), expiresAt: status.expiresAt?.getTime() }
+    : status;
+const trialStartedAt = typeof catalog?.tsd === 'number' ? catalog.tsd : undefined;
+---
+
+<SettingsLayout title="License" active="license">
+  <LicenseSettings client:load license={license} trialStartedAt={trialStartedAt} renderedAt={Date.now()} />
+</SettingsLayout>

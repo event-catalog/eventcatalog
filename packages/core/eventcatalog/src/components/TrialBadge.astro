@@ -1,28 +1,43 @@
 ---
 import catalog from '@utils/eventcatalog-config/catalog';
 import { isDevMode } from '@utils/feature';
-import { getTrialStatus, TRIAL_LENGTH_DAYS } from '@utils/trial';
+import { getLicenseDaysLeft, getTrialStatus, TRIAL_LENGTH_DAYS } from '@utils/trial';
+import { getLicenseStatus } from '@utils/license';
 
-// Only shown while running `eventcatalog dev`, never in built or served catalogs
-const trial = isDevMode() ? getTrialStatus(catalog?.tsd) : undefined;
+// Only shown while running `eventcatalog dev`, never in built or served catalogs.
+// A valid license.jwt replaces the trial, and only shows once it's about to expire.
+const license = isDevMode() ? await getLicenseStatus() : undefined;
+const licensedUntil = license?.state === 'licensed' ? license.expiresAt : undefined;
+const licenseDaysLeft = licensedUntil ? getLicenseDaysLeft(licensedUntil) : undefined;
+const trial = isDevMode() && !licensedUntil ? getTrialStatus(catalog?.tsd) : undefined;
 
-const label = trial?.ended ? 'Trial ended' : `Trial · ${trial?.daysLeft} ${trial?.daysLeft === 1 ? 'day' : 'days'} left`;
-const title = trial?.ended
-  ? `Your ${TRIAL_LENGTH_DAYS}-day EventCatalog trial ended on ${trial.endsAt.toLocaleDateString()}. Learn about licensing.`
-  : `You're on a ${TRIAL_LENGTH_DAYS}-day EventCatalog trial, ending on ${trial?.endsAt.toLocaleDateString()}. Learn about licensing.`;
+const days = (count?: number) => `${count} ${count === 1 ? 'day' : 'days'}`;
+const label =
+  licenseDaysLeft !== undefined
+    ? `License · ${days(licenseDaysLeft)} left`
+    : trial?.ended
+      ? 'Trial ended'
+      : `Trial · ${days(trial?.daysLeft)} left`;
+const title =
+  licenseDaysLeft !== undefined
+    ? `Your EventCatalog license expires on ${licensedUntil?.toLocaleDateString()}. Learn about licensing.`
+    : trial?.ended
+      ? `Your ${TRIAL_LENGTH_DAYS}-day EventCatalog trial ended on ${trial.endsAt.toLocaleDateString()}. Learn about licensing.`
+      : `You're on a ${TRIAL_LENGTH_DAYS}-day EventCatalog trial, ending on ${trial?.endsAt.toLocaleDateString()}. Learn about licensing.`;
+const warning = licenseDaysLeft !== undefined || trial?.ended;
 ---
 
 {
-  trial && (
+  (licenseDaysLeft !== undefined || trial) && (
     <a
       href="https://www.eventcatalog.dev/license-faq"
       target="_blank"
       rel="noopener noreferrer"
       title={title}
-      data-trial-ended={trial.ended ? 'true' : undefined}
+      data-trial-ended={trial?.ended ? 'true' : undefined}
       class:list={[
         'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
-        trial.ended
+        warning
           ? 'border-[rgb(var(--ec-badge-color-amber-text)/0.3)] bg-[rgb(var(--ec-badge-color-amber-background))] text-[rgb(var(--ec-badge-color-amber-text))] hover:opacity-90'
           : 'border-[rgb(var(--ec-accent)/0.3)] bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.15)]',
       ]}
