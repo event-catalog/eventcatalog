@@ -134,30 +134,6 @@ export default function eventCatalogIntegration(): AstroIntegration {
           configureAuthentication(params);
         }
 
-        // Custom documentation routes
-        params.injectRoute({
-          pattern: '/docs/custom',
-          entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/root-index.astro'),
-        });
-        params.injectRoute({
-          pattern: '/docs/custom/[...path]',
-          entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/[...path]/index.astro'),
-        });
-        params.injectRoute({
-          pattern: '/docs/custom/[...path].mdx',
-          entrypoint: path.join(packageDirectory, 'src/enterprise/custom-documentation/pages/docs/custom/[...path].mdx.ts'),
-        });
-
-        // Schema API routes
-        params.injectRoute({
-          pattern: '/api/schemas/[collection]/[id]/[version]',
-          entrypoint: path.join(packageDirectory, 'src/enterprise/api/schemas/[collection]/[id]/[version]/index.ts'),
-        });
-        params.injectRoute({
-          pattern: '/api/schemas/services/[id]/[version]/[specification]',
-          entrypoint: path.join(packageDirectory, 'src/enterprise/api/schemas/services/[id]/[version]/[specification]/index.ts'),
-        });
-
         // Full catalog API route (opt-in)
         if (isFullCatalogAPIEnabled()) {
           params.injectRoute({
