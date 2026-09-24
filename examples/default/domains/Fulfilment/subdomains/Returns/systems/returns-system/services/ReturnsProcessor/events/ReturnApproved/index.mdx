@@ -1,0 +1,29 @@
+---
+id: return-approved
+name: Return Approved
+version: 1.0.0
+summary: |
+  Published when a return request passes the returns policy and the customer can send the items back.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReturnApproved` is published by the [[service|returns-processor]] once a [[event|return-requested]] passes policy checks. The [[service|notification-service]] uses it to send the customer a return label and drop-off instructions.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

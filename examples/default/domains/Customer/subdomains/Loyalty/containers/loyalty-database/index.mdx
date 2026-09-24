@@ -1,0 +1,29 @@
+---
+id: loyalty-database
+name: Loyalty Database
+version: 1.0.0
+summary: PostgreSQL database that holds the loyalty points ledger and each customer's points balance.
+owners:
+  - customer-platform
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for loyalty points transactions and balances
+classification: internal
+retention: 7y
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Loyalty Database** is the authoritative store for loyalty points. The [[service|loyalty-service]] appends a ledger entry for every award or reversal and keeps a running balance per customer.
+
+### What does it store?
+
+- **Points ledger** — one row per award or reversal, linked to the order that caused it.
+- **Balances** — current points balance and tier per customer.

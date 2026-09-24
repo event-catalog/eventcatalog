@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReturnApproved",
+  "description": "Published when a return request has been approved",
+  "type": "object",
+  "properties": {
+    "returnId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "customerId": { "type": "string", "format": "uuid" },
+    "returnLabelUrl": { "type": "string", "format": "uri" },
+    "returnBy": { "type": "string", "format": "date" },
+    "approvedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["returnId", "orderId", "customerId", "approvedAt"]
+}

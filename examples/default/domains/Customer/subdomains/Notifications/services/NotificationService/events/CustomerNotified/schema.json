@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CustomerNotified",
+  "description": "Published after a notification has been sent to a customer",
+  "type": "object",
+  "properties": {
+    "notificationId": { "type": "string", "format": "uuid" },
+    "customerId": { "type": "string", "format": "uuid" },
+    "channel": { "type": "string", "enum": ["email", "sms", "push"] },
+    "template": { "type": "string", "description": "Template key, e.g. order-confirmed" },
+    "sourceEvent": { "type": "string", "description": "Name of the event that triggered the notification" },
+    "sentAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["notificationId", "customerId", "channel", "template", "sentAt"]
+}

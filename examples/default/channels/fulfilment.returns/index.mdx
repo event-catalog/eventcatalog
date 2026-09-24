@@ -1,0 +1,30 @@
+---
+id: fulfilment.returns
+name: Returns
+version: 1.0.0
+summary: |
+  Kafka topic that carries return events from the Returns System as a return moves from request to receipt.
+owners:
+  - fulfilment-platform
+address: fulfilment.returns
+protocols:
+  - kafka
+deliveryGuarantee: at-least-once
+---
+
+## Overview
+
+The Returns System publishes the lifecycle of a return to this topic. The [[service|returns-api]] publishes [[event|return-requested]], and the [[service|returns-processor]] publishes [[event|return-approved]] and [[event|return-received]].
+
+| Consumer | Domain | Why |
+|----------|--------|-----|
+| [[service\|returns-processor]] | Fulfilment (Returns) | Reviews new return requests. |
+| [[service\|payment-worker]] | Payments | Refunds the customer once the items are received. |
+| [[service\|inventory-service]] | Fulfilment | Restocks returned items. |
+| [[service\|notification-service]] | Customer (Notifications) | Tells the customer their return is approved. |
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />

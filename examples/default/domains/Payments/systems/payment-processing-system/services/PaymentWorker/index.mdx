@@ -19,6 +19,15 @@ receives:
     from:
       - id: payments.outcomes
         version: 1.0.0
+  - id: return-received
+    version: 1.0.0
+    from:
+      - id: fulfilment.returns
+        version: 1.0.0
+    triggers:
+      - id: refund-requested
+        version: 1.0.0
+        condition: When returned items are received and a refund is due
 sends:
   - id: payment-requested
     version: 1.0.0
@@ -37,11 +46,11 @@ import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
-The **Payment Worker** drives money movement. It requests charges from the external [[system|stripe]] via [[event|payment-requested]] and refunds via [[event|refund-requested]], then consumes the [[event|payment-succeeded]] and [[event|payment-failed]] events Stripe returns and records the outcome in the [[container|payment-database]].
+The **Payment Worker** drives money movement. It requests charges from the external [[system|stripe]] via [[event|payment-requested]] and refunds via [[event|refund-requested]], then consumes the [[event|payment-succeeded]] and [[event|payment-failed]] events Stripe returns and records the outcome in the [[container|payment-database]]. It also refunds customers for returned items when the Fulfilment domain publishes [[event|return-received]].
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="Payment and refund requests" />
-  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Payment outcomes from Stripe" />
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Payment outcomes from Stripe and received returns" />
 </Tiles>
 
 ### Responsibilities
@@ -50,6 +59,7 @@ The **Payment Worker** drives money movement. It requests charges from the exter
 |------|-------------|
 | Charging | Requests charges via [[event\|payment-requested]]. |
 | Refunds | Requests refunds via [[event\|refund-requested]]. |
+| Returns | Consumes [[event\|return-received]] and requests a refund for the returned items. |
 | Outcomes | Consumes [[event\|payment-succeeded]] / [[event\|payment-failed]] and records them. |
 | Persistence | Reads from and writes to the [[container\|payment-database]]. |
 

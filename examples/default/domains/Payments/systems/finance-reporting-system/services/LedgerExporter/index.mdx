@@ -1,0 +1,18 @@
+---
+id: ledger-exporter
+version: 1.0.0
+name: Ledger Exporter
+summary: |
+  Builds the month-end ledger export used for finance reporting. It runs on a schedule and doesn't send or receive any messages.
+styles:
+  icon: /icons/languages/go.svg
+owners:
+  - payments-platform
+repository:
+  language: Go
+  url: 'https://github.com/acme/ledger-exporter'
+---
+
+## Overview
+
+The **Ledger Exporter** runs at the end of each month and builds the ledger export for the [[system|finance-reporting-system]]. It works on its own and doesn't send or receive any messages.

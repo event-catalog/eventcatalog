@@ -1,0 +1,38 @@
+---
+id: loyalty-system
+name: Loyalty System
+version: 1.0.0
+summary: |
+  Internal system that calculates, stores and reverses customer loyalty points in response to order events.
+owners:
+  - customer-platform
+services:
+  - id: loyalty-service
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Loyalty System** turns orders into rewards. The [[service|loyalty-service]] consumes [[event|order-completed]] and [[event|order-cancelled]] from the [[system|order-management-system]], updates balances in the [[container|loyalty-database]], and publishes points events for the rest of the business.
+
+## Resource Diagram
+
+The services and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| [[service\|loyalty-service]] | Service | Awards and reverses loyalty points and maintains balances. |
+| [[container\|loyalty-database]] | Data store | Points ledger and customer balances. |
+
+## Messages this system sends
+
+- [[event\|loyalty-points-earned]] — points were awarded for a completed order.
+- [[event\|loyalty-points-reversed]] — points were removed after an order was cancelled.

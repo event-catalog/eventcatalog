@@ -1,0 +1,29 @@
+---
+id: loyalty-points-earned
+name: Loyalty Points Earned
+version: 1.0.0
+summary: |
+  Published when a customer earns loyalty points for a completed order.
+owners:
+  - customer-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`LoyaltyPointsEarned` is published by the [[service|loyalty-service]] after it awards points for an [[event|order-completed]]. The Shopping domain uses it to unlock loyalty promotions, and Customer Notifications tells the customer about their new balance.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

@@ -1,0 +1,29 @@
+---
+id: returns-database
+name: Returns Database
+version: 1.0.0
+summary: PostgreSQL database that is the system of record for return requests and their status.
+owners:
+  - fulfilment-platform
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for customer returns and their lifecycle
+classification: internal
+retention: 7y
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Returns Database** stores every return request. The [[service|returns-api]] writes new requests, and the [[service|returns-processor]] reads them and records approval and receipt.
+
+### What does it store?
+
+- **Returns** — one row per return: order, customer, reason and status (`requested`, `approved`, `received`).
+- **Return items** — SKUs, quantities and inspected condition.

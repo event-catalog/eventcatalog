@@ -1,0 +1,29 @@
+---
+id: loyalty-points-reversed
+name: Loyalty Points Reversed
+version: 1.0.0
+summary: |
+  Published when loyalty points are removed from a customer because the order that earned them was cancelled.
+owners:
+  - customer-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`LoyaltyPointsReversed` is published by the [[service|loyalty-service]] when it handles an [[event|order-cancelled]] for an order that had already earned points. It keeps downstream balances and promotions consistent with the points ledger.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

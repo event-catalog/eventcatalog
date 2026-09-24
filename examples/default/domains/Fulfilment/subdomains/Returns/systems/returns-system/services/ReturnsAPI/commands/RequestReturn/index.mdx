@@ -1,0 +1,32 @@
+---
+id: request-return
+name: Request Return
+version: 1.0.0
+summary: |
+  Command sent by a customer to return one or more items from a delivered order.
+owners:
+  - fulfilment-platform
+schemaPath: schema.json
+operation:
+  method: POST
+  path: /returns
+  statusCodes: ['202', '400', '422']
+sidebar:
+  badge: 'POST'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`RequestReturn` is handled by the [[service|returns-api]]. If the order is within the returns window the request is recorded and [[event|return-requested]] is published.
+
+## Architecture diagram
+
+<NodeGraph />
+
+## Schema
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+<Footer />

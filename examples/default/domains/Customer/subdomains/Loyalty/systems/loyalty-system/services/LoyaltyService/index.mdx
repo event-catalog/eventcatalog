@@ -1,0 +1,70 @@
+---
+id: loyalty-service
+version: 1.0.0
+name: Loyalty Service
+summary: |
+  Awards loyalty points when orders complete and reverses them when orders are cancelled. Owns the points ledger and customer balances.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - customer-platform
+receives:
+  - id: order-completed
+    version: 1.0.0
+    from:
+      - id: ordering.order-events
+        version: 1.0.0
+    triggers:
+      - id: loyalty-points-earned
+        version: 1.0.0
+        condition: When the order total qualifies for points
+  - id: order-cancelled
+    version: 1.0.0
+    from:
+      - id: ordering.order-events
+        version: 1.0.0
+    triggers:
+      - id: loyalty-points-reversed
+        version: 1.0.0
+        condition: When points were previously awarded for the order
+sends:
+  - id: loyalty-points-earned
+    version: 1.0.0
+    to:
+      - id: customer.loyalty-events
+        version: 1.0.0
+  - id: loyalty-points-reversed
+    version: 1.0.0
+    to:
+      - id: customer.loyalty-events
+        version: 1.0.0
+writesTo:
+  - id: loyalty-database
+readsFrom:
+  - id: loyalty-database
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/loyalty-service'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Loyalty Service** consumes [[event|order-completed]] and [[event|order-cancelled]] from the Ordering domain. It records points in the [[container|loyalty-database]] and publishes [[event|loyalty-points-earned]] or [[event|loyalty-points-reversed]] so that promotions and customer notifications can react.
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Earning | Awards points on [[event\|order-completed]] and emits [[event\|loyalty-points-earned]]. |
+| Reversal | Removes points on [[event\|order-cancelled]] and emits [[event\|loyalty-points-reversed]]. |
+| Persistence | Reads from and writes to the [[container\|loyalty-database]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={8} />
+
+<Footer />

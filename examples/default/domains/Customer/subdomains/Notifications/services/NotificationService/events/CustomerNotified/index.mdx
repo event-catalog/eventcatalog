@@ -1,0 +1,29 @@
+---
+id: customer-notified
+name: Customer Notified
+version: 1.0.0
+summary: |
+  Published after a notification has been sent to a customer on one of their preferred channels.
+owners:
+  - customer-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`CustomerNotified` is published by the [[service|notification-service]] each time it delivers a notification. It gives support and analytics an audit trail of what each customer was told, when, and on which channel.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

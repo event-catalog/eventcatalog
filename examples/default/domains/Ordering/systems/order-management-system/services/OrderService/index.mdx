@@ -23,11 +23,23 @@ receives:
         condition: When the order can be cancelled successfully
   - id: get-order
     version: 1.0.0
+  - id: order-packed
+    version: 1.0.0
+    triggers:
+      - id: order-status-changed
+        version: 1.0.0
+        condition: When the order moves to the packed status
 sends:
   - id: order-created
     version: 1.0.0
+    to:
+      - id: ordering.order-events
+        version: 1.0.0
   - id: order-confirmed
     version: 1.0.0
+    to:
+      - id: ordering.order-events
+        version: 1.0.0
   - id: order-amended
     version: 1.0.0
   - id: order-placed-on-hold
@@ -44,8 +56,14 @@ sends:
     version: 1.0.0
   - id: order-completed
     version: 1.0.0
+    to:
+      - id: ordering.order-events
+        version: 1.0.0
   - id: order-cancelled
     version: 1.0.0
+    to:
+      - id: ordering.order-events
+        version: 1.0.0
 writesTo:
   - id: order-database
 readsFrom:
@@ -63,7 +81,7 @@ import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
-The **Order Service** is the heart of the Order Management System. It receives [[command|create-order]] from the [[system|checkout-system]], persists orders to the [[container|order-database]], and serves order lookups via [[query|get-order]]. It also handles [[command|cancel-order]]. As orders move through their lifecycle it publishes detailed events covering creation, confirmation, amendments, operational holds, fulfilment, completion, cancellation, and archival.
+The **Order Service** is the heart of the Order Management System. It receives [[command|create-order]] from the [[system|checkout-system]], persists orders to the [[container|order-database]], and serves order lookups via [[query|get-order]]. It also handles [[command|cancel-order]], and consumes [[event|order-packed]] from the Fulfilment domain to track when an order has been packed. As orders move through their lifecycle it publishes detailed events covering creation, confirmation, amendments, operational holds, fulfilment, completion, cancellation, and archival.
 
 <Tiles>
   <Tile

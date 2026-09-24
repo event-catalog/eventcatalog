@@ -1,0 +1,69 @@
+---
+id: notification-service
+version: 1.0.0
+name: Notification Service
+summary: |
+  Sends customers email, SMS and push notifications in response to events from across Acme Inc, honouring each customer's channel preferences.
+styles:
+  icon: /icons/languages/nodejs.svg
+owners:
+  - customer-platform
+receives:
+  - id: order-confirmed
+    version: 1.0.0
+    from:
+      - id: ordering.order-events
+        version: 1.0.0
+  - id: shipment-delivered
+    version: 1.0.0
+  - id: payment-failed
+    version: 1.0.0
+  - id: refund-processed
+    version: 1.0.0
+  - id: review-published
+    version: 1.0.0
+  - id: loyalty-points-earned
+    version: 1.0.0
+    from:
+      - id: customer.loyalty-events
+        version: 1.0.0
+  - id: return-approved
+    version: 1.0.0
+    from:
+      - id: fulfilment.returns
+        version: 1.0.0
+sends:
+  - id: customer-notified
+    version: 1.0.0
+readsFrom:
+  - id: notification-preferences
+repository:
+  language: TypeScript
+  url: 'https://github.com/acme/notification-service'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Notification Service** is the single place Acme Inc talks to customers outside the storefront. It consumes events from other domains, looks up the customer's channel choices in [[container|notification-preferences]], sends the message and publishes [[event|customer-notified]].
+
+### Notifications sent
+
+| Event | Customer message |
+|-------|------------------|
+| [[event\|order-confirmed]] | Order confirmation with summary and delivery estimate. |
+| [[event\|shipment-delivered]] | Delivery confirmation. |
+| [[event\|payment-failed]] | Ask the customer to update their payment method. |
+| [[event\|refund-processed]] | Refund confirmation. |
+| [[event\|review-published]] | Let the reviewer know their review is live. |
+| [[event\|loyalty-points-earned]] | New points balance. |
+| [[event\|return-approved]] | Return label and drop-off instructions. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={10} />
+
+<Footer />
