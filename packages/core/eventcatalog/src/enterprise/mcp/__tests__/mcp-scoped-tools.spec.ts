@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import { describe, expect, it } from 'vitest';
 import { createScopedCatalogTools } from '../mcp-scoped-tools';
 import { McpScope } from '../mcp-scope';

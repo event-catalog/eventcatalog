@@ -1,19 +1,5 @@
 import path from 'path';
-import {
-  isEventCatalogStarterEnabled,
-  isEventCatalogScaleEnabled,
-  isCustomDocsEnabled,
-  isResourceDocsEnabled,
-  isEventCatalogChatEnabled,
-  isEventCatalogChatVisible,
-  isEventCatalogUpgradeEnabled,
-  isCustomLandingPageEnabled,
-  isMarkdownDownloadEnabled,
-  showEventCatalogBranding,
-  showCustomBranding,
-  isPrivateRemoteSchemaEnabled,
-  isCustomStylesEnabled,
-} from '../feature';
+import { isEventCatalogChatEnabled, isEventCatalogChatVisible, isMarkdownDownloadEnabled } from '../feature';
 
 import config from '@config';
 import fs from 'fs';
@@ -47,94 +33,6 @@ describe('features', () => {
     process.env = originalEnv;
   });
 
-  describe('isEventCatalogStarterEnabled', () => {
-    it('should return true when EVENTCATALOG_STARTER is true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(isEventCatalogStarterEnabled()).toBe(true);
-    });
-
-    it('should return false when EVENTCATALOG_STARTER is not true', () => {
-      process.env.EVENTCATALOG_STARTER = 'false';
-      expect(isEventCatalogStarterEnabled()).toBe(false);
-    });
-
-    it('should return false when EVENTCATALOG_STARTER is not set', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      expect(isEventCatalogStarterEnabled()).toBe(false);
-    });
-  });
-
-  describe('isPrivateRemoteSchemaEnabled', () => {
-    it('should return true when EVENTCATALOG_STARTER is true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(isPrivateRemoteSchemaEnabled()).toBe(true);
-    });
-
-    it('should return true when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(isPrivateRemoteSchemaEnabled()).toBe(true);
-    });
-
-    it('should return false when neither feature is enabled', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
-      expect(isPrivateRemoteSchemaEnabled()).toBe(false);
-    });
-  });
-
-  describe('isEventCatalogScaleEnabled', () => {
-    it('should return true when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(isEventCatalogScaleEnabled()).toBe(true);
-    });
-
-    it('should return false when EVENTCATALOG_SCALE is not true', () => {
-      process.env.EVENTCATALOG_SCALE = 'false';
-      expect(isEventCatalogScaleEnabled()).toBe(false);
-    });
-
-    it('should return false when EVENTCATALOG_SCALE is not set', () => {
-      delete process.env.EVENTCATALOG_SCALE;
-      expect(isEventCatalogScaleEnabled()).toBe(false);
-    });
-  });
-
-  describe('isCustomDocsEnabled', () => {
-    it('should return true when EVENTCATALOG_STARTER is true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(isCustomDocsEnabled()).toBe(true);
-    });
-
-    it('should return true when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(isCustomDocsEnabled()).toBe(true);
-    });
-
-    it('should return false when neither feature is enabled', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
-      expect(isCustomDocsEnabled()).toBe(false);
-    });
-  });
-
-  describe('isResourceDocsEnabled', () => {
-    it('should return false when EVENTCATALOG_STARTER is true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(isResourceDocsEnabled()).toBe(false);
-    });
-
-    it('should return true when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(isResourceDocsEnabled()).toBe(true);
-    });
-
-    it('should return false when neither feature is enabled', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
-      expect(isResourceDocsEnabled()).toBe(false);
-    });
-  });
-
   describe('isEventCatalogChatVisible', () => {
     const originalChat = config.chat;
 
@@ -142,9 +40,7 @@ describe('features', () => {
       config.chat = originalChat;
     });
 
-    it('shows Ask AI by default without a plan, server mode, or configuration file', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
+    it('shows Ask AI by default without server mode or a configuration file', () => {
       config.output = 'static';
       config.chat = undefined;
       expect(isEventCatalogChatVisible()).toBe(true);
@@ -164,13 +60,12 @@ describe('features', () => {
   });
 
   describe('isEventCatalogChatEnabled', () => {
-    it('should return true when EVENTCATALOG_STARTER is true, the user has a eventcatalog.chat.js file and isSSR', () => {
+    it('should return true when the user has a eventcatalog.chat.js file and isSSR', () => {
       // Create the fake file
       fs.writeFileSync(
         path.join(process.env.PROJECT_DIR || '', 'eventcatalog.chat.js'),
         'export default () => { return { model: "o4-mini" }; }'
       );
-      process.env.EVENTCATALOG_STARTER = 'true';
       config.output = 'server';
       expect(isEventCatalogChatEnabled()).toBe(true);
 
@@ -180,7 +75,6 @@ describe('features', () => {
 
     // returns false when no file is found
     it('should return false when no file is found', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
       config.output = 'server';
       expect(isEventCatalogChatEnabled()).toBe(false);
     });
@@ -190,38 +84,12 @@ describe('features', () => {
         path.join(process.env.PROJECT_DIR || '', 'eventcatalog.chat.js'),
         'export default () => { return { model: "o4-mini" }; }'
       );
-      process.env.EVENTCATALOG_STARTER = 'true';
       config.output = 'static';
 
       expect(isEventCatalogChatEnabled()).toBe(false);
 
       // Remove the file
       fs.rmSync(path.join(process.env.PROJECT_DIR || '', 'eventcatalog.chat.js'));
-    });
-  });
-
-  describe('isEventCatalogUpgradeEnabled', () => {
-    it('should return true when neither STARTER nor SCALE is enabled', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
-      expect(isEventCatalogUpgradeEnabled()).toBe(true);
-    });
-
-    it('should return false when EVENTCATALOG_STARTER is true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(isEventCatalogUpgradeEnabled()).toBe(false);
-    });
-
-    it('should return false when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(isEventCatalogUpgradeEnabled()).toBe(false);
-    });
-  });
-
-  describe('isCustomLandingPageEnabled', () => {
-    it('should return true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(isCustomLandingPageEnabled()).toBe(true);
     });
   });
 
@@ -233,75 +101,6 @@ describe('features', () => {
     it('returns true when eventcatalog.config.js (llmsTxt.enabled) is true', () => {
       config.llmsTxt.enabled = true;
       expect(isMarkdownDownloadEnabled()).toBe(true);
-    });
-  });
-
-  describe('showEventCatalogBranding', () => {
-    it('should return true when EVENTCATALOG_SHOW_BRANDING is true', () => {
-      process.env.EVENTCATALOG_SHOW_BRANDING = 'true';
-      expect(showEventCatalogBranding()).toBe(true);
-    });
-
-    it('should return true when EVENTCATALOG_SHOW_BRANDING is not set', () => {
-      delete process.env.EVENTCATALOG_SHOW_BRANDING;
-      expect(showEventCatalogBranding()).toBe(true);
-    });
-
-    it('should return false when EVENTCATALOG_STARTER is true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(showEventCatalogBranding()).toBe(false);
-    });
-
-    it('should return false when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(showEventCatalogBranding()).toBe(false);
-    });
-
-    it('should return false when EVENTCATALOG_STARTER and EVENTCATALOG_SCALE are true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(showEventCatalogBranding()).toBe(false);
-    });
-  });
-
-  describe('showCustomBranding', () => {
-    it('should return true when EVENTCATALOG_STARTER is true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(showCustomBranding()).toBe(true);
-    });
-
-    it('should return true when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(showCustomBranding()).toBe(true);
-    });
-
-    it('should return false when neither feature is enabled', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
-      expect(showCustomBranding()).toBe(false);
-    });
-
-    it('should return false when EVENTCATALOG_SHOW_BRANDING is true', () => {
-      process.env.EVENTCATALOG_SHOW_BRANDING = 'true';
-      expect(showCustomBranding()).toBe(false);
-    });
-  });
-
-  describe('isCustomStylesEnabled', () => {
-    it('should return true when EVENTCATALOG_STARTER is true', () => {
-      process.env.EVENTCATALOG_STARTER = 'true';
-      expect(isCustomStylesEnabled()).toBe(true);
-    });
-
-    it('should return true when EVENTCATALOG_SCALE is true', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      expect(isCustomStylesEnabled()).toBe(true);
-    });
-
-    it('should return false when neither feature is enabled', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
-      expect(isCustomStylesEnabled()).toBe(false);
     });
   });
 });

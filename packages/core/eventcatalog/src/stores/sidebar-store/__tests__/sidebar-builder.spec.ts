@@ -4725,210 +4725,200 @@ describe('getNestedSideBarData', () => {
 
   describe('resource documentation sidebar sections', () => {
     it('renders Documentation sections for domain, service, message, flow, container, channel, and data product', async () => {
-      const previousScale = process.env.EVENTCATALOG_SCALE;
-      process.env.EVENTCATALOG_SCALE = 'true';
-      try {
-        const { writeDomain, writeService, writeEvent, writeDataStore, writeDataProduct, writeChannel } = utils(CATALOG_FOLDER);
+      const { writeDomain, writeService, writeEvent, writeDataStore, writeDataProduct, writeChannel } = utils(CATALOG_FOLDER);
 
-        await writeDomain({
-          id: 'Shipping',
-          name: 'Shipping',
-          version: '0.0.1',
-          markdown: 'Shipping',
-        });
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
 
-        await writeService({
-          id: 'ShippingService',
-          name: 'Shipping Service',
-          version: '0.0.1',
-          markdown: 'Shipping Service',
-        });
+      await writeService({
+        id: 'ShippingService',
+        name: 'Shipping Service',
+        version: '0.0.1',
+        markdown: 'Shipping Service',
+      });
 
-        await writeEvent({
-          id: 'PaymentProcessed',
-          name: 'Payment Processed',
-          version: '0.0.1',
-          markdown: 'Payment Processed',
-        });
+      await writeEvent({
+        id: 'PaymentProcessed',
+        name: 'Payment Processed',
+        version: '0.0.1',
+        markdown: 'Payment Processed',
+      });
 
-        await writeDataStore({
-          id: 'PaymentDataStore',
-          name: 'Payment DataStore',
-          version: '0.0.1',
-          markdown: 'Payment DataStore',
-          container_type: 'database',
-        });
+      await writeDataStore({
+        id: 'PaymentDataStore',
+        name: 'Payment DataStore',
+        version: '0.0.1',
+        markdown: 'Payment DataStore',
+        container_type: 'database',
+      });
 
-        await writeDataProduct({
-          id: 'PaymentAnalytics',
-          name: 'Payment Analytics',
-          version: '0.0.1',
-          markdown: 'Payment Analytics',
-        });
+      await writeDataProduct({
+        id: 'PaymentAnalytics',
+        name: 'Payment Analytics',
+        version: '0.0.1',
+        markdown: 'Payment Analytics',
+      });
 
-        await writeChannel({
-          id: 'PaymentChannel',
-          name: 'Payment Channel',
-          version: '0.0.1',
-          markdown: 'Payment Channel',
-        });
+      await writeChannel({
+        id: 'PaymentChannel',
+        name: 'Payment Channel',
+        version: '0.0.1',
+        markdown: 'Payment Channel',
+      });
 
-        mockFlows.push({
-          id: 'PaymentFlow',
-          name: 'Payment Flow',
-          version: '0.0.1',
-          markdown: 'Payment Flow',
-        });
+      mockFlows.push({
+        id: 'PaymentFlow',
+        name: 'Payment Flow',
+        version: '0.0.1',
+        markdown: 'Payment Flow',
+      });
 
-        mockResourceDocs.push(
-          {
-            id: 'domains/Shipping/docs/adrs/order-boundary.mdx',
-            collection: 'resourceDocs',
-            filePath: 'domains/Shipping/docs/adrs/order-boundary.mdx',
-            data: { id: 'order-boundary', type: 'adrs', version: '1.0.0', title: 'Order Boundary ADR' },
-          },
-          {
-            id: 'domains/Shipping/docs/adrs/versioned/0.9.0/order-boundary.mdx',
-            collection: 'resourceDocs',
-            filePath: 'domains/Shipping/docs/adrs/versioned/0.9.0/order-boundary.mdx',
-            data: { id: 'order-boundary', type: 'adrs', version: '0.9.0', title: 'Order Boundary ADR' },
-          },
-          {
-            id: 'domains/Shipping/docs/operating-model.mdx',
-            collection: 'resourceDocs',
-            filePath: 'domains/Shipping/docs/operating-model.mdx',
-            data: { id: 'operating-model', version: '1.0.0', title: 'Operating Model' },
-          },
-          {
-            id: 'domains/Shipping/services/ShippingService/docs/adrs/service-boundary.mdx',
-            collection: 'resourceDocs',
-            filePath: 'domains/Shipping/services/ShippingService/docs/adrs/service-boundary.mdx',
-            data: { id: 'service-boundary', type: 'adrs', version: '1.0.0', title: 'Service Boundary ADR' },
-          },
-          {
-            id: 'domains/Shipping/services/ShippingService/events/PaymentProcessed/docs/runbooks/retry-failures.mdx',
-            collection: 'resourceDocs',
-            filePath: 'domains/Shipping/services/ShippingService/events/PaymentProcessed/docs/runbooks/retry-failures.mdx',
-            data: { id: 'retry-failures', type: 'runbooks', version: '1.0.0', title: 'Retry Failures' },
-          },
-          {
-            id: 'flows/PaymentFlow/docs/adrs/orchestration-strategy.mdx',
-            collection: 'resourceDocs',
-            filePath: 'flows/PaymentFlow/docs/adrs/orchestration-strategy.mdx',
-            data: { id: 'orchestration-strategy', type: 'adrs', version: '1.0.0', title: 'Orchestration Strategy ADR' },
-          },
-          {
-            id: 'containers/PaymentDataStore/docs/adrs/data-retention.mdx',
-            collection: 'resourceDocs',
-            filePath: 'containers/PaymentDataStore/docs/adrs/data-retention.mdx',
-            data: { id: 'data-retention', type: 'adrs', version: '1.0.0', title: 'Data Retention ADR' },
-          },
-          {
-            id: 'channels/PaymentChannel/docs/guides/channel-usage.mdx',
-            collection: 'resourceDocs',
-            filePath: 'channels/PaymentChannel/docs/guides/channel-usage.mdx',
-            data: { id: 'channel-usage', type: 'guides', version: '1.0.0', title: 'Channel Usage Guide' },
-          },
-          {
-            id: 'data-products/PaymentAnalytics/docs/contracts/fact-table-definition.mdx',
-            collection: 'resourceDocs',
-            filePath: 'data-products/PaymentAnalytics/docs/contracts/fact-table-definition.mdx',
-            data: { id: 'fact-table-definition', type: 'contracts', version: '1.0.0', title: 'Fact Table Definition' },
-          }
-        );
-
-        mockResourceDocCategories.push({
-          id: 'domains/Shipping/docs/category.json',
-          collection: 'resourceDocCategories',
-          filePath: 'domains/Shipping/docs/category.json',
-          data: { label: 'Pages', position: 1 },
-        });
-
-        const navigationData = await getNestedSideBarData();
-
-        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-        const domainDocs = getChildNodeByTitle('Documentation', domainNode.pages ?? []);
-        const domainAdrs = getChildNodeByTitle('ADR', domainDocs.pages ?? []);
-        const domainPages = getChildNodeByTitle('Pages', domainDocs.pages ?? []);
-        expect(domainAdrs.pages).toEqual([
-          { type: 'item', title: 'Order Boundary ADR', href: '/docs/domains/Shipping/0.0.1/adrs/order-boundary' },
-        ]);
-        expect(domainPages.pages).toEqual([
-          { type: 'item', title: 'Operating Model', href: '/docs/domains/Shipping/0.0.1/pages/operating-model' },
-        ]);
-
-        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
-        const serviceDocs = getChildNodeByTitle('Documentation', serviceNode.pages ?? []);
-        const serviceAdrs = getChildNodeByTitle('ADR', serviceDocs.pages ?? []);
-        expect(serviceAdrs.pages).toEqual([
-          {
-            type: 'item',
-            title: 'Service Boundary ADR',
-            href: '/docs/services/ShippingService/0.0.1/adrs/service-boundary',
-          },
-        ]);
-
-        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
-        const messageDocs = getChildNodeByTitle('Documentation', messageNode.pages ?? []);
-        const messageRunbooks = getChildNodeByTitle('Runbook', messageDocs.pages ?? []);
-        expect(messageRunbooks.pages).toEqual([
-          {
-            type: 'item',
-            title: 'Retry Failures',
-            href: '/docs/events/PaymentProcessed/0.0.1/runbooks/retry-failures',
-          },
-        ]);
-
-        const flowNode = getNavigationConfigurationByKey('flow:PaymentFlow:0.0.1', navigationData);
-        const flowDocs = getChildNodeByTitle('Documentation', flowNode.pages ?? []);
-        const flowAdrs = getChildNodeByTitle('ADR', flowDocs.pages ?? []);
-        expect(flowAdrs.pages).toEqual([
-          {
-            type: 'item',
-            title: 'Orchestration Strategy ADR',
-            href: '/docs/flows/PaymentFlow/0.0.1/adrs/orchestration-strategy',
-          },
-        ]);
-
-        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const containerDocs = getChildNodeByTitle('Documentation', containerNode.pages ?? []);
-        const containerAdrs = getChildNodeByTitle('ADR', containerDocs.pages ?? []);
-        expect(containerAdrs.pages).toEqual([
-          {
-            type: 'item',
-            title: 'Data Retention ADR',
-            href: '/docs/containers/PaymentDataStore/0.0.1/adrs/data-retention',
-          },
-        ]);
-
-        const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
-        const channelDocs = getChildNodeByTitle('Documentation', channelNode.pages ?? []);
-        const channelGuides = getChildNodeByTitle('Guide', channelDocs.pages ?? []);
-        expect(channelGuides.pages).toEqual([
-          {
-            type: 'item',
-            title: 'Channel Usage Guide',
-            href: '/docs/channels/PaymentChannel/0.0.1/guides/channel-usage',
-          },
-        ]);
-
-        const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
-        const dataProductDocs = getChildNodeByTitle('Documentation', dataProductNode.pages ?? []);
-        const dataProductContracts = getChildNodeByTitle('Contract', dataProductDocs.pages ?? []);
-        expect(dataProductContracts.pages).toEqual([
-          {
-            type: 'item',
-            title: 'Fact Table Definition',
-            href: '/docs/data-products/PaymentAnalytics/0.0.1/contracts/fact-table-definition',
-          },
-        ]);
-      } finally {
-        if (previousScale === undefined) {
-          delete process.env.EVENTCATALOG_SCALE;
-        } else {
-          process.env.EVENTCATALOG_SCALE = previousScale;
+      mockResourceDocs.push(
+        {
+          id: 'domains/Shipping/docs/adrs/order-boundary.mdx',
+          collection: 'resourceDocs',
+          filePath: 'domains/Shipping/docs/adrs/order-boundary.mdx',
+          data: { id: 'order-boundary', type: 'adrs', version: '1.0.0', title: 'Order Boundary ADR' },
+        },
+        {
+          id: 'domains/Shipping/docs/adrs/versioned/0.9.0/order-boundary.mdx',
+          collection: 'resourceDocs',
+          filePath: 'domains/Shipping/docs/adrs/versioned/0.9.0/order-boundary.mdx',
+          data: { id: 'order-boundary', type: 'adrs', version: '0.9.0', title: 'Order Boundary ADR' },
+        },
+        {
+          id: 'domains/Shipping/docs/operating-model.mdx',
+          collection: 'resourceDocs',
+          filePath: 'domains/Shipping/docs/operating-model.mdx',
+          data: { id: 'operating-model', version: '1.0.0', title: 'Operating Model' },
+        },
+        {
+          id: 'domains/Shipping/services/ShippingService/docs/adrs/service-boundary.mdx',
+          collection: 'resourceDocs',
+          filePath: 'domains/Shipping/services/ShippingService/docs/adrs/service-boundary.mdx',
+          data: { id: 'service-boundary', type: 'adrs', version: '1.0.0', title: 'Service Boundary ADR' },
+        },
+        {
+          id: 'domains/Shipping/services/ShippingService/events/PaymentProcessed/docs/runbooks/retry-failures.mdx',
+          collection: 'resourceDocs',
+          filePath: 'domains/Shipping/services/ShippingService/events/PaymentProcessed/docs/runbooks/retry-failures.mdx',
+          data: { id: 'retry-failures', type: 'runbooks', version: '1.0.0', title: 'Retry Failures' },
+        },
+        {
+          id: 'flows/PaymentFlow/docs/adrs/orchestration-strategy.mdx',
+          collection: 'resourceDocs',
+          filePath: 'flows/PaymentFlow/docs/adrs/orchestration-strategy.mdx',
+          data: { id: 'orchestration-strategy', type: 'adrs', version: '1.0.0', title: 'Orchestration Strategy ADR' },
+        },
+        {
+          id: 'containers/PaymentDataStore/docs/adrs/data-retention.mdx',
+          collection: 'resourceDocs',
+          filePath: 'containers/PaymentDataStore/docs/adrs/data-retention.mdx',
+          data: { id: 'data-retention', type: 'adrs', version: '1.0.0', title: 'Data Retention ADR' },
+        },
+        {
+          id: 'channels/PaymentChannel/docs/guides/channel-usage.mdx',
+          collection: 'resourceDocs',
+          filePath: 'channels/PaymentChannel/docs/guides/channel-usage.mdx',
+          data: { id: 'channel-usage', type: 'guides', version: '1.0.0', title: 'Channel Usage Guide' },
+        },
+        {
+          id: 'data-products/PaymentAnalytics/docs/contracts/fact-table-definition.mdx',
+          collection: 'resourceDocs',
+          filePath: 'data-products/PaymentAnalytics/docs/contracts/fact-table-definition.mdx',
+          data: { id: 'fact-table-definition', type: 'contracts', version: '1.0.0', title: 'Fact Table Definition' },
         }
-      }
+      );
+
+      mockResourceDocCategories.push({
+        id: 'domains/Shipping/docs/category.json',
+        collection: 'resourceDocCategories',
+        filePath: 'domains/Shipping/docs/category.json',
+        data: { label: 'Pages', position: 1 },
+      });
+
+      const navigationData = await getNestedSideBarData();
+
+      const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+      const domainDocs = getChildNodeByTitle('Documentation', domainNode.pages ?? []);
+      const domainAdrs = getChildNodeByTitle('ADR', domainDocs.pages ?? []);
+      const domainPages = getChildNodeByTitle('Pages', domainDocs.pages ?? []);
+      expect(domainAdrs.pages).toEqual([
+        { type: 'item', title: 'Order Boundary ADR', href: '/docs/domains/Shipping/0.0.1/adrs/order-boundary' },
+      ]);
+      expect(domainPages.pages).toEqual([
+        { type: 'item', title: 'Operating Model', href: '/docs/domains/Shipping/0.0.1/pages/operating-model' },
+      ]);
+
+      const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+      const serviceDocs = getChildNodeByTitle('Documentation', serviceNode.pages ?? []);
+      const serviceAdrs = getChildNodeByTitle('ADR', serviceDocs.pages ?? []);
+      expect(serviceAdrs.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Service Boundary ADR',
+          href: '/docs/services/ShippingService/0.0.1/adrs/service-boundary',
+        },
+      ]);
+
+      const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+      const messageDocs = getChildNodeByTitle('Documentation', messageNode.pages ?? []);
+      const messageRunbooks = getChildNodeByTitle('Runbook', messageDocs.pages ?? []);
+      expect(messageRunbooks.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Retry Failures',
+          href: '/docs/events/PaymentProcessed/0.0.1/runbooks/retry-failures',
+        },
+      ]);
+
+      const flowNode = getNavigationConfigurationByKey('flow:PaymentFlow:0.0.1', navigationData);
+      const flowDocs = getChildNodeByTitle('Documentation', flowNode.pages ?? []);
+      const flowAdrs = getChildNodeByTitle('ADR', flowDocs.pages ?? []);
+      expect(flowAdrs.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Orchestration Strategy ADR',
+          href: '/docs/flows/PaymentFlow/0.0.1/adrs/orchestration-strategy',
+        },
+      ]);
+
+      const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+      const containerDocs = getChildNodeByTitle('Documentation', containerNode.pages ?? []);
+      const containerAdrs = getChildNodeByTitle('ADR', containerDocs.pages ?? []);
+      expect(containerAdrs.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Data Retention ADR',
+          href: '/docs/containers/PaymentDataStore/0.0.1/adrs/data-retention',
+        },
+      ]);
+
+      const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+      const channelDocs = getChildNodeByTitle('Documentation', channelNode.pages ?? []);
+      const channelGuides = getChildNodeByTitle('Guide', channelDocs.pages ?? []);
+      expect(channelGuides.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Channel Usage Guide',
+          href: '/docs/channels/PaymentChannel/0.0.1/guides/channel-usage',
+        },
+      ]);
+
+      const dataProductNode = getNavigationConfigurationByKey('data-product:PaymentAnalytics:0.0.1', navigationData);
+      const dataProductDocs = getChildNodeByTitle('Documentation', dataProductNode.pages ?? []);
+      const dataProductContracts = getChildNodeByTitle('Contract', dataProductDocs.pages ?? []);
+      expect(dataProductContracts.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Fact Table Definition',
+          href: '/docs/data-products/PaymentAnalytics/0.0.1/contracts/fact-table-definition',
+        },
+      ]);
     });
   });
 

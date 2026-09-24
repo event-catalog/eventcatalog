@@ -1307,7 +1307,7 @@ export const collections = {
   ubiquitousLanguages,
   entities,
 
-  // EventCatalog Pro Collections
+  // Documentation Collections
   customPages,
   resourceDocs,
   resourceDocCategories,

@@ -1,4 +1,4 @@
-import { isSSR, isResourceDocsEnabled } from '@utils/feature';
+import { isSSR } from '@utils/feature';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import { getResourceDocs, getResourceDocsForResource, type ResourceCollection } from '@utils/collections/resource-docs';
 
@@ -17,7 +17,7 @@ const supportedResourceCollections = new Set<ResourceCollection>([
 
 export class Page extends HybridPage {
   static async getStaticPaths() {
-    if (isSSR() || !isResourceDocsEnabled()) {
+    if (isSSR()) {
       return [];
     }
 
@@ -37,10 +37,6 @@ export class Page extends HybridPage {
   }
 
   protected static async fetchData(params: any) {
-    if (!isResourceDocsEnabled()) {
-      return null;
-    }
-
     const decodeParam = (value: string) => {
       try {
         return decodeURIComponent(value);

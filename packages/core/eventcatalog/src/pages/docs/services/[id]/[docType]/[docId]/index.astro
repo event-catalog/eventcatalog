@@ -1,6 +1,6 @@
 ---
 import LatestVersionRedirect from '@components/LatestVersionRedirect.astro';
-import { isResourceDocsEnabled, isSSR } from '@utils/feature';
+import { isSSR } from '@utils/feature';
 import { buildUrl } from '@utils/url-builder';
 import { Page as VersionedPage } from '../../../../[type]/[id]/[version]/[docType]/[docId]/_index.data';
 import { getLatestServicePaths, getLatestServiceVersion } from '../../../_latest-version-route';
@@ -11,7 +11,7 @@ export const getStaticPaths = async () => getLatestServicePaths(await VersionedP
 const { id, docType, docId } = Astro.params;
 const version = Astro.props.redirectVersion ?? (id ? await getLatestServiceVersion(id) : undefined);
 
-if (!isResourceDocsEnabled() || !id || !docType || !docId || !version) {
+if (!id || !docType || !docId || !version) {
   throw new Response(null, { status: 404, statusText: 'Resource documentation not found' });
 }
 

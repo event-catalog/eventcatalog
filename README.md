@@ -272,5 +272,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## License
 
-EventCatalog uses a mixed-license model. Most of the repository is licensed under MIT; paid feature directories identified
-in the root [LICENSE](LICENSE) use the EventCatalog Commercial License.
+EventCatalog 5.0.0 (including its pre-releases) and later is licensed under the [Business Source License 1.1](LICENSE).
+Releases up to and including 4.x remain available under the MIT License (see [NOTICE](NOTICE)). The ecosystem packages (the SDK, CLI, connectors, diff,
+linter, visualiser, breaking-changes and create-eventcatalog) are licensed under MIT.

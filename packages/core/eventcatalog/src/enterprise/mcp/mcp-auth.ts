@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import jwt, { type Algorithm, type JwtPayload } from 'jsonwebtoken';
 import { createPublicKey, type JsonWebKey, type KeyObject } from 'node:crypto';
 import config from '@config';

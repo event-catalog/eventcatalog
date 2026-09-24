@@ -9,8 +9,6 @@ info:
     - **Message Schemas**: Access schemas for events, commands, and queries
     - **Service Specifications**: Retrieve OpenAPI, AsyncAPI, and other specifications for services
 
-    ## Scale Features
-    Some endpoints require EventCatalog Scale to be enabled. These endpoints will return `501 Not Implemented` if the feature is not available.
   version: 1.0.0
   contact:
     name: EventCatalog
@@ -62,8 +60,6 @@ paths:
       summary: Get message schema
       description: |
         Retrieves the schema for a specific message (event, command, or query).
-
-        **Requires**: EventCatalog Scale
 
         The schema is returned in its original format (JSON Schema, Avro, Protobuf, etc.).
       operationId: getMessageSchema
@@ -123,20 +119,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '501':
-          description: EventCatalog Scale feature not enabled
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
   /api/schemas/services/{id}/{version}/{specification}:
     get:
       summary: Get service specification
       description: |
         Retrieves specification files for a specific service (e.g., OpenAPI, AsyncAPI).
-
-        **Requires**: EventCatalog Scale
 
         The specification is returned in its original format.
       operationId: getServiceSpecification
@@ -182,12 +170,6 @@ paths:
                 description: Specification in original format
         '404':
           description: Specification not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '501':
-          description: EventCatalog Scale feature not enabled
           content:
             application/json:
               schema:

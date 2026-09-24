@@ -1,11 +1,5 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { sortVersioned } from '@utils/collections/util';
 
 const findSchema = async (collection: string | undefined, id: string, version: string | undefined) => {
@@ -59,22 +53,6 @@ export async function getStaticPaths() {
 }
 
 export const GET: APIRoute = async ({ props, params }) => {
-  if (!isEventCatalogScaleEnabled()) {
-    return new Response(
-      JSON.stringify({
-        error: 'feature_not_available_on_server',
-        message: 'Schema API is not enabled for this deployment and supported in EventCatalog Scale.',
-      }),
-      {
-        status: 501,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-store',
-        },
-      }
-    );
-  }
-
   // In static mode, props are pre-computed by getStaticPaths
   if (props.schema !== undefined) {
     return new Response(props.schema, {

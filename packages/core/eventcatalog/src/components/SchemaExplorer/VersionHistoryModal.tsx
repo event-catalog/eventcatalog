@@ -8,16 +8,9 @@ interface VersionHistoryModalProps {
   onOpenChange: (open: boolean) => void;
   diffs: VersionDiff[];
   messageName: string;
-  apiAccessEnabled?: boolean;
 }
 
-export default function VersionHistoryModal({
-  isOpen,
-  onOpenChange,
-  diffs,
-  messageName,
-  apiAccessEnabled = false,
-}: VersionHistoryModalProps) {
+export default function VersionHistoryModal({ isOpen, onOpenChange, diffs, messageName }: VersionHistoryModalProps) {
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -48,7 +41,7 @@ export default function VersionHistoryModal({
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
             {diffs.length > 0 ? (
-              <DiffViewer diffs={diffs} apiAccessEnabled={apiAccessEnabled} />
+              <DiffViewer diffs={diffs} />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <p className="text-[rgb(var(--ec-page-text-muted))] text-center">No version comparison available</p>

@@ -4,7 +4,6 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import dotenv from 'dotenv';
 import createSDK from '@eventcatalog/sdk';
-import { isEventCatalogScaleEnabled } from '@eventcatalog/license';
 import { loadGovernanceConfig, evaluateGovernanceRules, enrichSchemaContent, resolveEnvVars } from './rules';
 import { formatGovernanceOutput, formatFailureOutput } from './format';
 import { executeGovernanceActions, buildMessageTypeMap, buildServiceOwnersMap } from './actions';
@@ -37,13 +36,8 @@ const extractBranchToTempDir = (branch: string, catalogDir: string, tempDirs: st
 export const governanceCheck = async (opts: GovernanceCheckOptions): Promise<GovernanceCheckResult> => {
   const dir = path.resolve(opts.dir);
 
-  // Load .env file from catalog directory (contains license key, webhook secrets, etc.)
+  // Load .env file from catalog directory (contains webhook secrets, etc.)
   dotenv.config({ path: path.join(dir, '.env') });
-
-  const isScale = await isEventCatalogScaleEnabled();
-  if (!isScale) {
-    throw new Error('Governance requires an EventCatalog Scale plan. Learn more at https://eventcatalog.dev/pricing');
-  }
 
   const baseBranch = opts.base || 'main';
 

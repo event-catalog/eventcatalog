@@ -44,10 +44,9 @@ function getGroupKey(item: SchemaItem): string {
 
 interface SchemaExplorerProps {
   schemas: SchemaItem[];
-  apiAccessEnabled?: boolean;
 }
 
-export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: SchemaExplorerProps) {
+export default function SchemaExplorer({ schemas }: SchemaExplorerProps) {
   const [searchQuery, setSearchQuery] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('schemaRegistrySearchQuery');
@@ -594,7 +593,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
               availableVersions={availableVersions}
               selectedVersion={selectedVersion}
               onVersionChange={handleVersionChange}
-              apiAccessEnabled={apiAccessEnabled}
             />
           ) : (
             <div className="flex h-full items-center justify-center">

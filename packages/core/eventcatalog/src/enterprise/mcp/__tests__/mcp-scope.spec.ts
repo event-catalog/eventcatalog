@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import { describe, expect, it, vi } from 'vitest';
 import { MCP_SCOPE_COLLECTIONS, McpScopeNotFoundError, resolveMcpScope } from '../mcp-scope';
 

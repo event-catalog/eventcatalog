@@ -2,7 +2,7 @@ import { getCollection } from 'astro:content';
 import config from '@config';
 import type { APIRoute } from 'astro';
 
-import { isCustomDocsEnabled, isResourceDocsEnabled, isLLMSTxtEnabled } from '@utils/feature';
+import { isLLMSTxtEnabled } from '@utils/feature';
 import { getUbiquitousLanguage } from '@utils/collections/domains';
 import { getResourceDocs } from '@utils/collections/resource-docs';
 
@@ -25,7 +25,7 @@ const containers = await getCollection('containers');
 const entities = await getCollection('entities');
 
 const customDocs = await getCollection('customPages');
-const resourceDocsList = isResourceDocsEnabled() ? await getResourceDocs() : [];
+const resourceDocsList = await getResourceDocs();
 
 const ubiquitousLanguages: Record<string, { id: string; version: string; properties: any }[]> = {};
 
@@ -166,10 +166,10 @@ export const GET: APIRoute = async ({ params, request }) => {
     teams.map((item) => formatSimpleItem(item, 'teams')).join('\n'),
     '\n## Users',
     users.map((item) => formatSimpleItem(item, 'users')).join('\n'),
-    ...(isCustomDocsEnabled()
+    ...(customDocs.length > 0
       ? ['\n## Custom Docs', customDocs.map((item) => formatCustomDoc(item, 'docs/custom')).join('\n')]
       : []),
-    ...(isResourceDocsEnabled() && resourceDocsList.length > 0 ? ['\n## Resource Docs', renderResourceDocs()] : []),
+    ...(resourceDocsList.length > 0 ? ['\n## Resource Docs', renderResourceDocs()] : []),
   ].join('\n');
 
   return new Response(content, {

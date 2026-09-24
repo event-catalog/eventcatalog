@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/event-catalog/eventcatalog.git"
   },
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "BUSL-1.1",
   "type": "module",
   "version": "4.12.1",
   "publishConfig": {
@@ -42,7 +42,8 @@
     "!eventcatalog/src/snippets/",
     "!eventcatalog/src/generated-ai/",
     "bin/",
-    "dist/"
+    "dist/",
+    "NOTICE"
   ],
   "scripts": {
     "dev": "astro dev",
@@ -80,7 +81,6 @@
     "@asyncapi/parser": "^3.6.0",
     "@asyncapi/react-component": "3.1.0",
     "@auth/core": "^0.41.3",
-    "@eventcatalog/license": "^0.0.8",
     "@eventcatalog/linter": "workspace:*",
     "@eventcatalog/sdk": "workspace:*",
     "@eventcatalog/visualiser": "workspace:^",

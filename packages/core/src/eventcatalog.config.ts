@@ -157,7 +157,6 @@ type SchemaSource = {
 type DirectoryConfig = {
   /**
    * External sources that sync users and teams into EventCatalog.
-   * Requires EventCatalog Scale.
    */
   sources?: DirectorySource[];
   /**
@@ -220,7 +219,7 @@ type McpAuthConfig = {
 
 type McpConfig = {
   /**
-   * Enables the built-in MCP server when EventCatalog is running in server mode with a Scale license.
+   * Enables the built-in MCP server when EventCatalog is running in server mode.
    * @default true
    */
   enabled?: boolean;
@@ -455,6 +454,6 @@ export interface Config {
   integrations?: IntegrationsConfig;
   scalarConfiguration?: ScalarConfiguration;
   generators?: GeneratorConfig[];
-  /** Catalogs composed into this catalog by `eventcatalog federate`. Requires an offline EventCatalog Enterprise license. */
+  /** Catalogs composed into this catalog by `eventcatalog federate`. */
   federation?: FederationConfig;
 }

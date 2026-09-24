@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import initSqlJs, { type Database as SqlJsDatabase } from 'sql.js';
 import fs from 'node:fs';
 

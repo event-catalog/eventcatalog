@@ -1,5 +1,5 @@
 import { ChevronUpIcon, ChevronDownIcon, ClipboardDocumentIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { CommandLineIcon, LockClosedIcon } from '@heroicons/react/24/solid';
+import { CommandLineIcon } from '@heroicons/react/24/solid';
 import type { SchemaItem } from './types';
 
 interface ApiAccessSectionProps {
@@ -8,17 +8,9 @@ interface ApiAccessSectionProps {
   onToggle: () => void;
   onCopy: (content: string, id: string) => void;
   copiedId: string | null;
-  apiAccessEnabled?: boolean;
 }
 
-export default function ApiAccessSection({
-  message,
-  isExpanded,
-  onToggle,
-  onCopy,
-  copiedId,
-  apiAccessEnabled = false,
-}: ApiAccessSectionProps) {
+export default function ApiAccessSection({ message, isExpanded, onToggle, onCopy, copiedId }: ApiAccessSectionProps) {
   // Generate API path based on collection type
   let apiPath = '';
   if (message.collection === 'services') {
@@ -41,12 +33,6 @@ export default function ApiAccessSection({
         <div className="flex items-center gap-2">
           <CommandLineIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-icon-color))]" />
           <span className="text-xs font-medium text-[rgb(var(--ec-page-text))]">API</span>
-          {!apiAccessEnabled && (
-            <span className="inline-flex items-center gap-1 rounded bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-accent-text))] border border-[rgb(var(--ec-accent)/0.2)]">
-              <LockClosedIcon className="h-2.5 w-2.5" />
-              Scale
-            </span>
-          )}
         </div>
         {isExpanded ? (
           <ChevronUpIcon className="h-3.5 w-3.5 text-[rgb(var(--ec-page-text-muted))]" />
@@ -57,86 +43,66 @@ export default function ApiAccessSection({
 
       {isExpanded && (
         <div className="px-4 pb-3">
-          {apiAccessEnabled ? (
-            <div className="space-y-2">
-              {/* Endpoint */}
-              <div className="flex items-center gap-2 bg-gray-900 rounded-md px-3 py-2">
-                <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wide">GET</span>
-                <code className="flex-1 text-[11px] text-gray-300 font-mono truncate">{apiPath}</code>
-                <button
-                  onClick={() => onCopy(fullUrl, `${message.data.id}-api`)}
-                  className={`flex-shrink-0 p-1 rounded transition-colors ${
-                    isCopied ? 'text-emerald-400' : 'text-gray-500 hover:text-gray-300'
-                  }`}
-                  title="Copy URL"
-                >
-                  {isCopied ? <CheckIcon className="h-3.5 w-3.5" /> : <ClipboardDocumentIcon className="h-3.5 w-3.5" />}
-                </button>
-              </div>
-
-              {/* Quick copy buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onCopy(curlCommand, `${message.data.id}-curl`)}
-                  className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium rounded border transition-colors ${
-                    copiedId === `${message.data.id}-curl`
-                      ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                      : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-input-bg))] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                >
-                  {copiedId === `${message.data.id}-curl` ? (
-                    <>
-                      <CheckIcon className="h-3 w-3" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <ClipboardDocumentIcon className="h-3 w-3" />
-                      Copy cURL
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => onCopy(fullUrl, `${message.data.id}-url`)}
-                  className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium rounded border transition-colors ${
-                    copiedId === `${message.data.id}-url`
-                      ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                      : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-input-bg))] hover:text-[rgb(var(--ec-page-text))]'
-                  }`}
-                >
-                  {copiedId === `${message.data.id}-url` ? (
-                    <>
-                      <CheckIcon className="h-3 w-3" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <ClipboardDocumentIcon className="h-3 w-3" />
-                      Copy URL
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between gap-3 bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-accent)/0.2)] rounded-md px-3 py-2.5">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-[rgb(var(--ec-page-text))]">Access schemas via API</p>
-                <p className="text-[10px] text-[rgb(var(--ec-page-text-muted))] mt-0.5">CI/CD, automation & integrations</p>
-              </div>
-              <a
-                href="https://eventcatalog.cloud"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-white bg-[rgb(var(--ec-accent))] rounded-md hover:bg-[rgb(var(--ec-accent-hover))] transition-colors"
+          <div className="space-y-2">
+            {/* Endpoint */}
+            <div className="flex items-center gap-2 bg-gray-900 rounded-md px-3 py-2">
+              <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wide">GET</span>
+              <code className="flex-1 text-[11px] text-gray-300 font-mono truncate">{apiPath}</code>
+              <button
+                onClick={() => onCopy(fullUrl, `${message.data.id}-api`)}
+                className={`flex-shrink-0 p-1 rounded transition-colors ${
+                  isCopied ? 'text-emerald-400' : 'text-gray-500 hover:text-gray-300'
+                }`}
+                title="Copy URL"
               >
-                Try Scale
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
+                {isCopied ? <CheckIcon className="h-3.5 w-3.5" /> : <ClipboardDocumentIcon className="h-3.5 w-3.5" />}
+              </button>
             </div>
-          )}
+
+            {/* Quick copy buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onCopy(curlCommand, `${message.data.id}-curl`)}
+                className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium rounded border transition-colors ${
+                  copiedId === `${message.data.id}-curl`
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                    : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-input-bg))] hover:text-[rgb(var(--ec-page-text))]'
+                }`}
+              >
+                {copiedId === `${message.data.id}-curl` ? (
+                  <>
+                    <CheckIcon className="h-3 w-3" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <ClipboardDocumentIcon className="h-3 w-3" />
+                    Copy cURL
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => onCopy(fullUrl, `${message.data.id}-url`)}
+                className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium rounded border transition-colors ${
+                  copiedId === `${message.data.id}-url`
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                    : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-input-bg))] hover:text-[rgb(var(--ec-page-text))]'
+                }`}
+              >
+                {copiedId === `${message.data.id}-url` ? (
+                  <>
+                    <CheckIcon className="h-3 w-3" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <ClipboardDocumentIcon className="h-3 w-3" />
+                    Copy URL
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

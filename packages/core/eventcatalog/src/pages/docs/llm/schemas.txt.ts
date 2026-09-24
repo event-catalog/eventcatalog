@@ -2,7 +2,6 @@ import { getCollection } from 'astro:content';
 import config from '@config';
 import type { APIRoute } from 'astro';
 import { getSpecificationsForService } from '@utils/collections/services';
-import { isEventCatalogScaleEnabled } from '@utils/feature';
 
 type MessageCollection = 'events' | 'commands' | 'queries';
 
@@ -48,16 +47,6 @@ const getMessagesWithSchemas = (collection: MessageCollection) => {
 };
 
 export const GET: APIRoute = async ({ params, request }) => {
-  if (!isEventCatalogScaleEnabled()) {
-    return new Response(
-      JSON.stringify({
-        error: 'feature_not_available_on_server',
-        message: 'Schema API is not enabled for this deployment and supported in EventCatalog Scale.',
-      }),
-      { status: 501, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } }
-    );
-  }
-
   const url = new URL(request.url);
   const baseUrl = process.env.LLMS_TXT_BASE_URL || `${url.origin}`;
 

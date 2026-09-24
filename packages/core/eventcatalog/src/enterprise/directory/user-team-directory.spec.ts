@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const localLoad = vi.fn();
-const isEventCatalogScaleEnabled = vi.fn();
 const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
 vi.mock('astro/loaders', () => ({
@@ -12,10 +11,6 @@ vi.mock('astro/loaders', () => ({
     name: 'mock-glob-loader',
     load: localLoad,
   })),
-}));
-
-vi.mock('../feature', () => ({
-  isEventCatalogScaleEnabled: () => isEventCatalogScaleEnabled(),
 }));
 
 import { userTeamDirectoryLoader } from './user-team-directory';
@@ -55,12 +50,10 @@ const createContext = () => ({
 describe('userTeamDirectoryLoader', () => {
   beforeEach(() => {
     localLoad.mockReset();
-    isEventCatalogScaleEnabled.mockReset();
-    isEventCatalogScaleEnabled.mockReturnValue(false);
     consoleLog.mockClear();
   });
 
-  it('loads local users without requiring EventCatalog Scale when no directory sources are configured', async () => {
+  it('loads local users when no directory sources are configured', async () => {
     const context = createContext();
     const loader = userTeamDirectoryLoader({
       collection: 'users',
@@ -73,32 +66,9 @@ describe('userTeamDirectoryLoader', () => {
     await loader.load(context as never);
 
     expect(localLoad).toHaveBeenCalledWith(context);
-    expect(isEventCatalogScaleEnabled).not.toHaveBeenCalled();
-  });
-
-  it('requires EventCatalog Scale when directory sources are configured', async () => {
-    const context = createContext();
-    const loader = userTeamDirectoryLoader({
-      collection: 'users',
-      local: {
-        pattern: 'users/*.(md|mdx)',
-        base: '/catalog',
-      },
-      storePath: false,
-      sources: [
-        {
-          type: 'directory',
-          name: 'test-source',
-          loadUsers: async () => [],
-        },
-      ],
-    });
-
-    await expect(loader.load(context as never)).rejects.toThrow('Directory sources require EventCatalog Scale.');
   });
 
   it('loads users from configured directory sources', async () => {
-    isEventCatalogScaleEnabled.mockReturnValue(true);
     const context = createContext();
     const loader = userTeamDirectoryLoader({
       collection: 'users',
@@ -186,7 +156,6 @@ describe('userTeamDirectoryLoader', () => {
   });
 
   it('keeps local entries when the conflict strategy is local-wins', async () => {
-    isEventCatalogScaleEnabled.mockReturnValue(true);
     const context = createContext();
     context.store.set({
       id: 'jane',
@@ -232,7 +201,6 @@ describe('userTeamDirectoryLoader', () => {
   });
 
   it('throws when the conflict strategy is error and a source returns a local id', async () => {
-    isEventCatalogScaleEnabled.mockReturnValue(true);
     const context = createContext();
     context.store.set({
       id: 'jane',
@@ -270,7 +238,6 @@ describe('userTeamDirectoryLoader', () => {
   });
 
   it('refreshes source entries on subsequent loads', async () => {
-    isEventCatalogScaleEnabled.mockReturnValue(true);
     const context = createContext();
     const loadUsers = vi
       .fn()
@@ -318,7 +285,6 @@ describe('userTeamDirectoryLoader', () => {
   });
 
   it('writes synced source entries to the EventCatalog directory store', async () => {
-    isEventCatalogScaleEnabled.mockReturnValue(true);
     const context = createContext();
     const tempDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-directory-store-'));
     const storePath = path.join(tempDir, '.eventcatalog', 'store', 'directory.json');
@@ -379,7 +345,6 @@ describe('userTeamDirectoryLoader', () => {
   });
 
   it('deduplicates synced store entries when source-wins replaces an earlier directory source entry', async () => {
-    isEventCatalogScaleEnabled.mockReturnValue(true);
     const context = createContext();
     const tempDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-directory-store-'));
     const storePath = path.join(tempDir, '.eventcatalog', 'store', 'directory.json');

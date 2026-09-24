@@ -1,9 +1,4 @@
 /**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
-/**
  * Mock data for catalog-tools tests
  * Follows the Astro content collection structure
  */

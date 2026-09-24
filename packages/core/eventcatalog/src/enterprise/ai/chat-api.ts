@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import type { APIContext } from 'astro';
 import {
   convertToModelMessages,
@@ -15,7 +10,6 @@ import {
   type UIMessage,
 } from 'ai';
 import { join } from 'node:path';
-import { isEventCatalogScaleEnabled, isEventCatalogStarterEnabled } from '@utils/feature';
 import { getCollection, getEntry } from 'astro:content';
 import { z } from 'astro/zod';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
@@ -53,17 +47,13 @@ let model: LanguageModel;
 let modelConfiguration: any;
 let extendedTools: any;
 
-const hasAssistantPlan = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-
 try {
   const providerConfiguration = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.chat.js'));
   model = await providerConfiguration.default();
   modelConfiguration = providerConfiguration.configuration || defaultConfiguration;
   hasChatConfiguration = true;
 
-  if (isEventCatalogScaleEnabled()) {
-    extendedTools = providerConfiguration.tools || {};
-  }
+  extendedTools = providerConfiguration.tools || {};
 } catch (error) {
   console.error('[Chat] Error loading chat configuration', error);
   hasChatConfiguration = false;
@@ -177,13 +167,6 @@ interface Message {
 }
 
 export const GET = async ({ request }: APIContext<{ question: string; messages: Message[]; additionalContext?: string }>) => {
-  if (!hasAssistantPlan()) {
-    return new Response(JSON.stringify({ error: 'Chat is not enabled' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   if (!hasChatConfiguration) {
     return new Response(JSON.stringify({ error: 'No chat configuration found' }), {
       status: 404,
@@ -201,13 +184,6 @@ export const GET = async ({ request }: APIContext<{ question: string; messages: 
 
 export const POST = async ({ request }: APIContext<{ question: string; messages: Message[]; additionalContext?: string }>) => {
   const { messages }: { messages: UIMessage[] } = await request.json();
-
-  if (!hasAssistantPlan()) {
-    return new Response(JSON.stringify({ error: 'Chat is not enabled, please upgrade to a paid plan to use this feature' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
 
   if (!hasChatConfiguration) {
     return new Response(JSON.stringify({ error: 'No chat configuration found' }), {

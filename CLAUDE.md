@@ -38,7 +38,7 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
       /src
         /components          # React and Astro components
         /pages               # Astro pages and API routes
-        /enterprise          # Scale plan features (AI Chat, MCP Server)
+        /enterprise          # Server features (AI Chat, MCP Server, auth, APIs)
         /utils               # Shared utilities
           /collections       # Astro content collection helpers
         /layouts             # Page layouts
@@ -177,13 +177,13 @@ if ('error' in result) return result;
 
 ## Feature Flags
 
-Check feature availability before using enterprise features:
+Every feature is included in EventCatalog (no plans or license keys). Some need a server or configuration, so check the runtime flags in `@utils/feature` before using them:
 
 ```typescript
-import { isEventCatalogScaleEnabled, isSSR } from '@utils/feature';
+import { isSSR, isEventCatalogChatEnabled, isEventCatalogMCPEnabled, isAuthEnabled } from '@utils/feature';
 
-if (!isEventCatalogScaleEnabled()) {
-  return { error: 'Feature requires Scale plan' };
+if (!isEventCatalogMCPEnabled()) {
+  return { error: 'The MCP server requires EventCatalog to run in server mode' };
 }
 ```
 

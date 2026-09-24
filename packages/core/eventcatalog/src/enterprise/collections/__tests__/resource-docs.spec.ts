@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import type { CollectionKey } from 'astro:content';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -178,8 +173,6 @@ describe('resource-docs', () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    process.env.EVENTCATALOG_SCALE = 'true';
-    delete process.env.EVENTCATALOG_STARTER;
   });
 
   afterEach(() => {

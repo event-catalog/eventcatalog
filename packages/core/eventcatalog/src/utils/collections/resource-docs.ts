@@ -1,5 +1,4 @@
-// Re-export from enterprise. This module is subject to the EventCatalog Commercial License.
-// See /packages/core/eventcatalog/src/enterprise/LICENSE
+// Re-export from enterprise
 export {
   getResourceDocs,
   getResourceDocCategories,

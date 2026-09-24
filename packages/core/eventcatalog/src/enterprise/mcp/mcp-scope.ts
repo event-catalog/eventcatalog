@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import utils, { type CatalogGraphResourceType, type CatalogGraphRoot, type FlatCatalogGraph } from '@eventcatalog/sdk';
 import { getCollection } from 'astro:content';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';

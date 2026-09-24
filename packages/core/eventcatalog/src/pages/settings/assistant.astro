@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import SettingsLayout from '@layouts/SettingsLayout.astro';
 import { AssistantSettingsForm } from '@components/Settings/AssistantSettingsForm';
-import { isDevMode, isSSR, isEventCatalogStarterEnabled, isEventCatalogScaleEnabled } from '@utils/feature';
+import { isDevMode, isSSR } from '@utils/feature';
 import { buildUrl } from '@utils/url-builder';
 import config from '@config';
 
@@ -16,9 +16,8 @@ const initial = {
 
 const projectRoot = process.env.PROJECT_DIR ?? process.cwd();
 const hasChatConfigFile = fs.existsSync(path.join(projectRoot, 'eventcatalog.chat.js'));
-const hasPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 const inSSR = isSSR();
-const chatAvailable = hasPlan && hasChatConfigFile && inSSR;
+const chatAvailable = hasChatConfigFile && inSSR;
 
 const apiBase = buildUrl('/api/settings');
 ---
@@ -29,7 +28,6 @@ const apiBase = buildUrl('/api/settings');
     canEdit={canEdit}
     initial={initial}
     chatAvailable={chatAvailable}
-    hasPlan={hasPlan}
     inSSR={inSSR}
     hasChatConfigFile={hasChatConfigFile}
     apiBase={apiBase}

@@ -1,9 +1,9 @@
 ---
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 import { buildUrl } from '@utils/url-builder';
-import { Settings, Server, Bot, FileText, CreditCard } from 'lucide-react';
+import { Settings, Server, Bot, FileText } from 'lucide-react';
 
-export type SettingsSection = 'general' | 'mcp' | 'assistant' | 'llm-access' | 'billing';
+export type SettingsSection = 'general' | 'mcp' | 'assistant' | 'llm-access';
 
 interface Props {
   title: string;
@@ -56,17 +56,6 @@ const groups: SectionGroup[] = [
         label: 'LLM Access',
         href: buildUrl('/settings/llm-access'),
         icon: FileText,
-      },
-    ],
-  },
-  {
-    label: 'Workspace',
-    items: [
-      {
-        id: 'billing',
-        label: 'Billing',
-        href: buildUrl('/settings/billing'),
-        icon: CreditCard,
       },
     ],
   },

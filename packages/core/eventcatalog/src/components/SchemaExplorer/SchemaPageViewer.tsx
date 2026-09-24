@@ -5,7 +5,6 @@ import type { SchemaItem } from './types';
 interface SchemaPageViewerProps {
   message: SchemaItem;
   availableVersions: SchemaItem[];
-  apiAccessEnabled?: boolean;
   showOwners?: boolean;
   showProducersConsumers?: boolean;
   /** Tab requested in the URL, resolved on the server to avoid a flash of the default tab. */
@@ -18,7 +17,6 @@ interface SchemaPageViewerProps {
 export default function SchemaPageViewer({
   message,
   availableVersions,
-  apiAccessEnabled = false,
   showOwners = true,
   showProducersConsumers = true,
   initialTab,
@@ -38,7 +36,6 @@ export default function SchemaPageViewer({
       availableVersions={availableVersions}
       selectedVersion={message.data.version}
       onVersionChange={handleVersionChange}
-      apiAccessEnabled={apiAccessEnabled}
       showOwners={showOwners}
       showProducersConsumers={showProducersConsumers}
       initialTab={initialTab}

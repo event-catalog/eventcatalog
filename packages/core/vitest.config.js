@@ -37,7 +37,6 @@ export default defineConfig({
       'astro:content': path.resolve(__dirname, './src/__mocks__/astro-content.ts'),
       '@config': path.join(projectDirectory, 'eventcatalog.config.js'),
       '@eventcatalog/connectors': path.resolve(__dirname, 'node_modules/@eventcatalog/connectors/dist/index.mjs'),
-      '@eventcatalog/license': path.resolve(__dirname, 'node_modules/@eventcatalog/license/dist/index.js'),
       '@eventcatalog/sdk': path.resolve(__dirname, 'node_modules/@eventcatalog/sdk/dist/index.mjs'),
       '@eventcatalog/visualiser/layout': path.resolve(__dirname, 'node_modules/@eventcatalog/visualiser/dist/layout.mjs'),
       '@eventcatalog': path.resolve(__dirname, 'eventcatalog/src/utils/eventcatalog-config/catalog.ts'),

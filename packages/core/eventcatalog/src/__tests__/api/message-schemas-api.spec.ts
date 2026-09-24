@@ -8,7 +8,6 @@ const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 let mockSchemas: any[] = [];
 
-let mockIsEventCatalogScaleEnabled = vi.fn();
 let mockIsSSR = vi.fn().mockReturnValue(false);
 
 const schemaContent = (fileName: string) => fs.readFileSync(path.join(__dirname, 'schemas', fileName), 'utf8');
@@ -67,7 +66,6 @@ vi.mock('astro:content', async (importOriginal) => {
 
 vi.mock('@utils/feature', () => {
   return {
-    isEventCatalogScaleEnabled: () => mockIsEventCatalogScaleEnabled(),
     isSSR: () => mockIsSSR(),
   };
 });
@@ -143,8 +141,7 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
   });
 
   describe('GET (static mode)', () => {
-    it('returns the given schema when EventCatalog Scale is enabled', async () => {
-      mockIsEventCatalogScaleEnabled.mockReturnValue(true);
+    it('returns the given schema', async () => {
       const response = await GET({
         request: new Request('http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0'),
         props: { schema: 'test-schema.json' },
@@ -152,22 +149,10 @@ describe('api/schemas/[collection]/[id]/[version]/index.ts', () => {
       expect(response.status).toBe(200);
       expect(await response.text()).toEqual('test-schema.json');
     });
-    it('returns an error when EventCatalog Scale is disabled', async () => {
-      mockIsEventCatalogScaleEnabled.mockReturnValue(false);
-      const response = await GET({
-        request: new Request('http://localhost:4321/api/schemas/events/OrderPlaced/1.0.0'),
-        props: { schema: 'test-schema.json' },
-      } as any);
-      expect(response.status).toBe(501);
-      expect(await response.text()).toEqual(
-        '{"error":"feature_not_available_on_server","message":"Schema API is not enabled for this deployment and supported in EventCatalog Scale."}'
-      );
-    });
   });
 
   describe('GET (SSR mode)', () => {
     beforeEach(() => {
-      mockIsEventCatalogScaleEnabled.mockReturnValue(true);
       mockIsSSR.mockReturnValue(true);
     });
 

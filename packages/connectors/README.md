@@ -79,8 +79,6 @@ microsoftEntraDirectory({
 });
 ```
 
-External directory sources require EventCatalog Scale when loaded by EventCatalog.
-
 Custom directory sources can use the same contract:
 
 ```js

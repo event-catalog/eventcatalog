@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import type { APIRoute } from 'astro';
 import { Hono } from 'hono';
 import { getFieldsDatabase } from '@enterprise/fields/fields-db';

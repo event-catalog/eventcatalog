@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/eventcatalog/src/enterprise/LICENSE
- */
-
 import { describe, it, expect } from 'vitest';
 import { extractPageProperties, AnalyticsManager } from '../tracker';
 
