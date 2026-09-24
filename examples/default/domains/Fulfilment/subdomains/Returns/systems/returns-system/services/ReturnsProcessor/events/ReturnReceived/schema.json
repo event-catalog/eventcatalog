@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReturnReceived",
+  "description": "Published when returned items have arrived at the warehouse",
+  "type": "object",
+  "properties": {
+    "returnId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "condition": { "type": "string", "enum": ["resellable", "damaged"] }
+        },
+        "required": ["sku", "quantity", "condition"]
+      }
+    },
+    "refundAmount": { "type": "number", "minimum": 0 },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "receivedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["returnId", "orderId", "items", "refundAmount", "currency", "receivedAt"]
+}

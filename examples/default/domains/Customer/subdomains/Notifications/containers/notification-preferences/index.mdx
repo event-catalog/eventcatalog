@@ -1,0 +1,30 @@
+---
+id: notification-preferences
+name: Notification Preferences
+version: 1.0.0
+summary: PostgreSQL database holding each customer's notification channels, opt-ins and quiet hours.
+owners:
+  - customer-platform
+container_type: database
+technology: postgres@16
+authoritative: true
+access_mode: readWrite
+purpose: System of record for customer notification and marketing consent preferences
+classification: confidential
+retention: indefinite
+residency: eu-west-1
+styles:
+  icon: /icons/database/postgresql.svg
+---
+
+<NodeGraph />
+
+### What is this?
+
+The **Notification Preferences** store records how each customer wants to be contacted. The [[service|notification-service]] reads it before every send so customers only hear from us on channels they have opted into.
+
+### What does it store?
+
+- **Channels** — email address, phone number and push tokens, with per-channel opt-in.
+- **Topics** — which notification types (orders, delivery, loyalty, reviews) the customer wants.
+- **Quiet hours** — times when non-urgent notifications are held back.

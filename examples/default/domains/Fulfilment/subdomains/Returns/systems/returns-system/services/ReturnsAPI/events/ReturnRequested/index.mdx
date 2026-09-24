@@ -1,0 +1,29 @@
+---
+id: return-requested
+name: Return Requested
+version: 1.0.0
+summary: |
+  Published when a customer has requested to return items from an order.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReturnRequested` is published by the [[service|returns-api]] after it accepts a [[command|request-return]]. The [[service|returns-processor]] consumes it to apply the returns policy.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

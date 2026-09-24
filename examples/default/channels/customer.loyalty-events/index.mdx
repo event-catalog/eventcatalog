@@ -1,0 +1,28 @@
+---
+id: customer.loyalty-events
+name: Loyalty Events
+version: 1.0.0
+summary: |
+  Kafka topic that carries loyalty points events from the Loyalty System.
+owners:
+  - customer-platform
+address: customer.loyalty-events
+protocols:
+  - kafka
+deliveryGuarantee: at-least-once
+---
+
+## Overview
+
+The [[service|loyalty-service]] publishes [[event|loyalty-points-earned]] and [[event|loyalty-points-reversed]] to this topic as customers earn and lose points.
+
+| Consumer | Domain | Why |
+|----------|--------|-----|
+| [[service\|promotion-service]] | Shopping | Offers promotions based on a customer's points. |
+| [[service\|notification-service]] | Customer (Notifications) | Tells the customer about the points they've earned. |
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />

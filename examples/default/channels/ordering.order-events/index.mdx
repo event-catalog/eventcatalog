@@ -1,0 +1,29 @@
+---
+id: ordering.order-events
+name: Order Events
+version: 1.0.0
+summary: |
+  Kafka topic that carries order lifecycle events from the Order Management System to the rest of Acme Inc.
+owners:
+  - ordering-platform
+address: ordering.order-events
+protocols:
+  - kafka
+deliveryGuarantee: at-least-once
+---
+
+## Overview
+
+The [[service|order-service]] publishes the order lifecycle to this topic: [[event|order-created]], [[event|order-confirmed]], [[event|order-completed]] and [[event|order-cancelled]]. Other domains subscribe to it rather than calling the Ordering domain directly:
+
+| Consumer | Domain | Why |
+|----------|--------|-----|
+| [[service\|warehouse-service]] | Fulfilment | Starts picking once an order completes. |
+| [[service\|loyalty-service]] | Customer (Loyalty) | Awards points for completed orders and reverses them for cancelled ones. |
+| [[service\|notification-service]] | Customer (Notifications) | Tells the customer their order is confirmed. |
+
+<ChannelInformation />
+
+## Architecture diagram
+
+<NodeGraph />
