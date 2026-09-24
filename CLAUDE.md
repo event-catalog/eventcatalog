@@ -38,7 +38,7 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
       /src
         /components          # React and Astro components
         /pages               # Astro pages and API routes
-        /enterprise          # Server features (AI Chat, MCP Server, auth, APIs)
+        /features            # Server features (AI Chat, MCP Server, auth, APIs)
         /utils               # Shared utilities
           /collections       # Astro content collection helpers
         /layouts             # Page layouts
@@ -166,10 +166,10 @@ if (!resource) {
 
 ### Pagination
 
-Use cursor-based pagination with the `paginate()` helper from `@enterprise/tools/catalog-tools`:
+Use cursor-based pagination with the `paginate()` helper from `@features/tools/catalog-tools`:
 
 ```typescript
-import { paginate } from '@enterprise/tools/catalog-tools';
+import { paginate } from '@features/tools/catalog-tools';
 
 const result = paginate(items, cursor, pageSize);
 if ('error' in result) return result;
@@ -285,7 +285,7 @@ export const prerender = false;
 
 ### Shared Tool Implementations
 
-When building features used by both AI Chat and MCP Server, add shared logic to `@enterprise/tools/catalog-tools.ts`.
+When building features used by both AI Chat and MCP Server, add shared logic to `@features/tools/catalog-tools.ts`.
 
 ## Monorepo Workflow
 

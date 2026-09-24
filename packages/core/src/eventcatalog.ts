@@ -19,7 +19,7 @@ import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
 import { getLicenseStatus, printLicenseStatus } from './utils/license-status';
-import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
+import { buildFieldsIndex } from '../eventcatalog/src/features/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
 import { clearCatalogCache, hasLegacyCatalogRuntime, prepareCatalogRuntime } from './catalog-runtime';
 import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';

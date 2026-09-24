@@ -15,7 +15,7 @@ vi.mock('../../../utils/feature', () => ({
   isSSR: () => true,
 }));
 
-describe('enterprise routes with a separate runtime directory', () => {
+describe('feature routes with a separate runtime directory', () => {
   let runtimeDirectory: string;
   let projectDirectory: string;
 
@@ -49,11 +49,11 @@ describe('enterprise routes with a separate runtime directory', () => {
     const packageDirectory = fileURLToPath(new URL('../../../../', import.meta.url));
     expect(injectRoute.mock.calls.length).toBeGreaterThan(10);
     for (const [route] of injectRoute.mock.calls) {
-      expect(route.entrypoint.startsWith(path.join(packageDirectory, 'src', 'enterprise') + path.sep)).toBe(true);
+      expect(route.entrypoint.startsWith(path.join(packageDirectory, 'src', 'features') + path.sep)).toBe(true);
       expect(fs.existsSync(route.entrypoint)).toBe(true);
     }
     expect(addMiddleware).toHaveBeenCalledWith({
-      entrypoint: path.join(packageDirectory, 'src/enterprise/auth/middleware/middleware.ts'),
+      entrypoint: path.join(packageDirectory, 'src/features/auth/middleware/middleware.ts'),
       order: 'pre',
     });
     expect(addWatchFile.mock.calls[0][0].startsWith(runtimeDirectory + path.sep)).toBe(true);

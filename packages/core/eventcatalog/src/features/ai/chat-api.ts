@@ -29,7 +29,7 @@ import {
   messageCollectionSchema,
   visualiserCollectionSchema,
   toolDescriptions,
-} from '@enterprise/tools/catalog-tools';
+} from '@features/tools/catalog-tools';
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 

@@ -14,7 +14,7 @@
       "@types": ["src/types/index.ts"],
       "@utils/*": ["src/utils/*"],
       "@layouts/*": ["src/layouts/*"],
-      "@enterprise/*": ["src/enterprise/*"],
+      "@features/*": ["src/features/*"],
       "auth:config": ["./auth.config.ts"],
       "@stores/*": ["src/stores/*"]
     },

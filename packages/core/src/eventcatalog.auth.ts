@@ -14,7 +14,7 @@ export interface EventCatalogAuthConfig {
     auth0?: OAuthUserConfig<Auth0Profile>;
     entra?: OAuthUserConfig<MicrosoftEntraIDProfile>;
   };
-  // Enterprise only features
+  // Custom providers
   customAuthConfig?: string;
   customMiddleware?: string;
   // Session configuration

@@ -74,25 +74,25 @@ const configureAuthentication = (params: {
 }) => {
   params.injectRoute({
     pattern: '/api/[...auth]',
-    entrypoint: path.join(packageDirectory, 'src/enterprise/auth/[...auth].ts'),
+    entrypoint: path.join(packageDirectory, 'src/features/auth/[...auth].ts'),
   });
   params.injectRoute({
     pattern: '/auth/login',
-    entrypoint: path.join(packageDirectory, 'src/enterprise/auth/login.astro'),
+    entrypoint: path.join(packageDirectory, 'src/features/auth/login.astro'),
   });
   params.injectRoute({
     pattern: '/auth/error',
-    entrypoint: path.join(packageDirectory, 'src/enterprise/auth/error.astro'),
+    entrypoint: path.join(packageDirectory, 'src/features/auth/error.astro'),
   });
 
   params.injectRoute({
     pattern: '/unauthorized',
-    entrypoint: path.join(packageDirectory, 'src/enterprise/auth/unauthorized.astro'),
+    entrypoint: path.join(packageDirectory, 'src/features/auth/unauthorized.astro'),
   });
 
   // Add the authentication middleware
   params.addMiddleware({
-    entrypoint: path.join(packageDirectory, 'src/enterprise/auth/middleware/middleware.ts'),
+    entrypoint: path.join(packageDirectory, 'src/features/auth/middleware/middleware.ts'),
     order: 'pre',
   });
 };
@@ -106,7 +106,7 @@ export default function eventCatalogIntegration(): AstroIntegration {
         if (isEventCatalogChatEnabled()) {
           params.injectRoute({
             pattern: '/api/chat',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/ai/chat-api.ts'),
+            entrypoint: path.join(packageDirectory, 'src/features/ai/chat-api.ts'),
           });
         }
 
@@ -114,18 +114,18 @@ export default function eventCatalogIntegration(): AstroIntegration {
         if (isEventCatalogMCPEnabled()) {
           params.injectRoute({
             pattern: '/docs/mcp/[...path]',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/mcp/mcp-server.ts'),
+            entrypoint: path.join(packageDirectory, 'src/features/mcp/mcp-server.ts'),
           });
         }
 
         if (isEventCatalogMCPAuthEnabled()) {
           params.injectRoute({
             pattern: '/.well-known/oauth-protected-resource',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/mcp/oauth-protected-resource.ts'),
+            entrypoint: path.join(packageDirectory, 'src/features/mcp/oauth-protected-resource.ts'),
           });
           params.injectRoute({
             pattern: '/.well-known/oauth-protected-resource/[...path]',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/mcp/oauth-protected-resource.ts'),
+            entrypoint: path.join(packageDirectory, 'src/features/mcp/oauth-protected-resource.ts'),
           });
         }
 
@@ -138,7 +138,7 @@ export default function eventCatalogIntegration(): AstroIntegration {
         if (isFullCatalogAPIEnabled()) {
           params.injectRoute({
             pattern: '/api/catalog',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/api/catalog.ts'),
+            entrypoint: path.join(packageDirectory, 'src/features/api/catalog.ts'),
           });
         }
 
@@ -146,11 +146,11 @@ export default function eventCatalogIntegration(): AstroIntegration {
         if (isSSR()) {
           params.injectRoute({
             pattern: '/schemas/fields',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/fields/pages/fields.astro'),
+            entrypoint: path.join(packageDirectory, 'src/features/fields/pages/fields.astro'),
           });
           params.injectRoute({
             pattern: '/api/schemas/fields',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/fields/pages/api/fields.ts'),
+            entrypoint: path.join(packageDirectory, 'src/features/fields/pages/api/fields.ts'),
           });
         }
 
@@ -166,11 +166,11 @@ export default function eventCatalogIntegration(): AstroIntegration {
         if (isDevMode()) {
           params.injectRoute({
             pattern: '/api/dev/visualizer-layout/save',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/visualizer-layout/save.ts'),
+            entrypoint: path.join(packageDirectory, 'src/features/visualizer-layout/save.ts'),
           });
           params.injectRoute({
             pattern: '/api/dev/visualizer-layout/reset',
-            entrypoint: path.join(packageDirectory, 'src/enterprise/visualizer-layout/reset.ts'),
+            entrypoint: path.join(packageDirectory, 'src/features/visualizer-layout/reset.ts'),
           });
         }
       },

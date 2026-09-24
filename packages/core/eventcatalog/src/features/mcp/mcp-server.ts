@@ -4,7 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { z } from 'zod';
 import { join } from 'node:path';
-import * as catalogTools from '@enterprise/tools/catalog-tools';
+import * as catalogTools from '@features/tools/catalog-tools';
 import { getCollection } from 'astro:content';
 import { createMcpAuthErrorResponse, validateMcpRequest } from './mcp-auth';
 import { createScopedCatalogTools } from './mcp-scoped-tools';
