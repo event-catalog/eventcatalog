@@ -46,8 +46,8 @@ const resolvedNodeGraphs = await Promise.all(
       ...nodeGraph,
       collection,
       graphCollection,
-      title: nodeGraph.title ?? (hasSystems ? 'System Context Map' : undefined),
-      hrefLabel: hasSystems ? 'Open System Context Map' : 'Open in Visualiser',
+      title: nodeGraph.title ?? (hasSystems ? 'System Context Diagram' : undefined),
+      hrefLabel: hasSystems ? 'Open Diagram' : 'Open in Visualiser',
       visualiserUrl: hasSystems
         ? buildUrl(`/visualiser/domains/${nodeGraph.id}/${nodeGraph.version}?level=1`)
         : buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
