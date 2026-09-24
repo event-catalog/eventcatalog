@@ -1,6 +1,6 @@
 /**
  * Type declarations for MCP server dependencies
- * These are used by the enterprise MCP server feature
+ * These are used by the MCP server feature
  */
 
 declare module 'hono' {

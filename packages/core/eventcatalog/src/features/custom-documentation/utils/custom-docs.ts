@@ -7,7 +7,7 @@ import matter from 'gray-matter';
 // Use getCollection (which returns plain entries) instead of getEntry, which installs
 // Astro's `slug` deprecation accessor on every entry it returns. The accessor fires a
 // `console.error` on each access of `entry.data.slug`, even though our schema legitimately
-// defines `slug` as an optional user field. See packages/core/eventcatalog/src/enterprise/collections/custom-pages.ts.
+// defines `slug` as an optional user field. See packages/core/eventcatalog/src/features/collections/custom-pages.ts.
 const getCustomPagesById = async () => {
   const all = await getCollection('customPages');
   const map = new Map<string, (typeof all)[number]>();

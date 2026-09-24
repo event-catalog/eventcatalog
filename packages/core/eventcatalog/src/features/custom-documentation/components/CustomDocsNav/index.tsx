@@ -4,7 +4,7 @@ import { buildUrl } from '@utils/url-builder';
 import type { CustomDocsNavProps, SidebarSection, SidebarItem } from './types';
 import NestedItem from './components/NestedItem';
 import NoResultsFound from './components/NoResultsFound';
-import { getCustomDocsSidebarBadgeClasses } from '@enterprise/custom-documentation/utils/badge-styles';
+import { getCustomDocsSidebarBadgeClasses } from '@features/custom-documentation/utils/badge-styles';
 
 const STORAGE_KEY = 'EventCatalog:customDocsSidebarCollapsedGroups';
 const DEBOUNCE_DELAY = 300; // 300ms debounce delay

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findMatchingRule, getPublicRoutes, isMcpRoute, matchesPattern } from '../enterprise/auth/middleware/middleware-auth';
+import { findMatchingRule, getPublicRoutes, isMcpRoute, matchesPattern } from '../features/auth/middleware/middleware-auth';
 
 // Note:
 describe('middleware-auth', () => {

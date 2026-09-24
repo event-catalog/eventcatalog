@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { Hono } from 'hono';
-import { getFieldsDatabase } from '@enterprise/fields/fields-db';
+import { getFieldsDatabase } from '@features/fields/fields-db';
 import { getRuntimePaths } from '../../../../../integrations/runtime-paths.mjs';
 
 // The CLI builds the index at this same path. Shipping it with dist-only SSR

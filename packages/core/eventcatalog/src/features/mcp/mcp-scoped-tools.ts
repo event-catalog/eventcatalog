@@ -9,7 +9,7 @@ import {
   getResource,
   getSchemaForResource,
   paginate,
-} from '@enterprise/tools/catalog-tools';
+} from '@features/tools/catalog-tools';
 import type { McpScope } from './mcp-scope';
 
 const notFound = (collection: string, id: string, version?: string) => ({

@@ -17,7 +17,7 @@
       "@components/*": ["../../packages/core/eventcatalog/src/components/*"],
       "@layouts/*": ["../../packages/core/eventcatalog/src/layouts/*"],
       "@utils/*": ["../../packages/core/eventcatalog/src/utils/*"],
-      "@enterprise/*": ["../../packages/core/eventcatalog/src/enterprise/*"],
+      "@features/*": ["../../packages/core/eventcatalog/src/features/*"],
       "@icons/*": ["../../packages/core/eventcatalog/src/icons/*"],
       "@stores/*": ["../../packages/core/eventcatalog/src/stores/*"],
       "@types": ["../../packages/core/eventcatalog/src/types/index.ts"],

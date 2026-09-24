@@ -2,7 +2,7 @@ import React from 'react';
 import { buildUrl } from '@utils/url-builder';
 import type { SidebarItem } from '../types';
 import { ExternalLinkIcon } from 'lucide-react';
-import { getCustomDocsSidebarBadgeClasses } from '@enterprise/custom-documentation/utils/badge-styles';
+import { getCustomDocsSidebarBadgeClasses } from '@features/custom-documentation/utils/badge-styles';
 
 interface NestedItemProps {
   item: SidebarItem;

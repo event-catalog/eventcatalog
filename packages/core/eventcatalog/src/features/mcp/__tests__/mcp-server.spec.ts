@@ -146,7 +146,7 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
   });
 
   it('should verify toolDescriptions contains all expected tools', async () => {
-    const { toolDescriptions } = await import('@enterprise/tools/catalog-tools');
+    const { toolDescriptions } = await import('@features/tools/catalog-tools');
 
     // 22 built-in tools from toolDescriptions
     const expectedTools = [
@@ -224,7 +224,7 @@ describe('MCP Protocol Endpoint (POST /docs/mcp/)', () => {
 
 describe('MCP Tool Registration', () => {
   it('should have correct tool descriptions exported', async () => {
-    const { toolDescriptions } = await import('@enterprise/tools/catalog-tools');
+    const { toolDescriptions } = await import('@features/tools/catalog-tools');
 
     expect(toolDescriptions.getResources).toBeDefined();
     expect(toolDescriptions.getResources).toContain('events');
@@ -234,9 +234,7 @@ describe('MCP Tool Registration', () => {
   });
 
   it('should have correct collection schemas exported', async () => {
-    const { collectionSchema, messageCollectionSchema, resourceCollectionSchema } = await import(
-      '@enterprise/tools/catalog-tools'
-    );
+    const { collectionSchema, messageCollectionSchema, resourceCollectionSchema } = await import('@features/tools/catalog-tools');
 
     // Test collection schema includes all types
     expect(collectionSchema.safeParse('events').success).toBe(true);
@@ -351,7 +349,7 @@ describe('MCP Resources', () => {
 
 describe('MCP getResources Tool with Search', () => {
   it('should have search parameter in getResources tool description', async () => {
-    const { toolDescriptions } = await import('@enterprise/tools/catalog-tools');
+    const { toolDescriptions } = await import('@features/tools/catalog-tools');
     expect(toolDescriptions.getResources).toContain('search');
   });
 });
@@ -362,7 +360,7 @@ describe('MCP getResources Tool with Search', () => {
 
 describe('MCP explainUbiquitousLanguageTerms Tool', () => {
   it('should have explainUbiquitousLanguageTerms in toolDescriptions', async () => {
-    const { toolDescriptions } = await import('@enterprise/tools/catalog-tools');
+    const { toolDescriptions } = await import('@features/tools/catalog-tools');
     expect(toolDescriptions.explainUbiquitousLanguageTerms).toBeDefined();
     expect(toolDescriptions.explainUbiquitousLanguageTerms).toContain('ubiquitous language');
   });

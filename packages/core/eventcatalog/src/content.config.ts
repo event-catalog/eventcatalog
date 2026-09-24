@@ -6,14 +6,14 @@ import { badge, ownerReference } from './content.config-shared-collections';
 import { ADR_STATUS_VALUES } from './utils/collections/adr-constants';
 import fs from 'fs';
 import path from 'path';
-import { userTeamDirectoryLoader } from './enterprise/directory/user-team-directory';
+import { userTeamDirectoryLoader } from './features/directory/user-team-directory';
 import config from '@config';
 import { schemaLoader } from './utils/collections/schema-loader';
 import { globWithSafeWatcher, withFederatedContent, withIgnoredBuildArtifacts } from './utils/collections/glob-loader';
 import { withExtensionProperties } from './utils/collections/extension-properties';
 
-// Enterprise Collections
-import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './enterprise/collections';
+// Custom pages and resource docs collections
+import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './features/collections';
 
 // Astro's root is the user's catalog. Keep loader paths relative to that root,
 // independently of where generated metadata or the installed package lives.

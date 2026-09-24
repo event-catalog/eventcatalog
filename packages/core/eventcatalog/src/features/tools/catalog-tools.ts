@@ -29,7 +29,7 @@ import {
   buildDocsSearchIndex,
   chunkMarkdownByHeadings,
   type DocsSearchIndex,
-} from '@enterprise/custom-documentation/utils/docs-search';
+} from '@features/custom-documentation/utils/docs-search';
 
 const MESSAGE_COLLECTIONS = new Set(['events', 'commands', 'queries']);
 const LIKEC4_SOURCE_PATTERN = '**/*.{c4,likec4}';
