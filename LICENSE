@@ -3,133 +3,247 @@ License text copyright (c) 2024 MariaDB plc, All Rights Reserved.
 
 Parameters
 
-Licensor:             EventCatalog Ltd (company number 15764703)
-Licensed Work:        EventCatalog version 5.0.0, including its pre-releases,
-                      or later, being the software in this repository other
-                      than any file or directory that states it is licensed
-                      under a different license. The following are licensed
-                      under the MIT License and are not part of the Licensed
-                      Work: packages/sdk, packages/cli, packages/connectors,
+Licensor:             EventCatalog Ltd, a company registered in England and
+                      Wales (company number 15764703).
+Licensed Work:        EventCatalog version 5.0 or later, including pre-releases,
+                      as published by the Licensor in this repository and as the
+                      npm package @eventcatalog/core, other than any file,
+                      directory or package that states it is licensed under a
+                      different license. The following are licensed under the
+                      MIT License and are not part of the Licensed Work:
+                      packages/sdk, packages/cli, packages/connectors,
                       packages/diff, packages/linter, packages/visualiser,
-                      packages/breaking-changes and
-                      packages/create-eventcatalog. The Licensed Work is
-                      (c) 2026 EventCatalog Ltd.
-Additional Use Grant: You may make Production use of the Licensed Work,
-                      provided that You are an Eligible User and Your use
-                      does not include a Hosted Offering.
+                      packages/breaking-changes, packages/create-eventcatalog
+                      and the examples directory. The Licensed Work is (c) 2026
+                      EventCatalog Ltd.
+Additional Use Grant: You may make Production use of the Licensed Work if You
+                      are an Eligible User and Your use is not a Hosted
+                      Offering. Sections 1 to 7 below form part of this grant.
+                      Capitalised terms are defined in section 6.
 
                       1. Eligible Users
 
-                      An "Eligible User" is any of the following:
+                      You are an "Eligible User" if You are:
 
-                      (a) an individual using the Licensed Work on their own
-                          behalf, and not on behalf of or for the benefit of
-                          an Organisation;
+                      (a) an individual using the Licensed Work for Your own
+                          personal purposes, and not for or on behalf of any
+                          Organisation (including Your employer or Your own
+                          business);
 
-                      (b) an Organisation whose Annual Revenue is less than
-                          USD 10,000,000 (ten million US dollars);
+                      (b) an Organisation whose Annual Revenue is less than USD
+                          10,000,000 (ten million US dollars) and whose Total
+                          Funding is less than USD 10,000,000;
 
-                      (c) any person or Organisation using the Licensed Work
+                      (c) a person or Organisation using the Licensed Work
                           solely to document a Public Open Source Project;
 
-                      (d) an accredited educational institution, using the
+                      (d) a school, college or university recognised by the
+                          education authorities of its country, using the
                           Licensed Work solely for teaching or academic
-                          research, and not for its administrative or
-                          commercial operations; or
+                          research, and not for its administrative or commercial
+                          operations; or
 
-                      (e) any Organisation, during one evaluation period of
-                          up to ninety (90) days starting on the date it
-                          first makes Production use of the Licensed Work,
-                          or any longer period agreed in writing by the
-                          Licensor.
+                      (e) an Organisation in its Evaluation Period.
 
-                      2. Crossing the threshold
+                      2. Growing past the thresholds
 
-                      An Organisation that is an Eligible User under (b)
-                      remains one until ninety (90) days after the end of
-                      the first financial year for which its Annual Revenue
-                      equals or exceeds USD 10,000,000.
+                      An Organisation that is an Eligible User under 1(b)
+                      remains one until ninety (90) days after the first of the
+                      following to happen:
 
-                      3. Service providers
+                      (a) the end of the first financial year in which its
+                          Annual Revenue reaches USD 10,000,000; or
 
-                      Where You use the Licensed Work to provide services to
-                      a client (for example, as a consultant, contractor or
-                      agency) and that use is for the client's benefit,
-                      Your use is permitted if the client is an Eligible
-                      User or holds a commercial license from the Licensor
-                      that covers that use.
+                      (b) the date on which its Total Funding reaches USD
+                          10,000,000; or
 
-                      4. Cure period
+                      (c) the date on which a change in its Affiliates (for
+                          example an acquisition) takes it over either
+                          threshold.
 
-                      If You stop being an Eligible User, or learn that
-                      Your use is not permitted by this Additional Use
-                      Grant, You may continue to use the Licensed Work for
-                      thirty (30) days in order to obtain a commercial
-                      license or stop that use, and Your rights under this
-                      License will not terminate during that period for
-                      that reason.
+                      3. Working for clients
 
-                      5. Definitions
+                      If You use the Licensed Work for a client's benefit (for
+                      example as a consultant, contractor, agency or software
+                      vendor), including building, customising, hosting or
+                      distributing the Licensed Work or a catalog built with it
+                      for that client, Your use for that client is permitted if
+                      the client is an Eligible User or holds a Commercial
+                      License covering that use. You may rely on a client's
+                      written statement of its status unless You know it is
+                      wrong. Your own use of the Licensed Work for Your own
+                      systems is judged on Your own status.
 
-                      "Production use" includes any use of a catalog built
-                      with the Licensed Work that an Organisation's
-                      employees, contractors or automated systems
-                      (including AI agents) rely on to document, discover,
-                      understand or govern its software systems, whether
-                      that catalog is available internally, privately or
-                      publicly, and use of the Licensed Work in continuous
-                      integration or deployment pipelines to build, update
-                      or validate such a catalog. For the avoidance of
-                      doubt, use that is internal to an Organisation can be
-                      Production use.
+                      4. Coming into compliance
 
-                      "Organisation" means a legal entity together with all
-                      of its Affiliates. "Affiliate" means any entity that
-                      directly or indirectly controls, is controlled by, or
-                      is under common control with that legal entity, where
-                      "control" means ownership of more than fifty percent
-                      (50%) of the voting interests of the entity. For a
-                      government or public-sector body, the Organisation is
-                      that body (for example, a ministry, department,
-                      agency or local authority), and not the wider
-                      government of which it forms part.
+                      (a) If You stop being an Eligible User (for example
+                          because Your Evaluation Period ends), or You become
+                          aware (including by notice from the Licensor) that
+                          Your Production use is not permitted by this grant,
+                          You may continue that use for thirty (30) days (the
+                          "Cure Period") in order to obtain a Commercial License
+                          or stop that use. Use during the Cure Period is
+                          permitted Production use, is not a violation of this
+                          License, and Your rights under this License do not
+                          terminate during the Cure Period for that reason. One
+                          Cure Period applies to each such event; stopping and
+                          later resuming substantially the same use does not
+                          create a new one.
 
-                      "Annual Revenue" means the total consolidated gross
-                      revenue of the Organisation for its most recently
-                      completed financial year or, if it has not yet
-                      completed a financial year, its reasonably projected
-                      revenue for its first financial year. For a
-                      government or public-sector body, charity or
-                      non-profit organisation, it means the greater of its
-                      total income (including grants and donations) and its
-                      total annual budget for that financial year. Amounts
-                      in other currencies are converted to US dollars at
-                      the average exchange rate for that financial year.
+                      (b) Production use that was not permitted, but that You
+                          made before You knew or reasonably ought to have known
+                          that it was not permitted, is treated as permitted
+                          Production use if You obtain a Commercial License or
+                          stop that use within the Cure Period.
+
+                      (c) For a Hosted Offering, the Cure Period is available
+                          only once, starts only on notice from the Licensor,
+                          and section 4(b) does not apply.
+
+                      5. Guidance and Commercial Licenses
+
+                      The Licensor publishes guidance on this License at
+                      https://www.eventcatalog.dev/license-faq (or a successor
+                      address it publishes). Where that guidance says a use of a
+                      version of the Licensed Work is permitted, You may rely on
+                      it for that version, and it will not later be changed to
+                      restrict that use. If the guidance and this License
+                      differ, this License applies, except where the guidance is
+                      more permissive.
+
+                      A Commercial License or other written permission from the
+                      Licensor may permit uses not covered by this grant. A
+                      Commercial License held by a vendor or distributor does
+                      not cover its customers' Production use unless it
+                      expressly says so.
+
+                      6. Definitions
+
+                      "You" means the individual or Organisation exercising
+                      rights under this License, and has the same meaning as
+                      "you" in the Terms below.
+
+                      "Organisation" means any company, partnership, sole
+                      trader, trust, government or public body, or other entity
+                      or undertaking, together with all of its Affiliates. A
+                      government or public body is treated as an Organisation at
+                      the level of the individual body (for example a ministry,
+                      department, agency, local authority or health trust), not
+                      the wider government of which it forms part.
+
+                      "Affiliate" means any entity that controls, is controlled
+                      by, or is under common control with another, where
+                      "control" means owning more than fifty percent (50%) of
+                      the voting interests or otherwise having the power to
+                      direct its management and policies. Two entities are not
+                      Affiliates of each other solely because both are owned or
+                      controlled by (i) a government or public body, or (ii) an
+                      investment fund or other financial investor that does not
+                      include them in its own consolidated financial statements.
+
+                      "Annual Revenue" means the total gross revenue (or, for a
+                      business such as a bank or insurer that does not report
+                      revenue in that form, the nearest equivalent measure of
+                      its total income) of the whole Organisation for its most
+                      recently completed financial year, taken from consolidated
+                      financial statements where they exist and otherwise by
+                      adding together the figures for each member. For a
+                      government or public body, charity or non-profit
+                      organisation, it means the greater of its total income
+                      (including grants and donations) and its total annual
+                      budget for that year. An Organisation that has not
+                      completed a financial year uses its reasonably projected
+                      figure for its first year. Amounts in other currencies are
+                      converted to US dollars at the average exchange rate for
+                      that year from a recognised published source.
+
+                      "Total Funding" means the total amount of equity
+                      investment, and of convertible or other investment
+                      intended to convert into equity (such as convertible notes
+                      or SAFEs), that the whole Organisation has received from
+                      investors outside the Organisation since it was formed,
+                      measured at the amounts invested. It does not include
+                      revenue, government or charitable grants, or loans and
+                      other debt.
+
+                      "Production use" means any use of the Licensed Work other
+                      than (i) trying it out with sample, test or throwaway
+                      content that no one relies on, or (ii) developing, testing
+                      or contributing to the Licensed Work itself. It includes
+                      running a catalog built with the Licensed Work that an
+                      Organisation's employees, contractors or automated systems
+                      (including AI agents) use or rely on to document,
+                      discover, understand or govern its software systems,
+                      whether that catalog is available internally, privately or
+                      publicly, and using the Licensed Work in continuous
+                      integration or deployment pipelines to build, update or
+                      validate such a catalog. Use is Production use if it meets
+                      this definition, whatever the catalog, environment or
+                      project is called (including "evaluation", "pilot", "proof
+                      of concept" or "internal").
+
+                      "Evaluation Period" means the ninety (90) days starting on
+                      the date an Organisation first makes Production use of any
+                      version of the Licensed Work, or any longer period the
+                      Licensor agrees in writing. Each Organisation, including
+                      all of its Affiliates, has one Evaluation Period in total
+                      across all versions of the Licensed Work. Upgrading,
+                      reinstalling, creating another catalog, or a change in the
+                      Organisation's Affiliates does not start a new Evaluation
+                      Period. If two Organisations that have each started an
+                      Evaluation Period become Affiliates, the earlier period
+                      applies to the combined Organisation.
 
                       "Public Open Source Project" means a software project
-                      whose source code is publicly available under a
-                      license approved by the Open Source Initiative, where
-                      the catalog documents only that project.
+                      whose source code is publicly available under a license
+                      approved by the Open Source Initiative, where the catalog
+                      documents only that project's software and not the systems
+                      of an Organisation.
 
-                      "Hosted Offering" means using the Licensed Work to
-                      provide third parties with access to the Licensed
-                      Work, or to its functionality, as a hosted or managed
-                      service, whether or not for a fee. The following are
-                      not Hosted Offerings: publishing a catalog that
-                      documents Your own software systems, including making
-                      it publicly accessible; and hosting a catalog on
-                      behalf of a client, where the catalog documents that
-                      client's software systems and the client is an
-                      Eligible User or holds a commercial license from the
-                      Licensor that covers that use.
+                      "Hosted Offering" means using the Licensed Work to give
+                      third parties access to the Licensed Work, or to a catalog
+                      built with it, as a hosted, managed or multi-tenant
+                      service, whether or not for a fee, and whether offered on
+                      its own or as part of another product. Members of Your
+                      Organisation are not third parties. The following are not
+                      Hosted Offerings:
 
-                      All other Production use requires a commercial
-                      license from the Licensor. Interpretive guidance is
-                      published at https://www.eventcatalog.dev/license-faq.
-                      Guidance for a version of the Licensed Work will not
-                      be changed to further restrict use of that version.
-Change Date:          For each version of the Licensed Work, four years from
-                      the date that version is first publicly released.
+                      (a) publishing a catalog that documents Your own software
+                          systems, including making it publicly accessible to
+                          Your customers, partners or the public;
+
+                      (b) hosting a catalog for a specific client under section
+                          3 as part of services You provide to that client,
+                          where the catalog documents that client's software
+                          systems and You do not offer hosting of the Licensed
+                          Work as a standardised or self-service product; and
+
+                      (c) hosting, without charge, catalogs that document only
+                          Public Open Source Projects.
+
+                      "Commercial License" means a written license from the
+                      Licensor permitting Production use beyond this grant.
+
+                      7. Everything else
+
+                      All other Production use requires a Commercial License.
+                      Nothing in this grant limits the rights granted in the
+                      Terms below, including the right to copy, modify,
+                      redistribute and make non-production use of the Licensed
+                      Work. The content of Your own catalog (the documentation,
+                      schemas, diagrams and configuration You create) is Yours
+                      and is not part of the Licensed Work.
+Change Date:          Four years after the first public release, including any
+                      pre-release, of any release in the same release series as
+                      the Licensed Work.
+
+                      A "release series" is every release that shares the same
+                      major and minor release number, including its pre-releases
+                      and patch releases: for example, 5.1 includes
+                      5.1.0-beta.1, 5.1.0 and 5.1.3, and they all share one
+                      Change Date. Unreleased builds, such as individual commits
+                      or nightly builds, belong to the next release series to be
+                      released.
 Change License:       MIT
 
 For information about commercial licensing of the Licensed Work, please
