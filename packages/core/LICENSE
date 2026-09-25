@@ -4,8 +4,8 @@ License text copyright (c) 2024 MariaDB plc, All Rights Reserved.
 Parameters
 
 Licensor:             EventCatalog Ltd (company number 15764703)
-Licensed Work:        The @eventcatalog/core package, version 5.0.0,
-                      including its pre-releases, or later. The Licensed
+Licensed Work:        The @eventcatalog/core package, version 5.0, including
+                      its pre-releases, or later. The Licensed
                       Work is (c) 2026 EventCatalog Ltd.
 Additional Use Grant: You may make Production use of the Licensed Work,
                       provided that You are an Eligible User and Your use
@@ -32,9 +32,15 @@ Additional Use Grant: You may make Production use of the Licensed Work,
 
                       (e) any Organisation, during one evaluation period of
                           up to ninety (90) days starting on the date it
-                          first makes Production use of the Licensed Work,
-                          or any longer period agreed in writing by the
-                          Licensor.
+                          first makes Production use of any version of the
+                          Licensed Work, or any longer period agreed in
+                          writing by the Licensor. Each Organisation,
+                          including all of its Affiliates, has one
+                          evaluation period in total, across all versions of
+                          the Licensed Work. Upgrading to a new version,
+                          reinstalling the Licensed Work, creating another
+                          catalog, or a change in the Organisation's
+                          Affiliates does not start a new evaluation period.
 
                       2. Crossing the threshold
 
@@ -58,9 +64,12 @@ Additional Use Grant: You may make Production use of the Licensed Work,
                       Your use is not permitted by this Additional Use
                       Grant, You may continue to use the Licensed Work for
                       thirty (30) days in order to obtain a commercial
-                      license or stop that use, and Your rights under this
-                      License will not terminate during that period for
-                      that reason.
+                      license or stop that use (the "Cure Period"). Such
+                      continued use during the Cure Period is permitted
+                      Production use under this Additional Use Grant, is
+                      not a use in violation of this License, and Your
+                      rights under this License will not terminate during
+                      the Cure Period for that reason.
 
                       5. Definitions
 
@@ -123,6 +132,16 @@ Additional Use Grant: You may make Production use of the Licensed Work,
                       be changed to further restrict use of that version.
 Change Date:          For each version of the Licensed Work, four years from
                       the date that version is first publicly released.
+
+                      For the purposes of this License, a "version" of the
+                      Licensed Work is a major or minor release (for
+                      example, 5.0 or 5.1), together with its pre-releases
+                      and patch releases (for example, 5.1.0-beta.1 or
+                      5.1.3). A version is first publicly released on the
+                      date its first release, including any pre-release, is
+                      published. Unreleased builds, such as individual
+                      commits or nightly builds, are part of the next
+                      version to be released.
 Change License:       MIT
 
 For information about commercial licensing of the Licensed Work, please
