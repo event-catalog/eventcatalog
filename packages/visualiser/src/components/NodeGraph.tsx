@@ -178,6 +178,8 @@ const INITIAL_FIT_VIEW_OPTIONS = {
   duration: 0,
   maxZoom: 1,
 } as const;
+const HIDE_ATTRIBUTION = { hideAttribution: true };
+
 const MINIMAP_STYLE = {
   backgroundColor: "rgb(var(--ec-page-bg))",
   border: "1px solid rgb(var(--ec-page-border))",
@@ -305,6 +307,12 @@ interface Props {
   mode?: "full" | "simple";
   showFlowWalkthrough?: boolean;
   showSearch?: boolean;
+  /** Show the settings menu (top left). Defaults to true. */
+  showMenu?: boolean;
+  /** Use a narrower search box, for small spaces. */
+  compactSearch?: boolean;
+  /** Hide the React Flow attribution (bottom right). */
+  hideAttribution?: boolean;
   zoomOnScroll?: boolean;
   designId?: string;
   isChatEnabled?: boolean;
@@ -480,6 +488,9 @@ const NodeGraphBuilder = ({
   mode = "full",
   showFlowWalkthrough = true,
   showSearch = true,
+  showMenu = true,
+  compactSearch = false,
+  hideAttribution = false,
   zoomOnScroll = false,
   isChatEnabled = false,
   maxTextSize,
@@ -2332,6 +2343,7 @@ const NodeGraphBuilder = ({
         ) : (
           <ReactFlow
             nodeTypes={nodeTypes}
+            proOptions={hideAttribution ? HIDE_ATTRIBUTION : undefined}
             edgeTypes={edgeTypes}
             minZoom={0.07}
             nodes={nodes}
@@ -2372,68 +2384,70 @@ const NodeGraphBuilder = ({
               <div className="flex space-x-2 justify-between items-center pointer-events-auto">
                 <div className="flex space-x-2 ml-4">
                   {/* Settings Dropdown Menu */}
-                  <DropdownMenu.Root>
-                    <DropdownMenu.Trigger asChild>
-                      <button
-                        className={menuButtonClassName}
-                        aria-label="Open menu"
+                  {showMenu && (
+                    <DropdownMenu.Root>
+                      <DropdownMenu.Trigger asChild>
+                        <button
+                          className={menuButtonClassName}
+                          aria-label="Open menu"
+                        >
+                          {title && (
+                            <span className="text-base font-medium text-[rgb(var(--ec-page-text))] leading-tight">
+                              {title}
+                            </span>
+                          )}
+                          <MoreVertical className={menuIconClassName} />
+                        </button>
+                      </DropdownMenu.Trigger>
+                      <DropdownMenu.Portal
+                        container={reactFlowWrapperRef.current}
                       >
-                        {title && (
-                          <span className="text-base font-medium text-[rgb(var(--ec-page-text))] leading-tight">
-                            {title}
-                          </span>
-                        )}
-                        <MoreVertical className={menuIconClassName} />
-                      </button>
-                    </DropdownMenu.Trigger>
-                    <DropdownMenu.Portal
-                      container={reactFlowWrapperRef.current}
-                    >
-                      <DropdownMenu.Content
-                        className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
-                        sideOffset={0}
-                        align="end"
-                        alignOffset={-180}
-                      >
-                        <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
-                        <VisualizerDropdownContent
-                          isMermaidView={isMermaidView}
-                          setIsMermaidView={setIsMermaidView}
-                          animateMessages={animateMessages}
-                          toggleAnimateMessages={toggleAnimateMessages}
-                          hideAnimateMessages={disableMessageAnimation}
-                          hideChannels={hideChannels}
-                          toggleChannelsVisibility={toggleChannelsVisibility}
-                          hasChannels={hasChannels}
-                          hideMessages={hideMessages}
-                          toggleMessagesVisibility={toggleMessagesVisibility}
-                          hasMessages={hasMessages}
-                          showMinimap={showMinimap}
-                          setShowMinimap={setShowMinimap}
-                          handleFitView={handleFitView}
-                          searchRef={searchRef}
-                          isChatEnabled={isChatEnabled}
-                          openChat={openChat}
-                          handleCopyArchitectureCode={
-                            handleCopyArchitectureCode
-                          }
-                          handleExportVisual={handleExportVisual}
-                          setIsShareModalOpen={setIsShareModalOpen}
-                          toggleFullScreen={toggleFullScreen}
-                          isDevMode={isDevMode}
-                          onSaveLayout={handleSaveLayout}
-                          onResetLayout={handleResetLayout}
-                          notesCount={totalNotesCount}
-                          onOpenNotes={openNotesModal}
-                        />
-                      </DropdownMenu.Content>
-                    </DropdownMenu.Portal>
-                  </DropdownMenu.Root>
+                        <DropdownMenu.Content
+                          className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
+                          sideOffset={0}
+                          align="end"
+                          alignOffset={-180}
+                        >
+                          <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
+                          <VisualizerDropdownContent
+                            isMermaidView={isMermaidView}
+                            setIsMermaidView={setIsMermaidView}
+                            animateMessages={animateMessages}
+                            toggleAnimateMessages={toggleAnimateMessages}
+                            hideAnimateMessages={disableMessageAnimation}
+                            hideChannels={hideChannels}
+                            toggleChannelsVisibility={toggleChannelsVisibility}
+                            hasChannels={hasChannels}
+                            hideMessages={hideMessages}
+                            toggleMessagesVisibility={toggleMessagesVisibility}
+                            hasMessages={hasMessages}
+                            showMinimap={showMinimap}
+                            setShowMinimap={setShowMinimap}
+                            handleFitView={handleFitView}
+                            searchRef={searchRef}
+                            isChatEnabled={isChatEnabled}
+                            openChat={openChat}
+                            handleCopyArchitectureCode={
+                              handleCopyArchitectureCode
+                            }
+                            handleExportVisual={handleExportVisual}
+                            setIsShareModalOpen={setIsShareModalOpen}
+                            toggleFullScreen={toggleFullScreen}
+                            isDevMode={isDevMode}
+                            onSaveLayout={handleSaveLayout}
+                            onResetLayout={handleResetLayout}
+                            notesCount={totalNotesCount}
+                            onOpenNotes={openNotesModal}
+                          />
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Portal>
+                    </DropdownMenu.Root>
+                  )}
                 </div>
                 {mode === "full" && showSearch && (
                   <div className="flex justify-end items-center gap-2">
                     {!isMermaidView && (
-                      <div className="w-96">
+                      <div className={compactSearch ? "w-60" : "w-96"}>
                         <VisualiserSearch
                           ref={searchRef}
                           nodes={searchNodes}
@@ -2675,6 +2689,12 @@ interface NodeGraphProps {
   portalId?: string;
   showFlowWalkthrough?: boolean;
   showSearch?: boolean;
+  /** Show the settings menu (top left). Defaults to true. */
+  showMenu?: boolean;
+  /** Use a narrower search box, for small spaces. */
+  compactSearch?: boolean;
+  /** Hide the React Flow attribution (bottom right). */
+  hideAttribution?: boolean;
   zoomOnScroll?: boolean;
   designId?: string;
   isChatEnabled?: boolean;
@@ -2743,6 +2763,9 @@ const NodeGraph = ({
   portalId,
   showFlowWalkthrough = true,
   showSearch: showSearchProp,
+  showMenu,
+  compactSearch,
+  hideAttribution,
   zoomOnScroll = false,
   designId,
   isChatEnabled = false,
@@ -2853,6 +2876,9 @@ const NodeGraph = ({
             mode={mode}
             showFlowWalkthrough={showFlowWalkthrough}
             showSearch={showSearch}
+            showMenu={showMenu}
+            compactSearch={compactSearch}
+            hideAttribution={hideAttribution}
             zoomOnScroll={zoomOnScroll}
             designId={designId || id}
             isChatEnabled={isChatEnabled}

@@ -6,7 +6,7 @@ import { glob } from 'glob';
 // Type definitions for test results
 type ProducerConsumer = { id: string; version: string; name: string };
 type ResourceResult = { collection: string; id: string; version?: string; name: string };
-import { mockEvents, mockTeams, mockUsers, mockCollections } from './catalog-tools.mocks';
+import { mockEvents, mockServices, mockTeams, mockUsers, mockCollections } from './catalog-tools.mocks';
 
 // Mock astro:content
 vi.mock('astro:content', async (importOriginal) => {
@@ -33,7 +33,8 @@ vi.mock('@utils/collections/util', async (importOriginal) => ({
   getItemsFromCollectionByIdAndSemverOrLatest: vi.fn((collection, id, version) => {
     // Filter collection by id, and optionally by version
     const matches = collection.filter((item: any) => item.data.id === id);
-    if (version) {
+    // Like the real util, 'latest' means no version
+    if (version && version !== 'latest') {
       const exactMatch = matches.find((item: any) => item.data.version === version);
       return exactMatch ? [exactMatch] : [];
     }
@@ -312,6 +313,27 @@ describe('getResources', () => {
       expect(result.resources[0]).toHaveProperty('name');
     }
   });
+
+  it('excludes hidden resources, matching the rest of the catalog', async () => {
+    mockEvents.push({
+      id: 'SecretEvent-1.0.0',
+      slug: 'events/SecretEvent',
+      collection: 'events',
+      body: '',
+      data: { id: 'SecretEvent', name: 'Secret Event', version: '1.0.0', summary: '', owners: [], hidden: true } as any,
+    });
+
+    try {
+      const result = await getResources({ collection: 'events' });
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.resources.some((r) => r.id === 'SecretEvent')).toBe(false);
+        expect(result.totalCount).toBe(mockEvents.length - 1);
+      }
+    } finally {
+      mockEvents.pop();
+    }
+  });
 });
 
 describe('getResource', () => {
@@ -363,6 +385,84 @@ describe('getResource', () => {
     });
     expect('error' in result).toBe(true);
   });
+
+  it.each([undefined, 'latest'])('returns the latest version when the version is %s', async (version) => {
+    const result = await getResource({ collection: 'events', id: 'OrderCreated', version });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.data.version).toBe('2.0.0');
+    }
+  });
+
+  it('returns only the frontmatter and markdown body, without internal Astro entry fields', async () => {
+    const event = mockEvents.find((e) => e.id === 'OrderCreated-1.0.0')!;
+    Object.assign(event, { filePath: '/private/catalog/events/OrderCreated/index.mdx', digest: 'abc123' });
+
+    try {
+      const result = await getResource({ collection: 'events', id: 'OrderCreated', version: '1.0.0' });
+      expect(result).toEqual({
+        id: 'OrderCreated',
+        version: '1.0.0',
+        collection: 'events',
+        data: event.data,
+        body: 'Order created event description',
+      });
+    } finally {
+      delete (event as any).filePath;
+      delete (event as any).digest;
+    }
+  });
+});
+
+describe('optional versions default to the latest version', () => {
+  it('getSchemaForResource resolves the latest version when no version is given', async () => {
+    vi.mocked(getSchemasFromResource).mockResolvedValue([{ url: '/path/to/schema.json', format: 'json-schema' }]);
+    const result = await getSchemaForResource({ resourceId: 'PaymentProcessed', resourceCollection: 'events' });
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it('getProducersOfMessage matches producers against the latest message version', async () => {
+    const result = await getProducersOfMessage({ messageId: 'OrderCreated', messageCollection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message.version).toBe('2.0.0');
+      // OrderService only sends OrderCreated 1.0.0
+      expect(result.producers.some((p: ProducerConsumer) => p.id === 'OrderService')).toBe(false);
+    }
+  });
+
+  it('getConsumersOfMessage matches consumers against the latest message version', async () => {
+    const result = await getConsumersOfMessage({ messageId: 'OrderCreated', messageCollection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message.version).toBe('2.0.0');
+      expect(result.consumers.map((c: ProducerConsumer) => c.id).sort()).toEqual(['NotificationService', 'PaymentService']);
+    }
+  });
+
+  it('analyzeChangeImpact reports the latest message version', async () => {
+    const result = await analyzeChangeImpact({ messageId: 'OrderCreated', messageCollection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message.version).toBe('2.0.0');
+    }
+  });
+
+  it('explainBusinessFlow resolves the latest flow version', async () => {
+    const result = await explainBusinessFlow({ flowId: 'OrderFlow' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.flow.version).toBe('1.0.0');
+    }
+  });
+
+  it('getArchitectureDiagramAsMermaid resolves the latest resource version', async () => {
+    const result = await getArchitectureDiagramAsMermaid({ resourceId: 'CoreSystem', resourceCollection: 'systems' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resourceVersion).toBe('1.0.0');
+    }
+  });
 });
 
 describe('getArchitectureDiagramAsMermaid', () => {
@@ -382,20 +482,51 @@ describe('getArchitectureDiagramAsMermaid', () => {
 });
 
 describe('getMessagesProducedOrConsumedByResource', () => {
-  it('returns resource with sends and receives properties', async () => {
+  it('resolves the messages a service sends and receives to their catalog entries', async () => {
     const result = await getMessagesProducedOrConsumedByResource({
       resourceId: 'OrderService',
       resourceVersion: '1.0.0',
       resourceCollection: 'services',
     });
+
+    expect(result).toEqual({
+      resource: { id: 'OrderService', version: '1.0.0', name: 'Order Service', collection: 'services' },
+      sends: [
+        {
+          id: 'OrderCreated',
+          version: '1.0.0',
+          name: 'Order Created',
+          summary: 'Fired when an order is created',
+          collection: 'events',
+        },
+      ],
+      receives: [
+        {
+          id: 'PaymentProcessed',
+          version: '1.0.0',
+          name: 'Payment Processed',
+          summary: 'Fired when a payment is processed',
+          collection: 'events',
+        },
+      ],
+    });
+  });
+
+  it('resolves message pointers without a version to the latest message version', async () => {
+    const result = await getMessagesProducedOrConsumedByResource({
+      resourceId: 'PaymentService',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'services',
+    });
+
     expect('error' in result).toBe(false);
     if (!('error' in result)) {
-      expect(result.data.sends).toBeDefined();
-      expect(result.data.receives).toBeDefined();
+      expect(result.receives).toEqual([expect.objectContaining({ id: 'OrderCreated', version: '2.0.0' })]);
+      expect(result.sends).toEqual([expect.objectContaining({ id: 'PaymentProcessed', version: '1.0.0' })]);
     }
   });
 
-  it('returns an agent resource with sends and receives properties', async () => {
+  it('returns the messages an agent sends and receives', async () => {
     const result = await getMessagesProducedOrConsumedByResource({
       resourceId: 'FraudReviewAgent',
       resourceVersion: '1.0.0',
@@ -403,8 +534,29 @@ describe('getMessagesProducedOrConsumedByResource', () => {
     });
     expect('error' in result).toBe(false);
     if (!('error' in result)) {
-      expect(result.data.sends).toBeDefined();
-      expect(result.data.receives).toBeDefined();
+      expect(result.resource.collection).toBe('agents');
+      expect(Array.isArray(result.sends)).toBe(true);
+      expect(Array.isArray(result.receives)).toBe(true);
+    }
+  });
+
+  it('marks message pointers that are not documented in the catalog as not found', async () => {
+    const service = mockServices.find((s) => s.data.id === 'NotificationService')!;
+    const originalReceives = service.data.receives;
+    service.data.receives = [{ id: 'UndocumentedEvent', version: '1.0.0' }];
+
+    try {
+      const result = await getMessagesProducedOrConsumedByResource({
+        resourceId: 'NotificationService',
+        resourceVersion: '1.0.0',
+        resourceCollection: 'services',
+      });
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.receives).toEqual([{ id: 'UndocumentedEvent', version: '1.0.0', notFound: true }]);
+      }
+    } finally {
+      service.data.receives = originalReceives;
     }
   });
 

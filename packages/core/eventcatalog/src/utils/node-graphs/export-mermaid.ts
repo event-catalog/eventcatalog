@@ -33,6 +33,9 @@ const NODE_SHAPE_MAP: Record<string, [string, string]> = {
   channel: ['[(', ')]'],
   domains: ['[', ']'], // rectangle
   domain: ['[', ']'],
+  'context-domain': ['[', ']'], // another domain, shown as a single card
+  systems: ['[[', ']]'], // a system shown as a single node
+  'context-actor': ['((', '))'], // circle
   flows: ['([', '])'], // stadium (rounded)
   flow: ['([', '])'],
   systems: ['[[', ']]'],
@@ -51,6 +54,9 @@ const NODE_SHAPE_MAP: Record<string, [string, string]> = {
   view: ['[', ']'], // rectangle
   note: ['[', ']'], // rectangle
 };
+
+/** Node types that are boundaries around other nodes, rendered as subgraphs */
+const GROUP_NODE_TYPES = new Set(['system-group', 'domain-group']);
 
 /**
  * Mermaid class definitions for styling different node types
@@ -72,6 +78,9 @@ const NODE_STYLE_CLASSES: Record<string, string> = {
   channel: 'fill:#6b7280,stroke:#374151,color:#fff',
   domains: 'fill:#eab308,stroke:#a16207,color:#000',
   domain: 'fill:#eab308,stroke:#a16207,color:#000',
+  'context-domain': 'fill:#eab308,stroke:#a16207,color:#000',
+  systems: 'fill:#7c3aed,stroke:#5b21b6,color:#fff',
+  'context-actor': 'fill:#8b5cf6,stroke:#6d28d9,color:#fff',
   flows: 'fill:#14b8a6,stroke:#0f766e,color:#fff',
   flow: 'fill:#14b8a6,stroke:#0f766e,color:#fff',
   systems: 'fill:#8b5cf6,stroke:#6d28d9,color:#fff',
@@ -176,6 +185,16 @@ export function getNodeLabel(node: Node): string {
     return formatLabelWithVersion(name, version);
   }
 
+  if (type === 'systems' || type === 'system-group') {
+    const system = (data as any).system;
+    return formatLabelWithVersion(system?.name || system?.id || node.id, system?.version);
+  }
+
+  if (type === 'context-domain' || type === 'domain-group') {
+    const domain = (data as any).domain;
+    return formatLabelWithVersion(domain?.name || domain?.id || node.id, domain?.version);
+  }
+
   if (type === 'domains' || type === 'domain') {
     const domain = (data as any).domain;
     // Domain data can be nested in .data
@@ -228,6 +247,11 @@ export function getNodeLabel(node: Node): string {
   if (type === 'entities' || type === 'entity') {
     const entity = (data as any).entity;
     return entity?.name || entity?.id || node.id;
+  }
+
+  if (type === 'custom') {
+    const custom = (data as any).custom ?? {};
+    return custom.title || (data as any).step?.title || node.id;
   }
 
   if (type === 'note') {
@@ -286,16 +310,37 @@ export function convertToMermaid(nodes: Node[], edges: Edge[], options: MermaidE
     });
   }
 
-  // Add node definitions
+  // Add node definitions. Nodes inside a group (a system or domain boundary)
+  // are nested in a subgraph for that group, so containment is kept
   lines.push('');
   lines.push('    %% Nodes');
 
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  const childrenOf = new Map<string, Node[]>();
+  const topLevelNodes: Node[] = [];
   nodes.forEach((node) => {
+    if (node.parentId && nodeIds.has(node.parentId)) {
+      childrenOf.set(node.parentId, [...(childrenOf.get(node.parentId) ?? []), node]);
+    } else {
+      topLevelNodes.push(node);
+    }
+  });
+
+  const addNode = (node: Node, depth: number) => {
+    const indent = '    '.repeat(depth);
     const sanitizedId = sanitizeMermaidId(node.id);
     const label = escapeMermaidLabel(getNodeLabel(node));
-    const [prefix, suffix] = getMermaidNodeShape(node.type || 'custom');
+    const children = childrenOf.get(node.id);
 
-    let nodeLine = `    ${sanitizedId}${prefix}"${label}"${suffix}`;
+    if (children || GROUP_NODE_TYPES.has(node.type ?? '')) {
+      lines.push(`${indent}subgraph ${sanitizedId}["${label}"]`);
+      children?.forEach((child) => addNode(child, depth + 1));
+      lines.push(`${indent}end`);
+      return;
+    }
+
+    const [prefix, suffix] = getMermaidNodeShape(node.type || 'custom');
+    let nodeLine = `${indent}${sanitizedId}${prefix}"${label}"${suffix}`;
 
     // Add class reference if styles are enabled
     if (includeStyles && node.type && usedTypes.has(node.type)) {
@@ -303,7 +348,9 @@ export function convertToMermaid(nodes: Node[], edges: Edge[], options: MermaidE
     }
 
     lines.push(nodeLine);
-  });
+  };
+
+  topLevelNodes.forEach((node) => addNode(node, 1));
 
   // Add edge definitions
   lines.push('');

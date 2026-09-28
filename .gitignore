@@ -85,3 +85,6 @@ docs/superpowers/*
 federationv2.md
 # EventCatalog license files used for local testing, never commit them
 license.jwt
+
+# MCP App views, built by packages/core/scripts/build-mcp-apps.mjs (kept out of git, shipped in the npm package)
+packages/core/eventcatalog/src/features/mcp/apps/generated/

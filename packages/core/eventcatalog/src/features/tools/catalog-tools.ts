@@ -2,27 +2,20 @@
  * Shared catalog tools for accessing EventCatalog resources.
  * Used by both the AI Chat feature and MCP Server.
  */
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import { z } from 'zod';
 import { getSchemasFromResource, getSchemaFormatFromURL } from '@utils/collections/schemas';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import fs from 'node:fs';
-import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForAgent } from '@utils/node-graphs/agents-node-graph';
+import { getArchitectureDiagramGraph } from '@utils/node-graphs/architecture-diagram';
 import {
-  getNodesAndEdgesForCommands,
-  getNodesAndEdgesForEvents,
-  getNodesAndEdgesForQueries,
-} from '@utils/node-graphs/message-node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graphs/domains-node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-graphs/data-products-node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForSystem } from '@utils/node-graphs/systems-node-graph';
+  ARCHITECTURE_DIAGRAM_COLLECTIONS,
+  isArchitectureDiagramCollection,
+  type ArchitectureDiagramDetail,
+} from '@utils/node-graphs/architecture-diagram-types';
 import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
-import config from '@config';
 import { glob } from 'glob';
 import path from 'node:path';
 import {
@@ -204,34 +197,35 @@ export const resourceCollectionSchema = z.enum([
   'data-products',
 ]);
 
-export const visualiserCollectionSchema = z.enum([
-  'events',
-  'commands',
-  'queries',
-  'agents',
-  'services',
-  'domains',
-  'systems',
-  'flows',
-  'containers',
-  'data-products',
-]);
+export const visualiserCollectionSchema = z.enum(ARCHITECTURE_DIAGRAM_COLLECTIONS);
 
 // ============================================
 // Tool implementations (core logic)
 // ============================================
 
 /**
+ * Find a catalog entry by id and version. When no version (or 'latest') is given, the latest version is returned.
+ */
+async function findEntry(collection: string, id: string, version?: string): Promise<any | undefined> {
+  const entries = await getCollection(collection as any);
+  return getItemsFromCollectionByIdAndSemverOrLatest(entries as any[], id, version)[0];
+}
+
+const describeVersion = (version?: string) => version ?? 'latest';
+
+/**
  * Get resources from a collection with optional pagination and search
  */
 export async function getResources(params: { collection: string; cursor?: string; search?: string }) {
   const resources = await getCollection(params.collection as any);
-  let allResults = resources.map((resource: any) => ({
-    id: resource.data.id,
-    version: resource.data.version,
-    name: resource.data.name,
-    summary: resource.data.summary,
-  }));
+  let allResults = resources
+    .filter((resource: any) => resource.data.hidden !== true)
+    .map((resource: any) => ({
+      id: resource.data.id,
+      version: resource.data.version,
+      name: resource.data.name,
+      summary: resource.data.summary,
+    }));
 
   // Apply search filter if provided
   if (params.search) {
@@ -258,46 +252,90 @@ export async function getResources(params: { collection: string; cursor?: string
 }
 
 /**
- * Get a specific resource by id and version
+ * Get a specific resource by id and version (defaults to the latest version).
+ * Returns the frontmatter and markdown body only, not internal Astro entry fields such as file paths.
  */
-export async function getResource(params: { collection: string; id: string; version: string }) {
-  const resource = await getEntry(params.collection as any, `${params.id}-${params.version}`);
+export async function getResource(params: { collection: string; id: string; version?: string }) {
+  const resource = await findEntry(params.collection, params.id, params.version);
 
   if (!resource) {
-    return { error: `Resource not found: ${params.id}-${params.version}` };
+    return { error: `Resource not found: ${params.id} (${describeVersion(params.version)}) in ${params.collection}` };
   }
 
-  return resource;
+  return {
+    id: resource.data.id,
+    version: resource.data.version,
+    collection: params.collection,
+    data: resource.data,
+    body: resource.body,
+  };
 }
 
+type MessagePointer = { id: string; version?: string };
+
 /**
- * Get messages produced or consumed by a resource
+ * Resolve a sends/receives pointer to the documented message it points at
+ */
+const resolveMessagePointer = (messages: any[], pointer: MessagePointer) => {
+  const message = getItemsFromCollectionByIdAndSemverOrLatest(messages, pointer.id, pointer.version)[0];
+
+  if (!message) {
+    return { id: pointer.id, version: describeVersion(pointer.version), notFound: true };
+  }
+
+  return {
+    id: message.data.id,
+    version: message.data.version,
+    name: message.data.name || message.data.id,
+    summary: message.data.summary,
+    collection: message.collection,
+  };
+};
+
+/**
+ * Get the messages (events, commands, queries) a resource sends and receives, resolved to their catalog entries
  */
 export async function getMessagesProducedOrConsumedByResource(params: {
   resourceId: string;
-  resourceVersion: string;
+  resourceVersion?: string;
   resourceCollection: string;
 }) {
-  const resource = await getEntry(params.resourceCollection as any, `${params.resourceId}-${params.resourceVersion}`);
+  const resource = await findEntry(params.resourceCollection, params.resourceId, params.resourceVersion);
 
   if (!resource) {
     return {
-      error: `Resource not found with id ${params.resourceId} and version ${params.resourceVersion} and collection ${params.resourceCollection}`,
+      error: `Resource not found with id ${params.resourceId} and version ${describeVersion(params.resourceVersion)} and collection ${params.resourceCollection}`,
     };
   }
 
-  return resource;
+  const [events, commands, queries] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+  ]);
+  const messages = [...events, ...commands, ...queries];
+
+  return {
+    resource: {
+      id: resource.data.id,
+      version: resource.data.version,
+      name: resource.data.name || resource.data.id,
+      collection: params.resourceCollection,
+    },
+    sends: (resource.data.sends || []).map((pointer: MessagePointer) => resolveMessagePointer(messages, pointer)),
+    receives: (resource.data.receives || []).map((pointer: MessagePointer) => resolveMessagePointer(messages, pointer)),
+  };
 }
 
 /**
  * Get schema or specifications for a resource
  */
-export async function getSchemaForResource(params: { resourceId: string; resourceVersion: string; resourceCollection: string }) {
-  const resource = await getEntry(params.resourceCollection as any, `${params.resourceId}-${params.resourceVersion}`);
+export async function getSchemaForResource(params: { resourceId: string; resourceVersion?: string; resourceCollection: string }) {
+  const resource = await findEntry(params.resourceCollection, params.resourceId, params.resourceVersion);
 
   if (!resource) {
     return {
-      error: `Resource not found with id ${params.resourceId} and version ${params.resourceVersion} and collection ${params.resourceCollection}`,
+      error: `Resource not found with id ${params.resourceId} and version ${describeVersion(params.resourceVersion)} and collection ${params.resourceCollection}`,
     };
   }
 
@@ -307,7 +345,7 @@ export async function getSchemaForResource(params: { resourceId: string; resourc
       (schema) =>
         schema.data.message.collectionName === params.resourceCollection &&
         schema.data.message.id === params.resourceId &&
-        schema.data.message.version === params.resourceVersion
+        schema.data.message.version === resource.data.version
     );
 
     if (schemas.length > 0) {
@@ -385,30 +423,31 @@ export async function findResourcesByOwner(params: { ownerId: string }) {
 /**
  * Get resources that produce (send) a specific message
  */
-export async function getProducersOfMessage(params: { messageId: string; messageVersion: string; messageCollection: string }) {
+export async function getProducersOfMessage(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
   const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
   const routableResources = [...services, ...agents];
-  const message = await getEntry(params.messageCollection as any, `${params.messageId}-${params.messageVersion}`);
+  const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
     return {
-      error: `Message not found: ${params.messageId}-${params.messageVersion} in ${params.messageCollection}`,
+      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
     };
   }
+  const messageVersion = message.data.version;
 
   const producers = routableResources.filter((resource) => {
     const sends = (resource.data as any).sends || [];
     return sends.some((send: any) => {
       const idMatch = send.id === params.messageId;
       if (!send.version || send.version === 'latest') return idMatch;
-      return idMatch && send.version === params.messageVersion;
+      return idMatch && send.version === messageVersion;
     });
   });
 
   return {
     message: {
       id: params.messageId,
-      version: params.messageVersion,
+      version: messageVersion,
       collection: params.messageCollection,
     },
     producers: producers.map((s) => ({
@@ -464,30 +503,31 @@ export async function getC4Diagram(params: { viewId?: string }) {
 /**
  * Get resources that consume (receive) a specific message
  */
-export async function getConsumersOfMessage(params: { messageId: string; messageVersion: string; messageCollection: string }) {
+export async function getConsumersOfMessage(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
   const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
   const routableResources = [...services, ...agents];
-  const message = await getEntry(params.messageCollection as any, `${params.messageId}-${params.messageVersion}`);
+  const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
     return {
-      error: `Message not found: ${params.messageId}-${params.messageVersion} in ${params.messageCollection}`,
+      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
     };
   }
+  const messageVersion = message.data.version;
 
   const consumers = routableResources.filter((resource) => {
     const receives = (resource.data as any).receives || [];
     return receives.some((receive: any) => {
       const idMatch = receive.id === params.messageId;
       if (!receive.version || receive.version === 'latest') return idMatch;
-      return idMatch && receive.version === params.messageVersion;
+      return idMatch && receive.version === messageVersion;
     });
   });
 
   return {
     message: {
       id: params.messageId,
-      version: params.messageVersion,
+      version: messageVersion,
       collection: params.messageCollection,
     },
     consumers: consumers.map((s) => ({
@@ -504,16 +544,17 @@ export async function getConsumersOfMessage(params: { messageId: string; message
  * Analyze the impact of changing a message (event, command, query)
  * Returns all affected services (producers and consumers) and their owners
  */
-export async function analyzeChangeImpact(params: { messageId: string; messageVersion: string; messageCollection: string }) {
+export async function analyzeChangeImpact(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
   const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
   const routableResources = [...services, ...agents];
-  const message = await getEntry(params.messageCollection as any, `${params.messageId}-${params.messageVersion}`);
+  const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
 
   if (!message) {
     return {
-      error: `Message not found: ${params.messageId}-${params.messageVersion} in ${params.messageCollection}`,
+      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
     };
   }
+  const messageVersion = message.data.version;
 
   // Find producers
   const producers = routableResources.filter((resource) => {
@@ -547,7 +588,7 @@ export async function analyzeChangeImpact(params: { messageId: string; messageVe
   return {
     message: {
       id: params.messageId,
-      version: params.messageVersion,
+      version: messageVersion,
       collection: params.messageCollection,
       name: (message.data as any).name || params.messageId,
     },
@@ -584,11 +625,11 @@ export async function analyzeChangeImpact(params: { messageId: string; messageVe
  * Get detailed information about a flow (state machine / business process)
  * Returns the flow with its steps, description, and related services
  */
-export async function explainBusinessFlow(params: { flowId: string; flowVersion: string }) {
-  const flow = await getEntry('flows', `${params.flowId}-${params.flowVersion}`);
+export async function explainBusinessFlow(params: { flowId: string; flowVersion?: string }) {
+  const flow = await findEntry('flows', params.flowId, params.flowVersion);
 
   if (!flow) {
-    return { error: `Flow not found: ${params.flowId}-${params.flowVersion}` };
+    return { error: `Flow not found: ${params.flowId} (${describeVersion(params.flowVersion)})` };
   }
 
   // Get related services and agents that use this flow
@@ -876,12 +917,12 @@ export async function explainUbiquitousLanguageTerms(params: { domainId: string;
  * Get the inputs (resources consumed) for a data product
  * Returns fully hydrated input resources
  */
-export async function getDataProductInputs(params: { dataProductId: string; dataProductVersion: string }) {
-  const dataProduct = await getEntry('data-products', `${params.dataProductId}-${params.dataProductVersion}`);
+export async function getDataProductInputs(params: { dataProductId: string; dataProductVersion?: string }) {
+  const dataProduct = await findEntry('data-products', params.dataProductId, params.dataProductVersion);
 
   if (!dataProduct) {
     return {
-      error: `Data product not found: ${params.dataProductId}-${params.dataProductVersion}`,
+      error: `Data product not found: ${params.dataProductId} (${describeVersion(params.dataProductVersion)})`,
     };
   }
 
@@ -890,7 +931,7 @@ export async function getDataProductInputs(params: { dataProductId: string; data
   if (inputPointers.length === 0) {
     return {
       dataProductId: params.dataProductId,
-      dataProductVersion: params.dataProductVersion,
+      dataProductVersion: dataProduct.data.version,
       message: 'No inputs found for this data product',
       inputs: [],
     };
@@ -927,7 +968,7 @@ export async function getDataProductInputs(params: { dataProductId: string; data
 
   return {
     dataProductId: params.dataProductId,
-    dataProductVersion: params.dataProductVersion,
+    dataProductVersion: dataProduct.data.version,
     dataProductName: (dataProduct.data as any).name || params.dataProductId,
     inputs: hydratedInputs,
     totalCount: hydratedInputs.length,
@@ -938,12 +979,12 @@ export async function getDataProductInputs(params: { dataProductId: string; data
  * Get the outputs (resources produced) for a data product
  * Returns fully hydrated output resources with their contracts
  */
-export async function getDataProductOutputs(params: { dataProductId: string; dataProductVersion: string }) {
-  const dataProduct = await getEntry('data-products', `${params.dataProductId}-${params.dataProductVersion}`);
+export async function getDataProductOutputs(params: { dataProductId: string; dataProductVersion?: string }) {
+  const dataProduct = await findEntry('data-products', params.dataProductId, params.dataProductVersion);
 
   if (!dataProduct) {
     return {
-      error: `Data product not found: ${params.dataProductId}-${params.dataProductVersion}`,
+      error: `Data product not found: ${params.dataProductId} (${describeVersion(params.dataProductVersion)})`,
     };
   }
 
@@ -952,7 +993,7 @@ export async function getDataProductOutputs(params: { dataProductId: string; dat
   if (outputPointers.length === 0) {
     return {
       dataProductId: params.dataProductId,
-      dataProductVersion: params.dataProductVersion,
+      dataProductVersion: dataProduct.data.version,
       message: 'No outputs found for this data product',
       outputs: [],
     };
@@ -1011,7 +1052,7 @@ export async function getDataProductOutputs(params: { dataProductId: string; dat
 
   return {
     dataProductId: params.dataProductId,
-    dataProductVersion: params.dataProductVersion,
+    dataProductVersion: dataProduct.data.version,
     dataProductName: (dataProduct.data as any).name || params.dataProductId,
     outputs: hydratedOutputs,
     totalCount: hydratedOutputs.length,
@@ -1022,44 +1063,37 @@ export async function getDataProductOutputs(params: { dataProductId: string; dat
 // Architecture Diagram (Mermaid) tools
 // ============================================
 
-const getNodesAndEdgesFunctions = {
-  agents: getNodesAndEdgesForAgent,
-  services: getNodesAndEdgesForService,
-  events: getNodesAndEdgesForEvents,
-  commands: getNodesAndEdgesForCommands,
-  queries: getNodesAndEdgesForQueries,
-  domains: getNodesAndEdgesForDomain,
-  flows: getNodesAndEdgesForFlows,
-  containers: getNodesAndEdgesForContainer,
-  'data-products': getNodesAndEdgesForDataProduct,
-  systems: getNodesAndEdgesForSystem,
-};
-
 /**
  * Get the architecture diagram for a resource as Mermaid code
  * Returns flowchart syntax that can be rendered or used for understanding architecture
  */
 export async function getArchitectureDiagramAsMermaid(params: {
   resourceId: string;
-  resourceVersion: string;
+  resourceVersion?: string;
   resourceCollection: string;
+  detail?: ArchitectureDiagramDetail;
 }) {
-  const { resourceId, resourceVersion, resourceCollection } = params;
+  const { resourceId, resourceCollection, detail = 'full' } = params;
 
   // Validate the collection is supported for visualisation
-  if (!(resourceCollection in getNodesAndEdgesFunctions)) {
+  if (!isArchitectureDiagramCollection(resourceCollection)) {
     return {
-      error: `Collection '${resourceCollection}' does not support architecture diagrams. Supported collections: ${Object.keys(getNodesAndEdgesFunctions).join(', ')}`,
+      error: `Collection '${resourceCollection}' does not support architecture diagrams. Supported collections: ${ARCHITECTURE_DIAGRAM_COLLECTIONS.join(', ')}`,
     };
   }
 
+  const resource = await findEntry(resourceCollection, resourceId, params.resourceVersion);
+  if (!resource) {
+    return { error: `Resource not found: ${resourceId} (${describeVersion(params.resourceVersion)}) in ${resourceCollection}` };
+  }
+  const resourceVersion: string = resource.data.version;
+
   try {
-    // Get nodes and edges for this resource
-    const { nodes, edges } = await getNodesAndEdgesFunctions[resourceCollection as keyof typeof getNodesAndEdgesFunctions]({
+    const { nodes, edges } = await getArchitectureDiagramGraph({
+      collection: resourceCollection,
       id: resourceId,
       version: resourceVersion,
-      mode: 'full',
-      channelRenderMode: config.visualiser?.channels?.renderMode === 'single' ? 'single' : 'flat',
+      detail,
     });
 
     if (!nodes || nodes.length === 0) {
@@ -1078,6 +1112,7 @@ export async function getArchitectureDiagramAsMermaid(params: {
       resourceId,
       resourceVersion,
       resourceCollection,
+      detail,
       mermaidCode,
       nodeCount: nodes.length,
       edgeCount: edges.length,
@@ -1224,9 +1259,10 @@ export async function getCustomDoc(params: { id: string; section?: string }) {
 export const toolDescriptions = {
   getResources:
     'Use this tool to get events, agents, services, commands, queries, flows, domains, channels, entities from EventCatalog. Supports pagination via cursor and filtering by search term (searches name, id, and summary).',
-  getResource: 'Use this tool to get a specific resource from EventCatalog by its id and version',
+  getResource:
+    'Use this tool to get a specific resource from EventCatalog by its id. Returns the frontmatter and markdown documentation. Omit the version to get the latest version.',
   getMessagesProducedOrConsumedByResource:
-    'Use this tool to get the messages produced or consumed by a resource by its id and version. Look at the `sends` and `receives` properties to get the messages produced or consumed by the resource',
+    'Use this tool to get the messages (events, commands, queries) a service, agent or domain sends and receives. Each message is resolved to its catalog id, version, name and summary; messages that are referenced but not documented in the catalog are marked notFound. Omit the version to use the latest version of the resource.',
   getSchemaForResource:
     'Use this tool to get the schema or specifications (openapi or asyncapi or graphql) for a resource by its id and version',
   findResourcesByOwner:
@@ -1256,7 +1292,7 @@ export const toolDescriptions = {
   getDataProductOutputs:
     'Use this tool to get the outputs (resources produced) for a data product. Returns fully hydrated output resources with their id, version, name, summary, collection type, and data contracts (if defined). Data contracts include the contract name, path, format, type, and content.',
   getArchitectureDiagramAsMermaid:
-    'Use this tool to get the architecture diagram for a resource as Mermaid flowchart code. This shows how the resource connects to other resources (agents, services, systems, events, channels, etc.) in the architecture. The mermaid code can be rendered to visualize the architecture or used to understand relationships. Supported collections: events, commands, queries, agents, services, domains, systems, flows, containers, data-products.',
+    'Use this tool first when you need an overview of how part of the architecture fits together. Returns the architecture diagram for a resource as Mermaid flowchart code, built the same way as its Diagram page in EventCatalog: the resources it connects to (services, agents, systems, domains, events, commands, queries, channels, data stores), with labelled edges (e.g. publishes, subscribes to, invokes). Systems and domains appear as subgraphs, so you can see what is inside a boundary and what is outside it. For domains and systems, pass detail "overview" for just the domains, systems and their relationships (smaller), or "full" (default) to include services, messages and channels. One call replaces walking producers and consumers one at a time, and the Mermaid can be shown to the user or added to docs and pull requests. Supported collections: events, commands, queries, agents, services, domains, systems, flows, containers, data-products.',
   getCustomDocs:
     'Use this tool to list the custom documentation pages in EventCatalog (guides, runbooks, architecture notes, onboarding docs, etc.). Returns page ids, titles, and summaries without page content. Supports pagination via cursor and filtering by search term (searches title, id, and summary).',
   searchCustomDocs:

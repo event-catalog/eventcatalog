@@ -9,6 +9,52 @@ import { getCollection } from 'astro:content';
 import { createMcpAuthErrorResponse, validateMcpRequest } from './mcp-auth';
 import { createScopedCatalogTools } from './mcp-scoped-tools';
 import { McpScopeNotFoundError, resolveMcpScope, type McpScope, type McpScopeKind } from './mcp-scope';
+import { registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY } from '@modelcontextprotocol/ext-apps/server';
+import { getArchitectureDiagramView } from '@utils/node-graphs/architecture-diagram';
+import type {
+  ArchitectureDiagramCollection,
+  ArchitectureDiagramView,
+  Graph,
+} from '@utils/node-graphs/architecture-diagram-types';
+import { inlineNodeIcons } from './mcp-app-icons';
+import {
+  ARCHITECTURE_DIAGRAM_META_KEY,
+  ARCHITECTURE_DIAGRAM_RESOURCE_URI,
+  ARCHITECTURE_DIAGRAM_VIEW_TOOL,
+  type ArchitectureDiagramPayload,
+} from './apps/architecture-diagram/shared';
+
+// MCP App views (built by scripts/build-mcp-apps.mjs). Without a build, tools return text only.
+// Loaded when a host reads the view, not up front: each view's HTML is a few MB
+const mcpAppViews = import.meta.glob<string>('./apps/generated/*.html', { query: '?raw', import: 'default' });
+const loadArchitectureDiagramView = mcpAppViews['./apps/generated/architecture-diagram.html'];
+const hasArchitectureDiagramView = Boolean(loadArchitectureDiagramView);
+
+/** Tool `_meta` telling MCP hosts that support MCP Apps to show the tool's result in the architecture diagram view */
+const architectureDiagramViewMeta = (visibility?: Array<'model' | 'app'>) =>
+  hasArchitectureDiagramView
+    ? {
+        ui: { resourceUri: ARCHITECTURE_DIAGRAM_RESOURCE_URI, ...(visibility && { visibility }) },
+        [RESOURCE_URI_META_KEY]: ARCHITECTURE_DIAGRAM_RESOURCE_URI,
+      }
+    : undefined;
+
+const SHOW_ARCHITECTURE_DIAGRAM_DESCRIPTION = [
+  'Show the user an architecture diagram of a resource (domain, system, service, agent, event, command, query, flow, data store or data product): what it connects to, what it publishes and consumes, and the systems and domains around it.',
+  'Use it whenever the user wants to see or understand how something works or fits together, e.g. "show me how the Order Service works", "how does the Ordering domain fit together", "what does Payments talk to", or asks for a diagram, map or visual of something. Prefer it over drawing your own diagram.',
+  'Clients that support MCP Apps show the user an interactive diagram (they can switch levels, search, open other diagrams and ask about any node). The result also contains the diagram as Mermaid (mermaidCode) so you can understand it.',
+  'When the client shows the interactive diagram, do not redraw it as Mermaid or ASCII in your reply: explain it and point out what matters. If the client cannot show interactive diagrams, show the user the mermaidCode.',
+  'For domains and systems, pass detail "overview" for just the domains, systems and their relationships, or "full" (default) to include services, messages and channels.',
+].join(' ');
+
+/** Told to the model with every diagram, so it doesn't draw the diagram the user can already see */
+const ARCHITECTURE_DIAGRAM_NOTE =
+  'Clients that support MCP Apps are showing the user this diagram interactively. If so, do not redraw it as Mermaid or ASCII: explain it instead. Otherwise, show the user the mermaidCode.';
+
+type McpServerOptions = {
+  /** Where this EventCatalog is served, for links from MCP App views back to it */
+  catalogUrl: string;
+};
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
@@ -52,12 +98,48 @@ try {
   // No chat configuration or tools defined - this is fine
 }
 
+const MCP_SERVER_VERSION = '1.3.0';
+
+// Every built-in tool only reads the catalog, so clients can safely auto-approve them
+const readOnlyAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+} as const;
+
+const optionalVersion = (resource: string) =>
+  z.string().optional().describe(`The version of the ${resource}. Omit it (or pass "latest") to use the latest version.`);
+
+function getServerInstructions(scope?: McpScope) {
+  return [
+    'EventCatalog documents an event-driven architecture: domains, systems, services, agents, the messages they exchange (events, commands, queries), channels, flows, entities, data products, schemas, owners (teams and users) and custom documentation.',
+    ...(scope
+      ? [
+          `This server is scoped to the ${scope.name} ${scope.ref.kind} (version ${scope.ref.version}). Only resources inside this ${scope.ref.kind} are available.`,
+        ]
+      : []),
+    'Resources are identified by an id and a version. Versions are optional on every tool: omit the version to use the latest version.',
+    'To find something, call getResources with a collection and a search term, then fetch the details with getResource. Use getSchemaForResource for message schemas and OpenAPI/AsyncAPI specifications.',
+    'When the user wants to see or understand how something works or fits together (e.g. "show me how the Order Service works"), call showArchitectureDiagram: it shows them an interactive diagram. Do not draw your own diagram of the architecture.',
+    'For relationships use getMessagesProducedOrConsumedByResource, getProducersOfMessage and getConsumersOfMessage. Before changing a message, call analyzeChangeImpact to find the affected services, agents and owning teams.',
+    ...(scope
+      ? []
+      : [
+          'Use findResourcesByOwner, getTeam and getUser to find who owns something and how to contact them. Guides, runbooks and architecture notes live in custom documentation: use searchCustomDocs, then getCustomDoc.',
+        ]),
+  ].join('\n');
+}
+
 // Create MCP Server with tools that access Astro collections
-function createMcpServer(scope?: McpScope) {
-  const server = new McpServer({
-    name: scope ? `EventCatalog MCP Server — ${scope.name} ${scope.ref.kind}` : 'EventCatalog MCP Server',
-    version: '1.0.0',
-  });
+function createMcpServer(scope: McpScope | undefined, { catalogUrl }: McpServerOptions) {
+  const server = new McpServer(
+    {
+      name: scope ? `EventCatalog MCP Server — ${scope.name} ${scope.ref.kind}` : 'EventCatalog MCP Server',
+      version: MCP_SERVER_VERSION,
+    },
+    { instructions: getServerInstructions(scope) }
+  );
 
   const tools = scope ? createScopedCatalogTools(scope) : catalogTools;
 
@@ -65,12 +147,14 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'getResources',
     {
+      title: 'List catalog resources',
       description: catalogTools.toolDescriptions.getResources,
       inputSchema: z.object({
         collection: catalogTools.collectionSchema.describe('The collection to get the resources from'),
         cursor: z.string().optional().describe('Pagination cursor from previous response'),
         search: z.string().optional().describe('Search term to filter resources by name, id, or summary (case-insensitive)'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.getResources, 'Failed to get resources')
   );
@@ -78,12 +162,14 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'getResource',
     {
+      title: 'Get a catalog resource',
       description: catalogTools.toolDescriptions.getResource,
       inputSchema: z.object({
         collection: catalogTools.collectionSchema.describe('The collection to get the resource from'),
         id: z.string().describe('The id of the resource to get'),
-        version: z.string().describe('The version of the resource to get'),
+        version: optionalVersion('resource'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.getResource, 'Failed to get resource')
   );
@@ -91,14 +177,16 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'getMessagesProducedOrConsumedByResource',
     {
+      title: 'Get messages a resource sends and receives',
       description: catalogTools.toolDescriptions.getMessagesProducedOrConsumedByResource,
       inputSchema: z.object({
         resourceId: z.string().describe('The id of the resource to get the messages produced or consumed for'),
-        resourceVersion: z.string().describe('The version of the resource to get the messages produced or consumed for'),
+        resourceVersion: optionalVersion('resource'),
         resourceCollection: catalogTools.resourceCollectionSchema
           .describe('The collection of the resource to get the messages produced or consumed for')
           .default('services'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.getMessagesProducedOrConsumedByResource, 'Failed to get messages')
   );
@@ -106,14 +194,16 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'getSchemaForResource',
     {
+      title: 'Get schemas and specifications',
       description: catalogTools.toolDescriptions.getSchemaForResource,
       inputSchema: z.object({
         resourceId: z.string().describe('The id of the resource to get the schema for'),
-        resourceVersion: z.string().describe('The version of the resource to get the schema for'),
+        resourceVersion: optionalVersion('resource'),
         resourceCollection: catalogTools.resourceCollectionSchema
           .describe('The collection of the resource to get the schema for')
           .default('services'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.getSchemaForResource, 'Failed to get schema')
   );
@@ -121,10 +211,12 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'findResourcesByOwner',
     {
+      title: 'Find resources by owner',
       description: catalogTools.toolDescriptions.findResourcesByOwner,
       inputSchema: z.object({
         ownerId: z.string().describe('The id of the owner (team or user) to find resources for'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.findResourcesByOwner, 'Failed to find resources')
   );
@@ -132,14 +224,16 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'getProducersOfMessage',
     {
+      title: 'Find producers of a message',
       description: catalogTools.toolDescriptions.getProducersOfMessage,
       inputSchema: z.object({
         messageId: z.string().describe('The id of the message to find producers for'),
-        messageVersion: z.string().describe('The version of the message'),
+        messageVersion: optionalVersion('message'),
         messageCollection: catalogTools.messageCollectionSchema
           .describe('The collection type of the message (events, commands, or queries)')
           .default('events'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.getProducersOfMessage, 'Failed to get producers')
   );
@@ -147,14 +241,16 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'getConsumersOfMessage',
     {
+      title: 'Find consumers of a message',
       description: catalogTools.toolDescriptions.getConsumersOfMessage,
       inputSchema: z.object({
         messageId: z.string().describe('The id of the message to find consumers for'),
-        messageVersion: z.string().describe('The version of the message'),
+        messageVersion: optionalVersion('message'),
         messageCollection: catalogTools.messageCollectionSchema
           .describe('The collection type of the message (events, commands, or queries)')
           .default('events'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.getConsumersOfMessage, 'Failed to get consumers')
   );
@@ -163,10 +259,12 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       'getC4Diagram',
       {
+        title: 'Get C4 (LikeC4) diagrams',
         description: catalogTools.toolDescriptions.getC4Diagram,
         inputSchema: z.object({
           viewId: z.string().describe('The id of the LikeC4 view to return source files for').optional(),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(catalogTools.getC4Diagram, 'Failed to get c4 diagram')
     );
@@ -175,14 +273,16 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'analyzeChangeImpact',
     {
+      title: 'Analyze the impact of changing a message',
       description: catalogTools.toolDescriptions.analyzeChangeImpact,
       inputSchema: z.object({
         messageId: z.string().describe('The id of the message to analyze impact for'),
-        messageVersion: z.string().describe('The version of the message'),
+        messageVersion: optionalVersion('message'),
         messageCollection: catalogTools.messageCollectionSchema
           .describe('The collection type of the message (events, commands, or queries)')
           .default('events'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.analyzeChangeImpact, 'Failed to analyze impact')
   );
@@ -190,11 +290,13 @@ function createMcpServer(scope?: McpScope) {
   server.registerTool(
     'explainBusinessFlow',
     {
+      title: 'Explain a business flow',
       description: catalogTools.toolDescriptions.explainBusinessFlow,
       inputSchema: z.object({
         flowId: z.string().describe('The id of the flow to explain'),
-        flowVersion: z.string().describe('The version of the flow'),
+        flowVersion: optionalVersion('flow'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.explainBusinessFlow, 'Failed to explain flow')
   );
@@ -203,10 +305,12 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       'getTeams',
       {
+        title: 'List teams',
         description: catalogTools.toolDescriptions.getTeams,
         inputSchema: z.object({
           cursor: z.string().optional().describe('Pagination cursor from previous response'),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(catalogTools.getTeams, 'Failed to get teams')
     );
@@ -214,10 +318,12 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       'getTeam',
       {
+        title: 'Get a team',
         description: catalogTools.toolDescriptions.getTeam,
         inputSchema: z.object({
           id: z.string().describe('The id of the team to get'),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(catalogTools.getTeam, 'Failed to get team')
     );
@@ -225,10 +331,12 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       'getUsers',
       {
+        title: 'List users',
         description: catalogTools.toolDescriptions.getUsers,
         inputSchema: z.object({
           cursor: z.string().optional().describe('Pagination cursor from previous response'),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(catalogTools.getUsers, 'Failed to get users')
     );
@@ -236,18 +344,159 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       'getUser',
       {
+        title: 'Get a user',
         description: catalogTools.toolDescriptions.getUser,
         inputSchema: z.object({
           id: z.string().describe('The id of the user to get'),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(catalogTools.getUser, 'Failed to get user')
+    );
+  }
+
+  // Icons served by EventCatalog don't load in the host's sandbox, so they are embedded in the diagram
+  const withInlineIcons = async ({ overview, hiddenMessages, ...graph }: ArchitectureDiagramView) => {
+    const publicDirectory = join(catalogDirectory, 'public');
+    const inline = async (level: Graph) => ({ ...level, nodes: await inlineNodeIcons(level.nodes, publicDirectory) });
+    return {
+      ...(await inline(graph)),
+      ...(overview && { overview: await inline(overview) }),
+      ...(hiddenMessages && { hiddenMessages: await inline(hiddenMessages) }),
+    };
+  };
+
+  const getResourceName = async (diagram: { resourceCollection: string; resourceId: string; resourceVersion: string }) => {
+    const resource = await catalogTools.getResource({
+      collection: diagram.resourceCollection,
+      id: diagram.resourceId,
+      version: diagram.resourceVersion,
+    });
+    return ('data' in resource && resource.data.name) || diagram.resourceId;
+  };
+
+  // The diagram with its levels for the MCP App view, as the resource's Diagram page shows it
+  const getArchitectureDiagramPayload = async (diagram: {
+    resourceCollection: ArchitectureDiagramCollection;
+    resourceId: string;
+    resourceVersion: string;
+    visualiserUrl: string;
+  }): Promise<ArchitectureDiagramPayload> => ({
+    resource: {
+      collection: diagram.resourceCollection,
+      id: diagram.resourceId,
+      version: diagram.resourceVersion,
+      name: await getResourceName(diagram),
+    },
+    catalogUrl,
+    visualiserPath: diagram.visualiserUrl,
+    view: await withInlineIcons(
+      await getArchitectureDiagramView({
+        collection: diagram.resourceCollection,
+        id: diagram.resourceId,
+        version: diagram.resourceVersion,
+      })
+    ),
+  });
+
+  const architectureDiagramInput = {
+    resourceId: z.string().describe('The id of the resource to get the architecture diagram for'),
+    resourceVersion: optionalVersion('resource'),
+    resourceCollection: catalogTools.visualiserCollectionSchema.describe('The collection of the resource'),
+  };
+
+  server.registerTool(
+    'showArchitectureDiagram',
+    {
+      title: 'Show an architecture diagram',
+      description: SHOW_ARCHITECTURE_DIAGRAM_DESCRIPTION,
+      inputSchema: z.object({
+        ...architectureDiagramInput,
+        detail: z
+          .enum(['overview', 'full'])
+          .optional()
+          .describe(
+            'For domains and systems: "overview" shows only domains, systems and their relationships; "full" (default) also shows services, messages and channels'
+          ),
+      }),
+      annotations: readOnlyAnnotations,
+      _meta: architectureDiagramViewMeta(),
+    },
+    async (params) => {
+      try {
+        const result = await tools.getArchitectureDiagramAsMermaid(params);
+        if ('error' in result) {
+          return { content: [{ type: 'text' as const, text: JSON.stringify(result) }], isError: true };
+        }
+        return {
+          // The model reads the Mermaid; hosts that support MCP Apps show the interactive diagram from `_meta`
+          content: [{ type: 'text' as const, text: JSON.stringify({ note: ARCHITECTURE_DIAGRAM_NOTE, ...result }, null, 2) }],
+          ...(hasArchitectureDiagramView && {
+            _meta: { [ARCHITECTURE_DIAGRAM_META_KEY]: await getArchitectureDiagramPayload(result) },
+          }),
+        };
+      } catch (error) {
+        return {
+          content: [{ type: 'text' as const, text: JSON.stringify({ error: `Failed to get architecture diagram: ${error}` }) }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  if (loadArchitectureDiagramView) {
+    // Only the view calls this, when the host doesn't pass the diagram tool's `_meta` to it
+    server.registerTool(
+      ARCHITECTURE_DIAGRAM_VIEW_TOOL,
+      {
+        title: 'Load an architecture diagram for display',
+        description:
+          'Loads the interactive architecture diagram shown by the architecture diagram view. To show the user a diagram, use showArchitectureDiagram instead.',
+        inputSchema: z.object(architectureDiagramInput),
+        annotations: readOnlyAnnotations,
+        _meta: architectureDiagramViewMeta(['app']),
+      },
+      async (params) => {
+        const result = await tools.getArchitectureDiagramAsMermaid(params);
+        if ('error' in result) {
+          return { content: [{ type: 'text' as const, text: JSON.stringify(result) }], isError: true };
+        }
+        const payload = await getArchitectureDiagramPayload(result);
+        return {
+          content: [
+            {
+              type: 'text' as const,
+              text: `Loaded the architecture diagram for ${result.resourceCollection}/${result.resourceId}`,
+            },
+          ],
+          structuredContent: payload,
+        };
+      }
+    );
+
+    registerAppResource(
+      server,
+      'Architecture diagram view',
+      ARCHITECTURE_DIAGRAM_RESOURCE_URI,
+      { description: 'Interactive EventCatalog architecture diagram, shown by MCP hosts that support MCP Apps' },
+      async () => ({
+        contents: [
+          {
+            uri: ARCHITECTURE_DIAGRAM_RESOURCE_URI,
+            mimeType: RESOURCE_MIME_TYPE,
+            text: await loadArchitectureDiagramView(),
+            // Diagram nodes show icons (languages, databases...) served by this EventCatalog
+            _meta: { ui: { csp: { resourceDomains: [catalogUrl] } } },
+          },
+        ],
+      })
     );
   }
 
   server.registerTool(
     'findMessageBySchemaId',
     {
+      title: 'Find a message from a schema',
       description: catalogTools.toolDescriptions.findMessageBySchemaId,
       inputSchema: z.object({
         messageId: z.string().describe('The message id (from x-eventcatalog-id in the schema)'),
@@ -261,6 +510,7 @@ function createMcpServer(scope?: McpScope) {
           .optional()
           .describe('Optional hint for which collection to search (events, commands, or queries)'),
       }),
+      annotations: readOnlyAnnotations,
     },
     createToolHandler(tools.findMessageBySchemaId, 'Failed to find message')
   );
@@ -269,11 +519,13 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       'explainUbiquitousLanguageTerms',
       {
+        title: 'Explain ubiquitous language terms',
         description: catalogTools.toolDescriptions.explainUbiquitousLanguageTerms,
         inputSchema: z.object({
           domainId: z.string().describe('The id of the domain to get ubiquitous language terms for'),
-          domainVersion: z.string().optional().describe('The version of the domain. If not provided, uses the latest version.'),
+          domainVersion: optionalVersion('domain'),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(tools.explainUbiquitousLanguageTerms, 'Failed to get ubiquitous language terms')
     );
@@ -281,13 +533,43 @@ function createMcpServer(scope?: McpScope) {
 
   if (!scope) {
     server.registerTool(
+      'getDataProductInputs',
+      {
+        title: 'Get data product inputs',
+        description: catalogTools.toolDescriptions.getDataProductInputs,
+        inputSchema: z.object({
+          dataProductId: z.string().describe('The id of the data product'),
+          dataProductVersion: optionalVersion('data product'),
+        }),
+        annotations: readOnlyAnnotations,
+      },
+      createToolHandler(catalogTools.getDataProductInputs, 'Failed to get data product inputs')
+    );
+
+    server.registerTool(
+      'getDataProductOutputs',
+      {
+        title: 'Get data product outputs and contracts',
+        description: catalogTools.toolDescriptions.getDataProductOutputs,
+        inputSchema: z.object({
+          dataProductId: z.string().describe('The id of the data product'),
+          dataProductVersion: optionalVersion('data product'),
+        }),
+        annotations: readOnlyAnnotations,
+      },
+      createToolHandler(catalogTools.getDataProductOutputs, 'Failed to get data product outputs')
+    );
+
+    server.registerTool(
       'getCustomDocs',
       {
+        title: 'List custom documentation',
         description: catalogTools.toolDescriptions.getCustomDocs,
         inputSchema: z.object({
           cursor: z.string().optional().describe('Pagination cursor from previous response'),
           search: z.string().optional().describe('Search term to filter docs by title, id, or summary (case-insensitive)'),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(catalogTools.getCustomDocs, 'Failed to get custom documentation pages')
     );
@@ -295,11 +577,13 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       'searchCustomDocs',
       {
+        title: 'Search custom documentation',
         description: catalogTools.toolDescriptions.searchCustomDocs,
         inputSchema: z.object({
           query: z.string().describe('Full-text search query, e.g. keywords describing the topic to find'),
           limit: z.number().optional().describe('Maximum number of results to return (default 10)'),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(catalogTools.searchCustomDocs, 'Failed to search custom documentation')
     );
@@ -307,11 +591,13 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       'getCustomDoc',
       {
+        title: 'Get a custom documentation page',
         description: catalogTools.toolDescriptions.getCustomDoc,
         inputSchema: z.object({
           id: z.string().describe('The id or slug of the custom documentation page'),
           section: z.string().optional().describe('Optional section heading to return only that section of the page'),
         }),
+        annotations: readOnlyAnnotations,
       },
       createToolHandler(catalogTools.getCustomDoc, 'Failed to get custom documentation page')
     );
@@ -323,7 +609,7 @@ function createMcpServer(scope?: McpScope) {
 
     // Extract tool properties (Vercel AI SDK format)
     // The AI SDK tool() helper uses "inputSchema" for Zod schemas
-    const { description, parameters, inputSchema, execute } = toolConfig;
+    const { title, description, parameters, inputSchema, annotations, execute } = toolConfig;
 
     if (!description || !execute) {
       console.warn(`[MCP] Skipping invalid extended tool: ${toolName}`);
@@ -333,8 +619,10 @@ function createMcpServer(scope?: McpScope) {
     server.registerTool(
       toolName,
       {
+        ...(title && { title }),
         description: description || `Custom tool: ${toolName}`,
         inputSchema: inputSchema || parameters || z.object({}),
+        ...(annotations && { annotations }),
       },
       async (params: any) => {
         try {
@@ -531,7 +819,8 @@ function createMcpServer(scope?: McpScope) {
 // "Stateless transport cannot be reused across requests" errors.
 
 // Create Hono app for MCP routes
-const app = new Hono().basePath('/docs/mcp');
+// Not strict, so /docs/mcp/ works too: MCP clients are often configured with a trailing slash
+const app = new Hono({ strict: false }).basePath('/docs/mcp');
 
 const globalBuiltInTools = [
   'getResources',
@@ -550,17 +839,28 @@ const globalBuiltInTools = [
   'getUser',
   'findMessageBySchemaId',
   'explainUbiquitousLanguageTerms',
+  'getDataProductInputs',
+  'getDataProductOutputs',
+  'showArchitectureDiagram',
   'getCustomDocs',
   'searchCustomDocs',
   'getCustomDoc',
 ];
 
-const scopedBuiltInTools = globalBuiltInTools.filter(
-  (tool) =>
-    !['getC4Diagram', 'getTeams', 'getTeam', 'getUsers', 'getUser', 'getCustomDocs', 'searchCustomDocs', 'getCustomDoc'].includes(
-      tool
-    )
-);
+const globalOnlyTools = [
+  'getC4Diagram',
+  'getTeams',
+  'getTeam',
+  'getUsers',
+  'getUser',
+  'getDataProductInputs',
+  'getDataProductOutputs',
+  'getCustomDocs',
+  'searchCustomDocs',
+  'getCustomDoc',
+];
+
+const scopedBuiltInTools = globalBuiltInTools.filter((tool) => !globalOnlyTools.includes(tool));
 
 const getScopedBuiltInTools = (scope: McpScope) =>
   scope.ref.kind === 'system'
@@ -599,7 +899,7 @@ const getMcpResourceUris = (scope?: McpScope) =>
 
 const getScopeRef = (c: Context, kind: McpScopeKind) => ({
   kind,
-  id: c.req.param('id'),
+  id: c.req.param('id') ?? '',
   version: c.req.param('version') || 'latest',
 });
 
@@ -642,7 +942,7 @@ const handleGetRequest = async (c: Context, kind?: McpScopeKind) => {
     const scope = await resolveRequestScope(c, kind);
     return c.json({
       name: scope ? `EventCatalog MCP Server — ${scope.name} ${scope.ref.kind}` : 'EventCatalog MCP Server',
-      version: '1.2.0',
+      version: MCP_SERVER_VERSION,
       status: 'running',
       ...(scope && { scope: scope.ref }),
       tools: scope ? getScopedBuiltInTools(scope) : [...globalBuiltInTools, ...extendedToolNames],
@@ -664,7 +964,7 @@ const handleMcpRequest = async (c: Context, kind?: McpScopeKind) => {
     }
 
     const scope = await resolveRequestScope(c, kind);
-    const server = createMcpServer(scope);
+    const server = createMcpServer(scope, { catalogUrl: new URL(c.req.url).origin });
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });

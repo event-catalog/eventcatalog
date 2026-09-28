@@ -143,7 +143,10 @@ describe('scoped MCP routes', () => {
     } as any);
 
     expect(response.status).toBe(200);
-    expect(McpServer).toHaveBeenCalledWith({ name: 'EventCatalog MCP Server — Payments domain', version: '1.0.0' });
+    expect(McpServer).toHaveBeenCalledWith(
+      { name: 'EventCatalog MCP Server — Payments domain', version: expect.any(String) },
+      { instructions: expect.stringContaining('This server is scoped to the Payments domain') }
+    );
   });
 
   it('creates a system-scoped MCP server for protocol requests', async () => {
@@ -158,6 +161,25 @@ describe('scoped MCP routes', () => {
     } as any);
 
     expect(response.status).toBe(200);
-    expect(McpServer).toHaveBeenCalledWith({ name: 'EventCatalog MCP Server — Payment System system', version: '1.0.0' });
+    expect(McpServer).toHaveBeenCalledWith(
+      { name: 'EventCatalog MCP Server — Payment System system', version: expect.any(String) },
+      { instructions: expect.stringContaining('This server is scoped to the Payment System system') }
+    );
   });
+
+  it.each(['http://localhost:4321/docs/mcp/', 'http://localhost:4321/docs/mcp/domains/payments/'])(
+    'accepts MCP requests to %s with a trailing slash, as clients are often configured with one',
+    async (url) => {
+      const { ALL } = await import('../mcp-server');
+      const response = await ALL({
+        request: new Request(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} }),
+        }),
+      } as any);
+
+      expect(response.status).toBe(200);
+    }
+  );
 });

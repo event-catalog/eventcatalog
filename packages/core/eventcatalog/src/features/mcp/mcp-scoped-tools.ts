@@ -3,6 +3,7 @@ import {
   explainBusinessFlow,
   explainUbiquitousLanguageTerms,
   findMessageBySchemaId,
+  getArchitectureDiagramAsMermaid,
   getConsumersOfMessage,
   getMessagesProducedOrConsumedByResource,
   getProducersOfMessage,
@@ -55,27 +56,26 @@ export function createScopedCatalogTools(scope: McpScope) {
       };
     },
 
-    async getResource(params: { collection: string; id: string; version: string }) {
-      if (!scope.has(params.collection, params.id, params.version)) return notFound(params.collection, params.id, params.version);
-      return getResource(params);
+    async getResource(params: { collection: string; id: string; version?: string }) {
+      const entry = scope.find(params.collection, params.id, params.version);
+      if (!entry) return notFound(params.collection, params.id, params.version);
+      return getResource({ ...params, version: entry.data.version });
     },
 
     async getMessagesProducedOrConsumedByResource(params: {
       resourceId: string;
-      resourceVersion: string;
+      resourceVersion?: string;
       resourceCollection: string;
     }) {
-      if (!scope.has(params.resourceCollection, params.resourceId, params.resourceVersion)) {
-        return notFound(params.resourceCollection, params.resourceId, params.resourceVersion);
-      }
-      return getMessagesProducedOrConsumedByResource(params);
+      const entry = scope.find(params.resourceCollection, params.resourceId, params.resourceVersion);
+      if (!entry) return notFound(params.resourceCollection, params.resourceId, params.resourceVersion);
+      return getMessagesProducedOrConsumedByResource({ ...params, resourceVersion: entry.data.version });
     },
 
-    async getSchemaForResource(params: { resourceId: string; resourceVersion: string; resourceCollection: string }) {
-      if (!scope.has(params.resourceCollection, params.resourceId, params.resourceVersion)) {
-        return notFound(params.resourceCollection, params.resourceId, params.resourceVersion);
-      }
-      return getSchemaForResource(params);
+    async getSchemaForResource(params: { resourceId: string; resourceVersion?: string; resourceCollection: string }) {
+      const entry = scope.find(params.resourceCollection, params.resourceId, params.resourceVersion);
+      if (!entry) return notFound(params.resourceCollection, params.resourceId, params.resourceVersion);
+      return getSchemaForResource({ ...params, resourceVersion: entry.data.version });
     },
 
     async findResourcesByOwner(params: { ownerId: string }) {
@@ -96,31 +96,28 @@ export function createScopedCatalogTools(scope: McpScope) {
       return { ownerId: params.ownerId, totalCount: resources.length, resources, scope: scope.ref };
     },
 
-    async getProducersOfMessage(params: { messageId: string; messageVersion: string; messageCollection: string }) {
-      if (!scope.has(params.messageCollection, params.messageId, params.messageVersion)) {
-        return notFound(params.messageCollection, params.messageId, params.messageVersion);
-      }
-      const result = await getProducersOfMessage(params);
+    async getProducersOfMessage(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
+      const entry = scope.find(params.messageCollection, params.messageId, params.messageVersion);
+      if (!entry) return notFound(params.messageCollection, params.messageId, params.messageVersion);
+      const result = await getProducersOfMessage({ ...params, messageVersion: entry.data.version });
       if ('error' in result) return result;
       const producers = filterScopedReferences(scope, result.producers);
       return { ...result, producers, count: producers.length, scope: scope.ref };
     },
 
-    async getConsumersOfMessage(params: { messageId: string; messageVersion: string; messageCollection: string }) {
-      if (!scope.has(params.messageCollection, params.messageId, params.messageVersion)) {
-        return notFound(params.messageCollection, params.messageId, params.messageVersion);
-      }
-      const result = await getConsumersOfMessage(params);
+    async getConsumersOfMessage(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
+      const entry = scope.find(params.messageCollection, params.messageId, params.messageVersion);
+      if (!entry) return notFound(params.messageCollection, params.messageId, params.messageVersion);
+      const result = await getConsumersOfMessage({ ...params, messageVersion: entry.data.version });
       if ('error' in result) return result;
       const consumers = filterScopedReferences(scope, result.consumers);
       return { ...result, consumers, count: consumers.length, scope: scope.ref };
     },
 
-    async analyzeChangeImpact(params: { messageId: string; messageVersion: string; messageCollection: string }) {
-      if (!scope.has(params.messageCollection, params.messageId, params.messageVersion)) {
-        return notFound(params.messageCollection, params.messageId, params.messageVersion);
-      }
-      const result = await analyzeChangeImpact(params);
+    async analyzeChangeImpact(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
+      const entry = scope.find(params.messageCollection, params.messageId, params.messageVersion);
+      if (!entry) return notFound(params.messageCollection, params.messageId, params.messageVersion);
+      const result = await analyzeChangeImpact({ ...params, messageVersion: entry.data.version });
       if ('error' in result) return result;
 
       const producers = filterScopedReferences(scope, result.producers);
@@ -153,9 +150,10 @@ export function createScopedCatalogTools(scope: McpScope) {
       };
     },
 
-    async explainBusinessFlow(params: { flowId: string; flowVersion: string }) {
-      if (!scope.has('flows', params.flowId, params.flowVersion)) return notFound('flows', params.flowId, params.flowVersion);
-      const result = await explainBusinessFlow(params);
+    async explainBusinessFlow(params: { flowId: string; flowVersion?: string }) {
+      const entry = scope.find('flows', params.flowId, params.flowVersion);
+      if (!entry) return notFound('flows', params.flowId, params.flowVersion);
+      const result = await explainBusinessFlow({ ...params, flowVersion: entry.data.version });
       if ('error' in result) return result;
       return {
         ...result,
@@ -183,10 +181,24 @@ export function createScopedCatalogTools(scope: McpScope) {
       };
     },
 
+    // The diagram shows the resource with what it connects to, as on its Diagram page, which can include resources outside the scope
+    async getArchitectureDiagramAsMermaid(params: {
+      resourceId: string;
+      resourceVersion?: string;
+      resourceCollection: string;
+      detail?: 'overview' | 'full';
+    }) {
+      const entry = scope.find(params.resourceCollection, params.resourceId, params.resourceVersion);
+      if (!entry) return notFound(params.resourceCollection, params.resourceId, params.resourceVersion);
+      const result = await getArchitectureDiagramAsMermaid({ ...params, resourceVersion: entry.data.version });
+      if ('error' in result) return result;
+      return { ...result, scope: scope.ref };
+    },
+
     async explainUbiquitousLanguageTerms(params: { domainId: string; domainVersion?: string }) {
-      if (!scope.has('domains', params.domainId, params.domainVersion))
-        return notFound('domains', params.domainId, params.domainVersion);
-      return explainUbiquitousLanguageTerms(params);
+      const entry = scope.find('domains', params.domainId, params.domainVersion);
+      if (!entry) return notFound('domains', params.domainId, params.domainVersion);
+      return explainUbiquitousLanguageTerms({ ...params, domainVersion: entry.data.version });
     },
   };
 }

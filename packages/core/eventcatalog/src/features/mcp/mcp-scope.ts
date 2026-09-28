@@ -89,9 +89,14 @@ export class McpScope {
     return true;
   }
 
-  has(collection: string, id: string, version?: string) {
+  /** Find an entry in the scope. When no version (or 'latest') is given, the latest version in the scope is returned. */
+  find(collection: string, id: string, version?: string): CatalogEntry | undefined {
     const entries = Array.from(this.entries.get(collection)?.values() ?? []);
-    return getItemsFromCollectionByIdAndSemverOrLatest(entries, id, version).length > 0;
+    return getItemsFromCollectionByIdAndSemverOrLatest(entries, id, version)[0];
+  }
+
+  has(collection: string, id: string, version?: string) {
+    return this.find(collection, id, version) !== undefined;
   }
 
   list(collection: string) {
