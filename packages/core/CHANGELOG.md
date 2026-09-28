@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 4.12.2
+
+### Patch Changes
+
+- 8d68495: Speed up RSS feed builds by reading the latest commit for every file from one `git log` walk instead of starting a process per file.
+
 ## 4.12.1
 
 ### Patch Changes
