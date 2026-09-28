@@ -3,7 +3,11 @@ import { raiseEvent } from './analytics.js';
 import { countResources, hashCatalogContent, serializeCounts } from './count-resources.js';
 import { getLicenseAnalytics } from '../utils/license-status';
 
+// Mirrors isEventCatalogMCPEnabled so the flag reflects whether the MCP server actually runs
+const isMCPEnabled = (configFile) => configFile.output === 'server' && (configFile.mcp?.enabled ?? true);
+
 const getFeatures = async (configFile) => {
+  const mcp = isMCPEnabled(configFile);
   return {
     llmsTxt: configFile.llmsTxt?.enabled || false,
     rss: configFile.rss?.enabled || false,
@@ -12,6 +16,8 @@ const getFeatures = async (configFile) => {
     auth: configFile.auth?.enabled || false,
     environments: Array.isArray(configFile.environments) && configFile.environments.length > 0,
     output: configFile.output || 'static',
+    mcp,
+    mcpAuth: mcp && (configFile.mcp?.auth?.enabled ?? false),
   };
 };
 
