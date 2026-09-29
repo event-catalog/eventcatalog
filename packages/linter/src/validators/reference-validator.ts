@@ -356,6 +356,9 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
       if (step.agent) {
         addReference(references, step.agent, ['agent'], `steps[${index}].agent`);
       }
+      if (step.channel) {
+        addReference(references, step.channel, ['channel'], `steps[${index}].channel`);
+      }
       if (step.flow) {
         addReference(references, step.flow, ['flow'], `steps[${index}].flow`);
       }
@@ -576,6 +579,42 @@ export const validateReferences = (parsedFiles: ParsedFile[], dependencies?: Cat
         rule: 'refs/channel-exists',
       });
     }
+  }
+
+  return errors;
+};
+
+// Detect a flow's next steps that aren't steps in the flow (a typo would
+// otherwise just drop the arrow)
+export const validateFlowSteps = (parsedFiles: ParsedFile[]): ValidationError[] => {
+  const errors: ValidationError[] = [];
+
+  for (const { file, frontmatter } of parsedFiles) {
+    if (file.resourceType !== 'flow' || !Array.isArray(frontmatter.steps)) continue;
+    const steps = frontmatter.steps as Record<string, unknown>[];
+    const stepIds = new Set(steps.map((step) => String(step?.id)));
+    const idOf = (next: unknown) => (next && typeof next === 'object' ? (next as { id?: unknown }).id : next);
+
+    steps.forEach((step, index) => {
+      const nextSteps: [unknown, string][] = [];
+      if (step?.next_step !== undefined) nextSteps.push([step.next_step, `steps[${index}].next_step`]);
+      if (Array.isArray(step?.next_steps)) {
+        step.next_steps.forEach((next, nextIndex) => nextSteps.push([next, `steps[${index}].next_steps[${nextIndex}]`]));
+      }
+
+      for (const [next, field] of nextSteps) {
+        const id = idOf(next);
+        if (id === undefined || stepIds.has(String(id))) continue;
+        errors.push({
+          type: 'reference',
+          resource: `${file.resourceType}/${file.resourceId}`,
+          field,
+          message: `Step "${step.id}" leads to step "${id}", but the flow has no step with that id.`,
+          file: file.relativePath,
+          rule: 'refs/flow-step-exists',
+        });
+      }
+    });
   }
 
   return errors;

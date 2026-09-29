@@ -11,6 +11,8 @@ import config from '@config';
 import { schemaLoader } from './utils/collections/schema-loader';
 import { globWithSafeWatcher, withFederatedContent, withIgnoredBuildArtifacts } from './utils/collections/glob-loader';
 import { withExtensionProperties } from './utils/collections/extension-properties';
+import { flowStepSchema } from './utils/collections/flow-step-schema';
+import { pointer } from './utils/collections/pointer-schema';
 
 // Custom pages and resource docs collections
 import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './features/collections';
@@ -30,11 +32,6 @@ const pages = defineCollection({
       id: z.string(),
     })
     .optional(),
-});
-
-const pointer = z.object({
-  id: z.string(),
-  version: z.string().optional().default('latest'),
 });
 
 const detailPanelPropertySchema = z.object({
@@ -235,19 +232,6 @@ const baseSchema = z.object({
 
 const agentBaseSchema = baseSchema.omit({ specifications: true });
 
-const flowStep = z
-  .union([
-    // Can be a string or a number just to reference a step
-    z.union([z.string(), z.number()]),
-    z
-      .object({
-        id: z.union([z.string(), z.number()]),
-        label: z.string().optional(),
-      })
-      .optional(),
-  ])
-  .optional();
-
 const flows = defineCollection({
   loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/flows/**/index.(md|mdx)', '**/flows/**/versioned/*/index.(md|mdx)']),
@@ -266,80 +250,7 @@ const flows = defineCollection({
             changelog: detailPanelPropertySchema.optional(),
           })
           .optional(),
-        steps: z.array(
-          z
-            .object({
-              id: z.union([z.string(), z.number()]),
-              type: z.enum(['node', 'message', 'agent', 'user', 'actor']).optional(),
-              title: z.string(),
-              summary: z.string().optional(),
-              message: pointer.optional(),
-              agent: pointer.optional(),
-              service: pointer.optional(),
-              // Catalog system reference. `systems` matches how authors write the
-              // pointer (same shape as `service`); `system` is accepted as an alias.
-              systems: pointer.optional(),
-              system: pointer.optional(),
-              flow: pointer.optional(),
-              container: pointer.optional(),
-              dataProduct: pointer.optional(),
-
-              actor: z
-                .object({
-                  name: z.string(),
-                  summary: z.string().optional(),
-                })
-                .optional(),
-              custom: z
-                .object({
-                  title: z.string(),
-                  icon: z.string().optional(),
-                  type: z.string().optional(),
-                  summary: z.string().optional(),
-                  url: z.string().url().optional(),
-                  color: z.string().optional(),
-                  properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
-                  height: z.number().optional(),
-                  menu: z
-                    .array(
-                      z.object({
-                        label: z.string(),
-                        url: z.string().url().optional(),
-                      })
-                    )
-                    .optional(),
-                })
-                .optional(),
-              externalSystem: z
-                .object({
-                  name: z.string(),
-                  summary: z.string().optional(),
-                  url: z.string().url().optional(),
-                })
-                .optional(),
-              next_step: flowStep,
-              next_steps: z.array(flowStep).optional(),
-            })
-            .refine((data) => {
-              // Cant have both next_steps and next_steps
-              if (data.next_step && data.next_steps) return false;
-
-              // Either one or non types can be present
-              const typesUsed = [
-                data.message,
-                data.agent,
-                data.service,
-                data.systems,
-                data.system,
-                data.flow,
-                data.container,
-                data.dataProduct,
-                data.actor,
-                data.custom,
-              ].filter((v) => v).length;
-              return typesUsed === 0 || typesUsed === 1;
-            })
-        ),
+        steps: z.array(flowStepSchema),
       })
       .extend(baseSchema.shape)
   ),

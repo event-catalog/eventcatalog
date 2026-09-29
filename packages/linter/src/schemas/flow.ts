@@ -13,17 +13,38 @@ const flowStep = z
   ])
   .optional();
 
+// What a step can be (a step is one of these, or just a titled box)
+const STEP_KINDS = [
+  'message',
+  'agent',
+  'service',
+  'systems',
+  'system',
+  'channel',
+  'flow',
+  'container',
+  'dataProduct',
+  'actor',
+  'custom',
+  'externalSystem',
+] as const;
+
+// The same rules (and messages) as EventCatalog's own flow step schema
+// (packages/core/eventcatalog/src/utils/collections/flow-step-schema.ts): keep the two in sync
 const flowStepSchema = z
   .object({
     id: z.union([z.string(), z.number()]),
-    type: z.enum(['node', 'message', 'agent', 'user', 'actor']).optional(),
-    title: z.string(),
+    // Ignored by EventCatalog (the kind of step comes from what it points at)
+    type: z.string().optional(),
+    // Defaults to the name of what the step points at
+    title: z.string().optional(),
     summary: z.string().optional(),
     message: pointerSchema.optional(),
     agent: pointerSchema.optional(),
     service: pointerSchema.optional(),
     systems: pointerSchema.optional(),
     system: pointerSchema.optional(),
+    channel: pointerSchema.optional(),
     flow: pointerSchema.optional(),
     container: pointerSchema.optional(),
     dataProduct: pointerSchema.optional(),
@@ -35,7 +56,8 @@ const flowStepSchema = z
       .optional(),
     custom: z
       .object({
-        title: z.string(),
+        // Defaults to the step's title
+        title: z.string().optional(),
         icon: z.string().optional(),
         type: z.string().optional(),
         summary: z.string().optional(),
@@ -63,21 +85,24 @@ const flowStepSchema = z
     next_step: flowStep,
     next_steps: z.array(flowStep).optional(),
   })
-  .refine((data) => {
-    if (data.next_step && data.next_steps) return false;
-    const typesUsed = [
-      data.message,
-      data.agent,
-      data.service,
-      data.systems,
-      data.system,
-      data.flow,
-      data.container,
-      data.dataProduct,
-      data.actor,
-      data.custom,
-    ].filter((v) => v).length;
-    return typesUsed === 0 || typesUsed === 1;
+  .superRefine((step, context) => {
+    if (step.next_step !== undefined && step.next_steps !== undefined) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['next_steps'],
+        message: `Step "${step.id}" has both next_step and next_steps. Use next_step for one next step, or next_steps for several.`,
+      });
+    }
+
+    const kinds = STEP_KINDS.filter((kind) => step[kind] !== undefined);
+    if (kinds.length > 1) {
+      const listed = `${kinds.slice(0, -1).join(', ')} and ${kinds[kinds.length - 1]}`;
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [kinds[1]],
+        message: `Step "${step.id}" points at ${listed}. A step can only be one thing, so split it into ${kinds.length === 2 ? 'two' : 'separate'} steps.`,
+      });
+    }
   });
 
 export const flowSchema = z

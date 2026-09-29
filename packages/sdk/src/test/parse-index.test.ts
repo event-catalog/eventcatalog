@@ -57,6 +57,29 @@ describe('parseIndex', () => {
     expect(parseIndex(index)).toEqual(index);
   });
 
+  it('parses a flow that references systems and channels in its steps', () => {
+    const index = {
+      indexVersion: 1,
+      source: 'acme/payments',
+      commit: '4a1b7e2',
+      resources: [
+        {
+          type: 'flow',
+          id: 'payment-flow',
+          version: '1.0.0',
+          name: 'Payment Flow',
+          contentPath: 'flows/payment-flow/index.mdx',
+          references: [
+            { kind: 'system', id: 'payments-system', version: '1.0.0' },
+            { kind: 'channel', id: 'payments.events', version: '2.0.0' },
+          ],
+        },
+      ],
+    };
+
+    expect(parseIndex(index)).toEqual(index);
+  });
+
   it('parses embedded schema content', () => {
     const index = {
       ...validIndex,

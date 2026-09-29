@@ -62,8 +62,17 @@ export const RULE_CATEGORIES: RuleCategory[] = [
         description: 'Referenced resource has a version matching the reference (lists available versions)',
         default: 'error',
       },
-      { name: 'refs/channel-exists', description: 'Channels referenced in sends/receives to/from exist', default: 'error' },
+      {
+        name: 'refs/channel-exists',
+        description: 'Channels referenced in sends/receives to/from (and flow steps) exist',
+        default: 'error',
+      },
       { name: 'refs/container-exists', description: 'Containers referenced in writesTo/readsFrom exist', default: 'error' },
+      {
+        name: 'refs/flow-step-exists',
+        description: "A flow step's next_step / next_steps point at steps in the flow",
+        default: 'error',
+      },
       {
         name: 'refs/file-exists',
         description: 'schemaPath, schemas[], specifications, contract paths and /public icons resolve to real files',

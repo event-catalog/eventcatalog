@@ -4,6 +4,7 @@ import {
   validateOrphanMessages,
   validateDeprecatedReferences,
   validateDuplicateResourceIds,
+  validateFlowSteps,
 } from '../src/validators/reference-validator';
 import { validateBestPractices } from '../src/validators/best-practices-validator';
 import { ParsedFile } from '../src/parser';
@@ -755,5 +756,43 @@ describe('structure/duplicate-resource-ids', () => {
 
     const errors = validateDuplicateResourceIds(parsedFiles);
     expect(errors).toHaveLength(0);
+  });
+});
+
+describe('refs/flow-step-exists', () => {
+  it('reports a next step that is not a step in the flow', () => {
+    const errors = validateFlowSteps([
+      createParsedFile('flow', 'order-flow', {
+        id: 'order-flow',
+        version: '1.0.0',
+        steps: [
+          { id: 'start', title: 'Start', next_steps: ['checkout', { id: 'paymnet', label: 'Pay' }] },
+          { id: 'checkout', title: 'Checkout', next_step: 1 },
+          { id: 1, title: 'Payment' },
+        ],
+      }),
+    ]);
+
+    expect(errors).toEqual([
+      expect.objectContaining({
+        rule: 'refs/flow-step-exists',
+        field: 'steps[0].next_steps[1]',
+        message: 'Step "start" leads to step "paymnet", but the flow has no step with that id.',
+      }),
+    ]);
+  });
+});
+
+describe('refs/channel-exists for flow steps', () => {
+  it('reports a flow step that references a channel that does not exist', () => {
+    const errors = validateReferences([
+      createParsedFile('flow', 'order-flow', {
+        id: 'order-flow',
+        version: '1.0.0',
+        steps: [{ id: 'orders', channel: { id: 'orders-topic' } }],
+      }),
+    ]);
+
+    expect(errors).toEqual([expect.objectContaining({ rule: 'refs/channel-exists', field: 'steps[0].channel' })]);
   });
 });

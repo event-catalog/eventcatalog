@@ -179,6 +179,47 @@ describe('validateSchema', () => {
       const errors = validateSchema(parsedFile);
       expect(errors).toHaveLength(0);
     });
+
+    it('passes with channel steps and steps without a title', () => {
+      const parsedFile = createParsedFile('flow', {
+        id: 'order-flow',
+        name: 'Order Flow',
+        version: '1.0.0',
+        steps: [
+          { id: 'checkout', service: { id: 'checkout-api' }, next_step: 'orders' },
+          { id: 'orders', channel: { id: 'orders-topic', version: '1.0.0' }, next_step: 'done' },
+          { id: 'done', title: 'Order placed', custom: { color: 'green' } },
+        ],
+      });
+
+      expect(validateSchema(parsedFile)).toHaveLength(0);
+    });
+
+    it('explains which resources a step points at when it points at more than one', () => {
+      const parsedFile = createParsedFile('flow', {
+        id: 'order-flow',
+        name: 'Order Flow',
+        version: '1.0.0',
+        steps: [{ id: 'checkout', title: 'Checkout', message: { id: 'PlaceOrder' }, service: { id: 'checkout-api' } }],
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual([
+        'steps.0.service: Step "checkout" points at message and service. A step can only be one thing, so split it into two steps.',
+      ]);
+    });
+
+    it('explains that a step uses next_step or next_steps, not both', () => {
+      const parsedFile = createParsedFile('flow', {
+        id: 'order-flow',
+        name: 'Order Flow',
+        version: '1.0.0',
+        steps: [{ id: 'checkout', title: 'Checkout', next_step: 'a', next_steps: ['b'] }],
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual([
+        'steps.0.next_steps: Step "checkout" has both next_step and next_steps. Use next_step for one next step, or next_steps for several.',
+      ]);
+    });
   });
 
   describe('entity validation', () => {
