@@ -149,13 +149,18 @@ function walkJsonSchema(node: any, prefix: string, requiredList: string[], rootS
       if (resolved) {
         const rawRefType = resolved.type || 'object';
         const type = Array.isArray(rawRefType) ? [...rawRefType].sort().join(' | ') : rawRefType;
-        fields.push({ path, type, description: resolved.description || '', required: isRequired });
+        fields.push({
+          path,
+          type,
+          description: prop.description || resolved.description || '',
+          required: isRequired,
+        });
         if (resolved.properties) {
           walkJsonSchema(resolved, path, resolved.required || [], rootSchema, fields);
         }
       } else {
-        // External ref — add as-is
-        fields.push({ path, type: '$ref', description: '', required: isRequired });
+        // External ref — add as-is, keeping any description written on the property.
+        fields.push({ path, type: '$ref', description: prop.description || '', required: isRequired });
       }
       continue;
     }
