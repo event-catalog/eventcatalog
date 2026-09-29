@@ -133,6 +133,8 @@ const normalizeSpecifications = async (resource: IndexableResource, resourcePath
 const getFlowReferences = (steps: FlowStep[]) =>
   steps.flatMap((step) => [
     ...(step.service ? [{ kind: 'service' as const, ...step.service }] : []),
+    ...(step.systems ? [{ kind: 'system' as const, ...step.systems }] : []),
+    ...(step.system ? [{ kind: 'system' as const, ...step.system }] : []),
     ...(step.message ? [{ kind: 'message' as const, ...step.message }] : []),
     ...(step.agent ? [{ kind: 'agent' as const, ...step.agent }] : []),
     ...(step.container ? [{ kind: 'container' as const, ...step.container }] : []),

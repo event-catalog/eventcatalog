@@ -35,6 +35,8 @@ const NODE_SHAPE_MAP: Record<string, [string, string]> = {
   domain: ["[", "]"],
   flows: ["([", "])"], // stadium (rounded)
   flow: ["([", "])"],
+  systems: ["[[", "]]"],
+  system: ["[[", "]]"],
   step: ["[", "]"], // rectangle
   user: ["((", "))"], // circle
   actor: ["((", "))"], // circle
@@ -76,6 +78,8 @@ const NODE_STYLE_CLASSES: Record<string, string> = {
   domain: "fill:#eab308,stroke:#a16207,color:#000",
   flows: "fill:#14b8a6,stroke:#0f766e,color:#fff",
   flow: "fill:#14b8a6,stroke:#0f766e,color:#fff",
+  systems: "fill:#8b5cf6,stroke:#6d28d9,color:#fff",
+  system: "fill:#8b5cf6,stroke:#6d28d9,color:#fff",
   step: "fill:#374151,stroke:#1f2937,color:#fff",
   user: "fill:#8b5cf6,stroke:#6d28d9,color:#fff",
   actor: "fill:#eab308,stroke:#a16207,color:#000",
@@ -186,6 +190,13 @@ export function getNodeLabel(node: Node): string {
     const domainData = domain?.data || domain;
     const name = domainData?.name || domainData?.id || node.id;
     const version = domainData?.version || domain?.version;
+    return formatLabelWithVersion(name, version);
+  }
+
+  if (type === "systems" || type === "system") {
+    const system = (data as any).system;
+    const name = system?.name || system?.id || node.id;
+    const version = system?.data?.version || system?.version;
     return formatLabelWithVersion(name, version);
   }
 

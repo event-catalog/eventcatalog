@@ -276,6 +276,10 @@ const flows = defineCollection({
               message: pointer.optional(),
               agent: pointer.optional(),
               service: pointer.optional(),
+              // Catalog system reference. `systems` matches how authors write the
+              // pointer (same shape as `service`); `system` is accepted as an alias.
+              systems: pointer.optional(),
+              system: pointer.optional(),
               flow: pointer.optional(),
               container: pointer.optional(),
               dataProduct: pointer.optional(),
@@ -325,6 +329,8 @@ const flows = defineCollection({
                 data.message,
                 data.agent,
                 data.service,
+                data.systems,
+                data.system,
                 data.flow,
                 data.container,
                 data.dataProduct,

@@ -245,6 +245,7 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
     const key = nodeKey('flows', flow.data.id);
     for (const step of (flow.data as any).steps ?? []) {
       addLink(key, nodeKey('services', refId(step.service)!), 'references');
+      addLink(key, nodeKey('systems', refId(step.systems || step.system)!), 'references');
       addLink(key, nodeKey('agents', refId(step.agent)!), 'references');
       addLink(key, nodeKey('flows', refId(step.flow)!), 'has sub-flow');
       addLink(key, nodeKey('containers', refId(step.container)!), 'references');

@@ -1251,6 +1251,12 @@ describe('buildIndex', () => {
             id: 'settlement-flow',
             title: 'Settle payment',
             flow: { id: 'settlement-flow' },
+            next_step: 'payments-system',
+          },
+          {
+            id: 'payments-system',
+            title: 'Payments System',
+            systems: { id: 'payments-system', version: '1.0.0' },
           },
         ],
       });
@@ -1276,6 +1282,7 @@ describe('buildIndex', () => {
               { kind: 'service', id: 'ledger-service' },
               { kind: 'container', id: 'payments-db' },
               { kind: 'flow', id: 'settlement-flow' },
+              { kind: 'system', id: 'payments-system', version: '1.0.0' },
             ],
           },
         ],

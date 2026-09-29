@@ -62,6 +62,23 @@ describe('export-mermaid', () => {
   });
 
   describe('getNodeLabel', () => {
+    it('should extract label from a system node', () => {
+      const node: Node = {
+        id: 'step-thrivemap',
+        type: 'systems',
+        position: { x: 0, y: 0 },
+        data: {
+          system: {
+            id: 'thrivemap',
+            name: 'Thrivemap',
+            version: '0.0.1',
+          },
+        },
+      };
+      expect(getNodeLabel(node)).toBe('Thrivemap (0.0.1)');
+      expect(getMermaidNodeShape('systems')).toEqual(['[[', ']]']);
+    });
+
     it('should extract label from service node', () => {
       const node: Node = {
         id: 'order-service-1.0.0',

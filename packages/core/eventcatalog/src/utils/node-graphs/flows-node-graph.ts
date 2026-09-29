@@ -6,6 +6,7 @@ import {
   DEFAULT_NODE_HEIGHT,
   buildContextMenuForResource,
   buildContextMenuForService,
+  buildContextMenuForSystem,
   layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
 import { MarkerType } from '@xyflow/react';
@@ -29,6 +30,7 @@ interface Maps {
   flowMap: Map<string, any[]>;
   containerMap: Map<string, any[]>;
   dataProductMap: Map<string, any[]>;
+  systemMap: Map<string, any[]>;
 }
 
 const getServiceNode = (step: any, serviceMap: Map<string, any[]>) => {
@@ -75,6 +77,16 @@ const getDataProductNode = (step: any, dataProductMap: Map<string, any[]>) => {
     ...step,
     type: dataProduct ? 'data-products' : 'step',
     dataProduct,
+  };
+};
+
+const getSystemNode = (step: any, systemMap: Map<string, any[]>) => {
+  const pointer = step.systems || step.system;
+  const system = findInMap(systemMap, pointer.id, pointer.version);
+  return {
+    ...step,
+    type: system ? 'systems' : 'step',
+    system,
   };
 };
 
@@ -129,6 +141,7 @@ const buildFlowGraphInternal = (
   const hydratedSteps = steps.map((step: any) => {
     if (step.agent) return getAgentNode(step, maps.agentMap);
     if (step.service) return getServiceNode(step, maps.serviceMap);
+    if (step.systems || step.system) return getSystemNode(step, maps.systemMap);
     if (step.flow) return getFlowNode(step, maps.flowMap);
     if (step.container) return getContainerNode(step, maps.containerMap);
     if (step.dataProduct) return getDataProductNode(step, maps.dataProductMap);
@@ -169,6 +182,13 @@ const buildFlowGraphInternal = (
         version: step.service.data.version,
         specifications: step.service.data.specifications,
         repository: step.service.data.repository,
+      });
+    }
+    if (step.system?.data) {
+      node.data.system = { ...step.system.data };
+      node.data.contextMenu = buildContextMenuForSystem({
+        id: step.system.data.id,
+        version: step.system.data.version,
       });
     }
     if (step.flow) {
@@ -274,7 +294,7 @@ const buildFlowGraphInternal = (
 export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
   const graph = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 200 });
 
-  const [flows, events, commands, queries, agents, services, containers, dataProducts] = await Promise.all([
+  const [flows, events, commands, queries, agents, services, containers, dataProducts, systems] = await Promise.all([
     getCollection('flows'),
     getCollection('events'),
     getCollection('commands'),
@@ -283,6 +303,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     getCollection('services'),
     getCollection('containers'),
     getCollection('data-products'),
+    getCollection('systems'),
   ]);
 
   const flow = flows.find((flow) => flow.data.id === id && flow.data.version === version);
@@ -302,6 +323,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     flowMap: createVersionedMap(flows),
     containerMap: createVersionedMap(containers),
     dataProductMap: createVersionedMap(dataProducts),
+    systemMap: createVersionedMap(systems),
   };
 
   const subFlowCache = new Map<string, { nodes: any[]; edges: any[] }>();

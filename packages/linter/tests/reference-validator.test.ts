@@ -478,6 +478,24 @@ describe('validateReferences', () => {
     expect(errors).toHaveLength(0);
   });
 
+  it('should validate flow step references to systems', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('flow', 'assessment-flow', {
+        id: 'assessment-flow',
+        version: '1.0.0',
+        steps: [
+          { id: 'thrivemap', title: 'Thrivemap System', systems: { id: 'thrivemap', version: '0.0.1' } },
+          { id: 'missing', title: 'Missing System', system: { id: 'missing-system' } },
+        ],
+      }),
+      createParsedFile('system', 'thrivemap', { id: 'thrivemap', version: '0.0.1' }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].field).toContain('steps[1].system');
+  });
+
   it('should validate flow step references to agents, containers, and data products', () => {
     const parsedFiles: ParsedFile[] = [
       createParsedFile('flow', 'refund-flow', {
