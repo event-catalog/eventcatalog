@@ -1,5 +1,13 @@
 # @eventcatalog/linter
 
+## 1.1.21
+
+### Patch Changes
+
+- f2fd5b7: Render flow steps that reference a catalog system as System nodes, including their docs link, instead of generic Step boxes.
+- Updated dependencies [f2fd5b7]
+  - @eventcatalog/sdk@2.29.2
+
 ## 1.1.20
 
 ### Patch Changes

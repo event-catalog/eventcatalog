@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 4.1.5
+
+### Patch Changes
+
+- f2fd5b7: Render flow steps that reference a catalog system as System nodes, including their docs link, instead of generic Step boxes.
+
 ## 4.1.4
 
 ### Patch Changes
