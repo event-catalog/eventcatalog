@@ -163,6 +163,16 @@ describe('validateSchema', () => {
             title: 'Payment Analytics',
             dataProduct: { id: 'payment-analytics' },
           },
+          {
+            id: 'payments-system',
+            title: 'Payments System',
+            systems: { id: 'payments-system', version: '1.0.0' },
+          },
+          {
+            id: 'billing-system',
+            title: 'Billing System',
+            system: { id: 'billing-system' },
+          },
         ],
       });
 

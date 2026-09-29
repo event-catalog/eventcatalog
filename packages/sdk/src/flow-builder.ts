@@ -145,6 +145,8 @@ const cloneStep = (step: FlowStep): FlowStep => ({
   ...(step.message ? { message: { ...step.message } } : {}),
   ...(step.agent ? { agent: { ...step.agent } } : {}),
   ...(step.service ? { service: { ...step.service } } : {}),
+  ...(step.systems ? { systems: { ...step.systems } } : {}),
+  ...(step.system ? { system: { ...step.system } } : {}),
   ...(step.flow ? { flow: { ...step.flow } } : {}),
   ...(step.container ? { container: { ...step.container } } : {}),
   ...(step.dataProduct ? { dataProduct: { ...step.dataProduct } } : {}),

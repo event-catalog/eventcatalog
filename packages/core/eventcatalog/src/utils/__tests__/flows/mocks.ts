@@ -63,6 +63,31 @@ export const mockContainers = [
   },
 ];
 
+export const mockSystems = [
+  {
+    slug: 'thrivemap',
+    collection: 'systems',
+    data: {
+      id: 'thrivemap',
+      name: 'Thrivemap',
+      version: '0.0.1',
+      summary: 'Assessment system',
+      scope: 'internal',
+    },
+  },
+  {
+    slug: 'eplay',
+    collection: 'systems',
+    data: {
+      id: 'eplay',
+      name: 'Eplay',
+      version: '0.0.1',
+      summary: 'Playback system',
+      scope: 'internal',
+    },
+  },
+];
+
 export const mockDataProducts = [
   {
     slug: 'order-analytics',
@@ -560,6 +585,55 @@ export const mockFlowByIds = [
       summary: 'Flow for when a user has cancelled a subscription',
       version: '1.0.0',
       // type: 'node',
+    },
+  },
+  {
+    id: 'Assessment/AssessmentRequested/index.mdx',
+    slug: 'assessment/assessmentrequested',
+    body: '',
+    collection: 'flows',
+    data: {
+      id: 'AssessmentRequested',
+      name: 'Assessment Requested To Thrivemap',
+      version: '1.0.0',
+      steps: [
+        {
+          id: 'eplay',
+          title: 'Eplay',
+          system: { id: 'eplay', version: '0.0.1' },
+          next_step: { id: 'request', label: 'Post Assessment Request' },
+        },
+        {
+          id: 'request',
+          title: 'Post Assessment Request',
+          service: { id: 'SubscriptionService', version: '0.0.1' },
+          next_steps: [
+            { id: 'thrivemap', label: 'Post Request Assessment' },
+            { id: 'missing-system', label: 'Unknown system' },
+          ],
+        },
+        {
+          id: 'thrivemap',
+          title: 'Thrivemap System',
+          systems: { id: 'thrivemap', version: '0.0.1' },
+          next_step: { id: 'plain', label: 'Continue' },
+        },
+        {
+          id: 'missing-system',
+          title: 'Missing System',
+          systems: { id: 'does-not-exist', version: '0.0.1' },
+        },
+        {
+          id: 'plain',
+          title: 'Plain step',
+          next_step: { id: 'error-flow', label: 'See flow' },
+        },
+        {
+          id: 'error-flow',
+          title: 'See Error Management Flow',
+          flow: { id: 'PaymentFlow', version: '1.0.0' },
+        },
+      ],
     },
   },
 ];

@@ -1,6 +1,15 @@
 import { getNodesAndEdges } from '../../node-graphs/flows-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockAgents, mockContainers, mockDataProducts, mockEvents, mockFlow, mockFlowByIds, mockServices } from './mocks';
+import {
+  mockAgents,
+  mockContainers,
+  mockDataProducts,
+  mockEvents,
+  mockFlow,
+  mockFlowByIds,
+  mockServices,
+  mockSystems,
+} from './mocks';
 import { getCollection } from 'astro:content';
 let expectedNodes: any;
 
@@ -26,6 +35,9 @@ vi.mock('astro:content', async (importOriginal) => {
       }
       if (key === 'data-products') {
         return Promise.resolve(mockDataProducts);
+      }
+      if (key === 'systems') {
+        return Promise.resolve(mockSystems);
       }
       return Promise.resolve([]);
     },
@@ -312,6 +324,9 @@ describe('Flows NodeGraph', () => {
               if (key === 'data-products') {
                 return Promise.resolve(mockDataProducts);
               }
+              if (key === 'systems') {
+                return Promise.resolve(mockSystems);
+              }
               return Promise.resolve([]);
             },
           };
@@ -415,6 +430,64 @@ describe('Flows NodeGraph', () => {
 
       expect(actorNode).toBeDefined();
       expect(actorNode?.data?.name).toBe('User');
+    });
+
+    it('renders a flow step that references systems as a system node with a docs link (issue #2929)', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'AssessmentRequested', version: '1.0.0' });
+
+      const systemNode = nodes.find((node: any) => node.id === 'step-thrivemap');
+      const plainStep = nodes.find((node: any) => node.id === 'step-plain');
+      const flowReference = nodes.find((node: any) => node.id === 'step-error-flow');
+
+      expect(systemNode).toEqual(
+        expect.objectContaining({
+          type: 'systems',
+          data: expect.objectContaining({
+            system: expect.objectContaining({
+              id: 'thrivemap',
+              name: 'Thrivemap',
+              version: '0.0.1',
+            }),
+            contextMenu: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Read documentation',
+                href: expect.stringContaining('/docs/systems/thrivemap/0.0.1'),
+              }),
+            ]),
+          }),
+        })
+      );
+      expect(systemNode?.type).not.toBe('step');
+      expect(plainStep?.type).toBe('step');
+      expect(flowReference?.type).toBe('flows');
+    });
+
+    it('accepts the singular system alias and falls back to a step when the system is missing', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'AssessmentRequested', version: '1.0.0' });
+
+      const aliasNode = nodes.find((node: any) => node.id === 'step-eplay');
+      const missingNode = nodes.find((node: any) => node.id === 'step-missing-system');
+
+      expect(aliasNode).toEqual(
+        expect.objectContaining({
+          type: 'systems',
+          data: expect.objectContaining({
+            system: expect.objectContaining({
+              id: 'eplay',
+              name: 'Eplay',
+              version: '0.0.1',
+            }),
+            contextMenu: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Read documentation',
+                href: expect.stringContaining('/docs/systems/eplay/0.0.1'),
+              }),
+            ]),
+          }),
+        })
+      );
+      expect(missingNode?.type).toBe('step');
+      expect(missingNode?.data.contextMenu).toBeUndefined();
     });
 
     it('returns empty nodes and edges if no flow is found', async () => {

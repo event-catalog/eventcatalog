@@ -1535,6 +1535,55 @@ describe('resolve', () => {
       });
     });
 
+    it('resolves a flow step reference to a system owned by another source', () => {
+      const checkoutIndex = anIndex({
+        source: 'acme/checkout',
+        commit: '91e5c4a',
+        resources: [
+          {
+            type: 'flow',
+            id: 'checkout-saga',
+            version: '1.0.0',
+            name: 'Checkout Saga',
+            references: [{ kind: 'system', id: 'payments-system', version: '1.0.0' }],
+            contentPath: 'flows/checkout-saga/index.mdx',
+            contentHash: 'sha256:7f24b1',
+          },
+        ],
+      });
+      const paymentsIndex = anIndex({
+        source: 'acme/payments',
+        commit: '4a1b7e2',
+        resources: [
+          {
+            type: 'system',
+            id: 'payments-system',
+            version: '1.0.0',
+            name: 'Payments System',
+            contentPath: 'systems/payments-system/index.mdx',
+            contentHash: 'sha256:aa11bb',
+          },
+        ],
+      });
+
+      expect(resolve([checkoutIndex, paymentsIndex]).edges).toEqual([
+        {
+          from: 'checkout-saga',
+          ...fromResource('1.0.0', 'acme/checkout', '91e5c4a'),
+          to: 'payments-system',
+          direction: 'references',
+          via: 'steps',
+          pointer: '1.0.0',
+          resolved: '1.0.0',
+          resolvedFrom: {
+            source: 'acme/payments',
+            commit: '4a1b7e2',
+          },
+          status: 'resolved',
+        },
+      ]);
+    });
+
     it('resolves pinned and unversioned container membership from a system', () => {
       const systemsIndex = anIndex({
         source: 'acme/payments',

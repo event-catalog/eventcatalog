@@ -243,6 +243,7 @@ describe('Flow graphs', () => {
       markdown: '# Flow Data Product',
     });
     await writeFlow({ id: 'child-flow', name: 'Child Flow', version: '1.0.0', markdown: '# Child Flow', steps: [] });
+    await writeSystem({ id: 'flow-system', name: 'Flow System', version: '1.0.0', markdown: '# Flow System' });
 
     await expectFlowChildren(
       {
@@ -255,9 +256,11 @@ describe('Flow graphs', () => {
           { id: 6, title: 'Container', container: { id: 'flow-container' } },
           { id: 7, title: 'Data Product', dataProduct: { id: 'flow-data-product' } },
           { id: 8, title: 'Flow', flow: { id: 'child-flow' } },
+          { id: 9, title: 'System', systems: { id: 'flow-system' } },
         ],
       },
       [
+        { type: 'system', id: 'flow-system', version: '1.0.0', children: [] },
         { type: 'service', id: 'flow-service', version: '1.0.0', children: [] },
         { type: 'agent', id: 'flow-agent', version: '1.0.0', children: [] },
         { type: 'event', id: 'flow-event', version: '1.0.0', children: [] },

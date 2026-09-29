@@ -583,6 +583,9 @@ export interface FlowStep {
   message?: ResourcePointer;
   agent?: ResourcePointer;
   service?: ResourcePointer;
+  /** Catalog system referenced by this step. `system` is an alias for `systems`. */
+  systems?: ResourcePointer;
+  system?: ResourcePointer;
   flow?: ResourcePointer;
   container?: ResourcePointer;
   dataProduct?: ResourcePointer;

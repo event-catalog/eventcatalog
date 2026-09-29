@@ -7,7 +7,7 @@ import {
   MessageSquare as MessageSquareIcon,
 } from "lucide-react";
 import { buildUrl, navigateTo } from "../utils/url-builder";
-import { memo } from "react";
+import { memo, type KeyboardEvent } from "react";
 import { LINE_CLAMP_STYLE, useDarkMode } from "./shared-styles";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 import { TruncatedResourceName } from "./TruncatedResourceName";
@@ -56,6 +56,10 @@ export default memo(function SystemNode({ data }: any) {
   const { id, version, name, summary, scope } = system;
   const isExternal = scope === "external";
   const isDark = useDarkMode();
+  // Flow diagrams already own click (walkthrough / selection). A system step
+  // links to its docs through the context menu, same as a service step, instead
+  // of leaving the flow for the system map.
+  const isFlowStep = Boolean((data as { step?: unknown }).step);
 
   const stats = [
     { icon: ServerIcon, label: "Services", count: servicesCount },
@@ -82,15 +86,20 @@ export default memo(function SystemNode({ data }: any) {
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={goToMap}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") goToMap();
-      }}
-      title={`Open the ${name} map`}
+      {...(isFlowStep
+        ? {}
+        : {
+            role: "button" as const,
+            tabIndex: 0,
+            onClick: goToMap,
+            onKeyDown: (e: KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") goToMap();
+            },
+            title: `Open the ${name} map`,
+          })}
       className={classNames(
-        "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible cursor-pointer",
+        "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
+        !isFlowStep && "cursor-pointer",
         isExternal ? "border-dashed border-violet-400" : "border-violet-500",
       )}
       style={{

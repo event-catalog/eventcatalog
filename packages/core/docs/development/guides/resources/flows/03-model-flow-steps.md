@@ -13,7 +13,7 @@ import AddedIn from '@site/src/components/MDX/AddedIn';
 
 Nodes are the building blocks of flows. They are used to represent the different steps in a flow.
 
-With flow nodes you can reference your services, events, commands and queries, external services, users (actors), data stores, data products, or create your own custom nodes.
+With flow nodes you can reference your services, systems, events, commands and queries, external services, users (actors), data stores, data products, or create your own custom nodes.
 
 ## Common step properties
 
@@ -29,7 +29,7 @@ Every flow step (regardless of node type) supports these properties:
 | `next_steps` | [Step reference](#connecting-steps)[] | No | Multiple next steps for branching (cannot be used with `next_step`) |
 
 :::tip Type exclusivity rule
-Each step can only use **one** node type property. You cannot combine `message`, `service`, `flow`, `container`, `dataProduct`, `actor`, `custom`, or `externalSystem` on the same step.
+Each step can only use **one** node type property. You cannot combine `message`, `service`, `systems`, `system`, `flow`, `container`, `dataProduct`, `actor`, `custom`, or `externalSystem` on the same step.
 :::
 
 ## Connecting steps {#connecting-steps}
@@ -64,6 +64,7 @@ next_steps:
 - [externalSystem](#externalsystem) — Represents an external system in your flow diagram
 - [message](#message) — Represents an event, command or query resource in EventCatalog
 - [service](#service) — Represents a service resource in EventCatalog
+- [systems](#systems) — Represents a system resource in EventCatalog
 - [agent](#agent) — Represents an agent resource in EventCatalog (added in EventCatalog 3.41.0)
 - [flow](#flow) — Represents a flow in EventCatalog (added in EventCatalog 2.34.2)
 - [container](#container) — Represents a data store (container) resource in EventCatalog
@@ -169,6 +170,33 @@ steps:
     service:
       id: "order-service"
       version: "0.0.1"
+```
+
+---
+
+### systems
+
+Represents and refers to a [system](/docs/development/guides/systems/introduction) resource in EventCatalog. System steps render with the same System node used on the System Diagram (violet badge, system icon). When the catalog contains that system, the node's menu links to its documentation page. `system` is accepted as an alias for `systems`.
+
+A step that references a system which is not in the catalog stays a plain step. Referenced flows stay steps of type flow.
+
+#### System properties
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `id` | `string` | **Yes** | The id of the system in your catalog |
+| `version` | `string` | No | The version to reference (defaults to `latest`) |
+
+```yml
+steps:
+  - id: "step-1"
+    title: "Thrivemap System"
+    systems:
+      id: "thrivemap"
+      version: "0.0.1"
+    next_step:
+      id: "step-2"
+      label: "Post Request Assessment"
 ```
 
 ---

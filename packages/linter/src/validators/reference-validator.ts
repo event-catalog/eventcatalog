@@ -347,6 +347,12 @@ const extractReferences = (parsedFile: ParsedFile): ReferenceInfo[] => {
       if (step.service) {
         addReference(references, step.service, ['service'], `steps[${index}].service`);
       }
+      if (step.systems) {
+        addReference(references, step.systems, ['system'], `steps[${index}].systems`);
+      }
+      if (step.system) {
+        addReference(references, step.system, ['system'], `steps[${index}].system`);
+      }
       if (step.agent) {
         addReference(references, step.agent, ['agent'], `steps[${index}].agent`);
       }

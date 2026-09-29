@@ -54,6 +54,14 @@ export interface FlowStep {
     id: string;
     version: string;
   };
+  systems?: {
+    id: string;
+    version?: string;
+  };
+  system?: {
+    id: string;
+    version?: string;
+  };
   externalSystem?: {
     name: string;
     summary?: string;
