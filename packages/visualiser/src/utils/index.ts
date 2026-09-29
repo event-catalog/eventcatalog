@@ -14,3 +14,10 @@ export * from "./utils/utils";
 
 // Layout utilities (DSL graph → ReactFlow nodes/edges)
 export { layoutGraph, buildNodeData } from "./layout";
+
+// Grouping a flow's steps (by domain, system or team)
+export {
+  isFlowGroupBy,
+  type FlowGroupBy,
+  type FlowGroupStyle,
+} from "./swimlanes";

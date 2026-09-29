@@ -1,4 +1,5 @@
 import type { Node, Edge } from "@xyflow/react";
+import { isSwimlaneNode } from "./swimlanes";
 
 /**
  * Mermaid Export Utility
@@ -289,11 +290,13 @@ function getEdgeLabel(edge: Edge): string | undefined {
  * Convert React Flow nodes and edges to Mermaid flowchart syntax
  */
 export function convertToMermaid(
-  nodes: Node[],
+  graphNodes: Node[],
   edges: Edge[],
   options: MermaidExportOptions = {},
 ): string {
   const { includeStyles = true, direction = "LR" } = options;
+  // The boxes or lanes a flow's steps are grouped into aren't steps themselves
+  const nodes = graphNodes.filter((node) => !isSwimlaneNode(node));
 
   const lines: string[] = [];
 

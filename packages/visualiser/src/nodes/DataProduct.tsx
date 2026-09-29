@@ -8,6 +8,7 @@ import {
   LINE_CLAMP_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
+  HANDLE_GLOW,
 } from "./shared-styles";
 import { CustomIcon, isIconPath } from "../utils/custom-icon";
 import { TruncatedResourceName } from "./TruncatedResourceName";
@@ -15,6 +16,7 @@ import { TruncatedResourceName } from "./TruncatedResourceName";
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -26,7 +28,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         background: "linear-gradient(135deg, #6366f1, #4338ca)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-dp-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.dataProduct,
         pointerEvents: "none",
       }}
     />

@@ -3,7 +3,12 @@ import { Handle, Position, useNodeConnections } from "@xyflow/react";
 import * as Icons from "@heroicons/react/24/solid";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
-import { EMPTY_ARRAY, EMPTY_OBJECT, LINE_CLAMP_STYLE } from "./shared-styles";
+import {
+  EMPTY_ARRAY,
+  EMPTY_OBJECT,
+  LINE_CLAMP_STYLE,
+  HANDLE_GLOW,
+} from "./shared-styles";
 import { TruncatedResourceName } from "./TruncatedResourceName";
 import { usePortalContainer } from "../context/PortalContainerContext";
 
@@ -207,6 +212,7 @@ function GlowHandle({
 }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -218,7 +224,7 @@ function GlowHandle({
         background: gradient,
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.generic,
         pointerEvents: "none",
       }}
     />

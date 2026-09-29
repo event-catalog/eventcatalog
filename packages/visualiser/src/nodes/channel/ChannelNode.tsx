@@ -12,6 +12,7 @@ import {
   FOLDED_CORNER_SHADOW_STYLE,
   EMPTY_ARRAY,
   useDarkMode,
+  HANDLE_GLOW,
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 import { TruncatedResourceName } from "../TruncatedResourceName";
@@ -93,6 +94,7 @@ function GuaranteeDot({
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -104,7 +106,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         background: "linear-gradient(135deg, #6b7280, #374151)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-channel-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.channel,
         pointerEvents: "none",
       }}
     />

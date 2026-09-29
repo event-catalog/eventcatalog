@@ -1,5 +1,6 @@
 ---
 import AstroNodeGraph from './AstroNodeGraph';
+import type { FlowGroupBy } from '@eventcatalog/visualiser';
 // Imported here (server side) rather than from the React island: Astro then emits it as a
 // <link> in the page head, which survives ClientRouter navigations. A dynamic import from the
 // island injects a <style> that the view-transition head swap removes — and the cached module
@@ -60,6 +61,8 @@ interface Props {
   // Labels level 1 of a levels page (`systems-levels` or `domains-levels`): a
   // system's context diagram, or a domain's systems and the domains they talk to.
   overview?: { label: string };
+  // Flows only: group the steps into swimlanes to start with
+  lanes?: FlowGroupBy;
 }
 
 const {
@@ -77,6 +80,7 @@ const {
   portalId,
   disableMessageAnimation,
   overview,
+  lanes,
 } = Astro.props;
 
 let nodes = [],
@@ -252,6 +256,7 @@ if (overview && levelsOverview) {
     overviewGraph={overviewGraph}
     hiddenMessagesGraph={hiddenMessagesGraph}
     preferenceScope={collection}
+    swimlanes={lanes}
   />
 </div>
 

@@ -8,7 +8,7 @@ import {
   normalizeOwners,
   HIDDEN_HANDLE_STYLE,
 } from "./OwnerIndicator";
-import { LINE_CLAMP_STYLE, useDarkMode } from "./shared-styles";
+import { LINE_CLAMP_STYLE, useDarkMode, HANDLE_GLOW } from "./shared-styles";
 import { CustomIcon, isIconPath, resolveIconUrl } from "../utils/custom-icon";
 import { TruncatedResourceName } from "./TruncatedResourceName";
 
@@ -19,6 +19,7 @@ function classNames(...classes: any) {
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -30,7 +31,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         background: "linear-gradient(135deg, #0ea5e9, #0369a1)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-dp-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.dataProduct,
         pointerEvents: "none",
       }}
     />

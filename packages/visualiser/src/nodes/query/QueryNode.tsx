@@ -14,6 +14,7 @@ import {
   LINE_CLAMP_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
+  HANDLE_GLOW,
 } from "../shared-styles";
 import { TruncatedResourceName } from "../TruncatedResourceName";
 import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
@@ -25,6 +26,7 @@ const GlowHandle = memo(function GlowHandle({
 }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -36,7 +38,7 @@ const GlowHandle = memo(function GlowHandle({
         background: "linear-gradient(135deg, #22c55e, #15803d)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-query-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.query,
         pointerEvents: "none",
       }}
     />

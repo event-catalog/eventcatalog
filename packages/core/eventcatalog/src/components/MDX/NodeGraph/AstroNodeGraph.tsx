@@ -14,6 +14,7 @@
 
 import { useCallback, lazy, Suspense } from 'react';
 import type { Node, Edge } from '@xyflow/react';
+import type { FlowGroupBy } from '@eventcatalog/visualiser';
 import { buildUrl } from '@utils/url-builder';
 
 const NodeGraph = lazy(() =>
@@ -54,6 +55,8 @@ interface AstroNodeGraphProps {
   hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
   // The kind of diagram, so the level is remembered for each kind
   preferenceScope?: string;
+  // Group a flow's steps into swimlanes to start with
+  swimlanes?: FlowGroupBy;
 }
 
 const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: AstroNodeGraphProps) => {

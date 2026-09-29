@@ -3,7 +3,7 @@ import { Wrench } from "lucide-react";
 import { Handle, Node, Position, useNodeConnections } from "@xyflow/react";
 import { EventCatalogResource } from "../types";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
-import { LINE_CLAMP_STYLE, useDarkMode } from "./shared-styles";
+import { LINE_CLAMP_STYLE, useDarkMode, HANDLE_GLOW } from "./shared-styles";
 import { TruncatedResourceName } from "./TruncatedResourceName";
 import { CustomIcon, isIconPath } from "../utils/custom-icon";
 import mcpDark from "../icons/protocols/mcp-dark.svg?raw";
@@ -55,6 +55,7 @@ function ToolTypeBadge({ type }: { type: string }) {
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -66,7 +67,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-dp-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.dataProduct,
         pointerEvents: "none",
       }}
     />

@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import { Layers, Zap, Terminal, HelpCircle, Maximize2 } from "lucide-react";
 import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
 import { HIDDEN_HANDLE_STYLE } from "../OwnerIndicator";
-import { useDarkMode } from "../shared-styles";
+import { useDarkMode, HANDLE_GLOW } from "../shared-styles";
 import { TruncatedResourceName } from "../TruncatedResourceName";
 
 export type MessageGroupNodeData = {
@@ -98,6 +98,7 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
 
         {targetConnections.length > 0 && (
           <div
+            className="ec-handle-glow"
             style={{
               position: "absolute",
               top: "50%",
@@ -109,13 +110,14 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
               background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
               border: "2px solid rgb(var(--ec-page-bg))",
               zIndex: 20,
-              animation: "ec-handle-pulse 2s ease-in-out infinite",
+              ...HANDLE_GLOW.generic,
               pointerEvents: "none",
             }}
           />
         )}
         {sourceConnections.length > 0 && (
           <div
+            className="ec-handle-glow"
             style={{
               position: "absolute",
               top: "50%",
@@ -127,7 +129,7 @@ export default memo(function MessageGroupNode(props: MessageGroupNode) {
               background: "linear-gradient(135deg, #a78bfa, #7c3aed)",
               border: "2px solid rgb(var(--ec-page-bg))",
               zIndex: 20,
-              animation: "ec-handle-pulse 2s ease-in-out infinite",
+              ...HANDLE_GLOW.generic,
               pointerEvents: "none",
             }}
           />

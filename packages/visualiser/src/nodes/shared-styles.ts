@@ -127,3 +127,24 @@ export const EMPTY_OBJECT: Readonly<Record<string, never>> = {} as const;
 export const QUEUE_BORDER_STYLE = {
   borderTop: "1px dashed rgb(var(--ec-page-border))",
 } as const;
+
+// ─── Handle glow ────────────────────────────────────────────────────────────
+
+// The colour (as "r, g, b") of the ring that pulses out from a node's handles,
+// for elements with the `ec-handle-glow` class. The ring only animates
+// transform and opacity, so it runs on the compositor.
+const glow = (rgb: string) => ({ "--ec-glow": rgb }) as CSSProperties;
+
+export const HANDLE_GLOW = {
+  event: glow("251, 146, 60"),
+  service: glow("236, 72, 153"),
+  command: glow("59, 130, 246"),
+  query: glow("34, 197, 94"),
+  data: glow("59, 130, 246"),
+  channel: glow("107, 114, 128"),
+  actor: glow("234, 179, 8"),
+  external: glow("168, 85, 247"),
+  dataProduct: glow("99, 102, 241"),
+  // Nodes without a colour of their own (fields, message groups, custom steps)
+  generic: glow("251, 146, 60"),
+} as const;

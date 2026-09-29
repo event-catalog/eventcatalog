@@ -167,6 +167,9 @@ export const layoutWithElk = async (
       ...(groupIds.has(node.id)
         ? { "elk.padding": GROUP_PADDING, ...SPACING }
         : {}),
+      // A node's own options (e.g. a group's padding) win
+      ...((node.data as { layoutOptions?: LayoutOptions } | undefined)
+        ?.layoutOptions ?? {}),
     },
     ports: ports.get(node.id) || [],
   });

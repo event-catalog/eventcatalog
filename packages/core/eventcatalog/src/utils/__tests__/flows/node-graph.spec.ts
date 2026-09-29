@@ -73,20 +73,11 @@ describe('Flows NodeGraph', () => {
           step: {
             id: 3,
             title: 'Payment Processed',
-            message: {
-              slug: 'PaymentProcessed',
-              collection: 'events',
-              data: {
-                id: 'PaymentProcessed',
-                version: '0.0.1',
-              },
-            },
             type: 'events',
           },
           showTarget: true,
           showSource: true,
           message: {
-            slug: 'PaymentProcessed',
             collection: 'events',
             data: {
               id: 'PaymentProcessed',
@@ -121,6 +112,19 @@ describe('Flows NodeGraph', () => {
   });
 
   describe('getNodesAndEdges', () => {
+    it('sends each step its resource once, without what is only needed to build the catalog', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
+      const serialised = JSON.stringify(nodes);
+
+      for (const key of ['"body"', '"filePath"', '"digest"', '"deferredRender"']) {
+        expect(serialised).not.toContain(key);
+      }
+      for (const node of nodes) {
+        expect(node.data.step).not.toHaveProperty('message');
+        expect(node.data.step).not.toHaveProperty('service');
+      }
+    });
+
     it('should return the correct nodes and edges for a given flow', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
 
@@ -303,15 +307,13 @@ describe('Flows NodeGraph', () => {
 
       expect(nodes).toContainEqual(
         expect.objectContaining({
+          type: 'services',
           data: expect.objectContaining({
-            step: expect.objectContaining({
-              type: 'services',
-              service: expect.objectContaining({
-                data: {
-                  id: 'SubscriptionService',
-                  version: '0.0.1',
-                },
-              }),
+            service: expect.objectContaining({
+              data: {
+                id: 'SubscriptionService',
+                version: '0.0.1',
+              },
             }),
           }),
         })
@@ -381,20 +383,11 @@ describe('Flows NodeGraph', () => {
               step: {
                 id: 3,
                 title: 'Payment Processed',
-                message: {
-                  slug: 'PaymentProcessed',
-                  collection: 'events',
-                  data: {
-                    id: 'PaymentProcessed',
-                    version: '0.0.1',
-                  },
-                },
                 type: 'events',
               },
               showTarget: true,
               showSource: true,
               message: {
-                slug: 'PaymentProcessed',
                 collection: 'events',
                 data: {
                   id: 'PaymentProcessed',

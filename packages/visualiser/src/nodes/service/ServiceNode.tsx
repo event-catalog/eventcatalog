@@ -14,6 +14,7 @@ import {
   WATERMARK_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
+  HANDLE_GLOW,
 } from "../shared-styles";
 import { TruncatedResourceName } from "../TruncatedResourceName";
 import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
@@ -171,6 +172,7 @@ const GlowHandle = memo(function GlowHandle({
 }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -184,9 +186,7 @@ const GlowHandle = memo(function GlowHandle({
           : "linear-gradient(135deg, #ec4899, #be185d)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: external
-          ? "ec-external-handle-pulse 2s ease-in-out infinite"
-          : "ec-service-handle-pulse 2s ease-in-out infinite",
+        ...(external ? HANDLE_GLOW.external : HANDLE_GLOW.service),
         pointerEvents: "none",
       }}
     />

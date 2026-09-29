@@ -60,7 +60,27 @@ interface NodeVisibilityProps {
    * kind rather than one level for every diagram
    */
   preferenceScope?: string;
+  /**
+   * Levels don't apply to this graph (e.g. a flow), so it always opens with
+   * everything shown, whatever level was last picked
+   */
+  ignoreSavedLevel?: boolean;
+  /**
+   * Called on a graph before it's laid out again (e.g. taking it out of
+   * swimlanes, which the layout doesn't know about), and on each graph before
+   * it's shown (e.g. putting it back in them)
+   */
+  beforeLayout?: (graph: { nodes: Node[]; edges: Edge[] }) => {
+    nodes: Node[];
+    edges: Edge[];
+  };
+  afterLayout?: (graph: { nodes: Node[]; edges: Edge[] }) => {
+    nodes: Node[];
+    edges: Edge[];
+  };
 }
+
+const identity = <T>(graph: T) => graph;
 
 const matchesType = (node: Node, key: string) => node.type === key;
 
@@ -130,6 +150,9 @@ export const useNodeVisibility = ({
   initialHiddenLegendKeys = [],
   onHiddenLegendKeysChange,
   preferenceScope,
+  ignoreSavedLevel = false,
+  beforeLayout = identity,
+  afterLayout = identity,
 }: NodeVisibilityProps) => {
   const hideMessagesKey = `EventCatalog:hideMessages${preferenceScope ? `:${preferenceScope}` : ""}`;
   const hideChannelsKey = `EventCatalog:hideChannels${preferenceScope ? `:${preferenceScope}` : ""}`;
@@ -137,6 +160,7 @@ export const useNodeVisibility = ({
   // the first render is already at the right level. Level 1 is an overview
   // graph shown instead of this one, so without one this graph opens at level 2.
   const [urlLevel] = useState(() => {
+    if (ignoreSavedLevel) return 3;
     const level = Number(
       new URLSearchParams(window.location.search).get("level"),
     );
@@ -144,7 +168,10 @@ export const useNodeVisibility = ({
     return level === 3 ? 3 : undefined;
   });
   const [hideChannels, setHideChannels] = useState(
-    () => !urlLevel && localStorage.getItem(hideChannelsKey) === "true",
+    () =>
+      !ignoreSavedLevel &&
+      !urlLevel &&
+      localStorage.getItem(hideChannelsKey) === "true",
   );
   const [hideMessages, setHideMessages] = useState(() =>
     urlLevel
@@ -256,6 +283,10 @@ export const useNodeVisibility = ({
   // The latest, as layouts can finish after it changes
   const prepareEdgesRef = useRef(prepareEdges);
   prepareEdgesRef.current = prepareEdges;
+  const beforeLayoutRef = useRef(beforeLayout);
+  beforeLayoutRef.current = beforeLayout;
+  const afterLayoutRef = useRef(afterLayout);
+  afterLayoutRef.current = afterLayout;
   // Relayouts are async (ELK), so only the latest one is applied
   const latestRun = useRef(0);
   // While the first layout of a graph opening at a hidden level is worked out,
@@ -290,9 +321,10 @@ export const useNodeVisibility = ({
       laidOutLater = false,
     ) => {
       if (run !== latestRun.current) return;
+      const shown = afterLayoutRef.current({ nodes: toNodes, edges: toEdges });
       const target = {
-        nodes: toNodes,
-        edges: prepareEdgesRef.current(toEdges),
+        nodes: shown.nodes,
+        edges: prepareEdgesRef.current(shown.edges),
       };
 
       if (!animate) {
@@ -351,12 +383,12 @@ export const useNodeVisibility = ({
 
     // Lay the graph out again without the hidden nodes: the level's, then
     // the legend's
-    const { nodes: fullNodes, edges: fullEdges } = fullGraph.current;
+    const full = beforeLayoutRef.current(fullGraph.current);
     const level = messagesHidden
-      ? (hiddenMessagesGraph ?? hideMessageNodes(fullNodes, fullEdges))
+      ? (hiddenMessagesGraph ?? hideMessageNodes(full.nodes, full.edges))
       : channelsHidden
-        ? hideChannelNodes(fullNodes, fullEdges)
-        : fullGraph.current;
+        ? hideChannelNodes(full.nodes, full.edges)
+        : full;
     const graph = legendHidden
       ? hideNodes(level.nodes, level.edges, isHiddenByLegend)
       : level;

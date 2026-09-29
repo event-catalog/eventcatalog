@@ -23,7 +23,9 @@ import {
   type NodeChange,
   useReactFlow,
   useStoreApi,
+  useNodesInitialized,
   getNodesBounds,
+  getViewportForBounds,
   type NodeTypes,
   MarkerType,
 } from "@xyflow/react";
@@ -99,12 +101,33 @@ import {
 } from "../edges/LabelledEdge";
 import VisualiserSearch, { type VisualiserSearchRef } from "./VisualiserSearch";
 import StepWalkthrough from "./StepWalkthrough";
+import WalkthroughBadges from "./WalkthroughBadges";
 import CanvasToolbar from "./CanvasToolbar";
+import SwimlanePicker from "./SwimlanePicker";
+import SwimlaneNode from "../nodes/SwimlaneNode";
 import FocusModeModal from "./FocusModeModal";
 import MermaidView from "./MermaidView";
 import { setLevelInUrl, useNodeVisibility } from "../hooks/use-node-visibility";
 import type { GraphTransition } from "../utils/animate-layout";
-import { layoutWithElk, type EdgeRoute } from "../utils/elk-layout";
+import {
+  getNodeSize,
+  layoutWithElk,
+  type EdgeRoute,
+} from "../utils/elk-layout";
+import {
+  FLOW_GROUP_BYS,
+  getGrouping,
+  groupIntoBoxes,
+  countGroups,
+  hasSwimlanes,
+  isFlowGroupBy,
+  isFlowGroupStyle,
+  isSwimlaneNode,
+  layoutSwimlanes,
+  removeSwimlanes,
+  type FlowGroupBy,
+  type FlowGroupStyle,
+} from "../utils/swimlanes";
 import { applyMessageAnimation } from "../utils/message-animation";
 import { isMessageNode } from "../utils/hide-messages";
 import VisualizerDropdownContent from "./VisualizerDropdownContent";
@@ -202,8 +225,56 @@ const EXPANDED_WRAPPER_TYPES = new Set([
 const isExpandedWrapper = (type: string | undefined) =>
   type != null && EXPANDED_WRAPPER_TYPES.has(type);
 
+// The step the flow walkthrough is on is ringed and glowing (see styles)
+const WALKTHROUGH_CURRENT_CLASS = "ec-walkthrough-current";
+const withWalkthroughCurrent = (node: Node, current: boolean) => {
+  const classes = (node.className ?? "")
+    .split(" ")
+    .filter((name) => name && name !== WALKTHROUGH_CURRENT_CLASS);
+  if (current) classes.push(WALKTHROUGH_CURRENT_CLASS);
+  return classes.length > 0 ? classes.join(" ") : undefined;
+};
+
+// Room the flow walkthrough's card takes along the bottom of the canvas,
+// kept clear when showing a step. Follows the card's height in
+// StepWalkthrough.tsx (about 100px, plus its margin): change them together.
+const WALKTHROUGH_CARD_SPACE = 170;
+
 // Boundaries around other nodes, left out of the legend
-const GROUP_NODE_TYPES = ["group", "system-group", "domain-group"];
+const GROUP_NODE_TYPES = ["group", "system-group", "domain-group", "swimlane"];
+
+// How a flow is grouped is kept in the URL, so links open grouped the same way
+const GROUP_URL_PARAM = "group";
+const GROUP_STYLE_URL_PARAM = "groupStyle";
+const setGroupInUrl = (groupBy: FlowGroupBy | null, style: FlowGroupStyle) => {
+  try {
+    const url = new URL(window.location.href);
+    if (groupBy) {
+      url.searchParams.set(GROUP_URL_PARAM, groupBy);
+      url.searchParams.set(GROUP_STYLE_URL_PARAM, style);
+    } else {
+      url.searchParams.delete(GROUP_URL_PARAM);
+      url.searchParams.delete(GROUP_STYLE_URL_PARAM);
+    }
+    window.history.replaceState(window.history.state, "", url);
+  } catch {
+    // The choice just isn't shareable
+  }
+};
+const readGroupFromUrl = () => {
+  try {
+    const params = new URL(window.location.href).searchParams;
+    return {
+      groupBy: params.get(GROUP_URL_PARAM),
+      style: params.get(GROUP_STYLE_URL_PARAM),
+    };
+  } catch {
+    return { groupBy: null, style: null };
+  }
+};
+
+// Room for the search box above the grouping picker, when it's shown
+const SWIMLANE_PICKER_PANEL_STYLE_UNDER_SEARCH = { marginTop: 64 } as const;
 
 type LegendEntry = { count: number; colorClass: string; groupId?: string };
 
@@ -343,6 +414,8 @@ interface Props {
   hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
   /** Legend entries hidden to start with (kept when switching graphs) */
   initialHiddenLegendKeys?: string[];
+  /** Group a flow's steps to start with (the `group` URL parameter wins) */
+  swimlanes?: FlowGroupBy;
   onHiddenLegendKeysChange?: (keys: string[]) => void;
   /** The kind of diagram, so the level is remembered for each kind */
   preferenceScope?: string;
@@ -506,6 +579,7 @@ const NodeGraphBuilder = ({
   initialHiddenLegendKeys,
   onHiddenLegendKeysChange,
   preferenceScope,
+  swimlanes: initialSwimlanes,
   focusNodeId,
   focusRequestId,
   fitRequestId,
@@ -581,6 +655,7 @@ const NodeGraphBuilder = ({
       messageGroup: MessageGroupNode,
       messageGroupExpanded: MessageGroupExpandedNode,
       flowExpanded: FlowExpandedNode,
+      swimlane: SwimlaneNode,
     } as unknown as NodeTypes;
   }, []);
   const edgeTypes = useMemo(
@@ -605,6 +680,7 @@ const NodeGraphBuilder = ({
     setCenter,
     getEdges,
     getViewport,
+    setViewport,
   } = useReactFlow();
   const storeApi = useStoreApi();
   const previousGraphInputRef = useRef({
@@ -656,6 +732,11 @@ const NodeGraphBuilder = ({
   );
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [swimlanes, setSwimlanes] = useState<FlowGroupBy | null>(null);
+  const swimlanesRef = useRef<FlowGroupBy | null>(null);
+  const [swimlaneStyle, setSwimlaneStyle] = useState<FlowGroupStyle>("boxes");
+  const swimlaneStyleRef = useRef<FlowGroupStyle>("boxes");
+  const unlanedGraphRef = useRef<{ nodes: Node[]; edges: Edge[] } | null>(null);
 
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const openNotesModal = useCallback(() => setIsNotesModalOpen(true), []);
@@ -764,6 +845,43 @@ const NodeGraphBuilder = ({
     () => initialNodes.some(isMessageNode),
     [initialNodes],
   );
+  // A flow (its steps are joined by flow edges). Levels don't apply to flows.
+  const isFlowGraph = useMemo(
+    () => initialEdges.some((edge: Edge) => edge.type === "flow-edge"),
+    [initialEdges],
+  );
+  // Groups are sized to fit their nodes as they render, rather than as
+  // estimated (a node wider than estimated would poke out of its group)
+  const renderedSizeOf = useCallback(
+    (node: Node) => {
+      const measured = storeApi.getState().nodeLookup.get(node.id)?.measured;
+      return measured?.width && measured?.height
+        ? { width: measured.width, height: measured.height }
+        : getNodeSize(node);
+    },
+    [storeApi],
+  );
+  // Graphs in lanes are laid out again without them (the layout doesn't know
+  // about them), then put back in them. Boxes are groups the layout lays out
+  // with their steps, so graphs in boxes are laid out in them.
+  const beforeLayout = useCallback(
+    (graph: { nodes: Node[]; edges: Edge[] }) =>
+      swimlaneStyleRef.current === "lanes" ? removeSwimlanes(graph) : graph,
+    [],
+  );
+  const afterLayout = useCallback((graph: { nodes: Node[]; edges: Edge[] }) => {
+    const groupBy = swimlanesRef.current;
+    const style = swimlaneStyleRef.current;
+    const current = getGrouping(graph.nodes);
+    if (!current && !groupBy) return graph;
+    if (current?.groupBy === groupBy && current?.style === style) return graph;
+    const unlaned = removeSwimlanes(graph);
+    // Boxes need laying out (async), which only switching grouping does
+    if (!groupBy || style === "boxes" || groupBy === "domain-system")
+      return unlaned;
+    unlanedGraphRef.current = unlaned;
+    return layoutSwimlanes(unlaned, groupBy, { sizeOf: renderedSizeOf });
+  }, []);
   // Graphs levels don't apply to (e.g. an entity map) don't show them
   const hasLevels = useMemo(
     () =>
@@ -822,6 +940,9 @@ const NodeGraphBuilder = ({
     // The page's kind (the same for its overview and detail graphs), else
     // e.g. "services" from "services/OrderService/1.0.0"
     preferenceScope: preferenceScope ?? resourceKey?.split("/")[0],
+    ignoreSavedLevel: isFlowGraph,
+    beforeLayout,
+    afterLayout,
   });
 
   // Switching to or from the overview graph swaps graphs. The next graph
@@ -843,6 +964,7 @@ const NodeGraphBuilder = ({
   // and L3 adding messages and channels. Levels a diagram doesn't have are
   // greyed out, e.g. L1 on a service's diagram.
   const levels = useMemo(() => {
+    if (isFlowGraph) return [];
     if (!overviewLabel && !isContextGraph && !hasLevels) return [];
     const selectDetailLevel = (level: 2 | 3) => {
       if (isOverview) switchGraph(false);
@@ -887,6 +1009,7 @@ const NodeGraphBuilder = ({
     isOverview,
     isContextGraph,
     hasLevels,
+    isFlowGraph,
     hideMessages,
     hasMessages,
     setDetailLevel,
@@ -927,30 +1050,30 @@ const NodeGraphBuilder = ({
   // than walkable steps. Stitched predecessor/successor edges added at expand
   // time already connect real outer steps to the sub-flow's children, so
   // dropping wrapper edges doesn't break traversal.
-  const wrapperNodeIds = useMemo(() => {
-    const ids = new Set<string>();
-    nodes.forEach((n) => {
-      if (isExpandedWrapper(n.type)) ids.add(n.id);
-    });
-    return ids;
-  }, [nodes]);
-  const walkthroughNodes = useMemo(
-    () =>
-      wrapperNodeIds.size === 0
-        ? nodes
-        : nodes.filter((n) => !wrapperNodeIds.has(n.id)),
-    [nodes, wrapperNodeIds],
-  );
-  const walkthroughEdges = useMemo(
-    () =>
-      wrapperNodeIds.size === 0
-        ? edges
-        : edges.filter(
-            (e) =>
-              !wrapperNodeIds.has(e.source) && !wrapperNodeIds.has(e.target),
-          ),
-    [edges, wrapperNodeIds],
-  );
+  // The walkthrough only needs the graph's structure (which steps there are
+  // and how they connect), so it's only given a new graph when that changes,
+  // not on every position change (e.g. each tick of a drag)
+  const walkthroughKeyRef = useRef("");
+  const computedWalkthroughKey = `${nodes
+    .map((n) => `${n.id}:${n.type}`)
+    .join(",")}|${edges.map((e) => `${e.source}>${e.target}`).join(",")}`;
+  if (computedWalkthroughKey !== walkthroughKeyRef.current) {
+    walkthroughKeyRef.current = computedWalkthroughKey;
+  }
+  const walkthroughKey = walkthroughKeyRef.current;
+  const { walkthroughNodes, walkthroughEdges } = useMemo(() => {
+    const wrapperNodeIds = new Set(
+      nodes
+        .filter((n) => isExpandedWrapper(n.type) || isSwimlaneNode(n))
+        .map((n) => n.id),
+    );
+    return {
+      walkthroughNodes: nodes.filter((n) => !wrapperNodeIds.has(n.id)),
+      walkthroughEdges: edges.filter(
+        (e) => !wrapperNodeIds.has(e.source) && !wrapperNodeIds.has(e.target),
+      ),
+    };
+  }, [walkthroughKey]);
 
   const animateLayout = useCallback(() => {
     const wrapper = reactFlowWrapperRef.current;
@@ -1187,7 +1310,12 @@ const NodeGraphBuilder = ({
     setNodes((nds) =>
       nds.map((node) => {
         node.style = { ...node.style, opacity: 1 };
-        return { ...node, animated: animateMessages, selected: false };
+        return {
+          ...node,
+          className: withWalkthroughCurrent(node, false),
+          animated: animateMessages,
+          selected: false,
+        };
       }),
     );
     setEdges((eds) =>
@@ -1253,6 +1381,9 @@ const NodeGraphBuilder = ({
         Array.isArray((node.data as any)?.expandedNodes) &&
         (node.data as any).expandedNodes.length > 0;
       if ((isFlow || isEntityVisualizer) && !isExpandableFlow) return;
+      // Sub-flows expand into the graph as laid out without lanes
+      if (isExpandableFlow && swimlanesRef.current) return;
+      if (isSwimlaneNode(node)) return;
 
       // Disable focus mode for domain and expanded group nodes
       if (node.type === "domain" || node.type === "domains") return;
@@ -1869,9 +2000,13 @@ const NodeGraphBuilder = ({
   // Layout persistence handlers (dev mode only)
   const handleSaveLayout = useCallback(async (): Promise<boolean> => {
     if (!resourceKey || !onSaveLayout) return false;
+    // Grouping is only a way of looking at the graph: grouped, nodes are
+    // placed inside their groups, which a saved layout can't show
+    if (swimlanesRef.current) return false;
 
     const positions: Record<string, { x: number; y: number }> = {};
     nodesRef.current.forEach((node) => {
+      if (isSwimlaneNode(node)) return;
       positions[node.id] = {
         x: node.position.x,
         y: node.position.y,
@@ -2101,7 +2236,10 @@ const NodeGraphBuilder = ({
   }
   const nodeIdsKey = nodeIdsKeyRef.current;
 
-  const searchNodes = useMemo(() => nodes, [nodeIdsKey]);
+  const searchNodes = useMemo(
+    () => nodes.filter((node) => !isSwimlaneNode(node)),
+    [nodeIdsKey],
+  );
 
   // Collect notes across all nodes for the dropdown menu item.
   // Notes don't change during drag — use nodeIdsKey for stability.
@@ -2131,18 +2269,24 @@ const NodeGraphBuilder = ({
     [allNoteGroups],
   );
 
+  // The steps walked so far in the flow walkthrough, numbered on the canvas
+  const [walkthroughTrail, setWalkthroughTrail] = useState<string[]>([]);
+  // The same, for handlers that run after the graph changes (e.g. regrouping)
+  const walkthroughTrailRef = useRef<string[]>([]);
+  // A walkthrough step: the way taken to it stays lit (numbered, its edges
+  // solid), the ways on from it are lit and moving, and the rest fades back.
+  // The view fits the step and the steps it can go on to.
   const handleStepChange = useCallback(
     (
       nodeId: string | null,
-      highlightPaths?: string[],
       shouldZoomOut?: boolean,
+      trail: string[] = nodeId ? [nodeId] : [],
     ) => {
       if (nodeId === null) {
-        // Reset all nodes and edges
         resetNodesAndEdges();
+        setWalkthroughTrail([]);
+        walkthroughTrailRef.current = [];
         _setActiveStepIndex(null);
-
-        // If shouldZoomOut is true, fit the entire view
         if (shouldZoomOut) {
           setTimeout(() => {
             fitView({ duration: 800, padding: 0.1 });
@@ -2151,92 +2295,185 @@ const NodeGraphBuilder = ({
         return;
       }
 
+      // Read through refs, so the handler stays the same while nodes move
+      const nodes = nodesRef.current;
+      const edges = edgesRef.current;
       const activeNode = nodes.find((node: Node) => node.id === nodeId);
       if (!activeNode) return;
 
-      // Create set of highlighted nodes and edges
-      const highlightedNodeIds = new Set<string>();
-      const highlightedEdgeIds = new Set<string>();
-
-      // Add current node
-      highlightedNodeIds.add(activeNode.id);
-
-      // Add incoming edges and their source nodes
-      edges.forEach((edge: Edge) => {
-        if (edge.target === activeNode.id) {
-          highlightedEdgeIds.add(edge.id);
-          highlightedNodeIds.add(edge.source);
-        }
-      });
-
-      // Add outgoing edges
-      if (highlightPaths) {
-        // Highlight all possible paths when at a fork
-        highlightPaths.forEach((pathId) => {
-          const [source, target] = pathId.split("-");
-          edges.forEach((edge: Edge) => {
-            if (edge.source === source && edge.target === target) {
-              highlightedEdgeIds.add(edge.id);
-              highlightedNodeIds.add(edge.target);
-            }
-          });
-        });
-      } else {
-        // Highlight all outgoing edges normally
+      const walked = new Set(trail);
+      const walkedEdges = new Set<string>();
+      trail.slice(1).forEach((target, index) => {
+        const source = trail[index];
         edges.forEach((edge: Edge) => {
-          if (edge.source === activeNode.id) {
-            highlightedEdgeIds.add(edge.id);
-            highlightedNodeIds.add(edge.target);
-          }
+          if (edge.source === source && edge.target === target)
+            walkedEdges.add(edge.id);
         });
-      }
-
-      // Update nodes
-      const updatedNodes = nodes.map((node: Node) => {
-        if (highlightedNodeIds.has(node.id)) {
-          return { ...node, style: { ...node.style, opacity: 1 } };
-        }
-        return { ...node, style: { ...node.style, opacity: 0.2 } };
       });
+      const nextEdges = edges.filter((edge: Edge) => edge.source === nodeId);
+      const nextNodeIds = new Set(nextEdges.map((edge) => edge.target));
 
-      // Update edges
-      const updatedEdges = edges.map((edge: Edge) => {
-        if (highlightedEdgeIds.has(edge.id)) {
+      const opacityOf = (node: Node) =>
+        walked.has(node.id) || isSwimlaneNode(node)
+          ? 1
+          : nextNodeIds.has(node.id)
+            ? 0.75
+            : 0.15;
+      setNodes(
+        nodes.map((node: Node) => ({
+          ...node,
+          className: withWalkthroughCurrent(node, node.id === nodeId),
+          style: { ...node.style, opacity: opacityOf(node) },
+        })),
+      );
+      setEdges(
+        edges.map((edge: Edge) => {
+          const isNext = edge.source === nodeId;
+          const lit = isNext || walkedEdges.has(edge.id);
           return {
             ...edge,
-            data: { ...edge.data, opacity: 1, animated: true },
-            style: { ...edge.style, opacity: 1, strokeWidth: 3 },
-            labelStyle: { ...edge.labelStyle, opacity: 1 },
-            animated: true,
+            data: { ...edge.data, opacity: lit ? 1 : 0.15, animated: isNext },
+            style: {
+              ...edge.style,
+              opacity: lit ? 1 : 0.15,
+              strokeWidth: lit ? 3 : 2,
+            },
+            labelStyle: { ...edge.labelStyle, opacity: lit ? 1 : 0.15 },
+            animated: isNext,
           };
-        }
-        return {
-          ...edge,
-          data: { ...edge.data, opacity: 0.2, animated: false },
-          style: { ...edge.style, opacity: 0.2, strokeWidth: 2 },
-          labelStyle: { ...edge.labelStyle, opacity: 0.2 },
-          animated: false,
-        };
-      });
+        }),
+      );
+      setWalkthroughTrail(trail);
+      walkthroughTrailRef.current = trail;
 
-      setNodes(updatedNodes);
-      setEdges(updatedEdges);
-
-      // Fit view to active node
-      fitView({
-        padding: 0.4,
-        duration: 800,
-        nodes: [activeNode],
+      // The step and where it can go next, not zoomed in so far the flow is
+      // lost, in the canvas above the walkthrough card
+      const canvas = reactFlowWrapperRef.current?.getBoundingClientRect();
+      if (!canvas) return;
+      const bounds = getNodesBounds([nodeId, ...nextNodeIds], {
+        nodeLookup: storeApi.getState().nodeLookup,
       });
+      const cardSpace = Math.min(WALKTHROUGH_CARD_SPACE, canvas.height * 0.35);
+      setViewport(
+        getViewportForBounds(
+          bounds,
+          canvas.width,
+          canvas.height - cardSpace,
+          0.1,
+          0.9,
+          0.15,
+        ),
+        { duration: 700 },
+      );
     },
-    [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView],
+    [setNodes, setEdges, resetNodesAndEdges, setViewport, storeApi],
   );
 
-  // Check if this is a flow visualization by checking if edges use flow-edge type
-  const isFlowVisualization = useMemo(
-    () => edges.some((edge: Edge) => edge.type === "flow-edge"),
-    [edges],
+  // Swimlanes: a flow's steps grouped into lanes by domain, system or team.
+  // The graph without lanes is kept to lay out again from, and to go back to.
+  const swimlaneOptions = useMemo(
+    () =>
+      isFlowGraph
+        ? FLOW_GROUP_BYS.filter((groupBy) =>
+            hasSwimlanes(initialNodes, groupBy),
+          )
+        : [],
+    [isFlowGraph, initialNodes],
   );
+  const swimlaneCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        swimlaneOptions.map((groupBy) => [
+          groupBy,
+          countGroups(initialNodes, groupBy),
+        ]),
+      ),
+    [swimlaneOptions, initialNodes],
+  );
+  // Each time the graph is shown grouped another way (see below)
+  const [groupingShown, setGroupingShown] = useState(0);
+  // Grouping into boxes is laid out (async), so only the latest is shown
+  const groupingRun = useRef(0);
+  const handleSwimlanesChange = useCallback(
+    (
+      requested: FlowGroupBy | null,
+      style: FlowGroupStyle = swimlaneStyleRef.current,
+    ) => {
+      // Lanes don't nest, so domains with their systems become domains
+      const groupBy =
+        style === "lanes" && requested === "domain-system"
+          ? "domain"
+          : requested;
+      if (
+        groupBy === swimlanesRef.current &&
+        style === swimlaneStyleRef.current
+      )
+        return;
+      const unlaned = unlanedGraphRef.current ?? {
+        nodes: nodesRef.current,
+        edges: edgesRef.current,
+      };
+      unlanedGraphRef.current = groupBy ? unlaned : null;
+      swimlanesRef.current = groupBy;
+      swimlaneStyleRef.current = style;
+      setSwimlanes(groupBy);
+      setSwimlaneStyle(style);
+
+      const run = ++groupingRun.current;
+      const show = (next: { nodes: Node[]; edges: Edge[] }) => {
+        if (run !== groupingRun.current) return;
+        animateLayout();
+        setNodes(next.nodes);
+        setEdges(next.edges);
+        // Once shown, the walkthrough picks up where it was (see below)
+        setGroupingShown((count) => count + 1);
+      };
+      if (!groupBy) show(unlaned);
+      else if (style === "lanes" && groupBy !== "domain-system")
+        show(layoutSwimlanes(unlaned, groupBy, { sizeOf: renderedSizeOf }));
+      else
+        groupIntoBoxes(unlaned, groupBy, { sizeOf: renderedSizeOf }).then(show);
+
+      setGroupInUrl(groupBy, style);
+    },
+    [animateLayout, setNodes, setEdges, renderedSizeOf],
+  );
+  // Each time the graph is shown grouped another way: a walkthrough carries
+  // on from the step it was on (lit, numbered and in view in the new layout),
+  // otherwise the whole graph is shown, without any walkthrough styling the
+  // graph had when it was last shown this way. Only when the graph has been
+  // grouped another way.
+  useEffect(() => {
+    if (groupingShown === 0) return;
+    const trail = walkthroughTrailRef.current;
+    if (trail.length > 0) {
+      handleStepChange(trail[trail.length - 1], false, trail);
+    } else {
+      resetNodesAndEdges();
+      fitView({ duration: 400, padding: 0.1 });
+    }
+  }, [groupingShown]);
+
+  // Start grouped when the URL (or the page) asks for it, once the nodes
+  // have rendered (so groups fit them)
+  const nodesInitialized = useNodesInitialized();
+  const groupedOnLoad = useRef(false);
+  useEffect(() => {
+    if (!nodesInitialized || groupedOnLoad.current) return;
+    groupedOnLoad.current = true;
+    // The URL's grouping wins over the page's
+    const fromUrl = readGroupFromUrl();
+    const groupBy = fromUrl.groupBy ?? initialSwimlanes;
+    const style = fromUrl.style ?? "boxes";
+    if (
+      isFlowGroupBy(groupBy) &&
+      hasSwimlanes(initialNodes, groupBy) &&
+      isFlowGroupStyle(style)
+    ) {
+      handleSwimlanesChange(groupBy, style);
+    }
+    // Only when the graph is first shown
+  }, [nodesInitialized]);
   const isCompactMenuButton = !title;
   const menuButtonClassName = isCompactMenuButton
     ? "h-9 w-9 p-0 bg-[rgb(var(--ec-card-bg))] hover:bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center justify-center transition-colors duration-150 hover:border-[rgb(var(--ec-accent)/0.3)] group"
@@ -2309,7 +2546,7 @@ const NodeGraphBuilder = ({
                         setIsShareModalOpen={setIsShareModalOpen}
                         toggleFullScreen={toggleFullScreen}
                         isDevMode={isDevMode}
-                        onSaveLayout={handleSaveLayout}
+                        onSaveLayout={swimlanes ? undefined : handleSaveLayout}
                         onResetLayout={handleResetLayout}
                       />
                     </DropdownMenu.Content>
@@ -2434,7 +2671,9 @@ const NodeGraphBuilder = ({
                             setIsShareModalOpen={setIsShareModalOpen}
                             toggleFullScreen={toggleFullScreen}
                             isDevMode={isDevMode}
-                            onSaveLayout={handleSaveLayout}
+                            onSaveLayout={
+                              swimlanes ? undefined : handleSaveLayout
+                            }
                             onResetLayout={handleResetLayout}
                             notesCount={totalNotesCount}
                             onOpenNotes={openNotesModal}
@@ -2534,23 +2773,45 @@ const NodeGraphBuilder = ({
                 style={MINIMAP_STYLE}
               />
             )}
-            {isFlowVisualization && showFlowWalkthrough && (
+            {swimlaneOptions.length > 0 && (
+              <Panel
+                position="top-right"
+                // Under the search box when it's shown
+                style={
+                  mode === "full" && showSearch
+                    ? SWIMLANE_PICKER_PANEL_STYLE_UNDER_SEARCH
+                    : undefined
+                }
+              >
+                <SwimlanePicker
+                  options={swimlaneOptions}
+                  counts={swimlaneCounts}
+                  value={swimlanes}
+                  style={swimlaneStyle}
+                  onChange={handleSwimlanesChange}
+                />
+              </Panel>
+            )}
+            {isFlowGraph && showFlowWalkthrough && (
+              <WalkthroughBadges trail={walkthroughTrail} />
+            )}
+            {isFlowGraph && showFlowWalkthrough && (
               <Panel position="bottom-left">
                 <StepWalkthrough
                   nodes={walkthroughNodes}
                   edges={walkthroughEdges}
-                  isFlowVisualization={isFlowVisualization}
+                  isFlowVisualization={isFlowGraph}
                   onStepChange={handleStepChange}
                   mode={mode}
                 />
               </Panel>
             )}
             {/* Dev Mode: Layout change indicator */}
-            {isDevMode && hasLayoutChanges && (
+            {isDevMode && hasLayoutChanges && !swimlanes && (
               <Panel
                 position="bottom-left"
                 style={
-                  isFlowVisualization && showFlowWalkthrough
+                  isFlowGraph && showFlowWalkthrough
                     ? LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH
                     : LAYOUT_CHANGE_PANEL_STYLE_DEFAULT
                 }
@@ -2728,6 +2989,8 @@ interface NodeGraphProps {
   hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
   /** The kind of diagram (e.g. "services"), so the level is remembered for each kind */
   preferenceScope?: string;
+  /** Group a flow's steps to start with (the `group` URL parameter wins) */
+  swimlanes?: FlowGroupBy;
   /** When set, the graph will zoom to this node id. */
   focusNodeId?: string;
   /** Optional token to force repeated focus for the same node id. */
@@ -2777,6 +3040,7 @@ const NodeGraph = ({
   overviewGraph,
   hiddenMessagesGraph,
   preferenceScope,
+  swimlanes,
   focusNodeId,
   focusRequestId,
   fitRequestId,
@@ -2894,6 +3158,7 @@ const NodeGraph = ({
             hiddenMessagesGraph={overview ? undefined : hiddenMessagesGraph}
             initialHiddenLegendKeys={hiddenLegendKeys.current}
             preferenceScope={preferenceScope}
+            swimlanes={overview ? undefined : swimlanes}
             onHiddenLegendKeysChange={handleHiddenLegendKeysChange}
             focusNodeId={focusNodeId}
             focusRequestId={focusRequestId}

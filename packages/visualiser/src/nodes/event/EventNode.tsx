@@ -13,6 +13,7 @@ import {
   LINE_CLAMP_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
+  HANDLE_GLOW,
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 import { TruncatedResourceName } from "../TruncatedResourceName";
@@ -25,6 +26,7 @@ const GlowHandle = memo(function GlowHandle({
 }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -36,7 +38,7 @@ const GlowHandle = memo(function GlowHandle({
         background: "linear-gradient(135deg, #fb923c, #ea580c)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.event,
         pointerEvents: "none",
       }}
     />
