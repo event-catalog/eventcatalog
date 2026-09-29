@@ -87,6 +87,41 @@ describe('extractSchemaProperties', () => {
       const result = extractSchemaProperties(schema, 'json');
 
       expect(result[0].type).toBe('$ref');
+      expect(result[0].description).toBe('Shipping address');
+    });
+
+    it('extracts nested object and array item paths', () => {
+      const schema = JSON.stringify({
+        type: 'object',
+        properties: {
+          shippingAddress: {
+            type: 'object',
+            description: 'Destination address',
+            properties: {
+              country: { type: 'string', description: 'ISO country code' },
+            },
+            required: ['country'],
+          },
+          lineItems: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                sku: { type: 'string', description: 'Stock keeping unit' },
+              },
+            },
+          },
+        },
+      });
+
+      const result = extractSchemaProperties(schema, 'json');
+
+      expect(result).toEqual([
+        { name: 'shippingAddress', type: 'object', description: 'Destination address', required: false },
+        { name: 'shippingAddress.country', type: 'string', description: 'ISO country code', required: true },
+        { name: 'lineItems', type: 'array', description: '', required: false },
+        { name: 'lineItems[].sku', type: 'string', description: 'Stock keeping unit', required: false },
+      ]);
     });
 
     it('falls back to object type when no type, enum, or $ref is set', () => {
@@ -178,7 +213,7 @@ describe('extractSchemaProperties', () => {
       expect(result[0].type).toBe('array<string>');
     });
 
-    it('formats nested record types using the record type name', () => {
+    it('formats nested record types using the Avro record name', () => {
       const schema = JSON.stringify({
         type: 'record',
         name: 'Event',
@@ -193,7 +228,7 @@ describe('extractSchemaProperties', () => {
 
       const result = extractSchemaProperties(schema, 'avro');
 
-      expect(result[0].type).toBe('record');
+      expect(result[0].type).toBe('Address');
     });
 
     it('defaults description to empty string when doc is not provided', () => {
@@ -206,6 +241,42 @@ describe('extractSchemaProperties', () => {
       const result = extractSchemaProperties(schema, 'avro');
 
       expect(result[0].description).toBe('');
+    });
+
+    it('extracts nested record and array item paths from an avsc file', () => {
+      const schema = JSON.stringify({
+        type: 'record',
+        name: 'Order',
+        fields: [
+          {
+            name: 'contact',
+            type: {
+              type: 'record',
+              name: 'Contact',
+              fields: [{ name: 'email', type: 'string', doc: 'Contact email' }],
+            },
+          },
+          {
+            name: 'lineItems',
+            type: {
+              type: 'array',
+              items: {
+                type: 'record',
+                name: 'LineItem',
+                fields: [{ name: 'sku', type: 'string', doc: 'Stock keeping unit' }],
+              },
+            },
+          },
+        ],
+      });
+
+      const result = extractSchemaProperties(schema, 'avsc');
+
+      expect(result.map((property) => property.name)).toEqual(['contact', 'contact.email', 'lineItems', 'lineItems[].sku']);
+      expect(result.find((property) => property.name === 'contact.email')).toMatchObject({
+        type: 'string',
+        description: 'Contact email',
+      });
     });
   });
 

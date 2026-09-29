@@ -9,6 +9,7 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { ClientRouter } from 'astro:transitions';
 import { satisfies } from '@utils/collections/util';
 import { readResourceFile } from '@utils/resource-files';
+import { classifyFieldLineage, type FieldLineageConsumer } from '@utils/field-lineage';
 import { extractSchemaProperties, type SchemaProperty } from '@utils/schema-utils';
 
 import { Page } from './_index.data';
@@ -34,7 +35,7 @@ const matchesVersion = (pointerVersion: string | undefined) => {
   return satisfies(messageVersion, pointerVersion);
 };
 
-// Read schema and extract property metadata
+// Read schema and extract property metadata, including nested dotted paths.
 const schemaPropertyMap = new Map<string, SchemaProperty>();
 if (data.schemaPath) {
   const schemaContent = readResourceFile(props, data.schemaPath);
@@ -47,69 +48,37 @@ if (data.schemaPath) {
   }
 }
 
-// Build field usage: field → list of { service, direction }
-type FieldConsumer = {
-  resourceId: string;
-  resourceName: string;
-  resourceVersion: string;
-  direction: 'receives' | 'sends';
-};
+const fieldMap = new Map<string, FieldLineageConsumer[]>();
 
-const fieldMap = new Map<string, FieldConsumer[]>();
+const recordFieldUsage = (fields: string[] | undefined, consumer: FieldLineageConsumer) => {
+  for (const field of fields || []) {
+    const consumers = fieldMap.get(field) ?? [];
+    consumers.push(consumer);
+    fieldMap.set(field, consumers);
+  }
+};
 
 // Scan services
 for (const service of allServices) {
+  const resource = {
+    resourceId: service.data.id,
+    resourceName: service.data.name || service.data.id,
+    resourceVersion: service.data.version,
+  };
+
   for (const pointer of service.data.receives || []) {
     if (pointer.id === messageId && matchesVersion(pointer.version) && pointer.fields?.length) {
-      for (const field of pointer.fields) {
-        if (!fieldMap.has(field)) fieldMap.set(field, []);
-        fieldMap.get(field)!.push({
-          resourceId: service.data.id,
-          resourceName: service.data.name || service.data.id,
-          resourceVersion: service.data.version,
-          direction: 'receives',
-        });
-      }
+      recordFieldUsage(pointer.fields, { ...resource, direction: 'receives' });
     }
   }
   for (const pointer of service.data.sends || []) {
     if (pointer.id === messageId && matchesVersion(pointer.version) && pointer.fields?.length) {
-      for (const field of pointer.fields) {
-        if (!fieldMap.has(field)) fieldMap.set(field, []);
-        fieldMap.get(field)!.push({
-          resourceId: service.data.id,
-          resourceName: service.data.name || service.data.id,
-          resourceVersion: service.data.version,
-          direction: 'sends',
-        });
-      }
+      recordFieldUsage(pointer.fields, { ...resource, direction: 'sends' });
     }
   }
 }
 
-// Ensure all schema properties appear, even without consumers
-for (const [name] of schemaPropertyMap) {
-  if (!fieldMap.has(name)) {
-    fieldMap.set(name, []);
-  }
-}
-
-// Split into matched (in schema or no schema exists) and unmatched (declared but not in schema)
-const hasSchema = schemaPropertyMap.size > 0;
-const matchedFields: [string, FieldConsumer[]][] = [];
-const unmatchedFields: [string, FieldConsumer[]][] = [];
-
-for (const [field, consumers] of fieldMap) {
-  if (!hasSchema || schemaPropertyMap.has(field)) {
-    matchedFields.push([field, consumers]);
-  } else if (consumers.length > 0) {
-    // Only show unmatched if someone actually declared this field
-    unmatchedFields.push([field, consumers]);
-  }
-}
-
-const sortedFields = matchedFields.sort(([a], [b]) => a.localeCompare(b));
-const sortedUnmatchedFields = unmatchedFields.sort(([a], [b]) => a.localeCompare(b));
+const { matched: sortedFields, unmatched: sortedUnmatchedFields } = classifyFieldLineage(schemaPropertyMap, fieldMap);
 
 const getBadge = () => {
   if (collection === 'events') {
@@ -225,8 +194,7 @@ const badge = getBadge();
                 </tr>
               </thead>
               <tbody>
-                {sortedFields.map(([field, consumers]) => {
-                  const schemaProp = schemaPropertyMap.get(field);
+                {sortedFields.map(({ field, consumers, schema: schemaProp }) => {
                   const isRequired = schemaProp?.required ?? false;
                   return (
                     <tr
@@ -305,7 +273,7 @@ const badge = getBadge();
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedUnmatchedFields.map(([field, consumers]) => (
+                    {sortedUnmatchedFields.map(({ field, consumers }) => (
                       <tr class="border-b border-[rgb(var(--ec-page-border)/0.5)]">
                         <td class="py-3 px-4">
                           <code class="text-sm font-mono font-semibold text-amber-500">{field}</code>

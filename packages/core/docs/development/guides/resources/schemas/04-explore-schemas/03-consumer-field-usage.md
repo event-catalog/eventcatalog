@@ -32,12 +32,20 @@ receives:
       - orderId
       - amount
       - currency
+      - shippingAddress.country
+      - lineItems[].sku
     from:
       - id: payments.events
 ---
 ```
 
-The `fields` array is a list of field names as strings. Only include the fields your service actually reads -- you do not need to list every field in the message.
+The `fields` array is a list of field paths as strings. Only include the fields your service actually reads -- you do not need to list every field in the message.
+
+Paths can be top-level property names (`orderId`) or nested paths. For JSON Schema and Avro, nested objects use dotted paths (`shippingAddress.country`) and array items use `[]` (`lineItems[].sku`). EventCatalog matches those paths against the schema, so the Field Usage page shows the nested field's type and description.
+
+Declaring a parent object such as `shippingAddress` records a dependency on that object. It does not record a dependency on each nested property. List the nested paths you actually read when you need a precise blast radius.
+
+Protobuf schemas are matched by field name. The extractor does not expand nested protobuf messages into dotted paths.
 
 ## Declare fields in domains
 
@@ -70,18 +78,18 @@ The page shows a table with the following columns:
 
 | Column | Description |
 |---|---|
-| Field | The field name from the schema |
+| Field | The field path from the schema. Nested objects use dotted paths (`shippingAddress.country`). Array items use `[]` (`lineItems[].sku`) |
 | Type | The data type (extracted from the schema) |
 | Description | The field description (extracted from the schema) |
 | Consumers | Services or domains that declared a dependency on this field |
 
-All fields from the schema are listed -- not only the ones with declared consumers. This gives you a complete picture and makes it easy to spot unused fields.
+All fields from the schema are listed, including nested paths -- not only the ones with declared consumers. This gives you a complete picture and makes it easy to spot unused fields.
 
 Use the **Consumed only** filter button to narrow the list down to fields that have at least one consumer.
 
 ## Understand the "Fields not found in schema" section
 
-If a service declares a field that does not exist in the message schema, it appears in a separate **Fields not found in schema** warning section at the bottom of the page.
+If a service declares a field path that does not exist in the message schema, it appears in a separate **Fields not found in schema** warning section at the bottom of the page. Nested paths are matched exactly, so `shippingAddress.country` is found when that property exists, and a typo such as `shippingAddress.countrty` is reported here.
 
 This section helps you catch:
 

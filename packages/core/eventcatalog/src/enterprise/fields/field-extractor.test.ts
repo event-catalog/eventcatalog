@@ -107,6 +107,18 @@ describe('extractSchemaFieldsDeep', () => {
       expect(fields[0].path).toBe('orderId');
       expect(fields[1].path).toBe('customer');
       expect(fields[1].type).toBe('$ref');
+      expect(fields[1].description).toBe('');
+    });
+
+    it('keeps a description written on an unresolved $ref property', () => {
+      const schema = JSON.stringify({
+        type: 'object',
+        properties: {
+          address: { $ref: '#/definitions/Address', description: 'Shipping address' },
+        },
+      });
+      const fields = extractSchemaFieldsDeep(schema, 'json-schema');
+      expect(fields).toEqual([{ path: 'address', type: '$ref', description: 'Shipping address', required: false }]);
     });
 
     it('merges allOf schemas and extracts combined properties', () => {
