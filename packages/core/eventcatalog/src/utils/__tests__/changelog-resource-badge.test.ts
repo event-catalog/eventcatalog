@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Bot, DatabaseIcon, Group } from 'lucide-react';
+import { Bot, Box, ClipboardList, DatabaseIcon, Group, Package } from 'lucide-react';
+import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 import {
   BoltIcon,
   ChatBubbleLeftIcon,
@@ -24,6 +25,10 @@ const expectedBadges: Record<(typeof changelogResourceCollections)[number], Chan
   systems: { content: 'System', icon: Group, textColor: 'gray' },
   flows: { content: 'Flow', icon: QueueListIcon, textColor: 'gray' },
   containers: { content: 'Container', icon: DatabaseIcon, textColor: 'gray' },
+  channels: { content: 'Channel', icon: ArrowsRightLeftIcon, textColor: 'gray' },
+  entities: { content: 'Entity', icon: Box, textColor: 'gray' },
+  adrs: { content: 'Decision Record', icon: ClipboardList, textColor: 'gray' },
+  'data-products': { content: 'Data Product', icon: Package, textColor: 'gray' },
 };
 
 describe('getChangelogResourceBadge', () => {
@@ -41,9 +46,12 @@ describe('getChangelogResourceBadge', () => {
     }
   });
 
+  it('includes entities, channels, adrs, and data products that the sidebar links to', () => {
+    expect(changelogResourceCollections).toEqual(expect.arrayContaining(['entities', 'channels', 'adrs', 'data-products']));
+  });
+
   it('returns undefined for collections that do not prerender changelog routes', () => {
-    expect(getChangelogResourceBadge('channels')).toBeUndefined();
-    expect(getChangelogResourceBadge('entities')).toBeUndefined();
-    expect(getChangelogResourceBadge('data-products')).toBeUndefined();
+    expect(getChangelogResourceBadge('diagrams')).toBeUndefined();
+    expect(getChangelogResourceBadge('users')).toBeUndefined();
   });
 });
