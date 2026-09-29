@@ -1,5 +1,12 @@
 # @eventcatalog/cli
 
+## 1.0.10
+
+### Patch Changes
+
+- Updated dependencies [f2fd5b7]
+  - @eventcatalog/sdk@2.29.2
+
 ## 1.0.9
 
 ### Patch Changes

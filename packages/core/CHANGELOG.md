@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 4.12.3
+
+### Patch Changes
+
+- f2fd5b7: Render flow steps that reference a catalog system as System nodes, including their docs link, instead of generic Step boxes.
+- Updated dependencies [f2fd5b7]
+  - @eventcatalog/visualiser@4.1.5
+  - @eventcatalog/sdk@2.29.2
+  - @eventcatalog/linter@1.1.21
+
 ## 4.12.2
 
 ### Patch Changes
