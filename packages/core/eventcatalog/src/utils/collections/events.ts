@@ -61,7 +61,7 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
     targetEvents.map(async (event) => {
       // Version info
       const eventVersions = eventMap.get(event.data.id) || [];
-      const latestVersion = eventVersions[0]?.data.version || event.data.version;
+      const latestVersion = eventVersions.find((v) => !v.data.draft)?.data.version || event.data.version;
       const versions = eventVersions.map((e) => e.data.version);
 
       // Find producers and consumers via reverse index
