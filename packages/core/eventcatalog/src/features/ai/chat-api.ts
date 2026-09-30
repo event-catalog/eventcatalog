@@ -10,6 +10,7 @@ import {
   type UIMessage,
 } from 'ai';
 import { join } from 'node:path';
+import { isDevMode } from '@utils/feature';
 import { getCollection, getEntry } from 'astro:content';
 import { z } from 'astro/zod';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
@@ -43,6 +44,8 @@ export const defaultConfiguration = {
 };
 
 let hasChatConfiguration = false;
+// Why eventcatalog.chat.js didn't load (e.g. its model provider package isn't installed)
+let chatConfigurationError: string | undefined;
 let model: LanguageModel;
 let modelConfiguration: any;
 let extendedTools: any;
@@ -57,6 +60,7 @@ try {
 } catch (error) {
   console.error('[Chat] Error loading chat configuration', error);
   hasChatConfiguration = false;
+  chatConfigurationError = error instanceof Error ? error.message : String(error);
 }
 
 // Built-in tools metadata for client visibility
@@ -166,12 +170,23 @@ interface Message {
   content: string;
 }
 
+/**
+ * eventcatalog.chat.js exists (or the chat would be off) but didn't load. The chat panel shows how
+ * to fix it; the reason is only shared in dev mode, where it's the catalog owner asking.
+ */
+const chatConfigurationErrorResponse = () =>
+  new Response(
+    JSON.stringify({
+      error: 'The EventCatalog Assistant could not load eventcatalog.chat.js',
+      code: 'CHAT_CONFIGURATION_ERROR',
+      ...(isDevMode() && chatConfigurationError ? { reason: chatConfigurationError } : {}),
+    }),
+    { status: 503, headers: { 'Content-Type': 'application/json' } }
+  );
+
 export const GET = async ({ request }: APIContext<{ question: string; messages: Message[]; additionalContext?: string }>) => {
   if (!hasChatConfiguration) {
-    return new Response(JSON.stringify({ error: 'No chat configuration found' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return chatConfigurationErrorResponse();
   }
 
   // Return available tools metadata
@@ -186,10 +201,7 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
   const { messages }: { messages: UIMessage[] } = await request.json();
 
   if (!hasChatConfiguration) {
-    return new Response(JSON.stringify({ error: 'No chat configuration found' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return chatConfigurationErrorResponse();
   }
 
   // Get the URL of the request

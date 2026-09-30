@@ -9,7 +9,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Popover from '@radix-ui/react-popover';
 import { buildUrl } from '@utils/url-builder';
-import OfflineReply, { offlineReplyText } from './OfflineReply';
+import OfflineReply, { ConfigurationErrorReply, getChatError, offlineReplyText } from './OfflineReply';
 
 interface ToolMetadata {
   name: string;
@@ -654,8 +654,8 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
 
   const { messages, sendMessage, stop, status, setMessages, error } = useChat({ transport: chatTransport });
 
-  // Extract user-friendly error message
-  const errorMessage = error?.message || 'Something went wrong. Please try again.';
+  // The chat API's error, or how to fix a chat configuration that didn't load
+  const chatError = useMemo(() => getChatError(error), [error]);
 
   // Memoize last assistant message to avoid array operations on every render
   const lastAssistantMessage = useMemo(() => messages.findLast((m) => m.role === 'assistant'), [messages]);
@@ -1058,16 +1058,21 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                   )}
 
                   {/* Error message as chat bubble */}
-                  {status === 'error' && (
-                    <div className="flex justify-start">
-                      <div className="w-full">
-                        <div className="flex items-start gap-2 text-red-600 text-sm">
-                          <span className="shrink-0">⚠️</span>
-                          <span>{errorMessage}</span>
+                  {status === 'error' &&
+                    (chatError.type === 'configuration' ? (
+                      <div className="ec-chat-message ec-chat-setup flex flex-col items-start">
+                        <ConfigurationErrorReply reason={chatError.reason} />
+                      </div>
+                    ) : (
+                      <div className="flex justify-start">
+                        <div className="w-full">
+                          <div className="flex items-start gap-2 text-red-600 text-sm">
+                            <span className="shrink-0">⚠️</span>
+                            <span>{chatError.message}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    ))}
 
                   <div ref={messagesEndRef} />
                 </div>
@@ -1361,16 +1366,21 @@ const ChatPanel = ({ isOpen, onClose, configured = false }: ChatPanelProps) => {
                   )}
 
                   {/* Error message as chat bubble */}
-                  {status === 'error' && (
-                    <div className="flex justify-start">
-                      <div className="w-full">
-                        <div className="flex items-start gap-2 text-red-600 text-sm">
-                          <span className="shrink-0">⚠️</span>
-                          <span>{errorMessage}</span>
+                  {status === 'error' &&
+                    (chatError.type === 'configuration' ? (
+                      <div className="ec-chat-message ec-chat-setup flex flex-col items-start">
+                        <ConfigurationErrorReply reason={chatError.reason} />
+                      </div>
+                    ) : (
+                      <div className="flex justify-start">
+                        <div className="w-full">
+                          <div className="flex items-start gap-2 text-red-600 text-sm">
+                            <span className="shrink-0">⚠️</span>
+                            <span>{chatError.message}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    ))}
 
                   <div ref={modalMessagesEndRef} />
                 </div>
