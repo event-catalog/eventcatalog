@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Clock, TriangleAlert } from 'lucide-react';
 import { Row, cn } from './Row';
-import { getTrialStatus, LICENSE_FAQ_URL, LICENSE_REMINDER_DAYS, TRIAL_LENGTH_DAYS } from '@utils/trial';
+import { getTrialStatus, LICENSE_FAQ_URL, LICENSE_REMINDER_DAYS, LICENSE_RENEW_URL, TRIAL_LENGTH_DAYS } from '@utils/trial';
 
 /**
  * The license status (see getLicenseStatus in @utils/license) with dates as unix ms, so it can be
@@ -16,6 +16,7 @@ export type LicenseProps =
       issuedAt?: number;
       expiresAt?: number;
     }
+  | { state: 'plan'; plan: 'scale' | 'starter' }
   | { state: 'invalid'; reason: string };
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -25,13 +26,15 @@ const formatDate = (date?: Date | number) =>
   date === undefined ? '—' : new Date(date).toLocaleDateString('en-GB', { dateStyle: 'long', timeZone: 'UTC' });
 const formatDays = (days: number) => `${days} ${days === 1 ? 'day' : 'days'}`;
 
-type Tone = 'success' | 'warning' | 'info' | 'neutral';
+type Tone = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
 
 const PILL_TONES: Record<Tone, string> = {
   success:
     'border-[rgb(var(--ec-badge-color-green-text)/0.3)] bg-[rgb(var(--ec-badge-color-green-background))] text-[rgb(var(--ec-badge-color-green-text))]',
   warning:
     'border-[rgb(var(--ec-badge-color-amber-text)/0.3)] bg-[rgb(var(--ec-badge-color-amber-background))] text-[rgb(var(--ec-badge-color-amber-text))]',
+  danger:
+    'border-[rgb(var(--ec-badge-color-red-text)/0.3)] bg-[rgb(var(--ec-badge-color-red-background))] text-[rgb(var(--ec-badge-color-red-text))]',
   info: 'border-[rgb(var(--ec-accent)/0.3)] bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))]',
   neutral: 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text-muted))]',
 };
@@ -83,7 +86,79 @@ const DetailsTable = ({
 const isExpired = (license: LicenseProps, now: number) =>
   license.state === 'expired' || (license.state === 'licensed' && license.expiresAt !== undefined && license.expiresAt <= now);
 
+const PLAN_NAMES = { scale: 'EventCatalog Scale', starter: 'EventCatalog Starter' };
+
+// Days left on a license that's about to expire, or undefined
+const getDaysLeft = (license: LicenseProps, now: number) => {
+  if (license.state !== 'licensed' || license.expiresAt === undefined) return;
+  const daysLeft = Math.max(0, Math.ceil((license.expiresAt - now) / DAY_IN_MS));
+  return daysLeft < LICENSE_REMINDER_DAYS ? daysLeft : undefined;
+};
+
+/**
+ * A callout below the license once it's about to expire, or has expired, so it's hard to miss.
+ */
+const LicenseNotice = ({ license, now }: { license: LicenseProps; now: number }) => {
+  const expired = isExpired(license, now);
+  const daysLeft = getDaysLeft(license, now);
+  if (!expired && daysLeft === undefined) return null;
+
+  const expiresAt = license.state === 'licensed' || license.state === 'expired' ? license.expiresAt : undefined;
+  const Icon = expired ? TriangleAlert : Clock;
+  return (
+    <div
+      role="alert"
+      className={cn(
+        'flex gap-3 rounded-lg border p-4',
+        expired
+          ? 'border-[rgb(var(--ec-badge-color-red-text)/0.3)] bg-[rgb(var(--ec-badge-color-red-background))] text-[rgb(var(--ec-badge-color-red-text))]'
+          : 'border-[rgb(var(--ec-badge-color-amber-text)/0.3)] bg-[rgb(var(--ec-badge-color-amber-background))] text-[rgb(var(--ec-badge-color-amber-text))]'
+      )}
+    >
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+      <div className="space-y-1">
+        <p className="text-[13px] font-semibold">
+          {expired ? 'Your commercial license has expired' : `Your commercial license expires in ${formatDays(daysLeft!)}`}
+        </p>
+        <p className="text-[13px] opacity-90">
+          {expired
+            ? `It expired on ${formatDate(expiresAt)}. Renew it to keep using EventCatalog commercially.`
+            : `It expires on ${formatDate(expiresAt)}. Renew it before then to keep using EventCatalog commercially.`}
+        </p>
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          <a
+            href={LICENSE_RENEW_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md bg-[rgb(var(--ec-page-text))] px-3.5 py-1.5 text-[13px] font-medium text-[rgb(var(--ec-page-bg))] shadow-sm transition-opacity hover:opacity-85"
+          >
+            Renew license
+            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+          </a>
+          <a
+            href={LICENSE_FAQ_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[13px] font-medium underline underline-offset-2 hover:opacity-80"
+          >
+            License FAQ
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LicenseTable = ({ license, now }: { license: LicenseProps; now: number }) => {
+  if (license.state === 'plan') {
+    return (
+      <DetailsTable
+        title={PLAN_NAMES[license.plan]}
+        status={{ tone: 'success', label: 'Active' }}
+        details={[{ label: 'License key', value: `EVENTCATALOG_${license.plan.toUpperCase()}_LICENSE_KEY`, mono: true }]}
+      />
+    );
+  }
   const expired = isExpired(license, now);
   if (license.state === 'licensed' && !expired) {
     const daysLeft = Math.max(0, Math.ceil(((license.expiresAt ?? now) - now) / DAY_IN_MS));
@@ -106,7 +181,7 @@ const LicenseTable = ({ license, now }: { license: LicenseProps; now: number }) 
     return (
       <DetailsTable
         title="Commercial license"
-        status={{ tone: 'warning', label: 'Expired' }}
+        status={{ tone: 'danger', label: 'Expired' }}
         details={[
           { label: 'Licensed to', value: license.org || '—' },
           { label: 'License ID', value: license.licenseId || '—', mono: true },
@@ -184,8 +259,11 @@ export const LicenseSettings = ({ license, trialStartedAt, renderedAt }: Props) 
       >
         <div className="space-y-4">
           <LicenseTable license={license} now={now} />
-          {/* The trial applies until there's a valid license */}
-          {(license.state !== 'licensed' || isExpired(license, now)) && <TrialTable trialStartedAt={trialStartedAt} now={now} />}
+          <LicenseNotice license={license} now={now} />
+          {/* The trial applies until there's a valid license or plan */}
+          {license.state !== 'plan' && (license.state !== 'licensed' || isExpired(license, now)) && (
+            <TrialTable trialStartedAt={trialStartedAt} now={now} />
+          )}
         </div>
       </Row>
 

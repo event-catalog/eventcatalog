@@ -32,9 +32,9 @@ describe('getTrialStatus', () => {
 
 describe('getLicenseDaysLeft', () => {
   it('stays quiet until fewer than 14 days are left', () => {
+    expect(getLicenseDaysLeft(new Date(start + 60 * DAY), start)).toBeUndefined();
     expect(getLicenseDaysLeft(new Date(start + 30 * DAY), start)).toBeUndefined();
-    expect(getLicenseDaysLeft(new Date(start + 14 * DAY), start)).toBeUndefined();
-    expect(getLicenseDaysLeft(new Date(start + 13 * DAY), start)).toBe(13);
+    expect(getLicenseDaysLeft(new Date(start + 29 * DAY), start)).toBe(29);
     expect(getLicenseDaysLeft(new Date(start + DAY / 2), start)).toBe(1);
   });
 });

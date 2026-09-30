@@ -2,6 +2,9 @@ export const TRIAL_LENGTH_DAYS = 90;
 
 export const LICENSE_FAQ_URL = 'https://www.eventcatalog.dev/license-faq';
 
+// Where a commercial license is renewed
+export const LICENSE_RENEW_URL = 'https://eventcatalog.cloud';
+
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 export type TrialStatus = {
@@ -22,7 +25,7 @@ export const getTrialStatus = (tsd: unknown, now = Date.now()): TrialStatus | un
 };
 
 // A licensed catalog only shows its license in the dev header when it's about to expire
-export const LICENSE_REMINDER_DAYS = 14;
+export const LICENSE_REMINDER_DAYS = 30;
 
 /**
  * Days left on the license, once fewer than LICENSE_REMINDER_DAYS remain. Undefined before then.

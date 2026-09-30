@@ -596,6 +596,8 @@ program
     const isServerOutput = await isOutputServer();
 
     if (isServerOutput) {
+      // Pages rendered on request read the license (and a Scale or Starter plan) from the environment
+      await getLicenseStatus(dir);
       await startServerCatalog();
     } else {
       await previewCatalog({ command });

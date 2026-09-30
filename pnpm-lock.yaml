@@ -137,8 +137,8 @@ importers:
         specifier: ^0.41.3
         version: 0.41.3
       '@eventcatalog/license':
-        specifier: ^0.0.8
-        version: 0.0.8
+        specifier: ^0.0.9
+        version: 0.0.9
       '@eventcatalog/linter':
         specifier: workspace:*
         version: link:../linter
@@ -1822,8 +1822,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@eventcatalog/license@0.0.8':
-    resolution: {integrity: sha512-iMo2NiTo8MQVYONrrXe3WFo61i/T4oSz5OY4DSL9PwwdOYWtx0zZ1+ANcWyLI7ub6PFS8KJIWlxsM2JYOLYrjQ==}
+  '@eventcatalog/license@0.0.9':
+    resolution: {integrity: sha512-HdOFch8Z/mZaJu1R5wmM8qeS10ELkv7BERJvfwUz0Uh7ZFupdi5jYF1P0Dm2FDDaZkNq/h+vDtwjSZY/f2bBsw==}
     engines: {node: '>=16.0.0'}
 
   '@expressive-code/core@0.44.0':
@@ -10020,7 +10020,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
-  '@eventcatalog/license@0.0.8':
+  '@eventcatalog/license@0.0.9':
     dependencies:
       boxen: 8.0.1
       chalk: 5.6.2

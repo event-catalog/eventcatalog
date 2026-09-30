@@ -3,7 +3,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const license = vi.hoisted(() => ({ verifyOfflineLicense: vi.fn(), clearCache: vi.fn() }));
+const license = vi.hoisted(() => ({
+  verifyOfflineLicense: vi.fn(),
+  clearCache: vi.fn(),
+  hasCommercialLicense: vi.fn(),
+  isEventCatalogScaleEnabled: vi.fn(),
+  isEventCatalogStarterEnabled: vi.fn(),
+}));
 vi.mock('@eventcatalog/license', () => license);
 
 import { getLicenseAnalytics, getLicenseStatus, getLicenseStatusMessage } from '../utils/license-status';
@@ -20,9 +26,13 @@ describe('license status', () => {
 
   beforeEach(() => {
     projectDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'eventcatalog-license-'));
-    license.verifyOfflineLicense.mockReset();
-    license.clearCache.mockReset();
+    Object.values(license).forEach((mock) => mock.mockReset());
+    license.hasCommercialLicense.mockResolvedValue(false);
+    license.isEventCatalogScaleEnabled.mockResolvedValue(false);
+    license.isEventCatalogStarterEnabled.mockResolvedValue(false);
     vi.stubEnv('EC_LICENSE', '');
+    vi.stubEnv('EVENTCATALOG_SCALE', '');
+    vi.stubEnv('EVENTCATALOG_STARTER', '');
   });
 
   afterEach(() => {
@@ -36,9 +46,10 @@ describe('license status', () => {
       expect(license.verifyOfflineLicense).not.toHaveBeenCalled();
     });
 
-    it('is licensed when the license.jwt verifies', async () => {
+    it('is licensed when the license.jwt is a commercial license', async () => {
       const licensePath = path.join(projectDirectory, 'license.jwt');
       fs.writeFileSync(licensePath, token({ org: 'acme', exp }));
+      license.hasCommercialLicense.mockResolvedValue(true);
       license.verifyOfflineLicense.mockResolvedValue({ org: 'acme', licenseId: 'ec_1.acme', iat: exp - 30 * 86400, exp });
 
       await expect(getLicenseStatus(projectDirectory)).resolves.toEqual({
@@ -49,6 +60,70 @@ describe('license status', () => {
         expiresAt: new Date(exp * 1000),
       });
       expect(license.verifyOfflineLicense).toHaveBeenCalledWith({ licensePath });
+    });
+
+    it('does not check for a Scale or Starter plan with a commercial license', async () => {
+      fs.writeFileSync(path.join(projectDirectory, 'license.jwt'), token({ org: 'acme', exp }));
+      license.hasCommercialLicense.mockResolvedValue(true);
+      license.verifyOfflineLicense.mockResolvedValue({ org: 'acme', exp });
+
+      await expect(getLicenseStatus(projectDirectory)).resolves.toMatchObject({ state: 'licensed' });
+      expect(license.isEventCatalogScaleEnabled).not.toHaveBeenCalled();
+      expect(license.isEventCatalogStarterEnabled).not.toHaveBeenCalled();
+      expect(process.env.EVENTCATALOG_SCALE).toBe('false');
+      expect(process.env.EVENTCATALOG_STARTER).toBe('false');
+    });
+
+    it('falls back to a Scale plan without a commercial license, and passes it on to Astro', async () => {
+      license.isEventCatalogScaleEnabled.mockResolvedValue(true);
+
+      await expect(getLicenseStatus(projectDirectory)).resolves.toEqual({ state: 'plan', plan: 'scale' });
+      expect(process.env.EVENTCATALOG_SCALE).toBe('true');
+      expect(process.env.EVENTCATALOG_STARTER).toBe('false');
+    });
+
+    it('falls back to a Starter plan without a commercial license or a Scale plan', async () => {
+      license.isEventCatalogStarterEnabled.mockResolvedValue(true);
+
+      await expect(getLicenseStatus(projectDirectory)).resolves.toEqual({ state: 'plan', plan: 'starter' });
+      expect(process.env.EVENTCATALOG_SCALE).toBe('false');
+      expect(process.env.EVENTCATALOG_STARTER).toBe('true');
+    });
+
+    it('falls back to a Scale plan when the license.jwt has expired', async () => {
+      fs.writeFileSync(path.join(projectDirectory, 'license.jwt'), token({ org: 'acme', exp }));
+      license.verifyOfflineLicense.mockRejectedValue(
+        Object.assign(new Error('License has expired'), { code: 'LICENSE_EXPIRED' })
+      );
+      // The plan checks verify the expired license.jwt too
+      license.isEventCatalogStarterEnabled.mockRejectedValue(new Error('License has expired'));
+      license.isEventCatalogScaleEnabled.mockResolvedValue(true);
+
+      await expect(getLicenseStatus(projectDirectory)).resolves.toEqual({ state: 'plan', plan: 'scale' });
+    });
+
+    it('reports an expired license when a plan check fails', async () => {
+      fs.writeFileSync(path.join(projectDirectory, 'license.jwt'), token({ org: 'acme', exp }));
+      license.verifyOfflineLicense.mockRejectedValue(
+        Object.assign(new Error('License has expired'), { code: 'LICENSE_EXPIRED' })
+      );
+      license.isEventCatalogScaleEnabled.mockRejectedValue(new Error('License has expired'));
+      license.isEventCatalogStarterEnabled.mockRejectedValue(new Error('License has expired'));
+
+      await expect(getLicenseStatus(projectDirectory)).resolves.toMatchObject({ state: 'expired' });
+    });
+
+    it('is expired when the license.jwt verifies within its clock tolerance but is not a commercial license', async () => {
+      fs.writeFileSync(path.join(projectDirectory, 'license.jwt'), token({ org: 'acme', exp }));
+      license.verifyOfflineLicense.mockResolvedValue({ org: 'acme', exp });
+
+      await expect(getLicenseStatus(projectDirectory)).resolves.toEqual({
+        state: 'expired',
+        org: 'acme',
+        licenseId: undefined,
+        issuedAt: undefined,
+        expiresAt: new Date(exp * 1000),
+      });
     });
 
     it('reads when an expired license expired', async () => {
@@ -67,6 +142,7 @@ describe('license status', () => {
     it('verifies a license once, and again when the file changes', async () => {
       const licensePath = path.join(projectDirectory, 'license.jwt');
       fs.writeFileSync(licensePath, token({ org: 'acme', exp }));
+      license.hasCommercialLicense.mockResolvedValue(true);
       license.verifyOfflineLicense.mockResolvedValue({ org: 'acme', exp });
 
       await getLicenseStatus(projectDirectory);
@@ -100,10 +176,20 @@ describe('license status', () => {
     const tsd = now - 23 * DAY;
 
     it('shows who the license is for and when it expires', () => {
-      const message = getLicenseStatusMessage({ state: 'licensed', org: 'acme', expiresAt: new Date(exp * 1000) }, tsd, now);
-      expect(message).toMatchObject({ title: 'EventCatalog license', color: 'green' });
+      const expiresAt = new Date(now + 90 * DAY);
+      const message = getLicenseStatusMessage({ state: 'licensed', org: 'acme', expiresAt }, tsd, now);
+      expect(message).toMatchObject({ title: 'EventCatalog Commercial License', color: 'green' });
       expect(message?.text).toContain('Licensed to acme');
-      expect(message?.text).toContain('(9 days left)');
+      expect(message?.text).toContain('(90 days left)');
+    });
+
+    it('warns when the license expires in fewer than 30 days', () => {
+      const message = getLicenseStatusMessage({ state: 'licensed', org: 'acme', expiresAt: new Date(exp * 1000) }, tsd, now);
+      expect(message).toMatchObject({ title: 'EventCatalog Commercial License', color: 'yellow' });
+      expect(message?.text).toMatch(/^Licensed to acme\nYour license expires in 9 days, on .+\.\nRenew it/);
+
+      const month = getLicenseStatusMessage({ state: 'licensed', expiresAt: new Date(now + 30 * DAY) }, tsd, now);
+      expect(month?.color).toBe('green');
     });
 
     it('shows the trial without a license', () => {
@@ -112,17 +198,26 @@ describe('license status', () => {
       expect(message?.text).toContain('67 days left of your 90-day EventCatalog trial');
     });
 
-    it('warns about an expired or invalid license, then shows the trial', () => {
-      const expired = getLicenseStatusMessage({ state: 'expired', expiresAt: new Date(exp * 1000) }, tsd, now);
-      expect(expired).toMatchObject({ title: 'EventCatalog license', color: 'yellow' });
-      expect(expired?.text).toMatch(/^Your EventCatalog license expired on .+\.\n67 days left/);
+    it('shows an expired license in its own box, then the trial', () => {
+      const expired = getLicenseStatusMessage({ state: 'expired', org: 'acme', expiresAt: new Date(now - 5 * DAY) }, tsd, now);
+      expect(expired).toMatchObject({ title: 'EventCatalog License Expired', color: 'yellow' });
+      expect(expired?.text).toMatch(
+        /^Your EventCatalog commercial license for acme expired on .+ \(5 days ago\)\.\nRenew it to keep using EventCatalog commercially: https:\/\/eventcatalog\.cloud\n67 days left/
+      );
+    });
 
+    it('warns about an invalid license, then shows the trial', () => {
       const invalid = getLicenseStatusMessage({ state: 'invalid', reason: 'its signature is invalid' }, tsd, now);
+      expect(invalid).toMatchObject({ title: 'EventCatalog license', color: 'yellow' });
       expect(invalid?.text).toMatch(/^Your license\.jwt could not be verified: its signature is invalid\.\n67 days left/);
     });
 
     it('shows nothing without a license or a trial start date', () => {
       expect(getLicenseStatusMessage({ state: 'none' }, undefined, now)).toBeUndefined();
+    });
+
+    it('leaves a Scale or Starter plan to the box the license package shows', () => {
+      expect(getLicenseStatusMessage({ state: 'plan', plan: 'scale' }, tsd, now)).toBeUndefined();
     });
   });
 
@@ -136,6 +231,15 @@ describe('license status', () => {
         licenseExpiry: exp * 1000,
         trialExpiry: tsd + 90 * DAY,
       });
+    });
+
+    it('reports a Scale or Starter plan', () => {
+      expect(getLicenseAnalytics({ state: 'plan', plan: 'scale' }, tsd)).toMatchObject({
+        license: 'scale',
+        licenseState: 'valid',
+        licenseExpiry: undefined,
+      });
+      expect(getLicenseAnalytics({ state: 'plan', plan: 'starter' }, tsd)).toMatchObject({ license: 'starter' });
     });
 
     it('reports the trial otherwise', () => {
