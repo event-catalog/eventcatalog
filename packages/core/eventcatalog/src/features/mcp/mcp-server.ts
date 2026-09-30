@@ -9,7 +9,6 @@ import { getCollection } from 'astro:content';
 import { createMcpAuthErrorResponse, validateMcpRequest } from './mcp-auth';
 import { createScopedCatalogTools } from './mcp-scoped-tools';
 import { McpScopeNotFoundError, resolveMcpScope, type McpScope, type McpScopeKind } from './mcp-scope';
-import { registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY } from '@modelcontextprotocol/ext-apps/server';
 import { getArchitectureDiagramView } from '@utils/node-graphs/architecture-diagram';
 import type {
   ArchitectureDiagramCollection,
@@ -23,21 +22,18 @@ import {
   ARCHITECTURE_DIAGRAM_VIEW_TOOL,
   type ArchitectureDiagramPayload,
 } from './apps/architecture-diagram/shared';
+import {
+  SCHEMA_VIEWER_META_KEY,
+  SCHEMA_VIEWER_RESOURCE_URI,
+  SCHEMA_VIEWER_VIEW_TOOL,
+  type SchemaViewerPayload,
+} from './apps/schema-viewer/shared';
+import { toSchemaViewerSchemas } from './schema-viewer';
+import { getMcpAppViewLoader, mcpAppNote, registerMcpApp } from './mcp-apps';
+import { buildUrl } from '@utils/url-builder';
 
-// MCP App views (built by scripts/build-mcp-apps.mjs). Without a build, tools return text only.
-// Loaded when a host reads the view, not up front: each view's HTML is a few MB
-const mcpAppViews = import.meta.glob<string>('./apps/generated/*.html', { query: '?raw', import: 'default' });
-const loadArchitectureDiagramView = mcpAppViews['./apps/generated/architecture-diagram.html'];
-const hasArchitectureDiagramView = Boolean(loadArchitectureDiagramView);
-
-/** Tool `_meta` telling MCP hosts that support MCP Apps to show the tool's result in the architecture diagram view */
-const architectureDiagramViewMeta = (visibility?: Array<'model' | 'app'>) =>
-  hasArchitectureDiagramView
-    ? {
-        ui: { resourceUri: ARCHITECTURE_DIAGRAM_RESOURCE_URI, ...(visibility && { visibility }) },
-        [RESOURCE_URI_META_KEY]: ARCHITECTURE_DIAGRAM_RESOURCE_URI,
-      }
-    : undefined;
+const loadArchitectureDiagramView = getMcpAppViewLoader('architecture-diagram');
+const loadSchemaViewerView = getMcpAppViewLoader('schema-viewer');
 
 const SHOW_ARCHITECTURE_DIAGRAM_DESCRIPTION = [
   'Show the user an architecture diagram of a resource (domain, system, service, agent, event, command, query, flow, data store or data product): what it connects to, what it publishes and consumes, and the systems and domains around it.',
@@ -47,9 +43,12 @@ const SHOW_ARCHITECTURE_DIAGRAM_DESCRIPTION = [
   'For domains and systems, pass detail "overview" for just the domains, systems and their relationships, or "full" (default) to include services, messages and channels.',
 ].join(' ');
 
-/** Told to the model with every diagram, so it doesn't draw the diagram the user can already see */
-const ARCHITECTURE_DIAGRAM_NOTE =
-  'Clients that support MCP Apps are showing the user this diagram interactively. If so, do not redraw it as Mermaid or ASCII: explain it instead. Otherwise, show the user the mermaidCode.';
+const SHOW_SCHEMA_DESCRIPTION = [
+  'Show the user the schema of a message (event, command or query) or other resource: its properties, types, descriptions and which ones are required.',
+  'Use it whenever the user wants to see or understand a schema or payload, e.g. "show me the schema for OrderCreated", "what fields does PlaceOrder have", "what does the OrderShipped payload look like".',
+  'Clients that support MCP Apps show the user an interactive schema viewer (JSON Schema, Avro and Protobuf) they can search and expand. The result also contains the schema code so you can understand it.',
+  'When the client shows the interactive schema, do not print the whole schema again in your reply: explain it and point out what matters. If the client cannot show it, show the user the relevant parts of the code.',
+].join(' ');
 
 type McpServerOptions = {
   /** Where this EventCatalog is served, for links from MCP App views back to it */
@@ -120,8 +119,9 @@ function getServerInstructions(scope?: McpScope) {
         ]
       : []),
     'Resources are identified by an id and a version. Versions are optional on every tool: omit the version to use the latest version.',
-    'To find something, call getResources with a collection and a search term, then fetch the details with getResource. Use getSchemaForResource for message schemas and OpenAPI/AsyncAPI specifications.',
+    'To find something, call getResources with a collection and a search term, then fetch the details with getResource. Use getSchemaForResource when you need a schema or OpenAPI/AsyncAPI specification for yourself, not to show it to the user.',
     'When the user wants to see or understand how something works or fits together (e.g. "show me how the Order Service works"), call showArchitectureDiagram: it shows them an interactive diagram. Do not draw your own diagram of the architecture.',
+    'When the user wants to see a schema, payload or the fields of a message (e.g. "show me the schema for OrderCreated"), call showSchema, not getSchemaForResource: it shows them an interactive schema viewer. Do not print the schema yourself.',
     'For relationships use getMessagesProducedOrConsumedByResource, getProducersOfMessage and getConsumersOfMessage. Before changing a message, call analyzeChangeImpact to find the affected services, agents and owning teams.',
     ...(scope
       ? []
@@ -195,7 +195,7 @@ function createMcpServer(scope: McpScope | undefined, { catalogUrl }: McpServerO
     'getSchemaForResource',
     {
       title: 'Get schemas and specifications',
-      description: catalogTools.toolDescriptions.getSchemaForResource,
+      description: `${catalogTools.toolDescriptions.getSchemaForResource}. To show the user a schema, use showSchema instead: it shows them an interactive schema viewer.`,
       inputSchema: z.object({
         resourceId: z.string().describe('The id of the resource to get the schema for'),
         resourceVersion: optionalVersion('resource'),
@@ -405,12 +405,21 @@ function createMcpServer(scope: McpScope | undefined, { catalogUrl }: McpServerO
     resourceCollection: catalogTools.visualiserCollectionSchema.describe('The collection of the resource'),
   };
 
-  server.registerTool(
-    'showArchitectureDiagram',
-    {
+  registerMcpApp(server, {
+    loadView: loadArchitectureDiagramView,
+    resource: {
+      name: 'Architecture diagram view',
+      uri: ARCHITECTURE_DIAGRAM_RESOURCE_URI,
+      description: 'Interactive EventCatalog architecture diagram, shown by MCP hosts that support MCP Apps',
+      // Diagram nodes show icons (languages, databases...) served by this EventCatalog
+      csp: { resourceDomains: [catalogUrl] },
+    },
+    metaKey: ARCHITECTURE_DIAGRAM_META_KEY,
+    tool: {
+      name: 'showArchitectureDiagram',
       title: 'Show an architecture diagram',
       description: SHOW_ARCHITECTURE_DIAGRAM_DESCRIPTION,
-      inputSchema: z.object({
+      input: {
         ...architectureDiagramInput,
         detail: z
           .enum(['overview', 'full'])
@@ -418,80 +427,100 @@ function createMcpServer(scope: McpScope | undefined, { catalogUrl }: McpServerO
           .describe(
             'For domains and systems: "overview" shows only domains, systems and their relationships; "full" (default) also shows services, messages and channels'
           ),
-      }),
-      annotations: readOnlyAnnotations,
-      _meta: architectureDiagramViewMeta(),
-    },
-    async (params) => {
-      try {
-        const result = await tools.getArchitectureDiagramAsMermaid(params);
-        if ('error' in result) {
-          return { content: [{ type: 'text' as const, text: JSON.stringify(result) }], isError: true };
-        }
-        return {
-          // The model reads the Mermaid; hosts that support MCP Apps show the interactive diagram from `_meta`
-          content: [{ type: 'text' as const, text: JSON.stringify({ note: ARCHITECTURE_DIAGRAM_NOTE, ...result }, null, 2) }],
-          ...(hasArchitectureDiagramView && {
-            _meta: { [ARCHITECTURE_DIAGRAM_META_KEY]: await getArchitectureDiagramPayload(result) },
-          }),
-        };
-      } catch (error) {
-        return {
-          content: [{ type: 'text' as const, text: JSON.stringify({ error: `Failed to get architecture diagram: ${error}` }) }],
-          isError: true,
-        };
-      }
-    }
-  );
-
-  if (loadArchitectureDiagramView) {
-    // Only the view calls this, when the host doesn't pass the diagram tool's `_meta` to it
-    server.registerTool(
-      ARCHITECTURE_DIAGRAM_VIEW_TOOL,
-      {
-        title: 'Load an architecture diagram for display',
-        description:
-          'Loads the interactive architecture diagram shown by the architecture diagram view. To show the user a diagram, use showArchitectureDiagram instead.',
-        inputSchema: z.object(architectureDiagramInput),
-        annotations: readOnlyAnnotations,
-        _meta: architectureDiagramViewMeta(['app']),
       },
-      async (params) => {
-        const result = await tools.getArchitectureDiagramAsMermaid(params);
-        if ('error' in result) {
-          return { content: [{ type: 'text' as const, text: JSON.stringify(result) }], isError: true };
-        }
-        const payload = await getArchitectureDiagramPayload(result);
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: `Loaded the architecture diagram for ${result.resourceCollection}/${result.resourceId}`,
-            },
-          ],
-          structuredContent: payload,
-        };
-      }
-    );
+    },
+    viewTool: {
+      name: ARCHITECTURE_DIAGRAM_VIEW_TOOL,
+      title: 'Load an architecture diagram for display',
+      description:
+        'Loads the interactive architecture diagram shown by the architecture diagram view. To show the user a diagram, use showArchitectureDiagram instead.',
+      input: architectureDiagramInput,
+    },
+    note: mcpAppNote('diagram', 'redraw it as Mermaid or ASCII', 'show the user the mermaidCode'),
+    annotations: readOnlyAnnotations,
+    errorMessage: 'Failed to get architecture diagram',
+    load: async (params) => {
+      const result = await tools.getArchitectureDiagramAsMermaid(params);
+      if (result.error !== undefined) return { error: result.error };
+      return {
+        forModel: result,
+        label: `the architecture diagram for ${result.resourceCollection}/${result.resourceId}`,
+        getPayload: () => getArchitectureDiagramPayload(result),
+      };
+    },
+  });
 
-    registerAppResource(
-      server,
-      'Architecture diagram view',
-      ARCHITECTURE_DIAGRAM_RESOURCE_URI,
-      { description: 'Interactive EventCatalog architecture diagram, shown by MCP hosts that support MCP Apps' },
-      async () => ({
-        contents: [
-          {
-            uri: ARCHITECTURE_DIAGRAM_RESOURCE_URI,
-            mimeType: RESOURCE_MIME_TYPE,
-            text: await loadArchitectureDiagramView(),
-            // Diagram nodes show icons (languages, databases...) served by this EventCatalog
-            _meta: { ui: { csp: { resourceDomains: [catalogUrl] } } },
-          },
-        ],
-      })
-    );
-  }
+  const schemaInput = {
+    resourceId: z.string().describe('The id of the resource to show the schema of'),
+    resourceVersion: optionalVersion('resource'),
+    resourceCollection: catalogTools.resourceCollectionSchema
+      .describe('The collection of the resource (defaults to events, unlike getSchemaForResource)')
+      .default('events'),
+  };
+
+  // The resource's schemas, parsed for the view's JSON Schema, Avro and Protobuf viewers
+  const getSchemaViewerPayload = async (params: {
+    resourceId: string;
+    resourceVersion?: string;
+    resourceCollection: string;
+  }): Promise<SchemaViewerPayload | { error: string }> => {
+    const resource = await tools.getResource({
+      collection: params.resourceCollection,
+      id: params.resourceId,
+      version: params.resourceVersion,
+    });
+    if (resource.error !== undefined) return { error: resource.error };
+
+    const schemas = await tools.getSchemaForResource({ ...params, resourceVersion: resource.version });
+    if ('error' in schemas) return schemas;
+
+    return {
+      resource: {
+        collection: params.resourceCollection,
+        id: resource.id,
+        version: resource.version,
+        name: resource.data.name || resource.id,
+      },
+      catalogUrl,
+      docsPath: buildUrl(`/docs/${params.resourceCollection}/${resource.id}/${resource.version}`),
+      schemas: Array.isArray(schemas) ? toSchemaViewerSchemas(schemas) : [],
+    };
+  };
+
+  registerMcpApp(server, {
+    loadView: loadSchemaViewerView,
+    resource: {
+      name: 'Schema viewer',
+      uri: SCHEMA_VIEWER_RESOURCE_URI,
+      description: 'Interactive EventCatalog schema viewer, shown by MCP hosts that support MCP Apps',
+    },
+    metaKey: SCHEMA_VIEWER_META_KEY,
+    tool: { name: 'showSchema', title: 'Show a schema', description: SHOW_SCHEMA_DESCRIPTION, input: schemaInput },
+    viewTool: {
+      name: SCHEMA_VIEWER_VIEW_TOOL,
+      title: 'Load a schema for display',
+      description: 'Loads the schema shown by the schema viewer view. To show the user a schema, use showSchema instead.',
+      input: schemaInput,
+    },
+    note: mcpAppNote('schema', 'print the whole schema again', 'show the user the relevant parts of the code'),
+    annotations: readOnlyAnnotations,
+    errorMessage: 'Failed to show schema',
+    load: async (params) => {
+      const payload = await getSchemaViewerPayload(params);
+      if ('error' in payload) return payload;
+      const { resource, schemas } = payload;
+      return {
+        // The model reads the schema code; the view gets it parsed for its Properties tab
+        forModel: {
+          resource,
+          schemas: schemas.map(({ name, format, code }) => ({ name, format, code })),
+          ...(schemas.length === 0 && { message: `${resource.name} has no schema` }),
+        },
+        label: `the schema for ${resource.collection}/${resource.id}`,
+        getPayload: async () => payload,
+      };
+    },
+  });
 
   server.registerTool(
     'findMessageBySchemaId',
@@ -842,6 +871,7 @@ const globalBuiltInTools = [
   'getDataProductInputs',
   'getDataProductOutputs',
   'showArchitectureDiagram',
+  'showSchema',
   'getCustomDocs',
   'searchCustomDocs',
   'getCustomDoc',

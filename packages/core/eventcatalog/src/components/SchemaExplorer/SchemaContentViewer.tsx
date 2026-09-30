@@ -6,7 +6,7 @@ import { buildUrl } from '@utils/url-builder';
 import JSONSchemaViewer from './JSONSchemaViewer';
 import AvroSchemaViewer from './AvroSchemaViewer';
 import ProtobufSchemaViewer from './ProtobufSchemaViewer';
-import { getLanguageForHighlight } from './utils';
+import { getLanguageForHighlight, SCHEMA_CODE_STYLE } from './utils';
 import type { SchemaItem } from './types';
 import { useDarkMode } from './useDarkMode';
 
@@ -114,16 +114,7 @@ export default function SchemaContentViewer({
         <SyntaxHighlighter
           language={getLanguageForHighlight(message.schemaExtension)}
           style={isDarkMode ? oneDark : oneLight}
-          customStyle={{
-            margin: 0,
-            padding: '1.25rem',
-            borderRadius: 0,
-            fontSize: '0.8125rem',
-            lineHeight: '1.625',
-            height: '100%',
-            overflow: 'auto',
-            background: 'transparent',
-          }}
+          customStyle={{ ...SCHEMA_CODE_STYLE, height: '100%' }}
           showLineNumbers={true}
           wrapLines={true}
           wrapLongLines={true}

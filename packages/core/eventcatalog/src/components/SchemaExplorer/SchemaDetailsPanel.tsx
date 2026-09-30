@@ -38,7 +38,7 @@ import {
   SCHEMA_RELATIONSHIP_LABELS,
 } from './utils';
 import { createSchemaDetailsLoader, useSchemaDetails } from './useSchemaDetails';
-import { parseProtobufSchema } from '@utils/protobuf-schema';
+import { parseSchemaForViewer } from './parse-schema';
 import type { SchemaItem, SchemaSourceInfo, SchemaRelationshipCollection, VersionDiff, Owner, Producer } from './types';
 
 const MESSAGE_TYPE_LABELS: Partial<Record<SchemaItem['collection'], string>> = {
@@ -426,55 +426,14 @@ export default function SchemaDetailsPanel({
   }, [comparing, diffFromItem, diffToItem]);
   const selectedDiffs = selectedDiff ? [selectedDiff] : [];
 
-  // Check if this is a JSON schema
-  const parsedSchema = useMemo(() => {
-    const isJSONSchema =
-      message.schemaExtension?.toLowerCase() === 'json' && message.schemaContent && message.schemaContent.trim() !== '';
-    if (!isJSONSchema) return null;
-
-    try {
-      const parsed = JSON.parse(message.schemaContent ?? '');
-      if (!parsed.properties && !parsed.$schema && !parsed.type) {
-        return null;
-      }
-      return parsed;
-    } catch {
-      return null;
-    }
-  }, [message.schemaContent, message.schemaExtension]);
-
-  // Check if this is an Avro schema
-  const parsedAvroSchema = useMemo(() => {
-    const extLower = message.schemaExtension?.toLowerCase();
-    const isAvroSchema =
-      (extLower === 'avro' || extLower === 'avsc') && message.schemaContent && message.schemaContent.trim() !== '';
-    if (!isAvroSchema) return null;
-
-    try {
-      const parsed = JSON.parse(message.schemaContent ?? '');
-      if (!parsed.type) {
-        return null;
-      }
-      return parsed;
-    } catch {
-      return null;
-    }
-  }, [message.schemaContent, message.schemaExtension]);
-
-  // Check if this is a Protobuf schema. The extension falls back to the schema
-  // format when the schema has no file path, so accept both 'proto' and 'protobuf'.
-  const parsedProtoSchema = useMemo(() => {
-    const extLower = message.schemaExtension?.toLowerCase();
-    const isProtoSchema =
-      (extLower === 'proto' || extLower === 'protobuf') && message.schemaContent && message.schemaContent.trim() !== '';
-    if (!isProtoSchema) return null;
-
-    try {
-      return parseProtobufSchema(message.schemaContent ?? '');
-    } catch {
-      return null;
-    }
-  }, [message.schemaContent, message.schemaExtension]);
+  // Parse JSON Schema, Avro and Protobuf schemas for the Properties tab
+  const viewableSchema = useMemo(
+    () => parseSchemaForViewer(message.schemaExtension, message.schemaContent),
+    [message.schemaContent, message.schemaExtension]
+  );
+  const parsedSchema = viewableSchema.kind === 'json' ? viewableSchema.schema : null;
+  const parsedAvroSchema = viewableSchema.kind === 'avro' ? viewableSchema.schema : null;
+  const parsedProtoSchema = viewableSchema.kind === 'protobuf' ? viewableSchema.schema : null;
 
   const handleCopy = async () => {
     if (!message.schemaContent) return;

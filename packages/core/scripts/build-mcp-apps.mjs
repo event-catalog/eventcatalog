@@ -5,6 +5,7 @@
  * so everything (JavaScript and CSS) is inlined: hosts render them in a sandboxed iframe.
  */
 import { build } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -14,6 +15,8 @@ const outputDirectory = path.join(appsDirectory, 'generated');
 
 const apps = [
   { name: 'architecture-diagram', entry: 'architecture-diagram/view.tsx', title: 'EventCatalog architecture diagram' },
+  // The schema viewers are styled with Tailwind classes, so the view builds its own Tailwind stylesheet
+  { name: 'schema-viewer', entry: 'schema-viewer/view.tsx', title: 'EventCatalog schema viewer', plugins: [tailwindcss()] },
 ];
 
 const toHtml = (title, script) => `<!doctype html>
@@ -37,6 +40,7 @@ for (const app of apps) {
     configFile: false,
     root: appsDirectory,
     logLevel: 'warn',
+    plugins: app.plugins ?? [],
     define: { 'process.env.NODE_ENV': JSON.stringify('production') },
     resolve: {
       alias: {

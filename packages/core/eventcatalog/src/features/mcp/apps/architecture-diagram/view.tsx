@@ -6,11 +6,6 @@
  * Built into a single HTML file by scripts/build-mcp-apps.mjs and served as a ui:// resource.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { config as configureZod } from 'zod';
-import { createRoot } from 'react-dom/client';
-import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
-import { useApp } from '@modelcontextprotocol/ext-apps/react';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { NodeGraph } from '@eventcatalog/visualiser';
 import { ArrowLeft, ExternalLink, Maximize2, Minimize2 } from 'lucide-react';
 // The visualiser's stylesheet expects Tailwind's base reset, which EventCatalog pages include
@@ -20,21 +15,10 @@ import type { Node } from '@xyflow/react';
 import { ARCHITECTURE_DIAGRAM_META_KEY, ARCHITECTURE_DIAGRAM_VIEW_TOOL, type ArchitectureDiagramPayload } from './shared';
 import { NodeChat, describeNode, describeNodeForModel, type SelectedNode } from './node-chat';
 import { parseAskLink, parseDiagramLink, withAskMenuItem, type DiagramLink } from './links';
+import { getToolResultPayload, mountView, useMcpAppView } from '../shared/app-view';
+import { RESOURCE_TYPE_LABELS } from '../shared/resource-types';
 
 const INLINE_HEIGHT = 560;
-
-const RESOURCE_TYPE_LABELS: Record<string, string> = {
-  domains: 'Domain',
-  systems: 'System',
-  services: 'Service',
-  agents: 'Agent',
-  events: 'Event',
-  commands: 'Command',
-  queries: 'Query',
-  flows: 'Flow',
-  containers: 'Data store',
-  'data-products': 'Data product',
-};
 
 // Styles for the view's own header and question modal
 const viewStyles = `
@@ -209,31 +193,19 @@ const viewStyles = `
   .ec-mcp-modal-sent svg { width: 14px; height: 14px; }
 `;
 
-// MCP hosts block eval in views, so stop zod (used by the MCP Apps SDK) from probing for it
-configureZod({ jitless: true });
+const isDiagramPayload = (payload?: ArchitectureDiagramPayload): payload is ArchitectureDiagramPayload => Boolean(payload?.view);
 
-const getPayloadFromMeta = (result: CallToolResult) =>
-  (result._meta?.[ARCHITECTURE_DIAGRAM_META_KEY] as ArchitectureDiagramPayload | undefined) ??
-  (result.structuredContent as ArchitectureDiagramPayload | undefined);
-
-/** The diagram from the tool result, or loaded through the app-only tool when the host doesn't pass `_meta` */
-async function loadPayload(app: App, result: CallToolResult): Promise<ArchitectureDiagramPayload> {
-  const payload = getPayloadFromMeta(result);
-  if (payload?.view) return payload;
-
-  const text = result.content?.find((item) => item.type === 'text')?.text;
-  const { resourceId, resourceVersion, resourceCollection } = JSON.parse(text ?? '{}');
-  const viewResult = await app.callServerTool({
-    name: ARCHITECTURE_DIAGRAM_VIEW_TOOL,
-    arguments: { resourceId, resourceVersion, resourceCollection },
-  });
-  const loaded = getPayloadFromMeta(viewResult);
-  if (!loaded?.view) throw new Error('The diagram could not be loaded');
-  return loaded;
-}
-
-const applyTheme = (context?: McpUiHostContext) => {
-  if (context?.theme) document.documentElement.setAttribute('data-theme', context.theme);
+const VIEW_OPTIONS = {
+  name: 'EventCatalog architecture diagram',
+  metaKey: ARCHITECTURE_DIAGRAM_META_KEY,
+  viewTool: ARCHITECTURE_DIAGRAM_VIEW_TOOL,
+  isPayload: isDiagramPayload,
+  getViewToolArguments: ({ resourceId, resourceVersion, resourceCollection }: Record<string, any>) => ({
+    resourceId,
+    resourceVersion,
+    resourceCollection,
+  }),
+  loadErrorMessage: 'The diagram could not be loaded',
 };
 
 function ArchitectureDiagramView() {
@@ -242,34 +214,12 @@ function ArchitectureDiagramView() {
   const payload = diagrams[diagrams.length - 1] ?? null;
   const [isOpeningDiagram, setIsOpeningDiagram] = useState(false);
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [hostContext, setHostContext] = useState<McpUiHostContext | undefined>();
+  const { app, payload: toolPayload, error, hostContext } = useMcpAppView(VIEW_OPTIONS);
 
-  const { app, error: connectionError } = useApp({
-    appInfo: { name: 'EventCatalog architecture diagram', version: '1.0.0' },
-    capabilities: {},
-    onAppCreated: (createdApp) => {
-      createdApp.ontoolresult = (result) => {
-        if (result.isError) {
-          setError(result.content?.find((item) => item.type === 'text')?.text ?? 'The diagram could not be loaded');
-          return;
-        }
-        loadPayload(createdApp, result)
-          .then((loaded) => setDiagrams([loaded]))
-          .catch((loadError) => setError(String(loadError?.message ?? loadError)));
-      };
-      createdApp.onhostcontextchanged = (context) => {
-        applyTheme(context);
-        setHostContext((previous) => ({ ...previous, ...context }));
-      };
-    },
-  });
-
+  // Each tool result starts the view again on its diagram
   useEffect(() => {
-    const context = app?.getHostContext();
-    applyTheme(context);
-    setHostContext(context);
-  }, [app]);
+    if (toolPayload) setDiagrams([toolPayload]);
+  }, [toolPayload]);
 
   const toCatalogUrl = useCallback((path: string) => (payload ? new URL(path, payload.catalogUrl).href : path), [payload]);
 
@@ -286,8 +236,8 @@ function ArchitectureDiagramView() {
           name: ARCHITECTURE_DIAGRAM_VIEW_TOOL,
           arguments: { resourceId: diagram.id, resourceVersion: diagram.version, resourceCollection: diagram.collection },
         });
-        const loaded = getPayloadFromMeta(result);
-        if (result.isError || !loaded?.view) throw new Error('The diagram could not be loaded');
+        const loaded = getToolResultPayload<ArchitectureDiagramPayload>(result, ARCHITECTURE_DIAGRAM_META_KEY);
+        if (result.isError || !isDiagramPayload(loaded)) throw new Error('The diagram could not be loaded');
         setSelectedNode(null);
         setDiagrams((opened) => [...opened, loaded]);
       } catch {
@@ -412,8 +362,8 @@ function ArchitectureDiagramView() {
     [app, selectedNode, payload]
   );
 
-  if (connectionError || error) {
-    return <p style={{ padding: 16, fontFamily: 'sans-serif' }}>{connectionError?.message ?? error}</p>;
+  if (error) {
+    return <p style={{ padding: 16, fontFamily: 'sans-serif' }}>{error}</p>;
   }
 
   if (!payload || !graph) {
@@ -509,9 +459,4 @@ function ArchitectureDiagramView() {
 // The visualiser's theme variables (colours for light and dark mode) are set on this class
 document.body.classList.add('eventcatalog-visualizer');
 
-const style = document.createElement('style');
-style.textContent = [baseStyles, visualiserStyles, viewStyles].join('\n');
-document.head.appendChild(style);
-
-// No StrictMode: it mounts the view twice, which connects to the host twice
-createRoot(document.getElementById('root')!).render(<ArchitectureDiagramView />);
+mountView(ArchitectureDiagramView, [baseStyles, visualiserStyles, viewStyles].join('\n'));

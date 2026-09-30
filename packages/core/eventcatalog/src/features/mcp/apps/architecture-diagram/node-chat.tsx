@@ -8,6 +8,7 @@ import type { Node } from '@xyflow/react';
 import { Check, Network, SendHorizontal, X } from 'lucide-react';
 import type { ArchitectureDiagramCollection } from '@utils/node-graphs/architecture-diagram-types';
 import type { DiagramLink } from './links';
+import { RESOURCE_TYPE_LABELS } from '../shared/resource-types';
 
 export type SelectedNode = {
   /** The node's id in the diagram, to find it on screen */
@@ -22,21 +23,10 @@ export type SelectedNode = {
 };
 
 const NODE_TYPE_LABELS: Record<string, string> = {
-  services: 'Service',
-  agents: 'Agent',
-  events: 'Event',
-  commands: 'Command',
-  queries: 'Query',
-  channels: 'Channel',
+  ...RESOURCE_TYPE_LABELS,
   data: 'Data store',
-  containers: 'Data store',
-  'data-products': 'Data product',
-  flows: 'Flow',
-  entities: 'Entity',
-  domains: 'Domain',
   'context-domain': 'Domain',
   'domain-group': 'Domain',
-  systems: 'System',
   'system-group': 'System',
   'context-actor': 'Actor',
   actor: 'Actor',

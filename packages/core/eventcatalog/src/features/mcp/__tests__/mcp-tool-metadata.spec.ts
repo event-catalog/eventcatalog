@@ -17,14 +17,30 @@ vi.mock('@utils/node-graphs/architecture-diagram', async (importOriginal) => ({
   ),
 }));
 
+const orderCreatedSchema = JSON.stringify({ type: 'object', properties: { orderId: { type: 'string' } } });
+
+const collections: Record<string, any[]> = {
+  domains: [{ id: 'payments-1.0.0', collection: 'domains', data: { id: 'payments', version: '1.0.0', name: 'Payments' } }],
+  events: [
+    { id: 'OrderCreated-1.0.0', collection: 'events', data: { id: 'OrderCreated', version: '1.0.0', name: 'Order Created' } },
+    { id: 'OrderShipped-1.0.0', collection: 'events', data: { id: 'OrderShipped', version: '1.0.0', name: 'Order Shipped' } },
+  ],
+  schemas: [
+    {
+      id: 'order-created',
+      collection: 'schemas',
+      data: {
+        name: 'OrderCreated',
+        format: 'jsonschema',
+        content: orderCreatedSchema,
+        message: { collectionName: 'events', id: 'OrderCreated', version: '1.0.0' },
+      },
+    },
+  ],
+};
+
 vi.mock('astro:content', () => ({
-  getCollection: vi.fn((collection: string) =>
-    Promise.resolve(
-      collection === 'domains'
-        ? [{ id: 'payments-1.0.0', collection: 'domains', data: { id: 'payments', version: '1.0.0', name: 'Payments' } }]
-        : []
-    )
-  ),
+  getCollection: vi.fn((collection: string) => Promise.resolve(collections[collection] ?? [])),
   getEntry: vi.fn(),
 }));
 
@@ -248,6 +264,88 @@ describe('MCP tool metadata', () => {
         visualiserPath: '/visualiser/domains/payments/1.0.0',
         view: { nodes: [{ id: 'detailed' }], edges: [], overview: { nodes: [{ id: 'overview' }], edges: [] } },
       });
+    });
+  });
+
+  describe('interactive schema viewer (MCP Apps)', () => {
+    const VIEW_URI = 'ui://eventcatalog/schema-viewer.html';
+
+    it('tells MCP hosts that support MCP Apps to show the schema tool result in the schema viewer', async () => {
+      await createGlobalServer();
+
+      expect(getTool('showSchema')!.config._meta.ui).toEqual({ resourceUri: VIEW_URI });
+    });
+
+    it('only lets the view (not the model) call the tool that loads a schema for display', async () => {
+      await createGlobalServer();
+
+      expect(getTool('getSchemaViewerView')!.config._meta.ui).toEqual({ resourceUri: VIEW_URI, visibility: ['app'] });
+    });
+
+    it('asks the model to show the schema when the user wants to see one', async () => {
+      await createGlobalServer();
+
+      expect(captured.servers[0].options?.instructions).toContain('showSchema');
+      expect(getTool('showSchema')!.config.inputSchema.safeParse({ resourceId: 'OrderCreated' }).success).toBe(true);
+    });
+
+    it('points the model at showSchema rather than getSchemaForResource when the user wants to see a schema', async () => {
+      await createGlobalServer();
+
+      expect(captured.servers[0].options?.instructions).toContain('call showSchema, not getSchemaForResource');
+      expect(getTool('getSchemaForResource')!.config.description).toContain('To show the user a schema, use showSchema');
+    });
+
+    it('gives the model the schema code and the view the schema parsed for its viewer', async () => {
+      await createGlobalServer();
+
+      const result = await getTool('showSchema')!.handler({ resourceId: 'OrderCreated', resourceCollection: 'events' });
+      const text = JSON.parse(result.content[0].text);
+
+      expect(text.note).toMatch(/do not print the whole schema/i);
+      expect(text.schemas).toEqual([{ format: 'jsonschema', code: orderCreatedSchema }]);
+      expect(result._meta['eventcatalog/schemaViewer']).toEqual({
+        resource: { collection: 'events', id: 'OrderCreated', version: '1.0.0', name: 'Order Created' },
+        catalogUrl: 'http://localhost:4321',
+        docsPath: '/docs/events/OrderCreated/1.0.0',
+        schemas: [
+          {
+            kind: 'json',
+            schema: JSON.parse(orderCreatedSchema),
+            format: 'jsonschema',
+            language: 'json',
+            code: orderCreatedSchema,
+          },
+        ],
+      });
+    });
+
+    it('tells the model and the view when a resource has no schema', async () => {
+      await createGlobalServer();
+
+      const result = await getTool('showSchema')!.handler({ resourceId: 'OrderShipped', resourceCollection: 'events' });
+
+      expect(JSON.parse(result.content[0].text)).toMatchObject({ schemas: [], message: 'Order Shipped has no schema' });
+      expect(result._meta['eventcatalog/schemaViewer'].schemas).toEqual([]);
+    });
+
+    it('returns an error for a resource that does not exist', async () => {
+      await createGlobalServer();
+
+      const result = await getTool('showSchema')!.handler({ resourceId: 'Missing', resourceCollection: 'events' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Missing');
+    });
+
+    it('serves the view as an MCP App', async () => {
+      await createGlobalServer();
+
+      const view = captured.resources.find((resource) => resource.uri === VIEW_URI);
+      const { contents } = await view!.read(new URL(VIEW_URI), {});
+
+      expect(contents[0].mimeType).toBe('text/html;profile=mcp-app');
+      expect(contents[0].text).toContain('<div id="root"></div>');
     });
   });
 });

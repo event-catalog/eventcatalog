@@ -1,0 +1,23 @@
+/*
+ * Only the classes the view and the components it renders use, not every template in EventCatalog.
+ * Add every component this view imports here, or its Tailwind classes won't be in the view's styles.
+ */
+@import 'tailwindcss' source(none);
+@import '../../../../styles/theme.css';
+
+@source './*.tsx';
+@source '../../../../components/SchemaExplorer/JSONSchemaViewer.tsx';
+@source '../../../../components/SchemaExplorer/AvroSchemaViewer.tsx';
+@source '../../../../components/SchemaExplorer/ProtobufSchemaViewer.tsx';
+
+body {
+  margin: 0;
+  background: rgb(var(--ec-page-bg));
+  color: rgb(var(--ec-page-text));
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}

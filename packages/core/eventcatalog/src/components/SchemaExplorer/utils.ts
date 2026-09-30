@@ -113,6 +113,17 @@ export const getLanguageForHighlight = (extension?: string): string => {
   }
 };
 
+/** Style of highlighted schema code, shared by the Schema tab and the MCP server's schema viewer */
+export const SCHEMA_CODE_STYLE = {
+  margin: 0,
+  padding: '1.25rem',
+  borderRadius: 0,
+  fontSize: '0.8125rem',
+  lineHeight: '1.625',
+  background: 'transparent',
+  overflow: 'auto',
+} as const;
+
 export const getSchemaTypeLabel = (extension?: string): string => {
   if (!extension) return 'JSON';
   const ext = extension.toLowerCase();
