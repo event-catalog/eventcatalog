@@ -14,9 +14,9 @@ const appsDirectory = path.join(import.meta.dirname, '../eventcatalog/src/featur
 const outputDirectory = path.join(appsDirectory, 'generated');
 
 const apps = [
-  { name: 'architecture-diagram', entry: 'architecture-diagram/view.tsx', title: 'EventCatalog architecture diagram' },
+  // One view for the architecture diagram and the schema, so hosts keep one panel open and update it.
   // The schema viewers are styled with Tailwind classes, so the view builds its own Tailwind stylesheet
-  { name: 'schema-viewer', entry: 'schema-viewer/view.tsx', title: 'EventCatalog schema viewer', plugins: [tailwindcss()] },
+  { name: 'viewer', entry: 'viewer/view.tsx', title: 'EventCatalog', plugins: [tailwindcss()] },
 ];
 
 const toHtml = (title, script) => `<!doctype html>
@@ -33,6 +33,8 @@ const toHtml = (title, script) => `<!doctype html>
 </html>
 `;
 
+// Start clean, so views that were renamed or removed aren't left behind
+fs.rmSync(outputDirectory, { recursive: true, force: true });
 fs.mkdirSync(outputDirectory, { recursive: true });
 
 for (const app of apps) {

@@ -1,6 +1,6 @@
 /**
- * Shared by the MCP App views (architecture diagram, schema viewer): connecting to the host, loading the
- * tool result's payload, following the host's theme and display mode, and mounting the view.
+ * Connecting the EventCatalog viewer MCP App to the host, loading the tool result's payload, following the
+ * host's theme and display mode, and mounting the view.
  */
 import { useEffect, useState, type ComponentType } from 'react';
 import { config as configureZod } from 'zod';
@@ -59,7 +59,8 @@ export function useMcpAppView<Payload>(options: McpAppViewOptions<Payload>) {
 
   const { app, error: connectionError } = useApp({
     appInfo: { name: options.name, version: '1.0.0' },
-    capabilities: {},
+    // The views fit inline and have a full screen button (the server asks hosts to open them full screen)
+    capabilities: { availableDisplayModes: ['inline', 'fullscreen'] },
     onAppCreated: (createdApp) => {
       createdApp.ontoolresult = (result) => {
         if (result.isError) {

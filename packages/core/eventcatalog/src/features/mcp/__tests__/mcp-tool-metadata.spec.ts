@@ -158,22 +158,23 @@ describe('MCP tool metadata', () => {
 
     expect(getTool('getDataProductInputs')).toBeDefined();
     expect(getTool('getDataProductOutputs')).toBeDefined();
-    expect(getTool('showArchitectureDiagram')).toBeDefined();
+    expect(getTool('showResource')).toBeDefined();
   });
 
   it('offers the architecture diagram tool on domain-scoped servers too', async () => {
     const { ALL } = await import('../mcp-server');
     await ALL({ request: initializeRequest('http://localhost:4321/docs/mcp/domains/payments') } as any);
 
-    expect(getTool('showArchitectureDiagram')).toBeDefined();
+    expect(getTool('showResource')).toBeDefined();
   });
 
   it('lets agents ask for an overview diagram of a domain or system', async () => {
     await createGlobalServer();
 
-    const schema = getTool('showArchitectureDiagram')!.config.inputSchema;
-    expect(schema.safeParse({ resourceId: 'ordering', resourceCollection: 'domains', detail: 'overview' }).success).toBe(true);
-    expect(schema.safeParse({ resourceId: 'ordering', resourceCollection: 'domains', detail: 'everything' }).success).toBe(false);
+    const schema = getTool('showResource')!.config.inputSchema;
+    const diagram = { view: 'architecture', resourceId: 'ordering', resourceCollection: 'domains' };
+    expect(schema.safeParse({ ...diagram, detail: 'overview' }).success).toBe(true);
+    expect(schema.safeParse({ ...diagram, detail: 'everything' }).success).toBe(false);
   });
 
   it.each([
@@ -186,7 +187,7 @@ describe('MCP tool metadata', () => {
     ['explainBusinessFlow', { flowId: 'OrderFlow' }],
     ['getDataProductInputs', { dataProductId: 'orders-analytics' }],
     ['getDataProductOutputs', { dataProductId: 'orders-analytics' }],
-    ['showArchitectureDiagram', { resourceId: 'OrderService', resourceCollection: 'services' }],
+    ['showResource', { view: 'architecture', resourceId: 'OrderService', resourceCollection: 'services' }],
   ])('lets agents call %s without a version so it defaults to the latest', async (name, args) => {
     await createGlobalServer();
 
@@ -195,47 +196,56 @@ describe('MCP tool metadata', () => {
     expect(tool!.config.inputSchema.safeParse(args).success).toBe(true);
   });
 
-  describe('pointing the model at the interactive architecture diagram', () => {
-    it('names the diagram tool for what the user gets, an architecture diagram shown to them', async () => {
+  describe('pointing the model at the interactive viewer', () => {
+    it('names one tool for showing the user a resource, as a diagram or a schema', async () => {
       await createGlobalServer();
 
-      const tool = getTool('showArchitectureDiagram')!;
-      expect(tool.config.title).toBe('Show an architecture diagram');
-      expect(tool.config.description).toContain('how');
-      expect(tool.config.description).toMatch(/do not (re)?draw/i);
+      const tool = getTool('showResource')!;
+      expect(tool.config.title).toBe('Show a resource');
+      expect(tool.config.description).toContain('"architecture"');
+      expect(tool.config.description).toContain('"schema"');
+      expect(tool.config.description).toMatch(/do not redraw the diagram or print the whole schema/i);
+      expect(getTool('showArchitectureDiagram')).toBeUndefined();
+      expect(getTool('showSchema')).toBeUndefined();
     });
 
-    it('tells the model in the result that the user can see the diagram, so it does not draw it again', async () => {
+    it('only accepts the views the viewer can show', async () => {
       await createGlobalServer();
 
-      const result = await getTool('showArchitectureDiagram')!.handler({ resourceId: 'payments', resourceCollection: 'domains' });
-
-      expect(JSON.parse(result.content[0].text).note).toMatch(/do not (re)?draw/i);
+      const schema = getTool('showResource')!.config.inputSchema;
+      expect(schema.safeParse({ view: 'schema', resourceId: 'OrderCreated' }).success).toBe(true);
+      expect(schema.safeParse({ view: 'table', resourceId: 'OrderCreated' }).success).toBe(false);
+      expect(schema.safeParse({ resourceId: 'OrderCreated' }).success).toBe(false);
     });
 
-    it('asks the model to show the diagram when the user wants to see how something works or fits together', async () => {
+    it('asks the model to show a diagram when the user wants to see how something fits together, and a schema when they want to see one', async () => {
       await createGlobalServer();
 
-      expect(captured.servers[0].options?.instructions).toContain('showArchitectureDiagram');
+      const instructions = captured.servers[0].options?.instructions;
+      expect(instructions).toContain('call showResource with view "architecture"');
+      expect(instructions).toContain('call showResource with view "schema", not getSchemaForResource');
+      expect(getTool('getSchemaForResource')!.config.description).toContain(
+        'To show the user a schema, use showResource with view "schema"'
+      );
     });
   });
 
-  describe('interactive architecture diagram (MCP Apps)', () => {
-    const VIEW_URI = 'ui://eventcatalog/architecture-diagram.html';
+  describe('interactive viewer (MCP Apps)', () => {
+    const VIEW_URI = 'ui://eventcatalog/viewer.html';
 
-    it('tells MCP hosts that support MCP Apps to show the diagram tool result in the architecture diagram view', async () => {
+    it('tells MCP hosts that support MCP Apps to show the tool result in the viewer', async () => {
       await createGlobalServer();
 
-      expect(getTool('showArchitectureDiagram')!.config._meta.ui).toEqual({ resourceUri: VIEW_URI });
+      expect(getTool('showResource')!.config._meta.ui).toEqual({ resourceUri: VIEW_URI });
     });
 
-    it('only lets the view (not the model) call the tool that loads a diagram for display', async () => {
+    it('only lets the viewer (not the model) call the tool that loads a resource for display', async () => {
       await createGlobalServer();
 
-      expect(getTool('getArchitectureDiagramView')!.config._meta.ui).toEqual({ resourceUri: VIEW_URI, visibility: ['app'] });
+      expect(getTool('getResourceView')!.config._meta.ui).toEqual({ resourceUri: VIEW_URI, visibility: ['app'] });
     });
 
-    it('serves the view as an MCP App that may load icons from the EventCatalog it came from', async () => {
+    it('serves the viewer as an MCP App that may load icons from the EventCatalog it came from', async () => {
       await createGlobalServer();
 
       const view = captured.resources.find((resource) => resource.uri === VIEW_URI);
@@ -246,106 +256,155 @@ describe('MCP tool metadata', () => {
       expect(contents[0]._meta.ui.csp.resourceDomains).toEqual(['http://localhost:4321']);
     });
 
-    it('gives the model the Mermaid and the view the diagram with its levels, which the model does not see', async () => {
-      await createGlobalServer();
-
-      const result = await getTool('showArchitectureDiagram')!.handler({
-        resourceId: 'payments',
-        resourceCollection: 'domains',
-      });
-
-      expect(JSON.parse(result.content[0].text)).toEqual(
-        expect.objectContaining({ mermaidCode: expect.stringContaining('flowchart') })
-      );
-      expect(result.content[0].text).not.toContain('overview');
-      expect(result._meta['eventcatalog/architectureDiagram']).toEqual({
-        resource: { collection: 'domains', id: 'payments', version: '1.0.0', name: 'Payments' },
-        catalogUrl: 'http://localhost:4321',
-        visualiserPath: '/visualiser/domains/payments/1.0.0',
-        view: { nodes: [{ id: 'detailed' }], edges: [], overview: { nodes: [{ id: 'overview' }], edges: [] } },
-      });
-    });
-  });
-
-  describe('interactive schema viewer (MCP Apps)', () => {
-    const VIEW_URI = 'ui://eventcatalog/schema-viewer.html';
-
-    it('tells MCP hosts that support MCP Apps to show the schema tool result in the schema viewer', async () => {
-      await createGlobalServer();
-
-      expect(getTool('showSchema')!.config._meta.ui).toEqual({ resourceUri: VIEW_URI });
-    });
-
-    it('only lets the view (not the model) call the tool that loads a schema for display', async () => {
-      await createGlobalServer();
-
-      expect(getTool('getSchemaViewerView')!.config._meta.ui).toEqual({ resourceUri: VIEW_URI, visibility: ['app'] });
-    });
-
-    it('asks the model to show the schema when the user wants to see one', async () => {
-      await createGlobalServer();
-
-      expect(captured.servers[0].options?.instructions).toContain('showSchema');
-      expect(getTool('showSchema')!.config.inputSchema.safeParse({ resourceId: 'OrderCreated' }).success).toBe(true);
-    });
-
-    it('points the model at showSchema rather than getSchemaForResource when the user wants to see a schema', async () => {
-      await createGlobalServer();
-
-      expect(captured.servers[0].options?.instructions).toContain('call showSchema, not getSchemaForResource');
-      expect(getTool('getSchemaForResource')!.config.description).toContain('To show the user a schema, use showSchema');
-    });
-
-    it('gives the model the schema code and the view the schema parsed for its viewer', async () => {
-      await createGlobalServer();
-
-      const result = await getTool('showSchema')!.handler({ resourceId: 'OrderCreated', resourceCollection: 'events' });
-      const text = JSON.parse(result.content[0].text);
-
-      expect(text.note).toMatch(/do not print the whole schema/i);
-      expect(text.schemas).toEqual([{ format: 'jsonschema', code: orderCreatedSchema }]);
-      expect(result._meta['eventcatalog/schemaViewer']).toEqual({
-        resource: { collection: 'events', id: 'OrderCreated', version: '1.0.0', name: 'Order Created' },
-        catalogUrl: 'http://localhost:4321',
-        docsPath: '/docs/events/OrderCreated/1.0.0',
-        schemas: [
-          {
-            kind: 'json',
-            schema: JSON.parse(orderCreatedSchema),
-            format: 'jsonschema',
-            language: 'json',
-            code: orderCreatedSchema,
-          },
-        ],
-      });
-    });
-
-    it('tells the model and the view when a resource has no schema', async () => {
-      await createGlobalServer();
-
-      const result = await getTool('showSchema')!.handler({ resourceId: 'OrderShipped', resourceCollection: 'events' });
-
-      expect(JSON.parse(result.content[0].text)).toMatchObject({ schemas: [], message: 'Order Shipped has no schema' });
-      expect(result._meta['eventcatalog/schemaViewer'].schemas).toEqual([]);
-    });
-
-    it('returns an error for a resource that does not exist', async () => {
-      await createGlobalServer();
-
-      const result = await getTool('showSchema')!.handler({ resourceId: 'Missing', resourceCollection: 'events' });
-
-      expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Missing');
-    });
-
-    it('serves the view as an MCP App', async () => {
+    it('asks hosts to open the viewer full screen straight away, and lets it go inline', async () => {
       await createGlobalServer();
 
       const view = captured.resources.find((resource) => resource.uri === VIEW_URI);
       const { contents } = await view!.read(new URL(VIEW_URI), {});
 
-      expect(contents[0].mimeType).toBe('text/html;profile=mcp-app');
-      expect(contents[0].text).toContain('<div id="root"></div>');
+      expect(contents[0]._meta['openai/ui']).toEqual({
+        preferredDisplayMode: 'fullscreen',
+        availableDisplayModes: ['inline', 'fullscreen'],
+      });
+    });
+
+    it('ties every result to one viewer, so hosts update the viewer they show instead of showing another', async () => {
+      await createGlobalServer();
+
+      const diagram = await getTool('showResource')!.handler({
+        view: 'architecture',
+        resourceId: 'payments',
+        resourceCollection: 'domains',
+      });
+      const schema = await getTool('showResource')!.handler({
+        view: 'schema',
+        resourceId: 'OrderCreated',
+        resourceCollection: 'events',
+      });
+
+      expect(diagram._meta['openai/widgetSessionId']).toBe('eventcatalog');
+      expect(schema._meta['openai/widgetSessionId']).toBe('eventcatalog');
+    });
+
+    it('keeps a domain-scoped server to its own viewer', async () => {
+      const { ALL } = await import('../mcp-server');
+      await ALL({ request: initializeRequest('http://localhost:4321/docs/mcp/domains/payments') } as any);
+
+      const result = await getTool('showResource')!.handler({
+        view: 'architecture',
+        resourceId: 'payments',
+        resourceCollection: 'domains',
+      });
+
+      expect(result._meta['openai/widgetSessionId']).toBe('eventcatalog:domain:payments');
+    });
+
+    describe('architecture view', () => {
+      it('tells the model in the result that the user can see the diagram, so it does not draw it again', async () => {
+        await createGlobalServer();
+
+        const result = await getTool('showResource')!.handler({
+          view: 'architecture',
+          resourceId: 'payments',
+          resourceCollection: 'domains',
+        });
+
+        expect(JSON.parse(result.content[0].text).note).toMatch(/do not (re)?draw/i);
+      });
+
+      it('gives the model the Mermaid and the viewer the diagram with its levels, which the model does not see', async () => {
+        await createGlobalServer();
+
+        const result = await getTool('showResource')!.handler({
+          view: 'architecture',
+          resourceId: 'payments',
+          resourceCollection: 'domains',
+        });
+
+        expect(JSON.parse(result.content[0].text)).toEqual(
+          expect.objectContaining({ view: 'architecture', mermaidCode: expect.stringContaining('flowchart') })
+        );
+        expect(result.content[0].text).not.toContain('overview');
+        expect(result._meta['eventcatalog/view']).toEqual({
+          view: 'architecture',
+          diagram: {
+            resource: { collection: 'domains', id: 'payments', version: '1.0.0', name: 'Payments' },
+            catalogUrl: 'http://localhost:4321',
+            visualiserPath: '/visualiser/domains/payments/1.0.0',
+            view: { nodes: [{ id: 'detailed' }], edges: [], overview: { nodes: [{ id: 'overview' }], edges: [] } },
+          },
+        });
+      });
+    });
+
+    describe('schema view', () => {
+      it('gives the model the schema code and the viewer the schema parsed for its viewers', async () => {
+        await createGlobalServer();
+
+        const result = await getTool('showResource')!.handler({
+          view: 'schema',
+          resourceId: 'OrderCreated',
+          resourceCollection: 'events',
+        });
+        const text = JSON.parse(result.content[0].text);
+
+        expect(text.note).toMatch(/do not print the whole schema/i);
+        expect(text).toMatchObject({ view: 'schema', resourceId: 'OrderCreated', resourceCollection: 'events' });
+        expect(text.schemas).toEqual([{ format: 'jsonschema', code: orderCreatedSchema }]);
+        expect(result._meta['eventcatalog/view']).toEqual({
+          view: 'schema',
+          schema: {
+            resource: { collection: 'events', id: 'OrderCreated', version: '1.0.0', name: 'Order Created' },
+            catalogUrl: 'http://localhost:4321',
+            docsPath: '/docs/events/OrderCreated/1.0.0',
+            schemas: [
+              {
+                kind: 'json',
+                schema: JSON.parse(orderCreatedSchema),
+                format: 'jsonschema',
+                language: 'json',
+                code: orderCreatedSchema,
+              },
+            ],
+          },
+        });
+      });
+
+      it('shows the schema of an event when no collection is given', async () => {
+        await createGlobalServer();
+
+        const tool = getTool('showResource')!;
+        const args = tool.config.inputSchema.parse({ view: 'schema', resourceId: 'OrderCreated' });
+        const result = await tool.handler(args);
+
+        expect(result._meta['eventcatalog/view'].schema.resource.collection).toBe('events');
+      });
+
+      it('tells the model and the viewer when a resource has no schema', async () => {
+        await createGlobalServer();
+
+        const result = await getTool('showResource')!.handler({
+          view: 'schema',
+          resourceId: 'OrderShipped',
+          resourceCollection: 'events',
+        });
+
+        expect(JSON.parse(result.content[0].text)).toMatchObject({ schemas: [], message: 'Order Shipped has no schema' });
+        expect(result._meta['eventcatalog/view'].schema.schemas).toEqual([]);
+      });
+
+      it('returns an error for a resource that does not exist', async () => {
+        await createGlobalServer();
+
+        const result = await getTool('showResource')!.handler({
+          view: 'schema',
+          resourceId: 'Missing',
+          resourceCollection: 'events',
+        });
+
+        expect(result.isError).toBe(true);
+        expect(result.content[0].text).toContain('Missing');
+      });
     });
   });
 });

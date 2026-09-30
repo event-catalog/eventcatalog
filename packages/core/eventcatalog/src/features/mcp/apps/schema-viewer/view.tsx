@@ -1,21 +1,18 @@
 /**
- * MCP App view for the schema tool. Like EventCatalog's schema pages, it shows a message's schema as its
- * source (Schema) or with the Schema Explorer's viewers (Properties, for JSON Schema, Avro and Protobuf),
- * in MCP hosts that support MCP Apps. Hosts without MCP Apps support show the tool's text instead.
- *
- * Built into a single HTML file by scripts/build-mcp-apps.mjs and served as a ui:// resource.
+ * The schema, shown by the EventCatalog viewer MCP App (../viewer) for showResource with view "schema".
+ * Like EventCatalog's schema pages, it shows a message's schema as its source (Schema) or with the Schema
+ * Explorer's viewers (Properties, for JSON Schema, Avro and Protobuf), in MCP hosts that support MCP Apps.
+ * Hosts without MCP Apps support show the tool's text instead.
  */
 import { useCallback, useEffect, useState } from 'react';
+import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
 import { Code, ExternalLink, Maximize2, Minimize2, Table } from 'lucide-react';
 import JSONSchemaViewer from '../../../../components/SchemaExplorer/JSONSchemaViewer';
 import AvroSchemaViewer from '../../../../components/SchemaExplorer/AvroSchemaViewer';
 import ProtobufSchemaViewer from '../../../../components/SchemaExplorer/ProtobufSchemaViewer';
-// Tailwind, built from the classes of the view and the components it uses, and EventCatalog's theme variables
-import styles from './styles.css?inline';
 import { SchemaCode } from './schema-code';
-import { mountView, useMcpAppView } from '../shared/app-view';
 import { RESOURCE_TYPE_LABELS } from '../shared/resource-types';
-import { SCHEMA_VIEWER_META_KEY, SCHEMA_VIEWER_VIEW_TOOL, type SchemaViewerPayload, type SchemaViewerSchema } from './shared';
+import type { SchemaViewerPayload, SchemaViewerSchema } from './shared';
 
 const INLINE_MAX_HEIGHT = '560px';
 
@@ -24,19 +21,6 @@ const FORMAT_LABELS: Record<SchemaViewerSchema['kind'], string> = {
   avro: 'Avro',
   protobuf: 'Protobuf',
   code: '',
-};
-
-const VIEW_OPTIONS = {
-  name: 'EventCatalog schema viewer',
-  metaKey: SCHEMA_VIEWER_META_KEY,
-  viewTool: SCHEMA_VIEWER_VIEW_TOOL,
-  isPayload: (payload?: SchemaViewerPayload): payload is SchemaViewerPayload => Boolean(payload?.schemas),
-  getViewToolArguments: ({ resource }: Record<string, any>) => ({
-    resourceId: resource?.id,
-    resourceVersion: resource?.version,
-    resourceCollection: resource?.collection,
-  }),
-  loadErrorMessage: 'The schema could not be loaded',
 };
 
 type SchemaTab = 'code' | 'properties';
@@ -54,8 +38,14 @@ function SchemaProperties({ schema, maxHeight }: { schema: SchemaViewerSchema; m
   }
 }
 
-function SchemaViewerView() {
-  const { app, payload, error, hostContext } = useMcpAppView(VIEW_OPTIONS);
+type SchemaViewerViewProps = {
+  app: App | null;
+  /** The schemas from the latest tool result */
+  payload: SchemaViewerPayload;
+  hostContext?: McpUiHostContext;
+};
+
+export function SchemaViewerView({ app, payload, hostContext }: SchemaViewerViewProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   // Properties first: it's what people asking to see a schema usually want
   const [tab, setTab] = useState<SchemaTab>('properties');
@@ -65,17 +55,9 @@ function SchemaViewerView() {
 
   // The view runs in a sandbox and can't navigate, so EventCatalog opens in the host
   const openInCatalog = useCallback(
-    (path: string) => payload && app?.openLink({ url: new URL(path, payload.catalogUrl).href }),
+    (path: string) => app?.openLink({ url: new URL(path, payload.catalogUrl).href }),
     [app, payload]
   );
-
-  if (error) {
-    return <p className="p-4 text-sm">{error}</p>;
-  }
-
-  if (!payload) {
-    return <p className="p-4 text-sm text-[rgb(var(--ec-page-text-muted))]">Loading schema…</p>;
-  }
 
   const { resource, schemas } = payload;
   const schema = schemas[selectedIndex] ?? schemas[0];
@@ -186,5 +168,3 @@ function SchemaViewerView() {
     </div>
   );
 }
-
-mountView(SchemaViewerView, styles);

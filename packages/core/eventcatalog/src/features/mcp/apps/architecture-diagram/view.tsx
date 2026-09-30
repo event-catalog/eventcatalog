@@ -1,22 +1,21 @@
 /**
- * MCP App view for the architecture diagram tool. Renders the EventCatalog visualiser inline
- * in MCP hosts that support MCP Apps (e.g. Claude, ChatGPT, VS Code). Hosts without MCP Apps
- * support show the tool's Mermaid text instead.
- *
- * Built into a single HTML file by scripts/build-mcp-apps.mjs and served as a ui:// resource.
+ * The architecture diagram, shown by the EventCatalog viewer MCP App (../viewer) for showResource with
+ * view "architecture". Renders the EventCatalog visualiser in MCP hosts that support MCP Apps (e.g. Claude,
+ * ChatGPT, VS Code). Hosts without MCP Apps support show the tool's Mermaid text instead.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NodeGraph } from '@eventcatalog/visualiser';
 import { ArrowLeft, ExternalLink, Maximize2, Minimize2 } from 'lucide-react';
-// The visualiser's stylesheet expects Tailwind's base reset, which EventCatalog pages include
-import baseStyles from 'tailwindcss/preflight.css?inline';
+// Expects Tailwind's base reset, which the viewer's stylesheet includes (as EventCatalog pages do)
 import visualiserStyles from '@eventcatalog/visualiser/styles.css?inline';
+import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
 import type { Node } from '@xyflow/react';
-import { ARCHITECTURE_DIAGRAM_META_KEY, ARCHITECTURE_DIAGRAM_VIEW_TOOL, type ArchitectureDiagramPayload } from './shared';
+import type { ArchitectureDiagramPayload } from './shared';
 import { NodeChat, describeNode, describeNodeForModel, type SelectedNode } from './node-chat';
 import { parseAskLink, parseDiagramLink, withAskMenuItem, type DiagramLink } from './links';
-import { getToolResultPayload, mountView, useMcpAppView } from '../shared/app-view';
+import { getToolResultPayload } from '../shared/app-view';
 import { RESOURCE_TYPE_LABELS } from '../shared/resource-types';
+import { VIEWER_META_KEY, VIEWER_VIEW_TOOL, type ViewerPayload } from '../viewer/shared';
 
 const INLINE_HEIGHT = 560;
 
@@ -193,28 +192,25 @@ const viewStyles = `
   .ec-mcp-modal-sent svg { width: 14px; height: 14px; }
 `;
 
-const isDiagramPayload = (payload?: ArchitectureDiagramPayload): payload is ArchitectureDiagramPayload => Boolean(payload?.view);
+/** The diagram's styles: the visualiser's, and the view's own header and question modal */
+export const architectureDiagramStyles = [visualiserStyles, viewStyles].join('\n');
 
-const VIEW_OPTIONS = {
-  name: 'EventCatalog architecture diagram',
-  metaKey: ARCHITECTURE_DIAGRAM_META_KEY,
-  viewTool: ARCHITECTURE_DIAGRAM_VIEW_TOOL,
-  isPayload: isDiagramPayload,
-  getViewToolArguments: ({ resourceId, resourceVersion, resourceCollection }: Record<string, any>) => ({
-    resourceId,
-    resourceVersion,
-    resourceCollection,
-  }),
-  loadErrorMessage: 'The diagram could not be loaded',
+// The visualiser's theme variables (colours for light and dark mode) are set on this class
+export const VISUALISER_BODY_CLASS = 'eventcatalog-visualizer';
+
+type ArchitectureDiagramViewProps = {
+  app: App | null;
+  /** The diagram from the latest tool result */
+  payload: ArchitectureDiagramPayload;
+  hostContext?: McpUiHostContext;
 };
 
-function ArchitectureDiagramView() {
+export function ArchitectureDiagramView({ app, payload: toolPayload, hostContext }: ArchitectureDiagramViewProps) {
   // The diagrams opened in the view, the current one last (links like "Focus node" open another)
-  const [diagrams, setDiagrams] = useState<ArchitectureDiagramPayload[]>([]);
+  const [diagrams, setDiagrams] = useState<ArchitectureDiagramPayload[]>([toolPayload]);
   const payload = diagrams[diagrams.length - 1] ?? null;
   const [isOpeningDiagram, setIsOpeningDiagram] = useState(false);
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
-  const { app, payload: toolPayload, error, hostContext } = useMcpAppView(VIEW_OPTIONS);
 
   // Each tool result starts the view again on its diagram
   useEffect(() => {
@@ -233,13 +229,18 @@ function ArchitectureDiagramView() {
       setIsOpeningDiagram(true);
       try {
         const result = await app.callServerTool({
-          name: ARCHITECTURE_DIAGRAM_VIEW_TOOL,
-          arguments: { resourceId: diagram.id, resourceVersion: diagram.version, resourceCollection: diagram.collection },
+          name: VIEWER_VIEW_TOOL,
+          arguments: {
+            view: 'architecture',
+            resourceId: diagram.id,
+            resourceVersion: diagram.version,
+            resourceCollection: diagram.collection,
+          },
         });
-        const loaded = getToolResultPayload<ArchitectureDiagramPayload>(result, ARCHITECTURE_DIAGRAM_META_KEY);
-        if (result.isError || !isDiagramPayload(loaded)) throw new Error('The diagram could not be loaded');
+        const loaded = getToolResultPayload<ViewerPayload>(result, VIEWER_META_KEY);
+        if (result.isError || loaded?.view !== 'architecture') throw new Error('The diagram could not be loaded');
         setSelectedNode(null);
-        setDiagrams((opened) => [...opened, loaded]);
+        setDiagrams((opened) => [...opened, loaded.diagram]);
       } catch {
         // Show it in EventCatalog instead
         openInCatalog(`/visualiser/${diagram.collection}/${diagram.id}/${diagram.version}`);
@@ -362,10 +363,6 @@ function ArchitectureDiagramView() {
     [app, selectedNode, payload]
   );
 
-  if (error) {
-    return <p style={{ padding: 16, fontFamily: 'sans-serif' }}>{error}</p>;
-  }
-
   if (!payload || !graph) {
     return <p style={{ padding: 16, fontFamily: 'sans-serif' }}>Loading diagram…</p>;
   }
@@ -455,8 +452,3 @@ function ArchitectureDiagramView() {
     </div>
   );
 }
-
-// The visualiser's theme variables (colours for light and dark mode) are set on this class
-document.body.classList.add('eventcatalog-visualizer');
-
-mountView(ArchitectureDiagramView, [baseStyles, visualiserStyles, viewStyles].join('\n'));

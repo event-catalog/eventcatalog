@@ -1,5 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import type { McpUiDisplayMode } from '@modelcontextprotocol/ext-apps';
 import { registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
 
@@ -24,6 +25,7 @@ export const mcpAppNote = (subject: string, avoid: string, otherwise: string) =>
 export type McpAppResult<Payload> =
   | { error: string }
   | {
+      /** What the model reads, including a note (see mcpAppNote) on what the view already shows the user */
       forModel: Record<string, unknown>;
       /** What was loaded, e.g. "the schema for events/OrderCreated", for the app-only tool's text */
       label: string;
@@ -41,14 +43,25 @@ type ToolDefinition<Shape extends z.ZodRawShape> = {
 export type McpAppDefinition<Shape extends z.ZodRawShape, ViewShape extends z.ZodRawShape, Payload> = {
   /** Loads the view's HTML; undefined when the views weren't built, so only the text result is returned */
   loadView?: () => Promise<string>;
-  resource: { name: string; uri: string; description: string; csp?: { resourceDomains: string[] } };
+  resource: {
+    name: string;
+    uri: string;
+    description: string;
+    csp?: { resourceDomains: string[] };
+    /** How hosts open the view: ChatGPT reads these before loading it, so it can open straight in that mode */
+    displayModes?: { preferred: McpUiDisplayMode; available: McpUiDisplayMode[] };
+  };
+  /**
+   * Ties every result to one view (ChatGPT's `openai/widgetSessionId`): the host updates the view it already
+   * shows with each new result, instead of showing another one
+   */
+  sessionId?: string;
   /** Key of the payload in the model-facing tool result's `_meta` */
   metaKey: string;
   /** The tool the model calls to show the user something */
   tool: ToolDefinition<Shape>;
   /** App-only tool the view calls to load its payload when the host doesn't pass the result's `_meta` */
   viewTool: ToolDefinition<ViewShape>;
-  note: string;
   annotations: ToolAnnotations;
   load: (params: z.output<z.ZodObject<Shape>> | z.output<z.ZodObject<ViewShape>>) => Promise<McpAppResult<Payload>>;
   /** Prefix of the error returned when loading fails */
@@ -76,8 +89,13 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
       if ('error' in result) return errorResult(result);
       return {
         // The model reads the text; hosts that support MCP Apps show the view from `_meta`
-        content: [{ type: 'text' as const, text: JSON.stringify({ note: app.note, ...result.forModel }, null, 2) }],
-        ...(loadView && { _meta: { [app.metaKey]: await result.getPayload() } }),
+        content: [{ type: 'text' as const, text: JSON.stringify(result.forModel, null, 2) }],
+        ...(loadView && {
+          _meta: {
+            [app.metaKey]: await result.getPayload(),
+            ...(app.sessionId && { 'openai/widgetSessionId': app.sessionId }),
+          },
+        }),
       };
     } catch (error) {
       return errorResult({ error: `${app.errorMessage}: ${error}` });
@@ -127,7 +145,15 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
         uri: app.resource.uri,
         mimeType: RESOURCE_MIME_TYPE,
         text: await loadView(),
-        ...(app.resource.csp && { _meta: { ui: { csp: app.resource.csp } } }),
+        _meta: {
+          ...(app.resource.csp && { ui: { csp: app.resource.csp } }),
+          ...(app.resource.displayModes && {
+            'openai/ui': {
+              preferredDisplayMode: app.resource.displayModes.preferred,
+              availableDisplayModes: app.resource.displayModes.available,
+            },
+          }),
+        },
       },
     ],
   }));
