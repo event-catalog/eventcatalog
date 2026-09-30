@@ -1,13 +1,43 @@
 ---
 import SettingsLayout from '@layouts/SettingsLayout.astro';
-import { McpSettingsForm } from '@components/Settings/McpSettingsForm';
+import { McpSettingsForm, type DomainMcpServer } from '@components/Settings/McpSettingsForm';
+import { getDomains } from '@utils/collections/domains';
+import { resolveMcpScope } from '@features/mcp/mcp-scope';
 import { isSSR } from '@utils/feature';
 import { buildUrl } from '@utils/url-builder';
 
 const inSSR = isSSR();
 const mcpUrl = buildUrl('/docs/mcp');
+
+// Each domain has its own MCP server, scoped to the domain and the resources in it (latest version)
+const domains = await getDomains({ getAllVersions: false });
+// What each domain's MCP server serves: the resources in its scope
+const countScope = async (id: string) => {
+  try {
+    const scope = await resolveMcpScope({ kind: 'domain', id });
+    return {
+      services: scope.list('services').length,
+      messages: ['events', 'commands', 'queries'].reduce((count, collection) => count + scope.list(collection).length, 0),
+    };
+  } catch {
+    return { services: 0, messages: 0 };
+  }
+};
+
+const domainServers: DomainMcpServer[] = (
+  await Promise.all(
+    domains.map(async (domain) => ({
+      id: domain.data.id,
+      name: domain.data.name,
+      summary: domain.data.summary,
+      ...(await countScope(domain.data.id)),
+      docsUrl: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`),
+      url: buildUrl(`/docs/mcp/domains/${encodeURIComponent(domain.data.id)}`, true),
+    }))
+  )
+).sort((a, b) => a.name.localeCompare(b.name));
 ---
 
 <SettingsLayout title="MCP" active="mcp">
-  <McpSettingsForm client:load inSSR={inSSR} mcpUrl={mcpUrl} />
+  <McpSettingsForm client:load inSSR={inSSR} mcpUrl={mcpUrl} domainServers={domainServers} />
 </SettingsLayout>

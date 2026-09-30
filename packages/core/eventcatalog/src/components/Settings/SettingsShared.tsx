@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ExternalLink, Copy, Check as CheckIcon } from 'lucide-react';
 import { cn } from './Row';
@@ -14,9 +14,12 @@ interface UrlPanelProps {
 
 export const UrlPanel = ({ url }: UrlPanelProps) => {
   const [copied, setCopied] = useState(false);
+  // The full URL (what clients connect to), once the page knows its origin in the browser
+  const [fullUrl, setFullUrl] = useState(url);
+  useEffect(() => setFullUrl(new URL(url, window.location.origin).href), [url]);
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(new URL(url, window.location.origin).href);
+      await navigator.clipboard.writeText(fullUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -31,7 +34,7 @@ export const UrlPanel = ({ url }: UrlPanelProps) => {
         rel="noreferrer"
         className="flex-1 truncate rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-2.5 py-1.5 font-mono text-[12px] text-[rgb(var(--ec-page-text))] transition-colors hover:border-[rgb(var(--ec-accent)/0.5)] hover:text-[rgb(var(--ec-accent))]"
       >
-        {url}
+        {fullUrl}
       </a>
       <button
         type="button"
@@ -53,27 +56,6 @@ export const UrlPanel = ({ url }: UrlPanelProps) => {
     </div>
   );
 };
-
-interface LiveCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-export const LiveCard = ({ icon, title, description }: LiveCardProps) => (
-  <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
-    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-500">
-      {icon}
-    </span>
-    <div className="flex-1 min-w-0">
-      <p className="text-[13px] font-medium text-[rgb(var(--ec-page-text))]">{title}</p>
-      <p className="text-[12px] leading-snug text-[rgb(var(--ec-page-text-muted))]">{description}</p>
-    </div>
-    <span className="flex-shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-500">
-      Live
-    </span>
-  </div>
-);
 
 interface ToggleProps {
   checked: boolean;
