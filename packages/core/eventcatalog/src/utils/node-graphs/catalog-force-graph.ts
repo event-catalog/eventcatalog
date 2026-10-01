@@ -7,6 +7,7 @@
  * included, and links are resolved by resource id so pinned-version references
  * still connect to the latest node.
  */
+import { getCollection } from 'astro:content';
 import { getDomains } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
 import { getAgents } from '@utils/collections/agents';
@@ -20,6 +21,7 @@ import { getDataProducts } from '@utils/collections/data-products';
 import { getSystems } from '@utils/collections/systems';
 import { getTeams } from '@utils/collections/teams';
 import { buildUrl } from '@utils/url-builder';
+import { getDistinctMessagePairs } from './utils/shared-channel-messages';
 
 export interface CatalogGraphNode {
   id: string;
@@ -100,7 +102,7 @@ const messageLabels: Record<string, { sends: string; receives: string }> = {
 };
 
 export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[]; links: CatalogGraphLink[] }> => {
-  const [domains, services, agents, events, commands, queries, flows, entities, containers, dataProducts, systems] =
+  const [domains, services, agents, events, commands, queries, flows, entities, containers, dataProducts, systems, rawServices] =
     await Promise.all([
       // Strict containment: a parent domain should not also claim its subdomains' services
       getDomains({ includeServicesInSubdomains: false }),
@@ -114,6 +116,10 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
       getContainers(),
       getDataProducts(),
       getSystems(),
+      // getServices() hydrates message references and intentionally drops the
+      // per-service `to`/`from` channel configuration. Keep the raw entries so
+      // the catalog graph can relate distinct local messages through a channel.
+      getCollection('services'),
     ]);
   const teams = await getTeams();
 
@@ -201,6 +207,36 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
     }
   };
 
+  const resolveMessageNodeKey = (ref: unknown) => {
+    const id = refId(ref);
+    if (!id) return undefined;
+
+    const explicitCollection = (ref as AnyEntry | undefined)?.collection;
+    if (explicitCollection && ['events', 'commands', 'queries'].includes(explicitCollection)) {
+      const key = nodeKey(explicitCollection, id);
+      if (nodes.has(key)) return key;
+    }
+
+    // Raw service message pointers do not carry their collection. Resolve only
+    // when the id identifies exactly one rendered message type; otherwise skip
+    // rather than inventing a relationship.
+    const matches = ['events', 'commands', 'queries']
+      .map((collection) => nodeKey(collection, id))
+      .filter((key) => nodes.has(key));
+    return matches.length === 1 ? matches[0] : undefined;
+  };
+
+  const channelRelationships = new Map<string, { producers: Set<string>; consumers: Set<string> }>();
+  const addChannelEndpoint = (channelRef: unknown, side: 'producers' | 'consumers', messageRef: unknown) => {
+    const channelId = refId(channelRef);
+    const messageKey = resolveMessageNodeKey(messageRef);
+    if (!channelId || !messageKey) return;
+
+    const relationship = channelRelationships.get(channelId) ?? { producers: new Set(), consumers: new Set() };
+    relationship[side].add(messageKey);
+    channelRelationships.set(channelId, relationship);
+  };
+
   for (const domain of collections.domains) {
     const key = nodeKey('domains', domain.data.id);
     const data = domain.data as any;
@@ -223,6 +259,24 @@ export const getCatalogForceGraph = async (): Promise<{ nodes: CatalogGraphNode[
     for (const container of data.readsFrom ?? []) addLink(nodeKey('containers', refId(container)!), key, 'read by');
     for (const entity of data.entities ?? []) addLink(key, nodeKey('entities', refId(entity)!), 'owns');
     for (const flow of data.flows ?? []) addLink(key, nodeKey('flows', refId(flow)!), 'part of');
+  }
+
+  const latestServiceVersions = new Map(collections.services.map((service) => [service.data.id, service.data.version]));
+  for (const service of rawServices) {
+    if (latestServiceVersions.get(service.data.id) !== service.data.version) continue;
+
+    for (const message of service.data.sends ?? []) {
+      for (const channel of message.to ?? []) addChannelEndpoint(channel, 'producers', message);
+    }
+    for (const message of service.data.receives ?? []) {
+      for (const channel of message.from ?? []) addChannelEndpoint(channel, 'consumers', message);
+    }
+  }
+
+  for (const [channelId, { producers, consumers }] of channelRelationships) {
+    for (const { producerMessageId, consumerMessageId } of getDistinctMessagePairs(producers, consumers)) {
+      addLink(producerMessageId, consumerMessageId, `via ${channelId}`);
+    }
   }
 
   for (const system of collections.systems) {

@@ -7,6 +7,7 @@ import {
   generatedIdForEdge,
   createEdge,
   layoutDagreGraph,
+  versionMatches,
 } from '@utils/node-graphs/utils/utils';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import { getNodesAndEdges as getAgentsNodeAndEdges } from './agents-node-graph';
@@ -15,6 +16,7 @@ import merge from 'lodash.merge';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getProducersOfMessage } from '@utils/collections/services';
 import { getProducersOfMessage as getAgentProducersOfMessage } from '@utils/collections/agents';
+import { shouldRouteConsumerMessageAfterChannel } from './utils/shared-channel-messages';
 
 type DagreGraph = any;
 
@@ -27,6 +29,95 @@ interface NodesAndEdgesProps {
   channelRenderMode?: 'single' | 'flat';
   layout?: boolean;
 }
+
+const MESSAGE_NODE_TYPES = new Set(['events', 'commands', 'queries']);
+
+const findNodeForPointer = (nodes: Map<string, any>, pointer: any, type: 'message' | 'channel') =>
+  Array.from(nodes.values()).find((node: any) => {
+    const data = type === 'message' ? node.data?.message : node.data?.channel;
+    const matchesType = type === 'message' ? MESSAGE_NODE_TYPES.has(node.type) : node.type === 'channels';
+    return matchesType && data?.id === pointer?.id && versionMatches(pointer?.version, data?.version);
+  });
+
+const routeDistinctConsumerMessagesAfterSharedChannels = (nodes: Map<string, any>, edges: Map<string, any>, flow: DagreGraph) => {
+  const serviceNodes = Array.from(nodes.values()).filter((node: any) => node.type === 'services');
+  const producerMessageIdsByChannel = new Map<string, Set<string>>();
+  const consumerBindingsByChannel = new Map<string, Array<{ serviceNode: any; messageNode: any; channelNode: any }>>();
+
+  for (const serviceNode of serviceNodes) {
+    for (const send of serviceNode.data?.service?.sends ?? []) {
+      const messageNode = findNodeForPointer(nodes, send, 'message');
+      if (!messageNode) continue;
+      for (const channelPointer of send.to ?? []) {
+        const channelNode = findNodeForPointer(nodes, channelPointer, 'channel');
+        if (!channelNode) continue;
+        const messageIds = producerMessageIdsByChannel.get(channelNode.id) ?? new Set<string>();
+        messageIds.add(messageNode.id);
+        producerMessageIdsByChannel.set(channelNode.id, messageIds);
+      }
+    }
+
+    for (const receive of serviceNode.data?.service?.receives ?? []) {
+      const messageNode = findNodeForPointer(nodes, receive, 'message');
+      if (!messageNode) continue;
+      for (const channelPointer of receive.from ?? []) {
+        const channelNode = findNodeForPointer(nodes, channelPointer, 'channel');
+        if (!channelNode) continue;
+        const bindings = consumerBindingsByChannel.get(channelNode.id) ?? [];
+        bindings.push({ serviceNode, messageNode, channelNode });
+        consumerBindingsByChannel.set(channelNode.id, bindings);
+      }
+    }
+  }
+
+  const removeEdges = (predicate: (edge: any) => boolean) => {
+    const removed = Array.from(edges.entries()).filter(([, edge]) => predicate(edge));
+    for (const [edgeId, edge] of removed) {
+      edges.delete(edgeId);
+      const stillUsed = Array.from(edges.values()).some(
+        (remaining: any) => remaining.source === edge.source && remaining.target === edge.target
+      );
+      if (!stillUsed) flow.removeEdge(edge.source, edge.target);
+    }
+  };
+
+  const addEdge = (edge: any) => {
+    if (edges.has(edge.id)) return;
+    edges.set(edge.id, edge);
+    flow.setEdge(edge.source, edge.target);
+  };
+
+  for (const [channelNodeId, bindings] of consumerBindingsByChannel) {
+    const producerMessageIds = producerMessageIdsByChannel.get(channelNodeId) ?? new Set<string>();
+
+    for (const { serviceNode, messageNode, channelNode } of bindings) {
+      if (!shouldRouteConsumerMessageAfterChannel(producerMessageIds, messageNode.id)) continue;
+
+      removeEdges((edge) => edge.source === messageNode.id && edge.target === channelNode.id);
+      removeEdges((edge) => edge.source === channelNode.id && edge.target === serviceNode.id);
+
+      addEdge(
+        createEdge({
+          id: `channel-bridge-${channelNode.id}-${messageNode.id}`,
+          source: channelNode.id,
+          target: messageNode.id,
+          label: 'routes to',
+          data: { type: 'channel-to-consumer-message' },
+        })
+      );
+
+      addEdge(
+        createEdge({
+          id: `channel-bridge-${messageNode.id}-${serviceNode.id}`,
+          source: messageNode.id,
+          target: serviceNode.id,
+          label: messageNode.type === 'events' ? 'subscribed by' : 'accepts',
+          data: { type: 'consumer-message-to-service', message: { ...messageNode.data?.message } },
+        })
+      );
+    }
+  }
+};
 
 export const getNodesAndEdges = async ({
   id,
@@ -166,6 +257,8 @@ export const getNodesAndEdges = async ({
 
     subDomainEdges.forEach((e) => edges.set(e.id, e));
   }
+
+  routeDistinctConsumerMessagesAfterSharedChannels(nodes, edges, flow);
 
   // Add group node to the graph first before calculating positions
   if (group) {
