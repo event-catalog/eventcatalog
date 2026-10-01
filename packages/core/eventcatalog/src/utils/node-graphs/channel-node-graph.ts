@@ -22,6 +22,7 @@ import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getChannelChain, getChannels } from '@utils/collections/channels';
 import { type Node, type Edge } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
+import { shouldRouteConsumerMessageAfterChannel } from './utils/shared-channel-messages';
 
 interface CollectionItem {
   collection: string;
@@ -316,6 +317,19 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
     }
   };
 
+  const producerMessageIdsByChannel = new Map<string, Set<string>>();
+  for (const { message, producers } of messageFlows.values()) {
+    const messageNodeId = generateIdForNode(message);
+    for (const route of producers.flatMap((producer) => producer.channelRoutes)) {
+      for (const channelInRoute of route) {
+        const channelId = generateIdForNode(channelInRoute);
+        const messageIds = producerMessageIdsByChannel.get(channelId) ?? new Set<string>();
+        messageIds.add(messageNodeId);
+        producerMessageIdsByChannel.set(channelId, messageIds);
+      }
+    }
+  }
+
   // channelNodeId + consumerNodeId -> messages consumed, so each channel/consumer pair gets one edge.
   const messagesByConsumer = new Map<
     string,
@@ -358,11 +372,15 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
     for (const route of routesToRender) {
       addChannelRoute(route, message.data.id);
       const firstChannel = route[0];
+      const firstChannelId = generateIdForNode(firstChannel);
+      const producerMessageIds = producerMessageIdsByChannel.get(firstChannelId) ?? new Set<string>();
+      if (shouldRouteConsumerMessageAfterChannel(producerMessageIds, messageNodeId)) continue;
+
       addEdge(
         createEdge({
           id: generatedIdForEdge(message, firstChannel),
           source: messageNodeId,
-          target: generateIdForNode(firstChannel),
+          target: firstChannelId,
           label: 'routes to',
           data: { customColor: getColorFromString(message.data.id) },
         })
@@ -387,8 +405,35 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       for (const route of channelRoutes) {
         addChannelRoute(route, message.data.id);
         const sourceChannel = route[route.length - 1];
+        const sourceChannelId = generateIdForNode(sourceChannel);
         const consumerNodeId = generateIdForNode(consumer);
-        const groupKey = `${generateIdForNode(sourceChannel)}:${consumerNodeId}`;
+        const producerMessageIds = producerMessageIdsByChannel.get(sourceChannelId) ?? new Set<string>();
+
+        if (shouldRouteConsumerMessageAfterChannel(producerMessageIds, messageNodeId)) {
+          addResourceNode(consumer);
+          addEdge(
+            createEdge({
+              id: `channel-bridge-${sourceChannelId}-${messageNodeId}`,
+              source: sourceChannelId,
+              target: messageNodeId,
+              label: 'routes to',
+              data: { customColor: getColorFromString(message.data.id) },
+            })
+          );
+          addEdge(
+            createEdge({
+              id: `channel-bridge-${messageNodeId}-${consumerNodeId}`,
+              source: messageNodeId,
+              target: consumerNodeId,
+              label: getEdgeLabelForMessageAsSource(message),
+              type: 'multiline',
+              data: { customColor: getColorFromString(message.data.id) },
+            })
+          );
+          continue;
+        }
+
+        const groupKey = `${sourceChannelId}:${consumerNodeId}`;
         const grouped = messagesByConsumer.get(groupKey) ?? { sourceChannel, consumer, messages: [] };
         if (!grouped.messages.some((groupedMessage) => generateIdForNode(groupedMessage) === messageNodeId)) {
           grouped.messages.push(message);

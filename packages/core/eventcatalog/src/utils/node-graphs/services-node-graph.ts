@@ -31,7 +31,12 @@ const generateIdForAgentToolNode = (
 import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
 import { MarkerType, type Node, type Edge } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
-import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from './message-node-graph';
+import {
+  appendDistinctSharedChannelRelations,
+  getDistinctSharedChannelMessageRelations,
+  getNodesAndEdgesForConsumedMessage,
+  getNodesAndEdgesForProducedMessage,
+} from './message-node-graph';
 
 /**
  * Pre-compute the downstream nodes/edges that should appear when a message group
@@ -606,6 +611,30 @@ export const getNodesAndEdges = async ({
       },
     });
   });
+
+  if (renderMessages) {
+    const resourceMatches = (candidate: CollectionEntry<'services'> | CollectionEntry<'agents'>) =>
+      candidate.collection === service.collection &&
+      candidate.data.id === service.data.id &&
+      candidate.data.version === service.data.version;
+    const renderedMessageIds = new Set(
+      nodes.filter((node: any) => ['events', 'commands', 'queries'].includes(node.type)).map((node: any) => node.id)
+    );
+    const sharedChannelRelations = getDistinctSharedChannelMessageRelations({
+      services,
+      agents,
+      messages: messages as CollectionEntry<CollectionMessageTypes>[],
+      channels,
+    }).filter((relation) => {
+      const touchesFocusedResource = relation.producers.some(resourceMatches) || relation.consumers.some(resourceMatches);
+      const touchesRenderedMessage =
+        renderedMessageIds.has(generateIdForNode(relation.producerMessage)) ||
+        renderedMessageIds.has(generateIdForNode(relation.consumerMessage));
+      return touchesFocusedResource && touchesRenderedMessage;
+    });
+
+    appendDistinctSharedChannelRelations({ relations: sharedChannelRelations, nodes, edges, mode });
+  }
 
   const uniqueNodesById = new Map<string, any>();
   nodes.forEach((node: any) => {

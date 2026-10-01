@@ -31,6 +31,7 @@ import { getColorForCollection, tailwind500RgbByColor } from '@utils/collection-
 import { getIconForCollection } from '@utils/collections/icons';
 import { buildUrl } from '@utils/url-builder';
 import type { CatalogGraphWireLink, CatalogGraphWireNode } from '@utils/node-graphs/catalog-force-graph';
+import { matchesLensEdgeLabel } from './catalog-graph-lens';
 
 export type { CatalogGraphWireLink, CatalogGraphWireNode };
 
@@ -114,6 +115,8 @@ interface Lens {
   excludeCollections?: string[];
   /** When set, only these relationship types are kept — and only the resources involved in them */
   edgeLabels?: string[];
+  /** Relationship label prefixes kept by the lens (for dynamic labels such as `via <channel>`). */
+  edgeLabelPrefixes?: string[];
   /** Collection whose nodes act as cluster centres: members are pulled together and wrapped in a hull */
   clusterBy?: string;
 }
@@ -156,6 +159,7 @@ const LENSES: Record<string, Lens> = {
     label: 'Message flow',
     description: 'Services, agents and domains connected only by the messages they exchange',
     edgeLabels: ['publishes', 'invokes', 'requests', 'subscribed by', 'accepts', 'sends', 'received by'],
+    edgeLabelPrefixes: ['via '],
   },
 };
 
@@ -367,8 +371,8 @@ const CatalogForceGraph = ({
       : graph.nodes;
     const nodeKeys = new Set(lensNodes.map((n) => n.key));
     let lensLinks = graph.links.filter((l) => nodeKeys.has(l.source) && nodeKeys.has(l.target));
-    if (lens.edgeLabels) {
-      lensLinks = lensLinks.filter((l) => lens.edgeLabels!.includes(l.label));
+    if (lens.edgeLabels || lens.edgeLabelPrefixes) {
+      lensLinks = lensLinks.filter((link) => matchesLensEdgeLabel(lens, link.label));
       const connected = new Set(lensLinks.flatMap((l) => [l.source, l.target]));
       lensNodes = lensNodes.filter((n) => connected.has(n.key) || lens.hubCollections?.includes(n.collection));
     }

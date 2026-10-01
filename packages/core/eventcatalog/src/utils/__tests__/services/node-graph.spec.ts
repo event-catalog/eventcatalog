@@ -369,11 +369,16 @@ describe('Services NodeGraph', () => {
           target: 'PaymentService-1.0.0',
         }),
 
-        // The consume message with a channel defined
+        // The consumed local message is rendered after the shared channel
         expect.objectContaining({
-          id: 'OrderDeletedEvent-2.0.0-EmailChannel-1.0.0',
+          id: 'channel-bridge-EmailChannel-1.0.0-OrderDeletedEvent-2.0.0',
+          source: 'EmailChannel-1.0.0',
+          target: 'OrderDeletedEvent-2.0.0',
+        }),
+        expect.objectContaining({
+          id: 'channel-bridge-OrderDeletedEvent-2.0.0-PaymentService-1.0.0',
           source: 'OrderDeletedEvent-2.0.0',
-          target: 'EmailChannel-1.0.0',
+          target: 'PaymentService-1.0.0',
         }),
       ]);
 

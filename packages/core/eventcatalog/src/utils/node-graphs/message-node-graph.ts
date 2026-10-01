@@ -40,6 +40,7 @@ import {
   getProducersOfMessage as getAgentProducersOfMessage,
 } from '@utils/collections/agents';
 import { getNodesAndEdgesForChannelChain } from './channel-node-graph';
+import { getDistinctMessagePairs } from './utils/shared-channel-messages';
 import { getChannelChain, isChannelsConnected } from '@utils/collections/channels';
 import { getChannels } from '@utils/collections/channels';
 import { getTriggeredByOfMessage, getTriggersOfMessage, type MessageReceiver } from '@utils/collections/message-triggers';
@@ -212,6 +213,249 @@ export const createTriggerMessageNode = (
     },
     position: { x: 0, y: 0 },
   });
+
+type SharedChannelMessageEndpoint = {
+  resource: RoutableResource;
+  message: CollectionEntry<CollectionMessageTypes>;
+  channel: CollectionEntry<'channels'>;
+};
+
+export type DistinctSharedChannelMessageRelation = {
+  channel: CollectionEntry<'channels'>;
+  producerMessage: CollectionEntry<CollectionMessageTypes>;
+  consumerMessage: CollectionEntry<CollectionMessageTypes>;
+  producers: RoutableResource[];
+  consumers: RoutableResource[];
+};
+
+const uniqueResources = (endpoints: SharedChannelMessageEndpoint[]) => {
+  const resources = new Map<string, RoutableResource>();
+  for (const endpoint of endpoints) {
+    resources.set(`${endpoint.resource.collection}:${generateIdForNode(endpoint.resource)}`, endpoint.resource);
+  }
+  return [...resources.values()];
+};
+
+/**
+ * Resolves distinct local message representations that share a channel.
+ * The channel is treated as a transport hub rather than as a one-to-one
+ * message mapping; getDistinctMessagePairs projects that hub for graph views.
+ */
+export const getDistinctSharedChannelMessageRelations = ({
+  services,
+  agents = [],
+  messages,
+  channels,
+}: {
+  services: CollectionEntry<'services'>[];
+  agents?: CollectionEntry<'agents'>[];
+  messages: CollectionEntry<CollectionMessageTypes>[];
+  channels: CollectionEntry<'channels'>[];
+}): DistinctSharedChannelMessageRelation[] => {
+  const messageMap = createVersionedMap(messages);
+  const channelMap = createVersionedMap(channels);
+  const endpointsByChannel = new Map<
+    string,
+    {
+      channel: CollectionEntry<'channels'>;
+      producers: SharedChannelMessageEndpoint[];
+      consumers: SharedChannelMessageEndpoint[];
+    }
+  >();
+
+  const addEndpoints = (
+    resource: RoutableResource,
+    pointers: any[],
+    direction: 'producers' | 'consumers',
+    channelKey: 'to' | 'from'
+  ) => {
+    for (const pointer of pointers ?? []) {
+      const message = findInMap(messageMap, pointer.id, pointer.version) as CollectionEntry<CollectionMessageTypes> | undefined;
+      if (!message) continue;
+
+      const explicitChannels = pointer[channelKey] as { id: string; version?: string }[] | undefined;
+      const channelPointers = explicitChannels?.length
+        ? explicitChannels
+        : ((message.data.channels as { id: string; version?: string }[] | undefined) ?? []);
+
+      for (const channelPointer of channelPointers) {
+        const channel = findInMap(channelMap, channelPointer.id, channelPointer.version) as
+          | CollectionEntry<'channels'>
+          | undefined;
+        if (!channel) continue;
+
+        const channelId = generateIdForNode(channel);
+        const entry = endpointsByChannel.get(channelId) ?? { channel, producers: [], consumers: [] };
+        const endpoint = { resource, message, channel };
+        const endpointKey = `${resource.collection}:${generateIdForNode(resource)}:${generateIdForNode(message)}`;
+        const existing = entry[direction].some(
+          (candidate) =>
+            `${candidate.resource.collection}:${generateIdForNode(candidate.resource)}:${generateIdForNode(
+              candidate.message
+            )}` === endpointKey
+        );
+        if (!existing) entry[direction].push(endpoint);
+        endpointsByChannel.set(channelId, entry);
+      }
+    }
+  };
+
+  for (const resource of [...services, ...agents] as RoutableResource[]) {
+    addEndpoints(resource, resource.data.sends ?? [], 'producers', 'to');
+    addEndpoints(resource, resource.data.receives ?? [], 'consumers', 'from');
+  }
+
+  const relations: DistinctSharedChannelMessageRelation[] = [];
+  for (const { channel, producers, consumers } of endpointsByChannel.values()) {
+    const pairs = getDistinctMessagePairs(
+      producers.map((endpoint) => generateIdForNode(endpoint.message)),
+      consumers.map((endpoint) => generateIdForNode(endpoint.message))
+    );
+
+    for (const { producerMessageId, consumerMessageId } of pairs) {
+      const producerEndpoints = producers.filter((endpoint) => generateIdForNode(endpoint.message) === producerMessageId);
+      const consumerEndpoints = consumers.filter((endpoint) => generateIdForNode(endpoint.message) === consumerMessageId);
+      const producerMessage = producerEndpoints[0]?.message;
+      const consumerMessage = consumerEndpoints[0]?.message;
+      if (!producerMessage || !consumerMessage) continue;
+
+      relations.push({
+        channel,
+        producerMessage,
+        consumerMessage,
+        producers: uniqueResources(producerEndpoints),
+        consumers: uniqueResources(consumerEndpoints),
+      });
+    }
+  }
+
+  return relations;
+};
+
+/**
+ * Adds a concrete producer-message -> channel -> consumer-message path for
+ * distinct message ids while preserving the historical same-message path.
+ */
+export const appendDistinctSharedChannelRelations = ({
+  relations,
+  nodes,
+  edges,
+  mode,
+}: {
+  relations: DistinctSharedChannelMessageRelation[];
+  nodes: Node[];
+  edges: Edge[];
+  mode: 'simple' | 'full';
+}) => {
+  const addNode = (node: Node) => {
+    if (nodes.some((existing) => existing.id === node.id)) return false;
+    nodes.push(node);
+    return true;
+  };
+  const addEdge = (edge: Edge) => {
+    if (!edges.some((existing) => existing.id === edge.id)) edges.push(edge);
+  };
+  const removeEdges = (predicate: (edge: Edge) => boolean) => {
+    for (let index = edges.length - 1; index >= 0; index--) {
+      if (predicate(edges[index])) edges.splice(index, 1);
+    }
+  };
+
+  for (const relation of relations) {
+    const producerMessageId = generateIdForNode(relation.producerMessage);
+    const consumerMessageId = generateIdForNode(relation.consumerMessage);
+    const channelId = generateIdForNode(relation.channel);
+
+    // Consumer-only graph generation historically renders consumerMessage -> channel
+    // and channel -> consumer. Once a distinct producer message is known, the local
+    // consumer representation belongs after the transport instead.
+    removeEdges((edge) => edge.source === consumerMessageId && edge.target === channelId);
+    for (const consumer of relation.consumers) {
+      const consumerId = generateIdForNode(consumer);
+      removeEdges((edge) => edge.source === channelId && edge.target === consumerId);
+    }
+
+    addNode(createTriggerMessageNode(relation.producerMessage, mode));
+    addNode(createTriggerMessageNode(relation.consumerMessage, mode));
+    addNode(
+      createNode({
+        id: channelId,
+        type: relation.channel.collection,
+        data: {
+          mode,
+          channel: { ...relation.channel.data },
+          contextMenu: buildContextMenuForResource({
+            collection: 'channels',
+            id: relation.channel.data.id,
+            version: relation.channel.data.version,
+          }),
+        },
+        position: { x: 0, y: 0 },
+      })
+    );
+
+    for (const producer of relation.producers) {
+      const producerAdded = addNode(
+        createNode({
+          id: generateIdForNode(producer),
+          type: producer.collection,
+          data: getRoutableNodeData(producer, mode),
+          position: { x: 0, y: 0 },
+        })
+      );
+      if (producerAdded) appendAgentToolNodesAndEdges({ agent: producer, nodes, edges, mode });
+      addEdge(
+        createEdge({
+          id: generatedIdForEdge(producer, relation.producerMessage),
+          source: generateIdForNode(producer),
+          target: producerMessageId,
+          label: getEdgeLabelForServiceAsTarget(relation.producerMessage),
+          data: { customColor: getColorFromString(relation.producerMessage.data.id) },
+        })
+      );
+    }
+
+    addEdge(
+      createEdge({
+        id: generatedIdForEdge(relation.producerMessage, relation.channel),
+        source: producerMessageId,
+        target: channelId,
+        label: 'routes to',
+        data: { customColor: getColorFromString(relation.producerMessage.data.id) },
+      })
+    );
+    addEdge(
+      createEdge({
+        id: `channel-bridge-${channelId}-${consumerMessageId}`,
+        source: channelId,
+        target: consumerMessageId,
+        label: 'routes to',
+        data: { customColor: getColorFromString(relation.consumerMessage.data.id) },
+      })
+    );
+
+    for (const consumer of relation.consumers) {
+      const consumerAdded = addNode(
+        createNode({
+          id: generateIdForNode(consumer),
+          type: consumer.collection,
+          data: getRoutableNodeData(consumer, mode),
+          position: { x: 0, y: 0 },
+        })
+      );
+      if (consumerAdded) appendAgentToolNodesAndEdges({ agent: consumer, nodes, edges, mode });
+      addEdge(
+        createEdge({
+          id: `channel-bridge-${consumerMessageId}-${generateIdForNode(consumer)}`,
+          source: consumerMessageId,
+          target: generateIdForNode(consumer),
+          label: getEdgeLabelForMessageAsSource(relation.consumerMessage),
+          data: { customColor: getColorFromString(relation.consumerMessage.data.id) },
+        })
+      );
+    }
+  }
+};
 
 const getNodesAndEdges = async ({
   id,
@@ -683,6 +927,20 @@ const getNodesAndEdges = async ({
     appendEdge(message, relation.receiver, getEdgeLabelForMessageAsSource(message), message);
     appendEdge(relation.receiver, relation.message, getEdgeLabelForServiceAsTarget(relation.message), relation.message);
   }
+
+  const focusedMessageId = generateIdForNode(message);
+  const sharedChannelRelations = getDistinctSharedChannelMessageRelations({
+    services,
+    agents,
+    messages: allMessages,
+    channels,
+  }).filter(
+    (relation) =>
+      generateIdForNode(relation.producerMessage) === focusedMessageId ||
+      generateIdForNode(relation.consumerMessage) === focusedMessageId
+  );
+
+  appendDistinctSharedChannelRelations({ relations: sharedChannelRelations, nodes, edges, mode });
 
   nodes.forEach((node: any) => {
     flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });

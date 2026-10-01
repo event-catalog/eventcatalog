@@ -11,12 +11,22 @@ import { findInMap, createVersionedMap } from '@utils/collections/util';
 import type { Node, Edge } from '@xyflow/react';
 import { getDomains } from '@utils/collections/domains';
 import type { CollectionMessageTypes } from '@types';
+import { getDistinctMessagePairs } from './utils/shared-channel-messages';
 
 interface DomainCanvasData {
   domainNodes: Node[];
   messageNodes: Node[];
   edges: Edge[];
 }
+
+type MessageEntry = CollectionEntry<CollectionMessageTypes>;
+type ChannelEntry = CollectionEntry<'channels'>;
+
+type MessageEndpoint = {
+  domainId: string;
+  service: any;
+  message: MessageEntry;
+};
 
 export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   let domains = await getDomains({ getAllVersions: false });
@@ -76,14 +86,16 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
     } as Node);
   }
 
-  // Get all messages for version resolution in parallel
-  const [events, commands, queries] = await Promise.all([
+  // Get all messages and channels for version resolution in parallel
+  const [events, commands, queries, channels] = await Promise.all([
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
+    getCollection('channels'),
   ]);
   const allMessages = [...events, ...commands, ...queries];
   const messageMap = createVersionedMap(allMessages);
+  const channelMap = createVersionedMap(channels);
 
   // Map to track unique messages and their publishers/consumers across domains
   const messageRelationships = new Map<
@@ -234,6 +246,148 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
       }
     }
   });
+
+  // Services may use different local message ids while communicating over the
+  // same channel. Keep the existing id-based relationships and add only the
+  // distinct relationships that can be inferred without a many-to-many guess.
+  const channelRelationships = new Map<
+    string,
+    { channel: ChannelEntry; publishers: MessageEndpoint[]; consumers: MessageEndpoint[] }
+  >();
+
+  const addChannelEndpoint = (
+    pointer: { id: string; version?: string },
+    type: 'publishers' | 'consumers',
+    endpoint: MessageEndpoint
+  ) => {
+    const channel = findInMap(channelMap, pointer.id, pointer.version) as ChannelEntry | undefined;
+    if (!channel) return;
+
+    const channelKey = `${channel.data.id}-${channel.data.version}`;
+    const relationship = channelRelationships.get(channelKey) ?? { channel, publishers: [], consumers: [] };
+    relationship[type].push(endpoint);
+    channelRelationships.set(channelKey, relationship);
+  };
+
+  domainDataMap.forEach((domainData, domainId) => {
+    domainData.services.forEach((service: any) => {
+      for (const sent of service.data.sends ?? []) {
+        const message = findInMap(messageMap, sent.id, sent.version) as MessageEntry | undefined;
+        if (!message) continue;
+        for (const channel of sent.to ?? []) addChannelEndpoint(channel, 'publishers', { domainId, service, message });
+      }
+
+      for (const received of service.data.receives ?? []) {
+        const message = findInMap(messageMap, received.id, received.version) as MessageEntry | undefined;
+        if (!message) continue;
+        for (const channel of received.from ?? []) addChannelEndpoint(channel, 'consumers', { domainId, service, message });
+      }
+    });
+  });
+
+  const messageNodeIds = new Set(messageNodes.map((node) => node.id));
+  const edgeIds = new Set(edges.map((edge) => edge.id));
+
+  const ensureMessageNode = (message: MessageEntry) => {
+    const messageKey = `${message.data.id}-${message.data.version}`;
+    const messageNodeId = `message-${messageKey}`;
+    if (messageNodeIds.has(messageNodeId)) return messageNodeId;
+
+    messageNodeIds.add(messageNodeId);
+    messageNodes.push({
+      id: messageNodeId,
+      type: message.collection,
+      position: { x: 0, y: 0 },
+      data: {
+        mode: 'simple',
+        message: { ...message.data, ...getOperationFields(message.data) },
+      },
+      sourcePosition: 'right',
+      targetPosition: 'left',
+    } as Node);
+    return messageNodeId;
+  };
+
+  const addEdge = (edge: Edge) => {
+    if (edgeIds.has(edge.id)) return;
+    edgeIds.add(edge.id);
+    edges.push(edge);
+  };
+
+  for (const { channel, publishers, consumers } of channelRelationships.values()) {
+    const publisherMessages = new Map(publishers.map(({ message }) => [`${message.data.id}-${message.data.version}`, message]));
+    const consumerMessages = new Map(consumers.map(({ message }) => [`${message.data.id}-${message.data.version}`, message]));
+    const distinctPairs = getDistinctMessagePairs(publisherMessages.keys(), consumerMessages.keys());
+
+    for (const { producerMessageId, consumerMessageId } of distinctPairs) {
+      const publisherMessage = publisherMessages.get(producerMessageId);
+      const consumerMessage = consumerMessages.get(consumerMessageId);
+      if (!publisherMessage || !consumerMessage) continue;
+
+      const matchingPublishers = publishers.filter(
+        ({ message }) => `${message.data.id}-${message.data.version}` === producerMessageId
+      );
+      const matchingConsumers = consumers.filter(
+        ({ message }) => `${message.data.id}-${message.data.version}` === consumerMessageId
+      );
+      const crossesDomainBoundary = matchingPublishers.some(({ domainId }) =>
+        matchingConsumers.some((consumer) => consumer.domainId !== domainId)
+      );
+      if (!crossesDomainBoundary) continue;
+
+      const publisherNodeId = ensureMessageNode(publisherMessage);
+      const consumerNodeId = ensureMessageNode(consumerMessage);
+
+      for (const { domainId, service } of matchingPublishers) {
+        if (!matchingConsumers.some((consumer) => consumer.domainId !== domainId)) continue;
+        addEdge(
+          createEdge({
+            id: `edge-${domainId}-${service.data.id}-${publisherNodeId}`,
+            source: domainId,
+            sourceHandle: `${service.data.id}-source`,
+            target: publisherNodeId,
+            type: 'animated',
+            animated: true,
+            label: 'publishes',
+            data: { message: { ...publisherMessage.data }, type: 'domain-to-message', publisherService: service },
+          })
+        );
+      }
+
+      addEdge(
+        createEdge({
+          id: `edge-${publisherNodeId}-channel-${channel.data.id}-${channel.data.version}-${consumerNodeId}`,
+          source: publisherNodeId,
+          target: consumerNodeId,
+          type: 'animated',
+          animated: true,
+          label: `via ${channel.data.id}`,
+          data: {
+            type: 'message-to-message-via-channel',
+            channels: [{ ...channel.data }],
+            publisherMessage: { ...publisherMessage.data },
+            consumerMessage: { ...consumerMessage.data },
+          },
+        })
+      );
+
+      for (const { domainId, service } of matchingConsumers) {
+        if (!matchingPublishers.some((publisher) => publisher.domainId !== domainId)) continue;
+        addEdge(
+          createEdge({
+            id: `edge-${consumerNodeId}-${domainId}-${service.data.id}`,
+            source: consumerNodeId,
+            target: domainId,
+            targetHandle: `${service.data.id}-target`,
+            type: 'animated',
+            animated: true,
+            label: 'consumed by',
+            data: { message: { ...consumerMessage.data }, type: 'message-to-domain', consumerService: service },
+          })
+        );
+      }
+    }
+  }
 
   // Add all nodes to dagre graph for layout calculation
   const allNodes = [...domainNodes, ...messageNodes];

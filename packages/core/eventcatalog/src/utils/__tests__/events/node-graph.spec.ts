@@ -151,11 +151,11 @@ describe('Events NodeGraph', () => {
           target: 'EmailSent-1.0.0',
           label: 'publishes \nevent',
         }),
-        // Event to the channel
+        // Channel to the consumer-side event
         expect.objectContaining({
-          id: 'EmailSent-1.0.0-EmailChannel-1.0.0',
-          source: 'EmailSent-1.0.0',
-          target: 'EmailChannel-1.0.0',
+          id: 'channel-bridge-EmailChannel-1.0.0-EmailSent-1.0.0',
+          source: 'EmailChannel-1.0.0',
+          target: 'EmailSent-1.0.0',
           label: 'routes to',
           animated: false,
         }),
@@ -210,16 +210,16 @@ describe('Events NodeGraph', () => {
       };
 
       const expectedEdges = expect.arrayContaining([
-        // Message to the channel
+        // Channel to the consumer-side event
         expect.objectContaining({
-          id: 'EmailSent-1.0.0-EmailChannel-1.0.0',
-          source: 'EmailSent-1.0.0',
-          target: 'EmailChannel-1.0.0',
-        }),
-        // Channel to the consumer
-        expect.objectContaining({
-          id: 'EmailChannel-1.0.0-NotificationsService-0.0.1',
+          id: 'channel-bridge-EmailChannel-1.0.0-EmailSent-1.0.0',
           source: 'EmailChannel-1.0.0',
+          target: 'EmailSent-1.0.0',
+        }),
+        // Consumer-side event to the consumer
+        expect.objectContaining({
+          id: 'channel-bridge-EmailSent-1.0.0-NotificationsService-0.0.1',
+          source: 'EmailSent-1.0.0',
           target: 'NotificationsService-0.0.1',
         }),
       ]);
@@ -330,14 +330,14 @@ describe('Events NodeGraph', () => {
             target: 'DanglingChannelEvent-1.0.0',
           }),
           expect.objectContaining({
-            id: 'DanglingChannelEvent-1.0.0-EmailChannel-1.0.0',
-            source: 'DanglingChannelEvent-1.0.0',
-            target: 'EmailChannel-1.0.0',
+            id: 'channel-bridge-EmailChannel-1.0.0-DanglingChannelEvent-1.0.0',
+            source: 'EmailChannel-1.0.0',
+            target: 'DanglingChannelEvent-1.0.0',
             label: 'routes to',
           }),
           expect.objectContaining({
-            id: 'EmailChannel-1.0.0-WdpsService-1.0.0',
-            source: 'EmailChannel-1.0.0',
+            id: 'channel-bridge-DanglingChannelEvent-1.0.0-WdpsService-1.0.0',
+            source: 'DanglingChannelEvent-1.0.0',
             target: 'WdpsService-1.0.0',
           }),
         ])
