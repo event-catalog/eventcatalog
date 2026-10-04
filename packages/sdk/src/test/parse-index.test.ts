@@ -57,6 +57,27 @@ describe('parseIndex', () => {
     expect(parseIndex(index)).toEqual(index);
   });
 
+  it('parses generic specifications with custom icons', () => {
+    const index = {
+      ...validIndex,
+      resources: [
+        {
+          ...validIndex.resources[0],
+          specifications: [
+            {
+              type: 'generic',
+              path: 'spec.json',
+              name: 'Generic Specification',
+              icon: '/icons/custom.svg',
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(parseIndex(index)).toEqual(index);
+  });
+
   it('parses embedded schema content', () => {
     const index = {
       ...validIndex,

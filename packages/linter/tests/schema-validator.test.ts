@@ -69,6 +69,25 @@ describe('validateSchema', () => {
       expect(errors).toHaveLength(0);
     });
 
+    it('should pass with a generic specification and custom icon', () => {
+      const parsedFile = createParsedFile('service', {
+        id: 'user-service',
+        name: 'User Service',
+        version: '2.1.0',
+        specifications: [
+          {
+            type: 'generic',
+            path: 'spec.yaml',
+            name: 'Generic Specification',
+            icon: '/icons/custom.svg',
+          },
+        ],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors).toHaveLength(0);
+    });
+
     it('should pass with deprecated field', () => {
       const parsedFile = createParsedFile('service', {
         id: 'user-service',

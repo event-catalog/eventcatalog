@@ -238,6 +238,9 @@ const getSpecMenuItems = (
     } else if (typeLower === 'graphql') {
       label = 'View GraphQL spec';
       urlSegment = 'graphql';
+    } else if (typeLower === 'generic') {
+      label = 'View API spec';
+      urlSegment = 'generic';
     }
 
     items.push({

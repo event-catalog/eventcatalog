@@ -69,6 +69,8 @@ export default function SchemaContentViewer({
               urlSegment = 'asyncapi';
             } else if (specType === 'graphql') {
               urlSegment = 'graphql';
+            } else if (specType === 'generic') {
+              urlSegment = 'generic';
             }
 
             const specUrl = buildUrl(`/docs/services/${message.data.id}/${message.data.version}/${urlSegment}/${specFilename}`);

@@ -15,7 +15,7 @@ import {
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 import { getSpecificationsForDomain, hasUbiquitousLanguageTermsWithSubdomainsInCollection } from '@utils/collections/domains';
-import { customIconFieldsForResource } from '@utils/icon';
+import { customIconFieldsForResource, isIconPath } from '@utils/icon';
 import { resolveSidebarPages, toCustomSidebarContext, type SidebarSpec } from '../custom-sidebar';
 
 // Sort resolved collection entries A-Z by their display name (falling back to id).
@@ -174,6 +174,7 @@ export const buildDomainSections = (
   const openAPISpecifications = specifications.filter((specification) => specification.type === 'openapi');
   const asyncAPISpecifications = specifications.filter((specification) => specification.type === 'asyncapi');
   const graphQLSpecifications = specifications.filter((specification) => specification.type === 'graphql');
+  const genericSpecifications = specifications.filter((specification) => specification.type === 'generic');
   const renderSpecifications = hasSpecifications && shouldRenderSideBarSection(domain, 'specifications');
 
   // Resource subsections. These are built once and shared between the "Resources"
@@ -325,6 +326,14 @@ export const buildDomainSections = (
               leftIcon: '/icons/graphql-black.svg',
               href: buildUrl(
                 `/docs/domains/${domain.data.id}/${domain.data.version}/graphql/${specification.filenameWithoutExtension}`
+              ),
+            })),
+            ...genericSpecifications.map((specification) => ({
+              type: 'item',
+              title: specification.name,
+              leftIcon: isIconPath(specification.icon) ? specification.icon : '/icons/api.svg',
+              href: buildUrl(
+                `/docs/domains/${domain.data.id}/${domain.data.version}/generic/${specification.filenameWithoutExtension}`
               ),
             })),
           ] as ChildRef[],

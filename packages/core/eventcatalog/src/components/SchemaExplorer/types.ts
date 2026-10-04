@@ -79,6 +79,8 @@ export interface SchemaItem {
   schemaName?: string;
   source?: SchemaSourceInfo;
   specType?: string;
+  /** Optional custom icon configured on a specification. */
+  specIcon?: string;
   specName?: string;
   specFilenameWithoutExtension?: string;
   // For data contracts

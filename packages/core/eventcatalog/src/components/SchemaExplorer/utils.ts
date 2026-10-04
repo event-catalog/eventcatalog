@@ -1,5 +1,6 @@
-import type { SchemaRelationshipCollection } from './types';
+import type { SchemaItem, SchemaRelationshipCollection } from './types';
 import { buildUrl } from '@utils/url-builder';
+import { isIconPath, resolveIconUrl } from '@utils/icon';
 
 // Schema types that should use SVG icons
 export const ICON_SPECS: Record<string, string> = {
@@ -13,6 +14,17 @@ export const ICON_SPECS: Record<string, string> = {
   protobuf: 'proto',
   json: 'json-schema',
 };
+
+export function getSchemaIconUrl(message: Pick<SchemaItem, 'schemaExtension' | 'specType' | 'specIcon'>): string | undefined {
+  if (message.specType === 'generic') {
+    if (isIconPath(message.specIcon)) return resolveIconUrl(message.specIcon);
+    return buildUrl('/icons/api.svg', true);
+  }
+
+  const ext = message.schemaExtension?.toLowerCase() || '';
+  const iconSpec = ICON_SPECS[ext];
+  return iconSpec ? buildUrl(`/icons/${iconSpec}.svg`, true) : undefined;
+}
 
 // Schema format badge config for non-icon types: short label + color
 export function getFormatBadge(ext?: string): { label: string; color: string } {
@@ -137,10 +149,15 @@ export const getSchemaTypeLabel = (extension?: string): string => {
       return 'OpenAPI';
     case 'asyncapi':
       return 'AsyncAPI';
+    case 'generic':
+      return 'API';
     default:
       return ext.toUpperCase();
   }
 };
+
+export const getSchemaDisplayLabel = (message: Pick<SchemaItem, 'schemaExtension' | 'specType'>): string =>
+  getSchemaTypeLabel(message.specType === 'generic' ? 'generic' : message.schemaExtension);
 
 export const copyToClipboard = async (content: string): Promise<boolean> => {
   try {

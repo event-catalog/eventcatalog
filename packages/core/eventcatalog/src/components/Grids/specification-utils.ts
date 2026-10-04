@@ -1,11 +1,13 @@
+import { isIconPath, resolveIconUrl } from '@utils/icon';
 import { buildUrl } from '@utils/url-builder';
 
-export type SpecificationType = 'openapi' | 'asyncapi' | 'graphql';
+export type SpecificationType = 'openapi' | 'asyncapi' | 'graphql' | 'generic';
 
 export interface Specification {
   type: SpecificationType;
   path: string;
   name?: string;
+  icon?: string;
   filename: string;
   filenameWithoutExtension: string;
 }
@@ -18,6 +20,8 @@ export const getSpecUrl = (spec: Specification, serviceId: string, serviceVersio
       return buildUrl(`/docs/services/${serviceId}/${serviceVersion}/asyncapi/${spec.filenameWithoutExtension}`);
     case 'graphql':
       return buildUrl(`/docs/services/${serviceId}/${serviceVersion}/graphql/${spec.filenameWithoutExtension}`);
+    case 'generic':
+      return buildUrl(`/docs/services/${serviceId}/${serviceVersion}/generic/${spec.filenameWithoutExtension}`);
     default:
       return '#';
   }
@@ -31,9 +35,16 @@ export const getSpecIcon = (type: string): string => {
       return 'asyncapi';
     case 'graphql':
       return 'graphql';
+    case 'generic':
+      return 'api';
     default:
       return 'json-schema';
   }
+};
+
+export const getSpecIconUrl = (spec: Specification): string => {
+  if (spec.type === 'generic' && isIconPath(spec.icon)) return resolveIconUrl(spec.icon);
+  return buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true);
 };
 
 export const getSpecLabel = (type: string): string => {
@@ -44,6 +55,8 @@ export const getSpecLabel = (type: string): string => {
       return 'AsyncAPI';
     case 'graphql':
       return 'GraphQL';
+    case 'generic':
+      return 'API';
     default:
       return type;
   }
@@ -57,6 +70,8 @@ export const getSpecColor = (type: string): string => {
       return 'purple';
     case 'graphql':
       return 'pink';
+    case 'generic':
+      return 'gray';
     default:
       return 'gray';
   }
@@ -76,6 +91,7 @@ export const getServiceSpecifications = (data: any): Specification[] => {
         type: spec.type,
         path: spec.path,
         name: spec.name,
+        icon: spec.icon,
         filename,
         filenameWithoutExtension,
       };
