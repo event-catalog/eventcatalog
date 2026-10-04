@@ -31,8 +31,8 @@ import SchemaViewerModal from './SchemaViewerModal';
 import {
   copyToClipboard,
   downloadSchema,
-  getSchemaTypeLabel,
-  ICON_SPECS,
+  getSchemaDisplayLabel,
+  getSchemaIconUrl,
   getSchemaRelationshipReference,
   getSchemaRelationshipHref,
   SCHEMA_RELATIONSHIP_LABELS,
@@ -95,7 +95,7 @@ const SchemaMetadata = ({ message, owners }: { message: SchemaItem; owners: Owne
   const schemaRows: MetadataRow[] = [
     { label: 'Name', value: message.data.name },
     ...(message.schemaName && message.schemaName !== message.data.name ? [{ label: 'Schema', value: message.schemaName }] : []),
-    { label: 'Format', value: getSchemaTypeLabel(message.schemaExtension) },
+    { label: 'Format', value: getSchemaDisplayLabel(message) },
     {
       label: MESSAGE_TYPE_LABELS[message.collection] ? 'Message Type' : 'Resource',
       value: (
@@ -249,7 +249,7 @@ const SchemaVersionsTable = ({
                 {version.data.summary ? <p className="line-clamp-2 max-w-2xl">{version.data.summary}</p> : <span>-</span>}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
-                {getSchemaTypeLabel(version.schemaExtension)}
+                {getSchemaDisplayLabel(version)}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
                 {version.source?.updatedAt ? formatSchemaUpdatedAt(version.source.updatedAt) : '-'}
@@ -345,7 +345,7 @@ export default function SchemaDetailsPanel({
 
   const { color } = getCollectionStyles(message.collection);
   const ext = message.schemaExtension?.toLowerCase() || '';
-  const iconSpec = ICON_SPECS[ext];
+  const iconUrl = getSchemaIconUrl(message);
   const owners = message.data.owners || [];
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
@@ -598,8 +598,8 @@ export default function SchemaDetailsPanel({
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-lg bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border)/0.5)]">
-                  {iconSpec ? (
-                    <img src={buildUrl(`/icons/${iconSpec}.svg`, true)} alt={`${ext} icon`} className="h-5 w-5 schema-icon" />
+                  {iconUrl ? (
+                    <img src={iconUrl} alt={`${ext} icon`} className="h-5 w-5 schema-icon" />
                   ) : (
                     <span className="text-xs font-bold font-mono text-[rgb(var(--ec-page-text-muted))]">{'{ }'}</span>
                   )}

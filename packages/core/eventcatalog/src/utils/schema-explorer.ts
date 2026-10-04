@@ -11,6 +11,7 @@ import { getFlowsForMessages } from '@utils/collections/flows';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import { getSchemaExtensionForFormat } from '@utils/collections/schemas';
+import { getSpecificationCodeLanguage } from '@utils/collections/util';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 import { getExamplesForResource } from '@utils/collections/examples';
 import { attachFlowGraphs, getMessageUsageGraph } from '@utils/schema-usage-graph';
@@ -172,7 +173,7 @@ async function buildRegistry() {
               return null;
             }
 
-            const schemaExtension = spec.type;
+            const schemaExtension = spec.type === 'generic' ? getSpecificationCodeLanguage(spec.path) : spec.type;
             const enrichedOwners = await enrichOwners(service.data.owners || []);
 
             return {
@@ -188,6 +189,7 @@ async function buildRegistry() {
               loadDetails: () => ({ schemaContent: readResourceFile(service, spec.path) ?? '', examples: [] }),
               schemaExtension,
               specType: spec.type,
+              specIcon: spec.icon,
               specName: spec.name,
               specFilenameWithoutExtension: spec.filenameWithoutExtension,
             };
@@ -222,7 +224,7 @@ async function buildRegistry() {
               return null;
             }
 
-            const schemaExtension = spec.type;
+            const schemaExtension = spec.type === 'generic' ? getSpecificationCodeLanguage(spec.path) : spec.type;
             const enrichedOwners = await enrichOwners(domain.data.owners || []);
 
             return {
@@ -238,6 +240,7 @@ async function buildRegistry() {
               loadDetails: () => ({ schemaContent: readResourceFile(domain, spec.path) ?? '', examples: [] }),
               schemaExtension,
               specType: spec.type,
+              specIcon: spec.icon,
               specName: spec.name,
               specFilenameWithoutExtension: spec.filenameWithoutExtension,
             };

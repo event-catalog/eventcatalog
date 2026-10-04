@@ -2176,6 +2176,7 @@ describe('getNestedSideBarData', () => {
             { type: 'openapi', path: 'openapi.yaml', name: 'OpenAPI' },
             { type: 'asyncapi', path: 'asyncapi.yaml', name: 'AsyncAPI' },
             { type: 'graphql', path: 'graphql.yaml', name: 'GraphQL' },
+            { type: 'generic', path: 'spec.yaml', name: 'Generic Specification' },
           ],
         });
 
@@ -2200,6 +2201,12 @@ describe('getNestedSideBarData', () => {
             title: 'GraphQL',
             leftIcon: '/icons/graphql-black.svg',
             href: '/docs/services/ShippingService/0.0.1/graphql/graphql',
+          },
+          {
+            type: 'item',
+            title: 'Generic Specification',
+            leftIcon: '/icons/api.svg',
+            href: '/docs/services/ShippingService/0.0.1/generic/spec',
           },
         ]);
       });

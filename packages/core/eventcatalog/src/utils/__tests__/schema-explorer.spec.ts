@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getSchemaDetails, getSchemaMetadata } from '../schema-explorer';
 import { GET, getStaticPaths } from '../../pages/schemas/explorer/content/[key].json';
-import { getSchemaRelationshipReference } from '@components/SchemaExplorer/utils';
+import { getSchemaIconUrl, getSchemaRelationshipReference } from '@components/SchemaExplorer/utils';
 import { buildUrl } from '../url-builder';
 
 const fixtures = vi.hoisted(() => ({
@@ -152,6 +152,29 @@ describe('schema explorer content delivery', () => {
     const items = await getSchemaMetadata();
     expect(new Set(items.map((item) => item.contentUrl)).size).toBe(6);
     expect((await getSchemaMetadata()).map((item) => item.contentUrl)).toEqual(items.map((item) => item.contentUrl));
+  });
+
+  it('preserves and resolves a custom icon for generic specifications', async () => {
+    fixtures.services[0].data.specifications = [
+      {
+        type: 'generic',
+        path: 'spec.json',
+        name: 'Generic Specification',
+        icon: '/icons/custom.png',
+        filenameWithoutExtension: 'spec',
+      },
+    ];
+
+    const item = (await getSchemaMetadata()).find((candidate) => candidate.collection === 'services')!;
+
+    expect(item).toMatchObject({
+      schemaExtension: 'json',
+      specType: 'generic',
+      specIcon: '/icons/custom.png',
+      specFilenameWithoutExtension: 'spec',
+    });
+    expect(getSchemaIconUrl(item)).toBe('/icons/custom.png');
+    expect(getSchemaIconUrl({ ...item, specIcon: undefined })).toBe('/icons/api.svg');
   });
 
   it('loads only the selected specification or contract', async () => {

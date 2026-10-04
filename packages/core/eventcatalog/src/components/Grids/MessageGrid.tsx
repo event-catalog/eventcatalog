@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
-import { getSpecUrl, getSpecIcon, getSpecLabel, getSpecColor, type Specification } from './specification-utils';
+import { getSpecUrl, getSpecIconUrl, getSpecLabel, getSpecColor, type Specification } from './specification-utils';
 
 interface MessageGridV2Props {
   service: CollectionEntry<'agents'> | CollectionEntry<'services'>;
@@ -118,7 +118,7 @@ const SpecificationCard = memo(
         href={getSpecUrl(spec, serviceId, serviceVersion)}
         className={`group flex items-center gap-3 p-3 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-${color}-200 dark:border-${color}-500/30 rounded-lg shadow-xs hover:shadow-md hover:border-${color}-300 dark:hover:border-${color}-500/50 transition-all`}
       >
-        <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt={`${spec.type} icon`} className="h-6 w-6" />
+        <img src={getSpecIconUrl(spec)} alt={`${spec.type} icon`} className="h-6 w-6" />
         <div className="flex-1 min-w-0">
           <h3
             className={`font-semibold text-[rgb(var(--ec-page-text))] text-sm group-hover:text-${color}-600 dark:group-hover:text-${color}-400 transition-colors truncate`}

@@ -270,9 +270,10 @@ export interface Specifications {
 }
 
 export interface Specification {
-  type: 'openapi' | 'asyncapi' | 'graphql';
+  type: 'openapi' | 'asyncapi' | 'graphql' | 'generic';
   path: string;
   name?: string;
+  icon?: string;
 }
 
 export interface Service extends BaseSchema {

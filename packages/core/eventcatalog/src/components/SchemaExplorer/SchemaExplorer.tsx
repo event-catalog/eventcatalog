@@ -7,8 +7,6 @@ import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
 import type { SchemaItem } from './types';
 
-// Specification file types (OpenAPI, AsyncAPI, GraphQL)
-const SPEC_TYPES = ['openapi', 'asyncapi', 'graphql'];
 const HIDDEN_FORMAT_FILTERS = new Set(['graphql', 'gql', 'yaml', 'yml']);
 const SCHEMA_TYPE_LABELS: Record<string, string> = {
   json: 'JSON Schema',
@@ -183,7 +181,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         if (selectedTypes.has(msg.collection as CollectionMessageTypes)) {
           return true;
         }
-        if (selectedTypes.has('specifications') && SPEC_TYPES.includes(msg.schemaExtension?.toLowerCase() || '')) {
+        if (selectedTypes.has('specifications') && msg.specType) {
           return true;
         }
         if (selectedTypes.has('data-contracts') && msg.collection === 'data-products') {
@@ -343,7 +341,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
       events: latestMessages.filter((m) => m.collection === 'events').length,
       commands: latestMessages.filter((m) => m.collection === 'commands').length,
       queries: latestMessages.filter((m) => m.collection === 'queries').length,
-      specifications: latestMessages.filter((m) => SPEC_TYPES.includes(m.schemaExtension?.toLowerCase() || '')).length,
+      specifications: latestMessages.filter((m) => Boolean(m.specType)).length,
       dataContracts: latestMessages.filter((m) => m.collection === 'data-products').length,
     };
   }, [latestMessages]);

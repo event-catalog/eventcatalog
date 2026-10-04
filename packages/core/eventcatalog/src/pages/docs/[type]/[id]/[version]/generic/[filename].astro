@@ -1,0 +1,146 @@
+---
+import { Code } from 'astro-expressive-code/components';
+
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Footer from '@layouts/Footer.astro';
+import { Page } from './_[filename].data';
+import { buildUrl } from '@utils/url-builder';
+import { isIconPath, resolveIconUrl } from '@utils/icon';
+import { readResourceFile, resourceFileExists } from '@utils/resource-files';
+import { getSpecificationCodeLanguage } from '@utils/collections/util';
+import { resolveHeaders } from '@utils/remote-spec';
+import Admonition from '@components/MDX/Admonition';
+import Badge from '@components/Badge.astro';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+const {
+  collection,
+  data,
+  filePath,
+  filename,
+  filenameWithoutExtension,
+  path: relativeSpecPath,
+  specificationName,
+  icon,
+  headers = {},
+} = await Page.getData(Astro);
+
+const isRemote = /^https?:\/\//i.test(relativeSpecPath);
+const fileExists = isRemote || resourceFileExists({ filePath }, relativeSpecPath);
+let content = '';
+
+if (isRemote) {
+  const response = await fetch(relativeSpecPath, { headers: resolveHeaders(headers) });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch generic specification: ${response.status} ${response.statusText}`);
+  }
+  content = await response.text();
+} else if (fileExists) {
+  content = readResourceFile({ filePath }, relativeSpecPath) ?? '';
+}
+
+const language = getSpecificationCodeLanguage(filename || relativeSpecPath);
+const displayName = specificationName || 'API';
+const iconUrl = isIconPath(icon) ? resolveIconUrl(icon) : buildUrl('/icons/api.svg', true);
+const pageTitle = `${collection} | ${data.name} | ${displayName}`.replace(/^\w/, (character) => character.toUpperCase());
+
+const badges = [
+  {
+    textColor: 'gray',
+    content: displayName,
+    iconURL: iconUrl,
+    id: 'generic-specification-badge',
+  },
+];
+
+const pagefindAttributes =
+  data.version === data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
+---
+
+<VerticalSideBarLayout title={pageTitle} description={`${displayName} specification for ${data.name}`}>
+  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
+    <div class="flex docs-layout w-full">
+      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-2">
+          <div>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <h1 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))] mb-2">
+                  {data.name}
+                  <span class="text-[rgb(var(--ec-page-text-muted))]">(v{data.version})</span>
+                </h1>
+                <h2 class="text-lg text-[rgb(var(--ec-page-text-muted))] font-medium mb-1">{displayName}</h2>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 py-4">
+              {badges.map((badge: any) => <Badge badge={badge} />)}
+            </div>
+          </div>
+        </div>
+
+        <div data-pagefind-ignore>
+          {
+            data.version !== data.latestVersion && (
+              <Admonition type="warning" title="New version found">
+                <p>
+                  You are looking at a previous version of <strong>{data.name}</strong>.{' '}
+                  <a
+                    class="underline block pt-2"
+                    href={buildUrl(`/docs/${collection}/${data.id}/${data.latestVersion}/generic/${filenameWithoutExtension}`)}
+                  >
+                    The latest version is <span>v{data.latestVersion}</span> &rarr;
+                  </a>
+                </p>
+              </Admonition>
+            )
+          }
+        </div>
+
+        {
+          !fileExists && (
+            <Admonition type="warning" title="Specification not found">
+              <p>The specification file could not be found at the expected location.</p>
+            </Admonition>
+          )
+        }
+
+        {
+          fileExists && (
+            <div class="mt-6">
+              <div class="bg-[rgb(var(--ec-card-bg))] rounded-lg p-4 mb-4 border border-[rgb(var(--ec-page-border))]">
+                <div class="flex items-center gap-2 mb-2">
+                  <img src={iconUrl} class="w-5 h-5" alt="" />
+                  <h3 class="text-lg font-semibold text-[rgb(var(--ec-page-text))]">{displayName}</h3>
+                </div>
+                <p class="text-sm text-[rgb(var(--ec-page-text-muted))]">
+                  Generic specification displayed as source without format-specific interpretation.
+                </p>
+              </div>
+
+              <div class="not-prose overflow-x-auto">
+                <Code code={content} title={`${displayName} - ${filename}`} lang={language} />
+              </div>
+            </div>
+          )
+        }
+
+        <Footer />
+      </div>
+    </div>
+  </main>
+
+  <style is:global>
+    .docs-layout .prose {
+      max-width: none;
+      overflow: auto;
+    }
+  </style>
+</VerticalSideBarLayout>

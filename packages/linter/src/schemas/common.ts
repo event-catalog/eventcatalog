@@ -33,9 +33,10 @@ export const specificationSchema = z.union([
   }),
   z.array(
     z.object({
-      type: z.enum(['openapi', 'asyncapi', 'graphql']),
+      type: z.enum(['openapi', 'asyncapi', 'graphql', 'generic']),
       path: z.string(),
       name: z.string().optional(),
+      icon: z.string().optional(),
       headers: z.record(z.string()).optional(),
     })
   ),

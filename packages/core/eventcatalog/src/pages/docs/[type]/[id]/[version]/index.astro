@@ -242,6 +242,7 @@ const getSpecificationBadges = () => {
   const asyncapiSpecs = specifications.filter((spec) => spec.type === 'asyncapi');
   const openapiSpecs = specifications.filter((spec) => spec.type === 'openapi');
   const graphQLSpecs = specifications.filter((spec) => spec.type === 'graphql');
+  const genericSpecs = specifications.filter((spec) => spec.type === 'generic');
 
   if (openapiSpecs.length > 0) {
     for (const spec of openapiSpecs) {
@@ -278,6 +279,20 @@ const getSpecificationBadges = () => {
         id: 'graphql-badge',
         url: buildUrl(
           `/docs/${props.collection}/${props.data.id}/${props.data.version}/graphql/${spec.filenameWithoutExtension}`
+        ),
+      });
+    }
+  }
+
+  if (genericSpecs.length > 0) {
+    for (const spec of genericSpecs) {
+      badges.push({
+        content: spec.name || 'API',
+        iconURL: isIconPath(spec.icon) ? resolveIconUrl(spec.icon) : buildUrl('/icons/api.svg', true),
+        class: 'text-[rgb(var(--ec-page-text))] hover:underline',
+        id: 'generic-specification-badge',
+        url: buildUrl(
+          `/docs/${props.collection}/${props.data.id}/${props.data.version}/generic/${spec.filenameWithoutExtension}`
         ),
       });
     }

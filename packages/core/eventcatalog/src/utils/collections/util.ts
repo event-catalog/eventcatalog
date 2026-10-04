@@ -15,12 +15,13 @@ export const getFolderNameFromFilePath = (filePath: string): string => {
 
 // --- SPECIFICATION HELPERS ---
 
-export type SpecificationType = 'asyncapi' | 'openapi' | 'graphql';
+export type SpecificationType = 'asyncapi' | 'openapi' | 'graphql' | 'generic';
 
 export interface SpecificationInput {
   type: SpecificationType;
   path: string;
   name?: string;
+  icon?: string;
   headers?: Record<string, string>;
 }
 
@@ -30,8 +31,17 @@ export interface ProcessedSpecification {
   name: string;
   filename: string;
   filenameWithoutExtension: string;
+  icon?: string;
   headers?: Record<string, string>;
 }
+
+export const getSpecificationCodeLanguage = (filename: string): 'json' | 'yaml' | 'text' => {
+  const cleanFilename = filename.split(/[?#]/, 1)[0];
+  const extension = path.extname(cleanFilename).toLowerCase();
+  if (extension === '.json') return 'json';
+  if (extension === '.yaml' || extension === '.yml') return 'yaml';
+  return 'text';
+};
 
 export const getDefaultSpecificationName = (type: string): string => {
   switch (type) {
@@ -41,6 +51,8 @@ export const getDefaultSpecificationName = (type: string): string => {
       return 'OpenAPI';
     case 'graphql':
       return 'GraphQL';
+    case 'generic':
+      return 'API';
     default:
       return 'Specification';
   }

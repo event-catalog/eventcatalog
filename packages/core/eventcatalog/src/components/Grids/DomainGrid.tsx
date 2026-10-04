@@ -16,7 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { BoxIcon, Group as GroupIcon } from 'lucide-react';
-import { getSpecUrl, getSpecIcon, getSpecLabel, getServiceSpecifications } from './specification-utils';
+import { getSpecUrl, getSpecIconUrl, getSpecLabel, getServiceSpecifications } from './specification-utils';
 import { getMessageLinkProps } from './message-link';
 
 // ============================================
@@ -105,7 +105,7 @@ const SpecificationBadge = memo(
         href={getSpecUrl(spec, serviceId, serviceVersion)}
         className="inline-flex items-center gap-1.5 px-2 py-1.5 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-xs"
       >
-        <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt={`${spec.type} icon`} className="h-3.5 w-3.5" />
+        <img src={getSpecIconUrl(spec)} alt={`${spec.type} icon`} className="h-3.5 w-3.5" />
         <span>{getSpecLabel(spec.type)}</span>
       </a>
     );
@@ -325,7 +325,7 @@ export const ServiceCard = memo(({ service, defaultOpen = false }: { service: an
                   className="flex items-center gap-1 px-2 py-1 bg-[rgb(var(--ec-content-hover))] hover:bg-[rgb(var(--ec-sidebar-hover-bg))] rounded text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                   title={getSpecLabel(spec.type)}
                 >
-                  <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt="" className="h-3.5 w-3.5" />
+                  <img src={getSpecIconUrl(spec)} alt="" className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">{getSpecLabel(spec.type)}</span>
                 </a>
               ))}
