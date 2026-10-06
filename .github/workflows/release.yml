@@ -5,6 +5,8 @@ on:
       - master
       - next
       - main
+      - v5-beta
+  workflow_dispatch:
 jobs:
   release:
     permissions:
@@ -12,7 +14,7 @@ jobs:
       pull-requests: write
       id-token: write
     runs-on: ubuntu-latest
-    if: github.repository == 'event-catalog/eventcatalog'
+    if: github.repository == 'event-catalog/eventcatalog' && github.event_name == 'push' && github.ref_name != 'v5-beta'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,3 +69,106 @@ jobs:
           publish: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # v5-beta is in changesets pre mode (.changeset/pre.json), so every push with new changesets
+  # publishes beta versions (e.g. 5.0.0-beta.3) to the `beta` dist-tag straight away, without a version PR.
+  # It lives in this file because npm trusted publishing is configured for this workflow.
+  release-beta:
+    permissions:
+      contents: write
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.repository == 'event-catalog/eventcatalog' && github.ref_name == 'v5-beta'
+    concurrency:
+      group: release-beta
+      cancel-in-progress: false
+    steps:
+      # The branch, not the pushed commit, so a run queued behind another sees the versions it pushed
+      - uses: actions/checkout@v4
+        with:
+          ref: v5-beta
+          fetch-depth: 0
+
+      - name: Verify the branch is in pre mode
+        run: |
+          if [ "$(node -p "require('./.changeset/pre.json').mode")" != "pre" ]; then
+            echo "::error::v5-beta must be in changesets pre mode (pnpm changeset pre enter beta)"
+            exit 1
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install deps
+        run: pnpm i
+
+      - name: Version beta packages
+        id: version
+        run: |
+          pnpm changeset version
+          if git diff --quiet; then
+            echo "No new changesets, nothing to version"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Not "Version Packages", which redeploys the example catalogs (redeploy-eventcatalog-examples.yml).
+      # Pushed before publishing, so the versions on npm are always in git. If someone pushed to
+      # v5-beta in the meantime this fails, and the run for their push releases both.
+      - name: Commit and push beta versions
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): version packages (beta)"
+          git push origin HEAD:v5-beta
+
+      # Publishing on a manual run retries versions that are in git but not on npm (e.g. after a failed publish)
+      - name: Verify docs repository access is configured
+        if: steps.version.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          DOCS_REPOSITORY_TOKEN: ${{ secrets.DOCS_REPOSITORY_TOKEN }}
+        run: |
+          if [ -z "$DOCS_REPOSITORY_TOKEN" ]; then
+            echo "::error::DOCS_REPOSITORY_TOKEN must have read-only Contents access to event-catalog/website"
+            exit 1
+          fi
+
+      - name: Checkout EventCatalog docs
+        if: steps.version.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          repository: event-catalog/website
+          ref: main
+          path: .eventcatalog-docs
+          sparse-checkout: docs
+          persist-credentials: false
+          token: ${{ secrets.DOCS_REPOSITORY_TOKEN }}
+
+      - name: Sync EventCatalog docs
+        if: steps.version.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          EVENTCATALOG_DOCS_SOURCE: ${{ github.workspace }}/.eventcatalog-docs/docs
+        run: |
+          node scripts/sync-core-docs.mjs
+          rm -rf .eventcatalog-docs
+
+      - name: Build all packages
+        if: steps.version.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        run: pnpm run build:bin
+
+      # In pre mode, changeset publish uses the `beta` dist-tag, so `latest` stays on v4
+      - name: Publish beta to npm
+        if: steps.version.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        run: |
+          pnpm run release
+          git push origin --tags
