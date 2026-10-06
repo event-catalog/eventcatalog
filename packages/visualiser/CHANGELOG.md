@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.0.0-beta.1
+
+### Patch Changes
+
+- f55c13f: Bump `@xyflow/react` from 12.8.6 to 12.12.0.
+
 ## 5.0.0-beta.0
 
 ### Major Changes
