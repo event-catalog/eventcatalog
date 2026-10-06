@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.1
+
+### Patch Changes
+
+- 02154b0: fix(core): only send build telemetry for real `eventcatalog dev` and `build` runs, which always include the command and catalog id, so package scanners calling the telemetry module after a release don't count as new catalogs
+
 ## 5.0.0-beta.0
 
 ### Major Changes

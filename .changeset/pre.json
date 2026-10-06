@@ -35,6 +35,7 @@
     "settings-domain-mcp-servers",
     "sidebar-diagram-labels",
     "system-visualiser-levels",
+    "telemetry-require-catalog-id",
     "visualiser-nodegraph-display-props"
   ]
 }
