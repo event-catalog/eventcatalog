@@ -323,7 +323,6 @@ const isNavigationItemCurrent = (item: Pick<VerticalNavigationItem, 'href' | 'ma
     return (
       pathname === itemPath ||
       (pathname.includes('/docs') && !pathname.includes('/docs/custom')) ||
-      pathname.includes('/architecture/') ||
       pathname.includes('/visualiser') ||
       (pathname.includes('/schemas') && !pathname.includes('/schemas/explorer') && !pathname.includes('/schemas/fields'))
     );
@@ -889,7 +888,6 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       return (
         pathname === targetPath ||
         (pathname.includes('/docs') && !pathname.includes('/docs/custom')) ||
-        pathname.includes('/architecture/') ||
         pathname.includes('/visualiser') ||
         (pathname.includes('/schemas') && !pathname.includes('/schemas/explorer') && !pathname.includes('/schemas/fields'))
       );

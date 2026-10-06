@@ -1,53 +1,48 @@
 import { isSSR } from '@utils/feature';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
-import type { PageTypes } from '@types';
-import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
-import { getDomains } from '@utils/collections/domains';
-import { getSystems } from '@utils/collections/systems';
+import {
+  createResourcesCatalog,
+  getOwnersWithResources,
+  loadResourceOwners,
+  type ResourcesCatalog,
+} from '@utils/collections/resource-owners';
+import type { ResourceOwner } from '@utils/collections/resources';
 
-const architecturePageTypes: PageTypes[] = ['services', 'domains', 'systems'];
+// The architecture overview pages were replaced by the Resources pages. These routes stay so
+// old links keep working: each one redirects to the resource's Resources page, or to its docs
+// page when it has nothing to list.
+const architecturePageTypes = ['services', 'domains', 'systems'] as const;
+type ArchitecturePageType = (typeof architecturePageTypes)[number];
 
-/**
- * Architecture grids render service sends/receives as docs links, so domains and
- * systems must hydrate those messages (collection + name). `pageDataLoader`
- * uses the cheaper unenriched path used by docs/sidebar.
- */
-export const loadArchitectureItems = (type: PageTypes) => {
-  if (type === 'domains') {
-    return getDomains({ enrichServices: true });
-  }
+const isArchitecturePageType = (type: string): type is ArchitecturePageType =>
+  architecturePageTypes.includes(type as ArchitecturePageType);
 
-  if (type === 'systems') {
-    return getSystems({ enrichServices: true });
-  }
+const key = (item: ResourceOwner) => `${item.data.id}:${item.data.version}`;
 
-  return pageDataLoader[type as PageTypes]();
+const getRedirectPaths = async (type: ArchitecturePageType, catalog: ResourcesCatalog = createResourcesCatalog()) => {
+  const [items, ownersWithResources] = await Promise.all([loadResourceOwners(type), getOwnersWithResources(type, catalog)]);
+  const hasResourcesPage = new Set(ownersWithResources.map(key));
+
+  return items.map((item) => {
+    const docsPath = `/docs/${type}/${item.data.id}/${item.data.version}`;
+    return { item, redirectPath: hasResourcesPage.has(key(item)) ? `${docsPath}/resources` : docsPath };
+  });
 };
 
-/**
- * Documentation page class for all collection types with versioning
- */
 export class Page extends HybridPage {
   static async getStaticPaths() {
     if (isSSR()) {
       return [];
     }
 
-    const pageData = await Promise.all(architecturePageTypes.map((type) => loadArchitectureItems(type)));
+    const catalog = createResourcesCatalog();
+    const redirects: Awaited<ReturnType<typeof getRedirectPaths>>[] = [];
+    for (const type of architecturePageTypes) redirects.push(await getRedirectPaths(type, catalog));
 
-    return pageData.flatMap((items, index) =>
-      items.map((item) => ({
-        params: {
-          type: architecturePageTypes[index],
-          id: item.data.id,
-          version: item.data.version,
-        },
-        props: {
-          type: architecturePageTypes[index],
-          ...item,
-          // Not everything needs the body of the page itself.
-          body: undefined,
-        },
+    return architecturePageTypes.flatMap((type, index) =>
+      redirects[index].map(({ item, redirectPath }) => ({
+        params: { type, id: item.data.id, version: item.data.version },
+        props: { type, data: { id: item.data.id, name: item.data.name, version: item.data.version }, redirectPath },
       }))
     );
   }
@@ -55,23 +50,16 @@ export class Page extends HybridPage {
   protected static async fetchData(params: any) {
     const { type, id, version } = params;
 
-    if (!type || !id || !version || !architecturePageTypes.includes(type)) {
+    if (!type || !id || !version || !isArchitecturePageType(type)) {
       return null;
     }
 
-    const items = await loadArchitectureItems(type as PageTypes);
-
-    // Find the specific item by id and version
-    const item = items.find((i) => i.data.id === id && i.data.version === version);
-
-    if (!item) {
+    const match = (await getRedirectPaths(type)).find(({ item }) => item.data.id === id && item.data.version === version);
+    if (!match) {
       return null;
     }
 
-    return {
-      type,
-      ...item,
-    };
+    return { type, data: { id, name: match.item.data.name, version }, redirectPath: match.redirectPath };
   }
 
   protected static createNotFoundResponse(): Response {

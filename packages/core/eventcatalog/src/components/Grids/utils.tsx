@@ -24,26 +24,3 @@ export const getCollectionStyles = (collection: CollectionMessageTypes | Collect
       return { color: 'gray', Icon: EnvelopeIcon };
   }
 };
-
-export interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
-  onPageChange: (page: number) => void;
-}
-
-export interface SearchBarProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  placeholder?: string;
-  totalResults?: number;
-  totalItems?: number;
-}
-
-export interface TypeFilterProps {
-  selectedTypes: CollectionMessageTypes[];
-  onTypeChange: (types: CollectionMessageTypes[]) => void;
-  filteredCount?: number;
-  totalCount?: number;
-}
