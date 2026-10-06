@@ -1,5 +1,31 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.3
+
+### Minor Changes
+
+- a61f027: chore(core): upgrade React and React DOM to 19, and `@asyncapi/react-component` to 3.2.1 (which now supports React 19). Custom React components in your catalog's `components/` folder now run on React 19. If any of them use APIs that React 19 removed (`defaultProps` on function components, `propTypes`, string refs, `ReactDOM.render`, `findDOMNode`), update them.
+
+### Patch Changes
+
+- 38b5d2d: feat(core): the architecture overview pages (`/architecture/{type}/{id}/{version}`) for domains, systems and services are replaced by their Resources pages. Old links redirect to the Resources page (or to the docs page when there is nothing to list), and the sidebar's Architecture section no longer has an Overview link.
+- 47bd258: feat(core): the domain and system Resources page now matches the discover pages, with a smaller header and a full-height table that you can paginate. The pagination footer is shared with the discover tables.
+
+  Each row on the Resources page also has a "..." menu to view the resource's docs, open it in the visualiser, view its schema (when it has one), or add it to your favorites.
+
+- 47bd258: feat(core): services, flows, channels, events, commands and queries now have a Resources page, like domains and systems, linked from Quick Reference in the sidebar:
+  - Services list the messages they send and receive, their entities, the data stores they read from or write to, and the flows they appear in (including flows that use the service in a step).
+  - Flows list the services, messages, agents, data stores, data products and sub-flows their steps use.
+  - Channels list the services and agents that produce messages onto them or receive messages from them, and the messages they transport.
+  - Messages list what produces and consumes them, the channels they travel on, the flows they appear in, and the messages they trigger or are triggered by.
+
+  Every Resources page also lists the decision records (ADRs) that apply to it, and has a Relationship column showing how each resource connects (for example Contains, Owns, Sends, Receives, Reads from, Writes to, Produces, Consumes, Transports, Triggers or Governed by), with Inbound and Outbound filters when a page has connections going both ways. The Type column names each row in the singular (Command, Event, Data Store).
+
+- 5f81856: fix(core): schema pages with examples now load their interactive parts (sidebar, search, theme toggle, schema viewer and code groups). Code groups no longer log a hydration mismatch in the browser console.
+- 47bd258: chore(core): rename the "Domain Resources" and "System Resources" sidebar links to "Resources"
+- Updated dependencies [b5f4d00]
+  - @eventcatalog/visualiser@5.0.0-beta.2
+
 ## 5.0.0-beta.2
 
 ### Patch Changes

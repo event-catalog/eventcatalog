@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.0.0-beta.2
+
+### Patch Changes
+
+- b5f4d00: Switching between levels in the visualiser is faster: nodes no longer render again on every frame of the layout animation, keep their measured size while they move, and name labels no longer force a layout recalculation as they mount.
+
 ## 5.0.0-beta.1
 
 ### Patch Changes
