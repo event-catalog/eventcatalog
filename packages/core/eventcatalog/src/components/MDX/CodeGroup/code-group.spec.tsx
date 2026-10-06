@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { createRoot, hydrateRoot, type Root } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
 import CodeGroup from './CodeGroup';
 import { MarkdownCodeGroup } from './MarkdownCodeGroup';
 import { parseCodePanels } from './parse-panels';
@@ -55,6 +56,21 @@ describe('React CodeGroup', () => {
     expect(root.querySelector('code span')?.textContent).toBe('one');
     await act(async () => root.querySelector<HTMLButtonElement>('[aria-label="Copy code"]')!.click());
     expect(writeText).toHaveBeenCalledWith('one\ntwo');
+  });
+  it('hydrates without a mismatch after Astro marks scripts in the highlighted HTML as executed', () => {
+    const highlighted = [{ label: 'file.js', language: 'js', html: '<pre>one</pre><script type="module">void 0</script>' }];
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(<CodeGroup items={highlighted} />);
+    container.querySelector('script')!.setAttribute('data-astro-exec', '');
+    document.body.append(container);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    act(() => {
+      roots.push(hydrateRoot(container, <CodeGroup items={highlighted} />));
+    });
+
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
   });
   it('accepts Markdown panels and escapes labels', () => {
     const root = render(

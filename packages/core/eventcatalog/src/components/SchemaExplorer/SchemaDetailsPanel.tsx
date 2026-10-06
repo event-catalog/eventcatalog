@@ -384,6 +384,9 @@ export default function SchemaDetailsPanel({
     [diffToVersion, uniqueAvailableVersions]
   );
   const comparing = (activeTab === 'versions' && hasMultipleVersions) || isDiffModalOpen;
+  const contentReady = !content.loading && !content.error;
+  // Server-rendered examples stay mounted and are only shown on the Examples tab (see the tab content below).
+  const showRenderedExamples = !!renderedExamples && activeTab === 'examples' && contentReady;
 
   const compareWithCurrent = (version: string) => {
     setDiffFromVersion(version);
@@ -705,11 +708,16 @@ export default function SchemaDetailsPanel({
 
         {/* Tab content */}
         <div className="flex-1 min-h-0 overflow-hidden p-6">
-          {content.loading || content.error ? (
+          {/* Always render the examples slot and hide it on other tabs. Astro moves a slot missing from the
+              server HTML into a <template>, where its island scripts never run and no island on the page hydrates. */}
+          {renderedExamples && (
+            <div className="h-full overflow-auto pr-1" hidden={!showRenderedExamples}>
+              {renderedExamples}
+            </div>
+          )}
+          {!contentReady ? (
             <SchemaLoadingState loading={content.loading} error={content.error} retry={content.retry} />
-          ) : activeTab === 'examples' && renderedExamples ? (
-            <div className="h-full overflow-auto pr-1">{renderedExamples}</div>
-          ) : activeTab === 'examples' && examples.length > 0 ? (
+          ) : showRenderedExamples ? null : activeTab === 'examples' && examples.length > 0 ? (
             <ExamplesViewer examples={examples} />
           ) : activeTab === 'metadata' ? (
             <SchemaMetadata message={message} owners={showOwners ? owners : []} />

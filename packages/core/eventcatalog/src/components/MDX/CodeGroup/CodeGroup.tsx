@@ -167,7 +167,12 @@ export default function CodeGroup({
             hidden={index !== active}
             tabIndex={0}
           >
-            {item.html !== undefined ? <div dangerouslySetInnerHTML={{ __html: item.html }} /> : item.content}
+            {/* Astro's router marks scripts in this HTML with data-astro-exec before hydration, so it never matches exactly. */}
+            {item.html !== undefined ? (
+              <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: item.html }} />
+            ) : (
+              item.content
+            )}
           </div>
         ))}
       </div>
