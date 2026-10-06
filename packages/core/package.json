@@ -103,7 +103,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.3.1",
     "@tanstack/react-table": "^8.17.3",
-    "@xyflow/react": "^12.3.6",
+    "@xyflow/react": "^12.12.0",
     "ai": "^7.0.106",
     "astro": "7.3.3",
     "astro-expressive-code": "^0.44.0",
