@@ -1,5 +1,36 @@
 # @eventcatalog/visualiser
 
+## 5.0.0-beta.0
+
+### Major Changes
+
+- f754d22: EventCatalog v5: new visualiser diagrams with levels.
+
+  Diagrams are now laid out with ELK instead of dagre. Edges are routed at right angles around nodes, each with its own connection point so they no longer run on top of each other, and edge labels sit on their edge. Nested groups (subdomains and systems in a domain) are laid out in one pass, and relayouts in the browser load ELK on demand.
+
+  Every diagram uses the same three levels, shown as L1, L2 and L3 in the canvas toolbar (and `?level=1|2|3` in the URL): L1 for domains, systems and their relationships, L2 for services and data stores, and L3 adding messages and channels. Domain and system pages have a single Diagram page with all three levels.
+
+  Breaking changes:
+  - Domain and system diagrams live at `/visualiser/domains/:id/:version` and `/visualiser/systems/:id/:version`, with levels. The domain System Diagram (`/systems-context`), the system Context Diagram (`/context`) and the service Data Dependency Graph (`/data`) pages now redirect to the matching level. The old domain and system Resource Diagram pages are replaced by the Diagram page.
+  - Sidebar links are renamed: "System Diagram", "Resource Diagram" and "Context Diagram" become "Diagram", "Map" becomes "Diagram", "Entity Map" becomes "Entity Diagram" and "System Context Map" becomes "System Context Diagram". The "Data Dependency Graph" link is removed.
+  - `?level=` values follow the new levels (`1` overview, `2` services and data stores, `3` messages and channels).
+  - Diagrams are laid out differently, so layouts saved in dev mode for old Resource Diagrams don't carry over to the new pages.
+  - `@eventcatalog/visualiser`: `layoutGraph` now returns a promise, the dagre helpers (`createDagreGraph`, `layoutDagreGraph`, `getNodesAndEdgesFromDagre`, `calculatedNodes`) are removed, and edges are drawn along the route in `data.route` when there is one. A new `@eventcatalog/visualiser/layout` entry (no React) exports `layoutWithElk`, `getNodeSize`, `hideMessageNodes`, `hideNodes`, `getMessagesLabel`, `isCarrier` and `isMessageNode`.
+
+### Minor Changes
+
+- f754d22: A domain's visualiser page (`/visualiser/domains/:id/:version`) now has levels, like a system's. The domain sidebar has a single "Diagram" link in place of "System Diagram" and "Resource Diagram", and the System Diagram page (`/visualiser/domains/:id/:version/systems-context`) now redirects to level 1. Layouts saved in dev mode for a domain's old Resource Diagram don't carry over to the new page, as its graph is laid out differently (nested in the domain's boxes); save the layout again if needed. L1 shows the domain with its systems and the other domains they send messages to or receive them from. L2 expands the systems into their services and data stores, and L3 adds messages and channels. Subdomains are shown as domains inside the domain, with their own systems and services (at L1, a subdomain without systems is a single card). Other domains' subdomains are shown inside a box for their parent domain. Services not in a system are shown with what they connect to, and a domain without systems or subdomains opens at L2 with L1 greyed out. Services inside a subdomain's systems (`domains/*/subdomains/*/systems/*/services/*`) are now loaded. The visualiser lays out nested groups (systems inside a domain), adds a domain group node, and animates several systems expanding at once. Messages and channels that only other domains send through are placed outside the domain. The canvas toolbar has a section for tools specific to the resource shown; on a domain's diagram it has "Highlight cross-domain communication", which picks out the edges to and from other domains on the level shown (it doesn't change the level). A domain's `<NodeGraph />` on its docs page now shows its Diagram (opening at level 1), rather than an empty graph when its services are in systems. Empty domains are drawn at a proper size, domains with `visualiser: false` get no Diagram page, a service a domain lists itself is shown in it even when another domain's system has it, messages are placed with the service publishing them, and a subdomain's own page labels it as a subdomain.
+- 5bc87e1: Group a flow's steps by domain, system or team, or by domain with its systems nested inside. A "Group by" menu (top right, or press G) shows how many groups each option makes and whether to draw them as boxes around their steps or as full-width lanes. Groups come from the catalog (each step's domain, system and owning team), so flows need no changes; messages and custom steps sit with the step before them, and actors and external systems get a group of their own. The choice is kept in the URL (`?group=system&groupStyle=boxes`), and `<Flow lanes="team" />` / `<NodeGraph lanes="domain" />` start a flow grouped. Flows no longer show the L1/L2/L3 levels. The step-by-step walkthrough is smaller and starts at the first step: it numbers the steps walked so far, rings the current step, offers a dropdown at branches, expands long summaries, and carries on from the same step when the flow is regrouped. Saving a layout is hidden while a flow is grouped, and the Mermaid export leaves the groups out. Handle animations now run on the compositor and flow pages send less data to the browser, so large flows pan and animate more smoothly.
+- f754d22: Add a floating canvas toolbar to the visualiser with levels of detail, simulate messages, minimap and fit to view. The levels are the same on every diagram: L1 for domains, systems and their relationships, L2 for services and data stores, and L3 adding messages and channels. Levels a diagram doesn't have are greyed out (e.g. L1 on a service's diagram). The level is kept in the URL (`?level=2` / `?level=3`) so shared links open at the same level. Adds a "Hide messages" option to the canvas menu, makes the toolbar follow the catalog theme colour, and removes the "Open in EventCatalog Studio" menu item. Clicking a legend entry now hides (or shows again) those nodes rather than highlighting them, re-laying out the graph with an animation and fading the entry while hidden; hidden messages and channels keep the nodes either side connected. Nodes leaving the graph when switching levels now fade out. The level is remembered for each kind of diagram (e.g. services and flows separately), legend entries hidden stay hidden when switching levels, and diagrams levels don't apply to (e.g. entity maps) don't show them.
+- f754d22: A system's visualiser page (`/visualiser/systems/:id/:version`) now has levels. L1 shows the system context diagram. L2 keeps the context but expands the system into its services and how they connect, with its relationships and actors connected to the expanded system. L3 adds messages and channels. Switching levels animates, and `?level=1|2|3` opens a level directly (the page opens at level 1 otherwise, as it does for domains). Layouts saved in dev mode for the system context carry over to level 1, but those saved for a system's old Resource Diagram don't carry over to levels 2 and 3, as they're laid out differently (inside the system's box). The separate System Context page now redirects to level 1, and the system sidebar has a single "Diagram" link in place of "Context Diagram" and "Resource Diagram". The system being viewed is marked "Viewing" on the context diagram, context layouts leave room for edge labels, and the visualiser `NodeGraph` accepts an `overviewGraph` to show as level 1.
+- 2d6e53b: Add `showMenu`, `compactSearch` and `hideAttribution` props to `NodeGraph`, for hosts that embed the visualiser in small spaces (e.g. EventCatalog's MCP App view). They default to the current behaviour.
+
+### Patch Changes
+
+- 3b46a41: `@eventcatalog/core` 5.0.0 (including its pre-releases) and later is licensed under the Business Source License 1.1 (`BUSL-1.1`), replacing the MIT License and the separate EventCatalog Commercial License for the enterprise and federation code. Releases up to and including 4.x remain available under the MIT License, and their notice is kept in `NOTICE`.
+
+  The ecosystem packages, including `@eventcatalog/create-eventcatalog`, stay MIT and now ship their own `LICENSE` file. New catalogs get a License section in their README that links to the Business Source License and notes that the catalog's own content belongs to its authors. `@eventcatalog/breaking-changes` moves from ISC to MIT.
+
 ## 4.1.5
 
 ### Patch Changes
@@ -168,7 +199,6 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
-
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
@@ -272,7 +302,6 @@
 
 - 7d0203c: fix(visualiser): resolve header visibility conflict with tailwind utilities
 - c05874a: Beta release of @eventcatalog/visualiser package
-
   - Fix node icon positioning: icon at top, label at bottom of left bar
   - Color-matched connection handles for all node types
   - Fix animated edge line color (gray-300)

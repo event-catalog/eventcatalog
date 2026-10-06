@@ -1,5 +1,22 @@
 # @eventcatalog/linter
 
+## 1.2.0-beta.0
+
+### Minor Changes
+
+- 62d08d4: Flow steps can reference channels (`channel: { id, version }`), drawn as channel nodes with a link to their docs. A step's `title` is now optional and defaults to the name of what it references (or the actor, external system or custom node's name, or the step's id); a custom node's `title` defaults to the step's title. Mistakes in flows no longer fail silently: unknown step properties fail the build (custom ones must start with `x-`), steps that use two node types or both `next_step` and `next_steps` fail with a message naming the step and what to change, and a `next_step` to a step that doesn't exist, or a reference to a resource that isn't in the catalog, logs a warning naming the flow and step. The step `type` field is still accepted but ignored. The linter checks the same rules, adds `refs/flow-step-exists` for next steps that aren't in the flow, and checks channel references in flow steps. The SDK adds `FlowBuilder.addChannelStep`, `channel` on `FlowStep`, an optional `title`, and accepts system and channel references when parsing an index.
+
+### Patch Changes
+
+- 3b46a41: `@eventcatalog/core` 5.0.0 (including its pre-releases) and later is licensed under the Business Source License 1.1 (`BUSL-1.1`), replacing the MIT License and the separate EventCatalog Commercial License for the enterprise and federation code. Releases up to and including 4.x remain available under the MIT License, and their notice is kept in `NOTICE`.
+
+  The ecosystem packages, including `@eventcatalog/create-eventcatalog`, stay MIT and now ship their own `LICENSE` file. New catalogs get a License section in their README that links to the Business Source License and notes that the catalog's own content belongs to its authors. `@eventcatalog/breaking-changes` moves from ISC to MIT.
+
+- Updated dependencies [3b46a41]
+- Updated dependencies [62d08d4]
+- Updated dependencies [4561180]
+  - @eventcatalog/sdk@2.30.0-beta.0
+
 ## 1.1.21
 
 ### Patch Changes

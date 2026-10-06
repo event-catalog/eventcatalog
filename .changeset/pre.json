@@ -12,5 +12,29 @@
     "@eventcatalog/sdk": "2.29.1",
     "@eventcatalog/visualiser": "4.1.4"
   },
-  "changesets": []
+  "changesets": [
+    "all-features-included",
+    "business-source-license",
+    "chat-configuration-error",
+    "cli-license-status",
+    "commercial-license-fallback",
+    "default-theme-dark-accent",
+    "dev-trial-badge",
+    "domain-visualiser-levels",
+    "eventcatalog-v5",
+    "fix-duplicate-container-edges",
+    "flow-grouping-walkthrough",
+    "flow-step-checks",
+    "hide-messages-toggle",
+    "mcp-one-viewer",
+    "mcp-server-architecture-diagrams",
+    "mcp-server-show-schema",
+    "remove-data-dependency-graph",
+    "remove-domain-integrations",
+    "sdk-vite-ignore-config-import",
+    "settings-domain-mcp-servers",
+    "sidebar-diagram-labels",
+    "system-visualiser-levels",
+    "visualiser-nodegraph-display-props"
+  ]
 }

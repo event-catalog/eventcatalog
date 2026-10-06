@@ -1,5 +1,87 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.0
+
+### Major Changes
+
+- 3b46a41: Every feature is now included in EventCatalog, with no plan or license key needed. Custom documentation, resource docs, custom pages, custom styles, the schema API and `schemas.txt`, Fields Explorer lineage, schema diffs, schema and directory sources, private remote files, analytics integrations, embedding, federation, the assistant, the MCP server, authentication and governance checks all work without `EVENTCATALOG_SCALE_LICENSE_KEY`, a Starter or Scale plan, or a Backstage license key. The assistant, MCP server and authentication still need server output (`output: 'server'`) and their configuration files.
+
+  Breaking changes:
+  - The billing settings page (`/settings/billing`) and the upgrade prompts are removed.
+  - The EventCatalog branding (the Discord and GitHub links in the header and the footer) is always shown. `EVENTCATALOG_SHOW_BRANDING` is no longer used.
+  - `EVENTCATALOG_STARTER`, `EVENTCATALOG_SCALE` and `ENABLE_EMBED` are no longer passed to the Astro runtime, and the plan helpers (`isEventCatalogStarterEnabled`, `isEventCatalogScaleEnabled` and the features gated on them) are removed from `@utils/feature`.
+  - `@eventcatalog/core` and `@eventcatalog/cli` no longer depend on `@eventcatalog/license`.
+  - Custom pages are served for every catalog, so a `pages/api` directory now requires `output: 'server'`: static builds fail with a message instead of skipping the routes.
+  - The header shows the `repositoryUrl` link next to the EventCatalog links when it's set, rather than in place of them.
+
+- 3b46a41: `@eventcatalog/core` 5.0.0 (including its pre-releases) and later is licensed under the Business Source License 1.1 (`BUSL-1.1`), replacing the MIT License and the separate EventCatalog Commercial License for the enterprise and federation code. Releases up to and including 4.x remain available under the MIT License, and their notice is kept in `NOTICE`.
+
+  The ecosystem packages, including `@eventcatalog/create-eventcatalog`, stay MIT and now ship their own `LICENSE` file. New catalogs get a License section in their README that links to the Business Source License and notes that the catalog's own content belongs to its authors. `@eventcatalog/breaking-changes` moves from ISC to MIT.
+
+- f754d22: EventCatalog v5: new visualiser diagrams with levels.
+
+  Diagrams are now laid out with ELK instead of dagre. Edges are routed at right angles around nodes, each with its own connection point so they no longer run on top of each other, and edge labels sit on their edge. Nested groups (subdomains and systems in a domain) are laid out in one pass, and relayouts in the browser load ELK on demand.
+
+  Every diagram uses the same three levels, shown as L1, L2 and L3 in the canvas toolbar (and `?level=1|2|3` in the URL): L1 for domains, systems and their relationships, L2 for services and data stores, and L3 adding messages and channels. Domain and system pages have a single Diagram page with all three levels.
+
+  Breaking changes:
+  - Domain and system diagrams live at `/visualiser/domains/:id/:version` and `/visualiser/systems/:id/:version`, with levels. The domain System Diagram (`/systems-context`), the system Context Diagram (`/context`) and the service Data Dependency Graph (`/data`) pages now redirect to the matching level. The old domain and system Resource Diagram pages are replaced by the Diagram page.
+  - Sidebar links are renamed: "System Diagram", "Resource Diagram" and "Context Diagram" become "Diagram", "Map" becomes "Diagram", "Entity Map" becomes "Entity Diagram" and "System Context Map" becomes "System Context Diagram". The "Data Dependency Graph" link is removed.
+  - `?level=` values follow the new levels (`1` overview, `2` services and data stores, `3` messages and channels).
+  - Diagrams are laid out differently, so layouts saved in dev mode for old Resource Diagrams don't carry over to the new pages.
+  - `@eventcatalog/visualiser`: `layoutGraph` now returns a promise, the dagre helpers (`createDagreGraph`, `layoutDagreGraph`, `getNodesAndEdgesFromDagre`, `calculatedNodes`) are removed, and edges are drawn along the route in `data.route` when there is one. A new `@eventcatalog/visualiser/layout` entry (no React) exports `layoutWithElk`, `getNodeSize`, `hideMessageNodes`, `hideNodes`, `getMessagesLabel`, `isCarrier` and `isMessageNode`.
+
+- c404f68: Remove the Domain Integration Map page (`/visualiser/domain-integrations`), which wasn't linked from anywhere; domain diagrams (L1) show how domains integrate. Entity diagram pages and custom docs domain embeds now say "Diagram" instead of "Map", matching the sidebar.
+
+### Minor Changes
+
+- 3a8f7c8: `eventcatalog dev` and `eventcatalog build` show the catalog's license in the terminal. With a valid `license.jwt` in the root of the catalog (or at `EC_LICENSE`), verified offline, they show who it's licensed to and when it expires, and the dev header drops the trial badge, only showing "License · N days left" once fewer than 14 days remain. Without one, they show how many days are left of the 90-day trial. An expired or invalid `license.jwt` is reported with the trial status.
+
+  A new Settings > License page shows the catalog's license (who it's licensed to and when it expires, or that it has expired or can't be verified) or its trial, with a link to the license FAQ.
+
+  Build telemetry now includes whether the catalog uses a commercial license or the trial (`license`, `licenseState`) and when each expires (`licenseExpiry`, `trialExpiry`).
+
+- 6f4efc3: Show the EventCatalog trial in the header while running `eventcatalog dev`. The badge counts down the 90-day trial from the catalog's trial start date (`tsd` in `eventcatalog.config.js`), shows "Trial ended" once it's over, and links to the license FAQ. It never appears in built or served catalogs.
+- f754d22: A domain's visualiser page (`/visualiser/domains/:id/:version`) now has levels, like a system's. The domain sidebar has a single "Diagram" link in place of "System Diagram" and "Resource Diagram", and the System Diagram page (`/visualiser/domains/:id/:version/systems-context`) now redirects to level 1. Layouts saved in dev mode for a domain's old Resource Diagram don't carry over to the new page, as its graph is laid out differently (nested in the domain's boxes); save the layout again if needed. L1 shows the domain with its systems and the other domains they send messages to or receive them from. L2 expands the systems into their services and data stores, and L3 adds messages and channels. Subdomains are shown as domains inside the domain, with their own systems and services (at L1, a subdomain without systems is a single card). Other domains' subdomains are shown inside a box for their parent domain. Services not in a system are shown with what they connect to, and a domain without systems or subdomains opens at L2 with L1 greyed out. Services inside a subdomain's systems (`domains/*/subdomains/*/systems/*/services/*`) are now loaded. The visualiser lays out nested groups (systems inside a domain), adds a domain group node, and animates several systems expanding at once. Messages and channels that only other domains send through are placed outside the domain. The canvas toolbar has a section for tools specific to the resource shown; on a domain's diagram it has "Highlight cross-domain communication", which picks out the edges to and from other domains on the level shown (it doesn't change the level). A domain's `<NodeGraph />` on its docs page now shows its Diagram (opening at level 1), rather than an empty graph when its services are in systems. Empty domains are drawn at a proper size, domains with `visualiser: false` get no Diagram page, a service a domain lists itself is shown in it even when another domain's system has it, messages are placed with the service publishing them, and a subdomain's own page labels it as a subdomain.
+- 5bc87e1: Group a flow's steps by domain, system or team, or by domain with its systems nested inside. A "Group by" menu (top right, or press G) shows how many groups each option makes and whether to draw them as boxes around their steps or as full-width lanes. Groups come from the catalog (each step's domain, system and owning team), so flows need no changes; messages and custom steps sit with the step before them, and actors and external systems get a group of their own. The choice is kept in the URL (`?group=system&groupStyle=boxes`), and `<Flow lanes="team" />` / `<NodeGraph lanes="domain" />` start a flow grouped. Flows no longer show the L1/L2/L3 levels. The step-by-step walkthrough is smaller and starts at the first step: it numbers the steps walked so far, rings the current step, offers a dropdown at branches, expands long summaries, and carries on from the same step when the flow is regrouped. Saving a layout is hidden while a flow is grouped, and the Mermaid export leaves the groups out. Handle animations now run on the compositor and flow pages send less data to the browser, so large flows pan and animate more smoothly.
+- 62d08d4: Flow steps can reference channels (`channel: { id, version }`), drawn as channel nodes with a link to their docs. A step's `title` is now optional and defaults to the name of what it references (or the actor, external system or custom node's name, or the step's id); a custom node's `title` defaults to the step's title. Mistakes in flows no longer fail silently: unknown step properties fail the build (custom ones must start with `x-`), steps that use two node types or both `next_step` and `next_steps` fail with a message naming the step and what to change, and a `next_step` to a step that doesn't exist, or a reference to a resource that isn't in the catalog, logs a warning naming the flow and step. The step `type` field is still accepted but ignored. The linter checks the same rules, adds `refs/flow-step-exists` for next steps that aren't in the flow, and checks channel references in flow steps. The SDK adds `FlowBuilder.addChannelStep`, `channel` on `FlowStep`, an optional `title`, and accepts system and channel references when parsing an index.
+- f754d22: Add a floating canvas toolbar to the visualiser with levels of detail, simulate messages, minimap and fit to view. The levels are the same on every diagram: L1 for domains, systems and their relationships, L2 for services and data stores, and L3 adding messages and channels. Levels a diagram doesn't have are greyed out (e.g. L1 on a service's diagram). The level is kept in the URL (`?level=2` / `?level=3`) so shared links open at the same level. Adds a "Hide messages" option to the canvas menu, makes the toolbar follow the catalog theme colour, and removes the "Open in EventCatalog Studio" menu item. Clicking a legend entry now hides (or shows again) those nodes rather than highlighting them, re-laying out the graph with an animation and fading the entry while hidden; hidden messages and channels keep the nodes either side connected. Nodes leaving the graph when switching levels now fade out. The level is remembered for each kind of diagram (e.g. services and flows separately), legend entries hidden stay hidden when switching levels, and diagrams levels don't apply to (e.g. entity maps) don't show them.
+- 2d6e53b: Improve the MCP server. Every tool now has a title and is marked read-only, so MCP clients can auto-approve them, and the server gives clients instructions on how to navigate the catalog. Versions are optional on every tool and default to the latest version (on a domain or system MCP server, the latest version in that domain or system). `getResource` now returns the resource's frontmatter and markdown (`{ id, version, collection, data, body }`) rather than the internal content entry, and `getMessagesProducedOrConsumedByResource` returns the messages a resource sends and receives, resolved to their catalog entries. Hidden resources are no longer listed. The data product tools are now on the MCP server, and the new `showResource` tool (with `view: "architecture"`) returns a resource's architecture diagram, built the same way as its Diagram page (domains and systems with their levels, and `detail: "overview"` for level 1). In MCP clients that support MCP Apps (e.g. Claude, ChatGPT, VS Code) the diagram is shown as the interactive visualiser: switch levels, search, open other resources' diagrams, and click a node to ask the conversation a question about it. Other clients get the diagram as Mermaid. The MCP server now also accepts URLs with a trailing slash (`/docs/mcp/`), and the MCP SDK is updated to 1.30.
+
+  The `.mermaid` version of a domain's or system's Diagram page (`/visualiser/domains/:id/:version.mermaid`) no longer fails in dev and server mode, and diagrams of domains made of systems are no longer empty. Mermaid diagrams now show systems and domains as subgraphs, and label systems, other domains, actors and custom flow steps by name.
+
+- d398d71: The MCP server's `showResource` tool (with `view: "schema"`) shows the user the schema of a message (or other resource with a schema) with the same viewer as the Schema Explorer: in MCP clients that support MCP Apps (e.g. Claude, ChatGPT, VS Code), a Schema tab with the highlighted source and a Properties tab for JSON Schema, Avro and Protobuf, which the user can search and expand. Messages with several schemas can switch between them. Other clients get the schema code. The server's instructions now point models at `showResource`, rather than `getSchemaForResource`, when the user wants to see a schema.
+- f754d22: A system's visualiser page (`/visualiser/systems/:id/:version`) now has levels. L1 shows the system context diagram. L2 keeps the context but expands the system into its services and how they connect, with its relationships and actors connected to the expanded system. L3 adds messages and channels. Switching levels animates, and `?level=1|2|3` opens a level directly (the page opens at level 1 otherwise, as it does for domains). Layouts saved in dev mode for the system context carry over to level 1, but those saved for a system's old Resource Diagram don't carry over to levels 2 and 3, as they're laid out differently (inside the system's box). The separate System Context page now redirects to level 1, and the system sidebar has a single "Diagram" link in place of "Context Diagram" and "Resource Diagram". The system being viewed is marked "Viewing" on the context diagram, context layouts leave room for edge labels, and the visualiser `NodeGraph` accepts an `overviewGraph` to show as level 1.
+
+### Patch Changes
+
+- 64b1dff: fix(core): when `eventcatalog.chat.js` fails to load, the assistant explains how to fix it instead of showing a raw JSON error. In `eventcatalog dev` it shows why the file didn't load (e.g. a missing package) and the steps to fix it; elsewhere it points readers to the catalog owner.
+- d8fc9b2: feat(core): check for a commercial license first, then fall back to Scale and Starter license keys
+
+  A commercial license now warns 30 days before it expires (up from 14): a yellow box in the terminal, a "License · N days left" badge in the dev header, and a callout on Settings > License. An expired license gets its own "EventCatalog License Expired" box in `eventcatalog dev` and `eventcatalog build`, a "License expired" badge in the dev header, and a red callout on the license page. Both link to eventcatalog.cloud to renew (a "Renew license" button on Settings > License), and the dev header badge opens Settings > License.
+
+- e94c83f: Make the purple accent easier to read in dark mode with the default theme (for example schema property types and the trial badge). Dark mode now uses a lighter purple, like the other built-in themes do.
+- f754d22: Fix duplicate overlapping edges between a service and a data store it both reads from and writes to on system visualiser pages.
+- 36233b0: feat(core): show MCP architecture diagrams and schemas in one viewer that opens full screen
+
+  `showResource` shows architecture diagrams and schemas in one MCP App view. Its results carry an `openai/widgetSessionId`, so ChatGPT keeps one viewer open and switches it to each diagram or schema instead of showing another. The view asks hosts to open it full screen (`openai/ui` `preferredDisplayMode`) and declares the display modes it supports.
+
+- f754d22: Remove the service "Data Dependency Graph" (`/visualiser/services/:id/:version/data`). Level 2 of the service's Diagram shows the same data stores (and the services it talks to), so the page now redirects there and the sidebar link is gone.
+- f8ce803: feat(core): list each domain's MCP server on Settings > MCP, next to the Catalog MCP Server, with full URLs to copy
+- f754d22: Sidebar links to visualiser diagrams now say "Diagram" rather than "Map", matching system and domain pages: "Map" becomes "Diagram", "Entity Map" becomes "Entity Diagram", and "System Context Map" becomes "System Context Diagram".
+- Updated dependencies [3b46a41]
+- Updated dependencies [f754d22]
+- Updated dependencies [f754d22]
+- Updated dependencies [5bc87e1]
+- Updated dependencies [62d08d4]
+- Updated dependencies [f754d22]
+- Updated dependencies [4561180]
+- Updated dependencies [f754d22]
+- Updated dependencies [2d6e53b]
+  - @eventcatalog/sdk@2.30.0-beta.0
+  - @eventcatalog/linter@1.2.0-beta.0
+  - @eventcatalog/visualiser@5.0.0-beta.0
+
 ## 4.12.3
 
 ### Patch Changes
@@ -164,7 +246,6 @@
 ### Patch Changes
 
 - 55c993d: Add build-time link validation for static catalogs and fix broken resource reference links
-
   - New `linkValidation` config option checks internal links and anchors in generated HTML after static builds (warns by default, can be set to `error` or `ignore`, supports `ignore` globs)
   - `<ResourceRef>` now links teams, users, and custom pages without a version segment, resolves owners to the correct users or teams page, and resolves messages to the collection they actually live in
   - Catalog discovery, schema loading, design discovery, and the linter scanner now exclude `node_modules` so dependency example catalogs are never loaded as catalog resources
@@ -902,7 +983,6 @@
 ### Patch Changes
 
 - 3334ab1: Add Microsoft Entra directory connector for syncing users and teams from Microsoft Entra ID (Azure AD).
-
   - `@eventcatalog/connectors`: new `microsoftEntraDirectory` connector export and docs
   - `@eventcatalog/sdk`: `Team`/`User` source now supports an optional `id`, and `User.avatarUrl` is now optional
   - `@eventcatalog/core`: render the Microsoft Entra directory source badge with an Azure icon
@@ -1264,7 +1344,6 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
-
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
@@ -1725,11 +1804,9 @@
 - 0f946fe: Fix NodeGraph version-specific channel routing and add semver/x-pattern version matching support
 
   **Bug Fix:**
-
   - Fixed NodeGraph visualisation incorrectly routing all event versions to the same channel instead of their version-specific channels when a service sends multiple versions of the same event to different channels
 
   **New Features:**
-
   - Services can now use semver range patterns (^1.0.0, ~1.2.0) and x-patterns (1.x, 1.2.x) in their `sends` and `receives` configurations, and these will correctly resolve in the graph visualiser
 
 ## 3.15.6
@@ -1907,7 +1984,6 @@
 ### Patch Changes
 
 - be0ba03: fix(schema-viewer): add support for oneOf and anyOf JSON Schema keywords
-
   - Add handling for `anyOf` in processSchema function (was missing entirely)
   - Fix `oneOf` rendering to show selected variant's properties instead of merged properties
   - Add variant selector UI for nested `oneOf`/`anyOf` within properties
@@ -2620,7 +2696,6 @@
   Addresses issues #1652 and #1644 by improving the path resolution logic in the `resolveProjectPath` function with full cross-platform compatibility. This fix ensures that paths starting with `../` are resolved correctly on Windows, macOS, and Linux systems.
 
   **Key improvements:**
-
   - Normalizes path separators (`/` and `\`) for cross-platform compatibility
   - Prevents `../` paths from incorrectly resolving outside the project directory
   - Fixes OpenAPI specifications and schemas failing to load after version 2.54.4
@@ -2635,7 +2710,6 @@
 - 2d563c9: fix(core): resolve SchemaViewer path resolution for relative paths
 
   Fixes SchemaViewer components failing to load schema files with paths starting with "../". The issue was caused by inconsistent path resolution logic in SchemaViewerRoot.astro.
-
   - Added resolveProjectPath function to handle "../" paths correctly
   - Updated getAbsoluteFilePathForAstroFile to use the new path resolution logic
   - SchemaViewerRoot.astro now uses resolveProjectPath for consistent path handling
