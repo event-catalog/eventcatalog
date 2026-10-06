@@ -132,6 +132,7 @@ import { applyMessageAnimation } from "../utils/message-animation";
 import { isMessageNode } from "../utils/hide-messages";
 import VisualizerDropdownContent from "./VisualizerDropdownContent";
 import NodeContextMenu from "./NodeContextMenu";
+import { memoNode } from "../utils/node-memo";
 import { convertToMermaid } from "../utils/export-mermaid";
 import {
   getExportImageDimensions,
@@ -598,7 +599,7 @@ const NodeGraphBuilder = ({
 
   const nodeTypes = useMemo(() => {
     const wrapWithContextMenu = (Component: React.ComponentType<any>) => {
-      const Wrapped = memo((props: any) => {
+      const Wrapped = (props: any) => {
         const items = props.data?.contextMenu;
         if (!items?.length) return <Component {...props} />;
         return (
@@ -606,12 +607,17 @@ const NodeGraphBuilder = ({
             <Component {...props} />
           </NodeContextMenu>
         );
-      });
+      };
       Wrapped.displayName = `WithContextMenu(${Component.displayName || Component.name || "Component"})`;
       return Wrapped;
     };
 
-    return {
+    const ReadOnlyNoteNode = (props: any) => (
+      <NoteNode {...props} readOnly={true} />
+    );
+    ReadOnlyNoteNode.displayName = "ReadOnlyNoteNode";
+
+    const types: Record<string, React.ComponentType<any>> = {
       service: wrapWithContextMenu(ServiceNode),
       services: wrapWithContextMenu(ServiceNode),
       agent: wrapWithContextMenu(AgentNode),
@@ -650,13 +656,22 @@ const NodeGraphBuilder = ({
       "system-group": SystemGroupNode,
       "domain-group": SystemGroupNode,
       "context-domain": DomainCardNode,
-      note: memo((props: any) => <NoteNode {...props} readOnly={true} />),
+      note: ReadOnlyNoteNode,
       field: wrapWithContextMenu(FieldNode),
       messageGroup: MessageGroupNode,
       messageGroupExpanded: MessageGroupExpandedNode,
       flowExpanded: FlowExpandedNode,
       swimlane: SwimlaneNode,
-    } as unknown as NodeTypes;
+    };
+
+    // Nodes render again only when something besides their position changes, so
+    // animating a layout (e.g. switching levels) moves them without re-rendering
+    return Object.fromEntries(
+      Object.entries(types).map(([type, Component]) => [
+        type,
+        memoNode(Component),
+      ]),
+    ) as unknown as NodeTypes;
   }, []);
   const edgeTypes = useMemo(
     () =>

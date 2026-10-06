@@ -356,6 +356,7 @@ export const useNodeVisibility = ({
         toEdges: target.edges,
         setNodes,
         setEdges,
+        getCurrentNodes: () => nodesRef.current,
         // When switching graphs, systems expand into their group (or back), e.g.
         // a system in its context diagram
         morphs: from ? getSystemMorphs(from.nodes, target.nodes) : [],

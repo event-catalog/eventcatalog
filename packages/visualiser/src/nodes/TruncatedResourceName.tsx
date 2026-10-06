@@ -34,13 +34,18 @@ export function TruncatedResourceName({
       setIsTruncated(element.scrollWidth > element.clientWidth);
     };
 
-    updateTruncation();
-
+    // Measured once layout has happened, not while mounting: reading the layout
+    // here forces a reflow for every node that mounts (e.g. when switching levels)
     if (typeof ResizeObserver === "undefined") {
+      const frame = requestAnimationFrame(updateTruncation);
       window.addEventListener("resize", updateTruncation);
-      return () => window.removeEventListener("resize", updateTruncation);
+      return () => {
+        cancelAnimationFrame(frame);
+        window.removeEventListener("resize", updateTruncation);
+      };
     }
 
+    // Also reports the element's first size, after layout
     const observer = new ResizeObserver(updateTruncation);
     observer.observe(element);
     return () => observer.disconnect();

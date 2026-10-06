@@ -106,6 +106,7 @@ export const animateLayout = ({
   toEdges,
   setNodes,
   setEdges,
+  getCurrentNodes,
   morphs = [],
   nodeOrigin = [0, 0],
   onDone,
@@ -116,6 +117,8 @@ export const animateLayout = ({
   toEdges: Edge[];
   setNodes: (nodes: Node[]) => void;
   setEdges: Dispatch<SetStateAction<Edge[]>>;
+  /** The nodes React Flow currently has, with the sizes it measured */
+  getCurrentNodes: () => Node[];
   morphs?: { from: string; to: string }[];
   nodeOrigin?: [number, number];
   onDone?: () => void;
@@ -202,8 +205,22 @@ export const animateLayout = ({
     return [...nodes, ...exitingNodes];
   };
 
+  // React Flow keeps a node's measured size only when the node passed in has
+  // it. Without it, every node would render and be measured again each frame.
+  const setNodesKeepingSize = (nodes: Node[]) => {
+    const measured = new Map(
+      getCurrentNodes().map((node) => [node.id, node.measured]),
+    );
+    setNodes(
+      nodes.map((node) => {
+        const measuredSize = measured.get(node.id);
+        return measuredSize ? { ...node, measured: measuredSize } : node;
+      }),
+    );
+  };
+
   // Start straight away so the new layout is never painted before it animates
-  setNodes(frame(0));
+  setNodesKeepingSize(frame(0));
   setEdges([
     ...toEdges.map((edge) =>
       fromEdgeIds.has(edge.id) ? edge : { ...edge, className: "ec-enter" },
@@ -217,11 +234,11 @@ export const animateLayout = ({
   let animationFrame = requestAnimationFrame(function tick(now) {
     const t = Math.min(1, (now - start) / LAYOUT_ANIMATION_DURATION);
     if (t < 1) {
-      setNodes(frame(easeInOut(t)));
+      setNodesKeepingSize(frame(easeInOut(t)));
       animationFrame = requestAnimationFrame(tick);
       return;
     }
-    setNodes(toNodes);
+    setNodesKeepingSize(toNodes);
     // Drop the faded out edges. Updated in place rather than replaced, so any
     // changes made to the edges since the start (e.g. animation) are kept.
     setEdges((edges) =>

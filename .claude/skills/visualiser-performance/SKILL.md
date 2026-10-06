@@ -81,6 +81,15 @@ All edge components (`AnimatedMessageEdge`, `MultilineEdgeLabel`, `FlowEdge`) ar
 
 **Do not break this pattern when adding new node or edge types.**
 
+On top of that, every type registered in `nodeTypes` in `NodeGraph.tsx` is wrapped by `memoNode` (`src/utils/node-memo.ts`). It ignores `positionAbsoluteX`/`positionAbsoluteY`, which change on every frame of a layout animation (e.g. switching levels), so nodes don't re-render while they move. This means:
+
+- Register new node types inside that `nodeTypes` map so they get `memoNode` too.
+- A node must not render from `positionAbsoluteX`/`positionAbsoluteY`: it would show a stale position. React Flow already places nodes with its wrapper's transform; read React Flow's internals (`useInternalNode`) if a node really needs its position.
+
+## Rule 3b: Keep `measured` when replacing nodes
+
+React Flow keeps a node's measured size only when the node passed to `setNodes` has `measured`. Building nodes from scratch (e.g. from a layout) drops it, so every node is measured and rendered again. When setting nodes repeatedly (animations), carry `measured` over from the current nodes, as `animateLayout` does.
+
 ## Rule 4: Memoize heavy sub-components inside nodes
 
 If a node renders complex sub-components (data grids, forms, SVG animations), wrap those in `memo()` too. This prevents the inner content from re-rendering even when the node itself re-renders.
@@ -117,7 +126,9 @@ When reviewing visualiser changes, verify:
 
 - [ ] No anonymous functions or inline objects passed to `<ReactFlow>` props
 - [ ] No `useMemo`/`useEffect`/`useCallback` with `nodes` or `edges` in deps (use structural keys instead)
-- [ ] New custom nodes/edges are wrapped in `memo()`
+- [ ] New custom nodes/edges are wrapped in `memo()`, and new node types are registered in `nodeTypes` (so `memoNode` wraps them)
+- [ ] No node renders from `positionAbsoluteX`/`positionAbsoluteY`
+- [ ] Code that sets nodes repeatedly keeps their `measured` size
 - [ ] Heavy sub-components inside nodes are wrapped in `memo()`
 - [ ] No `useStore` selectors returning unstable references
 - [ ] `nodeTypes`/`edgeTypes` remain memoized with empty deps

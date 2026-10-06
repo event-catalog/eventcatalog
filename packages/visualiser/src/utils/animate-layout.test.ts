@@ -50,6 +50,7 @@ describe("animateLayout", () => {
       toEdges: [],
       setNodes,
       setEdges,
+      getCurrentNodes: () => [],
     });
 
     // The first frame is drawn straight away, at the old positions
@@ -66,6 +67,39 @@ describe("animateLayout", () => {
     });
   });
 
+  // React Flow only keeps a node's measured size when the node passed in has it,
+  // so a frame without it makes every node render and be measured again.
+  it("keeps the size React Flow measured for each node on every frame", () => {
+    const runFrame = useFakeFrames();
+    const setNodes = vi.fn();
+    const measured = { width: 240, height: 90 };
+    // What React Flow has: the old layout, measured, plus a node entering
+    // that it measured after the first frame
+    const getCurrentNodes = () => [
+      node("a", 0, 0, { measured }),
+      node("c", 0, 0, { measured: { width: 120, height: 40 } }),
+    ];
+
+    animateLayout({
+      fromNodes: [node("a", 0, 0, { measured })],
+      fromEdges: [],
+      toNodes: [node("a", 200, 100), node("c", 50, 50)],
+      toEdges: [],
+      setNodes,
+      setEdges: vi.fn(),
+      getCurrentNodes,
+    });
+    runFrame(LAYOUT_ANIMATION_DURATION / 2);
+    runFrame(LAYOUT_ANIMATION_DURATION);
+
+    for (const [frame] of setNodes.mock.calls) {
+      expect(frame.map((n: Node) => n.measured)).toEqual([
+        measured,
+        { width: 120, height: 40 },
+      ]);
+    }
+  });
+
   it("ends on the new layout and drops the removed edges", () => {
     const runFrame = useFakeFrames();
     const setNodes = vi.fn();
@@ -80,6 +114,7 @@ describe("animateLayout", () => {
       toEdges: [edge("a", "c")],
       setNodes,
       setEdges,
+      getCurrentNodes: () => [],
       onDone,
     });
 
@@ -121,6 +156,7 @@ describe("animateLayout morphing", () => {
       toEdges: [],
       setNodes,
       setEdges: vi.fn(),
+      getCurrentNodes: () => [],
       morphs: [{ from: "system", to: "group" }],
       nodeOrigin: [0.5, 0.5],
     });
@@ -147,6 +183,7 @@ describe("animateLayout morphing", () => {
       toEdges: [],
       setNodes,
       setEdges: vi.fn(),
+      getCurrentNodes: () => [],
       morphs: [{ from: "group", to: "system" }],
     });
 
