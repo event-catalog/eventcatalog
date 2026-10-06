@@ -51,6 +51,27 @@ describe('buildFlowNode', () => {
   it('keeps the generated sidebar when no custom sidebar is given', () => {
     expect(titles(buildFlowNode(flow, context))).toEqual(['Quick Reference', 'Architecture', 'Services']);
   });
+
+  const quickReferenceLinks = (node: ReturnType<typeof buildFlowNode>) => {
+    const quickReference = node.pages?.find((page) => typeof page !== 'string' && page.title === 'Quick Reference');
+    return quickReference && typeof quickReference !== 'string' ? quickReference.pages : [];
+  };
+
+  // Whether an owner has a Resources page is worked out once for the whole catalog
+  // (getResourcesPageKeys) and passed in, so the sidebar and the pages agree.
+  it('links to the Resources page when the flow has one', () => {
+    expect(
+      quickReferenceLinks(buildFlowNode(flow, { ...context, resourcesPages: new Set(['flows:Checkout:1.0.0']) }))
+    ).toContainEqual({
+      type: 'item',
+      title: 'Resources',
+      href: '/docs/flows/Checkout/1.0.0/resources',
+    });
+  });
+
+  it('does not link to the Resources page when the flow has none', () => {
+    expect(quickReferenceLinks(buildFlowNode(flow, context))).not.toContainEqual(expect.objectContaining({ title: 'Resources' }));
+  });
 });
 
 describe('buildFlowNode with a custom sidebar', () => {

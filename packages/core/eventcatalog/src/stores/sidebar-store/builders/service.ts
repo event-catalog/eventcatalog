@@ -13,6 +13,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
   buildArchitectureDecisionsSection,
+  buildResourcesLink,
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -98,6 +99,7 @@ export const buildServiceSections = (
   const hasAttachments = service.data.attachments && service.data.attachments.length > 0;
 
   const hasDataStores = dataStoresInService.length > 0;
+
   const resourceGroups = service.data.resourceGroups || [];
   const hasResourceGroups = resourceGroups.length > 0;
 
@@ -126,6 +128,7 @@ export const buildServiceSections = (
     'quick-reference': buildQuickReferenceSection(
       [
         { title: 'Overview', href: buildUrl(docsBasePath) },
+        buildResourcesLink(context, 'services', service.data.id, service.data.version),
         isChangelogEnabled() &&
           shouldRenderSideBarSection(service, 'changelog') && {
             title: 'Changelog',
@@ -134,29 +137,26 @@ export const buildServiceSections = (
       ].filter(Boolean) as { title: string; href: string }[]
     ),
     documentation: docsSection,
-    architecture: {
-      type: 'group',
-      title: 'Architecture',
-      icon: 'Workflow',
-      pages: [
-        {
-          type: 'item',
-          title: 'Overview',
-          href: buildUrl(`/architecture/services/${service.data.id}/${service.data.version}`),
-        },
-        renderVisualiser && {
-          type: 'item',
-          title: 'Diagram',
-          href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`),
-        },
-        renderVisualiser &&
-          renderEntities && {
-            type: 'item',
-            title: 'Entity Diagram',
-            href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/entity-map`),
-          },
-      ].filter(Boolean) as ChildRef[],
-    },
+    // Every Architecture link is a visualiser view, so the group is left out when the visualiser is off.
+    architecture: renderVisualiser
+      ? {
+          type: 'group',
+          title: 'Architecture',
+          icon: 'Workflow',
+          pages: [
+            {
+              type: 'item',
+              title: 'Diagram',
+              href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`),
+            },
+            renderEntities && {
+              type: 'item',
+              title: 'Entity Diagram',
+              href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/entity-map`),
+            },
+          ].filter(Boolean) as ChildRef[],
+        }
+      : null,
     diagrams: hasDiagrams
       ? {
           type: 'group',

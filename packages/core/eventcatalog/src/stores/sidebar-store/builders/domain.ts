@@ -11,6 +11,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
   buildArchitectureDecisionsSection,
+  buildResourcesLink,
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -131,19 +132,6 @@ export const buildDomainSections = (
   const sortedReceivesMessages = [...receivesMessages].sort(byResourceName);
   const renderMessages = shouldRenderSideBarSection(domain, 'messages');
 
-  // The Resources page/link only makes sense when the domain has direct resources.
-  // Keep this aligned with the resource groups rendered by the page.
-  const hasResources =
-    subDomains.length > 0 ||
-    systemsInDomain.length > 0 ||
-    agentsInDomain.length > 0 ||
-    dataProductsInDomain.length > 0 ||
-    allServicesInDomain.length > 0 ||
-    domainFlows.length > 0 ||
-    entitiesInDomain.length > 0 ||
-    sendsMessages.length > 0 ||
-    receivesMessages.length > 0;
-
   // Diagrams
   const domainDiagrams = domain.data.diagrams || [];
   const diagramNavItems = buildDiagramNavItems(domainDiagrams, context.diagrams);
@@ -223,10 +211,7 @@ export const buildDomainSections = (
     'quick-reference': buildQuickReferenceSection(
       [
         { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
-        hasResources && {
-          title: 'Domain Resources',
-          href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}/resources`),
-        },
+        buildResourcesLink(context, 'domains', domain.data.id, domain.data.version),
         renderUbiquitousLanguage && {
           title: 'Ubiquitous Language',
           href: buildUrl(`/docs/domains/${domain.data.id}/language`),
@@ -239,31 +224,28 @@ export const buildDomainSections = (
       ].filter(Boolean) as { title: string; href: string }[]
     ),
     documentation: docsSection,
-    architecture: {
-      type: 'group',
-      title: 'Architecture',
-      icon: 'Workflow',
-      pages: [
-        {
-          type: 'item',
-          title: 'Overview',
-          href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
-        },
-        // The domain's diagram, with levels from the domains it talks to down to
-        // its messages
-        renderVisualiser && {
-          type: 'item',
-          title: 'Diagram',
-          href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
-        },
-        renderEntities &&
-          renderVisualiser && {
-            type: 'item',
-            title: 'Entity Diagram',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
-          },
-      ].filter(Boolean) as ChildRef[],
-    },
+    // Every Architecture link is a visualiser view, so the group is left out when the visualiser is off.
+    architecture: renderVisualiser
+      ? {
+          type: 'group',
+          title: 'Architecture',
+          icon: 'Workflow',
+          pages: [
+            // The domain's diagram, with levels from the domains it talks to down to
+            // its messages
+            {
+              type: 'item',
+              title: 'Diagram',
+              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
+            },
+            renderEntities && {
+              type: 'item',
+              title: 'Entity Diagram',
+              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
+            },
+          ].filter(Boolean) as ChildRef[],
+        }
+      : null,
     diagrams: hasDiagrams
       ? {
           type: 'group',

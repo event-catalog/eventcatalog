@@ -47,28 +47,27 @@ const emptyContext = {
   resourceDocCategories: [],
 } as any;
 
-const getQuickReferenceLinks = (domain: CollectionEntry<'domains'>) => {
-  const node = buildDomainNode(domain, [], emptyContext);
+const getQuickReferenceLinks = (domain: CollectionEntry<'domains'>, context = emptyContext) => {
+  const node = buildDomainNode(domain, [], context);
   const quickReference = node.pages?.find((page) => typeof page !== 'string' && page.title === 'Quick Reference');
   return quickReference && typeof quickReference !== 'string' ? quickReference.pages : [];
 };
 
 describe('buildDomainNode', () => {
-  it.each([
-    ['subdomains', { domains: [resource('Fulfilment')] }],
-    ['systems', { systems: [resource('OrderingSystem')] }],
-    ['agents', { agents: [resource('OrderAgent')] }],
-    ['data products', { 'data-products': [resource('OrderAnalytics')] }],
-  ])('links to Domain Resources when the domain only contains %s', (_type, overrides) => {
-    expect(getQuickReferenceLinks(createDomain(overrides))).toContainEqual({
+  // Whether an owner has a Resources page is worked out once for the whole catalog
+  // (getResourcesPageKeys) and passed in, so the sidebar and the pages agree.
+  it('links to the Resources page when the domain has one', () => {
+    expect(
+      getQuickReferenceLinks(createDomain(), { ...emptyContext, resourcesPages: new Set(['domains:Ordering:1.0.0']) })
+    ).toContainEqual({
       type: 'item',
-      title: 'Domain Resources',
+      title: 'Resources',
       href: '/docs/domains/Ordering/1.0.0/resources',
     });
   });
 
-  it('does not link to Domain Resources when the domain has no direct resources', () => {
-    expect(getQuickReferenceLinks(createDomain())).not.toContainEqual(expect.objectContaining({ title: 'Domain Resources' }));
+  it('does not link to the Resources page when the domain has none', () => {
+    expect(getQuickReferenceLinks(createDomain())).not.toContainEqual(expect.objectContaining({ title: 'Resources' }));
   });
 });
 

@@ -1,0 +1,13 @@
+---
+// Services need their own Resources route: /docs/services/[id]/[docType]/[docId] outranks
+// the generic /docs/[type]/[id]/[version]/resources route and would catch these URLs.
+import ResourcesPage from '../../../../[type]/[id]/[version]/resources/_ResourcesPage.astro';
+import { ServicePage } from '../../../../[type]/[id]/[version]/resources/_index.data';
+
+export const prerender = ServicePage.prerender;
+export const getStaticPaths = ServicePage.getStaticPaths;
+
+const resourceOwner = await ServicePage.getData(Astro);
+---
+
+<ResourcesPage resourceOwner={resourceOwner} />

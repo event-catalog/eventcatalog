@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import { createVersionedMap, findInMap } from '@utils/collections/util';
+import { createVersionedMap, findInMap, getVersionedMap, uniqueResources } from '@utils/collections/util';
 import { getDomains } from './domains';
 import { getServices } from './services';
 import { getAgents } from './agents';
@@ -145,6 +145,55 @@ export const getFlowsNotInAnyResource = async (): Promise<Flow[]> => {
     return domainsForFlow.length === 0 && servicesForFlow.length === 0 && agentsForFlow.length === 0;
   });
   return flowsNotInAnyResource;
+};
+
+/**
+ * Finds the flows with a step that points at the service. A step without a version points
+ * at the latest service version, so `services` must include every version.
+ */
+export const getFlowsWithServiceStep = (
+  service: CollectionEntry<'services'>,
+  flows: Flow[],
+  services: CollectionEntry<'services'>[]
+): Flow[] => {
+  const serviceMap = getVersionedMap(services);
+  return flows.filter((flow) =>
+    (flow.data.steps || []).some((step: any) => {
+      if (!step.service) return false;
+      const match = findInMap(serviceMap, step.service.id, step.service.version);
+      return match?.data.id === service.data.id && match?.data.version === service.data.version;
+    })
+  );
+};
+
+/** A catalog entry a flow step points at (a service, message, agent, data store, data product or flow). */
+type FlowStepResource = { collection: string; data: { id: string; version: string; [key: string]: any } };
+
+/**
+ * The catalog resources a flow's steps point at, each listed once in step order: messages,
+ * services, agents, data stores, data products and sub-flows (the same steps the flow's
+ * sidebar lists). Expects steps as getFlows returns them, where messages, agents, data stores
+ * and data products are already resolved; services and sub-flows are resolved here, with a
+ * pointer without a version meaning the latest.
+ */
+export const getFlowStepResources = (
+  flow: Flow,
+  catalog: { services: CollectionEntry<'services'>[]; flows: Flow[] }
+): FlowStepResource[] => {
+  const serviceMap = getVersionedMap(catalog.services);
+  const flowMap = getVersionedMap(catalog.flows);
+  const resources: FlowStepResource[] = [];
+
+  for (const step of (flow.data.steps || []) as any[]) {
+    const resource = step.service
+      ? findInMap(serviceMap, step.service.id, step.service.version)
+      : step.flow
+        ? findInMap(flowMap, step.flow.id, step.flow.version)
+        : [step.message, step.agent, step.container, step.dataProduct].find(Array.isArray)?.[0];
+    if (resource?.data) resources.push(resource);
+  }
+
+  return uniqueResources(resources);
 };
 
 /** A flow that includes a message in one of its steps, reduced to what the schema pages display. */

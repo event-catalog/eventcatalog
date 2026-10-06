@@ -149,7 +149,7 @@ const buildDomainQuickReferenceSection = (resource: any, includeUbiquitousLangua
       },
       includeResources && {
         type: 'item',
-        title: 'Domain Resources',
+        title: 'Resources',
         href: `/docs/domains/${resource.data.id}/${resource.data.version}/resources`,
       },
       includeUbiquitousLanguage && {
@@ -697,11 +697,11 @@ describe('getNestedSideBarData', () => {
         pages: ['service:OrdersService:1.0.0'],
       });
 
-      // A system with resources gets the System Resources quick-reference link.
+      // A system with resources gets a Resources quick-reference link.
       const quickReference = getChildNodeByTitle('Quick Reference', systemNode.pages ?? []);
       expect(quickReference.pages).toContainEqual({
         type: 'item',
-        title: 'System Resources',
+        title: 'Resources',
         href: '/docs/systems/CoreMonolith/1.0.0/resources',
       });
     });
@@ -723,11 +723,6 @@ describe('getNestedSideBarData', () => {
         title: 'Architecture',
         icon: 'Workflow',
         pages: [
-          {
-            type: 'item',
-            title: 'Overview',
-            href: '/architecture/systems/CoreMonolith/1.0.0',
-          },
           {
             type: 'item',
             title: 'Diagram',
@@ -1059,7 +1054,8 @@ describe('getNestedSideBarData', () => {
           title: 'Diagram',
           href: '/visualiser/domains/Shipping/0.0.1',
         });
-        expect(domainNode).toHaveNavigationLink({
+        // The architecture overview page was replaced by the Resources page.
+        expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
           href: '/architecture/domains/Shipping/0.0.1',
@@ -1092,8 +1088,7 @@ describe('getNestedSideBarData', () => {
           title: 'System Diagram',
           href: '/visualiser/domains/Shipping/0.0.1/systems-context',
         });
-        // The Architecture Overview link is always present.
-        expect(domainNode).toHaveNavigationLink({
+        expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
           href: '/architecture/domains/Shipping/0.0.1',
@@ -1119,6 +1114,8 @@ describe('getNestedSideBarData', () => {
           title: 'Diagram',
           href: '/visualiser/domains/Shipping/0.0.1',
         });
+        // Every Architecture link needs the visualizer, so the empty group is left out.
+        expect(getChildNodeByTitle('Architecture', domainNode.pages ?? [])).toBeUndefined();
 
         // Turn it back on
         config.visualiser.enabled = true;
@@ -2054,7 +2051,7 @@ describe('getNestedSideBarData', () => {
     });
 
     describe('Architecture section', () => {
-      it('the architecture overview and visualizer links are always listed in the navigation item', async () => {
+      it('lists the visualizer link but not the old architecture overview page', async () => {
         const { writeService } = utils(CATALOG_FOLDER);
         await writeService({
           id: 'ShippingService',
@@ -2065,7 +2062,7 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
-        expect(serviceNode).toHaveNavigationLink({
+        expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
           href: '/architecture/services/ShippingService/0.0.1',
@@ -2096,6 +2093,8 @@ describe('getNestedSideBarData', () => {
           title: 'Diagram',
           href: '/visualiser/services/ShippingService/0.0.1',
         });
+        // Every Architecture link needs the visualizer, so the empty group is left out.
+        expect(getChildNodeByTitle('Architecture', serviceNode.pages ?? [])).toBeUndefined();
 
         // Turn it back on
         config.visualiser.enabled = true;
@@ -4412,6 +4411,42 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
       const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
       expect(channelNode).toBeDefined();
+    });
+
+    it('links to the Resources page when a service sends to the channel', async () => {
+      const { writeChannel, writeEvent, writeService } = utils(CATALOG_FOLDER);
+      await writeChannel({ id: 'PaymentChannel', name: 'Payment Channel', version: '0.0.1', markdown: 'Payment Channel' });
+      await writeEvent({ id: 'PaymentProcessed', name: 'Payment Processed', version: '0.0.1', markdown: 'Payment Processed' });
+      await writeService({
+        id: 'PaymentService',
+        name: 'Payment Service',
+        version: '0.0.1',
+        markdown: 'Payment Service',
+        sends: [{ id: 'PaymentProcessed', version: '0.0.1', to: [{ id: 'PaymentChannel', version: '0.0.1' }] }],
+      } as any);
+
+      const navigationData = await getNestedSideBarData();
+      const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+
+      expect(channelNode).toHaveNavigationLink({
+        type: 'item',
+        title: 'Resources',
+        href: '/docs/channels/PaymentChannel/0.0.1/resources',
+      });
+    });
+
+    it('does not link to the Resources page when nothing uses the channel', async () => {
+      const { writeChannel } = utils(CATALOG_FOLDER);
+      await writeChannel({ id: 'PaymentChannel', name: 'Payment Channel', version: '0.0.1', markdown: 'Payment Channel' });
+
+      const navigationData = await getNestedSideBarData();
+      const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+
+      expect(channelNode).not.toHaveNavigationLink({
+        type: 'item',
+        title: 'Resources',
+        href: '/docs/channels/PaymentChannel/0.0.1/resources',
+      });
     });
 
     it('the changelog link is listed when changelog is enabled', async () => {

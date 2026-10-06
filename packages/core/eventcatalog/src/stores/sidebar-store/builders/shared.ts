@@ -79,7 +79,20 @@ export type ResourceGroupContext = {
   teams?: CollectionEntry<'teams'>[];
   resourceDocs: ResourceDocEntry[];
   resourceDocCategories: ResourceDocCategoryEntry[];
+  /** `collection:id:version` of every resource with a Resources page (see getResourcesPageKeys). */
+  resourcesPages?: Set<string>;
 };
+
+/** The Quick Reference link to a resource's Resources page, when it has one. */
+export const buildResourcesLink = (
+  context: Pick<ResourceGroupContext, 'resourcesPages'>,
+  collection: string,
+  id: string,
+  version: string
+) =>
+  context.resourcesPages?.has(`${collection}:${id}:${version}`)
+    ? { title: 'Resources', href: buildUrl(`/docs/${collection}/${id}/${version}/resources`) }
+    : false;
 
 export const buildQuickReferenceSection = (items: { title: string; href: string }[]): NavNode => ({
   type: 'group',

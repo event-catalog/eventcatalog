@@ -1,71 +1,11 @@
 ---
-import Footer from '@layouts/Footer.astro';
-import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { buildUrl } from '@utils/url-builder';
-import {
-  SystemResourcesTable,
-  type SystemResourceItem,
-  type SystemResourceCollection,
-} from '@components/Tables/SystemResources/SystemResourcesTable';
-import { getResourceGroups, type ResourceOwnerCollection } from './_resources';
-
+import ResourcesPage from './_ResourcesPage.astro';
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
 
 const resourceOwner = await Page.getData(Astro);
-const { data } = resourceOwner;
-const ownerCollection = resourceOwner.collection as ResourceOwnerCollection;
-
-// Only show resources directly attached to this system/domain. Domain child resources
-// are not flattened, so services inside a child system remain on that system's page.
-const resourceGroups = getResourceGroups(data, ownerCollection);
-
-const hrefForResource = (collection: SystemResourceCollection, id: string, version: string) => {
-  if (collection === 'entities') {
-    return buildUrl(`/docs/entities/${id}/${version}`);
-  }
-  return buildUrl(`/docs/${collection}/${id}/${version}`);
-};
-
-const ownerTypeLabel = ownerCollection === 'domains' ? 'Domain' : 'System';
-
-const resources: SystemResourceItem[] = resourceGroups.flatMap(({ collection, items }) =>
-  items.map((item: any) => ({
-    collection,
-    id: item.data.id,
-    name: item.data.name || item.data.id,
-    version: item.data.version,
-    summary: item.data.summary,
-    icon: item.data?.styles?.icon,
-    href: hrefForResource(collection, item.data.id, item.data.version),
-  }))
-);
 ---
 
-<VerticalSideBarLayout title={`${data.name} | Resources`}>
-  <main class="flex docs-layout min-h-full bg-[rgb(var(--ec-page-bg))]">
-    <div class="flex docs-layout w-full">
-      <div class="w-full min-w-0 lg:mr-2 xl:pr-12 py-8 bg-[rgb(var(--ec-page-bg))]">
-        {/* Header mirrors the resource page (docs/[type]/[id]/[version]/index.astro). */}
-        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-3 pt-4">
-          <div class="flex flex-col gap-4">
-            <span class="text-xs md:text-sm font-semibold text-[rgb(var(--ec-accent))] capitalize">{ownerTypeLabel}</span>
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
-              {data.name} Resources
-            </h2>
-          </div>
-          <p class="text-base pt-4 pb-1 text-[rgb(var(--ec-page-text-muted))] font-light">
-            {resources.length} {resources.length === 1 ? 'resource' : 'resources'} mapped to the {data.name}{' '}
-            {ownerTypeLabel.toLowerCase()}.
-          </p>
-        </div>
-
-        <div class="pt-8 pb-4 w-full">
-          <SystemResourcesTable resources={resources} client:only="react" />
-        </div>
-      </div>
-    </div>
-  </main>
-</VerticalSideBarLayout>
+<ResourcesPage resourceOwner={resourceOwner} />

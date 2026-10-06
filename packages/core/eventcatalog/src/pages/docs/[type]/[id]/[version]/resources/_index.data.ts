@@ -1,74 +1,79 @@
 import { isSSR } from '@utils/feature';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
-import { hasResources } from './_resources';
+import type { ResourceOwner, ResourceOwnerCollection } from '@utils/collections/resources';
+import {
+  createResourcesCatalog,
+  findOwnerWithResources,
+  getOwnersWithResources,
+  RESOURCE_OWNER_COLLECTIONS,
+} from '@utils/collections/resource-owners';
 
-// The Resources page lists the resources directly attached to a single system or
-// domain. It is only available for systems and domains — every other resource type 404s.
-const SUPPORTED_TYPES = ['systems', 'domains'] as const;
-type SupportedType = (typeof SUPPORTED_TYPES)[number];
+// The Resources page lists the resources attached to a single system, domain, service, flow,
+// channel or message. Every other resource type 404s.
+//
+// Services have their own route (pages/docs/services/[id]/[version]/resources), because the
+// version-less alias /docs/services/[id]/[docType]/[docId] outranks this generic route and
+// would otherwise catch /docs/services/{id}/{version}/resources.
+const GENERIC_ROUTE_TYPES = RESOURCE_OWNER_COLLECTIONS.filter((type) => type !== 'services');
 
-const isSupportedType = (type: string): type is SupportedType => SUPPORTED_TYPES.includes(type as SupportedType);
+type RouteParams = { type?: string; id?: string; version?: string };
 
-export const loadResourceOwner = async (type: SupportedType) => {
-  if (type === 'systems') {
-    const { getSystems } = await import('@utils/collections/systems');
-    return getSystems();
-  }
-  const { getDomains } = await import('@utils/collections/domains');
-  return getDomains({ includeServicesInSubdomains: false });
-};
-
-export class Page extends HybridPage {
-  static get prerender(): boolean {
-    return !isSSR();
-  }
-
-  static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
-    if (isSSR()) {
-      return [];
+const createResourcesPage = ({
+  types,
+  toParams,
+  typeOf,
+}: {
+  types: ResourceOwnerCollection[];
+  toParams: (type: ResourceOwnerCollection, owner: ResourceOwner) => RouteParams;
+  typeOf: (params: RouteParams) => string | undefined;
+}) =>
+  class extends HybridPage {
+    static get prerender(): boolean {
+      return !isSSR();
     }
 
-    const owners = await Promise.all(SUPPORTED_TYPES.map((type) => loadResourceOwner(type)));
+    static async getStaticPaths(): Promise<Array<{ params: RouteParams; props: ResourceOwner }>> {
+      if (isSSR()) {
+        return [];
+      }
 
-    return SUPPORTED_TYPES.flatMap((type, index) =>
-      owners[index]
-        .filter((owner) => hasResources(owner, type))
-        .map((owner) => ({
-          params: {
-            type,
-            id: owner.data.id,
-            version: owner.data.version,
-          },
-          props: {
-            ...owner,
-          },
-        }))
-    );
-  }
-
-  protected static async fetchData(params: any) {
-    const { type, id, version } = params;
-
-    if (!type || !id || !version || !isSupportedType(type)) {
-      return null;
+      const catalog = createResourcesCatalog();
+      const paths: Array<{ params: RouteParams; props: ResourceOwner }> = [];
+      for (const type of types) {
+        for (const owner of await getOwnersWithResources(type, catalog)) {
+          paths.push({ params: toParams(type, owner), props: owner });
+        }
+      }
+      return paths;
     }
 
-    const owners = await loadResourceOwner(type);
-    const owner = owners.find((o) => o.data.id === id && o.data.version === version);
+    protected static async fetchData(params: RouteParams) {
+      const type = typeOf(params);
+      const { id, version } = params;
 
-    if (!owner || !hasResources(owner, type)) {
-      return null;
+      if (!type || !id || !version || !types.includes(type as ResourceOwnerCollection)) {
+        return null;
+      }
+
+      return findOwnerWithResources(type as ResourceOwnerCollection, id, version);
     }
 
-    return {
-      ...owner,
-    };
-  }
+    protected static createNotFoundResponse(): Response {
+      return new Response(null, {
+        status: 404,
+        statusText: 'Resources not found',
+      });
+    }
+  };
 
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Resources not found',
-    });
-  }
-}
+export const Page = createResourcesPage({
+  types: GENERIC_ROUTE_TYPES,
+  toParams: (type, owner) => ({ type, id: owner.data.id, version: owner.data.version }),
+  typeOf: (params) => params.type,
+});
+
+export const ServicePage = createResourcesPage({
+  types: ['services'],
+  toParams: (_type, owner) => ({ id: owner.data.id, version: owner.data.version }),
+  typeOf: () => 'services',
+});

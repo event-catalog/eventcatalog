@@ -291,6 +291,37 @@ export const createVersionedMap = <T extends { data: { id: string; version?: str
   return map;
 };
 
+const versionedMapCache = new WeakMap<object, Map<string, any[]>>();
+
+/**
+ * createVersionedMap, built once per list. Use it in helpers that search the same list once per
+ * resource, so a catalog-wide pass does not rebuild the map every time.
+ */
+export const getVersionedMap = <T extends { data: { id: string; version?: string } }>(items: T[]): Map<string, T[]> => {
+  let map = versionedMapCache.get(items);
+  if (!map) {
+    map = createVersionedMap(items);
+    versionedMapCache.set(items, map);
+  }
+  return map as Map<string, T[]>;
+};
+
+type KeyedResource = { collection: string; data: { id: string; version?: string } };
+
+/** Identifies a resource across collections: a service and an agent can share an id and version. */
+export const resourceKey = (resource: KeyedResource) => `${resource.collection}:${resource.data.id}:${resource.data.version}`;
+
+/** The resources without repeats (by collection, id and version), keeping the first of each in order. */
+export const uniqueResources = <T extends KeyedResource>(resources: T[]): T[] => {
+  const seen = new Map<string, T>();
+  for (const resource of resources) {
+    if (!resource?.data?.id) continue;
+    const key = resourceKey(resource);
+    if (!seen.has(key)) seen.set(key, resource);
+  }
+  return [...seen.values()];
+};
+
 // Merge as many given maps as you want
 export const mergeMaps = <T>(...maps: Map<string, T[]>[]): Map<string, T[]> => {
   return maps.reduce((acc, map) => {

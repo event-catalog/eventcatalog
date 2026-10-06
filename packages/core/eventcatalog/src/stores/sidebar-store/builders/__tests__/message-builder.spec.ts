@@ -46,6 +46,32 @@ const owners = [{ collection: 'teams', data: { id: 'ordering', name: 'Ordering T
 const titles = (node: ReturnType<typeof buildMessageNode>) =>
   (node.pages || []).map((page) => (typeof page === 'string' ? page : page.title));
 
+describe('Resources link', () => {
+  const quickReferenceLinks = (node: ReturnType<typeof buildMessageNode>) => {
+    const quickReference = node.pages?.find((page) => typeof page !== 'string' && page.title === 'Quick Reference');
+    return quickReference && typeof quickReference !== 'string' ? quickReference.pages : [];
+  };
+  // Whether an owner has a Resources page is worked out once for the whole catalog
+  // (getResourcesPageKeys) and passed in, so the sidebar and the pages agree.
+  it('links to the Resources page when the message has one', () => {
+    expect(
+      quickReferenceLinks(
+        buildMessageNode(createEvent(), [], { ...emptyContext, resourcesPages: new Set(['events:OrderCreated:1.0.0']) })
+      )
+    ).toContainEqual({
+      type: 'item',
+      title: 'Resources',
+      href: '/docs/events/OrderCreated/1.0.0/resources',
+    });
+  });
+
+  it('does not link to the Resources page when the message has none', () => {
+    expect(quickReferenceLinks(buildMessageNode(createEvent(), [], emptyContext))).not.toContainEqual(
+      expect.objectContaining({ title: 'Resources' })
+    );
+  });
+});
+
 describe('buildMessageSections', () => {
   it('exposes every key in the default order (plus decision-records for custom sidebars)', () => {
     const sections = buildMessageSections(createEvent(), owners, emptyContext);

@@ -10,6 +10,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
   buildArchitectureDecisionsSection,
+  buildResourcesLink,
 } from './shared';
 import { isChangelogEnabled, isVisualiserEnabled } from '@utils/feature';
 import { customIconFieldsForResource } from '@utils/icon';
@@ -74,11 +75,6 @@ export const buildSystemSections = (
   const containersInSystem = [...(system.data.containers || [])].sort(byResourceName);
   const renderContainers = containersInSystem.length > 0 && shouldRenderSideBarSection(system, 'containers');
 
-  // The Resources page/link only makes sense when the system actually has resources
-  // attached (services, flows, entities or data stores). Mirrors what the page renders.
-  const hasResources =
-    servicesInSystem.length > 0 || flowsInSystem.length > 0 || entitiesInSystem.length > 0 || containersInSystem.length > 0;
-
   const systemDiagrams = system.data.diagrams || [];
   const diagramNavItems = buildDiagramNavItems(systemDiagrams, context.diagrams);
   const hasDiagrams = diagramNavItems.length > 0 && shouldRenderSideBarSection(system, 'diagrams');
@@ -138,10 +134,7 @@ export const buildSystemSections = (
           title: 'Overview',
           href: buildUrl(`/docs/systems/${system.data.id}/${system.data.version}`),
         },
-        hasResources && {
-          title: 'System Resources',
-          href: buildUrl(`/docs/systems/${system.data.id}/${system.data.version}/resources`),
-        },
+        buildResourcesLink(context, 'systems', system.data.id, system.data.version),
         isChangelogEnabled() &&
           shouldRenderSideBarSection(system, 'changelog') && {
             title: 'Changelog',
@@ -150,24 +143,22 @@ export const buildSystemSections = (
       ].filter(Boolean) as { title: string; href: string }[]
     ),
     documentation: docsSection,
-    architecture: {
-      type: 'group',
-      title: 'Architecture',
-      icon: 'Workflow',
-      pages: [
-        {
-          type: 'item',
-          title: 'Overview',
-          href: buildUrl(`/architecture/systems/${system.data.id}/${system.data.version}`),
-        },
-        // The system's diagram, with levels from its context down to its messages
-        renderVisualiser && {
-          type: 'item',
-          title: 'Diagram',
-          href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}`),
-        },
-      ].filter(Boolean) as ChildRef[],
-    },
+    // Every Architecture link is a visualiser view, so the group is left out when the visualiser is off.
+    architecture: renderVisualiser
+      ? {
+          type: 'group',
+          title: 'Architecture',
+          icon: 'Workflow',
+          pages: [
+            // The system's diagram, with levels from its context down to its messages
+            {
+              type: 'item',
+              title: 'Diagram',
+              href: buildUrl(`/visualiser/systems/${system.data.id}/${system.data.version}`),
+            },
+          ],
+        }
+      : null,
     diagrams: hasDiagrams
       ? {
           type: 'group',
