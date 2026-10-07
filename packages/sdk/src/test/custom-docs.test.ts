@@ -321,5 +321,26 @@ describe('Custom Docs SDK', () => {
       expect(fs.readFileSync(markerPath, 'utf8')).toBe('MARKER');
       expect(fs.existsSync(path.join(parentDirectory, 'planted.mdx'))).toBe(false);
     });
+
+    it('does not create a file through a dangling symlink outside the catalog docs directory', async () => {
+      const { getCustomDoc, writeCustomDoc, rmCustomDoc } = utils(catalogDirectory);
+      const outsideFile = path.join(parentDirectory, 'dangling-target.mdx');
+      const docsDirectory = path.join(catalogDirectory, 'docs');
+      fs.symlinkSync(outsideFile, path.join(docsDirectory, 'planted.mdx'));
+      fs.symlinkSync(path.join(parentDirectory, 'outside-dir'), path.join(docsDirectory, 'escape'));
+
+      await expect(writeCustomDoc({ title: 'Nope', markdown: 'PWNED', fileName: 'planted.mdx' })).rejects.toThrow(
+        escapes('planted.mdx')
+      );
+      await expect(getCustomDoc('/planted.mdx')).rejects.toThrow(escapes('/planted.mdx'));
+      await expect(rmCustomDoc('/planted.mdx')).rejects.toThrow(escapes('/planted.mdx'));
+      await expect(
+        writeCustomDoc({ title: 'Nope', markdown: 'PWNED', fileName: 'planted.mdx' }, { path: '/escape' })
+      ).rejects.toThrow(escapes('/escape/planted.mdx'));
+
+      expect(fs.existsSync(outsideFile)).toBe(false);
+      expect(fs.existsSync(path.join(parentDirectory, 'outside-dir'))).toBe(false);
+      expect(fs.lstatSync(path.join(docsDirectory, 'planted.mdx')).isSymbolicLink()).toBe(true);
+    });
   });
 });

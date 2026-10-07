@@ -26,16 +26,49 @@ const toRelativeCatalogSegment = (segment: string, label: string): string => {
 
 const isInsideDirectory = (root: string, candidate: string) => candidate === root || candidate.startsWith(`${root}${path.sep}`);
 
+class CustomDocPathEscape extends Error {
+  constructor() {
+    super('Custom doc path escapes the catalog docs directory');
+    this.name = 'CustomDocPathEscape';
+  }
+}
+
+// lstat, not stat: a dangling symlink exists even when its target does not.
+const readSymlinkTarget = (linkPath: string): string | undefined => {
+  try {
+    if (!fsSync.lstatSync(linkPath).isSymbolicLink()) return undefined;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+    throw error;
+  }
+
+  return path.resolve(path.dirname(linkPath), fsSync.readlinkSync(linkPath));
+};
+
 // Resolve through the nearest existing ancestor so missing files are still symlink-checked.
+// realpath reports ENOENT for a dangling symlink. Do not treat that link as a missing component:
+// write and delete would follow it and create or remove the external target.
 const resolveRealPath = (target: string): string => {
   const missing: string[] = [];
   let current = target;
+  const seen = new Set<string>();
 
   while (true) {
+    if (seen.has(current)) throw new CustomDocPathEscape();
+    seen.add(current);
+
     try {
       return path.resolve(fsSync.realpathSync(current), ...missing);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+
+      const linkTarget = readSymlinkTarget(current);
+      if (linkTarget) {
+        current = path.resolve(linkTarget, ...missing);
+        missing.length = 0;
+        continue;
+      }
+
       const parent = path.dirname(current);
       if (parent === current) return path.resolve(current, ...missing);
       missing.unshift(path.basename(current));
@@ -52,7 +85,17 @@ const assertInsideDocsRoot = (docsDirectory: string, candidate: string, label: s
     throw customDocEscapeError(label);
   }
 
-  if (!isInsideDirectory(resolveRealPath(root), resolveRealPath(resolved))) {
+  let realRoot: string;
+  let realCandidate: string;
+  try {
+    realRoot = resolveRealPath(root);
+    realCandidate = resolveRealPath(resolved);
+  } catch (error) {
+    if (error instanceof CustomDocPathEscape) throw customDocEscapeError(label);
+    throw error;
+  }
+
+  if (!isInsideDirectory(realRoot, realCandidate)) {
     throw customDocEscapeError(label);
   }
 
