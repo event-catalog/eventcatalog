@@ -1,0 +1,22 @@
+/*
+ * The canvas view's Tailwind stylesheet (with Tailwind's base reset) and EventCatalog's theme variables,
+ * built from the classes of the collaborative canvas components it renders.
+ */
+@import 'tailwindcss' source(none);
+@import '../../../../styles/theme.css';
+@import '../../../studio/studio.css';
+
+@source './*.tsx';
+@source '../../../studio/components/*.{ts,tsx}';
+
+body {
+  margin: 0;
+  background: rgb(var(--ec-page-bg));
+  color: rgb(var(--ec-page-text));
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}

@@ -77,6 +77,7 @@ vi.mock('@utils/feature', () => ({
   isSSR: vi.fn(() => true),
   isEventCatalogMCPEnabled: vi.fn(() => true),
   isEventCatalogMCPAuthEnabled: vi.fn(() => false),
+  isCanvasEnabled: vi.fn(() => false),
 }));
 
 // Mock getSchemasFromResource

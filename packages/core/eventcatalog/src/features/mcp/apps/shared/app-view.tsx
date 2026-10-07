@@ -84,7 +84,8 @@ export function useMcpAppView<Payload>(options: McpAppViewOptions<Payload>) {
     setHostContext(context);
   }, [app]);
 
-  return { app, payload, error: connectionError?.message ?? error, hostContext };
+  // setPayload: views that switch what they show themselves (e.g. picking a canvas) without a new tool result
+  return { app, payload, setPayload, error: connectionError?.message ?? error, hostContext };
 }
 
 /** Adds the view's styles and renders it */

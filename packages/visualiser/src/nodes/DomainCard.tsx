@@ -5,7 +5,7 @@ import {
   Group as GroupIcon,
   Server as ServerIcon,
 } from "lucide-react";
-import { memo } from "react";
+import { memo, type KeyboardEvent } from "react";
 import { buildUrl, navigateTo } from "../utils/url-builder";
 import { LINE_CLAMP_STYLE } from "./shared-styles";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
@@ -24,6 +24,8 @@ interface Data {
   entitiesCount?: number;
   /** The domain is a subdomain of another domain */
   subdomain?: boolean;
+  /** Set to false where click is owned by the host (e.g. an editor canvas) */
+  navigable?: boolean;
 }
 
 const CARD_STYLE = {
@@ -45,6 +47,7 @@ export default memo(function DomainCardNode({ data }: any) {
     servicesCount = 0,
     entitiesCount = 0,
     subdomain = false,
+    navigable = true,
   } = data as Data;
   const { id, version, name, summary } = domain;
 
@@ -59,14 +62,18 @@ export default memo(function DomainCardNode({ data }: any) {
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={goToDiagram}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") goToDiagram();
-      }}
-      title={`Open the ${name} diagram`}
-      className="relative min-w-48 max-w-60 rounded-xl border-2 border-yellow-400 overflow-visible cursor-pointer"
+      {...(navigable
+        ? {
+            role: "button" as const,
+            tabIndex: 0,
+            onClick: goToDiagram,
+            onKeyDown: (e: KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") goToDiagram();
+            },
+            title: `Open the ${name} diagram`,
+          }
+        : {})}
+      className={`relative min-w-48 max-w-60 rounded-xl border-2 border-yellow-400 overflow-visible${navigable ? " cursor-pointer" : ""}`}
       style={CARD_STYLE}
     >
       <Handle

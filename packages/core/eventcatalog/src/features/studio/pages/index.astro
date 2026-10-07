@@ -1,0 +1,8 @@
+---
+import { buildUrl } from '@utils/url-builder';
+
+export const prerender = false;
+
+// EventCatalog Studio: each visit starts a new canvas
+return Astro.redirect(buildUrl(`/studio/${crypto.randomUUID()}`));
+---

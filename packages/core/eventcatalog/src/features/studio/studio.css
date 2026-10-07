@@ -1,0 +1,89 @@
+/*
+ * The visualiser hides node handles (it is read only), here they are the connection points,
+ * so show them on hover, on selection and while connecting.
+ */
+.studio-canvas .react-flow__handle {
+  opacity: 0 !important;
+  width: 11px;
+  height: 11px;
+  background: rgb(var(--ec-card-bg));
+  border: 2px solid rgb(var(--ec-accent));
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.studio-canvas .react-flow__node:hover .react-flow__handle,
+.studio-canvas .react-flow__node.selected .react-flow__handle,
+.studio-canvas .react-flow__pane.connecting ~ * .react-flow__handle,
+.studio-canvas .react-flow__handle.connectingto {
+  opacity: 1 !important;
+}
+
+.studio-canvas .react-flow__handle:hover,
+.studio-canvas .react-flow__handle.connectingto {
+  background: rgb(var(--ec-accent));
+}
+
+.studio-canvas .react-flow__handle.connectingto.valid {
+  background: rgb(var(--ec-badge-color-green-text));
+  border-color: rgb(var(--ec-badge-color-green-text));
+}
+
+.studio-canvas .react-flow__edge.selected .react-flow__edge-path,
+.studio-canvas .react-flow__edge:hover .react-flow__edge-path {
+  stroke: rgb(var(--ec-accent)) !important;
+  stroke-width: 2px !important;
+}
+
+/* Comment mode (C): click anywhere to drop a comment */
+.studio-canvas.comment-mode .react-flow__pane,
+.studio-canvas.comment-mode .react-flow__node {
+  cursor: crosshair !important;
+}
+
+/* After a layout or a level change, nodes glide to their new place */
+.studio-canvas.is-layout-transition .react-flow__node {
+  transition: transform 450ms ease;
+}
+
+/* Edges are drawn where the nodes end up, so they wait for the glide to finish */
+.studio-canvas .react-flow__edges {
+  transition: opacity 200ms ease;
+}
+.studio-canvas.is-layout-transition .react-flow__edges {
+  opacity: 0;
+  transition: none;
+}
+
+/* Nodes pop in when they're added (by anyone, people or agents) */
+@keyframes studio-node-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+.studio-canvas .react-flow__node {
+  animation: studio-node-in 220ms ease-out;
+}
+
+/* No React Flow attribution on the canvas */
+.studio-canvas .react-flow__attribution {
+  display: none;
+}
+
+/*
+ * Containers let the pointer through their body to the canvas (so dragging inside one draws a selection box),
+ * and are moved, selected and resized by their header and resize handles. React Flow sets pointer-events inline.
+ */
+.studio-canvas .react-flow__node-domain-group,
+.studio-canvas .react-flow__node-system-group {
+  pointer-events: none !important;
+}
+.studio-canvas .react-flow__node-domain-group :is(.ec-group-grip, .react-flow__resize-control),
+.studio-canvas .react-flow__node-system-group :is(.ec-group-grip, .react-flow__resize-control) {
+  pointer-events: auto;
+}

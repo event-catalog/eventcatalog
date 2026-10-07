@@ -17,6 +17,8 @@ const apps = [
   // One view for the architecture diagram and the schema, so hosts keep one panel open and update it.
   // The schema viewers are styled with Tailwind classes, so the view builds its own Tailwind stylesheet
   { name: 'viewer', entry: 'viewer/view.tsx', title: 'EventCatalog', plugins: [tailwindcss()] },
+  // The collaborative canvas, live in the chat
+  { name: 'canvas', entry: 'canvas/view.tsx', title: 'EventCatalog canvas', plugins: [tailwindcss()] },
 ];
 
 const toHtml = (title, script) => `<!doctype html>
@@ -47,6 +49,7 @@ for (const app of apps) {
     resolve: {
       alias: {
         '@utils': path.join(appsDirectory, '../../../utils'),
+        '@features': path.join(appsDirectory, '../..'),
         mermaid: path.join(appsDirectory, 'mermaid-stub.ts'),
       },
     },

@@ -1,0 +1,38 @@
+---
+// Visualiser styles ship in the page head so ClientRouter navigations keep them (see NodeGraph.astro).
+import '@eventcatalog/visualiser/styles-core.css';
+import '../studio.css';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { buildUrl } from '@utils/url-builder';
+import StudioDesigner from '../components/StudioDesigner';
+import { getCatalogResources } from '../catalog-resources';
+import { STUDIO_SOCKET_PATH } from '../server/runtime';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
+  return Astro.redirect(buildUrl('/studio'));
+}
+
+const { resources, relations } = await getCatalogResources();
+---
+
+<VerticalSideBarLayout title="Studio - EventCatalog" showNestedSideBar={false}>
+  <main
+    class="min-h-0 overflow-hidden bg-[rgb(var(--ec-page-bg))]"
+    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+  >
+    <StudioDesigner
+      client:only="react"
+      canvasId={id}
+      socketPath={buildUrl(STUDIO_SOCKET_PATH, true)}
+      newCanvasUrl={buildUrl('/studio')}
+      mcpUrl={buildUrl('/docs/mcp', true)}
+      relayScriptPath={buildUrl('/webmcp-relay/embed.js', true)}
+      resources={resources}
+      relations={relations}
+    />
+  </main>
+</VerticalSideBarLayout>

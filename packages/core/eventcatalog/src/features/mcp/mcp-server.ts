@@ -22,6 +22,9 @@ import { RESOURCE_VIEWS, VIEWER_META_KEY, VIEWER_RESOURCE_URI, VIEWER_VIEW_TOOL,
 import { toSchemaViewerSchemas } from './schema-viewer';
 import { getMcpAppViewLoader, mcpAppNote, registerMcpApp } from './mcp-apps';
 import { buildUrl } from '@utils/url-builder';
+import { isCanvasEnabled } from '@utils/feature';
+import { CANVAS_TOOL_NAMES, registerCanvasTools } from '@features/studio/server/canvas-mcp';
+import { findStudioRuntime } from '@features/studio/server/runtime';
 
 const loadViewerView = getMcpAppViewLoader('viewer');
 
@@ -36,6 +39,8 @@ const SHOW_RESOURCE_DESCRIPTION = [
 type McpServerOptions = {
   /** Where this EventCatalog is served, for links from MCP App views back to it */
   catalogUrl: string;
+  /** The MCP client's user agent, to name agents that join a canvas */
+  userAgent?: string;
 };
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
@@ -115,7 +120,7 @@ function getServerInstructions(scope?: McpScope) {
 }
 
 // Create MCP Server with tools that access Astro collections
-function createMcpServer(scope: McpScope | undefined, { catalogUrl }: McpServerOptions) {
+function createMcpServer(scope: McpScope | undefined, { catalogUrl, userAgent }: McpServerOptions) {
   const server = new McpServer(
     {
       name: scope ? `EventCatalog MCP Server — ${scope.name} ${scope.ref.kind}` : 'EventCatalog MCP Server',
@@ -831,6 +836,9 @@ function createMcpServer(scope: McpScope | undefined, { catalogUrl }: McpServerO
     );
   }
 
+  // Collaborative canvases (when the collaboration server runs in this process)
+  if (!scope && isCanvasEnabled()) registerCanvasTools(server, { catalogUrl, userAgent });
+
   return server;
 }
 
@@ -964,7 +972,9 @@ const handleGetRequest = async (c: Context, kind?: McpScopeKind) => {
       version: MCP_SERVER_VERSION,
       status: 'running',
       ...(scope && { scope: scope.ref }),
-      tools: scope ? getScopedBuiltInTools(scope) : [...globalBuiltInTools, ...extendedToolNames],
+      tools: scope
+        ? getScopedBuiltInTools(scope)
+        : [...globalBuiltInTools, ...(isCanvasEnabled() && findStudioRuntime() ? CANVAS_TOOL_NAMES : []), ...extendedToolNames],
       extendedTools: !scope && extendedToolNames.length > 0 ? extendedToolNames : undefined,
       resources: getMcpResourceUris(scope),
     });
@@ -983,7 +993,10 @@ const handleMcpRequest = async (c: Context, kind?: McpScopeKind) => {
     }
 
     const scope = await resolveRequestScope(c, kind);
-    const server = createMcpServer(scope, { catalogUrl: new URL(c.req.url).origin });
+    const server = createMcpServer(scope, {
+      catalogUrl: new URL(c.req.url).origin,
+      userAgent: c.req.header('user-agent'),
+    });
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
@@ -1023,7 +1036,7 @@ app.post('/', (c: Context) => handleMcpRequest(c));
 
 // Astro API route handler - delegates all requests to Hono
 // Note: SSR checks are handled at build time by the integration
-// This route is only injected when isEventCatalogMCPEnabled() returns true
+// This route is only injected when isEventCatalogMCPEnabled() or isCanvasEnabled() returns true
 export const ALL: APIRoute = async ({ request }) => {
   return app.fetch(request);
 };

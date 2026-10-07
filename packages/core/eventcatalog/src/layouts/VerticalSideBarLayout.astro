@@ -52,7 +52,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
 import { getFirstNavigationPage } from '@features/custom-documentation/utils/custom-docs';
 
-import { isSSR } from '@utils/feature';
+import { isCanvasEnabled, isSSR } from '@utils/feature';
 
 const customDocs = await getCollection('customPages');
 const firstCustomDocsPage = customDocs.length > 0 ? await getFirstNavigationPage() : null;
@@ -292,7 +292,12 @@ const builtinNavigationItems: Record<string, Omit<VerticalNavigationItem, 'curre
 const defaultNavigationGroups: NavigationGroupConfig[] = [
   {
     id: 'main',
-    items: [{ id: '/' }, { id: '/docs/custom', visible: customDocs.length > 0 }],
+    items: [
+      { id: '/' },
+      { id: '/docs/custom', visible: customDocs.length > 0 },
+      // Collaborative canvases, where they're on
+      { id: '/studio', visible: isCanvasEnabled() },
+    ],
   },
   {
     id: 'browse',
@@ -371,6 +376,8 @@ const resolveNavigationItem = (item: NavigationItemConfig): VerticalNavigationIt
   if (item.visible === false) return null;
 
   const builtinId = navigationBuiltinAliases[item.id] || item.id;
+  // Studio is only there where canvases are on
+  if (builtinId === '/studio' && !item.href && !isCanvasEnabled()) return null;
   const builtin = builtinNavigationItems[builtinId];
   const href = item.href ? normalizeNavigationHref(item.href) : builtin?.href;
 

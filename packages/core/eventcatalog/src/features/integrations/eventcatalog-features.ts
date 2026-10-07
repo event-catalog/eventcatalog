@@ -13,6 +13,7 @@ import {
   isFullCatalogAPIEnabled,
   isDevMode,
   isSSR,
+  isCanvasEnabled,
 } from '../../utils/feature';
 import { getCustomPageRoutes, isApiRoute, listCustomPageFiles, resolveCustomPagesPrefix } from '../custom-pages/routes';
 
@@ -111,7 +112,8 @@ export default function eventCatalogIntegration(): AstroIntegration {
         }
 
         // Handle routes for MCP Server (requires SSR)
-        if (isEventCatalogMCPEnabled()) {
+        // Also for canvases, so agents can join them (the canvas tools are on the MCP server)
+        if (isEventCatalogMCPEnabled() || isCanvasEnabled()) {
           params.injectRoute({
             pattern: '/docs/mcp/[...path]',
             entrypoint: path.join(packageDirectory, 'src/features/mcp/mcp-server.ts'),
@@ -171,6 +173,23 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/api/dev/visualizer-layout/reset',
             entrypoint: path.join(packageDirectory, 'src/features/visualizer-layout/reset.ts'),
+          });
+        }
+
+        // Collaborative canvases in EventCatalog Studio (/studio starts one). Their WebSocket server is in
+        // integrations/studio-server.mjs.
+        if (isCanvasEnabled()) {
+          params.injectRoute({
+            pattern: '/studio',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/index.astro'),
+          });
+          params.injectRoute({
+            pattern: '/studio/[id]',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/[id].astro'),
+          });
+          params.injectRoute({
+            pattern: '/webmcp-relay/[file]',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/webmcp-relay.ts'),
           });
         }
       },

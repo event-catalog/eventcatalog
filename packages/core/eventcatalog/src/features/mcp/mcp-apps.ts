@@ -12,7 +12,7 @@ const mcpAppViews = import.meta.glob<string>('./apps/generated/*.html', { query:
 export const getMcpAppViewLoader = (name: string) => mcpAppViews[`./apps/generated/${name}.html`];
 
 /** Tool `_meta` telling MCP hosts that support MCP Apps to show the tool's result in a view */
-const appViewMeta = (resourceUri: string, visibility?: Array<'model' | 'app'>) => ({
+export const appViewMeta = (resourceUri: string, visibility?: Array<'model' | 'app'>) => ({
   ui: { resourceUri, ...(visibility && { visibility }) },
   [RESOURCE_URI_META_KEY]: resourceUri,
 });
@@ -38,6 +38,8 @@ type ToolDefinition<Shape extends z.ZodRawShape> = {
   description: string;
   /** The tool's arguments, as a Zod shape */
   input: Shape;
+  /** More `_meta` for the tool, e.g. host extensions such as ChatGPT's `openai/ui` entrypoints */
+  meta?: Record<string, unknown>;
 };
 
 export type McpAppDefinition<Shape extends z.ZodRawShape, ViewShape extends z.ZodRawShape, Payload> = {
@@ -47,7 +49,8 @@ export type McpAppDefinition<Shape extends z.ZodRawShape, ViewShape extends z.Zo
     name: string;
     uri: string;
     description: string;
-    csp?: { resourceDomains: string[] };
+    /** Origins the view may load from (resourceDomains) and connect to with fetch or WebSockets (connectDomains) */
+    csp?: { resourceDomains?: string[]; connectDomains?: string[] };
     /** How hosts open the view: ChatGPT reads these before loading it, so it can open straight in that mode */
     displayModes?: { preferred: McpUiDisplayMode; available: McpUiDisplayMode[] };
   };
@@ -110,7 +113,7 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
       description: app.tool.description,
       inputSchema: toolInput,
       annotations: app.annotations,
-      _meta: loadView ? appViewMeta(app.resource.uri) : undefined,
+      _meta: loadView ? { ...appViewMeta(app.resource.uri), ...app.tool.meta } : undefined,
     },
     showInView
   );
