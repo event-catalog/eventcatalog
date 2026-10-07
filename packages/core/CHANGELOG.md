@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.4
+
+### Patch Changes
+
+- 3f745fb: Fix several `npm audit` findings in new catalogs: upgrade `astro-seo` to 1.x (it no longer installs `@astrojs/check`) and `hono` to a version with the `hono/jsx` XSS fix, remove `shelljs` from core, and replace `fast-glob` with `glob` in the linter.
+- c0a68a5: The sidebar no longer repeats a heading's icon on every item under it. For example, events listed under Events, and the items in the Channels, Entities, Decision Records, Domains and Flows lists, now show just their names. Custom icons still show.
+- Updated dependencies [3f745fb]
+  - @eventcatalog/linter@1.2.0-beta.1
+
 ## 5.0.0-beta.3
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @eventcatalog/linter
 
+## 1.2.0-beta.1
+
+### Patch Changes
+
+- 3f745fb: Fix several `npm audit` findings in new catalogs: upgrade `astro-seo` to 1.x (it no longer installs `@astrojs/check`) and `hono` to a version with the `hono/jsx` XSS fix, remove `shelljs` from core, and replace `fast-glob` with `glob` in the linter.
+
 ## 1.2.0-beta.0
 
 ### Minor Changes

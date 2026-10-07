@@ -15,6 +15,7 @@
   "changesets": [
     "all-features-included",
     "architecture-redirect",
+    "audit-dependency-fixes",
     "bump-xyflow-react",
     "business-source-license",
     "chat-configuration-error",
@@ -40,6 +41,7 @@
     "sdk-vite-ignore-config-import",
     "settings-domain-mcp-servers",
     "sidebar-diagram-labels",
+    "sidebar-hide-repeated-icons",
     "sidebar-resources-label",
     "system-visualiser-levels",
     "telemetry-require-catalog-id",
