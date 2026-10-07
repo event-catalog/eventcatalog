@@ -14,7 +14,7 @@ describe('getTrialStatus', () => {
   });
 
   it('counts a part-day as a day left', () => {
-    expect(getTrialStatus(start, start + 23 * DAY + 1)?.daysLeft).toBe(67);
+    expect(getTrialStatus(start, start + 23 * DAY + 1)?.daysLeft).toBe(37);
     expect(getTrialStatus(start, start + (TRIAL_LENGTH_DAYS - 1) * DAY + 1)?.daysLeft).toBe(1);
   });
 

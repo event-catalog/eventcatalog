@@ -1,4 +1,4 @@
-export const TRIAL_LENGTH_DAYS = 90;
+export const TRIAL_LENGTH_DAYS = 60;
 
 export const LICENSE_FAQ_URL = 'https://www.eventcatalog.dev/license-faq';
 

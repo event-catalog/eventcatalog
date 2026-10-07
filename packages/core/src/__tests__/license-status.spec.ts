@@ -195,21 +195,21 @@ describe('license status', () => {
     it('shows the trial without a license', () => {
       const message = getLicenseStatusMessage({ state: 'none' }, tsd, now);
       expect(message).toMatchObject({ title: 'EventCatalog trial', color: 'green' });
-      expect(message?.text).toContain('67 days left of your 90-day EventCatalog trial');
+      expect(message?.text).toContain('37 days left of your 60-day EventCatalog trial');
     });
 
     it('shows an expired license in its own box, then the trial', () => {
       const expired = getLicenseStatusMessage({ state: 'expired', org: 'acme', expiresAt: new Date(now - 5 * DAY) }, tsd, now);
       expect(expired).toMatchObject({ title: 'EventCatalog License Expired', color: 'yellow' });
       expect(expired?.text).toMatch(
-        /^Your EventCatalog commercial license for acme expired on .+ \(5 days ago\)\.\nRenew it to keep using EventCatalog commercially: https:\/\/eventcatalog\.cloud\n67 days left/
+        /^Your EventCatalog commercial license for acme expired on .+ \(5 days ago\)\.\nRenew it to keep using EventCatalog commercially: https:\/\/eventcatalog\.cloud\n37 days left/
       );
     });
 
     it('warns about an invalid license, then shows the trial', () => {
       const invalid = getLicenseStatusMessage({ state: 'invalid', reason: 'its signature is invalid' }, tsd, now);
       expect(invalid).toMatchObject({ title: 'EventCatalog license', color: 'yellow' });
-      expect(invalid?.text).toMatch(/^Your license\.jwt could not be verified: its signature is invalid\.\n67 days left/);
+      expect(invalid?.text).toMatch(/^Your license\.jwt could not be verified: its signature is invalid\.\n37 days left/);
     });
 
     it('shows nothing without a license or a trial start date', () => {
@@ -229,7 +229,7 @@ describe('license status', () => {
         license: 'commercial',
         licenseState: 'valid',
         licenseExpiry: exp * 1000,
-        trialExpiry: tsd + 90 * DAY,
+        trialExpiry: tsd + 60 * DAY,
       });
     });
 
@@ -247,7 +247,7 @@ describe('license status', () => {
         license: 'trial',
         licenseState: 'none',
         licenseExpiry: undefined,
-        trialExpiry: tsd + 90 * DAY,
+        trialExpiry: tsd + 60 * DAY,
       });
       expect(getLicenseAnalytics({ state: 'expired', expiresAt: new Date(exp * 1000) }, tsd)).toMatchObject({
         license: 'trial',
