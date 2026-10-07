@@ -20,6 +20,7 @@
     "business-source-license",
     "chat-configuration-error",
     "cli-license-status",
+    "collaborative-canvases",
     "commercial-license-fallback",
     "default-theme-dark-accent",
     "dev-trial-badge",
@@ -46,6 +47,7 @@
     "system-visualiser-levels",
     "telemetry-require-catalog-id",
     "trial-60-days",
+    "visualiser-canvas-nodes",
     "visualiser-faster-level-switching",
     "visualiser-nodegraph-display-props"
   ]

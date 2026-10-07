@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.0.0-beta.3
+
+### Patch Changes
+
+- eae18f0: Export `DomainCardNode`, add a `navigable` option to the domain card and system nodes (set it to `false` to render them without links), and type the note node's props as React Flow `NodeProps`.
+
 ## 5.0.0-beta.2
 
 ### Patch Changes
