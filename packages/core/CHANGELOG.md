@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.7
+
+### Patch Changes
+
+- Updated dependencies [a4f072a]
+  - @eventcatalog/sdk@2.30.0-beta.1
+  - @eventcatalog/linter@1.2.0-beta.2
+
 ## 5.0.0-beta.6
 
 ### Minor Changes

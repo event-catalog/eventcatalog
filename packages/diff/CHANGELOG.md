@@ -1,5 +1,12 @@
 # @eventcatalog/diff
 
+## 0.1.3-beta.1
+
+### Patch Changes
+
+- Updated dependencies [a4f072a]
+  - @eventcatalog/sdk@2.30.0-beta.1
+
 ## 0.1.3-beta.0
 
 ### Patch Changes

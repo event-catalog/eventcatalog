@@ -39,6 +39,7 @@
     "resources-page-layout",
     "resources-pages",
     "schema-page-hydration",
+    "sdk-custom-doc-path-containment",
     "sdk-vite-ignore-config-import",
     "settings-domain-mcp-servers",
     "sidebar-diagram-labels",

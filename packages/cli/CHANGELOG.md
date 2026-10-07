@@ -1,5 +1,12 @@
 # @eventcatalog/cli
 
+## 1.1.0-beta.1
+
+### Patch Changes
+
+- Updated dependencies [a4f072a]
+  - @eventcatalog/sdk@2.30.0-beta.1
+
 ## 1.1.0-beta.0
 
 ### Minor Changes
