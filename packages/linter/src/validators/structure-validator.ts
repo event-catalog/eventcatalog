@@ -1,7 +1,7 @@
-import fg from 'fast-glob';
 import path from 'path';
 import { CatalogFile } from '../scanner';
 import { ValidationError } from '../types';
+import { findFiles } from '../utils/find-files';
 import { editDistance } from './unknown-field-validator';
 
 /**
@@ -192,12 +192,7 @@ export const findUnrecognisedFiles = async (
 ): Promise<UnrecognisedFile[]> => {
   const recognised = new Set(recognisedFiles.map((file) => normalisePath(file.relativePath)));
 
-  const candidates = await fg(['**/*.{md,mdx}'], {
-    cwd: rootDir,
-    onlyFiles: true,
-    followSymbolicLinks: false,
-    ignore: NON_RESOURCE_PATTERNS,
-  });
+  const candidates = await findFiles(['**/*.{md,mdx}'], { cwd: rootDir, ignore: NON_RESOURCE_PATTERNS });
 
   return candidates
     .map(normalisePath)

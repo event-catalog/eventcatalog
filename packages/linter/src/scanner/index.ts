@@ -1,6 +1,6 @@
-import fg from 'fast-glob';
 import path from 'path';
 import { ResourceType } from '../schemas';
+import { findFiles } from '../utils/find-files';
 
 export interface CatalogFile {
   path: string;
@@ -127,11 +127,9 @@ export const scanCatalogFiles = async (rootDir: string): Promise<CatalogFile[]> 
   const files: CatalogFile[] = [];
 
   for (const [resourceType, patterns] of Object.entries(RESOURCE_PATTERNS)) {
-    const foundFiles = await fg(patterns, {
+    const foundFiles = await findFiles(patterns, {
       cwd: rootDir,
       absolute: true,
-      onlyFiles: true,
-      followSymbolicLinks: false,
       // Builds copy resource files into dist/generated; these are not catalog inputs.
       ignore: ['**/dist/**', '**/node_modules/**'],
     });

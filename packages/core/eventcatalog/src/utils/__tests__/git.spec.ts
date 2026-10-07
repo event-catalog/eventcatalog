@@ -179,4 +179,14 @@ describe('getGitHistory', { timeout: 20_000 }, () => {
       expect(() => getGitHistory('events/OrderPlaced/index.mdx', { age: 'oldest' })).toThrow();
     });
   });
+
+  it('says git is not installed when git cannot be found on the PATH', () => {
+    const originalPath = process.env.PATH;
+    process.env.PATH = path.join(tempDir, 'no-binaries');
+    try {
+      expect(() => getGitHistory('catalog/events/OrderPlaced/index.mdx', {})).toThrow('Git is not installed');
+    } finally {
+      process.env.PATH = originalPath;
+    }
+  });
 });

@@ -1,17 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import shell from 'shelljs';
 
 type Commit = { timestamp: number; author: string };
 
 const COMMIT_MARKER = '\x1e';
 
 const newestCommitsByRepository = new Map<string, Map<string, Commit> | undefined>();
-
-export function hasGit() {
-  return !!shell.which('git');
-}
 
 const runGit = (args: string[]) => {
   try {
@@ -24,6 +19,17 @@ const runGit = (args: string[]) => {
     return undefined;
   }
 };
+
+// Checked once per PATH, as git history is read for every page
+const gitInstalledByPath = new Map<string | undefined, boolean>();
+
+export function hasGit() {
+  const searchPath = process.env.PATH;
+  if (!gitInstalledByPath.has(searchPath)) {
+    gitInstalledByPath.set(searchPath, runGit(['--version']) !== undefined);
+  }
+  return gitInstalledByPath.get(searchPath)!;
+}
 
 const parseCommit = (header: string): Commit => {
   const [timestamp, ...author] = header.split(',');
