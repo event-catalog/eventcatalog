@@ -4,6 +4,7 @@ import {
   createSectionCollapsePreferences,
   findNodeKeyByUrl,
   getDefaultCollapsedState,
+  hidesDefaultItemIcon,
   isGroupCollapsed,
   toggleGroupCollapsed,
 } from './utils';
@@ -101,5 +102,47 @@ describe('findNodeKeyByUrl', () => {
 
   it('falls back to the available channel version', () => {
     expect(findNodeKeyByUrl('/docs/channels/product-events/latest', nodes, nodeLookup)).toBe(channelKey);
+  });
+});
+
+describe('sidebar item icons', () => {
+  it('hides the icon of items whose group heading already shows it, e.g. events listed under Events', () => {
+    expect(
+      hidesDefaultItemIcon(
+        { type: 'group', title: 'Events', icon: 'Zap' },
+        { type: 'item', title: 'Order Created', icon: 'Zap' },
+        false
+      )
+    ).toBe(true);
+  });
+
+  it('hides the icon of items in a list that already shows it, e.g. channels listed under Channels', () => {
+    expect(
+      hidesDefaultItemIcon(
+        { type: 'item', title: 'Channels', icon: 'ArrowRightLeft' },
+        { type: 'item', title: 'Orders Queue', icon: 'ArrowRightLeft' },
+        false
+      )
+    ).toBe(true);
+  });
+
+  it('keeps the icon of items whose type differs from their group heading', () => {
+    expect(
+      hidesDefaultItemIcon(
+        { type: 'group', title: 'Sends', icon: 'Mail' },
+        { type: 'item', title: 'Order Created', icon: 'Zap' },
+        false
+      )
+    ).toBe(false);
+  });
+
+  it('hides the icon of every item under a nested group', () => {
+    expect(
+      hidesDefaultItemIcon(
+        { type: 'group', title: 'Events', icon: 'Zap' },
+        { type: 'item', title: 'Order Created', icon: 'Mail' },
+        true
+      )
+    ).toBe(true);
   });
 });

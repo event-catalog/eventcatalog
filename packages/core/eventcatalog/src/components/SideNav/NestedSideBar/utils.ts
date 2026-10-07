@@ -1,5 +1,7 @@
 // Shared utilities for NestedSideBar components
 
+import type { NavNode } from '@stores/sidebar-store/state';
+
 export const SIDEBAR_GROUP_COLLAPSE_THRESHOLD = 5;
 
 /**
@@ -67,6 +69,14 @@ export const toggleGroupCollapsed = (
  * Finds the sidebar node represented by a resource URL.
  * The URL must have its configured base path removed before it is passed in.
  */
+/**
+ * Whether an item in a group drops its default per-collection icon because the group heading
+ * already conveys its type: every item under a nested group, and items whose icon is the
+ * group's own (e.g. events listed under Events). Custom icons (`leftIcon`) always show.
+ */
+export const hidesDefaultItemIcon = (group: NavNode, item: NavNode, isNested: boolean): boolean =>
+  isNested || (!!group.icon && group.icon === item.icon);
+
 export const findNodeKeyByUrl = (
   url: string,
   nodes: Record<string, unknown>,

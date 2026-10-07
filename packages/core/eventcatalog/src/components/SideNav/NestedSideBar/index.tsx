@@ -25,6 +25,7 @@ import {
   findNodeKeyByUrl,
   getBadgeClasses,
   getDefaultCollapsedState,
+  hidesDefaultItemIcon,
   isGroupCollapsed,
   toggleGroupCollapsed,
 } from './utils';
@@ -663,6 +664,11 @@ export default function NestedSideBar() {
 
   const isTopLevel = navigationStack.length === 1;
 
+  // The list drilled into (e.g. Channels): its items, even those in groups under it (e.g. ADRs
+  // grouped by status), drop a default icon that repeats the list's own
+  const levelNode = currentLevel.key ? resolveRef(currentLevel.key) : null;
+  const repeatsLevelIcon = (item: NavNode) => !!levelNode && hidesDefaultItemIcon(levelNode, item, false);
+
   /**
    * Render a list of child refs (resolving keys as needed)
    */
@@ -674,7 +680,7 @@ export default function NestedSideBar() {
       if (currentItemGroup.length > 0) {
         result.push(
           <div key={`items-${result.length}`} className="flex flex-col gap-0.5 mb-1.5">
-            {currentItemGroup.map((item, idx) => renderItem(item.node, item.key, idx))}
+            {currentItemGroup.map((item, idx) => renderItem(item.node, item.key, idx, repeatsLevelIcon(item.node)))}
           </div>
         );
         currentItemGroup = [];
@@ -795,9 +801,12 @@ export default function NestedSideBar() {
                 return renderGroup(child, childKey, childIndex, depth + 1);
               }
 
-              // Under a nested group the header already conveys the resource type, so the
-              // default per-collection glyph is dropped; custom icons still show.
-              return renderItem(child, childKey, childIndex, isNested);
+              return renderItem(
+                child,
+                childKey,
+                childIndex,
+                hidesDefaultItemIcon(group, child, isNested) || repeatsLevelIcon(child)
+              );
             })}
           </div>
         )}
@@ -814,9 +823,9 @@ export default function NestedSideBar() {
     const isFav = isFavorited(itemKey);
     const canFavorite = itemKey !== null; // Only items with keys can be favorited
 
-    // Get icon component from lucide-react. When suppressDefaultIcon is set (e.g. items
-    // listed under a typed subtle subgroup) the default per-collection glyph is hidden;
-    // a custom icon (item.leftIcon) is always still shown.
+    // Get icon component from lucide-react. When suppressDefaultIcon is set (the group heading
+    // already shows the item's type, see hidesDefaultItemIcon) the default per-collection glyph
+    // is hidden; a custom icon (item.leftIcon) is always still shown.
     const IconComponent =
       item.icon && !suppressDefaultIcon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[item.icon] : null;
     const handleStarClick = (e: React.MouseEvent) => {
