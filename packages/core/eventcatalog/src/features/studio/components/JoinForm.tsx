@@ -1,29 +1,5 @@
 import { useState } from 'react';
 
-const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
-const NAME_KEY = 'eventcatalog-studio-name';
-
-export const getStoredName = () => {
-  try {
-    return localStorage.getItem(NAME_KEY);
-  } catch {
-    return null;
-  }
-};
-
-export const storeName = (name: string) => {
-  try {
-    localStorage.setItem(NAME_KEY, name);
-  } catch {}
-};
-
-// Same name, same colour across reloads
-export const colorForName = (name: string) => {
-  let hash = 0;
-  for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) | 0;
-  return COLORS[Math.abs(hash) % COLORS.length];
-};
-
 export default function JoinForm({ onJoin }: { onJoin: (name: string) => void }) {
   const [draft, setDraft] = useState('');
 

@@ -1,9 +1,12 @@
 import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Bot, Check, ChevronDown, Link2, Pencil, Plus } from 'lucide-react';
+import { Bot, ChevronDown, Link2, Pencil, Plus, UserPlus } from 'lucide-react';
 import { usePeople, type Peer, type PresenceStore } from '../hooks/presence-store';
 import type { WebMcpStatus } from '../hooks/use-canvas-webmcp';
 import type { Status, Transport } from '../hooks/use-studio-flow';
+import type { CanvasStatus, StatusChange } from '../canvas-doc';
+import CanvasStatusMenu from './CanvasStatusMenu';
 import { CONNECTION_DOT, STATUS } from './status';
+import Picture from './Picture';
 
 /**
  * The canvas's header, like Figma or Miro: two small floating bars. On the left the canvas (its title, and a
@@ -12,8 +15,9 @@ import { CONNECTION_DOT, STATUS } from './status';
 
 const barClass =
   'pointer-events-auto flex h-10 items-center rounded-xl border shadow-md bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))]';
+// The header lets the pointer through to the canvas around its bars, so its menus take it back
 const menuClass =
-  'absolute top-full z-50 mt-2 min-w-52 rounded-xl border p-1 shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]';
+  'pointer-events-auto absolute top-full z-50 mt-2 min-w-52 rounded-xl border p-1 shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]';
 const menuItemClass =
   'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs hover:bg-[rgb(var(--ec-page-border)/0.5)]';
 const MAX_AVATARS = 4;
@@ -41,10 +45,11 @@ function usePopover() {
 function Avatar({ peer, size = 28, children }: { peer: Peer; size?: number; children?: ReactNode }) {
   return (
     <span
-      className="flex items-center justify-center rounded-full text-[11px] font-semibold text-white ring-2 ring-[rgb(var(--ec-card-bg))]"
+      className="relative flex items-center justify-center rounded-full text-[11px] font-semibold text-white ring-2 ring-[rgb(var(--ec-card-bg))]"
       style={{ backgroundColor: peer.color, width: size, height: size }}
     >
       {children ?? (peer.agent ? <Bot size={14} /> : peer.name.slice(0, 2).toUpperCase())}
+      {!children && <Picture src={peer.picture} />}
     </span>
   );
 }
@@ -56,6 +61,7 @@ function CanvasMenu({
   onRetitle,
   shareUrl,
   newCanvasUrl,
+  children,
 }: {
   title?: string;
   status: Status;
@@ -63,6 +69,8 @@ function CanvasMenu({
   onRetitle: (title: string) => void;
   shareUrl?: string;
   newCanvasUrl?: string;
+  /** Shown after the title (the canvas's status) */
+  children?: ReactNode;
 }) {
   const menu = usePopover();
   const titleInput = useRef<HTMLInputElement>(null);
@@ -92,6 +100,7 @@ function CanvasMenu({
           size={Math.max(12, (draft ?? title ?? 'Untitled canvas').length)}
           className="max-w-64 truncate rounded-md bg-transparent px-1.5 py-1 text-sm font-semibold placeholder:font-semibold placeholder:text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-border)/0.4)] focus:bg-[rgb(var(--ec-input-bg))] focus:outline-none"
         />
+        {children}
         <button
           aria-label="Canvas menu"
           onClick={() => menu.setOpen((open) => !open)}
@@ -137,16 +146,18 @@ function CanvasMenu({
   );
 }
 
-/** You: change the name others see you by */
-function YouAvatar({ peer, onRename }: { peer: Peer; onRename: (name: string) => void }) {
+/** You: change the name others see you by (unless you're signed in, when it's the name you signed in with) */
+function YouAvatar({ peer, onRename }: { peer: Peer; onRename?: (name: string) => void }) {
   const popover = usePopover();
   const [draft, setDraft] = useState(peer.name);
   const commit = () => {
     const trimmed = draft.trim();
-    if (trimmed && trimmed !== peer.name) onRename(trimmed);
+    if (trimmed && trimmed !== peer.name) onRename?.(trimmed);
     popover.setOpen(false);
   };
 
+  // Signed in: you're shown in the app's header already
+  if (!onRename) return null;
   return (
     <div ref={popover.ref} className="relative">
       <button
@@ -193,7 +204,7 @@ function People({
   peers: Peer[];
   clientId: number | null;
   onJumpTo: (peer: Peer) => void;
-  onRename: (name: string) => void;
+  onRename?: (name: string) => void;
 }) {
   const overflow = usePopover();
   const you = peers.find((peer) => peer.clientId === clientId);
@@ -262,29 +273,32 @@ export default memo(function CanvasHeader({
   webMcp,
   shareUrl,
   newCanvasUrl,
+  onShare,
+  canvasStatus,
+  statusHistory,
+  onStatusChange,
 }: {
   title?: string;
   onRetitle: (title: string) => void;
+  canvasStatus: CanvasStatus;
+  statusHistory: StatusChange[];
+  onStatusChange: (status: CanvasStatus, note?: string) => void;
   status: Status;
   transport: Transport;
   presence: PresenceStore | null;
   clientId: number | null;
   onJumpTo: (peer: Peer) => void;
-  onRename: (name: string) => void;
+  /** Not given when you're signed in */
+  onRename?: (name: string) => void;
   onConnectAgent: () => void;
   webMcp: WebMcpStatus;
   shareUrl?: string;
   newCanvasUrl?: string;
+  /** Open the share dialog */
+  onShare: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
   const peers = usePeople(presence);
   const agentsHere = peers.some((peer) => peer.agent);
-
-  const share = async () => {
-    await navigator.clipboard.writeText(shareUrl ?? window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
 
   return (
     <div className="pointer-events-none absolute left-3 right-3 top-3 z-10 flex items-start justify-between gap-3">
@@ -295,7 +309,9 @@ export default memo(function CanvasHeader({
         onRetitle={onRetitle}
         shareUrl={shareUrl}
         newCanvasUrl={newCanvasUrl}
-      />
+      >
+        <CanvasStatusMenu status={canvasStatus} history={statusHistory} onChange={onStatusChange} />
+      </CanvasMenu>
 
       <div className={`${barClass} gap-2 px-1.5`}>
         <div className="pl-1">
@@ -309,22 +325,23 @@ export default memo(function CanvasHeader({
               ? `Connect an AI agent to this canvas. WebMCP is on in this tab${webMcp.lastCall ? ` (last: ${webMcp.lastCall})` : ''}`
               : 'Connect an AI agent to this canvas'
           }
-          className="relative flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium hover:bg-[rgb(var(--ec-page-border)/0.5)]"
+          // A button of its own next to Share (the two ways to bring someone in): people, or an AI agent
+          className="relative flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold transition-colors border-[rgb(var(--ec-accent)/0.35)] bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))] hover:border-[rgb(var(--ec-accent)/0.7)] hover:bg-[rgb(var(--ec-accent)/0.15)]"
         >
           <Bot size={15} />
-          Connect agent
+          {agentsHere ? 'Agent connected' : 'Connect agent'}
           {(webMcp.state === 'on' || agentsHere) && (
             <span
-              className={`absolute left-5 top-1 h-1.5 w-1.5 rounded-full ring-2 ring-[rgb(var(--ec-card-bg))] ${STATUS.success.dot}`}
+              className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full ring-2 ring-[rgb(var(--ec-card-bg))] ${STATUS.success.dot}`}
             />
           )}
         </button>
         <button
-          onClick={share}
+          onClick={onShare}
           className="flex h-7 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
         >
-          {copied ? <Check size={14} /> : null}
-          {copied ? 'Link copied' : 'Share'}
+          <UserPlus size={14} />
+          Share
         </button>
       </div>
     </div>

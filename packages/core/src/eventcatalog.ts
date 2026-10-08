@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import http from 'node:http';
 import fs from 'fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { generate } from './generate';
 import logBuild from './analytics/log-build';
@@ -13,7 +13,7 @@ import { watch } from './watcher';
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import { getProjectOutDir, isAuthEnabled, isIndexedSearchEnabled, isOutputServer } from './features';
+import { getProjectOutDir, isAuthEnabled, isIndexedSearchEnabled, isOutputServer, isStudioEnabled } from './features';
 import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
@@ -552,15 +552,40 @@ const previewCatalog = async ({ command }: { command: Command }) => {
   });
 };
 
+/**
+ * Runs the built server. Astro's Node adapter starts it itself; instead it's started here (ASTRO_NODE_AUTOSTART is
+ * off) so the HTTP server can be left where EventCatalog Studio finds it, to serve its collaboration connection on
+ * the same port. With Studio on, a request wakes it once the server listens, so tabs reconnecting after a restart
+ * find it ready.
+ */
+const SERVER_BOOTSTRAP = `
+const entry = await import(process.argv[1]);
+const { server } = entry.startServer();
+globalThis[Symbol.for('eventcatalog.http-server')] = server.server;
+const wake = process.env.EVENTCATALOG_STUDIO_WAKE_PATH;
+if (wake) {
+  server.server.once('listening', () => {
+    // Where the server listens (HOST can be one address only); loopback when it listens on every address
+    const { address, port } = server.server.address();
+    const host = ['0.0.0.0', '::'].includes(address) ? '127.0.0.1' : address.includes(':') ? '[' + address + ']' : address;
+    fetch('http://' + host + ':' + port + wake).catch((error) => console.error('[studio] Could not start Studio:', error.message));
+  });
+}
+`;
+
 const startServerCatalog = async () => {
   const serverEntryPath = path.join(dir, 'dist', 'server', 'entry.mjs');
+  const config = await getEventCatalogConfigFile(dir);
+  const base = (config?.base || '/').replace(/\/$/, '');
   await runCommandWithFilteredOutput({
     command: process.execPath,
-    args: [serverEntryPath],
+    args: ['--input-type=module', '-e', SERVER_BOOTSTRAP, pathToFileURL(serverEntryPath).href],
     cwd: dir,
     env: {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,
+      ASTRO_NODE_AUTOSTART: 'disabled',
+      ...((await isStudioEnabled()) && { EVENTCATALOG_STUDIO_WAKE_PATH: `${base}/_eventcatalog/studio/wake` }),
     },
     shouldFilterLine: createAstroLineFilter(),
   });

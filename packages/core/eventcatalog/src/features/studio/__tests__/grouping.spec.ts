@@ -8,6 +8,7 @@ import {
   sortByHierarchy,
   withDescendants,
   withParent,
+  previewContainerGrowth,
 } from '../grouping';
 
 const node = (id: string, x: number, y: number, extra: Partial<Node> = {}): Node => ({
@@ -177,5 +178,63 @@ describe('fitGroup', () => {
     const child = node('c', 100, 100, { parentId: 'g' });
     const other = node('o', 5000, 5000, { parentId: 'elsewhere' });
     expect(fitGroup('g', [group, child, other])).toEqual({ shift: { x: 0, y: 0 }, width: 380, height: 252 });
+  });
+});
+
+describe('previewContainerGrowth', () => {
+  const box = (id: string, x: number, y: number, extra: Partial<Node> = {}): Node => ({
+    id,
+    type: 'service',
+    position: { x, y },
+    data: {},
+    width: 200,
+    height: 100,
+    ...extra,
+  });
+  const lookup = (nodes: Node[]) => new Map(nodes.map((node) => [node.id, node]));
+  const start = lookup([
+    box('domain', 1000, 1000, { type: 'domain-group', width: 600, height: 400 }),
+    box('dragged', 40, 80, { parentId: 'domain' }),
+    box('other', 300, 200, { parentId: 'domain' }),
+  ]);
+  const draggedTo = (x: number, y: number) => {
+    const now = new Map(start);
+    now.set('dragged', { ...start.get('dragged')!, position: { x, y } });
+    return previewContainerGrowth(['domain'], new Set(['dragged']), start, now);
+  };
+
+  it('grows right and down to fit what is dragged towards those edges', () => {
+    const preview = draggedTo(500, 350);
+    // 500 + 200 + 40 wide, 350 + 100 + 40 tall
+    expect(preview.get('domain')).toEqual({ position: { x: 1000, y: 1000 }, width: 740, height: 490 });
+    expect(preview.get('other')).toEqual({ position: { x: 300, y: 200 } });
+  });
+
+  it('grows left and up by moving, with what else is in it moved the other way', () => {
+    const preview = draggedTo(-60, 0);
+    // 100 past the left padding, 80 past the header
+    expect(preview.get('domain')).toEqual({ position: { x: 900, y: 920 }, width: 700, height: 480 });
+    expect(preview.get('other')).toEqual({ position: { x: 400, y: 280 } });
+    // React Flow places what's dragged
+    expect(preview.has('dragged')).toBe(false);
+  });
+
+  it('goes back to its size once what is dragged is well past its edge', () => {
+    const preview = draggedTo(900, 100);
+    expect(preview.get('domain')).toEqual({ position: { x: 1000, y: 1000 }, width: 600, height: 400 });
+  });
+});
+
+describe('sticky notes and containers', () => {
+  const container: Node = { id: 'd', type: 'domain-group', position: { x: 0, y: 0 }, data: {}, width: 600, height: 400 };
+
+  it('never finds a container for a sticky note dropped on one', () => {
+    const note: Node = { id: 'n', type: 'note', position: { x: 100, y: 100 }, data: {}, width: 200 };
+    expect(findDropTarget('n', [container, note])).toBeUndefined();
+  });
+
+  it('still finds one for other nodes', () => {
+    const service: Node = { id: 's', type: 'service', position: { x: 100, y: 100 }, data: {} };
+    expect(findDropTarget('s', [container, service])?.id).toBe('d');
   });
 });

@@ -25,8 +25,10 @@ export type NodeDefinition = {
   unlisted?: boolean;
   /** Where the resource lives inside node.data (e.g. `service` for data.service). Undefined = data root */
   resourceKey?: string;
-  /** Nodes that are sized on the canvas (containers, notes) start at this size */
+  /** Nodes that are sized on the canvas (containers, notes, text) start at this size */
   defaultSize?: { width: number; height: number };
+  /** Only its width is set: its height follows what's in it (text) */
+  autoHeight?: boolean;
   createData: () => Record<string, unknown>;
 };
 
@@ -123,11 +125,21 @@ export const nodeDefinitions: NodeDefinition[] = [
     createData: () => ({ mode: 'full', name: 'Customer', summary: 'A person using the system.' }),
   },
   {
+    type: 'text',
+    category: 'other',
+    label: 'Text',
+    defaultSize: { width: 240, height: 40 },
+    autoHeight: true,
+    createData: () => ({ text: 'Add some text' }),
+  },
+  {
     type: 'note',
     category: 'other',
     label: 'Sticky Note',
-    defaultSize: { width: 200, height: 160 },
-    createData: () => ({ text: 'Double-click to edit...', color: 'yellow' }),
+    // About square, like a post-it (taller if more is written on it)
+    defaultSize: { width: 200, height: 176 },
+    autoHeight: true,
+    createData: () => ({ text: '', color: 'yellow' }),
   },
 ];
 
@@ -161,6 +173,26 @@ export const getResource = (type: string | undefined, data: Record<string, unkno
   const key = getResourceKey(type);
   return key ? ((data[key] as Record<string, unknown>) ?? {}) : data;
 };
+
+/** Sticky notes sit on the canvas wherever they're put, never inside a container */
+export const canGoInContainer = (type?: string) => type !== 'note';
+
+/**
+ * The level (L1, L2 or L3) a sticky note was added on: it's only shown there. Notes from before levels had notes
+ * are on L3, the canvas people edit. Other nodes are on every level they fit in, so they have none.
+ */
+export const getNoteLevel = (node: { type?: string; data: Record<string, unknown> }): 1 | 2 | 3 | undefined =>
+  node.type === 'note' ? ((node.data.level as 1 | 2 | undefined) ?? 3) : undefined;
+
+/** Whether a node is on a level's canvas as itself: everything on L3, but notes only on the level they were added on */
+export const isOnLevel = (node: { type?: string; data: Record<string, unknown> }, level: 1 | 2 | 3) =>
+  node.type !== 'note' || getNoteLevel(node) === level;
+
+/** Notes and text: written on the canvas itself (their text is their data, not a resource with a name) */
+export const isWrittenOnCanvas = (type?: string) => type === 'note' || type === 'text';
+
+/** Whether a node's resource has a version (actors and notes don't) */
+export const isVersioned = (type?: string) => !!getResourceKey(type);
 
 /** Returns new node data with fields of the resource changed */
 export const updateResource = (type: string | undefined, data: Record<string, unknown>, fields: Record<string, unknown>) => {

@@ -142,6 +142,40 @@ describe('planNodes', () => {
     expect(planned[1].node).not.toHaveProperty('parentId');
   });
 
+  it('gives new components the version asked for, except things without versions', () => {
+    const { planned } = planNodes(
+      [],
+      [
+        { type: 'event', name: 'Paid', version: '1.2.0', x: 0, y: 0 },
+        { type: 'actor', name: 'Customer', version: '1.2.0', x: 0, y: 0 },
+      ],
+      catalog
+    );
+    expect(planned[0].node.data).toMatchObject({ message: { version: '1.2.0' } });
+    expect(planned[1].node.data).not.toHaveProperty('version');
+    expect(describeNode(planned[0].node).version).toBe('1.2.0');
+  });
+
+  it('puts a note on the canvas, not in the container an agent asks for', () => {
+    const { planned, errors } = planNodes(
+      [],
+      [
+        { ref: 'd', resource: { collection: 'domains', id: 'Orders' }, container: true, x: 0, y: 0 },
+        { ref: 'n', type: 'note', summary: 'Question', inside: 'd' },
+      ],
+      catalog
+    );
+    expect(planned[1].node).not.toHaveProperty('parentId');
+    expect(errors).toEqual([`Notes aren't put in containers: "n" was put on the canvas instead`]);
+  });
+
+  it('writes text on the canvas from what an agent gives it', () => {
+    const { planned } = planNodes([], [{ type: 'text', summary: 'Checkout flow', x: 0, y: 0 }], catalog);
+    expect(planned[0].node.data).toEqual({ text: 'Checkout flow' });
+    expect(describeNode(planned[0].node)).toMatchObject({ type: 'Text', text: 'Checkout flow' });
+    expect(describeNode(planned[0].node)).not.toHaveProperty('name');
+  });
+
   it('builds new components with the name and summary given', () => {
     const { planned } = planNodes(
       [],
@@ -172,6 +206,18 @@ describe('planNodes', () => {
     // Below the existing node (bottom 112) with a 120 gap, side by side with a 200 gap
     expect(a.position).toEqual({ x: 0, y: 232 });
     expect(b.position).toEqual({ x: 440, y: 232 });
+  });
+
+  it('places nodes around what is on the canvas people edit, not notes added on L1 or L2', () => {
+    const existing = { ...buildNode('service', {}, { x: 120, y: 56 }), id: 'old' };
+    const l1Note = { ...buildNode('note', { text: 'Far below', level: 1 }, { x: 100, y: 2000 }), id: 'l1-note' };
+    const { planned } = planNodes([existing, l1Note], [{ type: 'service', name: 'A' }], catalog);
+    expect(planned[0].node.position).toEqual({ x: 0, y: 232 });
+  });
+
+  it('tells agents which level a note added on L1 or L2 is on', () => {
+    expect(describeNode(buildNode('note', { text: 'Why?', level: 2 }, { x: 0, y: 0 }))).toMatchObject({ onLevel: 'L2' });
+    expect(describeNode(buildNode('note', { text: 'Why?' }, { x: 0, y: 0 }))).not.toHaveProperty('onLevel');
   });
 
   it('places catalog resources without a position next to the related resources, following the flow', () => {
@@ -332,6 +378,14 @@ describe('updateCanvasNode', () => {
     const doc = setup();
     expect(updateCanvasNode(doc, { nodeId: 'new', name: 'Fraud', summary: 'Checks orders' })).toEqual({ updated: 'new' });
     expect(dataOf(doc, 'new').service).toMatchObject({ name: 'Fraud', summary: 'Checks orders' });
+  });
+
+  it('changes the version of a new component, and not of a catalog resource', () => {
+    const doc = setup();
+    updateCanvasNode(doc, { nodeId: 'new', version: '2.1.0' });
+    updateCanvasNode(doc, { nodeId: 'linked', version: '9.9.9' });
+    expect(dataOf(doc, 'new').service.version).toBe('2.1.0');
+    expect(dataOf(doc, 'linked').service.version).toBe('1.0.0');
   });
 
   it('only changes what it is given', () => {

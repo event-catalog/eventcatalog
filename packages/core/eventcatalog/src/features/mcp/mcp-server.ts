@@ -24,7 +24,7 @@ import { getMcpAppViewLoader, mcpAppNote, registerMcpApp } from './mcp-apps';
 import { buildUrl } from '@utils/url-builder';
 import { isCanvasEnabled } from '@utils/feature';
 import { CANVAS_TOOL_NAMES, registerCanvasTools } from '@features/studio/server/canvas-mcp';
-import { findStudioRuntime } from '@features/studio/server/runtime';
+import { startStudio } from '@features/studio/server/runtime';
 
 const loadViewerView = getMcpAppViewLoader('viewer');
 
@@ -974,7 +974,7 @@ const handleGetRequest = async (c: Context, kind?: McpScopeKind) => {
       ...(scope && { scope: scope.ref }),
       tools: scope
         ? getScopedBuiltInTools(scope)
-        : [...globalBuiltInTools, ...(isCanvasEnabled() && findStudioRuntime() ? CANVAS_TOOL_NAMES : []), ...extendedToolNames],
+        : [...globalBuiltInTools, ...(isCanvasEnabled() ? CANVAS_TOOL_NAMES : []), ...extendedToolNames],
       extendedTools: !scope && extendedToolNames.length > 0 ? extendedToolNames : undefined,
       resources: getMcpResourceUris(scope),
     });
@@ -993,6 +993,8 @@ const handleMcpRequest = async (c: Context, kind?: McpScopeKind) => {
     }
 
     const scope = await resolveRequestScope(c, kind);
+    // Canvas tools work on Studio's canvases: started (storage loaded) before they're listed
+    if (!scope && isCanvasEnabled()) await startStudio();
     const server = createMcpServer(scope, {
       catalogUrl: new URL(c.req.url).origin,
       userAgent: c.req.header('user-agent'),

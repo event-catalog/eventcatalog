@@ -1,18 +1,31 @@
-import type { Node, XYPosition } from '@xyflow/react';
+import type { Edge, Node, XYPosition } from '@xyflow/react';
 import type * as Y from 'yjs';
 import { z } from 'zod';
-import { buildNode, getCanvasMaps, readCanvas, updateNodeData } from './canvas-doc';
+import { buildNode, getCanvasMaps, getCanvasStatus, readCanvas, updateNodeData } from './canvas-doc';
 import type { CatalogRelation, CatalogResource } from './catalog-resources';
-import { buildContainer, canBeContainer, catalogNodeData, containerTypeFor, getCatalogLink, indexRelations } from './catalog';
-import { getAbsolutePosition, sizeOf } from './grouping';
+import {
+  buildContainer,
+  canBeContainer,
+  catalogNodeData,
+  containerTypeFor,
+  getCatalogLink,
+  getRelatedEdges,
+  indexRelations,
+} from './catalog';
+import { findGroupAtPoint, getAbsolutePosition, sizeOf } from './grouping';
 import { placeNodes, type Link } from './placement';
 import {
+  canGoInContainer,
   COMPONENT_TYPES,
   getNodeDefinition,
   getNodeLabel,
   getNodeName,
+  getNoteLevel,
   getResource,
   isGroupType,
+  isOnLevel,
+  isVersioned,
+  isWrittenOnCanvas,
   updateResource,
 } from './node-types';
 
@@ -44,7 +57,8 @@ export const nodeSpecsSchema = z
         .describe('A catalog resource to add (latest version)'),
       type: z.enum(COMPONENT_TYPES).optional().describe('For a new component: what it is'),
       name: z.string().optional().describe('For a new component: its name'),
-      summary: z.string().optional().describe('For a new component: what it does. For a note: its text'),
+      summary: z.string().optional().describe('For a new component: what it does. For a note or text: its text'),
+      version: z.string().optional().describe('For a new component: its version, e.g. 1.0.0 (defaults to 0.0.1)'),
       container: z
         .boolean()
         .optional()
@@ -96,13 +110,17 @@ const lookupOf = (node: Node, lookup?: NodeLookup) => lookup ?? new Map([[node.i
 export const describeNode = (node: Node, lookup?: NodeLookup) => {
   const resource = getResource(node.type, node.data);
   const link = getCatalogLink(node);
+  const version = link?.version ?? (typeof resource.version === 'string' ? resource.version : undefined);
   return {
     id: node.id,
     type: getNodeLabel(node.type),
-    ...(node.type !== 'note' && { name: resource.name }),
+    ...(!isWrittenOnCanvas(node.type) && { name: resource.name }),
     ...(resource.summary ? { summary: resource.summary } : {}),
-    ...(node.type === 'note' ? { text: node.data.text } : {}),
-    ...(link ? { catalogResource: link.key.replace(':', '/'), version: link.version } : {}),
+    ...(isWrittenOnCanvas(node.type) ? { text: node.data.text } : {}),
+    // Notes added on L1 or L2 are only shown there (people see the rest at L3)
+    ...(getNoteLevel(node) !== undefined && getNoteLevel(node) !== 3 && { onLevel: `L${getNoteLevel(node)}` }),
+    ...(link && { catalogResource: link.key.replace(':', '/') }),
+    ...(version && { version }),
     /** The node's centre on the canvas, like the x/y agents give */
     position: (({ x, y }) => ({ x: Math.round(x), y: Math.round(y) }))(nodeCenter(node, lookup)),
     size: sizeOf(node),
@@ -131,8 +149,17 @@ export const describeCanvas = (doc: Y.Doc) => {
   const canvas = readCanvas(doc);
   const lookup = new Map(canvas.nodes.map((node) => [node.id, node]));
   const names = new Map(canvas.nodes.map((node) => [node.id, getNodeName(node.type, node.data, node.id)]));
+  const lastChange = canvas.meta.statusHistory?.at(-1);
   return {
     title: canvas.meta.title,
+    status: getCanvasStatus(canvas.meta),
+    ...(lastChange && {
+      statusChanged: {
+        by: lastChange.by.name,
+        at: new Date(lastChange.at).toISOString(),
+        ...(lastChange.note && { note: lastChange.note }),
+      },
+    }),
     nodes: canvas.nodes.map((node) => describeNode(node, lookup)),
     connections: canvas.edges.map((edge) => ({
       id: edge.id,
@@ -204,18 +231,20 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
         errors.push(`Give each node a resource, or a type (one of ${COMPONENT_TYPES.join(', ')})`);
         continue;
       }
-      const data =
-        definition.type === 'note'
-          ? { ...definition.createData(), text: spec.summary ?? spec.name ?? '' }
-          : updateResource(definition.type, definition.createData(), {
-              ...(spec.name && { name: spec.name }),
-              ...(spec.summary && { summary: spec.summary }),
-            });
+      const data = isWrittenOnCanvas(definition.type)
+        ? { ...definition.createData(), text: spec.summary ?? spec.name ?? '' }
+        : updateResource(definition.type, definition.createData(), {
+            ...(spec.name && { name: spec.name }),
+            ...(spec.summary && { summary: spec.summary }),
+            ...(spec.version && isVersioned(definition.type) && { version: spec.version }),
+          });
       const node = buildNode(definition.type, data, centerOf(spec));
       built = { node, name: String(getResource(node.type, node.data).name ?? definition.label) };
     }
 
-    if (spec.inside) {
+    if (spec.inside && !canGoInContainer(built.node.type)) {
+      errors.push(`Notes aren't put in containers: "${spec.ref ?? built.name}" was put on the canvas instead`);
+    } else if (spec.inside) {
       const parent = refs.get(spec.inside) ?? lookup.get(spec.inside);
       if (parent && isGroupType(parent.type)) built.node = putInside(built.node, parent, spec);
       else errors.push(`"${spec.inside}" is not a container on the canvas (a domain or system added as a container)`);
@@ -248,7 +277,9 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
     }
   }
 
-  const positions = placeNodes([...lookup.values()], toPlace, [...links.values()]);
+  // Placed around what's on the canvas people edit (notes on L1 and L2 aren't there)
+  const onCanvas = [...lookup.values()].filter((node) => isOnLevel(node, 3));
+  const positions = placeNodes(onCanvas, toPlace, [...links.values()]);
   const canvasPositions = new Map(planned.map((entry) => [entry.node.id, positions.get(entry.node.id) ?? entry.canvasPosition]));
   for (const entry of planned) {
     const canvasPosition = positions.get(entry.node.id);
@@ -271,17 +302,113 @@ export const resolveEdgeRefs = (edges: EdgeSpecs, planned: PlannedNode[]) => {
   return edges.map((edge) => ({ ...edge, from: refs.get(edge.from) ?? edge.from, to: refs.get(edge.to) ?? edge.to }));
 };
 
-/** Renames or re-describes a node. Catalog resources keep their catalog name and summary. */
-export const updateCanvasNode = (doc: Y.Doc, { nodeId, name, summary }: { nodeId: string; name?: string; summary?: string }) =>
+export type NodeUpdate = { nodeId: string; name?: string; summary?: string; version?: string };
+
+/** Renames, re-describes or re-versions a node. Catalog resources keep their catalog name, summary and version. */
+export const updateCanvasNode = (doc: Y.Doc, { nodeId, name, summary, version }: NodeUpdate) =>
   doc.transact(() => {
     const node = getCanvasMaps(doc).nodes.get(nodeId);
     if (!node) return { error: `No node "${nodeId}" on the canvas` };
     if (!getCatalogLink(node)) {
       updateNodeData(doc, nodeId, (data) =>
-        node.type === 'note'
+        isWrittenOnCanvas(node.type)
           ? { ...data, text: summary ?? name ?? data.text }
-          : updateResource(node.type, data, { ...(name !== undefined && { name }), ...(summary !== undefined && { summary }) })
+          : updateResource(node.type, data, {
+              ...(name !== undefined && { name }),
+              ...(summary !== undefined && { summary }),
+              ...(version !== undefined && isVersioned(node.type) && { version }),
+            })
       );
     }
     return { updated: nodeId };
   });
+
+// ---- A catalog resource with its connections ----
+
+const MESSAGE_COLLECTIONS = new Set(['events', 'commands', 'queries']);
+
+/** What a group of connections is: what a service sends, receives and stores, or which services send or receive a message */
+export type ConnectionGroupId = 'receives' | 'sends' | 'dataStores' | 'senders' | 'receivers';
+export type ConnectionGroup = { id: ConnectionGroupId; label: string; resources: CatalogResource[] };
+
+const GROUP_LABELS: Record<ConnectionGroupId, string> = {
+  receives: 'Messages it receives',
+  sends: 'Messages it sends',
+  dataStores: 'Data stores it reads or writes',
+  senders: 'Services that send it',
+  receivers: 'Services that receive it',
+};
+
+/** Which group a related resource is in, for a service or a message (or none: not brought with it) */
+const groupOf = (resource: CatalogResource, other: CatalogResource, outgoing: boolean): ConnectionGroupId | undefined => {
+  if (resource.collection === 'services') {
+    if (other.collection === 'containers') return 'dataStores';
+    if (MESSAGE_COLLECTIONS.has(other.collection)) return outgoing ? 'sends' : 'receives';
+  }
+  if (MESSAGE_COLLECTIONS.has(resource.collection) && other.collection === 'services') return outgoing ? 'receivers' : 'senders';
+  return undefined;
+};
+
+/**
+ * What a catalog service or message connects to that isn't on the canvas yet, in groups (only the groups with
+ * something in them): a service's messages and data stores, or the services that send and receive a message
+ */
+export const getCatalogConnections = (
+  resource: CatalogResource,
+  catalog: CatalogIndex,
+  keysOnCanvas: ReadonlySet<string>
+): ConnectionGroup[] => {
+  const groups = new Map<ConnectionGroupId, CatalogResource[]>();
+  const seen = new Set<string>();
+  for (const relation of catalog.relationsByKey.get(resource.key) ?? []) {
+    const outgoing = relation.source === resource.key;
+    const other = catalog.resourcesByKey.get(outgoing ? relation.target : relation.source);
+    if (!other || seen.has(other.key) || keysOnCanvas.has(other.key)) continue;
+    const group = groupOf(resource, other, outgoing);
+    if (!group) continue;
+    groups.set(group, [...(groups.get(group) ?? []), other]);
+    seen.add(other.key);
+  }
+  // In reading order: what comes in, then what goes out
+  return (['receives', 'senders', 'sends', 'receivers', 'dataStores'] as const).flatMap((id) => {
+    const resources = groups.get(id);
+    return resources ? [{ id, label: GROUP_LABELS[id], resources }] : [];
+  });
+};
+
+/**
+ * A catalog resource centred on a canvas point (inside the container there, if there is one), with the resources
+ * it connects to placed around it like an architect would (what comes in before it, what goes out after it), and
+ * the connections between them and to what's already on the canvas. A service's data stores go in its container
+ * with it. Positions are relative to the containers they're in, as the canvas is now.
+ */
+export const planWithConnections = (
+  existing: Node[],
+  resource: CatalogResource,
+  center: XYPosition,
+  include: CatalogResource[],
+  catalog: CatalogIndex
+): { nodes: Node[]; edges: Edge[] } => {
+  const container = findGroupAtPoint(center, existing);
+  const specOf = (entry: CatalogResource) => ({
+    resource: { collection: entry.collection as (typeof CATALOG_COLLECTIONS)[number], id: entry.id },
+  });
+  const { planned } = planNodes(
+    existing,
+    [
+      { ...specOf(resource), x: center.x, y: center.y, ...(container && { inside: container.id }) },
+      ...include.map((entry) => ({
+        ...specOf(entry),
+        ...(container && entry.collection === 'containers' && { inside: container.id }),
+      })),
+    ],
+    catalog
+  );
+  const placed = [...existing];
+  const edges: Edge[] = [];
+  for (const { node, resource: entry } of planned) {
+    if (entry) edges.push(...getRelatedEdges(entry, node.id, placed, catalog.relationsByKey, node.type));
+    placed.push(node);
+  }
+  return { nodes: planned.map((entry) => entry.node), edges };
+};

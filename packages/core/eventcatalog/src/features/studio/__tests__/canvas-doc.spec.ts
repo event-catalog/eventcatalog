@@ -10,12 +10,14 @@ import {
   createThread,
   deleteNodes,
   deleteThread,
+  fitContainersAround,
   fitGroupToChildren,
   getCanvasMaps,
   moveNode,
   moveThread,
   readCanvas,
   readThreads,
+  reconnectEdge,
   replyToThread,
   resizeNode,
   setNodeParent,
@@ -64,9 +66,10 @@ describe('buildNode', () => {
     expect(built.position).toEqual({ x: -260, y: -130 });
   });
 
-  it('gives notes their default size, in front', () => {
+  it('gives notes their width, in front, with their height following what is written', () => {
     const built = buildNode('note', { text: 'hi' }, { x: 0, y: 0 });
-    expect(built).toMatchObject({ width: 200, height: 160, position: { x: -100, y: -80 } });
+    expect(built).toMatchObject({ width: 200, position: { x: -100, y: -88 } });
+    expect(built).not.toHaveProperty('height');
     expect(built).not.toHaveProperty('zIndex');
   });
 });
@@ -369,5 +372,71 @@ describe('threads', () => {
     const earlier = createThread(doc, { position: { x: 0, y: 0 } }, 'earlier', ada);
 
     expect(readThreads(doc).map((thread) => thread.id)).toEqual([earlier, later]);
+  });
+});
+
+describe('fitContainersAround', () => {
+  it('grows every container a node is in to fit it, innermost first', () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [
+      node('domain', 'domain-group', 0, 0, { width: 500, height: 400 }),
+      node('system', 'system-group', 40, 80, { parentId: 'domain', width: 400, height: 300 }),
+      node('service', 'service', 300, 200, { parentId: 'system' }),
+    ]);
+
+    fitContainersAround(doc, 'service');
+
+    // The service ends at 300 + 240 = 540 wide and 200 + 112 = 312 tall inside the system
+    expect(nodeOf(doc, 'system')).toMatchObject({ width: 580, height: 352 });
+    // The system ends at 40 + 580 = 620 and 80 + 352 = 432 inside the domain
+    expect(nodeOf(doc, 'domain')).toMatchObject({ width: 660, height: 472 });
+  });
+});
+
+describe('reconnectEdge', () => {
+  const setup = () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [node('a', 'service', 0, 0), node('b', 'event', 400, 0), node('c', 'service', 800, 0)]);
+    const edge = connectNodes(doc, { source: 'a', target: 'b' }) as Edge;
+    return { doc, edge };
+  };
+  const connection = (source: string, target: string) => ({ source, target, sourceHandle: null, targetHandle: null });
+
+  it('moves a connection to new ends, keeping it the same connection, labelled for its new ends', () => {
+    const { doc, edge } = setup();
+    const moved = reconnectEdge(doc, edge.id, connection('b', 'c')) as Edge;
+
+    expect(moved).toMatchObject({ id: edge.id, source: 'b', target: 'c', label: 'subscribed by' });
+    expect([...getCanvasMaps(doc).edges.keys()]).toEqual([edge.id]);
+  });
+
+  it('keeps a label someone wrote', () => {
+    const { doc, edge } = setup();
+    getCanvasMaps(doc).edges.set(edge.id, { ...edge, label: 'emits on checkout' });
+    expect(reconnectEdge(doc, edge.id, connection('c', 'b'))).toMatchObject({ source: 'c', label: 'emits on checkout' });
+  });
+
+  it("won't connect a node to itself or duplicate a connection", () => {
+    const { doc, edge } = setup();
+    connectNodes(doc, { source: 'c', target: 'b' });
+    expect(reconnectEdge(doc, edge.id, connection('a', 'a'))).toEqual({ error: 'A node cannot be connected to itself' });
+    expect(reconnectEdge(doc, edge.id, connection('c', 'b'))).toEqual({ error: 'Those nodes are already connected' });
+    expect(getCanvasMaps(doc).edges.get(edge.id)).toMatchObject({ source: 'a', target: 'b' });
+  });
+});
+
+describe('text on the canvas', () => {
+  it('is built with a width only, so its height follows what is written', () => {
+    const text = buildNode('text', { text: 'Checkout flow' }, { x: 0, y: 0 });
+    expect(text.width).toBe(240);
+    expect(text).not.toHaveProperty('height');
+  });
+
+  it('can be resized by its width alone', () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [{ ...buildNode('text', { text: 'A' }, { x: 0, y: 0 }), id: 't' }]);
+    resizeNode(doc, 't', { width: 400, height: 90 }, 'width');
+    expect(nodeOf(doc, 't')).toMatchObject({ width: 400 });
+    expect(nodeOf(doc, 't')).not.toHaveProperty('height');
   });
 });

@@ -226,6 +226,40 @@ type McpConfig = {
   auth?: McpAuthConfig;
 };
 
+/**
+ * Where EventCatalog Studio keeps canvases. People and agents always work on the copy held in memory by the
+ * server, so storage doesn't slow editing down: it's read when the server starts and written a moment after a
+ * canvas changes (and as the server stops).
+ */
+type StudioStorageConfig =
+  /** Kept only while the server runs: canvases are lost when it restarts or redeploys (the default) */
+  | { type: 'memory' }
+  /** A SQLite database file. Uses Node.js's built-in SQLite, so needs Node.js 22.13 or later. */
+  | {
+      type: 'sqlite';
+      /**
+       * The database file, relative to the catalog. In a container, put it on a volume (e.g. `/data/studio.db`)
+       * so canvases survive redeploys.
+       * @default '.eventcatalog/studio.db'
+       */
+      path?: string;
+    };
+
+type StudioConfig = {
+  /**
+   * Turns Studio on in production (`output: 'server'`, served with `eventcatalog start`). It's on in the dev server
+   * unless this is `false`, which turns it off everywhere. Experimental. With authentication on, only signed-in people
+   * can open canvases, and they're shown by the name and picture they signed in with.
+   * @default false
+   */
+  enabled?: boolean;
+  /**
+   * Where canvases are kept between restarts.
+   * @default { type: 'memory' }
+   */
+  storage?: StudioStorageConfig;
+};
+
 type GA4Config = {
   measurementId: string;
 };
@@ -297,6 +331,13 @@ export interface Config {
   };
   security?: {
     checkOrigin?: boolean;
+    /**
+     * Hosts to trust in a proxy's X-Forwarded-Host and X-Forwarded-Proto headers (server output), e.g. when deployed
+     * behind Fly.io, Railway or a load balancer that serves HTTPS. Without it, form posts (like starting a canvas in
+     * Studio) fail the origin check. Passed to Astro's `security.allowedDomains`.
+     * @example [{ hostname: 'catalog.example.com', protocol: 'https' }]
+     */
+    allowedDomains?: { hostname?: string; protocol?: string; port?: string }[];
   };
   /**
    * Theme for the catalog UI.
@@ -310,6 +351,8 @@ export interface Config {
   theme?: CatalogTheme;
   auth?: AuthConfig;
   mcp?: McpConfig;
+  /** EventCatalog Studio: collaborative canvases (experimental) */
+  studio?: StudioConfig;
   rss?: {
     enabled?: boolean;
     limit?: number;

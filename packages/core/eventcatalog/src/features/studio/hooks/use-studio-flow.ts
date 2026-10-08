@@ -19,20 +19,30 @@ import {
   connectNodes,
   deleteEdges,
   deleteNodes as deleteNodesInDoc,
+  reconnectEdge,
+  fitContainersAround,
   fitGroupToChildren,
   getCanvasMaps,
   moveNode,
+  changesNodesOrEdges,
+  getCanvasStatus,
   readMeta,
+  reopenIfDecided,
   resizeNode,
+  setCanvasStatus,
   setMeta,
+  type Author,
+  type CanvasStatus,
+  type StatusChange,
   setNodeParent,
+  type RenderedSizes,
   updateNodeData as updateNodeDataInDoc,
 } from '../canvas-doc';
 import { applyLayout } from '../agent-choreography';
 import { keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, withPositions } from '../flow-state';
-import { findGroupAtPoint, toRelativePosition } from '../grouping';
+import { findGroupAtPoint, toRelativePosition, type NodePreview } from '../grouping';
 import type { LayoutResult } from '../layout';
-import { getNodeDefinition } from '../node-types';
+import { canGoInContainer, getNodeDefinition, isGroupType } from '../node-types';
 import { startToolSync, type ToolSync } from '../tool-sync';
 import { createPresenceSender, type PresenceSender } from './presence-sender';
 import { createPresenceStore, type PresenceStore } from './presence-store';
@@ -54,6 +64,8 @@ const DROP_SETTLE_MS = 500;
 const LOCAL_ORIGIN = Symbol('studio-local');
 /** Changes an agent working through this tab (WebMCP) makes: synced like anyone's, and not in the user's undo */
 export const BROWSER_AGENT_ORIGIN = Symbol('studio-browser-agent');
+/** Status changes: synced, but not undone (undo takes back edits, not decisions about the canvas) */
+const STATUS_ORIGIN = Symbol('studio-status');
 
 export type Status = 'connecting' | 'connected' | 'disconnected';
 export type Transport = 'websocket' | 'tools';
@@ -69,23 +81,34 @@ type Shared = { doc: Y.Doc; awareness: Awareness; undoManager: Y.UndoManager; se
  * where they're dropped is saved in the document: one change per drag, so the document doesn't grow with every
  * step of every drag, and undo takes back the whole drag. Others show where we're dragging them as we do.
  */
+const NEW_CANVAS_STATUS = { status: 'draft' as CanvasStatus, history: [] as StatusChange[] };
+
 export function useStudioFlow({
   canvasId,
   socketUrl,
   name,
   color,
+  picture,
   syncViaTools,
   onLayout,
+  onContainerResize,
 }: {
   canvasId: string;
   /** e.g. wss://catalog.example.com/_eventcatalog/studio */
   socketUrl: string;
   name: string;
   color: string;
+  /** From your sign-in provider, when you're signed in */
+  picture?: string;
   /** Sync through MCP tool calls when the WebSocket can't connect (e.g. inside a chat's sandbox) */
   syncViaTools?: ToolSync;
   /** Someone laid the canvas out (us included): called as the new positions arrive, so they can glide there */
   onLayout?: () => void;
+  /**
+   * A container changed size (it grew to fit what's in it, or someone else resized it): called as it arrives, so
+   * it can grow smoothly. Not for our own resizing, which follows the pointer.
+   */
+  onContainerResize?: () => void;
 }) {
   const sharedRef = useRef<Shared | null>(null);
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -97,11 +120,14 @@ export function useStudioFlow({
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   const [title, setTitle] = useState<string | undefined>();
+  const [canvasStatus, setCanvasStatusState] = useState<{ status: CanvasStatus; history: StatusChange[] }>(NEW_CANVAS_STATUS);
   const [transport, setTransport] = useState<Transport>('websocket');
-  const user = useRef({ name, color });
-  user.current = { name, color };
+  const user = useRef<Author>({ name, color });
+  user.current = { name, color, ...(picture && { picture }) };
   const onLayoutRef = useRef(onLayout);
   onLayoutRef.current = onLayout;
+  const onContainerResizeRef = useRef(onContainerResize);
+  onContainerResizeRef.current = onContainerResize;
 
   useEffect(() => {
     // A new connection starts from what the server has. Clear anything left from a previous one,
@@ -112,31 +138,81 @@ export function useStudioFlow({
     const doc = new Y.Doc();
     const { nodes: yNodes, edges: yEdges, threads: yThreads, meta: yMeta } = getCanvasMaps(doc);
     const syncMeta = (event: Y.YMapEvent<unknown>) => {
-      setTitle(readMeta(doc).title);
+      const meta = readMeta(doc);
+      setTitle(meta.title);
+      if (event.keysChanged.has('status') || event.keysChanged.has('statusHistory'))
+        setCanvasStatusState({ status: getCanvasStatus(meta), history: meta.statusHistory ?? [] });
       if (event.keysChanged.has('layoutAt')) onLayoutRef.current?.();
     };
     yMeta.observe(syncMeta);
     setTitle(undefined);
+    setCanvasStatusState(NEW_CANVAS_STATUS);
+    // Changing an accepted (or rejected) canvas here makes it a draft again, for everyone. Changes from others arrive
+    // already reopened by whoever made them.
+    const reopenOnEdit = (transaction: Y.Transaction) => {
+      if (!transaction.local || transaction.origin === STATUS_ORIGIN) return;
+      if (!changesNodesOrEdges(transaction)) return;
+      // Recorded against whoever changed it: this person, or their agent in the browser (WebMCP)
+      const by =
+        transaction.origin === BROWSER_AGENT_ORIGIN
+          ? { name: `${user.current.name}'s agent`, color: user.current.color, agent: true }
+          : user.current;
+      queueMicrotask(() =>
+        doc.transact(() => {
+          reopenIfDecided(doc, by);
+          // The first thing put on a canvas started it (opening a new one to look around doesn't)
+          if (!readMeta(doc).createdAt) setMeta(doc, { createdAt: Date.now(), createdBy: by.name });
+        }, STATUS_ORIGIN)
+      );
+    };
+    doc.on('afterTransaction', reopenOnEdit);
     // One presence for whichever connection is used
     const awareness = new Awareness(doc);
     awareness.setLocalStateField('user', user.current);
     const presenceStore = createPresenceStore(awareness);
     setPresence(presenceStore);
     const sender = createPresenceSender(awareness);
+    // Let in by the server, not just open: with sign-in on, it refuses a socket without a session after it opens.
+    // `letIn` is for this connection; `socketConnected` stays once the socket has worked (no falling back after).
     let socketConnected = false;
+    let letIn = false;
     let stopToolSync: (() => void) | undefined;
+    let fallback: ReturnType<typeof setTimeout> | undefined;
+    // Declared before the provider: it reports its first status while it's being created
+    let socketStatus: Status = 'connecting';
+    // Some views can't use the WebSocket (a chat's sandbox may block it, or open it without the person's session):
+    // sync through tool calls instead
+    const syncThroughTools = () => {
+      if (!syncViaTools || stopToolSync) return;
+      clearTimeout(fallback);
+      setTransport('tools');
+      stopToolSync = startToolSync(doc, awareness, { canvasId, sync: syncViaTools, onStatus: setStatus });
+      // After the tools take over, so the socket closing doesn't show as offline for a moment
+      provider.disconnect();
+    };
     const provider = new HocuspocusProvider({
       url: socketUrl,
       name: canvasDocumentName(canvasId),
       document: doc,
       awareness,
       onStatus: ({ status }) => {
-        if (status === 'connected') socketConnected = true;
         socketStatus = status as Status;
-        if (!stopToolSync) setStatus(status as Status);
+        if (status !== 'connected') letIn = false;
+        // Open isn't connected until the server lets us in (onAuthenticated)
+        if (!stopToolSync) setStatus(status === 'connected' && !letIn ? 'connecting' : (status as Status));
+      },
+      onAuthenticated: () => {
+        socketConnected = letIn = true;
+        if (!stopToolSync) setStatus('connected');
+      },
+      // Not signed in (or the session ran out): a chat's view syncs through its tools, a page shows it's offline
+      // (coming back to the tab tries again, e.g. after signing in again elsewhere)
+      onAuthenticationFailed: () => {
+        if (syncViaTools) return syncThroughTools();
+        provider.disconnect();
+        setStatus('disconnected');
       },
     });
-    let socketStatus: Status = 'connecting';
     setTransport('websocket');
 
     // Back online, or back on the tab: reconnect now rather than when the next retry is due
@@ -152,15 +228,8 @@ export function useStudioFlow({
     window.addEventListener('online', reconnect);
     document.addEventListener('visibilitychange', onVisibilityChange);
 
-    // Some views can't open the WebSocket (a chat's sandbox may block it): sync through tool calls instead
-    const fallback = syncViaTools
-      ? setTimeout(() => {
-          if (socketConnected) return;
-          provider.disconnect();
-          setTransport('tools');
-          stopToolSync = startToolSync(doc, awareness, { canvasId, sync: syncViaTools, onStatus: setStatus });
-        }, SOCKET_TIMEOUT_MS)
-      : undefined;
+    // A socket that isn't let in within a few seconds (blocked, or never answered) is given up for tool calls
+    if (syncViaTools) fallback = setTimeout(() => !socketConnected && syncThroughTools(), SOCKET_TIMEOUT_MS);
     // Undo only takes back your own changes: other people's arrive with the provider as origin, agents' with theirs
     const undoManager = new Y.UndoManager([yNodes, yEdges, yThreads], {
       captureTimeout: 500,
@@ -209,6 +278,16 @@ export function useStudioFlow({
       if (event.transaction.origin === LOCAL_ORIGIN) return;
       // A node someone was dragging changed in the document: they dropped it there
       event.keysChanged.forEach((id) => remoteMoves.delete(id));
+      const containerResized = [...event.changes.keys].some(([id, change]) => {
+        const next = yNodes.get(id);
+        const previous = change.oldValue as Node | undefined;
+        return (
+          change.action === 'update' &&
+          isGroupType(next?.type) &&
+          (next?.width !== previous?.width || next?.height !== previous?.height)
+        );
+      });
+      if (containerResized) onContainerResizeRef.current?.();
       setNodes((local) =>
         keepDragged(
           patchShared(local, event.keysChanged, (id) => yNodes.get(id), LOCAL_NODE_KEYS),
@@ -234,6 +313,7 @@ export function useStudioFlow({
       yNodes.unobserve(syncNodes);
       yEdges.unobserve(syncEdges);
       yMeta.unobserve(syncMeta);
+      doc.off('afterTransaction', reopenOnEdit);
       presenceStore.destroy();
       undoManager.destroy();
       provider.destroy();
@@ -245,8 +325,8 @@ export function useStudioFlow({
   }, [canvasId, socketUrl, syncViaTools]);
 
   useEffect(() => {
-    sharedRef.current?.awareness.setLocalStateField('user', { name, color });
-  }, [name, color]);
+    sharedRef.current?.awareness.setLocalStateField('user', user.current);
+  }, [name, color, picture]);
 
   // Tell others what we have selected so they can see it
   const selectionKey = useMemo(
@@ -261,16 +341,36 @@ export function useStudioFlow({
     sharedRef.current?.sender.send({ selection: selectionKey ? selectionKey.split(',') : [] });
   }, [selectionKey]);
 
+  // The sizes nodes are rendered at here, for fitting containers to what's in them
+  const latestNodes = useRef(nodes);
+  latestNodes.current = nodes;
+  const renderedSizes = (): RenderedSizes =>
+    new Map(
+      latestNodes.current.flatMap((node) =>
+        node.measured?.width && node.measured.height
+          ? [[node.id, { width: node.measured.width, height: node.measured.height }] as const]
+          : []
+      )
+    );
+
   const withDoc = <T>(fn: (doc: Y.Doc) => T, origin: unknown = null) => {
     const doc = sharedRef.current?.doc;
     return doc ? doc.transact(() => fn(doc), origin) : undefined;
   };
 
-  // Where the nodes being dragged are, until they're dropped
+  // Where the nodes being dragged are, until they're dropped, and the containers around them as they've grown
   const dragged = useRef(new Map<string, XYPosition>());
+  const dragPreview = useRef(new Map<string, NodePreview>());
   /** Saves where dragged nodes were dropped (in the transaction it's called in), and stops showing them as dragged */
   const saveDrop = (doc: Y.Doc) => {
     dragged.current.forEach((position, id) => moveNode(doc, id, position));
+    // Containers as they grew around what was dragged, and what else is in them (moved the other way if they grew up
+    // or left). Dragged nodes are where React Flow dropped them, already in their containers' grown coordinates.
+    dragPreview.current.forEach(({ position, width, height }, id) => {
+      const node = getCanvasMaps(doc).nodes.get(id);
+      if (node) getCanvasMaps(doc).nodes.set(id, { ...node, position, ...(width !== undefined && { width, height }) });
+    });
+    dragPreview.current = new Map();
     dragged.current.clear();
     const shared = sharedRef.current;
     shared?.sender.send({ moving: null });
@@ -281,7 +381,8 @@ export function useStudioFlow({
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setNodes((local) => applyNodeChanges(changes, local));
     let dropped = false;
-    const resized: { id: string; dimensions: { width: number; height: number } }[] = [];
+    const resized: { id: string; dimensions: { width: number; height: number }; attributes: true | 'width' | 'height' }[] = [];
+    const resizeEnded: string[] = [];
     for (const change of changes) {
       if (change.type === 'position' && change.position) {
         dragged.current.set(change.id, change.position);
@@ -289,7 +390,8 @@ export function useStudioFlow({
       }
       // Containers resized with their handles
       if (change.type === 'dimensions' && change.setAttributes && change.dimensions)
-        resized.push({ id: change.id, dimensions: change.dimensions });
+        resized.push({ id: change.id, dimensions: change.dimensions, attributes: change.setAttributes });
+      if (change.type === 'dimensions' && change.resizing === false) resizeEnded.push(change.id);
     }
     // While dragging, nodes move here every frame and go to everyone with our presence; where they're dropped is saved
     if (dropped) {
@@ -297,7 +399,14 @@ export function useStudioFlow({
       sharedRef.current?.undoManager.stopCapturing();
       withDoc(saveDrop, LOCAL_ORIGIN);
     } else if (dragged.current.size) sharedRef.current?.sender.send({ moving: Object.fromEntries(dragged.current) });
-    if (resized.length) withDoc((doc) => resized.forEach(({ id, dimensions }) => resizeNode(doc, id, dimensions)), LOCAL_ORIGIN);
+    if (resized.length)
+      withDoc(
+        (doc) => resized.forEach(({ id, dimensions, attributes }) => resizeNode(doc, id, dimensions, attributes)),
+        LOCAL_ORIGIN
+      );
+    // Resized inside a container (e.g. a system in a domain): the containers around it grow to fit it. Not as
+    // LOCAL_ORIGIN, so they grow here too.
+    if (resizeEnded.length) withDoc((doc) => resizeEnded.forEach((id) => fitContainersAround(doc, id, renderedSizes())));
     // Removing a node also removes what's in it, its edges, and moves its comments: those come back through the observers
     const removed = changes.filter((change) => change.type === 'remove').map((change) => change.id);
     if (removed.length) withDoc((doc) => deleteNodesInDoc(doc, removed));
@@ -313,6 +422,35 @@ export function useStudioFlow({
     withDoc((doc) => connectNodes(doc, connection));
   }, []);
 
+  /** A connection's end dragged to another node */
+  const onReconnect = useCallback((edge: Edge, connection: Connection) => {
+    withDoc((doc) => reconnectEdge(doc, edge.id, connection));
+  }, []);
+
+  /**
+   * Containers growing while something's dragged in them, and what's in them, shown here only until it's dropped
+   * (see previewContainerGrowth). The drop saves them as shown, in the same change.
+   */
+  const showDragPreview = useCallback((previews: Map<string, NodePreview>) => {
+    dragPreview.current = previews;
+    setNodes((local) => {
+      let next: Node[] | undefined;
+      local.forEach((node, index) => {
+        const preview = previews.get(node.id);
+        if (
+          !preview ||
+          (node.position.x === preview.position.x &&
+            node.position.y === preview.position.y &&
+            (preview.width === undefined || (node.width === preview.width && node.height === preview.height)))
+        )
+          return;
+        next ??= [...local];
+        next[index] = { ...node, ...preview };
+      });
+      return next ?? local;
+    });
+  }, []);
+
   /**
    * Add a node centred on a canvas position. `connect` gets the new node's id and the nodes already
    * on the canvas, and returns edges to add with it (e.g. a catalog resource's relationships).
@@ -323,12 +461,12 @@ export function useStudioFlow({
       withDoc((doc) => {
         const existing = Array.from(getCanvasMaps(doc).nodes.values());
         // Dropped on a container: it goes in it
-        const group = findGroupAtPoint(center, existing);
+        const group = canGoInContainer(type) ? findGroupAtPoint(center, existing) : undefined;
         const node = group
           ? { ...built, parentId: group.id, position: toRelativePosition(built.position, group.id, existing) }
           : built;
         addNodes(doc, [node], connect?.(node.id, existing) ?? []);
-        if (group) fitGroupToChildren(doc, group.id);
+        if (group) fitGroupToChildren(doc, group.id, renderedSizes());
       });
       return built.id;
     },
@@ -363,7 +501,7 @@ export function useStudioFlow({
         // Containers already on the canvas that got something new inside grow to fit it
         const added = new Set(nodes.map((node) => node.id));
         new Set(nodes.flatMap((node) => (node.parentId && !added.has(node.parentId) ? [node.parentId] : []))).forEach((groupId) =>
-          fitGroupToChildren(doc, groupId)
+          fitGroupToChildren(doc, groupId, renderedSizes())
         );
       }),
     []
@@ -375,11 +513,16 @@ export function useStudioFlow({
       withDoc((doc) => {
         // Where it was dropped goes first, so it's moved into (or out of) the container from there
         if (dragged.current.size) saveDrop(doc);
-        return setNodeParent(doc, nodeId, parentId);
+        return setNodeParent(doc, nodeId, parentId, renderedSizes());
       }),
     []
   );
 
+  /** Changes the canvas's status for everyone (recorded with who did it, and why if given) */
+  const changeStatus = useCallback(
+    (status: CanvasStatus, note?: string) => withDoc((doc) => setCanvasStatus(doc, status, user.current, note), STATUS_ORIGIN),
+    []
+  );
   const rename = useCallback((next: string) => withDoc((doc) => setMeta(doc, { title: next || undefined })), []);
 
   const undo = useCallback(() => sharedRef.current?.undoManager.undo(), []);
@@ -404,6 +547,8 @@ export function useStudioFlow({
     onNodesChange,
     onEdgesChange,
     onConnect,
+    onReconnect,
+    showDragPreview,
     addNode,
     insertNode,
     updateNodeData,
@@ -413,6 +558,8 @@ export function useStudioFlow({
     setParent,
     title,
     rename,
+    canvasStatus,
+    changeStatus,
     transport,
     undo,
     redo,

@@ -3,8 +3,10 @@ import type * as Y from 'yjs';
 import {
   createThread as createThreadInDoc,
   deleteThread as deleteThreadInDoc,
+  deleteThreads as deleteThreadsInDoc,
   getCanvasMaps,
   moveThread as moveThreadInDoc,
+  moveThreads as moveThreadsInDoc,
   readThreads,
   replyToThread,
   setThreadResolved,
@@ -42,6 +44,11 @@ export function useComments(doc: Y.Doc | null, author: Author) {
     [doc]
   );
   const deleteThread = useCallback((threadId: string) => doc && deleteThreadInDoc(doc, threadId), [doc]);
+  const deleteThreads = useCallback((threadIds: string[]) => doc && deleteThreadsInDoc(doc, threadIds), [doc]);
+  const moveThreads = useCallback(
+    (moves: { threadId: string; anchor: CommentAnchor }[]) => doc && moveThreadsInDoc(doc, moves),
+    [doc]
+  );
 
-  return { threads, createThread, reply, setResolved, moveThread, deleteThread };
+  return { threads, createThread, reply, setResolved, moveThread, moveThreads, deleteThread, deleteThreads };
 }

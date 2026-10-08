@@ -134,17 +134,18 @@ export default memo(function CanvasControls({
         <Divider />
         <LevelSwitch level={level} onChange={onLevelChange} unavailable={unavailableLevels} />
         <Divider />
-        <ControlButton label="Undo (⌘Z)" onClick={onUndo} disabled={!editable || !canUndo}>
+        <ControlButton label="Undo (⌘Z)" onClick={onUndo} disabled={!canUndo}>
           <Undo className="h-4 w-4" />
         </ControlButton>
-        <ControlButton label="Redo (⇧⌘Z)" onClick={onRedo} disabled={!editable || !canRedo}>
+        <ControlButton label="Redo (⇧⌘Z)" onClick={onRedo} disabled={!canRedo}>
           <Redo className="h-4 w-4" />
         </ControlButton>
         <Divider />
         <ControlButton label="Comment (C)" onClick={onToggleCommentMode} active={commentMode} disabled={!editable}>
           <MessageCircle className="h-4 w-4" />
         </ControlButton>
-        <ControlButton label="Add sticky note" onClick={onAddNote} disabled={!editable}>
+        {/* Notes can be added on every level, and are shown on the level they're added on */}
+        <ControlButton label={editable ? 'Add sticky note' : `Add sticky note to L${level}`} onClick={onAddNote}>
           <StickyNote className="h-4 w-4 text-yellow-500" />
         </ControlButton>
       </div>

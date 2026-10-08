@@ -11,7 +11,17 @@ import {
   CANVAS_VIEW_TOOL,
   type CanvasPayload,
 } from '@features/mcp/apps/canvas/shared';
-import { getCanvasMaps, readCanvas, readMeta, replyToThread, setMeta, setThreadResolved, type Author } from '../canvas-doc';
+import {
+  CANVAS_STATUSES,
+  getCanvasMaps,
+  readCanvas,
+  readMeta,
+  reopeningIfEdited,
+  replyToThread,
+  setCanvasStatus,
+  setThreadResolved,
+  type Author,
+} from '../canvas-doc';
 import { ADD_TO_CANVAS_DESCRIPTION, describeCanvas, edgeSpecsSchema, indexCatalog, nodeSpecsSchema } from '../canvas-actions';
 import { getCatalogResources } from '../catalog-resources';
 import { getLayoutPositions } from '../layout';
@@ -76,6 +86,7 @@ export const CANVAS_TOOL_NAMES = [
   'connectCanvasNodes',
   'removeFromCanvas',
   'layoutCanvas',
+  'setCanvasStatus',
   'commentOnCanvas',
   'replyToCanvasComment',
   'resolveCanvasComment',
@@ -92,12 +103,8 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
   const missing = (id: string) =>
     text({ error: `No canvas "${id}". Use listCanvases to find one, or openCanvas to start one.` }, true);
 
-  const createCanvas = async (title: string, name?: string) => {
-    const id = crypto.randomUUID();
-    const agent = getAgent(name, userAgent);
-    await runtime.withCanvas(id, (doc) => setMeta(doc, { title, createdAt: Date.now(), createdBy: agent.name }));
-    return id;
-  };
+  const createCanvas = (title: string, name?: string) =>
+    runtime.createCanvas({ title, createdBy: getAgent(name, userAgent).name });
 
   /**
    * Work on a canvas as an agent: changes are played out like a person would make them (see agent-choreography),
@@ -105,13 +112,15 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
    */
   const asAgent = (id: string, name: string | undefined) => {
     const agent = getAgent(name, userAgent);
+    const author = { ...agent, agent: true } as Author;
     const stage: AgentStage = {
-      change: (fn) => runtime.withCanvas(id, fn),
+      // An agent changing an accepted (or rejected) canvas makes it a draft again, like a person doing it
+      change: (fn) => runtime.withCanvas(id, (doc) => reopeningIfEdited(doc, author, () => fn(doc))),
       present: (presence) => runtime.setAgentPresence(id, agent, presence),
       lastPointer: runtime.getAgentPointer(id, agent),
       sharesMoves: true,
     };
-    return { stage, author: { ...agent, agent: true } as Author };
+    return { stage, author };
   };
 
   // ---- The canvas in the chat (MCP App) ----
@@ -168,9 +177,10 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
         const canvases = runtime
           .listCanvases()
           .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
-          .map(({ canvasId: id, title, people, nodeCount, openComments }) => ({
+          .map(({ canvasId: id, title, status, people, nodeCount, openComments }) => ({
             canvasId: id,
             title,
+            status,
             people,
             nodeCount,
             openComments,
@@ -205,7 +215,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
           title,
           url: canvasUrl(id),
           people: runtime.peopleOn(id),
-          note: 'Clients that support MCP Apps are showing the user this canvas, live. Work on it with them using the canvas tools (getCanvas, addToCanvas, commentOnCanvas...): they see your changes as you make them. Otherwise, share the url so they can open it.',
+          note: 'Clients that support MCP Apps are showing the user this canvas, live. Work on it with them using the canvas tools (getCanvas, addToCanvas...): they see your changes as you make them. Talk with them in the conversation, not in canvas comments (only comment when they ask you to). Otherwise, share the url so they can open it.',
         },
         label: `the canvas ${title ?? id}`,
         getPayload: async (): Promise<CanvasPayload> => payload,
@@ -302,6 +312,30 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
   );
 
   server.registerTool(
+    'setCanvasStatus',
+    {
+      title: 'Set a canvas status',
+      description: [
+        "Changes a canvas's status: draft (being worked on, where every canvas starts), proposed (ready for review), accepted (the agreed design) or rejected (decided against).",
+        'Only change it when the user asks you to. Changing the nodes or connections on an accepted or rejected canvas makes it a draft again.',
+      ].join(' '),
+      inputSchema: z.object({
+        canvasId,
+        status: z.enum(CANVAS_STATUSES),
+        note: z.string().optional().describe('Why, e.g. "Agreed in the architecture review"'),
+        agentName,
+      }),
+      annotations: writes,
+    },
+    async ({ canvasId: id, status, note, agentName: name }) => {
+      if (!runtime.exists(id)) return missing(id);
+      const { author } = asAgent(id, name);
+      const changed = await runtime.withCanvas(id, (doc) => setCanvasStatus(doc, status, author, note));
+      return text({ canvasId: id, status, ...(!changed && { note: `The canvas was already ${status}` }) });
+    }
+  );
+
+  server.registerTool(
     'addToCanvas',
     {
       title: 'Add to a canvas',
@@ -322,12 +356,13 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
     {
       title: 'Update a node on a canvas',
       description:
-        'Renames, re-describes or moves a node on a canvas (x/y: its new centre). Catalog resources keep their catalog name and summary; change those in the catalog. For notes, summary is the note text.',
+        'Renames, re-describes, re-versions or moves a node on a canvas (x/y: its new centre). Catalog resources keep their catalog name, summary and version; change those in the catalog. For notes, summary is the note text.',
       inputSchema: z.object({
         canvasId,
         nodeId: z.string(),
         name: z.string().optional(),
         summary: z.string().optional(),
+        version: z.string().optional().describe('e.g. 1.0.0'),
         x: z.number().optional(),
         y: z.number().optional(),
         agentName,
@@ -401,7 +436,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
     {
       title: 'Comment on a canvas',
       description:
-        'Starts a comment thread on a canvas, pinned to a node (nodeId) or a spot (x, y). Use it to ask questions, flag concerns or explain your suggestions where people can see them.',
+        "Starts a comment thread on a canvas, pinned to a node (nodeId) or a spot (x, y). Only use it when the user asks you to comment (e.g. to review the canvas or leave notes for others on it). Don't use comments to greet people, introduce yourself or ask the user questions: talk to them in the conversation.",
       inputSchema: z.object({
         canvasId,
         text: z.string(),

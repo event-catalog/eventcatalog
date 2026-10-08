@@ -12,6 +12,12 @@ export const isOutputServer = async () => {
   return config?.output === 'server';
 };
 
+/** EventCatalog Studio in production (server output, studio.enabled) */
+export const isStudioEnabled = async () => {
+  const config = await getEventCatalogConfigFile(process.env.PROJECT_DIR || '');
+  return config?.output === 'server' && config?.studio?.enabled === true;
+};
+
 export const isIndexedSearchEnabled = async () => {
   const config = await getEventCatalogConfigFile(process.env.PROJECT_DIR || '');
   return config?.search?.type === 'indexed';

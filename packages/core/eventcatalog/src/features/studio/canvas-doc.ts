@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
 import type { Connection, Edge, Node, XYPosition } from '@xyflow/react';
-import { createEdge } from './edges';
+import { createEdge, getEdgeLabel } from './edges';
 import { fitGroup, getAbsolutePosition, withDescendants, withParent } from './grouping';
 import { getNodeDefinition, getNodeSize, isGroupType } from './node-types';
 
@@ -9,13 +9,28 @@ import { getNodeDefinition, getNodeSize, isGroupType } from './node-types';
  * browser (people, WebMCP) and on the server (MCP tools), so humans and agents edit a canvas the same way.
  */
 
-export type Author = { name: string; color: string; agent?: boolean };
+export type Author = {
+  name: string;
+  color: string;
+  agent?: boolean;
+  /** A picture from their sign-in provider (SSO), shown over their initials */
+  picture?: string;
+};
 export type Message = { id: string; text: string; author: Author; createdAt: number };
 /** Where a comment is pinned: a canvas position, or a node (and the offset from its top left) so it moves with it */
 export type CommentAnchor = { position: XYPosition; nodeId?: string; offset?: XYPosition };
 export type Thread = CommentAnchor & { id: string; author: Author; createdAt: number; resolved: boolean; messages: Message[] };
+/** Where a canvas's design is: being worked on, up for review, agreed, or decided against */
+export const CANVAS_STATUSES = ['draft', 'proposed', 'accepted', 'rejected'] as const;
+export type CanvasStatus = (typeof CANVAS_STATUSES)[number];
+/** A canvas's status being changed: by whom, when, and why (e.g. "Agreed in the architecture review") */
+export type StatusChange = { status: CanvasStatus; by: Author; at: number; note?: string };
 export type CanvasMeta = {
   title?: string;
+  /** Draft until someone changes it */
+  status?: CanvasStatus;
+  /** Every status change, oldest first (the last few hundred) */
+  statusHistory?: StatusChange[];
   createdAt?: number;
   createdBy?: string;
   /** When the canvas was last laid out, so everyone's canvas glides the nodes into place */
@@ -59,7 +74,7 @@ export const buildNode = (type: string, data: Record<string, unknown>, center: X
     type,
     position: { x: center.x - size.width / 2, y: center.y - size.height / 2 },
     data,
-    ...(definition?.defaultSize ? size : {}),
+    ...(definition?.defaultSize ? (definition.autoHeight ? { width: size.width } : size) : {}),
     // Containers sit behind what's in them and the connections between them
     ...(isGroupType(type) && { zIndex: -1 }),
   });
@@ -74,6 +89,56 @@ export const setMeta = (doc: Y.Doc, meta: Partial<CanvasMeta>) =>
     const map = getCanvasMaps(doc).meta;
     Object.entries(meta).forEach(([key, value]) => (value === undefined ? map.delete(key) : map.set(key, value)));
   });
+
+// ---- Status ----
+
+const MAX_STATUS_HISTORY = 200;
+
+export const getCanvasStatus = (meta: CanvasMeta): CanvasStatus => meta.status ?? 'draft';
+
+/** Changes a canvas's status (and records who did it). Returns false if it already had that status. */
+export const setCanvasStatus = (doc: Y.Doc, status: CanvasStatus, by: Author, note?: string) => {
+  let changed = false;
+  doc.transact(() => {
+    const meta = readMeta(doc);
+    if (getCanvasStatus(meta) === status) return;
+    const change: StatusChange = { status, by, at: Date.now(), ...(note?.trim() && { note: note.trim() }) };
+    const map = getCanvasMaps(doc).meta;
+    map.set('status', status);
+    map.set('statusHistory', [...(meta.statusHistory ?? []), change].slice(-MAX_STATUS_HISTORY));
+    changed = true;
+  });
+  return changed;
+};
+
+/** Accepted and rejected canvases are decided: changing what's on them makes them a draft again */
+export const isDecided = (status: CanvasStatus) => status === 'accepted' || status === 'rejected';
+
+/** A decided canvas whose nodes or edges were changed goes back to draft, recorded as changed by `by` */
+export const reopenIfDecided = (doc: Y.Doc, by: Author) => {
+  const status = getCanvasStatus(readMeta(doc));
+  if (isDecided(status)) setCanvasStatus(doc, 'draft', by, `Changed after it was ${status}`);
+};
+
+/**
+ * Runs `fn` (which may change the canvas), and if it changed nodes or edges, sends a decided canvas back to draft.
+ * Comments don't count: reviewing an accepted design keeps it accepted.
+ */
+export const reopeningIfEdited = <T>(doc: Y.Doc, by: Author, fn: () => T): T => {
+  let result!: T;
+  // In one transaction (the one it's already in, if it is): what it changed is known before it ends
+  doc.transact((transaction) => {
+    result = fn();
+    if (changesNodesOrEdges(transaction)) reopenIfDecided(doc, by);
+  });
+  return result;
+};
+
+/** Whether a transaction changed the canvas's nodes or edges (not just its comments or meta) */
+export const changesNodesOrEdges = (transaction: Y.Transaction) => {
+  const { nodes, edges } = getCanvasMaps(transaction.doc);
+  return [...transaction.changed.keys()].some((type) => type === (nodes as unknown) || type === (edges as unknown));
+};
 
 // ---- Nodes and edges ----
 
@@ -91,18 +156,38 @@ export const moveNode = (doc: Y.Doc, id: string, position: XYPosition) => {
   return !!node;
 };
 
-export const resizeNode = (doc: Y.Doc, id: string, size: { width: number; height: number }) => {
+/** Resize a node: both sides, or just its width or height (e.g. text, whose height follows what's in it) */
+export const resizeNode = (
+  doc: Y.Doc,
+  id: string,
+  size: { width: number; height: number },
+  attributes: true | 'width' | 'height' = true
+) => {
   const { nodes } = getCanvasMaps(doc);
   const node = nodes.get(id);
-  if (node) nodes.set(id, { ...node, width: size.width, height: size.height });
+  if (node)
+    nodes.set(id, {
+      ...node,
+      ...(attributes !== 'height' && { width: size.width }),
+      ...(attributes !== 'width' && { height: size.height }),
+    });
   return !!node;
 };
 
 /** Grow a container to fit what's in it (moving them clear of its header if needed), never shrinking it */
-export const fitGroupToChildren = (doc: Y.Doc, groupId: string) =>
+/**
+ * The sizes nodes are rendered at (in the browser), by id. The document doesn't have them, so without them
+ * containers are fitted to the size each type renders at at most.
+ */
+export type RenderedSizes = ReadonlyMap<string, { width: number; height: number }>;
+
+const withRenderedSizes = (nodes: Node[], sizes?: RenderedSizes) =>
+  sizes ? nodes.map((node) => (sizes.has(node.id) ? { ...node, measured: sizes.get(node.id) } : node)) : nodes;
+
+export const fitGroupToChildren = (doc: Y.Doc, groupId: string, sizes?: RenderedSizes) =>
   doc.transact(() => {
     const { nodes } = getCanvasMaps(doc);
-    const fit = fitGroup(groupId, Array.from(nodes.values()));
+    const fit = fitGroup(groupId, withRenderedSizes(Array.from(nodes.values()), sizes));
     const group = nodes.get(groupId);
     if (!fit || !group) return;
     if (fit.shift.x || fit.shift.y) {
@@ -120,14 +205,21 @@ export const fitGroupToChildren = (doc: Y.Doc, groupId: string) =>
     });
   });
 
+/** The containers a node is in grow to fit it (innermost first), e.g. after it's added or resized */
+export const fitContainersAround = (doc: Y.Doc, nodeId: string, sizes?: RenderedSizes) =>
+  doc.transact(() => {
+    const { nodes } = getCanvasMaps(doc);
+    for (let id = nodes.get(nodeId)?.parentId; id; id = nodes.get(id)?.parentId) fitGroupToChildren(doc, id, sizes);
+  });
+
 /** Put a node in a container (or take it out, without a parentId), keeping it where it is on the canvas */
-export const setNodeParent = (doc: Y.Doc, nodeId: string, parentId: string | undefined) =>
+export const setNodeParent = (doc: Y.Doc, nodeId: string, parentId: string | undefined, sizes?: RenderedSizes) =>
   doc.transact(() => {
     const { nodes } = getCanvasMaps(doc);
     const node = nodes.get(nodeId);
     if (!node || node.parentId === parentId) return false;
     nodes.set(nodeId, toSharedNode(withParent(node, parentId, Array.from(nodes.values()))));
-    if (parentId) fitGroupToChildren(doc, parentId);
+    if (parentId) fitGroupToChildren(doc, parentId, sizes);
     return true;
   });
 
@@ -166,6 +258,35 @@ export const connectNodes = (
   edges.set(created.id, created);
   return created;
 };
+
+/**
+ * Moves a connection to new ends (dragged to another node), keeping it the same connection. Its label follows
+ * the new ends if it was EventCatalog's wording, and is kept if someone wrote it.
+ */
+export const reconnectEdge = (doc: Y.Doc, edgeId: string, connection: Connection): Edge | { error: string } =>
+  doc.transact(() => {
+    const { nodes, edges } = getCanvasMaps(doc);
+    const edge = edges.get(edgeId);
+    const source = nodes.get(connection.source);
+    const target = nodes.get(connection.target);
+    if (!edge) return { error: `Connection "${edgeId}" is not on the canvas` };
+    if (!source || !target) return { error: 'Connections join two nodes on the canvas' };
+    if (source.id === target.id) return { error: 'A node cannot be connected to itself' };
+    const duplicate = Array.from(edges.values()).find(
+      (other) => other.id !== edgeId && other.source === source.id && other.target === target.id
+    );
+    if (duplicate) return { error: 'Those nodes are already connected' };
+
+    const defaultLabel = getEdgeLabel(nodes.get(edge.source)?.type, nodes.get(edge.target)?.type);
+    const moved = createEdge(connection, source.type, target.type);
+    const reconnected: Edge = {
+      ...moved,
+      id: edge.id,
+      ...(edge.label !== undefined && edge.label !== defaultLabel && { label: edge.label }),
+    };
+    edges.set(edgeId, reconnected);
+    return reconnected;
+  });
 
 export const deleteEdges = (doc: Y.Doc, ids: string[]) =>
   doc.transact(() => ids.forEach((id) => getCanvasMaps(doc).edges.delete(id)));
@@ -266,6 +387,14 @@ export const deleteThread = (doc: Y.Doc, threadId: string) => {
   threads.delete(threadId);
   return exists;
 };
+
+/** Deletes comment threads in one change (one undo brings them all back) */
+export const deleteThreads = (doc: Y.Doc, threadIds: string[]) =>
+  doc.transact(() => threadIds.forEach((id) => deleteThread(doc, id)));
+
+/** Moves comment threads in one change, e.g. ones that moved with what was dragged */
+export const moveThreads = (doc: Y.Doc, moves: { threadId: string; anchor: CommentAnchor }[]) =>
+  doc.transact(() => moves.forEach(({ threadId, anchor }) => moveThread(doc, threadId, anchor)));
 
 // ---- Reading a whole canvas ----
 

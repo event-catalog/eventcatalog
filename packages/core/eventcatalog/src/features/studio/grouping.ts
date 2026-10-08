@@ -1,5 +1,5 @@
 import type { Node, XYPosition } from '@xyflow/react';
-import { getNodeSize, isGroupType } from './node-types';
+import { canGoInContainer, getNodeSize, isGroupType } from './node-types';
 
 /**
  * Containers: domains and systems shown as boxes that other nodes sit in.
@@ -60,7 +60,8 @@ export const sortByHierarchy = (nodes: Node[]): Node[] => {
 export const findDropTarget = (nodeId: string, nodes: Node[]): Node | undefined => {
   const lookup = byId(nodes);
   const node = lookup.get(nodeId);
-  if (!node) return undefined;
+  // Sticky notes go anywhere, never in a container (one that's in one is taken out when it's next moved)
+  if (!node || !canGoInContainer(node.type)) return undefined;
   const rect = getAbsoluteRect(node, lookup);
   const center = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
   return nodes
@@ -130,4 +131,96 @@ export const fitGroup = (groupId: string, nodes: Node[]) => {
     width: Math.max(current.width, Math.max(...rects.map((rect) => rect.x + rect.width)) + shift.x + GROUP_PADDING.right),
     height: Math.max(current.height, Math.max(...rects.map((rect) => rect.y + rect.height)) + shift.y + GROUP_PADDING.bottom),
   };
+};
+
+/** How far a dragged node's middle can go past a container's edge and still be kept in it (growing it) */
+export const KEEP_IN_CONTAINER_MARGIN = 160;
+
+type Size = { width: number; height: number };
+/** A node's place and size as shown while something's dragged */
+export type NodePreview = { position: XYPosition; width?: number; height?: number };
+
+/**
+ * Containers growing to fit what's being dragged in them, on every side, as a preview of where things will be.
+ * `containerIds` are the containers around what's dragged, innermost first. `start` is the canvas when the drag
+ * started, and `now` the canvas as shown (with the dragged nodes where they are now). A dragged node is kept in a
+ * container while its middle is within `KEEP_IN_CONTAINER_MARGIN` of where the container was, and dropping it
+ * further away takes it out, so the container goes back to its size. A container growing up or left moves, and
+ * what's in it moves the other way, so nothing moves on the canvas.
+ *
+ * Returns, by id, where containers and the nodes in them that aren't dragged go (positions relative to their
+ * containers), and their sizes for containers.
+ */
+export const previewContainerGrowth = (
+  containerIds: string[],
+  draggedIds: ReadonlySet<string>,
+  start: ReadonlyMap<string, Node>,
+  now: ReadonlyMap<string, Node>
+): Map<string, NodePreview> => {
+  const previews = new Map<string, NodePreview>();
+  // Where each container's top left was on the canvas when the drag started (moving a container grown up or
+  // left is offset by what's in it moving the other way, so only its own shift changes it)
+  const startOrigin = (id: string) => getAbsolutePosition(start.get(id)!, start as Map<string, Node>);
+  const shifts = new Map<string, XYPosition>();
+
+  for (const id of containerIds) {
+    const container = start.get(id);
+    if (!container) continue;
+    const origin = startOrigin(id);
+    const startSize = sizeOf(container);
+    // Everything in it, in its coordinates when the drag started
+    const items: { rect: Rect }[] = [];
+    for (const node of start.values()) {
+      if (node.parentId !== id) continue;
+      if (draggedIds.has(node.id)) {
+        const current = now.get(node.id);
+        if (!current) continue;
+        const at = getAbsoluteRect(current, now as Map<string, Node>);
+        const middle = { x: at.x + at.width / 2, y: at.y + at.height / 2 };
+        const kept =
+          middle.x >= origin.x - KEEP_IN_CONTAINER_MARGIN &&
+          middle.x <= origin.x + startSize.width + KEEP_IN_CONTAINER_MARGIN &&
+          middle.y >= origin.y - KEEP_IN_CONTAINER_MARGIN &&
+          middle.y <= origin.y + startSize.height + KEEP_IN_CONTAINER_MARGIN;
+        if (kept) items.push({ rect: { ...at, x: at.x - origin.x, y: at.y - origin.y } });
+        continue;
+      }
+      // A container inside it that's grown: where it's grown to
+      const inner = previews.get(node.id);
+      const innerShift = shifts.get(node.id) ?? { x: 0, y: 0 };
+      items.push({
+        rect: {
+          x: node.position.x - innerShift.x,
+          y: node.position.y - innerShift.y,
+          ...(inner?.width && inner.height ? { width: inner.width, height: inner.height } : sizeOf(node)),
+        },
+      });
+    }
+
+    const shift = { x: 0, y: 0 };
+    let width = startSize.width;
+    let height = startSize.height;
+    if (items.length > 0) {
+      shift.x = Math.max(0, GROUP_PADDING.left - Math.min(...items.map(({ rect }) => rect.x)));
+      shift.y = Math.max(0, GROUP_PADDING.top - Math.min(...items.map(({ rect }) => rect.y)));
+      width =
+        Math.max(startSize.width, Math.max(...items.map(({ rect }) => rect.x + rect.width)) + GROUP_PADDING.right) + shift.x;
+      height =
+        Math.max(startSize.height, Math.max(...items.map(({ rect }) => rect.y + rect.height)) + GROUP_PADDING.bottom) + shift.y;
+    }
+    shifts.set(id, shift);
+    previews.set(id, {
+      position: { x: container.position.x - shift.x, y: container.position.y - shift.y },
+      width,
+      height,
+    });
+    // What's in it moves the other way. Not what's dragged: React Flow places it against the container as it is.
+    for (const node of start.values()) {
+      if (node.parentId !== id || draggedIds.has(node.id)) continue;
+      const own = previews.get(node.id);
+      const base = own?.position ?? node.position;
+      previews.set(node.id, { ...own, position: { x: base.x + shift.x, y: base.y + shift.y } });
+    }
+  }
+  return previews;
 };

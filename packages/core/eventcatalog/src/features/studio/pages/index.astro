@@ -1,8 +1,561 @@
 ---
+import path from 'node:path';
+import { ChevronDown, ChevronLeft, ChevronRight, Pencil, Plus, Search } from 'lucide-react';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { buildUrl } from '@utils/url-builder';
+import { CANVAS_STATUSES, type CanvasStatus } from '../canvas-doc';
+import { CANVAS_STATUS_LOOK } from '../components/status';
+import { startStudio, type CanvasSummary } from '../server/runtime';
+import { getSignedInUser, isSignedIn } from '../server/sign-in';
 
 export const prerender = false;
 
-// EventCatalog Studio: each visit starts a new canvas
-return Astro.redirect(buildUrl(`/studio/${crypto.randomUUID()}`));
+// The canvases on this EventCatalog, listed like the catalog's other tables (filters are in the address, so they can
+// be shared and work without JavaScript)
+const runtime = await startStudio({ isSignedIn });
+// Signed in (SSO): you're shown by who you signed in as, and asked for nothing
+const signedInAs = getSignedInUser(Astro.locals);
+const storage = runtime?.storage ?? { type: 'memory' as const };
+// Where they're saved, as the catalog's folder sees it (e.g. canvases)
+const savedIn = storage.location && path.relative(process.env.PROJECT_DIR || process.cwd(), storage.location);
+const statusParam = Astro.url.searchParams.get('status');
+const status = CANVAS_STATUSES.includes(statusParam as CanvasStatus) ? (statusParam as CanvasStatus) : undefined;
+const search = Astro.url.searchParams.get('q')?.trim() ?? '';
+
+// Canvases started and left empty (opening a new one to look around) aren't listed
+const isBlank = (canvas: CanvasSummary) =>
+  canvas.nodeCount === 0 && canvas.openComments === 0 && !canvas.title && canvas.people.length === 0;
+const canvases = (runtime?.listCanvases({ withPreview: true }) ?? [])
+  .filter((canvas) => !isBlank(canvas))
+  // The ones changed most recently first
+  .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+const counts = Object.fromEntries(
+  CANVAS_STATUSES.map((value) => [value, canvases.filter((canvas) => canvas.status === value).length])
+) as Record<CanvasStatus, number>;
+const shown = canvases.filter(
+  (canvas) =>
+    (!status || canvas.status === status) &&
+    (!search || (canvas.title ?? 'Untitled canvas').toLowerCase().includes(search.toLowerCase()))
+);
+
+// A page of them at a time, like the catalog's other tables
+const PAGE_SIZES = [10, 25, 50, 100];
+const sizeParam = Number(Astro.url.searchParams.get('size'));
+const pageSize = PAGE_SIZES.includes(sizeParam) ? sizeParam : PAGE_SIZES[0];
+const pageCount = Math.max(1, Math.ceil(shown.length / pageSize));
+const pageNumber = Math.min(Math.max(1, Math.floor(Number(Astro.url.searchParams.get('page')) || 1)), pageCount);
+const onPage = shown.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+/** This list on another page (its filters and page size kept) */
+const pageUrl = (page: number) => {
+  const params = new URLSearchParams();
+  if (search) params.set('q', search);
+  if (status) params.set('status', status);
+  if (pageSize !== PAGE_SIZES[0]) params.set('size', String(pageSize));
+  if (page > 1) params.set('page', String(page));
+  const query = params.toString();
+  return `${buildUrl('/studio')}${query ? `?${query}` : ''}`;
+};
+
+const relativeTime = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+const ago = (time: number) => {
+  const minutes = Math.round((time - Date.now()) / 60_000);
+  if (minutes === 0) return 'just now';
+  if (Math.abs(minutes) < 60) return relativeTime.format(minutes, 'minute');
+  const hours = Math.round(minutes / 60);
+  if (Math.abs(hours) < 24) return relativeTime.format(hours, 'hour');
+  const days = Math.round(hours / 24);
+  if (Math.abs(days) < 30) return relativeTime.format(days, 'day');
+  return new Date(time).toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? '' : 's'}`;
+
+// Node colours in previews, like the visualiser's (by kind of node), from the theme's badge colours
+const PREVIEW_COLOURS: Record<string, string> = {
+  service: 'pink',
+  event: 'orange',
+  command: 'blue',
+  query: 'green',
+  channel: 'slate',
+  data: 'indigo',
+  view: 'sky',
+  externalSystem: 'fuchsia',
+  agent: 'violet',
+  actor: 'sky',
+  system: 'violet',
+  'context-domain': 'yellow',
+  note: 'yellow',
+};
+const colourOf = (type: string) => `rgb(var(--ec-badge-color-${PREVIEW_COLOURS[type] ?? 'gray'}-text))`;
+// Room around the drawing, in canvas units relative to its size
+const framed = (preview: NonNullable<CanvasSummary['preview']>) => {
+  const margin = Math.max(preview.width, preview.height) * 0.08;
+  return `${-margin} ${-margin} ${preview.width + margin * 2} ${preview.height + margin * 2}`;
+};
+const strokeOf = (preview: NonNullable<CanvasSummary['preview']>, ratio: number) =>
+  Math.max(preview.width, preview.height) / ratio;
 ---
+
+<VerticalSideBarLayout title="Studio - EventCatalog" showNestedSideBar={false}>
+  {/* The page's height, like Discover: the list scrolls between its header and its pages */}
+  <main
+    class="ml-0 flex flex-col bg-[rgb(var(--ec-page-bg))]"
+    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+  >
+    <div class="flex flex-shrink-0 flex-col gap-4 px-6 py-5 md:flex-row md:items-end md:justify-between">
+      <div class="min-w-0">
+        <h1 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] md:text-4xl">Studio ({canvases.length})</h1>
+        <p class="max-w-3xl pt-2 text-base font-light text-[rgb(var(--ec-page-text-muted))]">
+          Design changes to your architecture on live canvases, with your team and AI agents.
+        </p>
+      </div>
+      <div class="flex shrink-0 flex-col items-start gap-3 md:items-end">
+        {
+          /* You, by the name others see on canvases: who you signed in as, or the name kept in this browser (shown by
+          the script; its space is kept so nothing moves) */
+        }
+        {
+          signedInAs ? (
+            // Signed in: you're shown in the app's header already (still read by the script, for New canvas)
+            <div data-you data-signed-in-as={signedInAs.name} hidden />
+          ) : (
+            <div data-you class="invisible flex items-center gap-2">
+              <button
+                type="button"
+                title="Change your name"
+                class="group inline-flex max-w-48 items-center gap-2 rounded-lg border py-1 pl-1 pr-2.5 text-sm border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))]"
+              >
+                <span
+                  data-you-avatar
+                  class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
+                />
+                <span data-you-name class="truncate font-medium" />
+                <Pencil
+                  size={12}
+                  className="shrink-0 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-page-text))]"
+                />
+              </button>
+            </div>
+          )
+        }
+        <div class="flex items-center gap-2">
+          <form method="get" action={buildUrl('/studio')} class="flex items-center gap-2" role="search">
+            {pageSize !== PAGE_SIZES[0] && <input type="hidden" name="size" value={pageSize} />}
+            <label class="relative">
+              <span class="sr-only">Filter canvases</span>
+              <Search
+                size={14}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--ec-icon-color))]"
+              />
+              <input
+                type="search"
+                name="q"
+                value={search}
+                placeholder="Filter..."
+                class="w-56 rounded-lg border py-1.5 pl-8 pr-3 text-sm bg-[rgb(var(--ec-input-bg))] border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:outline-none focus:border-[rgb(var(--ec-accent))]"
+              />
+            </label>
+            <label class="relative">
+              <span class="sr-only">Status</span>
+              {/* Our own arrow: the browser's sits against the edge, whatever the padding */}
+              <select
+                name="status"
+                onchange="this.form.requestSubmit()"
+                class="cursor-pointer appearance-none rounded-lg border py-1.5 pl-3 pr-9 text-sm bg-[rgb(var(--ec-input-bg))] border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-input-text))] focus:outline-none focus:border-[rgb(var(--ec-accent))]"
+              >
+                <option value="" selected={!status}>All statuses</option>
+                {
+                  CANVAS_STATUSES.map((value) => (
+                    <option value={value} selected={status === value}>
+                      {CANVAS_STATUS_LOOK[value].label} ({counts[value]})
+                    </option>
+                  ))
+                }
+              </select>
+              <ChevronDown
+                size={14}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--ec-icon-color))]"
+              />
+            </label>
+          </form>
+          <a
+            href={buildUrl('/studio/new')}
+            data-new-canvas
+            class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
+          >
+            <Plus size={14} />
+            New canvas
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="min-h-0 flex-1 overflow-auto px-6 pb-5">
+      <div
+        class="overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border)/0.72)] bg-[rgb(var(--ec-dropdown-bg)/0.66)]"
+      >
+        <table class="min-w-full divide-y divide-[rgb(var(--ec-page-border)/0.62)]">
+          <thead class="sticky top-0 z-10 bg-[rgb(var(--ec-content-hover)/0.45)]">
+            <tr>
+              {
+                ['Canvas', 'Status', 'Contents', 'Comments', 'Created', 'Updated'].map((label) => (
+                  <th
+                    scope="col"
+                    class="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]"
+                  >
+                    {label}
+                  </th>
+                ))
+              }
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[rgb(var(--ec-page-border)/0.5)]">
+            {
+              onPage.map((canvas) => {
+                const look = CANVAS_STATUS_LOOK[canvas.status];
+                const preview = canvas.preview;
+                return (
+                  <tr class="group relative transition-colors hover:bg-[rgb(var(--ec-content-hover)/0.38)]">
+                    <td class="px-4 py-3 text-sm text-[rgb(var(--ec-page-text))]">
+                      <a href={buildUrl(`/studio/${canvas.canvasId}`)} class="flex items-center gap-3 font-semibold">
+                        {/* The whole row opens it */}
+                        <span class="absolute inset-0" aria-hidden="true" />
+                        <span class="flex h-9 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-[rgb(var(--ec-page-bg))] border-[rgb(var(--ec-page-border))]">
+                          {preview && (
+                            <svg
+                              viewBox={framed(preview)}
+                              preserveAspectRatio="xMidYMid meet"
+                              class="h-full w-full"
+                              aria-hidden="true"
+                            >
+                              {preview.lines.map((line) => (
+                                <line
+                                  {...line}
+                                  stroke="rgb(var(--ec-page-text-muted))"
+                                  stroke-opacity="0.5"
+                                  stroke-width={strokeOf(preview, 120)}
+                                />
+                              ))}
+                              {preview.shapes.map((shape) => (
+                                <rect
+                                  x={shape.x}
+                                  y={shape.y}
+                                  width={shape.width}
+                                  height={shape.height}
+                                  rx={strokeOf(preview, 40)}
+                                  fill={shape.container ? 'none' : colourOf(shape.type)}
+                                  fill-opacity="0.35"
+                                  stroke={shape.container ? 'rgb(var(--ec-page-text-muted))' : colourOf(shape.type)}
+                                  stroke-opacity={shape.container ? 0.5 : 1}
+                                  stroke-width={strokeOf(preview, shape.container ? 160 : 100)}
+                                />
+                              ))}
+                            </svg>
+                          )}
+                        </span>
+                        <span class="truncate group-hover:text-[rgb(var(--ec-accent))]">{canvas.title ?? 'Untitled canvas'}</span>
+                      </a>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                      <span class:list={['inline-flex rounded-full border px-2 py-px text-[11px] font-medium', look.pill]}>
+                        {look.label}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                      {plural(canvas.nodeCount, 'node')}, {plural(canvas.edgeCount, 'connection')}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                      {canvas.openComments > 0 ? `${canvas.openComments} open` : '-'}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                      {[canvas.createdAt && ago(canvas.createdAt), canvas.createdBy && `by ${canvas.createdBy}`]
+                        .filter(Boolean)
+                        .join(' ') || '-'}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                      {canvas.updatedAt ? ago(canvas.updatedAt) : '-'}
+                    </td>
+                  </tr>
+                );
+              })
+            }
+            {
+              shown.length === 0 && (
+                <tr>
+                  <td colspan="6" class="px-4 py-12 text-center">
+                    <p class="text-sm font-medium text-[rgb(var(--ec-page-text-muted))]">
+                      {canvases.length === 0 ? 'No canvases yet' : 'No canvases match'}
+                    </p>
+                    <p class="mt-1 text-xs text-[rgb(var(--ec-icon-color))]">
+                      {canvases.length === 0 ? (
+                        <a href={buildUrl('/studio/new')} data-new-canvas class="text-[rgb(var(--ec-accent))] hover:underline">
+                          Start a canvas
+                        </a>
+                      ) : (
+                        <a href={buildUrl('/studio')} class="text-[rgb(var(--ec-accent))] hover:underline">
+                          Show all canvases
+                        </a>
+                      )}
+                    </p>
+                  </td>
+                </tr>
+              )
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="flex flex-shrink-0 items-center justify-between gap-4 border-t border-[rgb(var(--ec-page-border))] px-6 py-3">
+      <div class="flex min-w-0 items-center gap-3 text-xs text-[rgb(var(--ec-page-text-muted))]">
+        {
+          shown.length > 0 && (
+            <span class="shrink-0">
+              <span class="font-medium text-[rgb(var(--ec-page-text))]">{onPage.length}</span> of{' '}
+              <span class="font-medium text-[rgb(var(--ec-page-text))]">{shown.length}</span> results
+            </span>
+          )
+        }
+        {shown.length > 0 && <span aria-hidden="true" class="h-3 w-px shrink-0 bg-[rgb(var(--ec-page-border))]" />}
+        <form method="get" action={buildUrl('/studio')} class="flex shrink-0 items-center gap-1.5">
+          {search && <input type="hidden" name="q" value={search} />}
+          {status && <input type="hidden" name="status" value={status} />}
+          <label for="studio-page-size">Per page</label>
+          <select
+            id="studio-page-size"
+            name="size"
+            onchange="this.form.requestSubmit()"
+            class="cursor-pointer rounded bg-transparent px-1 py-0.5 font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] focus:bg-[rgb(var(--ec-content-hover))] focus:outline-none"
+          >
+            {
+              PAGE_SIZES.map((size) => (
+                <option value={size} selected={size === pageSize}>
+                  {size}
+                </option>
+              ))
+            }
+          </select>
+        </form>
+        <span aria-hidden="true" class="h-3 w-px shrink-0 bg-[rgb(var(--ec-page-border))]"></span>
+        <span class="truncate">
+          {
+            storage.type === 'memory'
+              ? 'Kept in memory until EventCatalog restarts (set studio.storage in eventcatalog.config.js to keep them)'
+              : `Saved in ${savedIn}`
+          }
+        </span>
+      </div>
+      <nav class="flex shrink-0 items-center gap-1.5" aria-label="Pages">
+        {
+          pageNumber > 1 ? (
+            <a
+              href={pageUrl(pageNumber - 1)}
+              title="Previous page"
+              class="p-1.5 text-[rgb(var(--ec-icon-color))] transition-colors hover:text-[rgb(var(--ec-page-text))]"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </a>
+          ) : (
+            <span aria-disabled="true" class="p-1.5 text-[rgb(var(--ec-icon-color))] opacity-30">
+              <ChevronLeft className="h-4 w-4" />
+            </span>
+          )
+        }
+        <span class="min-w-[60px] text-center text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))]">
+          <span class="font-medium text-[rgb(var(--ec-page-text))]">{pageNumber}</span> / {pageCount}
+        </span>
+        {
+          pageNumber < pageCount ? (
+            <a
+              href={pageUrl(pageNumber + 1)}
+              title="Next page"
+              class="p-1.5 text-[rgb(var(--ec-icon-color))] transition-colors hover:text-[rgb(var(--ec-page-text))]"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </a>
+          ) : (
+            <span aria-disabled="true" class="p-1.5 text-[rgb(var(--ec-icon-color))] opacity-30">
+              <ChevronRight className="h-4 w-4" />
+            </span>
+          )
+        }
+      </nav>
+    </div>
+  </main>
+
+  {/* Naming a new canvas before it opens (New canvas links work without it: they start an untitled one) */}
+  <dialog
+    id="new-canvas-dialog"
+    aria-labelledby="new-canvas-title"
+    class="m-auto w-full max-w-md rounded-xl border p-0 shadow-2xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))] backdrop:bg-black/40"
+  >
+    <form method="post" action={buildUrl('/studio/new')}>
+      <div class="border-b px-5 py-4 border-[rgb(var(--ec-page-border))]">
+        <h2 id="new-canvas-title" class="text-base font-semibold">New canvas</h2>
+        <p class="mt-0.5 text-sm text-[rgb(var(--ec-page-text-muted))]">
+          Name it for what you're designing, so your team can find it.
+        </p>
+      </div>
+      <div class="px-5 py-4">
+        <label for="new-canvas-name" class="block text-sm font-semibold">Name</label>
+        <input
+          id="new-canvas-name"
+          name="title"
+          maxlength="200"
+          autocomplete="off"
+          placeholder="e.g. Payments redesign"
+          class="mt-2 w-full rounded-lg border px-3 py-2 text-sm shadow-sm bg-[rgb(var(--ec-input-bg))] border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:outline-none focus:border-[rgb(var(--ec-accent))] focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.25)]"
+        />
+        {/* Who's starting it: the name they use on canvases, if they've joined one in this browser */}
+        <input type="hidden" name="by" />
+      </div>
+      <div class="flex justify-end gap-2 border-t px-5 py-4 border-[rgb(var(--ec-page-border))]">
+        <button
+          type="button"
+          data-close-dialog
+          class="rounded-lg border px-4 py-2 text-sm font-medium border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-page-border)/0.4)]"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-lg px-4 py-2 text-sm font-medium bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
+        >
+          Create canvas
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  {/* Your name: asked for on your first visit, changed from the button by New canvas */}
+  <dialog
+    id="name-dialog"
+    aria-labelledby="name-dialog-title"
+    class="m-auto w-full max-w-md rounded-xl border p-0 shadow-2xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))] backdrop:bg-black/40"
+  >
+    <form>
+      <div class="border-b px-5 py-4 border-[rgb(var(--ec-page-border))]">
+        <h2 id="name-dialog-title" class="text-base font-semibold" data-first-visit-text="Welcome to Studio">Your name</h2>
+        <p class="mt-0.5 text-sm text-[rgb(var(--ec-page-text-muted))]">
+          What should others call you? It's shown by your pointer and your comments on every canvas.
+        </p>
+      </div>
+      <div class="px-5 py-4">
+        <label for="your-name" class="block text-sm font-semibold">Name</label>
+        <input
+          id="your-name"
+          name="name"
+          required
+          maxlength="60"
+          autocomplete="name"
+          placeholder="e.g. Sam"
+          class="mt-2 w-full rounded-lg border px-3 py-2 text-sm shadow-sm bg-[rgb(var(--ec-input-bg))] border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-page-text-muted))] focus:outline-none focus:border-[rgb(var(--ec-accent))] focus:ring-2 focus:ring-[rgb(var(--ec-accent)/0.25)]"
+        />
+        <p class="mt-2 text-xs text-[rgb(var(--ec-page-text-muted))]">Kept in this browser. Change it here any time.</p>
+      </div>
+      <div class="flex justify-end gap-2 border-t px-5 py-4 border-[rgb(var(--ec-page-border))]">
+        <button
+          type="button"
+          data-close-dialog
+          class="rounded-lg border px-4 py-2 text-sm font-medium border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-page-border)/0.4)]"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="rounded-lg px-4 py-2 text-sm font-medium bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
+        >
+          Save
+        </button>
+      </div>
+    </form>
+  </dialog>
+</VerticalSideBarLayout>
+
+<script>
+  import { colorForName, getStoredName, onStoredNameChange, storeName } from '../identity';
+
+  // On every visit to the page, including ones the app's client-side navigation swaps in (its scripts run only once)
+  const setUp = () => {
+    const dialog = document.querySelector<HTMLDialogElement>('#new-canvas-dialog');
+    const nameDialog = document.querySelector<HTMLDialogElement>('#name-dialog');
+    const you = document.querySelector<HTMLElement>('[data-you]');
+    if (!dialog || !nameDialog || !you || dialog.dataset.ready) return;
+    dialog.dataset.ready = 'true';
+
+    // Signed in (SSO): you're who you signed in as, so there's nothing to ask or change
+    const signedInAs = you.dataset.signedInAs;
+    // Kept here too, for browsers that block storage (asked once per visit)
+    let yourName = signedInAs ?? getStoredName();
+    const showYou = (name: string | null) => {
+      yourName = name;
+      you.classList.toggle('invisible', !name);
+      if (!name) return;
+      you.querySelector('[data-you-name]')!.textContent = name;
+      const avatar = you.querySelector<HTMLElement>('[data-you-avatar]')!;
+      avatar.textContent = name.slice(0, 2).toUpperCase();
+      avatar.style.backgroundColor = colorForName(name);
+    };
+    if (!signedInAs) {
+      showYou(getStoredName());
+      const stopFollowing = onStoredNameChange(showYou);
+      document.addEventListener('astro:before-swap', stopFollowing, { once: true });
+    }
+
+    // Your name: on a first visit it has to be given (no Cancel, Escape does nothing)
+    const nameInput = nameDialog.querySelector<HTMLInputElement>('#your-name')!;
+    const nameTitle = nameDialog.querySelector<HTMLElement>('#name-dialog-title')!;
+    const nameCancel = nameDialog.querySelector<HTMLButtonElement>('[data-close-dialog]')!;
+    const defaultTitle = nameTitle.textContent?.trim();
+    let onNamed: (() => void) | undefined;
+    const askName = (then?: () => void) => {
+      nameInput.value = yourName ?? '';
+      nameTitle.textContent = yourName ? defaultTitle : nameTitle.dataset.firstVisitText!;
+      nameCancel.hidden = !yourName;
+      onNamed = then;
+      nameDialog.showModal();
+      nameInput.select();
+    };
+    nameDialog.addEventListener('cancel', (event) => {
+      if (!yourName) event.preventDefault();
+    });
+    nameCancel.addEventListener('click', () => nameDialog.close());
+    nameDialog.querySelector('form')!.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = nameInput.value.trim();
+      if (!name) return;
+      storeName(name);
+      showYou(name);
+      nameDialog.close();
+      onNamed?.();
+    });
+    you.querySelector('button')?.addEventListener('click', () => askName());
+
+    const open = () => {
+      const by = dialog.querySelector<HTMLInputElement>('input[name="by"]');
+      if (by) by.value = yourName ?? '';
+      dialog.showModal();
+      dialog.querySelector<HTMLInputElement>('#new-canvas-name')?.focus();
+    };
+    // Starting a canvas says who started it: ask for a name first if there isn't one yet
+    const startCanvas = () => (yourName ? open() : askName(open));
+    // A plain button, so Enter in the name creates the canvas
+    dialog.querySelector('[data-close-dialog]')?.addEventListener('click', () => dialog.close());
+    document.querySelectorAll('[data-new-canvas]').forEach((link) =>
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        startCanvas();
+      })
+    );
+    // Opened from a canvas's New canvas (/studio?new=1)
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('new')) {
+      url.searchParams.delete('new');
+      history.replaceState(history.state, '', url);
+      startCanvas();
+    } else if (!yourName) {
+      askName();
+    }
+  };
+  document.addEventListener('astro:page-load', setUp);
+  setUp();
+</script>

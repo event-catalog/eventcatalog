@@ -36,7 +36,8 @@ How to measure and verify a change: [references/verification.md](references/veri
 | MCP tools and the server runtime | `server/canvas-mcp.ts`, `server/runtime.ts`, `server/tool-icons.ts` |
 | WebMCP (agents in the browser) | `hooks/use-canvas-webmcp.ts`, `pages/webmcp-relay.ts`, `components/ConnectAgentDialog.tsx` |
 | Views that can't open the WebSocket (chat sandboxes) | `tool-sync.ts` |
-| Routes | `pages/index.astro` (`/studio` starts a canvas), `pages/[id].astro` (`/studio/<id>`) |
+| Who you are (your name, kept in this browser, and its colour; shared by the Studio page and canvases), or who you signed in as | `identity.ts`, `components/JoinForm.tsx`, `components/Picture.tsx`, `server/sign-in.ts` |
+| Routes | `pages/index.astro` (`/studio` lists the canvases, styled like the catalog's tables), `pages/new.astro` (`/studio/new` starts one), `pages/[id].astro` (`/studio/<id>`) |
 
 Outside the folder: the WebSocket server is `integrations/studio-server.mjs`, routes are injected in
 `features/integrations/eventcatalog-features.ts`, the nav item is in `layouts/VerticalSideBarLayout.astro`, and
@@ -45,12 +46,33 @@ bundles Studio's components: rebuild it after changing them).
 
 ## Constraints
 
-- **Experimental and dev only.** Everything is behind `isCanvasEnabled()` (`@utils/feature`): the dev server with
-  authentication off. The routes, the WebSocket server, the canvas MCP tools and the sidebar item all check it.
-  Keep new entry points behind it.
-- **Canvases live in memory** (`server/runtime.ts` keeps a snapshot per canvas) and are lost on restart. If you
-  add persistence, store the full binary state (`Y.encodeStateAsUpdate`), never JSON, and flush pending stores on
-  shutdown (`hocuspocus.flushPendingStores()`).
+- **Experimental: dev server, or production with `studio.enabled`.** Everything is behind `isCanvasEnabled()`
+  (`@utils/feature`): the dev server, or `output: 'server'` with `studio.enabled: true`; `studio.enabled: false` turns it
+  off everywhere. The routes, the WebSocket server, the canvas MCP tools and the sidebar item all check it. Keep new
+  entry points behind it.
+- **Sign-in (SSO).** With authentication on, the pages are behind the sign-in middleware, and the collaboration socket
+  (which the middleware never sees) refuses anyone without a session in Hocuspocus's `onConnect`. The check is handed to
+  the runtime by the pages (`startStudio({ isSignedIn })`, `server/sign-in.ts`), since Auth.js's config doesn't load in
+  the dev server's integration; until then, connections are refused. Signed-in people are shown by their SSO name and
+  picture (`getSignedInUser`, the `signedInAs` prop) and can't rename themselves; pictures are URLs from the provider
+  (only `https://`), carried in presence and kept on comments and status changes (`Author.picture`), with initials
+  shown when one doesn't load. New entry points that open canvases must pass `isSignedIn` too.
+  A socket counts as connected once the server lets it in (`onAuthenticated`), not when it opens: a chat's view
+  (MCP App) opens it without the person's session and is refused, then syncs through its MCP tools
+  (`onAuthenticationFailed`), which the MCP server's own auth (`mcp.auth`) covers. A refused page shows it's offline.
+- **Starting Studio:** pages and the MCP endpoint call `startStudio()` before using canvases (loads storage once). In
+  dev, `integrations/studio-server.mjs` attaches the WebSocket to Astro's dev server. In production, `eventcatalog
+  start` runs the Node adapter's entry with `ASTRO_NODE_AUTOSTART=disabled`, starts it itself and leaves the HTTP server
+  on `globalThis[Symbol.for('eventcatalog.http-server')]`, where `start()` attaches; it then requests `/studio` once so
+  Studio is listening before reconnecting tabs arrive (see `SERVER_BOOTSTRAP` in `src/eventcatalog.ts`). Running
+  `dist/server/entry.mjs` directly serves the catalog without Studio's WebSocket.
+- **Canvases are stored by `studio.storage`** (`server/storage.ts`): `memory` (the default) or `sqlite` (Node's
+  built-in `node:sqlite`, Node 22.13+; in a container, on a volume). The runtime keeps every canvas's latest snapshot
+  in memory (loaded in `useStorage` before the WebSocket is attached) and writes through to storage in
+  `onStoreDocument`, so listing and opening canvases never wait on storage. Writes are synchronous so open canvases
+  are saved as the process exits (`exit`, `SIGINT`, `SIGTERM`). Canvases aren't written into the catalog's files:
+  in production the server's copy is the only one, and it outlives deploys. New storage types implement
+  `CanvasStorage` (`loadAll`, `save`).
 - **Hocuspocus 4.7 is attached to Astro's HTTP server** (`runtime.attach`), not `listen()`ed, so `quiet` and
   `stopOnSignals` do nothing. Leave WebSocket compression off (small binary frames; `ws` warns about memory
   fragmentation). Keep `onLoadDocument` from throwing (hocuspocus#1156 leaves the document half loaded).
@@ -84,6 +106,9 @@ bundles Studio's components: rebuild it after changing them).
   relative to the container. `fitGroupToChildren` grows a container to fit and, when it grows up or left, moves
   the children the other way so nothing moves on the canvas. Plan positions in canvas coordinates and convert to
   relative at the moment you add a node (see `playAddToCanvas`).
+- **Fit containers with rendered sizes in the browser.** The document doesn't know how big cards render, so
+  `fitGroupToChildren` / `fitContainersAround` / `setNodeParent` take `RenderedSizes` (`renderedSizes()` in
+  `use-studio-flow`); without them (server agents) containers are fitted to each type's largest size and overshoot.
 
 ## Real-time rules
 
@@ -139,6 +164,39 @@ bundles Studio's components: rebuild it after changing them).
    selected and resized by their header grip and handles, so you can box-select inside them. Read-only levels
    pan on drag.
 
+## Editing interactions
+
+- **Containers grow while something's dragged in them**, on every side (`previewContainerGrowth`; growing up or
+  left moves the container and what else is in it the other way), shown here only (`showDragPreview`) and saved in
+  the drop's own transaction. React Flow places the dragged nodes themselves. A container stops growing once the
+  dragged node's middle is `KEEP_IN_CONTAINER_MARGIN` past where it was, so you can still drag things out. Resizing a
+  node grows the containers around it on resize end; a container can't be resized smaller than what's in it
+  (`shouldResize` in `GroupNode`).
+- **Container size changes animate** through the `is-container-resize` class, set on the canvas element (not React
+  state) whenever a container's size arrives from the document. Your own live resize isn't animated (it would lag the
+  pointer).
+- **Copy, cut and paste** use the browser's clipboard events (`clipboard.ts`): Studio's own type plus a plain text
+  list, no permission prompts, and they work between canvases. A paste is one `insertNodes` transaction (one undo
+  step) and selects what was pasted. Right-click "Copy" goes through `document.execCommand('copy')` so it's the same
+  path; "Paste here" uses what was last copied in this tab (reading the clipboard from a click would prompt).
+- **Reconnecting an edge** (`onReconnect` → `reconnectEdge`) keeps the edge's id, relabels it for its new ends unless
+  someone wrote the label, and won't make self or duplicate connections. Dropped anywhere else, it stays put.
+- **The details panel opens on demand**: double clicking a node (or inside a container), or "Edit details" in its
+  menu. Selecting doesn't open it; Escape or its close button closes it. Notes and text are written on the canvas
+  instead (`isWrittenOnCanvas`): their data is their text, agents read and write it as `text`, and L1 drops them.
+  Text only has a width (`autoHeight`): its height follows what's written, and its side handles resize its width.
+  Sticky notes (Studio's own, not the visualiser's) are about square and grow with their text, and never go in a
+  container (`canGoInContainer`): dropping, dragging, pasting and agents all leave them on the canvas.
+- **Comments are part of the selection**: ⌘A selects them, Delete deletes them, and dragging the selection moves the
+  ones not on a node (saved on drop). Selected comments are local state, like selected nodes.
+- **Dragging from the left panel shows the real node** (`DragGhost.tsx`): the browser's drag image is hidden (a
+  transparent pixel: browsers shrink, fade and back it), and a ghost follows the pointer on `dragover`, drawn in a
+  small React Flow of its own (nodes need React Flow around them) at the canvas's zoom, exactly where the drop puts
+  the node. Scope DOM queries to `.studio-canvas`: `.react-flow__node` also matches the ghost.
+- **Feedback is CSS** (`studio.css`): selected and hovered nodes get an outline from the node wrapper's `::after`,
+  containers draw their own, and the drop target (`.ec-drop-target`) uses the theme's button colours, which stay
+  strong in light and dark themes (the accent can be pale).
+
 ## Agents
 
 - **Agents work like a person** (`agent-choreography.ts`): the pointer glides to where they're going, nodes are
@@ -157,13 +215,36 @@ bundles Studio's components: rebuild it after changing them).
 
 `levels.ts` derives read-only views; L3 is the canvas people edit.
 
-- **L1** matches EventCatalog's domain diagrams (`utils/node-graphs/domain-levels-node-graph.ts`): systems shown
-  as `system` cards (same ids, so switching levels glides) with their service count; services fold into their
-  system or domain; messages and channels outside a system carry the connection through to the systems either
-  side; edges between a node and the container it's in are dropped; plain `default` edges labelled with the
-  messages they carry. When changing it, compare with the visualiser's L1.
-- **L2** hides messages and channels, connecting the nodes either side.
+- **L1 and L2 match the visualiser's levels** (`utils/node-graphs/domain-levels-node-graph.ts`, the visualiser's
+  `hide-messages.ts`); compare with them when changing either:
+  - Edges joined through hidden messages or channels are "bridged": dashed, muted, `bridged-<from>-<to>`, labelled
+    only with the messages they carry (`getMessagesLabel`, no truncation), no label through channels alone.
+  - L1 edges between folded nodes are plain (solid, 20px arrow, `level-<from>-<to>`), labelled with messages only;
+    actors' edges keep their labels (like the visualiser's relationships).
+  - L1 systems are `system` cards (same ids, so switching levels glides) with services (and agents), data stores and
+    messages counted; domains with no system in them are `context-domain` cards. L2 keeps the canvas's own edges
+    between what it shows. Containers are sized by the layout (empty ones as the visualiser lays them out).
+  - L1 needs a system, or more than one domain; L2 is always there. Levels fit with `maxZoom: 1`.
+  - One deliberate difference: messages sitting in a domain (not a system) connect the systems either side (the
+    visualiser folds them into the domain), because catalog domains on a canvas hold their messages.
 - Levels are laid out with the visualiser's ELK layout and re-laid out (debounced) as the canvas changes.
+- **Sticky notes belong to a level** (`data.level`, absent means L3; `getNoteLevel` / `isOnLevel` in
+  `node-types.ts`). A note is only shown on its level. On L1 and L2 notes are drawn over the level's layout and are
+  the only thing you can change there: they're draggable/selectable per node (`asLevelNote`), and
+  `onLevelNodesChange` passes only their changes to the canvas (the level's cards aren't canvas nodes). Notes never
+  go into `getLevelGraph`, `levelKey`, `getLayoutPositions` or agent placement, so they don't re-lay out a level and
+  aren't moved by L3's layout. Anything else added while L1 or L2 is shown switches to L3 and goes there.
+
+## Canvas status
+
+- A canvas is `draft` (default), `proposed`, `accepted` or `rejected`: `meta.status` plus `meta.statusHistory` (who,
+  when, optional note), changed with `setCanvasStatus` (`canvas-doc.ts`).
+- Decided canvases (accepted, rejected) stay editable, but a change to nodes or edges makes them a draft again,
+  recorded against whoever changed it. Comments don't count. Browsers do it for their own (local) transactions in
+  `useStudioFlow`; server agents do it in `asAgent`'s `stage.change` with `reopeningIfEdited`, which checks the
+  transaction it's in (Hocuspocus direct connections wrap the change in one, so `afterTransaction` would be too late).
+  Anything new that writes nodes or edges outside these paths must reopen too.
+- Status changes use `STATUS_ORIGIN`, which undo doesn't track: undo takes back edits, never decisions.
 
 ## Before you finish a change
 

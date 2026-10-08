@@ -6,7 +6,8 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { buildUrl } from '@utils/url-builder';
 import StudioDesigner from '../components/StudioDesigner';
 import { getCatalogResources } from '../catalog-resources';
-import { STUDIO_SOCKET_PATH } from '../server/runtime';
+import { startStudio, STUDIO_SOCKET_PATH } from '../server/runtime';
+import { getSignedInUser, isSignedIn } from '../server/sign-in';
 
 export const prerender = false;
 
@@ -17,6 +18,8 @@ if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
 }
 
 const { resources, relations } = await getCatalogResources();
+const keptInMemory = (await startStudio({ isSignedIn })).storage.type === 'memory';
+const signedInAs = getSignedInUser(Astro.locals);
 ---
 
 <VerticalSideBarLayout title="Studio - EventCatalog" showNestedSideBar={false}>
@@ -28,9 +31,11 @@ const { resources, relations } = await getCatalogResources();
       client:only="react"
       canvasId={id}
       socketPath={buildUrl(STUDIO_SOCKET_PATH, true)}
-      newCanvasUrl={buildUrl('/studio')}
+      newCanvasUrl={`${buildUrl('/studio')}?new=1`}
       mcpUrl={buildUrl('/docs/mcp', true)}
       relayScriptPath={buildUrl('/webmcp-relay/embed.js', true)}
+      keptInMemory={keptInMemory}
+      signedInAs={signedInAs}
       resources={resources}
       relations={relations}
     />

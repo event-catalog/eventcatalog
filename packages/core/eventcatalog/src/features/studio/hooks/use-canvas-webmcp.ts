@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import type * as Y from 'yjs';
 import { initializeWebMCPPolyfill } from '@mcp-b/webmcp-polyfill';
-import { replyToThread, setThreadResolved, type Author } from '../canvas-doc';
+import { replyToThread, setThreadResolved, type Author, CANVAS_STATUSES, setCanvasStatus } from '../canvas-doc';
 import {
   ADD_TO_CANVAS_DESCRIPTION,
   CATALOG_COLLECTIONS,
@@ -243,11 +243,12 @@ const createCanvasTools = (get: () => CanvasWebMcpOptions, getStage: () => Agent
       name: 'update_node',
       title: 'Update a node',
       description:
-        'Renames, re-describes or moves a node (x/y: its new centre). Catalog resources keep their catalog name and summary. For notes, summary is the note text.',
+        'Renames, re-describes, re-versions or moves a node (x/y: its new centre). Catalog resources keep their catalog name, summary and version. For notes, summary is the note text.',
       input: z.object({
         nodeId: z.string(),
         name: z.string().optional(),
         summary: z.string().optional(),
+        version: z.string().optional().describe('e.g. 1.0.0'),
         x: z.number().optional(),
         y: z.number().optional(),
       }),
@@ -291,9 +292,18 @@ const createCanvasTools = (get: () => CanvasWebMcpOptions, getStage: () => Agent
       },
     }),
     defineTool({
+      name: 'set_canvas_status',
+      title: 'Set the canvas status',
+      description:
+        "Changes the canvas's status: draft (being worked on, where every canvas starts), proposed (ready for review), accepted (the agreed design) or rejected (decided against). Only change it when the user asks you to. Changing the nodes or connections on an accepted or rejected canvas makes it a draft again.",
+      input: z.object({ status: z.enum(CANVAS_STATUSES), note: z.string().optional() }),
+      execute: ({ status, note }) => withDoc((doc) => ({ status, changed: setCanvasStatus(doc, status, get().agent, note) })),
+    }),
+    defineTool({
       name: 'add_comment',
       title: 'Comment on the canvas',
-      description: 'Starts a comment thread pinned to a node (nodeId) or a spot (x, y), to ask questions or explain suggestions.',
+      description:
+        "Starts a comment thread pinned to a node (nodeId) or a spot (x, y). Only use it when the user asks you to comment (e.g. to review the canvas). Don't use comments to greet people or ask the user questions: talk to them in the conversation.",
       input: z.object({ text: z.string(), nodeId: z.string().optional(), x: z.number().optional(), y: z.number().optional() }),
       execute: async (input) => {
         const stage = getStage();

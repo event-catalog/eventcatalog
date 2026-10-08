@@ -28,7 +28,11 @@ export const isAuthEnabled = () =>
 
 export const isEventCatalogMCPEnabled = () => isSSR() && (config?.mcp?.enabled ?? true);
 
-// Collaborative canvases (EventCatalog Studio, /studio) are an experiment: only on the dev server for now. Canvases live in memory, and
-// the collaboration socket and canvas tools don't check sessions yet, so they're off when authentication is on.
-export const isCanvasEnabled = () => isDevMode() && !isAuthEnabled();
+// Collaborative canvases (EventCatalog Studio, /studio) are an experiment: on the dev server (unless studio.enabled is
+// false), and in production (server output) when studio.enabled is set. With sign-in on, only signed-in people can
+// open them.
+export const isCanvasEnabled = () => {
+  const enabled = config?.studio?.enabled;
+  return enabled !== false && (isDevMode() || (isSSR() && enabled === true));
+};
 export const isEventCatalogMCPAuthEnabled = () => isEventCatalogMCPEnabled() && (config?.mcp?.auth?.enabled ?? false);

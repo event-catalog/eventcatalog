@@ -176,16 +176,24 @@ export default function eventCatalogIntegration(): AstroIntegration {
           });
         }
 
-        // Collaborative canvases in EventCatalog Studio (/studio starts one). Their WebSocket server is in
-        // integrations/studio-server.mjs.
+        // Collaborative canvases in EventCatalog Studio (/studio lists them, /studio/new starts one). Their WebSocket
+        // server is in integrations/studio-server.mjs.
         if (isCanvasEnabled()) {
           params.injectRoute({
             pattern: '/studio',
             entrypoint: path.join(packageDirectory, 'src/features/studio/pages/index.astro'),
           });
           params.injectRoute({
+            pattern: '/studio/new',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/new.astro'),
+          });
+          params.injectRoute({
             pattern: '/studio/[id]',
             entrypoint: path.join(packageDirectory, 'src/features/studio/pages/[id].astro'),
+          });
+          params.injectRoute({
+            pattern: '/_eventcatalog/studio/wake',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/wake.ts'),
           });
           params.injectRoute({
             pattern: '/webmcp-relay/[file]',

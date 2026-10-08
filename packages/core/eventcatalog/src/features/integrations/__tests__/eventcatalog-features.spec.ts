@@ -58,9 +58,9 @@ describe('feature routes with a separate runtime directory', () => {
       order: 'pre',
     });
     expect(addWatchFile.mock.calls[0][0].startsWith(runtimeDirectory + path.sep)).toBe(true);
-    // Canvases are in Studio (/studio starts one)
+    // Canvases are in Studio (/studio lists them, /studio/new starts one)
     const patterns = injectRoute.mock.calls.map(([route]) => route.pattern);
-    expect(patterns).toEqual(expect.arrayContaining(['/studio', '/studio/[id]']));
+    expect(patterns).toEqual(expect.arrayContaining(['/studio', '/studio/new', '/studio/[id]']));
     expect(patterns.some((pattern: string) => pattern.startsWith('/collab'))).toBe(false);
   });
 

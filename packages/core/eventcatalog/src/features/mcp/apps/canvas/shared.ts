@@ -1,5 +1,6 @@
 // Shared by the canvas MCP App (client) and the MCP server: no server-only imports here
 import type { CatalogRelation, CatalogResource } from '../../../studio/catalog-resources';
+import type { CanvasStatus } from '../../../studio/canvas-doc';
 
 export const CANVAS_RESOURCE_URI = 'ui://eventcatalog/canvas.html';
 /** Key of the payload in openCanvas results' `_meta` */
@@ -12,7 +13,14 @@ export const CANVAS_CATALOG_TOOL = 'getCanvasCatalog';
 export const CANVAS_SYNC_TOOL = 'syncCanvas';
 
 /** A canvas listed in the view's picker */
-export type CanvasListItem = { canvasId: string; title?: string; people: string[]; nodeCount: number; openComments: number };
+export type CanvasListItem = {
+  canvasId: string;
+  title?: string;
+  status: CanvasStatus;
+  people: string[];
+  nodeCount: number;
+  openComments: number;
+};
 
 /**
  * What the view shows: a canvas (it connects to it itself, so people and agents edit it live), or, when opened

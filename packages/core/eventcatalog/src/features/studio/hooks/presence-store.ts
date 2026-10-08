@@ -6,6 +6,8 @@ export type Peer = {
   clientId: number;
   name: string;
   color: string;
+  /** A picture from their sign-in provider (SSO), shown over their initials */
+  picture?: string;
   /** An AI agent (joined over MCP, or working through this tab with WebMCP), rather than a person */
   agent?: boolean;
   /** What an agent is doing, e.g. "Adding OrderService" */
@@ -60,7 +62,9 @@ const toPeers = (awareness: Awareness): Peer[] => {
 
 // What getPeople() changes on: who people are, what agents are doing, and whether they're on the canvas (a pointer)
 const identity = (peer: Peer) =>
-  [peer.clientId, peer.name, peer.color, peer.agent ? 1 : 0, peer.activity ?? '', peer.pointer ? 1 : 0].join('|');
+  [peer.clientId, peer.name, peer.color, peer.picture ?? '', peer.agent ? 1 : 0, peer.activity ?? '', peer.pointer ? 1 : 0].join(
+    '|'
+  );
 
 export function createPresenceStore(awareness: Awareness): PresenceStore {
   const listeners = new Set<Listener>();

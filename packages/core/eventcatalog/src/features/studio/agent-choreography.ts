@@ -6,7 +6,7 @@ import {
   createThread,
   deleteEdges,
   deleteNodes,
-  fitGroupToChildren,
+  fitContainersAround,
   getCanvasMaps,
   moveNode,
   resizeNode,
@@ -24,6 +24,7 @@ import {
   type CatalogIndex,
   type EdgeSpecs,
   type NodeSpecs,
+  type NodeUpdate,
 } from './canvas-actions';
 import { getRelatedEdges } from './catalog';
 import { getAbsolutePosition, sizeOf } from './grouping';
@@ -191,7 +192,7 @@ export async function playAddToCanvas(
       const node = { ...plannedNode, position: { x: canvasPosition.x - origin.x, y: canvasPosition.y - origin.y } };
       addNodes(doc, [node]);
       // The containers it's in grow to fit it
-      for (let id = node.parentId; id; id = readNodes(doc).get(id)?.parentId) fitGroupToChildren(doc, id);
+      fitContainersAround(doc, node.id);
       const related = resource
         ? getRelatedEdges(resource, node.id, [...onCanvas.values()], catalog.relationsByKey, node.type)
         : [];
@@ -358,11 +359,13 @@ export async function playOnNode<T>(stage: AgentStage, nodeId: string, activity:
 /** Updating a node, played out: point at it to rename or re-describe it, then drag it to its new centre (x/y) */
 export async function playUpdateNode(
   stage: AgentStage,
-  { nodeId, name, summary, x, y }: { nodeId: string; name?: string; summary?: string; x?: number; y?: number }
+  { nodeId, name, summary, version, x, y }: NodeUpdate & { x?: number; y?: number }
 ) {
   const missing = { error: `No node "${nodeId}" on the canvas` };
-  if (name !== undefined || summary !== undefined) {
-    const outcome = await playOnNode(stage, nodeId, 'Editing', (doc) => updateCanvasNode(doc, { nodeId, name, summary }));
+  if (name !== undefined || summary !== undefined || version !== undefined) {
+    const outcome = await playOnNode(stage, nodeId, 'Editing', (doc) =>
+      updateCanvasNode(doc, { nodeId, name, summary, version })
+    );
     if ('error' in outcome) return outcome;
   }
   if (x !== undefined || y !== undefined) {

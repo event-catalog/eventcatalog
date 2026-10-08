@@ -4,6 +4,7 @@ import { Bot, Eye, EyeOff } from 'lucide-react';
 import { sizeOf } from '../grouping';
 import { usePeople, type Peer, type PresenceStore } from '../hooks/presence-store';
 import { useFollowCamera } from '../hooks/use-follow-camera';
+import Picture from './Picture';
 
 /**
  * Other people on the canvas: their pointers, selections and the connections they're dragging. Drawn in the
@@ -148,6 +149,7 @@ const PeerPointer = memo(function PeerPointer({ store, peer, scale }: { store: P
         style={{ backgroundColor: peer.color }}
       >
         {peer.agent && <Bot size={12} />}
+        <Picture src={peer.picture} className="-ml-0.5 h-4 w-4 shrink-0" />
         {peer.name}
         {peer.activity && <span className="font-normal opacity-90">· {peer.activity}</span>}
       </span>

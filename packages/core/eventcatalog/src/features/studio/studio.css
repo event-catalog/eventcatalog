@@ -35,6 +35,27 @@
   stroke-width: 2px !important;
 }
 
+/*
+ * A connection being dragged (a new one, or an end moved to another node): once it's on a node it can connect
+ * to, it turns the hover colour, so you know letting go will connect it
+ */
+.studio-canvas .react-flow__connection-path {
+  stroke-width: 2px;
+  transition: stroke 100ms ease;
+}
+/* Like a hovered edge in the visualiser: glowing, with the dashes flowing (ec-edge-dash, from its styles) */
+.studio-canvas .react-flow__connection.valid .react-flow__connection-path {
+  stroke: #2563eb;
+  stroke-width: 4px;
+  filter: drop-shadow(0 0 8px #2563eb);
+  stroke-dasharray: 5 5;
+  animation: ec-edge-dash 0.5s linear infinite;
+}
+[data-theme='dark'] .studio-canvas .react-flow__connection.valid .react-flow__connection-path {
+  stroke: #00d9ff;
+  filter: drop-shadow(0 0 8px #00d9ff);
+}
+
 /* Comment mode (C): click anywhere to drop a comment */
 .studio-canvas.comment-mode .react-flow__pane,
 .studio-canvas.comment-mode .react-flow__node {
@@ -53,6 +74,14 @@
 .studio-canvas.is-layout-transition .react-flow__edges {
   opacity: 0;
   transition: none;
+}
+
+/* Containers grow smoothly when they're fitted to what's in them, or someone else resizes them */
+.studio-canvas.is-container-resize :is(.react-flow__node-domain-group, .react-flow__node-system-group) {
+  transition:
+    width 300ms ease,
+    height 300ms ease,
+    transform 300ms ease;
 }
 
 /* Nodes pop in when they're added (by anyone, people or agents) */
@@ -86,4 +115,159 @@
 .studio-canvas .react-flow__node-domain-group :is(.ec-group-grip, .react-flow__resize-control),
 .studio-canvas .react-flow__node-system-group :is(.ec-group-grip, .react-flow__resize-control) {
   pointer-events: auto;
+}
+
+/*
+ * Selected nodes get an accent outline and glow around them, and hovered ones a faint outline (like Figma and
+ * Miro). Drawn by the node's wrapper, so it fits every kind of node. Containers draw their own.
+ */
+.studio-canvas .react-flow__node:not(.react-flow__node-domain-group, .react-flow__node-system-group)::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  pointer-events: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.studio-canvas .react-flow__node:not(.react-flow__node-domain-group, .react-flow__node-system-group):hover::after {
+  border-color: rgb(var(--ec-accent) / 0.35);
+}
+.studio-canvas .react-flow__node.selected:not(.react-flow__node-domain-group, .react-flow__node-system-group)::after {
+  border-color: rgb(var(--ec-accent));
+  box-shadow: 0 0 0 4px rgb(var(--ec-accent) / 0.15);
+}
+
+/* A selected or hovered connection shows the ends you can drag to another node */
+.studio-canvas .react-flow__edge .react-flow__edgeupdater {
+  cursor: grab;
+}
+.studio-canvas .react-flow__edge:is(.selected, :hover) .react-flow__edgeupdater {
+  fill: rgb(var(--ec-accent) / 0.2);
+  stroke: rgb(var(--ec-accent));
+  stroke-width: 1.5;
+}
+
+/* A selected container */
+.studio-canvas .ec-group-selected {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  box-shadow: 0 0 0 2px rgb(var(--ec-accent) / 0.7);
+  pointer-events: none;
+}
+
+/* A container something's dragged over: it goes in it when it's dropped (in the theme's button colours, which stay
+   strong in light and dark themes) */
+.studio-canvas .ec-drop-target {
+  position: absolute;
+  inset: -5px;
+  border-radius: 17px;
+  border: 3px solid rgb(var(--ec-button-bg));
+  background: rgb(var(--ec-button-bg) / 0.1);
+  box-shadow: 0 0 0 6px rgb(var(--ec-button-bg) / 0.2);
+  pointer-events: none;
+  animation: ec-drop-target-in 150ms ease-out;
+}
+.studio-canvas .ec-drop-target-label {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  translate: -50% 0;
+  white-space: nowrap;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--ec-button-text));
+  background: rgb(var(--ec-button-bg));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+}
+@keyframes ec-drop-target-in {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+}
+
+/*
+ * What's dragged from the left panel (DragGhost): just the node, on nothing. The visualiser's class gives it the page
+ * background, and its handles are hidden on the canvas only.
+ */
+.studio-drag-preview,
+.studio-drag-preview .react-flow,
+.studio-drag-preview .react-flow__renderer,
+.studio-drag-preview .react-flow__pane {
+  background: transparent !important;
+}
+.studio-drag-preview .react-flow__handle {
+  display: none !important;
+}
+
+/* Text written on the canvas: no card around it, in the page's text colour */
+.studio-canvas .studio-text,
+.studio-drag-preview .studio-text {
+  min-width: 80px;
+  padding: 2px 4px;
+}
+.studio-text .studio-text-body {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: rgb(var(--ec-page-text));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.studio-canvas .studio-width-handle {
+  border-color: rgb(var(--ec-accent)) !important;
+}
+
+/* A sticky note: about square like a post-it, taller if more is written on it (dark text: the paper is light in
+   every theme) */
+.studio-note {
+  position: relative;
+  min-height: 176px;
+  height: 100%;
+  padding: 12px 14px;
+  border: 1px solid;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 6px 16px -6px rgb(0 0 0 / 0.18);
+  color: #1f2937;
+}
+.studio-note .studio-note-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.studio-note .studio-note-body::placeholder {
+  color: inherit;
+  opacity: 0.5;
+}
+/* Its colours, above it while it's selected */
+.studio-note .studio-note-colors {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--ec-page-border));
+  background: rgb(var(--ec-card-bg));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}
+.studio-note .studio-note-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  border: 2px solid;
+  cursor: pointer;
 }

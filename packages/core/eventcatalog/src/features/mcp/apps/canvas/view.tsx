@@ -15,7 +15,7 @@ import type { App } from '@modelcontextprotocol/ext-apps';
 import styles from './styles.css?inline';
 import visualiserStyles from '@eventcatalog/visualiser/styles.css?inline';
 import StudioDesigner, { type SelectedNode } from '@features/studio/components/StudioDesigner';
-import { STATUS } from '@features/studio/components/status';
+import { CANVAS_STATUS_LOOK, STATUS } from '@features/studio/components/status';
 import { getToolResultPayload, mountView, useMcpAppView } from '../shared/app-view';
 import {
   CANVAS_CATALOG_TOOL,
@@ -101,7 +101,14 @@ function CanvasPicker({
             className="flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent))]"
           >
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">{canvas.title ?? 'Untitled canvas'}</span>
+              <span className="flex items-center gap-2">
+                <span className="truncate text-sm font-semibold">{canvas.title ?? 'Untitled canvas'}</span>
+                <span
+                  className={`shrink-0 rounded-full border px-1.5 py-px text-[10px] font-semibold ${CANVAS_STATUS_LOOK[canvas.status].pill}`}
+                >
+                  {CANVAS_STATUS_LOOK[canvas.status].label}
+                </span>
+              </span>
               <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
                 {canvas.nodeCount} {canvas.nodeCount === 1 ? 'node' : 'nodes'}
                 {canvas.openComments > 0 && ` · ${canvas.openComments} open comments`}

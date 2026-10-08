@@ -53,10 +53,15 @@ export function useFollowCamera({
     pausedUntil.current = Date.now() + PAUSE_AFTER_USER_MS;
   }, []);
 
-  // A canvas that opens empty and fills in (it syncs after it opens) fits once its content arrives
+  // A canvas that opens empty and fills in (it syncs after it opens) fits once its content arrives, and so does an
+  // empty canvas when something's added to it (rather than keeping however far out it was zoomed)
   const hasFitContent = useRef(false);
   useEffect(() => {
-    if (hasFitContent.current || !hasNodes || !width) return;
+    if (!hasNodes) {
+      hasFitContent.current = false;
+      return;
+    }
+    if (hasFitContent.current || !width) return;
     hasFitContent.current = true;
     const frame = requestAnimationFrame(() => void fitView({ padding: PADDING, maxZoom: MAX_ZOOM, duration: 300 }));
     return () => cancelAnimationFrame(frame);

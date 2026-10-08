@@ -144,8 +144,11 @@ export const getCatalogResources = async (): Promise<{ resources: CatalogResourc
       const collection = messageCollection.get(id);
       if (collection) relate(keyOf(collection, id), serviceKey);
     }
-    for (const id of idsOf(service.data.writesTo)) relate(serviceKey, keyOf('containers', id));
-    for (const id of idsOf(service.data.readsFrom)) relate(keyOf('containers', id), serviceKey);
+    // A data store it both writes to and reads from is one connection (like the visualiser), not two on top of each other
+    const reads = new Set(idsOf(service.data.readsFrom));
+    const writes = new Set(idsOf(service.data.writesTo));
+    for (const id of writes) relate(serviceKey, keyOf('containers', id), reads.has(id) ? 'reads and writes' : undefined);
+    for (const id of reads) if (!writes.has(id)) relate(keyOf('containers', id), serviceKey);
   }
 
   return { resources, relations };

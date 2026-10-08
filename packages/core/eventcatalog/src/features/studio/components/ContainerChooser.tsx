@@ -10,7 +10,7 @@ import type { CatalogResource } from '../catalog-resources';
 export type ContainerChoice = { as: 'card' } | { as: 'container'; withContents: boolean };
 
 // Small pictures of the two ways a domain or system can be on the canvas
-const CardPreview = () => (
+export const CardPreview = () => (
   <svg viewBox="0 0 64 36" className="h-9 w-16" aria-hidden>
     <rect
       x="18"

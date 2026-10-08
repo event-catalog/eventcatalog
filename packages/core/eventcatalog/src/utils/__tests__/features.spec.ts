@@ -1,5 +1,5 @@
 import path from 'path';
-import { isEventCatalogChatEnabled, isEventCatalogChatVisible, isMarkdownDownloadEnabled } from '../feature';
+import { isCanvasEnabled, isEventCatalogChatEnabled, isEventCatalogChatVisible, isMarkdownDownloadEnabled } from '../feature';
 
 import config from '@config';
 import fs from 'fs';
@@ -101,6 +101,41 @@ describe('features', () => {
     it('returns true when eventcatalog.config.js (llmsTxt.enabled) is true', () => {
       config.llmsTxt.enabled = true;
       expect(isMarkdownDownloadEnabled()).toBe(true);
+    });
+  });
+
+  describe('isCanvasEnabled (Studio)', () => {
+    afterEach(() => {
+      config.studio = undefined;
+      config.auth = undefined;
+    });
+
+    it('is on in the dev server, and in production only when studio.enabled is set', () => {
+      config.output = 'server';
+      process.env.EVENTCATALOG_DEV_MODE = 'true';
+      expect(isCanvasEnabled()).toBe(true);
+      process.env.EVENTCATALOG_DEV_MODE = 'false';
+      expect(isCanvasEnabled()).toBe(false);
+      config.studio = { enabled: true };
+      expect(isCanvasEnabled()).toBe(true);
+    });
+
+    it('is off everywhere when studio.enabled is false, even in the dev server', () => {
+      process.env.EVENTCATALOG_DEV_MODE = 'true';
+      config.studio = { enabled: false };
+      expect(isCanvasEnabled()).toBe(false);
+    });
+
+    it('stays on with sign-in on (only signed-in people can open canvases)', () => {
+      config.output = 'server';
+      config.studio = { enabled: true };
+      config.auth = { enabled: true };
+      fs.writeFileSync(path.join(process.env.PROJECT_DIR || '', 'eventcatalog.auth.js'), 'export default {};');
+      try {
+        expect(isCanvasEnabled()).toBe(true);
+      } finally {
+        fs.rmSync(path.join(process.env.PROJECT_DIR || '', 'eventcatalog.auth.js'));
+      }
     });
   });
 });

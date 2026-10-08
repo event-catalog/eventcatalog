@@ -24,6 +24,8 @@ export const getEdgeLabel = (sourceType = '', targetType = ''): string => {
   const targetCollection = MESSAGE_COLLECTIONS[targetType];
 
   if (PRODUCERS.includes(sourceType) && targetCollection) return PRODUCER_LABELS[targetCollection];
+  // One message leading to another (e.g. an event that causes a command)
+  if (sourceCollection && targetCollection) return 'triggers';
   if (sourceCollection && targetType === 'channel') return 'sent to';
   if (sourceCollection) return MESSAGE_LABELS[sourceCollection];
   if (sourceType === 'channel') return 'routes to';
