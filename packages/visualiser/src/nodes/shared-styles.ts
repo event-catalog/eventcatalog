@@ -145,6 +145,7 @@ export const HANDLE_GLOW = {
   actor: glow("234, 179, 8"),
   external: glow("168, 85, 247"),
   dataProduct: glow("99, 102, 241"),
+  view: glow("14, 165, 233"),
   // Nodes without a colour of their own (fields, message groups, custom steps)
   generic: glow("251, 146, 60"),
 } as const;
