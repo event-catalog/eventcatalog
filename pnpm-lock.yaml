@@ -552,6 +552,9 @@ importers:
       validate-npm-package-name:
         specifier: 3.0.0
         version: 3.0.0
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.19)(jiti@2.7.0)(jsdom@27.0.0(postcss@8.5.15))(lightningcss@1.32.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.9.0)
 
   packages/diff:
     dependencies:

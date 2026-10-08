@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { raiseEvent } from '../analytics/analytics.js';
-import { raiseEvent as raiseCreateEvent } from '../../../create-eventcatalog/templates/analytics';
 
 const catalogId = '8027010c-f3d6-417a-8234-e2f46087fc56';
 
@@ -118,64 +117,5 @@ describe('raiseEvent', () => {
     await raiseEvent(eventData);
 
     expect(fetchMock).not.toHaveBeenCalled();
-  });
-});
-
-describe('create-eventcatalog raiseEvent', () => {
-  const fetchMock = vi.fn();
-  const event = { command: 'create' as const, org: 'Acme Inc', cId: catalogId, tsd: 1 };
-
-  beforeEach(() => {
-    fetchMock.mockResolvedValue({ ok: true });
-    vi.stubGlobal('fetch', fetchMock);
-    vi.stubEnv('EVENTCATALOG_TELEMETRY_DISABLED', '');
-    vi.stubEnv('DO_NOT_TRACK', '');
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    vi.unstubAllEnvs();
-    vi.restoreAllMocks();
-    fetchMock.mockReset();
-  });
-
-  it('sends the create event by default, with a 2 second timeout', async () => {
-    const timeout = vi.spyOn(AbortSignal, 'timeout');
-
-    await raiseCreateEvent(event);
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0][0]).toBe('https://queue.simpleanalyticscdn.com/events');
-    expect(timeout).toHaveBeenCalledWith(2000);
-    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
-    expect(body.event).toBe('@eventcatalog/create-eventcatalog');
-    expect(body.metadata).toMatchObject({ command: 'create', org: 'Acme Inc', cId: catalogId, tsd: 1 });
-  });
-
-  it.each([
-    ['EVENTCATALOG_TELEMETRY_DISABLED', '1'],
-    ['EVENTCATALOG_TELEMETRY_DISABLED', 'true'],
-    ['DO_NOT_TRACK', '1'],
-    ['DO_NOT_TRACK', 'true'],
-  ])('sends nothing when %s is %s', async (name, value) => {
-    vi.stubEnv(name, value);
-
-    await raiseCreateEvent(event);
-
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it.each(['0', ''])('still sends when DO_NOT_TRACK is %j', async (value) => {
-    vi.stubEnv('DO_NOT_TRACK', value);
-
-    await raiseCreateEvent(event);
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('swallows a network error', async () => {
-    fetchMock.mockRejectedValue(new Error('offline'));
-
-    await expect(raiseCreateEvent(event)).resolves.toBeUndefined();
   });
 });

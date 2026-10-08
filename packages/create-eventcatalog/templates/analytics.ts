@@ -1,6 +1,6 @@
 import os from 'os';
 import pkg from '../package.json';
-import { isTelemetryDisabled, TELEMETRY_REQUEST_TIMEOUT_MS } from '../../core/src/analytics/telemetry';
+import { isTelemetryDisabled, TELEMETRY_REQUEST_TIMEOUT_MS } from './telemetry';
 
 interface EventMetadata {
   command: string;
@@ -10,7 +10,7 @@ interface EventMetadata {
 }
 
 async function raiseEvent(eventData: EventMetadata): Promise<void> {
-  if (isTelemetryDisabled(undefined, process.env)) return;
+  if (isTelemetryDisabled(process.env)) return;
 
   const url = 'https://queue.simpleanalyticscdn.com/events';
   const userAgent = `@eventcatalog/create-eventcatalog/${pkg.version} (${os.platform()}; ${os.arch()}; Node/${process.version})`;
