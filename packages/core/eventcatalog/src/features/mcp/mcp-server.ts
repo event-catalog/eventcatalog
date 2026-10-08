@@ -401,7 +401,7 @@ function createMcpServer(scope: McpScope | undefined, { catalogUrl, userAgent }:
     if (resource.error !== undefined) return { error: resource.error };
 
     const schemas = await tools.getSchemaForResource({ ...params, resourceVersion: resource.version });
-    if ('error' in schemas) return schemas;
+    if ('error' in schemas && schemas.error !== undefined) return { error: schemas.error };
 
     return {
       resource: {

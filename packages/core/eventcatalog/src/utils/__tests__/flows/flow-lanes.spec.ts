@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createLaneIndex } from '@utils/node-graphs/flow-lanes';
 
-const entry = (data: Record<string, unknown>, filePath = 'index.mdx') => ({ data, filePath });
+// Collection entries with only what the lane index reads (and filePath, which marks old versions)
+const entry = (data: { id: string } & Record<string, unknown>, filePath = 'index.mdx') => ({ data, filePath }) as never;
 
 const index = createLaneIndex({
   domains: [

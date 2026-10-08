@@ -38,7 +38,6 @@ const NODE_SHAPE_MAP: Record<string, [string, string]> = {
   'context-actor': ['((', '))'], // circle
   flows: ['([', '])'], // stadium (rounded)
   flow: ['([', '])'],
-  systems: ['[[', ']]'],
   system: ['[[', ']]'],
   step: ['[', ']'], // rectangle
   user: ['((', '))'], // circle
@@ -79,7 +78,6 @@ const NODE_STYLE_CLASSES: Record<string, string> = {
   domains: 'fill:#eab308,stroke:#a16207,color:#000',
   domain: 'fill:#eab308,stroke:#a16207,color:#000',
   'context-domain': 'fill:#eab308,stroke:#a16207,color:#000',
-  systems: 'fill:#7c3aed,stroke:#5b21b6,color:#fff',
   'context-actor': 'fill:#8b5cf6,stroke:#6d28d9,color:#fff',
   flows: 'fill:#14b8a6,stroke:#0f766e,color:#fff',
   flow: 'fill:#14b8a6,stroke:#0f766e,color:#fff',
