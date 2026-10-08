@@ -11,7 +11,7 @@ Document systems, domains, services, messages and schemas. Document your archite
 Customize your documentation to fit your workflow. Automate it, customize it, visualize it.
 
 [![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
-[![License](https://img.shields.io/badge/License-MIT%20%2B%20Commercial-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
+[![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
 [![npm version](https://badge.fury.io/js/@eventcatalog%2Fcore.svg)](https://badge.fury.io/js/@eventcatalog/core)
 [![All Contributors](https://img.shields.io/badge/all_contributors-69-orange.svg?style=flat-square)](#contributors-)
 
@@ -272,6 +272,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## License
 
-EventCatalog 5.0.0 (including its pre-releases) and later is licensed under the [Business Source License 1.1](LICENSE).
-Releases up to and including 4.x remain available under the MIT License (see [NOTICE](NOTICE)). The ecosystem packages (the SDK, CLI, connectors, diff,
-linter, visualiser, breaking-changes and create-eventcatalog) are licensed under MIT.
+EventCatalog is source-available under the [Business Source License 1.1](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE). It is free for eligible organisations (under USD 10M revenue and under USD 10M funding). Otherwise it is covered by a subscription. See [pricing](https://www.eventcatalog.dev/pricing).
+
+Version 5.0.0 (including its pre-releases) and later is covered by that licence. Releases up to and including 4.x remain available under the MIT License (see [NOTICE](NOTICE)). The ecosystem packages (the SDK, CLI, connectors, diff, linter, visualiser, breaking-changes and create-eventcatalog) are licensed under MIT.
