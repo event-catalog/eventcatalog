@@ -178,15 +178,16 @@ describe('license status', () => {
     it('shows who the license is for and when it expires', () => {
       const expiresAt = new Date(now + 90 * DAY);
       const message = getLicenseStatusMessage({ state: 'licensed', org: 'acme', expiresAt }, tsd, now);
-      expect(message).toMatchObject({ title: 'EventCatalog Commercial License', color: 'green' });
-      expect(message?.text).toContain('Licensed to acme');
-      expect(message?.text).toContain('(90 days left)');
+      expect(message).toMatchObject({ title: 'EventCatalog license', color: 'green', headline: 'Commercial license active' });
+      expect(message?.text).toMatch(/^Commercial license active\n\nLicensed to  acme\nValid until  .+ \(90 days left\)$/);
     });
 
-    it('warns when the license expires in fewer than 30 days', () => {
+    it('warns when the license expires in fewer than 30 days, with where to renew', () => {
       const message = getLicenseStatusMessage({ state: 'licensed', org: 'acme', expiresAt: new Date(exp * 1000) }, tsd, now);
-      expect(message).toMatchObject({ title: 'EventCatalog Commercial License', color: 'yellow' });
-      expect(message?.text).toMatch(/^Licensed to acme\nYour license expires in 9 days, on .+\.\nRenew it/);
+      expect(message).toMatchObject({ title: 'EventCatalog license', color: 'yellow' });
+      expect(message?.text).toMatch(
+        /^Your commercial license expires in 9 days\n\nLicensed to  acme\nExpires      .+\n\nRenew        https:\/\/eventcatalog\.cloud$/
+      );
 
       const month = getLicenseStatusMessage({ state: 'licensed', expiresAt: new Date(now + 30 * DAY) }, tsd, now);
       expect(month?.color).toBe('green');
@@ -195,21 +196,31 @@ describe('license status', () => {
     it('shows the trial without a license', () => {
       const message = getLicenseStatusMessage({ state: 'none' }, tsd, now);
       expect(message).toMatchObject({ title: 'EventCatalog trial', color: 'green' });
-      expect(message?.text).toContain('37 days left of your 60-day EventCatalog trial');
-    });
-
-    it('shows an expired license in its own box, then the trial', () => {
-      const expired = getLicenseStatusMessage({ state: 'expired', org: 'acme', expiresAt: new Date(now - 5 * DAY) }, tsd, now);
-      expect(expired).toMatchObject({ title: 'EventCatalog License Expired', color: 'yellow' });
-      expect(expired?.text).toMatch(
-        /^Your EventCatalog commercial license for acme expired on .+ \(5 days ago\)\.\nRenew it to keep using EventCatalog commercially: https:\/\/eventcatalog\.cloud\n37 days left/
+      expect(message?.text).toMatch(
+        /^You're on the 60-day EventCatalog trial\n\nTrial      37 days left of 60 \(ends .+\)\n\nLicensing  https:\/\/www\.eventcatalog\.dev\/license-faq$/
       );
     });
 
-    it('warns about an invalid license, then shows the trial', () => {
+    it('says when the trial has ended, and where to get a license', () => {
+      const message = getLicenseStatusMessage({ state: 'none' }, now - 61 * DAY, now);
+      expect(message).toMatchObject({ color: 'yellow', headline: 'Your EventCatalog trial has ended' });
+      expect(message?.links.map(([label]) => label)).toEqual(['Get a license', 'Licensing']);
+    });
+
+    it('shows an expired license with when it expired, the trial, and where to renew', () => {
+      const expired = getLicenseStatusMessage({ state: 'expired', org: 'acme', expiresAt: new Date(now - 5 * DAY) }, tsd, now);
+      expect(expired).toMatchObject({ title: 'EventCatalog license', color: 'yellow' });
+      expect(expired?.text).toMatch(
+        /^Your commercial license has expired\n\nLicensed to  acme\nExpired      .+ \(5 days ago\)\nTrial        37 days left of 60 \(ends .+\)\n\nRenew        https:\/\/eventcatalog\.cloud\nLicensing    https:\/\/www\.eventcatalog\.dev\/license-faq$/
+      );
+    });
+
+    it('warns about an invalid license, with why, then shows the trial', () => {
       const invalid = getLicenseStatusMessage({ state: 'invalid', reason: 'its signature is invalid' }, tsd, now);
       expect(invalid).toMatchObject({ title: 'EventCatalog license', color: 'yellow' });
-      expect(invalid?.text).toMatch(/^Your license\.jwt could not be verified: its signature is invalid\.\n37 days left/);
+      expect(invalid?.text).toMatch(
+        /^Your license\.jwt couldn't be verified\n\nReason     Its signature is invalid\nTrial      37 days left/
+      );
     });
 
     it('shows nothing without a license or a trial start date', () => {

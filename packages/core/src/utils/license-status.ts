@@ -1,4 +1,5 @@
 import boxen from 'boxen';
+import pc from 'picocolors';
 import { isEventCatalogScaleEnabled, isEventCatalogStarterEnabled } from '@eventcatalog/license';
 import { getTrialStatus, LICENSE_REMINDER_DAYS, TRIAL_LENGTH_DAYS } from '../../eventcatalog/src/utils/trial';
 import {
@@ -68,93 +69,141 @@ export const getLicenseAnalytics = (license: LicenseStatus = { state: 'none' }, 
 const formatDate = (date: Date) => date.toLocaleDateString(undefined, { dateStyle: 'medium' });
 const formatDays = (days: number) => `${days} ${days === 1 ? 'day' : 'days'}`;
 
-const getTrialLine = (tsd: unknown, now: number) => {
+type Row = [label: string, value: string];
+
+/**
+ * What the license box says: a headline, the facts as aligned rows ("Licensed to  acme"), and links on their own
+ * rows, so it can be read at a glance. `text` is the box's content without colours.
+ */
+export type LicenseStatusMessage = {
+  title: string;
+  color: 'green' | 'yellow';
+  headline: string;
+  rows: Row[];
+  links: Row[];
+  text: string;
+};
+
+type Colours = { bold: (text: string) => string; dim: (text: string) => string; link: (text: string) => string };
+const PLAIN: Colours = { bold: (text) => text, dim: (text) => text, link: (text) => text };
+const COLOURS: Colours = { bold: pc.bold, dim: pc.dim, link: (text) => pc.cyan(text) };
+
+const render = ({ headline, rows, links }: Omit<LicenseStatusMessage, 'text' | 'title' | 'color'>, colours: Colours) => {
+  const width = Math.max(0, ...[...rows, ...links].map(([label]) => label.length));
+  const row = ([label, value]: Row) => `${colours.dim(label.padEnd(width))}  ${value}`;
+  return [
+    colours.bold(headline),
+    ...(rows.length ? ['', ...rows.map(row)] : []),
+    ...(links.length ? ['', ...links.map(([label, url]) => row([label, colours.link(url)]))] : []),
+  ].join('\n');
+};
+
+const message = (content: Omit<LicenseStatusMessage, 'text'>): LicenseStatusMessage => ({
+  ...content,
+  text: render(content, PLAIN),
+});
+
+/** The trial, as a row: how long it has left, or when it ended */
+const getTrialRow = (tsd: unknown, now: number): Row | undefined => {
   const trial = getTrialStatus(tsd, now);
   if (!trial) return;
-  return trial.ended
-    ? `Your ${TRIAL_LENGTH_DAYS}-day EventCatalog trial ended on ${formatDate(trial.endsAt)}.`
-    : `${formatDays(trial.daysLeft)} left of your ${TRIAL_LENGTH_DAYS}-day EventCatalog trial (ends ${formatDate(trial.endsAt)}).`;
+  return [
+    'Trial',
+    trial.ended
+      ? `Ended ${formatDate(trial.endsAt)}`
+      : `${formatDays(trial.daysLeft)} left of ${TRIAL_LENGTH_DAYS} (ends ${formatDate(trial.endsAt)})`,
+  ];
 };
 
 /**
  * The license (or trial) box for the terminal. Undefined when there's nothing to show.
  */
-export const getLicenseStatusMessage = (license: LicenseStatus, tsd: unknown, now = Date.now()) => {
+export const getLicenseStatusMessage = (
+  license: LicenseStatus,
+  tsd: unknown,
+  now = Date.now()
+): LicenseStatusMessage | undefined => {
+  const licensing: Row = ['Licensing', LICENSE_FAQ_URL];
+  const renew: Row = ['Renew', LICENSE_RENEW_URL];
+  const licensedTo: Row[] = 'org' in license && license.org ? [['Licensed to', license.org]] : [];
+
   if (license.state === 'licensed') {
     const daysLeft = Math.max(0, Math.ceil((license.expiresAt.getTime() - now) / DAY_IN_MS));
-    const licensedTo = license.org ? `Licensed to ${license.org}` : 'Licensed';
     if (daysLeft < LICENSE_REMINDER_DAYS) {
-      return {
-        title: 'EventCatalog Commercial License',
+      return message({
+        title: 'EventCatalog license',
         color: 'yellow',
-        text: [
-          licensedTo,
-          `Your license expires in ${formatDays(daysLeft)}, on ${formatDate(license.expiresAt)}.`,
-          `Renew it to keep using EventCatalog commercially: ${LICENSE_RENEW_URL}`,
-        ].join('\n'),
-      };
+        headline: `Your commercial license expires in ${formatDays(daysLeft)}`,
+        rows: [...licensedTo, ['Expires', formatDate(license.expiresAt)]],
+        links: [renew],
+      });
     }
-    return {
-      title: 'EventCatalog Commercial License',
+    return message({
+      title: 'EventCatalog license',
       color: 'green',
-      text: `${licensedTo}\nValid until ${formatDate(license.expiresAt)} (${formatDays(daysLeft)} left)`,
-    };
+      headline: 'Commercial license active',
+      rows: [...licensedTo, ['Valid until', `${formatDate(license.expiresAt)} (${formatDays(daysLeft)} left)`]],
+      links: [],
+    });
   }
 
   // The license package shows its own box for a Scale or Starter plan
   if (license.state === 'plan') return;
 
-  const trialLine = getTrialLine(tsd, now);
+  const trialRow = getTrialRow(tsd, now);
+  const trialRows = trialRow ? [trialRow] : [];
 
   if (license.state === 'none') {
-    if (!trialLine) return;
-    const ended = getTrialStatus(tsd, now)?.ended;
-    return {
+    const trial = getTrialStatus(tsd, now);
+    if (!trial || !trialRow) return;
+    return message({
       title: 'EventCatalog trial',
-      color: ended ? 'yellow' : 'green',
-      text: `${trialLine}\nLearn about licensing: ${LICENSE_FAQ_URL}`,
-    };
+      color: trial.ended ? 'yellow' : 'green',
+      headline: trial.ended ? 'Your EventCatalog trial has ended' : `You're on the ${TRIAL_LENGTH_DAYS}-day EventCatalog trial`,
+      rows: trialRows,
+      links: trial.ended ? [['Get a license', LICENSE_RENEW_URL], licensing] : [licensing],
+    });
   }
 
   if (license.state === 'expired') {
     const expiredOn = license.expiresAt
-      ? `expired on ${formatDate(license.expiresAt)} (${formatDays(Math.floor((now - license.expiresAt.getTime()) / DAY_IN_MS))} ago)`
-      : 'has expired';
-    return {
-      title: 'EventCatalog License Expired',
+      ? [
+          [
+            'Expired',
+            `${formatDate(license.expiresAt)} (${formatDays(Math.floor((now - license.expiresAt.getTime()) / DAY_IN_MS))} ago)`,
+          ] as Row,
+        ]
+      : [];
+    return message({
+      title: 'EventCatalog license',
       color: 'yellow',
-      text: [
-        `Your EventCatalog commercial license${license.org ? ` for ${license.org}` : ''} ${expiredOn}.`,
-        `Renew it to keep using EventCatalog commercially: ${LICENSE_RENEW_URL}`,
-        trialLine,
-        `Learn about licensing: ${LICENSE_FAQ_URL}`,
-      ]
-        .filter(Boolean)
-        .join('\n'),
-    };
+      headline: 'Your commercial license has expired',
+      rows: [...licensedTo, ...expiredOn, ...trialRows],
+      links: [renew, licensing],
+    });
   }
 
-  return {
+  return message({
     title: 'EventCatalog license',
     color: 'yellow',
-    text: [`Your license.jwt could not be verified: ${license.reason}.`, trialLine, `Learn about licensing: ${LICENSE_FAQ_URL}`]
-      .filter(Boolean)
-      .join('\n'),
-  };
+    headline: "Your license.jwt couldn't be verified",
+    rows: [['Reason', license.reason.charAt(0).toUpperCase() + license.reason.slice(1)], ...trialRows],
+    links: [licensing],
+  });
 };
 
 export const printLicenseStatus = (license: LicenseStatus, tsd: unknown) => {
-  const message = getLicenseStatusMessage(license, tsd);
-  if (!message) return;
+  const status = getLicenseStatusMessage(license, tsd);
+  if (!status) return;
 
   console.log(
-    boxen(message.text, {
-      padding: 1,
+    boxen(render(status, COLOURS), {
+      padding: { top: 1, bottom: 1, left: 2, right: 2 },
       margin: 1,
       borderStyle: 'round',
-      borderColor: message.color,
-      title: message.title,
-      titleAlignment: 'center',
+      borderColor: status.color,
+      title: status.title,
+      titleAlignment: 'left',
     })
   );
 };
