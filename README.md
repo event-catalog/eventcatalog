@@ -2,7 +2,7 @@
 
 <img src="./images/banner.png" alt="EventCatalog overview" width="800" />
 
-## The open source documentation tool for software architectures.
+## The source-available documentation tool for software architectures.
 
 A documentation tool designed for software architecture not generic pages.
 

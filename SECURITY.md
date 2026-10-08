@@ -35,7 +35,7 @@ Security fixes are released for the latest major version of EventCatalog. We rec
 
 ## Scope
 
-This policy covers the EventCatalog open-source project, the official EventCatalog packages published to npm under the `@eventcatalog` scope, and EventCatalog-operated services (such as the licence API at `api.eventcatalog.cloud`).
+This policy covers the EventCatalog source-available project, the official EventCatalog packages published to npm under the `@eventcatalog` scope, and EventCatalog-operated services (such as the licence API at `api.eventcatalog.cloud`).
 
 ## Safe harbour
 
