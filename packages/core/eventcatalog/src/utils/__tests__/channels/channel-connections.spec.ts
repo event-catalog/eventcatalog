@@ -76,4 +76,3 @@ describe('getChannelConnections', () => {
     expect(connections.messages).toEqual([orderCreated]);
   });
 });
-
