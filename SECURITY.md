@@ -20,12 +20,7 @@ Please include as much of the following as you can:
 
 ## What to expect
 
-| Stage | Timeframe |
-|---|---|
-| Acknowledgement of your report | Within 5 business days |
-| Initial assessment and feedback to you | Within 30 days |
-| Fix for confirmed critical vulnerabilities | As quickly as possible, and no later than 90 days |
-| Fix for other confirmed vulnerabilities | Prioritised according to severity |
+We acknowledge reports promptly and fix serious security issues as a priority. There is no fixed deadline. Other confirmed vulnerabilities are prioritised according to severity.
 
 We will keep you informed of progress, let you know when a fix is released, and credit you in the advisory unless you prefer to remain anonymous.
 
