@@ -96,6 +96,14 @@ export function isMcpRoute(pathname: string) {
   return pathname === '/docs/mcp' || pathname.startsWith('/docs/mcp/');
 }
 
+// The Studio API answers in JSON, rather than sending callers to the sign-in page
+const isStudioApiRoute = (pathname: string) => pathname === '/api/studio' || pathname.startsWith('/api/studio/');
+const signInRequired = () =>
+  new Response(JSON.stringify({ error: 'Sign in to use this API' }), {
+    status: 401,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
 export const authMiddleware: MiddlewareHandler = async (context, next) => {
   const { request, redirect, locals } = context;
   const url = new URL(request.url);
@@ -131,6 +139,7 @@ export const authMiddleware: MiddlewareHandler = async (context, next) => {
     const session = await getSession(request);
 
     if (!session) {
+      if (isStudioApiRoute(pathname)) return signInRequired();
       const callbackUrl = encodeURIComponent(pathname + url.search);
       return redirect(`/auth/login?callbackUrl=${callbackUrl}`);
     }
@@ -157,6 +166,7 @@ export const authMiddleware: MiddlewareHandler = async (context, next) => {
     typedLocals.matchesPattern = matchesPattern;
   } catch (error) {
     console.error('Session error:', error);
+    if (isStudioApiRoute(pathname)) return signInRequired();
     const callbackUrl = encodeURIComponent(pathname + url.search);
     return redirect(`/auth/login?callbackUrl=${callbackUrl}`);
   }

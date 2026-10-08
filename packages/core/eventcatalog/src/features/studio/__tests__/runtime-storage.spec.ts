@@ -82,4 +82,31 @@ describe('Studio runtime storage', () => {
     await after.useStorage({ type: 'memory' }, directory);
     expect(after.exists(CANVAS_ID)).toBe(false);
   });
+
+  it.skipIf(!hasNodeSqlite)('deletes a canvas for good: not listed, not stored again, and not brought back', async () => {
+    const before = restart();
+    await before.useStorage({ type: 'sqlite', path: 'studio.db' }, directory);
+    await before.withCanvas(CANVAS_ID, (doc) => setMeta(doc, { title: 'Payments redesign' }));
+    // Still waiting to be stored as it's deleted
+    expect(before.deleteCanvas(CANVAS_ID)).toBe(true);
+    expect(before.exists(CANVAS_ID)).toBe(false);
+    expect(before.isDeleted(CANVAS_ID)).toBe(true);
+    expect(before.getCanvas(CANVAS_ID)).toBeUndefined();
+    expect(before.listCanvases()).toEqual([]);
+    expect(before.deleteCanvas(CANVAS_ID)).toBe(false);
+    await storeNow(before);
+
+    const after = restart();
+    await after.useStorage({ type: 'sqlite', path: 'studio.db' }, directory);
+    expect(after.exists(CANVAS_ID)).toBe(false);
+    expect(after.isDeleted(CANVAS_ID)).toBe(true);
+    expect(after.listCanvases()).toEqual([]);
+  });
+
+  it('says there is nothing to delete for a canvas that never existed', async () => {
+    const runtime = restart();
+    await runtime.useStorage({ type: 'memory' }, directory);
+    expect(runtime.deleteCanvas(CANVAS_ID)).toBe(false);
+    expect(runtime.isDeleted(CANVAS_ID)).toBe(false);
+  });
 });

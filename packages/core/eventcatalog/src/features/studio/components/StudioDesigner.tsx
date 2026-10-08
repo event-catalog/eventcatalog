@@ -56,6 +56,8 @@ import LeftPanel, { CATALOG_DRAG_TYPE, COMPONENT_DRAG_TYPE } from './LeftPanel';
 import { AgentActivity, RemotePresence, ViewportSharer } from './Presence';
 import PropertiesPanel from './PropertiesPanel';
 import ShareDialog from './ShareDialog';
+import DeleteCanvasDialog from './DeleteCanvasDialog';
+import { deleteCanvasThroughApi } from '../api/client';
 
 type CanvasProps = {
   canvasId: string;
@@ -64,13 +66,17 @@ type CanvasProps = {
   socketUrl?: string;
   /** Where "New canvas" goes (hidden when not given, e.g. inside a chat) */
   newCanvasUrl?: string;
+  /** The Studio page (where you go after deleting the canvas, or finding it deleted) */
+  studioUrl?: string;
+  /** The Studio API's canvases on this site: deleting the canvas is offered when given (not inside a chat) */
+  canvasesApiUrl?: string;
   /** The canvas's link, for Share (defaults to this page) */
   shareUrl?: string;
   /** The EventCatalog MCP server agents connect to (a path on this site, or a URL) */
   mcpUrl?: string;
   /** The WebMCP local relay's script, when this page can offer it (not inside a chat) */
   relayScriptPath?: string;
-  /** Canvases are only kept in memory, until the server restarts (`studio.storage` is "memory") */
+  /** Canvases are only kept in memory, until the server restarts (`storage` is "memory") */
   keptInMemory?: boolean;
   /** Sync through MCP tool calls when the WebSocket can't connect (e.g. inside a chat's sandbox) */
   syncViaTools?: ToolSync;
@@ -170,6 +176,8 @@ function Canvas({
   socketPath,
   socketUrl,
   newCanvasUrl,
+  studioUrl,
+  canvasesApiUrl,
   shareUrl,
   mcpUrl = '/docs/mcp',
   relayScriptPath,
@@ -725,6 +733,23 @@ function Canvas({
   const [shareOpen, setShareOpen] = useState(false);
   const openShare = useCallback(() => setShareOpen(true), []);
   const closeShare = useCallback(() => setShareOpen(false), []);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const openDelete = useCallback(() => setDeleteOpen(true), []);
+  const closeDelete = useCallback(() => setDeleteOpen(false), []);
+  // Deleted here: on the way to Studio. Set before asking, since the server closes the canvas before it answers
+  // (the canvas closing as it's deleted isn't news)
+  const [leaving, setLeaving] = useState(false);
+  const deleteCanvas = useStableCallback(async () => {
+    if (!canvasesApiUrl) return;
+    setLeaving(true);
+    try {
+      await deleteCanvasThroughApi(canvasesApiUrl, canvasId);
+    } catch (error) {
+      setLeaving(false);
+      throw error;
+    }
+    window.location.assign(studioUrl ?? '/');
+  });
   const [connectOpen, setConnectOpen] = useState(false);
   const openConnect = useCallback(() => setConnectOpen(true), []);
   const closeConnect = useCallback(() => setConnectOpen(false), []);
@@ -1094,7 +1119,27 @@ function Canvas({
               canvasStatus={flow.canvasStatus.status}
               statusHistory={flow.canvasStatus.history}
               onStatusChange={flow.changeStatus}
+              onDelete={canvasesApiUrl ? openDelete : undefined}
             />
+
+            {flow.deleted && !leaving && (
+              <div className="absolute inset-0 z-40 flex items-center justify-center bg-[rgb(var(--ec-page-bg)/0.85)] p-4">
+                <div className="max-w-sm space-y-2 rounded-xl border p-5 text-center shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))]">
+                  <h2 className="text-base font-semibold">This canvas was deleted</h2>
+                  <p className="text-sm text-[rgb(var(--ec-page-text-muted))]">
+                    Someone deleted it, so it can't be opened or changed any more.
+                  </p>
+                  {studioUrl && (
+                    <a
+                      href={studioUrl}
+                      className="mt-2 inline-flex rounded-lg px-4 py-2 text-sm font-medium bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
+                    >
+                      Back to Studio
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Only on an empty canvas (not over comments people have left on it) */}
             {flow.status === 'connected' && flow.nodes.length === 0 && comments.threads.length === 0 && !draft && (
@@ -1135,6 +1180,15 @@ function Canvas({
               onJumpTo={jumpTo}
               onConnectAgent={openConnect}
               onClose={closeShare}
+            />
+          )}
+          {deleteOpen && (
+            <DeleteCanvasDialog
+              title={flow.title}
+              presence={flow.presence}
+              clientId={flow.clientId}
+              onDelete={deleteCanvas}
+              onClose={closeDelete}
             />
           )}
           {connectOpen && (

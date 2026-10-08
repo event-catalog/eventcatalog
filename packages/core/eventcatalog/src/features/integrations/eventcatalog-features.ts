@@ -176,7 +176,16 @@ export default function eventCatalogIntegration(): AstroIntegration {
           });
         }
 
-        // Collaborative canvases in EventCatalog Studio (/studio lists them, /studio/new starts one). Their WebSocket
+        // What a server starts before anyone asks for it (the storage configured, migrated; Studio), called by
+        // `eventcatalog start` once it listens
+        if (isSSR()) {
+          params.injectRoute({
+            pattern: '/_eventcatalog/start',
+            entrypoint: path.join(packageDirectory, 'src/features/server/start.ts'),
+          });
+        }
+
+        // Collaborative canvases in EventCatalog Studio (/studio lists them, /studio?new=1 starts one). Their WebSocket
         // server is in integrations/studio-server.mjs.
         if (isCanvasEnabled()) {
           params.injectRoute({
@@ -184,16 +193,13 @@ export default function eventCatalogIntegration(): AstroIntegration {
             entrypoint: path.join(packageDirectory, 'src/features/studio/pages/index.astro'),
           });
           params.injectRoute({
-            pattern: '/studio/new',
-            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/new.astro'),
-          });
-          params.injectRoute({
             pattern: '/studio/[id]',
             entrypoint: path.join(packageDirectory, 'src/features/studio/pages/[id].astro'),
           });
+          // The Studio API (canvases as a whole: listing, creating, deleting)
           params.injectRoute({
-            pattern: '/_eventcatalog/studio/wake',
-            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/wake.ts'),
+            pattern: '/api/studio/canvases/[...path]',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/api/canvases.ts'),
           });
           params.injectRoute({
             pattern: '/webmcp-relay/[file]',

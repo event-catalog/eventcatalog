@@ -37,7 +37,9 @@ How to measure and verify a change: [references/verification.md](references/veri
 | WebMCP (agents in the browser) | `hooks/use-canvas-webmcp.ts`, `pages/webmcp-relay.ts`, `components/ConnectAgentDialog.tsx` |
 | Views that can't open the WebSocket (chat sandboxes) | `tool-sync.ts` |
 | Who you are (your name, kept in this browser, and its colour; shared by the Studio page and canvases), or who you signed in as | `identity.ts`, `components/JoinForm.tsx`, `components/Picture.tsx`, `server/sign-in.ts` |
-| Routes | `pages/index.astro` (`/studio` lists the canvases, styled like the catalog's tables), `pages/new.astro` (`/studio/new` starts one), `pages/[id].astro` (`/studio/<id>`) |
+| Routes | `pages/index.astro` (`/studio` lists the canvases, styled like the catalog's tables; `/studio?new=1` opens New canvas), `pages/[id].astro` (`/studio/<id>`) |
+| The Studio API (`/api/studio/canvases`: list, create, get, copy, delete) | `api/canvases-api.ts` (the Hono app), `api/canvases.ts` (its route), `api/client.ts` (used by Studio's pages) |
+| Storage (Studio's queries; the database, migrations and SQL helpers are the catalog's, in `features/storage/`) | `server/storage.ts`, `server/sql/storage.sql` |
 
 Outside the folder: the WebSocket server is `integrations/studio-server.mjs`, routes are injected in
 `features/integrations/eventcatalog-features.ts`, the nav item is in `layouts/VerticalSideBarLayout.astro`, and
@@ -63,16 +65,32 @@ bundles Studio's components: rebuild it after changing them).
 - **Starting Studio:** pages and the MCP endpoint call `startStudio()` before using canvases (loads storage once). In
   dev, `integrations/studio-server.mjs` attaches the WebSocket to Astro's dev server. In production, `eventcatalog
   start` runs the Node adapter's entry with `ASTRO_NODE_AUTOSTART=disabled`, starts it itself and leaves the HTTP server
-  on `globalThis[Symbol.for('eventcatalog.http-server')]`, where `start()` attaches; it then requests `/studio` once so
+  on `globalThis[Symbol.for('eventcatalog.http-server')]`, where `start()` attaches; it then requests
+  `/_eventcatalog/start` once (`features/server/start.ts`: opens and migrates the storage, then starts Studio) so
   Studio is listening before reconnecting tabs arrive (see `SERVER_BOOTSTRAP` in `src/eventcatalog.ts`). Running
   `dist/server/entry.mjs` directly serves the catalog without Studio's WebSocket.
-- **Canvases are stored by `studio.storage`** (`server/storage.ts`): `memory` (the default) or `sqlite` (Node's
-  built-in `node:sqlite`, Node 22.13+; in a container, on a volume). The runtime keeps every canvas's latest snapshot
+- **Canvases are stored in the catalog's storage** (`storage` in eventcatalog.config.js, `server/storage.ts`): `memory`
+  (the default) or `sqlite` (one database for the whole catalog, shared with other features; Node's built-in
+  `node:sqlite`, Node 22.13+; in a container, on a volume). The runtime keeps every canvas's latest snapshot
   in memory (loaded in `useStorage` before the WebSocket is attached) and writes through to storage in
   `onStoreDocument`, so listing and opening canvases never wait on storage. Writes are synchronous so open canvases
   are saved as the process exits (`exit`, `SIGINT`, `SIGTERM`). Canvases aren't written into the catalog's files:
   in production the server's copy is the only one, and it outlives deploys. New storage types implement
-  `CanvasStorage` (`loadAll`, `save`).
+  `CanvasStorage` (`loadAll`, `save`, `remove`).
+- **The database's schema changes through the catalog's migrations only** (`features/storage/sql/migrations/`, one
+  numbered order for every feature, `0001-what-it-does.sql`; Studio's tables are prefixed `studio_`). They run when the
+  dev server and `eventcatalog start` start (not on build) and are recorded in the `migrations` table. Add a new file
+  for any change; never edit one that has shipped (databases out there have run it). They're built into the server code
+  with `import.meta.glob`, so there are no files to find at runtime. Every other statement lives in a `.sql` file,
+  named by a `-- name:` line and looked up by that name (`namedStatements`); keep SQL out of the TypeScript.
+- **The Studio API is a public, stable contract** (`api/canvases-api.ts`): canvases as a whole, in JSON, errors as
+  `{ error }` with the HTTP status, timestamps in ISO 8601, cursor pagination. Add fields rather than change or remove
+  them. It never edits what's on a canvas: that goes over the socket (people) or the MCP tools (agents). With sign-in
+  on, the auth middleware answers it with a JSON 401 rather than redirecting.
+- **Deleted canvases stay deleted** (`runtime.deleteCanvas`): storage removes the canvas and records its name
+  (`studio_deleted_canvases`), and the runtime refuses it everywhere (`onConnect` with `CANVAS_DELETED_REASON`, `exists`,
+  `saveSnapshot`), because any browser that had it open holds a full copy and would sync it back. Open tabs are closed
+  with that reason and show "This canvas was deleted"; its link shows the same (410).
 - **Hocuspocus 4.7 is attached to Astro's HTTP server** (`runtime.attach`), not `listen()`ed, so `quiet` and
   `stopOnSignals` do nothing. Leave WebSocket compression off (small binary frames; `ws` warns about memory
   fragmentation). Keep `onLoadDocument` from throwing (hocuspocus#1156 leaves the document half loaded).

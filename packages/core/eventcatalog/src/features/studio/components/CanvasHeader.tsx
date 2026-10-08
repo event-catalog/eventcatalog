@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Bot, ChevronDown, Link2, Pencil, Plus, UserPlus } from 'lucide-react';
+import { Bot, ChevronDown, Link2, Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
 import { usePeople, type Peer, type PresenceStore } from '../hooks/presence-store';
 import type { WebMcpStatus } from '../hooks/use-canvas-webmcp';
 import type { Status, Transport } from '../hooks/use-studio-flow';
@@ -18,8 +18,8 @@ const barClass =
 // The header lets the pointer through to the canvas around its bars, so its menus take it back
 const menuClass =
   'pointer-events-auto absolute top-full z-50 mt-2 min-w-52 rounded-xl border p-1 shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]';
-const menuItemClass =
-  'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs hover:bg-[rgb(var(--ec-page-border)/0.5)]';
+const menuItemLayout = 'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs';
+const menuItemClass = `${menuItemLayout} hover:bg-[rgb(var(--ec-page-border)/0.5)]`;
 const MAX_AVATARS = 4;
 
 /** Closes a popover on outside clicks and Escape */
@@ -61,6 +61,7 @@ function CanvasMenu({
   onRetitle,
   shareUrl,
   newCanvasUrl,
+  onDelete,
   children,
 }: {
   title?: string;
@@ -69,6 +70,8 @@ function CanvasMenu({
   onRetitle: (title: string) => void;
   shareUrl?: string;
   newCanvasUrl?: string;
+  /** Asks to delete the canvas (not offered when not given, e.g. inside a chat) */
+  onDelete?: () => void;
   /** Shown after the title (the canvas's status) */
   children?: ReactNode;
 }) {
@@ -134,6 +137,20 @@ function CanvasMenu({
             <a className={menuItemClass} href={newCanvasUrl}>
               <Plus size={14} /> New canvas
             </a>
+          )}
+          {onDelete && (
+            <>
+              <div className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+              <button
+                className={`${menuItemLayout} ${STATUS.danger.text} ${STATUS.danger.hover}`}
+                onClick={() => {
+                  menu.setOpen(false);
+                  onDelete();
+                }}
+              >
+                <Trash2 size={14} /> Delete canvas
+              </button>
+            </>
           )}
           <div className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
           <p className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] text-[rgb(var(--ec-page-text-muted))]">
@@ -277,6 +294,7 @@ export default memo(function CanvasHeader({
   canvasStatus,
   statusHistory,
   onStatusChange,
+  onDelete,
 }: {
   title?: string;
   onRetitle: (title: string) => void;
@@ -296,6 +314,8 @@ export default memo(function CanvasHeader({
   newCanvasUrl?: string;
   /** Open the share dialog */
   onShare: () => void;
+  /** Ask to delete the canvas (not given where it can't be, e.g. inside a chat) */
+  onDelete?: () => void;
 }) {
   const peers = usePeople(presence);
   const agentsHere = peers.some((peer) => peer.agent);
@@ -309,6 +329,7 @@ export default memo(function CanvasHeader({
         onRetitle={onRetitle}
         shareUrl={shareUrl}
         newCanvasUrl={newCanvasUrl}
+        onDelete={onDelete}
       >
         <CanvasStatusMenu status={canvasStatus} history={statusHistory} onChange={onStatusChange} />
       </CanvasMenu>

@@ -1,110 +1,90 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import { getDatabasePath, openDatabase, type Database, type StorageConfig, type StorageType } from '../../storage/database';
+import { namedStatements } from '../../storage/sql';
+import storageSql from './sql/storage.sql?raw';
 
 /**
- * Where Studio keeps canvases (`studio.storage` in eventcatalog.config.js). People and agents always work on the copy
- * the collaboration server holds in memory, so storage is only read when the server starts, and written a moment
- * after a canvas changes: it doesn't slow down editing. Canvases are stored as their whole Yjs document
- * (Y.encodeStateAsUpdate), so nothing is lost between restarts.
+ * Where Studio keeps canvases: the catalog's storage (`storage` in eventcatalog.config.js). People and agents always
+ * work on the copy the collaboration server holds in memory, so storage is only read when the server starts, and
+ * written a moment after a canvas changes: it doesn't slow down editing. Canvases are stored as their whole Yjs
+ * document (Y.encodeStateAsUpdate), so nothing is lost between restarts.
  */
-export type StudioStorageConfig =
-  /** Kept only while the server runs: canvases are lost when it restarts or redeploys (the default) */
-  | { type: 'memory' }
-  /**
-   * One SQLite database file (default `.eventcatalog/studio.db` in the catalog). Needs Node.js 22.13 or later. In a
-   * container, put it on a volume so it survives redeploys.
-   */
-  | { type: 'sqlite'; path?: string };
-
-export type StorageType = StudioStorageConfig['type'];
-
-export const DEFAULT_STORAGE: StudioStorageConfig = { type: 'memory' };
-const DEFAULT_SQLITE_PATH = '.eventcatalog/studio.db';
 
 /** A canvas as stored: its whole document, and when it last changed */
 export type StoredCanvas = { state: Uint8Array; updatedAt?: number };
+
+/** What's stored: every canvas, and the canvases deleted (so a browser still holding one can't bring it back) */
+export type StoredCanvases = { canvases: Map<string, StoredCanvas>; deleted: Set<string> };
 
 export type CanvasStorage = {
   type: StorageType;
   /** Where it is, for logs (e.g. the database file) */
   location?: string;
-  /** Every stored canvas, by document name (read once, when the server starts) */
-  loadAll: () => Promise<Map<string, StoredCanvas>>;
+  /** Every stored canvas by document name, and the deleted ones (read once, when the server starts) */
+  loadAll: () => Promise<StoredCanvases>;
   /**
    * Stores a canvas's document, with when it last changed (now when not known). Synchronous, so canvases can still
    * be saved as the process exits.
    */
   save: (documentName: string, state: Uint8Array, updatedAt?: number) => void;
+  /** Deletes a canvas, and records that it was deleted */
+  remove: (documentName: string) => void;
 };
 
 export const memoryStorage = (): CanvasStorage => ({
   type: 'memory',
-  loadAll: async () => new Map(),
+  loadAll: async () => ({ canvases: new Map(), deleted: new Set() }),
   save: () => {},
+  remove: () => {},
 });
 
-type SqliteDatabase = {
-  exec: (sql: string) => void;
-  prepare: (sql: string) => { run: (...values: unknown[]) => unknown; all: () => unknown[] };
-};
+/** The queries Studio runs, from ./sql/storage.sql (its tables are made by the catalog's migrations) */
+const QUERIES = ['saveCanvas', 'removeCanvas', 'recordDeleted', 'allCanvases', 'allDeleted'] as const;
+const SQL = namedStatements(storageSql, QUERIES);
 
+type Statements = Record<(typeof QUERIES)[number], ReturnType<Database['prepare']>>;
+
+/** Canvases in the catalog's SQLite database, in `file` */
 export const sqliteStorage = (file: string): CanvasStorage => {
-  let database: SqliteDatabase | undefined;
-  let upsert: ReturnType<SqliteDatabase['prepare']> | undefined;
+  let opened: { database: Database; statements: Statements } | undefined;
+  const use = () => {
+    if (!opened) throw new Error('SQLite storage was used before it was opened');
+    return opened;
+  };
   return {
     type: 'sqlite',
     location: file,
     loadAll: async () => {
-      // Node's built-in SQLite (no native package to install), asked of Node itself: the dev server loads this
-      // through Vite, which doesn't know node:sqlite and fails to import it
-      type Sqlite = { DatabaseSync: new (file: string) => SqliteDatabase };
-      const getBuiltinModule = (process as { getBuiltinModule?: (id: string) => unknown }).getBuiltinModule;
-      let sqlite: Sqlite | undefined;
-      try {
-        sqlite = getBuiltinModule
-          ? (getBuiltinModule('node:sqlite') as Sqlite | undefined)
-          : await import(/* @vite-ignore */ ['node', 'sqlite'].join(':'));
-      } catch (error) {
-        throw new Error(`Could not load node:sqlite (${(error as Error).message})`);
-      }
-      if (!sqlite?.DatabaseSync) {
-        throw new Error(
-          `SQLite storage needs Node.js 22.13 or later (it uses node:sqlite); this is Node.js ${process.versions.node}`
-        );
-      }
-      fs.mkdirSync(path.dirname(file), { recursive: true });
-      database = new sqlite.DatabaseSync(file);
-      database.exec('PRAGMA journal_mode = WAL');
-      database.exec(
-        'CREATE TABLE IF NOT EXISTS canvases (name TEXT PRIMARY KEY, state BLOB NOT NULL, updated_at INTEGER NOT NULL)'
-      );
-      upsert = database.prepare(
-        'INSERT INTO canvases (name, state, updated_at) VALUES (?, ?, ?) ON CONFLICT(name) DO UPDATE SET state = excluded.state, updated_at = excluded.updated_at'
-      );
-      const rows = database.prepare('SELECT name, state, updated_at FROM canvases').all() as {
-        name: string;
-        state: Uint8Array;
-        updated_at: number;
-      }[];
-      return new Map(rows.map((row) => [row.name, { state: new Uint8Array(row.state), updatedAt: Number(row.updated_at) }]));
+      const database = await openDatabase(file);
+      const statements = Object.fromEntries(QUERIES.map((name) => [name, database.prepare(SQL[name])])) as Statements;
+      opened = { database, statements };
+
+      const rows = statements.allCanvases.all() as { name: string; state: Uint8Array; updated_at: number }[];
+      const deleted = statements.allDeleted.all() as { name: string }[];
+      return {
+        canvases: new Map(rows.map((row) => [row.name, { state: new Uint8Array(row.state), updatedAt: Number(row.updated_at) }])),
+        deleted: new Set(deleted.map((row) => row.name)),
+      };
     },
     save: (documentName, state, updatedAt = Date.now()) => {
-      if (!upsert) throw new Error('SQLite storage was used before it was opened');
-      upsert.run(documentName, state, updatedAt);
+      use().statements.saveCanvas.run(documentName, state, updatedAt);
+    },
+    remove: (documentName) => {
+      const { database, statements } = use();
+      database.exec('BEGIN');
+      try {
+        statements.recordDeleted.run(documentName, Date.now());
+        statements.removeCanvas.run(documentName);
+        database.exec('COMMIT');
+      } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+      }
     },
   };
 };
 
-/** The storage a config asks for, with paths relative to the catalog. Unknown types are an error. */
-export const createStorage = (config: StudioStorageConfig | undefined, projectDirectory: string): CanvasStorage => {
-  const chosen = config ?? DEFAULT_STORAGE;
-  const resolve = (location: string | undefined, fallback: string) => path.resolve(projectDirectory, location ?? fallback);
-  switch (chosen.type) {
-    case 'memory':
-      return memoryStorage();
-    case 'sqlite':
-      return sqliteStorage(resolve(chosen.path, DEFAULT_SQLITE_PATH));
-    default:
-      throw new Error(`Unknown studio.storage type "${(chosen as { type?: string }).type}": use "memory" or "sqlite"`);
-  }
+/** Canvases in the storage a config asks for (paths relative to the catalog). Unknown types are an error. */
+export const createStorage = (config: StorageConfig | undefined, projectDirectory: string): CanvasStorage => {
+  const file = getDatabasePath(config, projectDirectory);
+  return file ? sqliteStorage(file) : memoryStorage();
 };

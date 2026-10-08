@@ -15,6 +15,7 @@ import {
 import {
   addNodes,
   buildNode,
+  CANVAS_DELETED_REASON,
   canvasDocumentName,
   connectNodes,
   deleteEdges,
@@ -122,6 +123,8 @@ export function useStudioFlow({
   const [title, setTitle] = useState<string | undefined>();
   const [canvasStatus, setCanvasStatusState] = useState<{ status: CanvasStatus; history: StatusChange[] }>(NEW_CANVAS_STATUS);
   const [transport, setTransport] = useState<Transport>('websocket');
+  // Someone deleted the canvas: the server closed it for everyone, and won't open it again
+  const [deleted, setDeleted] = useState(false);
   const user = useRef<Author>({ name, color });
   user.current = { name, color, ...(picture && { picture }) };
   const onLayoutRef = useRef(onLayout);
@@ -180,6 +183,15 @@ export function useStudioFlow({
     let fallback: ReturnType<typeof setTimeout> | undefined;
     // Declared before the provider: it reports its first status while it's being created
     let socketStatus: Status = 'connecting';
+    let canvasDeleted = false;
+    const onCanvasDeleted = () => {
+      canvasDeleted = true;
+      clearTimeout(fallback);
+      stopToolSync?.();
+      provider.disconnect();
+      setDeleted(true);
+      setStatus('disconnected');
+    };
     // Some views can't use the WebSocket (a chat's sandbox may block it, or open it without the person's session):
     // sync through tool calls instead
     const syncThroughTools = () => {
@@ -205,19 +217,25 @@ export function useStudioFlow({
         socketConnected = letIn = true;
         if (!stopToolSync) setStatus('connected');
       },
+      // Deleted while it was open here
+      onClose: ({ event }) => {
+        if (event.reason === CANVAS_DELETED_REASON) onCanvasDeleted();
+      },
       // Not signed in (or the session ran out): a chat's view syncs through its tools, a page shows it's offline
-      // (coming back to the tab tries again, e.g. after signing in again elsewhere)
-      onAuthenticationFailed: () => {
+      // (coming back to the tab tries again, e.g. after signing in again elsewhere). Or the canvas was deleted.
+      onAuthenticationFailed: ({ reason }) => {
+        if (reason === CANVAS_DELETED_REASON) return onCanvasDeleted();
         if (syncViaTools) return syncThroughTools();
         provider.disconnect();
         setStatus('disconnected');
       },
     });
     setTransport('websocket');
+    setDeleted(false);
 
     // Back online, or back on the tab: reconnect now rather than when the next retry is due
     const reconnect = () => {
-      if (!stopToolSync && socketStatus === 'disconnected') void provider.connect();
+      if (!stopToolSync && !canvasDeleted && socketStatus === 'disconnected') void provider.connect();
     };
     // Away from the tab: our pointer goes from everyone's canvas
     const onVisibilityChange = () => {
@@ -561,6 +579,7 @@ export function useStudioFlow({
     canvasStatus,
     changeStatus,
     transport,
+    deleted,
     undo,
     redo,
     ...history,

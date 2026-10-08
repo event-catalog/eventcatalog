@@ -27,6 +27,7 @@ import expressiveCode from 'astro-expressive-code';
 // preprocessors and the rehype plugin below load those same package defaults.
 import expressiveCodeConfig from './ec.config.mjs';
 import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
+import storage from './integrations/storage.mjs';
 import studioServer from './integrations/studio-server.mjs';
 import eventCatalogIntegration from './src/features/integrations/eventcatalog-features.ts';
 import eventCatalogRuntime, { getDevServerFileSystem, packageDirectory } from './integrations/eventcatalog-runtime.mjs';
@@ -140,6 +141,8 @@ export default defineConfig({
     catalogAssets({ projectDirectory, generatedDirectory: join(runtimeDirectory, 'public') }),
     effectiveOutput !== 'server' && compress && (await loadAstroCompressIntegration(projectDirectory)),
     ecstudioWatcher(),
+    // Before Studio: its database is opened and migrated first
+    storage(),
     studioServer(),
     eventCatalogIntegration(),
     linkValidation(config.linkValidation),

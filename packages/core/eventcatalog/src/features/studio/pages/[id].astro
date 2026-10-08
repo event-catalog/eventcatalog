@@ -5,9 +5,11 @@ import '../studio.css';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { buildUrl } from '@utils/url-builder';
 import StudioDesigner from '../components/StudioDesigner';
+import StudioNotice from '../components/StudioNotice.astro';
 import { getCatalogResources } from '../catalog-resources';
 import { startStudio, STUDIO_SOCKET_PATH } from '../server/runtime';
 import { getSignedInUser, isSignedIn } from '../server/sign-in';
+import { CANVASES_API_PATH } from '../api/canvases-api';
 
 export const prerender = false;
 
@@ -17,8 +19,16 @@ if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
   return Astro.redirect(buildUrl('/studio'));
 }
 
-const { resources, relations } = await getCatalogResources();
-const keptInMemory = (await startStudio({ isSignedIn })).storage.type === 'memory';
+// Studio can't start when its storage can't be used (e.g. the database was updated by a newer EventCatalog)
+const started = await startStudio({ isSignedIn }).catch((error: Error) => error);
+const unavailable = started instanceof Error ? started.message : undefined;
+const runtime = started instanceof Error ? undefined : started;
+// A deleted canvas's link (anyone who still had it open was told)
+const deleted = runtime?.isDeleted(id) ?? false;
+if (unavailable) Astro.response.status = 503;
+else if (deleted) Astro.response.status = 410;
+const { resources, relations } = runtime && !deleted ? await getCatalogResources() : { resources: [], relations: [] };
+const keptInMemory = runtime?.storage.type === 'memory';
 const signedInAs = getSignedInUser(Astro.locals);
 ---
 
@@ -27,17 +37,32 @@ const signedInAs = getSignedInUser(Astro.locals);
     class="min-h-0 overflow-hidden bg-[rgb(var(--ec-page-bg))]"
     style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
   >
-    <StudioDesigner
-      client:only="react"
-      canvasId={id}
-      socketPath={buildUrl(STUDIO_SOCKET_PATH, true)}
-      newCanvasUrl={`${buildUrl('/studio')}?new=1`}
-      mcpUrl={buildUrl('/docs/mcp', true)}
-      relayScriptPath={buildUrl('/webmcp-relay/embed.js', true)}
-      keptInMemory={keptInMemory}
-      signedInAs={signedInAs}
-      resources={resources}
-      relations={relations}
-    />
+    {
+      unavailable ? (
+        <StudioNotice title="Studio isn't available" message={unavailable} />
+      ) : deleted ? (
+        <StudioNotice
+          title="This canvas was deleted"
+          message="Someone deleted it, so it can't be opened any more."
+          href={buildUrl('/studio')}
+          linkText="Back to Studio"
+        />
+      ) : (
+        <StudioDesigner
+          client:only="react"
+          canvasId={id}
+          socketPath={buildUrl(STUDIO_SOCKET_PATH, true)}
+          newCanvasUrl={`${buildUrl('/studio')}?new=1`}
+          studioUrl={buildUrl('/studio')}
+          canvasesApiUrl={buildUrl(CANVASES_API_PATH, true)}
+          mcpUrl={buildUrl('/docs/mcp', true)}
+          relayScriptPath={buildUrl('/webmcp-relay/embed.js', true)}
+          keptInMemory={keptInMemory}
+          signedInAs={signedInAs}
+          resources={resources}
+          relations={relations}
+        />
+      )
+    }
   </main>
 </VerticalSideBarLayout>

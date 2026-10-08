@@ -13,7 +13,7 @@ import { watch } from './watcher';
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import { getProjectOutDir, isAuthEnabled, isIndexedSearchEnabled, isOutputServer, isStudioEnabled } from './features';
+import { getProjectOutDir, isAuthEnabled, isIndexedSearchEnabled, isOutputServer } from './features';
 import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
@@ -555,20 +555,20 @@ const previewCatalog = async ({ command }: { command: Command }) => {
 /**
  * Runs the built server. Astro's Node adapter starts it itself; instead it's started here (ASTRO_NODE_AUTOSTART is
  * off) so the HTTP server can be left where EventCatalog Studio finds it, to serve its collaboration connection on
- * the same port. With Studio on, a request wakes it once the server listens, so tabs reconnecting after a restart
- * find it ready.
+ * the same port. Once it listens, a request starts what it keeps state for: the storage configured is opened and
+ * migrated, and Studio started, so tabs reconnecting after a restart find it ready.
  */
 const SERVER_BOOTSTRAP = `
 const entry = await import(process.argv[1]);
 const { server } = entry.startServer();
 globalThis[Symbol.for('eventcatalog.http-server')] = server.server;
-const wake = process.env.EVENTCATALOG_STUDIO_WAKE_PATH;
-if (wake) {
+const start = process.env.EVENTCATALOG_START_PATH;
+if (start) {
   server.server.once('listening', () => {
     // Where the server listens (HOST can be one address only); loopback when it listens on every address
     const { address, port } = server.server.address();
     const host = ['0.0.0.0', '::'].includes(address) ? '127.0.0.1' : address.includes(':') ? '[' + address + ']' : address;
-    fetch('http://' + host + ':' + port + wake).catch((error) => console.error('[studio] Could not start Studio:', error.message));
+    fetch('http://' + host + ':' + port + start).catch((error) => console.error('[eventcatalog] Could not start the server:', error.message));
   });
 }
 `;
@@ -585,7 +585,7 @@ const startServerCatalog = async () => {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,
       ASTRO_NODE_AUTOSTART: 'disabled',
-      ...((await isStudioEnabled()) && { EVENTCATALOG_STUDIO_WAKE_PATH: `${base}/_eventcatalog/studio/wake` }),
+      EVENTCATALOG_START_PATH: `${base}/_eventcatalog/start`,
     },
     shouldFilterLine: createAstroLineFilter(),
   });

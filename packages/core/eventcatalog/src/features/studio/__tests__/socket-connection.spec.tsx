@@ -13,6 +13,7 @@ type ProviderConfig = {
   onStatus: (event: { status: string }) => void;
   onAuthenticated: () => void;
   onAuthenticationFailed: (event: { reason: string }) => void;
+  onClose: (data: { event: { code: number; reason: string } }) => void;
 };
 const sockets = vi.hoisted(() => [] as { config: ProviderConfig; disconnect: ReturnType<typeof vi.fn> }[]);
 vi.mock('@hocuspocus/provider', () => ({
@@ -46,7 +47,7 @@ const emptyCanvas = () => {
 
 /** The canvas's connection, as a page (no syncViaTools) or a chat's view (syncViaTools) would have it */
 const connect = (syncViaTools?: ToolSync) => {
-  const seen: { status?: string; transport?: string; statuses: string[] } = { statuses: [] };
+  const seen: { status?: string; transport?: string; deleted?: boolean; statuses: string[] } = { statuses: [] };
   function Probe() {
     const flow = useStudioFlow({
       canvasId: CANVAS_ID,
@@ -58,6 +59,7 @@ const connect = (syncViaTools?: ToolSync) => {
     seen.status = flow.status;
     if (seen.statuses.at(-1) !== flow.status) seen.statuses.push(flow.status);
     seen.transport = flow.transport;
+    seen.deleted = flow.deleted;
     return null;
   }
   root = createRoot(document.createElement('div'));
@@ -115,5 +117,31 @@ describe('Studio collaboration socket', () => {
     act(() => vi.advanceTimersByTime(5000));
     expect(seen).toMatchObject({ transport: 'websocket', status: 'disconnected' });
     expect(sync).not.toHaveBeenCalled();
+  });
+
+  it('shows the canvas as deleted when someone deletes it while it is open here', () => {
+    const { seen, socket, report } = connect();
+    report((config) => config.onStatus({ status: 'connected' }));
+    report((config) => config.onAuthenticated());
+    expect(seen.deleted).toBe(false);
+    report((config) => config.onClose({ event: { code: 1000, reason: 'canvas-deleted' } }));
+    expect(socket.disconnect).toHaveBeenCalled();
+    expect(seen).toMatchObject({ deleted: true, status: 'disconnected' });
+  });
+
+  it("shows the canvas as deleted when it's refused for being deleted, even in a chat's view (no falling back)", async () => {
+    const sync = vi.fn<ToolSync>(async () => emptyCanvas());
+    const { seen, report } = connect(sync);
+    report((config) => config.onStatus({ status: 'connected' }));
+    report((config) => config.onAuthenticationFailed({ reason: 'canvas-deleted' }));
+    await act(async () => {});
+    expect(seen).toMatchObject({ deleted: true, transport: 'websocket' });
+    expect(sync).not.toHaveBeenCalled();
+  });
+
+  it('is not deleted when the socket closes for any other reason', () => {
+    const { seen, report } = connect();
+    report((config) => config.onClose({ event: { code: 1006, reason: '' } }));
+    expect(seen.deleted).toBe(false);
   });
 });

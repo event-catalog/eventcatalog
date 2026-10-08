@@ -1,6 +1,8 @@
 // Who you are in Studio: the name you give on your first visit, kept in this browser and used on every canvas
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
 const NAME_KEY = 'eventcatalog-studio-name';
+/** Names people give are at most this long */
+export const MAX_NAME_LENGTH = 60;
 
 export const getStoredName = () => {
   try {

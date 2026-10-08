@@ -12,6 +12,8 @@ export const STATUS = {
     text: 'text-[rgb(var(--ec-badge-color-red-text))]',
     dot: 'bg-[rgb(var(--ec-badge-color-red-text))]',
     hover: 'hover:bg-[rgb(var(--ec-badge-color-red-background))]',
+    /** A button that deletes something */
+    button: 'bg-[rgb(var(--ec-badge-color-red-text))] text-white hover:bg-[rgb(var(--ec-badge-color-red-text)/0.85)]',
   },
 } as const;
 

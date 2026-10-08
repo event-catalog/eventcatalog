@@ -41,6 +41,8 @@ type McpServerOptions = {
   catalogUrl: string;
   /** The MCP client's user agent, to name agents that join a canvas */
   userAgent?: string;
+  /** Offer the canvas tools (by default when Studio is on, for the whole catalog) */
+  canvases?: boolean;
 };
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
@@ -120,7 +122,10 @@ function getServerInstructions(scope?: McpScope) {
 }
 
 // Create MCP Server with tools that access Astro collections
-function createMcpServer(scope: McpScope | undefined, { catalogUrl, userAgent }: McpServerOptions) {
+function createMcpServer(
+  scope: McpScope | undefined,
+  { catalogUrl, userAgent, canvases = !scope && isCanvasEnabled() }: McpServerOptions
+) {
   const server = new McpServer(
     {
       name: scope ? `EventCatalog MCP Server — ${scope.name} ${scope.ref.kind}` : 'EventCatalog MCP Server',
@@ -837,7 +842,7 @@ function createMcpServer(scope: McpScope | undefined, { catalogUrl, userAgent }:
   }
 
   // Collaborative canvases (when the collaboration server runs in this process)
-  if (!scope && isCanvasEnabled()) registerCanvasTools(server, { catalogUrl, userAgent });
+  if (canvases) registerCanvasTools(server, { catalogUrl, userAgent });
 
   return server;
 }
@@ -993,11 +998,22 @@ const handleMcpRequest = async (c: Context, kind?: McpScopeKind) => {
     }
 
     const scope = await resolveRequestScope(c, kind);
-    // Canvas tools work on Studio's canvases: started (storage loaded) before they're listed
-    if (!scope && isCanvasEnabled()) await startStudio();
+    // Canvas tools work on Studio's canvases: started (storage loaded) before they're listed, and left out when
+    // Studio isn't available (the rest of the catalog's tools still work)
+    const canvases =
+      !scope &&
+      isCanvasEnabled() &&
+      (await startStudio().then(
+        () => true,
+        (error) => {
+          console.error(`[studio] Canvas tools are off: ${(error as Error).message}`);
+          return false;
+        }
+      ));
     const server = createMcpServer(scope, {
       catalogUrl: new URL(c.req.url).origin,
       userAgent: c.req.header('user-agent'),
+      canvases,
     });
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,

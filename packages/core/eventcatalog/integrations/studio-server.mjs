@@ -1,4 +1,5 @@
 import { getStudioRuntime } from '../src/features/studio/server/runtime.ts';
+import { isDatabaseTooNew } from '../src/features/storage/migrations.ts';
 import config from '../src/utils/eventcatalog-config/source.ts';
 import { isCanvasEnabled } from '../src/utils/feature.ts';
 
@@ -14,8 +15,10 @@ export default function studioServer() {
         const projectDirectory = process.env.PROJECT_DIR || process.cwd();
         // Canvases are loaded from storage before anyone can open one
         try {
-          await runtime.useStorage(config.studio?.storage, projectDirectory);
+          await runtime.useStorage(config.storage, projectDirectory);
         } catch (error) {
+          // Not kept in memory instead (changes would quietly stop being saved): Studio's pages say why
+          if (isDatabaseTooNew(error)) return logger.error(`Studio isn't available: ${error.message}`);
           logger.error(`Could not use the Studio storage configured, keeping canvases in memory: ${error.message}`);
           await runtime.useStorage({ type: 'memory' }, projectDirectory);
         }

@@ -227,20 +227,23 @@ type McpConfig = {
 };
 
 /**
- * Where EventCatalog Studio keeps canvases. People and agents always work on the copy held in memory by the
- * server, so storage doesn't slow editing down: it's read when the server starts and written a moment after a
- * canvas changes (and as the server stops).
+ * The state EventCatalog keeps for features that need it (today, Studio's canvases). Features always work on a copy
+ * held in memory by the server, so storage doesn't slow them down: it's read when the server starts and written a
+ * moment after something changes (and as the server stops).
  */
-type StudioStorageConfig =
-  /** Kept only while the server runs: canvases are lost when it restarts or redeploys (the default) */
+export type StorageConfig =
+  /** Kept only while the server runs: lost when it restarts or redeploys (the default) */
   | { type: 'memory' }
-  /** A SQLite database file. Uses Node.js's built-in SQLite, so needs Node.js 22.13 or later. */
+  /**
+   * One SQLite database file for the whole catalog, brought up to date (migrated) as `eventcatalog dev` and
+   * `eventcatalog start` start. Uses Node.js's built-in SQLite, so needs Node.js 22.13 or later.
+   */
   | {
       type: 'sqlite';
       /**
-       * The database file, relative to the catalog. In a container, put it on a volume (e.g. `/data/studio.db`)
-       * so canvases survive redeploys.
-       * @default '.eventcatalog/studio.db'
+       * The database file, relative to the catalog. In a container, put it on a volume (e.g. `/data/eventcatalog.db`)
+       * so it survives redeploys.
+       * @default '.eventcatalog/eventcatalog.db'
        */
       path?: string;
     };
@@ -253,11 +256,6 @@ type StudioConfig = {
    * @default false
    */
   enabled?: boolean;
-  /**
-   * Where canvases are kept between restarts.
-   * @default { type: 'memory' }
-   */
-  storage?: StudioStorageConfig;
 };
 
 type GA4Config = {
@@ -353,6 +351,11 @@ export interface Config {
   mcp?: McpConfig;
   /** EventCatalog Studio: collaborative canvases (experimental) */
   studio?: StudioConfig;
+  /**
+   * Where EventCatalog keeps state between restarts (e.g. Studio's canvases), for every feature that has some.
+   * @default { type: 'memory' }
+   */
+  storage?: StorageConfig;
   rss?: {
     enabled?: boolean;
     limit?: number;
