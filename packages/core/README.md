@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- <h1>📖 EventCatalog</h1> -->
-<!-- <h3>The open source tool to help you discover and document your event-driven architectures</h3> -->
+<!-- <h3>The source-available tool to help you discover and document your event-driven architectures</h3> -->
 
 
 
