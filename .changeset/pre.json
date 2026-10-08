@@ -30,6 +30,7 @@
     "flow-grouping-walkthrough",
     "flow-step-checks",
     "hide-messages-toggle",
+    "license-box-layout",
     "mcp-one-viewer",
     "mcp-server-architecture-diagrams",
     "mcp-server-show-schema",
@@ -45,11 +46,13 @@
     "sidebar-diagram-labels",
     "sidebar-hide-repeated-icons",
     "sidebar-resources-label",
+    "studio-editing",
     "system-visualiser-levels",
     "telemetry-require-catalog-id",
     "trial-60-days",
     "visualiser-canvas-nodes",
     "visualiser-faster-level-switching",
-    "visualiser-nodegraph-display-props"
+    "visualiser-nodegraph-display-props",
+    "visualiser-view-node"
   ]
 }

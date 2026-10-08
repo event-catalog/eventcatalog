@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.0.0-beta.4
+
+### Patch Changes
+
+- 95102d1: fix(visualiser): the View node uses the same card design as the other resource nodes
+
 ## 5.0.0-beta.3
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.8
+
+### Patch Changes
+
+- 7fbb13e: fix(core): an easier to read license and trial box in the terminal: a short headline, the details as aligned rows (who it's licensed to, when it expires, the trial) and the links on their own rows
+- dfe533a: feat(core): Studio editing improvements: a Studio page listing the canvases (with previews, when they were created and last updated, status filter, search and pagination) that asks for your name on your first visit and shows it, with a button to change it, Studio with sign-in (SSO) on (only signed-in people can open canvases, shown by the name and picture they signed in with (in the app's header, not again in Studio), on their pointer, comments and the people on a canvas; a canvas shown inside a chat syncs through its MCP tools when the socket refuses it), `studio.enabled: false` turning Studio off everywhere, naming a canvas as you start it, a share dialog for inviting people, a redesigned details panel (opened by double clicking or from the right-click menu, saved with Save changes as one undo step) with versions that people and agents can set, copy, cut, paste and duplicate (keyboard and right-click menu), clear selection and drop-into-container highlights, dragging a connection's end to another node, containers that grow to fit what's dragged or resized inside them (and can't be resized smaller than it), comments included in select all, Figma-style comment pins (the people in the thread, and a preview with the reply count on hover), node-shaped drag previews, text you can write straight on the canvas, sticky notes on L1 and L2 (each note is shown on the level it was added on), catalog services and messages added with their connections (a service's messages and data stores, or the services that send and receive a message), Studio in production builds (`studio.enabled` with `output: 'server'`, served by `eventcatalog start`), canvases kept between restarts in a SQLite database (`studio.storage` in eventcatalog.config.js; in memory by default), canvas statuses (draft, proposed, accepted, rejected, with who changed them and why; changing an accepted canvas makes it a draft again), comment threads that can be dragged around or opened bigger, agents that talk in the chat instead of leaving comments, and L1 and L2 drawn like EventCatalog's diagrams
+- Updated dependencies [95102d1]
+  - @eventcatalog/visualiser@5.0.0-beta.4
+
 ## 5.0.0-beta.7
 
 ### Patch Changes
