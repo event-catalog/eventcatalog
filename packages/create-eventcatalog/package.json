@@ -21,7 +21,8 @@
     "prepublishOnly": "pnpm run build",
     "build": "tsup index.ts --format cjs --dts",
     "build:bin": "tsup index.ts --format cjs --dts",
-    "test:ci": "echo 'No tests for create-eventcatalog yet'",
+    "test": "vitest --run",
+    "test:ci": "vitest --run",
     "run": "node dist/index.js",
     "dev": "pnpm run build --watch",
     "format": "prettier --write .",
@@ -50,7 +51,8 @@
     "tsup": "^8.1.0",
     "typescript": "^5.4.5",
     "update-check": "1.5.4",
-    "validate-npm-package-name": "3.0.0"
+    "validate-npm-package-name": "3.0.0",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "uuid": "^11.1.1"

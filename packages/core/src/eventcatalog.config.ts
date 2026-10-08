@@ -493,6 +493,14 @@ export interface Config {
   queries?: {
     tableConfiguration?: TableConfiguration;
   };
+  /**
+   * Anonymous telemetry for `eventcatalog dev` and `eventcatalog build`.
+   * On by default. Set to false to opt out.
+   * `EVENTCATALOG_TELEMETRY_DISABLED` or `DO_NOT_TRACK` set to `1` or `true` also opts out.
+   * `cloud.analytics` stays its own opt-in for EventCatalog Cloud.
+   * @default true
+   */
+  telemetry?: boolean;
   cloud?: EventCatalogCloudConfig;
   integrations?: IntegrationsConfig;
   scalarConfiguration?: ScalarConfiguration;

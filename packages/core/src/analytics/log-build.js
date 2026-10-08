@@ -1,6 +1,7 @@
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { raiseEvent } from './analytics.js';
 import { countResources, hashCatalogContent, serializeCounts } from './count-resources.js';
+import { isTelemetryDisabled, TELEMETRY_REQUEST_TIMEOUT_MS } from './telemetry';
 import { getLicenseAnalytics } from '../utils/license-status';
 
 // Mirrors isEventCatalogMCPEnabled so the flag reflects whether the MCP server actually runs
@@ -71,24 +72,36 @@ const toCloudResourceCounts = (counts) => ({
   customApis: counts.customApis || 0,
 });
 
-const reportCloudResourceInventory = async (configFile, resourceCounts) => {
+// Cloud inventory sends only when it is explicitly enabled and has a tracking id and write key.
+const getEnabledCloudAnalytics = (configFile) => {
   const analytics = configFile.cloud?.analytics;
-  if (!analytics?.enabled || !analytics.trackingId || !analytics.writeKey) return;
+  if (!analytics?.enabled || !analytics.trackingId || !analytics.writeKey) return null;
+  return analytics;
+};
+
+const reportCloudResourceInventory = async (configFile, resourceCounts) => {
+  const analytics = getEnabledCloudAnalytics(configFile);
+  if (!analytics) return;
 
   const endpoint = analytics.endpoint || CLOUD_ANALYTICS_ENDPOINT;
-  await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-EventCatalog-Analytics-Key': analytics.writeKey,
-    },
-    body: JSON.stringify({
-      trackingId: analytics.trackingId,
-      event: 'catalog.resource_inventory_reported',
-      timestamp: new Date().toISOString(),
-      counts: toCloudResourceCounts(resourceCounts),
-    }),
-  });
+  try {
+    await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-EventCatalog-Analytics-Key': analytics.writeKey,
+      },
+      body: JSON.stringify({
+        trackingId: analytics.trackingId,
+        event: 'catalog.resource_inventory_reported',
+        timestamp: new Date().toISOString(),
+        counts: toCloudResourceCounts(resourceCounts),
+      }),
+      signal: AbortSignal.timeout(TELEMETRY_REQUEST_TIMEOUT_MS),
+    });
+  } catch {
+    // A failed or timed-out inventory report must not fail the build.
+  }
 };
 
 /**
@@ -100,6 +113,17 @@ const main = async (projectDir, { command = 'build', license } = {}) => {
   try {
     await verifyRequiredFieldsAreInCatalogConfigFile(projectDir);
     const configFile = await getEventCatalogConfigFile(projectDir);
+
+    // Stop before counting resources or hashing docs. Cloud inventory is a separate
+    // opt-in and still runs when it is configured.
+    if (isTelemetryDisabled(configFile, process.env)) {
+      if (getEnabledCloudAnalytics(configFile)) {
+        const resourceCounts = await countResources(projectDir);
+        await reportCloudResourceInventory(configFile, resourceCounts);
+      }
+      return;
+    }
+
     const { cId, tsd, organizationName, generators = [] } = configFile;
     const generatorNames = generators.length > 0 ? generators.map((generator) => generator[0]) : ['none'];
 
@@ -109,24 +133,27 @@ const main = async (projectDir, { command = 'build', license } = {}) => {
 
     await reportCloudResourceInventory(configFile, resourceCounts);
 
-    await raiseEvent({
-      command,
-      org: organizationName,
-      cId,
-      // Trial start date (unix ms) from eventcatalog.config.js
-      tsd,
-      // Commercial license or trial, and when each expires (unix ms)
-      ...getLicenseAnalytics(license, tsd),
-      // CI redeploys and human-run builds are different signals; tag rather than suppress
-      ci: process.env.CI ? 'true' : 'false',
-      contentHash,
-      generators: generatorNames.toString(),
-      features: Object.keys(features)
-        .map((feature) => `${feature}:${features[feature]}`)
-        .join(','),
-      directorySources: serializeDirectorySources(configFile),
-      resources: serializeCounts(resourceCounts),
-    });
+    await raiseEvent(
+      {
+        command,
+        org: organizationName,
+        cId,
+        // Trial start date (unix ms) from eventcatalog.config.js
+        tsd,
+        // Commercial license or trial, and when each expires (unix ms)
+        ...getLicenseAnalytics(license, tsd),
+        // CI redeploys and human-run builds are different signals; tag rather than suppress
+        ci: process.env.CI ? 'true' : 'false',
+        contentHash,
+        generators: generatorNames.toString(),
+        features: Object.keys(features)
+          .map((feature) => `${feature}:${features[feature]}`)
+          .join(','),
+        directorySources: serializeDirectorySources(configFile),
+        resources: serializeCounts(resourceCounts),
+      },
+      configFile
+    );
   } catch (error) {
     // Just swallow the error
   }
