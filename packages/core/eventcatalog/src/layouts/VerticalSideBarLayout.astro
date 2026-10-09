@@ -1,6 +1,7 @@
 ---
 interface Props {
-  title: string;
+  /** Page part of the document title, rendered as "<config.title> | <title>". Omit for the catalog's own title. */
+  title?: string;
   sidebar?: boolean;
   description?: string;
   showNestedSideBar?: boolean;
@@ -427,7 +428,7 @@ const canPageBeEmbedded = isEmbedEnabled();
 const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/docs', true)];
 ---
 
-<BaseLayout title={`EventCatalog | ${title}`} description={description} ogTitle={title}>
+<BaseLayout title={title ? `${config.title} | ${title}` : config.title} description={description} ogTitle={title ?? config.title}>
   <Fragment slot="head">
     <script is:inline define:vars={{ verticalNavAutoCollapsePaths }}>
       (() => {
