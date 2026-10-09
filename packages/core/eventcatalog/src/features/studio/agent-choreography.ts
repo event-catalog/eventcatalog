@@ -9,7 +9,8 @@ import {
   fitContainersAround,
   getCanvasMaps,
   moveNode,
-  resizeNode,
+  placeNode,
+  setEdgeRoutes,
   setMeta,
   type Author,
   type CommentAnchor,
@@ -292,13 +293,14 @@ export async function playLayout(stage: AgentStage, layout: LayoutResult) {
   hand.say('Done');
 }
 
-/** Moves nodes and resizes containers from a layout, in one change, and marks when it happened */
+/**
+ * Moves nodes, resizes containers and routes connections from a layout, in one change, and marks when it
+ * happened. Connections the layout didn't route lose their old route (drawn as a plain step instead).
+ */
 export const applyLayout = (doc: Y.Doc, layout: LayoutResult) =>
   doc.transact(() => {
-    layout.forEach(({ position, size }, id) => {
-      moveNode(doc, id, position);
-      if (size) resizeNode(doc, id, size);
-    });
+    layout.nodes.forEach(({ position, size }, id) => placeNode(doc, id, position, size));
+    setEdgeRoutes(doc, layout.routes);
     setMeta(doc, { layoutAt: Date.now() });
   });
 

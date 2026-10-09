@@ -31,7 +31,8 @@ const isContainer = (node: Node) => CONTAINER_TYPES.has(node.type ?? '');
 const messageName = (node: Node) => String((node.data as { message?: { name?: string } }).message?.name ?? node.id);
 
 // Edges as the visualiser's levels draw them: what's folded together is joined by a plain line, and what was joined
-// through hidden messages or channels by a dashed, muted one ("bridged"), each with the visualiser's arrow
+// through hidden messages or channels by a dashed, muted one ("bridged"), each with the visualiser's arrow. On L1
+// the visualiser folds messages into the domain or system they're in, so edges to and from them are plain.
 const EDGE_STROKE = 'var(--ec-edge-stroke, #6b7280)';
 const MUTED = 'rgb(var(--ec-page-text-muted))';
 const FOLDED_EDGE = {
@@ -53,12 +54,25 @@ type Representative = { kind: 'node'; id: string } | { kind: 'carrier' } | { kin
  * (messages and channels: the nodes either side get connected directly, "bridged") or dropped. Edges between two
  * nodes that are kept as they are stay as they were (`keepDirect`, for L2); the rest are merged per pair and kind
  * (folded or bridged), labelled with the messages they carry.
+ *
+ * With `relationships` (L1), edges drawn straight between two nodes that are kept as they are (e.g. one system to
+ * another) are relationships, like the visualiser's context relationships: labelled as they were, and shown
+ * instead of the messages between the same two nodes (either way).
  */
 const collapseGraph = (
   nodes: Node[],
   edges: Edge[],
   representativeOf: (node: Node) => Representative,
-  { keepDirect = false }: { keepDirect?: boolean } = {}
+  {
+    keepDirect = false,
+    relationships = false,
+    foldsMessagesInto,
+  }: {
+    keepDirect?: boolean;
+    relationships?: boolean;
+    /** Nodes the messages they send or receive are folded into (L1: domains and systems), so edges through them are plain */
+    foldsMessagesInto?: (node: Node) => boolean;
+  } = {}
 ) => {
   const byId = new Map(nodes.map((node) => [node.id, node]));
   // Whether one node is inside another (e.g. a system in its domain): they're not connected, one holds the other
@@ -70,7 +84,14 @@ const collapseGraph = (
   const outgoing = new Map<string, Edge[]>();
   edges.forEach((edge) => outgoing.set(edge.source, [...(outgoing.get(edge.source) ?? []), edge]));
 
-  type Merged = { source: string; target: string; bridged: boolean; messages: Map<string, string>; labels: string[] };
+  type Merged = {
+    source: string;
+    target: string;
+    bridged: boolean;
+    relationship: boolean;
+    messages: Map<string, string>;
+    labels: string[];
+  };
   const merged = new Map<string, Merged>();
   const kept: Edge[] = [];
   const addMessage = (messages: Map<string, string>, node: Node) => {
@@ -81,7 +102,8 @@ const collapseGraph = (
     const from = representatives.get(edge.source);
     if (from?.kind !== 'node') return;
     const to = representatives.get(edge.target);
-    if (keepDirect && from.id === edge.source && to?.kind === 'node' && to.id === edge.target) return kept.push(edge);
+    const direct = from.id === edge.source && to?.kind === 'node' && to.id === edge.target;
+    if (keepDirect && direct) return kept.push(edge);
     // Follow the edge through carried nodes to the node(s) it reaches, collecting the messages on the way
     const stack = [{ id: edge.target, messages: new Map<string, string>(), labels: [String(edge.label ?? '')], bridged: false }];
     const visited = new Set<string>();
@@ -104,11 +126,13 @@ const collapseGraph = (
       // Edges inside what was collapsed disappear, and so do edges to what a node is in (e.g. a service loose in a
       // domain, folded into it, and a system in the same domain)
       if (from.id === reached.id || isInside(from.id, reached.id) || isInside(reached.id, from.id)) continue;
-      const key = `${current.bridged ? 'bridged' : 'level'}-${from.id}-${reached.id}`;
+      const relationship = relationships && direct && current.id === edge.target;
+      const key = `${relationship ? 'relationship' : current.bridged ? 'bridged' : 'level'}-${from.id}-${reached.id}`;
       const entry: Merged = merged.get(key) ?? {
         source: from.id,
         target: reached.id,
         bridged: current.bridged,
+        relationship,
         messages: new Map(),
         labels: [],
       };
@@ -119,18 +143,39 @@ const collapseGraph = (
   });
 
   const keptIds = new Set([...representatives.values()].flatMap((rep) => (rep.kind === 'node' ? [rep.id] : [])));
-  // Actors' connections are relationships, labelled as they were (like the visualiser's context relationships)
+  // A relationship between two nodes is shown instead of the messages between them (either way)
+  const related = new Set(
+    [...merged.values()]
+      .filter((entry) => entry.relationship)
+      .flatMap(({ source, target }) => [`${source}>${target}`, `${target}>${source}`])
+  );
+  // Actors' connections are relationships too, labelled as they were (even when what they use is folded)
   const isActor = (id: string) => byId.get(id)?.type === 'actor';
+  const labelOf = ({ source, target, bridged, relationship, messages, labels }: Merged) => {
+    const written = labels.length ? [...new Set(labels)].join(', ') : undefined;
+    if (relationship) return written;
+    return getMessagesLabel(messages) ?? (!bridged && (isActor(source) || isActor(target)) ? written : undefined);
+  };
   return {
     nodes: nodes.filter((node) => keptIds.has(node.id)),
     edges: [
       ...kept,
-      ...[...merged.entries()].map(([id, { source, target, bridged, messages, labels }]): Edge => {
-        const label =
-          getMessagesLabel(messages) ??
-          (!bridged && (isActor(source) || isActor(target)) && labels.length ? [...new Set(labels)].join(', ') : undefined);
-        return { id, source, target, ...(bridged ? BRIDGED_EDGE : FOLDED_EDGE), ...(label && { label }) };
-      }),
+      ...[...merged.entries()]
+        .filter(([, entry]) => entry.relationship || !related.has(`${entry.source}>${entry.target}`))
+        .map(([id, entry]): Edge => {
+          const label = labelOf(entry);
+          const folded = [entry.source, entry.target].some((nodeId) => {
+            const node = byId.get(nodeId);
+            return !!node && !!foldsMessagesInto?.(node);
+          });
+          return {
+            id,
+            source: entry.source,
+            target: entry.target,
+            ...(entry.bridged && !folded ? BRIDGED_EDGE : FOLDED_EDGE),
+            ...(label && { label }),
+          };
+        }),
     ],
   };
 };
@@ -188,8 +233,8 @@ const isWithin = (node: Node, containerId: string, byId: Map<string, Node>) => {
 };
 
 /**
- * L1 as EventCatalog's diagrams draw it: systems as cards with what's in them counted, and domains with no system in
- * them (or in their subdomains) as domain cards
+ * L1 as EventCatalog's diagrams draw it: systems as cards with what's in them counted, and domains with nothing
+ * shown in them (no system, in them or their subdomains, or subdomain) as domain cards
  */
 const asSystemsLevel = (
   { nodes, edges }: { nodes: Node[]; edges: Edge[] },
@@ -226,7 +271,12 @@ const asSystemsLevel = (
             messagesCount: messagesOf(id),
           },
         };
-      if (node.type === GROUP_TYPES.domain && !all.some((other) => isSystem(other) && isWithin(other, id, byId)))
+      // A domain container stays one while something is shown in it (a system, or a subdomain shown as a card)
+      if (
+        node.type === GROUP_TYPES.domain &&
+        !all.some((other) => isSystem(other) && isWithin(other, id, byId)) &&
+        !nodes.some((other) => isWithin(other, id, byId))
+      )
         return {
           id,
           type: 'context-domain',
@@ -248,18 +298,23 @@ const asSystemsLevel = (
 /** L1: services folded into their system (or domain); actors, external systems and loose services stay */
 const level1 = (nodes: Node[], edges: Edge[]) => {
   const containers = getContainers(nodes, edges);
-  const collapsed = collapseGraph(nodes, edges, (node) => {
-    const container = containers.get(node.id);
-    // Systems stay (inside their domain's container, if they're in one); everything else folds into its system or domain
-    if (isContainer(node) && (isSystem(node) || !container?.system)) return { kind: 'node', id: node.id };
-    if (container?.system) return { kind: 'node', id: container.system };
-    // Messages and channels connect the systems either side, even when they sit in a domain rather than a system
-    // (the visualiser has them outside its domains; catalog domains on a canvas hold their messages)
-    if (isCarrier(node)) return { kind: 'carrier' };
-    if (container?.domain) return { kind: 'node', id: container.domain };
-    if (node.type === 'data' || isWrittenOnCanvas(node.type)) return { kind: 'drop' };
-    return { kind: 'node', id: node.id };
-  });
+  const collapsed = collapseGraph(
+    nodes,
+    edges,
+    (node) => {
+      const container = containers.get(node.id);
+      // Systems stay (inside their domain's container, if they're in one); everything else folds into its system or domain
+      if (isContainer(node) && (isSystem(node) || !container?.system)) return { kind: 'node', id: node.id };
+      if (container?.system) return { kind: 'node', id: container.system };
+      // Messages and channels connect the systems either side, even when they sit in a domain rather than a system
+      // (the visualiser has them outside its domains; catalog domains on a canvas hold their messages)
+      if (isCarrier(node)) return { kind: 'carrier' };
+      if (container?.domain) return { kind: 'node', id: container.domain };
+      if (node.type === 'data' || isWrittenOnCanvas(node.type)) return { kind: 'drop' };
+      return { kind: 'node', id: node.id };
+    },
+    { relationships: true, foldsMessagesInto: isContainer }
+  );
   return asSystemsLevel(collapsed, { all: nodes, allEdges: edges, containers });
 };
 

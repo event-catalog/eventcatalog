@@ -31,11 +31,14 @@ import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForChannel } from '@utils/node-graphs/channel-node-graph';
 import config from '@config';
-import { isEventCatalogChatVisible, isDevMode } from '@utils/feature';
+import { isEventCatalogChatVisible, isDevMode, isCanvasEnabled } from '@utils/feature';
+import { CANVASES_API_PATH } from '@features/studio/api/canvases-api';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 import { compactVisualiserGraph } from '@utils/node-graphs/compact-visualiser-graph';
 
 const isChatEnabled = isEventCatalogChatVisible();
+// With Studio on, the menu can start a canvas from the diagram
+const studioApiUrl = isCanvasEnabled() ? buildUrl(CANVASES_API_PATH, true) : undefined;
 
 interface Props {
   id: string;
@@ -257,6 +260,7 @@ if (overview && levelsOverview) {
     hiddenMessagesGraph={hiddenMessagesGraph}
     preferenceScope={collection}
     swimlanes={lanes}
+    studioApiUrl={studioApiUrl}
   />
 </div>
 

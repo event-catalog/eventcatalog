@@ -29,6 +29,8 @@ const CHAT_PANEL_STYLES = `
   }
   .ec-chat-surface { font-weight: 400; }
   .ec-chat-avatar { background: rgb(var(--ec-accent) / .06); animation: ec-chat-breathe 5s ease-in-out infinite; }
+  /* The closed panel stays on the page (off screen): a running animation there still costs every frame */
+  .ec-chat-surface[aria-hidden='true'] .ec-chat-avatar { animation-play-state: paused; }
   .ec-chat-suggestion { width: fit-content; max-width: 100%; transition: background 180ms, transform 180ms; }
   .ec-chat-suggestion:hover { transform: translateX(3px); }
   .ec-chat-message { animation: fadeInUp 280ms ease-out both; }

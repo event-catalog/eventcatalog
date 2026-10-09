@@ -25,7 +25,9 @@ import {
   fitGroupToChildren,
   getCanvasMaps,
   moveNode,
+  placeNode,
   changesNodesOrEdges,
+  getStructureKey,
   getCanvasStatus,
   readMeta,
   reopenIfDecided,
@@ -34,6 +36,10 @@ import {
   setMeta,
   type Author,
   type CanvasStatus,
+  type DiagramLevels,
+  type LevelPlace,
+  readLevelLayout,
+  setLevelPlaces,
   type StatusChange,
   setNodeParent,
   type RenderedSizes,
@@ -41,7 +47,7 @@ import {
 } from '../canvas-doc';
 import { applyLayout } from '../agent-choreography';
 import { keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, withPositions } from '../flow-state';
-import { findGroupAtPoint, toRelativePosition, type NodePreview } from '../grouping';
+import { containerFor, toRelativePosition, type NodePreview } from '../grouping';
 import type { LayoutResult } from '../layout';
 import { canGoInContainer, getNodeDefinition, isGroupType } from '../node-types';
 import { startToolSync, type ToolSync } from '../tool-sync';
@@ -67,6 +73,10 @@ const LOCAL_ORIGIN = Symbol('studio-local');
 export const BROWSER_AGENT_ORIGIN = Symbol('studio-browser-agent');
 /** Status changes: synced, but not undone (undo takes back edits, not decisions about the canvas) */
 const STATUS_ORIGIN = Symbol('studio-status');
+/** Where L1 and L2 put what's new on them, kept so it stays there: synced, not undone (nobody did it) */
+const LEVEL_PLACEMENT_ORIGIN = Symbol('studio-level-placement');
+
+const NO_LEVEL_LAYOUTS = { 1: new Map(), 2: new Map() } as const;
 
 export type Status = 'connecting' | 'connected' | 'disconnected';
 export type Transport = 'websocket' | 'tools';
@@ -121,6 +131,13 @@ export function useStudioFlow({
   const [doc, setDoc] = useState<Y.Doc | null>(null);
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   const [title, setTitle] = useState<string | undefined>();
+  // L1 and L2 of the diagram the canvas was opened from, if it was
+  const [diagramLevels, setDiagramLevels] = useState<DiagramLevels | undefined>();
+  // What's on the canvas and how it's connected (getStructureKey): worked out when the document's nodes or edges
+  // change, which drags don't do (they're in presence until the drop)
+  const [structureKey, setStructureKey] = useState('');
+  // Where things are on L1 and L2, as people arranged them
+  const [levelLayouts, setLevelLayouts] = useState<Record<1 | 2, ReadonlyMap<string, LevelPlace>>>(NO_LEVEL_LAYOUTS);
   const [canvasStatus, setCanvasStatusState] = useState<{ status: CanvasStatus; history: StatusChange[] }>(NEW_CANVAS_STATUS);
   const [transport, setTransport] = useState<Transport>('websocket');
   // Someone deleted the canvas: the server closed it for everyone, and won't open it again
@@ -139,16 +156,29 @@ export function useStudioFlow({
     setEdges([]);
 
     const doc = new Y.Doc();
-    const { nodes: yNodes, edges: yEdges, threads: yThreads, meta: yMeta } = getCanvasMaps(doc);
+    const { nodes: yNodes, edges: yEdges, threads: yThreads, meta: yMeta, levelLayouts: yLevelLayouts } = getCanvasMaps(doc);
+    const syncLevelLayouts = (event: Y.YMapEvent<LevelPlace>) => {
+      const changed = new Set([...event.keysChanged].map((key) => Number(key.split(':')[0]) as 1 | 2));
+      setLevelLayouts((current) => {
+        const next = { ...current };
+        changed.forEach((level) => (next[level] = readLevelLayout(doc, level)));
+        return next;
+      });
+    };
+    yLevelLayouts.observe(syncLevelLayouts);
+    setLevelLayouts(NO_LEVEL_LAYOUTS);
     const syncMeta = (event: Y.YMapEvent<unknown>) => {
       const meta = readMeta(doc);
       setTitle(meta.title);
+      if (event.keysChanged.has('diagramLevels')) setDiagramLevels(meta.diagramLevels);
       if (event.keysChanged.has('status') || event.keysChanged.has('statusHistory'))
         setCanvasStatusState({ status: getCanvasStatus(meta), history: meta.statusHistory ?? [] });
       if (event.keysChanged.has('layoutAt')) onLayoutRef.current?.();
     };
     yMeta.observe(syncMeta);
     setTitle(undefined);
+    setStructureKey('');
+    setDiagramLevels(undefined);
     setCanvasStatusState(NEW_CANVAS_STATUS);
     // Changing an accepted (or rejected) canvas here makes it a draft again, for everyone. Changes from others arrive
     // already reopened by whoever made them.
@@ -169,6 +199,12 @@ export function useStudioFlow({
       );
     };
     doc.on('afterTransaction', reopenOnEdit);
+    const syncStructure = (transaction: Y.Transaction) => {
+      // Drops and resizes here only move and size things (putting something in a container isn't LOCAL_ORIGIN)
+      if (transaction.origin !== LOCAL_ORIGIN && changesNodesOrEdges(transaction))
+        setStructureKey(getStructureKey(Array.from(yNodes.values()), Array.from(yEdges.values())));
+    };
+    doc.on('afterTransaction', syncStructure);
     // One presence for whichever connection is used
     const awareness = new Awareness(doc);
     awareness.setLocalStateField('user', user.current);
@@ -249,7 +285,7 @@ export function useStudioFlow({
     // A socket that isn't let in within a few seconds (blocked, or never answered) is given up for tool calls
     if (syncViaTools) fallback = setTimeout(() => !socketConnected && syncThroughTools(), SOCKET_TIMEOUT_MS);
     // Undo only takes back your own changes: other people's arrive with the provider as origin, agents' with theirs
-    const undoManager = new Y.UndoManager([yNodes, yEdges, yThreads], {
+    const undoManager = new Y.UndoManager([yNodes, yEdges, yThreads, yLevelLayouts], {
       captureTimeout: 500,
       trackedOrigins: new Set([null, LOCAL_ORIGIN]),
     });
@@ -329,9 +365,11 @@ export function useStudioFlow({
       sender.destroy();
       stopToolSync?.();
       yNodes.unobserve(syncNodes);
+      yLevelLayouts.unobserve(syncLevelLayouts);
       yEdges.unobserve(syncEdges);
       yMeta.unobserve(syncMeta);
       doc.off('afterTransaction', reopenOnEdit);
+      doc.off('afterTransaction', syncStructure);
       presenceStore.destroy();
       undoManager.destroy();
       provider.destroy();
@@ -384,10 +422,10 @@ export function useStudioFlow({
     dragged.current.forEach((position, id) => moveNode(doc, id, position));
     // Containers as they grew around what was dragged, and what else is in them (moved the other way if they grew up
     // or left). Dragged nodes are where React Flow dropped them, already in their containers' grown coordinates.
-    dragPreview.current.forEach(({ position, width, height }, id) => {
-      const node = getCanvasMaps(doc).nodes.get(id);
-      if (node) getCanvasMaps(doc).nodes.set(id, { ...node, position, ...(width !== undefined && { width, height }) });
-    });
+    // Only what actually moved or grew is written (the preview has everything in those containers)
+    dragPreview.current.forEach(({ position, width, height }, id) =>
+      placeNode(doc, id, position, width !== undefined && height !== undefined ? { width, height } : undefined)
+    );
     dragPreview.current = new Map();
     dragged.current.clear();
     const shared = sharedRef.current;
@@ -474,12 +512,18 @@ export function useStudioFlow({
    * on the canvas, and returns edges to add with it (e.g. a catalog resource's relationships).
    */
   const insertNode = useCallback(
-    (type: string, data: Record<string, unknown>, center: XYPosition, connect?: (id: string, existing: Node[]) => Edge[]) => {
+    (
+      type: string,
+      data: Record<string, unknown>,
+      center: XYPosition,
+      connect?: (id: string, existing: Node[]) => Edge[],
+      inside?: string
+    ) => {
       const built = buildNode(type, data, center);
       withDoc((doc) => {
         const existing = Array.from(getCanvasMaps(doc).nodes.values());
-        // Dropped on a container: it goes in it
-        const group = canGoInContainer(type) ? findGroupAtPoint(center, existing) : undefined;
+        // In the container asked for, else the one it's dropped on
+        const group = canGoInContainer(type) ? containerFor(center, existing, inside) : undefined;
         const node = group
           ? { ...built, parentId: group.id, position: toRelativePosition(built.position, group.id, existing) }
           : built;
@@ -491,11 +535,11 @@ export function useStudioFlow({
     []
   );
 
-  /** Add a node of a registry type, centred on a canvas position */
+  /** Add a node of a registry type, centred on a canvas position (in a container, if asked) */
   const addNode = useCallback(
-    (type: string, center: XYPosition) => {
+    (type: string, center: XYPosition, inside?: string) => {
       const definition = getNodeDefinition(type);
-      return definition ? insertNode(type, definition.createData(), center) : undefined;
+      return definition ? insertNode(type, definition.createData(), center, undefined, inside) : undefined;
     },
     [insertNode]
   );
@@ -510,6 +554,12 @@ export function useStudioFlow({
 
   /** Moves nodes (and resizes containers) from a layout in one change, so it undoes in one go */
   const applyPositions = useCallback((layout: LayoutResult) => withDoc((doc) => applyLayout(doc, layout)), []);
+  /** Puts things where they go on L1 or L2: moved there by someone (undone like any edit), or placed by the level */
+  const setLevelLayout = useCallback(
+    (level: 1 | 2, places: ReadonlyMap<string, LevelPlace>, by: 'person' | 'level' = 'person') =>
+      withDoc((doc) => setLevelPlaces(doc, level, places), by === 'level' ? LEVEL_PLACEMENT_ORIGIN : null),
+    []
+  );
 
   /** Adds ready-made nodes and edges (e.g. a container with what's in it) in one change */
   const insertNodes = useCallback(
@@ -572,9 +622,13 @@ export function useStudioFlow({
     updateNodeData,
     deleteNodes,
     applyPositions,
+    levelLayouts,
+    setLevelLayout,
     insertNodes,
     setParent,
     title,
+    diagramLevels,
+    structureKey,
     rename,
     canvasStatus,
     changeStatus,

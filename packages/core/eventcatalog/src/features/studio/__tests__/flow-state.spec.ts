@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import type { Edge, Node } from '@xyflow/react';
-import { keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, withLocalState, withPositions } from '../flow-state';
+import {
+  keepDragged,
+  keepUnchanged,
+  LOCAL_EDGE_KEYS,
+  LOCAL_NODE_KEYS,
+  patchShared,
+  withLocalState,
+  withPositions,
+} from '../flow-state';
 
 const node = (id: string, extra: Partial<Node> = {}): Node => ({
   id,
@@ -155,6 +163,39 @@ describe('patchShared', () => {
     expect(result.map((item) => item.id)).toEqual(['a', 'c', 'd']);
     expect(result[0]).toBe(a);
     expect(result[1].data).toEqual({ name: 'C2' });
+  });
+});
+
+describe('keepUnchanged', () => {
+  it('keeps items worked out again the same as the objects shown, and returns the array shown when none changed', () => {
+    const shown = [node('a', { selected: true, measured: { width: 250, height: 120 } }), node('b', { style: { width: 300 } })];
+    const again = [node('a'), node('b', { style: { width: 300 } })];
+
+    expect(keepUnchanged(shown, again, LOCAL_NODE_KEYS)).toBe(shown);
+  });
+
+  it('replaces changed items (comparing what is in them), keeping their local state, and adds new ones', () => {
+    const a = node('a');
+    const b = node('b', { selected: true, measured: { width: 250, height: 120 } });
+    const movedB = node('b', { position: { x: 10, y: 0 } });
+    const c = node('c');
+
+    const result = keepUnchanged([a, b], [node('a'), movedB, c], LOCAL_NODE_KEYS);
+
+    expect(result[0]).toBe(a);
+    expect(result[1]).toEqual({ ...movedB, selected: true, measured: { width: 250, height: 120 } });
+    expect(result[2]).toBe(c);
+  });
+
+  it('notices changes deep in data, and items that were removed', () => {
+    const a = node('a', { data: { name: 'a', counts: { services: 1 } } });
+    const b = node('b');
+
+    const result = keepUnchanged([a, b], [node('a', { data: { name: 'a', counts: { services: 2 } } })], LOCAL_NODE_KEYS);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).not.toBe(a);
+    expect(result[0].data).toEqual({ name: 'a', counts: { services: 2 } });
   });
 });
 

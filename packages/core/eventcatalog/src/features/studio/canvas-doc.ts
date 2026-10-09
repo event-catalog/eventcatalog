@@ -1,8 +1,9 @@
 import * as Y from 'yjs';
 import type { Connection, Edge, Node, XYPosition } from '@xyflow/react';
+import type { EdgeRoute } from '@eventcatalog/visualiser/layout';
 import { createEdge, getEdgeLabel } from './edges';
 import { fitGroup, getAbsolutePosition, withDescendants, withParent } from './grouping';
-import { getNodeDefinition, getNodeSize, isGroupType } from './node-types';
+import { getNodeDefinition, getNodeName, getNodeSize, isGroupType } from './node-types';
 
 /**
  * Everything a canvas holds, as operations on its Yjs document. The same functions run in the
@@ -35,6 +36,24 @@ export type CanvasMeta = {
   createdBy?: string;
   /** When the canvas was last laid out, so everyone's canvas glides the nodes into place */
   layoutAt?: number;
+  /** L1 and L2 as the diagram the canvas was opened from showed them (see DiagramLevels) */
+  diagramLevels?: DiagramLevels;
+};
+
+/** A level of detail as a diagram showed it: its nodes (laid out) and edges, by canvas node ids where they're the same */
+export type DiagramLevel = { nodes: Node[]; edges: Edge[] };
+
+/**
+ * L1 and L2 of the diagram a canvas was opened from (the visualiser's "Open in Studio"), shown as they were while the
+ * canvas's structure is what was opened (`structure`, from getStructureKey): moving nodes keeps them, changing what's
+ * on the canvas or how it's connected doesn't (the levels are then worked out from the canvas)
+ */
+export type DiagramLevels = {
+  structure: string;
+  1?: DiagramLevel;
+  2?: DiagramLevel;
+  /** Levels the diagram doesn't have, and why (as the diagram says) */
+  unavailable?: { 1?: string; 2?: string };
 };
 
 // Canvases' documents on the collaboration server are named `design:<canvasId>` (scripts and peers join by it)
@@ -52,7 +71,42 @@ export const getCanvasMaps = (doc: Y.Doc) => ({
   edges: doc.getMap<Edge>('edges'),
   threads: doc.getMap<Y.Map<unknown>>('threads'),
   meta: doc.getMap<unknown>('meta'),
+  /** Where things are on L1 and L2 (see LevelPlace), one entry per node and level (`1:<node id>`) */
+  levelLayouts: doc.getMap<LevelPlace>('levelLayouts'),
 });
+
+/**
+ * Where a node is on L1 or L2, as people arranged it there (or as the diagram it was opened from had it): its
+ * top-left corner, relative to the container it's shown in on that level, and a container's size
+ */
+export type LevelPlace = { x: number; y: number; width?: number; height?: number };
+
+/** The places on a level, by node id */
+export const readLevelLayout = (doc: Y.Doc, level: 1 | 2) => {
+  const prefix = `${level}:`;
+  const places = new Map<string, LevelPlace>();
+  getCanvasMaps(doc).levelLayouts.forEach((place, key) => {
+    if (key.startsWith(prefix)) places.set(key.slice(prefix.length), place);
+  });
+  return places;
+};
+
+const samePlace = (a: LevelPlace | undefined, b: LevelPlace) =>
+  !!a && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+
+/**
+ * Puts nodes where they go on a level (in one transaction). Places that haven't changed aren't written: everyone
+ * looking at the level works out the same places for what's new on it, and each write re-arranges the level for
+ * everyone else.
+ */
+export const setLevelPlaces = (doc: Y.Doc, level: 1 | 2, places: ReadonlyMap<string, LevelPlace>) =>
+  doc.transact(() => {
+    const { levelLayouts } = getCanvasMaps(doc);
+    places.forEach((place, id) => {
+      const key = `${level}:${id}`;
+      if (!samePlace(levelLayouts.get(key), place)) levelLayouts.set(key, place);
+    });
+  });
 
 // Only the design is shared. Selection, measured sizes and drag state stay with each user.
 export const toSharedNode = ({ id, type, position, data, width, height, parentId, zIndex }: Node): Node => ({
@@ -83,9 +137,6 @@ export const buildNode = (type: string, data: Record<string, unknown>, center: X
 };
 
 // ---- Meta ----
-
-/** Canvas titles are at most this long */
-export const MAX_TITLE_LENGTH = 200;
 
 export const readMeta = (doc: Y.Doc) => getCanvasMaps(doc).meta.toJSON() as CanvasMeta;
 
@@ -154,12 +205,22 @@ export const addNodes = (doc: Y.Doc, nodes: Node[], edges: Edge[] = []) =>
     edges.forEach((edge) => maps.edges.set(edge.id, edge));
   });
 
-export const moveNode = (doc: Y.Doc, id: string, position: XYPosition) => {
+/**
+ * Moves a node, and resizes it if a size is given, in one write. Nodes are only written when they change: every
+ * write is sent to everyone, re-renders the node for them, and is kept in the document (and the undo stack), even
+ * when it writes what was already there.
+ */
+export const placeNode = (doc: Y.Doc, id: string, position: XYPosition, size?: { width: number; height: number }) => {
   const { nodes } = getCanvasMaps(doc);
   const node = nodes.get(id);
-  if (node) nodes.set(id, { ...node, position });
-  return !!node;
+  if (!node) return false;
+  const moved = node.position.x !== position.x || node.position.y !== position.y;
+  const resized = !!size && (node.width !== size.width || node.height !== size.height);
+  if (moved || resized) nodes.set(id, { ...node, position, ...(size && { width: size.width, height: size.height }) });
+  return true;
 };
+
+export const moveNode = (doc: Y.Doc, id: string, position: XYPosition) => placeNode(doc, id, position);
 
 /** Resize a node: both sides, or just its width or height (e.g. text, whose height follows what's in it) */
 export const resizeNode = (
@@ -170,7 +231,9 @@ export const resizeNode = (
 ) => {
   const { nodes } = getCanvasMaps(doc);
   const node = nodes.get(id);
-  if (node)
+  const width = attributes !== 'height' && node?.width !== size.width;
+  const height = attributes !== 'width' && node?.height !== size.height;
+  if (node && (width || height))
     nodes.set(id, {
       ...node,
       ...(attributes !== 'height' && { width: size.width }),
@@ -234,6 +297,93 @@ export const updateNodeData = (doc: Y.Doc, id: string, updater: (data: Record<st
   if (node) nodes.set(id, { ...node, data: updater(node.data) });
   return !!node;
 };
+
+/**
+ * How a connection is drawn, as the visualiser's layout routes it (in data.route, which the visualiser's edges
+ * are drawn along): the points it goes through, where its label goes, and where its nodes were (top-left) when
+ * it was routed, for it to follow them when they move
+ */
+export type { EdgeRoute };
+
+/** An edge's route, if it has one */
+export const getEdgeRoute = (edge: Pick<Edge, 'data'>) => (edge.data as { route?: EdgeRoute } | undefined)?.route;
+
+/** Routes connections (by edge id), in one transaction. Connections not in it lose any route they had. */
+export const setEdgeRoutes = (doc: Y.Doc, routes: ReadonlyMap<string, EdgeRoute>) =>
+  doc.transact(() => {
+    const { edges } = getCanvasMaps(doc);
+    edges.forEach((edge, id) => {
+      const route = routes.get(id);
+      if (route) edges.set(id, { ...edge, data: { ...edge.data, route } });
+      else if (getEdgeRoute(edge)) {
+        const { route: _, ...data } = edge.data!;
+        edges.set(id, { ...edge, data });
+      }
+    });
+  });
+
+/**
+ * What's on a canvas and how it's connected, not where: its nodes (not notes), what they're in and called, and its
+ * connections. The same for the same canvas wherever it's worked out (the server, any browser).
+ */
+export const getStructureKey = (nodes: Node[], edges: Edge[]) => {
+  const parts = [
+    ...nodes
+      .filter((node) => node.type !== 'note')
+      .map((node) => `${node.id}:${node.type}:${node.parentId ?? ''}:${getNodeName(node.type, node.data)}`)
+      .sort(),
+    '#',
+    ...edges.map((edge) => `${edge.source}>${edge.target}:${String(edge.label ?? '')}`).sort(),
+  ];
+  // FNV-1a, so it's short enough to keep in the canvas
+  let hash = 0x811c9dc5;
+  for (const char of parts.join('|')) hash = Math.imul(hash ^ char.charCodeAt(0), 0x01000193);
+  return `${parts.length}-${(hash >>> 0).toString(36)}`;
+};
+
+/** The diagram's L1 or L2 while the canvas still has the structure it was opened with (`structure`, its key now) */
+export const getDiagramLevel = (levels: DiagramLevels | undefined, level: 1 | 2, structure: string) =>
+  levels?.[level] && !levels.unavailable?.[level] && levels.structure === structure ? levels[level] : undefined;
+
+/** Why the diagram doesn't have a level, while the canvas still has the structure it was opened with */
+export const getDiagramLevelUnavailable = (levels: DiagramLevels | undefined, level: 1 | 2, structure: string) =>
+  levels?.unavailable?.[level] && levels.structure === structure ? levels.unavailable[level] : undefined;
+
+/** What a new canvas starts with: its nodes, the connections between them (by node id) with their routes, and the
+ * levels of the diagram it's opened from */
+export type CanvasContent = {
+  nodes: Node[];
+  connections: { from: string; to: string; label?: string; route?: Pick<EdgeRoute, 'points' | 'label'> }[];
+  levels?: Pick<DiagramLevels, 1 | 2 | 'unavailable'>;
+};
+
+/**
+ * Puts a new canvas's content on it (in one transaction), with its containers fitted to what's in them. Routes
+ * are from where the nodes are put.
+ */
+export const addCanvasContent = (doc: Y.Doc, { nodes, connections, levels }: CanvasContent) =>
+  doc.transact(() => {
+    addNodes(doc, nodes);
+    nodes.forEach((node) => node.parentId && fitContainersAround(doc, node.id));
+    const placed = new Map(getCanvasMaps(doc).nodes.entries());
+    const routes = new Map<string, EdgeRoute>();
+    connections.forEach(({ from, to, label, route }) => {
+      const edge = connectNodes(doc, { source: from, target: to }, label);
+      const [source, target] = [placed.get(from), placed.get(to)];
+      if (!route || 'error' in edge || !source || !target) return;
+      routes.set(edge.id, {
+        ...route,
+        source: getAbsolutePosition(source, placed),
+        target: getAbsolutePosition(target, placed),
+      });
+    });
+    if (routes.size) setEdgeRoutes(doc, routes);
+    if (levels) {
+      const maps = getCanvasMaps(doc);
+      const structure = getStructureKey(Array.from(maps.nodes.values()), Array.from(maps.edges.values()));
+      setMeta(doc, { diagramLevels: { structure, ...levels } });
+    }
+  });
 
 /** Connect two nodes with an EventCatalog-labelled edge. Returns the edge, or why it couldn't be made. */
 export const connectNodes = (
@@ -299,7 +449,7 @@ export const deleteEdges = (doc: Y.Doc, ids: string[]) =>
 /** Delete nodes (containers with what's in them), the edges to them, and leave their comments where they were */
 export const deleteNodes = (doc: Y.Doc, ids: string[]) =>
   doc.transact(() => {
-    const { nodes, edges, threads } = getCanvasMaps(doc);
+    const { nodes, edges, threads, levelLayouts } = getCanvasMaps(doc);
     const all = Array.from(nodes.values());
     const lookup = new Map(all.map((node) => [node.id, node]));
     const removed = withDescendants(ids, all);
@@ -313,7 +463,12 @@ export const deleteNodes = (doc: Y.Doc, ids: string[]) =>
       thread.delete('nodeId');
       thread.delete('offset');
     });
-    removed.forEach((id) => nodes.delete(id));
+    removed.forEach((id) => {
+      nodes.delete(id);
+      // Where it was on L1 and L2 (undoing the delete puts it back there)
+      levelLayouts.delete(`1:${id}`);
+      levelLayouts.delete(`2:${id}`);
+    });
     edges.forEach((edge, id) => {
       if (removed.has(edge.source) || removed.has(edge.target)) edges.delete(id);
     });

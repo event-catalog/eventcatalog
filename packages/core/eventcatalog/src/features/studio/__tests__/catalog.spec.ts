@@ -92,6 +92,11 @@ describe('buildContainer', () => {
     const container = buildContainer(resourceByKey('systems:Checkout'), { x: 0, y: 0 });
     expect(container.type).toBe('system-group');
     expect(container.data).toHaveProperty('system.name', 'Checkout');
+    expect(container.data).not.toHaveProperty('system.scope');
+  });
+
+  it('keeps an external system marked as one', () => {
+    expect(buildContainer(resourceByKey('systems:Inventory'), { x: 0, y: 0 }).data).toHaveProperty('system.scope', 'external');
   });
 });
 

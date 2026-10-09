@@ -427,7 +427,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
       const { nodes, edges } = await runtime.withCanvas(id, readCanvas);
       const positions = await getLayoutPositions(nodes, edges);
       await playLayout(asAgent(id, name).stage, positions);
-      return text({ laidOut: positions.size });
+      return text({ laidOut: positions.nodes.size });
     }
   );
 

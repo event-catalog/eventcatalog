@@ -15,11 +15,14 @@ import {
   getCanvasMaps,
   moveNode,
   moveThread,
+  placeNode,
+  readLevelLayout,
   readCanvas,
   readThreads,
   reconnectEdge,
   replyToThread,
   resizeNode,
+  setLevelPlaces,
   setNodeParent,
   setThreadResolved,
   type Author,
@@ -102,6 +105,38 @@ describe('nodes', () => {
     expect(moveNode(doc, 'missing', { x: 0, y: 0 })).toBe(false);
     expect(resizeNode(doc, 'missing', { width: 1, height: 1 })).toBe(false);
     expect(getCanvasMaps(doc).nodes.has('missing')).toBe(false);
+  });
+
+  it("doesn't write nodes that are already where (and the size) they're put: each write goes to everyone", () => {
+    const doc = new Y.Doc();
+    addNodes(doc, [node('a', 'domain-group', 10, 20, { width: 300, height: 200 })]);
+    const updates = vi.fn();
+    doc.on('update', updates);
+
+    expect(moveNode(doc, 'a', { x: 10, y: 20 })).toBe(true);
+    expect(resizeNode(doc, 'a', { width: 300, height: 200 })).toBe(true);
+    expect(placeNode(doc, 'a', { x: 10, y: 20 }, { width: 300, height: 200 })).toBe(true);
+    expect(updates).not.toHaveBeenCalled();
+
+    placeNode(doc, 'a', { x: 10, y: 20 }, { width: 400, height: 200 });
+    expect(updates).toHaveBeenCalledTimes(1);
+    expect(nodeOf(doc, 'a')).toMatchObject({ position: { x: 10, y: 20 }, width: 400, height: 200 });
+  });
+});
+
+describe('setLevelPlaces', () => {
+  it("only writes places that changed (everyone on a level works out the same places for what's new on it)", () => {
+    const doc = new Y.Doc();
+    setLevelPlaces(doc, 1, new Map([['a', { x: 0, y: 0 }]]));
+    const updates = vi.fn();
+    doc.on('update', updates);
+
+    setLevelPlaces(doc, 1, new Map([['a', { x: 0, y: 0 }]]));
+    expect(updates).not.toHaveBeenCalled();
+
+    setLevelPlaces(doc, 1, new Map([['a', { x: 0, y: 0, width: 300, height: 200 }]]));
+    expect(updates).toHaveBeenCalledTimes(1);
+    expect(readLevelLayout(doc, 1).get('a')).toEqual({ x: 0, y: 0, width: 300, height: 200 });
   });
 });
 
@@ -271,6 +306,23 @@ describe('deleteNodes', () => {
     const { nodes, edges } = readCanvas(doc);
     expect(nodes.map((n) => n.id).sort()).toEqual(['other', 'outside']);
     expect(edges.map((e) => e.id)).toEqual(['outside-other']);
+  });
+
+  it('removes where what it removes was on L1 and L2, so the document does not keep them', () => {
+    const doc = setup();
+    setLevelPlaces(
+      doc,
+      1,
+      new Map([
+        ['system', { x: 0, y: 0 }],
+        ['outside', { x: 400, y: 0 }],
+      ])
+    );
+    setLevelPlaces(doc, 2, new Map([['inner', { x: 0, y: 0 }]]));
+    deleteNodes(doc, ['domain']);
+
+    expect([...readLevelLayout(doc, 1).keys()]).toEqual(['outside']);
+    expect(readLevelLayout(doc, 2).size).toBe(0);
   });
 
   it('leaves comments pinned to removed nodes where they were on the canvas', () => {

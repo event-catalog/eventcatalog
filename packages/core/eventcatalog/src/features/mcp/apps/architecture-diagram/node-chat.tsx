@@ -6,7 +6,8 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import type { Node } from '@xyflow/react';
 import { Check, Network, SendHorizontal, X } from 'lucide-react';
-import type { ArchitectureDiagramCollection } from '@utils/node-graphs/architecture-diagram-types';
+import { isArchitectureDiagramCollection } from '@utils/node-graphs/architecture-diagram-types';
+import { getNodeCatalogResource, getNodeResourceDetails } from '@utils/node-graphs/node-resource';
 import type { DiagramLink } from './links';
 import { RESOURCE_TYPE_LABELS } from '../shared/resource-types';
 
@@ -36,53 +37,13 @@ const NODE_TYPE_LABELS: Record<string, string> = {
   externalSystem: 'External system',
 };
 
-// Where each node type keeps the resource it shows
-const RESOURCE_DATA_KEYS = [
-  'service',
-  'agent',
-  'message',
-  'channel',
-  'data',
-  'dataProduct',
-  'flow',
-  'entity',
-  'domain',
-  'system',
-  'custom',
-];
-
-// The collection of each node type the architecture diagram tool can draw a diagram for
-const DIAGRAM_COLLECTIONS: Record<string, ArchitectureDiagramCollection> = {
-  services: 'services',
-  agents: 'agents',
-  events: 'events',
-  commands: 'commands',
-  queries: 'queries',
-  flows: 'flows',
-  data: 'containers',
-  containers: 'containers',
-  'data-products': 'data-products',
-  domains: 'domains',
-  'context-domain': 'domains',
-  'domain-group': 'domains',
-  systems: 'systems',
-  'system-group': 'systems',
-};
-
-// Domain and system boundaries only have their catalog id in the node id: {kind}-group-{id}-{version}
-const catalogIdOfGroup = (node: Node, version?: string) => {
-  const match = node.id.match(/^(?:domain|system)-group-(.+)$/);
-  if (!match) return undefined;
-  return version && match[1].endsWith(`-${version}`) ? match[1].slice(0, -(version.length + 1)) : match[1];
-};
-
 export function describeNode(node: Node): SelectedNode {
   const data = (node.data ?? {}) as Record<string, any>;
-  const resource = RESOURCE_DATA_KEYS.map((key) => data[key]).find(Boolean) ?? data;
-  const details = resource?.data ?? resource;
+  const details = (getNodeResourceDetails(node) ?? data) as Record<string, any>;
   const version: string | undefined = details?.version;
-  const id: string = details?.id ?? catalogIdOfGroup(node, version) ?? node.id;
-  const collection = DIAGRAM_COLLECTIONS[node.type ?? ''];
+  const id: string = details?.id ?? node.id;
+  const resource = getNodeCatalogResource(node);
+  const collection = resource && isArchitectureDiagramCollection(resource.collection) ? resource.collection : undefined;
 
   return {
     nodeId: node.id,

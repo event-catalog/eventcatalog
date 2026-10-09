@@ -2,13 +2,27 @@ import { type CSSProperties, useSyncExternalStore } from "react";
 
 // ─── Dark mode detection ────────────────────────────────────────────────────
 
+// Every node follows the theme: one observer for all of them, from the first node shown until the last is gone
+const themeListeners = new Set<() => void>();
+let themeObserver: MutationObserver | undefined;
+
 function subscribeTheme(callback: () => void) {
-  const observer = new MutationObserver(callback);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["data-theme"],
-  });
-  return () => observer.disconnect();
+  themeListeners.add(callback);
+  if (!themeObserver) {
+    themeObserver = new MutationObserver(() =>
+      themeListeners.forEach((listener) => listener()),
+    );
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  }
+  return () => {
+    themeListeners.delete(callback);
+    if (themeListeners.size > 0) return;
+    themeObserver?.disconnect();
+    themeObserver = undefined;
+  };
 }
 
 function getIsDark() {

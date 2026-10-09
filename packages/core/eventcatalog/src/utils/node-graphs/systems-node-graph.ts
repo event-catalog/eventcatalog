@@ -142,7 +142,7 @@ const wrapNodesInSystemGroup = (systemNodes: any[], system: any) => {
     draggable: false,
     selectable: false,
     data: {
-      system: { name: system.data.name, version: system.data.version },
+      system: { id: system.data.id, name: system.data.name, version: system.data.version },
       // The system is the resource being viewed on its own diagram
       isFocused: true,
     },

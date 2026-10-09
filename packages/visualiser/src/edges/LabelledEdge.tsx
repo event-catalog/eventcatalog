@@ -4,7 +4,7 @@ import {
   getSmoothStepPath,
   type EdgeProps,
 } from "@xyflow/react";
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 import EdgeLabel from "./EdgeLabel";
 import { useRoute } from "./route";
 import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
@@ -87,14 +87,21 @@ function LabelledEdge({
   );
 }
 
-export function LabelledDefaultEdge(props: EdgeProps) {
+// Memoized like every edge (these draw every message edge when messages aren't simulated)
+export const LabelledDefaultEdge = memo(function LabelledDefaultEdge(
+  props: EdgeProps,
+) {
   return <LabelledEdge {...props} pathType="bezier" />;
-}
+});
 
-export function LabelledSmoothStepEdge(props: EdgeProps) {
+export const LabelledSmoothStepEdge = memo(function LabelledSmoothStepEdge(
+  props: EdgeProps,
+) {
   return <LabelledEdge {...props} pathType="smoothstep" />;
-}
+});
 
-export function LabelledStepEdge(props: EdgeProps) {
+export const LabelledStepEdge = memo(function LabelledStepEdge(
+  props: EdgeProps,
+) {
   return <LabelledEdge {...props} pathType="step" />;
-}
+});

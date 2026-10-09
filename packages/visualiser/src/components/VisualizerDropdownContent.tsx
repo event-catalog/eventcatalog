@@ -6,7 +6,7 @@ import {
   Share2,
   Search,
   Grid3x3,
-  Maximize2,
+  Maximize,
   Map,
   Sparkles,
   Zap,
@@ -15,12 +15,18 @@ import {
   RotateCcw,
   Loader2,
   MessageCircle,
+  SquareDashedMousePointer,
 } from "lucide-react";
 import {
   DocumentArrowDownIcon,
   PresentationChartLineIcon,
 } from "@heroicons/react/24/outline";
 import type { VisualiserSearchRef } from "./VisualiserSearch";
+import {
+  DIAGRAM_MENU_ITEM,
+  DIAGRAM_MENU_ITEM_ICON,
+  DIAGRAM_MENU_SEPARATOR,
+} from "./diagram-menu";
 
 interface VisualizerDropdownContentProps {
   isMermaidView: boolean;
@@ -50,6 +56,8 @@ interface VisualizerDropdownContentProps {
   onResetLayout?: () => Promise<boolean>;
   notesCount?: number;
   onOpenNotes?: () => void;
+  /** Starts a Studio canvas from the diagram (the app asks what to call it, then opens it) */
+  onOpenInStudio?: () => void;
 }
 
 const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
@@ -81,6 +89,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
       onResetLayout,
       notesCount = 0,
       onOpenNotes,
+      onOpenInStudio,
     }) => {
       const [layoutStatus, setLayoutStatus] = useState<
         "idle" | "saving" | "resetting"
@@ -117,7 +126,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
           {/* Canvas Settings Submenu */}
           <DropdownMenu.Sub>
             <DropdownMenu.SubTrigger className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2 outline-none">
-              <Grid3x3 className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+              <Grid3x3 className={DIAGRAM_MENU_ITEM_ICON} />
               <span className="flex-1 font-normal">Canvas</span>
               <svg
                 className="w-3 h-3 text-[rgb(var(--ec-page-text-muted))]"
@@ -142,9 +151,9 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                 <DropdownMenu.CheckboxItem
                   checked={isMermaidView}
                   onCheckedChange={setIsMermaidView}
-                  className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2"
+                  className={DIAGRAM_MENU_ITEM}
                 >
-                  <Code className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                  <Code className={DIAGRAM_MENU_ITEM_ICON} />
                   <span className="flex-1 font-normal">Render as mermaid</span>
                   <div
                     className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${isMermaidView ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
@@ -157,14 +166,16 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
 
                 {!hideAnimateMessages && (
                   <>
-                    <DropdownMenu.Separator className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+                    <DropdownMenu.Separator
+                      className={DIAGRAM_MENU_SEPARATOR}
+                    />
 
                     <DropdownMenu.CheckboxItem
                       checked={animateMessages}
                       onCheckedChange={toggleAnimateMessages}
-                      className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2"
+                      className={DIAGRAM_MENU_ITEM}
                     >
-                      <Zap className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                      <Zap className={DIAGRAM_MENU_ITEM_ICON} />
                       <span className="flex-1 font-normal">
                         Simulate Messages
                       </span>
@@ -186,7 +197,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                     disabled={hideMessages}
                     className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2 data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed"
                   >
-                    <EyeOff className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                    <EyeOff className={DIAGRAM_MENU_ITEM_ICON} />
                     <span className="flex-1 font-normal">Hide channels</span>
                     <div
                       className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${hideChannels || hideMessages ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
@@ -202,9 +213,9 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                   <DropdownMenu.CheckboxItem
                     checked={hideMessages}
                     onCheckedChange={toggleMessagesVisibility}
-                    className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2"
+                    className={DIAGRAM_MENU_ITEM}
                   >
-                    <EyeOff className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                    <EyeOff className={DIAGRAM_MENU_ITEM_ICON} />
                     <span className="flex-1 font-normal">Hide messages</span>
                     <div
                       className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${hideMessages ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
@@ -219,9 +230,9 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                 <DropdownMenu.CheckboxItem
                   checked={showMinimap}
                   onCheckedChange={setShowMinimap}
-                  className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2"
+                  className={DIAGRAM_MENU_ITEM}
                 >
-                  <Map className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                  <Map className={DIAGRAM_MENU_ITEM_ICON} />
                   <span className="flex-1 font-normal">Show minimap</span>
                   <div
                     className={`w-7 h-4 rounded-full transition-all duration-200 flex-shrink-0 relative ${showMinimap ? "bg-[rgb(var(--ec-accent))]" : "bg-[rgb(var(--ec-page-border))]"}`}
@@ -232,14 +243,14 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                   </div>
                 </DropdownMenu.CheckboxItem>
 
-                <DropdownMenu.Separator className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+                <DropdownMenu.Separator className={DIAGRAM_MENU_SEPARATOR} />
 
                 <DropdownMenu.Item
                   onClick={handleFitView}
                   className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
                 >
-                  <Maximize2 className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
-                  <span className="flex-1 font-normal">Fit to view</span>
+                  <Maximize className={DIAGRAM_MENU_ITEM_ICON} />
+                  <span className="flex-1 font-normal">Fit view</span>
                 </DropdownMenu.Item>
 
                 <DropdownMenu.Item
@@ -254,7 +265,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                   }}
                   className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
                 >
-                  <Search className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                  <Search className={DIAGRAM_MENU_ITEM_ICON} />
                   <span className="flex-1 font-normal">Find on canvas</span>
                 </DropdownMenu.Item>
               </DropdownMenu.SubContent>
@@ -267,7 +278,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
               onClick={onOpenNotes}
               className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
             >
-              <MessageCircle className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+              <MessageCircle className={DIAGRAM_MENU_ITEM_ICON} />
               <span className="flex-1 font-normal">
                 View notes ({notesCount})
               </span>
@@ -278,7 +289,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
           {isDevMode && onSaveLayout && (
             <DropdownMenu.Sub>
               <DropdownMenu.SubTrigger className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2 outline-none">
-                <Save className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                <Save className={DIAGRAM_MENU_ITEM_ICON} />
                 <span className="flex-1 font-normal">Layout</span>
                 <span className="text-[10px] text-amber-600 font-medium">
                   DEV
@@ -311,7 +322,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                     {layoutStatus === "saving" ? (
                       <Loader2 className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 animate-spin" />
                     ) : (
-                      <Save className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                      <Save className={DIAGRAM_MENU_ITEM_ICON} />
                     )}
                     <span className="flex-1 font-normal">
                       {layoutStatus === "saving" ? "Saving..." : "Save Layout"}
@@ -325,7 +336,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
                     {layoutStatus === "resetting" ? (
                       <Loader2 className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 animate-spin" />
                     ) : (
-                      <RotateCcw className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                      <RotateCcw className={DIAGRAM_MENU_ITEM_ICON} />
                     )}
                     <span className="flex-1 font-normal">
                       {layoutStatus === "resetting"
@@ -341,24 +352,24 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
           {/* Ask AI */}
           {isChatEnabled && (
             <>
-              <DropdownMenu.Separator className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+              <DropdownMenu.Separator className={DIAGRAM_MENU_SEPARATOR} />
               <DropdownMenu.Item
                 onClick={openChat}
                 className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                <Sparkles className={DIAGRAM_MENU_ITEM_ICON} />
                 <span className="flex-1 font-normal">Ask a question</span>
               </DropdownMenu.Item>
             </>
           )}
 
           {/* Export Items */}
-          <DropdownMenu.Separator className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+          <DropdownMenu.Separator className={DIAGRAM_MENU_SEPARATOR} />
           <DropdownMenu.Item
             onClick={handleCopyArchitectureCode}
             className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
           >
-            <Code className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+            <Code className={DIAGRAM_MENU_ITEM_ICON} />
             <span className="flex-1 font-normal">Copy as mermaid</span>
           </DropdownMenu.Item>
 
@@ -366,7 +377,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
             onClick={handleExportVisual}
             className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
           >
-            <DocumentArrowDownIcon className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+            <DocumentArrowDownIcon className={DIAGRAM_MENU_ITEM_ICON} />
             <span className="flex-1 font-normal">Export image</span>
           </DropdownMenu.Item>
 
@@ -375,19 +386,33 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
             onClick={() => setIsShareModalOpen(true)}
             className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
           >
-            <Share2 className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+            <Share2 className={DIAGRAM_MENU_ITEM_ICON} />
             <span className="flex-1 font-normal">Share Link</span>
           </DropdownMenu.Item>
 
           {/* Start Presentation */}
-          <DropdownMenu.Separator className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+          <DropdownMenu.Separator className={DIAGRAM_MENU_SEPARATOR} />
           <DropdownMenu.Item
             onClick={toggleFullScreen}
             className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
           >
-            <PresentationChartLineIcon className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+            <PresentationChartLineIcon className={DIAGRAM_MENU_ITEM_ICON} />
             <span className="flex-1 font-normal">Start Presentation</span>
           </DropdownMenu.Item>
+
+          {/* Open in Studio */}
+          {onOpenInStudio && (
+            <>
+              <DropdownMenu.Separator className={DIAGRAM_MENU_SEPARATOR} />
+              <DropdownMenu.Item
+                onSelect={onOpenInStudio}
+                className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
+              >
+                <SquareDashedMousePointer className={DIAGRAM_MENU_ITEM_ICON} />
+                <span className="flex-1 font-normal">Open in Studio</span>
+              </DropdownMenu.Item>
+            </>
+          )}
         </>
       );
     },

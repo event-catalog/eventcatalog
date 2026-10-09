@@ -21,3 +21,8 @@ export {
   type FlowGroupBy,
   type FlowGroupStyle,
 } from "./swimlanes";
+export { DIAGRAM_FIT_VIEW_OPTIONS } from "./fit-view";
+// Memoizing custom nodes (ignoring their position, which React Flow passes on every frame they move)
+export { memoNode } from "./node-memo";
+// Pausing message animations while the canvas moves
+export { pauseEdgeAnimations } from "./edge-animations";

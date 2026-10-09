@@ -12,10 +12,14 @@
  * CSS ships in the page head and survives ClientRouter navigations (see NodeGraph.astro).
  */
 
-import { useCallback, lazy, Suspense } from 'react';
+import { useCallback, useState, lazy, Suspense } from 'react';
 import type { Node, Edge } from '@xyflow/react';
-import type { FlowGroupBy } from '@eventcatalog/visualiser';
+import type { FlowGroupBy, OpenInStudioRequest } from '@eventcatalog/visualiser';
 import { buildUrl } from '@utils/url-builder';
+import { createCanvasThroughApi } from '@features/studio/api/client';
+import { canvasFromVisualiser } from '@features/studio/from-visualiser';
+import { getStoredName } from '@features/studio/identity';
+import OpenInStudioDialog from '@features/studio/components/OpenInStudioDialog';
 
 const NodeGraph = lazy(() =>
   import('@eventcatalog/visualiser').then((module) => ({ default: module.NodeGraph }))
@@ -57,9 +61,11 @@ interface AstroNodeGraphProps {
   preferenceScope?: string;
   // Group a flow's steps into swimlanes to start with
   swimlanes?: FlowGroupBy;
+  // The Studio API's address, when Studio is on: the menu can then start a canvas from the diagram
+  studioApiUrl?: string;
 }
 
-const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: AstroNodeGraphProps) => {
+const AstroNodeGraph = ({ isDevMode = false, resourceKey, studioApiUrl, ...otherProps }: AstroNodeGraphProps) => {
   // Astro-specific navigation handler
   const handleNavigate = useCallback((url: string) => {
     // Use window.location for navigation since we can't import astro:transitions/client in a React component
@@ -108,6 +114,29 @@ const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: Astro
     }
   }, []);
 
+  // Opening the diagram in Studio: asks what to call the canvas, then makes it with what the diagram shows and opens
+  // it (in this tab) at the level shown. What it shows is only taken once it's named (laying a level out can take a
+  // moment), and anything that goes wrong is shown in the dialog.
+  const [toOpen, setToOpen] = useState<OpenInStudioRequest | null>(null);
+  const closeOpenInStudio = useCallback(() => setToOpen(null), []);
+  const openInStudio = useCallback(
+    async (title: string | undefined) => {
+      if (!studioApiUrl || !toOpen) return;
+      const snapshot = await toOpen.getSnapshot();
+      const { nodes, edges, levels } = canvasFromVisualiser(snapshot);
+      if (nodes.length === 0) throw new Error('Nothing on this diagram can go on a canvas yet');
+      const canvas = await createCanvasThroughApi(studioApiUrl, {
+        title,
+        createdBy: getStoredName() ?? undefined,
+        nodes,
+        edges,
+        levels,
+      });
+      window.location.assign(snapshot.level === 3 ? canvas.url : `${canvas.url}?level=${snapshot.level}`);
+    },
+    [studioApiUrl, toOpen]
+  );
+
   return (
     <Suspense fallback={<div>Loading graph...</div>}>
       <NodeGraph
@@ -118,7 +147,9 @@ const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: Astro
         onBuildUrl={handleBuildUrl}
         onSaveLayout={handleSaveLayout}
         onResetLayout={handleResetLayout}
+        onOpenInStudio={studioApiUrl ? setToOpen : undefined}
       />
+      {toOpen && <OpenInStudioDialog title={toOpen.title} onOpen={openInStudio} onClose={closeOpenInStudio} />}
     </Suspense>
   );
 };

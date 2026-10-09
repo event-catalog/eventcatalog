@@ -332,6 +332,7 @@ pnpm run format       # Formats all packages
 - SSR mode is required for AI Chat and MCP Server features
 - Use `DISABLE_EVENTCATALOG_CACHE=true` env var to disable caching during development
 - When making changes in this repository, check whether the same change or a compatible follow-up is needed in the editor repository at `eventcatalog/eventcatalog-editor`. If no editor change is needed, mention that explicitly in the final response.
+- Studio (`features/studio`) and the visualiser must look and behave the same (a diagram opened in Studio matches it at every level): when changing either, follow `.claude/skills/visualiser-studio-parity/SKILL.md`
 - Run `pnpm run format` before committing changes
 - Never verify the build, the developer will do this themselves
 - SDK test files may get modified during test runs - restore with `git restore packages/sdk/src/test/`

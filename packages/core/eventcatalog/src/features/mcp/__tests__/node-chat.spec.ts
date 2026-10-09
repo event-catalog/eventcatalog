@@ -59,13 +59,9 @@ describe('describing a clicked diagram node for the conversation', () => {
     );
   });
 
-  it('describes domain and system boundaries by their catalog id, which is only in the node id', () => {
-    const domain = node('domain-group', { domain: { name: 'Ordering', version: '1.0.0' } }, 'domain-group-ordering-1.0.0');
-    const system = node(
-      'system-group',
-      { system: { name: 'Checkout System', version: '1.0.0' } },
-      'system-group-checkout-system-1.0.0'
-    );
+  it('describes domain and system boundaries by their catalog id', () => {
+    const domain = node('domain-group', { domain: { id: 'ordering', name: 'Ordering', version: '1.0.0' } });
+    const system = node('system-group', { system: { id: 'checkout-system', name: 'Checkout System', version: '1.0.0' } });
 
     expect(describeNode(domain)).toEqual(
       expect.objectContaining({ id: 'ordering', diagram: { collection: 'domains', id: 'ordering', version: '1.0.0' } })

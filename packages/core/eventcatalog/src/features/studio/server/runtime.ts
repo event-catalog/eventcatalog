@@ -6,16 +6,18 @@ import type { XYPosition } from '@xyflow/react';
 import type { AgentPresence } from '../agent-choreography';
 import {
   CANVAS_DELETED_REASON,
-  MAX_TITLE_LENGTH,
+  addCanvasContent,
   canvasDocumentName,
   canvasIdFromDocumentName,
   getCanvasMaps,
   readMeta,
   setMeta,
   getCanvasStatus,
+  type CanvasContent,
   type CanvasStatus,
 } from '../canvas-doc';
 import { getCanvasPreview, type CanvasPreview } from '../canvas-preview';
+import { MAX_TITLE_LENGTH } from '../limits';
 import { fromBase64, toBase64, type SyncRequest, type SyncResponse } from '../tool-sync';
 import config from '../../../utils/eventcatalog-config/source';
 import { isAuthEnabled } from '../../../utils/feature';
@@ -299,10 +301,16 @@ export class StudioRuntime {
     return true;
   }
 
-  /** Starts a canvas with a title, recording when and by whom (a person, or an agent). Returns its id. */
-  async createCanvas(started: { title?: string; createdBy?: string }) {
+  /**
+   * Starts a canvas with a title, recording when and by whom (a person, or an agent), and what's on it to begin
+   * with, if anything. Returns its id.
+   */
+  async createCanvas(started: { title?: string; createdBy?: string }, content?: CanvasContent) {
     const canvasId = crypto.randomUUID();
-    await this.withCanvas(canvasId, (doc) => setStarted(doc, started));
+    await this.withCanvas(canvasId, (doc) => {
+      setStarted(doc, started);
+      if (content) addCanvasContent(doc, content);
+    });
     return canvasId;
   }
 

@@ -1,4 +1,5 @@
 import type { ApiCanvas } from './canvases-api';
+import type { DiagramLevelsSpec, NewCanvasEdges, NodeSpecs } from '../canvas-actions';
 
 /** Using the Studio API from the browser (Studio's pages), at `apiUrl` (its address on this catalog) */
 
@@ -7,7 +8,11 @@ const errorOf = async (response: Response, fallback: string) => {
   return new Error(body?.error ?? `${fallback} (${response.status})`);
 };
 
-export const createCanvasThroughApi = async (apiUrl: string, canvas: { title?: string; createdBy?: string }) => {
+/** Creates a canvas, starting with the nodes and edges given, if any */
+export const createCanvasThroughApi = async (
+  apiUrl: string,
+  canvas: { title?: string; createdBy?: string; nodes?: NodeSpecs; edges?: NewCanvasEdges; levels?: DiagramLevelsSpec }
+) => {
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },

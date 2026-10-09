@@ -2,13 +2,26 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
-import { addNodes, buildNode, connectNodes, createThread, readThreads, setCanvasStatus, setMeta } from '../canvas-doc';
+import {
+  addNodes,
+  buildNode,
+  connectNodes,
+  createThread,
+  readCanvas,
+  readThreads,
+  setCanvasStatus,
+  setMeta,
+} from '../canvas-doc';
 import { getStudioRuntime } from '../server/runtime';
 import { CANVASES_API_PATH, createCanvasesApi, type ApiCanvas } from '../api/canvases-api';
 import type { SignedInUser } from '../server/sign-in';
 
-// The API only uses the catalog tools' paging
+// The API only uses the catalog tools' paging, and the catalog's resources (the test catalog) for what a canvas starts with
 vi.mock('astro:content', () => ({ getCollection: vi.fn(), getEntry: vi.fn() }));
+vi.mock('../catalog-resources', async () => {
+  const { resources, relations } = await import('./catalog-fixture');
+  return { getCatalogResources: async () => ({ resources, relations }) };
+});
 
 const RUNTIME_KEY = Symbol.for('eventcatalog.studio.runtime');
 const MISSING_ID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d';
@@ -81,6 +94,56 @@ describe('Studio API', () => {
     const tooLong = await call('POST', '', { body: JSON.stringify({ title: 'x'.repeat(201) }) });
     expect(tooLong.status).toBe(400);
     expect(await tooLong.json()).toEqual({ error: expect.stringContaining('title') });
+    expect(runtime.listCanvases()).toEqual([]);
+  });
+
+  it('creates a canvas with nodes and the connections between them', async () => {
+    const { response, canvas } = await create({
+      title: 'Orders',
+      nodes: [
+        {
+          ref: 'orders',
+          resource: { collection: 'domains', id: 'Orders' },
+          container: true,
+          x: 400,
+          y: 300,
+          width: 800,
+          height: 600,
+        },
+        { ref: 'service', resource: { collection: 'services', id: 'OrderService' }, inside: 'orders', x: 300, y: 300 },
+        { ref: 'event', resource: { collection: 'events', id: 'OrderPlaced' }, x: 1000, y: 300 },
+        { ref: 'proposed', type: 'service', name: 'Fraud Checks', x: 1400, y: 300 },
+      ],
+      edges: [
+        { from: 'service', to: 'event' },
+        { from: 'event', to: 'proposed', label: 'checked by' },
+      ],
+    });
+    expect(response.status).toBe(201);
+    // Just the connections asked for (OrderService also writes to OrdersDb, which isn't there)
+    expect(canvas).toMatchObject({ title: 'Orders', nodeCount: 4, edgeCount: 2 });
+
+    const { nodes, edges } = await runtime.withCanvas(canvas.id, (doc) => readCanvas(doc));
+    const service = nodes.find((node) => node.type === 'service' && node.data.catalog)!;
+    expect(nodes.find((node) => node.id === service.parentId)).toMatchObject({ type: 'domain-group', width: 800, height: 600 });
+    expect(edges.map((edge) => edge.label)).toEqual([expect.any(String), 'checked by']);
+  });
+
+  it("says why it can't start a canvas with the nodes and edges given, and doesn't create it", async () => {
+    const unknown = await call('POST', '', {
+      body: JSON.stringify({ nodes: [{ resource: { collection: 'services', id: 'Nope' } }] }),
+    });
+    expect(unknown.status).toBe(400);
+    expect(await unknown.json()).toEqual({ error: 'No services resource "Nope" in the catalog' });
+
+    const badRef = await call('POST', '', {
+      body: JSON.stringify({ nodes: [{ ref: 'a', type: 'service' }], edges: [{ from: 'a', to: 'b' }] }),
+    });
+    expect(badRef.status).toBe(400);
+    expect(await badRef.json()).toEqual({ error: 'Edges connect nodes by their ref: no node has the ref "b"' });
+
+    const edgesOnly = await call('POST', '', { body: JSON.stringify({ edges: [{ from: 'a', to: 'b' }] }) });
+    expect(edgesOnly.status).toBe(400);
     expect(runtime.listCanvases()).toEqual([]);
   });
 

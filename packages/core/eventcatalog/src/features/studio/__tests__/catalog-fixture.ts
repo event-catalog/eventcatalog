@@ -4,7 +4,7 @@ import { indexCatalog } from '../canvas-actions';
 /**
  * A small catalog: the Orders domain contains the Checkout system (which contains OrderService) and the Billing
  * service. OrderService publishes OrderPlaced (received by Billing and Shipping, outside the domain) and writes
- * to OrdersDb. Inventory is a system with nothing in it.
+ * to OrdersDb. Inventory is an external system with nothing in it.
  */
 
 const resource = (collection: string, id: string, name: string, node: CatalogResource['node']): CatalogResource => ({
@@ -31,7 +31,7 @@ export const resources: CatalogResource[] = [
   }),
   resource('systems', 'Inventory', 'Inventory', {
     type: 'system',
-    data: { mode: 'full', system: basics('Inventory', 'Inventory') },
+    data: { mode: 'full', system: { ...basics('Inventory', 'Inventory'), scope: 'external' } },
   }),
   ...[
     ['OrderService', 'Order Service'],

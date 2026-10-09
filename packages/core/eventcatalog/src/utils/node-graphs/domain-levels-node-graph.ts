@@ -267,7 +267,7 @@ export const buildDomainGraph = ({
         draggable: false,
         selectable: false,
         data: {
-          domain: { name: d.data.name, version: d.data.version },
+          domain: { id: d.data.id, name: d.data.name, version: d.data.version },
           // The domain viewed may itself be a subdomain of another
           subdomain: !!parentId || parentDomainOf.has(d.data.id),
           isFocused: !parentId,
@@ -309,7 +309,7 @@ export const buildDomainGraph = ({
         position: { x: 0, y: 0 },
         ...(parentId ? { parentId } : {}),
         data: {
-          domain: { name: other.data.name, version: other.data.version },
+          domain: { id: other.data.id, name: other.data.name, version: other.data.version },
           subdomain: !!parentId,
           isFocused: false,
           otherDomain: true,
@@ -375,7 +375,7 @@ export const buildDomainGraph = ({
         type: 'system-group',
         parentId: domainGroup,
         position: { x: 0, y: 0 },
-        data: { system: { name: system.data.name, version: system.data.version } },
+        data: { system: { id: system.data.id, name: system.data.name, version: system.data.version } },
       });
     }
     addNodes(graph.nodes);

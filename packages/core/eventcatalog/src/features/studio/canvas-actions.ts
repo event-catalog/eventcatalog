@@ -1,7 +1,7 @@
 import type { Edge, Node, XYPosition } from '@xyflow/react';
 import type * as Y from 'yjs';
 import { z } from 'zod';
-import { buildNode, getCanvasMaps, getCanvasStatus, readCanvas, updateNodeData } from './canvas-doc';
+import { buildNode, getCanvasMaps, getCanvasStatus, readCanvas, updateNodeData, type CanvasContent } from './canvas-doc';
 import type { CatalogRelation, CatalogResource } from './catalog-resources';
 import {
   buildContainer,
@@ -12,10 +12,11 @@ import {
   getRelatedEdges,
   indexRelations,
 } from './catalog';
-import { findGroupAtPoint, getAbsolutePosition, sizeOf } from './grouping';
+import { containerFor, getAbsolutePosition, sizeOf } from './grouping';
 import { placeNodes, type Link } from './placement';
 import {
   canGoInContainer,
+  CATALOG_COLLECTIONS,
   COMPONENT_TYPES,
   getNodeDefinition,
   getNodeLabel,
@@ -33,17 +34,6 @@ import {
  * What agents can do on a canvas, shared by the MCP tools (on the server) and the WebMCP tools (in the
  * browser), so both describe and change a canvas the same way.
  */
-
-export const CATALOG_COLLECTIONS = [
-  'domains',
-  'systems',
-  'services',
-  'events',
-  'commands',
-  'queries',
-  'channels',
-  'containers',
-] as const;
 
 // ---- Inputs ----
 
@@ -71,6 +61,16 @@ export const nodeSpecsSchema = z
         .describe('A ref (or node id) of a container (a domain or system added as one) to put this node inside'),
       x: z.number().optional(),
       y: z.number().optional(),
+      width: z
+        .number()
+        .positive()
+        .optional()
+        .describe('For a container: its width to start with (it grows to fit what is put in it)'),
+      height: z
+        .number()
+        .positive()
+        .optional()
+        .describe('For a container: its height to start with (it grows to fit what is put in it)'),
     })
   )
   .min(1);
@@ -82,6 +82,83 @@ export const edgeSpecsSchema = z.array(
     label: z.string().optional().describe('Defaults to EventCatalog wording, e.g. "publishes event"'),
   })
 );
+
+const pointSchema = z.object({ x: z.number(), y: z.number() });
+
+/**
+ * Edges for a new canvas (through the Studio API): as add_to_canvas takes them, and how each is drawn, if known
+ * (e.g. copied from a diagram): the points it goes through (canvas coordinates, at right angles) and where its
+ * label goes. It follows its nodes when they're moved.
+ */
+const routeSchema = z.object({ points: z.array(pointSchema).min(2).max(200), label: pointSchema.optional() });
+export const newCanvasEdgesSchema = z.array(edgeSpecsSchema.element.extend({ route: routeSchema.optional() }));
+export type NewCanvasEdges = z.output<typeof newCanvasEdgesSchema>;
+
+const MAX_LEVEL_NODES = 1000;
+const levelSchema = z.object({
+  nodes: z
+    .array(
+      z.object({
+        ref: z.string().describe("The ref of the node it is on the canvas (or its own id, if it's only on this level)"),
+        type: z.string(),
+        data: z.record(z.string(), z.unknown()),
+        parent: z.string().optional().describe('The ref of the node it is shown in on this level'),
+        x: z.number().describe('Its top-left corner (relative to its parent)'),
+        y: z.number(),
+        width: z.number().positive().optional().describe('For a container: its size'),
+        height: z.number().positive().optional(),
+      })
+    )
+    .max(MAX_LEVEL_NODES),
+  edges: z
+    .array(
+      z.object({
+        from: z.string(),
+        to: z.string(),
+        label: z.string().optional(),
+        type: z.string().optional(),
+        style: z.record(z.string(), z.unknown()).optional(),
+        markerEnd: z.unknown().optional(),
+        data: z.record(z.string(), z.unknown()).optional().describe("The edge's data, e.g. its route"),
+      })
+    )
+    .max(MAX_LEVEL_NODES * 2),
+});
+
+/**
+ * L1 and L2 of the diagram a canvas is opened from, laid out as the diagram showed them (by refs of the nodes given
+ * for the canvas): shown as they are until the canvas's structure changes
+ */
+const unavailableReason = z.string().max(300).optional();
+export const diagramLevelsSchema = z.object({
+  1: levelSchema.optional(),
+  2: levelSchema.optional(),
+  unavailable: z
+    .object({ 1: unavailableReason, 2: unavailableReason })
+    .optional()
+    .describe("Levels the diagram doesn't have, and why"),
+});
+export type DiagramLevelsSpec = z.output<typeof diagramLevelsSchema>;
+
+/** A diagram's level, with refs swapped for the ids of the nodes made for them */
+const toDiagramLevel = (level: z.output<typeof levelSchema>, idOf: (ref: string) => string) => {
+  const shown = new Set(level.nodes.map((node) => node.ref));
+  return {
+    nodes: level.nodes.map(
+      ({ ref, type, data, parent, x, y, width, height }): Node => ({
+        id: idOf(ref),
+        type,
+        data,
+        position: { x, y },
+        ...(parent && shown.has(parent) && { parentId: idOf(parent) }),
+        ...(width && height && { style: { width, height } }),
+      })
+    ),
+    edges: level.edges
+      .filter((edge) => shown.has(edge.from) && shown.has(edge.to))
+      .map(({ from, to, ...edge }, index) => ({ ...edge, id: `diagram-${index}`, source: idOf(from), target: idOf(to) }) as Edge),
+  };
+};
 
 export const ADD_TO_CANVAS_DESCRIPTION = [
   'Adds nodes (and connections between them) to the canvas, live for everyone on it.',
@@ -199,6 +276,13 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
   const errors: string[] = [];
   const hasPosition = (spec: { x?: number; y?: number }) => spec.x !== undefined && spec.y !== undefined;
   const centerOf = (spec: { x?: number; y?: number }) => (hasPosition(spec) ? { x: spec.x!, y: spec.y! } : { x: 0, y: 0 });
+  // A container at the size asked for, still centred where asked
+  const sized = (node: Node, spec: { x?: number; y?: number; width?: number; height?: number }): Node => {
+    if (!isGroupType(node.type) || !spec.width || !spec.height) return node;
+    const center = centerOf(spec);
+    const { width, height } = spec;
+    return { ...node, width, height, position: { x: center.x - width / 2, y: center.y - height / 2 } };
+  };
 
   // Inside a container, at the canvas point asked for (relative to the container)
   const putInside = (node: Node, parent: Node, spec: { x?: number; y?: number }): Node => {
@@ -222,7 +306,7 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
       }
       const asContainer = spec.container && canBeContainer(resource);
       const node = asContainer
-        ? buildContainer(resource, centerOf(spec))
+        ? sized(buildContainer(resource, centerOf(spec)), spec)
         : buildNode(resource.node.type, catalogNodeData(resource), centerOf(spec));
       built = { node, name: resource.name, resource };
     } else {
@@ -238,7 +322,7 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
             ...(spec.summary && { summary: spec.summary }),
             ...(spec.version && isVersioned(definition.type) && { version: spec.version }),
           });
-      const node = buildNode(definition.type, data, centerOf(spec));
+      const node = sized(buildNode(definition.type, data, centerOf(spec)), spec);
       built = { node, name: String(getResource(node.type, node.data).name ?? definition.label) };
     }
 
@@ -297,9 +381,42 @@ export const planNodes = (existing: Node[], specs: NodeSpecs, catalog: CatalogIn
 };
 
 /** Edges given by refs (or ids of nodes already on the canvas), as node ids */
-export const resolveEdgeRefs = (edges: EdgeSpecs, planned: PlannedNode[]) => {
-  const refs = new Map(planned.flatMap((entry) => (entry.ref ? [[entry.ref, entry.node.id] as const] : [])));
+const refIds = (planned: PlannedNode[]) =>
+  new Map(planned.flatMap((entry) => (entry.ref ? [[entry.ref, entry.node.id] as const] : [])));
+
+export const resolveEdgeRefs = <Spec extends EdgeSpecs[number]>(edges: Spec[], planned: PlannedNode[]) => {
+  const refs = refIds(planned);
   return edges.map((edge) => ({ ...edge, from: refs.get(edge.from) ?? edge.from, to: refs.get(edge.to) ?? edge.to }));
+};
+
+/**
+ * A new canvas's content from nodes and edges given as add_to_canvas takes them. Only the connections asked for
+ * are made: related catalog resources aren't connected as well, so the canvas shows just what was asked for (e.g.
+ * a diagram's connections, which may go through channels). Says what's wrong if anything can't be followed.
+ */
+export const planCanvas = (
+  specs: NodeSpecs,
+  edges: NewCanvasEdges,
+  catalog: CatalogIndex,
+  levels?: DiagramLevelsSpec
+): { content: CanvasContent; errors: string[] } => {
+  const { planned, errors } = planNodes([], specs, catalog, edges);
+  const ids = new Set(planned.map((entry) => entry.node.id));
+  const connections = resolveEdgeRefs(edges, planned);
+  for (const end of connections.flatMap((connection) => [connection.from, connection.to])) {
+    if (!ids.has(end)) errors.push(`Edges connect nodes by their ref: no node has the ref "${end}"`);
+  }
+  const refs = refIds(planned);
+  const idOf = (ref: string) => refs.get(ref) ?? ref;
+  const diagramLevels = levels && {
+    ...(levels[1] && { 1: toDiagramLevel(levels[1], idOf) }),
+    ...(levels[2] && { 2: toDiagramLevel(levels[2], idOf) }),
+    ...(levels.unavailable && { unavailable: levels.unavailable }),
+  };
+  return {
+    content: { nodes: planned.map((entry) => entry.node), connections, ...(diagramLevels && { levels: diagramLevels }) },
+    errors: [...new Set(errors)],
+  };
 };
 
 export type NodeUpdate = { nodeId: string; name?: string; summary?: string; version?: string };
@@ -377,9 +494,9 @@ export const getCatalogConnections = (
 };
 
 /**
- * A catalog resource centred on a canvas point (inside the container there, if there is one), with the resources
- * it connects to placed around it like an architect would (what comes in before it, what goes out after it), and
- * the connections between them and to what's already on the canvas. A service's data stores go in its container
+ * A catalog resource centred on a canvas point (inside the container asked for, else the one there, if any), with
+ * the resources it connects to placed around it like an architect would (what comes in before it, what goes out
+ * after it), and the connections between them and to what's already on the canvas. A service's data stores go in its container
  * with it. Positions are relative to the containers they're in, as the canvas is now.
  */
 export const planWithConnections = (
@@ -387,9 +504,10 @@ export const planWithConnections = (
   resource: CatalogResource,
   center: XYPosition,
   include: CatalogResource[],
-  catalog: CatalogIndex
+  catalog: CatalogIndex,
+  inside?: string
 ): { nodes: Node[]; edges: Edge[] } => {
-  const container = findGroupAtPoint(center, existing);
+  const container = containerFor(center, existing, inside);
   const specOf = (entry: CatalogResource) => ({
     resource: { collection: entry.collection as (typeof CATALOG_COLLECTIONS)[number], id: entry.id },
   });

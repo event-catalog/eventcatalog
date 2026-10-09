@@ -78,6 +78,10 @@ export const findGroupAtPoint = (point: XYPosition, nodes: Node[]): Node | undef
     .sort((a, b) => getDepth(b, lookup) - getDepth(a, lookup))[0];
 };
 
+/** The container something added goes in: the one asked for (by id), else the one it's dropped on */
+export const containerFor = (point: XYPosition, nodes: Node[], inside?: string): Node | undefined =>
+  inside ? nodes.find((node) => node.id === inside && isGroupType(node.type)) : findGroupAtPoint(point, nodes);
+
 /** A node moved into (or out of, without a parentId) a container, staying in the same place on the canvas */
 export const withParent = (node: Node, parentId: string | undefined, nodes: Node[]): Node => {
   const lookup = byId(nodes);

@@ -14,6 +14,7 @@ import {
   getEdgeLabelForServiceAsTarget,
 } from "../utils/utils/utils";
 import { layoutWithElk } from "../utils/elk-layout";
+import { DIAGRAM_FIT_VIEW_OPTIONS } from "../utils/fit-view";
 import {
   hideMessageNodes,
   hideNodes,
@@ -334,7 +335,7 @@ export const useNodeVisibility = ({
         // straight after setNodes so React Flow queues the fit until the new
         // nodes are measured (deferring it would fit the previous graph)
         if (!firstRun || laidOutLater)
-          fitView({ maxZoom: 1, duration: 800, padding: 0.2 });
+          fitView({ ...DIAGRAM_FIT_VIEW_OPTIONS, duration: 800 });
         return;
       }
 
@@ -366,9 +367,8 @@ export const useNodeVisibility = ({
           // Fit to the final graph now every node has its real size. Only its
           // nodes: React Flow can still have the nodes that faded out
           fitView({
-            maxZoom: 1,
+            ...DIAGRAM_FIT_VIEW_OPTIONS,
             duration: 400,
-            padding: 0.2,
             nodes: target.nodes,
           });
         },

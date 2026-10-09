@@ -1,5 +1,13 @@
 import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Bot, ChevronDown, Link2, Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
+import { Bot, Link2, MoreVertical, Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
+import {
+  DIAGRAM_MENU,
+  DIAGRAM_MENU_BUTTON_ICON,
+  DIAGRAM_MENU_ITEM,
+  DIAGRAM_MENU_ITEM_ICON,
+  DIAGRAM_MENU_SEPARATOR,
+  DIAGRAM_MENU_TITLE,
+} from '@eventcatalog/visualiser';
 import { usePeople, type Peer, type PresenceStore } from '../hooks/presence-store';
 import type { WebMcpStatus } from '../hooks/use-canvas-webmcp';
 import type { Status, Transport } from '../hooks/use-studio-flow';
@@ -9,17 +17,17 @@ import { CONNECTION_DOT, STATUS } from './status';
 import Picture from './Picture';
 
 /**
- * The canvas's header, like Figma or Miro: two small floating bars. On the left the canvas (its title, and a
- * menu), on the right who's here, connecting an agent and sharing.
+ * The canvas's header: two small bars over the canvas. On the left the canvas (its title, and a menu), on the right
+ * who's here, connecting an agent and sharing. They look like the visualiser's menu at the top left of a diagram
+ * (its styles, `DIAGRAM_MENU_*`), so a diagram opened in Studio feels the same.
  */
 
 const barClass =
-  'pointer-events-auto flex h-10 items-center rounded-xl border shadow-md bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))]';
+  'pointer-events-auto flex h-[42px] items-center rounded-md border bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))]';
 // The header lets the pointer through to the canvas around its bars, so its menus take it back
-const menuClass =
-  'pointer-events-auto absolute top-full z-50 mt-2 min-w-52 rounded-xl border p-1 shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]';
-const menuItemLayout = 'flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs';
-const menuItemClass = `${menuItemLayout} hover:bg-[rgb(var(--ec-page-border)/0.5)]`;
+const popoverClass = 'pointer-events-auto absolute top-full mt-2';
+const menuClass = `${popoverClass} ${DIAGRAM_MENU}`;
+const menuItemClass = `${DIAGRAM_MENU_ITEM} w-full text-left`;
 const MAX_AVATARS = 4;
 
 /** Closes a popover on outside clicks and Escape */
@@ -87,7 +95,7 @@ function CanvasMenu({
 
   return (
     <div ref={menu.ref} className="relative">
-      <div className={`${barClass} gap-1 pl-3 pr-1`}>
+      <div className={`${barClass} gap-1.5 pl-4 pr-1.5`}>
         <span title={statusLabel} className={`h-2 w-2 shrink-0 rounded-full ${statusColor}`} />
         <input
           ref={titleInput}
@@ -101,15 +109,15 @@ function CanvasMenu({
           }}
           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
           size={Math.max(12, (draft ?? title ?? 'Untitled canvas').length)}
-          className="max-w-64 truncate rounded-md bg-transparent px-1.5 py-1 text-sm font-semibold placeholder:font-semibold placeholder:text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-border)/0.4)] focus:bg-[rgb(var(--ec-input-bg))] focus:outline-none"
+          className={`${DIAGRAM_MENU_TITLE} max-w-64 truncate rounded-md bg-transparent px-1.5 py-1 placeholder:text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-border)/0.4)] focus:bg-[rgb(var(--ec-input-bg))] focus:outline-none`}
         />
         {children}
         <button
           aria-label="Canvas menu"
           onClick={() => menu.setOpen((open) => !open)}
-          className="rounded-md p-1.5 text-[rgb(var(--ec-icon-color))] hover:bg-[rgb(var(--ec-page-border)/0.5)]"
+          className="group rounded-md p-1 hover:bg-[rgb(var(--ec-accent-subtle))]"
         >
-          <ChevronDown size={14} />
+          <MoreVertical className={DIAGRAM_MENU_BUTTON_ICON} />
         </button>
       </div>
       {menu.open && (
@@ -122,7 +130,7 @@ function CanvasMenu({
               titleInput.current?.select();
             }}
           >
-            <Pencil size={14} /> Rename canvas
+            <Pencil className={DIAGRAM_MENU_ITEM_ICON} /> Rename canvas
           </button>
           <button
             className={menuItemClass}
@@ -131,29 +139,30 @@ function CanvasMenu({
               menu.setOpen(false);
             }}
           >
-            <Link2 size={14} /> Copy link
+            <Link2 className={DIAGRAM_MENU_ITEM_ICON} /> Copy link
           </button>
           {newCanvasUrl && (
             <a className={menuItemClass} href={newCanvasUrl}>
-              <Plus size={14} /> New canvas
+              <Plus className={DIAGRAM_MENU_ITEM_ICON} /> New canvas
             </a>
           )}
           {onDelete && (
             <>
-              <div className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
+              <div className={DIAGRAM_MENU_SEPARATOR} />
               <button
-                className={`${menuItemLayout} ${STATUS.danger.text} ${STATUS.danger.hover}`}
+                // Laid out like the other items, in the theme's danger colour
+                className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${STATUS.danger.text} ${STATUS.danger.hover}`}
                 onClick={() => {
                   menu.setOpen(false);
                   onDelete();
                 }}
               >
-                <Trash2 size={14} /> Delete canvas
+                <Trash2 className="h-3.5 w-3.5 shrink-0" /> Delete canvas
               </button>
             </>
           )}
-          <div className="my-1 h-px bg-[rgb(var(--ec-page-border))]" />
-          <p className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] text-[rgb(var(--ec-page-text-muted))]">
+          <div className={DIAGRAM_MENU_SEPARATOR} />
+          <p className="flex items-center gap-2 px-3 py-1.5 text-[11px] text-[rgb(var(--ec-page-text-muted))]">
             <span className={`h-1.5 w-1.5 rounded-full ${statusColor}`} />
             {statusLabel}
           </p>
@@ -188,7 +197,9 @@ function YouAvatar({ peer, onRename }: { peer: Peer; onRename?: (name: string) =
         <Avatar peer={peer} />
       </button>
       {popover.open && (
-        <div className={`${menuClass} right-0 w-60 space-y-2 p-3`}>
+        <div
+          className={`${popoverClass} right-0 z-50 w-60 space-y-2 rounded-lg border p-3 shadow-xl bg-[rgb(var(--ec-page-bg))] border-[rgb(var(--ec-page-border))]`}
+        >
           <label className="block space-y-1.5 text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))]">
             Your name on this canvas
             <input
@@ -319,9 +330,11 @@ export default memo(function CanvasHeader({
 }) {
   const peers = usePeople(presence);
   const agentsHere = peers.some((peer) => peer.agent);
+  // Nobody else here, and signed in (so not shown as "you" to rename): no list of people
+  const showPeople = !!onRename || peers.some((peer) => peer.clientId !== clientId);
 
   return (
-    <div className="pointer-events-none absolute left-3 right-3 top-3 z-10 flex items-start justify-between gap-3">
+    <div className="pointer-events-none absolute left-4 right-4 top-4 z-10 flex items-start justify-between gap-3">
       <CanvasMenu
         title={title}
         status={status}
@@ -335,10 +348,14 @@ export default memo(function CanvasHeader({
       </CanvasMenu>
 
       <div className={`${barClass} gap-2 px-1.5`}>
-        <div className="pl-1">
-          <People peers={peers} clientId={clientId} onJumpTo={onJumpTo} onRename={onRename} />
-        </div>
-        <div className="h-5 w-px bg-[rgb(var(--ec-page-border))]" />
+        {showPeople && (
+          <>
+            <div className="pl-1">
+              <People peers={peers} clientId={clientId} onJumpTo={onJumpTo} onRename={onRename} />
+            </div>
+            <div className="h-5 w-px bg-[rgb(var(--ec-page-border))]" />
+          </>
+        )}
         <button
           onClick={onConnectAgent}
           title={

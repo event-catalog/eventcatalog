@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { getViewportForBounds, useReactFlow, useStore, type Rect } from '@xyflow/react';
+import { DIAGRAM_FIT_VIEW_OPTIONS } from '@eventcatalog/visualiser';
 import type { Peer } from './presence-store';
 
 /**
@@ -30,10 +31,13 @@ const inView = (rect: Rect, view: Rect, margin: number) =>
 
 export function useFollowCamera({
   enabled,
+  fitsContent,
   agentsWorking,
   getAgents,
 }: {
   enabled: boolean;
+  /** Whether it fits the canvas's content when it arrives (the canvas people edit, not a level, fitted on its own) */
+  fitsContent: boolean;
   /** Whether any agent is working on the canvas (has a pointer on it) */
   agentsWorking: boolean;
   /** The agents working, with where their pointers are now (read when the camera checks, not on every move) */
@@ -61,11 +65,12 @@ export function useFollowCamera({
       hasFitContent.current = false;
       return;
     }
-    if (hasFitContent.current || !width) return;
+    if (hasFitContent.current || !width || !fitsContent) return;
     hasFitContent.current = true;
-    const frame = requestAnimationFrame(() => void fitView({ padding: PADDING, maxZoom: MAX_ZOOM, duration: 300 }));
+    // Fitted like the visualiser fits a diagram
+    const frame = requestAnimationFrame(() => void fitView({ ...DIAGRAM_FIT_VIEW_OPTIONS, duration: 300 }));
     return () => cancelAnimationFrame(frame);
-  }, [hasNodes, width]);
+  }, [hasNodes, width, fitsContent]);
 
   const follow = useCallback(() => {
     const { enabled, getAgents } = latest.current;

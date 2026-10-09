@@ -123,6 +123,8 @@ export {
   VIEW,
 } from "./node-types";
 
+export { diagramNodeComponents } from "./diagram-nodes";
+
 // Re-export for convenience (studio-2 nodes only)
 export const nodeComponents = {
   event: Event,

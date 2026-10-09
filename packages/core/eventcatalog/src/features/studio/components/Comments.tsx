@@ -10,10 +10,11 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useInternalNode, useReactFlow, useStore, ViewportPortal, type Node, type XYPosition } from '@xyflow/react';
+import { useInternalNode, useReactFlow, ViewportPortal, type Node, type XYPosition } from '@xyflow/react';
 import { Bot, Check, Maximize2, ClipboardPaste, Copy, CopyPlus, MessageCircle, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
 import { getAbsolutePosition } from '../grouping';
 import type { Author, CommentAnchor, Thread } from '../hooks/use-comments';
+import { COUNTER_SCALE, useCounterScale } from '../hooks/use-counter-scale';
 import { isWrittenOnCanvas } from '../node-types';
 import { STATUS } from './status';
 import Picture from './Picture';
@@ -458,13 +459,19 @@ function ThreadDialog({
   );
 }
 
-/** Where a pin goes on the canvas, following only the node it's on (if it's on one), counter-scaled */
-function PinAt({ anchor, zoom, zIndex, children }: { anchor: CommentAnchor; zoom: number; zIndex: number; children: ReactNode }) {
+/**
+ * Where a pin goes on the canvas, following only the node it's on (if it's on one), counter-scaled (by the layer's
+ * COUNTER_SCALE, so zooming doesn't re-render it)
+ */
+function PinAt({ anchor, zIndex, children }: { anchor: CommentAnchor; zIndex: number; children: ReactNode }) {
   const node = useInternalNode(anchor.nodeId ?? '');
   const origin = anchor.nodeId && anchor.offset ? node?.internals.positionAbsolute : undefined;
   const { x, y } = origin && anchor.offset ? { x: origin.x + anchor.offset.x, y: origin.y + anchor.offset.y } : anchor.position;
   return (
-    <div className="absolute" style={{ left: x, top: y, transform: `scale(${1 / zoom})`, transformOrigin: '0 0', zIndex }}>
+    <div
+      className="absolute"
+      style={{ left: x, top: y, transform: `scale(var(${COUNTER_SCALE}, 1))`, transformOrigin: '0 0', zIndex }}
+    >
       {/* The pin's tip (bottom left corner) sits on the anchor point, and it grows up and right as it opens */}
       <div className="nopan nodrag nowheel pointer-events-auto absolute bottom-0 left-0">{children}</div>
     </div>
@@ -511,7 +518,8 @@ export const CommentLayer = memo(function CommentLayer({
   onMove: (threadId: string, anchor: CommentAnchor) => void;
   onMoveDraft: (anchor: CommentAnchor) => void;
 }) {
-  const zoom = useStore((state) => state.transform[2]);
+  const layer = useRef<HTMLDivElement>(null);
+  useCounterScale(layer);
   const { screenToFlowPosition, getInternalNode } = useReactFlow();
   // A pin being dragged stays here until it's dropped, then moves for everyone
   const [moving, setMoving] = useState<{ threadId: string; anchor: CommentAnchor } | null>(null);
@@ -539,7 +547,7 @@ export const CommentLayer = memo(function CommentLayer({
   return (
     <ViewportPortal>
       {/* Above nodes (selected ones are raised to 1000) and other people's pointers */}
-      <div className="absolute left-0 top-0" style={{ zIndex: 2001 }}>
+      <div ref={layer} className="absolute left-0 top-0" style={{ zIndex: 2001 }}>
         {visible.map((thread) => {
           const isOpen = thread.id === openThreadId;
           return (
@@ -552,7 +560,6 @@ export const CommentLayer = memo(function CommentLayer({
                     ? { position: { x: thread.position.x + selectionOffset.x, y: thread.position.y + selectionOffset.y } }
                     : thread
               }
-              zoom={zoom}
               zIndex={isOpen ? 2 : 1}
             >
               <Pin
@@ -605,7 +612,7 @@ export const CommentLayer = memo(function CommentLayer({
           )}
 
         {draft && (
-          <PinAt anchor={draft} zoom={zoom} zIndex={3}>
+          <PinAt anchor={draft} zIndex={3}>
             <Pin author={author} active onDrag={(tip, phase) => onMoveDraft(anchorFor(tip, phase))} />
             <FloatingPanel>
               <Composer placeholder="Add a comment" onSubmit={onCreate} onCancel={onCancelDraft} />

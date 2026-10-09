@@ -16,11 +16,14 @@ const setup = () => {
   return doc;
 };
 
-const layout: LayoutResult = new Map([
-  ['svc', { position: { x: 900, y: 50 } }],
-  ['group', { position: { x: 10, y: 20 }, size: { width: 400, height: 300 } }],
-  ['child', { position: { x: 60, y: 100 } }],
-]);
+const layout: LayoutResult = {
+  nodes: new Map([
+    ['svc', { position: { x: 900, y: 50 } }],
+    ['group', { position: { x: 10, y: 20 }, size: { width: 400, height: 300 } }],
+    ['child', { position: { x: 60, y: 100 } }],
+  ]),
+  routes: new Map(),
+};
 
 describe('applyLayout', () => {
   it('moves nodes, resizes containers that have a size, and marks when it happened', () => {
@@ -50,9 +53,32 @@ describe('applyLayout', () => {
     expect(updates).toBe(1);
   });
 
+  it("routes the connections it laid out, and drops other connections' old routes", () => {
+    const doc = setup();
+    const { edges } = getCanvasMaps(doc);
+    const route = {
+      points: [
+        { x: 1, y: 2 },
+        { x: 3, y: 2 },
+      ],
+      source: { x: 0, y: 0 },
+      target: { x: 4, y: 0 },
+    };
+    edges.set('routed', { id: 'routed', source: 'svc', target: 'child', data: { message: { collection: 'events' } } });
+    edges.set('stale', { id: 'stale', source: 'child', target: 'svc', data: { route } });
+
+    applyLayout(doc, { ...layout, routes: new Map([['routed', route]]) });
+
+    expect(edges.get('routed')?.data).toEqual({ message: { collection: 'events' }, route });
+    expect(edges.get('stale')?.data).toEqual({});
+  });
+
   it('ignores nodes in the layout that are no longer on the canvas', () => {
     const doc = setup();
-    applyLayout(doc, new Map([['gone', { position: { x: 1, y: 1 }, size: { width: 1, height: 1 } }]]));
+    applyLayout(doc, {
+      nodes: new Map([['gone', { position: { x: 1, y: 1 }, size: { width: 1, height: 1 } }]]),
+      routes: new Map(),
+    });
     expect(getCanvasMaps(doc).nodes.has('gone')).toBe(false);
     expect(readMeta(doc).layoutAt).toBeTypeOf('number');
   });

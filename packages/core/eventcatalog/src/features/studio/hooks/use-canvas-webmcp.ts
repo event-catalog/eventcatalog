@@ -3,9 +3,9 @@ import { z } from 'zod';
 import type * as Y from 'yjs';
 import { initializeWebMCPPolyfill } from '@mcp-b/webmcp-polyfill';
 import { replyToThread, setThreadResolved, type Author, CANVAS_STATUSES, setCanvasStatus } from '../canvas-doc';
+import { CATALOG_COLLECTIONS } from '../node-types';
 import {
   ADD_TO_CANVAS_DESCRIPTION,
-  CATALOG_COLLECTIONS,
   describeCanvas,
   edgeSpecsSchema,
   nodeSpecsSchema,

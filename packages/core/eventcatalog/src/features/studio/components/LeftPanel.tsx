@@ -2,7 +2,8 @@ import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
 import { Check, ChevronRight, Plus, Search } from 'lucide-react';
 import type { CatalogResource } from '../catalog-resources';
 import { catalogNodeData } from '../catalog';
-import { NODE_CATEGORIES, nodeDefinitions } from '../node-types';
+import { isShownOnLevel, NODE_CATEGORIES, nodeDefinitions } from '../node-types';
+import type { Level } from '../levels';
 import type { Thread } from '../hooks/use-comments';
 import { CommentList } from './Comments';
 import { useDragGhost, type StartDrag } from './DragGhost';
@@ -70,6 +71,8 @@ type Tab = 'components' | 'catalog' | 'comments';
 
 /** Components and catalog resources to drag onto the canvas, and the comments on it */
 export default memo(function LeftPanel({
+  level,
+  onShowAll,
   resources,
   keysOnCanvas,
   onAddComponent,
@@ -79,6 +82,10 @@ export default memo(function LeftPanel({
   onToggleResolved,
   onOpenThread,
 }: {
+  /** The level shown: only what it shows is listed, so what's added stays on it */
+  level: Level;
+  /** Goes to L3, which shows everything */
+  onShowAll: () => void;
   resources: CatalogResource[];
   /** The catalog resources on the canvas */
   keysOnCanvas: Set<string>;
@@ -94,6 +101,10 @@ export default memo(function LeftPanel({
   const { startDrag, ghost } = useDragGhost();
   const sections = useCollapsed();
   const openThreads = threads.filter((thread) => !thread.resolved).length;
+  const shownResources = useMemo(
+    () => (level === 3 ? resources : resources.filter((resource) => isShownOnLevel(resource.node.type, level))),
+    [resources, level]
+  );
   const tabClass = (active: boolean) =>
     `flex flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-md px-1.5 py-1 text-xs font-medium ${
       active ? 'bg-[rgb(var(--ec-page-bg))] shadow-sm' : 'text-[rgb(var(--ec-page-text-muted))]'
@@ -117,10 +128,11 @@ export default memo(function LeftPanel({
           )}
         </button>
       </div>
-      {tab === 'components' && <ComponentList onAdd={onAddComponent} startDrag={startDrag} sections={sections} />}
+      {tab !== 'comments' && level !== 3 && <LevelHint level={level} onShowAll={onShowAll} />}
+      {tab === 'components' && <ComponentList level={level} onAdd={onAddComponent} startDrag={startDrag} sections={sections} />}
       {tab === 'catalog' && (
         <CatalogList
-          resources={resources}
+          resources={shownResources}
           keysOnCanvas={keysOnCanvas}
           onAdd={onAddResource}
           startDrag={startDrag}
@@ -140,16 +152,30 @@ const listedDefinitions = NODE_CATEGORIES.map((category) => ({
   definitions: nodeDefinitions.filter((definition) => definition.category === category.id && !definition.unlisted),
 }));
 
+/** On L1 and L2: only what the level shows is listed (added there, it stays there), the rest is on L3 */
+function LevelHint({ level, onShowAll }: { level: Level; onShowAll: () => void }) {
+  return (
+    <p className="mx-3 mb-2 text-[11px] leading-snug text-[rgb(var(--ec-page-text-muted))]">
+      Showing what L{level} shows.{' '}
+      <button onClick={onShowAll} className="font-medium text-[rgb(var(--ec-accent))] hover:underline">
+        Go to L3 for everything
+      </button>
+    </p>
+  );
+}
+
 // Each component's data, made once, for the node shown while it's dragged
 const componentPreviews = new Map(
   nodeDefinitions.map((definition) => [definition.type, { type: definition.type, data: definition.createData() }])
 );
 
 const ComponentList = memo(function ComponentList({
+  level,
   onAdd,
   startDrag,
   sections: { collapsed, toggle },
 }: {
+  level: Level;
   onAdd: (type: string) => void;
   startDrag: StartDrag;
   sections: Collapsed;
@@ -157,6 +183,8 @@ const ComponentList = memo(function ComponentList({
   return (
     <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 pb-3">
       {listedDefinitions.map((category) => {
+        const definitions = category.definitions.filter((definition) => isShownOnLevel(definition.type, level));
+        if (definitions.length === 0) return null;
         const id = `components:${category.id}`;
         const open = !collapsed.has(id);
         return (
@@ -165,7 +193,7 @@ const ComponentList = memo(function ComponentList({
               {category.label}
             </SectionHeading>
             {open &&
-              category.definitions.map(({ type, label }) => {
+              definitions.map(({ type, label }) => {
                 const { icon: Icon, className } = NODE_ICONS[type];
                 return (
                   <div

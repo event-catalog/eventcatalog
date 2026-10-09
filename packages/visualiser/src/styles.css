@@ -169,18 +169,22 @@
   --ec-icon-hover: 240, 246, 252;
 }
 
-/* Node handle glow (shared across all node types): a ring pulsing out from
-   each handle, in the colour set by --ec-glow ("r, g, b", see HANDLE_GLOW).
-   Only transform and opacity animate, so the compositor runs it. Paused while
-   panning/dragging. */
+/* Node handle glow (shared across all node types): a ring around each handle,
+   in the colour set by --ec-glow ("r, g, b", see HANDLE_GLOW), pulsing out on
+   the node hovered or selected. Paused while panning/dragging. */
 .ec-handle-glow::after {
   content: "";
   position: absolute;
   inset: -2px;
   border-radius: 50%;
   box-shadow: 0 0 0 2px rgba(var(--ec-glow), 0.5);
-  animation: ec-handle-glow 2s ease-in-out infinite;
   pointer-events: none;
+}
+/* The ring pulses on the node under the pointer or selected: a pulse on every handle all the time costs a style
+   recalc and paint on every frame (Chrome doesn't composite it), for every node on the canvas */
+.react-flow__node:hover .ec-handle-glow::after,
+.react-flow__node.selected .ec-handle-glow::after {
+  animation: ec-handle-glow 2s ease-in-out infinite;
 }
 @keyframes ec-handle-glow {
   0%,
@@ -484,11 +488,22 @@
   color: #475569;
 }
 
-/* Hide animated message envelopes/circles during user interaction (drag/pan/zoom).
-   SMIL animateMotion can't be paused via CSS, so we hide the elements entirely
-   to avoid expensive SVG repaints while ReactFlow transforms are updating. */
+/* Hide animated message envelopes/circles during user interaction (drag/pan/zoom), while their SMIL is paused */
 .ec-interaction-active .ec-animated-msg {
   visibility: hidden;
+}
+
+/* React Flow dashes and animates (dashdraw) every path in an edge marked animated: not the envelopes, which would
+   be dashed and repainted on every frame */
+.react-flow__edge.animated .ec-animated-msg path {
+  animation: none;
+  stroke-dasharray: none;
+}
+
+/* ...and the edges' own dashes stop while the canvas moves (the envelopes' SMIL is paused with
+   pauseEdgeAnimations: CSS can't pause it) */
+.ec-interaction-active .react-flow__edge.animated path {
+  animation-play-state: paused;
 }
 
 /* Minimap customizations */

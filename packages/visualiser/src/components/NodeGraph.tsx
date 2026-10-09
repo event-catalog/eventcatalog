@@ -10,7 +10,6 @@ import {
 import { createPortal } from "react-dom";
 import {
   ReactFlow,
-  Background,
   ConnectionLineType,
   Controls,
   Panel,
@@ -37,59 +36,16 @@ import {
   CheckIcon,
   ClipboardIcon,
   MoreVertical,
-  Zap,
-  Bot,
-  Wrench,
-  ServerIcon,
-  Workflow,
-  MessageSquare,
-  Search as SearchIcon,
-  ArrowLeftRight,
-  Group as GroupIcon,
-  Globe,
-  User,
-  Database,
-  Boxes,
-  Box,
-  type LucideIcon,
   Waypoints,
 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { toPng } from "html-to-image";
 // Nodes and edges
-// Studio-2 nodes (named exports from directories)
-import { Service as ServiceNode } from "../nodes/service";
-import AgentNode from "../nodes/Agent";
-import AgentToolNode from "../nodes/AgentTool";
-import { Event as EventNode } from "../nodes/event";
-import { Query as QueryNode } from "../nodes/query";
-import { Command as CommandNode } from "../nodes/command";
-import { Channel as ChannelNode } from "../nodes/channel";
-import { Data as DataNode } from "../nodes/data";
-import { View as ViewNode } from "../nodes/view";
-import { Actor as ActorNode } from "../nodes/actor";
-import ContextActorNode from "../nodes/ContextActor";
-import SystemGroupNode from "../nodes/SystemGroupNode";
-import DomainCardNode from "../nodes/DomainCard";
-import { ExternalSystem as ExternalSystemNode } from "../nodes/external-system";
 import { Note as NoteNode } from "../nodes/note";
-import { Field as FieldNode } from "../nodes/field";
-// Core nodes (default exports from flat files)
-import FlowNode from "../nodes/Flow";
-import FlowExpandedNode from "../nodes/FlowExpandedNode";
-import EntityNode from "../nodes/Entity";
-import UserNode from "../nodes/User";
-import StepNode from "../nodes/Step";
-import DomainNode from "../nodes/Domain";
-import SystemNode from "../nodes/System";
-import GroupNode from "../nodes/GroupNode";
-import CustomNode from "../nodes/Custom";
-import ExternalSystemNode2 from "../nodes/ExternalSystem2";
-import DataProductNode from "../nodes/DataProduct";
 import {
-  MessageGroupNode,
-  MessageGroupExpandedNode,
-} from "../nodes/message-group";
+  diagramNodeComponents,
+  RESOURCE_NODE_TYPES,
+} from "../nodes/diagram-nodes";
 // Edges
 import AnimatedMessageEdge from "../edges/AnimatedMessageEdge";
 import MultilineEdgeLabel from "../edges/MultilineEdgeLabel";
@@ -104,8 +60,10 @@ import StepWalkthrough from "./StepWalkthrough";
 import WalkthroughBadges from "./WalkthroughBadges";
 import CanvasToolbar from "./CanvasToolbar";
 import SwimlanePicker from "./SwimlanePicker";
-import SwimlaneNode from "../nodes/SwimlaneNode";
 import FocusModeModal from "./FocusModeModal";
+import DiagramBackground from "./DiagramBackground";
+import { getLegend, LegendPanel, type LegendEntry } from "./Legend";
+import { DIAGRAM_FIT_VIEW_OPTIONS } from "../utils/fit-view";
 import MermaidView from "./MermaidView";
 import { setLevelInUrl, useNodeVisibility } from "../hooks/use-node-visibility";
 import type { GraphTransition } from "../utils/animate-layout";
@@ -128,11 +86,28 @@ import {
   type FlowGroupBy,
   type FlowGroupStyle,
 } from "../utils/swimlanes";
-import { applyMessageAnimation } from "../utils/message-animation";
-import { isMessageNode } from "../utils/hide-messages";
+import {
+  ANIMATE_MESSAGES_STORAGE_KEY,
+  applyMessageAnimation,
+  shouldAnimateMessages,
+} from "../utils/message-animation";
+import {
+  hideMessageNodes,
+  isCarrier,
+  isMessageNode,
+} from "../utils/hide-messages";
 import VisualizerDropdownContent from "./VisualizerDropdownContent";
+import {
+  DIAGRAM_MENU,
+  DIAGRAM_MENU_BUTTON,
+  DIAGRAM_MENU_BUTTON_COMPACT,
+  DIAGRAM_MENU_BUTTON_ICON,
+  DIAGRAM_MENU_BUTTON_ICON_COMPACT,
+  DIAGRAM_MENU_TITLE,
+} from "./diagram-menu";
 import NodeContextMenu from "./NodeContextMenu";
 import { memoNode } from "../utils/node-memo";
+import { pauseEdgeAnimations } from "../utils/edge-animations";
 import { convertToMermaid } from "../utils/export-mermaid";
 import {
   getExportImageDimensions,
@@ -152,9 +127,6 @@ import type { DslGraph } from "../types";
 
 // Minimum pixel change to detect layout modifications (avoids floating point comparison issues)
 const POSITION_CHANGE_THRESHOLD = 1;
-
-// Above this node count, auto-disable message animation when the user has no stored preference
-const LARGE_GRAPH_NODE_THRESHOLD = 30;
 
 // Static props for ReactFlow - defined outside component to avoid new references on every render
 const NODE_ORIGIN: [number, number] = [0.1, 0.1];
@@ -196,13 +168,14 @@ const CONTEXT_NODE_TYPES = [
   "note",
   "notes",
 ];
-// Not zoomed in past full size, e.g. on a graph with a single small node
 const INITIAL_FIT_VIEW_OPTIONS = {
-  padding: 0.2,
+  ...DIAGRAM_FIT_VIEW_OPTIONS,
   duration: 0,
-  maxZoom: 1,
 } as const;
 const HIDE_ATTRIBUTION = { hideAttribution: true };
+// Nothing to show yet (e.g. a graph still being laid out): the same arrays every render, or the graph is set again
+const NO_NODES: Node[] = [];
+const NO_EDGES: Edge[] = [];
 
 const MINIMAP_STYLE = {
   backgroundColor: "rgb(var(--ec-page-bg))",
@@ -214,7 +187,6 @@ const LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH = {
   marginLeft: "420px",
 } as const;
 const LAYOUT_CHANGE_PANEL_STYLE_DEFAULT = { marginLeft: "60px" } as const;
-const LEGEND_PANEL_STYLE_WITH_MINIMAP = { marginRight: "230px" } as const;
 
 // Expanded wrapper containers are structural only — they host grouped/inlined
 // child nodes and never represent a business step themselves. Centralised so
@@ -236,13 +208,60 @@ const withWalkthroughCurrent = (node: Node, current: boolean) => {
   return classes.length > 0 ? classes.join(" ") : undefined;
 };
 
+const isOpaque = (style?: { opacity?: unknown }) =>
+  style?.opacity === undefined || style.opacity === 1;
+
+/** A node as it's shown with nothing picked out: the node itself when it already is (so it doesn't re-render) */
+const unpickedNode = (node: Node): Node => {
+  const className = withWalkthroughCurrent(node, false);
+  if (!node.selected && className === node.className && isOpaque(node.style))
+    return node;
+  return {
+    ...node,
+    style: { ...node.style, opacity: 1 },
+    className,
+    selected: false,
+  };
+};
+
+/**
+ * An edge as it's shown with nothing picked out, animated as Simulate messages is set (only message edges
+ * animate: see applyMessageAnimation). The edge itself when it already is.
+ */
+const unpickedEdge = (edge: Edge, animateMessages: boolean): Edge => {
+  const animated = edge.data?.canAnimate === false ? false : animateMessages;
+  if (
+    isOpaque(edge.style) &&
+    isOpaque(edge.labelStyle) &&
+    isOpaque(edge.data as { opacity?: unknown } | undefined) &&
+    !!edge.animated === animated &&
+    !!edge.data?.animated === animated
+  )
+    return edge;
+  return {
+    ...edge,
+    style: { ...edge.style, opacity: 1 },
+    labelStyle: { ...edge.labelStyle, opacity: 1 },
+    data: { ...edge.data, opacity: 1, animated },
+    animated,
+  };
+};
+
+/** Items mapped, or the same array when none changed */
+const mapChanged = <T,>(items: T[], map: (item: T) => T): T[] => {
+  let changed = false;
+  const next = items.map((item) => {
+    const mapped = map(item);
+    if (mapped !== item) changed = true;
+    return mapped;
+  });
+  return changed ? next : items;
+};
+
 // Room the flow walkthrough's card takes along the bottom of the canvas,
 // kept clear when showing a step. Follows the card's height in
 // StepWalkthrough.tsx (about 100px, plus its margin): change them together.
 const WALKTHROUGH_CARD_SPACE = 170;
-
-// Boundaries around other nodes, left out of the legend
-const GROUP_NODE_TYPES = ["group", "system-group", "domain-group", "swimlane"];
 
 // How a flow is grouped is kept in the URL, so links open grouped the same way
 const GROUP_URL_PARAM = "group";
@@ -277,93 +296,57 @@ const readGroupFromUrl = () => {
 // Room for the search box above the grouping picker, when it's shown
 const SWIMLANE_PICKER_PANEL_STYLE_UNDER_SEARCH = { marginTop: 64 } as const;
 
-type LegendEntry = { count: number; colorClass: string; groupId?: string };
-
-// Friendly labels for legend keys that differ from their raw node type.
-const LEGEND_LABELS: Record<string, string> = {
-  "context-actor": "Actors",
-  "context-domain": "Domains",
+/**
+ * What a diagram shows, to start a Studio canvas from: its full graph (level 3, whatever level is shown, as Studio
+ * shows the other levels itself), its nodes where they are (as on screen when level 3 is shown), and the
+ * connections between them
+ */
+export type VisualiserSnapshot = {
+  title?: string;
+  /** The level of detail shown (1 to 3), for Studio to open at. Studio gets the full graph (level 3) whatever it is. */
+  level: 1 | 2 | 3;
+  nodes: {
+    id: string;
+    type?: string;
+    data: Record<string, unknown>;
+    /** The container it's shown in */
+    parentId?: string;
+    /** Its centre on the diagram (not relative to its container) */
+    center: { x: number; y: number };
+    /** Its size as shown */
+    width: number;
+    height: number;
+  }[];
+  edges: {
+    source: string;
+    target: string;
+    label?: string;
+    /** How it's drawn: the points it goes through on the diagram, and where its label is (from the layout) */
+    route?: Pick<EdgeRoute, "points" | "label">;
+  }[];
+  /**
+   * Levels 1 and 2 as the diagram shows them (laid out, positions relative to their parents), for Studio to show
+   * them the same. Level 1 only when the diagram has an overview.
+   */
+  levels: { 1?: LevelGraph; 2?: LevelGraph };
+  /** Levels 1 and 2 the diagram doesn't have, and why (as it says on them) */
+  unavailableLevels: { 1?: string; 2?: string };
 };
 
-const getLegendLabel = (key: string) => LEGEND_LABELS[key] ?? key;
+type LevelGraph = { nodes: Node[]; edges: Edge[] };
 
-// Icon + text colour per legend key, mirroring each collection's node styling.
-// When a key has no icon mapped, the legend falls back to its coloured square.
-const LEGEND_ICONS: Record<string, { Icon: LucideIcon; colorClass: string }> = {
-  events: { Icon: Zap, colorClass: "text-orange-600" },
-  agent: { Icon: Bot, colorClass: "text-sky-600" },
-  agents: { Icon: Bot, colorClass: "text-sky-600" },
-  agentTool: { Icon: Wrench, colorClass: "text-violet-600" },
-  "agent-tool": { Icon: Wrench, colorClass: "text-violet-600" },
-  services: { Icon: ServerIcon, colorClass: "text-pink-600" },
-  flows: { Icon: Workflow, colorClass: "text-teal-600" },
-  commands: { Icon: MessageSquare, colorClass: "text-blue-600" },
-  queries: { Icon: SearchIcon, colorClass: "text-green-600" },
-  channels: { Icon: ArrowLeftRight, colorClass: "text-gray-600" },
-  externalSystem: { Icon: Globe, colorClass: "text-pink-600" },
-  systems: { Icon: GroupIcon, colorClass: "text-purple-600" },
-  system: { Icon: GroupIcon, colorClass: "text-purple-600" },
-  actor: { Icon: User, colorClass: "text-yellow-500" },
-  "context-actor": { Icon: User, colorClass: "text-yellow-500" },
-  "context-domain": { Icon: Boxes, colorClass: "text-yellow-500" },
-  data: { Icon: Database, colorClass: "text-blue-600" },
-  "data-products": { Icon: Boxes, colorClass: "text-indigo-600" },
-  field: { Icon: Box, colorClass: "text-cyan-600" },
+/** Opening a diagram in Studio: its title, and what it shows (taken when asked for, e.g. once the canvas is named) */
+export type OpenInStudioRequest = {
+  title?: string;
+  getSnapshot: () => Promise<VisualiserSnapshot>;
 };
 
-const getLegendIcon = (key: string) => LEGEND_ICONS[key];
-
-const LegendPanel = memo(function LegendPanel({
-  legend,
-  hiddenKeys,
-  showMinimap,
-  onLegendClick,
-}: {
-  legend: Record<string, LegendEntry>;
-  /** Entries whose nodes are hidden, shown faded */
-  hiddenKeys: string[];
-  showMinimap: boolean;
-  onLegendClick: (key: string) => void;
-}) {
-  if (Object.keys(legend).length === 0) return null;
-
-  return (
-    <Panel
-      position="bottom-right"
-      style={showMinimap ? LEGEND_PANEL_STYLE_WITH_MINIMAP : undefined}
-    >
-      <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] font-light px-4 text-[12px] shadow-md py-1 rounded-md">
-        <ul className="m-0 p-0 ">
-          {Object.entries(legend).map(([key, { count, colorClass }]) => {
-            const legendIcon = getLegendIcon(key);
-            const hidden = hiddenKeys.includes(key);
-            return (
-              <li
-                key={key}
-                title={`${hidden ? "Show" : "Hide"} ${getLegendLabel(key)}`}
-                className={`flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] hover:underline transition-opacity ${hidden ? "opacity-40" : ""}`}
-                onClick={() => onLegendClick(key)}
-              >
-                {legendIcon ? (
-                  <legendIcon.Icon
-                    className={`w-3 h-3 shrink-0 ${legendIcon.colorClass}`}
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                ) : (
-                  <span className={`w-2 h-2 block ${colorClass}`} />
-                )}
-                <span className="block capitalize">
-                  {getLegendLabel(key)} ({count})
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </Panel>
-  );
-});
+/** The graphs a diagram shows at each level (the detail graph is level 3), for Studio */
+type StudioGraphs = {
+  detail: LevelGraph;
+  overview?: LevelGraph;
+  hiddenMessages?: LevelGraph;
+};
 
 interface Props {
   nodes: any;
@@ -441,7 +424,64 @@ interface Props {
   ) => Promise<boolean>;
   /** Called to reset layout positions (dev mode only) */
   onResetLayout?: (resourceKey: string) => Promise<boolean>;
+  /** Starts a Studio canvas from what the diagram shows (the menu has "Open in Studio" when set) */
+  onOpenInStudio?: (request: OpenInStudioRequest) => void;
+  /** The graphs shown at each level, for Studio */
+  studioGraphs?: StudioGraphs;
 }
+
+// The diagram's nodes and connections as Studio gets them, placed by `place` (where each is, and its size)
+const toSnapshot = (
+  nodes: Node[],
+  edges: Edge[],
+  place: (node: Node) => {
+    position: { x: number; y: number };
+    width: number;
+    height: number;
+  },
+): Pick<VisualiserSnapshot, "nodes" | "edges"> => {
+  const shown = nodes.filter((node) => !node.hidden);
+  const ids = new Set(shown.map((node) => node.id));
+  return {
+    nodes: shown.map((node) => {
+      const { position, width, height } = place(node);
+      return {
+        id: node.id,
+        type: node.type,
+        data: node.data,
+        ...(node.parentId && { parentId: node.parentId }),
+        center: { x: position.x + width / 2, y: position.y + height / 2 },
+        width,
+        height,
+      };
+    }),
+    edges: edges
+      .filter(
+        (edge) => !edge.hidden && ids.has(edge.source) && ids.has(edge.target),
+      )
+      .map((edge) => {
+        const route = (edge.data as { route?: EdgeRoute } | undefined)?.route;
+        return {
+          source: edge.source,
+          target: edge.target,
+          ...(typeof edge.label === "string" && { label: edge.label }),
+          ...(route && { route: { points: route.points, label: route.label } }),
+        };
+      }),
+  };
+};
+
+// A node's size as laid out (nodes not rendered yet haven't been measured)
+const laidOutSize = (node: Node) => ({
+  width:
+    node.measured?.width ??
+    node.width ??
+    (typeof node.style?.width === "number" ? node.style.width : 0),
+  height:
+    node.measured?.height ??
+    node.height ??
+    (typeof node.style?.height === "number" ? node.style.height : 0),
+});
 
 // --- Shared edge style for group expand edges ---
 const GROUP_EDGE_STYLE = {
@@ -508,7 +548,6 @@ const buildChildEdges = (
   groupNodeId: string,
   serviceNodeId: string,
   msgIdToChildId: Map<string, string>,
-  animateMessages: boolean,
 ): Edge[] => {
   const expandedEdges = groupData.expandedEdges || [];
 
@@ -527,7 +566,6 @@ const buildChildEdges = (
           target: childId,
           label,
           type: "animated",
-          animated: animateMessages,
           style: GROUP_EDGE_STYLE,
           markerEnd: GROUP_EDGE_MARKER,
         } as Edge;
@@ -542,7 +580,6 @@ const buildChildEdges = (
         target: serviceNodeId,
         label,
         type: "animated",
-        animated: animateMessages,
         style: GROUP_EDGE_STYLE,
         markerEnd: GROUP_EDGE_MARKER,
       } as Edge;
@@ -589,6 +626,8 @@ const NodeGraphBuilder = ({
   onNavigate,
   onSaveLayout,
   onResetLayout,
+  onOpenInStudio,
+  studioGraphs,
 }: Props) => {
   // Wire up the URL builder so all nodes can use buildUrl() with the correct base path
   useEffect(() => {
@@ -618,50 +657,15 @@ const NodeGraphBuilder = ({
     ReadOnlyNoteNode.displayName = "ReadOnlyNoteNode";
 
     const types: Record<string, React.ComponentType<any>> = {
-      service: wrapWithContextMenu(ServiceNode),
-      services: wrapWithContextMenu(ServiceNode),
-      agent: wrapWithContextMenu(AgentNode),
-      agents: wrapWithContextMenu(AgentNode),
-      agentTool: wrapWithContextMenu(AgentToolNode),
-      "agent-tool": wrapWithContextMenu(AgentToolNode),
-      flow: wrapWithContextMenu(FlowNode),
-      flows: wrapWithContextMenu(FlowNode),
-      event: wrapWithContextMenu(EventNode),
-      events: wrapWithContextMenu(EventNode),
-      channel: wrapWithContextMenu(ChannelNode),
-      channels: wrapWithContextMenu(ChannelNode),
-      query: wrapWithContextMenu(QueryNode),
-      queries: wrapWithContextMenu(QueryNode),
-      command: wrapWithContextMenu(CommandNode),
-      commands: wrapWithContextMenu(CommandNode),
-      domain: wrapWithContextMenu(DomainNode),
-      domains: wrapWithContextMenu(DomainNode),
-      system: wrapWithContextMenu(SystemNode),
-      systems: wrapWithContextMenu(SystemNode),
-      step: StepNode,
-      user: UserNode,
-      custom: CustomNode,
-      externalSystem: wrapWithContextMenu(ExternalSystemNode),
-      "external-system": wrapWithContextMenu(ExternalSystemNode2),
-      entity: wrapWithContextMenu(EntityNode),
-      entities: wrapWithContextMenu(EntityNode),
-      data: wrapWithContextMenu(DataNode),
-      view: wrapWithContextMenu(ViewNode),
-      actor: ActorNode,
-      "context-actor": ContextActorNode,
-      container: wrapWithContextMenu(DataNode),
-      "data-product": wrapWithContextMenu(DataProductNode),
-      "data-products": wrapWithContextMenu(DataProductNode),
-      group: GroupNode,
-      "system-group": SystemGroupNode,
-      "domain-group": SystemGroupNode,
-      "context-domain": DomainCardNode,
+      ...Object.fromEntries(
+        Object.entries(diagramNodeComponents).map(([type, Component]) => [
+          type,
+          RESOURCE_NODE_TYPES.has(type)
+            ? wrapWithContextMenu(Component)
+            : Component,
+        ]),
+      ),
       note: ReadOnlyNoteNode,
-      field: wrapWithContextMenu(FieldNode),
-      messageGroup: MessageGroupNode,
-      messageGroupExpanded: MessageGroupExpandedNode,
-      flowExpanded: FlowExpandedNode,
-      swimlane: SwimlaneNode,
     };
 
     // Nodes render again only when something besides their position changes, so
@@ -685,8 +689,22 @@ const NodeGraphBuilder = ({
       }) as Record<string, any>,
     [],
   );
+  // Decided before the first render: edges that start animated and then aren't are all mounted twice
+  const [animateMessages, setAnimateMessages] = useState(() =>
+    shouldAnimateMessages({
+      disabled: disableMessageAnimation,
+      animated,
+      nodeCount: initialNodes.length,
+    }),
+  );
+  // New edges (the graph's, or ones shown when nodes are shown or expanded) animate as the rest do
+  const prepareEdges = useCallback(
+    (eds: Edge[]) => applyMessageAnimation(eds, animateMessages),
+    [animateMessages],
+  );
+  const [firstEdges] = useState(() => prepareEdges(initialEdges));
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(firstEdges);
   const {
     fitView,
     getNodes,
@@ -696,6 +714,7 @@ const NodeGraphBuilder = ({
     getEdges,
     getViewport,
     setViewport,
+    getInternalNode,
   } = useReactFlow();
   const storeApi = useStoreApi();
   const previousGraphInputRef = useRef({
@@ -721,19 +740,13 @@ const NodeGraphBuilder = ({
     }
 
     setNodes(initialNodes);
-    setEdges(initialEdges);
+    setEdges(prepareEdges(initialEdges));
     // fitView after React Flow processes the new nodes
     requestAnimationFrame(() => {
       fitView({ duration: 300, padding: 0.2 });
     });
-  }, [initialNodes, initialEdges, setNodes, setEdges, fitView]);
+  }, [initialNodes, initialEdges, setNodes, setEdges, fitView, prepareEdges]);
 
-  const [animateMessages, setAnimateMessages] = useState(true);
-  // Showing or hiding nodes swaps the edges, so new edges animate the same way
-  const prepareEdges = useCallback(
-    (eds: Edge[]) => applyMessageAnimation(eds, animateMessages),
-    [animateMessages],
-  );
   const [_activeStepIndex, _setActiveStepIndex] = useState<number | null>(null);
   const [_isFullscreen, _setIsFullscreen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -764,6 +777,7 @@ const NodeGraphBuilder = ({
     interactionCountRef.current += 1;
     if (interactionCountRef.current === 1) {
       reactFlowWrapperRef.current?.classList.add("ec-interaction-active");
+      pauseEdgeAnimations(reactFlowWrapperRef.current, true);
     }
   }, []);
 
@@ -771,6 +785,7 @@ const NodeGraphBuilder = ({
     interactionCountRef.current = Math.max(0, interactionCountRef.current - 1);
     if (interactionCountRef.current === 0) {
       reactFlowWrapperRef.current?.classList.remove("ec-interaction-active");
+      pauseEdgeAnimations(reactFlowWrapperRef.current, false);
     }
   }, []);
 
@@ -1321,28 +1336,12 @@ const NodeGraphBuilder = ({
     [onNodesChange, checkForLayoutChanges],
   );
 
+  // Nothing picked out (e.g. clicking the canvas): only what was dimmed, picked out or selected changes, so a click
+  // on a graph that has nothing picked out doesn't re-render anything
   const resetNodesAndEdges = useCallback(() => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        node.style = { ...node.style, opacity: 1 };
-        return {
-          ...node,
-          className: withWalkthroughCurrent(node, false),
-          animated: animateMessages,
-          selected: false,
-        };
-      }),
-    );
+    setNodes((nds) => mapChanged(nds, unpickedNode));
     setEdges((eds) =>
-      eds.map((edge) => {
-        edge.style = { ...edge.style, opacity: 1 };
-        edge.labelStyle = { ...edge.labelStyle, opacity: 1 };
-        return {
-          ...edge,
-          data: { ...edge.data, opacity: 1, animated: animateMessages },
-          animated: animateMessages,
-        };
-      }),
+      mapChanged(eds, (edge) => unpickedEdge(edge, animateMessages)),
     );
   }, [setNodes, setEdges, animateMessages]);
 
@@ -1518,7 +1517,6 @@ const NodeGraphBuilder = ({
           groupNodeId,
           serviceNodeId,
           msgIdToChildId,
-          animateMessages,
         );
 
         // Downstream nodes/edges: pre-computed server-side (channels, consumers, producers).
@@ -1582,7 +1580,11 @@ const NodeGraphBuilder = ({
           const without = prev.filter(
             (e) => e.source !== groupNodeId && e.target !== groupNodeId,
           );
-          return [...without, ...childEdges, ...downstreamEdges];
+          // Animated (or not) like the rest, as Simulate messages is set
+          return [
+            ...without,
+            ...prepareEdges([...childEdges, ...downstreamEdges]),
+          ];
         });
 
         // After React renders the new nodes, measure actual sizes, resize container, and distribute evenly
@@ -1839,62 +1841,39 @@ const NodeGraphBuilder = ({
       getNodes,
       getZoom,
       setCenter,
+      prepareEdges,
     ],
   );
 
   const toggleAnimateMessages = useCallback(() => {
     setAnimateMessages((prev) => {
       const next = !prev;
-      localStorage.setItem(
-        "EventCatalog:animateMessages",
-        JSON.stringify(next),
-      );
+      localStorage.setItem(ANIMATE_MESSAGES_STORAGE_KEY, JSON.stringify(next));
       return next;
     });
   }, []);
 
   // Handle fit to view
   const handleFitView = useCallback(() => {
-    fitView({ maxZoom: 1, duration: 400, padding: 0.2 });
+    fitView({ ...DIAGRAM_FIT_VIEW_OPTIONS, duration: 400 });
   }, [fitView]);
 
-  // animate messages, between views
-  // Priority: disableMessageAnimation > animated prop > URL parameter > localStorage > auto (disabled for large graphs)
+  // animate messages, between views (see shouldAnimateMessages)
   useEffect(() => {
-    // Some graphs (e.g. the Context Diagram) aren't message flows, so animation
-    // is unsupported — always off, ignoring every other source.
-    if (disableMessageAnimation) {
-      setAnimateMessages(false);
-      return;
-    }
-
-    if (animated !== undefined) {
-      setAnimateMessages(animated);
-      return;
-    }
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const animateParam = urlParams.get("animate");
-
-    if (animateParam === "true") {
-      setAnimateMessages(true);
-    } else if (animateParam === "false") {
-      setAnimateMessages(false);
-    } else {
-      // Fall back to localStorage if no URL parameter
-      const storedAnimateMessages = localStorage.getItem(
-        "EventCatalog:animateMessages",
-      );
-      if (storedAnimateMessages !== null) {
-        setAnimateMessages(storedAnimateMessages === "true");
-      } else {
-        // Auto-disable animation for large graphs to keep the canvas responsive
-        setAnimateMessages(initialNodes.length <= LARGE_GRAPH_NODE_THRESHOLD);
-      }
-    }
+    setAnimateMessages(
+      shouldAnimateMessages({
+        disabled: disableMessageAnimation,
+        animated,
+        nodeCount: initialNodes.length,
+      }),
+    );
   }, [animated, disableMessageAnimation, initialNodes.length]);
 
+  // Toggled (the edges start as it was decided)
+  const animatedEdgesFor = useRef(animateMessages);
   useEffect(() => {
+    if (animatedEdgesFor.current === animateMessages) return;
+    animatedEdgesFor.current = animateMessages;
     setEdges((eds) => applyMessageAnimation(eds, animateMessages));
   }, [animateMessages]);
 
@@ -2031,6 +2010,90 @@ const NodeGraphBuilder = ({
     return await onSaveLayout(resourceKey, positions);
   }, [resourceKey, onSaveLayout]);
 
+  // What the diagram shows, for Studio to start a canvas from: the full graph (Studio shows the other levels itself),
+  // the levels as the diagram draws them, and the level shown, for it to open at. Taken when Studio asks for it
+  // (once the canvas is named), not as the menu item is chosen.
+  const getStudioSnapshot =
+    useCallback(async (): Promise<VisualiserSnapshot> => {
+      const { detail, overview, hiddenMessages } = studioGraphs!;
+      const level = (levels.findIndex((entry) => entry.active) + 1 || 3) as
+        | 1
+        | 2
+        | 3;
+      // The level shown, as on screen (with anything moved); the others as laid out
+      const shown: LevelGraph = {
+        nodes: getNodes().filter((node) => !node.hidden),
+        edges: getEdges().filter((edge) => !edge.hidden),
+      };
+      const detailNodes = new Map(detail.nodes.map((node) => [node.id, node]));
+      const graph =
+        level === 3
+          ? toSnapshot(shown.nodes, shown.edges, (node) => {
+              const internal = getInternalNode(node.id);
+              return {
+                position: internal?.internals.positionAbsolute ?? node.position,
+                width: internal?.measured.width ?? node.width ?? 0,
+                height: internal?.measured.height ?? node.height ?? 0,
+              };
+            })
+          : toSnapshot(detail.nodes, detail.edges, (node) => {
+              const position = { ...node.position };
+              for (
+                let parent = node.parentId && detailNodes.get(node.parentId);
+                parent;
+                parent = parent.parentId && detailNodes.get(parent.parentId)
+              ) {
+                position.x += parent.position.x;
+                position.y += parent.position.y;
+              }
+              return { position, ...laidOutSize(node) };
+            });
+      // A level not shown, with its edges as they're drawn (shown ones already are)
+      const asDrawn = ({ nodes, edges }: LevelGraph): LevelGraph => ({
+        nodes,
+        edges: prepareEdges(edges),
+      });
+      // Level 2 as the diagram lays it out: the one it was given, or the full graph without its messages and
+      // channels (the full graph itself when it has none)
+      const levelTwo = async (): Promise<LevelGraph> => {
+        if (level === 2) return shown;
+        if (hiddenMessages) return asDrawn(hiddenMessages);
+        const full = level === 3 ? shown : detail;
+        if (!full.nodes.some(isCarrier)) return asDrawn(full);
+        return asDrawn(
+          await layoutWithElk(hideMessageNodes(full.nodes, full.edges)),
+        );
+      };
+      return {
+        title,
+        level,
+        ...graph,
+        levels: {
+          // Level 1 as shown, or the overview the diagram has (a context diagram is only level 1)
+          ...((level === 1 || overview) && {
+            1: level === 1 ? shown : asDrawn(overview!),
+          }),
+          2: await levelTwo(),
+        },
+        unavailableLevels: {
+          ...(levels[0]?.disabledReason && { 1: levels[0].disabledReason }),
+          ...(levels[1]?.disabledReason && { 2: levels[1].disabledReason }),
+        },
+      };
+    }, [
+      title,
+      levels,
+      studioGraphs,
+      prepareEdges,
+      getNodes,
+      getEdges,
+      getInternalNode,
+    ]);
+  const handleOpenInStudio = useCallback(() => {
+    if (onOpenInStudio && studioGraphs)
+      onOpenInStudio({ title, getSnapshot: getStudioSnapshot });
+  }, [onOpenInStudio, studioGraphs, title, getStudioSnapshot]);
+
   const handleResetLayout = useCallback(async (): Promise<boolean> => {
     if (!resourceKey || !onResetLayout) return false;
     return await onResetLayout(resourceKey);
@@ -2128,90 +2191,6 @@ const NodeGraphBuilder = ({
       });
   }, [getNodes, storeApi, downloadImage, title]);
 
-  const getNodesByCollectionWithColors = useCallback((nodes: Node<any>[]) => {
-    const colorClasses = {
-      events: "bg-orange-600",
-      agent: "bg-sky-600",
-      agents: "bg-sky-600",
-      agentTool: "bg-violet-600",
-      "agent-tool": "bg-violet-600",
-      services: "bg-pink-600",
-      flows: "bg-teal-600",
-      commands: "bg-blue-600",
-      queries: "bg-green-600",
-      channels: "bg-gray-600",
-      externalSystem: "bg-pink-600",
-      systems: "bg-purple-600",
-      system: "bg-purple-600",
-      actor: "bg-yellow-500",
-      "context-actor": "bg-yellow-500",
-      step: "bg-gray-700",
-      data: "bg-blue-600",
-      "data-products": "bg-indigo-600",
-      field: "bg-cyan-600",
-      messageGroup: "bg-violet-600",
-      messageGroupExpanded: "bg-violet-600",
-    };
-
-    let legendForDomains: {
-      [key: string]: { count: number; colorClass: string; groupId: string };
-    } = {};
-
-    // Find any groups
-    const domainGroups = [
-      ...new Set(
-        nodes
-          .filter(
-            (node) => node.data.group && node.data.group?.type === "Domain",
-          )
-          .map((node) => node.data.group?.id),
-      ),
-    ];
-
-    domainGroups.forEach((groupId) => {
-      const group = nodes.filter(
-        (node) => node.data.group && node.data.group?.id === groupId,
-      );
-      legendForDomains[`${groupId} (Domain)`] = {
-        count: group.length,
-        colorClass: "bg-yellow-600",
-        groupId,
-      };
-    });
-
-    const legendForNodes = nodes.reduce(
-      (
-        acc: {
-          [key: string]: {
-            count: number;
-            colorClass: string;
-            groupId?: string;
-          };
-        },
-        node,
-      ) => {
-        const collection = node.type;
-        // Group boundaries aren't something to count or hide
-        if (collection && !GROUP_NODE_TYPES.includes(collection)) {
-          if (acc[collection]) {
-            acc[collection].count += 1;
-          } else {
-            acc[collection] = {
-              count: 1,
-              colorClass:
-                colorClasses[collection as keyof typeof colorClasses] ||
-                "bg-black",
-            };
-          }
-        }
-        return acc;
-      },
-      {},
-    );
-
-    return { ...legendForDomains, ...legendForNodes };
-  }, []);
-
   // Legend only depends on node types and groups, not positions.
   // Use a ref to avoid recomputing the key string on every drag tick.
   const legendKeyRef = useRef("");
@@ -2223,16 +2202,13 @@ const NodeGraphBuilder = ({
   }
   const legendKey = legendKeyRef.current;
 
-  const graphLegend = useMemo(
-    () => getNodesByCollectionWithColors(nodes),
-    [getNodesByCollectionWithColors, legendKey],
-  );
+  const graphLegend = useMemo(() => getLegend(nodes), [legendKey]);
   // Hidden entries stay listed (their nodes are no longer in the graph), in the
   // order entries were first listed
   // Starting with the whole graph's, for entries already hidden
   const legendEntries = useRef<Record<string, LegendEntry> | null>(null);
   const legend = useMemo(() => {
-    legendEntries.current ??= getNodesByCollectionWithColors(initialNodes);
+    legendEntries.current ??= getLegend(initialNodes);
     Object.assign(legendEntries.current, graphLegend);
     return Object.fromEntries(
       Object.entries(legendEntries.current).filter(
@@ -2491,11 +2467,11 @@ const NodeGraphBuilder = ({
   }, [nodesInitialized]);
   const isCompactMenuButton = !title;
   const menuButtonClassName = isCompactMenuButton
-    ? "h-9 w-9 p-0 bg-[rgb(var(--ec-card-bg))] hover:bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center justify-center transition-colors duration-150 hover:border-[rgb(var(--ec-accent)/0.3)] group"
-    : "py-2.5 px-4 bg-[rgb(var(--ec-card-bg))] hover:bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center gap-3 transition-colors duration-150 hover:border-[rgb(var(--ec-accent)/0.3)] group whitespace-nowrap";
+    ? DIAGRAM_MENU_BUTTON_COMPACT
+    : DIAGRAM_MENU_BUTTON;
   const menuIconClassName = isCompactMenuButton
-    ? "h-4 w-4 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150"
-    : "h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150";
+    ? DIAGRAM_MENU_BUTTON_ICON_COMPACT
+    : DIAGRAM_MENU_BUTTON_ICON;
 
   return (
     <div
@@ -2523,16 +2499,14 @@ const NodeGraphBuilder = ({
                       aria-label="Open menu"
                     >
                       {title && (
-                        <span className="text-base font-medium text-[rgb(var(--ec-page-text))] leading-tight">
-                          {title}
-                        </span>
+                        <span className={DIAGRAM_MENU_TITLE}>{title}</span>
                       )}
                       <MoreVertical className={menuIconClassName} />
                     </button>
                   </DropdownMenu.Trigger>
                   <DropdownMenu.Portal container={reactFlowWrapperRef.current}>
                     <DropdownMenu.Content
-                      className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
+                      className={DIAGRAM_MENU}
                       sideOffset={0}
                       align="end"
                       alignOffset={-180}
@@ -2563,6 +2537,9 @@ const NodeGraphBuilder = ({
                         isDevMode={isDevMode}
                         onSaveLayout={swimlanes ? undefined : handleSaveLayout}
                         onResetLayout={handleResetLayout}
+                        onOpenInStudio={
+                          onOpenInStudio ? handleOpenInStudio : undefined
+                        }
                       />
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>
@@ -2644,9 +2621,7 @@ const NodeGraphBuilder = ({
                           aria-label="Open menu"
                         >
                           {title && (
-                            <span className="text-base font-medium text-[rgb(var(--ec-page-text))] leading-tight">
-                              {title}
-                            </span>
+                            <span className={DIAGRAM_MENU_TITLE}>{title}</span>
                           )}
                           <MoreVertical className={menuIconClassName} />
                         </button>
@@ -2655,7 +2630,7 @@ const NodeGraphBuilder = ({
                         container={reactFlowWrapperRef.current}
                       >
                         <DropdownMenu.Content
-                          className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
+                          className={DIAGRAM_MENU}
                           sideOffset={0}
                           align="end"
                           alignOffset={-180}
@@ -2692,6 +2667,9 @@ const NodeGraphBuilder = ({
                             onResetLayout={handleResetLayout}
                             notesCount={totalNotesCount}
                             onOpenNotes={openNotesModal}
+                            onOpenInStudio={
+                              onOpenInStudio ? handleOpenInStudio : undefined
+                            }
                           />
                         </DropdownMenu.Content>
                       </DropdownMenu.Portal>
@@ -2761,9 +2739,7 @@ const NodeGraphBuilder = ({
               )}
             </Panel>
 
-            {includeBackground && (
-              <Background color="var(--ec-bg-dots)" gap={16} />
-            )}
+            {includeBackground && <DiagramBackground />}
             {includeBackground && <Controls />}
             {mode === "full" && (
               <CanvasToolbar
@@ -3022,6 +2998,8 @@ interface NodeGraphProps {
     positions: Record<string, { x: number; y: number }>,
   ) => Promise<boolean>;
   onResetLayout?: (resourceKey: string) => Promise<boolean>;
+  /** Starts a Studio canvas from what the diagram shows (the menu has "Open in Studio" when set) */
+  onOpenInStudio?: (request: OpenInStudioRequest) => void;
 }
 
 const NodeGraph = ({
@@ -3064,6 +3042,7 @@ const NodeGraph = ({
   onNavigate,
   onSaveLayout,
   onResetLayout,
+  onOpenInStudio,
 }: NodeGraphProps) => {
   // When a DslGraph is provided, lay it out here (rendered once laid out)
   const [graphLayout, setGraphLayout] = useState<{
@@ -3082,8 +3061,17 @@ const NodeGraph = ({
       current = false;
     };
   }, [graph]);
-  const nodes = graphLayout?.nodes ?? nodesProp ?? [];
-  const edges = graphLayout?.edges ?? edgesProp ?? [];
+  const nodes = graphLayout?.nodes ?? nodesProp ?? NO_NODES;
+  const edges = graphLayout?.edges ?? edgesProp ?? NO_EDGES;
+  // The graphs shown at each level, for Studio
+  const studioGraphs = useMemo(
+    () => ({
+      detail: { nodes, edges },
+      overview: overviewGraph,
+      hiddenMessages: hiddenMessagesGraph,
+    }),
+    [nodes, edges, overviewGraph, hiddenMessagesGraph],
+  );
 
   // Derive props from graph.options when graph is provided
   const title = titleProp ?? graph?.title;
@@ -3183,6 +3171,8 @@ const NodeGraph = ({
             onNavigate={onNavigate}
             onSaveLayout={onSaveLayout}
             onResetLayout={onResetLayout}
+            onOpenInStudio={onOpenInStudio}
+            studioGraphs={studioGraphs}
           />
 
           {showFooter && (

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Node } from '@xyflow/react';
 import {
+  containerFor,
   findDropTarget,
   findGroupAtPoint,
   fitGroup,
@@ -102,6 +103,20 @@ describe('findGroupAtPoint', () => {
 
   it('returns nothing outside every container', () => {
     expect(findGroupAtPoint({ x: 2000, y: 2000 }, nested)).toBeUndefined();
+  });
+});
+
+describe('containerFor', () => {
+  it('returns the container asked for, wherever the point is (something added on a level goes in it)', () => {
+    expect(containerFor({ x: 2000, y: 2000 }, nested, 'domain')?.id).toBe('domain');
+  });
+
+  it('returns nothing for something asked for that is not a container', () => {
+    expect(containerFor({ x: 100, y: 100 }, nested, 'loose')).toBeUndefined();
+  });
+
+  it('returns the container at the point when none is asked for', () => {
+    expect(containerFor({ x: 100, y: 100 }, nested)?.id).toBe('system');
   });
 });
 

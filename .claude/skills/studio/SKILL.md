@@ -14,6 +14,9 @@ people (their own pointer, one step at a time). Most code here runs on every poi
 every incoming update from someone else, so small mistakes multiply across everyone on the canvas. Read this
 before changing Studio, and check the rules that apply to your change.
 
+Studio must look and behave like EventCatalog's visualiser: follow the `visualiser-studio-parity` skill
+(`.claude/skills/visualiser-studio-parity/SKILL.md`) for what has to match and how to compare them.
+
 Also follow the `visualiser-performance` skill: Studio renders the visualiser's nodes and edges with React Flow,
 and the same rules apply (stable `<ReactFlow>` props, memoised nodes, no `nodes`/`edges` in dependency arrays).
 
@@ -28,9 +31,11 @@ How to measure and verify a change: [references/verification.md](references/veri
 | Shared document (Yjs maps, reading and writing nodes, edges, comments, meta) | `canvas-doc.ts` |
 | Syncing the document into React Flow | `hooks/use-studio-flow.ts`, `flow-state.ts` |
 | Presence (pointers, selections, drags, views) | `hooks/presence-sender.ts`, `hooks/presence-store.ts`, `components/Presence.tsx` |
+| Overlays that stay the same size on screen as the canvas zooms (pointers, comment pins) | `hooks/use-counter-scale.ts` |
 | The canvas page component | `components/StudioDesigner.tsx` (with `LeftPanel`, `PropertiesPanel`, `CanvasHeader`, `CanvasControls`, `Comments`) |
 | Node types, sizes and containers | `node-types.ts`, `grouping.ts`, `components/canvas-nodes.tsx` |
 | Catalog resources on the canvas | `catalog-resources.ts` (server), `catalog.ts` |
+| Starting a canvas from a visualiser diagram ("Open in Studio") | `from-visualiser.ts`, wired in `components/MDX/NodeGraph/AstroNodeGraph.tsx` |
 | Levels L1, L2, L3 | `levels.ts`, `layout.ts` |
 | What agents can do (shared by MCP and WebMCP) | `canvas-actions.ts`, `placement.ts`, `agent-choreography.ts` |
 | MCP tools and the server runtime | `server/canvas-mcp.ts`, `server/runtime.ts`, `server/tool-icons.ts` |
@@ -111,6 +116,16 @@ bundles Studio's components: rebuild it after changing them).
   each browser; `patchShared` keeps them when shared changes arrive.
 - **One user action is one `doc.transact`** (one update to send, one undo step, observers run once). Multi-node
   changes (layout, multi-select drops, a container with its contents) go in a single transaction.
+- **Never write what's already there.** Every `Y.Map.set` is sent to everyone, leaves a tombstone in the document,
+  keeps a copy in the undo stack, and re-renders the node on every peer (values arriving from others are new
+  objects), even when the value is the same. Write through the helpers that compare first: `placeNode` (moves and
+  resizes in one write), `moveNode`, `resizeNode`, `setLevelPlaces`. A drop in a container used to rewrite every
+  node in it; a write of one node's position and size used to be two writes.
+- **State every client works out and writes back must be idempotent.** Everyone looking at L1 or L2 places what's
+  new on it (`LEVEL_PLACEMENT_ORIGIN`): with comparison first, only the first write changes anything.
+- **Removing something removes everything keyed by it.** `deleteNodes` also deletes the node's `levelLayouts`
+  entries (`1:<id>`, `2:<id>`); undo puts them back. A side map keyed by node id that isn't cleaned up grows in
+  every saved canvas forever.
 - **Transaction origins mean something:**
   - `LOCAL_ORIGIN`: changes already shown here (drags, resizes). Observers skip them; undo tracks them.
   - `null`: other local changes (adds, deletes, renames). Observers apply them; undo tracks them.
@@ -160,6 +175,11 @@ bundles Studio's components: rebuild it after changing them).
 2. **Remote pointers move outside React.** `PeerPointer` subscribes to the store and writes
    `transform: translate() scale()` itself, gliding to each update over the time since the previous one. Don't
    render pointers from React state, don't use `left/top`, and don't add CSS transitions to them.
+   **Zooming doesn't re-render overlays either:** things drawn in the canvas's coordinates that stay the same size
+   on screen (pointers, other people's selections, comment pins) counter-scale with the `COUNTER_SCALE` CSS
+   variable, which `useCounterScale(layerRef)` keeps on their layer outside React (`scale(var(...))`,
+   `calc(Npx * var(...))`). Don't subscribe a layer to the zoom (`useStore(transform[2])`): every pin re-rendered
+   on every zoom frame. The connection line someone's dragging is the exception (`ConnectingLine`, rare).
 3. **Overlays follow one node, not the nodes array.** Selection outlines and comment pins use
    `useInternalNode(id)` and `internals.positionAbsolute`. Never pass `nodes` to an overlay, panel or header: they
    would re-render on every drag frame. Panels get only what they show (e.g. `PropertiesPanel` takes
@@ -167,15 +187,29 @@ bundles Studio's components: rebuild it after changing them).
 4. **Derive structure with string keys.** Things that depend on which nodes exist (hierarchy order, which catalog
    resources are on the canvas, level graphs) memo on keys like `structureOf(nodes)` or a joined id string, not
    on `nodes`.
-5. **Animated message edges cost every frame** (SMIL `animateMotion` forces style and layout), even when hidden
-   with CSS. Only edges of a selected node or a selected edge animate; the rest are swapped for a static copy
-   (`withoutEnvelope`, cached in a WeakMap so identity is stable). Keep that when adding edge types or levels.
+5. **Anything that animates forever costs every frame** (style and paint, layout for SMIL), even when hidden with
+   CSS, and multiplies with the nodes and edges that have it (see the visualiser-performance skill's Rule 6). Only
+   edges of a selected node or a selected edge animate; the rest are swapped for a static copy (`withoutEnvelope`,
+   cached in a WeakMap so identity is stable). While the canvas is panned, zoomed or dragged, `setInteraction`
+   pauses the envelopes' SMIL (`pauseEdgeAnimations`). Handles' glow pulses only on the hovered or selected node:
+   100 pulsing handles kept the canvas busy while nothing happened. Keep all of that when adding edge types,
+   node types or levels, and check `document.getAnimations()` is empty on an idle canvas with nothing selected.
 6. **WebMCP's polyfill is opt-in.** `@mcp-b/webmcp-polyfill` watches the whole DOM with a MutationObserver, which
    costs on every drag and pan. It's only installed after "Turn on for this tab" in Connect agent (browsers with
    native WebMCP get the tools straight away). Don't install it by default.
 7. **Stable `<ReactFlow>` props.** Constants (keys, pan buttons, fit options) live outside components; callbacks go
    through `useStableCallback` or `useCallback`. React Flow's `NodeWrapper` isn't memoised: a node re-renders
    whenever its object changes, so keep node objects identical unless they really changed.
+   - **Every node type is wrapped in the visualiser's `memoNode`** (`nodeTypes` in `canvas-nodes.tsx`), which
+     ignores the position props React Flow passes on every frame. Without it, the dragged card's whole content
+     (and everything in a dragged container) rendered on every frame. Register new types in `components` there.
+   - **`applyNodeChanges` copies every node it gets a change for**, so send changes only for nodes that change:
+     `select(ids)` in `StudioDesigner` only sends selection changes for nodes whose selection differs.
+   - **Worked-out graphs keep identity too.** A level is arranged again on every drop, placement and debounced
+     canvas change: `setLevelGraph` keeps every node and edge that didn't change as the object shown
+     (`keepUnchanged` in `flow-state.ts`, comparing what's in them), so only what moved re-renders.
+   - **Depend on the stable part of state that changes every frame.** On L1 and L2 the level graph is a new object
+     on every drag frame; the edges and legend depend on `levelShown.edges` and a structure key, not on it.
 8. **Interaction model is a design tool's:** drag on empty canvas draws a selection box (`selectionOnDrag`),
    panning is space + drag, the middle button or scrolling (`panOnScroll`), cmd/ctrl + scroll or pinch zooms,
    right click is the context menu. Containers let the pointer through their body (`studio.css`) and are moved,
@@ -231,27 +265,54 @@ bundles Studio's components: rebuild it after changing them).
 
 ## Levels
 
-`levels.ts` derives read-only views; L3 is the canvas people edit.
+`levels.ts` works out what L1 and L2 show from the canvas (L3 is everything on it). A canvas opened from a diagram
+shows the diagram's own L1 and L2 (`meta.diagramLevels`) until its structure changes (`getDiagramLevel`, with the
+`structureKey` use-studio-flow keeps from the document); see the `visualiser-studio-parity` skill.
+
+- **Every level can be edited, and nothing is reorganised for you.** On L1 and L2 people drag, resize, select,
+  delete, connect and edit (double click opens the properties panel) like on L3: a level's nodes are the canvas's
+  (same ids: a system card is the system), so deleting, connecting and editing change the canvas.
+- **Each level keeps its own layout** (`levelLayouts` in the document, `<level>:<node id>` → `LevelPlace`, undone
+  like any edit; `level-layout.ts`). A level is shown arranged (`arrangeLevel`): where its layout has things, else
+  where the diagram it was opened from had them, and anything new placed next to what it connects to (`placeNodes`),
+  moving nothing; containers grow to fit. Places worked out that way are kept (`LEVEL_PLACEMENT_ORIGIN`, not undone),
+  so nothing moves later. Only a level with no places at all is laid out with ELK, once, and that's kept too. Reorder
+  on L1 or L2 lays out just that level. Moving on one level never moves anything on another.
+- Comments, other people's pointers and the context menu stay on L3 (they're in L3's coordinates).
 
 - **L1 and L2 match the visualiser's levels** (`utils/node-graphs/domain-levels-node-graph.ts`, the visualiser's
-  `hide-messages.ts`); compare with them when changing either:
+  `hide-messages.ts`); compare with them when changing either (see the `visualiser-studio-parity` skill):
   - Edges joined through hidden messages or channels are "bridged": dashed, muted, `bridged-<from>-<to>`, labelled
-    only with the messages they carry (`getMessagesLabel`, no truncation), no label through channels alone.
-  - L1 edges between folded nodes are plain (solid, 20px arrow, `level-<from>-<to>`), labelled with messages only;
-    actors' edges keep their labels (like the visualiser's relationships).
+    only with the messages they carry (`getMessagesLabel`, no truncation), no label through channels alone. On L1,
+    edges to and from systems are plain instead (the visualiser folds a system's messages into it).
+  - L1 edges between folded nodes are plain (solid, 20px arrow, `level-<from>-<to>`), labelled with messages only.
+    Edges drawn straight between two nodes L1 keeps (systems, actors, domains) are relationships
+    (`relationship-<from>-<to>`): they keep their label and replace the message edges between the same pair.
   - L1 systems are `system` cards (same ids, so switching levels glides) with services (and agents), data stores and
-    messages counted; domains with no system in them are `context-domain` cards. L2 keeps the canvas's own edges
-    between what it shows. Containers are sized by the layout (empty ones as the visualiser lays them out).
+    messages counted; domain containers with nothing shown in them become `context-domain` cards, and stay
+    containers while a system or subdomain card is in them. A domain inside another is badged as a subdomain
+    (`useDomainData` in `canvas-nodes.tsx`). L2 keeps the canvas's own edges between what it shows. Containers are
+    sized by the layout (empty ones as the visualiser lays them out).
   - L1 needs a system, or more than one domain; L2 is always there. Levels fit with `maxZoom: 1`.
   - One deliberate difference: messages sitting in a domain (not a system) connect the systems either side (the
     visualiser folds them into the domain), because catalog domains on a canvas hold their messages.
 - Levels are laid out with the visualiser's ELK layout and re-laid out (debounced) as the canvas changes.
+- **Each level only offers what it shows.** A node type's `firstLevel` (`node-types.ts`, `isShownOnLevel`) says which
+  levels show it: L1 domains, systems and actors; L2 adds services, data stores, views, agents and text; L3 adds
+  messages and channels; notes are on every level. The left panel (components and catalog) lists only what the level
+  shows. Something added on a level that shows it lands where it's dropped (`landingAt` in `StudioDesigner.tsx`):
+  it's added to the canvas (below what's on it, or in the container it was dropped in, which the canvas has too:
+  `containerFor`), and its level place is written in the same undo step, centred on the drop point again once it's
+  measured. Nothing on the level moves; what it brings with it (connections) is placed next to it. Anything else goes
+  to L3. Keep `firstLevel` in step with `levels.ts`: the "agrees with what the levels draw" test checks it.
+- Level nodes are shown containers first (`sortByHierarchy` in `setLevelGraph`): React Flow needs a parent before
+  what's in it, and the canvas's order doesn't guarantee that.
 - **Sticky notes belong to a level** (`data.level`, absent means L3; `getNoteLevel` / `isOnLevel` in
-  `node-types.ts`). A note is only shown on its level. On L1 and L2 notes are drawn over the level's layout and are
-  the only thing you can change there: they're draggable/selectable per node (`asLevelNote`), and
-  `onLevelNodesChange` passes only their changes to the canvas (the level's cards aren't canvas nodes). Notes never
+  `node-types.ts`). A note is only shown on its level. On L1 and L2 notes are drawn over the level's layout
+  (`asLevelNote`), and `onLevelNodesChange` passes their changes to the canvas (they keep canvas positions, not level
+  places). Notes never
   go into `getLevelGraph`, `levelKey`, `getLayoutPositions` or agent placement, so they don't re-lay out a level and
-  aren't moved by L3's layout. Anything else added while L1 or L2 is shown switches to L3 and goes there.
+  aren't moved by L3's layout.
 
 ## Canvas status
 
@@ -271,6 +332,9 @@ bundles Studio's components: rebuild it after changing them).
 - Type-check with the app's tsconfig (`packages/core/eventcatalog/tsconfig.json`) and run `pnpm run format`.
 - Rebuild the canvas MCP App if you changed anything it bundles.
 - For anything touching sync, presence, rendering or interaction, verify in two browsers and, for performance,
-  profile: see [references/verification.md](references/verification.md).
+  profile: see [references/verification.md](references/verification.md). Measure renders **and** what isn't React:
+  idle main-thread time and running animations. On the last check most of the cost was animations, not renders.
+- If you changed `packages/visualiser`, build it and restart the dev server with Vite's dependency cache cleared
+  before measuring (see verification.md): the dev server serves a pre-bundled copy of the visualiser's `dist`.
 - Check whether `eventcatalog/eventcatalog-editor` needs a matching change (Studio itself doesn't; visualiser node
   exports or props might).

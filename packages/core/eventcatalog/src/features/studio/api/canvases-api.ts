@@ -1,7 +1,10 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 import { paginate } from '@features/tools/catalog-tools';
-import { MAX_TITLE_LENGTH, type CanvasStatus } from '../canvas-doc';
+import type { CanvasContent, CanvasStatus } from '../canvas-doc';
+import { MAX_TITLE_LENGTH } from '../limits';
+import { diagramLevelsSchema, indexCatalog, newCanvasEdgesSchema, nodeSpecsSchema, planCanvas } from '../canvas-actions';
+import { getCatalogResources } from '../catalog-resources';
 import { MAX_NAME_LENGTH } from '../identity';
 import type { CanvasSummary, StudioRuntime } from '../server/runtime';
 import type { SignedInUser } from '../server/sign-in';
@@ -13,7 +16,13 @@ import type { SignedInUser } from '../server/sign-in';
  *
  *   GET    /api/studio/canvases        Canvases, most recently changed first (?pageSize=, ?cursor= for the next page)
  *                                       (not ones left empty and untitled: GET /:id still finds them)
- *   POST   /api/studio/canvases        Creates one: { "title"?: string, "createdBy"?: string }
+ *   POST   /api/studio/canvases        Creates one: { "title"?: string, "createdBy"?: string, "nodes"?: [...],
+ *                                       "edges"?: [...] }, starting with the nodes and edges given, if any (as the
+ *                                       add_to_canvas MCP tool takes them: catalog resources or new components, x/y
+ *                                       their centres, and only the connections in edges are made, each drawn
+ *                                       along its "route" if given: { "points": [{x, y}, ...], "label"?: {x, y} }),
+ *                                       and "levels" (L1 and L2 laid out, e.g. as a diagram shows them, by the
+ *                                       nodes' refs), shown as given until what's on the canvas changes
  *   GET    /api/studio/canvases/:id    One canvas
  *   POST   /api/studio/canvases/:id/copy   Copies its design (nodes and connections, not comments or status) to a new
  *                                         draft: { "title"?: string, "createdBy"?: string }
@@ -57,10 +66,22 @@ export type CanvasesApiEnv = {
   };
 };
 
+const MAX_NODES = 1000;
+const MAX_EDGES = 2000;
+
 const NewCanvas = z.object({
   title: z.string().trim().max(MAX_TITLE_LENGTH).optional(),
   // Ignored when someone's signed in: it's them
   createdBy: z.string().trim().max(MAX_NAME_LENGTH).optional(),
+});
+// A new canvas can start with nodes and edges; a copy starts with the original's
+const NewCanvasWithContent = NewCanvas.extend({
+  nodes: nodeSpecsSchema.max(MAX_NODES).optional(),
+  edges: newCanvasEdgesSchema.max(MAX_EDGES).optional(),
+  levels: diagramLevelsSchema.optional(),
+}).refine((canvas) => !canvas.edges?.length || canvas.nodes, {
+  message: 'Edges connect the nodes given with them: give nodes too',
+  path: ['edges'],
 });
 const ListQuery = z.object({
   cursor: z.string().optional(),
@@ -86,26 +107,54 @@ const describeIssues = (error: z.ZodError) =>
 type ApiContext = Context<CanvasesApiEnv>;
 const noCanvas = (c: ApiContext, id: string) => c.json({ error: `No canvas "${id}"` }, 404);
 
-/** A new canvas's details from the request (optional), or the response saying what's wrong with them */
-const readNewCanvas = async (c: ApiContext): Promise<{ title?: string; createdBy?: string } | Response> => {
+type NewCanvasDetails = { title?: string; createdBy?: string };
+
+/** The request's JSON body (or {} without one), or the response saying what's wrong with it */
+const readJson = async (c: ApiContext): Promise<unknown> => {
   // JSON only: a page on another site can send a form or plain text here without asking first, but not JSON
   const body = await c.req.text();
   if (body && !c.req.header('content-type')?.toLowerCase().startsWith('application/json')) {
     return c.json({ error: 'Send the canvas as JSON (Content-Type: application/json)' }, 415);
   }
-  let json: unknown = {};
   try {
-    if (body) json = JSON.parse(body);
+    return body ? JSON.parse(body) : {};
   } catch {
     return c.json({ error: 'The body is not valid JSON' }, 400);
   }
+};
+
+const detailsOf = (c: ApiContext, canvas: z.output<typeof NewCanvas>): NewCanvasDetails => ({
+  title: canvas.title || undefined,
+  // Whoever's signed in, if anyone
+  createdBy: c.env.signedInAs?.name ?? (canvas.createdBy || undefined),
+});
+
+/** A copy's details from the request (optional), or the response saying what's wrong with them */
+const readCopy = async (c: ApiContext): Promise<NewCanvasDetails | Response> => {
+  const json = await readJson(c);
+  if (json instanceof Response) return json;
   const parsed = NewCanvas.safeParse(json);
   if (!parsed.success) return c.json({ error: describeIssues(parsed.error) }, 400);
-  return {
-    title: parsed.data.title || undefined,
-    // Whoever's signed in, if anyone
-    createdBy: c.env.signedInAs?.name ?? (parsed.data.createdBy || undefined),
-  };
+  return detailsOf(c, parsed.data);
+};
+
+/** A new canvas's details and what it starts with (all optional), or the response saying what's wrong with them */
+const readNewCanvas = async (c: ApiContext): Promise<{ details: NewCanvasDetails; content?: CanvasContent } | Response> => {
+  const json = await readJson(c);
+  if (json instanceof Response) return json;
+  const parsed = NewCanvasWithContent.safeParse(json);
+  if (!parsed.success) return c.json({ error: describeIssues(parsed.error) }, 400);
+  const details = detailsOf(c, parsed.data);
+  if (!parsed.data.nodes) return { details };
+  const { resources, relations } = await getCatalogResources();
+  const { content, errors } = planCanvas(
+    parsed.data.nodes,
+    parsed.data.edges ?? [],
+    indexCatalog(resources, relations),
+    parsed.data.levels
+  );
+  if (errors.length) return c.json({ error: errors.join('; ') }, 400);
+  return { details, content };
 };
 
 /** The API, served under `basePath` (the catalog's base URL, then CANVASES_API_PATH) */
@@ -132,15 +181,15 @@ export const createCanvasesApi = (basePath: string) => {
   };
 
   app.post('/', async (c) => {
-    const details = await readNewCanvas(c);
-    if (details instanceof Response) return details;
-    return created(c, await c.env.runtime.createCanvas(details));
+    const canvas = await readNewCanvas(c);
+    if (canvas instanceof Response) return canvas;
+    return created(c, await c.env.runtime.createCanvas(canvas.details, canvas.content));
   });
 
   app.post('/:id/copy', async (c) => {
     const id = c.req.param('id');
     if (!CANVAS_ID.test(id)) return noCanvas(c, id);
-    const details = await readNewCanvas(c);
+    const details = await readCopy(c);
     if (details instanceof Response) return details;
     const copyId = await c.env.runtime.copyCanvas(id, details);
     return copyId ? created(c, copyId) : noCanvas(c, id);

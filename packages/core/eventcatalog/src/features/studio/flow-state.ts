@@ -52,6 +52,35 @@ export const patchShared = <T extends { id: string }>(
   return [...(removed.size ? patched.filter((item) => !removed.has(item.id)) : patched), ...added];
 };
 
+/** Whether two plain values (what nodes and edges hold) are the same, comparing what's in them */
+const isSame = (a: unknown, b: unknown): boolean => {
+  if (Object.is(a, b)) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return false;
+  const keys = Object.keys(a);
+  return (
+    keys.length === Object.keys(b).length &&
+    keys.every((key) => isSame((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]))
+  );
+};
+
+/**
+ * Items worked out again (e.g. a level arranged again), keeping each one that hasn't changed as the object already
+ * shown (so React Flow doesn't re-render it), and the local-only state of the ones that have. Returns `previous`
+ * itself when nothing changed.
+ */
+export const keepUnchanged = <T extends { id: string }>(previous: T[], next: T[], localKeys: readonly (keyof T)[]): T[] => {
+  const shown = new Map(previous.map((item) => [item.id, item]));
+  const local = new Set<PropertyKey>(localKeys);
+  const kept = next.map((item) => {
+    const before = shown.get(item.id);
+    if (!before) return item;
+    const keys = new Set([...Object.keys(before), ...Object.keys(item)]) as Set<keyof T>;
+    const same = [...keys].every((key) => local.has(key) || isSame(before[key], item[key]));
+    return same ? before : withLocalState(item, before, localKeys);
+  });
+  return kept.length === previous.length && kept.every((item, index) => item === previous[index]) ? previous : kept;
+};
+
 /** Where nodes being dragged are, by id, until they're dropped (and saved) */
 export type Moves = ReadonlyMap<string, XYPosition>;
 

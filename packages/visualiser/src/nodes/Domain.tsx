@@ -45,17 +45,23 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
   const ServerIcon = useMemo(() => getIcon("ServerIcon"), []);
   const portalContainer = usePortalContainer();
 
+  // Every domain hears every selection change: it only re-renders when what it highlights changes
+  const highlight = useCallback(
+    (ids: Set<string>) =>
+      setHighlightedServices((current) =>
+        current.size === ids.size && [...ids].every((id) => current.has(id))
+          ? current
+          : ids,
+      ),
+    [],
+  );
+
   // Listen for selection changes to highlight connected services
   const handleSelectionChange = useCallback(
     ({ nodes: selectedNodes }: { nodes: any[] }) => {
-      if (selectedNodes.length === 0) {
-        setHighlightedServices(new Set());
-        return;
-      }
-
       const selectedNode = selectedNodes[0];
       if (!selectedNode) {
-        setHighlightedServices(new Set());
+        highlight(new Set());
         return;
       }
 
@@ -83,9 +89,9 @@ export default memo(function DomainNode({ data, id: nodeId }: any) {
         }
       });
 
-      setHighlightedServices(connectedServiceIds);
+      highlight(connectedServiceIds);
     },
-    [nodeId, reactFlow],
+    [nodeId, reactFlow, highlight],
   );
 
   useOnSelectionChange({

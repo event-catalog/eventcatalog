@@ -12,6 +12,22 @@ export const NODE_CATEGORIES: { id: NodeCategory; label: string }[] = [
   { id: 'other', label: 'Other' },
 ];
 
+/** The catalog collections whose resources can go on a canvas */
+export const CATALOG_COLLECTIONS = [
+  'domains',
+  'systems',
+  'services',
+  'events',
+  'commands',
+  'queries',
+  'channels',
+  'containers',
+] as const;
+
+export type CatalogCollection = (typeof CATALOG_COLLECTIONS)[number];
+export const isCatalogCollection = (collection: string): collection is CatalogCollection =>
+  (CATALOG_COLLECTIONS as readonly string[]).includes(collection);
+
 /** Domains and systems as containers: boxes other nodes sit in */
 export const GROUP_TYPES = { domain: 'domain-group', system: 'system-group' } as const;
 export const isGroupType = (type?: string) => type === GROUP_TYPES.domain || type === GROUP_TYPES.system;
@@ -29,6 +45,11 @@ export type NodeDefinition = {
   defaultSize?: { width: number; height: number };
   /** Only its width is set: its height follows what's in it (text) */
   autoHeight?: boolean;
+  /**
+   * The first level of detail that shows it (it's on the more detailed ones too, see levels.ts): L1 domains, systems
+   * and actors, L2 services, data stores, text and the like, L3 messages and channels. Notes are on every level.
+   */
+  firstLevel: 1 | 2 | 3;
   createData: () => Record<string, unknown>;
 };
 
@@ -37,6 +58,7 @@ const resource = (name: string, summary: string) => ({ name, version: '0.0.1', s
 export const nodeDefinitions: NodeDefinition[] = [
   {
     type: GROUP_TYPES.domain,
+    firstLevel: 1,
     label: 'Domain',
     category: 'boundaries',
     resourceKey: 'domain',
@@ -45,6 +67,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: GROUP_TYPES.system,
+    firstLevel: 1,
     label: 'System',
     category: 'boundaries',
     resourceKey: 'system',
@@ -53,6 +76,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'service',
+    firstLevel: 2,
     category: 'architecture',
     label: 'Service',
     resourceKey: 'service',
@@ -63,6 +87,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'event',
+    firstLevel: 3,
     category: 'messages',
     label: 'Event',
     resourceKey: 'message',
@@ -70,6 +95,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'command',
+    firstLevel: 3,
     category: 'messages',
     label: 'Command',
     resourceKey: 'message',
@@ -77,6 +103,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'query',
+    firstLevel: 3,
     category: 'messages',
     label: 'Query',
     resourceKey: 'message',
@@ -84,6 +111,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'channel',
+    firstLevel: 3,
     category: 'architecture',
     label: 'Channel',
     resourceKey: 'channel',
@@ -91,6 +119,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'data',
+    firstLevel: 2,
     category: 'architecture',
     label: 'Data Store',
     resourceKey: 'data',
@@ -98,6 +127,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'view',
+    firstLevel: 2,
     category: 'architecture',
     label: 'View',
     resourceKey: 'view',
@@ -105,6 +135,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'externalSystem',
+    firstLevel: 1,
     category: 'architecture',
     unlisted: true,
     label: 'External System',
@@ -113,6 +144,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'agent',
+    firstLevel: 2,
     category: 'architecture',
     label: 'Agent',
     resourceKey: 'agent',
@@ -120,12 +152,15 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'actor',
+    firstLevel: 1,
     category: 'other',
     label: 'Actor',
-    createData: () => ({ mode: 'full', name: 'Customer', summary: 'A person using the system.' }),
+    // Drawn like the visualiser's actors (by name only); the summary is for agents and the properties panel
+    createData: () => ({ mode: 'full', name: 'Customer', summary: '' }),
   },
   {
     type: 'text',
+    firstLevel: 2,
     category: 'other',
     label: 'Text',
     defaultSize: { width: 240, height: 40 },
@@ -134,6 +169,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   {
     type: 'note',
+    firstLevel: 1,
     category: 'other',
     label: 'Sticky Note',
     // About square, like a post-it (taller if more is written on it)
@@ -151,9 +187,9 @@ export const COMPONENT_TYPES = nodeDefinitions
 const definitionsByType = new Map(nodeDefinitions.map((definition) => [definition.type, definition]));
 
 // Node types that only come from the catalog (not in the components list)
-const catalogNodeTypes: Record<string, { label: string; resourceKey: string }> = {
-  system: { label: 'System', resourceKey: 'system' },
-  'context-domain': { label: 'Domain', resourceKey: 'domain' },
+const catalogNodeTypes: Record<string, { label: string; resourceKey: string; firstLevel: 1 | 2 | 3 }> = {
+  system: { label: 'System', resourceKey: 'system', firstLevel: 1 },
+  'context-domain': { label: 'Domain', resourceKey: 'domain', firstLevel: 1 },
 };
 
 export const getNodeDefinition = (type?: string) => (type ? definitionsByType.get(type) : undefined);
@@ -187,6 +223,10 @@ export const getNoteLevel = (node: { type?: string; data: Record<string, unknown
 /** Whether a node is on a level's canvas as itself: everything on L3, but notes only on the level they were added on */
 export const isOnLevel = (node: { type?: string; data: Record<string, unknown> }, level: 1 | 2 | 3) =>
   node.type !== 'note' || getNoteLevel(node) === level;
+
+/** Whether a level of detail shows a kind of node (so it can be added there, and stay there) */
+export const isShownOnLevel = (type: string | undefined, level: 1 | 2 | 3) =>
+  level >= (getNodeDefinition(type)?.firstLevel ?? catalogNodeTypes[type ?? '']?.firstLevel ?? 3);
 
 /** Notes and text: written on the canvas itself (their text is their data, not a resource with a name) */
 export const isWrittenOnCanvas = (type?: string) => type === 'note' || type === 'text';

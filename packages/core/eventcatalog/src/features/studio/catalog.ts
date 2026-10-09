@@ -66,16 +66,21 @@ export const canBeContainer = (resource: CatalogResource) =>
 export const containerTypeFor = (resource: CatalogResource) =>
   resource.collection === 'domains' ? GROUP_TYPES.domain : GROUP_TYPES.system;
 
-/** A container's data: the domain or system it stands for, and where it is in the catalog */
-export const catalogGroupData = (resource: CatalogResource) => ({
-  [resource.collection === 'domains' ? 'domain' : 'system']: {
-    id: resource.id,
-    name: resource.name,
-    version: resource.version,
-    summary: resource.summary,
-  },
-  catalog: { key: resource.key, url: resource.url, version: resource.version } satisfies CatalogLink,
-});
+/** A container's data: the domain or system it stands for (an external system marked as one), and where it is in the catalog */
+export const catalogGroupData = (resource: CatalogResource) => {
+  const key = resource.collection === 'domains' ? 'domain' : 'system';
+  const { scope } = (resource.node.data[key] ?? {}) as { scope?: string };
+  return {
+    [key]: {
+      id: resource.id,
+      name: resource.name,
+      version: resource.version,
+      summary: resource.summary,
+      ...(scope && { scope }),
+    },
+    catalog: { key: resource.key, url: resource.url, version: resource.version } satisfies CatalogLink,
+  };
+};
 
 /** What a domain or system contains in the catalog: a domain's systems and services, a system's services */
 export const getContents = (

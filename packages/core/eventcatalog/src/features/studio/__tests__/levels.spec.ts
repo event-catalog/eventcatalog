@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Edge, Node } from '@xyflow/react';
 import { getLevelGraph, getLevelUnavailableReason } from '../levels';
-import { getNoteLevel, isOnLevel } from '../node-types';
+import { getNoteLevel, isOnLevel, isShownOnLevel } from '../node-types';
 
 const node = (id: string, type: string, extra: Partial<Node> = {}): Node => ({
   id,
@@ -166,11 +166,12 @@ describe('getLevelGraph', () => {
     it('connects the systems, carrying messages through', () => {
       const byPair = new Map(result.edges.map((e) => [`${e.source}->${e.target}`, e]));
       expect([...byPair.keys()].sort()).toEqual(['checkout->emails', 'checkout->warehouse']);
-      // Through messages: dashed, muted edges labelled with them, like EventCatalog's diagrams
+      // Through messages, labelled with them: plain, as a system's messages are folded into it (like the visualiser)
       expect(byPair.get('checkout->emails')).toMatchObject({
         id: 'bridged-checkout-emails',
         label: 'publishes\nOrderPlaced',
         type: 'smoothstep',
+        style: { strokeWidth: 1, stroke: 'var(--ec-edge-stroke, #6b7280)' },
       });
       expect(byPair.get('checkout->warehouse')).toMatchObject({ label: 'invokes\nReserveStock', type: 'smoothstep' });
       expect(byPair.get('checkout->warehouse')).not.toHaveProperty('data');
@@ -262,6 +263,64 @@ describe('getLevelGraph', () => {
       });
     });
 
+    it('shows a relationship between two systems instead of the messages between them, like the visualiser', () => {
+      const result = getLevelGraph(
+        [
+          node('payments', 'system-group'),
+          node('worker', 'service', { parentId: 'payments' }),
+          node('stripe', 'system-group'),
+          node('api', 'service', { parentId: 'stripe' }),
+          node('fraud', 'system-group'),
+          node('screening', 'service', { parentId: 'fraud' }),
+          message('charged', 'event', 'PaymentCharged'),
+          message('requested', 'event', 'PaymentRequested'),
+        ],
+        [
+          edge('payments', 'stripe', 'requests charges from / processes payments for'),
+          edge('api', 'charged'),
+          edge('charged', 'worker'),
+          edge('worker', 'requested'),
+          edge('requested', 'screening'),
+        ],
+        1
+      );
+      expect(result.edges.map((e) => [e.source, e.target, e.label])).toEqual([
+        ['payments', 'stripe', 'requests charges from / processes payments for'],
+        ['payments', 'fraud', 'publishes\nPaymentRequested'],
+      ]);
+    });
+
+    it('keeps a domain container with a subdomain shown in it, like the visualiser', () => {
+      const result = getLevelGraph(
+        [
+          node('fulfilment', 'domain-group'),
+          node('returns', 'domain-group', { parentId: 'fulfilment' }),
+          node('refunds', 'service', { parentId: 'returns' }),
+        ],
+        [],
+        1
+      );
+      expect(result.nodes.find((n) => n.id === 'fulfilment')?.type).toBe('domain-group');
+      expect(result.nodes.find((n) => n.id === 'returns')).toMatchObject({
+        type: 'context-domain',
+        parentId: 'fulfilment',
+        data: { subdomain: true, servicesCount: 1 },
+      });
+    });
+
+    it('draws edges through messages between nodes outside domains and systems dashed, like the visualiser', () => {
+      const result = getLevelGraph(
+        [node('customer', 'actor'), message('won', 'event', 'DealWon'), node('crm', 'service'), node('sales', 'context-domain')],
+        [edge('customer', 'won'), edge('won', 'crm'), edge('crm', 'won'), edge('won', 'sales')],
+        1
+      );
+      const styleOf = (source: string, target: string) =>
+        result.edges.find((e) => e.source === source && e.target === target)?.style;
+      expect(styleOf('customer', 'crm')).toMatchObject({ strokeDasharray: '5 5' });
+      // To a domain: its messages are folded into it
+      expect(styleOf('crm', 'sales')).not.toHaveProperty('strokeDasharray');
+    });
+
     it('keeps the labels of actors connections, like relationships', () => {
       const result = getLevelGraph([node('customer', 'actor'), node('shop', 'system')], [edge('customer', 'shop', 'uses')], 1);
       expect(result.edges).toEqual([expect.objectContaining({ label: 'uses' })]);
@@ -314,5 +373,40 @@ describe('getLevelUnavailableReason', () => {
 
   it('always allows L3', () => {
     expect(getLevelUnavailableReason([], 3)).toBeUndefined();
+  });
+});
+
+describe('isShownOnLevel', () => {
+  it('says which kinds of node each level shows, so only those are offered (and added) there', () => {
+    const shownOn = (type: string) => ([1, 2, 3] as const).filter((level) => isShownOnLevel(type, level));
+    expect(shownOn('domain-group')).toEqual([1, 2, 3]);
+    expect(shownOn('context-domain')).toEqual([1, 2, 3]);
+    expect(shownOn('system-group')).toEqual([1, 2, 3]);
+    expect(shownOn('actor')).toEqual([1, 2, 3]);
+    expect(shownOn('note')).toEqual([1, 2, 3]);
+    expect(shownOn('service')).toEqual([2, 3]);
+    expect(shownOn('data')).toEqual([2, 3]);
+    expect(shownOn('event')).toEqual([3]);
+    expect(shownOn('channel')).toEqual([3]);
+    expect(shownOn('text')).toEqual([2, 3]);
+  });
+
+  it('agrees with what the levels draw', () => {
+    const nodes = [
+      node('domain', 'domain-group'),
+      node('checkout', 'system-group', { parentId: 'domain' }),
+      node('orders', 'service', { parentId: 'checkout' }),
+      node('db', 'data', { parentId: 'checkout' }),
+      node('customer', 'actor'),
+      message('placed', 'event', 'OrderPlaced'),
+      node('label', 'text'),
+    ];
+    const edges = [edge('orders', 'placed'), edge('customer', 'orders', 'uses')];
+    for (const level of [1, 2] as const) {
+      const shown = new Set(getLevelGraph(nodes, edges, level).nodes.map((n) => n.id));
+      // A level offers to add what it shows (what's on the canvas itself, not in a container)
+      for (const n of nodes.filter((n) => !n.parentId))
+        expect([level, n.id, shown.has(n.id)]).toEqual([level, n.id, isShownOnLevel(n.type, level)]);
+    }
   });
 });

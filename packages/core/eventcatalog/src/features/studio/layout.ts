@@ -1,5 +1,6 @@
 import type { Edge, Node, XYPosition } from '@xyflow/react';
 import { layoutWithElk } from '@eventcatalog/visualiser/layout';
+import { getEdgeRoute, type EdgeRoute } from './canvas-doc';
 import { isGroupType, isOnLevel } from './node-types';
 
 /**
@@ -17,26 +18,39 @@ export const withGroupSizes = (nodes: Node[]) =>
     return { ...node, width, height, style };
   });
 
-export type LayoutResult = Map<string, { position: XYPosition; size?: { width: number; height: number } }>;
+export type LayoutResult = {
+  /** Where each node goes (relative to its container, if it's in one), and containers' new sizes */
+  nodes: Map<string, { position: XYPosition; size?: { width: number; height: number } }>;
+  /** How each connection is drawn (around the nodes), by edge id */
+  routes: Map<string, EdgeRoute>;
+};
 
 /**
- * New positions (relative to their container, if they're in one) for the nodes on a canvas, and new sizes for
- * containers. Only these are kept for the canvas people edit: the edge routes ELK draws would be out of date
- * as soon as someone moves a node. Notes added on L1 or L2 aren't on this canvas, so they stay where they are.
+ * The canvas laid out: new positions for its nodes, new sizes for containers, and routes for the connections
+ * (drawn like the visualiser's: around the nodes, following them when they're moved, and as a plain step once
+ * they've moved too far for it). Notes added on L1 or L2 aren't on this canvas, so they stay where they are.
  */
 export const getLayoutPositions = async (nodes: Node[], edges: Edge[]): Promise<LayoutResult> => {
   const onCanvas = nodes.filter((node) => isOnLevel(node, 3));
-  if (onCanvas.length === 0) return new Map();
+  if (onCanvas.length === 0) return { nodes: new Map(), routes: new Map() };
   const ids = new Set(onCanvas.map((node) => node.id));
   const between = edges.filter((edge) => ids.has(edge.source) && ids.has(edge.target));
-  const laidOut = withGroupSizes((await layoutGraph(onCanvas, between)).nodes);
-  return new Map(
-    laidOut.map((node) => [
-      node.id,
-      {
-        position: node.position,
-        ...(isGroupType(node.type) && node.width && node.height && { size: { width: node.width, height: node.height } }),
-      },
-    ])
-  );
+  const laidOut = await layoutGraph(onCanvas, between);
+  return {
+    nodes: new Map(
+      withGroupSizes(laidOut.nodes).map((node) => [
+        node.id,
+        {
+          position: node.position,
+          ...(isGroupType(node.type) && node.width && node.height && { size: { width: node.width, height: node.height } }),
+        },
+      ])
+    ),
+    routes: new Map(
+      laidOut.edges.flatMap((edge) => {
+        const route = getEdgeRoute(edge);
+        return route ? [[edge.id, route] as const] : [];
+      })
+    ),
+  };
 };
