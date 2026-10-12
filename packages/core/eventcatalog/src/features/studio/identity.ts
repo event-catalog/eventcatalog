@@ -1,6 +1,9 @@
 // Who you are in Studio: the name you give on your first visit, kept in this browser and used on every canvas
-const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
+/** The colours people can go by (as Studio on the web's): on their pointer, avatar and comments */
+export const PERSON_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'];
+const COLORS = PERSON_COLORS;
 const NAME_KEY = 'eventcatalog-studio-name';
+const COLOR_KEY = 'eventcatalog-studio-color';
 /** Names people give are at most this long */
 export const MAX_NAME_LENGTH = 60;
 
@@ -34,4 +37,23 @@ export const colorForName = (name: string) => {
   let hash = 0;
   for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) | 0;
   return COLORS[Math.abs(hash) % COLORS.length];
+};
+
+/** The colour you picked, kept in this browser (else it follows from your name) */
+export const getStoredColor = () => {
+  try {
+    const color = localStorage.getItem(COLOR_KEY);
+    return color && PERSON_COLORS.includes(color) ? color : null;
+  } catch {
+    return null;
+  }
+};
+
+export const storeColor = (color: string) => {
+  try {
+    localStorage.setItem(COLOR_KEY, color);
+    return true;
+  } catch {
+    return false;
+  }
 };

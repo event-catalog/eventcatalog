@@ -9,7 +9,7 @@ import {
   readMeta,
   reopeningIfEdited,
   setCanvasStatus,
-} from '../canvas-doc';
+} from '@eventcatalog/visualiser/studio';
 import { describeCanvas } from '../canvas-actions';
 
 const ada = { name: 'Ada', color: '#7c3aed' };

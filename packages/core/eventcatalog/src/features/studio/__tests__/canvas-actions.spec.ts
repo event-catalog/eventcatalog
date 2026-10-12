@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import * as Y from 'yjs';
 import type { Node } from '@xyflow/react';
-import { addNodes, buildNode, getCanvasMaps } from '../canvas-doc';
+import { addNodes, buildNode, getCanvasMaps, getNodeDefinition } from '@eventcatalog/visualiser/studio';
 import { catalogNodeData } from '../catalog';
-import { getNodeDefinition } from '../node-types';
 import {
   describeNode,
   nodeCenter,

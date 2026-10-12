@@ -6,7 +6,8 @@ import {
   normalizeOwners,
   HIDDEN_HANDLE_STYLE,
 } from "../OwnerIndicator";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../../utils/node-connections";
 import { EventCatalogResource, Service as ServiceType } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import {
@@ -461,8 +462,7 @@ function DefaultService(props: ServiceNode) {
     () => normalizeOwners(props.data.service.owners),
     [props.data.service.owners],
   );
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
@@ -506,10 +506,8 @@ function DefaultService(props: ServiceNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && (
-        <GlowHandle side="left" external={externalSystem} />
-      )}
-      {sourceConnections.length > 0 && (
+      {connected.target && <GlowHandle side="left" external={externalSystem} />}
+      {connected.source && (
         <GlowHandle side="right" external={externalSystem} />
       )}
 

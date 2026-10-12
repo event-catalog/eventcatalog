@@ -4,10 +4,9 @@ import { ChevronDown, ChevronLeft, ChevronRight, Copy, EllipsisVertical, Pencil,
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import StudioNotice from '../components/StudioNotice.astro';
 import { buildUrl } from '@utils/url-builder';
-import { CANVAS_STATUSES, type CanvasStatus } from '../canvas-doc';
+import { CANVAS_STATUSES, CANVAS_STATUS_LOOK, STATUS, type CanvasStatus } from '@eventcatalog/visualiser/studio';
 import { MAX_TITLE_LENGTH } from '../limits';
 import { MAX_NAME_LENGTH } from '../identity';
-import { CANVAS_STATUS_LOOK, STATUS } from '../components/status';
 import { CANVASES_API_PATH } from '../api/canvases-api';
 import { startStudio, type CanvasSummary } from '../server/runtime';
 import { getSignedInUser, isSignedIn } from '../server/sign-in';

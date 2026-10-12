@@ -4,7 +4,8 @@ import {
   normalizeOwners,
   HIDDEN_HANDLE_STYLE,
 } from "../OwnerIndicator";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../../utils/node-connections";
 import { EventCatalogResource, Channel as ChannelType } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import {
@@ -311,8 +312,7 @@ function DefaultChannel(props: ChannelNode) {
     () => normalizeOwners(data.channel?.owners),
     [data.channel?.owners],
   );
-  const sourceConnections = useNodeConnections({ handleType: "source" });
-  const targetConnections = useNodeConnections({ handleType: "target" });
+  const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
@@ -355,8 +355,8 @@ function DefaultChannel(props: ChannelNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">

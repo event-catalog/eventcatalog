@@ -1,4 +1,4 @@
-import { EdgeLabelRenderer } from "@xyflow/react";
+import { EdgeLabelPortal } from "../utils/flow-portals";
 import type { CSSProperties, ReactNode } from "react";
 import { CROSS_DOMAIN_CLASS } from "./use-cross-domain";
 
@@ -26,7 +26,7 @@ export default function EdgeLabel({
   const lines = String(label).split("\n");
 
   return (
-    <EdgeLabelRenderer>
+    <EdgeLabelPortal>
       <div
         className={`ec-edge-label ${crossDomain ? CROSS_DOMAIN_CLASS : ""} nodrag nopan rounded-md border border-[rgb(var(--ec-page-border))] px-2 py-1 text-center text-[10px] font-medium leading-tight text-[rgb(var(--ec-page-text))] shadow-sm`}
         style={{
@@ -47,6 +47,6 @@ export default function EdgeLabel({
           </div>
         ))}
       </div>
-    </EdgeLabelRenderer>
+    </EdgeLabelPortal>
   );
 }

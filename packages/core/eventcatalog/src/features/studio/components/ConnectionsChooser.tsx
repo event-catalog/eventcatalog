@@ -2,8 +2,7 @@ import { useEffect, useState, type ReactElement } from 'react';
 import { X } from 'lucide-react';
 import type { ConnectionGroup, ConnectionGroupId } from '../canvas-actions';
 import type { CatalogResource } from '../catalog-resources';
-import { getNodeLabel } from '../node-types';
-import { CardPreview } from './ContainerChooser';
+import { getNodeLabel, CardPreview } from '@eventcatalog/visualiser/studio';
 
 /**
  * Asked when a catalog service or message is dropped on the canvas (and connects to things that aren't on it yet):

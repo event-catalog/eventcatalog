@@ -1,9 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import * as Y from 'yjs';
-import { addNodes, getCanvasMaps, readMeta } from '../canvas-doc';
+import { addNodes, getCanvasMaps, readMeta, getAbsolutePosition, type LayoutResult } from '@eventcatalog/visualiser/studio';
 import { applyLayout, playAddToCanvas, playMoveNode, type AgentPresence, type AgentStage } from '../agent-choreography';
-import { getAbsolutePosition } from '../grouping';
-import type { LayoutResult } from '../layout';
 import { catalog } from './catalog-fixture';
 
 const setup = () => {

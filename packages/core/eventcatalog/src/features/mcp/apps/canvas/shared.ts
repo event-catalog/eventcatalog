@@ -1,6 +1,6 @@
 // Shared by the canvas MCP App (client) and the MCP server: no server-only imports here
 import type { CatalogRelation, CatalogResource } from '../../../studio/catalog-resources';
-import type { CanvasStatus } from '../../../studio/canvas-doc';
+import { type CanvasStatus } from '@eventcatalog/visualiser/studio';
 
 export const CANVAS_RESOURCE_URI = 'ui://eventcatalog/canvas.html';
 /** Key of the payload in openCanvas results' `_meta` */
@@ -40,8 +40,8 @@ export type CanvasView = {
   canvasUrl: string;
   /** The EventCatalog MCP server, for "Connect your agent" */
   mcpUrl: string;
-  /** What to call the user on the canvas, when the agent knows their name */
-  userName?: string;
+  /** The chat's agent: the view joins the canvas as it (its name, colour and logo) */
+  agent?: { name: string; color: string };
 };
 
 export type CanvasCatalog = { resources: CatalogResource[]; relations: CatalogRelation[] };

@@ -1,5 +1,18 @@
 import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Bot, Link2, MoreVertical, Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
+import {
+  CircleHelp,
+  Download,
+  FolderOpen,
+  ImageDown,
+  Link2,
+  MoreVertical,
+  Pencil,
+  Plug,
+  Plus,
+  Share2,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import {
   DIAGRAM_MENU,
   DIAGRAM_MENU_BUTTON_ICON,
@@ -9,26 +22,37 @@ import {
   DIAGRAM_MENU_TITLE,
 } from '@eventcatalog/visualiser';
 import { usePeople, type Peer, type PresenceStore } from '../hooks/presence-store';
+import { MAX_NAME_LENGTH, PERSON_COLORS } from '../identity';
 import type { WebMcpStatus } from '../hooks/use-canvas-webmcp';
 import type { Status, Transport } from '../hooks/use-studio-flow';
-import type { CanvasStatus, StatusChange } from '../canvas-doc';
+import { type CanvasStatus, type StatusChange, STATUS, Picture, AgentMark } from '@eventcatalog/visualiser/studio';
 import CanvasStatusMenu from './CanvasStatusMenu';
-import { CONNECTION_DOT, STATUS } from './status';
-import Picture from './Picture';
+
+/** The dot showing whether the canvas is connected */
+const CONNECTION_DOT: Record<Status, string> = {
+  connected: STATUS.success.dot,
+  connecting: STATUS.warning.dot,
+  disconnected: STATUS.danger.dot,
+};
 
 /**
- * The canvas's header: two small bars over the canvas. On the left the canvas (its title, and a menu), on the right
- * who's here, connecting an agent and sharing. They look like the visualiser's menu at the top left of a diagram
- * (its styles, `DIAGRAM_MENU_*`), so a diagram opened in Studio feels the same.
+ * The canvas's header, as Studio on the web's top bar: on the left the canvas (its title, its status and a menu), on
+ * the right who's here, connecting an agent and sharing, each a small card over the canvas. Its menus look like the
+ * visualiser's (`DIAGRAM_MENU_*`).
  */
 
 const barClass =
-  'pointer-events-auto flex h-[42px] items-center rounded-md border bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))]';
+  'pointer-events-auto flex h-[38px] items-center rounded-[9px] border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-sm';
 // The header lets the pointer through to the canvas around its bars, so its menus take it back
 const popoverClass = 'pointer-events-auto absolute top-full mt-2';
 const menuClass = `${popoverClass} ${DIAGRAM_MENU}`;
 const menuItemClass = `${DIAGRAM_MENU_ITEM} w-full text-left`;
 const MAX_AVATARS = 4;
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+const MOD = isMac ? 'Cmd' : 'Ctrl';
+const itemClass =
+  'flex h-[34px] w-full cursor-pointer items-center gap-3 rounded-[7px] px-2 text-left text-sm outline-none hover:bg-[rgb(var(--ec-content-hover))]';
+const itemIconClass = 'flex flex-none [&_svg]:h-[17px] [&_svg]:w-[17px] [&_svg]:stroke-[1.75]';
 
 /** Closes a popover on outside clicks and Escape */
 function usePopover() {
@@ -56,7 +80,7 @@ function Avatar({ peer, size = 28, children }: { peer: Peer; size?: number; chil
       className="relative flex items-center justify-center rounded-full text-[11px] font-semibold text-white ring-2 ring-[rgb(var(--ec-card-bg))]"
       style={{ backgroundColor: peer.color, width: size, height: size }}
     >
-      {children ?? (peer.agent ? <Bot size={14} /> : peer.name.slice(0, 2).toUpperCase())}
+      {children ?? (peer.agent ? <AgentMark name={peer.name} size={14} /> : peer.name.slice(0, 2).toUpperCase())}
       {!children && <Picture src={peer.picture} />}
     </span>
   );
@@ -69,15 +93,33 @@ function CanvasMenu({
   onRetitle,
   shareUrl,
   newCanvasUrl,
+  onConnectAgent,
+  webMcp,
+  agentsHere,
   onDelete,
+  onOpenFile,
+  onSaveToFile,
+  onExportImage,
+  onLiveCollaboration,
+  onHelp,
   children,
 }: {
+  /** Opens a .eventcatalog file as a new canvas (not offered when not given, e.g. inside a chat) */
+  onOpenFile?: () => void;
+  onSaveToFile: () => void;
+  onExportImage: () => void;
+  onLiveCollaboration: () => void;
+  onHelp: () => void;
   title?: string;
   status: Status;
   transport: Transport;
   onRetitle: (title: string) => void;
   shareUrl?: string;
   newCanvasUrl?: string;
+  onConnectAgent: () => void;
+  webMcp: WebMcpStatus;
+  /** An AI agent is on the canvas */
+  agentsHere: boolean;
   /** Asks to delete the canvas (not offered when not given, e.g. inside a chat) */
   onDelete?: () => void;
   /** Shown after the title (the canvas's status) */
@@ -92,10 +134,29 @@ function CanvasMenu({
     disconnected: 'Offline, reconnecting…',
   }[status];
   const statusColor = CONNECTION_DOT[status];
+  /** A menu item, as Studio on the web's: its icon, what it does, and its shortcut (or something else on the right) */
+  const item = (icon: ReactNode, label: string, onSelect: () => void, shortcut?: ReactNode, className = '') => (
+    <button
+      type="button"
+      className={`${itemClass} ${className}`}
+      onClick={() => {
+        menu.setOpen(false);
+        onSelect();
+      }}
+    >
+      <span className={itemIconClass}>{icon}</span>
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {typeof shortcut === 'string' ? (
+        <span className="flex-none text-xs font-normal text-[rgb(var(--ec-page-text-muted))]">{shortcut}</span>
+      ) : (
+        shortcut
+      )}
+    </button>
+  );
 
   return (
     <div ref={menu.ref} className="relative">
-      <div className={`${barClass} gap-1.5 pl-4 pr-1.5`}>
+      <div className={`${barClass} gap-1.5 pl-3 pr-1`}>
         <span title={statusLabel} className={`h-2 w-2 shrink-0 rounded-full ${statusColor}`} />
         <input
           ref={titleInput}
@@ -121,48 +182,45 @@ function CanvasMenu({
         </button>
       </div>
       {menu.open && (
-        <div className={`${menuClass} left-0`}>
-          <button
-            className={menuItemClass}
-            onClick={() => {
-              menu.setOpen(false);
-              titleInput.current?.focus();
-              titleInput.current?.select();
-            }}
-          >
-            <Pencil className={DIAGRAM_MENU_ITEM_ICON} /> Rename canvas
-          </button>
-          <button
-            className={menuItemClass}
-            onClick={() => {
-              void navigator.clipboard.writeText(shareUrl ?? window.location.href);
-              menu.setOpen(false);
-            }}
-          >
-            <Link2 className={DIAGRAM_MENU_ITEM_ICON} /> Copy link
-          </button>
+        <div
+          className={`${popoverClass} left-0 z-50 w-72 rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-1.5 text-[rgb(var(--ec-page-text))] shadow-xl`}
+        >
+          {/* As Studio on the web's menu: files and images, people and agents, help */}
+          {onOpenFile && item(<FolderOpen />, 'Open…', onOpenFile, `${MOD}+O`)}
+          {item(<Download />, 'Save to file…', onSaveToFile, `${MOD}+S`)}
+          {item(<ImageDown />, 'Export image…', onExportImage, `${MOD}+Shift+E`)}
+          {item(<Users />, 'Live collaboration…', onLiveCollaboration)}
+          {item(
+            <Plug />,
+            agentsHere ? 'AI agent connected' : 'Connect your AI agent…',
+            onConnectAgent,
+            webMcp.state === 'on' || agentsHere ? (
+              <span className={`h-1.5 w-1.5 rounded-full ${STATUS.success.dot}`} />
+            ) : undefined
+          )}
+          {item(<CircleHelp />, 'Help', onHelp, '?')}
+          <div className="my-1.5 h-px bg-[rgb(var(--ec-page-border))]" />
+          {item(<Pencil />, 'Rename canvas', () => {
+            titleInput.current?.focus();
+            titleInput.current?.select();
+          })}
+          {item(<Link2 />, 'Copy link', () => void navigator.clipboard.writeText(shareUrl ?? window.location.href))}
           {newCanvasUrl && (
-            <a className={menuItemClass} href={newCanvasUrl}>
-              <Plus className={DIAGRAM_MENU_ITEM_ICON} /> New canvas
+            <a className={itemClass} href={newCanvasUrl}>
+              <span className={itemIconClass}>
+                <Plus />
+              </span>
+              <span className="min-w-0 flex-1 truncate">New canvas</span>
             </a>
           )}
           {onDelete && (
             <>
-              <div className={DIAGRAM_MENU_SEPARATOR} />
-              <button
-                // Laid out like the other items, in the theme's danger colour
-                className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${STATUS.danger.text} ${STATUS.danger.hover}`}
-                onClick={() => {
-                  menu.setOpen(false);
-                  onDelete();
-                }}
-              >
-                <Trash2 className="h-3.5 w-3.5 shrink-0" /> Delete canvas
-              </button>
+              <div className="my-1.5 h-px bg-[rgb(var(--ec-page-border))]" />
+              {item(<Trash2 />, 'Delete canvas', onDelete, undefined, `${STATUS.danger.text} ${STATUS.danger.hover}`)}
             </>
           )}
-          <div className={DIAGRAM_MENU_SEPARATOR} />
-          <p className="flex items-center gap-2 px-3 py-1.5 text-[11px] text-[rgb(var(--ec-page-text-muted))]">
+          <div className="my-1.5 h-px bg-[rgb(var(--ec-page-border))]" />
+          <p className="flex items-center gap-2 px-2 py-1.5 text-[11px] text-[rgb(var(--ec-page-text-muted))]">
             <span className={`h-1.5 w-1.5 rounded-full ${statusColor}`} />
             {statusLabel}
           </p>
@@ -172,50 +230,106 @@ function CanvasMenu({
   );
 }
 
-/** You: change the name others see you by (unless you're signed in, when it's the name you signed in with) */
-function YouAvatar({ peer, onRename }: { peer: Peer; onRename?: (name: string) => void }) {
-  const popover = usePopover();
-  const [draft, setDraft] = useState(peer.name);
-  const commit = () => {
-    const trimmed = draft.trim();
-    if (trimmed && trimmed !== peer.name) onRename?.(trimmed);
-    popover.setOpen(false);
-  };
+const initialsOf = (name: string) => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  return (words.length > 1 ? words.map((word) => word[0]).join('') : name.trim()).slice(0, 2).toUpperCase();
+};
 
-  // Signed in: you're shown in the app's header already
-  if (!onRename) return null;
+/**
+ * Who you are here, top right (as Studio on the web's): your avatar, opening your name and colour to change. They're
+ * on your pointer and comments. Signed in, your name and picture are the ones you signed in with.
+ */
+function ProfileMenu({
+  me,
+  onRename,
+  onRecolor,
+}: {
+  me: { name: string; color: string; picture?: string; agent?: boolean };
+  /** Not given when you're signed in */
+  onRename?: (name: string) => void;
+  onRecolor: (color: string) => void;
+}) {
+  const popover = usePopover();
+  const [draft, setDraft] = useState(me.name);
+  useEffect(() => setDraft(me.name), [me.name]);
+  const save = () => {
+    const next = draft.trim();
+    if (!next) return setDraft(me.name);
+    if (next !== me.name) onRename?.(next);
+  };
+  const avatar = (size: string, text: string) => (
+    <span
+      className={`relative flex ${size} flex-none items-center justify-center rounded-full text-[10px] font-semibold text-white`}
+      style={{ background: me.color }}
+    >
+      {initialsOf(text)}
+      <Picture src={me.picture} />
+    </span>
+  );
+  // Here as an AI agent (e.g. a chat's view, as the chat's agent): who you are is its logo, not yours to change
+  if (me.agent)
+    return (
+      <span title={`You're here as ${me.name} (AI agent)`} className={`${barClass} pointer-events-auto w-[38px] justify-center`}>
+        <span className="flex h-6 w-6 items-center justify-center rounded-full text-white" style={{ background: me.color }}>
+          <AgentMark name={me.name} size={14} />
+        </span>
+      </span>
+    );
   return (
-    <div ref={popover.ref} className="relative">
+    <div ref={popover.ref} className="pointer-events-auto relative">
       <button
-        title={`${peer.name} (you)`}
-        onClick={() => {
-          setDraft(peer.name);
-          popover.setOpen((open) => !open);
-        }}
-        className="block rounded-full transition-transform hover:scale-110"
+        type="button"
+        title={onRename ? `${me.name}: change your name and colour` : `${me.name}: change your colour`}
+        onClick={() => popover.setOpen((open) => !open)}
+        className={`${barClass} w-[38px] justify-center hover:bg-[rgb(var(--ec-content-hover))]`}
       >
-        <Avatar peer={peer} />
+        {avatar('h-6 w-6', me.name)}
       </button>
       {popover.open && (
         <div
-          className={`${popoverClass} right-0 z-50 w-60 space-y-2 rounded-lg border p-3 shadow-xl bg-[rgb(var(--ec-page-bg))] border-[rgb(var(--ec-page-border))]`}
+          className={`${popoverClass} right-0 z-[70] w-72 rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] p-4 text-[rgb(var(--ec-page-text))] shadow-xl`}
         >
-          <label className="block space-y-1.5 text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))]">
-            Your name on this canvas
-            <input
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && commit()}
-              className="w-full rounded-md border px-2 py-1.5 text-xs bg-[rgb(var(--ec-input-bg))] border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-input-text))]"
-            />
-          </label>
-          <button
-            onClick={commit}
-            className="w-full rounded-md px-2 py-1.5 text-xs font-medium bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))]"
-          >
-            Save
-          </button>
+          <div className="flex items-center gap-3">
+            {avatar('h-9 w-9 text-xs', draft || me.name)}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{draft || me.name}</p>
+              <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">On your pointer and comments</p>
+            </div>
+          </div>
+          {onRename && (
+            <label className="mt-4 block text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">
+              Your name
+              <input
+                value={draft}
+                maxLength={MAX_NAME_LENGTH}
+                onChange={(event) => setDraft(event.target.value)}
+                onBlur={save}
+                onKeyDown={(event) => event.key === 'Enter' && event.currentTarget.blur()}
+                className="mt-1.5 block h-9 w-full rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-3 text-sm text-[rgb(var(--ec-page-text))] outline-none focus:border-[rgb(var(--ec-accent))]"
+              />
+            </label>
+          )}
+          <div className="mt-3 text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">
+            Your colour
+            <div role="radiogroup" aria-label="Your colour" className="mt-2 flex gap-2">
+              {PERSON_COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  role="radio"
+                  aria-checked={color === me.color}
+                  aria-label={color}
+                  onClick={() => onRecolor(color)}
+                  className={`h-6 w-6 rounded-full transition-transform hover:scale-110 ${
+                    color === me.color
+                      ? 'ring-2 ring-[rgb(var(--ec-page-text))] ring-offset-2 ring-offset-[rgb(var(--ec-card-bg))]'
+                      : ''
+                  }`}
+                  style={{ background: color }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -223,20 +337,34 @@ function YouAvatar({ peer, onRename }: { peer: Peer; onRename?: (name: string) =
 }
 
 /** Who's here: click someone to jump to them; everyone past the first few is in a list */
+/**
+ * Who else is here. An agent is shown once, however many places it's in (e.g. its MCP tools and its chat's canvas
+ * view), and not at all when it's you.
+ */
+const othersHere = (peers: Peer[], clientId: number | null, me: { name: string; agent?: boolean }) => {
+  const agentsSeen = new Set(me.agent ? [me.name] : []);
+  return peers.filter((peer) => {
+    if (peer.clientId === clientId) return false;
+    if (!peer.agent) return true;
+    if (agentsSeen.has(peer.name)) return false;
+    agentsSeen.add(peer.name);
+    return true;
+  });
+};
+
 function People({
   peers,
   clientId,
+  me,
   onJumpTo,
-  onRename,
 }: {
   peers: Peer[];
   clientId: number | null;
+  me: { name: string; agent?: boolean };
   onJumpTo: (peer: Peer) => void;
-  onRename?: (name: string) => void;
 }) {
   const overflow = usePopover();
-  const you = peers.find((peer) => peer.clientId === clientId);
-  const others = peers.filter((peer) => peer.clientId !== clientId);
+  const others = othersHere(peers, clientId, me);
   const shown = others.slice(0, MAX_AVATARS);
   const hidden = others.slice(MAX_AVATARS);
   const describe = (peer: Peer) => `${peer.name}${peer.agent ? ` (AI agent)${peer.activity ? `: ${peer.activity}` : ''}` : ''}`;
@@ -283,7 +411,6 @@ function People({
           </div>
         )}
       </div>
-      {you && <YouAvatar peer={you} onRename={onRename} />}
     </div>
   );
 }
@@ -296,12 +423,19 @@ export default memo(function CanvasHeader({
   presence,
   clientId,
   onJumpTo,
+  me,
   onRename,
+  onRecolor,
   onConnectAgent,
   webMcp,
   shareUrl,
   newCanvasUrl,
   onShare,
+  onOpenFile,
+  onSaveToFile,
+  onExportImage,
+  onLiveCollaboration,
+  onHelp,
   canvasStatus,
   statusHistory,
   onStatusChange,
@@ -317,24 +451,33 @@ export default memo(function CanvasHeader({
   presence: PresenceStore | null;
   clientId: number | null;
   onJumpTo: (peer: Peer) => void;
+  /** You: your name, colour and (signed in) picture */
+  me: { name: string; color: string; picture?: string; agent?: boolean };
   /** Not given when you're signed in */
   onRename?: (name: string) => void;
+  onRecolor: (color: string) => void;
   onConnectAgent: () => void;
   webMcp: WebMcpStatus;
   shareUrl?: string;
   newCanvasUrl?: string;
   /** Open the share dialog */
   onShare: () => void;
+  /** Opens a .eventcatalog file as a new canvas (not given where it can't, e.g. inside a chat) */
+  onOpenFile?: () => void;
+  onSaveToFile: () => void;
+  onExportImage: () => void;
+  onLiveCollaboration: () => void;
+  onHelp: () => void;
   /** Ask to delete the canvas (not given where it can't be, e.g. inside a chat) */
   onDelete?: () => void;
 }) {
   const peers = usePeople(presence);
   const agentsHere = peers.some((peer) => peer.agent);
-  // Nobody else here, and signed in (so not shown as "you" to rename): no list of people
-  const showPeople = !!onRename || peers.some((peer) => peer.clientId !== clientId);
+  // Who else is here (you're your own avatar, next to it)
+  const showPeople = othersHere(peers, clientId, me).length > 0;
 
   return (
-    <div className="pointer-events-none absolute left-4 right-4 top-4 z-10 flex items-start justify-between gap-3">
+    <div className="pointer-events-none absolute left-3 right-3 top-3 z-10 flex items-start justify-between gap-3">
       <CanvasMenu
         title={title}
         status={status}
@@ -342,43 +485,31 @@ export default memo(function CanvasHeader({
         onRetitle={onRetitle}
         shareUrl={shareUrl}
         newCanvasUrl={newCanvasUrl}
+        onConnectAgent={onConnectAgent}
+        webMcp={webMcp}
+        agentsHere={agentsHere}
         onDelete={onDelete}
+        onOpenFile={onOpenFile}
+        onSaveToFile={onSaveToFile}
+        onExportImage={onExportImage}
+        onLiveCollaboration={onLiveCollaboration}
+        onHelp={onHelp}
       >
         <CanvasStatusMenu status={canvasStatus} history={statusHistory} onChange={onStatusChange} />
       </CanvasMenu>
 
-      <div className={`${barClass} gap-2 px-1.5`}>
+      <div className="flex items-center gap-2">
         {showPeople && (
-          <>
-            <div className="pl-1">
-              <People peers={peers} clientId={clientId} onJumpTo={onJumpTo} onRename={onRename} />
-            </div>
-            <div className="h-5 w-px bg-[rgb(var(--ec-page-border))]" />
-          </>
+          <div className={`${barClass} px-1.5`}>
+            <People peers={peers} clientId={clientId} me={me} onJumpTo={onJumpTo} />
+          </div>
         )}
-        <button
-          onClick={onConnectAgent}
-          title={
-            webMcp.state === 'on'
-              ? `Connect an AI agent to this canvas. WebMCP is on in this tab${webMcp.lastCall ? ` (last: ${webMcp.lastCall})` : ''}`
-              : 'Connect an AI agent to this canvas'
-          }
-          // A button of its own next to Share (the two ways to bring someone in): people, or an AI agent
-          className="relative flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold transition-colors border-[rgb(var(--ec-accent)/0.35)] bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))] hover:border-[rgb(var(--ec-accent)/0.7)] hover:bg-[rgb(var(--ec-accent)/0.15)]"
-        >
-          <Bot size={15} />
-          {agentsHere ? 'Agent connected' : 'Connect agent'}
-          {(webMcp.state === 'on' || agentsHere) && (
-            <span
-              className={`absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full ring-2 ring-[rgb(var(--ec-card-bg))] ${STATUS.success.dot}`}
-            />
-          )}
-        </button>
+        <ProfileMenu me={me} onRename={onRename} onRecolor={onRecolor} />
         <button
           onClick={onShare}
-          className="flex h-7 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
+          className="pointer-events-auto inline-flex h-[38px] items-center gap-2 rounded-[9px] bg-[rgb(var(--ec-page-text))] px-4 text-sm font-semibold text-[rgb(var(--ec-page-bg))] shadow-sm transition-colors hover:bg-[rgb(var(--ec-page-text)/0.85)]"
         >
-          <UserPlus size={14} />
+          <Share2 size={16} aria-hidden />
           Share
         </button>
       </div>

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { MAX_TITLE_LENGTH } from '../limits';
 import Dialog, { PRIMARY_BUTTON, SECONDARY_BUTTON } from './Dialog';
-import { STATUS } from './status';
+import { STATUS } from '@eventcatalog/visualiser/studio';
 
 /**
  * Naming the canvas a diagram is opened in (the visualiser's "Open in Studio"), named after the diagram to start

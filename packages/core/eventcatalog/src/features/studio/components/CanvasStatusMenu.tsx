@@ -1,9 +1,13 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import { DIAGRAM_MENU, DIAGRAM_MENU_ITEM, DIAGRAM_MENU_SEPARATOR } from '@eventcatalog/visualiser';
-import { CANVAS_STATUSES, type CanvasStatus, type StatusChange } from '../canvas-doc';
-import { timeAgo } from './Comments';
-import { CANVAS_STATUS_LOOK } from './status';
+import {
+  CANVAS_STATUSES,
+  type CanvasStatus,
+  type StatusChange,
+  timeAgo,
+  CANVAS_STATUS_LOOK,
+} from '@eventcatalog/visualiser/studio';
 
 /** Status changes shown in the menu, newest first */
 const HISTORY_SHOWN = 8;

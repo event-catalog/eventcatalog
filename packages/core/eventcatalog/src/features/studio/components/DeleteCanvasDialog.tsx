@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { usePeople, type PresenceStore } from '../hooks/presence-store';
 import Dialog, { SECONDARY_BUTTON } from './Dialog';
-import { STATUS } from './status';
+import { STATUS } from '@eventcatalog/visualiser/studio';
 
 /** Asks before deleting a canvas: it's deleted for everyone, for good */
 export default function DeleteCanvasDialog({

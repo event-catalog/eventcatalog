@@ -5,17 +5,15 @@ import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate, removeAwareness
 import type { XYPosition } from '@xyflow/react';
 import type { AgentPresence } from '../agent-choreography';
 import {
-  CANVAS_DELETED_REASON,
   addCanvasContent,
-  canvasDocumentName,
-  canvasIdFromDocumentName,
   getCanvasMaps,
   readMeta,
   setMeta,
   getCanvasStatus,
   type CanvasContent,
   type CanvasStatus,
-} from '../canvas-doc';
+} from '@eventcatalog/visualiser/studio';
+import { CANVAS_DELETED_REASON, canvasDocumentName, canvasIdFromDocumentName } from '../document-name';
 import { getCanvasPreview, type CanvasPreview } from '../canvas-preview';
 import { MAX_TITLE_LENGTH } from '../limits';
 import { fromBase64, toBase64, type SyncRequest, type SyncResponse } from '../tool-sync';
@@ -33,7 +31,8 @@ const AGENT_PRESENCE_TTL_MS = 25_000;
 // Application close codes are 4000-4999
 const CANVAS_DELETED_CLOSE_CODE = 4410;
 
-export type AgentIdentity = { name: string; color: string };
+import type { AgentIdentity } from '../agents';
+export type { AgentIdentity };
 export type CanvasSummary = {
   canvasId: string;
   title?: string;

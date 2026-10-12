@@ -17,7 +17,8 @@ vi.mock("@xyflow/react", () => ({
     Left: "left",
     Right: "right",
   },
-  useNodeConnections: () => [],
+  useNodeId: () => "channel",
+  useStore: () => 0,
 }));
 
 describe("ChannelNode", () => {

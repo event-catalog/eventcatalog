@@ -14,7 +14,11 @@ import {
   setMeta,
   type Author,
   type CommentAnchor,
-} from './canvas-doc';
+  getAbsolutePosition,
+  sizeOf,
+  type LayoutResult,
+  getNodeName,
+} from '@eventcatalog/visualiser/studio';
 import {
   describeNode,
   nodeCenter,
@@ -28,9 +32,6 @@ import {
   type NodeUpdate,
 } from './canvas-actions';
 import { getRelatedEdges } from './catalog';
-import { getAbsolutePosition, sizeOf } from './grouping';
-import type { LayoutResult } from './layout';
-import { getNodeName } from './node-types';
 
 /**
  * Agents work on a canvas like a person would: their cursor travels to where they're going, they drop one node,

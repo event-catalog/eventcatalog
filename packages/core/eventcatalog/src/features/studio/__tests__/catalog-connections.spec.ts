@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildNode } from '../canvas-doc';
+import { buildNode } from '@eventcatalog/visualiser/studio';
 import { buildContainer, catalogNodeData, getCatalogLink } from '../catalog';
 import { getCatalogConnections, nodeCenter, planWithConnections } from '../canvas-actions';
 import { catalog, resourceByKey } from './catalog-fixture';

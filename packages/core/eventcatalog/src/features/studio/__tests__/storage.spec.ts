@@ -3,7 +3,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import * as Y from 'yjs';
-import { addNodes, buildNode, canvasDocumentName, getCanvasMaps, readMeta, setMeta } from '../canvas-doc';
+import { addNodes, buildNode, getCanvasMaps, readMeta, setMeta } from '@eventcatalog/visualiser/studio';
+import { canvasDocumentName } from '../document-name';
 import { createStorage, memoryStorage, sqliteStorage } from '../server/storage';
 
 const NAME = canvasDocumentName('9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d');

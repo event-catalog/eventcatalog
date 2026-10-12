@@ -2,8 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import type * as Y from 'yjs';
 import { initializeWebMCPPolyfill } from '@mcp-b/webmcp-polyfill';
-import { replyToThread, setThreadResolved, type Author, CANVAS_STATUSES, setCanvasStatus } from '../canvas-doc';
-import { CATALOG_COLLECTIONS } from '../node-types';
+import {
+  replyToThread,
+  setThreadResolved,
+  type Author,
+  CANVAS_STATUSES,
+  setCanvasStatus,
+  CATALOG_COLLECTIONS,
+} from '@eventcatalog/visualiser/studio';
 import {
   ADD_TO_CANVAS_DESCRIPTION,
   describeCanvas,
@@ -284,7 +290,7 @@ const createCanvasTools = (get: () => CanvasWebMcpOptions, getStage: () => Agent
       name: 'layout_canvas',
       title: 'Tidy the canvas',
       description:
-        "Lays the whole canvas out again with EventCatalog's visualiser layout (left to right, connections routed around nodes), for everyone on it. It moves everything, including what people placed themselves, so only use it when the user asks to tidy up: add_to_canvas already places what you add next to what it connects to.",
+        "Lays the whole canvas out again with EventCatalog's visualiser layout (left to right, connections routed around nodes), for everyone on it. Call it once when you finish a round of changes, before you hand back to the user, so the canvas is tidy for everyone, and whenever the user asks to tidy up. Don't call it after every change (add_to_canvas already places what you add next to what it connects to while you work), and skip it if the user asked to keep the layout as it is: it moves everything, including what people placed themselves.",
       input: z.object({}),
       execute: async () => {
         await get().reorder();

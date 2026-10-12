@@ -1,5 +1,6 @@
 import { memo } from "react";
-import { useInternalNode, ViewportPortal } from "@xyflow/react";
+import { useInternalNode } from "@xyflow/react";
+import { CanvasPortal } from "../utils/flow-portals";
 
 const BADGE_SIZE = 30;
 
@@ -46,7 +47,7 @@ export default memo(function WalkthroughBadges({ trail }: { trail: string[] }) {
   trail.forEach((nodeId, index) => numbers.set(nodeId, index + 1));
   const current = trail[trail.length - 1];
   return (
-    <ViewportPortal>
+    <CanvasPortal>
       {[...numbers].map(([nodeId, number]) => (
         <Badge
           key={nodeId}
@@ -55,6 +56,6 @@ export default memo(function WalkthroughBadges({ trail }: { trail: string[] }) {
           current={nodeId === current}
         />
       ))}
-    </ViewportPortal>
+    </CanvasPortal>
   );
 });

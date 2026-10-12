@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Wrench } from "lucide-react";
-import { Handle, Node, Position, useNodeConnections } from "@xyflow/react";
+import { Handle, Node, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../utils/node-connections";
 import { EventCatalogResource } from "../types";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 import { LINE_CLAMP_STYLE, useDarkMode, HANDLE_GLOW } from "./shared-styles";
@@ -77,8 +78,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
 function AgentTool(props: AgentToolNode) {
   const { name, type, icon, url, description } = props.data.agentTool;
   const customIcon = isIconPath(icon) ? icon : undefined;
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
 
   return (
     <div
@@ -101,8 +101,8 @@ function AgentTool(props: AgentToolNode) {
         position={Position.Right}
         style={HIDDEN_HANDLE_STYLE}
       />
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
         <span className="inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm bg-violet-500">

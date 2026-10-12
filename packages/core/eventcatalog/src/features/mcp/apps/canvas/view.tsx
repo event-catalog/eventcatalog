@@ -15,7 +15,8 @@ import type { App } from '@modelcontextprotocol/ext-apps';
 import styles from './styles.css?inline';
 import visualiserStyles from '@eventcatalog/visualiser/styles.css?inline';
 import StudioDesigner, { type SelectedNode } from '@features/studio/components/StudioDesigner';
-import { CANVAS_STATUS_LOOK, STATUS } from '@features/studio/components/status';
+import { getAgent } from '@features/studio/agents';
+import { CANVAS_STATUS_LOOK, STATUS } from '@eventcatalog/visualiser/studio';
 import { getToolResultPayload, mountView, useMcpAppView } from '../shared/app-view';
 import {
   CANVAS_CATALOG_TOOL,
@@ -212,10 +213,10 @@ function CanvasApp() {
   const iconButton =
     'flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-page-border)/0.5)]';
 
-  // No join form inside a chat: use the name the agent passed, or name them after the chat they're in
+  // No join form inside a chat: it joins as the chat's agent (e.g. ChatGPT or Claude, with its logo), as the agent
+  // working on the canvas does, else as the chat it's in
   const hostName = app?.getHostVersion()?.name;
-  const userName = (view: CanvasView) =>
-    view.userName ?? `${hostName ? hostName.replace(/^\w/, (letter) => letter.toUpperCase()) : 'Chat'} user`;
+  const agentOf = (view: CanvasView) => view.agent ?? getAgent(undefined, hostName);
 
   return (
     <div className="flex flex-col" style={{ height: fullscreen ? '100vh' : INLINE_HEIGHT }}>
@@ -255,11 +256,12 @@ function CanvasApp() {
             shareUrl={canvas.canvasUrl}
             mcpUrl={canvas.mcpUrl}
             syncViaTools={syncViaTools}
-            defaultName={userName(canvas)}
+            asAgent={agentOf(canvas)}
             resources={catalog.resources}
             relations={catalog.relations}
             onSelectionChange={setSelection}
             followChanges
+            paletteCollapsed
           />
         ) : (
           <CanvasPicker

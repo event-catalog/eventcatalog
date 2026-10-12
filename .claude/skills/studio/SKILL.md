@@ -1,21 +1,29 @@
 ---
 name: studio
-description: Constraints, performance rules and conventions for EventCatalog Studio, the collaborative canvas at /studio where people and AI agents design together (Yjs + Hocuspocus + React Flow, MCP and WebMCP agents). Automatically applies when changing anything under packages/core/eventcatalog/src/features/studio/, the canvas MCP App, or the Studio routes and nav item. Use it to implement, review or debug Studio code without regressing real-time collaboration or rendering performance.
+description: Constraints, performance rules and conventions for Studio, the collaborative canvas where people and AI agents design together (Yjs + React Flow), in both products that have it: EventCatalog's Studio at /studio (Hocuspocus, MCP and WebMCP agents) and Studio on the web (apps/studio-web, a public MCP server and canvas with encrypted live sessions), and the canvas they share (@eventcatalog/visualiser/studio). Automatically applies when changing packages/visualiser/src/studio/, packages/core/eventcatalog/src/features/studio/, the canvas MCP App, the Studio routes and nav item, or apps/studio-web. Use it to implement, review, profile or debug Studio code without regressing real-time collaboration or rendering performance.
 globs:
   - packages/core/eventcatalog/src/features/studio/**
+  - packages/visualiser/src/studio/**
+  - apps/studio-web/**
   - packages/core/eventcatalog/src/features/mcp/apps/canvas/**
   - packages/core/eventcatalog/integrations/studio-server.mjs
 ---
 
-# EventCatalog Studio
+# Studio
 
 Studio is a live canvas: every change one person makes reaches everyone else, and AI agents work on it like
 people (their own pointer, one step at a time). Most code here runs on every pointer move, every drag frame or
 every incoming update from someone else, so small mistakes multiply across everyone on the canvas. Read this
 before changing Studio, and check the rules that apply to your change.
 
-Studio must look and behave like EventCatalog's visualiser: follow the `visualiser-studio-parity` skill
-(`.claude/skills/visualiser-studio-parity/SKILL.md`) for what has to match and how to compare them.
+There are two products with one canvas:
+- **EventCatalog's Studio** (`packages/core`, `/studio` in a catalog): canvases stored by the catalog, shared live
+  through Hocuspocus, with catalog resources, sign-in, statuses and agents over MCP and WebMCP.
+- **Studio on the web** (`apps/studio-web`, MIT): a public, no-login MCP server and canvas, kept in each browser,
+  shared live through an end-to-end encrypted relay that stores nothing, and shown inside chats as an MCP App.
+
+What both use lives in the visualiser (`@eventcatalog/visualiser/studio`). **Every Studio change is verified in
+both products** (AGENTS.md): their tests, their types, and each in the browser.
 
 Also follow the `visualiser-performance` skill: Studio renders the visualiser's nodes and edges with React Flow,
 and the same rules apply (stable `<ReactFlow>` props, memoised nodes, no `nodes`/`edges` in dependency arrays).
@@ -24,24 +32,38 @@ How to measure and verify a change: [references/verification.md](references/veri
 
 ## Where things are
 
-`packages/core/eventcatalog/src/features/studio/`:
+Studio's canvas is shared with Studio on the web (`apps/studio-web`): the parts both use are in the visualiser,
+`packages/visualiser/src/studio/`, exported as `@eventcatalog/visualiser/studio` (and its styles as
+`@eventcatalog/visualiser/studio.css`). A change there changes both: run the visualiser's tests
+(`src/studio/__tests__/`), core's Studio tests and the web app's (`pnpm --filter @eventcatalog/studio-web test`), and
+rebuild the visualiser (`pnpm --filter @eventcatalog/visualiser build`) before running either app.
+
+| Area (shared, in `packages/visualiser/src/studio/`) | Files |
+|------|-------|
+| Shared document (Yjs maps, reading and writing nodes, edges, comments, hotspots, status, meta) | `canvas-doc.ts` |
+| Keeping each person's state (selection, drags, sizes) as the document changes | `flow-state.ts` |
+| What the others are dragging and editing, shown as they do it (gliding a step a frame) | `presence.ts`, `live-moves.ts`, `smooth.ts` |
+| Overlays that stay the same size on screen as the canvas zooms (pointers, comment pins) | `use-counter-scale.ts` |
+| Node types, sizes and containers | `node-types.ts`, `grouping.ts`, `components/canvas-nodes.tsx`, `components/TeamNode.tsx` |
+| Levels L1, L2, L3 | `levels.ts`, `level-layout.ts`, `layout.ts` |
+| Placing new nodes (people and agents) | `placement.ts` |
+| The tool bar (top) and view controls (bottom left), the palette (with tabs an app adds), comments, hotspots, the edit button, the container chooser, the drag ghost, icons and status colours | `components/` |
+
+`packages/core/eventcatalog/src/features/studio/` (EventCatalog's Studio around the shared canvas):
 
 | Area | Files |
 |------|-------|
-| Shared document (Yjs maps, reading and writing nodes, edges, comments, meta) | `canvas-doc.ts` |
-| Syncing the document into React Flow | `hooks/use-studio-flow.ts`, `flow-state.ts` |
+| The collaboration server's document names | `document-name.ts` |
+| Syncing the document into React Flow | `hooks/use-studio-flow.ts` |
 | Presence (pointers, selections, drags, views) | `hooks/presence-sender.ts`, `hooks/presence-store.ts`, `components/Presence.tsx` |
-| Overlays that stay the same size on screen as the canvas zooms (pointers, comment pins) | `hooks/use-counter-scale.ts` |
-| The canvas page component | `components/StudioDesigner.tsx` (with `LeftPanel`, `PropertiesPanel`, `CanvasHeader`, `CanvasControls`, `Comments`) |
-| Node types, sizes and containers | `node-types.ts`, `grouping.ts`, `components/canvas-nodes.tsx` |
+| The canvas page component | `components/StudioDesigner.tsx` (with `LeftPanel`: the shared `Palette` with Catalog and Comments tabs, `PropertiesPanel`, `CanvasHeader`; the tool bar, view controls, hotspots and edit button are the shared ones, laid out as Studio on the web's) |
 | Catalog resources on the canvas | `catalog-resources.ts` (server), `catalog.ts` |
 | Starting a canvas from a visualiser diagram ("Open in Studio") | `from-visualiser.ts`, wired in `components/MDX/NodeGraph/AstroNodeGraph.tsx` |
-| Levels L1, L2, L3 | `levels.ts`, `layout.ts` |
-| What agents can do (shared by MCP and WebMCP) | `canvas-actions.ts`, `placement.ts`, `agent-choreography.ts` |
+| What agents can do (shared by MCP and WebMCP) | `canvas-actions.ts`, `agent-choreography.ts` |
 | MCP tools and the server runtime | `server/canvas-mcp.ts`, `server/runtime.ts`, `server/tool-icons.ts` |
 | WebMCP (agents in the browser) | `hooks/use-canvas-webmcp.ts`, `pages/webmcp-relay.ts`, `components/ConnectAgentDialog.tsx` |
 | Views that can't open the WebSocket (chat sandboxes) | `tool-sync.ts` |
-| Who you are (your name, kept in this browser, and its colour; shared by the Studio page and canvases), or who you signed in as | `identity.ts`, `components/JoinForm.tsx`, `components/Picture.tsx`, `server/sign-in.ts` |
+| Who you are (your name, kept in this browser, and its colour; shared by the Studio page and canvases), or who you signed in as | `identity.ts`, `components/JoinForm.tsx`, `server/sign-in.ts` (pictures: the shared `Picture`) |
 | Routes | `pages/index.astro` (`/studio` lists the canvases, styled like the catalog's tables; `/studio?new=1` opens New canvas), `pages/[id].astro` (`/studio/<id>`) |
 | The Studio API (`/api/studio/canvases`: list, create, get, copy, delete) | `api/canvases-api.ts` (the Hono app), `api/canvases.ts` (its route), `api/client.ts` (used by Studio's pages) |
 | Storage (Studio's queries; the database, migrations and SQL helpers are the catalog's, in `features/storage/`) | `server/storage.ts`, `server/sql/storage.sql` |
@@ -49,9 +71,27 @@ How to measure and verify a change: [references/verification.md](references/veri
 Outside the folder: the WebSocket server is `integrations/studio-server.mjs`, routes are injected in
 `features/integrations/eventcatalog-features.ts`, the nav item is in `layouts/VerticalSideBarLayout.astro`, and
 the canvas MCP App is `features/mcp/apps/canvas/` (built by `packages/core/scripts/build-mcp-apps.mjs`, which
-bundles Studio's components: rebuild it after changing them).
+bundles Studio's components, with the shared ones: rebuild it after changing them).
 
-## Constraints
+`apps/studio-web/` (Studio on the web, around the same shared canvas):
+
+| Area | Files |
+|------|-------|
+| The server: MCP endpoint, the page, its social image, health | `src/server.ts`, `src/mcp/` (tools, and `register.ts`, ported from core) |
+| The live sessions' relay (WebSockets at `/rooms/:id`: passes encrypted messages, stores nothing, logs counts only) | `src/rooms.ts` |
+| The model agents send (schema, validation, to the visualiser's graph, Mermaid, summary) | `src/model/` |
+| The page (one bundle: the browser page at `/` and the MCP App in chats) | `view/main.tsx`, `view/Diagram.tsx` |
+| The canvas page component, and syncing the document into React Flow | `view/studio/StudioCanvas.tsx`, `view/studio/use-canvas-flow.ts` |
+| A model on the canvas and back (links, files, exports, the agent) | `view/studio/model-canvas.ts` |
+| Live sessions: joining, sync and presence over the relay | `view/collab/room.ts`, and `components/LiveCursors.tsx` |
+| The canvas kept in this browser (and its copy of each live session) | `view/local-canvas.ts` |
+| The agent's diagram built up in front of the user, and its walkthroughs | `view/build/` |
+| Palette, context menu, legend | `view/studio/components/` |
+| Browser tests (Playwright: drags, containers, levels, the node card) | `tests/e2e/`, `pnpm test:e2e` (see [references/studio-web.md](references/studio-web.md)) |
+| Measuring | `scripts/perf/` (see [references/studio-web.md](references/studio-web.md)) |
+| Product analytics (PostHog: kinds and counts, never the canvas) | `view/analytics.ts`, `src/analytics.ts`, `src/lib/stats.ts` (see [references/studio-web.md](references/studio-web.md)) |
+
+## Constraints: EventCatalog's Studio
 
 - **Experimental: dev server, or production with `studio.enabled`.** Everything is behind `isCanvasEnabled()`
   (`@utils/feature`): the dev server, or `output: 'server'` with `studio.enabled: true`; `studio.enabled: false` turns it
@@ -101,14 +141,33 @@ bundles Studio's components: rebuild it after changing them).
   fragmentation). Keep `onLoadDocument` from throwing (hocuspocus#1156 leaves the document half loaded).
 - **Naming:** the feature is Studio (`/studio`, `features/studio`, `StudioDesigner`, `useStudioFlow`,
   `/_eventcatalog/studio`). Don't reintroduce "collab" names; "collaboration" in prose is fine.
-- **Theming:** `ec-*` CSS variables only, no `dark:` variants. Status colours (success, danger, connection dots)
-  come from `components/status.ts`.
+- **Theming:** `ec-*` CSS variables only, no `dark:` variants. Status colours (success, danger, canvas statuses) come
+  from the shared `components/status.ts`; the connection dot is `CanvasHeader`'s.
 - **One implementation of agent actions.** MCP tools (server) and WebMCP tools (browser) share
   `canvas-actions.ts` and `agent-choreography.ts`. Change behaviour there, not in one of the tool files.
 
+## Constraints: Studio on the web
+
+- **No sign-in, and nothing about anyone's architecture is stored or logged.** Canvases live in each browser (local
+  storage), links carry the model in their fragment (never sent to the server), and the relay only passes messages it
+  can't read (AES-GCM with the key from the link's fragment) and logs counts. Keep it that way: no new server storage
+  or logging of content.
+- **MIT, apart from core.** It uses the visualiser (MIT) and must never depend on `@eventcatalog/core` (BUSL).
+- **One page, one file.** The view is built into one self-contained HTML file (`scripts/build-view.mjs`), because the
+  same bundle runs as the MCP App inside chat hosts. No code splitting, no assets from elsewhere (fonts are inlined).
+- **One machine.** Live sessions relay between people connected to the same process (`src/rooms.ts`), so the Fly app
+  runs on one machine until rooms are routed by id. The page is read once at startup (restart after building).
+- **Each browser keeps the session's Yjs document, not just the model** (`saveLocalCanvas` with the doc,
+  `content.doc` in `use-canvas-flow`). A copy started again from the model gave notes and text new ids, so on reload
+  they merged in beside the room's (duplicated), and the copy's older values competed with the room's newer ones.
+  Anything that makes a canvas again from a model inside a live session has the same problem.
+- **Built in the monorepo, deployed on its own** (Docker from the repo root, `.dockerignore` there lists what goes in;
+  see its README).
+
 ## The shared document
 
-- Top level Y.Maps: `nodes`, `edges`, `threads` (comments), `meta`. Each node or edge is one plain object per key,
+- Top level Y.Maps: `nodes`, `edges`, `threads` (comments), `hotspots`, `levelLayouts`, `meta` (title, status, the
+  lock: `lockedBy`, for everyone on the canvas). Each node or edge is one plain object per key,
   so a write replaces the whole object: concurrent writes to the same node are last-writer-wins for the whole
   node. That's acceptable because each write starts from the latest copy (read with `nodes.get(id)` inside the
   transaction), so only edits within one network round trip of each other conflict.
@@ -139,11 +198,22 @@ bundles Studio's components: rebuild it after changing them).
   relative to the container. `fitGroupToChildren` grows a container to fit and, when it grows up or left, moves
   the children the other way so nothing moves on the canvas. Plan positions in canvas coordinates and convert to
   relative at the moment you add a node (see `playAddToCanvas`).
+- **A dragged selection follows the node held by the pointer** (`findDropTargets` in `grouping.ts`): dropped in
+  a container, or out of one, everything selected that it can hold goes too; otherwise each goes where its own
+  middle is, as one node dragged alone does. What's dropped in a container goes in free space there
+  (`placeDropped`: nothing on top of what's in it, kept inside it when there's room, growing down/right rather than
+  up/left when there isn't), and it's saved as one change (`setNodeParents`, the flows' `setParents`): moving them
+  one at a time let the first container fit shift where the next was put. Both Studios' `onNodeDragStop` use these.
 - **Fit containers with rendered sizes in the browser.** The document doesn't know how big cards render, so
   `fitGroupToChildren` / `fitContainersAround` / `setNodeParent` take `RenderedSizes` (`renderedSizes()` in
   `use-studio-flow`); without them (server agents) containers are fitted to each type's largest size and overshoot.
 
 ## Real-time rules
+
+Each product carries presence its own way (EventCatalog's Studio: Yjs awareness through Hocuspocus, `hooks/presence-*`;
+Studio on the web: its own presence messages through the relay, `view/collab/room.ts`), and shows it with the shared
+canvas's pieces (`presence.ts`, `live-moves.ts`, `smooth.ts`). Rules 4, 6 and 10 are EventCatalog's Studio's
+(Hocuspocus, server agents); the rest apply to both.
 
 1. **Never write the document on every drag frame.** Nodes being dragged travel in presence (`moving`, with the
    pointer, in one awareness message) and only the drop is saved, in one transaction, after
@@ -151,48 +221,77 @@ bundles Studio's components: rebuild it after changing them).
    (every overwrite leaves a tombstone) and the undo manager keeps every intermediate copy in memory.
    Server agents do the same (`AgentStage.sharesMoves`). Container resizes still write per tick: fine while
    rare, move them to presence if that changes.
-2. **All presence goes through the presence sender** (`createPresenceSender`, about 30 updates a second, leading
-   and trailing, so the last position always goes out). Never call `awareness.setLocalStateField` per event:
+2. **All presence goes through one throttled sender** (core: `createPresenceSender`; web: `RoomConnection`'s
+   `schedulePresence`), about 30 updates a second while dragging or editing (`DRAG_EVERY_MS`, 33 ms; 50 ms for just
+   the pointer), leading and trailing, so the last position always goes out, and a clear (`null`) straight away. Never call `awareness.setLocalStateField` per event:
    awareness re-sends the whole local state on every change, so separate calls mean separate messages.
+   **Alone on a canvas, core sends once a second** (`ALONE_INTERVAL_MS`, as tldraw does): nobody sees it, and
+   Hocuspocus sends every awareness message back to its sender. Someone arriving flushes what's waiting. Moving the
+   mouse alone went from 90 messages and ~41 ms of JS per 3 seconds to 4 messages and ~16 ms.
 3. **Keep presence small.** Every message carries the whole state (user, pointer, selection, viewport, moving).
    Don't put large or growing data in it.
 4. **Don't null your presence on idle.** Hocuspocus closes clients that send nothing (hocuspocus#1171); awareness
    renews non-null state every 15s. Clearing just the pointer (hidden tab) is fine.
 5. **A node you're dragging keeps your position** when someone else's change for it arrives (`keepDragged`).
-   Someone else's drag is shown from their presence (`withPositions`) until their drop arrives in the document;
-   if it never does (they left mid-drag), it goes back to the saved position after `DROP_SETTLE_MS`.
+   Someone else's drag is shown from their presence (gliding, rule 8, then `withPositions`) until their drop arrives
+   in the document; if it never does (they left mid-drag), it goes back to the saved position after `DROP_SETTLE_MS`.
 6. **Server agent presence expires** after `AGENT_PRESENCE_TTL_MS` (25s, below awareness's 30s timeout) with
    `removeAwarenessStates`. Agent animation frames are presence only; a direct connection is opened per document
    change, so don't add per-frame `stage.change` calls.
-7. **Hidden tabs** send `pointer: null`; coming back (or `online`) calls `provider.connect()` to skip the retry
-   backoff.
+7. **Live edits travel in presence too, and the result goes in the document before the presence is cleared.**
+   What someone's dragging (`moving`), and what they're writing on a note or text, a text's size as they scale it and
+   its angle as they turn it (`editing`), go out with their presence and are shown to the others as they happen
+   (web: `flow.showRemoteMoves`, `flow.showRemoteEdits`, which change only those nodes; on L1 and L2 only the level
+   graph's). When they're done, write the document first, then clear the presence: the other way round, the others
+   see it go back to where it was for a moment. Comment pins and hotspot markers send `moving` with a `kind`
+   (`'comment'`, `'hotspot'`) and their layers read it themselves (`useRemoteMoves`), so only that layer re-renders.
+8. **What others move glides, a step a frame.** Positions arrive about 30 times a second and unevenly; shown as they
+   arrive, what they drag judders for whoever's watching. Everything the others move (nodes, pins, markers,
+   cursors) goes through `createSmoother` (`smooth.ts`): it eases each one to where it was last said to be, every
+   frame (requestAnimationFrame, only while something's gliding), snaps what's new and drops what's let go of
+   straight away. No CSS transitions on top of it: they lag and restart every frame.
+   **It's also what keeps a busy canvas cheap:** however many people drag, the nodes are updated at most once a
+   frame. Core used to `setNodes` on every awareness message: with 7 others dragging, ~5 commits a frame and ~1.2–1.4 s
+   of JS per 3 seconds just watching (dev build); through the smoother ~2 commits a frame and ~0.7 s, and your own drag
+   meanwhile went from ~1.65 s to ~0.9 s. Never apply remote positions straight from a presence handler.
+9. **The lock is document state, not presence** (`setLock` / `getLock`, meta `lockedBy`), so it holds for everyone,
+   including whoever joins later.
+10. **Hidden tabs** (core) send `pointer: null`; coming back (or `online`) calls `provider.connect()` to skip the
+    retry backoff.
 
 ## Rendering rules
 
-1. **Presence never goes through React state at the canvas level.** `presence-store` wraps awareness for
-   `useSyncExternalStore`. Use `usePeople` (changes only on join, leave, rename, or an agent's activity) for lists
-   of who's here; subscribe per peer for anything that moves.
-2. **Remote pointers move outside React.** `PeerPointer` subscribes to the store and writes
-   `transform: translate() scale()` itself, gliding to each update over the time since the previous one. Don't
+1. **Presence never goes through React state at the page or canvas level.** Core: `presence-store` wraps awareness
+   for `useSyncExternalStore`; use `usePeople` (changes only on join, leave, rename, or an agent's activity) for lists
+   of who's here, and subscribe per peer for anything that moves. Web: `RoomConnection` tells `on.peers` only when
+   who's here changes; cursors and moves are read through its `CursorSource` (`current`, `subscribe`) outside React.
+   Putting cursors in page state re-rendered the whole page on every move (~73 renders a frame, ~210 ms JS per 3
+   seconds, for one person moving their pointer; now 0 renders, ~5 ms).
+2. **Remote pointers move outside React.** `PeerPointer` (core) and `LiveCursors` (web) subscribe and write
+   `transform: translate() scale()` themselves, gliding to each update (web: through `createSmoother`). Don't
    render pointers from React state, don't use `left/top`, and don't add CSS transitions to them.
    **Zooming doesn't re-render overlays either:** things drawn in the canvas's coordinates that stay the same size
    on screen (pointers, other people's selections, comment pins) counter-scale with the `COUNTER_SCALE` CSS
    variable, which `useCounterScale(layerRef)` keeps on their layer outside React (`scale(var(...))`,
    `calc(Npx * var(...))`). Don't subscribe a layer to the zoom (`useStore(transform[2])`): every pin re-rendered
-   on every zoom frame. The connection line someone's dragging is the exception (`ConnectingLine`, rare).
+   on every zoom frame. Hotspot markers do the same with `useMarkerScale`. The connection line someone's dragging is
+   the exception (`ConnectingLine`, rare).
 3. **Overlays follow one node, not the nodes array.** Selection outlines and comment pins use
    `useInternalNode(id)` and `internals.positionAbsolute`. Never pass `nodes` to an overlay, panel or header: they
-   would re-render on every drag frame. Panels get only what they show (e.g. `PropertiesPanel` takes
+   would re-render on every drag frame. Panels get only what they show (e.g. `NodeDetails` takes
    `Pick<Node, 'id' | 'type' | 'data'>`, memoised).
 4. **Derive structure with string keys.** Things that depend on which nodes exist (hierarchy order, which catalog
    resources are on the canvas, level graphs) memo on keys like `structureOf(nodes)` or a joined id string, not
    on `nodes`.
 5. **Anything that animates forever costs every frame** (style and paint, layout for SMIL), even when hidden with
    CSS, and multiplies with the nodes and edges that have it (see the visualiser-performance skill's Rule 6). Only
-   edges of a selected node or a selected edge animate; the rest are swapped for a static copy (`withoutEnvelope`,
-   cached in a WeakMap so identity is stable). While the canvas is panned, zoomed or dragged, `setInteraction`
+   message edges under the pointer animate (the hovered edge, or the hovered node's: `onNodeMouseEnter` /
+   `onEdgeMouseEnter`); the rest are swapped for a static copy (`withoutEnvelope`, cached in a WeakMap so identity is
+   stable). Not on selection: a node stays selected long after you've looked at it, and one selected node's moving
+   envelope cost ~200–300 ms of every 3 seconds at idle (~30–120 ms now). While the canvas is panned, zoomed or dragged, `setInteraction`
    pauses the envelopes' SMIL (`pauseEdgeAnimations`). Handles' glow pulses only on the hovered or selected node:
-   100 pulsing handles kept the canvas busy while nothing happened. Keep all of that when adding edge types,
+   100 pulsing handles kept the canvas busy while nothing happened, and 10 pulsing hotspot glows cost ~200 ms of
+   every 3 seconds at idle (they're still now). Keep all of that when adding edge types,
    node types or levels, and check `document.getAnimations()` is empty on an idle canvas with nothing selected.
 6. **WebMCP's polyfill is opt-in.** `@mcp-b/webmcp-polyfill` watches the whole DOM with a MutationObserver, which
    costs on every drag and pan. It's only installed after "Turn on for this tab" in Connect agent (browsers with
@@ -210,7 +309,25 @@ bundles Studio's components: rebuild it after changing them).
      (`keepUnchanged` in `flow-state.ts`, comparing what's in them), so only what moved re-renders.
    - **Depend on the stable part of state that changes every frame.** On L1 and L2 the level graph is a new object
      on every drag frame; the edges and legend depend on `levelShown.edges` and a structure key, not on it.
-8. **Interaction model is a design tool's:** drag on empty canvas draws a selection box (`selectionOnDrag`),
+8. **Stable props for anything memoised, not just `<ReactFlow>`.** Props of memoised children (controls, palette,
+   comment and hotspot layers, context menu) keep their identity too: callbacks through `useStableCallback` /
+   `useCallback`, objects through `useMemo`, JSX passed down memoised. One inline `comments={{ ... }}` on the web's
+   `ViewControls` re-rendered its 8 buttons and their tooltips on every drag frame (~125 of ~176 renders a frame).
+9. **Tell the page about changes once per document change, not per render.** The web's `StudioCanvas` reports a
+   snapshot when the document changed (`reportedChanges`). Reporting on every `flow.nodes` change rebuilt the model
+   and re-rendered the whole page on every drag frame and selection (a drop cost ~1,550 renders; now ~260).
+10. **Mapping nodes for display keeps their objects.** Anything that maps nodes for display (hiding for the legend,
+    hotspot glow, the drop target, level notes, edges without envelopes) goes through a cache keyed by the node
+    (`asShown`, `asLevelNote`, `withoutEnvelope`), so only the nodes that really changed re-render.
+11. **Every store subscription runs on every store update**, and a busy canvas has many (every drag, pan and zoom
+    frame, every remote move): keep per-node and per-edge ones few and cheap (the visualiser-performance skill's
+    Rule 5). Don't use React Flow's `EdgeLabelRenderer` or `ViewportPortal`: each runs `domNode.querySelector` on
+    every update (the viewport portal's layer is after every node, so each query walks them all). Use
+    `EdgeLabelPortal` and `CanvasPortal` (`@eventcatalog/visualiser/studio`), which find their layer once. With 50
+    edge labels and the overlay layers, the queries were ~13–16 ms of every 3 seconds of dragging; now 0.2 ms.
+12. **Don't do work only a chat needs in the browser.** The web's `diagramLink` compresses the whole model; it's
+    only built in an MCP App, where the agent's context needs it.
+13. **Interaction model is a design tool's:** drag on empty canvas draws a selection box (`selectionOnDrag`),
    panning is space + drag, the middle button or scrolling (`panOnScroll`), cmd/ctrl + scroll or pinch zooms,
    right click is the context menu. Containers let the pointer through their body (`studio.css`) and are moved,
    selected and resized by their header grip and handles, so you can box-select inside them. Read-only levels
@@ -236,7 +353,8 @@ bundles Studio's components: rebuild it after changing them).
 - **The details panel opens on demand**: double clicking a node (or inside a container), or "Edit details" in its
   menu. Selecting doesn't open it; Escape or its close button closes it. Notes and text are written on the canvas
   instead (`isWrittenOnCanvas`): their data is their text, agents read and write it as `text`, and L1 drops them.
-  Text only has a width (`autoHeight`): its height follows what's written, and its side handles resize its width.
+  Text is as big as what's written (`autoSize`, as Excalidraw's): its handles scale its font size and turn it
+  (`fontSize`, `angle` in its data), live for everyone in a session (rule 7 of the real-time rules).
   Sticky notes (Studio's own, not the visualiser's) are about square and grow with their text, and never go in a
   container (`canGoInContainer`): dropping, dragging, pasting and agents all leave them on the canvas.
 - **Comments are part of the selection**: ⌘A selects them, Delete deletes them, and dragging the selection moves the
@@ -258,8 +376,9 @@ bundles Studio's components: rebuild it after changing them).
   connect to (edges asked for, and catalog relations), flowing left to right, lined up and stacked around a shared
   neighbour, never moving what's already there. Containers are filled first so what's around them leaves room.
   Unconnected nodes go in a row below. Tune with `GAP` and `CLEARANCE`, and keep `placement.spec.ts` passing.
-- **`layoutCanvas` / `layout_canvas` moves everything** (including what people placed): tool descriptions tell
-  agents to use it only when asked. Keep it that way.
+- **`layoutCanvas` / `layout_canvas` moves everything** (including what people placed): tool descriptions (and
+  the Connect agent prompt) tell agents to call it once when they finish a round of changes, before handing back to
+  the user, and when asked to tidy up; never after every change, and not when the user asked to keep the layout.
 - Tool descriptions are the agent's documentation: when behaviour changes, update `ADD_TO_CANVAS_DESCRIPTION`,
   the MCP tool descriptions and the WebMCP ones together.
 
@@ -267,7 +386,7 @@ bundles Studio's components: rebuild it after changing them).
 
 `levels.ts` works out what L1 and L2 show from the canvas (L3 is everything on it). A canvas opened from a diagram
 shows the diagram's own L1 and L2 (`meta.diagramLevels`) until its structure changes (`getDiagramLevel`, with the
-`structureKey` use-studio-flow keeps from the document); see the `visualiser-studio-parity` skill.
+`structureKey` use-studio-flow keeps from the document).
 
 - **Every level can be edited, and nothing is reorganised for you.** On L1 and L2 people drag, resize, select,
   delete, connect and edit (double click opens the properties panel) like on L3: a level's nodes are the canvas's
@@ -278,10 +397,19 @@ shows the diagram's own L1 and L2 (`meta.diagramLevels`) until its structure cha
   moving nothing; containers grow to fit. Places worked out that way are kept (`LEVEL_PLACEMENT_ORIGIN`, not undone),
   so nothing moves later. Only a level with no places at all is laid out with ELK, once, and that's kept too. Reorder
   on L1 or L2 lays out just that level. Moving on one level never moves anything on another.
+- **A first layout is redone once it's drawn.** ELK sizes nodes as rendered, else by type, and a level's nodes haven't
+  been rendered at its first layout: so once they're all measured it's laid out again with their real sizes
+  (`relayoutWhenMeasured`, `'level'` origin, gliding). Reorder on L1/L2 uses the level's drawn sizes too
+  (`levelGraphRef` nodes' `measured`), or it would disagree with that by ~50px. Not in a live session (web: `cursors`;
+  core: `presence.getPeers()`): it would move what others are looking at.
+- **A diagram opened on L1 or L2 tidies L3 when it's first shown** (web: the canvas handle's `tidy()`, used by
+  Diagram.tsx after a link or the agent's build, sets `tidyCanvasWhenShown`). Reorder only lays out the level shown, so
+  before this L3 kept the diagram's rough positions (12 Oct 2026: Reorder then moved all 15 nodes, up to ~3000px).
+  Check with `measure`-style scripts: open at `l=overview`, press 3, then Reorder should move nothing.
 - Comments, other people's pointers and the context menu stay on L3 (they're in L3's coordinates).
 
 - **L1 and L2 match the visualiser's levels** (`utils/node-graphs/domain-levels-node-graph.ts`, the visualiser's
-  `hide-messages.ts`); compare with them when changing either (see the `visualiser-studio-parity` skill):
+  `hide-messages.ts`); compare with them when changing either:
   - Edges joined through hidden messages or channels are "bridged": dashed, muted, `bridged-<from>-<to>`, labelled
     only with the messages they carry (`getMessagesLabel`, no truncation), no label through channels alone. On L1,
     edges to and from systems are plain instead (the visualiser folds a system's messages into it).
@@ -293,7 +421,9 @@ shows the diagram's own L1 and L2 (`meta.diagramLevels`) until its structure cha
     containers while a system or subdomain card is in them. A domain inside another is badged as a subdomain
     (`useDomainData` in `canvas-nodes.tsx`). L2 keeps the canvas's own edges between what it shows. Containers are
     sized by the layout (empty ones as the visualiser lays them out).
-  - L1 needs a system, or more than one domain; L2 is always there. Levels fit with `maxZoom: 1`.
+  - In EventCatalog's Studio, L1 needs a system, or more than one domain (`getLevelUnavailableReason`); L2 is always
+    there. Studio on the web always lets you go to every level (one with nothing on it is where those things are
+    added). Levels fit with `maxZoom: 1`.
   - One deliberate difference: messages sitting in a domain (not a system) connect the systems either side (the
     visualiser folds them into the domain), because catalog domains on a canvas hold their messages.
 - Levels are laid out with the visualiser's ELK layout and re-laid out (debounced) as the canvas changes.
@@ -327,13 +457,32 @@ shows the diagram's own L1 and L2 (`meta.diagramLevels`) until its structure cha
 
 ## Before you finish a change
 
-- Run the Studio tests: `pnpm run test packages/core/eventcatalog/src/features/studio --run` (and `features/mcp`,
-  `features/integrations` if you touched tools or routes). Add tests for pure logic in `__tests__/`.
-- Type-check with the app's tsconfig (`packages/core/eventcatalog/tsconfig.json`) and run `pnpm run format`.
+Verify it in **both products**, whichever one you changed (the shared canvas changes both, and a product's own code
+can rely on the shared canvas behaving as it did):
+
+- Run the tests: the shared canvas's (`pnpm --filter @eventcatalog/visualiser test`, `src/studio/__tests__/`), core's
+  (`pnpm run test packages/core/eventcatalog/src/features/studio --run`, and `features/mcp`, `features/integrations`
+  if you touched tools or routes) and the web app's (`pnpm --filter @eventcatalog/studio-web test`). Add tests for
+  pure logic next to the code it tests.
+- Type-check: the visualiser (`npx tsc --noEmit -p packages/visualiser`), core with its app's tsconfig
+  (`packages/core/eventcatalog/tsconfig.json`) and the web app (`pnpm --filter @eventcatalog/studio-web typecheck`).
+  Format with each package's Prettier (`pnpm run format`; the visualiser uses Prettier's defaults). Studio on the web
+  has no Prettier config and isn't Prettier-formatted: don't run Prettier on its files (from the repo root it falls
+  back to the defaults and rewrites every line); match the code around your change instead.
+- Rebuild the visualiser after changing the shared canvas, before running either product.
 - Rebuild the canvas MCP App if you changed anything it bundles.
+- Check it in the browser in each: EventCatalog's Studio (a canvas at `/studio/<id>`) and Studio on the web
+  ([references/studio-web.md](references/studio-web.md)), in a live session when it touches sync or presence.
+- Run Studio on the web's browser tests (`pnpm --filter @eventcatalog/studio-web test:e2e`), and add one for what
+  you changed when it's something people do with the mouse or keyboard.
 - For anything touching sync, presence, rendering or interaction, verify in two browsers and, for performance,
-  profile: see [references/verification.md](references/verification.md). Measure renders **and** what isn't React:
+  profile: see [references/verification.md](references/verification.md) (EventCatalog's Studio) and
+  [references/studio-web.md](references/studio-web.md) (Studio on the web). Measure renders **and** what isn't React:
   idle main-thread time and running animations. On the last check most of the cost was animations, not renders.
+- For anything touching presence, remote moves or what a document change costs, measure **a busy session**: your
+  tab with 7 others in it (`references/measure/fake-team.mjs`, a team of 8 with 3 dragging and everyone dropping a node
+  every few seconds), not just one other person. Costs that grow with each person (a commit per presence message)
+  only show up then.
 - If you changed `packages/visualiser`, build it and restart the dev server with Vite's dependency cache cleared
   before measuring (see verification.md): the dev server serves a pre-bundled copy of the visualiser's `dist`.
 - Check whether `eventcatalog/eventcatalog-editor` needs a matching change (Studio itself doesn't; visualiser node

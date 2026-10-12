@@ -72,6 +72,30 @@ Measure two different costs; a change can be fine on one and terrible on the oth
     (`document.getAnimations()`, plus SMIL elements).
   - `node measure.mjs heap <tab> [rounds]`: the heap after garbage collection across rounds of dragging and panning.
     It should level off; steady growth is a leak.
+  - `node measure.mjs profile <tab> [scenario]`: where the JS time goes (self time by function, from a sampling
+    profile of that tab only), idle or during a scenario. `PROFILE_OUT=x.cpuprofile` keeps it;
+    [`callers.mjs`](measure/callers.mjs) shows who calls a function in it. This is how the per-update costs inside
+    React Flow were found (`querySelector` from its portals, the per-node connection selectors), which no render count
+    shows. In the dev server most of the profile is development React (`createTask`, `jsxDEV`): read past it.
+- [`fake-team.mjs`](measure/fake-team.mjs) puts a team on a canvas, for either Studio (a `/studio/<id>` URL, through
+  Hocuspocus, or a web session link): `--people 7 --dragging 3 --drop-every 4000 --seconds 60`. They send what real
+  canvases send, at their pace, and it prints what each sent and received. Run it in the background and measure your
+  tab meanwhile (see "A team of 8" below).
+- [`ab-style.mjs`](measure/ab-style.mjs) alternates a scenario with some CSS off and on, in one tab without reloading.
+  (`measure.mjs` and `page-counters.js` here are the same as Studio on the web's `scripts/perf/`; the scenarios find
+  either Studio's canvas and level buttons.)
+
+### A team of 8
+
+Profile with the team in the canvas, not just one other person: costs that grow with each person (a React commit per
+presence message) only show up then. Your tab plus `fake-team.mjs --people 7`, measured with `scenarios <tab>
+idle,drag` (watching, and dragging yourself while they work):
+
+- pointers only (`--dragging 0 --drop-every 0`): nothing should render (cursors move outside React);
+- busy (`--dragging 3 --drop-every 4000`, and `--dragging 7` for the worst case): renders per frame should grow by
+  about 10 per person dragging (their node, its edges), and commits stay at about 2 a frame however many drag.
+
+Core's dev server numbers are development React: compare before and after in the same session, as below.
 
 **A/B in the same session.** Machine load changes the numbers from one run to the next. Compare by simulating the
 old behaviour in the page (inject the old CSS, stub `SVGSVGElement.prototype.pauseAnimations`, play paused
@@ -93,12 +117,44 @@ pause them one group at a time (`document.getAnimations().filter(...).forEach((a
   caches the bundle for good (`?v=`). After changing `packages/visualiser`: build it, stop the dev server, delete
   `examples/default/.astro/eventcatalog/vite/deps`, start it again, and reload ignoring the cache. Otherwise
   Studio fails to hydrate on a new export (`does not provide an export named ...`) or you measure the old code.
+- **Check the canvas loaded before trusting a number.** A Studio that failed to hydrate (the stale pre-bundled
+  visualiser above) measures as 0 renders and almost no main thread: it looks like a great result.
 - **chrome-devtools `navigate_page`'s `initScript` only applies to the next navigation**: pass it on every reload.
 - Headless Chromium's frame timing is unreliable, and a headed window's frame rate depends on its screen (60 or
   120Hz). Compare **per-frame** numbers (renders per frame, JS per frame) or totals over the same number of frames,
   not frame rates.
 
 ## Baselines
+
+### 11 October 2026 (after the shared canvas moved into the visualiser)
+
+The default catalog's dev server (development React), 100 nodes and 50 message edges, per 3 seconds. Alone: idle
+0 renders and ~40–50 ms main thread; mouse 0 renders, ~16–19 ms JS (presence once a second when alone; was ~41 ms and
+90 messages); pan 2 renders a frame; zoom ~3 a frame; drag ~21 a frame (~650 ms JS); a drop ~150 renders; levels
+~5,600 renders.
+
+With 7 others (`fake-team.mjs`):
+
+| Others doing | Watching (renders a frame, commits a frame, JS) | Your drag meanwhile (JS) |
+|---|---|---|
+| Moving pointers | 0, 0, ~40 ms (main thread ~270 ms: cursor paint) | ~21 renders a frame, as alone |
+| 3 dragging, all dropping every 4s | ~34, ~2, ~600–660 ms | ~750 ms (was ~1,440 ms) |
+| 7 dragging | ~60, ~2.1, ~700–720 ms (was ~5 commits a frame, 1,160–1,390 ms) | ~890 ms (was ~1,650 ms) |
+
+The "was" numbers are from before remote drags went through `createSmoother` (real-time rule 8). Measured and
+**not** worth changing: `will-change: transform` on the web's cursors, and hiding the dotted background while panning
+(no difference either way). Panning in the scenarios draws ~85–90 frames in 3 seconds in both Studios with the main
+thread mostly free: that's the synthetic wheel events, not the canvas.
+
+One moving envelope (the SMIL on a message edge) costs ~200–300 ms of main thread per 3 seconds and drops frames
+(Studio on the web: ~150 frames instead of 181), however small it is: SVG animation needs a main-thread frame every
+vsync. A handle's glow costs nothing measurable. Putting the edge's `<svg>` on its own layer made it worse (~700 ms);
+an HTML element animated with a transform along the path saved only ~17%. So envelopes move only under the pointer
+(they used to on a selected node's edges): idle with a node selected went from ~300–400 ms to ~30–130 ms.
+To check it with a real pointer (synthetic `mouseover` doesn't reach React Flow's hover handlers), move the mouse
+with CDP's `Input.dispatchMouseEvent` and count `animateMotion` elements.
+
+### 9 October 2026
 
 The default catalog in the dev server (development React, so absolute JS times run high), measured on 9 October
 2026. Times are per 3 seconds.

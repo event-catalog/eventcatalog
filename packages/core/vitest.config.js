@@ -40,6 +40,7 @@ export default defineConfig({
       '@eventcatalog/license': path.resolve(__dirname, 'node_modules/@eventcatalog/license/dist/index.js'),
       '@eventcatalog/sdk': path.resolve(__dirname, 'node_modules/@eventcatalog/sdk/dist/index.mjs'),
       '@eventcatalog/visualiser/layout': path.resolve(__dirname, 'node_modules/@eventcatalog/visualiser/dist/layout.mjs'),
+      '@eventcatalog/visualiser/studio': path.resolve(__dirname, 'node_modules/@eventcatalog/visualiser/dist/studio.mjs'),
       '@eventcatalog': path.resolve(__dirname, 'eventcatalog/src/utils/eventcatalog-config/catalog.ts'),
       '@icons': path.resolve(__dirname, 'eventcatalog/src/icons'),
       '@components': path.resolve(__dirname, 'eventcatalog/src/components'),

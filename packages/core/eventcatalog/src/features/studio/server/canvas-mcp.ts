@@ -21,10 +21,10 @@ import {
   setCanvasStatus,
   setThreadResolved,
   type Author,
-} from '../canvas-doc';
+  getLayoutPositions,
+} from '@eventcatalog/visualiser/studio';
 import { ADD_TO_CANVAS_DESCRIPTION, describeCanvas, edgeSpecsSchema, indexCatalog, nodeSpecsSchema } from '../canvas-actions';
 import { getCatalogResources } from '../catalog-resources';
-import { getLayoutPositions } from '../layout';
 import {
   playAddToCanvas,
   playComment,
@@ -35,7 +35,8 @@ import {
   playUpdateNode,
   type AgentStage,
 } from '../agent-choreography';
-import { STUDIO_SOCKET_PATH, findStudioRuntime, type AgentIdentity } from './runtime';
+import { STUDIO_SOCKET_PATH, findStudioRuntime } from './runtime';
+import { getAgent } from '../agents';
 import { addToolIcons } from './tool-icons';
 
 /**
@@ -46,20 +47,10 @@ import { addToolIcons } from './tool-icons';
 
 const loadCanvasView = getMcpAppViewLoader('canvas');
 
-const AGENT_COLORS: Record<string, string> = { ChatGPT: '#10a37f', Claude: '#d97757' };
-
 // The canvases entrypoint's icon (OpenAI MCP extensions: a 20x20, monochrome SVG in currentColor, 1.33px strokes)
 const CANVAS_ICON_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="5.5" height="4.5" rx="1"/><rect x="12" y="3.5" width="5.5" height="4.5" rx="1"/><rect x="12" y="12" width="5.5" height="4.5" rx="1"/><path d="M8 5.75h4M14.75 8v4"/></svg>';
 const CANVAS_ICON = { src: `data:image/svg+xml;base64,${btoa(CANVAS_ICON_SVG)}`, mimeType: 'image/svg+xml', sizes: ['20x20'] };
-
-/** Who the agent is, from what it tells us or its client's user agent */
-const getAgent = (agentName: string | undefined, userAgent = ''): AgentIdentity => {
-  const name =
-    agentName?.trim() ||
-    (/openai|chatgpt/i.test(userAgent) ? 'ChatGPT' : /claude|anthropic/i.test(userAgent) ? 'Claude' : 'AI agent');
-  return { name, color: AGENT_COLORS[name] ?? '#8b5cf6' };
-};
 
 const text = (value: unknown, isError = false) => ({
   content: [{ type: 'text' as const, text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }],
@@ -151,12 +142,6 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
       input: {
         canvasId: canvasId.optional(),
         title: z.string().optional().describe('For a new canvas: what it is for'),
-        userName: z
-          .string()
-          .optional()
-          .describe(
-            'The name of the person you are working with, if you know it: others on the canvas see them by this name. Leave it out if you do not know it.'
-          ),
         agentName,
       },
     },
@@ -170,7 +155,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
     annotations: writes,
     errorMessage: 'Failed to open the canvas',
     load: async (params) => {
-      const { title: newTitle, agentName: name, userName } = params as { title?: string; agentName?: string; userName?: string };
+      const { title: newTitle, agentName: name } = params as { title?: string; agentName?: string };
 
       // Opened without a canvas (e.g. from an entrypoint): the canvases to pick from, or start one
       if (!params.canvasId && !newTitle) {
@@ -207,7 +192,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
         socketUrl,
         canvasUrl: canvasUrl(id),
         mcpUrl: `${catalogUrl}${buildUrl('/docs/mcp', true)}`,
-        userName,
+        agent: getAgent(name, userAgent),
       };
       return {
         forModel: {
@@ -418,7 +403,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
     {
       title: 'Tidy a canvas',
       description:
-        "Lays the whole canvas out again with EventCatalog's visualiser layout (left to right, connections routed around nodes); everyone on it sees the nodes glide into place. It moves everything, including what people placed themselves, so only use it when the user asks to tidy up: addToCanvas already places what you add next to what it connects to.",
+        "Lays the whole canvas out again with EventCatalog's visualiser layout (left to right, connections routed around nodes); everyone on it sees the nodes glide into place. Call it once when you finish a round of changes, before you hand back to the user, so the canvas is tidy for everyone, and whenever the user asks to tidy up. Don't call it after every change (addToCanvas already places what you add next to what it connects to while you work), and skip it if the user asked to keep the layout as it is: it moves everything, including what people placed themselves.",
       inputSchema: z.object({ canvasId, agentName }),
       annotations: writes,
     },

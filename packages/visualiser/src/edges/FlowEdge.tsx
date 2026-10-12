@@ -1,10 +1,10 @@
 import { memo, useMemo } from "react";
 import {
   BaseEdge,
-  EdgeLabelRenderer,
   getSmoothStepPath,
   type EdgeProps as XYFlowEdgeProps,
 } from "@xyflow/react";
+import { EdgeLabelPortal } from "../utils/flow-portals";
 import { EDGE_FLOW_BASE_STYLE } from "../nodes/shared-styles";
 import { useRoute } from "./route";
 import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
@@ -129,14 +129,14 @@ export default memo(function CustomEdge({
         </g>
       )}
       {label && (
-        <EdgeLabelRenderer>
+        <EdgeLabelPortal>
           <div
             style={labelPositionStyle}
             className={`ec-edge-label ${crossDomain ? CROSS_DOMAIN_CLASS : ""} nodrag nopan max-w-[120px] text-xs bg-[rgb(var(--ec-card-bg))] px-2 py-1 rounded border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] font-medium shadow-sm text-center`}
           >
             {label}
           </div>
-        </EdgeLabelRenderer>
+        </EdgeLabelPortal>
       )}
     </>
   );

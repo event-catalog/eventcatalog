@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import { Bot } from "lucide-react";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../utils/node-connections";
 import { EventCatalogResource } from "../types";
 import { NotesIndicator } from "./NotesIndicator";
 import {
@@ -93,8 +94,7 @@ function Agent(props: AgentNode) {
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
   const normalizedOwners = useMemo(() => normalizeOwners(owners), [owners]);
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
@@ -139,8 +139,8 @@ function Agent(props: AgentNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
         <span

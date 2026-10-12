@@ -140,6 +140,19 @@ import { useShallow } from 'zustand/react/shallow';
 const [a, b] = useStore(useShallow(state => [state.a, state.b]));
 ```
 
+**Every subscription's selector runs on every store update** (every frame of a drag, pan or zoom, every move
+someone else makes), so per-node and per-edge subscriptions multiply. Keep them to one cheap selector returning a
+primitive:
+
+- Nodes that only need to know whether they're connected use `useNodeHasConnections()` (`utils/node-connections.ts`):
+  one subscription returning a number. Two `useNodeConnections` per node (each comparing connection maps key by key)
+  were ~17 ms of every 3 seconds of a drag on 100 nodes; now ~10 ms.
+- **Don't use React Flow's `EdgeLabelRenderer` or `ViewportPortal`.** Each runs `domNode.querySelector` in its
+  selector, on every update, per instance (the viewport portal's layer comes after every node, so each query walks
+  them all). Use `EdgeLabelPortal` / `CanvasPortal` (`utils/flow-portals.tsx`), which find their layer once: ~13–16 ms
+  of every 3 seconds of a drag with 50 labelled edges, now 0.2 ms. (React Flow's `NodeToolbar` does the same, once
+  per toolbar.)
+
 `useViewport()` and `useNodes()` / `useEdges()` re-render their component on every pan, zoom or drag frame. In
 anything rendered per node (toolbars, overlays), select just the primitive you need, e.g. the clamped zoom in
 `FocusModeNodeActions` (`useStore(selectScaleFactor)`), so panning doesn't re-render them.
@@ -209,6 +222,8 @@ When reviewing visualiser changes, verify:
 - [ ] Code that sets nodes repeatedly keeps their `measured` size
 - [ ] Heavy sub-components inside nodes are wrapped in `memo()`
 - [ ] No `useStore` selectors returning unstable references, and no `useViewport` in per-node components
+- [ ] No new per-node or per-edge store subscriptions that could be one; no `EdgeLabelRenderer` / `ViewportPortal`
+      (use `EdgeLabelPortal` / `CanvasPortal`)
 - [ ] `nodeTypes`/`edgeTypes` remain memoized with empty deps
 - [ ] No infinite CSS/SMIL animation runs on every node or edge, or on hidden elements (`document.getAnimations()`
       is empty on an idle diagram); SMIL is paused with `pauseEdgeAnimations` while the canvas moves

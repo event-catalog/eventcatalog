@@ -11,7 +11,7 @@ import {
   readThreads,
   setCanvasStatus,
   setMeta,
-} from '../canvas-doc';
+} from '@eventcatalog/visualiser/studio';
 import { getStudioRuntime } from '../server/runtime';
 import { CANVASES_API_PATH, createCanvasesApi, type ApiCanvas } from '../api/canvases-api';
 import type { SignedInUser } from '../server/sign-in';

@@ -2,7 +2,7 @@ import type { Edge, Node } from '@xyflow/react';
 import type { VisualiserSnapshot } from '@eventcatalog/visualiser';
 import { getNodeCatalogResource } from '@utils/node-graphs/node-resource';
 import type { DiagramLevelsSpec, NewCanvasEdges, NodeSpecs } from './canvas-actions';
-import { DEFAULT_NODE_SIZE, isCatalogCollection, isGroupType } from './node-types';
+import { DEFAULT_NODE_SIZE, isCatalogCollection, isGroupType } from '@eventcatalog/visualiser/studio';
 
 /**
  * A canvas started from a diagram (the visualiser's "Open in Studio"): the catalog resources and actors it shows,

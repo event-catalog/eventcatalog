@@ -8,15 +8,97 @@ import {
   type Connection,
   type Edge,
   type Node,
+  type FitViewOptions,
   type NodeChange,
   type XYPosition,
 } from '@xyflow/react';
 import { DiagramBackground, edgeTypes, getLegend, LegendPanel, pauseEdgeAnimations } from '@eventcatalog/visualiser';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { getCatalogConnections, indexCatalog, planWithConnections, type ConnectionGroup } from '../canvas-actions';
-import { getDiagramLevel, getDiagramLevelUnavailable, isDecided, type LevelPlace } from '../canvas-doc';
-import { CLIPBOARD_TYPE, copyNodes, pasteNodes, readClipboard, type ClipboardContent } from '../clipboard';
-import { keepUnchanged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS } from '../flow-state';
+import {
+  getDiagramLevel,
+  getDiagramLevelUnavailable,
+  isDecided,
+  type LevelPlace,
+  CLIPBOARD_TYPE,
+  copyNodes,
+  pasteNodes,
+  readClipboard,
+  type ClipboardContent,
+  keepUnchanged,
+  LOCAL_EDGE_KEYS,
+  LOCAL_NODE_KEYS,
+  findDropTargets,
+  placeDropped,
+  containerFor,
+  findGroupAtPoint,
+  getAbsolutePosition,
+  getAbsoluteRect,
+  previewContainerGrowth,
+  sizeOf,
+  sortByHierarchy,
+  toRelativePosition,
+  getLayoutPositions,
+  layoutGraph,
+  getLevelGraph,
+  getLevelUnavailableReason,
+  LEVELS,
+  type Level,
+  arrangeLevel,
+  getLevelNodeSize,
+  levelPlaces,
+  withDiagramRoutes,
+  canGoInContainer,
+  getNodeDefinition,
+  getNodeLabel,
+  getNodeName,
+  getNoteLevel,
+  isOnLevel,
+  isShownOnLevel,
+  isWrittenOnCanvas,
+  getResource,
+  DropTargetContext,
+  nodeTypes,
+  UpdateNodeDataContext,
+  anchorAt,
+  ContextMenu,
+  canvasToModel,
+  modelToCanvas,
+  toDiagramFile,
+  readDiagramFile,
+  pickDiagramFile,
+  downloadFile,
+  fileNameFor,
+  DIAGRAM_FILE_EXTENSION,
+  canvasImage,
+  EmptyCanvas,
+  type ModelCanvasContent,
+  CommentLayer,
+  CommentList,
+  getAnchorPosition,
+  timeAgo,
+  type ContextMenuState,
+  CANVAS_STATUS_LOOK,
+  ContainerChooser,
+  type ContainerChoice,
+  CanvasControls,
+  ViewControls,
+  FIT_VIEW_OPTIONS,
+  EditButton,
+  LockedContext,
+  StartWritingContext,
+  EditingContext,
+  HotspotLayer,
+  HotspotList,
+  topSeverity,
+  isGroupType,
+  type Hotspot,
+  type HotspotDraft,
+  type HotspotFields,
+  type HotspotSeverity,
+  type HotspotSpot,
+} from '@eventcatalog/visualiser/studio';
+import { X } from 'lucide-react';
 import type { CatalogRelation, CatalogResource } from '../catalog-resources';
 import {
   buildContainer,
@@ -27,51 +109,23 @@ import {
   getContents,
   getRelatedEdges,
 } from '../catalog';
-import {
-  findDropTarget,
-  containerFor,
-  findGroupAtPoint,
-  getAbsolutePosition,
-  getAbsoluteRect,
-  previewContainerGrowth,
-  sizeOf,
-  sortByHierarchy,
-  toRelativePosition,
-} from '../grouping';
 import type { Peer } from '../hooks/presence-store';
 import { useCanvasWebMcp } from '../hooks/use-canvas-webmcp';
 import { useStudioFlow } from '../hooks/use-studio-flow';
 import { useComments, type CommentAnchor, type Thread } from '../hooks/use-comments';
-import { getLayoutPositions, layoutGraph } from '../layout';
-import { getLevelGraph, getLevelUnavailableReason, LEVELS, type Level } from '../levels';
-import { arrangeLevel, getLevelNodeSize, levelPlaces, withDiagramRoutes } from '../level-layout';
-import {
-  canGoInContainer,
-  getNodeDefinition,
-  getNodeLabel,
-  getNodeName,
-  getNoteLevel,
-  isOnLevel,
-  isShownOnLevel,
-  isWrittenOnCanvas,
-} from '../node-types';
 import type { ToolSync } from '../tool-sync';
-import CanvasControls, { FIT_VIEW_OPTIONS } from './CanvasControls';
 import CanvasHeader from './CanvasHeader';
-import { DropTargetContext, nodeTypes, UpdateNodeDataContext } from './canvas-nodes';
-import { anchorAt, CanvasContextMenu, CommentLayer, getAnchorPosition, timeAgo, type ContextMenuState } from './Comments';
-import { CANVAS_STATUS_LOOK } from './status';
 import ConnectAgentDialog, { enableWebMcp, isRelayEnabled, isWebMcpEnabled, loadRelay } from './ConnectAgentDialog';
-import ContainerChooser, { type ContainerChoice } from './ContainerChooser';
 import ConnectionsChooser, { type ConnectionsChoice } from './ConnectionsChooser';
 import JoinForm from './JoinForm';
-import { colorForName, getStoredName, onStoredNameChange, storeName } from '../identity';
-import LeftPanel, { CATALOG_DRAG_TYPE, COMPONENT_DRAG_TYPE } from './LeftPanel';
+import { colorForName, getStoredColor, getStoredName, onStoredNameChange, storeColor, storeName } from '../identity';
+import LeftPanel, { CATALOG_DRAG_TYPE, COMPONENT_DRAG_TYPE, type LeftPanelTab } from './LeftPanel';
 import { AgentActivity, RemotePresence, ViewportSharer } from './Presence';
-import PropertiesPanel from './PropertiesPanel';
+import NodeDetails, { type NodeConnection } from './NodeDetails';
 import ShareDialog from './ShareDialog';
 import DeleteCanvasDialog from './DeleteCanvasDialog';
-import { deleteCanvasThroughApi } from '../api/client';
+import { createCanvasThroughApi, deleteCanvasThroughApi } from '../api/client';
+import ShortcutsDialog from './ShortcutsDialog';
 
 type CanvasProps = {
   canvasId: string;
@@ -96,10 +150,12 @@ type CanvasProps = {
   syncViaTools?: ToolSync;
   /** Follow agents' changes with the camera from the start (e.g. inside a chat, where you watch an agent work) */
   followChanges?: boolean;
+  /** Starts with the palette folded away (e.g. in a chat, where there's little room) */
+  paletteCollapsed?: boolean;
   /** Told what's selected (e.g. a chat attaches it to the conversation, so you can ask about it) */
   onSelectionChange?: (selected: SelectedNode[]) => void;
-  /** Join with this name instead of asking for one (e.g. inside a chat, where the agent or host knows who it is) */
-  defaultName?: string;
+  /** Join as this AI agent, with its name, colour and logo, instead of asking who you are (e.g. inside a chat, as the chat's agent) */
+  asAgent?: { name: string; color: string };
   /** Signed in with the catalog's sign-in (SSO): you're shown by this name and picture, and can't change them */
   signedInAs?: { name: string; picture?: string };
   resources: CatalogResource[];
@@ -178,8 +234,58 @@ const asLevelNote = (node: Node) => {
 
 const structureOf = (nodes: Node[]) => nodes.map((node) => `${node.id}:${node.type}:${node.parentId ?? ''}`).join('|');
 
-export default function StudioDesigner({ defaultName, signedInAs, ...props }: CanvasProps) {
-  const [name, setName] = useState(() => getStoredName() ?? defaultName ?? null);
+// A node as shown with what it says about it (hidden by the legend, glowing with a hotspot, lit as a drop target):
+// one copy per node and look, so a node keeps its identity while others move (React Flow re-renders a node whose
+// object is new: copying them on every drag frame re-rendered every node with a hotspot)
+const shownAs = new WeakMap<Node, Map<string, Node>>();
+const asShown = (node: Node, hidden: boolean, className: string) => {
+  const key = `${hidden}|${className}`;
+  let looks = shownAs.get(node);
+  if (!looks) shownAs.set(node, (looks = new Map()));
+  let shown = looks.get(key);
+  if (!shown) {
+    if (looks.size > 4) looks.clear();
+    looks.set(key, (shown = { ...node, ...(hidden && { hidden: true }), ...(className && { className }) }));
+  }
+  return shown;
+};
+
+/**
+ * The drawing tools, as Studio on the web's: selecting (V), the hand (H) to move around, and what's put where the
+ * canvas is next clicked: a sticky note (N), text (T), a comment (C) or a hotspot (A)
+ */
+type CanvasTool = 'select' | 'hand' | 'text' | 'note' | 'comment' | 'hotspot';
+
+/**
+ * A diagram file opened into a new canvas: kept in this tab until the new canvas has loaded (empty), then put on it.
+ * By the new canvas's id.
+ */
+const openedKey = (canvasId: string) => `eventcatalog-studio-opened:${canvasId}`;
+const keepOpened = (canvasId: string, { nodes, edges, threads, hotspots, levelLayouts }: ModelCanvasContent) => {
+  try {
+    sessionStorage.setItem(
+      openedKey(canvasId),
+      JSON.stringify({ nodes, edges, threads, hotspots, levelLayouts: { 1: [...levelLayouts[1]], 2: [...levelLayouts[2]] } })
+    );
+    return true;
+  } catch {
+    return false;
+  }
+};
+const takeOpened = (canvasId: string): ModelCanvasContent | undefined => {
+  try {
+    const raw = sessionStorage.getItem(openedKey(canvasId));
+    if (!raw) return undefined;
+    sessionStorage.removeItem(openedKey(canvasId));
+    const saved = JSON.parse(raw);
+    return { ...saved, levelLayouts: { 1: new Map(saved.levelLayouts[1]), 2: new Map(saved.levelLayouts[2]) } };
+  } catch {
+    return undefined;
+  }
+};
+
+export default function StudioDesigner({ asAgent, signedInAs, ...props }: CanvasProps) {
+  const [name, setName] = useState(getStoredName);
 
   const saveName = useCallback((next: string) => {
     setName(next);
@@ -187,19 +293,41 @@ export default function StudioDesigner({ defaultName, signedInAs, ...props }: Ca
   }, []);
   // Renamed on the Studio page or another canvas in this browser
   useEffect(() => onStoredNameChange((next) => next && setName(next)), []);
+  // The colour picked (kept in this browser), else the one that follows from the name
+  const [chosenColor, setChosenColor] = useState(getStoredColor);
+  const recolor = useCallback((next: string) => {
+    setChosenColor(next);
+    storeColor(next);
+  }, []);
 
-  if (signedInAs) {
+  if (asAgent) {
     return (
       <ReactFlowProvider>
-        <Canvas {...props} name={signedInAs.name} picture={signedInAs.picture} />
+        <Canvas {...props} name={asAgent.name} chosenColor={asAgent.color} agent onRecolor={() => {}} />
       </ReactFlowProvider>
     );
   }
-  if (!name) return <JoinForm onJoin={saveName} />;
+  if (signedInAs) {
+    return (
+      <ReactFlowProvider>
+        <Canvas {...props} name={signedInAs.name} picture={signedInAs.picture} chosenColor={chosenColor} onRecolor={recolor} />
+      </ReactFlowProvider>
+    );
+  }
+  if (!name)
+    return (
+      <JoinForm
+        color={chosenColor}
+        onJoin={(me) => {
+          recolor(me.color);
+          saveName(me.name);
+        }}
+      />
+    );
 
   return (
     <ReactFlowProvider>
-      <Canvas {...props} name={name} onRename={saveName} />
+      <Canvas {...props} name={name} onRename={saveName} chosenColor={chosenColor} onRecolor={recolor} />
     </ReactFlowProvider>
   );
 }
@@ -220,19 +348,28 @@ function Canvas({
   keptInMemory = false,
   syncViaTools,
   followChanges = false,
+  paletteCollapsed,
   onSelectionChange,
   resources,
   relations,
   name,
   picture,
+  agent,
   onRename,
-}: Omit<CanvasProps, 'defaultName' | 'signedInAs'> & {
+  chosenColor,
+  onRecolor,
+}: Omit<CanvasProps, 'asAgent' | 'signedInAs'> & {
   name: string;
   picture?: string;
+  /** You're here as an AI agent (shown with its logo, and can't change who you are) */
+  agent?: boolean;
   /** Not given when you're signed in (your name is the one you signed in with) */
   onRename?: (name: string) => void;
+  /** The colour you picked (else it follows from your name) */
+  chosenColor?: string | null;
+  onRecolor: (color: string) => void;
 }) {
-  const color = colorForName(name);
+  const color = chosenColor ?? colorForName(name);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Nodes glide to their new place after a layout (anyone's) or a level change (not while editing: it would make dragging lag)
@@ -259,12 +396,25 @@ function Canvas({
     name,
     color,
     picture,
+    agent,
     syncViaTools,
     onLayout: glide,
     onContainerResize: animateContainers,
   });
-  const author = useMemo(() => ({ name, color, ...(picture && { picture }) }), [name, color, picture]);
+  const author = useMemo(
+    () => ({ name, color, ...(picture && { picture }), ...(agent && { agent }) }),
+    [name, color, picture, agent]
+  );
   const comments = useComments(flow.doc, author);
+  // Locked (looked at, not changed): for everyone on it, by whoever locked it
+  const locked = !!flow.lockedBy;
+  const lockedRef = useRef(locked);
+  lockedRef.current = locked;
+  // Fitted clear of the palette on the left (shown unless the canvas is locked)
+  const fitOptions = useMemo<FitViewOptions>(
+    () => (locked ? FIT_VIEW_OPTIONS : { ...FIT_VIEW_OPTIONS, padding: { ...FIT_VIEW_OPTIONS.padding, left: '304px' } }),
+    [locked]
+  );
   const { screenToFlowPosition, flowToScreenPosition, setCenter, getZoom, fitView } = useReactFlow();
 
   const catalog = useMemo(() => indexCatalog(resources, relations), [resources, relations]);
@@ -387,7 +537,7 @@ function Canvas({
   const choose = useStableCallback((choice: ContainerChoice) => {
     if (!chooser) return;
     if (choice.as === 'card') addCard(chooser.resource, chooser.at);
-    else void addContainer(chooser.resource, chooser.at, choice.withContents);
+    else void addContainer(chooser.resource, chooser.at, !!choice.withContents);
     setChooser(null);
   });
   const cancelChooser = useCallback(() => setChooser(null), []);
@@ -418,10 +568,20 @@ function Canvas({
     };
   }, [chooser, catalog, keysOnCanvas]);
 
-  /** A sticky note on the level shown (it's only shown on that level) */
+  /** A sticky note on the level shown (it's only shown on that level), written on straight away */
   const addNoteAt = (center: XYPosition) => {
     const data = getNodeDefinition('note')!.createData();
-    flow.insertNode('note', levelRef.current === 3 ? data : { ...data, level: levelRef.current }, center);
+    const id = flow.insertNode('note', levelRef.current === 3 ? data : { ...data, level: levelRef.current }, center);
+    if (id) setStartWriting(id);
+  };
+  // The note or text just put on the canvas: written on straight away (see canvas-nodes)
+  const [startWriting, setStartWriting] = useState<string | null>(null);
+  /** Text written on the canvas, its first line where it's put (on the level shown, as notes are) */
+  const writeTextAt = (point: XYPosition) => {
+    const size = getNodeDefinition('text')!.defaultSize!;
+    const data = levelRef.current === 3 ? { text: '' } : { text: '', level: levelRef.current };
+    const id = flow.insertNode('text', data, { x: point.x + size.width / 2 - 4, y: point.y + size.height / 2 - 16 });
+    if (id) setStartWriting(id);
   };
   /**
    * Where something added at a point goes (see Landing). On L1 and L2 it's centred where it's dropped, in the
@@ -464,14 +624,14 @@ function Canvas({
     centring.current.set(id, { level, size });
     flow.setLevelLayout(level, new Map([[id, centredOn(center, size)]]));
   };
-  const addComponentAt = (type: string, point: XYPosition) => {
-    if (type === 'note') return addNoteAt(point);
-    const at = landingAt(point, type);
-    keepOnLevel(at, flow.addNode(type, at.center, at.inside));
+  /** A component (its type, or its key in the components list: the kinds of data store share a type) */
+  const addComponentAt = (component: string, point: XYPosition) => {
+    if (component === 'note') return addNoteAt(point);
+    const at = landingAt(point, getNodeDefinition(component)?.type ?? component);
+    keepOnLevel(at, flow.addNode(component, at.center, at.inside));
   };
 
   const addComponent = useStableCallback((type: string) => addComponentAt(type, canvasCenter()));
-  const addNote = useStableCallback(() => addNoteAt(canvasCenter()));
   const addResourceFromPanel = useStableCallback((key: string) => addResource(key, canvasCenter()));
 
   const onDrop = useStableCallback((event: DragEvent) => {
@@ -592,10 +752,6 @@ function Canvas({
 
   // Dragging something into a container puts it in it, out of one takes it out
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
-  const dragRoots = (dragged: Node[]) => {
-    const ids = new Set(dragged.map((node) => node.id));
-    return dragged.filter((node) => !node.parentId || !ids.has(node.parentId));
-  };
   // While something's dragged, the containers around it grow to fit it (see previewContainerGrowth): the canvas
   // when the drag started, and those containers, innermost first
   const dragStart = useRef<{ nodes: Map<string, Node>; containers: string[] } | null>(null);
@@ -642,15 +798,17 @@ function Canvas({
     dragged.forEach((node) => now.set(node.id, { ...now.get(node.id)!, position: node.position }));
     flow.showDragPreview(previewContainerGrowth(started.containers, new Set(dragged.map((node) => node.id)), started.nodes, now));
   };
-  const onNodeDrag = useStableCallback((_: unknown, __: Node, dragged: Node[]) => {
+  const onNodeDrag = useStableCallback((_: unknown, held: Node, dragged: Node[]) => {
     growContainers(dragged);
     moveThreadsWith(dragged);
-    const [root] = dragRoots(dragged);
-    const current = root && nodesRef.current.find((node) => node.id === root.id);
-    const target = root ? findDropTarget(root.id, nodesRef.current) : undefined;
-    setDropTargetId(target && target.id !== current?.parentId ? target.id : null);
+    const moves = findDropTargets(
+      held.id,
+      dragged.map((node) => node.id),
+      nodesRef.current
+    );
+    setDropTargetId(moves.find(({ target }) => target)?.target?.id ?? null);
   });
-  const onNodeDragStop = useStableCallback((_: unknown, __: Node, dragged: Node[]) => {
+  const onNodeDragStop = useStableCallback((_: unknown, held: Node, dragged: Node[]) => {
     setInteraction('dragging', false);
     setDropTargetId(null);
     dragStart.current = null;
@@ -668,12 +826,17 @@ function Canvas({
     }
     threadsDrag.current = null;
     setThreadsOffset(null);
-    // The containers it grew are saved with the drop; dropped in another container (or out of one), it moves there
-    for (const root of dragRoots(dragged)) {
-      const current = nodesRef.current.find((node) => node.id === root.id);
-      const target = findDropTarget(root.id, nodesRef.current);
-      if (current && target?.id !== current.parentId) flow.setParent(root.id, target?.id);
-    }
+    // The containers it grew are saved with the drop; dropped in another container (or out of one), it moves there,
+    // and what's selected with it goes too, into free space there (gliding off anything it was dropped on)
+    const moves = findDropTargets(
+      held.id,
+      dragged.map((node) => node.id),
+      nodesRef.current
+    );
+    if (!moves.length) return;
+    const { places, nudged } = placeDropped(nodesRef.current, moves);
+    if (nudged) glide();
+    flow.setParents(moves.map(({ id, target }) => ({ id, parentId: target?.id, at: places.get(id) })));
   });
 
   // ---- Levels of detail ----
@@ -750,6 +913,8 @@ function Canvas({
         if (cancelled) return;
         setLevelGraph({ level, ...laidOut });
         flow.setLevelLayout(level, levelPlaces(laidOut.nodes), 'level');
+        // (with sizes guessed from the nodes' types: laid out again once they're drawn, see below)
+        if (!flow.presence?.getPeers().length) relayoutWhenMeasured.current = level;
       });
     };
     // Straight away when switching levels (or from the diagram); after changes settle while one is shown
@@ -764,8 +929,10 @@ function Canvas({
     };
   }, [level, levelKey, flow.diagramLevels, levelLayout]);
 
-  // Comments: right click > Add comment, or C for comment mode then click (like Figma)
-  const [commentMode, setCommentMode] = useState(false);
+  // The tool picked (see CanvasTool): comments are right click > Add comment, or C then click (like Figma)
+  const [tool, setTool] = useState<CanvasTool>('select');
+  const commentMode = tool === 'comment';
+  const placing = tool === 'text' || tool === 'note';
   const [draft, setDraft] = useState<CommentAnchor | null>(null);
   const [openThreadId, setOpenThreadId] = useState<string | null>(null);
   const [showResolved, setShowResolved] = useState(false);
@@ -777,10 +944,31 @@ function Canvas({
   const threadsShown = () => comments.threads.filter((thread) => showResolved || !thread.resolved);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
 
+  // A level's first layout is worked out before its nodes have been drawn, so with sizes guessed from their types: a
+  // little off once they're drawn at their real sizes. Once they all have been (measured), it's laid out again with
+  // them, as Reorder would, gliding there. Only that first time, and not while others are on the canvas: it would
+  // move what they're looking at (the level stays as first laid out, and Reorder tidies it)
+  const relayoutWhenMeasured = useRef<1 | 2 | null>(null);
+  useEffect(() => {
+    const pending = relayoutWhenMeasured.current;
+    if (!pending || levelGraph?.level !== pending) return;
+    if (!levelGraph.nodes.every((node) => node.measured?.width && node.measured?.height)) return;
+    relayoutWhenMeasured.current = null;
+    void layoutGraph(
+      levelGraph.nodes.map((node) => ({ ...node, selected: false })),
+      levelGraph.edges
+    ).then((laidOut) => {
+      if (levelRef.current !== pending) return;
+      glide();
+      flow.setLevelLayout(pending, levelPlaces(laidOut.nodes), 'level');
+      setTimeout(() => void fitView({ ...fitOptions, duration: 450 }), 50);
+    });
+  }, [levelGraph]);
+
   const changeLevel = useStableCallback((next: Level) => {
     if (next === level) return;
     glide();
-    setCommentMode(false);
+    setTool('select');
     setDraft(null);
     setOpenThreadId(null);
     // What's selected may not be on the next level (e.g. a note added on this one)
@@ -795,7 +983,7 @@ function Canvas({
   const levelHasNodes = !!levelGraph?.nodes.length;
   useEffect(() => {
     if (shownLevel === undefined || (shownLevel !== 3 && !levelHasNodes)) return;
-    const frame = requestAnimationFrame(() => void fitView({ ...FIT_VIEW_OPTIONS, duration: 450 }));
+    const frame = requestAnimationFrame(() => void fitView({ ...fitOptions, duration: 450 }));
     return () => cancelAnimationFrame(frame);
   }, [shownLevel, levelHasNodes]);
 
@@ -808,18 +996,22 @@ function Canvas({
     if (level !== 3) {
       const content =
         getDiagramLevel(flow.diagramLevels, level, flow.structureKey) ?? getLevelGraph(nodesRef.current, edgesRef.current, level);
+      // As they're drawn on the level (its cards and boxes aren't the canvas's), where they have been
+      const drawn = new Map(
+        (levelGraphRef.current?.level === level ? levelGraphRef.current.nodes : []).map((node) => [node.id, node.measured])
+      );
       const laidOut = await layoutGraph(
-        content.nodes.map((node) => ({ ...node, selected: false })),
+        content.nodes.map((node) => ({ ...node, selected: false, ...(drawn.get(node.id) && { measured: drawn.get(node.id) }) })),
         content.edges
       );
       glide();
       flow.setLevelLayout(level, levelPlaces(laidOut.nodes));
-      setTimeout(() => void fitView({ ...FIT_VIEW_OPTIONS, duration: 450 }), 50);
+      setTimeout(() => void fitView({ ...fitOptions, duration: 450 }), 50);
       return;
     }
     const positions = await getLayoutPositions(nodesRef.current, edgesRef.current);
     flow.applyPositions(positions);
-    setTimeout(() => void fitView({ ...FIT_VIEW_OPTIONS, duration: 450 }), 50);
+    setTimeout(() => void fitView({ ...fitOptions, duration: 450 }), 50);
   });
   const onReorder = useCallback(() => void reorder(), [reorder]);
 
@@ -855,13 +1047,146 @@ function Canvas({
   // What's shown only changes with what's on it (not as nodes are dragged, on any level)
   const shownStructure = levelShown ? structureOf(levelShown.nodes) : structure;
   const legend = useMemo(() => getLegend(shownNodes.filter((node) => !isWrittenOnCanvas(node.type))), [shownStructure]);
-  const visibleNodes = useMemo(
-    () =>
-      hiddenLegendKeys.length === 0
-        ? shownNodes
-        : shownNodes.map((node) => (hiddenLegendKeys.includes(node.type ?? '') ? { ...node, hidden: true } : node)),
-    [shownNodes, hiddenLegendKeys]
+  const shownNodesRef = useRef(shownNodes);
+  shownNodesRef.current = shownNodes;
+  // The nodes shown now (on L1 and L2 they're the level's, where they are there)
+  const shownLookup = () => new Map<string, Node>(shownNodesRef.current.map((node) => [node.id, node]));
+
+  // ---- Hotspots: what's flagged for people to know (risks, problems, the key parts), on nodes or places ----
+
+  const [hotspotDraft, setHotspotDraft] = useState<HotspotDraft | null>(null);
+  const [openHotspot, setOpenHotspot] = useState<string | null>(null);
+  const [listingHotspots, setListingHotspots] = useState(false);
+  // The node a hotspot being dragged would go on: it lights up in the hotspot's colour
+  const [hotspotDropTarget, setHotspotDropTarget] = useState<{ nodeId: string; severity: HotspotSeverity } | null>(null);
+  // Hotspots where they show on this level: on L3 on their node (or at their place); on L1 and L2 on their node if
+  // it's shown, else on what it's in that is (so they're found from the overview). From what's on the canvas and the
+  // level, read through refs: the nodes arrays are new on every drag frame, and which node holds which doesn't
+  // change while things move.
+  const hotspotSpots = useMemo((): HotspotSpot[] => {
+    const canvas = new Map(nodesRef.current.map((node) => [node.id, node]));
+    const shown = new Set(shownNodesRef.current.map((node) => node.id));
+    const onNodes = new Map<string, Hotspot[]>();
+    const holding = new Set<string>();
+    const places: HotspotSpot[] = [];
+    // The node itself if it's shown, else the nearest container of it that is
+    const shownAround = (id: string | undefined) => {
+      while (id && !shown.has(id)) id = canvas.get(id)?.parentId;
+      return id;
+    };
+    for (const hotspot of flow.hotspots) {
+      let target = hotspot.nodeId && canvas.has(hotspot.nodeId) ? hotspot.nodeId : undefined;
+      if (!target) {
+        if ((hotspot.level ?? 3) === level)
+          places.push({ key: `place:${hotspot.id}`, position: hotspot.position, hotspots: [hotspot] });
+        continue;
+      }
+      const own = target;
+      target = shownAround(own);
+      // Not in anything shown (e.g. a message on L2): on what it's connected to (its sender first), or what that's in
+      if (!target) {
+        const linked = flow.edges
+          .filter((edge) => edge.source === own || edge.target === own)
+          .sort((a) => (a.target === own ? -1 : 1));
+        target = linked.map((edge) => shownAround(edge.source === own ? edge.target : edge.source)).find(Boolean);
+      }
+      if (!target) continue;
+      if (target !== hotspot.nodeId) holding.add(target);
+      onNodes.set(target, [...(onNodes.get(target) ?? []), hotspot]);
+    }
+    return [
+      ...[...onNodes].map(([nodeId, hotspots]) => ({ key: `node:${nodeId}`, nodeId, hotspots, inside: holding.has(nodeId) })),
+      ...places,
+    ];
+  }, [flow.hotspots, structure, shownStructure, flow.edges, level]);
+
+  const visibleNodes = useMemo(() => {
+    // A node with hotspots glows in the colour of the most important (see studio.css)
+    const glowing = new Map(
+      hotspotSpots.flatMap((spot) => (spot.nodeId ? [[spot.nodeId, topSeverity(spot.hotspots)] as const] : []))
+    );
+    const dropOn = hotspotDropTarget?.nodeId;
+    if (!hiddenLegendKeys.length && !glowing.size && !dropOn) return shownNodes;
+    return shownNodes.map((node) => {
+      const hidden = hiddenLegendKeys.includes(node.type ?? '');
+      const severity = glowing.get(node.id);
+      const target = node.id === dropOn;
+      if (!hidden && !severity && !target) return node;
+      const classes = [
+        node.className,
+        severity && `studio-hotspot studio-hotspot-${severity}`,
+        target && `studio-hotspot-drop studio-hotspot-drop-${hotspotDropTarget!.severity}`,
+      ];
+      return asShown(node, hidden, classes.filter(Boolean).join(' '));
+    });
+  }, [shownNodes, hiddenLegendKeys, hotspotSpots, hotspotDropTarget]);
+
+  const startHotspot = useStableCallback((at: HotspotDraft) => {
+    setOpenHotspot(null);
+    setDraft(null);
+    setHotspotDraft(at);
+    setTool('select');
+  });
+  const createHotspot = useStableCallback((fields: HotspotFields) => {
+    if (!hotspotDraft) return;
+    flow.createHotspot({
+      ...fields,
+      ...(hotspotDraft.nodeId ? { nodeId: hotspotDraft.nodeId } : hotspotDraft.level && { level: hotspotDraft.level }),
+      position: hotspotDraft.position,
+      author,
+    });
+    setHotspotDraft(null);
+  });
+  const cancelHotspot = useCallback(() => setHotspotDraft(null), []);
+  const deleteHotspot = useStableCallback((id: string) => flow.deleteHotspot(id));
+  // Dragged onto a node (they move with it), or to a place; open where it lands if it was open
+  const moveHotspots = useStableCallback((ids: string[], to: { nodeId?: string; position: XYPosition }) => {
+    const at = to.nodeId ? {} : placeLevel();
+    ids.forEach((id) =>
+      flow.updateHotspot(id, { nodeId: to.nodeId, position: to.position, level: 'level' in at ? at.level : undefined })
+    );
+    setOpenHotspot((open) => (open ? (to.nodeId ? `node:${to.nodeId}` : ids.length === 1 ? `place:${ids[0]}` : null) : open));
+  });
+  // From the list (or inside a node on L1 and L2): the canvas goes to it, and it opens
+  const goToHotspot = useStableCallback((hotspot: Hotspot) => {
+    // On a node shown here, it's here; on another, on L3; at a place, on its level
+    const shownHere = hotspot.nodeId && shownLookup().has(hotspot.nodeId);
+    const target = shownHere ? levelRef.current : hotspot.nodeId ? 3 : (hotspot.level ?? 3);
+    if (target !== levelRef.current) changeLevel(target);
+    const nodes = shownHere ? shownLookup() : lookupNodes();
+    const node = hotspot.nodeId ? nodes.get(hotspot.nodeId) : undefined;
+    const at = node ? getAbsolutePosition(node, nodes) : hotspot.position;
+    const width = node ? (node.measured?.width ?? node.width ?? 0) : 0;
+    void setCenter(at.x + width / 2 + 120, at.y + 80, { zoom: Math.max(getZoom(), 0.8), duration: 300 });
+    setHotspotDraft(null);
+    setOpenHotspot(node ? `node:${node.id}` : `place:${hotspot.id}`);
+    setListingHotspots(false);
+  });
+  const nameOfNode = useStableCallback((id: string) => {
+    const node = nodesRef.current.find((candidate) => candidate.id === id);
+    return node ? getNodeName(node.type, node.data, id) : undefined;
+  });
+  const toggleHotspotList = useCallback(() => {
+    setListingComments(false);
+    setListingHotspots((shown) => !shown);
+  }, []);
+  const hotspotsCount = flow.hotspots.length;
+  const hotspotsSeverity = topSeverity(flow.hotspots);
+  // What the bottom left controls show (the same objects while that's the same: they're memoised)
+  const hotspotsControl = useMemo(
+    () => ({ count: hotspotsCount, severity: hotspotsSeverity, onToggle: toggleHotspotList, active: listingHotspots }),
+    [hotspotsCount, hotspotsSeverity, toggleHotspotList, listingHotspots]
   );
+
+  // A node's details open from its Edit button (and by double clicking it): one selected node on the canvas
+  const selectedNodes = visibleNodes.filter((node) => node.selected);
+  const toEdit =
+    selectedNodes.length === 1 &&
+    !isWrittenOnCanvas(selectedNodes[0].type) &&
+    nodesRef.current.some((node) => node.id === selectedNodes[0].id)
+      ? selectedNodes[0]
+      : undefined;
+  const editSelected = useStableCallback(() => toEdit && setEditingId(toEdit.id));
   /**
    * Changes on L1 and L2. The level's notes are on the canvas, so changes to them go there; removing something
    * removes it from the canvas (the level is drawn from it); and moving or resizing something arranges the level,
@@ -911,19 +1236,23 @@ function Canvas({
     const onCanvas = new Set(nodesRef.current.map((node) => node.id));
     if (onCanvas.has(connection.source) && onCanvas.has(connection.target)) flow.onConnect(connection);
   });
-  // Message edges' envelopes only move on what's selected (the edge, or a node at either end): any moving
-  // envelope at all costs a style recalc and layout every frame, which an editing canvas can't afford at idle
+  // Message edges' envelopes only move under the pointer (the connection, or a node at either end): any moving
+  // envelope needs a main-thread frame on every frame (one selected node's cost ~200–300 ms of every 3 seconds and
+  // dropped frames), which an editing canvas can't afford at idle
   // (on L1 and L2, the level's edges: the level itself changes on every frame something on it is dragged)
+  const [hovered, setHovered] = useState<{ node?: string; edge?: string }>({});
+  const onNodeMouseEnter = useCallback((_: ReactMouseEvent, node: Node) => setHovered({ node: node.id }), []);
+  const onEdgeMouseEnter = useCallback((_: ReactMouseEvent, edge: Edge) => setHovered({ edge: edge.id }), []);
+  const onHoverEnd = useCallback(() => setHovered({}), []);
   const levelEdges = levelShown?.edges;
   const shownEdges = useMemo(() => {
     const edges = levelEdges ?? flow.edges;
-    const focused = new Set(selectedKey ? selectedKey.split(',') : []);
     return edges.map((edge) =>
-      edge.type === 'animated' && !edge.selected && !focused.has(edge.source) && !focused.has(edge.target)
+      edge.type === 'animated' && edge.id !== hovered.edge && edge.source !== hovered.node && edge.target !== hovered.node
         ? withoutEnvelope(edge)
         : edge
     );
-  }, [levelEdges, flow.edges, selectedKey]);
+  }, [levelEdges, flow.edges, hovered]);
   // A canvas opened from a diagram has the levels the diagram has (until what's on it changes)
   const unavailableLevels = useMemo(() => {
     const reason = (level: 1 | 2) => {
@@ -952,9 +1281,91 @@ function Canvas({
   const [following, setFollowing] = useState(followChanges);
   const toggleFollowing = useCallback(() => setFollowing((on) => !on), []);
 
-  const [shareOpen, setShareOpen] = useState(false);
-  const openShare = useCallback(() => setShareOpen(true), []);
+  const [shareOpen, setShareOpen] = useState<false | 'choose' | 'invite'>(false);
+  const openShare = useCallback(() => setShareOpen('choose'), []);
+  const openLiveCollaboration = useCallback(() => setShareOpen('invite'), []);
   const closeShare = useCallback(() => setShareOpen(false), []);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const openHelp = useCallback(() => setHelpOpen(true), []);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
+
+  // ---- Files and images (as Studio on the web's: the same .eventcatalog files, so diagrams move between them) ----
+
+  // A short message at the top (a file that couldn't be opened or saved)
+  const [notice, setNotice] = useState<string>();
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(undefined), 6000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  /** The canvas as a diagram (the model a .eventcatalog file holds) */
+  const canvasModel = () =>
+    canvasToModel(
+      nodesRef.current,
+      edgesRef.current,
+      flow.levelLayouts,
+      { title: flow.title || 'Untitled canvas', resources: [], relations: [] },
+      comments.threads,
+      flow.hotspots
+    );
+  const saveToFile = useStableCallback(() => {
+    const text = toDiagramFile(canvasModel());
+    downloadFile({ name: fileNameFor(flow.title || 'canvas', DIAGRAM_FILE_EXTENSION), mimeType: 'application/json', text });
+  });
+  const exportImage = useStableCallback(async () => {
+    const image = canvasRef.current && (await canvasImage(canvasRef.current));
+    if (!image) return setNotice('Nothing to export yet: put something on the canvas first.');
+    downloadFile({ name: fileNameFor(flow.title || 'canvas', '.png'), mimeType: 'image/png', base64: image.split(',')[1] });
+  });
+  /**
+   * A .eventcatalog file (from Studio on the web, or saved here), opened on this canvas while it's empty, else as a
+   * new canvas (this one stays as it is)
+   */
+  const openFile = useStableCallback(async () => {
+    if (!canvasesApiUrl) return;
+    const file = await pickDiagramFile();
+    if (!file) return;
+    const opened = await readDiagramFile(file);
+    if ('error' in opened) return setNotice(opened.error);
+    try {
+      const content = await modelToCanvas(opened.model);
+      if (!nodesRef.current.length && !comments.threads.length && !flow.hotspots.length) {
+        flow.addContent(content);
+        if (!flow.title || flow.title === 'Untitled canvas') flow.rename(opened.model.title);
+        setTimeout(() => void fitView({ ...fitOptions, duration: 450 }), 100);
+        return;
+      }
+      const created = await createCanvasThroughApi(canvasesApiUrl, { title: opened.model.title, createdBy: name });
+      if (!keepOpened(created.id, content))
+        return setNotice("Couldn't open it in a new canvas here (this browser's storage is blocked).");
+      window.location.assign(created.url);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Couldn't open that file.");
+    }
+  });
+  // A file opened into this canvas (just made for it): put on it once it's loaded, if it's still empty
+  useEffect(() => {
+    if (!flow.synced) return;
+    const content = takeOpened(canvasId);
+    if (!content || nodesRef.current.length) return;
+    flow.addContent(content);
+    setTimeout(() => void fitView({ ...fitOptions, duration: 450 }), 100);
+  }, [flow.synced, canvasId]);
+  useHotkeys('mod+o', () => void openFile(), { preventDefault: true, enabled: !!canvasesApiUrl });
+  useHotkeys('mod+s', () => saveToFile(), { preventDefault: true });
+  useHotkeys('mod+shift+e', () => void exportImage(), { preventDefault: true });
+  // ? for help (by the character typed, so it works on every keyboard layout)
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.target as HTMLElement)?.closest?.('input, textarea, [contenteditable]')) return;
+      if (event.key === '?') {
+        event.preventDefault();
+        setHelpOpen(true);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const openDelete = useCallback(() => setDeleteOpen(true), []);
   const closeDelete = useCallback(() => setDeleteOpen(false), []);
@@ -1011,11 +1422,26 @@ function Canvas({
     { preventDefault: true }
   );
   // On every level: notes are changed on L1 and L2 too (and the levels show what's undone on the canvas)
-  useHotkeys('mod+z', () => flow.undo(), { preventDefault: true });
-  useHotkeys(['mod+shift+z', 'mod+y'], () => flow.redo(), { preventDefault: true });
-  useHotkeys('c', () => onCanvas() && setCommentMode((on) => !on));
+  useHotkeys('mod+z', () => !lockedRef.current && flow.undo(), { preventDefault: true });
+  useHotkeys(['mod+shift+z', 'mod+y'], () => !lockedRef.current && flow.redo(), { preventDefault: true });
+  // Drawing tools' keys: V to select, H for the hand, N, T, C and A to put something down, 1-3 for the levels,
+  // Shift+1 to fit
+  useHotkeys('n', () => pickTool('note'));
+  useHotkeys('t', () => pickTool('text'));
+  useHotkeys('c', () => pickTool('comment'));
+  // A for attention: a hotspot
+  useHotkeys('a', () => pickTool('hotspot'));
+  useHotkeys('v', () => setTool('select'));
+  useHotkeys('h', () => setTool('hand'));
+  useHotkeys(['1', '2', '3'], (event) => {
+    const next = Number(event.code.replace('Digit', '')) as Level;
+    if (next === 3 || !unavailableLevels[next]) changeLevel(next);
+  });
+  useHotkeys('shift+1', () => void fitView({ ...fitOptions, duration: 500 }), { useKey: false });
   useHotkeys('escape', () => {
-    setCommentMode(false);
+    setHotspotDraft(null);
+    setOpenHotspot(null);
+    setTool('select');
     setDraft(null);
     setOpenThreadId(null);
     clearSelectedThreads();
@@ -1033,20 +1459,48 @@ function Canvas({
     comments.deleteThreads([...selectedThreads]);
     clearSelectedThreads();
   });
-  const toggleCommentMode = useCallback(() => setCommentMode((on) => !on), []);
+  /** A tool that puts something down: picked, or put back to selecting if it was already */
+  const pickTool = useStableCallback((next: 'text' | 'note' | 'comment' | 'hotspot') => {
+    // (comments can be left on a locked canvas: reviewing it changes nothing on it)
+    if (lockedRef.current && next !== 'comment') return;
+    // Comments are pinned to the canvas people edit (L3)
+    if (next === 'comment' && levelRef.current !== 3) changeLevel(3);
+    setTool((current) => (current === next ? 'select' : next));
+  });
+  const toggleCommentMode = useCallback(() => pickTool('comment'), [pickTool]);
+  const toggleNoteMode = useCallback(() => pickTool('note'), [pickTool]);
+  const toggleTextMode = useCallback(() => pickTool('text'), [pickTool]);
+  const toggleHotspotMode = useCallback(() => pickTool('hotspot'), [pickTool]);
+  const selectTool = useCallback(() => setTool('select'), []);
+  const handTool = useCallback(() => setTool('hand'), []);
+  const toggleLock = useStableCallback(() => {
+    setTool('select');
+    flow.setLocked(lockedRef.current ? null : name);
+  });
 
   const startComment = (anchor: CommentAnchor) => {
     setOpenThreadId(null);
     setDraft(anchor);
-    setCommentMode(false);
+    setTool('select');
   };
 
   const flowPositionOf = (event: { clientX: number; clientY: number }) =>
     screenToFlowPosition({ x: event.clientX, y: event.clientY });
 
+  // A place on L1 or L2 is on that level (they're laid out on their own): what's put there says so
+  const placeLevel = () => (levelRef.current === 3 ? {} : { level: levelRef.current as 1 | 2 });
   const onPaneClick = useStableCallback((event: ReactMouseEvent) => {
     clearSelectedThreads();
+    if (tool === 'hand') return;
     if (commentMode && editable) return startComment(anchorAt(flowPositionOf(event)));
+    // Flagging: a hotspot where it's clicked
+    if (tool === 'hotspot') return startHotspot({ position: flowPositionOf(event), ...placeLevel() });
+    // The text and note tools: put where it's clicked, then back to selecting
+    if (placing) {
+      setTool('select');
+      if (tool === 'text') return writeTextAt(flowPositionOf(event));
+      return addNoteAt(flowPositionOf(event));
+    }
     // A click inside a container (not on something in it) selects it: its body lets the pointer through so you can
     // drag a selection box in it, so the click lands on the canvas
     // (after React Flow clears the selection, which it does once this returns)
@@ -1062,21 +1516,27 @@ function Canvas({
     if (!isWrittenOnCanvas(node.type) && nodesRef.current.some((other) => other.id === node.id)) setEditingId(node.id);
   });
   // ...and inside a container (not on something in it): its body lets the pointer through, so it's on the canvas
+  // ...and anywhere else on the canvas writes there, as on Excalidraw's (and Studio on the web's)
   const onCanvasDoubleClick = useStableCallback((event: ReactMouseEvent) => {
-    if (!editable || !(event.target as Element).classList?.contains('react-flow__pane')) return;
-    const container = findGroupAtPoint(flowPositionOf(event), nodesRef.current);
-    if (container) setEditingId(container.id);
+    if (!(event.target as Element).classList?.contains('react-flow__pane')) return;
+    const container = editable ? findGroupAtPoint(flowPositionOf(event), nodesRef.current) : undefined;
+    if (container) return setEditingId(container.id);
+    if (!lockedRef.current) writeTextAt(flowPositionOf(event));
   });
 
   const onNodeClick = useStableCallback((event: ReactMouseEvent, node: Node) => {
     // Clicking one node selects just it (with shift or ⌘, it's added to what's selected)
     if (!event.shiftKey && !event.metaKey) clearSelectedThreads();
+    // Not on notes and text: they're written on, not what's being flagged or commented on
+    if (isWrittenOnCanvas(node.type)) return;
+    // A hotspot on it (it shows on the node, wherever it goes, on every level it's on)
+    if (tool === 'hotspot') return startHotspot({ nodeId: node.id, position: flowPositionOf(event) });
     if (commentMode && editable) startComment(anchorAt(flowPositionOf(event), node, lookupNodes()));
   });
 
   const openContextMenu = useStableCallback((event: ReactMouseEvent | MouseEvent, node?: Node) => {
     event.preventDefault();
-    if (!editable) return;
+    if (!editable || lockedRef.current) return;
     setContextMenu({ x: event.clientX, y: event.clientY, flowPosition: flowPositionOf(event), node });
   });
   const onPaneContextMenu = useCallback((event: ReactMouseEvent | MouseEvent) => openContextMenu(event), [openContextMenu]);
@@ -1096,6 +1556,26 @@ function Canvas({
   const editFromMenu = useStableCallback(() => {
     if (contextMenu?.node) setEditingId(contextMenu.node.id);
     setContextMenu(null);
+  });
+  /** A sticky note where the menu was opened, or to the right of the node right clicked (about it) */
+  const noteFromMenu = useStableCallback(() => {
+    if (!contextMenu) return;
+    const node = contextMenu.node && lookupNodes().get(contextMenu.node.id);
+    if (node) {
+      const at = getAbsolutePosition(node, lookupNodes());
+      const width = node.measured?.width ?? node.width ?? 240;
+      addNoteAt({ x: at.x + width + 140, y: at.y + 88 });
+    } else addNoteAt(contextMenu.flowPosition);
+    setContextMenu(null);
+  });
+  const hotspotFromMenu = useStableCallback(() => {
+    if (!contextMenu) return;
+    startHotspot({ ...(contextMenu.node ? { nodeId: contextMenu.node.id } : placeLevel()), position: contextMenu.flowPosition });
+    setContextMenu(null);
+  });
+  const reorderFromMenu = useStableCallback(() => {
+    setContextMenu(null);
+    onReorder();
   });
   const copyFromMenu = useStableCallback(() => {
     // Through the copy event, so it's copied like ⌘C (to the system clipboard too)
@@ -1119,6 +1599,7 @@ function Canvas({
   });
 
   const openThread = useStableCallback((thread: Thread) => {
+    setListingComments(false);
     const { x, y } = getAnchorPosition(thread, lookupNodes());
     // Leave room for the thread, which opens to the right of its pin
     void setCenter(x + 150, y, { zoom: getZoom(), duration: 300 });
@@ -1126,6 +1607,18 @@ function Canvas({
     setOpenThreadId(thread.id);
   });
   const toggleResolved = useCallback(() => setShowResolved((show) => !show), []);
+  const [panelTab, setPanelTab] = useState<LeftPanelTab>('components');
+  // All the comments, listed over the bottom left controls (as Studio on the web's): clicking one goes to it
+  const [listingComments, setListingComments] = useState(false);
+  const toggleCommentList = useCallback(() => {
+    setListingHotspots(false);
+    setListingComments((shown) => !shown);
+  }, []);
+  const openComments = comments.threads.filter((thread) => !thread.resolved).length;
+  const commentsControl = useMemo(
+    () => ({ open: openComments, onToggle: toggleCommentList, active: listingComments }),
+    [openComments, toggleCommentList, listingComments]
+  );
   const openThreadById = useCallback((id: string | null) => {
     setDraft(null);
     setOpenThreadId(id);
@@ -1157,15 +1650,37 @@ function Canvas({
       })
     );
   }, [selectedKey]);
-  // The node whose details are being edited in the panel: opened by double clicking it, or "Edit details" in its
-  // menu (selecting a node doesn't open it). Notes are edited on the canvas.
+  // The node whose details are being edited in its card: opened with the edit button over it, by double clicking it,
+  // or "Edit details" in its menu (selecting a node doesn't open it). Notes are edited on the canvas.
   const [editingId, setEditingId] = useState<string | null>(null);
   const editing = editingId ? flow.nodes.find((node) => node.id === editingId && !isWrittenOnCanvas(node.type)) : undefined;
-  // What the panel shows (not the node's position, so dragging it doesn't re-render the panel)
+  // What the card shows (not the node's position, so dragging it doesn't re-render the card)
   const inspected = useMemo(
     () => (editing ? { id: editing.id, type: editing.type, data: editing.data } : null),
     [editing?.id, editing?.type, editing?.data]
   );
+  // The domain or system it's in
+  const parent = editing?.parentId ? flow.nodes.find((node) => node.id === editing.parentId) : undefined;
+  const inspectedParent = parent ? String(getResource(parent.type, parent.data).name ?? '') || undefined : undefined;
+  // What it's connected to, for its card
+  const inspectedConnections = useMemo((): NodeConnection[] => {
+    if (!editingId) return [];
+    const byId = new Map(flow.nodes.map((node) => [node.id, node]));
+    return flow.edges.flatMap((edge) => {
+      const outgoing = edge.source === editingId;
+      if (!outgoing && edge.target !== editingId) return [];
+      const other = byId.get(outgoing ? edge.target : edge.source);
+      if (!other || isWrittenOnCanvas(other.type)) return [];
+      const name = String(getResource(other.type, other.data).name ?? '') || getNodeLabel(other.type);
+      return [{ id: other.id, name, type: other.type, label: typeof edge.label === 'string' ? edge.label : undefined, outgoing }];
+    });
+  }, [editingId, flow.nodes, flow.edges]);
+  // Goes to a node it's connected to, and shows its card
+  const openConnected = useStableCallback((id: string) => {
+    setEditingId(id);
+    select(new Set([id]));
+    void fitView({ nodes: [{ id }], duration: 400, padding: 0.3, maxZoom: 1.2 });
+  });
   const closePanel = useCallback(() => setEditingId(null), []);
   // An accepted or rejected canvas, and when it was decided
   const { status: canvasStatus, history: statusHistory } = flow.canvasStatus;
@@ -1176,264 +1691,400 @@ function Canvas({
   return (
     <UpdateNodeDataContext.Provider value={flow.updateNodeData}>
       <DropTargetContext.Provider value={dropTargetId}>
-        <div className="flex h-full min-h-0 text-[rgb(var(--ec-page-text))]">
-          <LeftPanel
-            level={level}
-            onShowAll={editInL3}
-            resources={resources}
-            keysOnCanvas={keysOnCanvas}
-            onAddComponent={addComponent}
-            onAddResource={addResourceFromPanel}
-            threads={comments.threads}
-            showResolved={showResolved}
-            onToggleResolved={toggleResolved}
-            onOpenThread={openThread}
-          />
+        <EditingContext.Provider value={flow.sendEditing}>
+          <StartWritingContext.Provider value={startWriting}>
+            <LockedContext.Provider value={locked}>
+              <div className="flex h-full min-h-0 text-[rgb(var(--ec-page-text))]">
+                <div
+                  ref={canvasRef}
+                  className={`eventcatalog-visualizer studio-canvas relative flex-1 min-w-0 ${commentMode ? 'comment-mode' : ''} ${
+                    transitioning ? 'is-layout-transition' : ''
+                  } ${placing || tool === 'comment' || tool === 'hotspot' ? 'is-placing' : ''} ${tool === 'hand' ? 'is-panning' : ''}`}
+                  onPointerMove={trackPointer}
+                  onPointerLeave={clearPointer}
+                  onDoubleClick={onCanvasDoubleClick}
+                >
+                  <ReactFlow
+                    nodes={visibleNodes}
+                    edges={shownEdges}
+                    onNodeMouseEnter={onNodeMouseEnter}
+                    onNodeMouseLeave={onHoverEnd}
+                    onEdgeMouseEnter={onEdgeMouseEnter}
+                    onEdgeMouseLeave={onHoverEnd}
+                    nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}
+                    nodesDraggable={!locked && tool !== 'hand'}
+                    nodesConnectable={!locked && tool !== 'hand'}
+                    elementsSelectable={tool !== 'hand'}
+                    onNodesChange={editable ? flow.onNodesChange : onLevelNodesChange}
+                    onEdgesChange={editable ? flow.onEdgesChange : undefined}
+                    onConnect={editable ? flow.onConnect : onLevelConnect}
+                    // Drag either end of a connection to another node (dropped anywhere else, it stays where it was)
+                    edgesReconnectable={editable && !locked}
+                    onReconnect={editable ? flow.onReconnect : undefined}
+                    reconnectRadius={RECONNECT_RADIUS}
+                    onDragOver={locked ? undefined : onDragOver}
+                    onMoveStart={onMoveStart}
+                    onMoveEnd={onMoveEnd}
+                    onNodeDragStart={onNodeDragStart}
+                    onNodeDrag={onNodeDrag}
+                    onNodeDragStop={onNodeDragStop}
+                    onDrop={locked ? undefined : onDrop}
+                    onPaneClick={onPaneClick}
+                    onNodeClick={onNodeClick}
+                    onNodeDoubleClick={onNodeDoubleClick}
+                    onError={onFlowError}
+                    onSelectionStart={clearSelectedThreads}
+                    onPaneContextMenu={onPaneContextMenu}
+                    onNodeContextMenu={onNodeContextMenu}
+                    connectionLineType={ConnectionLineType.SmoothStep}
+                    connectionRadius={40}
+                    deleteKeyCode={locked ? null : DELETE_KEYS}
+                    multiSelectionKeyCode={MULTI_SELECTION_KEYS}
+                    selectionOnDrag={tool !== 'hand'}
+                    // The hand drags the canvas around; otherwise dragging selects (space, the middle button or scrolling pan)
+                    panOnDrag={tool === 'hand' ? true : PAN_BUTTONS}
+                    panOnScroll
+                    zoomActivationKeyCode={ZOOM_KEYS}
+                    zoomOnDoubleClick={false}
+                    minZoom={0.1}
+                    maxZoom={2}
+                  >
+                    <DiagramBackground />
+                    {/* Above the selected node's top right corner: its details, to edit them */}
+                    {toEdit && <EditButton nodeId={toEdit.id} locked={locked} onClick={editSelected} />}
+                    <LegendPanel legend={legend} hiddenKeys={hiddenLegendKeys} onLegendClick={toggleLegendKey} />
+                    <ViewportSharer onChange={flow.setViewport} />
+                    {/* Pointers, selections and comments are on the canvas people edit (L3) */}
+                    {editable && <RemotePresence store={flow.presence} clientId={flow.clientId} />}
+                    {editable && (
+                      <CommentLayer
+                        threads={comments.threads}
+                        author={author}
+                        openThreadId={openThreadId}
+                        draft={draft}
+                        showResolved={showResolved}
+                        onOpen={openThreadById}
+                        onCreate={createThread}
+                        onCancelDraft={cancelDraft}
+                        onReply={comments.reply}
+                        onResolve={comments.setResolved}
+                        onMove={comments.moveThread}
+                        onMoveDraft={setDraft}
+                        onDelete={deleteThread}
+                        selectedIds={selectedThreads}
+                        selectionOffset={threadsOffset}
+                      />
+                    )}
+                    {/* Hotspots on every level (on L1 and L2, on what they're in) */}
+                    <HotspotLayer
+                      spots={hotspotSpots}
+                      openKey={openHotspot}
+                      draft={hotspotDraft}
+                      locked={locked}
+                      movable={!locked}
+                      selectedIds={null}
+                      onMove={moveHotspots}
+                      onDropTarget={setHotspotDropTarget}
+                      onOpen={setOpenHotspot}
+                      onCreate={createHotspot}
+                      onCancelDraft={cancelHotspot}
+                      onUpdate={flow.updateHotspot}
+                      onDelete={deleteHotspot}
+                      onGo={goToHotspot}
+                    />
+                  </ReactFlow>
 
-          <div
-            ref={canvasRef}
-            className={`eventcatalog-visualizer studio-canvas relative flex-1 min-w-0 ${commentMode ? 'comment-mode' : ''} ${
-              transitioning ? 'is-layout-transition' : ''
-            }`}
-            onPointerMove={trackPointer}
-            onPointerLeave={clearPointer}
-            onDoubleClick={onCanvasDoubleClick}
-          >
-            <ReactFlow
-              nodes={visibleNodes}
-              edges={shownEdges}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              nodesDraggable
-              nodesConnectable
-              elementsSelectable
-              onNodesChange={editable ? flow.onNodesChange : onLevelNodesChange}
-              onEdgesChange={editable ? flow.onEdgesChange : undefined}
-              onConnect={editable ? flow.onConnect : onLevelConnect}
-              // Drag either end of a connection to another node (dropped anywhere else, it stays where it was)
-              edgesReconnectable={editable}
-              onReconnect={editable ? flow.onReconnect : undefined}
-              reconnectRadius={RECONNECT_RADIUS}
-              onDragOver={onDragOver}
-              onMoveStart={onMoveStart}
-              onMoveEnd={onMoveEnd}
-              onNodeDragStart={onNodeDragStart}
-              onNodeDrag={onNodeDrag}
-              onNodeDragStop={onNodeDragStop}
-              onDrop={onDrop}
-              onPaneClick={onPaneClick}
-              onNodeClick={onNodeClick}
-              onNodeDoubleClick={onNodeDoubleClick}
-              onError={onFlowError}
-              onSelectionStart={clearSelectedThreads}
-              onPaneContextMenu={onPaneContextMenu}
-              onNodeContextMenu={onNodeContextMenu}
-              connectionLineType={ConnectionLineType.SmoothStep}
-              connectionRadius={40}
-              deleteKeyCode={DELETE_KEYS}
-              multiSelectionKeyCode={MULTI_SELECTION_KEYS}
-              selectionOnDrag
-              // Read only levels can't select: dragging pans them
-              panOnDrag={PAN_BUTTONS}
-              panOnScroll
-              zoomActivationKeyCode={ZOOM_KEYS}
-              zoomOnDoubleClick={false}
-              minZoom={0.1}
-              maxZoom={2}
-            >
-              <DiagramBackground />
-              <LegendPanel legend={legend} hiddenKeys={hiddenLegendKeys} onLegendClick={toggleLegendKey} />
-              <ViewportSharer onChange={flow.setViewport} />
-              {/* Pointers, selections and comments are on the canvas people edit (L3) */}
-              {editable && <RemotePresence store={flow.presence} clientId={flow.clientId} />}
-              {editable && (
-                <CommentLayer
-                  threads={comments.threads}
-                  author={author}
-                  openThreadId={openThreadId}
-                  draft={draft}
-                  showResolved={showResolved}
-                  onOpen={openThreadById}
-                  onCreate={createThread}
-                  onCancelDraft={cancelDraft}
-                  onReply={comments.reply}
-                  onResolve={comments.setResolved}
-                  onMove={comments.moveThread}
-                  onMoveDraft={setDraft}
-                  onDelete={deleteThread}
-                  selectedIds={selectedThreads}
-                  selectionOffset={threadsOffset}
-                />
-              )}
-            </ReactFlow>
+                  <AgentActivity
+                    store={flow.presence}
+                    clientId={flow.clientId}
+                    enabled={editable}
+                    following={following}
+                    onToggleFollowing={toggleFollowing}
+                    pauseRef={pauseCamera}
+                  />
 
-            <AgentActivity
-              store={flow.presence}
-              clientId={flow.clientId}
-              enabled={editable}
-              following={following}
-              onToggleFollowing={toggleFollowing}
-              pauseRef={pauseCamera}
-            />
+                  {!editable && (
+                    <div className="absolute left-1/2 top-16 z-10 flex -translate-x-1/2 items-center gap-3 rounded-full border px-4 py-1.5 text-xs shadow-sm bg-[rgb(var(--ec-accent-subtle))] border-[rgb(var(--ec-accent)/0.3)] text-[rgb(var(--ec-page-text))]">
+                      <span>
+                        <span className="font-semibold">L{level}</span> ·{' '}
+                        {LEVELS.find((entry) => entry.level === level)?.description}
+                      </span>
+                      <button onClick={editInL3} className="font-semibold text-[rgb(var(--ec-accent))] hover:underline">
+                        Everything is on L3
+                      </button>
+                    </div>
+                  )}
 
-            {!editable && (
-              <div className="absolute left-1/2 top-16 z-10 flex -translate-x-1/2 items-center gap-3 rounded-full border px-4 py-1.5 text-xs shadow-sm bg-[rgb(var(--ec-accent-subtle))] border-[rgb(var(--ec-accent)/0.3)] text-[rgb(var(--ec-page-text))]">
-                <span>
-                  <span className="font-semibold">L{level}</span> · {LEVELS.find((entry) => entry.level === level)?.description}
-                </span>
-                <button onClick={editInL3} className="font-semibold text-[rgb(var(--ec-accent))] hover:underline">
-                  Everything is on L3
-                </button>
-              </div>
-            )}
-
-            {/* Accepted or rejected: still editable, but changing it makes it a draft again (for everyone) */}
-            {editable && decided && (
-              <div
-                className={`absolute left-1/2 top-16 z-10 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-full border px-4 py-1.5 text-xs shadow-sm ${CANVAS_STATUS_LOOK[decided.status].pill}`}
-              >
-                <span className="truncate">
-                  <span className="font-semibold">{CANVAS_STATUS_LOOK[decided.status].label}</span>
-                  {decided.change && ` by ${decided.change.by.name} · ${timeAgo(decided.change.at)}`}
-                  {decided.change?.note && ` · “${decided.change.note}”`} · changing it moves it back to Draft
-                </span>
-              </div>
-            )}
-
-            <CanvasControls
-              level={level}
-              onLevelChange={changeLevel}
-              unavailableLevels={unavailableLevels}
-              editable={editable}
-              onReorder={onReorder}
-              canUndo={flow.canUndo}
-              canRedo={flow.canRedo}
-              onUndo={flow.undo}
-              onRedo={flow.redo}
-              commentMode={commentMode}
-              onToggleCommentMode={toggleCommentMode}
-              onAddNote={addNote}
-            />
-
-            <CanvasContextMenu
-              menu={contextMenu}
-              onAddComment={commentFromMenu}
-              onEditDetails={editFromMenu}
-              onCopy={copyFromMenu}
-              onDuplicate={duplicateFromMenu}
-              onPaste={lastCopied ? pasteFromMenu : undefined}
-              onDeleteNode={deleteFromMenu}
-              onClose={closeContextMenu}
-            />
-
-            <CanvasHeader
-              title={flow.title}
-              onRetitle={flow.rename}
-              status={flow.status}
-              transport={flow.transport}
-              presence={flow.presence}
-              clientId={flow.clientId}
-              onJumpTo={jumpTo}
-              onRename={onRename}
-              onConnectAgent={openConnect}
-              onShare={openShare}
-              webMcp={webMcp}
-              shareUrl={shareUrl}
-              newCanvasUrl={newCanvasUrl}
-              canvasStatus={flow.canvasStatus.status}
-              statusHistory={flow.canvasStatus.history}
-              onStatusChange={flow.changeStatus}
-              onDelete={canvasesApiUrl ? openDelete : undefined}
-            />
-
-            {flow.deleted && !leaving && (
-              <div className="absolute inset-0 z-40 flex items-center justify-center bg-[rgb(var(--ec-page-bg)/0.85)] p-4">
-                <div className="max-w-sm space-y-2 rounded-xl border p-5 text-center shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))]">
-                  <h2 className="text-base font-semibold">This canvas was deleted</h2>
-                  <p className="text-sm text-[rgb(var(--ec-page-text-muted))]">
-                    Someone deleted it, so it can't be opened or changed any more.
-                  </p>
-                  {studioUrl && (
-                    <a
-                      href={studioUrl}
-                      className="mt-2 inline-flex rounded-lg px-4 py-2 text-sm font-medium bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
+                  {/* Accepted or rejected: still editable, but changing it makes it a draft again (for everyone) */}
+                  {editable && decided && (
+                    <div
+                      className={`absolute left-1/2 top-16 z-10 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-full border px-4 py-1.5 text-xs shadow-sm ${CANVAS_STATUS_LOOK[decided.status].pill}`}
                     >
-                      Back to Studio
-                    </a>
+                      <span className="truncate">
+                        <span className="font-semibold">{CANVAS_STATUS_LOOK[decided.status].label}</span>
+                        {decided.change && ` by ${decided.change.by.name} · ${timeAgo(decided.change.at)}`}
+                        {decided.change?.note && ` · “${decided.change.note}”`} · changing it moves it back to Draft
+                      </span>
+                    </div>
+                  )}
+
+                  {/* At the top, as drawing tools have their tools (and Studio on the web has them) */}
+                  <CanvasControls
+                    level={level}
+                    onLevelChange={changeLevel}
+                    unavailableLevels={unavailableLevels}
+                    editable={editable}
+                    locked={locked}
+                    onToggleLock={toggleLock}
+                    lockedBy={flow.lockedBy}
+                    selectMode={tool === 'select'}
+                    onSelectMode={selectTool}
+                    handMode={tool === 'hand'}
+                    onHandMode={handTool}
+                    noteMode={tool === 'note'}
+                    onToggleNoteMode={toggleNoteMode}
+                    textMode={tool === 'text'}
+                    onToggleTextMode={toggleTextMode}
+                    commentMode={commentMode}
+                    onToggleCommentMode={toggleCommentMode}
+                    hotspotMode={tool === 'hotspot'}
+                    onToggleHotspotMode={toggleHotspotMode}
+                  />
+
+                  {/* The palette: components, the catalog and the comments, under the canvas's title */}
+                  {!locked && (
+                    <LeftPanel
+                      level={level}
+                      onShowAll={editInL3}
+                      resources={resources}
+                      keysOnCanvas={keysOnCanvas}
+                      onAddComponent={addComponent}
+                      onAddResource={addResourceFromPanel}
+                      tab={panelTab}
+                      onTabChange={setPanelTab}
+                      startCollapsed={paletteCollapsed}
+                    />
+                  )}
+
+                  {/* All the hotspots, most important first, over the bottom left controls: clicking one goes to it */}
+                  {listingComments && (
+                    <div className="absolute bottom-[64px] left-3 z-20 flex max-h-[min(480px,calc(100%-140px))] w-80 flex-col overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-xl">
+                      <div className="flex flex-none items-center justify-between border-b border-[rgb(var(--ec-page-border))] px-3 py-2 text-sm font-semibold">
+                        Comments
+                        <button
+                          type="button"
+                          aria-label="Close"
+                          onClick={toggleCommentList}
+                          className="rounded p-1 text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))]"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
+                        <CommentList
+                          threads={comments.threads}
+                          showResolved={showResolved}
+                          onToggleResolved={toggleResolved}
+                          onOpen={openThread}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {listingHotspots && (
+                    <div className="absolute bottom-[64px] left-3 z-20 flex max-h-[min(480px,calc(100%-140px))] w-80 flex-col overflow-hidden rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-xl">
+                      <div className="flex flex-none items-center justify-between border-b border-[rgb(var(--ec-page-border))] px-3 py-2 text-sm font-semibold">
+                        Hotspots
+                        <button
+                          type="button"
+                          aria-label="Close"
+                          onClick={toggleHotspotList}
+                          className="rounded p-1 text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))]"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="min-h-0 flex-1 overflow-y-auto">
+                        <HotspotList hotspots={flow.hotspots} nameOf={nameOfNode} onOpen={goToHotspot} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bottom left: zoom, undo and redo (as Excalidraw's), fitting and reordering, the comments and hotspots */}
+                  <div className="absolute bottom-3 left-3 z-10 flex items-center gap-2">
+                    <ViewControls
+                      canUndo={flow.canUndo && !locked}
+                      canRedo={flow.canRedo && !locked}
+                      onUndo={flow.undo}
+                      onRedo={flow.redo}
+                      onReorder={onReorder}
+                      reorderLabel={
+                        editable ? "Reorder diagram (the visualiser's layout)" : `Reorder L${level} (the visualiser's layout)`
+                      }
+                      locked={locked}
+                      fitOptions={fitOptions}
+                      comments={commentsControl}
+                      hotspots={hotspotsControl}
+                    />
+                  </div>
+
+                  <ContextMenu
+                    menu={contextMenu}
+                    onAddComment={commentFromMenu}
+                    onAddHotspot={hotspotFromMenu}
+                    onAddNote={noteFromMenu}
+                    onEditDetails={editFromMenu}
+                    onCopy={copyFromMenu}
+                    onDuplicate={duplicateFromMenu}
+                    onPaste={lastCopied ? pasteFromMenu : undefined}
+                    onReorder={reorderFromMenu}
+                    onDeleteNode={deleteFromMenu}
+                    onClose={closeContextMenu}
+                  />
+
+                  <CanvasHeader
+                    title={flow.title}
+                    onRetitle={flow.rename}
+                    status={flow.status}
+                    transport={flow.transport}
+                    presence={flow.presence}
+                    clientId={flow.clientId}
+                    onJumpTo={jumpTo}
+                    me={author}
+                    onRename={onRename}
+                    onRecolor={onRecolor}
+                    onConnectAgent={openConnect}
+                    onShare={openShare}
+                    onOpenFile={canvasesApiUrl ? openFile : undefined}
+                    onSaveToFile={saveToFile}
+                    onExportImage={exportImage}
+                    onLiveCollaboration={openLiveCollaboration}
+                    onHelp={openHelp}
+                    webMcp={webMcp}
+                    shareUrl={shareUrl}
+                    newCanvasUrl={newCanvasUrl}
+                    canvasStatus={flow.canvasStatus.status}
+                    statusHistory={flow.canvasStatus.history}
+                    onStatusChange={flow.changeStatus}
+                    onDelete={canvasesApiUrl ? openDelete : undefined}
+                  />
+
+                  {flow.deleted && !leaving && (
+                    <div className="absolute inset-0 z-40 flex items-center justify-center bg-[rgb(var(--ec-page-bg)/0.85)] p-4">
+                      <div className="max-w-sm space-y-2 rounded-xl border p-5 text-center shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))]">
+                        <h2 className="text-base font-semibold">This canvas was deleted</h2>
+                        <p className="text-sm text-[rgb(var(--ec-page-text-muted))]">
+                          Someone deleted it, so it can't be opened or changed any more.
+                        </p>
+                        {studioUrl && (
+                          <a
+                            href={studioUrl}
+                            className="mt-2 inline-flex rounded-lg px-4 py-2 text-sm font-medium bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
+                          >
+                            Back to Studio
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Only on an empty canvas (not over comments people have left on it): what it's for, and what to do */}
+                  {flow.status === 'connected' &&
+                    flow.nodes.length === 0 &&
+                    comments.threads.length === 0 &&
+                    flow.hotspots.length === 0 &&
+                    !draft && (
+                      <EmptyCanvas
+                        // Just the hints to the palette, levels and Share (the catalog is around it, not a blank page)
+                        welcome={false}
+                        onOpen={canvasesApiUrl ? openFile : undefined}
+                        onHelp={openHelp}
+                        onConnect={openConnect}
+                        palette={!locked}
+                        live
+                      />
+                    )}
+
+                  {/* The node being edited: its card, next to it (as Studio on the web's) */}
+                  {inspected && (
+                    <NodeDetails
+                      key={inspected.id}
+                      node={inspected}
+                      parentName={inspectedParent}
+                      connections={inspectedConnections}
+                      onOpenNode={openConnected}
+                      containerRef={canvasRef}
+                      locked={locked}
+                      onChange={flow.updateNodeData}
+                      onClose={closePanel}
+                    />
                   )}
                 </div>
-              </div>
-            )}
 
-            {/* Only on an empty canvas (not over comments people have left on it) */}
-            {flow.status === 'connected' && flow.nodes.length === 0 && comments.threads.length === 0 && !draft && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <p className="text-sm text-[rgb(var(--ec-page-text-muted))]">
-                  Drag components or catalog resources from the left onto the canvas, then share the link to work on it together.
-                </p>
+                {chooser && (
+                  <ContainerChooser
+                    kind={chooser.resource.collection === 'domains' ? 'domain' : 'system'}
+                    name={chooser.resource.name}
+                    contents={chooserContents}
+                    position={flowToScreenPosition(chooser.at.point)}
+                    onChoose={choose}
+                    onCancel={cancelChooser}
+                  />
+                )}
+                {connectionsChooser && (
+                  <ConnectionsChooser
+                    resource={connectionsChooser.resource}
+                    groups={connectionsChooser.groups}
+                    position={flowToScreenPosition(connectionsChooser.at.point)}
+                    onChoose={chooseConnections}
+                    onCancel={cancelConnectionsChooser}
+                  />
+                )}
+                {shareOpen && (
+                  <ShareDialog
+                    initialView={shareOpen}
+                    keptInMemory={keptInMemory}
+                    url={agentLink.canvasUrl}
+                    title={flow.title}
+                    presence={flow.presence}
+                    clientId={flow.clientId}
+                    onRename={onRename}
+                    onJumpTo={jumpTo}
+                    onConnectAgent={openConnect}
+                    onClose={closeShare}
+                  />
+                )}
+                {helpOpen && <ShortcutsDialog onClose={closeHelp} />}
+                {notice && (
+                  <div
+                    role="status"
+                    className="absolute left-1/2 top-[72px] z-30 max-w-md -translate-x-1/2 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-4 py-2 text-sm shadow-lg"
+                  >
+                    {notice}
+                  </div>
+                )}
+                {deleteOpen && (
+                  <DeleteCanvasDialog
+                    title={flow.title}
+                    presence={flow.presence}
+                    clientId={flow.clientId}
+                    onDelete={deleteCanvas}
+                    onClose={closeDelete}
+                  />
+                )}
+                {connectOpen && (
+                  <ConnectAgentDialog
+                    link={agentLink}
+                    webMcp={webMcp}
+                    relayScriptPath={relayScriptPath}
+                    onEnableWebMcp={turnOnWebMcp}
+                    onClose={closeConnect}
+                  />
+                )}
               </div>
-            )}
-          </div>
-
-          {chooser && (
-            <ContainerChooser
-              resource={chooser.resource}
-              contents={chooserContents}
-              position={flowToScreenPosition(chooser.at.point)}
-              onChoose={choose}
-              onCancel={cancelChooser}
-            />
-          )}
-          {connectionsChooser && (
-            <ConnectionsChooser
-              resource={connectionsChooser.resource}
-              groups={connectionsChooser.groups}
-              position={flowToScreenPosition(connectionsChooser.at.point)}
-              onChoose={chooseConnections}
-              onCancel={cancelConnectionsChooser}
-            />
-          )}
-          {shareOpen && (
-            <ShareDialog
-              keptInMemory={keptInMemory}
-              url={agentLink.canvasUrl}
-              title={flow.title}
-              presence={flow.presence}
-              clientId={flow.clientId}
-              onRename={onRename}
-              onJumpTo={jumpTo}
-              onConnectAgent={openConnect}
-              onClose={closeShare}
-            />
-          )}
-          {deleteOpen && (
-            <DeleteCanvasDialog
-              title={flow.title}
-              presence={flow.presence}
-              clientId={flow.clientId}
-              onDelete={deleteCanvas}
-              onClose={closeDelete}
-            />
-          )}
-          {connectOpen && (
-            <ConnectAgentDialog
-              link={agentLink}
-              webMcp={webMcp}
-              relayScriptPath={relayScriptPath}
-              onEnableWebMcp={turnOnWebMcp}
-              onClose={closeConnect}
-            />
-          )}
-          {inspected && (
-            <PropertiesPanel
-              key={inspected.id}
-              node={inspected}
-              onChange={flow.updateNodeData}
-              onDelete={flow.deleteNodes}
-              onClose={closePanel}
-            />
-          )}
-        </div>
+            </LockedContext.Provider>
+          </StartWritingContext.Provider>
+        </EditingContext.Provider>
       </DropTargetContext.Provider>
     </UpdateNodeDataContext.Provider>
   );

@@ -116,7 +116,7 @@
         renders: counts.renders,
         top: Object.entries(counts.byName)
           .sort((a, b) => b[1] - a[1])
-          .slice(0, 10),
+          .slice(0, 60),
       };
     },
   };
@@ -166,8 +166,57 @@
     };
     return [...canvas().querySelectorAll('.react-flow__node')].sort((a, b) => distance(a) - distance(b))[0];
   };
+  // This app's levels (its toolbar's L1, L2 and L3 buttons)
+  const levelButton = (level) => [...document.querySelectorAll('button')].find((b) => (b.getAttribute('aria-label') || '').startsWith(`Level ${level}`));
+  const toLevel = async (level) => {
+    levelButton(level)?.click();
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+  };
   window.__scenarios = {
     idle: (ms = 3000) => run(ms, () => {}),
+    // Ten short drags, each dropped (what a drop costs: saving it, and everything that follows a change)
+    drops: async () => {
+      const start = performance.now();
+      let renders = 0, commits = 0, jsMs = 0;
+      const tops = {};
+      for (let i = 0; i < 10; i++) {
+        const result = await window.__scenarios.drag(150);
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const after = window.__measure.read();
+        renders += after.renders;
+        commits += after.commits;
+        jsMs += after.jsMs;
+        after.top.forEach(([name, count]) => (tops[name] = (tops[name] ?? 0) + count));
+      }
+      return { frames: 10, ms: Math.round(performance.now() - start), renders, commits, jsMs, top: Object.entries(tops).sort((a, b) => b[1] - a[1]).slice(0, 60) };
+    },
+    // Zooming in and out (cmd/ctrl + wheel), around the middle
+    zoom: (ms = 3000) => {
+      const rect = pane().getBoundingClientRect();
+      return run(ms, (frame) =>
+        fire(pane(), 'wheel', rect.left + rect.width / 2, rect.top + rect.height / 2, {
+          deltaY: frame % 60 < 30 ? -6 : 6,
+          ctrlKey: true,
+          buttons: 0,
+        })
+      );
+    },
+    // Switching levels: L1, L2 and L3 in turn, about a second each, counted together
+    levels: async () => {
+      window.__measure.reset();
+      const start = performance.now();
+      for (const level of [1, 2, 3, 2, 1, 3]) {
+        levelButton(level)?.click();
+        await new Promise((resolve) => setTimeout(resolve, 700));
+      }
+      return { ms: Math.round(performance.now() - start), ...window.__measure.read() };
+    },
+    l2drag: async (ms = 3000) => {
+      await toLevel(2);
+      const result = await window.__scenarios.drag(ms);
+      await toLevel(3);
+      return result;
+    },
     mouse: (ms = 3000) => {
       const rect = pane().getBoundingClientRect();
       return run(ms, (frame, progress) => {

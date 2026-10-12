@@ -1,15 +1,10 @@
-import { defineConfig } from 'tsup';
+import { defineConfig, type Options } from 'tsup';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export default defineConfig({
-  // `layout` is graph layout without React, for laying graphs out on the server
-  entry: ['src/index.ts', 'src/layout.ts'],
-  format: ['cjs', 'esm'],
+const shared = {
   dts: true,
-  splitting: false,
   sourcemap: true,
-  clean: true,
   external: [
     'react',
     'react-dom',
@@ -22,6 +17,8 @@ export default defineConfig({
     '@radix-ui/react-tooltip',
     'html-to-image',
     'mermaid',
+    'yjs',
+    'zod',
     // Loaded when first needed (see utils/elk-layout.ts), so kept out of the bundle
     'elkjs',
     'elkjs/lib/elk.bundled.js',
@@ -59,4 +56,23 @@ export default defineConfig({
       },
     ];
   },
-});
+} satisfies Options;
+
+export default defineConfig([
+  // ES modules: the visualiser, `layout` (graph layout without React, for laying graphs out on the server) and
+  // `studio` (Studio's canvas), sharing their code (split into chunks): `studio` uses the visualiser's nodes and
+  // contexts, and two copies of them wouldn't share a canvas
+  {
+    ...shared,
+    entry: { index: 'src/index.ts', layout: 'src/layout.ts', studio: 'src/studio/index.ts', model: 'src/model/index.ts' },
+    format: ['esm'],
+    splitting: true,
+  },
+  // CommonJS: the visualiser and `layout` (Studio's canvas is ES modules only)
+  {
+    ...shared,
+    entry: { index: 'src/index.ts', layout: 'src/layout.ts' },
+    format: ['cjs'],
+    splitting: false,
+  },
+]);

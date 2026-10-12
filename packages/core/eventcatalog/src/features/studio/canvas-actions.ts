@@ -1,20 +1,18 @@
 import type { Edge, Node, XYPosition } from '@xyflow/react';
 import type * as Y from 'yjs';
 import { z } from 'zod';
-import { buildNode, getCanvasMaps, getCanvasStatus, readCanvas, updateNodeData, type CanvasContent } from './canvas-doc';
-import type { CatalogRelation, CatalogResource } from './catalog-resources';
 import {
-  buildContainer,
-  canBeContainer,
-  catalogNodeData,
-  containerTypeFor,
-  getCatalogLink,
-  getRelatedEdges,
-  indexRelations,
-} from './catalog';
-import { containerFor, getAbsolutePosition, sizeOf } from './grouping';
-import { placeNodes, type Link } from './placement';
-import {
+  buildNode,
+  getCanvasMaps,
+  getCanvasStatus,
+  readCanvas,
+  updateNodeData,
+  type CanvasContent,
+  containerFor,
+  getAbsolutePosition,
+  sizeOf,
+  placeNodes,
+  type Link,
   canGoInContainer,
   CATALOG_COLLECTIONS,
   COMPONENT_TYPES,
@@ -28,7 +26,17 @@ import {
   isVersioned,
   isWrittenOnCanvas,
   updateResource,
-} from './node-types';
+} from '@eventcatalog/visualiser/studio';
+import type { CatalogRelation, CatalogResource } from './catalog-resources';
+import {
+  buildContainer,
+  canBeContainer,
+  catalogNodeData,
+  containerTypeFor,
+  getCatalogLink,
+  getRelatedEdges,
+  indexRelations,
+} from './catalog';
 
 /**
  * What agents can do on a canvas, shared by the MCP tools (on the server) and the WebMCP tools (in the

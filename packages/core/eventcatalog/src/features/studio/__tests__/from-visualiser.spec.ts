@@ -10,9 +10,9 @@ import {
   moveNode,
   readMeta,
   updateNodeData,
-} from '../canvas-doc';
+  getAbsolutePosition,
+} from '@eventcatalog/visualiser/studio';
 import { planCanvas } from '../canvas-actions';
-import { getAbsolutePosition } from '../grouping';
 import { canvasFromVisualiser } from '../from-visualiser';
 import { catalog } from './catalog-fixture';
 

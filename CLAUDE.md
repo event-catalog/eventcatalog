@@ -10,7 +10,10 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
 - `@eventcatalog/core` - The main EventCatalog application
 - `@eventcatalog/sdk` - SDK for programmatically interacting with EventCatalog
 - `@eventcatalog/create-eventcatalog` - CLI tool for scaffolding new EventCatalog projects
-- `@eventcatalog/visualiser` - Standalone React visualiser component (ReactFlow-based node graphs)
+- `@eventcatalog/visualiser` - Standalone React visualiser component (ReactFlow-based node graphs), and Studio's canvas (`@eventcatalog/visualiser/studio`)
+
+And one app:
+- `@eventcatalog/studio-web` (`apps/studio-web`, MIT) - Studio on the web: a public MCP server and canvas (no sign-in, stores nothing), deployed on its own
 
 ## Quick Reference Commands
 
@@ -18,6 +21,7 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
 |------|---------|
 | Start dev server | `pnpm run start:catalog` |
 | Start SSR server | `pnpm run start:catalog:server` |
+| Start Studio on the web | `pnpm run start:studio` |
 | Build all packages | `pnpm run build` or `pnpm run build:bin` |
 | Build catalog example | `pnpm run verify-build:catalog` |
 | Test (all packages) | `pnpm run test` |
@@ -64,6 +68,9 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
       /edges                 # Edge type components (animated, multiline, flow)
       /utils                 # Layout, mermaid export, clipboard utilities
       /types                 # Shared types (including DslGraph)
+      /studio                # Studio's canvas, shared by core's Studio and apps/studio-web
+/apps
+  /studio-web                # Studio on the web (public MCP server and canvas)
 /examples
   /default                   # Default example catalog (used by start:catalog)
   /e-commerce                # E-commerce example
@@ -332,7 +339,6 @@ pnpm run format       # Formats all packages
 - SSR mode is required for AI Chat and MCP Server features
 - Use `DISABLE_EVENTCATALOG_CACHE=true` env var to disable caching during development
 - When making changes in this repository, check whether the same change or a compatible follow-up is needed in the editor repository at `eventcatalog/eventcatalog-editor`. If no editor change is needed, mention that explicitly in the final response.
-- Studio (`features/studio`) and the visualiser must look and behave the same (a diagram opened in Studio matches it at every level): when changing either, follow `.claude/skills/visualiser-studio-parity/SKILL.md`
 - Run `pnpm run format` before committing changes
 - Never verify the build, the developer will do this themselves
 - SDK test files may get modified during test runs - restore with `git restore packages/sdk/src/test/`

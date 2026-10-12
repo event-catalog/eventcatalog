@@ -1,7 +1,7 @@
 import { Hono, type Context } from 'hono';
 import { z } from 'zod';
 import { paginate } from '@features/tools/catalog-tools';
-import type { CanvasContent, CanvasStatus } from '../canvas-doc';
+import { type CanvasContent, type CanvasStatus } from '@eventcatalog/visualiser/studio';
 import { MAX_TITLE_LENGTH } from '../limits';
 import { diagramLevelsSchema, indexCatalog, newCanvasEdgesSchema, nodeSpecsSchema, planCanvas } from '../canvas-actions';
 import { getCatalogResources } from '../catalog-resources';

@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Globe } from "lucide-react";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../../utils/node-connections";
 import {
   EventCatalogResource,
   ExternalSystem as ExternalSystemType,
@@ -165,8 +166,7 @@ function DefaultExternalSystem(props: ExternalSystemNode) {
   const { version, name, summary, deprecated, draft, notes } =
     props.data.externalSystem;
   const mode = props.data.mode || "simple";
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
@@ -205,8 +205,8 @@ function DefaultExternalSystem(props: ExternalSystemNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       {/* Badge positioned outside top-left corner */}
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">

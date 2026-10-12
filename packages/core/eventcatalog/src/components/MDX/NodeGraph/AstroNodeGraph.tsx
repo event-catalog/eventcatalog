@@ -17,9 +17,11 @@ import type { Node, Edge } from '@xyflow/react';
 import type { FlowGroupBy, OpenInStudioRequest } from '@eventcatalog/visualiser';
 import { buildUrl } from '@utils/url-builder';
 import { createCanvasThroughApi } from '@features/studio/api/client';
-import { canvasFromVisualiser } from '@features/studio/from-visualiser';
 import { getStoredName } from '@features/studio/identity';
-import OpenInStudioDialog from '@features/studio/components/OpenInStudioDialog';
+
+// Studio's canvas code (what turns a diagram into a canvas, and the dialog asking for its name) is only loaded when a
+// diagram is opened in Studio: every page with a diagram would load it otherwise, with Studio on or not
+const OpenInStudioDialog = lazy(() => import('@features/studio/components/OpenInStudioDialog'));
 
 const NodeGraph = lazy(() =>
   import('@eventcatalog/visualiser').then((module) => ({ default: module.NodeGraph }))
@@ -123,6 +125,7 @@ const AstroNodeGraph = ({ isDevMode = false, resourceKey, studioApiUrl, ...other
     async (title: string | undefined) => {
       if (!studioApiUrl || !toOpen) return;
       const snapshot = await toOpen.getSnapshot();
+      const { canvasFromVisualiser } = await import('@features/studio/from-visualiser');
       const { nodes, edges, levels } = canvasFromVisualiser(snapshot);
       if (nodes.length === 0) throw new Error('Nothing on this diagram can go on a canvas yet');
       const canvas = await createCanvasThroughApi(studioApiUrl, {
@@ -149,7 +152,12 @@ const AstroNodeGraph = ({ isDevMode = false, resourceKey, studioApiUrl, ...other
         onResetLayout={handleResetLayout}
         onOpenInStudio={studioApiUrl ? setToOpen : undefined}
       />
-      {toOpen && <OpenInStudioDialog title={toOpen.title} onOpen={openInStudio} onClose={closeOpenInStudio} />}
+      {toOpen && (
+        // Its own, so the diagram isn't swapped for "Loading graph..." while the dialog loads
+        <Suspense fallback={null}>
+          <OpenInStudioDialog title={toOpen.title} onOpen={openInStudio} onClose={closeOpenInStudio} />
+        </Suspense>
+      )}
     </Suspense>
   );
 };

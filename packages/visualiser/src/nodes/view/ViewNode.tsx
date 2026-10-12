@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import { MonitorIcon } from "lucide-react";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../../utils/node-connections";
 import { EventCatalogResource, View as ViewType } from "../../types";
 import {
   OwnerIndicator,
@@ -58,8 +59,7 @@ export default memo(function View(props: ViewNode) {
   } = props.data.view;
   const mode = props.data.mode || "simple";
   const ownersNormalized = useMemo(() => normalizeOwners(owners), [owners]);
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
 
   return (
     <div
@@ -86,8 +86,8 @@ export default memo(function View(props: ViewNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">

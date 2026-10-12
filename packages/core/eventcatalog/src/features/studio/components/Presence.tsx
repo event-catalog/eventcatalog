@@ -1,11 +1,9 @@
 import { Fragment, memo, useEffect, useLayoutEffect, useRef, useSyncExternalStore, type MutableRefObject } from 'react';
-import { useInternalNode, useStore, useStoreApi, ViewportPortal, type XYPosition } from '@xyflow/react';
-import { Bot, Eye, EyeOff } from 'lucide-react';
-import { sizeOf } from '../grouping';
+import { useInternalNode, useStore, useStoreApi, type XYPosition } from '@xyflow/react';
+import { Eye, EyeOff } from 'lucide-react';
+import { CanvasPortal, sizeOf, COUNTER_SCALE, useCounterScale, Picture, AgentMark } from '@eventcatalog/visualiser/studio';
 import { usePeople, type Peer, type PresenceStore } from '../hooks/presence-store';
-import { COUNTER_SCALE, useCounterScale } from '../hooks/use-counter-scale';
 import { useFollowCamera } from '../hooks/use-follow-camera';
-import Picture from './Picture';
 
 /**
  * Other people on the canvas: their pointers, selections and the connections they're dragging. Drawn in the
@@ -26,7 +24,7 @@ export const RemotePresence = memo(function RemotePresence({
   const others = store ? people.filter((peer) => peer.clientId !== clientId) : [];
 
   return (
-    <ViewportPortal>
+    <CanvasPortal>
       {/* Above nodes (selected ones are raised to 1000) */}
       <div ref={layer} className="pointer-events-none absolute left-0 top-0" style={{ zIndex: 2000 }}>
         {others.map((peer) => (
@@ -36,7 +34,7 @@ export const RemotePresence = memo(function RemotePresence({
           </Fragment>
         ))}
       </div>
-    </ViewportPortal>
+    </CanvasPortal>
   );
 });
 
@@ -151,7 +149,7 @@ const PeerPointer = memo(function PeerPointer({ store, peer }: { store: Presence
         className="absolute left-4 top-4 flex items-center gap-1 whitespace-nowrap rounded px-1.5 py-0.5 text-[11px] font-medium text-white"
         style={{ backgroundColor: peer.color }}
       >
-        {peer.agent && <Bot size={12} />}
+        {peer.agent && <AgentMark name={peer.name} size={12} />}
         <Picture src={peer.picture} className="-ml-0.5 h-4 w-4 shrink-0" />
         {peer.name}
         {peer.activity && <span className="font-normal opacity-90">· {peer.activity}</span>}

@@ -1,9 +1,6 @@
 import type { Edge, Node } from '@xyflow/react';
 import type { CatalogRelation, CatalogResource } from './catalog-resources';
-import { buildNode } from './canvas-doc';
-import { createEdge } from './edges';
-import { layoutGraph, withGroupSizes } from './layout';
-import { GROUP_TYPES, isGroupType } from './node-types';
+import { buildNode, createEdge, layoutGraph, withGroupSizes, GROUP_TYPES, isGroupType } from '@eventcatalog/visualiser/studio';
 
 /**
  * Catalog resources on a canvas: the node for a resource, its connections to related resources already there,

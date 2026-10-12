@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it, expect } from 'vitest';
-import { readMeta, setMeta } from '../canvas-doc';
+import { readMeta, setMeta } from '@eventcatalog/visualiser/studio';
 import { getStudioRuntime } from '../server/runtime';
 
 const RUNTIME_KEY = Symbol.for('eventcatalog.studio.runtime');

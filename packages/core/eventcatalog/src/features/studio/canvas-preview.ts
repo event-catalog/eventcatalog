@@ -1,6 +1,5 @@
 import type { Edge, Node } from '@xyflow/react';
-import { getAbsolutePosition, sizeOf } from './grouping';
-import { isGroupType } from './node-types';
+import { getAbsolutePosition, sizeOf, isGroupType } from '@eventcatalog/visualiser/studio';
 
 /**
  * A canvas drawn small, for lists of canvases: each node as a box where it is on the canvas (containers as outlines

@@ -1,0 +1,608 @@
+import { describe, it, expect } from "vitest";
+import type { Edge, Node } from "@xyflow/react";
+import { getLevelGraph, getLevelUnavailableReason } from "../levels";
+import {
+  getNoteLevel,
+  isOnLevel,
+  isShownOnLevel,
+  isWrittenOnCanvas,
+} from "../node-types";
+
+const node = (id: string, type: string, extra: Partial<Node> = {}): Node => ({
+  id,
+  type,
+  position: { x: 0, y: 0 },
+  data: {},
+  ...extra,
+});
+const message = (
+  id: string,
+  type: "event" | "command" | "query",
+  name: string,
+  extra: Partial<Node> = {},
+) => node(id, type, { data: { message: { name } }, ...extra });
+const edge = (source: string, target: string, label?: string): Edge => ({
+  id: `${source}->${target}`,
+  source,
+  target,
+  ...(label !== undefined && { label }),
+});
+const ids = (nodes: Node[]) => nodes.map((n) => n.id).sort();
+
+describe("getLevelGraph", () => {
+  describe("L3", () => {
+    it("returns the canvas as it is", () => {
+      const nodes = [
+        node("a", "service"),
+        message("e", "event", "OrderPlaced"),
+      ];
+      const edges = [edge("a", "e")];
+      const result = getLevelGraph(nodes, edges, 3);
+      expect(result.nodes).toBe(nodes);
+      expect(result.edges).toBe(edges);
+    });
+  });
+
+  describe("L2", () => {
+    it("leaves agents to L3, connecting what is either side of one past it", () => {
+      const nodes = [
+        node("orders", "service"),
+        node("triage", "agent"),
+        node("billing", "service"),
+      ];
+      const edges = [edge("orders", "triage"), edge("triage", "billing")];
+
+      const result = getLevelGraph(nodes, edges, 2);
+
+      expect(ids(result.nodes)).toEqual(["billing", "orders"]);
+      expect(result.edges).toHaveLength(1);
+      expect(result.edges[0]).toMatchObject({
+        source: "orders",
+        target: "billing",
+      });
+    });
+
+    it("connects the services either side of a message directly, labelled with the message", () => {
+      const nodes = [
+        node("orders", "service"),
+        message("placed", "event", "OrderPlaced"),
+        node("billing", "service"),
+      ];
+      const edges = [
+        edge("orders", "placed", "publishes \nevent"),
+        edge("placed", "billing", "subscribed by"),
+      ];
+
+      const result = getLevelGraph(nodes, edges, 2);
+
+      expect(ids(result.nodes)).toEqual(["billing", "orders"]);
+      expect(result.edges).toHaveLength(1);
+      // Like the visualiser: a dashed, muted "bridged" edge, labelled with the message
+      expect(result.edges[0]).toMatchObject({
+        id: "bridged-orders-billing",
+        source: "orders",
+        target: "billing",
+        type: "smoothstep",
+        label: "publishes\nOrderPlaced",
+        style: { strokeDasharray: "5 5" },
+        markerEnd: { type: "arrowclosed", width: 20, height: 20 },
+      });
+      expect(result.edges[0]).not.toHaveProperty("data");
+    });
+
+    it("leaves edges through channels only unlabelled", () => {
+      const result = getLevelGraph(
+        [
+          node("orders", "service"),
+          node("bus", "channel"),
+          node("billing", "service"),
+        ],
+        [
+          edge("orders", "bus", "publishes to"),
+          edge("bus", "billing", "routes to"),
+        ],
+        2,
+      );
+      expect(result.edges).toEqual([
+        expect.objectContaining({ id: "bridged-orders-billing" }),
+      ]);
+      expect(result.edges[0]).not.toHaveProperty("label");
+    });
+
+    it("carries messages through channels too", () => {
+      const nodes = [
+        node("orders", "service"),
+        message("placed", "event", "OrderPlaced"),
+        node("bus", "channel"),
+        node("billing", "service"),
+      ];
+      const edges = [
+        edge("orders", "placed"),
+        edge("placed", "bus"),
+        edge("bus", "billing"),
+      ];
+
+      const result = getLevelGraph(nodes, edges, 2);
+
+      expect(ids(result.nodes)).toEqual(["billing", "orders"]);
+      expect(
+        result.edges.map(({ source, target }) => `${source}->${target}`),
+      ).toEqual(["orders->billing"]);
+      expect(result.edges[0].label).toBe("publishes\nOrderPlaced");
+    });
+
+    it("merges several messages between the same services into one edge", () => {
+      const nodes = [
+        node("orders", "service"),
+        message("placed", "event", "OrderPlaced"),
+        message("cancelled", "event", "OrderCancelled"),
+        node("billing", "service"),
+      ];
+      const edges = [
+        edge("orders", "placed"),
+        edge("placed", "billing"),
+        edge("orders", "cancelled"),
+        edge("cancelled", "billing"),
+      ];
+
+      const result = getLevelGraph(nodes, edges, 2);
+
+      expect(result.edges).toHaveLength(1);
+      expect(result.edges[0].label).toBe("publishes\n2 events");
+    });
+
+    it("keeps edges between nodes that are not messages, with their labels", () => {
+      const nodes = [node("orders", "service"), node("db", "data")];
+      const edges = [edge("orders", "db", "writes to")];
+
+      const result = getLevelGraph(nodes, edges, 2);
+
+      // The canvas's own edge, as it is
+      expect(result.edges).toEqual(edges);
+    });
+
+    it("leaves containers to be sized by the layout (to fit what is in them, or as empty ones)", () => {
+      const nodes = [
+        node("full", "domain-group", {
+          width: 720,
+          height: 460,
+          measured: { width: 720, height: 460 },
+        }),
+        node("svc", "service", { parentId: "full" }),
+        node("empty", "system-group", {
+          width: 560,
+          height: 360,
+          measured: { width: 560, height: 360 },
+        }),
+        // Only a message in this container: hidden at L2, so the container is left empty
+        { ...message("only-message", "event", "X"), parentId: "empty" },
+      ];
+
+      const result = getLevelGraph(nodes, [], 2);
+      const full = result.nodes.find((n) => n.id === "full")!;
+      const empty = result.nodes.find((n) => n.id === "empty")!;
+
+      expect(full.width).toBeUndefined();
+      expect(full.height).toBeUndefined();
+      expect(full.measured).toBeUndefined();
+      expect(empty.width).toBeUndefined();
+      expect(empty.measured).toBeUndefined();
+    });
+  });
+
+  describe("L1", () => {
+    // A domain container with a system container inside it (two services in that), a system card with a
+    // service connected to it with "contains", and a loose service
+    const nodes = [
+      node("domain", "domain-group", { width: 720, height: 460 }),
+      node("checkout", "system-group", {
+        width: 560,
+        height: 360,
+        parentId: "domain",
+      }),
+      node("orders", "service", { parentId: "checkout" }),
+      node("payments", "service", { parentId: "checkout" }),
+      node("warehouse", "system"),
+      node("stock", "service"),
+      node("emails", "service"),
+      message("placed", "event", "OrderPlaced"),
+      message("reserve", "command", "ReserveStock"),
+      node("db", "data", { parentId: "checkout" }),
+      node("loose-db", "data"),
+      node("sticky", "note"),
+    ];
+    const edges = [
+      edge("orders", "payments", "calls"),
+      edge("orders", "placed"),
+      edge("placed", "emails"),
+      edge("warehouse", "stock", "contains"),
+      edge("orders", "reserve"),
+      edge("reserve", "stock"),
+      edge("orders", "db"),
+      edge("emails", "loose-db"),
+    ];
+    const result = getLevelGraph(nodes, edges, 1);
+
+    it("folds services into the system container they sit in and the system card they are connected to", () => {
+      expect(ids(result.nodes)).toEqual([
+        "checkout",
+        "domain",
+        "emails",
+        "warehouse",
+      ]);
+    });
+
+    it("connects the systems, carrying messages through", () => {
+      const byPair = new Map(
+        result.edges.map((e) => [`${e.source}->${e.target}`, e]),
+      );
+      expect([...byPair.keys()].sort()).toEqual([
+        "checkout->emails",
+        "checkout->warehouse",
+      ]);
+      // Through messages, labelled with them: plain, as a system's messages are folded into it (like the visualiser)
+      expect(byPair.get("checkout->emails")).toMatchObject({
+        id: "bridged-checkout-emails",
+        label: "publishes\nOrderPlaced",
+        type: "smoothstep",
+        style: { strokeWidth: 1, stroke: "var(--ec-edge-stroke, #6b7280)" },
+      });
+      expect(byPair.get("checkout->warehouse")).toMatchObject({
+        label: "invokes\nReserveStock",
+        type: "smoothstep",
+      });
+      expect(byPair.get("checkout->warehouse")).not.toHaveProperty("data");
+    });
+
+    it('drops edges inside what was folded, and "contains" edges', () => {
+      expect(result.edges.some((e) => e.source === e.target)).toBe(false);
+      expect(result.edges.some((e) => e.label === "contains")).toBe(false);
+    });
+
+    it("shows systems as cards in their domain container, with how many services they hold", () => {
+      const domain = result.nodes.find((n) => n.id === "domain")!;
+      const checkout = result.nodes.find((n) => n.id === "checkout")!;
+      expect(checkout).toMatchObject({
+        type: "system",
+        parentId: "domain",
+        data: { servicesCount: 2, containersCount: 1, messagesCount: 2 },
+      });
+      // Sized as a card by the layout, not as the container it is on the canvas
+      expect(checkout).not.toHaveProperty("width");
+      expect(checkout).not.toHaveProperty("measured");
+      expect(domain.width).toBeUndefined();
+    });
+
+    it("connects systems through messages that sit in their domain rather than a system", () => {
+      const result = getLevelGraph(
+        [
+          node("domain", "domain-group"),
+          node("inventory", "system-group", { parentId: "domain" }),
+          node("stock", "service", { parentId: "inventory" }),
+          node("shipping", "system-group", { parentId: "domain" }),
+          node("ship", "service", { parentId: "shipping" }),
+          message("reserved", "event", "StockReserved", { parentId: "domain" }),
+        ],
+        [edge("stock", "reserved"), edge("reserved", "ship")],
+        1,
+      );
+      expect(result.edges).toEqual([
+        expect.objectContaining({
+          source: "inventory",
+          target: "shipping",
+          label: "publishes\nStockReserved",
+        }),
+      ]);
+    });
+
+    it("drops edges between a system and the domain it is in", () => {
+      const result = getLevelGraph(
+        [
+          node("domain", "domain-group"),
+          node("loose", "service", { parentId: "domain" }),
+          node("inventory", "system-group", { parentId: "domain" }),
+          node("stock", "service", { parentId: "inventory" }),
+        ],
+        [edge("loose", "stock", "calls"), edge("stock", "loose", "replies")],
+        1,
+      );
+      expect(result.edges).toEqual([]);
+    });
+
+    it("folds services into a domain card when they are not in a system", () => {
+      const result = getLevelGraph(
+        [
+          node("sales", "context-domain"),
+          node("crm", "service"),
+          node("other", "service"),
+        ],
+        [edge("sales", "crm", "contains"), edge("crm", "other", "calls")],
+        1,
+      );
+      expect(ids(result.nodes)).toEqual(["other", "sales"]);
+      // A plain edge: no messages, so no label (like the visualiser)
+      expect(result.edges).toEqual([
+        expect.objectContaining({
+          id: "level-sales-other",
+          source: "sales",
+          target: "other",
+          style: { strokeWidth: 1, stroke: "var(--ec-edge-stroke, #6b7280)" },
+        }),
+      ]);
+      expect(result.edges[0]).not.toHaveProperty("label");
+    });
+
+    it("shows a domain container with no system in it as a domain card", () => {
+      const result = getLevelGraph(
+        [
+          node("sales", "domain-group", {
+            data: { domain: { name: "Sales" } },
+          }),
+          node("crm", "service", { parentId: "sales" }),
+          node("hr", "domain-group"),
+        ],
+        [],
+        1,
+      );
+      expect(result.nodes.find((n) => n.id === "sales")).toMatchObject({
+        type: "context-domain",
+        data: {
+          domain: { name: "Sales" },
+          servicesCount: 1,
+          systemsCount: 0,
+          subdomain: false,
+        },
+      });
+    });
+
+    it("shows a relationship between two systems instead of the messages between them, like the visualiser", () => {
+      const result = getLevelGraph(
+        [
+          node("payments", "system-group"),
+          node("worker", "service", { parentId: "payments" }),
+          node("stripe", "system-group"),
+          node("api", "service", { parentId: "stripe" }),
+          node("fraud", "system-group"),
+          node("screening", "service", { parentId: "fraud" }),
+          message("charged", "event", "PaymentCharged"),
+          message("requested", "event", "PaymentRequested"),
+        ],
+        [
+          edge(
+            "payments",
+            "stripe",
+            "requests charges from / processes payments for",
+          ),
+          edge("api", "charged"),
+          edge("charged", "worker"),
+          edge("worker", "requested"),
+          edge("requested", "screening"),
+        ],
+        1,
+      );
+      expect(result.edges.map((e) => [e.source, e.target, e.label])).toEqual([
+        [
+          "payments",
+          "stripe",
+          "requests charges from / processes payments for",
+        ],
+        ["payments", "fraud", "publishes\nPaymentRequested"],
+      ]);
+    });
+
+    it("keeps a domain container with a subdomain shown in it, like the visualiser", () => {
+      const result = getLevelGraph(
+        [
+          node("fulfilment", "domain-group"),
+          node("returns", "domain-group", { parentId: "fulfilment" }),
+          node("refunds", "service", { parentId: "returns" }),
+        ],
+        [],
+        1,
+      );
+      expect(result.nodes.find((n) => n.id === "fulfilment")?.type).toBe(
+        "domain-group",
+      );
+      expect(result.nodes.find((n) => n.id === "returns")).toMatchObject({
+        type: "context-domain",
+        parentId: "fulfilment",
+        data: { subdomain: true, servicesCount: 1 },
+      });
+    });
+
+    it("draws edges through messages between nodes outside domains and systems dashed, like the visualiser", () => {
+      const result = getLevelGraph(
+        [
+          node("customer", "actor"),
+          message("won", "event", "DealWon"),
+          node("crm", "service"),
+          node("sales", "context-domain"),
+        ],
+        [
+          edge("customer", "won"),
+          edge("won", "crm"),
+          edge("crm", "won"),
+          edge("won", "sales"),
+        ],
+        1,
+      );
+      const styleOf = (source: string, target: string) =>
+        result.edges.find((e) => e.source === source && e.target === target)
+          ?.style;
+      expect(styleOf("customer", "crm")).toMatchObject({
+        strokeDasharray: "5 5",
+      });
+      // To a domain: its messages are folded into it
+      expect(styleOf("crm", "sales")).not.toHaveProperty("strokeDasharray");
+    });
+
+    it("keeps the labels of actors connections, like relationships", () => {
+      const result = getLevelGraph(
+        [node("customer", "actor"), node("shop", "system")],
+        [edge("customer", "shop", "uses")],
+        1,
+      );
+      expect(result.edges).toEqual([
+        expect.objectContaining({ label: "uses" }),
+      ]);
+    });
+  });
+});
+
+describe("sticky notes on levels", () => {
+  it("are on the level they were added on, and notes without one are on L3", () => {
+    expect(
+      getNoteLevel(node("n1", "note", { data: { text: "", level: 1 } })),
+    ).toBe(1);
+    expect(getNoteLevel(node("n2", "note", { data: { text: "" } }))).toBe(3);
+    expect(getNoteLevel(node("s", "service"))).toBeUndefined();
+    // Text too: on the level it's written on
+    expect(
+      getNoteLevel(node("t1", "text", { data: { text: "", level: 2 } })),
+    ).toBe(2);
+    expect(
+      isOnLevel(node("t1", "text", { data: { text: "", level: 2 } }), 3),
+    ).toBe(false);
+  });
+
+  it("are only on their own level, while other nodes are on L3", () => {
+    const l1Note = node("n1", "note", { data: { text: "", level: 1 } });
+    expect(isOnLevel(l1Note, 1)).toBe(true);
+    expect(isOnLevel(l1Note, 3)).toBe(false);
+    expect(isOnLevel(node("n2", "note", { data: { text: "" } }), 3)).toBe(true);
+    expect(isOnLevel(node("s", "service"), 3)).toBe(true);
+  });
+
+  it.each([1, 2] as const)(
+    "are not laid out with L%i (the level shows them where they were put)",
+    (level) => {
+      const nodes = [
+        node("orders", "service"),
+        node("billing", "service"),
+        node("n1", "note", { data: { text: "Why?", level } }),
+        node("n3", "note", { data: { text: "Old" } }),
+      ];
+      const result = getLevelGraph(nodes, [edge("orders", "billing")], level);
+      expect(result.nodes.some((n) => n.type === "note")).toBe(false);
+    },
+  );
+});
+
+describe("isShownOnLevel", () => {
+  it("says which kinds of node each level shows, so only those are offered (and added) there", () => {
+    const shownOn = (type: string) =>
+      ([1, 2, 3] as const).filter((level) => isShownOnLevel(type, level));
+    expect(shownOn("domain-group")).toEqual([1, 2, 3]);
+    expect(shownOn("context-domain")).toEqual([1, 2, 3]);
+    expect(shownOn("system-group")).toEqual([1, 2, 3]);
+    expect(shownOn("actor")).toEqual([1, 2, 3]);
+    expect(shownOn("note")).toEqual([1, 2, 3]);
+    expect(shownOn("service")).toEqual([2, 3]);
+    expect(shownOn("data")).toEqual([2, 3]);
+    expect(shownOn("event")).toEqual([3]);
+    expect(shownOn("channel")).toEqual([3]);
+    expect(shownOn("text")).toEqual([2, 3]);
+    expect(shownOn("agent")).toEqual([3]);
+  });
+
+  it("agrees with what the levels draw", () => {
+    const nodes = [
+      node("domain", "domain-group"),
+      node("checkout", "system-group", { parentId: "domain" }),
+      node("orders", "service", { parentId: "checkout" }),
+      node("db", "data", { parentId: "checkout" }),
+      node("customer", "actor"),
+      message("placed", "event", "OrderPlaced"),
+      node("label", "text"),
+    ];
+    const edges = [
+      edge("orders", "placed"),
+      edge("customer", "orders", "uses"),
+    ];
+    for (const level of [1, 2] as const) {
+      const shown = new Set(
+        getLevelGraph(nodes, edges, level).nodes.map((n) => n.id),
+      );
+      // A level offers to add what it shows (what's on the canvas itself, not in a container). Notes and text are
+      // on the level they're written on, not drawn from the canvas
+      for (const n of nodes.filter(
+        (n) => !n.parentId && !isWrittenOnCanvas(n.type),
+      ))
+        expect([level, n.id, shown.has(n.id)]).toEqual([
+          level,
+          n.id,
+          isShownOnLevel(n.type, level),
+        ]);
+    }
+  });
+});
+
+describe("connections to what a level hides", () => {
+  // A service publishing an event in another system that nothing receives yet, and managing an entity there
+  const nodes = [
+    node("domain", "domain-group"),
+    node("ordering", "system-group", { parentId: "domain" }),
+    node("billing", "system-group", { parentId: "domain" }),
+    node("orders", "service", { parentId: "ordering" }),
+    message("placed", "event", "OrderPlaced", { parentId: "billing" }),
+    node("invoice", "entity", { parentId: "billing" }),
+    node("local", "entity", { parentId: "ordering" }),
+  ];
+  const edges = [
+    edge("orders", "placed", "publishes event"),
+    edge("orders", "invoice", "manages"),
+    edge("orders", "local", "manages"),
+  ];
+
+  it("go to the container that holds it, on L2", () => {
+    const level = getLevelGraph(nodes, edges, 2);
+    const toBilling = level.edges.filter(
+      (e) => e.source === "orders" && e.target === "billing",
+    );
+    expect(toBilling.length).toBeGreaterThan(0);
+    const said = toBilling.map((e) => String(e.label ?? "")).join(" ");
+    expect(said).toContain("OrderPlaced");
+    expect(said).toContain("manages");
+    // Not to its own system (it's in it)
+    expect(
+      level.edges.some((e) => e.source === "orders" && e.target === "ordering"),
+    ).toBe(false);
+  });
+});
+
+describe("getLevelUnavailableReason", () => {
+  it("says L1 is not available without systems or domains to relate (one domain on its own, like the visualiser)", () => {
+    expect(getLevelUnavailableReason([node("a", "service")], 1)).toMatch(
+      /system, or more than one domain/,
+    );
+    expect(
+      getLevelUnavailableReason(
+        [node("d", "domain-group"), node("a", "service")],
+        1,
+      ),
+    ).toMatch(/system/);
+  });
+
+  it("allows L1 with a system (container or card), or more than one domain", () => {
+    expect(
+      getLevelUnavailableReason([node("s", "system-group")], 1),
+    ).toBeUndefined();
+    expect(getLevelUnavailableReason([node("s", "system")], 1)).toBeUndefined();
+    expect(
+      getLevelUnavailableReason(
+        [node("d", "domain-group"), node("e", "context-domain")],
+        1,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("always allows L2, like the visualiser", () => {
+    expect(
+      getLevelUnavailableReason([node("a", "service")], 2),
+    ).toBeUndefined();
+  });
+
+  it("always allows L3", () => {
+    expect(getLevelUnavailableReason([], 3)).toBeUndefined();
+  });
+});

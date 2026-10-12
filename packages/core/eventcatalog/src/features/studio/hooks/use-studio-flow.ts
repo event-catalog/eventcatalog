@@ -15,8 +15,6 @@ import {
 import {
   addNodes,
   buildNode,
-  CANVAS_DELETED_REASON,
-  canvasDocumentName,
   connectNodes,
   deleteEdges,
   deleteNodes as deleteNodesInDoc,
@@ -41,15 +39,36 @@ import {
   readLevelLayout,
   setLevelPlaces,
   type StatusChange,
-  setNodeParent,
+  setNodeParents,
   type RenderedSizes,
   updateNodeData as updateNodeDataInDoc,
-} from '../canvas-doc';
+  keepDragged,
+  LOCAL_EDGE_KEYS,
+  LOCAL_NODE_KEYS,
+  patchShared,
+  withPositions,
+  createSmoother,
+  containerFor,
+  toRelativePosition,
+  type NodePreview,
+  type LayoutResult,
+  canGoInContainer,
+  getNodeDefinition,
+  isGroupType,
+  createHotspot as createHotspotInDoc,
+  updateHotspot as updateHotspotInDoc,
+  deleteHotspot as deleteHotspotInDoc,
+  readHotspots,
+  getLock,
+  setLock,
+  type Hotspot,
+  type Editing,
+  addThreads,
+  addHotspots,
+  type ModelCanvasContent,
+} from '@eventcatalog/visualiser/studio';
+import { CANVAS_DELETED_REASON, canvasDocumentName } from '../document-name';
 import { applyLayout } from '../agent-choreography';
-import { keepDragged, LOCAL_EDGE_KEYS, LOCAL_NODE_KEYS, patchShared, withPositions } from '../flow-state';
-import { containerFor, toRelativePosition, type NodePreview } from '../grouping';
-import type { LayoutResult } from '../layout';
-import { canGoInContainer, getNodeDefinition, isGroupType } from '../node-types';
 import { startToolSync, type ToolSync } from '../tool-sync';
 import { createPresenceSender, type PresenceSender } from './presence-sender';
 import { createPresenceStore, type PresenceStore } from './presence-store';
@@ -73,10 +92,14 @@ const LOCAL_ORIGIN = Symbol('studio-local');
 export const BROWSER_AGENT_ORIGIN = Symbol('studio-browser-agent');
 /** Status changes: synced, but not undone (undo takes back edits, not decisions about the canvas) */
 const STATUS_ORIGIN = Symbol('studio-status');
+/** A diagram file opened into a new canvas: what it starts with, synced, not undone (nothing to go back to) */
+const OPEN_ORIGIN = Symbol('studio-open');
 /** Where L1 and L2 put what's new on them, kept so it stays there: synced, not undone (nobody did it) */
 const LEVEL_PLACEMENT_ORIGIN = Symbol('studio-level-placement');
 
 const NO_LEVEL_LAYOUTS = { 1: new Map(), 2: new Map() } as const;
+/** What someone changing a note or text shows the others as they change it (see `editing` in their presence) */
+const EDITED_FIELDS = ['text', 'fontSize', 'angle'] as const;
 
 export type Status = 'connecting' | 'connected' | 'disconnected';
 export type Transport = 'websocket' | 'tools';
@@ -100,6 +123,7 @@ export function useStudioFlow({
   name,
   color,
   picture,
+  agent,
   syncViaTools,
   onLayout,
   onContainerResize,
@@ -111,6 +135,8 @@ export function useStudioFlow({
   color: string;
   /** From your sign-in provider, when you're signed in */
   picture?: string;
+  /** You're an AI agent here (e.g. a chat's canvas view, which joins as the chat's agent) */
+  agent?: boolean;
   /** Sync through MCP tool calls when the WebSocket can't connect (e.g. inside a chat's sandbox) */
   syncViaTools?: ToolSync;
   /** Someone laid the canvas out (us included): called as the new positions arrive, so they can glide there */
@@ -142,8 +168,14 @@ export function useStudioFlow({
   const [transport, setTransport] = useState<Transport>('websocket');
   // Someone deleted the canvas: the server closed it for everyone, and won't open it again
   const [deleted, setDeleted] = useState(false);
+  // What's flagged on the canvas (risks, problems, the key parts), on nodes or at places
+  const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+  // Who locked the canvas (for everyone on it), if it's locked
+  const [lockedBy, setLockedBy] = useState<string | null>(null);
+  // The server's copy of the canvas has arrived (what's on it is known, e.g. that it's empty)
+  const [synced, setSynced] = useState(false);
   const user = useRef<Author>({ name, color });
-  user.current = { name, color, ...(picture && { picture }) };
+  user.current = { name, color, ...(picture && { picture }), ...(agent && { agent }) };
   const onLayoutRef = useRef(onLayout);
   onLayoutRef.current = onLayout;
   const onContainerResizeRef = useRef(onContainerResize);
@@ -156,7 +188,14 @@ export function useStudioFlow({
     setEdges([]);
 
     const doc = new Y.Doc();
-    const { nodes: yNodes, edges: yEdges, threads: yThreads, meta: yMeta, levelLayouts: yLevelLayouts } = getCanvasMaps(doc);
+    const {
+      nodes: yNodes,
+      edges: yEdges,
+      threads: yThreads,
+      meta: yMeta,
+      levelLayouts: yLevelLayouts,
+      hotspots: yHotspots,
+    } = getCanvasMaps(doc);
     const syncLevelLayouts = (event: Y.YMapEvent<LevelPlace>) => {
       const changed = new Set([...event.keysChanged].map((key) => Number(key.split(':')[0]) as 1 | 2));
       setLevelLayouts((current) => {
@@ -174,8 +213,13 @@ export function useStudioFlow({
       if (event.keysChanged.has('status') || event.keysChanged.has('statusHistory'))
         setCanvasStatusState({ status: getCanvasStatus(meta), history: meta.statusHistory ?? [] });
       if (event.keysChanged.has('layoutAt')) onLayoutRef.current?.();
+      if (event.keysChanged.has('lockedBy')) setLockedBy(getLock(doc));
     };
     yMeta.observe(syncMeta);
+    setLockedBy(null);
+    const syncHotspots = () => setHotspots(readHotspots(doc));
+    yHotspots.observe(syncHotspots);
+    setHotspots([]);
     setTitle(undefined);
     setStructureKey('');
     setDiagramLevels(undefined);
@@ -249,6 +293,7 @@ export function useStudioFlow({
         // Open isn't connected until the server lets us in (onAuthenticated)
         if (!stopToolSync) setStatus(status === 'connected' && !letIn ? 'connecting' : (status as Status));
       },
+      onSynced: ({ state }) => setSynced(state),
       onAuthenticated: () => {
         socketConnected = letIn = true;
         if (!stopToolSync) setStatus('connected');
@@ -268,6 +313,7 @@ export function useStudioFlow({
     });
     setTransport('websocket');
     setDeleted(false);
+    setSynced(false);
 
     // Back online, or back on the tab: reconnect now rather than when the next retry is due
     const reconnect = () => {
@@ -285,7 +331,7 @@ export function useStudioFlow({
     // A socket that isn't let in within a few seconds (blocked, or never answered) is given up for tool calls
     if (syncViaTools) fallback = setTimeout(() => !socketConnected && syncThroughTools(), SOCKET_TIMEOUT_MS);
     // Undo only takes back your own changes: other people's arrive with the provider as origin, agents' with theirs
-    const undoManager = new Y.UndoManager([yNodes, yEdges, yThreads, yLevelLayouts], {
+    const undoManager = new Y.UndoManager([yNodes, yEdges, yThreads, yLevelLayouts, yHotspots], {
       captureTimeout: 500,
       trackedOrigins: new Set([null, LOCAL_ORIGIN]),
     });
@@ -302,6 +348,13 @@ export function useStudioFlow({
     // Where others are dragging nodes, from their presence, until they drop them
     let remoteMoves = new Map<string, XYPosition>();
     const settling = new Set<ReturnType<typeof setTimeout>>();
+    // Shown gliding, a step a frame: at most one update a frame however many people drag (each presence arriving
+    // was an update of its own: ~5 a frame with 7 people dragging), and smooth between their ~30 updates a second.
+    // Not what's been dropped since (its drop is in the document, see syncNodes).
+    const glide = createSmoother((shown) => {
+      const moved = new Map([...shown].filter(([id]) => remoteMoves.has(id)));
+      if (moved.size) setNodes((local) => withPositions(local, moved));
+    });
     const syncMoves = (_: unknown, origin: unknown) => {
       if (origin === 'local') return;
       const next = new Map<string, XYPosition>();
@@ -309,10 +362,10 @@ export function useStudioFlow({
         if (id === doc.clientID || !state.moving) return;
         Object.entries(state.moving as Record<string, XYPosition>).forEach(([nodeId, position]) => next.set(nodeId, position));
       });
-      const moved = new Map([...next].filter(([id, { x, y }]) => remoteMoves.get(id)?.x !== x || remoteMoves.get(id)?.y !== y));
+      const moved = [...next].some(([id, { x, y }]) => remoteMoves.get(id)?.x !== x || remoteMoves.get(id)?.y !== y);
       const dropped = [...remoteMoves.keys()].filter((id) => !next.has(id));
       remoteMoves = next;
-      if (moved.size) setNodes((local) => withPositions(local, moved));
+      if (moved || dropped.length) glide.set(next);
       if (dropped.length === 0) return;
       // The drop is saved in the document. If it doesn't arrive, back to where the document has it.
       const settle = setTimeout(() => {
@@ -326,6 +379,40 @@ export function useStudioFlow({
       settling.add(settle);
     };
     awareness.on('change', syncMoves);
+
+    // What others are writing on notes and text, and how they're scaling and turning text, as they do it (from their
+    // presence): shown on just those nodes, and back to what the document has when they're done (their result is
+    // written to the document before their presence is cleared, so it doesn't go back in between)
+    let remoteEdits = '';
+    let remoteEdited = new Set<string>();
+    const syncEdits = (_: unknown, origin: unknown) => {
+      if (origin === 'local') return;
+      const edits = new Map<string, Record<string, unknown>>();
+      awareness.getStates().forEach((state, id) => {
+        const editing = state.editing as Editing | null | undefined;
+        if (id === doc.clientID || !editing?.id) return;
+        const { id: nodeId, ...fields } = editing;
+        edits.set(nodeId, fields);
+      });
+      const key = JSON.stringify([...edits]);
+      if (key === remoteEdits) return;
+      remoteEdits = key;
+      const before = remoteEdited;
+      remoteEdited = new Set(edits.keys());
+      setNodes((local) => {
+        let next: Node[] | undefined;
+        local.forEach((node, index) => {
+          const edit = edits.get(node.id);
+          const savedData = before.has(node.id) ? yNodes.get(node.id)?.data : undefined;
+          const changes = edit ?? (savedData && Object.fromEntries(EDITED_FIELDS.map((field) => [field, savedData[field]])));
+          if (!changes || Object.entries(changes).every(([field, value]) => node.data[field] === value)) return;
+          next ??= [...local];
+          next[index] = { ...node, data: { ...node.data, ...changes } };
+        });
+        return next ?? local;
+      });
+    };
+    awareness.on('change', syncEdits);
 
     // Only what changed is replaced, so React Flow re-renders just those nodes
     const syncNodes = (event: Y.YMapEvent<Node>) => {
@@ -362,12 +449,15 @@ export function useStudioFlow({
       window.removeEventListener('online', reconnect);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       awareness.off('change', syncMoves);
+      awareness.off('change', syncEdits);
+      glide.stop();
       sender.destroy();
       stopToolSync?.();
       yNodes.unobserve(syncNodes);
       yLevelLayouts.unobserve(syncLevelLayouts);
       yEdges.unobserve(syncEdges);
       yMeta.unobserve(syncMeta);
+      yHotspots.unobserve(syncHotspots);
       doc.off('afterTransaction', reopenOnEdit);
       doc.off('afterTransaction', syncStructure);
       presenceStore.destroy();
@@ -535,11 +625,11 @@ export function useStudioFlow({
     []
   );
 
-  /** Add a node of a registry type, centred on a canvas position (in a container, if asked) */
+  /** Add a node of a component (its type, or its key in the components list), centred on a canvas position (in a container, if asked) */
   const addNode = useCallback(
-    (type: string, center: XYPosition, inside?: string) => {
-      const definition = getNodeDefinition(type);
-      return definition ? insertNode(type, definition.createData(), center, undefined, inside) : undefined;
+    (component: string, center: XYPosition, inside?: string) => {
+      const definition = getNodeDefinition(component);
+      return definition ? insertNode(definition.type, definition.createData(), center, undefined, inside) : undefined;
     },
     [insertNode]
   );
@@ -575,13 +665,12 @@ export function useStudioFlow({
     []
   );
 
-  /** Puts a node in a container (or takes it out), e.g. after it's dragged there */
-  const setParent = useCallback(
-    (nodeId: string, parentId: string | undefined) =>
+  /** Puts nodes in containers (or takes them out) together, e.g. a selection dropped in one, as one change */
+  const setParents = useCallback(
+    (moves: { id: string; parentId: string | undefined; at?: XYPosition }[]) =>
       withDoc((doc) => {
-        // Where it was dropped goes first, so it's moved into (or out of) the container from there
         if (dragged.current.size) saveDrop(doc);
-        return setNodeParent(doc, nodeId, parentId, renderedSizes());
+        return setNodeParents(doc, moves, renderedSizes());
       }),
     []
   );
@@ -605,6 +694,47 @@ export function useStudioFlow({
     sharedRef.current?.sender.send({ viewport });
   }, []);
 
+  /**
+   * The note or text being changed here, as it changes (what's written, a text's size and angle), for the others to
+   * see as it happens; `null` when done (after the result is saved), sent straight away
+   */
+  const sendEditing = useCallback((editing: Editing | null) => {
+    const sender = sharedRef.current?.sender;
+    if (!sender) return;
+    sender.send({ editing: editing && { ...editing, ...(editing.text !== undefined && { text: editing.text.slice(0, 2000) }) } });
+    if (!editing) sender.flush();
+  }, []);
+
+  /**
+   * What a diagram file opened into this (new) canvas starts with: its nodes and connections, comments, hotspots and
+   * where things are on L1 and L2, in one change that isn't undone
+   */
+  const addContent = useCallback(
+    (content: ModelCanvasContent) =>
+      withDoc((doc) => {
+        addNodes(doc, content.nodes, content.edges);
+        if (content.threads?.length) addThreads(doc, content.threads);
+        if (content.hotspots?.length) addHotspots(doc, content.hotspots);
+        setLevelPlaces(doc, 1, content.levelLayouts[1]);
+        setLevelPlaces(doc, 2, content.levelLayouts[2]);
+      }, OPEN_ORIGIN),
+    []
+  );
+
+  // ---- Hotspots and the lock ----
+
+  const createHotspot = useCallback(
+    (hotspot: Omit<Hotspot, 'id' | 'createdAt'>) => withDoc((doc) => createHotspotInDoc(doc, hotspot)),
+    []
+  );
+  const updateHotspot = useCallback(
+    (id: string, fields: Parameters<typeof updateHotspotInDoc>[2]) => withDoc((doc) => updateHotspotInDoc(doc, id, fields)),
+    []
+  );
+  const deleteHotspot = useCallback((id: string) => withDoc((doc) => deleteHotspotInDoc(doc, id)), []);
+  /** Locks the canvas for everyone (by a name), or unlocks it (null): looked at, not changed */
+  const setLocked = useCallback((by: string | null) => withDoc((doc) => setLock(doc, by), STATUS_ORIGIN), []);
+
   return {
     nodes,
     edges,
@@ -625,7 +755,7 @@ export function useStudioFlow({
     levelLayouts,
     setLevelLayout,
     insertNodes,
-    setParent,
+    setParents,
     title,
     diagramLevels,
     structureKey,
@@ -634,6 +764,15 @@ export function useStudioFlow({
     changeStatus,
     transport,
     deleted,
+    hotspots,
+    createHotspot,
+    updateHotspot,
+    deleteHotspot,
+    lockedBy,
+    setLocked,
+    sendEditing,
+    synced,
+    addContent,
     undo,
     redo,
     ...history,

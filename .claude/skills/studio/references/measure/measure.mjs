@@ -5,6 +5,10 @@
 //   node measure.mjs scenarios <tab> [idle,mouse,pan,drag]   renders, JS and main-thread time per scenario
 //   node measure.mjs idle <tab>                              main-thread time doing nothing, and what's animating
 //   node measure.mjs heap <tab> [rounds]                     heap after GC across rounds of dragging and panning
+//   node measure.mjs load <tab> [runs]                       when the first node shows on opening, and long tasks
+//   node measure.mjs profile <tab> [scenario]                where the JS time goes (self time by function) for 3
+//                                                            seconds, idle or during a scenario; PROFILE_OUT=x.cpuprofile
+//                                                            keeps it (callers.mjs: who calls a function in it)
 //
 // <tab> is part of an open tab's URL, or a full URL (opened if no tab has it). Chrome is found from its
 // DevToolsActivePort file (remote debugging on in chrome://inspect/#remote-debugging), or CDP_PORT for a Chrome
@@ -133,12 +137,74 @@ try {
           scenario: name,
           ...result,
           top: top
-            .slice(0, 5)
+            .slice(0, Number(process.env.TOP ?? 5))
             .map(([n, c]) => `${n} ${c}`)
             .join(', '),
         })
       );
     }
+  } else if (command === 'load') {
+    // Opening the page: when the first node shows, the main thread's work until then, and long tasks (median of 3)
+    await page.send('Page.enable');
+    const source = `(() => {
+      window.__load = { longTasks: [], firstNodeAt: null };
+      new PerformanceObserver((list) => list.getEntries().forEach((e) => window.__load.longTasks.push(Math.round(e.duration)))).observe({ type: 'longtask', buffered: true });
+      const check = () => {
+        if (document.querySelector('.react-flow__node')) window.__load.firstNodeAt = Math.round(performance.now());
+        else requestAnimationFrame(check);
+      };
+      requestAnimationFrame(check);
+    })()`;
+    const { identifier } = await page.send('Page.addScriptToEvaluateOnNewDocument', { source });
+    const runs = [];
+    for (let i = 0; i < Number(option ?? 3); i++) {
+      const result = await timing(page, async () => {
+        await page.send('Network.setCacheDisabled', { cacheDisabled: false });
+        await page.send('Page.reload', { ignoreCache: false });
+        await wait(500);
+        for (let tries = 0; tries < 60; tries++) {
+          try {
+            if (await page.evaluate('!!(window.__load && window.__load.firstNodeAt)')) break;
+          } catch {}
+          await wait(250);
+        }
+        await wait(1500);
+        const load = await page.evaluate('window.__load');
+        const nav = await page.evaluate("(() => { const n = performance.getEntriesByType('navigation')[0]; return { responseEnd: Math.round(n.responseEnd), domContentLoaded: Math.round(n.domContentLoadedEventEnd) }; })()");
+        return { ...nav, firstNodeAt: load.firstNodeAt, longTasks: load.longTasks.slice(0, 6), longTaskMs: load.longTasks.reduce((a, b) => a + b, 0) };
+      });
+      runs.push(result);
+      console.log(JSON.stringify(result));
+    }
+    await page.send('Page.removeScriptToEvaluateOnNewDocument', { identifier });
+  } else if (command === 'profile') {
+    // Where the page's JS time goes for 3 seconds (e.g. while others work on the canvas): self time by function,
+    // from a sampling profile of this tab only (option: a scenario to run meanwhile, e.g. drag; default idle)
+    await page.send('Profiler.enable');
+    await page.send('Profiler.setSamplingInterval', { interval: 200 });
+    await page.send('Profiler.start');
+    await page.evaluate(option ? `window.__scenarios.${option}()` : 'new Promise((r) => setTimeout(r, 3000))');
+    const { profile } = await page.send('Profiler.stop');
+    // PROFILE_OUT=file.cpuprofile keeps it (opens in Chrome DevTools' Performance panel)
+    if (process.env.PROFILE_OUT) fs.writeFileSync(process.env.PROFILE_OUT, JSON.stringify(profile));
+    const byId = new Map(profile.nodes.map((node) => [node.id, node]));
+    const sampled = new Map();
+    profile.samples.forEach((id, i) => sampled.set(id, (sampled.get(id) ?? 0) + (profile.timeDeltas[i] ?? 0)));
+    const self = new Map();
+    let total = 0;
+    for (const [id, micros] of sampled) {
+      const { callFrame } = byId.get(id);
+      if (['(idle)', '(program)'].includes(callFrame.functionName)) continue;
+      const file = callFrame.url.split('/').pop()?.split('?')[0] || '';
+      const key = `${callFrame.functionName || '(anonymous)'} ${file}:${callFrame.lineNumber + 1}`;
+      self.set(key, (self.get(key) ?? 0) + micros);
+      total += micros;
+    }
+    console.log(JSON.stringify({ busyMs: Math.round(total / 1000) }));
+    [...self]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, Number(process.env.TOP ?? 25))
+      .forEach(([key, micros]) => console.log(`${(micros / 1000).toFixed(1).padStart(7)} ms  ${key}`));
   } else if (command === 'idle') {
     console.log(JSON.stringify(await timing(page, () => page.evaluate('new Promise((resolve) => setTimeout(resolve, 3000))'))));
     console.log(JSON.stringify({ animating: await page.evaluate(ANIMATIONS) }));
@@ -156,7 +222,8 @@ try {
     console.log(JSON.stringify({ round: 'start', ...(await heap()) }));
     for (let round = 1; round <= Number(option ?? 4); round++) {
       await page.evaluate(
-        '(async () => { for (let i = 0; i < 5; i++) { await __scenarios.drag(600); await __scenarios.pan(400); } })()'
+        // HEAP_SCENARIO=drag or pan runs just that (to tell which one grows the heap)
+        `(async () => { for (let i = 0; i < 5; i++) { ${process.env.HEAP_SCENARIO !== 'pan' ? 'await __scenarios.drag(600);' : ''} ${process.env.HEAP_SCENARIO !== 'drag' ? 'await __scenarios.pan(400);' : ''} } })()`
       );
       console.log(JSON.stringify({ round, ...(await heap()) }));
     }

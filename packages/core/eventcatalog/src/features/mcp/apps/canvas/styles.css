@@ -4,10 +4,12 @@
  */
 @import 'tailwindcss' source(none);
 @import '../../../../styles/theme.css';
-@import '../../../studio/studio.css';
+@import '@eventcatalog/visualiser/studio.css';
 
 @source './*.tsx';
 @source '../../../studio/components/*.{ts,tsx}';
+/* Studio's shared canvas (nodes, comments, hotspots), from the visualiser in this repo */
+@source '../../../../../../../visualiser/src/studio';
 
 body {
   margin: 0;

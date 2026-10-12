@@ -1,0 +1,60 @@
+{
+  "name": "@eventcatalog/studio-web",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "description": "Public MCP server: visualise your architecture with EventCatalog",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:view": "node scripts/build-view.mjs",
+    "build": "pnpm run build:view && pnpm run build:server",
+    "dev": "pnpm run build:view && tsx watch src/server.ts",
+    "start": "node --enable-source-maps build/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest --run",
+    "test:e2e": "pnpm run build && playwright test",
+    "build:server": "node scripts/build-server.mjs",
+    "test:ci": "vitest --run"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.3",
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "hono": "^4.13.12",
+    "lz-string": "^1.5.0",
+    "ws": "^8.22.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@eventcatalog/visualiser": "workspace:*",
+    "@fontsource/inter": "^5.3.0",
+    "@headlessui/react": "^2.2.10",
+    "@heroicons/react": "^2.2.0",
+    "@playwright/test": "1.63.0",
+    "@radix-ui/react-dropdown-menu": "^2.1.24",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/ws": "^8.18.2",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@xyflow/react": "^12.12.0",
+    "esbuild": "^0.28.2",
+    "html-to-image": "^1.11.13",
+    "lucide-react": "^1.51.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-hotkeys-hook": "^5.3.3",
+    "react-syntax-highlighter": "^16.1.1",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^3.2.7",
+    "yjs": "^13.6.33"
+  }
+}

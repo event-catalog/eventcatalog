@@ -13,9 +13,9 @@ import {
   type Author,
   type CommentAnchor,
   type Thread,
-} from '../canvas-doc';
+} from '@eventcatalog/visualiser/studio';
 
-export type { Author, CommentAnchor, Message, Thread } from '../canvas-doc';
+export type { Author, CommentAnchor, Message, Thread } from '@eventcatalog/visualiser/studio';
 
 /** Comment threads in the shared canvas document */
 export function useComments(doc: Y.Doc | null, author: Author) {
