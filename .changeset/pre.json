@@ -10,7 +10,8 @@
     "@eventcatalog/diff": "0.1.1",
     "@eventcatalog/linter": "1.1.20",
     "@eventcatalog/sdk": "2.29.1",
-    "@eventcatalog/visualiser": "4.1.4"
+    "@eventcatalog/visualiser": "4.1.4",
+    "@eventcatalog/studio-web": "0.0.1"
   },
   "changesets": [
     "all-features-included",
@@ -47,6 +48,7 @@
     "sidebar-diagram-labels",
     "sidebar-hide-repeated-icons",
     "sidebar-resources-label",
+    "studio-canvas-in-visualiser",
     "studio-canvas-menu",
     "studio-delete-canvases",
     "studio-editing",
