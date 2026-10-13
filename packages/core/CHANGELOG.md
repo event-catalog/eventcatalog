@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.24
+
+### Patch Changes
+
+- a6a51ce: fix(core): keep server-only code out of the Fields Explorer's browser bundle
+
+  Building a catalog warned that `node:fs` and `node:path` were "externalized for browser compatibility", and the Fields Explorer's browser code included the catalog's `eventcatalog.config.js`. The Fields Explorer now lays out its graph without reading the config, and the collection helpers it uses no longer need `node:path`.
+
 ## 5.0.0-beta.23
 
 ### Patch Changes
