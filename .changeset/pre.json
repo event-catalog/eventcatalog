@@ -17,6 +17,7 @@
     "adr-required-field-errors",
     "all-features-included",
     "architecture-redirect",
+    "astro-foreground-for-agents",
     "audit-dependency-fixes",
     "build-concurrency",
     "bump-astro-7-3-8",
