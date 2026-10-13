@@ -47,11 +47,4 @@ export class Page extends HybridPage {
       allVersions,
     };
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Diagram not found',
-    });
-  }
 }

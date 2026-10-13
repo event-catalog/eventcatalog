@@ -61,11 +61,4 @@ export class Page extends HybridPage {
 
     return { type, data: { id, name: match.item.data.name, version }, redirectPath: match.redirectPath };
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Documentation not found',
-    });
-  }
 }

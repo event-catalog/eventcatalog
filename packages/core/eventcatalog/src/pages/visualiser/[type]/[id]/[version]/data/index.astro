@@ -8,6 +8,7 @@ export const getStaticPaths = Page.getStaticPaths;
 
 // Get data
 const props = await Page.getData(Astro);
+if (!props) return Astro.rewrite('/404');
 
 // The service's data stores are shown at level 2 of its visualiser page
 return Astro.redirect(buildUrl(`/visualiser/services/${props.data.id}/${props.data.version}?level=2`));

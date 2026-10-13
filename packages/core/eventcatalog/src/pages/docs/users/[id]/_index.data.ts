@@ -36,11 +36,4 @@ export class Page extends HybridPage {
 
     return user || null;
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'User not found',
-    });
-  }
 }

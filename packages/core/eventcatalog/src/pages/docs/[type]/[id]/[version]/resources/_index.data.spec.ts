@@ -38,9 +38,8 @@ describe('Resources routes', () => {
   });
 
   it('returns not found for types without a Resources page on a server request', async () => {
-    await expect(Page.getData({ params: { type: 'entities', id: 'Order', version: '1.0.0' }, props: {} } as any)).rejects.toMatchObject({
-      status: 404,
-    });
+    // Nothing found: the page answers with the 404 page
+    await expect(Page.getData({ params: { type: 'entities', id: 'Order', version: '1.0.0' }, props: {} } as any)).resolves.toBeUndefined();
     expect(mocks.findOwnerWithResources).not.toHaveBeenCalled();
   });
 });

@@ -57,13 +57,6 @@ const createResourcesPage = ({
 
       return findOwnerWithResources(type as ResourceOwnerCollection, id, version);
     }
-
-    protected static createNotFoundResponse(): Response {
-      return new Response(null, {
-        status: 404,
-        statusText: 'Resources not found',
-      });
-    }
   };
 
 export const Page = createResourcesPage({

@@ -6,6 +6,7 @@ export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
 
 const resourceOwner = await Page.getData(Astro);
+if (!resourceOwner) return Astro.rewrite('/404');
 ---
 
 <ResourcesPage resourceOwner={resourceOwner} />

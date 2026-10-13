@@ -68,10 +68,9 @@ describe('architecture page redirects', () => {
   it('returns not found for resources without an architecture page', async () => {
     mocks.isSSR.mockReturnValue(true);
 
+    // Nothing found: the page answers with the 404 page
     await expect(
       Page.getData({ params: { type: 'events', id: 'order-created', version: '1.0.0' }, props: {} } as any)
-    ).rejects.toMatchObject({
-      status: 404,
-    });
+    ).resolves.toBeUndefined();
   });
 });

@@ -42,11 +42,4 @@ export class Page extends HybridPage {
 
     return domain;
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Domain not found',
-    });
-  }
 }

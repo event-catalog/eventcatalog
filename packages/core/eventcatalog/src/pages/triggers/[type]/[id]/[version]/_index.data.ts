@@ -56,11 +56,4 @@ export class Page extends HybridPage {
     const hasTriggerPaths = getMessagesWithTriggerPaths(receivers, allMessages).includes(item);
     return hasTriggerPaths ? { type, ...item } : null;
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Message trigger paths not found',
-    });
-  }
 }

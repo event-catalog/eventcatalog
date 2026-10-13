@@ -34,11 +34,4 @@ export class Page extends HybridPage {
   protected static hasValidProps(props: any): boolean {
     return props && props.schemas !== undefined;
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Schema explorer not found',
-    });
-  }
 }

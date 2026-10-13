@@ -45,6 +45,11 @@ export class Page extends HybridPage {
       teams: getTeams,
     };
 
+    // An unknown type (e.g. a mistyped URL) has no directory page
+    if (!Object.hasOwn(loaders, type)) {
+      return null;
+    }
+
     // Get all items of the specified type
     const items = await loaders[type as keyof typeof loaders]();
 
@@ -52,12 +57,5 @@ export class Page extends HybridPage {
       type,
       data: items,
     };
-  }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Directory type not found',
-    });
   }
 }

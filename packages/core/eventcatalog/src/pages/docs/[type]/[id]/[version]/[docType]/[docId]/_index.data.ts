@@ -72,11 +72,4 @@ export class Page extends HybridPage {
 
     return doc;
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Resource documentation not found',
-    });
-  }
 }

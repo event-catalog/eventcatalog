@@ -45,13 +45,6 @@ export class Page extends HybridPage {
     };
   }
 
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Design not found',
-    });
-  }
-
   static get clientAuthScript(): string {
     if (!isAuthEnabled() || !isVisualiserEnabled()) {
       return '';

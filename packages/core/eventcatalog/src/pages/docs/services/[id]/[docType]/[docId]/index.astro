@@ -12,7 +12,7 @@ const { id, docType, docId } = Astro.params;
 const version = Astro.props.redirectVersion ?? (id ? await getLatestServiceVersion(id) : undefined);
 
 if (!id || !docType || !docId || !version) {
-  throw new Response(null, { status: 404, statusText: 'Resource documentation not found' });
+  return Astro.rewrite('/404');
 }
 
 const redirectUrl = buildUrl(`/docs/services/${id}/${version}/${docType}/${docId}`);
