@@ -17,6 +17,7 @@
     "all-features-included",
     "architecture-redirect",
     "audit-dependency-fixes",
+    "bump-astro-7-3-8",
     "bump-xyflow-react",
     "business-source-license",
     "catalog-graph-settled-first-paint",
