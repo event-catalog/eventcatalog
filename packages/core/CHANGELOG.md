@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.16
+
+### Patch Changes
+
+- f8c863f: Render 4 pages at a time when building a catalog. A catalog with 640 events builds in about 40s rather than 50–75s, with the same pages and less memory.
+- 2845070: Build static catalogs faster: reuse graph layouts across a message's pages, highlight schemas without working out the theme again for every token, and check links with a streaming HTML parser. A catalog with 640 events builds about 25% faster, with the same pages.
+
 ## 5.0.0-beta.15
 
 ### Patch Changes
