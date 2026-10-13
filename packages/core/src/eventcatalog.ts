@@ -36,6 +36,13 @@ import { getFederationDiagnosticCounts, getVisibleFederationDiagnostics } from '
 import { getEventCatalogUpdateMessage, resolveInstalledCoreVersion } from './update-check';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const astroCli = path.join(path.dirname(createRequire(import.meta.url).resolve('astro/package.json')), 'bin/astro.mjs');
+
+// Astro 7 starts `astro dev` and `astro preview` in the background when an AI agent runs them: the
+// command exits once the server is up, its output goes to a log file and its errors aren't shown.
+// This CLI is the process that runs the server (and watches files and prewarms pages alongside it),
+// so Astro stays in the foreground. Astro sets these on the server it starts in the background.
+const ASTRO_IN_FOREGROUND = { ASTRO_DEV_BACKGROUND: '1', ASTRO_PREVIEW_BACKGROUND: '1' };
+
 const program = new Command().version(VERSION);
 
 // The users dierctory
@@ -462,6 +469,7 @@ program
           EVENTCATALOG_DEV_MODE: 'true',
           IGNORE_BUILD_ARTIFACTS: 'true',
           NODE_NO_WARNINGS: '1',
+          ...ASTRO_IN_FOREGROUND,
         },
         shouldFilterLine: createAstroDevLineFilter(),
         transformLine: replaceAstroReadyVersionLine,
@@ -558,6 +566,7 @@ const previewCatalog = async ({ command }: { command: Command }) => {
     env: {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,
+      ...ASTRO_IN_FOREGROUND,
     },
     shouldFilterLine: createAstroLineFilter(),
   });
