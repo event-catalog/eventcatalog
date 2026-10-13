@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.23
+
+### Patch Changes
+
+- d34ae95: Explain a missing or invalid ADR `status` or `date` clearly. A missing `date` was reported as ``Expected type `"date"`, received `"object"` `` (with the field name garbled) by the build, and as `Invalid date` by the linter. The build now reports `Required: a date, e.g. 2026-06-01` or `Invalid date: use a date, e.g. 2026-06-01`, and a missing status lists the allowed values. The linter reports a missing date as missing.
+- Updated dependencies [d34ae95]
+  - @eventcatalog/linter@1.2.0-beta.4
+
 ## 5.0.0-beta.22
 
 ### Patch Changes

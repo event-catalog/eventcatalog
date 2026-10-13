@@ -14,6 +14,7 @@
     "@eventcatalog/studio-web": "0.0.1"
   },
   "changesets": [
+    "adr-required-field-errors",
     "all-features-included",
     "architecture-redirect",
     "audit-dependency-fixes",
