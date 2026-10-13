@@ -9,6 +9,7 @@ import ProtobufSchemaViewer from './ProtobufSchemaViewer';
 import { getLanguageForHighlight, SCHEMA_CODE_STYLE } from './utils';
 import type { SchemaItem } from './types';
 import { useDarkMode } from './useDarkMode';
+import { renderHighlightedRows } from '@utils/syntax-highlighter-renderer';
 
 interface SchemaContentViewerProps {
   message: SchemaItem;
@@ -112,6 +113,7 @@ export default function SchemaContentViewer({
 
       <div className="min-h-0 flex-1 overflow-auto">
         <SyntaxHighlighter
+          renderer={renderHighlightedRows}
           language={getLanguageForHighlight(message.schemaExtension)}
           style={isDarkMode ? oneDark : oneLight}
           customStyle={{ ...SCHEMA_CODE_STYLE, height: '100%' }}

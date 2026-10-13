@@ -6,6 +6,7 @@ import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { getLanguageForHighlight } from './utils';
 import type { SchemaItem } from './types';
 import { useDarkMode } from './useDarkMode';
+import { renderHighlightedRows } from '@utils/syntax-highlighter-renderer';
 
 interface SchemaCodeModalProps {
   isOpen: boolean;
@@ -60,6 +61,7 @@ export default function SchemaCodeModal({ isOpen, onOpenChange, message, onCopy,
           {/* Content */}
           <div className="flex-1 overflow-auto p-6">
             <SyntaxHighlighter
+              renderer={renderHighlightedRows}
               language={getLanguageForHighlight(message.schemaExtension)}
               style={isDarkMode ? oneDark : oneLight}
               customStyle={{

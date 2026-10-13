@@ -4,6 +4,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { getLanguageForHighlight, getSchemaTypeLabel } from './utils';
 import { useDarkMode } from './useDarkMode';
+import { renderHighlightedRows } from '@utils/syntax-highlighter-renderer';
 import type { SchemaItem } from './types';
 
 interface ApiContentViewerProps {
@@ -135,6 +136,7 @@ export default function ApiContentViewer({ message, onCopy, copiedId }: ApiConte
 
           <div className="border-t" style={{ borderColor: dividerColor }}>
             <SyntaxHighlighter
+              renderer={renderHighlightedRows}
               language={getLanguageForHighlight(message.schemaExtension)}
               style={isDarkMode ? oneDark : oneLight}
               customStyle={{

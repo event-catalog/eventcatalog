@@ -1,6 +1,13 @@
 import { hideMessageNodes, layoutWithElk } from '@eventcatalog/visualiser/layout';
+import { isSSR } from '@utils/feature';
 
 type Graph = { nodes: any[]; edges: any[] };
+
+// A build renders one route at a time (every message's docs page, then every schema page), so the
+// cache has to outlast a whole route to be reused. A server keeps running as the catalog changes and
+// renders pages as they're asked for, so it keeps the most recent layouts only.
+const MAX_CACHED_LAYOUTS = isSSR() ? 200 : 5000;
+const layouts = new Map<string, ReturnType<typeof layoutWithElk>>();
 
 /**
  * Lays a node graph out for the visualiser (with ELK, left to right). Builders
@@ -9,7 +16,19 @@ type Graph = { nodes: any[]; edges: any[] };
  * (nodes with children) are sized to fit them, and edges get the route they're
  * drawn along (`data.route`), with room for their labels.
  */
-export const layoutNodeGraph = async <G extends Graph>(graph: G): Promise<G> => (await layoutWithElk(graph)) as unknown as G;
+export const layoutNodeGraph = async <G extends Graph>(graph: G): Promise<G> => {
+  // A build lays the same graph out on several pages (a message's docs, visualiser and schema pages):
+  // reuse the layout. Each caller gets its own copy, so it can't change the one kept.
+  const key = JSON.stringify(graph);
+  let layout = layouts.get(key);
+  if (!layout) {
+    layout = layoutWithElk(graph);
+    layouts.set(key, layout);
+    layout.catch(() => layouts.delete(key));
+    if (layouts.size > MAX_CACHED_LAYOUTS) layouts.delete(layouts.keys().next().value!);
+  }
+  return structuredClone(await layout) as unknown as G;
+};
 
 /**
  * Lays out the graphs of a levels page: level 1 (`overview`: domains, systems
