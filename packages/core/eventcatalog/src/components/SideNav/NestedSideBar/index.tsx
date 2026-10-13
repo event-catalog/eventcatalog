@@ -21,57 +21,56 @@ import {
   type FavoriteItem,
 } from '@stores/favorites-store';
 import {
+  buildNodeLookup,
   canCollapseGroup,
   findNodeKeyByUrl,
   getBadgeClasses,
   getDefaultCollapsedState,
   hidesDefaultItemIcon,
   isGroupCollapsed,
+  resolveNavRef,
+  rootLevel,
+  stripBasePath,
   toggleGroupCollapsed,
+  type NavigationLevel,
+  type SidebarSnapshot,
 } from './utils';
 import { resolveIconUrl } from '@utils/icon';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
 
-/**
- * Strip the configured base path from a pathname so URL pattern matching works
- * regardless of the base path setting (e.g. `/eventcatalog/docs/...` → `/docs/...`).
- */
-const stripBasePath = (pathname: string): string => {
-  const base = __EC_BASE__.replace(/\/$/, ''); // e.g. '/eventcatalog'
-  if (base && pathname.startsWith(base)) {
-    return pathname.slice(base.length) || '/';
-  }
-  return pathname;
-};
-
 // ============================================
 // Component
 // ============================================
 
-type NavigationLevel = {
-  key: string | null; // The key of the node that was drilled into (null for root)
-  entries: ChildRef[];
-  title: string;
-  badge?: string; // Category badge (e.g., "Domain", "Service")
+type NestedSideBarProps = {
+  /**
+   * This page's level, built on the server. It renders the sidebar into the HTML and keeps
+   * the island showing it until the full navigation data (sidebar-data.json) is loaded.
+   */
+  snapshot?: SidebarSnapshot;
 };
 
-export default function NestedSideBar() {
-  const data = useStore(sidebarStore);
+export default function NestedSideBar({ snapshot }: NestedSideBarProps) {
+  const storeData = useStore(sidebarStore);
   const favorites = useStore(favoritesStore);
+  // Drill-down, restoring state and favorites need the whole catalog; until it loads the
+  // snapshot only shows this page's level
+  const hasFullData = storeData !== null;
+  const data = storeData ?? snapshot?.data ?? null;
 
   // Guard against undefined data (e.g., during hydration)
   // Use useMemo to ensure stable references for roots and nodes
   const roots = useMemo(() => data?.roots ?? [], [data?.roots]);
   const nodes = useMemo(() => data?.nodes ?? {}, [data?.nodes]);
 
-  const [navigationStack, setNavigationStack] = useState<NavigationLevel[]>(() => [
-    { key: null, entries: [], title: 'Documentation' },
-  ]);
+  const [navigationStack, setNavigationStack] = useState<NavigationLevel[]>(
+    () => snapshot?.stack ?? [{ key: null, entries: [], title: 'Documentation' }]
+  );
   const [animationKey, setAnimationKey] = useState(0);
   const [slideDirection, setSlideDirection] = useState<'forward' | 'backward' | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [currentPath, setCurrentPath] = useState<string>('');
+  const [currentPath, setCurrentPath] = useState<string>(snapshot?.url ?? '');
   const [sectionCollapsePreferences, setSectionCollapsePreferences] = useState(loadCollapsedSections);
   const [showPathPreview, setShowPathPreview] = useState(false);
   const [showFullPath, setShowFullPath] = useState(false);
@@ -79,33 +78,7 @@ export default function NestedSideBar() {
 
   // Build a lookup map for faster URL navigation
   // Map format: "type:id" -> "nodeKey"
-  const nodeLookup = useMemo(() => {
-    const lookup = new Map<string, string>();
-
-    Object.entries(nodes).forEach(([key, value]) => {
-      // Skip keys that are references (string values pointing to other keys)
-      // These are unversioned aliases like "domain:E-Commerce" -> "domain:E-Commerce:1.0.0"
-      if (typeof value === 'string') return;
-
-      // Key formats:
-      // - "type:id:version" (e.g., "service:OrdersService:0.0.3")
-      // - "type:id" (e.g., "user:john", "team:backend") - non-versioned resources
-      // - "list:name" (e.g., "list:domains") - skip these
-      const parts = key.split(':');
-
-      // Skip list items
-      if (parts[0] === 'list') return;
-
-      if (parts.length >= 2) {
-        // Store as "type:id"
-        const type = parts[0];
-        const id = parts[1];
-        lookup.set(`${type}:${id}`, key);
-      }
-    });
-
-    return lookup;
-  }, [nodes]);
+  const nodeLookup = useMemo(() => buildNodeLookup(nodes), [nodes]);
 
   /**
    * Toggle section collapse state
@@ -126,7 +99,7 @@ export default function NestedSideBar() {
       setNavigationStack((prevStack) => {
         // Only update if the current stack has no entries (initial state)
         if (prevStack.length === 1 && prevStack[0].entries.length === 0) {
-          return [{ key: null, entries: roots, title: 'Documentation' }];
+          return [rootLevel(roots)];
         }
         return prevStack;
       });
@@ -146,21 +119,7 @@ export default function NestedSideBar() {
    * Resolve a child reference to a NavNode
    * Handles both direct keys and string references (unversioned aliases pointing to versioned keys)
    */
-  const resolveRef = useCallback(
-    (ref: ChildRef): NavNode | null => {
-      if (typeof ref === 'string') {
-        const node = nodes[ref];
-        if (!node) return null;
-        // If node is a string, it's a reference to another key (e.g., unversioned alias)
-        if (typeof node === 'string') {
-          return (nodes[node] as NavNode) ?? null;
-        }
-        return node;
-      }
-      return ref;
-    },
-    [nodes]
-  );
+  const resolveRef = useCallback((ref: ChildRef): NavNode | null => resolveNavRef(nodes, ref), [nodes]);
 
   /**
    * Check if a node is visible (default: true)
@@ -175,7 +134,7 @@ export default function NestedSideBar() {
    */
   const buildStackFromPath = useCallback(
     (path: string[]): NavigationLevel[] => {
-      const stack: NavigationLevel[] = [{ key: null, entries: roots, title: 'Documentation' }];
+      const stack: NavigationLevel[] = [rootLevel(roots)];
 
       for (const key of path) {
         const node = resolveRef(key);
@@ -281,7 +240,7 @@ export default function NestedSideBar() {
           if (foundNode && foundNode.pages && foundNode.pages.length > 0) {
             // Fallback: Flattened navigation
             return [
-              { key: null, entries: roots, title: 'Documentation' },
+              rootLevel(roots),
               { key: foundNodeKey, entries: foundNode.pages, title: foundNode.title, badge: foundNode.badge },
             ];
           }
@@ -296,7 +255,7 @@ export default function NestedSideBar() {
             setSlideDirection('backward');
             setAnimationKey((prev) => prev + 1);
           }
-          return [{ key: null, entries: roots, title: 'Documentation' }];
+          return [rootLevel(roots)];
         });
         return true;
       }
@@ -309,14 +268,14 @@ export default function NestedSideBar() {
    * Restore state from localStorage on mount, or navigate to URL
    */
   useEffect(() => {
-    if (!data || roots.length === 0 || isInitialized) return;
+    if (!hasFullData || roots.length === 0 || isInitialized) return;
 
     const currentUrl = window.location.pathname;
     const normalizedCurrentUrl = stripBasePath(currentUrl);
 
     // Force root navigation on homepage
     if (normalizedCurrentUrl === '/' || normalizedCurrentUrl === '') {
-      setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
+      setNavigationStack([rootLevel(roots)]);
       setIsInitialized(true);
       return;
     }
@@ -347,7 +306,7 @@ export default function NestedSideBar() {
       const targetNode = resolveRef(targetKey);
       if (targetNode && targetNode.pages && targetNode.pages.length > 0) {
         finalStack = [
-          { key: null, entries: roots, title: 'Documentation' },
+          rootLevel(roots),
           { key: targetKey, entries: targetNode.pages, title: targetNode.title, badge: targetNode.badge },
         ];
       }
@@ -355,13 +314,13 @@ export default function NestedSideBar() {
 
     // 3. Fallback to root
     if (!finalStack) {
-      setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
+      setNavigationStack([rootLevel(roots)]);
     } else {
       setNavigationStack(finalStack);
     }
 
     setIsInitialized(true);
-  }, [data, roots, isInitialized, buildStackFromPath, findNodeKeyForUrl, tryConnectStack, resolveRef]);
+  }, [hasFullData, roots, isInitialized, buildStackFromPath, findNodeKeyForUrl, tryConnectStack, resolveRef]);
 
   /**
    * Save state whenever navigation changes
@@ -575,6 +534,7 @@ export default function NestedSideBar() {
    * Handle drilling down into an item with children
    */
   const handleDrillDown = (node: NavNode, nodeKey: string | null) => {
+    if (!hasFullData) return;
     if (node.pages && node.pages.length > 0) {
       setSlideDirection('forward');
       setAnimationKey((prev) => prev + 1);
@@ -590,7 +550,7 @@ export default function NestedSideBar() {
    * Navigate back one level
    */
   const navigateBack = () => {
-    if (navigationStack.length > 1) {
+    if (hasFullData && navigationStack.length > 1) {
       setSlideDirection('backward');
       setAnimationKey((prev) => prev + 1);
       setNavigationStack(navigationStack.slice(0, -1));
@@ -604,7 +564,7 @@ export default function NestedSideBar() {
    * Navigate to a specific level in the stack
    */
   const navigateToLevel = (levelIndex: number) => {
-    if (levelIndex < navigationStack.length - 1) {
+    if (hasFullData && levelIndex < navigationStack.length - 1) {
       setSlideDirection('backward');
       setAnimationKey((prev) => prev + 1);
       setNavigationStack(navigationStack.slice(0, levelIndex + 1));
@@ -634,6 +594,7 @@ export default function NestedSideBar() {
    * Navigate to a favorited item
    */
   const navigateToFavorite = (favorite: FavoriteItem) => {
+    if (!hasFullData) return;
     // If it has an href and no children, just navigate to the URL
     const node = resolveRef(favorite.nodeKey);
     if (favorite.href && (!node?.pages || node.pages.length === 0)) {
