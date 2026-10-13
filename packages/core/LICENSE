@@ -17,13 +17,13 @@ Licensed Work:        EventCatalog version 5.0 or later, including pre-releases,
                       and the examples directory. The Licensed Work is (c) 2026
                       EventCatalog Ltd.
 Additional Use Grant: You may make Production use of the Licensed Work if You
-                      are an Eligible User and Your use is not a Hosted
+                      qualify for Free Use and Your use is not a Hosted
                       Offering. Sections 1 to 7 below form part of this grant.
                       Capitalised terms are defined in section 6.
 
-                      1. Eligible Users
+                      1. Free Use
 
-                      You are an "Eligible User" if You are:
+                      You qualify for "Free Use" if You are:
 
                       (a) an individual using the Licensed Work for Your own
                           personal purposes, and not for or on behalf of any
@@ -47,9 +47,9 @@ Additional Use Grant: You may make Production use of the Licensed Work if You
 
                       2. Growing past the thresholds
 
-                      An Organisation that is an Eligible User under 1(b)
-                      remains one until ninety (90) days after the first of the
-                      following to happen:
+                      An Organisation that qualifies for Free Use under 1(b)
+                      continues to qualify until ninety (90) days after the
+                      first of the following to happen:
 
                       (a) the end of the first financial year in which its
                           Annual Revenue reaches USD 10,000,000; or
@@ -68,7 +68,7 @@ Additional Use Grant: You may make Production use of the Licensed Work if You
                       vendor), including building, customising, hosting or
                       distributing the Licensed Work or a catalog built with it
                       for that client, Your use for that client is permitted if
-                      the client is an Eligible User or holds a Commercial
+                      the client qualifies for Free Use or holds a Commercial
                       License covering that use. You may rely on a client's
                       written statement of its status unless You know it is
                       wrong. Your own use of the Licensed Work for Your own
@@ -76,7 +76,7 @@ Additional Use Grant: You may make Production use of the Licensed Work if You
 
                       4. Coming into compliance
 
-                      (a) If You stop being an Eligible User (for example
+                      (a) If You stop qualifying for Free Use (for example
                           because Your Evaluation Period ends), or You become
                           aware (including by notice from the Licensor) that
                           Your Production use is not permitted by this grant,
@@ -219,7 +219,8 @@ Additional Use Grant: You may make Production use of the Licensed Work if You
                           Public Open Source Projects.
 
                       "Commercial License" means a written license from the
-                      Licensor permitting Production use beyond this grant.
+                      Licensor, including one accepted online, permitting
+                      Production use beyond this grant.
 
                       7. Everything else
 
@@ -230,9 +231,9 @@ Additional Use Grant: You may make Production use of the Licensed Work if You
                       Work. The content of Your own catalog (the documentation,
                       schemas, diagrams and configuration You create) is Yours
                       and is not part of the Licensed Work.
-Change Date:          Four years after the first public release, including any
-                      pre-release, of any release in the same release series as
-                      the Licensed Work.
+Change Date:          Four years after the first public release (including any
+                      pre-release) in the same release series as the Licensed
+                      Work.
 
                       A "release series" is every release that shares the same
                       major and minor release number, including its pre-releases
