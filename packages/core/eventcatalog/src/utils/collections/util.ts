@@ -1,16 +1,19 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import path from 'node:path';
 import { compareVersions, toComparableVersion, versionSatisfiesRange } from './version-compare';
 
 // --- FILE PATH HELPERS ---
+
+// Without node:path: node graph builders that import this module also run in the browser (the Fields Explorer)
+const pathSegments = (filePath: string) => filePath.split(/[\\/]/).filter(Boolean);
+const getBasename = (filePath: string) => pathSegments(filePath).at(-1) ?? '';
 
 /**
  * Extract the folder name from an Astro collection entry's filePath.
  * Replaces the expensive SDK getResourceFolderName which globs + reads every file.
  */
 export const getFolderNameFromFilePath = (filePath: string): string => {
-  return path.basename(path.dirname(filePath));
+  return pathSegments(filePath).at(-2) ?? '';
 };
 
 // --- SPECIFICATION HELPERS ---
@@ -73,8 +76,9 @@ export const processSpecifications = (
   return specs.map((spec) => ({
     ...spec,
     name: spec.name || getDefaultSpecificationName(spec.type),
-    filename: path.basename(spec.path),
-    filenameWithoutExtension: path.basename(spec.path, path.extname(spec.path)),
+    filename: getBasename(spec.path),
+    // Keeps a leading dot, as path.extname does (`.env` has no extension)
+    filenameWithoutExtension: getBasename(spec.path).replace(/(?<=.)\.[^.]*$/, ''),
   }));
 };
 

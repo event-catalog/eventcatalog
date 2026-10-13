@@ -1,6 +1,6 @@
 import type { Node, Edge } from '@xyflow/react';
 import { createEdge, createNode, buildContextMenuForMessage, buildContextMenuForService } from './utils/utils';
-import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
+import { layoutWithElk } from '@eventcatalog/visualiser/layout';
 
 export interface FieldOccurrence {
   messageId: string;
@@ -173,5 +173,7 @@ export const getNodesAndEdges = async ({
 
   if (!layout) return { nodes, edges };
 
-  return layoutNodeGraph({ nodes, edges });
+  // Lays out with ELK directly rather than layoutNodeGraph: this runs in the browser (the Fields Explorer),
+  // and layoutNodeGraph's cache reads the catalog's config, which would put the config in the browser's bundle
+  return (await layoutWithElk({ nodes, edges })) as unknown as { nodes: Node[]; edges: Edge[] };
 };
