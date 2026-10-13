@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.22
+
+### Patch Changes
+
+- d0e6c50: Return the 404 page for unknown resources and versions when EventCatalog runs as a server (e.g. `/docs/events/order-created/9.9.9`), instead of an empty 500 logged as `[object Response]`. Unknown discover and directory types and the visualiser's designs page return 404 too.
+- e2f1607: Fix `/visualiser/{type}/{id}` (no version) returning a 500 when EventCatalog runs as a server. It now redirects to the resource's latest version (keeping the query string), returns a 404 for resources that don't exist, and covers every resource with a visualiser page (queries, flows, channels, agents, systems and data products too).
+
 ## 5.0.0-beta.21
 
 ### Patch Changes

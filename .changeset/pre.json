@@ -43,6 +43,7 @@
     "mcp-one-viewer",
     "mcp-server-architecture-diagrams",
     "mcp-server-show-schema",
+    "not-found-pages-404",
     "page-titles-catalog-title",
     "rank-resource-search",
     "react-19-upgrade",
@@ -72,6 +73,7 @@
     "trial-60-days",
     "visualiser-canvas-nodes",
     "visualiser-faster-level-switching",
+    "visualiser-latest-redirect-server",
     "visualiser-nodegraph-display-props",
     "visualiser-view-node"
   ]
