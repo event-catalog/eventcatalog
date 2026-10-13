@@ -18,6 +18,7 @@ import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
+import { stopChildWithParent } from './utils/child-process-signals';
 import { getLicenseStatus, printLicenseStatus } from './utils/license-status';
 import { buildFieldsIndex } from '../eventcatalog/src/features/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
@@ -230,6 +231,7 @@ const runCommandWithFilteredOutput = async ({
       },
       stdio: ['inherit', 'pipe', 'pipe'],
     });
+    const signals = stopChildWithParent(child);
 
     let stdoutBuffer = '';
     let stderrBuffer = '';
@@ -263,12 +265,16 @@ const runCommandWithFilteredOutput = async ({
     });
 
     child.on('error', (error) => {
+      signals.childClosed();
       reject(error);
     });
 
     child.on('close', (code) => {
       stdoutBuffer = flush(stdoutBuffer, process.stdout, true);
       stderrBuffer = flush(stderrBuffer, process.stderr, true);
+
+      // Stopped by a signal the CLI received: the CLI is exiting too
+      if (signals.childClosed()) return;
 
       if (code === 0) {
         resolve();
