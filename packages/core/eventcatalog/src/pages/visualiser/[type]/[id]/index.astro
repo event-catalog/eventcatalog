@@ -1,53 +1,30 @@
 ---
 import Seo from '@components/Seo.astro';
 import { buildUrl } from '@utils/url-builder';
-import { getEvents } from '@utils/collections/events';
-import { getCommands } from '@utils/collections/commands';
-import { getServices } from '@utils/collections/services';
-import { getDomains } from '@utils/collections/domains';
-import { getContainers } from '@utils/collections/containers';
-import type { CollectionEntry } from 'astro:content';
-import type { CollectionTypes } from '@types';
-import { isVisualiserEnabled } from '@utils/feature';
+import { isSSR } from '@utils/feature';
+import { findVisualiserResource, getVisualiserResources } from './_index.data';
+
+export const prerender = !isSSR();
 
 export async function getStaticPaths() {
-  if (!isVisualiserEnabled()) {
-    return [];
-  }
-
-  const [events, commands, services, domains, containers] = await Promise.all([
-    getEvents(),
-    getCommands(),
-    getServices(),
-    getDomains(),
-    getContainers(),
-  ]);
-
-  const resources = [...domains, ...events, ...services, ...commands, ...containers];
-  const resourcesWithVisualiserEnabled = resources.filter((resource) => resource.data.visualiser !== false);
-
-  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
-    return collection.map((item) => ({
-      params: {
-        type: item.collection,
-        id: item.data.id,
-      },
-      props: {
-        type: item.collection,
-        ...item,
-      },
-    }));
-  };
-
-  return [...buildPages(resourcesWithVisualiserEnabled)];
+  const resources = await getVisualiserResources();
+  return resources.map(({ type, item }) => ({ params: { type, id: item.data.id }, props: item }));
 }
 
-const props = Astro.props;
-const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
+// A static build gets the resource from getStaticPaths; a server, which has no static paths, looks it up
+const resource = isSSR() ? await findVisualiserResource(Astro.params.type, Astro.params.id) : Astro.props;
 
-const { pathname } = Astro.url;
+if (!resource?.data) {
+  return new Response(null, { status: 404, statusText: 'Not found' });
+}
 
-const redirectUrl = buildUrl(pathname + '/' + props.data.latestVersion, false, true);
+const pageTitle = `${resource.collection} | ${resource.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
+const redirectUrl = buildUrl(`${Astro.url.pathname.replace(/\/$/, '')}/${resource.data.latestVersion}`, false, true);
+
+// A server redirects straight away (with any query string); a static page redirects in the browser
+if (isSSR()) {
+  return Astro.redirect(`${redirectUrl}${Astro.url.search}`);
+}
 ---
 
 <!doctype html>
