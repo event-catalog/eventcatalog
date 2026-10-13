@@ -53,6 +53,9 @@ const NON_RESOURCE_PATTERNS = [
   '**/docs/**',
   // Ubiquitous language dictionaries
   '**/ubiquitous-language.{md,mdx}',
+  // Usage examples in a message's examples folder (core's `examples` collection)
+  '**/{events,commands,queries}/*/examples/**',
+  '**/{events,commands,queries}/*/versioned/*/examples/**',
 ];
 
 const MARKDOWN_EXTENSIONS = /\.(md|mdx)$/i;
