@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.21
+
+### Patch Changes
+
+- 1d6c716: Stop the server along with the CLI. When `eventcatalog start` (or `dev`, `build` or `preview`) receives SIGTERM, SIGINT or SIGHUP, it now passes the signal to the process it started and exits once that has stopped, rather than leaving the server running and holding its port.
+
 ## 5.0.0-beta.20
 
 ### Patch Changes

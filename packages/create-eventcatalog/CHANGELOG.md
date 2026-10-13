@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.4.0-beta.2
+
+### Patch Changes
+
+- 1d6c716: Start the server in `Dockerfile.server` with the exec form (`CMD ["npm", "run", "start"]`), so `docker stop` and container shutdowns reach EventCatalog straight away instead of waiting for Docker's timeout.
+
 ## 4.4.0-beta.1
 
 ### Minor Changes
