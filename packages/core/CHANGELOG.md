@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.20
+
+### Patch Changes
+
+- bae7a72: Rank resource search results by how well they match: an exact name first, then names that start with or contain the query, then id matches, then summary-only matches. Summary-only matches no longer appear above, or push out, resources whose name matches.
+
 ## 5.0.0-beta.19
 
 ### Patch Changes
