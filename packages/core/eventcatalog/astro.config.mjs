@@ -35,6 +35,8 @@ import config from './src/utils/eventcatalog-config/source.ts';
 import preprocessExpressiveCodeConfig from './integrations/expressive-code-config.mjs';
 import catalogAssets from './integrations/catalog-assets.mjs';
 import runtimeDependencies from './integrations/runtime-dependencies.mjs';
+import stableDependencyOrder from './integrations/stable-dependency-order.mjs';
+import skipStartupReload from './integrations/skip-startup-reload.mjs';
 import { getRuntimePaths } from './integrations/runtime-paths.mjs';
 import { collectClientDependencies } from './integrations/client-dependencies.mjs';
 
@@ -166,6 +168,8 @@ export default defineConfig({
     },
     plugins: [
       runtimeDependencies(),
+      stableDependencyOrder(),
+      skipStartupReload(),
       tailwindcss(),
       ...(await eventCatalogLikeC4(projectDirectory)),
       ...(config.trailingSlash === true ? [astroTrailingSlashEndpointFix()] : []),
@@ -224,7 +228,15 @@ export default defineConfig({
     },
     optimizeDeps: {
       exclude: [],
-      include: collectClientDependencies(),
+      include: [
+        ...collectClientDependencies(),
+        // <ClientRouter /> imports these from a virtual module the dependency scan can't follow,
+        // so without them every cold start re-bundles on the first page and reloads it
+        'astro/virtual-modules/transitions-events.js',
+        'astro/virtual-modules/transitions-router.js',
+        'astro/virtual-modules/transitions-swap-functions.js',
+        'astro/virtual-modules/transitions-types.js',
+      ],
     },
   },
 });

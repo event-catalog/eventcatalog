@@ -79,7 +79,7 @@ const resolveDevPort = async ({ projectDir }: { projectDir: string }): Promise<n
 
 const startDevPrewarm = ({
   port = 3000,
-  paths = ['/ping', '/'],
+  paths = ['/'],
   retries = 80,
   intervalMs = 250,
   initialDelayMs = 500,
@@ -96,10 +96,13 @@ const startDevPrewarm = ({
     new Promise<boolean>((resolve) => {
       const req = http.get(
         {
-          hostname: '127.0.0.1',
+          // Not 127.0.0.1: the dev server can listen on IPv6 only ([::1]), which refused
+          // every prewarm request
+          hostname: 'localhost',
           port,
           path: requestPath,
-          timeout: 1200,
+          // A refused connection fails at once; once connected, let the first render finish
+          timeout: 30000,
         },
         (res) => {
           res.resume();
@@ -437,7 +440,9 @@ program
 
         startDevPrewarm({
           port: prewarmPort,
-          paths: ['/ping', '/'],
+          // Renders the homepage before anyone opens it. Requests stop at the first response,
+          // so a probe path like /ping first would leave the homepage cold.
+          paths: ['/'],
         });
       }
 
