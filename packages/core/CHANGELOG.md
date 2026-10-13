@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.14
+
+### Patch Changes
+
+- a48808e: The architecture graph (on the homepage, in `<ArchitectureGraph/>` embeds and at `/visualiser/graph`) now appears with its layout already settled instead of drifting into place for about five seconds. The first layout settles before it paints, in short slices that don't block the page; switching lens or focusing a resource still animates.
+- 7d739ff: `eventcatalog dev` starts faster and the first page no longer reloads itself:
+  - Pre-bundled dependencies are reused between starts. The order Astro listed packages in changed from one start to the next, so Vite treated every start as a config change and re-bundled all of them.
+  - The first page loads once instead of up to three times. Astro's startup content write no longer reloads it, and the view-transition modules are pre-bundled instead of being found on the first page.
+  - The startup prewarm now renders the homepage. It requested `127.0.0.1` while the dev server can listen on IPv6 only, and stopped at `/ping`, so it never reached the homepage.
+
+- 5b3bb22: The sidebar now shows with the page instead of after its JavaScript and data load. Each page renders its own sidebar level on the server, and the full navigation (`/api/sidebar-data.json`) loads straight away rather than when the browser is idle, so drilling down and search are ready sooner.
+
 ## 5.0.0-beta.13
 
 ### Patch Changes
