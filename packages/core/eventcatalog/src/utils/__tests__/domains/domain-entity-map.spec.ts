@@ -316,6 +316,50 @@ const mockEntities = [
       ],
     },
   },
+  // Parcel references ShopOrder, which is owned by the Shop domain and references ShopCustomer
+  {
+    id: 'entities/Parcel/index.mdx',
+    slug: 'entities/Parcel',
+    collection: 'entities',
+    data: {
+      id: 'Parcel',
+      name: 'Parcel',
+      version: '1.0.0',
+      properties: [
+        { name: 'parcelId', type: 'UUID', required: true },
+        { name: 'orderId', type: 'UUID', required: true, references: 'ShopOrder' },
+      ],
+    },
+  },
+  // ArchiveRecord references LegacyOrder, whose reference points at an entity that is not in the catalog
+  {
+    id: 'entities/ArchiveRecord/index.mdx',
+    slug: 'entities/ArchiveRecord',
+    collection: 'entities',
+    data: {
+      id: 'ArchiveRecord',
+      name: 'ArchiveRecord',
+      version: '1.0.0',
+      properties: [
+        { name: 'recordId', type: 'UUID', required: true },
+        { name: 'legacyOrderId', type: 'UUID', required: true, references: 'LegacyOrder' },
+      ],
+    },
+  },
+  {
+    id: 'entities/LegacyOrder/index.mdx',
+    slug: 'entities/LegacyOrder',
+    collection: 'entities',
+    data: {
+      id: 'LegacyOrder',
+      name: 'LegacyOrder',
+      version: '1.0.0',
+      properties: [
+        { name: 'legacyOrderId', type: 'UUID', required: true },
+        { name: 'ghostId', type: 'UUID', required: true, references: 'Ghost' },
+      ],
+    },
+  },
   // Versioned Order entity
   {
     id: 'entities/Order/versioned/200/index.mdx',
@@ -427,6 +471,40 @@ const mockDomains = [
         { id: 'ShopOrder', version: '1.0.0' },
         { id: 'ShopCustomer', version: '1.0.0' },
       ],
+    },
+  },
+  // Domain whose entity references an entity owned by the Shop domain
+  {
+    id: 'domains/Fulfilment-1.0.0',
+    slug: 'domains/Fulfilment',
+    collection: 'domains',
+    data: {
+      id: 'Fulfilment',
+      name: 'Fulfilment',
+      version: '1.0.0',
+      entities: [{ id: 'Parcel', version: '1.0.0' }],
+    },
+  },
+  {
+    id: 'domains/Archive-1.0.0',
+    slug: 'domains/Archive',
+    collection: 'domains',
+    data: {
+      id: 'Archive',
+      name: 'Archive',
+      version: '1.0.0',
+      entities: [{ id: 'ArchiveRecord', version: '1.0.0' }],
+    },
+  },
+  {
+    id: 'domains/Legacy-1.0.0',
+    slug: 'domains/Legacy',
+    collection: 'domains',
+    data: {
+      id: 'Legacy',
+      name: 'Legacy',
+      version: '1.0.0',
+      entities: [{ id: 'LegacyOrder', version: '1.0.0' }],
     },
   },
 ];
@@ -865,6 +943,36 @@ describe('Domain Entity Map NodeGraph', () => {
       });
 
       expect(warn).not.toHaveBeenCalled();
+    });
+
+    it("does not warn about an external entity's references to entities outside the map", async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Fulfilment', version: '1.0.0' });
+
+      // ShopOrder is shown because Parcel references it; its own reference to ShopCustomer is
+      // two hops away, so ShopCustomer isn't part of this map
+      expect(nodes.map((n: any) => n.id).sort()).toEqual(['Parcel-1.0.0', 'ShopOrder-1.0.0']);
+      expect(nodes.find((n: any) => n.id === 'ShopOrder-1.0.0').data.externalToDomain).toBe(true);
+      expect(edges).toHaveLength(1);
+      expect(edges[0]).toMatchObject({
+        source: 'Parcel-1.0.0',
+        sourceHandle: 'orderId-source',
+        target: 'ShopOrder-1.0.0',
+        targetHandle: 'orderId-target',
+      });
+
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it("warns when an external entity references an entity that isn't in the catalog", async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Archive', version: '1.0.0' });
+
+      expect(nodes.map((n: any) => n.id).sort()).toEqual(['ArchiveRecord-1.0.0', 'LegacyOrder-1.0.0']);
+      expect(edges).toHaveLength(1);
+      expect(warn).toHaveBeenCalledWith('Referenced entity "Ghost" not found for LegacyOrder.ghostId');
     });
   });
 });
