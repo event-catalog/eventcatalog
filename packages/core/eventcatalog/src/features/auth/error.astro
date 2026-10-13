@@ -1,5 +1,6 @@
 ---
 import '../../styles/tailwind.css';
+import { formatPageTitle } from '@utils/page-title';
 // src/pages/auth/error.astro
 
 const { searchParams } = new URL(Astro.request.url);
@@ -14,6 +15,7 @@ const errorMessages = {
 
 // @ts-ignore
 const errorMessage = errorMessages[error] || errorMessages.Default;
+const pageTitle = formatPageTitle('Authentication Error');
 ---
 
 <!doctype html>
@@ -25,10 +27,10 @@ const errorMessage = errorMessages[error] || errorMessages.Default;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="generator" content={Astro.generator} />
-    <title>Authentication Error - EventCatalog</title>
+    <title>{pageTitle}</title>
   </head>
   <body>
-    <main title="Authentication Error - EventCatalog">
+    <main title={pageTitle}>
       <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8 text-center">
           <div>

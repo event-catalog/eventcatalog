@@ -6,12 +6,12 @@ import NavigationProgress from '../components/NavigationProgress.astro';
 import config from '@config';
 
 interface Props {
-  title: string;
+  /** The page's own title; the catalog's title follows it (the homepage has none) */
+  title?: string;
   description?: string;
-  ogTitle?: string;
 }
 
-const { title, description, ogTitle } = Astro.props;
+const { title, description } = Astro.props;
 const catalogTheme = config.theme || 'default';
 ---
 
@@ -50,7 +50,7 @@ const catalogTheme = config.theme || 'default';
         document.addEventListener('astro:page-load', applyTheme);
       })();
     </script>
-    <SEO title={title} description={description} ogTitle={ogTitle} />
+    <SEO title={title} description={description} />
     <AnalyticsHead />
     <slot name="head" />
   </head>

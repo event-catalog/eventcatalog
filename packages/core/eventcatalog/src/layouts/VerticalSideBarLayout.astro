@@ -1,6 +1,7 @@
 ---
 interface Props {
-  title: string;
+  /** The page's own title; the catalog's title follows it (the homepage has none) */
+  title?: string;
   sidebar?: boolean;
   description?: string;
   showNestedSideBar?: boolean;
@@ -430,7 +431,7 @@ const { title, description, showNestedSideBar = true, showHeader = true, reduced
 const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/docs', true)];
 ---
 
-<BaseLayout title={`EventCatalog | ${title}`} description={description} ogTitle={title}>
+<BaseLayout title={title} description={description}>
   <Fragment slot="head">
     <script is:inline define:vars={{ verticalNavAutoCollapsePaths }}>
       (() => {
