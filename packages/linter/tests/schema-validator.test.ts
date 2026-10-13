@@ -466,6 +466,40 @@ describe('validateSchema', () => {
       expect(errors).toHaveLength(0);
     });
 
+    it('accepts an adr date parsed from YAML as a Date', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-001',
+        name: 'Use events',
+        version: '1.0.0',
+        status: 'accepted',
+        date: new Date('2026-05-26'),
+      });
+
+      expect(validateSchema(parsedFile)).toHaveLength(0);
+    });
+
+    it('reports a missing adr status and date as missing', () => {
+      const parsedFile = createParsedFile('adr', { id: 'adr-001', name: 'Use events', version: '1.0.0' });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.map((error) => error.message)).toEqual([
+        "status: Expected 'proposed' | 'accepted' | 'rejected' | 'deprecated' | 'superseded', but received undefined",
+        'date: Expected date, but received undefined',
+      ]);
+    });
+
+    it('reports an adr date that is not a date as invalid', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-001',
+        name: 'Use events',
+        version: '1.0.0',
+        status: 'accepted',
+        date: 'not-a-date',
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual(['date: Invalid date']);
+    });
+
     it('should pass with valid diagram frontmatter', () => {
       const parsedFile = createParsedFile('diagram', {
         id: 'order-flow',

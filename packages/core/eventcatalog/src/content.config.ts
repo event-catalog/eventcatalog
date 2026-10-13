@@ -502,7 +502,24 @@ const agents = defineCollection({
   ),
 });
 
-const adrStatus = z.enum(ADR_STATUS_VALUES);
+// ADRs need a status and a date, and say so when they're missing or invalid. Astro's own message for
+// a missing or unreadable date was "Expected type date, received object", with the field name garbled.
+const adrStatus = z.enum(ADR_STATUS_VALUES, {
+  error: (issue) =>
+    issue.input === undefined ? `Required: one of ${ADR_STATUS_VALUES.map((value) => `"${value}"`).join(', ')}` : undefined,
+});
+const adrDate = z.preprocess(
+  // Converted to a date only when it's set: a missing date coerced first became an invalid date
+  (value) => (value == null ? value : new Date(value as string | number | Date)),
+  z.date({
+    error: (issue) =>
+      issue.input === undefined
+        ? 'Required: a date, e.g. 2026-06-01'
+        : issue.input instanceof Date
+          ? 'Invalid date: use a date, e.g. 2026-06-01'
+          : undefined,
+  })
+);
 
 const adrPointer = z.object({
   id: z.string(),
@@ -539,7 +556,7 @@ const adrs = defineCollection({
     z
       .object({
         status: adrStatus,
-        date: z.coerce.date(),
+        date: adrDate,
         decisionMakers: z.array(ownerReference).optional(),
         appliesTo: z.array(adrResourcePointer).optional(),
         supersedes: z.array(adrPointer).optional(),
