@@ -168,6 +168,32 @@ export const getIndexedResultRank = ({
   return 0;
 };
 
+/**
+ * How well a resource matches a resource search query: an exact name (5), a name starting with
+ * the query (4) or containing it (3), then the id (2), then the summary (1). 0 is no match.
+ */
+export const getResourceResultRank = (item: Pick<SearchItem, 'name' | 'key' | 'rawNode'>, query: string) => {
+  const lowerQuery = query.toLowerCase();
+  const name = item.name.toLowerCase();
+  if (name === lowerQuery) return 5;
+  if (name.startsWith(lowerQuery)) return 4;
+  if (name.includes(lowerQuery)) return 3;
+  // Key format is "type:id:version" (e.g. "service:OrdersService:0.0.3").
+  // Match against the id so users can find resources by their raw id too.
+  const id = item.key?.split(':')[1];
+  if (id?.toLowerCase().includes(lowerQuery)) return 2;
+  if (item.rawNode.summary?.toLowerCase().includes(lowerQuery)) return 1;
+  return 0;
+};
+
+/** Resources that match a resource search query, best matches first (index order within a rank) */
+export const rankResourceSearchItems = <T extends Pick<SearchItem, 'name' | 'key' | 'rawNode'>>(items: T[], query: string) =>
+  items
+    .map((item, index) => ({ item, index, rank: getResourceResultRank(item, query) }))
+    .filter(({ rank }) => rank > 0)
+    .sort((a, b) => b.rank - a.rank || a.index - b.index)
+    .map(({ item }) => item);
+
 export const applyActiveFilter = <T extends { type: string }>(items: T[], activeFilter: string) => {
   if (activeFilter === 'all') {
     return items;
