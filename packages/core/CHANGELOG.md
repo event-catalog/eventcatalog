@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.18
+
+### Patch Changes
+
+- Updated dependencies [32c02c5]
+  - @eventcatalog/linter@1.2.0-beta.3
+
 ## 5.0.0-beta.17
 
 ### Patch Changes

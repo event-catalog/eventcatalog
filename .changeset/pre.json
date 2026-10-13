@@ -38,6 +38,7 @@
     "flow-step-checks",
     "hide-messages-toggle",
     "license-box-layout",
+    "linter-message-examples",
     "mcp-one-viewer",
     "mcp-server-architecture-diagrams",
     "mcp-server-show-schema",

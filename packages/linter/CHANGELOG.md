@@ -1,5 +1,11 @@
 # @eventcatalog/linter
 
+## 1.2.0-beta.3
+
+### Patch Changes
+
+- 32c02c5: Stop `structure/unrecognised-file` reporting usage examples in a message's `examples/` folder (events, commands and queries, including versioned ones). They're loaded by EventCatalog as examples, not resources.
+
 ## 1.2.0-beta.2
 
 ### Patch Changes
