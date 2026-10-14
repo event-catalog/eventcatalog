@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.0.0-beta.9
+
+### Patch Changes
+
+- 7597357: fix(visualiser): the version dropdown only navigates to one of the version links it was given
+
 ## 5.0.0-beta.8
 
 ### Patch Changes

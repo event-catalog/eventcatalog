@@ -1,5 +1,11 @@
 # @eventcatalog/linter
 
+## 1.2.0-beta.6
+
+### Patch Changes
+
+- 7597357: fix(linter): treat a resource id such as `__proto__` as any other id, rather than crashing
+
 ## 1.2.0-beta.5
 
 ### Patch Changes

@@ -54,6 +54,7 @@
     "license-box-layout",
     "license-page-trial-and-link",
     "linter-message-examples",
+    "linter-proto-ids",
     "mcp-one-viewer",
     "mcp-server-architecture-diagrams",
     "mcp-server-show-schema",
@@ -93,6 +94,7 @@
     "visualiser-faster-level-switching",
     "visualiser-latest-redirect-server",
     "visualiser-nodegraph-display-props",
+    "visualiser-version-select",
     "visualiser-view-node",
     "webmcp-relay-bundled",
     "zod-4-6-6"

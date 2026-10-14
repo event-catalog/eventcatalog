@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.36
+
+### Patch Changes
+
+- Updated dependencies [7597357]
+- Updated dependencies [7597357]
+  - @eventcatalog/linter@1.2.0-beta.6
+  - @eventcatalog/visualiser@5.0.0-beta.9
+
 ## 5.0.0-beta.35
 
 ### Patch Changes
