@@ -72,6 +72,9 @@ const html = toHtml('EventCatalog Studio', script.code);
 fs.writeFileSync(path.join(outputDirectory, 'view.html'), html);
 // The social preview image (view/og/og.html, rendered), served at /og.png
 fs.copyFileSync(path.join(viewDirectory, 'og/og.png'), path.join(outputDirectory, 'og.png'));
+// The server's icon, served at /icon.svg: MCP clients show it beside the server (serverInfo.icons)
+fs.writeFileSync(path.join(outputDirectory, 'icon.svg'), favicon);
 // Readable by whoever runs the server (a screenshot can be saved owner-only, and the container runs as another user)
 fs.chmodSync(path.join(outputDirectory, 'og.png'), 0o644);
+fs.chmodSync(path.join(outputDirectory, 'icon.svg'), 0o644);
 console.log(`Built view (${Math.round(html.length / 1024)} KB)`);

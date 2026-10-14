@@ -93,19 +93,21 @@ export const suggestKey = (unknownKey: string, knownKeys: Iterable<string>): str
 // Zod schema walking
 // ---------------------------------------------------------------------------
 
-/** Strip wrappers (optional / nullable / default / effects) to get at the underlying schema. */
+/** Strip wrappers (optional / nullable / default / pipes / lazy) to get at the underlying schema. */
 const unwrapSchema = (schema: z.ZodTypeAny): z.ZodTypeAny => {
   let current: z.ZodTypeAny = schema;
   // Bounded loop guards against a malformed schema cycling forever
   for (let i = 0; i < 20; i++) {
-    if (current instanceof z.ZodOptional || current instanceof z.ZodNullable || current instanceof z.ZodDefault) {
-      current = current._def.innerType;
-    } else if (current instanceof z.ZodEffects) {
-      current = current._def.schema;
-    } else if (current instanceof z.ZodLazy) {
-      current = current._def.getter();
-    } else if (current instanceof z.ZodBranded) {
-      current = current._def.type;
+    if (
+      current instanceof z.ZodOptional ||
+      current instanceof z.ZodNullable ||
+      current instanceof z.ZodDefault ||
+      current instanceof z.ZodLazy
+    ) {
+      current = current.unwrap() as z.ZodTypeAny;
+    } else if (current instanceof z.ZodPipe) {
+      // .transform() pipes the schema into a transform, z.preprocess() pipes a transform into the schema
+      current = (current.in instanceof z.ZodTransform ? current.out : current.in) as z.ZodTypeAny;
     } else {
       break;
     }
@@ -115,7 +117,7 @@ const unwrapSchema = (schema: z.ZodTypeAny): z.ZodTypeAny => {
 
 /** Given a union schema and a value, pick the branch that best describes the value. */
 const resolveUnionBranch = (union: z.ZodUnion<any>, value: unknown): z.ZodTypeAny | undefined => {
-  const options = union._def.options as z.ZodTypeAny[];
+  const options = union.options as z.ZodTypeAny[];
 
   // Prefer a branch that fully accepts the value
   const exact = options.find((option) => option.safeParse(value).success);
@@ -162,7 +164,7 @@ export const collectUnknownKeys = (schema: z.ZodTypeAny, value: unknown, path = 
 
   if (inner instanceof z.ZodArray) {
     if (!Array.isArray(value)) return [];
-    return value.flatMap((item, index) => collectUnknownKeys(inner._def.type, item, `${path}[${index}]`));
+    return value.flatMap((item, index) => collectUnknownKeys(inner.element as z.ZodTypeAny, item, `${path}[${index}]`));
   }
 
   if (inner instanceof z.ZodObject) {

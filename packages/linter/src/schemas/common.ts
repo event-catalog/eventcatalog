@@ -36,7 +36,7 @@ export const specificationSchema = z.union([
       type: z.enum(['openapi', 'asyncapi', 'graphql']),
       path: z.string(),
       name: z.string().optional(),
-      headers: z.record(z.string()).optional(),
+      headers: z.record(z.string(), z.string()).optional(),
     })
   ),
 ]);
@@ -92,7 +92,7 @@ export const resourcePointerSchema = z.object({
 
 export const channelPointerSchema = z
   .object({
-    parameters: z.record(z.string()).optional(),
+    parameters: z.record(z.string(), z.string()).optional(),
   })
   .merge(pointerSchema);
 

@@ -24,6 +24,7 @@ import { POSTHOG_ORIGIN } from './lib/posthog';
 const PORT = Number(process.env.PORT ?? 8787);
 const VIEW_PATH = path.join(DIST_DIRECTORY, 'view.html');
 const OG_IMAGE_PATH = path.join(DIST_DIRECTORY, 'og.png');
+const ICON_PATH = path.join(DIST_DIRECTORY, 'icon.svg');
 
 const gzip = promisify(zlib.gzip);
 const brotli = promisify(zlib.brotliCompress);
@@ -221,6 +222,15 @@ app.get('/og.png', async (c) => {
   c.header('Content-Type', 'image/png');
   c.header('Cache-Control', 'public, max-age=86400');
   return c.body(new Uint8Array(await (ogImage ??= fs.promises.readFile(OG_IMAGE_PATH))));
+});
+
+// The icon MCP clients show beside the server (serverInfo.icons)
+let icon: Promise<Buffer> | undefined;
+app.get('/icon.svg', async (c) => {
+  if (!fs.existsSync(ICON_PATH)) return c.notFound();
+  c.header('Content-Type', 'image/svg+xml');
+  c.header('Cache-Control', 'public, max-age=86400');
+  return c.body(new Uint8Array(await (icon ??= fs.promises.readFile(ICON_PATH))));
 });
 
 const server = serve({ fetch: app.fetch, port: PORT }, (info) => console.log(`EventCatalog MCP server on http://localhost:${info.port}/mcp`));
