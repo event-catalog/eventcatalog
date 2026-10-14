@@ -1,0 +1,12 @@
+{
+  "label": "License",
+  "position": 10.5,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "development/license",
+    "title": "License",
+    "description": "How EventCatalog v5 reads and verifies your license file, and how the trial works."
+  }
+}
