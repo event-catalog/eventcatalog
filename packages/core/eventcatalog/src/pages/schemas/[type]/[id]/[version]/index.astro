@@ -190,6 +190,13 @@ if (isDataProduct && contractPath) {
 // Render the requested tab on the server so the page does not flash the default tab before hydration.
 // Static builds cannot see the query string, so the panel also restores the tab on the client.
 const initialTab = Astro.url.searchParams.get('tab') ?? undefined;
+
+// The versions to switch between and compare. The one being viewed is also `message`, with its usage and flow graphs;
+// switching and comparing only need the schemas, so the list leaves the graphs out (each page carried them twice)
+const versionChoices = sortedVersions.map(({ graph: _graph, ...version }) => {
+  const { flows: _flows, ...data } = version.data;
+  return { ...version, data };
+});
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
@@ -214,7 +221,7 @@ const initialTab = Astro.url.searchParams.get('tab') ?? undefined;
         <SchemaPageViewer
           client:load
           message={currentMessage}
-          availableVersions={sortedVersions}
+          availableVersions={versionChoices}
           showOwners={true}
           showProducersConsumers={true}
           initialTab={initialTab}
