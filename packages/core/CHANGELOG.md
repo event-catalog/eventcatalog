@@ -1,5 +1,19 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.34
+
+### Patch Changes
+
+- f70805e: fix(core): bundle the WebMCP relay's browser files instead of installing `@mcp-b/webmcp-local-relay`
+
+  Studio serves the relay's three browser files so a canvas can hand its tools to desktop MCP clients. They're now part of EventCatalog (copied from the relay 5.1.0, MIT), so installing EventCatalog no longer installs the relay's Node dependencies, which pinned vulnerable versions of `@modelcontextprotocol/core` (SNYK-JS-MODELCONTEXTPROTOCOLCORE-20579858) and `zod`.
+
+- f70805e: fix: require `zod` 4.6.6 or later, which fixes a denial of service when parsing large arrays (SNYK-JS-ZOD-20510278)
+- Updated dependencies [f70805e]
+  - @eventcatalog/sdk@2.30.0-beta.2
+  - @eventcatalog/visualiser@5.0.0-beta.8
+  - @eventcatalog/linter@1.2.0-beta.5
+
 ## 5.0.0-beta.33
 
 ### Patch Changes

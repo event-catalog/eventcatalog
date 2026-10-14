@@ -92,6 +92,8 @@
     "visualiser-faster-level-switching",
     "visualiser-latest-redirect-server",
     "visualiser-nodegraph-display-props",
-    "visualiser-view-node"
+    "visualiser-view-node",
+    "webmcp-relay-bundled",
+    "zod-4-6-6"
   ]
 }

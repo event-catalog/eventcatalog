@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 5.0.0-beta.8
+
+### Patch Changes
+
+- f70805e: fix: require `zod` 4.6.6 or later, which fixes a denial of service when parsing large arrays (SNYK-JS-ZOD-20510278)
+
 ## 5.0.0-beta.7
 
 ### Patch Changes
