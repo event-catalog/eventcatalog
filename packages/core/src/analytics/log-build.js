@@ -3,6 +3,7 @@ import { raiseEvent } from './analytics.js';
 import { countResources, hashCatalogContent, serializeCounts } from './count-resources.js';
 import { isTelemetryDisabled, TELEMETRY_REQUEST_TIMEOUT_MS } from './telemetry';
 import { getLicenseAnalytics } from '../utils/license-status';
+import { getStorageType, getStudioMode, serializeStudioUsage } from './studio-usage.js';
 
 // Mirrors isEventCatalogMCPEnabled so the flag reflects whether the MCP server actually runs
 const isMCPEnabled = (configFile) => configFile.output === 'server' && (configFile.mcp?.enabled ?? true);
@@ -19,6 +20,8 @@ const getFeatures = async (configFile) => {
     output: configFile.output || 'static',
     mcp,
     mcpAuth: mcp && (configFile.mcp?.auth?.enabled ?? false),
+    studio: getStudioMode(configFile),
+    storage: getStorageType(configFile),
   };
 };
 
@@ -107,7 +110,7 @@ const reportCloudResourceInventory = async (configFile, resourceCounts) => {
 /**
  *
  * @param {string} projectDir
- * @param {{ command?: 'build' | 'dev', license?: import('../utils/license-status').LicenseStatus }} [options]
+ * @param {{ command?: 'build' | 'dev' | 'start', license?: import('../utils/license-status').LicenseStatus }} [options]
  */
 const main = async (projectDir, { command = 'build', license } = {}) => {
   try {
@@ -151,6 +154,7 @@ const main = async (projectDir, { command = 'build', license } = {}) => {
           .join(','),
         directorySources: serializeDirectorySources(configFile),
         resources: serializeCounts(resourceCounts),
+        studio: serializeStudioUsage(projectDir, configFile),
       },
       configFile
     );

@@ -91,7 +91,27 @@ describe('logBuild', () => {
       cId: catalogId,
       contentHash: 'abc123',
       resources: 'events:2',
+      // Studio is on in the dev server by default; canvases kept in memory can't be counted
+      studio: 'canvases:unknown',
     });
+    expect(body.metadata.features).toContain('studio:dev,storage:memory');
+  });
+
+  it('sends where Studio is on and how its state is stored', async () => {
+    configUtils.getEventCatalogConfigFile.mockResolvedValue({
+      ...baseConfig,
+      output: 'server',
+      studio: { enabled: true },
+      storage: { type: 'sqlite', path: 'missing/eventcatalog.db' },
+    });
+
+    await logBuild('/tmp/catalog', { command: 'start', license: { state: 'none' } });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.metadata.command).toBe('start');
+    expect(body.metadata.features).toContain('studio:server,storage:sqlite');
+    // The database hasn't been created yet
+    expect(body.metadata.studio).toBe('canvases:0,changed7d:0,changed30d:0,deleted:0');
   });
 
   it.each([

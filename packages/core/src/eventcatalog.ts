@@ -645,7 +645,9 @@ program
 
     if (isServerOutput) {
       // Pages rendered on request read the license (and a Scale or Starter plan) from the environment
-      await getLicenseStatus(dir);
+      const license = await getLicenseStatus(dir);
+      // Where a catalog runs in production, e.g. with Studio on (fire-and-forget, so the server never waits on it)
+      void logBuild(dir, { command: 'start', license });
       await startServerCatalog();
     } else {
       await previewCatalog({ command });
