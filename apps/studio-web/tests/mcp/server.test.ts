@@ -35,4 +35,13 @@ describe('the MCP server', () => {
     const model = Model.parse(example);
     expect(validateModel(model).errors).toEqual([]);
   });
+
+  it("tells the model not to add sticky notes to a diagram unless the user asks, and the example has none", async () => {
+    const client = await connect();
+    expect(client.getInstructions()).toContain("Don't add notes (sticky notes on the diagram) unless the user asks for them");
+    const guide = textOf(await client.callTool({ name: 'get_architecture_schema', arguments: {} }));
+    expect(guide).toContain("Don't add any unless the user asks you to");
+    const example = JSON.parse(guide.slice(guide.indexOf('## Example') + '## Example'.length));
+    expect(example.notes ?? []).toEqual([]);
+  });
 });
