@@ -1,5 +1,11 @@
 # @eventcatalog/connectors
 
+## 0.2.3
+
+### Patch Changes
+
+- 0ffe246: Upgrade simple-git from 3 to 4 for git schema sources.
+
 ## 0.2.2
 
 ### Patch Changes
