@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getRoutePath } from "./route";
+import { Position } from "@xyflow/react";
+import { getRoutePath, getStepPath } from "./route";
 
 // A route leaving the source at (0, 50), stepping down to arrive at (200, 150)
 const route = {
@@ -80,5 +81,42 @@ describe("getRoutePath", () => {
       path: "M 20 80 L 120 80 L 120 180 L 220 180",
       label: { x: 120, y: 130 },
     });
+  });
+});
+
+describe("getStepPath", () => {
+  const fromService = {
+    sourceX: 0,
+    sourceY: 0,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+  };
+
+  it("puts the label on the last stretch into the target, where no other edge from the source runs", () => {
+    // Two edges from one service to nodes in the same column turn at the same x (100)
+    const [, toDatabaseX, toDatabaseY] = getStepPath({
+      ...fromService,
+      targetX: 200,
+      targetY: 150,
+    });
+    const [, toEventX, toEventY] = getStepPath({
+      ...fromService,
+      targetX: 200,
+      targetY: 300,
+    });
+
+    expect([toDatabaseX, toDatabaseY]).toEqual([150, 150]);
+    expect([toEventX, toEventY]).toEqual([150, 300]);
+  });
+
+  it("keeps the middle for an edge that loops back to a target left of its source", () => {
+    const [, labelX, labelY] = getStepPath({
+      ...fromService,
+      targetX: -200,
+      targetY: 150,
+    });
+
+    expect(labelX).toBeLessThan(0);
+    expect(labelY).not.toBe(150);
   });
 });

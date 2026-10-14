@@ -30,7 +30,9 @@ if (existsSync(pathToUserDefinedLandingPage)) {
     import('@components/MDX/page-components'),
     import('@components/MDX/components'),
   ]);
-  customHomepageComponents = { ...pageComponents, ...mdxComponents(props) };
+  const { default: CatalogDashboard } = await import('@components/Homepage/CatalogDashboard.astro');
+  // A custom homepage can show the catalog dashboard too: <CatalogDashboard /> from Astro.props.components
+  customHomepageComponents = { ...pageComponents, ...mdxComponents(props), CatalogDashboard };
 
   const rawContent = readFileSync(pathToUserDefinedLandingPage, 'utf-8');
   nodeGraphs = getMDXComponentsByName(rawContent, 'NodeGraph') || [];

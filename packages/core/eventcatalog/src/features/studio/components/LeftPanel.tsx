@@ -126,6 +126,9 @@ function CatalogList({
       <div className="relative">
         <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[rgb(var(--ec-icon-color))]" />
         <input
+          // The list shows when its tab is chosen: typing then searches it, rather than reaching the canvas's shortcuts
+          // (from the tab button, typing "Order Service" picked the Comment tool)
+          autoFocus
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search the catalog"

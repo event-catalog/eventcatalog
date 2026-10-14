@@ -1,8 +1,8 @@
 import { memo, useMemo } from "react";
-import { BaseEdge, getSmoothStepPath } from "@xyflow/react";
+import { BaseEdge } from "@xyflow/react";
 import { EDGE_WARNING_STYLE, EDGE_DEFAULT_STYLE } from "../nodes/shared-styles";
 import EdgeLabel from "./EdgeLabel";
-import { useRoute } from "./route";
+import { getStepPath, useRoute } from "./route";
 import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
 
 /** Map collection type → envelope fill color (module-level, zero allocation). */
@@ -49,7 +49,7 @@ const AnimatedMessageEdge = memo(
         sourceHandleId,
         targetHandleId,
       },
-      getSmoothStepPath({
+      getStepPath({
         sourceX,
         sourceY,
         sourcePosition,

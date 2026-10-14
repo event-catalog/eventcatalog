@@ -87,6 +87,17 @@ const readCommit = (filePath: string, age: 'newest' | 'oldest'): Commit => {
   return parseCommit(match.groups.header);
 };
 
+/**
+ * When a file was last committed, from the history read once for the whole repository: never runs git for one file,
+ * so it's cheap to ask for many (e.g. every resource on the homepage). Undefined without git, or for a file that isn't
+ * committed.
+ */
+export function getLastCommitDate(filePath: string): Date | undefined {
+  if (!hasGit()) return undefined;
+  const commit = getNewestCommits()?.get(toRealPath(filePath));
+  return commit ? new Date(commit.timestamp) : undefined;
+}
+
 export function getGitHistory(
   filePath: string,
   {

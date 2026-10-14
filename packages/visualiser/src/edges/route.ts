@@ -1,5 +1,10 @@
 import { useCallback } from "react";
-import { useStore, type ReactFlowState } from "@xyflow/react";
+import {
+  getSmoothStepPath,
+  Position,
+  useStore,
+  type ReactFlowState,
+} from "@xyflow/react";
 import type { EdgeRoute } from "../utils/elk-layout";
 
 type Point = { x: number; y: number };
@@ -111,6 +116,28 @@ const moveLabel = (label: Point, points: Point[], moved: Point[]) => {
   });
   const [a, b] = [shift(segment), shift(segment + 1)];
   return { x: label.x + (a.x + b.x) / 2, y: label.y + (a.y + b.y) / 2 };
+};
+
+/**
+ * A step path between two nodes (for an edge the layout didn't route), with its
+ * label on its last stretch, into the target. React Flow puts the label in the
+ * middle, on the stretch that turns between the nodes: edges from one node to
+ * nodes in the same column turn at the same place, so there the label can sit
+ * on another edge's line (e.g. "reads and writes" on the line to an event).
+ * Edges that loop back (the target left of the source) keep the middle.
+ */
+export const getStepPath = (
+  props: Parameters<typeof getSmoothStepPath>[0],
+): ReturnType<typeof getSmoothStepPath> => {
+  const [path, labelX, labelY, offsetX, offsetY] = getSmoothStepPath(props);
+  const { sourceX, targetX, targetY } = props;
+  const forwards =
+    (props.sourcePosition ?? Position.Bottom) === Position.Right &&
+    (props.targetPosition ?? Position.Top) === Position.Left &&
+    targetX > sourceX;
+  if (!forwards) return [path, labelX, labelY, offsetX, offsetY];
+  // Halfway along the last stretch, which runs from where the path turns (labelX) to the target
+  return [path, (labelX + targetX) / 2, targetY, offsetX, offsetY];
 };
 
 // How far a node has moved since it was laid out (top-left, in the flow)

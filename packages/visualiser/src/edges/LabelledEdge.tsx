@@ -1,12 +1,7 @@
-import {
-  BaseEdge,
-  getBezierPath,
-  getSmoothStepPath,
-  type EdgeProps,
-} from "@xyflow/react";
+import { BaseEdge, getBezierPath, type EdgeProps } from "@xyflow/react";
 import { memo, type CSSProperties } from "react";
 import EdgeLabel from "./EdgeLabel";
-import { useRoute } from "./route";
+import { getStepPath, useRoute } from "./route";
 import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
 
 type PathType = "bezier" | "smoothstep" | "step";
@@ -57,7 +52,7 @@ function LabelledEdge({
     },
     pathType === "bezier"
       ? getBezierPath(pathProps)
-      : getSmoothStepPath({
+      : getStepPath({
           ...pathProps,
           ...(pathType === "step" ? { borderRadius: 0 } : {}),
         }),
