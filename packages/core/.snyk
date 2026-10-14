@@ -1,0 +1,12 @@
+# Snyk (https://snyk.io) policy file
+version: v1.25.0
+ignore:
+  SNYK-JS-MODELCONTEXTPROTOCOLCORE-20579858:
+    - '@mcp-b/webmcp-polyfill > @mcp-b/webmcp-types > @modelcontextprotocol/server > @modelcontextprotocol/core':
+        reason: >-
+          Not reachable. @mcp-b/webmcp-types only ships type declarations, and the polyfill's runtime code imports
+          nothing, so @modelcontextprotocol/core (and its OAuth client, where the issue is) is installed but never
+          loaded. Moving to @mcp-b/webmcp-polyfill 6.x drops the dependency; revisit then.
+        expires: 2026-12-31T00:00:00.000Z
+        created: 2026-10-14T00:00:00.000Z
+patch: {}

@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.33
+
+### Patch Changes
+
+- 9b85f4e: fix(core): a flow's Resources page lists the systems and channels its steps point at
+
+  Steps that point at a `channel`, or a `system` (or `systems`), were left off the flow's Resources page, and a flow whose steps only pointed at those had no Resources page. They're now listed, under Systems and Channels, with a pointer without a version meaning the latest.
+
 ## 5.0.0-beta.32
 
 ### Patch Changes

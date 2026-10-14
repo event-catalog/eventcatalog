@@ -26,7 +26,7 @@
     "hono": "^4.13.12",
     "lz-string": "^1.5.0",
     "ws": "^8.22.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@eventcatalog/visualiser": "workspace:*",
