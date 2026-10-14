@@ -63,7 +63,7 @@ const flowStepSchema = z
         summary: z.string().optional(),
         url: z.string().url().optional(),
         color: z.string().optional(),
-        properties: z.record(z.union([z.string(), z.number()])).optional(),
+        properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
         height: z.number().optional(),
         menu: z
           .array(

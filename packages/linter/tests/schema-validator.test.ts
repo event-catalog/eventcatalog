@@ -500,6 +500,108 @@ describe('validateSchema', () => {
       expect(validateSchema(parsedFile).map((error) => error.message)).toEqual(['date: Invalid date']);
     });
 
+    it('describes a key/value field given the wrong type as expecting an object', () => {
+      const parsedFile = createParsedFile('channel', {
+        id: 'orders',
+        name: 'Orders',
+        version: '1.0.0',
+        parameters: ['env'],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.map((error) => error.message)).toEqual(['parameters: Expected object, but received array']);
+      expect(errors[0].rule).toBe('schema/valid-type');
+    });
+
+    it('reports an enum given a value of the wrong type as a type error', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-001',
+        name: 'Use events',
+        version: '1.0.0',
+        status: 1,
+        date: '2026-05-26',
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.map((error) => error.message)).toEqual([
+        "status: Expected 'proposed' | 'accepted' | 'rejected' | 'deprecated' | 'superseded', but received number",
+      ]);
+      expect(errors[0].rule).toBe('schema/valid-type');
+    });
+
+    it('reports a value that does not match a literal', () => {
+      const parsedFile = createParsedFile('entity', {
+        id: 'order',
+        name: 'Order',
+        version: '1.0.0',
+        properties: [{ name: 'customer', type: 'string', referenceTarget: 'service' }],
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual([
+        'properties.0.referenceTarget: Invalid literal value, expected "entity"',
+      ]);
+    });
+
+    it('reports a malformed url', () => {
+      const parsedFile = createParsedFile('service', {
+        id: 'user-service',
+        name: 'User Service',
+        version: '1.0.0',
+        attachments: [{ url: 'not-a-url', title: 'Docs' }],
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual(['attachments.0.url: Invalid url']);
+    });
+
+    describe('dates where an object is expected (an unquoted YAML date)', () => {
+      const date = new Date('2026-10-14');
+      const service = { id: 'user-service', name: 'User Service', version: '1.0.0' };
+
+      it('reports a date given for an object field', () => {
+        const errors = validateSchema(createParsedFile('service', { ...service, repository: date }));
+
+        expect(errors.map((error) => error.message)).toEqual(['repository: Expected object, but received date']);
+        expect(errors[0].rule).toBe('schema/valid-type');
+      });
+
+      it('reports a date in a list of objects, not the fields missing from it', () => {
+        const errors = validateSchema(createParsedFile('service', { ...service, sends: [date] }));
+
+        expect(errors.map((error) => error.message)).toEqual(['sends.0: Expected object, but received date']);
+      });
+
+      it('reports a date given for a field that is either a flag or an object', () => {
+        const errors = validateSchema(createParsedFile('service', { ...service, draft: date }));
+
+        expect(errors.map((error) => error.message)).toEqual(['draft: Invalid input']);
+      });
+
+      it('reports a date given as a value in a key/value field', () => {
+        const parsedFile = createParsedFile('channel', {
+          id: 'orders',
+          name: 'Orders',
+          version: '1.0.0',
+          parameters: { env: date },
+        });
+
+        expect(validateSchema(parsedFile).map((error) => error.message)).toEqual([
+          'parameters.env: Expected object, but received date',
+        ]);
+      });
+
+      it('still accepts a date where a date is expected', () => {
+        const parsedFile = createParsedFile('adr', {
+          id: 'adr-001',
+          name: 'Use events',
+          version: '1.0.0',
+          status: 'accepted',
+          date,
+        });
+
+        expect(validateSchema(parsedFile)).toHaveLength(0);
+      });
+    });
+
     it('should pass with valid diagram frontmatter', () => {
       const parsedFile = createParsedFile('diagram', {
         id: 'order-flow',

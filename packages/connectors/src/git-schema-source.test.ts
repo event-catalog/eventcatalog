@@ -8,7 +8,7 @@ const { cloneMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("simple-git", () => ({
-  default: vi.fn(() => ({
+  simpleGit: vi.fn(() => ({
     clone: cloneMock,
   })),
 }));

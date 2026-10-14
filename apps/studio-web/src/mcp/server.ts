@@ -30,7 +30,17 @@ const tourInput = Tour.describe(
 type Report = (details: Properties) => void;
 
 export function createMcpServer({ baseUrl, report = () => {} }: { baseUrl: string; report?: Report }) {
-  const server = new McpServer({ name: 'EventCatalog', version: '0.0.1' }, { instructions: SERVER_INSTRUCTIONS });
+  const server = new McpServer(
+    {
+      name: 'EventCatalog',
+      title: 'EventCatalog',
+      version: '0.0.1',
+      websiteUrl: 'https://www.eventcatalog.dev',
+      // Shown beside the server by clients that read serverInfo.icons (the light and dark logo, in one SVG)
+      icons: [{ src: `${baseUrl.replace(/\/$/, '')}/icon.svg`, mimeType: 'image/svg+xml', sizes: ['any'] }],
+    },
+    { instructions: SERVER_INSTRUCTIONS }
+  );
   const loadView = getViewLoader();
 
   /** Checks a diagram (and its tour) and builds what the model reads and what the view shows */

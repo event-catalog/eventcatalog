@@ -15,7 +15,7 @@ export const channelSchema = z
     protocols: z.array(z.string()).optional(),
     deliveryGuarantee: z.enum(['at-most-once', 'at-least-once', 'exactly-once']).optional(),
     routes: z.array(channelPointerSchema).optional(),
-    parameters: z.record(parameterSchema).optional(),
+    parameters: z.record(z.string(), parameterSchema).optional(),
     messages: z.array(z.object({ collection: z.string(), name: z.string(), ...pointerSchema.shape })).optional(),
     detailsPanel: z
       .object({
