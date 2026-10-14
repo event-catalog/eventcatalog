@@ -1,27 +1,24 @@
 import type { APIRoute } from 'astro';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { createRequire } from 'node:module';
+import embed from '../webmcp-relay/embed.js?raw';
+import widgetHtml from '../webmcp-relay/widget.html?raw';
+import widgetJs from '../webmcp-relay/widget.js?raw';
 
 /**
  * Serves the WebMCP local relay's browser files (embed.js loads widget.html next to it), so the canvas page
  * can hand its WebMCP tools to desktop MCP clients (Claude Code, Cursor...) running
- * `npx -y @mcp-b/webmcp-local-relay@5.1.0`. Served from the installed package, so the version is pinned.
+ * `npx -y @mcp-b/webmcp-local-relay@5.1.0`. The files are copies of that version's (see webmcp-relay/README.md),
+ * bundled with the page, so the version is pinned.
  */
-const FILES: Record<string, string> = {
-  'embed.js': 'text/javascript',
-  'widget.html': 'text/html',
-  'widget.js': 'text/javascript',
+const FILES: Record<string, { body: string; contentType: string }> = {
+  'embed.js': { body: embed, contentType: 'text/javascript' },
+  'widget.html': { body: widgetHtml, contentType: 'text/html' },
+  'widget.js': { body: widgetJs, contentType: 'text/javascript' },
 };
 
-const browserDirectory = path.join(path.dirname(createRequire(import.meta.url).resolve('@mcp-b/webmcp-local-relay')), 'browser');
-
 export const GET: APIRoute = async ({ params }) => {
-  const file = params.file ?? '';
-  const contentType = FILES[file];
-  if (!contentType) return new Response('Not found', { status: 404 });
-  const body = await fs.readFile(path.join(browserDirectory, file), 'utf-8');
-  return new Response(body, { headers: { 'Content-Type': contentType, 'Cache-Control': 'no-cache' } });
+  const file = FILES[params.file ?? ''];
+  if (!file) return new Response('Not found', { status: 404 });
+  return new Response(file.body, { headers: { 'Content-Type': file.contentType, 'Cache-Control': 'no-cache' } });
 };
 
 export const prerender = false;

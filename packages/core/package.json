@@ -91,7 +91,6 @@
     "@hocuspocus/provider": "^4.7.0",
     "@hocuspocus/server": "^4.7.0",
     "@iconify-json/logos": "^1.2.4",
-    "@mcp-b/webmcp-local-relay": "5.1.0",
     "@mcp-b/webmcp-polyfill": "5.1.0",
     "@mermaid-js/layout-elk": "^0.2.0",
     "@modelcontextprotocol/ext-apps": "^1.7.5",
@@ -168,7 +167,7 @@
     "uuid": "^11.1.1",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.33",
-    "zod": "^4.3.6"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

@@ -6,3 +6,6 @@ eventcatalog.config.js
 examples/
 docs/
 
+
+# Copied as published from @mcp-b/webmcp-local-relay (see its README)
+eventcatalog/src/features/studio/webmcp-relay/
