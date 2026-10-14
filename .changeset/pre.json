@@ -30,6 +30,7 @@
     "commercial-license-fallback",
     "default-theme-dark-accent",
     "dev-trial-badge",
+    "disable-astro-telemetry",
     "dockerfile-exec-form",
     "domain-visualiser-levels",
     "entity-map-second-hop-warning",

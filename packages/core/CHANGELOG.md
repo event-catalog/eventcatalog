@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.26
+
+### Patch Changes
+
+- dbcff86: chore(core): turn off Astro's telemetry
+
+  `eventcatalog dev`, `build` and `preview` run Astro, which sent anonymous usage data (the command, config settings and machine details) to Astro by default. EventCatalog now turns it off for every catalog.
+
 ## 5.0.0-beta.25
 
 ### Patch Changes
