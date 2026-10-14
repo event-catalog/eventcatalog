@@ -78,7 +78,7 @@ bundles Studio's components, with the shared ones: rebuild it after changing the
 | Area | Files |
 |------|-------|
 | The server: MCP endpoint, the page, its social image, health | `src/server.ts`, `src/mcp/` (tools, and `register.ts`, ported from core) |
-| The live sessions' relay (WebSockets at `/rooms/:id`: passes encrypted messages, stores nothing, logs counts only) | `src/rooms.ts` |
+| The live sessions' relay (WebSockets at `/rooms/:id`: passes encrypted messages to everyone in a room or to one of them, stores nothing, logs counts only) | `src/rooms.ts` |
 | The model agents send (schema, validation, to the visualiser's graph, Mermaid, summary) | `src/model/` |
 | The page (one bundle: the browser page at `/` and the MCP App in chats) | `view/main.tsx`, `view/Diagram.tsx` |
 | The canvas page component, and syncing the document into React Flow | `view/studio/StudioCanvas.tsx`, `view/studio/use-canvas-flow.ts` |
@@ -157,6 +157,15 @@ bundles Studio's components, with the shared ones: rebuild it after changing the
   same bundle runs as the MCP App inside chat hosts. No code splitting, no assets from elsewhere (fonts are inlined).
 - **One machine.** Live sessions relay between people connected to the same process (`src/rooms.ts`), so the Fly app
   runs on one machine until rooms are routed by id. The page is read once at startup (restart after building).
+- **A join costs one canvas, sent to the joiner alone.** The people there answer a `HELLO` with what they have (a
+  state vector) to the joiner only, and the joiner asks one of them for what it's missing (`NEED`, answered by a `SYNC`
+  to it alone; someone else after `ANSWER_WITHIN_MS`). Before, everyone sent the whole canvas to everyone: one join
+  into 6 people was ~5 canvases to each of them, three joining at once ~40, and a near-4 MB canvas pushed connections
+  past the relay's 16 MB send buffer. Send anything big to one person (`send`'s `to`, the relay's id for them, from
+  the message they sent), never to the room. The relay's framing is version 2 (`?v=2`: who it's for, who it's from);
+  pages open from before a deploy, and the perf tools (`fake-peer.mjs`, `fake-team.mjs`), still use version 1 on the
+  plain path, so keep the relay passing between the two. `tests/room-sync.test.ts` runs the real `RoomConnection`
+  against the relay and counts what each person is sent.
 - **Each browser keeps the session's Yjs document, not just the model** (`saveLocalCanvas` with the doc,
   `content.doc` in `use-canvas-flow`). A copy started again from the model gave notes and text new ids, so on reload
   they merged in beside the room's (duplicated), and the copy's older values competed with the room's newer ones.

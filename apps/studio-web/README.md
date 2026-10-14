@@ -59,7 +59,7 @@ Live at https://eventcatalog-mcp.fly.dev. One long-running Node process on one m
 ## Layout
 - `PUBLIC_URL`: where view links point (set it behind a tunnel, e.g. `PUBLIC_URL=https://xyz.trycloudflare.com pnpm dev`).
 - `src/server.ts`: Hono. `POST /mcp` (stateless Streamable HTTP), `GET /` and `/view` (the canvas), `GET /og.png`, `GET /health`
-- `src/rooms.ts`: the live sessions' relay (WebSockets at `/rooms/:id`): passes encrypted messages between the people in a room, stores nothing, logs counts only
+- `src/rooms.ts`: the live sessions' relay (WebSockets at `/rooms/:id`): passes encrypted messages between the people in a room, to everyone or to one of them, stores nothing, logs counts only
 - `src/mcp/`: the server, tools, and `register.ts` (`registerMcpApp`, ported from EventCatalog v5-beta)
 - `src/model/`: the model schema, validation, Model → visualiser graph (L1/L2/L3), Mermaid and summary
 - `view/`: one bundle, built to `dist/view.html`. It's the MCP App inside hosts, and the browser page at `/`. `view/studio/` is the canvas page around Studio's shared canvas (`@eventcatalog/visualiser/studio`, in `packages/visualiser/src/studio/`: its document, levels, nodes, comments, hotspots and presence, shared with EventCatalog's Studio), `view/collab/` live sessions, and `view/og/` the social preview (`og.html`, rendered to `og.png`)
