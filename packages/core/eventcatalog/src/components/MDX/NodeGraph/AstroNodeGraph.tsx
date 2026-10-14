@@ -12,7 +12,8 @@
  * CSS ships in the page head and survives ClientRouter navigations (see NodeGraph.astro).
  */
 
-import { useCallback, useState, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useState, lazy, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import type { Node, Edge } from '@xyflow/react';
 import type { FlowGroupBy, OpenInStudioRequest } from '@eventcatalog/visualiser';
 import { buildUrl } from '@utils/url-builder';
@@ -26,6 +27,22 @@ const OpenInStudioDialog = lazy(() => import('@features/studio/components/OpenIn
 const NodeGraph = lazy(() =>
   import('@eventcatalog/visualiser').then((module) => ({ default: module.NodeGraph }))
 ) as React.LazyExoticComponent<React.ComponentType<AstroNodeGraphProps & Record<string, unknown>>>;
+
+/**
+ * "Loading graph..." in the box the graph is drawn into, while the visualiser loads. Not where this island sits: the
+ * graph is portalled from there, and on the homepage that's beside the page's content (top right).
+ */
+const LoadingGraph = ({ portalId }: { portalId: string }) => {
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+  useEffect(() => setContainer(document.getElementById(portalId)), [portalId]);
+  if (!container) return null;
+  return createPortal(
+    <div className="flex h-full min-h-[8rem] items-center justify-center text-sm text-[rgb(var(--ec-page-text-muted))]">
+      Loading graph...
+    </div>,
+    container
+  );
+};
 
 interface AstroNodeGraphProps {
   id: string;
@@ -141,7 +158,7 @@ const AstroNodeGraph = ({ isDevMode = false, resourceKey, studioApiUrl, ...other
   );
 
   return (
-    <Suspense fallback={<div>Loading graph...</div>}>
+    <Suspense fallback={<LoadingGraph portalId={otherProps.portalId || `${otherProps.id}-portal`} />}>
       <NodeGraph
         {...otherProps}
         resourceKey={resourceKey}
