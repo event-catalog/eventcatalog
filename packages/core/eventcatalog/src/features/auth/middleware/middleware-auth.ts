@@ -204,12 +204,22 @@ function normalizeUserData(session: any): NormalizedUser {
   }
 }
 
+// The host of a token's issuer (e.g. `dev-123.okta.com`), or '' when it isn't a URL
+const issuerHost = (issuer: unknown) => {
+  try {
+    return new URL(String(issuer)).hostname;
+  } catch {
+    return '';
+  }
+};
+
 function detectProvider(session: any): string {
   const account = session.account;
   if (account?.provider) return account.provider;
 
   if (session.user?.sub?.startsWith('auth0|')) return 'auth0';
-  if (session.user?.iss?.includes('okta.com') || session.user?.provider?.includes('okta')) return 'okta';
+  const host = issuerHost(session.user?.iss);
+  if (host === 'okta.com' || host.endsWith('.okta.com') || session.user?.provider?.includes('okta')) return 'okta';
   if (session.user?.iss?.includes('microsoft')) return 'microsoft';
   if (session.user?.iss?.includes('google')) return 'google';
 
