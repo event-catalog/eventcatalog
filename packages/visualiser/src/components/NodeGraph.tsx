@@ -2704,10 +2704,15 @@ const NodeGraphBuilder = ({
                         )?.url || links[0].url
                       }
                       onChange={(e) => {
+                        // Goes to one of the links given, never to whatever the option's value was changed to
+                        const url = links.find(
+                          (link) => link.url === e.target.value,
+                        )?.url;
+                        if (!url) return;
                         if (onNavigate) {
-                          onNavigate(e.target.value);
+                          onNavigate(url);
                         } else {
-                          window.location.href = e.target.value;
+                          window.location.href = url;
                         }
                       }}
                       className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] rounded-md border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-page-border)/0.5)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"

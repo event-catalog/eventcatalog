@@ -113,7 +113,8 @@ const addTypedReference = (references: ReferenceInfo[], value: unknown, field: s
 };
 
 export const buildResourceIndex = (parsedFiles: ParsedFile[], dependencies?: CatalogDependencies): ResourceIndex => {
-  const index: ResourceIndex = {};
+  // Without prototypes, so an id such as `__proto__` is just another key
+  const index: ResourceIndex = Object.create(null);
 
   for (const parsedFile of parsedFiles) {
     const { file, frontmatter } = parsedFile;
@@ -130,7 +131,7 @@ export const buildResourceIndex = (parsedFiles: ParsedFile[], dependencies?: Cat
     }
 
     if (!index[resourceType]) {
-      index[resourceType] = {};
+      index[resourceType] = Object.create(null);
     }
 
     if (!index[resourceType][resourceId]) {
@@ -148,7 +149,7 @@ export const buildResourceIndex = (parsedFiles: ParsedFile[], dependencies?: Cat
   if (dependencies) {
     for (const [resourceType, entries] of Object.entries(dependencies)) {
       if (!index[resourceType]) {
-        index[resourceType] = {};
+        index[resourceType] = Object.create(null);
       }
       for (const entry of entries) {
         if (!index[resourceType][entry.id]) {
