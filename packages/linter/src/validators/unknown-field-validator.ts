@@ -3,6 +3,7 @@ import { schemas, ResourceType } from '../schemas';
 import { ParsedFile } from '../parser';
 import { ValidationError } from '../types';
 import { LinterConfig, getEffectiveRules } from '../config';
+import { unwrapSchema } from '../utils/zod-schemas';
 
 /**
  * Detects frontmatter keys that are not part of the resource schema.
@@ -92,28 +93,6 @@ export const suggestKey = (unknownKey: string, knownKeys: Iterable<string>): str
 // ---------------------------------------------------------------------------
 // Zod schema walking
 // ---------------------------------------------------------------------------
-
-/** Strip wrappers (optional / nullable / default / pipes / lazy) to get at the underlying schema. */
-const unwrapSchema = (schema: z.ZodTypeAny): z.ZodTypeAny => {
-  let current: z.ZodTypeAny = schema;
-  // Bounded loop guards against a malformed schema cycling forever
-  for (let i = 0; i < 20; i++) {
-    if (
-      current instanceof z.ZodOptional ||
-      current instanceof z.ZodNullable ||
-      current instanceof z.ZodDefault ||
-      current instanceof z.ZodLazy
-    ) {
-      current = current.unwrap() as z.ZodTypeAny;
-    } else if (current instanceof z.ZodPipe) {
-      // .transform() pipes the schema into a transform, z.preprocess() pipes a transform into the schema
-      current = (current.in instanceof z.ZodTransform ? current.out : current.in) as z.ZodTypeAny;
-    } else {
-      break;
-    }
-  }
-  return current;
-};
 
 /** Given a union schema and a value, pick the branch that best describes the value. */
 const resolveUnionBranch = (union: z.ZodUnion<any>, value: unknown): z.ZodTypeAny | undefined => {

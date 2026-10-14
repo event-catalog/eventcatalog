@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { schemas } from '../schemas';
 import { ParsedFile } from '../parser';
 import { ValidationError } from '../types';
+import { unwrapSchema } from '../utils/zod-schemas';
 
 /** Name the type of a value the way the messages have always read, e.g. `received undefined` or `received array`. */
 const describeReceived = (value: unknown): string => {
@@ -12,6 +13,48 @@ const describeReceived = (value: unknown): string => {
   return typeof value;
 };
 
+/**
+ * Zod 4's z.object() accepts a Date and strips it to {}, where Zod 3 rejected it. Frontmatter parsing turns an unquoted
+ * YAML date (e.g. `repository: 2026-10-14`) into a Date, so report the Dates found where an object is expected.
+ */
+const findDatesInObjectFields = (schema: z.ZodTypeAny, value: unknown, path: PropertyKey[] = []): z.core.$ZodIssue[] => {
+  const inner = unwrapSchema(schema);
+
+  if (value instanceof Date) {
+    if (inner instanceof z.ZodObject) {
+      return [{ code: 'invalid_type', expected: 'object', input: value, path, message: 'Invalid input' }];
+    }
+    if (inner instanceof z.ZodUnion) {
+      // A union only takes the Date if one of its other (non-object) options does
+      const options = inner.options as z.ZodTypeAny[];
+      const accepted = options.some(
+        (option) => !(unwrapSchema(option) instanceof z.ZodObject) && option.safeParse(value).success
+      );
+      return accepted ? [] : [{ code: 'invalid_union', errors: [], input: value, path, message: 'Invalid input' }];
+    }
+    return [];
+  }
+
+  if (inner instanceof z.ZodUnion) {
+    const branch = (inner.options as z.ZodTypeAny[]).find((option) => option.safeParse(value).success);
+    return branch ? findDatesInObjectFields(branch, value, path) : [];
+  }
+  if (inner instanceof z.ZodArray && Array.isArray(value)) {
+    return value.flatMap((item, index) => findDatesInObjectFields(inner.element as z.ZodTypeAny, item, [...path, index]));
+  }
+  if (inner instanceof z.ZodObject && value && typeof value === 'object' && !Array.isArray(value)) {
+    const shape = inner.shape as Record<string, z.ZodTypeAny>;
+    return Object.entries(value).flatMap(([key, child]) =>
+      shape[key] ? findDatesInObjectFields(shape[key], child, [...path, key]) : []
+    );
+  }
+  if (inner instanceof z.ZodRecord && value && typeof value === 'object' && !Array.isArray(value)) {
+    const valueType = inner.valueType as z.ZodTypeAny;
+    return Object.entries(value).flatMap(([key, child]) => findDatesInObjectFields(valueType, child, [...path, key]));
+  }
+  return [];
+};
+
 export const validateSchema = (parsedFile: ParsedFile): ValidationError[] => {
   const { file, frontmatter } = parsedFile;
   const schema = schemas[file.resourceType];
@@ -19,7 +62,13 @@ export const validateSchema = (parsedFile: ParsedFile): ValidationError[] => {
 
   try {
     // reportInput keeps the failing value on each issue, so messages can say what was received
-    schema.parse(frontmatter, { reportInput: true });
+    const result = schema.safeParse(frontmatter, { reportInput: true });
+    const dateIssues = findDatesInObjectFields(schema, frontmatter);
+    // A Date in an object field is the error there: drop what Zod reported about the {} it was stripped to
+    const isUnderDate = (issue: z.core.$ZodIssue) =>
+      dateIssues.some((dateIssue) => dateIssue.path.every((key, index) => issue.path[index] === key));
+    const issues = [...(result.success ? [] : result.error.issues.filter((issue) => !isUnderDate(issue))), ...dateIssues];
+    if (issues.length > 0) throw new z.ZodError(issues);
   } catch (error) {
     if (error instanceof z.ZodError) {
       for (const issue of error.issues) {
