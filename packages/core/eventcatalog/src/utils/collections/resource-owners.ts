@@ -70,6 +70,7 @@ export const createResourcesCatalog = () => {
     allFlows: once(() => getFlows()),
     currentFlows: once(() => getFlows({ getAllVersions: false })),
     rawChannels: once(() => getCollection('channels')),
+    rawSystems: once(() => getCollection('systems')),
     rawMessages: once(async () => [
       ...(await getCollection('events')),
       ...(await getCollection('commands')),
@@ -108,10 +109,15 @@ const relatedResourcesFor = async (type: ResourceOwnerCollection, catalog: Resou
       });
     }
     case 'flows': {
-      const [services, flows] = await Promise.all([catalog.services(), catalog.allFlows()]);
+      const [services, flows, systems, channels] = await Promise.all([
+        catalog.services(),
+        catalog.allFlows(),
+        catalog.rawSystems(),
+        catalog.rawChannels(),
+      ]);
       return (owner) => ({
         adrs: adrsFor(owner),
-        stepResources: getFlowStepResources(asEntry<'flows'>(owner), { services, flows }),
+        stepResources: getFlowStepResources(asEntry<'flows'>(owner), { services, flows, systems, channels }),
       });
     }
     case 'channels': {

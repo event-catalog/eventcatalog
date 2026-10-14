@@ -166,30 +166,43 @@ export const getFlowsWithServiceStep = (
   );
 };
 
-/** A catalog entry a flow step points at (a service, message, agent, data store, data product or flow). */
+/** A catalog entry a flow step points at (a service, system, channel, message, agent, data store, data product or flow). */
 type FlowStepResource = { collection: string; data: { id: string; version: string; [key: string]: any } };
 
 /**
  * The catalog resources a flow's steps point at, each listed once in step order: messages,
- * services, agents, data stores, data products and sub-flows (the same steps the flow's
- * sidebar lists). Expects steps as getFlows returns them, where messages, agents, data stores
- * and data products are already resolved; services and sub-flows are resolved here, with a
- * pointer without a version meaning the latest.
+ * services, systems, channels, agents, data stores, data products and sub-flows (the same steps
+ * the flow's sidebar lists). Expects steps as getFlows returns them, where messages, agents, data
+ * stores and data products are already resolved; services, systems, channels and sub-flows are
+ * resolved here, with a pointer without a version meaning the latest.
  */
 export const getFlowStepResources = (
   flow: Flow,
-  catalog: { services: CollectionEntry<'services'>[]; flows: Flow[] }
+  catalog: {
+    services: CollectionEntry<'services'>[];
+    flows: Flow[];
+    systems?: CollectionEntry<'systems'>[];
+    channels?: CollectionEntry<'channels'>[];
+  }
 ): FlowStepResource[] => {
   const serviceMap = getVersionedMap(catalog.services);
   const flowMap = getVersionedMap(catalog.flows);
+  const systemMap = getVersionedMap(catalog.systems ?? []);
+  const channelMap = getVersionedMap(catalog.channels ?? []);
   const resources: FlowStepResource[] = [];
 
   for (const step of (flow.data.steps || []) as any[]) {
+    // `systems` is another name for a step's `system`
+    const system = step.system ?? step.systems;
     const resource = step.service
       ? findInMap(serviceMap, step.service.id, step.service.version)
       : step.flow
         ? findInMap(flowMap, step.flow.id, step.flow.version)
-        : [step.message, step.agent, step.container, step.dataProduct].find(Array.isArray)?.[0];
+        : system
+          ? findInMap(systemMap, system.id, system.version)
+          : step.channel
+            ? findInMap(channelMap, step.channel.id, step.channel.version)
+            : [step.message, step.agent, step.container, step.dataProduct].find(Array.isArray)?.[0];
     if (resource?.data) resources.push(resource);
   }
 

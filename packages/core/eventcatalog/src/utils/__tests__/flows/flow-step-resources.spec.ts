@@ -38,6 +38,35 @@ describe('getFlowStepResources', () => {
     ]);
   });
 
+  it('lists the systems and channels a flow steps through, resolving pointers without a version to the latest', () => {
+    const orderSystem = entry('systems', 'order-system');
+    const orderSystemV2 = entry('systems', 'order-system', '2.0.0');
+    const paymentsSystem = entry('systems', 'payments-system');
+    const orderEvents = entry('channels', 'order-events');
+    const placeOrder = {
+      data: {
+        id: 'place-order',
+        version: '1.0.0',
+        steps: [
+          { id: 1, title: 'Orders', system: { id: 'order-system' } },
+          { id: 2, title: 'Order events', channel: { id: 'order-events', version: '1.0.0' } },
+          { id: 3, title: 'Payments', systems: { id: 'payments-system', version: '1.0.0' } },
+        ],
+      },
+    };
+
+    expect(
+      getFlowStepResources(
+        placeOrder as any,
+        {
+          ...catalog,
+          systems: [orderSystem, orderSystemV2, paymentsSystem],
+          channels: [orderEvents],
+        } as any
+      )
+    ).toEqual([orderSystemV2, orderEvents, paymentsSystem]);
+  });
+
   it('resolves a service step without a version to the latest service', () => {
     const placeOrder = {
       data: { id: 'place-order', version: '1.0.0', steps: [{ id: 1, title: 'Checkout', service: { id: 'checkout-api' } }] },
