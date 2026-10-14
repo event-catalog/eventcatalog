@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const captured = vi.hoisted(() => ({
   servers: [] as Array<{ info: { name: string; version: string }; options?: { instructions?: string } }>,
@@ -96,6 +96,12 @@ const createGlobalServer = async () => {
 };
 
 const getTool = (name: string) => captured.tools.find((tool) => tool.name === name);
+
+// The MCP server (with the MCP SDK) takes longer than a test's 5 seconds to load the first time on a busy machine
+// (e.g. CI), which failed the first test and every test after it: it's loaded once, before them, with longer to do it
+beforeAll(async () => {
+  await import('../mcp-server');
+}, 60_000);
 
 describe('MCP tool metadata', () => {
   beforeEach(() => {

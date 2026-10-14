@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeAll, describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock astro:content
 vi.mock('astro:content', async (importOriginal) => {
@@ -102,6 +102,12 @@ import { isSSR } from '@utils/feature';
 // ============================================
 // createToolHandler Tests (Unit Tests)
 // ============================================
+
+// The MCP server (with the MCP SDK) takes longer than a test's 5 seconds to load the first time on a busy machine
+// (e.g. CI), which failed the first test and every test after it: it's loaded once, before them, with longer to do it
+beforeAll(async () => {
+  await import('../mcp-server');
+}, 60_000);
 
 describe('createToolHandler', () => {
   // We test the behavior of createToolHandler indirectly through the tool implementations

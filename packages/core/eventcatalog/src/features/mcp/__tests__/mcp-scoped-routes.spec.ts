@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 const domain = {
   id: 'payments-1.0.0',
@@ -74,6 +74,12 @@ vi.mock('../mcp-auth', () => ({
   validateMcpRequest: vi.fn(() => Promise.resolve({ ok: true })),
   createMcpAuthErrorResponse: vi.fn(),
 }));
+
+// The MCP server (with the MCP SDK) takes longer than a test's 5 seconds to load the first time on a busy machine
+// (e.g. CI), which failed the first test and every test after it: it's loaded once, before them, with longer to do it
+beforeAll(async () => {
+  await import('../mcp-server');
+}, 60_000);
 
 describe('scoped MCP routes', () => {
   it('serves health metadata for the latest domain scope', async () => {
