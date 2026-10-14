@@ -28,6 +28,7 @@
     "cli-license-status",
     "collaborative-canvases",
     "commercial-license-fallback",
+    "config-loads-in-place",
     "default-theme-dark-accent",
     "dev-trial-badge",
     "disable-astro-telemetry",
