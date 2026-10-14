@@ -105,7 +105,8 @@ const rawPeer = async (room: RoomLink, doc: Y.Doc, as: 'before' | 'silent', { re
     if (type === NEED) asked.needs++;
     if (type !== HELLO) return;
     if (replyAfterMs) await new Promise((resolve) => setTimeout(resolve, replyAfterMs));
-    if (as === 'silent') return void send(HELLO_BACK, Y.encodeStateVector(doc), from);
+    // (a digest that's no one's, then its state vector)
+    if (as === 'silent') return void send(HELLO_BACK, Buffer.concat([Buffer.alloc(8), Y.encodeStateVector(doc)]), from);
     await send(UPDATE, Y.encodeStateAsUpdate(doc, body));
     await send(HELLO_BACK, Y.encodeStateVector(doc));
   });
@@ -184,6 +185,60 @@ describe('joining a live room', () => {
     await until(() => sameAs(joiner.doc, everyone[1].doc));
     expect(joiner.doc.getMap('nodes').size).toBe(canvas.getMap('nodes').size + only.getMap('nodes').size);
   });
+
+  it('catches up someone a change never reached, when someone else joins', async () => {
+    const canvas = bigCanvas(100 * 1024);
+    const { room, everyone } = await roomWith(canvas, 2);
+    // A change of the first person's that never reached the second (as the relay drops what's over its limits)
+    Y.applyUpdate(everyone[0].doc, Y.encodeStateAsUpdate(bigCanvas(5 * 1024, 'missed')), ROOM_ORIGIN);
+
+    const joiner = join(room);
+    await until(() => sameAs(joiner.doc, everyone[0].doc));
+    // The second isn't left behind (the documents are compared every 10 seconds, once they've been still for 2)
+    await until(() => sameAs(everyone[1].doc, everyone[0].doc), 25_000);
+  }, 30_000);
+
+  it('catches up a deletion made while someone was away, as soon as they rejoin with their copy', async () => {
+    const canvas = bigCanvas(100 * 1024);
+    const { room, everyone } = await roomWith(canvas, 2);
+    const away = everyone[1];
+    away.connection.destroy();
+    await settle();
+    // Deleted while they're away: their state vector is the same as everyone's (deletions don't show in it)
+    canvas.getMap('nodes').delete('node-0');
+    expect(Buffer.from(Y.encodeStateVector(away.doc)).equals(Buffer.from(Y.encodeStateVector(canvas)))).toBe(true);
+
+    // Back with the copy they kept: caught up on joining, not at the next comparison (10 seconds)
+    join(room, away.doc);
+    await until(() => !away.doc.getMap('nodes').has('node-0'), 3_000);
+  });
+
+  it("catches up people out of step with each other, both ways and deletions too, without anyone joining", async () => {
+    const canvas = bigCanvas(50 * 1024);
+    const { everyone } = await roomWith(canvas, 2);
+    const [first, second] = everyone;
+    // Each has a change the other never got, and the second deleted a node without the first knowing
+    Y.applyUpdate(first.doc, Y.encodeStateAsUpdate(bigCanvas(2 * 1024, 'first')), ROOM_ORIGIN);
+    Y.applyUpdate(second.doc, Y.encodeStateAsUpdate(bigCanvas(2 * 1024, 'second')), ROOM_ORIGIN);
+    second.doc.transact(() => second.doc.getMap('nodes').delete('node-0'), ROOM_ORIGIN);
+
+    await until(
+      () => [first, second].every(({ doc }) => doc.getMap('nodes').has('first-0') && doc.getMap('nodes').has('second-0') && !doc.getMap('nodes').has('node-0')),
+      25_000
+    );
+    expect(Buffer.from(Y.encodeStateAsUpdate(first.doc)).equals(Buffer.from(Y.encodeStateAsUpdate(second.doc)))).toBe(true);
+  }, 30_000);
+
+  it('sends nothing more than a digest between people in step', async () => {
+    const canvas = bigCanvas(200 * 1024);
+    // (with deletions, which are in the digest)
+    canvas.transact(() => ['node-1', 'node-2', 'node-3'].forEach((id) => canvas.getMap('nodes').delete(id)));
+    const { everyone } = await roomWith(canvas, 3);
+    const sentToEach = bytesFrom(everyone);
+    // Two rounds of presence and digests, from each of the others
+    await settle(21_000);
+    for (const bytes of sentToEach()) expect(bytes).toBeLessThan(4 * 1024);
+  }, 30_000);
 
   it('asks someone else when the person asked never answers', async () => {
     const canvas = bigCanvas(100 * 1024);

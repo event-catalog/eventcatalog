@@ -51,7 +51,6 @@ Checks worth keeping:
 | One types on a note or text, scales or turns text | The other sees it as it happens; it stays when they're done |
 | Both reload, one at a time and together | Nothing is duplicated (notes and text included), and nobody's newer change goes back |
 | One locks the canvas | It's locked for both (document state) |
-| Someone joins a session of several, or a few join at once | Each joiner is sent the canvas once; the people already there are sent only the joiner's hello and presence (count the `/rooms/` WebSocket frames per page). 14 Oct 2026, 100-node canvas: a 6th person joining received 45 KB and the others ~0.2 KB each (before: 215 KB and 171 KB each); three at once 45 KB each and ~0.6 KB (before: ~1.9 MB and ~1.7 MB) |
 
 ## Tools (`apps/studio-web/scripts/perf/`)
 
