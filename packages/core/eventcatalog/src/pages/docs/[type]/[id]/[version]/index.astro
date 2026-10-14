@@ -13,6 +13,7 @@ import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import ArchitectureGraph from '@components/MDX/ArchitectureGraph/ArchitectureGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
+import NewVersionBanner from '@components/NewVersionBanner.astro';
 import VersionList from '@components/Lists/VersionList.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import FavoriteButton from '@components/FavoriteButton';
@@ -46,7 +47,12 @@ import {
 } from 'lucide-react';
 
 import { getSpecificationsForService } from '@utils/collections/services';
-import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails } from '@utils/collections/util';
+import {
+  resourceToCollectionMap,
+  collectionToResourceMap,
+  getDeprecatedDetails,
+  getResourceNoun,
+} from '@utils/collections/util';
 import {
   createAdrStatusBadge,
   formatAdrDate,
@@ -305,16 +311,13 @@ const {
   deprecatedDate: formattedDate,
 } = getDeprecatedDetails(props as unknown as CollectionEntry<CollectionTypes>);
 
-let friendlyCollectionName = props.collection.slice(0, props.collection.length - 1);
-friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendlyCollectionName;
-friendlyCollectionName = friendlyCollectionName === 'entitie' ? 'entity' : friendlyCollectionName;
-friendlyCollectionName = friendlyCollectionName === 'adr' ? 'architecture decision' : friendlyCollectionName;
+const friendlyCollectionName = getResourceNoun(props.collection);
 
 const schemasForResource = getSchemasFromResource(props);
 
 const generatePromptForResource = (props: any) => {
   return `
-    Please tell me more about the ${props.collection.slice(0, props.collection.length - 1)} -  ${props.data.name} v${props.data.version} in this catalog.
+    Please tell me more about the ${friendlyCollectionName} -  ${props.data.name} v${props.data.version} in this catalog.
   `;
 };
 
@@ -596,19 +599,13 @@ if (!isAdrPage && !hasCurrentFlowEmbed && !hasCurrentPageNodeGraph) {
         <div data-pagefind-ignore>
           {
             props.data.version !== props.data.latestVersion && (
-              <Admonition type="warning" title="New version found">
-                <p>
-                  You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
-                  <strong>{props.data.name}</strong>.{' '}
-                  <a
-                    class="underline block pt-2"
-                    href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
-                  >
-                    The latest version of this {props.collection.slice(0, props.collection.length - 1)} is{' '}
-                    <span>v{props.data.latestVersion}</span> &rarr;
-                  </a>
-                </p>
-              </Admonition>
+              <NewVersionBanner
+                subject={friendlyCollectionName}
+                name={props.data.name}
+                latestOf={friendlyCollectionName}
+                latestVersion={props.data.latestVersion}
+                href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
+              />
             )
           }
         </div>

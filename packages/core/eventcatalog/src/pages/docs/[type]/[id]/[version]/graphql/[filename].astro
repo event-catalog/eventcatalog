@@ -8,9 +8,10 @@ import { Page } from './_[filename].data';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import Admonition from '@components/MDX/Admonition';
+import NewVersionBanner from '@components/NewVersionBanner.astro';
 import Badge from '@components/Badge.astro';
-
-import { ServerIcon } from '@heroicons/react/24/outline';
+import { getResourceTypeBadge } from '@utils/collections/resource-type-badge';
+import { getResourceNoun } from '@utils/collections/util';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -38,9 +39,8 @@ if (isRemote) {
 // Create comprehensive page title
 const pageTitle = `${collection} | ${data.name} | GraphQL Schema`.replace(/^\w/, (c) => c.toUpperCase());
 
-const getServiceBadge = () => {
-  return [{ textColor: 'gray', content: 'Service', icon: ServerIcon }];
-};
+// The schema belongs to a service, event, command, query or domain
+const getResourceBadge = () => [getResourceTypeBadge(collection)];
 
 const getGraphQLBadge = () => {
   return [
@@ -53,7 +53,7 @@ const getGraphQLBadge = () => {
   ];
 };
 
-const badges = [...getServiceBadge(), ...getGraphQLBadge()];
+const badges = [...getResourceBadge(), ...getGraphQLBadge()];
 
 // Index only the latest version
 const pagefindAttributes =
@@ -96,18 +96,13 @@ const pagefindAttributes =
         <div data-pagefind-ignore>
           {
             data.version !== data.latestVersion && (
-              <Admonition type="warning" title="New version found">
-                <p>
-                  You are looking at a previous version of the service <strong>{data.name}</strong>.{' '}
-                  <a
-                    class="underline block pt-2"
-                    href={buildUrl(`/docs/${collection}/${data.id}/${data.latestVersion}/graphql/${filename}`)}
-                  >
-                    The latest version of this GraphQL schema is{' '}
-                    <span>v{data.latestVersion}</span> &rarr;
-                  </a>
-                </p>
-              </Admonition>
+              <NewVersionBanner
+                subject={getResourceNoun(collection)}
+                name={data.name}
+                latestOf="GraphQL schema"
+                latestVersion={data.latestVersion}
+                href={buildUrl(`/docs/${collection}/${data.id}/${data.latestVersion}/graphql/${filename}`)}
+              />
             )
           }
         </div>
