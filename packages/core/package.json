@@ -94,7 +94,7 @@
     "@mcp-b/webmcp-polyfill": "5.1.0",
     "@mermaid-js/layout-elk": "^0.2.0",
     "@modelcontextprotocol/ext-apps": "^1.7.5",
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.31.0",
     "@nanostores/react": "^1.0.0",
     "@parcel/watcher": "^2.4.1",
     "@radix-ui/react-context-menu": "^2.2.6",
