@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.35
+
+### Patch Changes
+
+- 4fd0e2b: fix(core): read LikeC4 views without slow backtracking on long dotted names, and detect Okta sign-ins from the token issuer's host
+
 ## 5.0.0-beta.34
 
 ### Patch Changes
