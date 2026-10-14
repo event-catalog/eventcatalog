@@ -19,6 +19,7 @@
     "architecture-redirect",
     "astro-foreground-for-agents",
     "audit-dependency-fixes",
+    "auth-docs-discord-link",
     "auth-template-docs-link",
     "build-concurrency",
     "bump-astro-7-3-8",

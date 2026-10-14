@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.31
+
+### Patch Changes
+
+- 69513c6: docs(core): link the authentication introduction to the EventCatalog Discord at eventcatalog.dev/discord
+
 ## 5.0.0-beta.30
 
 ### Patch Changes
