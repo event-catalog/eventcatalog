@@ -500,6 +500,19 @@ describe('validateSchema', () => {
       expect(validateSchema(parsedFile).map((error) => error.message)).toEqual(['date: Invalid date']);
     });
 
+    it('describes a key/value field given the wrong type as expecting an object', () => {
+      const parsedFile = createParsedFile('channel', {
+        id: 'orders',
+        name: 'Orders',
+        version: '1.0.0',
+        parameters: ['env'],
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.map((error) => error.message)).toEqual(['parameters: Expected object, but received array']);
+      expect(errors[0].rule).toBe('schema/valid-type');
+    });
+
     it('should pass with valid diagram frontmatter', () => {
       const parsedFile = createParsedFile('diagram', {
         id: 'order-flow',

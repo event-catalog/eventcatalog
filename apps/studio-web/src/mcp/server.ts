@@ -37,7 +37,7 @@ export function createMcpServer({ baseUrl, report = () => {} }: { baseUrl: strin
       version: '0.0.1',
       websiteUrl: 'https://www.eventcatalog.dev',
       // Shown beside the server by clients that read serverInfo.icons (the light and dark logo, in one SVG)
-      icons: [{ src: `${baseUrl}/icon.svg`, mimeType: 'image/svg+xml', sizes: ['any'] }],
+      icons: [{ src: `${baseUrl.replace(/\/$/, '')}/icon.svg`, mimeType: 'image/svg+xml', sizes: ['any'] }],
     },
     { instructions: SERVER_INSTRUCTIONS }
   );

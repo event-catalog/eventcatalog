@@ -33,7 +33,9 @@ export const validateSchema = (parsedFile: ParsedFile): ValidationError[] => {
         if (isInvalidDate) {
           message = 'Invalid date';
         } else if (issue.code === 'invalid_type') {
-          message = `Expected ${issue.expected}, but received ${describeReceived(issue.input)}`;
+          // Records (key/value maps) have always been described as objects
+          const expected = issue.expected === 'record' ? 'object' : issue.expected;
+          message = `Expected ${expected}, but received ${describeReceived(issue.input)}`;
         } else if (issue.code === 'invalid_value') {
           const allowed = issue.values.map((value) => `'${String(value)}'`).join(' | ');
           message = isMissingValue
