@@ -94,6 +94,7 @@ const messageGroups = (messages: any[]): ResourceGroup[] => [
 
 // The collections a flow step can point at, in the order the page groups them.
 const FLOW_STEP_COLLECTIONS: ResourceCollection[] = [
+  'systems',
   'services',
   'agents',
   'flows',
@@ -102,6 +103,7 @@ const FLOW_STEP_COLLECTIONS: ResourceCollection[] = [
   'events',
   'commands',
   'queries',
+  'channels',
 ];
 
 export const getResourceGroups = (

@@ -65,6 +65,7 @@
     "resources-page-layout",
     "resources-pages",
     "schema-page-hydration",
+    "schema-page-versions-light",
     "sdk-custom-doc-path-containment",
     "sdk-vite-ignore-config-import",
     "settings-domain-mcp-servers",
