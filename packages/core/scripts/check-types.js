@@ -90,11 +90,15 @@ prepareCatalogRuntime({
   packageDirectory: join(__dirname, '../eventcatalog'),
 });
 
+// astro check resolves typescript and @astrojs/check from the catalog, which has neither. Point it at
+// core's own (TypeScript 5): through pnpm's bin shim it finds the hoisted TypeScript 7 and refuses to run.
+const coreNodeModules = join(__dirname, '../node_modules');
 await runWithFilteredOutput({
-  command: `pnpm exec astro check --minimumSeverity error --root ${projectDIR} --config ${relative(projectDIR, join(__dirname, '../eventcatalog/astro.config.mjs'))} --tsconfig ${join(catalogDir, 'tsconfig.json')}`,
+  command: `node ${join(coreNodeModules, 'astro/bin/astro.mjs')} check --minimumSeverity error --root ${projectDIR} --config ${relative(projectDIR, join(__dirname, '../eventcatalog/astro.config.mjs'))} --tsconfig ${join(catalogDir, 'tsconfig.json')}`,
   cwd: process.cwd(),
   env: {
     PATH: process.env.PATH,
+    NODE_PATH: coreNodeModules,
     CATALOG_DIR: catalogDir,
     PROJECT_DIR: projectDIR,
     NODE_OPTIONS: '--max-old-space-size=8192',

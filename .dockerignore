@@ -1,0 +1,14 @@
+# Docker builds run from the repo root (apps use workspace packages). Only what they need goes in: the workspace's
+# files, and each app with the workspace packages it uses (add one here when an app starts using it)
+*
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!turbo.json
+!apps/studio-web
+!packages/visualiser
+**/node_modules
+**/dist
+**/.turbo
+apps/studio-web/build
+apps/studio-web/tests

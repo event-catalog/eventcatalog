@@ -10,7 +10,10 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
 - `@eventcatalog/core` - The main EventCatalog application
 - `@eventcatalog/sdk` - SDK for programmatically interacting with EventCatalog
 - `@eventcatalog/create-eventcatalog` - CLI tool for scaffolding new EventCatalog projects
-- `@eventcatalog/visualiser` - Standalone React visualiser component (ReactFlow-based node graphs)
+- `@eventcatalog/visualiser` - Standalone React visualiser component (ReactFlow-based node graphs), and Studio's canvas (`@eventcatalog/visualiser/studio`)
+
+And one app:
+- `@eventcatalog/studio-web` (`apps/studio-web`, MIT) - Studio on the web: a public MCP server and canvas (no sign-in, stores nothing), deployed on its own
 
 ## Quick Reference Commands
 
@@ -18,6 +21,7 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
 |------|---------|
 | Start dev server | `pnpm run start:catalog` |
 | Start SSR server | `pnpm run start:catalog:server` |
+| Start Studio on the web | `pnpm run start:studio` |
 | Build all packages | `pnpm run build` or `pnpm run build:bin` |
 | Build catalog example | `pnpm run verify-build:catalog` |
 | Test (all packages) | `pnpm run test` |
@@ -38,7 +42,7 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
       /src
         /components          # React and Astro components
         /pages               # Astro pages and API routes
-        /enterprise          # Scale plan features (AI Chat, MCP Server)
+        /features            # Server features (AI Chat, MCP Server, auth, APIs)
         /utils               # Shared utilities
           /collections       # Astro content collection helpers
         /layouts             # Page layouts
@@ -64,6 +68,9 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
       /edges                 # Edge type components (animated, multiline, flow)
       /utils                 # Layout, mermaid export, clipboard utilities
       /types                 # Shared types (including DslGraph)
+      /studio                # Studio's canvas, shared by core's Studio and apps/studio-web
+/apps
+  /studio-web                # Studio on the web (public MCP server and canvas)
 /examples
   /default                   # Default example catalog (used by start:catalog)
   /e-commerce                # E-commerce example
@@ -166,10 +173,10 @@ if (!resource) {
 
 ### Pagination
 
-Use cursor-based pagination with the `paginate()` helper from `@enterprise/tools/catalog-tools`:
+Use cursor-based pagination with the `paginate()` helper from `@features/tools/catalog-tools`:
 
 ```typescript
-import { paginate } from '@enterprise/tools/catalog-tools';
+import { paginate } from '@features/tools/catalog-tools';
 
 const result = paginate(items, cursor, pageSize);
 if ('error' in result) return result;
@@ -177,13 +184,13 @@ if ('error' in result) return result;
 
 ## Feature Flags
 
-Check feature availability before using enterprise features:
+Every feature is included in EventCatalog (no plans or license keys). Some need a server or configuration, so check the runtime flags in `@utils/feature` before using them:
 
 ```typescript
-import { isEventCatalogScaleEnabled, isSSR } from '@utils/feature';
+import { isSSR, isEventCatalogChatEnabled, isEventCatalogMCPEnabled, isAuthEnabled } from '@utils/feature';
 
-if (!isEventCatalogScaleEnabled()) {
-  return { error: 'Feature requires Scale plan' };
+if (!isEventCatalogMCPEnabled()) {
+  return { error: 'The MCP server requires EventCatalog to run in server mode' };
 }
 ```
 
@@ -285,14 +292,13 @@ export const prerender = false;
 
 ### Shared Tool Implementations
 
-When building features used by both AI Chat and MCP Server, add shared logic to `@enterprise/tools/catalog-tools.ts`.
+When building features used by both AI Chat and MCP Server, add shared logic to `@features/tools/catalog-tools.ts`.
 
 ## Monorepo Workflow
 
 ### Working with Packages
 
 - **Core** depends on **SDK** and **Visualiser** via `workspace:*` references
-- **Playground** depends on **Visualiser** and **Language Server**
 - **Visualiser** is standalone (no internal workspace dependencies)
 - Changes to workspace dependencies are automatically picked up in development
 - Build commands run via Turbo (handles dependency ordering and caching)

@@ -21,7 +21,9 @@ export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
 
 // Get data
-const { collection, data, filePath, filename, path: relativeSpecPath, headers = {} } = await Page.getData(Astro);
+const pageData = await Page.getData(Astro);
+if (!pageData) return Astro.rewrite('/404');
+const { collection, data, filePath, filename, path: relativeSpecPath, headers = {} } = pageData;
 
 const fileName = filename || 'asyncapi.yaml';
 const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);

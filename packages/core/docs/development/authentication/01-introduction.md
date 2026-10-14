@@ -75,4 +75,4 @@ Ready to get started? Let's enable authentication in your EventCatalog project:
 
 → [Enabling Authentication](/docs/development/authentication/enabling-authentication)
 
-**Questions?** Join our [Discord community](https://discord.gg/eventcatalog) for support and guidance.
+**Questions?** Join our [Discord community](https://eventcatalog.dev/discord) for support and guidance.

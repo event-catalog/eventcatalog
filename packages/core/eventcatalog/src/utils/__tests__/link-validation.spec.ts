@@ -72,6 +72,8 @@ describe('validateBuiltLinks', () => {
       'index.html',
       `<script>const html = '<a href="/script-link">';</script><!-- <a href="/comment-link"> -->
        <template><a href="/template-link" id="inert">Template</a></template>
+       <noscript><a href="/noscript-link">No script</a></noscript>
+       <style>a[href="/style-link"] { color: red }</style>
        <a href="#inert">Missing target</a><a title="a > b" href="/real-missing">Real link</a>`
     );
     expect((await validateBuiltLinks({ outDir })).diagnostics).toEqual([

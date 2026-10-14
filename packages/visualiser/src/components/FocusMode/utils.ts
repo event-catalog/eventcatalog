@@ -24,6 +24,7 @@ export const NODE_COLOR_CLASSES: Record<string, string> = {
   commands: "bg-blue-600",
   queries: "bg-green-600",
   channels: "bg-gray-600",
+  systems: "bg-purple-600",
   externalSystem: "bg-pink-600",
   actor: "bg-yellow-500",
   step: "bg-gray-700",
@@ -47,6 +48,7 @@ export const NODE_TYPE_LABELS: Record<string, string> = {
   commands: "Command",
   queries: "Query",
   channels: "Channel",
+  systems: "System",
   externalSystem: "External System",
   actor: "Actor",
   step: "Step",
@@ -195,6 +197,7 @@ const DOC_PATH_MAP: Record<string, string> = {
   agent: "agents",
   flow: "flows",
   channel: "channels",
+  system: "systems",
   domain: "domains",
   entity: "entities",
   dataProduct: "data-products",
@@ -203,7 +206,9 @@ const DOC_PATH_MAP: Record<string, string> = {
 /**
  * Get the documentation URL for a node
  */
-export function getNodeDocUrl(node: Node): string | null {
+export function getNodeDocUrl(
+  node: Pick<Node, "type" | "data">,
+): string | null {
   const nodeType = node.type || "unknown";
   const data = node.data as any;
 

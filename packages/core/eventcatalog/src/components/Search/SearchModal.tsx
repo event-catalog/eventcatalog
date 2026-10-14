@@ -34,6 +34,7 @@ import {
   getUrlForSearchItem,
   highlightQuery,
   mapPagefindResultsToSearchItems,
+  rankResourceSearchItems,
   type SearchItem,
   type SearchNode,
 } from './search-utils';
@@ -316,16 +317,7 @@ export default function SearchModal() {
       return items;
     }
 
-    const lowerQuery = query.toLowerCase();
-    return items.filter((item) => {
-      if (item.name.toLowerCase().includes(lowerQuery)) return true;
-      // Key format is "type:id:version" (e.g. "service:OrdersService:0.0.3").
-      // Match against the id so users can find resources by their raw id too.
-      const keyParts = item.key?.split(':') ?? [];
-      const id = keyParts[1];
-      if (id?.toLowerCase().includes(lowerQuery)) return true;
-      return !!item.rawNode.summary && item.rawNode.summary.toLowerCase().includes(lowerQuery);
-    });
+    return rankResourceSearchItems(items, query);
   }, [indexedItems, isIndexedSearch, items, query]);
 
   const filters = useMemo(() => {

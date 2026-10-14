@@ -11,7 +11,7 @@ import {
   type ColumnFiltersState,
   type SortingState,
 } from '@tanstack/react-table';
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, SearchX, X, Search, Users } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, SearchX, X, Search, Users } from 'lucide-react';
 import { UserIcon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
 import type { TableConfiguration } from '@types';
@@ -19,6 +19,7 @@ import { isSameVersion } from '@utils/collections/version-compare';
 import { resolveIconUrl } from '@utils/icon';
 import { FilterDropdown, CheckboxItem } from './FilterComponents';
 import { getDiscoverColumns } from './columns';
+import { TablePagination, useStoredPageSize } from '../TablePagination';
 import { formatAdrStatus, type AdrStatus } from '@utils/collections/adr-constants';
 import { buildDiscoverFilterSearch, filterKnownValues, parseDiscoverFilterSearch } from './url-filters';
 
@@ -243,18 +244,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [tableFilter, setTableFilter] = useState(initialUrlFilters.q);
-  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
-  const PAGE_SIZE_STORAGE_KEY = 'eventcatalog-discover-page-size';
-  const [pageSize, setPageSize] = useState<number>(() => {
-    if (typeof window === 'undefined') return 10;
-    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
-    return PAGE_SIZE_OPTIONS.includes(stored) ? stored : 10;
-  });
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(pageSize));
-    }
-  }, [pageSize]);
+  const [pageSize, setPageSize] = useStoredPageSize('eventcatalog-discover-page-size');
   const [showOnlyLatest, setShowOnlyLatest] = useState(initialUrlFilters.showOnlyLatest);
   const [onlyShowDrafts, setOnlyShowDrafts] = useState(initialUrlFilters.onlyShowDrafts);
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() =>
@@ -1287,55 +1277,7 @@ export function DiscoverTable<T extends DiscoverTableData>({
           </div>
         </div>
 
-        {/* Pagination */}
-        <div className="flex-shrink-0 flex items-center justify-between px-6 py-3 border-t border-[rgb(var(--ec-page-border))]">
-          <div className="flex items-center gap-3 text-xs text-[rgb(var(--ec-page-text-muted))]">
-            {totalResults > 0 && (
-              <span>
-                <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getRowModel().rows.length}</span> of{' '}
-                <span className="font-medium text-[rgb(var(--ec-page-text))]">{totalResults}</span> results
-              </span>
-            )}
-            {totalResults > 0 && <span aria-hidden className="h-3 w-px bg-[rgb(var(--ec-page-border))]" />}
-            <label className="flex items-center gap-1.5">
-              <span>Per page</span>
-              <select
-                value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                className="cursor-pointer rounded bg-transparent px-1 py-0.5 font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] focus:bg-[rgb(var(--ec-content-hover))] focus:outline-none"
-              >
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button
-              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              title="Previous page"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-xs tabular-nums text-[rgb(var(--ec-page-text-muted))] min-w-[60px] text-center">
-              <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getState().pagination.pageIndex + 1}</span>
-              {' / '}
-              <span>{table.getPageCount() || 1}</span>
-            </span>
-            <button
-              className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              title="Next page"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <TablePagination table={table} pageSize={pageSize} onPageSizeChange={setPageSize} />
       </div>
     </div>
   );

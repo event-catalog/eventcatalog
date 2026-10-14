@@ -14,3 +14,15 @@ export * from "./utils/utils";
 
 // Layout utilities (DSL graph → ReactFlow nodes/edges)
 export { layoutGraph, buildNodeData } from "./layout";
+
+// Grouping a flow's steps (by domain, system or team)
+export {
+  isFlowGroupBy,
+  type FlowGroupBy,
+  type FlowGroupStyle,
+} from "./swimlanes";
+export { DIAGRAM_FIT_VIEW_OPTIONS } from "./fit-view";
+// Memoizing custom nodes (ignoring their position, which React Flow passes on every frame they move)
+export { memoNode } from "./node-memo";
+// Pausing message animations while the canvas moves
+export { pauseEdgeAnimations } from "./edge-animations";

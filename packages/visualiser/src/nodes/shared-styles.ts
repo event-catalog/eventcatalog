@@ -2,13 +2,27 @@ import { type CSSProperties, useSyncExternalStore } from "react";
 
 // ─── Dark mode detection ────────────────────────────────────────────────────
 
+// Every node follows the theme: one observer for all of them, from the first node shown until the last is gone
+const themeListeners = new Set<() => void>();
+let themeObserver: MutationObserver | undefined;
+
 function subscribeTheme(callback: () => void) {
-  const observer = new MutationObserver(callback);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["data-theme"],
-  });
-  return () => observer.disconnect();
+  themeListeners.add(callback);
+  if (!themeObserver) {
+    themeObserver = new MutationObserver(() =>
+      themeListeners.forEach((listener) => listener()),
+    );
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  }
+  return () => {
+    themeListeners.delete(callback);
+    if (themeListeners.size > 0) return;
+    themeObserver?.disconnect();
+    themeObserver = undefined;
+  };
 }
 
 function getIsDark() {
@@ -126,4 +140,26 @@ export const EMPTY_OBJECT: Readonly<Record<string, never>> = {} as const;
 
 export const QUEUE_BORDER_STYLE = {
   borderTop: "1px dashed rgb(var(--ec-page-border))",
+} as const;
+
+// ─── Handle glow ────────────────────────────────────────────────────────────
+
+// The colour (as "r, g, b") of the ring that pulses out from a node's handles,
+// for elements with the `ec-handle-glow` class. The ring only animates
+// transform and opacity, so it runs on the compositor.
+const glow = (rgb: string) => ({ "--ec-glow": rgb }) as CSSProperties;
+
+export const HANDLE_GLOW = {
+  event: glow("251, 146, 60"),
+  service: glow("236, 72, 153"),
+  command: glow("59, 130, 246"),
+  query: glow("34, 197, 94"),
+  data: glow("59, 130, 246"),
+  channel: glow("107, 114, 128"),
+  actor: glow("234, 179, 8"),
+  external: glow("168, 85, 247"),
+  dataProduct: glow("99, 102, 241"),
+  view: glow("14, 165, 233"),
+  // Nodes without a colour of their own (fields, message groups, custom steps)
+  generic: glow("251, 146, 60"),
 } as const;

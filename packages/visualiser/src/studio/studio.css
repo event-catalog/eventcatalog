@@ -1,0 +1,509 @@
+/*
+ * The visualiser hides node handles (it is read only), here they are the connection points,
+ * so show them on hover, on selection and while connecting.
+ */
+.studio-canvas .react-flow__handle {
+  opacity: 0 !important;
+  width: 11px;
+  height: 11px;
+  background: rgb(var(--ec-card-bg));
+  border: 2px solid rgb(var(--ec-accent));
+  transition: opacity 0.15s ease;
+  z-index: 30;
+}
+
+.studio-canvas .react-flow__node:hover .react-flow__handle,
+.studio-canvas .react-flow__node.selected .react-flow__handle,
+.studio-canvas .react-flow__pane.connecting ~ * .react-flow__handle,
+.studio-canvas .react-flow__handle.connectingto {
+  opacity: 1 !important;
+}
+
+.studio-canvas .react-flow__handle:hover,
+.studio-canvas .react-flow__handle.connectingto {
+  background: rgb(var(--ec-accent));
+}
+
+.studio-canvas .react-flow__handle.connectingto.valid {
+  background: rgb(var(--ec-badge-color-green-text));
+  border-color: rgb(var(--ec-badge-color-green-text));
+}
+
+.studio-canvas .react-flow__edge.selected .react-flow__edge-path,
+.studio-canvas .react-flow__edge:hover .react-flow__edge-path {
+  stroke: rgb(var(--ec-accent)) !important;
+  stroke-width: 2px !important;
+}
+
+/*
+ * A connection being dragged (a new one, or an end moved to another node): once it's on a node it can connect
+ * to, it turns the hover colour, so you know letting go will connect it
+ */
+.studio-canvas .react-flow__connection-path {
+  stroke-width: 2px;
+  transition: stroke 100ms ease;
+}
+/* Like a hovered edge in the visualiser: glowing, with the dashes flowing (ec-edge-dash, from its styles) */
+.studio-canvas .react-flow__connection.valid .react-flow__connection-path {
+  stroke: #2563eb;
+  stroke-width: 4px;
+  filter: drop-shadow(0 0 8px #2563eb);
+  stroke-dasharray: 5 5;
+  animation: ec-edge-dash 0.5s linear infinite;
+}
+[data-theme='dark'] .studio-canvas .react-flow__connection.valid .react-flow__connection-path {
+  stroke: #00d9ff;
+  filter: drop-shadow(0 0 8px #00d9ff);
+}
+
+/* Comment mode (C): click anywhere to drop a comment */
+.studio-canvas.comment-mode .react-flow__pane,
+.studio-canvas.comment-mode .react-flow__node {
+  cursor: crosshair !important;
+}
+
+/* After a layout or a level change, nodes glide to their new place */
+.studio-canvas.is-layout-transition .react-flow__node {
+  transition: transform 450ms ease;
+}
+
+/* Edges are drawn where the nodes end up, so they wait for the glide to finish */
+.studio-canvas .react-flow__edges {
+  transition: opacity 200ms ease;
+}
+.studio-canvas.is-layout-transition .react-flow__edges {
+  opacity: 0;
+  transition: none;
+}
+
+/* Containers grow smoothly when they're fitted to what's in them, or someone else resizes them */
+.studio-canvas.is-container-resize :is(.react-flow__node-domain-group, .react-flow__node-system-group) {
+  transition:
+    width 300ms ease,
+    height 300ms ease,
+    transform 300ms ease;
+}
+
+/* Nodes pop in when they're added (by anyone, people or agents) */
+@keyframes studio-node-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+.studio-canvas .react-flow__node {
+  animation: studio-node-in 220ms ease-out;
+}
+
+/* No React Flow attribution on the canvas */
+.studio-canvas .react-flow__attribution {
+  display: none;
+}
+
+/*
+ * Containers let the pointer through their body to the canvas (so dragging inside one draws a selection box),
+ * and are moved, selected and resized by their header and resize handles. React Flow sets pointer-events inline.
+ */
+.studio-canvas .react-flow__node-domain-group,
+.studio-canvas .react-flow__node-system-group {
+  pointer-events: none !important;
+}
+.studio-canvas .react-flow__node-domain-group :is(.ec-group-grip, .react-flow__resize-control),
+.studio-canvas .react-flow__node-system-group :is(.ec-group-grip, .react-flow__resize-control) {
+  pointer-events: auto;
+}
+
+/*
+ * Selected nodes get an accent outline and glow around them, and hovered ones a faint outline (like Figma and
+ * Miro). Drawn by the node's wrapper, so it fits every kind of node. Containers draw their own.
+ */
+.studio-canvas .react-flow__node:not(.react-flow__node-domain-group, .react-flow__node-system-group, .react-flow__node-text)::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  pointer-events: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.studio-canvas .react-flow__node:not(.react-flow__node-domain-group, .react-flow__node-system-group, .react-flow__node-text):hover::after {
+  border-color: color-mix(in srgb, rgb(var(--ec-accent)) 35%, transparent);
+}
+.studio-canvas .react-flow__node.selected:not(.react-flow__node-domain-group, .react-flow__node-system-group, .react-flow__node-text)::after {
+  border-color: rgb(var(--ec-accent));
+  box-shadow: 0 0 0 4px color-mix(in srgb, rgb(var(--ec-accent)) 15%, transparent);
+}
+
+/* A selected or hovered connection shows the ends you can drag to another node. (Tints of the accent are mixed:
+   on the canvas it's written with commas, which rgb(... / alpha) can't take) */
+.studio-canvas .react-flow__edge .react-flow__edgeupdater {
+  cursor: grab;
+}
+.studio-canvas .react-flow__edge:is(.selected, :hover) .react-flow__edgeupdater {
+  fill: color-mix(in srgb, rgb(var(--ec-accent)) 20%, transparent);
+  stroke: rgb(var(--ec-accent));
+  stroke-width: 1.5;
+}
+
+/* A selected container */
+.studio-canvas .ec-group-selected {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, rgb(var(--ec-accent)) 70%, transparent);
+  pointer-events: none;
+}
+
+/* A container something's dragged over: it goes in it when it's dropped (in the theme's button colours, which stay
+   strong in light and dark themes) */
+.studio-canvas .ec-drop-target {
+  position: absolute;
+  inset: -5px;
+  border-radius: 17px;
+  border: 3px solid rgb(var(--ec-button-bg));
+  background: rgb(var(--ec-button-bg) / 0.1);
+  box-shadow: 0 0 0 6px rgb(var(--ec-button-bg) / 0.2);
+  pointer-events: none;
+  animation: ec-drop-target-in 150ms ease-out;
+}
+.studio-canvas .ec-drop-target-label {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  translate: -50% 0;
+  white-space: nowrap;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--ec-button-text));
+  background: rgb(var(--ec-button-bg));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+}
+@keyframes ec-drop-target-in {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+}
+
+/*
+ * What's dragged from the left panel (DragGhost): just the node, on nothing. The visualiser's class gives it the page
+ * background, and its handles are hidden on the canvas only.
+ */
+.studio-drag-preview,
+.studio-drag-preview .react-flow,
+.studio-drag-preview .react-flow__renderer,
+.studio-drag-preview .react-flow__pane,
+/* (over the visualiser's own, which give its diagrams the page background, the dark theme's more specifically) */
+html[data-theme] .studio-drag-preview.eventcatalog-visualizer .react-flow,
+html[data-theme] .studio-drag-preview.eventcatalog-visualizer .react-flow__renderer,
+html[data-theme] .studio-drag-preview.eventcatalog-visualizer .react-flow__pane,
+html .studio-drag-preview.eventcatalog-visualizer .react-flow {
+  background: transparent !important;
+}
+.studio-drag-preview .react-flow__handle {
+  display: none !important;
+}
+
+/* Text written on the canvas: no card around it, in the page's text colour */
+.studio-canvas .studio-text,
+.studio-drag-preview .studio-text {
+  position: relative;
+  width: max-content;
+  min-width: 24px;
+  padding: 4px 8px;
+  transform-origin: center;
+}
+.studio-text .studio-text-body {
+  margin: 0;
+  /* Handwritten, as text typed on Excalidraw's canvas (Excalifont, bundled in view.css) */
+  font-family: 'Excalifont', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 22px;
+  line-height: 1.3;
+  color: rgb(var(--ec-page-text));
+  white-space: pre;
+}
+
+.studio-canvas .studio-width-handle {
+  border-color: rgb(var(--ec-accent)) !important;
+}
+
+/* A sticky note: about square like a post-it, taller if more is written on it (dark text: the paper is light in
+   every theme) */
+.studio-note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 176px;
+  height: 100%;
+  padding: 20px 18px 30px;
+  border: 1px solid;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 6px 16px -6px rgb(0 0 0 / 0.18);
+  color: #1f2937;
+}
+.studio-note .studio-note-body {
+  margin: 0;
+  /* Handwritten, as Excalidraw's notes are (Excalifont, bundled in view.css) */
+  font-family: 'Excalifont', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 22px;
+  line-height: 1.3;
+  text-align: center;
+  color: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* The level it's on, and when it was written, in its corners */
+.studio-note .studio-note-level,
+.studio-note .studio-note-date {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  color: inherit;
+  opacity: 0.75;
+  pointer-events: none;
+}
+.studio-note .studio-note-level {
+  right: auto;
+  left: 14px;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+}
+.studio-note .studio-note-body::placeholder {
+  color: inherit;
+  opacity: 0.5;
+}
+/* Its colours, above it while it's selected */
+.studio-note .studio-note-colors {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--ec-page-border));
+  background: rgb(var(--ec-card-bg));
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}
+.studio-note .studio-note-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  border: 2px solid;
+  cursor: pointer;
+}
+
+/* The hand: everything on the canvas is grabbed to move around it */
+.studio-canvas.is-panning .react-flow__pane,
+.studio-canvas.is-panning .react-flow__node,
+.studio-canvas.is-panning .react-flow__edge { cursor: grab !important; }
+.studio-canvas.is-panning .react-flow__pane.dragging { cursor: grabbing !important; }
+
+/* The text tool: click anywhere on the canvas to write there */
+.studio-canvas.is-placing .react-flow__pane,
+.studio-canvas.is-placing .react-flow__node { cursor: crosshair !important; }
+/* Text being written has no box around it, like Excalidraw's */
+.studio-text textarea.studio-text-body { display: block; width: 100%; border: 0; outline: none; padding: 0; resize: none; overflow: hidden; background: transparent; }
+
+/* Text selected: a box, with corners that scale it and a handle above that turns it, as Excalidraw's */
+.studio-text.is-framed { outline: 1px solid rgb(var(--ec-accent)); }
+.studio-text .studio-text-corner,
+.studio-text .studio-text-turn {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgb(var(--ec-accent));
+  border-radius: 3px;
+  background: rgb(var(--ec-card-bg));
+  z-index: 1;
+}
+.studio-text .studio-text-corner.is-top-left { left: -5px; top: -5px; cursor: nwse-resize; }
+.studio-text .studio-text-corner.is-top-right { right: -5px; top: -5px; cursor: nesw-resize; }
+.studio-text .studio-text-corner.is-bottom-left { left: -5px; bottom: -5px; cursor: nesw-resize; }
+.studio-text .studio-text-corner.is-bottom-right { right: -5px; bottom: -5px; cursor: nwse-resize; }
+.studio-text .studio-text-turn { left: calc(50% - 5px); top: -26px; border-radius: 9999px; cursor: grab; }
+.studio-text .studio-text-turn:active { cursor: grabbing; }
+
+/* A selected node's Edit button, above its top right corner (hidden while things move) */
+.studio-edit-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border: 1px solid rgb(var(--ec-page-border));
+  border-radius: 7px;
+  background: rgb(var(--ec-card-bg));
+  color: rgb(var(--ec-page-text));
+  font: 600 12px/1 'Inter', ui-sans-serif, system-ui, sans-serif;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+  cursor: pointer;
+}
+.studio-edit-button:hover { background: rgb(var(--ec-content-hover)); border-color: rgb(var(--ec-accent)); }
+.studio-edit-button svg { width: 12px; height: 12px; }
+.ec-interaction-active .react-flow__node-toolbar { visibility: hidden; }
+
+/* Each kind's icon colour (the visualiser's -600s) is too dark on the dark theme's cards: a lighter shade there, as
+   EventCatalog's dark theme uses (on the canvas and what's dragged onto it: not the rest of the page it's on) */
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-pink-600 { color: #f472b6; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-orange-600 { color: #fb923c; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-blue-600 { color: #60a5fa; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-green-600 { color: #4ade80; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-gray-600 { color: #9ca3af; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-violet-600 { color: #a78bfa; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-purple-600 { color: #c084fc; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-sky-600 { color: #38bdf8; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-emerald-600 { color: #34d399; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-indigo-600 { color: #818cf8; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-teal-600 { color: #2dd4bf; }
+:root[data-theme='dark'] :is(.studio-canvas, .studio-drag-preview) svg.text-cyan-600 { color: #22d3ee; }
+
+/* An entity's whole-entity source, on its header's right (level with the visualiser's target on the left) */
+.studio-canvas .react-flow__handle.studio-entity-source { top: 29px !important; }
+
+/* The other people in a live room: their cursor and name, in their colour */
+.studio-live-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+  z-index: 1000;
+  /* (no transition: it glides a step a frame, see smooth.ts) */
+}
+.studio-live-cursor span {
+  position: absolute;
+  left: 14px;
+  top: 16px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  color: white;
+  font: 600 11px/1.4 'Inter', ui-sans-serif, system-ui, sans-serif;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+}
+
+/* The canvas's dots on the dark theme: the visualiser's are bright enough to busy the page, so a quieter grey, as
+   Excalidraw's are */
+[data-theme='dark'] .eventcatalog-visualizer.studio-canvas { --ec-bg-dots: #353b46; }
+
+/* A picked tool or level on the dark theme: the accent's -600 on its own tint is hard to read there, so a lighter
+   indigo on a slightly stronger tint (the canvas's own buttons, not the page's) */
+:root[data-theme='dark'] .studio-canvas button[aria-pressed='true'] { color: #a5b4fc; background-color: rgb(99 102 241 / 0.24); }
+:root[data-theme='dark'] .studio-canvas button[aria-pressed='true']:hover { background-color: rgb(99 102 241 / 0.32); }
+
+/* Hotspots: a node with any glows in the colour of the most important (critical red, warning amber, info blue), so
+   it's found at a glance; their markers sit on its top right corner (Hotspots.tsx). The glow is still: an animated
+   one cost every frame for every hotspot, idle (10 hotspots: ~200 ms of every 3 seconds, against ~2 ms) */
+.studio-canvas .react-flow__node.studio-hotspot { --studio-hotspot: 217 119 6; border-radius: 14px; }
+.studio-canvas .react-flow__node.studio-hotspot-critical { --studio-hotspot: 220 38 38; }
+.studio-canvas .react-flow__node.studio-hotspot-info { --studio-hotspot: 37 99 235; }
+.studio-canvas .react-flow__node.studio-hotspot::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 16px;
+  border: 2px solid rgb(var(--studio-hotspot) / 0.85);
+  box-shadow: 0 0 0 4px rgb(var(--studio-hotspot) / 0.12), 0 0 22px 2px rgb(var(--studio-hotspot) / 0.35);
+  pointer-events: none;
+}
+.studio-hotspot-marker {
+  box-shadow: 0 0 0 2px rgb(var(--ec-card-bg)), 0 4px 12px rgb(0 0 0 / 0.25);
+  transition: transform 120ms;
+}
+.studio-hotspot-marker:hover { transform: scale(1.05); }
+/* Zoomed well out: just each marker's icon (its title is in the list, and on hover) */
+.is-icons-only .studio-hotspot-label { display: none; }
+.is-icons-only .studio-hotspot-marker { padding-right: 4px; }
+/* An open marker's panel (or the form adding one): its full size on screen however far out the canvas is */
+.studio-hotspot-panel { transform: scale(var(--studio-hotspot-panel-scale, 1)); transform-origin: 0 -34px; }
+
+/* A hotspot being dragged over a node: the node lights up in its colour, to show it'll go on it when dropped */
+.studio-canvas .react-flow__node.studio-hotspot-drop { --studio-hotspot-drop: 217 119 6; border-radius: 14px; }
+.studio-canvas .react-flow__node.studio-hotspot-drop-critical { --studio-hotspot-drop: 220 38 38; }
+.studio-canvas .react-flow__node.studio-hotspot-drop-info { --studio-hotspot-drop: 37 99 235; }
+.studio-canvas .react-flow__node.studio-hotspot-drop::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 16px;
+  border: 2.5px dashed rgb(var(--studio-hotspot-drop));
+  background: rgb(var(--studio-hotspot-drop) / 0.08);
+  box-shadow: 0 0 0 6px rgb(var(--studio-hotspot-drop) / 0.15), 0 0 32px 6px rgb(var(--studio-hotspot-drop) / 0.45);
+  pointer-events: none;
+}
+
+/*
+ * A node's card (NodeCard.tsx), next to it on the canvas: its header, and the form that edits it, its fields saved as
+ * they're typed.
+ */
+/* Icon buttons, as EventCatalog's (Studio's Dialog.tsx and CanvasHeader.tsx) */
+.ec-icon-button {
+  display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex-shrink: 0; border: 0;
+  border-radius: 6px; background: transparent; color: rgb(var(--ec-page-text-muted)); cursor: pointer;
+}
+.ec-icon-button:hover:not(:disabled) { color: rgb(var(--ec-page-text)); background: rgb(var(--ec-page-border) / 0.4); }
+.ec-icon-button:disabled { opacity: 0.35; cursor: default; }
+.ec-icon-button svg { width: 15px; height: 15px; }
+/* A node's page: a small docs page (the catalog's resource header, badges, toolbar and Sends / Receives lists) */
+.ec-doc-card {
+  position: absolute; z-index: 30; max-height: calc(100% - 110px); overflow-y: auto; border: 1px solid rgb(var(--ec-page-border));
+  border-radius: 12px; background: rgb(var(--ec-card-bg)); color: rgb(var(--ec-page-text)); box-shadow: 0 24px 48px rgb(0 0 0 / 0.16), 0 2px 6px rgb(0 0 0 / 0.06);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+/* The card's arrow, to the node it's about: a square turned on its corner, over the card's edge */
+.ec-doc-card-arrow {
+  position: absolute; z-index: 31; width: 14px; height: 14px; background: rgb(var(--ec-card-bg)); transform: rotate(45deg);
+  border: 1px solid rgb(var(--ec-page-border)); pointer-events: none;
+}
+.ec-doc-card-arrow.is-right { border-top-color: transparent; border-right-color: transparent; }
+.ec-doc-card-arrow.is-left { border-bottom-color: transparent; border-left-color: transparent; }
+/* Nothing under the header: no line under it either */
+.ec-doc-card-header:last-child { border-bottom: 0; }
+.ec-doc-card-header { padding: 14px 16px 12px; border-bottom: 1px solid rgb(var(--ec-page-border)); }
+.ec-doc-card-kicker { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ec-doc-card-breadcrumb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgb(var(--ec-page-text-muted)); font-size: 12px; }
+.ec-doc-card-close { margin-left: auto; margin-right: -6px; }
+.ec-doc-card-title { margin: 10px 0 0; font-size: 20px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
+.ec-doc-card-version { margin-left: 8px; font-size: 12px; font-weight: 500; color: rgb(var(--ec-page-text-muted)); letter-spacing: 0; }
+.ec-doc-card-summary { margin: 8px 0 0; font-size: 13px; font-weight: 300; line-height: 1.55; color: rgb(var(--ec-page-text-muted)); }
+/* Editing it: a small form, its fields plainly fields (a border, a focus ring), saved as they're typed */
+.ec-edit-form { display: flex; flex-wrap: wrap; gap: 12px 10px; margin-top: 14px; }
+.ec-field { display: flex; flex: 1 1 100%; flex-direction: column; gap: 5px; min-width: 0; }
+.ec-field-version { flex: 0 0 120px; }
+.ec-field-label { font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: rgb(var(--ec-page-text-muted)); }
+.ec-editable {
+  box-sizing: border-box; display: block; width: 100%; padding: 7px 10px; border: 1px solid rgb(var(--ec-page-border)); border-radius: 8px;
+  background: rgb(var(--ec-page-bg)); color: rgb(var(--ec-page-text)); font: inherit; font-size: 13px; line-height: 1.4; outline: none; resize: none;
+  transition: border-color 120ms, box-shadow 120ms, background 120ms;
+}
+.ec-editable:hover { border-color: color-mix(in srgb, rgb(var(--ec-page-text-muted)) 55%, transparent); }
+.ec-editable:focus {
+  border-color: rgb(var(--ec-accent)); background: rgb(var(--ec-card-bg));
+  box-shadow: 0 0 0 3px color-mix(in srgb, rgb(var(--ec-accent)) 18%, transparent);
+}
+.ec-editable::placeholder { color: rgb(var(--ec-page-text-muted)); opacity: 0.7; }
+.ec-editable-title { font-size: 15px; font-weight: 600; }
+.ec-editable-summary { min-height: 60px; overflow: hidden; line-height: 1.5; }
+.ec-edit-status {
+  display: inline-flex; flex: 1 1 100%; align-items: center; gap: 4px; margin: -4px 0 0; font-size: 11px;
+  color: rgb(var(--ec-page-text-muted)); opacity: 0.8; transition: color 150ms;
+}
+.ec-edit-status.is-saved { color: #16a34a; opacity: 1; }
+.ec-edit-status svg { width: 12px; height: 12px; }
+.ec-doc-card-header:has(+ .ec-doc-card-body:empty) { border-bottom: 0; }

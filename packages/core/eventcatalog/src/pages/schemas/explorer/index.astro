@@ -1,7 +1,6 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import SchemaExplorer from '@components/SchemaExplorer/SchemaExplorer';
-import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { Page } from './_index.data';
 // Ships the visualiser CSS in the page head for the Usage tab's node graph (see NodeGraph.astro).
 import '@eventcatalog/visualiser/styles-core.css';
@@ -9,12 +8,12 @@ import '@eventcatalog/visualiser/styles-core.css';
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
 
-const { schemas } = await Page.getData(Astro);
-
-const apiAccessEnabled = isEventCatalogScaleEnabled();
+const pageData = await Page.getData(Astro);
+if (!pageData) return Astro.rewrite('/404');
+const { schemas } = pageData;
 ---
 
-<VerticalSideBarLayout title="Schema Explorer - EventCatalog" showNestedSideBar={false}>
+<VerticalSideBarLayout title="Schema Explorer" showNestedSideBar={false}>
   <style is:global>
     .react-flow__attribution {
       display: none;
@@ -37,6 +36,6 @@ const apiAccessEnabled = isEventCatalogScaleEnabled();
     class="min-h-0 overflow-hidden bg-[rgb(var(--ec-page-bg))]"
     style={`--ec-schema-sidebar-width: 360px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);`}
   >
-    <SchemaExplorer client:load schemas={schemas as any} apiAccessEnabled={apiAccessEnabled} />
+    <SchemaExplorer client:load schemas={schemas as any} />
   </main>
 </VerticalSideBarLayout>

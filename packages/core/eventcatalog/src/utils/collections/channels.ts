@@ -1,6 +1,13 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import { getItemsFromCollectionByIdAndSemverOrLatest, createVersionedMap, satisfies } from './util';
+import {
+  getItemsFromCollectionByIdAndSemverOrLatest,
+  createVersionedMap,
+  findInMap,
+  getVersionedMap,
+  satisfies,
+  uniqueResources,
+} from './util';
 import type { CollectionMessageTypes } from '@types';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
@@ -194,4 +201,52 @@ export const getChannelChain = (
     }
   }
   return [];
+};
+
+/**
+ * What a channel connects: the services and agents that send to it (`sends[].to`) or receive
+ * from it (`receives[].from`), and the messages that travel through it, from those pointers or
+ * from messages that list the channel (`data.messages` from getChannels). Pass raw entries:
+ * hydration resolves sends/receives to messages and drops the channel pointers. Pointers
+ * without a version mean the latest channel or message.
+ */
+export const getChannelConnections = (
+  channel: Channel,
+  catalog: {
+    endpoints: Array<CollectionEntry<'services'> | CollectionEntry<'agents'>>;
+    channels: Channel[];
+    messages: CollectionEntry<CollectionMessageTypes>[];
+  }
+) => {
+  const channelMap = getVersionedMap(catalog.channels);
+  const messageMap = getVersionedMap(catalog.messages);
+  const isThisChannel = (pointer: { id: string; version?: string }) => {
+    const match = findInMap(channelMap, pointer.id, pointer.version);
+    return match?.data.id === channel.data.id && match?.data.version === channel.data.version;
+  };
+
+  const producers: Array<CollectionEntry<'services'> | CollectionEntry<'agents'>> = [];
+  const consumers: Array<CollectionEntry<'services'> | CollectionEntry<'agents'>> = [];
+  const messages: CollectionEntry<CollectionMessageTypes>[] = [];
+  const addMessage = (pointer: { id: string; version?: string }) => {
+    const message = findInMap(messageMap, pointer.id, pointer.version);
+    if (message) messages.push(message);
+  };
+
+  for (const endpoint of catalog.endpoints) {
+    for (const send of (endpoint.data.sends || []) as any[]) {
+      if (!(send.to || []).some(isThisChannel)) continue;
+      producers.push(endpoint);
+      addMessage(send);
+    }
+    for (const receive of (endpoint.data.receives || []) as any[]) {
+      if (!(receive.from || []).some(isThisChannel)) continue;
+      consumers.push(endpoint);
+      addMessage(receive);
+    }
+  }
+
+  for (const message of (channel.data as any).messages || []) addMessage(message);
+
+  return { producers: uniqueResources(producers), consumers: uniqueResources(consumers), messages: uniqueResources(messages) };
 };

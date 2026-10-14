@@ -14,6 +14,11 @@ receives:
     from:
       - id: shopping.discount-commands
         version: 1.0.0
+  - id: loyalty-points-earned
+    version: 1.0.0
+    from:
+      - id: customer.loyalty-events
+        version: 1.0.0
 sends:
   - id: discount-calculated
     version: 1.0.0
@@ -28,11 +33,11 @@ import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
-The **Promotion Service** is the heart of the Promotion System. It receives [[command|calculate-discount]] requests from the [[system|cart-system]], evaluates the applicable rules from the [[container|promotion-database]], and publishes a [[event|discount-calculated]] event with the result.
+The **Promotion Service** is the heart of the Promotion System. It receives [[command|calculate-discount]] requests from the [[system|cart-system]], evaluates the applicable rules from the [[container|promotion-database]], and publishes a [[event|discount-calculated]] event with the result. It also consumes [[event|loyalty-points-earned]] from the Customer domain to unlock loyalty-tier promotions.
 
 <Tiles>
   <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} message`} description="The calculated discount, published as an event" />
-  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} message`} description="Discount calculation requests" />
+  <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="Discount requests and loyalty events" />
 </Tiles>
 
 ### Responsibilities
@@ -40,6 +45,7 @@ The **Promotion Service** is the heart of the Promotion System. It receives [[co
 | Area | Description |
 |------|-------------|
 | Discount calculation | Handles [[command\|calculate-discount]] and evaluates promotion rules. |
+| Loyalty promotions | Consumes [[event\|loyalty-points-earned]] to unlock loyalty-tier promotions for the customer. |
 | Rules | Reads promotion and discount rules from the [[container\|promotion-database]]. |
 | Event publishing | Emits [[event\|discount-calculated]] with the calculated result. |
 

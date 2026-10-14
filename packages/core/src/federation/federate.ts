@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/src/federation/LICENSE
- */
-
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -11,7 +6,6 @@ import type { FederationSourceConfig } from '../eventcatalog.config';
 import { getEventCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { createFederationContentCache } from './content-cache';
 import { getFederationDiagnostics, resolveFederationRules, type FederationDiagnostic } from './diagnostics';
-import { isFederationEnabled } from './entitlement';
 import { withFederationOutputTransaction } from './output-transaction';
 import { composePublicAssets, type FederatedPublicFiles, type PublicAssetCompositionResult } from './public-assets';
 import { createFederationSourceProvider } from './source-provider';
@@ -208,11 +202,6 @@ export const federateCatalog = async (
   if (sources.length === 0) {
     await cleanupPreviousFederation(projectDirectory, options.onProgress);
     return null;
-  }
-  if (!(await isFederationEnabled())) {
-    throw new Error(
-      'Cannot federate catalogs: EventCatalog federation is an Enterprise feature. Visit https://www.eventcatalog.dev/pricing to enable federation.'
-    );
   }
   validateSources(sources);
   const rules = resolveFederationRules(config.federation?.rules);

@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Package } from "lucide-react";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../utils/node-connections";
 import { EventCatalogResource } from "../types";
 import { NotesIndicator } from "./NotesIndicator";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
@@ -8,6 +9,7 @@ import {
   LINE_CLAMP_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
+  HANDLE_GLOW,
 } from "./shared-styles";
 import { CustomIcon, isIconPath } from "../utils/custom-icon";
 import { TruncatedResourceName } from "./TruncatedResourceName";
@@ -15,6 +17,7 @@ import { TruncatedResourceName } from "./TruncatedResourceName";
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -26,7 +29,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         background: "linear-gradient(135deg, #6366f1, #4338ca)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-dp-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.dataProduct,
         pointerEvents: "none",
       }}
     />
@@ -194,8 +197,7 @@ function DefaultDataProduct(props: DataProductNode) {
     props.data.dataProduct;
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
@@ -234,8 +236,8 @@ function DefaultDataProduct(props: DataProductNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       {/* Badge positioned outside top-left corner */}
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">

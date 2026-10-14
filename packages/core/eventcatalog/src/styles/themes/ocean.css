@@ -6,8 +6,8 @@
  */
 
 /* Ocean Light Mode */
-:root[data-catalog-theme="ocean"],
-:root[data-catalog-theme="ocean"][data-theme="light"] {
+:root[data-catalog-theme='ocean'],
+:root[data-catalog-theme='ocean'][data-theme='light'] {
   /* Header - light with subtle teal tint */
   --ec-header-bg: 255 255 255; /* #ffffff */
   --ec-header-text: 15 23 42; /* #0f172a */
@@ -110,7 +110,7 @@
 }
 
 /* Ocean Dark Mode */
-:root[data-catalog-theme="ocean"][data-theme="dark"] {
+:root[data-catalog-theme='ocean'][data-theme='dark'] {
   /*
    * Unified dark background - all major surfaces share the same deep ocean color
    * Creates a seamless, immersive dark experience
@@ -214,7 +214,7 @@
 }
 
 /* Ocean theme prose overrides */
-:root[data-catalog-theme="ocean"][data-theme="dark"] .prose {
+:root[data-catalog-theme='ocean'][data-theme='dark'] .prose {
   --tw-prose-body: rgb(148 163 184); /* slate-400 */
   --tw-prose-headings: rgb(226 232 240); /* slate-200 */
   --tw-prose-lead: rgb(100 116 139); /* slate-500 */
@@ -233,19 +233,19 @@
   --tw-prose-td-borders: rgb(30 41 59); /* slate-800 */
 }
 
-:root[data-catalog-theme="ocean"][data-theme="dark"] .prose code {
+:root[data-catalog-theme='ocean'][data-theme='dark'] .prose code {
   background-color: rgb(30 41 59); /* slate-800 */
 }
 
-:root[data-catalog-theme="ocean"][data-theme="dark"] .prose pre {
+:root[data-catalog-theme='ocean'][data-theme='dark'] .prose pre {
   background-color: rgb(15 23 42); /* slate-900 */
   border: 1px solid rgb(30 41 59); /* slate-800 */
 }
 
-:root[data-catalog-theme="ocean"][data-theme="dark"] .prose a {
+:root[data-catalog-theme='ocean'][data-theme='dark'] .prose a {
   color: rgb(45 212 191); /* teal-400 */
 }
 
-:root[data-catalog-theme="ocean"][data-theme="dark"] .prose a:hover {
+:root[data-catalog-theme='ocean'][data-theme='dark'] .prose a:hover {
   color: rgb(94 234 212); /* teal-300 */
 }

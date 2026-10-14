@@ -3,25 +3,18 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { execSync } from 'node:child_process';
 
-// Mock @eventcatalog/license
-vi.mock('@eventcatalog/license', () => ({
-  isEventCatalogScaleEnabled: vi.fn(),
-}));
-
 // Mock @eventcatalog/sdk
 vi.mock('@eventcatalog/sdk', () => ({
   default: vi.fn(),
 }));
 
 import { governanceCheck } from '../cli/governance';
-import { isEventCatalogScaleEnabled } from '@eventcatalog/license';
 import createSDK from '@eventcatalog/sdk';
 
 const TEMP_DIR = path.join(__dirname, 'governance-check-temp');
 
 beforeEach(() => {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
-  vi.mocked(isEventCatalogScaleEnabled).mockResolvedValue(true);
 });
 
 afterEach(() => {
@@ -30,12 +23,6 @@ afterEach(() => {
 });
 
 describe('governance check', () => {
-  it('throws when Scale plan is not enabled', async () => {
-    vi.mocked(isEventCatalogScaleEnabled).mockResolvedValue(false);
-
-    await expect(governanceCheck({ dir: TEMP_DIR })).rejects.toThrow('Governance requires an EventCatalog Scale plan');
-  });
-
   it('returns message when no governance.yaml exists', async () => {
     // Need to mock git archive - init a git repo
     try {

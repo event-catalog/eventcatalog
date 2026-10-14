@@ -1,0 +1,49 @@
+export const TRIAL_LENGTH_DAYS = 60;
+
+export const LICENSE_FAQ_URL = 'https://www.eventcatalog.dev/license-faq';
+
+// Where a commercial license is renewed
+export const LICENSE_RENEW_URL = 'https://eventcatalog.cloud';
+
+// Where the Business plan is bought: the order form on the website
+export const BUY_BUSINESS_URL = 'https://www.eventcatalog.dev/buy?source=cli';
+
+// Prices for a commercial license, linked while the trial is running
+export const PRICING_URL = 'https://www.eventcatalog.dev/pricing';
+
+// Questions about licensing or buying: talk to the EventCatalog team
+export const TALK_TO_US_URL = 'https://www.eventcatalog.dev/book-demo';
+
+// Shown with the trial, so organisations that qualify for Free Use don't read it as "EventCatalog is now paid"
+export const FREE_USE_NOTE =
+  'Under $10M revenue and $10M raised, an individual or an open-source project? You qualify for Free Use; get a free key at eventcatalog.cloud.';
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+export type TrialStatus = {
+  daysLeft: number;
+  ended: boolean;
+  endsAt: Date;
+};
+
+/**
+ * The trial started at `tsd` (unix ms, written to eventcatalog.config.js when the catalog was
+ * created) and lasts TRIAL_LENGTH_DAYS. Undefined when there is no valid start date.
+ */
+export const getTrialStatus = (tsd: unknown, now = Date.now()): TrialStatus | undefined => {
+  if (typeof tsd !== 'number' || !Number.isFinite(tsd) || tsd <= 0) return;
+  const endsAt = tsd + TRIAL_LENGTH_DAYS * DAY_IN_MS;
+  const daysLeft = Math.max(0, Math.ceil((endsAt - now) / DAY_IN_MS));
+  return { daysLeft, ended: daysLeft === 0, endsAt: new Date(endsAt) };
+};
+
+// A licensed catalog only shows its license in the dev header when it's about to expire
+export const LICENSE_REMINDER_DAYS = 30;
+
+/**
+ * Days left on the license, once fewer than LICENSE_REMINDER_DAYS remain. Undefined before then.
+ */
+export const getLicenseDaysLeft = (licensedUntil: Date, now = Date.now()): number | undefined => {
+  const daysLeft = Math.max(0, Math.ceil((licensedUntil.getTime() - now) / DAY_IN_MS));
+  return daysLeft < LICENSE_REMINDER_DAYS ? daysLeft : undefined;
+};

@@ -3,6 +3,7 @@ import {
   createVersionedMap,
   findInMap,
   getDeprecatedDetails,
+  getFolderNameFromFilePath,
   getItemsFromCollectionByIdAndSemverOrLatest,
   getPointerField,
   getResourceTypeLabel,
@@ -169,6 +170,28 @@ describe('Collections - utils', () => {
           },
         },
       ]);
+    });
+
+    it.each([
+      { path: 'asyncapi.yml', filename: 'asyncapi.yml', filenameWithoutExtension: 'asyncapi' },
+      { path: './specs/openapi.v2.json', filename: 'openapi.v2.json', filenameWithoutExtension: 'openapi.v2' },
+      { path: 'specs\\asyncapi.yml', filename: 'asyncapi.yml', filenameWithoutExtension: 'asyncapi' },
+      { path: 'specs/schema', filename: 'schema', filenameWithoutExtension: 'schema' },
+      { path: 'specs/.asyncapi', filename: '.asyncapi', filenameWithoutExtension: '.asyncapi' },
+    ])('gets the filename of $path', ({ path, filename, filenameWithoutExtension }) => {
+      expect(processSpecifications([{ type: 'asyncapi', path }])).toEqual([
+        { type: 'asyncapi', path, name: 'AsyncAPI', filename, filenameWithoutExtension },
+      ]);
+    });
+  });
+
+  describe('getFolderNameFromFilePath', () => {
+    it.each([
+      { filePath: 'domains/Orders/services/InventoryService/index.mdx', folder: 'InventoryService' },
+      { filePath: 'domains\\Orders\\services\\InventoryService\\index.mdx', folder: 'InventoryService' },
+      { filePath: '/catalog/events/OrderPlaced/versioned/0.0.1/index.mdx', folder: '0.0.1' },
+    ])('gets the folder of $filePath', ({ filePath, folder }) => {
+      expect(getFolderNameFromFilePath(filePath)).toBe(folder);
     });
   });
 

@@ -1,0 +1,1304 @@
+/**
+ * Shared catalog tools for accessing EventCatalog resources.
+ * Used by both the AI Chat feature and MCP Server.
+ */
+import { getCollection } from 'astro:content';
+import { z } from 'zod';
+import { getSchemasFromResource, getSchemaFormatFromURL } from '@utils/collections/schemas';
+import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import fs from 'node:fs';
+import { getArchitectureDiagramGraph } from '@utils/node-graphs/architecture-diagram';
+import {
+  ARCHITECTURE_DIAGRAM_COLLECTIONS,
+  isArchitectureDiagramCollection,
+  type ArchitectureDiagramDetail,
+} from '@utils/node-graphs/architecture-diagram-types';
+import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
+import { glob } from 'glob';
+import path from 'node:path';
+import {
+  buildDocsSearchIndex,
+  chunkMarkdownByHeadings,
+  type DocsSearchIndex,
+} from '@features/custom-documentation/utils/docs-search';
+
+const MESSAGE_COLLECTIONS = new Set(['events', 'commands', 'queries']);
+const LIKEC4_SOURCE_PATTERN = '**/*.{c4,likec4}';
+
+type LikeC4View = {
+  id: string;
+  kind: 'element' | 'dynamic' | 'deployment';
+  filePath: string;
+  line: number;
+};
+
+type LikeC4SourceFile = {
+  path: string;
+  content: string;
+  views: LikeC4View[];
+};
+
+const toPosixPath = (filePath: string) => filePath.split(path.sep).join(path.posix.sep);
+
+const lineNumberAtIndex = (content: string, index: number) => content.slice(0, index).split(/\r\n|\r|\n/).length;
+
+const stripLikeC4Comments = (content: string) => content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+const parseLikeC4Views = (content: string, filePath: string): LikeC4View[] => {
+  const contentWithoutComments = stripLikeC4Comments(content);
+  const viewDeclarationPattern =
+    // `of` names an element, dotted or not (`[\w.-]*` takes the dots: a separate group for each dotted part made the
+    // pattern backtrack heavily on a long dotted name without its `{`)
+    /\b(?:(dynamic|deployment)\s+)?view(?:\s+([A-Za-z_][\w.-]*))?(?:\s+of\s+[A-Za-z_][\w.-]*)?\s*\{/g;
+  const views: LikeC4View[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = viewDeclarationPattern.exec(contentWithoutComments)) !== null) {
+    const [, kind, id] = match;
+
+    if (!id) {
+      continue;
+    }
+
+    views.push({
+      id,
+      kind: kind === 'dynamic' || kind === 'deployment' ? kind : 'element',
+      filePath,
+      line: lineNumberAtIndex(contentWithoutComments, match.index),
+    });
+  }
+
+  return views;
+};
+
+const discoverLikeC4Sources = async (projectRoot: string): Promise<LikeC4SourceFile[]> => {
+  const sourceFiles = await glob(LIKEC4_SOURCE_PATTERN, {
+    cwd: projectRoot,
+    ignore: ['**/node_modules/**'],
+    nodir: true,
+  });
+
+  return sourceFiles
+    .map(toPosixPath)
+    .sort()
+    .map((sourceFile) => {
+      const content = fs.readFileSync(path.join(projectRoot, sourceFile), 'utf-8');
+      return {
+        path: sourceFile,
+        content,
+        views: parseLikeC4Views(content, sourceFile),
+      };
+    });
+};
+
+// ============================================
+// Pagination utilities
+// ============================================
+
+export const DEFAULT_PAGE_SIZE = 50;
+
+/**
+ * Encode position to opaque cursor string.
+ * Uses base64url for URL-safe encoding.
+ */
+export function encodeCursor(position: number): string {
+  return Buffer.from(String(position)).toString('base64url');
+}
+
+/**
+ * Decode cursor string to position.
+ * Returns null if cursor is invalid.
+ */
+export function decodeCursor(cursor: string): number | null {
+  try {
+    const decoded = Buffer.from(cursor, 'base64url').toString('utf8');
+    const position = parseInt(decoded, 10);
+    return isNaN(position) || position < 0 ? null : position;
+  } catch {
+    return null;
+  }
+}
+
+// Maximum cursor position to prevent abuse
+const MAX_CURSOR_POSITION = 100000;
+
+/**
+ * Generic pagination helper for any array of items
+ */
+export function paginate<T>(
+  items: T[],
+  cursor?: string,
+  pageSize: number = DEFAULT_PAGE_SIZE
+): { items: T[]; nextCursor?: string; totalCount: number } | { error: string } {
+  let startIndex = 0;
+
+  if (cursor) {
+    const decoded = decodeCursor(cursor);
+    if (decoded === null) {
+      return { error: 'Invalid or malformed cursor' };
+    }
+    if (decoded > MAX_CURSOR_POSITION) {
+      return { error: 'Cursor position exceeds maximum allowed value' };
+    }
+    startIndex = decoded;
+  }
+
+  const endIndex = startIndex + pageSize;
+  const paginatedItems = items.slice(startIndex, endIndex);
+  const hasMore = endIndex < items.length;
+
+  const result: { items: T[]; nextCursor?: string; totalCount: number } = {
+    items: paginatedItems,
+    totalCount: items.length,
+  };
+
+  if (hasMore) {
+    result.nextCursor = encodeCursor(endIndex);
+  }
+
+  return result;
+}
+
+// ============================================
+// Shared schemas for tool inputs
+// ============================================
+
+export const collectionSchema = z.enum([
+  'events',
+  'agents',
+  'adrs',
+  'services',
+  'commands',
+  'queries',
+  'flows',
+  'domains',
+  'systems',
+  'channels',
+  'entities',
+  'containers',
+  'diagrams',
+  'data-products',
+]);
+
+export const messageCollectionSchema = z.enum(['events', 'commands', 'queries']);
+
+export const resourceCollectionSchema = z.enum([
+  'agents',
+  'services',
+  'adrs',
+  'events',
+  'commands',
+  'queries',
+  'flows',
+  'domains',
+  'systems',
+  'channels',
+  'entities',
+  'data-products',
+]);
+
+export const visualiserCollectionSchema = z.enum(ARCHITECTURE_DIAGRAM_COLLECTIONS);
+
+// ============================================
+// Tool implementations (core logic)
+// ============================================
+
+/**
+ * Find a catalog entry by id and version. When no version (or 'latest') is given, the latest version is returned.
+ */
+async function findEntry(collection: string, id: string, version?: string): Promise<any | undefined> {
+  const entries = await getCollection(collection as any);
+  return getItemsFromCollectionByIdAndSemverOrLatest(entries as any[], id, version)[0];
+}
+
+const describeVersion = (version?: string) => version ?? 'latest';
+
+/**
+ * Get resources from a collection with optional pagination and search
+ */
+export async function getResources(params: { collection: string; cursor?: string; search?: string }) {
+  const resources = await getCollection(params.collection as any);
+  let allResults = resources
+    .filter((resource: any) => resource.data.hidden !== true)
+    .map((resource: any) => ({
+      id: resource.data.id,
+      version: resource.data.version,
+      name: resource.data.name,
+      summary: resource.data.summary,
+    }));
+
+  // Apply search filter if provided
+  if (params.search) {
+    const searchTerm = params.search.toLowerCase().trim();
+    allResults = allResults.filter(
+      (resource) =>
+        resource.id?.toLowerCase().includes(searchTerm) ||
+        resource.name?.toLowerCase().includes(searchTerm) ||
+        resource.summary?.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  const paginatedResult = paginate(allResults, params.cursor);
+
+  if ('error' in paginatedResult) {
+    return paginatedResult;
+  }
+
+  return {
+    resources: paginatedResult.items,
+    nextCursor: paginatedResult.nextCursor,
+    totalCount: paginatedResult.totalCount,
+  };
+}
+
+/**
+ * Get a specific resource by id and version (defaults to the latest version).
+ * Returns the frontmatter and markdown body only, not internal Astro entry fields such as file paths.
+ */
+export async function getResource(params: { collection: string; id: string; version?: string }) {
+  const resource = await findEntry(params.collection, params.id, params.version);
+
+  if (!resource) {
+    return { error: `Resource not found: ${params.id} (${describeVersion(params.version)}) in ${params.collection}` };
+  }
+
+  return {
+    id: resource.data.id,
+    version: resource.data.version,
+    collection: params.collection,
+    data: resource.data,
+    body: resource.body,
+  };
+}
+
+type MessagePointer = { id: string; version?: string };
+
+/**
+ * Resolve a sends/receives pointer to the documented message it points at
+ */
+const resolveMessagePointer = (messages: any[], pointer: MessagePointer) => {
+  const message = getItemsFromCollectionByIdAndSemverOrLatest(messages, pointer.id, pointer.version)[0];
+
+  if (!message) {
+    return { id: pointer.id, version: describeVersion(pointer.version), notFound: true };
+  }
+
+  return {
+    id: message.data.id,
+    version: message.data.version,
+    name: message.data.name || message.data.id,
+    summary: message.data.summary,
+    collection: message.collection,
+  };
+};
+
+/**
+ * Get the messages (events, commands, queries) a resource sends and receives, resolved to their catalog entries
+ */
+export async function getMessagesProducedOrConsumedByResource(params: {
+  resourceId: string;
+  resourceVersion?: string;
+  resourceCollection: string;
+}) {
+  const resource = await findEntry(params.resourceCollection, params.resourceId, params.resourceVersion);
+
+  if (!resource) {
+    return {
+      error: `Resource not found with id ${params.resourceId} and version ${describeVersion(params.resourceVersion)} and collection ${params.resourceCollection}`,
+    };
+  }
+
+  const [events, commands, queries] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+  ]);
+  const messages = [...events, ...commands, ...queries];
+
+  return {
+    resource: {
+      id: resource.data.id,
+      version: resource.data.version,
+      name: resource.data.name || resource.data.id,
+      collection: params.resourceCollection,
+    },
+    sends: (resource.data.sends || []).map((pointer: MessagePointer) => resolveMessagePointer(messages, pointer)),
+    receives: (resource.data.receives || []).map((pointer: MessagePointer) => resolveMessagePointer(messages, pointer)),
+  };
+}
+
+/**
+ * Get schema or specifications for a resource
+ */
+export async function getSchemaForResource(params: { resourceId: string; resourceVersion?: string; resourceCollection: string }) {
+  const resource = await findEntry(params.resourceCollection, params.resourceId, params.resourceVersion);
+
+  if (!resource) {
+    return {
+      error: `Resource not found with id ${params.resourceId} and version ${describeVersion(params.resourceVersion)} and collection ${params.resourceCollection}`,
+    };
+  }
+
+  if (MESSAGE_COLLECTIONS.has(params.resourceCollection)) {
+    const schemaEntries = await getCollection('schemas');
+    const schemas = schemaEntries.filter(
+      (schema) =>
+        schema.data.message.collectionName === params.resourceCollection &&
+        schema.data.message.id === params.resourceId &&
+        schema.data.message.version === resource.data.version
+    );
+
+    if (schemas.length > 0) {
+      return schemas.map((schema) => ({
+        id: schema.id,
+        name: schema.data.name,
+        ref: schema.data.ref,
+        format: schema.data.format,
+        source: schema.data.source,
+        code: schema.data.content || '',
+      }));
+    }
+  }
+
+  const schema = await getSchemasFromResource(resource);
+
+  if (schema.length > 0) {
+    return schema.map((schemaItem) => ({
+      url: schemaItem.url,
+      format: schemaItem.format,
+      code: fs.readFileSync(schemaItem.url, 'utf-8'),
+    }));
+  }
+
+  return { message: 'No schemas found for this resource' };
+}
+
+/**
+ * Find all resources owned by a specific team or user
+ */
+export async function findResourcesByOwner(params: { ownerId: string }) {
+  const collectionsToSearch = [
+    'events',
+    'commands',
+    'queries',
+    'agents',
+    'services',
+    'domains',
+    'flows',
+    'channels',
+    'entities',
+    'adrs',
+    'containers',
+    'diagrams',
+    'data-products',
+  ] as const;
+
+  const results: Array<{ collection: string; id: string; version?: string; name: string }> = [];
+
+  for (const collectionName of collectionsToSearch) {
+    const resources = await getCollection(collectionName);
+
+    for (const resource of resources) {
+      const owners = (resource.data as any).owners || [];
+      const ownerIds = owners.map((o: any) => (typeof o === 'string' ? o : o.id));
+
+      if (ownerIds.includes(params.ownerId)) {
+        results.push({
+          collection: collectionName,
+          id: (resource.data as any).id,
+          version: (resource.data as any).version,
+          name: (resource.data as any).name || (resource.data as any).id,
+        });
+      }
+    }
+  }
+
+  if (results.length === 0) {
+    return { message: `No resources found owned by: ${params.ownerId}`, resources: [] };
+  }
+
+  return { ownerId: params.ownerId, totalCount: results.length, resources: results };
+}
+
+/**
+ * Get resources that produce (send) a specific message
+ */
+export async function getProducersOfMessage(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
+  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+  const routableResources = [...services, ...agents];
+  const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
+
+  if (!message) {
+    return {
+      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
+    };
+  }
+  const messageVersion = message.data.version;
+
+  const producers = routableResources.filter((resource) => {
+    const sends = (resource.data as any).sends || [];
+    return sends.some((send: any) => {
+      const idMatch = send.id === params.messageId;
+      if (!send.version || send.version === 'latest') return idMatch;
+      return idMatch && send.version === messageVersion;
+    });
+  });
+
+  return {
+    message: {
+      id: params.messageId,
+      version: messageVersion,
+      collection: params.messageCollection,
+    },
+    producers: producers.map((s) => ({
+      id: (s.data as any).id,
+      version: (s.data as any).version,
+      name: (s.data as any).name || (s.data as any).id,
+      collection: s.collection,
+    })),
+    count: producers.length,
+  };
+}
+
+export async function getC4Diagram(params: { viewId?: string }) {
+  const projectRoot = process.env.PROJECT_DIR || process.cwd();
+  const sources = await discoverLikeC4Sources(projectRoot);
+  const availableViews = sources.flatMap((source) => source.views);
+
+  if (sources.length === 0) {
+    return {
+      message: 'No LikeC4 source files found in this EventCatalog project',
+      sources: [],
+      totalSourceFiles: 0,
+      totalViews: 0,
+    };
+  }
+
+  if (!params.viewId) {
+    return {
+      message: 'LikeC4 source files found',
+      sources,
+      totalSourceFiles: sources.length,
+      totalViews: availableViews.length,
+    };
+  }
+
+  const matchingViews = availableViews.filter((view) => view.id === params.viewId);
+
+  if (matchingViews.length === 0) {
+    return {
+      error: `LikeC4 view not found: ${params.viewId}`,
+      availableViews,
+    };
+  }
+
+  return {
+    viewId: params.viewId,
+    matchingViews,
+    sources,
+    totalSourceFiles: sources.length,
+  };
+}
+
+/**
+ * Get resources that consume (receive) a specific message
+ */
+export async function getConsumersOfMessage(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
+  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+  const routableResources = [...services, ...agents];
+  const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
+
+  if (!message) {
+    return {
+      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
+    };
+  }
+  const messageVersion = message.data.version;
+
+  const consumers = routableResources.filter((resource) => {
+    const receives = (resource.data as any).receives || [];
+    return receives.some((receive: any) => {
+      const idMatch = receive.id === params.messageId;
+      if (!receive.version || receive.version === 'latest') return idMatch;
+      return idMatch && receive.version === messageVersion;
+    });
+  });
+
+  return {
+    message: {
+      id: params.messageId,
+      version: messageVersion,
+      collection: params.messageCollection,
+    },
+    consumers: consumers.map((s) => ({
+      id: (s.data as any).id,
+      version: (s.data as any).version,
+      name: (s.data as any).name || (s.data as any).id,
+      collection: s.collection,
+    })),
+    count: consumers.length,
+  };
+}
+
+/**
+ * Analyze the impact of changing a message (event, command, query)
+ * Returns all affected services (producers and consumers) and their owners
+ */
+export async function analyzeChangeImpact(params: { messageId: string; messageVersion?: string; messageCollection: string }) {
+  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+  const routableResources = [...services, ...agents];
+  const message = await findEntry(params.messageCollection, params.messageId, params.messageVersion);
+
+  if (!message) {
+    return {
+      error: `Message not found: ${params.messageId} (${describeVersion(params.messageVersion)}) in ${params.messageCollection}`,
+    };
+  }
+  const messageVersion = message.data.version;
+
+  // Find producers
+  const producers = routableResources.filter((resource) => {
+    const sends = (resource.data as any).sends || [];
+    return sends.some((send: any) => send.id === params.messageId);
+  });
+
+  // Find consumers
+  const consumers = routableResources.filter((resource) => {
+    const receives = (resource.data as any).receives || [];
+    return receives.some((receive: any) => receive.id === params.messageId);
+  });
+
+  // Collect all affected teams/owners
+  const affectedOwners = new Set<string>();
+  [...producers, ...consumers].forEach((service) => {
+    const owners = (service.data as any).owners || [];
+    owners.forEach((o: any) => {
+      const ownerId = typeof o === 'string' ? o : o.id;
+      affectedOwners.add(ownerId);
+    });
+  });
+
+  // Also check message owners
+  const messageOwners = (message.data as any).owners || [];
+  messageOwners.forEach((o: any) => {
+    const ownerId = typeof o === 'string' ? o : o.id;
+    affectedOwners.add(ownerId);
+  });
+
+  return {
+    message: {
+      id: params.messageId,
+      version: messageVersion,
+      collection: params.messageCollection,
+      name: (message.data as any).name || params.messageId,
+    },
+    impact: {
+      producerCount: producers.length,
+      consumerCount: consumers.length,
+      totalResourcesAffected: new Set([...producers, ...consumers].map((s) => `${s.collection}:${(s.data as any).id}`)).size,
+      totalServicesAffected: new Set(
+        [...producers, ...consumers].filter((s) => s.collection === 'services').map((s) => (s.data as any).id)
+      ).size,
+      totalAgentsAffected: new Set(
+        [...producers, ...consumers].filter((s) => s.collection === 'agents').map((s) => (s.data as any).id)
+      ).size,
+      teamsAffected: Array.from(affectedOwners),
+    },
+    producers: producers.map((s) => ({
+      id: (s.data as any).id,
+      version: (s.data as any).version,
+      name: (s.data as any).name || (s.data as any).id,
+      collection: s.collection,
+      owners: (s.data as any).owners || [],
+    })),
+    consumers: consumers.map((s) => ({
+      id: (s.data as any).id,
+      version: (s.data as any).version,
+      name: (s.data as any).name || (s.data as any).id,
+      collection: s.collection,
+      owners: (s.data as any).owners || [],
+    })),
+  };
+}
+
+/**
+ * Get detailed information about a flow (state machine / business process)
+ * Returns the flow with its steps, description, and related services
+ */
+export async function explainBusinessFlow(params: { flowId: string; flowVersion?: string }) {
+  const flow = await findEntry('flows', params.flowId, params.flowVersion);
+
+  if (!flow) {
+    return { error: `Flow not found: ${params.flowId} (${describeVersion(params.flowVersion)})` };
+  }
+
+  // Get related services and agents that use this flow
+  const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+  const relatedServices = services.filter((service) => {
+    const flows = (service.data as any).flows || [];
+    return flows.some((f: any) => f.id === params.flowId);
+  });
+  const relatedAgents = agents.filter((agent) => {
+    const flows = (agent.data as any).flows || [];
+    return flows.some((f: any) => f.id === params.flowId);
+  });
+
+  return {
+    flow: {
+      id: (flow.data as any).id,
+      version: (flow.data as any).version,
+      name: (flow.data as any).name || (flow.data as any).id,
+      summary: (flow.data as any).summary,
+      owners: (flow.data as any).owners || [],
+      steps: (flow.data as any).steps || [],
+      mermaid: (flow.data as any).mermaid,
+    },
+    // Include the markdown content which often contains detailed business logic
+    content: flow.body,
+    relatedServices: relatedServices.map((s) => ({
+      id: (s.data as any).id,
+      version: (s.data as any).version,
+      name: (s.data as any).name || (s.data as any).id,
+    })),
+    relatedAgents: relatedAgents.map((a) => ({
+      id: (a.data as any).id,
+      version: (a.data as any).version,
+      name: (a.data as any).name || (a.data as any).id,
+    })),
+  };
+}
+
+// ============================================
+// Team and User tools (no versions)
+// ============================================
+
+/**
+ * Get all teams with optional pagination
+ */
+export async function getTeams(params: { cursor?: string }) {
+  const teams = await getCollection('teams');
+  const allResults = teams.map((team: any) => ({
+    id: team.data.id,
+    name: team.data.name,
+    email: team.data.email,
+    slackDirectMessageUrl: team.data.slackDirectMessageUrl,
+    members: team.data.members || [],
+  }));
+
+  const paginatedResult = paginate(allResults, params.cursor);
+
+  if ('error' in paginatedResult) {
+    return paginatedResult;
+  }
+
+  return {
+    teams: paginatedResult.items,
+    nextCursor: paginatedResult.nextCursor,
+    totalCount: paginatedResult.totalCount,
+  };
+}
+
+/**
+ * Get a specific team by id
+ */
+export async function getTeam(params: { id: string }) {
+  const teams = await getCollection('teams');
+  const team = teams.find((t: any) => t.data.id === params.id);
+
+  if (!team) {
+    return { error: `Team not found: ${params.id}` };
+  }
+
+  return {
+    id: team.data.id,
+    name: team.data.name,
+    email: team.data.email,
+    slackDirectMessageUrl: team.data.slackDirectMessageUrl,
+    members: team.data.members || [],
+    summary: team.data.summary,
+    content: team.body,
+  };
+}
+
+/**
+ * Get all users with optional pagination
+ */
+export async function getUsers(params: { cursor?: string }) {
+  const users = await getCollection('users');
+  const allResults = users.map((user: any) => ({
+    id: user.data.id,
+    name: user.data.name,
+    email: user.data.email,
+    role: user.data.role,
+    slackDirectMessageUrl: user.data.slackDirectMessageUrl,
+  }));
+
+  const paginatedResult = paginate(allResults, params.cursor);
+
+  if ('error' in paginatedResult) {
+    return paginatedResult;
+  }
+
+  return {
+    users: paginatedResult.items,
+    nextCursor: paginatedResult.nextCursor,
+    totalCount: paginatedResult.totalCount,
+  };
+}
+
+/**
+ * Get a specific user by id
+ */
+export async function getUser(params: { id: string }) {
+  const users = await getCollection('users');
+  const user = users.find((u: any) => u.data.id === params.id);
+
+  if (!user) {
+    return { error: `User not found: ${params.id}` };
+  }
+
+  return {
+    id: user.data.id,
+    name: user.data.name,
+    email: user.data.email,
+    role: user.data.role,
+    slackDirectMessageUrl: user.data.slackDirectMessageUrl,
+    summary: (user.data as any).summary,
+    content: user.body,
+  };
+}
+
+// ============================================
+// Schema-based resource lookup
+// ============================================
+
+/**
+ * Find a message resource and its producers/consumers by id and version
+ * Designed to be used with schema files that contain x-eventcatalog-id extensions
+ * If no version is provided, returns the latest version
+ */
+export async function findMessageBySchemaId(params: {
+  messageId: string;
+  messageVersion?: string;
+  collection?: 'events' | 'commands' | 'queries';
+}) {
+  const collectionsToSearch = params.collection ? [params.collection] : (['events', 'commands', 'queries'] as const);
+
+  for (const collectionName of collectionsToSearch) {
+    const collection = await getCollection(collectionName);
+    const matches = getItemsFromCollectionByIdAndSemverOrLatest(collection, params.messageId, params.messageVersion);
+    const resource = matches[0];
+    if (resource) {
+      // Get producers and consumers
+      const [services, agents] = await Promise.all([getCollection('services'), getCollection('agents')]);
+      const routableResources = [...services, ...agents];
+
+      const producers = routableResources.filter((resource) => {
+        const sends = (resource.data as any).sends || [];
+        return sends.some((send: any) => send.id === params.messageId);
+      });
+
+      const consumers = routableResources.filter((resource) => {
+        const receives = (resource.data as any).receives || [];
+        return receives.some((receive: any) => receive.id === params.messageId);
+      });
+
+      return {
+        resource: {
+          id: (resource.data as any).id,
+          version: (resource.data as any).version,
+          name: (resource.data as any).name,
+          collection: collectionName,
+          summary: (resource.data as any).summary,
+          owners: (resource.data as any).owners || [],
+        },
+        producers: producers.map((s) => ({
+          id: (s.data as any).id,
+          version: (s.data as any).version,
+          name: (s.data as any).name || (s.data as any).id,
+          collection: s.collection,
+        })),
+        consumers: consumers.map((s) => ({
+          id: (s.data as any).id,
+          version: (s.data as any).version,
+          name: (s.data as any).name || (s.data as any).id,
+          collection: s.collection,
+        })),
+      };
+    }
+  }
+
+  return {
+    error: `Message not found: ${params.messageId}${params.messageVersion ? ` (version ${params.messageVersion})` : ''}`,
+  };
+}
+
+// ============================================
+// Ubiquitous Language (DDD)
+// ============================================
+
+/**
+ * Get ubiquitous language terms for a domain (including subdomains)
+ * Returns the domain's language/glossary if defined
+ */
+export async function explainUbiquitousLanguageTerms(params: { domainId: string; domainVersion?: string }) {
+  const domains = await getCollection('domains');
+
+  // Use the existing utility to find the domain by id and version (or latest)
+  const matches = getItemsFromCollectionByIdAndSemverOrLatest(domains, params.domainId, params.domainVersion);
+  const domain = matches[0];
+
+  if (!domain) {
+    return {
+      error: `Domain not found: ${params.domainId}${params.domainVersion ? ` (version ${params.domainVersion})` : ''}`,
+    };
+  }
+
+  // Get ubiquitous language including subdomains
+  const ubiquitousLanguageData = await getUbiquitousLanguageWithSubdomains(domain as any);
+  const { domain: domainUL, subdomains, duplicateTerms } = ubiquitousLanguageData;
+
+  // Extract terms from domain's ubiquitous language
+  const domainTerms =
+    domainUL?.data?.dictionary?.map((term: any) => ({
+      term: term.name,
+      description: term.summary,
+      icon: term.icon,
+      domainId: params.domainId,
+      domainName: (domain.data as any).name || params.domainId,
+      isDuplicate: duplicateTerms.has(term.name.toLowerCase()),
+    })) || [];
+
+  // Extract terms from subdomains
+  const subdomainTerms = subdomains.flatMap(({ subdomain, ubiquitousLanguage }) => {
+    if (!ubiquitousLanguage?.data?.dictionary) return [];
+    return ubiquitousLanguage.data.dictionary.map((term: any) => ({
+      term: term.name,
+      description: term.summary,
+      icon: term.icon,
+      domainId: (subdomain.data as any).id,
+      domainName: (subdomain.data as any).name || (subdomain.data as any).id,
+      isSubdomain: true,
+      isDuplicate: duplicateTerms.has(term.name.toLowerCase()),
+    }));
+  });
+
+  const allTerms = [...domainTerms, ...subdomainTerms];
+
+  if (allTerms.length === 0) {
+    return {
+      domainId: params.domainId,
+      domainVersion: (domain.data as any).version,
+      domainName: (domain.data as any).name || params.domainId,
+      message: 'No ubiquitous language terms defined for this domain or its subdomains',
+      terms: [],
+      subdomainCount: subdomains.length,
+    };
+  }
+
+  return {
+    domainId: params.domainId,
+    domainVersion: (domain.data as any).version,
+    domainName: (domain.data as any).name || params.domainId,
+    terms: allTerms,
+    totalCount: allTerms.length,
+    domainTermCount: domainTerms.length,
+    subdomainTermCount: subdomainTerms.length,
+    subdomainCount: subdomains.length,
+    duplicateTerms: Array.from(duplicateTerms),
+  };
+}
+
+// ============================================
+// Data Product tools
+// ============================================
+
+/**
+ * Get the inputs (resources consumed) for a data product
+ * Returns fully hydrated input resources
+ */
+export async function getDataProductInputs(params: { dataProductId: string; dataProductVersion?: string }) {
+  const dataProduct = await findEntry('data-products', params.dataProductId, params.dataProductVersion);
+
+  if (!dataProduct) {
+    return {
+      error: `Data product not found: ${params.dataProductId} (${describeVersion(params.dataProductVersion)})`,
+    };
+  }
+
+  const inputPointers = (dataProduct.data as any).inputs || [];
+
+  if (inputPointers.length === 0) {
+    return {
+      dataProductId: params.dataProductId,
+      dataProductVersion: dataProduct.data.version,
+      message: 'No inputs found for this data product',
+      inputs: [],
+    };
+  }
+
+  // Fetch all collections that can be inputs (messages, channels, containers, services)
+  const [allEvents, allCommands, allQueries, allChannels, allContainers, allServices] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('channels'),
+    getCollection('containers'),
+    getCollection('services'),
+  ]);
+
+  const allResources = [...allEvents, ...allCommands, ...allQueries, ...allChannels, ...allContainers, ...allServices];
+
+  // Hydrate inputs by finding matching resources
+  const hydratedInputs = inputPointers
+    .map((pointer: { id: string; version?: string }) => {
+      const matches = getItemsFromCollectionByIdAndSemverOrLatest(allResources, pointer.id, pointer.version);
+      const resource = matches[0];
+      if (!resource) return null;
+
+      return {
+        id: (resource.data as any).id,
+        version: (resource.data as any).version,
+        name: (resource.data as any).name || (resource.data as any).id,
+        summary: (resource.data as any).summary,
+        collection: resource.collection,
+      };
+    })
+    .filter(Boolean);
+
+  return {
+    dataProductId: params.dataProductId,
+    dataProductVersion: dataProduct.data.version,
+    dataProductName: (dataProduct.data as any).name || params.dataProductId,
+    inputs: hydratedInputs,
+    totalCount: hydratedInputs.length,
+  };
+}
+
+/**
+ * Get the outputs (resources produced) for a data product
+ * Returns fully hydrated output resources with their contracts
+ */
+export async function getDataProductOutputs(params: { dataProductId: string; dataProductVersion?: string }) {
+  const dataProduct = await findEntry('data-products', params.dataProductId, params.dataProductVersion);
+
+  if (!dataProduct) {
+    return {
+      error: `Data product not found: ${params.dataProductId} (${describeVersion(params.dataProductVersion)})`,
+    };
+  }
+
+  const outputPointers = (dataProduct.data as any).outputs || [];
+
+  if (outputPointers.length === 0) {
+    return {
+      dataProductId: params.dataProductId,
+      dataProductVersion: dataProduct.data.version,
+      message: 'No outputs found for this data product',
+      outputs: [],
+    };
+  }
+
+  // Fetch all collections that can be outputs (messages, channels, containers, services)
+  const [allEvents, allCommands, allQueries, allChannels, allContainers, allServices] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('channels'),
+    getCollection('containers'),
+    getCollection('services'),
+  ]);
+
+  const allResources = [...allEvents, ...allCommands, ...allQueries, ...allChannels, ...allContainers, ...allServices];
+
+  // Hydrate outputs by finding matching resources and including contract info
+  const hydratedOutputs = outputPointers
+    .map((pointer: { id: string; version?: string; contract?: { path: string; name: string; type?: string } }) => {
+      const matches = getItemsFromCollectionByIdAndSemverOrLatest(allResources, pointer.id, pointer.version);
+      const resource = matches[0];
+      if (!resource) return null;
+
+      const result: any = {
+        id: (resource.data as any).id,
+        version: (resource.data as any).version,
+        name: (resource.data as any).name || (resource.data as any).id,
+        summary: (resource.data as any).summary,
+        collection: resource.collection,
+      };
+
+      // Include contract information if present
+      if (pointer.contract) {
+        const absoluteContractPath = getAbsoluteFilePathForAstroFile(dataProduct.filePath ?? '', pointer.contract.path);
+        let contractContent: string | null = null;
+
+        try {
+          contractContent = fs.readFileSync(absoluteContractPath, 'utf-8');
+        } catch {
+          // File may not be accessible
+        }
+
+        result.contract = {
+          name: pointer.contract.name,
+          path: pointer.contract.path,
+          format: getSchemaFormatFromURL(pointer.contract.path),
+          type: pointer.contract.type,
+          content: contractContent,
+        };
+      }
+
+      return result;
+    })
+    .filter(Boolean);
+
+  return {
+    dataProductId: params.dataProductId,
+    dataProductVersion: dataProduct.data.version,
+    dataProductName: (dataProduct.data as any).name || params.dataProductId,
+    outputs: hydratedOutputs,
+    totalCount: hydratedOutputs.length,
+  };
+}
+
+// ============================================
+// Architecture Diagram (Mermaid) tools
+// ============================================
+
+/**
+ * Get the architecture diagram for a resource as Mermaid code
+ * Returns flowchart syntax that can be rendered or used for understanding architecture
+ */
+export async function getArchitectureDiagramAsMermaid(params: {
+  resourceId: string;
+  resourceVersion?: string;
+  resourceCollection: string;
+  detail?: ArchitectureDiagramDetail;
+}) {
+  const { resourceId, resourceCollection, detail = 'full' } = params;
+
+  // Validate the collection is supported for visualisation
+  if (!isArchitectureDiagramCollection(resourceCollection)) {
+    return {
+      error: `Collection '${resourceCollection}' does not support architecture diagrams. Supported collections: ${ARCHITECTURE_DIAGRAM_COLLECTIONS.join(', ')}`,
+    };
+  }
+
+  const resource = await findEntry(resourceCollection, resourceId, params.resourceVersion);
+  if (!resource) {
+    return { error: `Resource not found: ${resourceId} (${describeVersion(params.resourceVersion)}) in ${resourceCollection}` };
+  }
+  const resourceVersion: string = resource.data.version;
+
+  try {
+    const { nodes, edges } = await getArchitectureDiagramGraph({
+      collection: resourceCollection,
+      id: resourceId,
+      version: resourceVersion,
+      detail,
+    });
+
+    if (!nodes || nodes.length === 0) {
+      return {
+        error: `No diagram data available for ${resourceCollection}/${resourceId} (v${resourceVersion})`,
+      };
+    }
+
+    // Convert to mermaid
+    const mermaidCode = convertToMermaid(nodes, edges, {
+      includeStyles: true,
+      direction: 'LR',
+    });
+
+    return {
+      resourceId,
+      resourceVersion,
+      resourceCollection,
+      detail,
+      mermaidCode,
+      nodeCount: nodes.length,
+      edgeCount: edges.length,
+      visualiserUrl: `/visualiser/${resourceCollection}/${resourceId}/${resourceVersion}`,
+    };
+  } catch (error) {
+    console.error('Error generating mermaid diagram:', error);
+    return {
+      error: `Failed to generate diagram for ${resourceCollection}/${resourceId} (v${resourceVersion})`,
+    };
+  }
+}
+
+// ============================================
+// Custom Documentation Tools
+// ============================================
+
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
+let cachedDocsSearchIndex: DocsSearchIndex | null = null;
+
+const findCustomDocByIdOrSlug = (docs: any[], idOrSlug: string) => {
+  const normalized = idOrSlug.toLowerCase().trim();
+  return (
+    docs.find((doc) => doc.id.toLowerCase() === normalized) ?? docs.find((doc) => doc.data.slug?.toLowerCase() === normalized)
+  );
+};
+
+const getDocsSearchIndex = async (): Promise<DocsSearchIndex> => {
+  if (CACHE_ENABLED && cachedDocsSearchIndex) {
+    return cachedDocsSearchIndex;
+  }
+
+  const docs = await getCollection('customPages');
+  cachedDocsSearchIndex = buildDocsSearchIndex(
+    docs.map((doc: any) => ({
+      id: doc.id,
+      title: doc.data.title,
+      summary: doc.data.summary,
+      body: doc.body,
+    }))
+  );
+
+  return cachedDocsSearchIndex;
+};
+
+/**
+ * List custom documentation pages (metadata only, no page content)
+ */
+export async function getCustomDocs(params: { cursor?: string; search?: string }) {
+  const docs = await getCollection('customPages');
+  let allResults = docs.map((doc: any) => ({
+    id: doc.id,
+    title: doc.data.title,
+    summary: doc.data.summary,
+    ...(doc.data.slug && { slug: doc.data.slug }),
+  }));
+
+  if (params.search) {
+    const searchTerm = params.search.toLowerCase().trim();
+    allResults = allResults.filter(
+      (doc: any) =>
+        doc.id?.toLowerCase().includes(searchTerm) ||
+        doc.title?.toLowerCase().includes(searchTerm) ||
+        doc.summary?.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  const paginatedResult = paginate(allResults, params.cursor);
+
+  if ('error' in paginatedResult) {
+    return paginatedResult;
+  }
+
+  return {
+    docs: paginatedResult.items,
+    nextCursor: paginatedResult.nextCursor,
+    totalCount: paginatedResult.totalCount,
+  };
+}
+
+/**
+ * Full-text search across custom documentation pages.
+ * Matches at the section level so results point at the relevant part of a page.
+ */
+export async function searchCustomDocs(params: { query: string; limit?: number }) {
+  const query = params.query?.trim();
+
+  if (!query) {
+    return { error: 'A search query is required' };
+  }
+
+  const index = await getDocsSearchIndex();
+  const results = index.search(query, { limit: params.limit });
+
+  return { results, totalCount: results.length };
+}
+
+/**
+ * Get the full markdown content of a custom documentation page by id or slug.
+ * Pass a section heading to get just that section of the page.
+ */
+export async function getCustomDoc(params: { id: string; section?: string }) {
+  const docs = await getCollection('customPages');
+  const doc = findCustomDocByIdOrSlug(docs, params.id);
+
+  if (!doc) {
+    return { error: `Custom documentation page not found: ${params.id}` };
+  }
+
+  const { title, summary, slug, owners } = doc.data;
+  const metadata = {
+    id: doc.id,
+    title,
+    summary,
+    ...(slug && { slug }),
+    ...(owners && { owners }),
+  };
+
+  if (params.section) {
+    const requestedSection = params.section.toLowerCase().trim();
+    const sections = chunkMarkdownByHeadings(doc.body ?? '');
+    const section = sections.find((chunk) => chunk.heading?.toLowerCase() === requestedSection);
+
+    if (!section) {
+      const availableSections = sections
+        .map((chunk) => chunk.heading)
+        .filter(Boolean)
+        .join(', ');
+      return {
+        error: `Section "${params.section}" not found in ${doc.id}. Available sections: ${availableSections || 'none'}`,
+      };
+    }
+
+    return { ...metadata, section: section.heading, markdown: section.content };
+  }
+
+  return { ...metadata, markdown: doc.body ?? '' };
+}
+
+// ============================================
+// Tool metadata (descriptions)
+// ============================================
+
+export const toolDescriptions = {
+  getResources:
+    'Use this tool to get events, agents, services, commands, queries, flows, domains, channels, entities from EventCatalog. Supports pagination via cursor and filtering by search term (searches name, id, and summary).',
+  getResource:
+    'Use this tool to get a specific resource from EventCatalog by its id. Returns the frontmatter and markdown documentation. Omit the version to get the latest version.',
+  getMessagesProducedOrConsumedByResource:
+    'Use this tool to get the messages (events, commands, queries) a service, agent or domain sends and receives. Each message is resolved to its catalog id, version, name and summary; messages that are referenced but not documented in the catalog are marked notFound. Omit the version to use the latest version of the resource.',
+  getSchemaForResource:
+    'Use this tool to get the schema or specifications (openapi or asyncapi or graphql) for a resource by its id and version',
+  findResourcesByOwner:
+    'Use this tool to find all resources (agents, services, events, commands, etc.) owned by a specific team or user',
+  getProducersOfMessage:
+    'Use this tool to find which agents or services produce (send) a specific message (event, command, or query)',
+  getConsumersOfMessage:
+    'Use this tool to find which agents or services consume (receive) a specific message (event, command, or query)',
+  getC4Diagram:
+    'Use this tool to get the C4 diagram (or likeC4) in EventCatalog. These files usually have a .c4 extension on them',
+  analyzeChangeImpact:
+    'Use this tool to analyze the impact of changing a message. Returns all affected agents and services (producers and consumers), the teams that own them, and the blast radius of the change',
+  explainBusinessFlow:
+    'Use this tool to get detailed information about a business flow (state machine). Returns the flow definition, steps, mermaid diagram if available, and related agents and services',
+  getTeams:
+    'Use this tool to get all teams in EventCatalog. Teams are groups of users that own resources. Supports pagination via cursor.',
+  getTeam: 'Use this tool to get a specific team by its id. Returns team details including members.',
+  getUsers:
+    'Use this tool to get all users in EventCatalog. Users are individuals who can own resources or be members of teams. Supports pagination via cursor.',
+  getUser: 'Use this tool to get a specific user by their id. Returns user details including role and contact info.',
+  findMessageBySchemaId:
+    'Use this tool when a user shares a schema file (Avro, JSON Schema, Protobuf) and wants to find it in EventCatalog. Look for "x-eventcatalog-id" and "x-eventcatalog-version" in the schema - these may be properties in the schema OR in comments (e.g. // x-eventcatalog-id: OrderCreated). Pass the id as messageId. If version exists, pass it as messageVersion, otherwise omit it to get the latest version. Returns the message resource along with its producers and consumers.',
+  explainUbiquitousLanguageTerms:
+    'Use this tool to explain ubiquitous language terms from Domain-Driven Design for a specific domain. Returns the glossary of terms defined for the domain and its subdomains, including duplicate term detection.',
+  getDataProductInputs:
+    'Use this tool to get the inputs (resources consumed) for a data product. Returns fully hydrated input resources with their id, version, name, summary, and collection type.',
+  getDataProductOutputs:
+    'Use this tool to get the outputs (resources produced) for a data product. Returns fully hydrated output resources with their id, version, name, summary, collection type, and data contracts (if defined). Data contracts include the contract name, path, format, type, and content.',
+  getArchitectureDiagramAsMermaid:
+    'Use this tool first when you need an overview of how part of the architecture fits together. Returns the architecture diagram for a resource as Mermaid flowchart code, built the same way as its Diagram page in EventCatalog: the resources it connects to (services, agents, systems, domains, events, commands, queries, channels, data stores), with labelled edges (e.g. publishes, subscribes to, invokes). Systems and domains appear as subgraphs, so you can see what is inside a boundary and what is outside it. For domains and systems, pass detail "overview" for just the domains, systems and their relationships (smaller), or "full" (default) to include services, messages and channels. One call replaces walking producers and consumers one at a time, and the Mermaid can be shown to the user or added to docs and pull requests. Supported collections: events, commands, queries, agents, services, domains, systems, flows, containers, data-products.',
+  getCustomDocs:
+    'Use this tool to list the custom documentation pages in EventCatalog (guides, runbooks, architecture notes, onboarding docs, etc.). Returns page ids, titles, and summaries without page content. Supports pagination via cursor and filtering by search term (searches title, id, and summary).',
+  searchCustomDocs:
+    'Use this tool to search the full text of custom documentation pages in EventCatalog. Returns the best matching sections, each with the page id, section heading, and a short snippet. To read more, call getCustomDoc with the returned page id (and optionally the section heading). Reformulate the query and search again if the first results are not relevant. If you are unsure where to find something, or the structured catalog tools have not answered the question, search here - custom documentation often contains guides, runbooks, and context not captured elsewhere in the catalog. An empty result may simply mean the catalog has no custom documentation on the topic.',
+  getCustomDoc:
+    'Use this tool to get the full markdown content of a custom documentation page by its id or slug. Optionally pass a section heading to get only that section - prefer this for large pages to keep responses small.',
+};

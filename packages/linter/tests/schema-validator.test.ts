@@ -179,6 +179,47 @@ describe('validateSchema', () => {
       const errors = validateSchema(parsedFile);
       expect(errors).toHaveLength(0);
     });
+
+    it('passes with channel steps and steps without a title', () => {
+      const parsedFile = createParsedFile('flow', {
+        id: 'order-flow',
+        name: 'Order Flow',
+        version: '1.0.0',
+        steps: [
+          { id: 'checkout', service: { id: 'checkout-api' }, next_step: 'orders' },
+          { id: 'orders', channel: { id: 'orders-topic', version: '1.0.0' }, next_step: 'done' },
+          { id: 'done', title: 'Order placed', custom: { color: 'green' } },
+        ],
+      });
+
+      expect(validateSchema(parsedFile)).toHaveLength(0);
+    });
+
+    it('explains which resources a step points at when it points at more than one', () => {
+      const parsedFile = createParsedFile('flow', {
+        id: 'order-flow',
+        name: 'Order Flow',
+        version: '1.0.0',
+        steps: [{ id: 'checkout', title: 'Checkout', message: { id: 'PlaceOrder' }, service: { id: 'checkout-api' } }],
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual([
+        'steps.0.service: Step "checkout" points at message and service. A step can only be one thing, so split it into two steps.',
+      ]);
+    });
+
+    it('explains that a step uses next_step or next_steps, not both', () => {
+      const parsedFile = createParsedFile('flow', {
+        id: 'order-flow',
+        name: 'Order Flow',
+        version: '1.0.0',
+        steps: [{ id: 'checkout', title: 'Checkout', next_step: 'a', next_steps: ['b'] }],
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual([
+        'steps.0.next_steps: Step "checkout" has both next_step and next_steps. Use next_step for one next step, or next_steps for several.',
+      ]);
+    });
   });
 
   describe('entity validation', () => {
@@ -423,6 +464,40 @@ describe('validateSchema', () => {
 
       const errors = validateSchema(parsedFile);
       expect(errors).toHaveLength(0);
+    });
+
+    it('accepts an adr date parsed from YAML as a Date', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-001',
+        name: 'Use events',
+        version: '1.0.0',
+        status: 'accepted',
+        date: new Date('2026-05-26'),
+      });
+
+      expect(validateSchema(parsedFile)).toHaveLength(0);
+    });
+
+    it('reports a missing adr status and date as missing', () => {
+      const parsedFile = createParsedFile('adr', { id: 'adr-001', name: 'Use events', version: '1.0.0' });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.map((error) => error.message)).toEqual([
+        "status: Expected 'proposed' | 'accepted' | 'rejected' | 'deprecated' | 'superseded', but received undefined",
+        'date: Expected date, but received undefined',
+      ]);
+    });
+
+    it('reports an adr date that is not a date as invalid', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-001',
+        name: 'Use events',
+        version: '1.0.0',
+        status: 'accepted',
+        date: 'not-a-date',
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual(['date: Invalid date']);
     });
 
     it('should pass with valid diagram frontmatter', () => {

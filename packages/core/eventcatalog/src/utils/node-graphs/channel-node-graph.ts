@@ -4,8 +4,6 @@ import {
   buildContextMenuForMessage,
   buildContextMenuForResource,
   buildContextMenuForService,
-  calculatedNodes,
-  createDagreGraph,
   createEdge,
   createNode,
   generatedIdForEdge,
@@ -14,10 +12,8 @@ import {
   getEdgeLabelForMessageAsSource,
   getEdgeLabelForServiceAsTarget,
   getOperationFields,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
-  layoutDagreGraph,
 } from './utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getChannelChain, getChannels } from '@utils/collections/channels';
 import { type Node, type Edge } from '@xyflow/react';
@@ -111,12 +107,9 @@ type RoutedResource = {
   channelRoutes: ChannelRoute[];
 };
 
-type DagreGraph = any;
-
 interface Props {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   layout?: boolean;
 }
@@ -126,8 +119,7 @@ interface Props {
  * everything that consumes out of it on the right, and any channels it routes to (or is
  * routed from) either side of it.
  */
-export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', layout = true }: Props) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
+export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = true }: Props) => {
   const nodes: any[] = [];
   const edges: any[] = [];
 
@@ -448,20 +440,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
     );
   }
 
-  nodes.forEach((node) => {
-    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  });
+  if (!layout) return { nodes, edges };
 
-  edges.forEach((edge) => {
-    flow.setEdge(edge.source, edge.target);
-  });
-
-  if (layout) {
-    layoutDagreGraph(flow);
-  }
-
-  return {
-    nodes: calculatedNodes(flow, nodes),
-    edges,
-  };
+  return layoutNodeGraph({ nodes, edges });
 };

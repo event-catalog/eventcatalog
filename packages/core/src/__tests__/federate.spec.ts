@@ -13,12 +13,6 @@ import {
 } from '../federation/federate';
 import type { FederationSourceProvider } from '../federation/types';
 
-const federationEntitlement = vi.hoisted(() => ({
-  isFederationEnabled: vi.fn(async () => true),
-}));
-
-vi.mock('../federation/entitlement', () => federationEntitlement);
-
 const sourceIndex = (source: string, resourceId: string): Index => {
   const contentPath = `services/${resourceId}/index.mdx`;
   const content = Buffer.from(`# ${contentPath}\n`);
@@ -102,8 +96,6 @@ describe('federate catalog', () => {
   let projectDirectory: string;
 
   beforeEach(async () => {
-    federationEntitlement.isFederationEnabled.mockReset();
-    federationEntitlement.isFederationEnabled.mockResolvedValue(true);
     projectDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'eventcatalog-federate-'));
   });
 
@@ -697,7 +689,6 @@ describe('federate catalog', () => {
     );
 
     const progress: FederationProgressEvent[] = [];
-    federationEntitlement.isFederationEnabled.mockResolvedValueOnce(false);
     await federateCatalog(projectDirectory, {
       onProgress: (event) => progress.push(event),
     });
@@ -716,24 +707,6 @@ describe('federate catalog', () => {
       });
     if (lock) expect(lock).toMatchObject({ sources: [], publicFiles: {} });
     expect(progress).toContainEqual({ type: 'cleanup:complete', federated: true, publicFiles: 1, lock: true });
-    expect(federationEntitlement.isFederationEnabled).not.toHaveBeenCalled();
-  });
-
-  it('checks entitlement before resolving configured sources', async () => {
-    await writeProject(projectDirectory, [{ id: 'acme/payments', source: 'github:acme/payments' }]);
-    const provider: FederationSourceProvider = {
-      resolve: vi.fn(),
-      fetchContent: vi.fn(),
-    };
-    federationEntitlement.isFederationEnabled.mockResolvedValueOnce(false);
-
-    await expect(federateCatalog(projectDirectory, { provider })).rejects.toThrow(
-      'EventCatalog federation is an Enterprise feature'
-    );
-
-    expect(federationEntitlement.isFederationEnabled).toHaveBeenCalledOnce();
-    expect(provider.resolve).not.toHaveBeenCalled();
-    expect(provider.fetchContent).not.toHaveBeenCalled();
   });
 
   it('does nothing when federation has no configured sources', async () => {
@@ -742,6 +715,5 @@ describe('federate catalog', () => {
 
     await expect(federateCatalog(projectDirectory, { onProgress: (event) => progress.push(event) })).resolves.toBeNull();
     expect(progress).toEqual([{ type: 'configured', sources: 0 }]);
-    expect(federationEntitlement.isFederationEnabled).not.toHaveBeenCalled();
   });
 });

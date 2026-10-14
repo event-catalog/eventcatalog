@@ -24,7 +24,9 @@ export class HybridPage<T = any> {
   }
 
   /**
-   * Static method for getting data
+   * The page's data: its props in a static build, or looked up from its URL on a server. Undefined
+   * when nothing matches (an unknown resource or version): the page then returns
+   * `Astro.rewrite('/404')`. Throwing a Response instead made Astro answer with an empty 500.
    */
   static async getData(astro: AstroGlobal): Promise<any> {
     // Try props first (static mode)
@@ -32,13 +34,7 @@ export class HybridPage<T = any> {
       return this.transformProps(astro.props);
     }
 
-    const data = await this.fetchData(astro.params);
-
-    if (!data) {
-      throw this.createNotFoundResponse();
-    }
-
-    return data;
+    return (await this.fetchData(astro.params)) ?? undefined;
   }
 
   /**
@@ -57,12 +53,5 @@ export class HybridPage<T = any> {
 
   protected static transformProps(props: any): any {
     return props;
-  }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Not found',
-    });
   }
 }

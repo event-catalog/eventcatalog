@@ -1,7 +1,7 @@
-import fg from 'fast-glob';
 import path from 'path';
 import { CatalogFile } from '../scanner';
 import { ValidationError } from '../types';
+import { findFiles } from '../utils/find-files';
 import { editDistance } from './unknown-field-validator';
 
 /**
@@ -53,6 +53,9 @@ const NON_RESOURCE_PATTERNS = [
   '**/docs/**',
   // Ubiquitous language dictionaries
   '**/ubiquitous-language.{md,mdx}',
+  // Usage examples in a message's examples folder (core's `examples` collection)
+  '**/{events,commands,queries}/*/examples/**',
+  '**/{events,commands,queries}/*/versioned/*/examples/**',
 ];
 
 const MARKDOWN_EXTENSIONS = /\.(md|mdx)$/i;
@@ -192,12 +195,7 @@ export const findUnrecognisedFiles = async (
 ): Promise<UnrecognisedFile[]> => {
   const recognised = new Set(recognisedFiles.map((file) => normalisePath(file.relativePath)));
 
-  const candidates = await fg(['**/*.{md,mdx}'], {
-    cwd: rootDir,
-    onlyFiles: true,
-    followSymbolicLinks: false,
-    ignore: NON_RESOURCE_PATTERNS,
-  });
+  const candidates = await findFiles(['**/*.{md,mdx}'], { cwd: rootDir, ignore: NON_RESOURCE_PATTERNS });
 
   return candidates
     .map(normalisePath)

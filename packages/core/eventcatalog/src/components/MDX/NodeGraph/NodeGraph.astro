@@ -1,5 +1,6 @@
 ---
 import AstroNodeGraph from './AstroNodeGraph';
+import type { FlowGroupBy } from '@eventcatalog/visualiser';
 // Imported here (server side) rather than from the React island: Astro then emits it as a
 // <link> in the page head, which survives ClientRouter navigations. A dynamic import from the
 // island injects a <style> that the view-transition head swap removes — and the cached module
@@ -14,7 +15,6 @@ import {
 } from '@utils/node-graphs/message-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graphs/domains-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDomainEntityMap } from '@utils/node-graphs/domain-entity-map';
-import { getDomainsCanvasData } from '@utils/node-graphs/domains-canvas';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-graphs/data-products-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForSystem } from '@utils/node-graphs/systems-node-graph';
@@ -23,17 +23,22 @@ import {
   getNodesAndEdgesForDomainSystems as getNodesAndEdgesForDomainSystemsContext,
   getNodesAndEdgesForAllSystems as getNodesAndEdgesForSystemContextMap,
 } from '@utils/node-graphs/system-context-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForSystemLevels } from '@utils/node-graphs/system-levels-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDomainLevels } from '@utils/node-graphs/domain-levels-node-graph';
 import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForChannel } from '@utils/node-graphs/channel-node-graph';
 import config from '@config';
-import { isEventCatalogChatVisible, isDevMode } from '@utils/feature';
+import { isEventCatalogChatVisible, isDevMode, isCanvasEnabled } from '@utils/feature';
+import { CANVASES_API_PATH } from '@features/studio/api/canvases-api';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 import { compactVisualiserGraph } from '@utils/node-graphs/compact-visualiser-graph';
 
 const isChatEnabled = isEventCatalogChatVisible();
+// With Studio on, the menu can start a canvas from the diagram
+const studioApiUrl = isCanvasEnabled() ? buildUrl(CANVASES_API_PATH, true) : undefined;
 
 interface Props {
   id: string;
@@ -56,6 +61,11 @@ interface Props {
   portalId?: string;
   // Disable + hide the "Simulate Messages" animation (e.g. on the Context Diagram).
   disableMessageAnimation?: boolean;
+  // Labels level 1 of a levels page (`systems-levels` or `domains-levels`): a
+  // system's context diagram, or a domain's systems and the domains they talk to.
+  overview?: { label: string };
+  // Flows only: group the steps into swimlanes to start with
+  lanes?: FlowGroupBy;
 }
 
 const {
@@ -72,6 +82,8 @@ const {
   zoomOnScroll = false,
   portalId,
   disableMessageAnimation,
+  overview,
+  lanes,
 } = Astro.props;
 
 let nodes = [],
@@ -139,12 +151,6 @@ if (collection === 'system-context-map') {
   edges = fetchedEdges;
 }
 
-if (collection === 'domains-canvas') {
-  const { domainNodes, messageNodes, edges: fetchedEdges } = await getDomainsCanvasData();
-  nodes = [...domainNodes, ...messageNodes];
-  edges = fetchedEdges;
-}
-
 if (collection === 'systems-context') {
   const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForSystemContext({
     id,
@@ -153,6 +159,25 @@ if (collection === 'systems-context') {
   });
   nodes = fetchedNodes;
   edges = fetchedEdges;
+}
+
+// Levels pages: a system's resource diagram inside its context diagram, or a
+// domain's systems expanded with the other domains they talk to. Level 1 (the
+// overview) and the level without messages are built from the same graph.
+let levelsOverview: { nodes: any[]; edges: any[] } | undefined;
+let hiddenMessagesGraph: { nodes: any[]; edges: any[] } | undefined;
+if (collection === 'systems-levels' || collection === 'domains-levels') {
+  const getLevels = collection === 'systems-levels' ? getNodesAndEdgesForSystemLevels : getNodesAndEdgesForDomainLevels;
+  const levels = await getLevels({
+    id,
+    version,
+    mode,
+    channelRenderMode: config.visualiser?.channels?.renderMode === 'single' ? 'single' : 'flat',
+  });
+  nodes = levels.nodes;
+  edges = levels.edges;
+  levelsOverview = levels.overview;
+  hiddenMessagesGraph = compactVisualiserGraph(levels.hiddenMessages.nodes, levels.hiddenMessages.edges);
 }
 
 if (collection === 'domains-systems-context') {
@@ -184,17 +209,6 @@ if (collection === 'services-entities') {
   edges = fetchedEdges;
 }
 
-if (collection === 'services-containers') {
-  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForService({
-    id,
-    version,
-    renderMessages: false,
-    mode: 'full',
-  });
-  nodes = fetchedNodes;
-  edges = fetchedEdges;
-}
-
 // Load and apply saved layout if it exists (dev mode feature)
 const resourceKey = buildResourceKey(collection, id, version);
 const savedLayout = await loadSavedLayout(resourceKey);
@@ -202,6 +216,22 @@ const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
 // Drop hydrated collection entries / markdown bodies before Astro serialises
 // the graph into the page. Visualiser components only need a small field set.
 const { nodes: clientNodes, edges: clientEdges } = compactVisualiserGraph(nodesWithLayout as any[], edges as any[]);
+
+let overviewGraph;
+if (overview && levelsOverview) {
+  // The system context keeps the key its own page used, so saved layouts carry over
+  const overviewResourceKey = buildResourceKey(
+    collection === 'systems-levels' ? 'systems-context' : `${collection}-overview`,
+    id,
+    version
+  );
+  const overviewLayout = await loadSavedLayout(overviewResourceKey);
+  overviewGraph = {
+    ...compactVisualiserGraph(applyLayoutToNodes(levelsOverview.nodes, overviewLayout), levelsOverview.edges),
+    label: overview.label,
+    resourceKey: overviewResourceKey,
+  };
+}
 ---
 
 <div>
@@ -226,6 +256,11 @@ const { nodes: clientNodes, edges: clientEdges } = compactVisualiserGraph(nodesW
     resourceKey={resourceKey}
     portalId={portalId}
     disableMessageAnimation={disableMessageAnimation ?? collection === 'systems-context'}
+    overviewGraph={overviewGraph}
+    hiddenMessagesGraph={hiddenMessagesGraph}
+    preferenceScope={collection}
+    swimlanes={lanes}
+    studioApiUrl={studioApiUrl}
   />
 </div>
 

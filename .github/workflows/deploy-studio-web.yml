@@ -1,0 +1,86 @@
+# Deploys EventCatalog Studio on the web (apps/studio-web, https://eventcatalog.studio) to Fly when it changes on
+# main, once its checks pass. A deploy restarts the server, which ends live sessions (rooms are kept in memory), so it
+# only runs for changes to the app or what it's built from. Needs the FLY_API_TOKEN secret: a deploy token for the
+# app (fly tokens create deploy -a eventcatalog-mcp).
+name: Deploy Studio (web)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/studio-web/**"
+      - "packages/visualiser/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/deploy-studio-web.yml"
+  workflow_dispatch:
+
+# Read the code, nothing else (deploying uses the Fly token, not GitHub's)
+permissions:
+  contents: read
+
+# One deploy at a time, and never one stopped halfway (the next waits for it)
+concurrency:
+  group: deploy-studio-web
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Check Studio (web)
+    if: github.repository == 'event-catalog/eventcatalog'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "pnpm"
+      - name: Installation
+        run: pnpm i --frozen-lockfile
+      - name: Build (the visualiser, then the app)
+        run: pnpm turbo run build --filter=@eventcatalog/studio-web
+      - name: Typecheck
+        run: pnpm --filter @eventcatalog/studio-web typecheck
+      - name: Unit tests
+        run: pnpm --filter @eventcatalog/studio-web test
+      - name: Install Playwright's Chromium
+        run: pnpm --filter @eventcatalog/studio-web exec playwright install --with-deps chromium
+      # The build above is what they run against (test:e2e would build it again)
+      - name: Browser tests
+        run: pnpm --filter @eventcatalog/studio-web exec playwright test
+        env:
+          CI: true
+      - name: Upload the browser tests' traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-web-playwright
+          path: apps/studio-web/test-results
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Fly
+    needs: test
+    # Only main is deployed, also when it's run by hand (where any branch can be picked)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Pinned to a commit (v1, 1.6): it runs with the Fly token
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1
+      # From the repo root (the image uses workspace packages); one machine, as live rooms are kept in memory
+      - name: Deploy
+        run: flyctl deploy . --config apps/studio-web/fly.toml --ha=false --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Check it's up
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            curl -fsS https://eventcatalog.studio/health && exit 0
+            sleep 10
+          done
+          echo "::error::https://eventcatalog.studio/health didn't answer after the deploy"
+          exit 1

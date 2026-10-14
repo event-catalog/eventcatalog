@@ -1,8 +1,10 @@
 packages:
   - 'packages/*'
+  - 'apps/*'
 
 minimumReleaseAgeExclude:
   - 'astro'
+  - '@eventcatalog/license'
   - '@astrojs/check'
   - '@astrojs/internal-helpers'
   - '@astrojs/markdown-remark'
@@ -19,6 +21,8 @@ minimumReleaseAgeExclude:
   - 'expressive-code'
   - 'rehype-expressive-code'
   - 'satteri'
+  # 4.6.6 fixes a denial of service (SNYK-JS-ZOD-20510278) and is newer than the minimum release age
+  - 'zod'
 
 peerDependencyRules:
   allowedVersions:

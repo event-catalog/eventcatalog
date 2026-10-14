@@ -66,7 +66,7 @@ describe('buildEntityNode', () => {
       pages: [
         {
           type: 'item',
-          title: 'Entity Map',
+          title: 'Entity Diagram',
           href: '/visualiser/domains/Orders/0.0.1/entity-map',
         },
       ],

@@ -5,7 +5,7 @@
  * And then pick which provider you want to use.
  *
  * You can read more in the documentation:
- * https://www.eventcatalog.dev/docs/development/guides/authentication/introduction
+ * https://www.eventcatalog.dev/docs/development/authentication/introduction
  *
  */
 

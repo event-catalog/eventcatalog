@@ -834,6 +834,18 @@ describe('Flows SDK', () => {
 });
 
 describe('FlowBuilder', () => {
+  it('builds a channel step that points at the channel with the step id, leaving its title to the channel name', () => {
+    const flow = FlowBuilder.create({ id: 'OrderFlow', name: 'Order Flow', version: '1.0.0', markdown: '' })
+      .addServiceStep({ id: 'OrderService', nextSteps: ['orders-topic'] })
+      .addChannelStep({ id: 'orders-topic', version: '1.0.0' })
+      .build();
+
+    expect(flow.steps[1]).toEqual({
+      id: 'orders-topic',
+      channel: { id: 'orders-topic', version: '1.0.0' },
+    });
+  });
+
   it('builds a flow with generic, message, agent, service, actor, external system, sub-flow, and custom steps', () => {
     const flow = FlowBuilder.create({
       id: 'PaymentFlow',

@@ -8,6 +8,7 @@ import {
   highlightQuery,
   mapPagefindResultsToSearchItems,
   normalizeResultUrl,
+  rankResourceSearchItems,
 } from './search-utils';
 
 declare global {
@@ -169,5 +170,55 @@ describe('indexed search result helpers', () => {
 
     expect(items.map((item) => item.id)).toEqual(['title', 'content']);
     expect(items[0].url).toBe('/docs/services/PaymentService/1.0.0');
+  });
+});
+
+describe('resource search ranking', () => {
+  const resource = (name: string, key: string, summary?: string) => ({
+    id: key,
+    name,
+    url: `/docs/${key}`,
+    type: key.split(':')[0],
+    key,
+    rawNode: { title: name, summary },
+  });
+
+  // In index order: grouped by type, then alphabetical
+  const items = [
+    resource('Fulfilment', 'domain:fulfilment:1.0.0', 'Gets a confirmed order to the customer'),
+    resource('Ordering', 'domain:ordering:1.0.0', 'Takes orders from checkout'),
+    resource('Payments', 'domain:payments:1.0.0', 'Takes payment for an order'),
+    resource('Checkout Orchestrator', 'service:CheckoutOrchestrator:1.0.0', 'Turns a cart into an order'),
+    resource('Inventory', 'service:legacy-order-stock:1.0.0', 'Keeps stock levels'),
+    resource('Order Service', 'service:OrderService:1.0.0', 'Owns orders'),
+    resource('Order', 'entity:Order:1.0.0'),
+    resource('Order Created', 'event:OrderCreated:1.0.0'),
+    resource('Shipment Booked', 'event:ShipmentBooked:1.0.0', 'Sent once the warehouse ships a parcel'),
+    resource('Reorder Requested', 'event:ReorderRequested:1.0.0'),
+  ];
+
+  it('ranks name matches above id matches, and id matches above summary-only matches', () => {
+    expect(rankResourceSearchItems(items, 'order').map((item) => item.name)).toEqual([
+      // Exact name
+      'Order',
+      // Name starts with the query, in index order
+      'Ordering',
+      'Order Service',
+      'Order Created',
+      // Name contains the query
+      'Reorder Requested',
+      // Id contains the query
+      'Inventory',
+      // Summary only, in index order
+      'Fulfilment',
+      'Payments',
+      'Checkout Orchestrator',
+    ]);
+  });
+
+  it('matches case-insensitively and leaves out resources that do not match', () => {
+    const ranked = rankResourceSearchItems(items, 'SHIP');
+    expect(ranked.map((item) => item.name)).toEqual(['Shipment Booked']);
+    expect(rankResourceSearchItems(items, 'nothing matches this')).toEqual([]);
   });
 });

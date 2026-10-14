@@ -11,6 +11,9 @@ owners:
 receives:
   - id: order-completed
     version: 1.0.0
+    from:
+      - id: ordering.order-events
+        version: 1.0.0
 sends:
   - id: order-ready-for-shipping
     version: 1.0.0

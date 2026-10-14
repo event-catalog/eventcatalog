@@ -1,0 +1,9 @@
+# Output: the view (dist/) and the bundled server (build/), not view/build (source)
+/node_modules
+/dist
+/build
+*.log
+.DS_Store
+# Browser tests (pnpm test:e2e)
+/test-results
+/playwright-report

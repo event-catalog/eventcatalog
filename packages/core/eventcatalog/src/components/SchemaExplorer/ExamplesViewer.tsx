@@ -13,6 +13,7 @@ import { MarkdownCodeGroup } from '../MDX/CodeGroup/MarkdownCodeGroup';
 import { MarkdownColumns, MarkdownColumn } from '../MDX/Columns/MarkdownColumns';
 import { remarkMarkdownColumns } from '../../remark-plugins/markdown-columns';
 import { getLanguageForHighlight } from './utils';
+import { renderHighlightedRows } from '@utils/syntax-highlighter-renderer';
 
 interface ExamplesViewerProps {
   examples: MessageExample[];
@@ -40,6 +41,7 @@ function CodeBlock({ language, code }: { language?: string; code: string }) {
   const content = code.replace(/\s+$/, '');
   const highlighter = (
     <SyntaxHighlighter
+      renderer={renderHighlightedRows}
       language={language || 'text'}
       style={isDarkMode ? oneDark : oneLight}
       customStyle={{

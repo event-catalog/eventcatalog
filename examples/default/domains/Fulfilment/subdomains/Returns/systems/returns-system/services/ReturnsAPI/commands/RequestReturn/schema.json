@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RequestReturn",
+  "description": "Request to return items from a delivered order",
+  "type": "object",
+  "properties": {
+    "orderId": { "type": "string", "format": "uuid" },
+    "customerId": { "type": "string", "format": "uuid" },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "minimum": 1 }
+        },
+        "required": ["sku", "quantity"]
+      }
+    },
+    "reason": { "type": "string", "enum": ["damaged", "wrong_item", "not_as_described", "no_longer_needed", "other"] },
+    "comment": { "type": "string" }
+  },
+  "required": ["orderId", "customerId", "items", "reason"]
+}

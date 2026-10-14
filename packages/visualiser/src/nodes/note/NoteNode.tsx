@@ -1,4 +1,4 @@
-import { Node, Handle, Position } from "@xyflow/react";
+import { Node, NodeProps, Handle, Position } from "@xyflow/react";
 import React, { memo, useState, useEffect, useRef, useCallback } from "react";
 import { FULL_SIZE_STYLE } from "../shared-styles";
 
@@ -17,7 +17,7 @@ export type NoteNodeData = {
 // Define the NoteNode type for React Flow
 export type NoteNode = Node<NoteNodeData, "note">;
 
-export interface NoteNodeProps extends NoteNode {
+export interface NoteNodeProps extends NodeProps<NoteNode> {
   onTextChange?: (id: string, text: string) => void;
   onColorChange?: (id: string, color: string) => void;
   showResizer?: boolean;

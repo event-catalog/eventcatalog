@@ -81,6 +81,11 @@ export class Page extends HybridPage {
       'data-products': getDataProducts,
     };
 
+    // An unknown type (e.g. a mistyped URL) has no discover page
+    if (!Object.hasOwn(loaders, type)) {
+      return null;
+    }
+
     // @ts-ignore
     const items = await loaders[type]();
 
@@ -88,12 +93,5 @@ export class Page extends HybridPage {
       type,
       data: items,
     };
-  }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Collection type not found',
-    });
   }
 }

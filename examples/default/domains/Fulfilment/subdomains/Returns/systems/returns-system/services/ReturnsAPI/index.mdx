@@ -1,0 +1,51 @@
+---
+id: returns-api
+version: 1.0.0
+name: Returns API
+summary: |
+  Public API customers use to start a return. Validates the request against the original order and records it.
+styles:
+  icon: /icons/languages/java.svg
+owners:
+  - fulfilment-platform
+receives:
+  - id: request-return
+    version: 1.0.0
+    triggers:
+      - id: return-requested
+        version: 1.0.0
+        condition: When the order is eligible and the request is recorded
+sends:
+  - id: return-requested
+    version: 1.0.0
+    to:
+      - id: fulfilment.returns
+        version: 1.0.0
+writesTo:
+  - id: returns-database
+repository:
+  language: Java
+  url: 'https://github.com/acme/returns-api'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Returns API** receives [[command|request-return]] from customers, stores the request in the [[container|returns-database]] and publishes [[event|return-requested]] for the [[service|returns-processor]].
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Intake | Handles [[command\|request-return]] and validates the order and items. |
+| Persistence | Writes new return requests to the [[container\|returns-database]]. |
+| Event publishing | Emits [[event\|return-requested]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={4} />
+
+<Footer />

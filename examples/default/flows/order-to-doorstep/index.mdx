@@ -1,0 +1,737 @@
+---
+id: order-to-doorstep
+name: Order to Doorstep
+version: 1.0.0
+summary: |
+  The end-to-end journey of an order, from a shopper finding a product to the parcel arriving at their door — and what happens when payment fails, stock runs out, delivery goes wrong or the customer sends it back. Crosses every business domain in the catalog.
+owners:
+  - ordering-platform
+badges:
+  - content: End-to-end
+    backgroundColor: indigo
+    textColor: indigo
+  - content: Cross-domain
+    backgroundColor: amber
+    textColor: amber
+steps:
+  # ── Shopping: find a product and fill the cart ─────────────────────────
+  - id: shopper
+    title: Shopper
+    actor:
+      name: Shopper
+      summary: A customer browsing the storefront on web or mobile.
+    next_step:
+      id: search_products
+      label: Searches the catalog
+
+  - id: search_products
+    title: Search Products
+    summary: The storefront asks the search index for products matching the shopper's query.
+    message:
+      id: search-products
+      version: 1.0.0
+    next_step:
+      id: search_api
+      label: Query
+
+  - id: search_api
+    title: Search API
+    service:
+      id: search-api
+      version: 1.0.0
+    next_step:
+      id: add_item_to_cart
+      label: Shopper picks a product
+
+  - id: add_item_to_cart
+    title: Add Item To Cart
+    message:
+      id: add-item-to-cart
+      version: 1.0.0
+    next_step:
+      id: cart_api_add
+      label: Add to basket
+
+  - id: cart_api_add
+    title: Cart API
+    summary: Holds the shopper's basket while they keep browsing.
+    service:
+      id: cart-api
+      version: 1.0.0
+    next_step:
+      id: checkout_cart
+      label: Shopper checks out
+
+  - id: checkout_cart
+    title: Checkout Cart
+    message:
+      id: checkout-cart
+      version: 1.0.0
+    next_step:
+      id: authenticate_customer
+      label: Sign in first
+
+  # ── Customer: who is buying? ───────────────────────────────────────────
+  - id: authenticate_customer
+    title: Authenticate Customer
+    message:
+      id: authenticate-customer
+      version: 1.0.0
+    next_step:
+      id: oauth_api
+      label: Verify session
+
+  - id: oauth_api
+    title: Identity Provider
+    summary: The third-party identity provider confirms who the shopper is.
+    service:
+      id: oauth-api
+      version: 1.0.0
+    next_step:
+      id: customer_authenticated
+      label: Session valid
+
+  - id: customer_authenticated
+    title: Customer Authenticated
+    message:
+      id: customer-authenticated
+      version: 1.0.0
+    next_step:
+      id: cart_api_checkout
+      label: Continue checkout
+
+  # ── Shopping + Catalog: price the basket ───────────────────────────────
+  - id: cart_api_checkout
+    title: Cart API
+    summary: Freezes the basket and prices it before handing it to Ordering.
+    service:
+      id: cart-api
+      version: 1.0.0
+    next_step:
+      id: get_product
+      label: Look up live prices
+
+  - id: get_product
+    title: Get Product
+    message:
+      id: get-product
+      version: 1.0.0
+    next_step:
+      id: product_api
+      label: Query
+
+  - id: product_api
+    title: Product API
+    service:
+      id: product-api
+      version: 1.0.0
+    next_step:
+      id: calculate_discount
+      label: Prices returned
+
+  - id: calculate_discount
+    title: Calculate Discount
+    message:
+      id: calculate-discount
+      version: 1.0.0
+    next_step:
+      id: promotion_service
+      label: Apply promotions
+
+  - id: promotion_service
+    title: Promotion Service
+    service:
+      id: promotion-service
+      version: 1.0.0
+    next_step:
+      id: discount_calculated
+      label: Codes and offers applied
+
+  - id: discount_calculated
+    title: Discount Calculated
+    message:
+      id: discount-calculated
+      version: 1.0.0
+    next_step:
+      id: cart_checked_out
+      label: Final total known
+
+  - id: cart_checked_out
+    title: Cart Checked Out
+    message:
+      id: cart-checked-out
+      version: 1.0.0
+    next_step:
+      id: checkout_api
+      label: Hand over to Ordering
+
+  # ── Ordering: run the checkout saga ────────────────────────────────────
+  - id: checkout_api
+    title: Checkout API
+    service:
+      id: checkout-api
+      version: 1.0.0
+    next_step:
+      id: checkout_orchestrator
+      label: Start checkout saga
+
+  - id: checkout_orchestrator
+    title: Checkout Orchestrator
+    summary: Coordinates stock, payment and order creation, compensating if any step fails.
+    service:
+      id: checkout-orchestrator
+      version: 1.0.0
+    next_step:
+      id: reserve_inventory
+      label: Step 1 — hold the stock
+
+  # ── Fulfilment: is it in stock? ────────────────────────────────────────
+  - id: reserve_inventory
+    title: Reserve Inventory
+    message:
+      id: reserve-inventory
+      version: 1.0.0
+    next_step:
+      id: inventory_service
+      label: Reserve items
+
+  - id: inventory_service
+    title: Inventory Service
+    service:
+      id: inventory-service
+      version: 1.0.0
+    next_steps:
+      - id: inventory_reserved
+        label: In stock
+      - id: inventory_unavailable
+        label: Out of stock
+
+  - id: inventory_reserved
+    title: Inventory Reserved
+    message:
+      id: inventory-reserved
+      version: 1.0.0
+    next_step:
+      id: authorize_payment
+      label: Step 2 — take payment
+
+  - id: inventory_unavailable
+    title: Inventory Unavailable
+    message:
+      id: inventory-unavailable
+      version: 1.0.0
+    next_step:
+      id: cancel_order_flow
+      label: Abort checkout
+
+  # ── Payments: fraud checks and charging the card ───────────────────────
+  - id: authorize_payment
+    title: Authorize Payment
+    message:
+      id: authorize-payment
+      version: 1.0.0
+    next_step:
+      id: payment_api
+      label: Charge the order total
+
+  - id: payment_api
+    title: Payment API
+    service:
+      id: payment-api
+      version: 1.0.0
+    next_step:
+      id: payment_requested
+      label: Queue the payment
+
+  - id: payment_requested
+    title: Payment Requested
+    message:
+      id: payment-requested
+      version: 1.0.0
+    next_step:
+      id: fraud_api
+      label: Screen for fraud
+
+  - id: fraud_api
+    title: Fraud Screening
+    summary: A third-party fraud service scores the payment before any money moves.
+    service:
+      id: fraud-api
+      version: 1.0.0
+    next_steps:
+      - id: fraud_check_passed
+        label: Low risk
+      - id: fraud_check_failed
+        label: High risk
+
+  - id: fraud_check_failed
+    title: Fraud Check Failed
+    message:
+      id: fraud-check-failed
+      version: 1.0.0
+    next_step:
+      id: cancel_order_flow
+      label: Block and abort
+
+  - id: fraud_check_passed
+    title: Fraud Check Passed
+    message:
+      id: fraud-check-passed
+      version: 1.0.0
+    next_step:
+      id: stripe_payments_api
+      label: Charge card
+
+  - id: stripe_payments_api
+    title: Stripe
+    service:
+      id: stripe-payments-api
+      version: 1.0.0
+    next_step:
+      id: stripe_webhook_endpoint
+      label: Result via webhook
+
+  - id: stripe_webhook_endpoint
+    title: Stripe Webhook Endpoint
+    service:
+      id: stripe-webhook-endpoint
+      version: 1.0.0
+    next_steps:
+      - id: payment_succeeded
+        label: Card charged
+      - id: payment_failed
+        label: Card declined
+
+  - id: payment_failed
+    title: Payment Failed
+    message:
+      id: payment-failed
+      version: 1.0.0
+    next_step:
+      id: cancel_order_flow
+      label: Abort checkout
+
+  - id: payment_succeeded
+    title: Payment Succeeded
+    message:
+      id: payment-succeeded
+      version: 1.0.0
+    next_steps:
+      - id: create_order
+        label: Step 3 — create the order
+      - id: ledger_exporter
+        label: Book the revenue
+
+  - id: ledger_exporter
+    title: Ledger Exporter
+    summary: Posts the payment to the finance ledger for reporting and reconciliation.
+    service:
+      id: ledger-exporter
+      version: 1.0.0
+
+  # ── Compensation: undo the checkout ────────────────────────────────────
+  - id: cancel_order_flow
+    title: Order Cancellation
+    summary: Releases held stock, voids any payment and tells the customer. Click to expand the sub-flow.
+    flow:
+      id: order-cancellation
+      version: 1.0.0
+    next_step:
+      id: order_not_placed
+      label: Checkout aborted
+
+  - id: order_not_placed
+    title: Order not placed
+    custom:
+      title: Order not placed
+      color: red
+      icon: XCircleIcon
+      type: Outcome
+      summary: Checkout was aborted and every earlier step compensated. The shopper keeps their basket and can try again.
+
+  # ── Ordering: the order exists ─────────────────────────────────────────
+  - id: create_order
+    title: Create Order
+    message:
+      id: create-order
+      version: 1.0.0
+    next_step:
+      id: order_service
+      label: Persist the order
+
+  - id: order_service
+    title: Order Service
+    service:
+      id: order-service
+      version: 1.0.0
+    next_step:
+      id: order_confirmed
+      label: Order placed
+
+  - id: order_confirmed
+    title: Order Confirmed
+    summary: The moment the sale is real. Three domains react to it in parallel.
+    message:
+      id: order-confirmed
+      version: 1.0.0
+    next_steps:
+      - id: loyalty_service_award
+        label: Award points
+      - id: notification_service_confirm
+        label: Email confirmation
+      - id: warehouse_service
+        label: Start fulfilment
+
+  # ── Customer › Loyalty and Notifications ───────────────────────────────
+  - id: loyalty_service_award
+    title: Loyalty Service
+    service:
+      id: loyalty-service
+      version: 1.0.0
+    next_step:
+      id: loyalty_points_earned
+      label: Points credited
+
+  - id: loyalty_points_earned
+    title: Loyalty Points Earned
+    message:
+      id: loyalty-points-earned
+      version: 1.0.0
+
+  - id: notification_service_confirm
+    title: Notification Service
+    service:
+      id: notification-service
+      version: 1.0.0
+    next_step:
+      id: customer_notified
+      label: Confirmation sent
+
+  - id: customer_notified
+    title: Customer Notified
+    message:
+      id: customer-notified
+      version: 1.0.0
+
+  # ── Fulfilment: pick, pack and ship ────────────────────────────────────
+  - id: warehouse_service
+    title: Warehouse Service
+    service:
+      id: warehouse-service
+      version: 1.0.0
+    next_step:
+      id: picking_worker
+      label: Create pick list
+
+  - id: picking_worker
+    title: Picking Worker
+    service:
+      id: picking-worker
+      version: 1.0.0
+    next_step:
+      id: order_packed
+      label: Items boxed
+
+  - id: order_packed
+    title: Order Packed
+    message:
+      id: order-packed
+      version: 1.0.0
+    next_step:
+      id: order_ready_for_shipping
+      label: Ready at the dock
+
+  - id: order_ready_for_shipping
+    title: Order Ready For Shipping
+    message:
+      id: order-ready-for-shipping
+      version: 1.0.0
+    next_step:
+      id: create_shipment
+      label: Book a courier
+
+  - id: create_shipment
+    title: Create Shipment
+    message:
+      id: create-shipment
+      version: 1.0.0
+    next_step:
+      id: carrier_adapter
+      label: Pick the cheapest carrier
+
+  - id: carrier_adapter
+    title: Carrier Adapter
+    service:
+      id: carrier-adapter
+      version: 1.0.0
+    next_step:
+      id: carrier_tracking_api
+      label: Parcel handed over
+
+  - id: carrier_tracking_api
+    title: Carrier Tracking
+    summary: The external courier reports progress back to us.
+    service:
+      id: carrier-tracking-api
+      version: 1.0.0
+    next_step:
+      id: shipment_created
+      label: Tracking number issued
+
+  - id: shipment_created
+    title: Shipment Created
+    message:
+      id: shipment-created
+      version: 1.0.0
+    next_steps:
+      - id: shipment_delivered
+        label: Delivered
+      - id: shipment_failed
+        label: Delivery failed
+
+  - id: shipment_failed
+    title: Shipment Failed
+    message:
+      id: shipment-failed
+      version: 1.0.0
+    next_step:
+      id: delivery_exception
+      label: Needs a human
+
+  - id: delivery_exception
+    title: Delivery exception
+    custom:
+      title: Delivery exception
+      color: orange
+      icon: ExclamationTriangleIcon
+      type: Exception
+      summary: The courier couldn't deliver. Support rebooks delivery or starts a refund.
+      properties:
+        owner: 'customer support'
+        sla: '24 hours'
+    next_step:
+      id: notification_service_delay
+      label: Tell the customer
+
+  - id: notification_service_delay
+    title: Notification Service
+    summary: Emails the customer that their parcel is delayed and what happens next.
+    service:
+      id: notification-service
+      version: 1.0.0
+
+  - id: shipment_delivered
+    title: Shipment Delivered
+    message:
+      id: shipment-delivered
+      version: 1.0.0
+    next_step:
+      id: order_completed
+      label: Close the order
+
+  - id: order_completed
+    title: Order Completed
+    message:
+      id: order-completed
+      version: 1.0.0
+    next_steps:
+      - id: order_delivered
+        label: Happy path
+      - id: submit_review
+        label: Customer reviews it
+      - id: request_return
+        label: Customer sends it back
+
+  - id: order_delivered
+    title: Order delivered
+    custom:
+      title: Order delivered
+      color: green
+      icon: CheckCircleIcon
+      type: Outcome
+      summary: The parcel is at the customer's door, the payment is booked and loyalty points are credited.
+      properties:
+        happy_path: 'true'
+
+  # ── Reviews ────────────────────────────────────────────────────────────
+  - id: submit_review
+    title: Submit Review
+    message:
+      id: submit-review
+      version: 1.0.0
+    next_step:
+      id: review_api
+      label: Rate the product
+
+  - id: review_api
+    title: Review API
+    service:
+      id: review-api
+      version: 1.0.0
+    next_step:
+      id: review_submitted
+      label: Queued for moderation
+
+  - id: review_submitted
+    title: Review Submitted
+    message:
+      id: review-submitted
+      version: 1.0.0
+    next_step:
+      id: rating_aggregator
+      label: Recalculate stars
+
+  - id: rating_aggregator
+    title: Rating Aggregator
+    service:
+      id: rating-aggregator
+      version: 1.0.0
+    next_step:
+      id: rating_updated
+      label: New average
+
+  - id: rating_updated
+    title: Rating Updated
+    message:
+      id: rating-updated
+      version: 1.0.0
+
+  # ── Fulfilment › Returns, then a refund ────────────────────────────────
+  - id: request_return
+    title: Request Return
+    message:
+      id: request-return
+      version: 1.0.0
+    next_step:
+      id: returns_api
+      label: Start a return
+
+  - id: returns_api
+    title: Returns API
+    service:
+      id: returns-api
+      version: 1.0.0
+    next_step:
+      id: return_requested
+      label: Return label issued
+
+  - id: return_requested
+    title: Return Requested
+    message:
+      id: return-requested
+      version: 1.0.0
+    next_step:
+      id: returns_processor
+      label: Parcel comes back
+
+  - id: returns_processor
+    title: Returns Processor
+    service:
+      id: returns-processor
+      version: 1.0.0
+    next_step:
+      id: return_approved
+      label: Item inspected
+
+  - id: return_approved
+    title: Return Approved
+    message:
+      id: return-approved
+      version: 1.0.0
+    next_step:
+      id: payment_worker_refund
+      label: Refund the customer
+
+  - id: payment_worker_refund
+    title: Payment Worker
+    service:
+      id: payment-worker
+      version: 1.0.0
+    next_step:
+      id: refund_requested
+      label: Issue refund
+
+  - id: refund_requested
+    title: Refund Requested
+    message:
+      id: refund-requested
+      version: 1.0.0
+    next_step:
+      id: stripe_refund
+      label: Refund the card
+
+  - id: stripe_refund
+    title: Stripe
+    service:
+      id: stripe-payments-api
+      version: 1.0.0
+    next_step:
+      id: refund_processed
+      label: Money returned
+
+  - id: refund_processed
+    title: Refund Processed
+    message:
+      id: refund-processed
+      version: 1.0.0
+    next_step:
+      id: loyalty_service_reverse
+      label: Take back points
+
+  - id: loyalty_service_reverse
+    title: Loyalty Service
+    service:
+      id: loyalty-service
+      version: 1.0.0
+    next_step:
+      id: loyalty_points_reversed
+      label: Points removed
+
+  - id: loyalty_points_reversed
+    title: Loyalty Points Reversed
+    message:
+      id: loyalty-points-reversed
+      version: 1.0.0
+    next_step:
+      id: return_complete
+      label: Return closed
+
+  - id: return_complete
+    title: Return complete
+    custom:
+      title: Return complete
+      color: blue
+      icon: ArrowUturnLeftIcon
+      type: Outcome
+      summary: The item is back in the warehouse, the customer is refunded and their loyalty points are reversed.
+---
+
+## Overview
+
+**Order to Doorstep** follows a single order across the whole business — from a shopper searching the catalog to the parcel arriving at their door. It's the best flow in this catalog for seeing how the domains fit together:
+
+| Domain | What it does in this flow |
+|---|---|
+| **Shopping** | Holds the basket and applies promotions |
+| **Catalog** | Search and live product prices |
+| **Customer** | Signs the shopper in, awards loyalty points and sends emails (the **Loyalty** and **Notifications** subdomains) |
+| **Ordering** | Runs the checkout saga and owns the order |
+| **Payments** | Fraud screening, charging the card via Stripe and booking revenue |
+| **Fulfilment** | Stock, picking, packing, shipping — and the **Returns** subdomain |
+| **Reviews** | Ratings once the order arrives |
+
+<NodeGraph />
+
+## Try it
+
+- **Group by** (top right) — group the steps by **Domain**, **System**, **Team** or **Domain › System** to see where work hands over between teams. Switch between **Boxes** and **Lanes**.
+- **Walk through** (bottom left) — step through the order one hop at a time. At each branch, pick what happens next: in stock or out of stock, card charged or declined, delivered or failed, reviewed or returned.
+- **Order Cancellation** is a sub-flow — click it to expand the compensation steps in place.
+
+## Paths through the flow
+
+1. **Happy path** — search, basket, sign in, price, reserve stock, pass fraud checks, charge the card, create the order, then loyalty, email and fulfilment run in parallel until the parcel is delivered.
+2. **Checkout aborted** — out of stock, high fraud risk or a declined card all hand over to the [[flow|order-cancellation]] sub-flow.
+3. **Delivery exception** — the courier fails to deliver and support takes over.
+4. **Review** — the customer rates the product and the average rating updates.
+5. **Return** — the item comes back, the card is refunded and loyalty points are reversed.

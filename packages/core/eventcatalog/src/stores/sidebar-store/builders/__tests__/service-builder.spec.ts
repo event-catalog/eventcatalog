@@ -43,7 +43,29 @@ const emptyContext = {
   resourceDocCategories: [],
 } as any;
 
+const getQuickReferenceLinks = (serviceEntry: CollectionEntry<'services'>, context = emptyContext) => {
+  const node = buildServiceNode(serviceEntry, [], context);
+  const quickReference = node.pages?.find((page) => typeof page !== 'string' && page.title === 'Quick Reference');
+  return quickReference && typeof quickReference !== 'string' ? quickReference.pages : [];
+};
+
 describe('buildServiceNode', () => {
+  // Whether an owner has a Resources page is worked out once for the whole catalog
+  // (getResourcesPageKeys) and passed in, so the sidebar and the pages agree.
+  it('links to the Resources page when the service has one', () => {
+    expect(
+      getQuickReferenceLinks(service, { ...emptyContext, resourcesPages: new Set(['services:ProductApi:1.0.0']) })
+    ).toContainEqual({
+      type: 'item',
+      title: 'Resources',
+      href: '/docs/services/ProductApi/1.0.0/resources',
+    });
+  });
+
+  it('does not link to the Resources page when the service has none', () => {
+    expect(getQuickReferenceLinks(service)).not.toContainEqual(expect.objectContaining({ title: 'Resources' }));
+  });
+
   it('links directly to the resolved service version from Quick Reference', () => {
     const node = buildServiceNode(service, [], emptyContext);
     const quickReference = node.pages?.find((page) => typeof page !== 'string' && page.title === 'Quick Reference');

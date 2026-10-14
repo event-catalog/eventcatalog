@@ -1,0 +1,209 @@
+/**
+ * The MCP server's product analytics, to EventCatalog's PostHog project (with the view's, view/analytics.ts): which
+ * agents connect (and whether they show MCP Apps), which tools they call, how big the diagrams they draw are and how
+ * often their models need fixing. Never the model: kinds, counts and buckets only (the HTTP server logs no more).
+ *
+ * Nobody's identified: an event's id is a hash of the caller's address and user agent with a salt that's only in
+ * memory and changes every day (as Plausible counts visitors), so a day's calls from one client count together and
+ * nothing links them across days. PostHog's location lookup is off (it would see this server's address, not theirs).
+ *
+ * Sent from production only (PUBLIC_URL not on localhost); ANALYTICS=off turns it off, ANALYTICS=debug sends (and logs)
+ * from anywhere, marked as development.
+ */
+import crypto from 'node:crypto';
+import { getUiCapability } from '@modelcontextprotocol/ext-apps/server';
+import { POSTHOG_HOST, POSTHOG_KEY } from './lib/posthog';
+
+type Value = string | number | boolean | undefined | null;
+export type Properties = Record<string, Value>;
+
+const FLUSH_MS = 10_000;
+const MAX_BATCH = 100;
+const MAX_QUEUED = 2000;
+
+const setting = process.env.ANALYTICS;
+const isLocal = (url?: string) => {
+  try {
+    return !url || /^(localhost|127\.\d+\.\d+\.\d+|\[::1\]|0\.0\.0\.0)$/.test(new URL(url).hostname);
+  } catch {
+    return true;
+  }
+};
+const environment = isLocal(process.env.PUBLIC_URL) ? 'development' : 'production';
+const enabled = setting !== 'off' && !process.env.VITEST && (environment === 'production' || setting === 'debug');
+
+// ---- Who's calling, anonymously ----
+
+let salt = { day: '', value: '' };
+/** The caller for today: a hash of their address and user agent, salted (the salt changes daily and isn't kept) */
+export function callerId(ip: string, userAgent: string) {
+  const day = new Date().toISOString().slice(0, 10);
+  if (salt.day !== day) salt = { day, value: crypto.randomBytes(16).toString('hex') };
+  return crypto.createHash('sha256').update(`${salt.value}|${ip}|${userAgent}`).digest('hex').slice(0, 32);
+}
+
+/** The client's name from its user agent: the first word (e.g. claude-code, cursor, openai-mcp, node), not its details */
+export const userAgentFamily = (userAgent: string) =>
+  (userAgent.split(/[\s/;(]/)[0] || 'unknown').toLowerCase().slice(0, 40);
+
+// Our tools: a name a client sends that isn't one of them is reported as `unknown` (it's whatever the client sent)
+const TOOLS = new Set(['render_architecture', 'get_architecture_view', 'show_on_diagram', 'read_diagram', 'get_architecture_schema']);
+
+// The client each caller said it was when it connected (initialize), for their tool calls (sent without it: stateless)
+const clients = new Map<string, { name: string; version?: string }>();
+const rememberClient = (caller: string, client: { name: string; version?: string }) => {
+  clients.delete(caller);
+  clients.set(caller, client);
+  if (clients.size > 5000) clients.delete(clients.keys().next().value!);
+};
+
+// ---- Sending ----
+
+type Queued = { event: string; properties: Properties; timestamp: string };
+const queue: Queued[] = [];
+let timer: NodeJS.Timeout | undefined;
+
+export async function flushAnalytics() {
+  if (timer) clearTimeout(timer);
+  timer = undefined;
+  while (queue.length) {
+    const batch = queue.splice(0, MAX_BATCH);
+    if (setting === 'debug') batch.forEach(({ event, properties }) => console.log('[analytics]', event, JSON.stringify(properties)));
+    try {
+      await fetch(`${POSTHOG_HOST}/batch/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: POSTHOG_KEY, batch }),
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch {
+      // Dropped: analytics never gets in the way
+    }
+  }
+}
+
+export function capture(event: string, caller: string, properties: Properties = {}) {
+  if (!enabled || queue.length >= MAX_QUEUED) return;
+  const clean = Object.fromEntries(Object.entries(properties).filter(([, value]) => value !== undefined && value !== null && value !== ''));
+  queue.push({
+    event,
+    timestamp: new Date().toISOString(),
+    properties: {
+      distinct_id: caller,
+      $process_person_profile: false,
+      $geoip_disable: true,
+      $lib: 'studio-web-server',
+      product: 'studio_web',
+      surface: 'mcp',
+      environment,
+      ...clean,
+    },
+  });
+  if (queue.length >= MAX_BATCH) void flushAnalytics();
+  else timer ??= setTimeout(() => void flushAnalytics(), FLUSH_MS);
+}
+
+// Sent before the server stops (Fly stops machines with SIGINT; SIGTERM elsewhere)
+if (enabled) {
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+    process.once(signal, () => {
+      const exit = () => process.exit(0);
+      setTimeout(exit, 3000).unref();
+      void flushAnalytics().finally(exit);
+    });
+  }
+}
+
+// ---- One MCP request (see server.ts) ----
+
+/** What a request to /mcp was, as it's handled: what it asked for, and what the tool found (filled in by the tools) */
+export type McpCall = {
+  method?: string;
+  tool?: string;
+  client?: { name: string; version?: string };
+  protocolVersion?: string;
+  appsSupported?: boolean;
+  /** What the client says it can do (capability names, e.g. elicitation, roots, sampling, and its extensions) */
+  capabilities?: string;
+  viewRead?: boolean;
+  /** The answer was a JSON-RPC error (its code), or a tool's error result (e.g. arguments that didn't validate) */
+  rpcError?: number;
+  toolError?: boolean;
+  /** Set by the tools: whether it worked (and why not), and the diagram's shape */
+  details?: Properties;
+};
+
+/** Notes what a JSON-RPC message asks for (the transport's parsed message, before the server handles it) */
+export function noteMessage(call: McpCall, message: unknown) {
+  if (!message || typeof message !== 'object' || !('method' in message)) return;
+  const { method, params } = message as { method: string; params?: Record<string, unknown> };
+  if (method.startsWith('notifications/')) return;
+  call.method = method;
+  if (method === 'initialize') {
+    const info = params?.clientInfo as { name?: unknown; version?: unknown } | undefined;
+    if (typeof info?.name === 'string') call.client = { name: info.name.slice(0, 60), version: typeof info.version === 'string' ? info.version.slice(0, 30) : undefined };
+    call.protocolVersion = typeof params?.protocolVersion === 'string' ? params.protocolVersion : undefined;
+    call.appsSupported = !!getUiCapability(params?.capabilities as Parameters<typeof getUiCapability>[0]);
+    const capabilities = (params?.capabilities ?? {}) as Record<string, unknown>;
+    const extensions = Object.keys((capabilities.extensions as Record<string, unknown> | undefined) ?? {});
+    call.capabilities = [...Object.keys(capabilities).filter((name) => name !== 'extensions'), ...extensions]
+      .map((name) => name.slice(0, 60))
+      .sort()
+      .join(',');
+  } else if (method === 'tools/call' && typeof params?.name === 'string') {
+    call.tool = TOOLS.has(params.name) ? params.name : 'unknown';
+  } else if (method === 'resources/read') {
+    call.viewRead = typeof params?.uri === 'string' && params.uri.startsWith('ui://eventcatalog/');
+  }
+}
+
+/** Notes how a JSON-RPC answer went (the transport's message, before it's sent): an error, or a tool's error result */
+export function noteResponse(call: McpCall, message: unknown) {
+  if (!message || typeof message !== 'object') return;
+  const { error, result } = message as { error?: { code?: unknown }; result?: { isError?: unknown } };
+  if (error) call.rpcError = typeof error.code === 'number' ? error.code : -1;
+  if (result?.isError === true) call.toolError = true;
+}
+
+/** A request turned away before it was handled (too many from one caller, or too large) */
+export function reportRejected(reason: 'rate_limited' | 'too_large', { ip, userAgent }: { ip: string; userAgent: string }) {
+  if (!enabled) return;
+  const caller = callerId(ip, userAgent);
+  capture('mcp_rejected', caller, { reason, client_name: clients.get(caller)?.name, user_agent_family: userAgentFamily(userAgent) });
+}
+
+/** The request's event, once it's been answered: connecting, a tool call, or a chat loading the view */
+export function reportMcpCall(call: McpCall, { ip, userAgent, ms, status }: { ip: string; userAgent: string; ms: number; status: number }) {
+  if (!enabled || !call.method) return;
+  const caller = callerId(ip, userAgent);
+  if (call.client) rememberClient(caller, call.client);
+  const client = call.client ?? clients.get(caller);
+  const common = { client_name: client?.name, client_version: client?.version, user_agent_family: userAgentFamily(userAgent) };
+  const ok = status < 400 && call.rpcError === undefined && !call.toolError && call.details?.ok !== false;
+  // Why it failed, when the tool didn't say: a JSON-RPC error (e.g. an unknown tool), or a tool error result (e.g.
+  // arguments that didn't match the schema, turned away before the tool ran)
+  const errorKind = ok
+    ? undefined
+    : ((call.details?.error_kind as string | undefined) ??
+      (call.tool === 'unknown'
+        ? 'unknown_tool'
+        : call.rpcError !== undefined
+          ? `rpc_${call.rpcError}`
+          : call.toolError
+            ? 'invalid_arguments'
+            : `http_${status}`));
+  // Every request, by method (what clients do over the protocol: listing tools, reading the view, calling tools)
+  capture('mcp_request', caller, { ...common, method: call.method, ...(call.tool && { tool: call.tool }), ok, duration_ms: ms, error_kind: errorKind });
+  if (call.method === 'initialize') {
+    capture('mcp_client_connected', caller, {
+      ...common,
+      protocol_version: call.protocolVersion,
+      supports_mcp_apps: call.appsSupported,
+      client_capabilities: call.capabilities,
+    });
+  } else if (call.method === 'tools/call' && call.tool) {
+    capture('mcp_tool_called', caller, { ...common, tool: call.tool, duration_ms: ms, ...call.details, ok, error_kind: errorKind });
+  } else if (call.method === 'resources/read' && call.viewRead) {
+    capture('mcp_view_loaded', caller, common);
+  }
+}

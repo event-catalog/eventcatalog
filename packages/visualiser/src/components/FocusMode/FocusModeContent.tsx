@@ -21,6 +21,9 @@ import { getConnectedNodes, getNodeDisplayInfo } from "./utils";
 import FocusModeNodeActions from "./FocusModeNodeActions";
 import FocusModePlaceholder from "./FocusModePlaceholder";
 
+// Static props for ReactFlow: a new object on every render would re-render the whole canvas
+const HIDE_ATTRIBUTION = { hideAttribution: true };
+
 interface FocusModeContentProps {
   centerNodeId: string;
   nodes: Node[];
@@ -317,7 +320,7 @@ const FocusModeContent: React.FC<FocusModeContentProps> = ({
         onEdgeMouseEnter={handleEdgeMouseEnter}
         onEdgeMouseLeave={handleEdgeMouseLeave}
         onInit={handleInit}
-        proOptions={{ hideAttribution: true }}
+        proOptions={HIDE_ATTRIBUTION}
         nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={true}

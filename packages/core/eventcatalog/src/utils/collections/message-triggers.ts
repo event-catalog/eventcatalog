@@ -23,7 +23,8 @@ export interface MessageTrigger {
   condition?: string;
 }
 
-const messageMatchesPointer = (message: Message, pointer: { id: string; version?: string }) => {
+/** Whether a pointer points at the message; a pointer without a version (or `latest`) means the latest version. */
+export const messageMatchesPointer = (message: Message, pointer: { id: string; version?: string }) => {
   if (pointer.id !== message.data.id) return false;
 
   if (!pointer.version || pointer.version === 'latest') {

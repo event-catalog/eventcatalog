@@ -1,9 +1,15 @@
 import { memo, useMemo, type ComponentType } from "react";
-import { Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../utils/node-connections";
 import * as Icons from "@heroicons/react/24/solid";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
-import { EMPTY_ARRAY, EMPTY_OBJECT, LINE_CLAMP_STYLE } from "./shared-styles";
+import {
+  EMPTY_ARRAY,
+  EMPTY_OBJECT,
+  LINE_CLAMP_STYLE,
+  HANDLE_GLOW,
+} from "./shared-styles";
 import { TruncatedResourceName } from "./TruncatedResourceName";
 import { usePortalContainer } from "../context/PortalContainerContext";
 
@@ -207,6 +213,7 @@ function GlowHandle({
 }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -218,7 +225,7 @@ function GlowHandle({
         background: gradient,
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.generic,
         pointerEvents: "none",
       }}
     />
@@ -244,8 +251,7 @@ export default memo(function CustomNode({ data, selected }: any) {
     ComponentType<{ className?: string }> | undefined
   >(() => Icons[icon as keyof typeof Icons] || Icons.CubeIcon, [icon]);
   const portalContainer = usePortalContainer();
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
   const propertyEntries = Object.entries(properties);
   const contextMenuItems = url
     ? [{ label: `Open ${type.toLowerCase()}`, url }, ...menu]
@@ -276,10 +282,10 @@ export default memo(function CustomNode({ data, selected }: any) {
             position={Position.Right}
             style={HIDDEN_HANDLE_STYLE}
           />
-          {targetConnections.length > 0 && (
+          {connected.target && (
             <GlowHandle side="left" gradient={palette.glow} />
           )}
-          {sourceConnections.length > 0 && (
+          {connected.source && (
             <GlowHandle side="right" gradient={palette.glow} />
           )}
 

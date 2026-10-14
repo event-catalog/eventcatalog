@@ -6,7 +6,6 @@ import fsSync from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pc from 'picocolors';
-import { isEventCatalogScaleEnabled } from '../feature';
 import { sortVersioned } from './util';
 
 const colors = pc.createColors(true);
@@ -400,10 +399,6 @@ const resolveSchemaSource = async (
 };
 
 const resolveSchemaSources = async (schemas: InternalMessageSchemaResource[], sources: SchemaSource[] = []) => {
-  if (sources.length > 0 && !isEventCatalogScaleEnabled()) {
-    throw new Error('Schema sources require EventCatalog Scale.');
-  }
-
   const localSchemas = schemas.filter(schemaFileExists);
   const externalSchemas = schemas.filter((schema) => !schema.filePath);
   const resolvedExternalSchemas: InternalMessageSchemaResource[] = [];

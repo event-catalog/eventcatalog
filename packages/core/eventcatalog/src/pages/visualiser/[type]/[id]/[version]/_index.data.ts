@@ -26,12 +26,11 @@ export class Page extends HybridPage {
       'events',
       'commands',
       'queries',
-      'domains',
       'flows',
       'containers',
       'channels',
       'data-products',
-      'systems',
+      // systems and domains have their own pages (pages/visualiser/systems|domains/[id]/[version])
     ];
     const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
@@ -80,13 +79,6 @@ export class Page extends HybridPage {
       type,
       ...item,
     };
-  }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Visualiser page not found',
-    });
   }
 
   static get clientAuthScript(): string {

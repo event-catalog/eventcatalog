@@ -11,6 +11,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
   buildArchitectureDecisionsSection,
+  buildResourcesLink,
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -94,15 +95,6 @@ export const buildDomainSections = (
   const systemsInDomain = domain.data.systems || [];
   const renderSystems = systemsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'systems');
 
-  // The domain's System Diagram only has something to show when at least one of
-  // its systems takes part in a context graph (declares relationships or actors). This
-  // mirrors the guard that generates the visualiser page, so we never link to a page
-  // that wasn't generated.
-  const hasSystemContext = systemsInDomain.some((system: any) => {
-    const data = system?.data || system;
-    return (data?.relationships || []).length > 0 || (data?.actors || []).length > 0;
-  });
-
   const subDomains = domain.data.domains || [];
   const renderSubDomains = subDomains.length > 0 && shouldRenderSideBarSection(domain, 'subdomains');
 
@@ -139,29 +131,6 @@ export const buildDomainSections = (
   const sortedSendsMessages = [...sendsMessages].sort(byResourceName);
   const sortedReceivesMessages = [...receivesMessages].sort(byResourceName);
   const renderMessages = shouldRenderSideBarSection(domain, 'messages');
-
-  // The Resources page/link only makes sense when the domain has direct resources.
-  // Keep this aligned with the resource groups rendered by the page.
-  const hasResources =
-    subDomains.length > 0 ||
-    systemsInDomain.length > 0 ||
-    agentsInDomain.length > 0 ||
-    dataProductsInDomain.length > 0 ||
-    allServicesInDomain.length > 0 ||
-    domainFlows.length > 0 ||
-    entitiesInDomain.length > 0 ||
-    sendsMessages.length > 0 ||
-    receivesMessages.length > 0;
-
-  // The Resource Diagram renders the domain's services, agents, data products and
-  // subdomains (see domains-node-graph). Only link to it when there's something to
-  // draw — otherwise the visualiser page is empty.
-  const hasResourceDiagram =
-    servicesInDomain.length > 0 ||
-    externalSystemsInDomain.length > 0 ||
-    agentsInDomain.length > 0 ||
-    dataProductsInDomain.length > 0 ||
-    subDomains.length > 0;
 
   // Diagrams
   const domainDiagrams = domain.data.diagrams || [];
@@ -242,10 +211,7 @@ export const buildDomainSections = (
     'quick-reference': buildQuickReferenceSection(
       [
         { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
-        hasResources && {
-          title: 'Domain Resources',
-          href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}/resources`),
-        },
+        buildResourcesLink(context, 'domains', domain.data.id, domain.data.version),
         renderUbiquitousLanguage && {
           title: 'Ubiquitous Language',
           href: buildUrl(`/docs/domains/${domain.data.id}/language`),
@@ -258,37 +224,28 @@ export const buildDomainSections = (
       ].filter(Boolean) as { title: string; href: string }[]
     ),
     documentation: docsSection,
-    architecture: {
-      type: 'group',
-      title: 'Architecture',
-      icon: 'Workflow',
-      pages: [
-        {
-          type: 'item',
-          title: 'Overview',
-          href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
-        },
-        renderSystems &&
-          renderVisualiser &&
-          hasSystemContext && {
-            type: 'item',
-            title: 'System Diagram',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/systems-context`),
-          },
-        renderVisualiser &&
-          hasResourceDiagram && {
-            type: 'item',
-            title: 'Resource Diagram',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
-          },
-        renderEntities &&
-          renderVisualiser && {
-            type: 'item',
-            title: 'Entity Diagram',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
-          },
-      ].filter(Boolean) as ChildRef[],
-    },
+    // Every Architecture link is a visualiser view, so the group is left out when the visualiser is off.
+    architecture: renderVisualiser
+      ? {
+          type: 'group',
+          title: 'Architecture',
+          icon: 'Workflow',
+          pages: [
+            // The domain's diagram, with levels from the domains it talks to down to
+            // its messages
+            {
+              type: 'item',
+              title: 'Diagram',
+              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
+            },
+            renderEntities && {
+              type: 'item',
+              title: 'Entity Diagram',
+              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
+            },
+          ].filter(Boolean) as ChildRef[],
+        }
+      : null,
     diagrams: hasDiagrams
       ? {
           type: 'group',

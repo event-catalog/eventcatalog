@@ -1,13 +1,11 @@
 import { getCollection } from 'astro:content';
 import {
-  createDagreGraph,
-  calculatedNodes,
   generateIdForNode,
   getEdgeLabelForServiceAsTarget,
   generatedIdForEdge,
   createEdge,
-  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import { getNodesAndEdges as getAgentsNodeAndEdges } from './agents-node-graph';
 import { getNodesAndEdges as getDataProductsNodeAndEdges } from './data-products-node-graph';
@@ -16,12 +14,9 @@ import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getProducersOfMessage } from '@utils/collections/services';
 import { getProducersOfMessage as getAgentProducersOfMessage } from '@utils/collections/agents';
 
-type DagreGraph = any;
-
 interface NodesAndEdgesProps {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode: 'simple' | 'full';
   group?: boolean;
   channelRenderMode?: 'single' | 'flat';
@@ -31,13 +26,11 @@ interface NodesAndEdgesProps {
 export const getNodesAndEdges = async ({
   id,
   version,
-  defaultFlow,
   mode = 'simple',
   group = false,
   channelRenderMode = 'flat',
   layout = true,
 }: NodesAndEdgesProps) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 50, edgesep: 50 });
   let nodes = new Map(),
     edges = new Map();
 
@@ -97,7 +90,6 @@ export const getNodesAndEdges = async ({
     const { nodes: serviceNodes, edges: serviceEdges } = await getServicesNodeAndEdges({
       id: service.id,
       version: service.version,
-      defaultFlow: flow,
       mode,
       renderAllEdges: true,
       channelRenderMode,
@@ -122,7 +114,6 @@ export const getNodesAndEdges = async ({
     const { nodes: agentNodes, edges: agentEdges } = await getAgentsNodeAndEdges({
       id: agent.id,
       version: agent.version,
-      defaultFlow: flow,
       mode,
       renderAllEdges: true,
       channelRenderMode,
@@ -139,7 +130,6 @@ export const getNodesAndEdges = async ({
     const { nodes: dataProductNodes, edges: dataProductEdges } = await getDataProductsNodeAndEdges({
       id: dataProduct.id,
       version: dataProduct.version,
-      defaultFlow: flow,
       mode,
       layout: false,
     });
@@ -154,7 +144,6 @@ export const getNodesAndEdges = async ({
     const { nodes: subDomainNodes, edges: subDomainEdges } = await getNodesAndEdges({
       id: subDomain.id,
       version: subDomain.version,
-      defaultFlow: flow,
       mode,
       group: true,
       channelRenderMode,
@@ -175,12 +164,6 @@ export const getNodesAndEdges = async ({
     });
   }
 
-  if (layout) {
-    layoutDagreGraph(flow);
-  }
-
-  return {
-    nodes: calculatedNodes(flow, Array.from(nodes.values())),
-    edges: [...edges.values()],
-  };
+  const graph = { nodes: [...nodes.values()], edges: [...edges.values()] };
+  return layout ? layoutNodeGraph(graph) : graph;
 };

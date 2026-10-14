@@ -75,7 +75,7 @@ export const LogoUpload = ({ canEdit, initialSrc, apiUrl, onSrcChange }: LogoUpl
       onDrop={onDrop}
       className={`relative flex items-center gap-5 rounded-lg border border-dashed px-4 py-4 transition-colors ${
         dragOver
-          ? 'border-[rgb(var(--ec-accent)/0.6)] bg-[rgb(var(--ec-accent-subtle)/0.4)]'
+          ? 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.04)]'
           : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg)/0.4)]'
       }`}
     >

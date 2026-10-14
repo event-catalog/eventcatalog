@@ -1,0 +1,24 @@
+---
+/** A message in place of Studio (e.g. a deleted canvas, or Studio not being available), with a way back */
+type Props = { title: string; message: string; href?: string; linkText?: string };
+const { title, message, href, linkText } = Astro.props;
+---
+
+<div class="flex h-full items-center justify-center p-4">
+  <div
+    class="max-w-md space-y-2 rounded-xl border p-5 text-center shadow-xl bg-[rgb(var(--ec-card-bg))] border-[rgb(var(--ec-page-border))]"
+  >
+    <h1 class="text-base font-semibold text-[rgb(var(--ec-page-text))]">{title}</h1>
+    <p class="text-sm text-[rgb(var(--ec-page-text-muted))]">{message}</p>
+    {
+      href && linkText && (
+        <a
+          href={href}
+          class="mt-2 inline-flex rounded-lg px-4 py-2 text-sm font-medium bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] hover:bg-[rgb(var(--ec-button-bg-hover))]"
+        >
+          {linkText}
+        </a>
+      )
+    }
+  </div>
+</div>

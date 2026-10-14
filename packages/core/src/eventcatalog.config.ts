@@ -157,7 +157,6 @@ type SchemaSource = {
 type DirectoryConfig = {
   /**
    * External sources that sync users and teams into EventCatalog.
-   * Requires EventCatalog Scale.
    */
   sources?: DirectorySource[];
   /**
@@ -220,11 +219,43 @@ type McpAuthConfig = {
 
 type McpConfig = {
   /**
-   * Enables the built-in MCP server when EventCatalog is running in server mode with a Scale license.
+   * Enables the built-in MCP server when EventCatalog is running in server mode.
    * @default true
    */
   enabled?: boolean;
   auth?: McpAuthConfig;
+};
+
+/**
+ * The state EventCatalog keeps for features that need it (today, Studio's canvases). Features always work on a copy
+ * held in memory by the server, so storage doesn't slow them down: it's read when the server starts and written a
+ * moment after something changes (and as the server stops).
+ */
+export type StorageConfig =
+  /** Kept only while the server runs: lost when it restarts or redeploys (the default) */
+  | { type: 'memory' }
+  /**
+   * One SQLite database file for the whole catalog, brought up to date (migrated) as `eventcatalog dev` and
+   * `eventcatalog start` start. Uses Node.js's built-in SQLite, so needs Node.js 22.13 or later.
+   */
+  | {
+      type: 'sqlite';
+      /**
+       * The database file, relative to the catalog. In a container, put it on a volume (e.g. `/data/eventcatalog.db`)
+       * so it survives redeploys.
+       * @default '.eventcatalog/eventcatalog.db'
+       */
+      path?: string;
+    };
+
+type StudioConfig = {
+  /**
+   * Turns Studio on in production (`output: 'server'`, served with `eventcatalog start`). It's on in the dev server
+   * unless this is `false`, which turns it off everywhere. Experimental. With authentication on, only signed-in people
+   * can open canvases, and they're shown by the name and picture they signed in with.
+   * @default false
+   */
+  enabled?: boolean;
 };
 
 type GA4Config = {
@@ -298,6 +329,13 @@ export interface Config {
   };
   security?: {
     checkOrigin?: boolean;
+    /**
+     * Hosts to trust in a proxy's X-Forwarded-Host and X-Forwarded-Proto headers (server output), e.g. when deployed
+     * behind Fly.io, Railway or a load balancer that serves HTTPS. Without it, form posts (like starting a canvas in
+     * Studio) fail the origin check. Passed to Astro's `security.allowedDomains`.
+     * @example [{ hostname: 'catalog.example.com', protocol: 'https' }]
+     */
+    allowedDomains?: { hostname?: string; protocol?: string; port?: string }[];
   };
   /**
    * Theme for the catalog UI.
@@ -311,6 +349,13 @@ export interface Config {
   theme?: CatalogTheme;
   auth?: AuthConfig;
   mcp?: McpConfig;
+  /** EventCatalog Studio: collaborative canvases (experimental) */
+  studio?: StudioConfig;
+  /**
+   * Where EventCatalog keeps state between restarts (e.g. Studio's canvases), for every feature that has some.
+   * @default { type: 'memory' }
+   */
+  storage?: StorageConfig;
   rss?: {
     enabled?: boolean;
     limit?: number;
@@ -451,10 +496,18 @@ export interface Config {
   queries?: {
     tableConfiguration?: TableConfiguration;
   };
+  /**
+   * Anonymous telemetry for `eventcatalog dev` and `eventcatalog build`.
+   * On by default. Set to false to opt out.
+   * `EVENTCATALOG_TELEMETRY_DISABLED` or `DO_NOT_TRACK` set to `1` or `true` also opts out.
+   * `cloud.analytics` stays its own opt-in for EventCatalog Cloud.
+   * @default true
+   */
+  telemetry?: boolean;
   cloud?: EventCatalogCloudConfig;
   integrations?: IntegrationsConfig;
   scalarConfiguration?: ScalarConfiguration;
   generators?: GeneratorConfig[];
-  /** Catalogs composed into this catalog by `eventcatalog federate`. Requires an offline EventCatalog Enterprise license. */
+  /** Catalogs composed into this catalog by `eventcatalog federate`. */
   federation?: FederationConfig;
 }

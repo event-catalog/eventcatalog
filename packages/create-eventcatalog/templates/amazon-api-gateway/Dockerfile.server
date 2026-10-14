@@ -19,5 +19,6 @@ ENV HOST=0.0.0.0
 ENV PORT=3000
 EXPOSE 3000
 
-# Start the server
-CMD npm run start
+# Start the server. The exec form (a JSON array) passes `docker stop` (SIGTERM) on to the server,
+# so it stops straight away rather than being killed after Docker's timeout.
+CMD ["npm", "run", "start"]

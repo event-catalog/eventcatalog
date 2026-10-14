@@ -1,0 +1,6 @@
+---
+'@eventcatalog/visualiser': minor
+'@eventcatalog/core': minor
+---
+
+Group a flow's steps by domain, system or team, or by domain with its systems nested inside. A "Group by" menu (top right, or press G) shows how many groups each option makes and whether to draw them as boxes around their steps or as full-width lanes. Groups come from the catalog (each step's domain, system and owning team), so flows need no changes; messages and custom steps sit with the step before them, and actors and external systems get a group of their own. The choice is kept in the URL (`?group=system&groupStyle=boxes`), and `<Flow lanes="team" />` / `<NodeGraph lanes="domain" />` start a flow grouped. Flows no longer show the L1/L2/L3 levels. The step-by-step walkthrough is smaller and starts at the first step: it numbers the steps walked so far, rings the current step, offers a dropdown at branches, expands long summaries, and carries on from the same step when the flow is regrouped. Saving a layout is hidden while a flow is grouped, and the Mermaid export leaves the groups out. Handle animations now run on the compositor and flow pages send less data to the browser, so large flows pan and animate more smoothly.

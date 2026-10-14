@@ -62,3 +62,7 @@ npx skills add event-catalog/skills
 ## Found a Problem?
 
 Open an issue on [GitHub](https://github.com/event-catalog/eventcatalog/issues).
+
+## License
+
+This catalog is built with [EventCatalog](https://www.eventcatalog.dev). EventCatalog 5.0.0 and later is licensed under the [Business Source License 1.1](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE), which covers production use of EventCatalog itself. Your catalog's content (your documentation, schemas and configuration) is yours. See the [license FAQ](https://www.eventcatalog.dev/license-faq) for what's included.

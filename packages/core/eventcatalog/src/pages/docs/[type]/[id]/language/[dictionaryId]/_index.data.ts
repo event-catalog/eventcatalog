@@ -99,11 +99,4 @@ export class Page extends HybridPage {
 
     return buildUbiquitousLanguageTermPage({ domain, collection, term }).props;
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Domain not found',
-    });
-  }
 }

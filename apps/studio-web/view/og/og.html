@@ -1,0 +1,247 @@
+<!doctype html>
+<!--
+  The social preview image (Open Graph / Twitter card) for the site: EventCatalog Studio's canvas, its look and feel.
+  Rendered to view/og/og.png at 1200x630: serve the repo root over HTTP (the fonts and logo load relative to it),
+  open /view/og/og.html in a browser at 1200x630 (device pixel ratio 1) and screenshot the page.
+  The build copies og.png to dist/, and the server serves it at /og.png.
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>EventCatalog Studio: social image</title>
+    <style>
+      @font-face { font-family: 'Inter'; font-weight: 400; src: url('../../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Inter'; font-weight: 500; src: url('../../node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Inter'; font-weight: 600; src: url('../../node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Inter'; font-weight: 700; src: url('../../node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Inter'; font-weight: 800; src: url('../../node_modules/@fontsource/inter/files/inter-latin-800-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Excalifont'; src: url('../styles/fonts/Excalifont-Regular.woff2') format('woff2'); }
+
+      /* The app's light theme */
+      :root {
+        --bg: #f6f7f9;
+        --card: #ffffff;
+        --border: #e2e5ea;
+        --text: #0f172a;
+        --muted: #64748b;
+        --edge: #94a3b8;
+        --service: #ec4899;
+        --event: #f97316;
+        --data: #3b82f6;
+        --domain: #eab308;
+        --accent: #7c3aed;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 1200px; height: 630px; overflow: hidden; }
+      body {
+        position: relative;
+        font-family: 'Inter', sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 900px 300px, rgb(139 92 246 / 0.09), transparent 460px),
+          radial-gradient(circle, #c9ced8 1.2px, transparent 1.3px) 0 0 / 16px 16px,
+          var(--bg);
+      }
+      /* The text side: the dots fade out behind it */
+      .fade {
+        position: absolute; inset: 0 auto 0 0; width: 700px;
+        background: linear-gradient(90deg, var(--bg) 0, var(--bg) 520px, transparent 700px);
+      }
+      svg.icon { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+      /* ---- The words ---- */
+      .copy { position: absolute; left: 72px; top: 92px; width: 520px; }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .logo {
+        width: 50px; height: 50px; background: #0f172a;
+        -webkit-mask: url('../styles/eventcatalog-logo.svg') center / contain no-repeat;
+        mask: url('../styles/eventcatalog-logo.svg') center / contain no-repeat;
+      }
+      .wordmark { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+      .wordmark span { font-weight: 400; color: var(--muted); }
+      h1 { margin-top: 58px; font-size: 54px; line-height: 1.06; font-weight: 700; letter-spacing: -0.03em; }
+      .hand { position: relative; display: inline-block; margin-top: 18px; font-family: 'Excalifont', sans-serif; font-size: 32px; color: var(--muted); }
+      .hand svg { position: absolute; left: -4px; right: -4px; bottom: -14px; width: calc(100% + 8px); height: 14px; }
+      .features { position: absolute; left: 72px; bottom: 64px; display: flex; gap: 26px; font-size: 16px; font-weight: 500; color: var(--muted); }
+      .features div { display: flex; align-items: center; gap: 8px; }
+      .features svg { color: var(--accent); font-size: 18px; }
+
+      /* ---- The canvas ---- */
+      .toolbar {
+        position: absolute; left: 676px; top: 40px; height: 46px; padding: 0 8px;
+        display: flex; align-items: center; gap: 2px;
+        background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+        box-shadow: 0 8px 24px rgb(15 23 42 / 0.08), 0 1px 3px rgb(15 23 42 / 0.06);
+      }
+      .tool { position: relative; width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 17px; font-weight: 600; }
+      .tool.text { font-size: 13px; color: var(--text); }
+      .tool.active { background: rgb(99 102 241 / 0.14); color: #4f46e5; }
+      .tool i { position: absolute; right: 1px; bottom: 0; font-style: normal; font-size: 8px; font-weight: 500; color: var(--muted); opacity: 0.6; }
+      .sep { width: 1px; height: 22px; background: var(--border); margin: 0 5px; }
+
+      .domain {
+        position: absolute; left: 632px; top: 128px; width: 540px; height: 330px;
+        border: 1.5px solid rgb(234 179 8 / 0.7); border-radius: 16px; background: rgb(234 179 8 / 0.06);
+      }
+      .domain .head { position: absolute; left: 18px; top: 14px; display: flex; align-items: center; gap: 9px; font-size: 16px; font-weight: 600; }
+
+      .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 4px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; color: #fff; text-transform: uppercase; }
+      .tag svg { font-size: 10px; stroke-width: 2.5; }
+
+      .card {
+        position: absolute; width: 196px; height: 90px; padding: 20px 14px 0;
+        background: var(--card); border: 2px solid; border-radius: 10px;
+        box-shadow: 0 6px 18px rgb(15 23 42 / 0.07);
+      }
+      .card .tag { position: absolute; left: 12px; top: -11px; }
+      .card b { display: block; font-size: 15px; font-weight: 600; }
+      .card b small { font-size: 11px; font-weight: 400; color: var(--muted); }
+      .card p { margin-top: 6px; font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+
+      .edges { position: absolute; inset: 0; width: 1200px; height: 630px; overflow: visible; }
+      .label { position: absolute; transform: translate(-50%, -50%); padding: 2px 7px; border-radius: 5px; background: var(--bg); border: 1px solid var(--border); font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+
+      .cursor { position: absolute; }
+      .cursor svg { display: block; }
+      .cursor span { position: absolute; left: 14px; top: 16px; padding: 2px 7px; border-radius: 5px; font-size: 11.5px; font-weight: 600; color: #fff; white-space: nowrap; }
+
+      .pin {
+        position: absolute; width: 28px; height: 28px; border-radius: 14px 14px 14px 3px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 10px; font-weight: 700; color: #fff; border: 2px solid #fff; box-shadow: 0 4px 10px rgb(15 23 42 / 0.2);
+      }
+      .bubble {
+        position: absolute; width: 224px; padding: 10px 12px; border-radius: 10px;
+        background: var(--card); border: 1px solid var(--border); box-shadow: 0 10px 28px rgb(15 23 42 / 0.12);
+      }
+      .bubble .who { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
+      .bubble .who em { font-style: normal; font-weight: 400; color: var(--muted); font-size: 11px; }
+      .bubble .who span { width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 8.5px; font-weight: 700; color: #fff; }
+      .bubble p { margin-top: 6px; font-size: 12.5px; line-height: 1.4; }
+
+      .note {
+        position: absolute; width: 164px; height: 128px; padding: 14px 14px;
+        background: #fde68a; color: #422006; border-radius: 3px; transform: rotate(3deg);
+        box-shadow: 0 10px 24px rgb(15 23 42 / 0.16);
+        font-family: 'Excalifont', sans-serif; font-size: 17px; line-height: 1.3;
+      }
+      .note small { position: absolute; left: 12px; bottom: 10px; font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.55; }
+    </style>
+  </head>
+  <body>
+    <div class="fade"></div>
+
+    <!-- What it is -->
+    <div class="copy">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="wordmark">EventCatalog <span>Studio</span></div>
+      </div>
+      <h1>Sketch, design and share architecture</h1>
+      <div class="hand">
+        with your team and AI agents.
+        <svg viewBox="0 0 300 14" preserveAspectRatio="none" fill="none" stroke="#a78bfa" stroke-width="2.4" stroke-linecap="round">
+          <path d="M3 9 C 60 4, 120 11, 180 6 S 270 5, 297 8" />
+        </svg>
+      </div>
+    </div>
+    <div class="features">
+      <div>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+        Live collaboration
+      </div>
+      <div>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+        Comments
+      </div>
+      <div>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" /></svg>
+        Pair with your AI agent
+      </div>
+    </div>
+
+    <!-- The canvas: its toolbar, a domain with its services, and people on it -->
+    <div class="toolbar">
+      <div class="tool"><svg class="icon" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 9.9-1" /></svg></div>
+      <div class="sep"></div>
+      <div class="tool active"><svg class="icon" viewBox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z" /></svg><i>V</i></div>
+      <div class="tool"><svg class="icon" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2" /><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2" /><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8" /><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" /></svg><i>H</i></div>
+      <div class="sep"></div>
+      <div class="tool text">L1<i>1</i></div>
+      <div class="tool text">L2<i>2</i></div>
+      <div class="tool text active">L3<i>3</i></div>
+      <div class="sep"></div>
+      <div class="tool" style="color: #eab308"><svg class="icon" viewBox="0 0 24 24"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8Z" /><path d="M15 3v4a2 2 0 0 0 2 2h4" /></svg><i>N</i></div>
+      <div class="tool" style="color: var(--text)"><svg class="icon" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7" /><line x1="9" x2="15" y1="20" y2="20" /><line x1="12" x2="12" y1="4" y2="20" /></svg><i>T</i></div>
+      <div class="tool" style="color: var(--text)"><svg class="icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg><i>C</i></div>
+    </div>
+
+    <div class="domain">
+      <div class="head">
+        <span class="tag" style="background: var(--domain)">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5" /><path d="m2 12 10 5 10-5" /></svg>Domain
+        </span>
+        Orders
+      </div>
+    </div>
+
+    <!-- Connections, under the cards -->
+    <svg class="edges" fill="none">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#94a3b8" />
+        </marker>
+      </defs>
+      <path d="M858 227 L948 227" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6 5" marker-end="url(#arrow)" />
+      <path d="M1045 272 L1045 338" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6 5" marker-end="url(#arrow)" />
+      <path d="M760 272 L760 338" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arrow)" />
+    </svg>
+    <div class="label" style="left: 904px; top: 227px">publishes</div>
+    <div class="label" style="left: 1045px; top: 305px">subscribes</div>
+    <div class="label" style="left: 760px; top: 305px">writes to</div>
+
+    <div class="card" style="left: 662px; top: 182px; border-color: var(--service)">
+      <span class="tag" style="background: var(--service)"><svg class="icon" viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2" /><rect width="20" height="8" x="2" y="14" rx="2" /></svg>Service</span>
+      <b>Orders Service <small>(v1.2.0)</small></b>
+      <p>Takes orders and tracks them through checkout.</p>
+    </div>
+    <div class="card" style="left: 950px; top: 182px; border-color: var(--event)">
+      <span class="tag" style="background: var(--event)"><svg class="icon" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" /></svg>Event</span>
+      <b>OrderPlaced <small>(v2.0.0)</small></b>
+      <p>Raised when a customer places an order.</p>
+    </div>
+    <div class="card" style="left: 662px; top: 340px; border-color: var(--data)">
+      <span class="tag" style="background: var(--data)"><svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5V19A9 3 0 0 0 21 19V5" /><path d="M3 12A9 3 0 0 0 21 12" /></svg>Data store</span>
+      <b>Orders DB</b>
+      <p>PostgreSQL: orders and their line items.</p>
+    </div>
+    <div class="card" style="left: 950px; top: 340px; border-color: var(--service)">
+      <span class="tag" style="background: var(--service)"><svg class="icon" viewBox="0 0 24 24"><rect width="20" height="8" x="2" y="2" rx="2" /><rect width="20" height="8" x="2" y="14" rx="2" /></svg>Service</span>
+      <b>Payments <small>(v0.4.1)</small></b>
+      <p>Charges the customer for each order.</p>
+    </div>
+
+    <!-- A comment on the data store -->
+    <div class="pin" style="left: 842px; top: 418px; background: #0ea5e9">SK</div>
+    <div class="bubble" style="left: 690px; top: 482px">
+      <div class="who"><span style="background: #0ea5e9">SK</span>Sam Kim <em>2m ago</em></div>
+      <p>Should payments read from a replica?</p>
+    </div>
+
+    <!-- A sticky note, being written -->
+    <div class="note" style="left: 1010px; top: 486px">
+      Retry the charge if payments is down?
+      <small>L3 note</small>
+    </div>
+
+    <!-- People here, live -->
+    <div class="cursor" style="left: 880px; top: 296px">
+      <svg width="20" height="20" viewBox="0 0 18 18"><path d="M2 1.5 L15.5 8.2 L9.2 9.6 L6.6 15.8 Z" fill="#0ea5e9" stroke="white" stroke-width="1.4" stroke-linejoin="round" /></svg>
+      <span style="background: #0ea5e9">Sam</span>
+    </div>
+    <div class="cursor" style="left: 1132px; top: 452px">
+      <svg width="20" height="20" viewBox="0 0 18 18"><path d="M2 1.5 L15.5 8.2 L9.2 9.6 L6.6 15.8 Z" fill="#8b5cf6" stroke="white" stroke-width="1.4" stroke-linejoin="round" /></svg>
+      <span style="background: #8b5cf6">Priya</span>
+    </div>
+  </body>
+</html>

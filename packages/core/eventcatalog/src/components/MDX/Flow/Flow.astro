@@ -10,10 +10,13 @@ import { isVisualiserEnabled, isEventCatalogChatVisible, isDevMode } from '@util
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 import { randomUUID } from 'node:crypto';
 import { parseMdxBooleanProp } from '@utils/markdown';
+import { isFlowGroupBy } from '@eventcatalog/visualiser';
 
 const isChatEnabled = isEventCatalogChatVisible();
 
 const { id, version = 'latest', maxHeight, mode = 'simple' } = Astro.props;
+// Group the steps to start with (a string in MDX, so only a way they can be grouped)
+const lanes = isFlowGroupBy(Astro.props.lanes) ? Astro.props.lanes : undefined;
 const includeKey = parseMdxBooleanProp(Astro.props.legend ?? Astro.props.includeKey, true);
 const search = parseMdxBooleanProp(Astro.props.search, false);
 const walkthrough = parseMdxBooleanProp(Astro.props.walkthrough, false);
@@ -74,6 +77,7 @@ const portalId = `${id}-${flow?.data.version}-flow-${randomUUID()}-portal`;
     isChatEnabled={isChatEnabled}
     isDevMode={isDevMode()}
     resourceKey={resourceKey}
+    swimlanes={lanes}
   />
 </div>
 

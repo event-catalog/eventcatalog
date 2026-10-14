@@ -11,6 +11,7 @@ import { memo, type KeyboardEvent } from "react";
 import { LINE_CLAMP_STYLE, useDarkMode } from "./shared-styles";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 import { TruncatedResourceName } from "./TruncatedResourceName";
+import { FocusedResourceIndicator } from "./FocusedResourceIndicator";
 
 interface SystemData {
   id: string;
@@ -30,6 +31,10 @@ interface Data {
   containersCount?: number;
   // Total messages handled by the system's services (sends + receives).
   messagesCount?: number;
+  // The system being viewed on this page
+  isFocused?: boolean;
+  // Set to false where click is owned by the host (e.g. an editor canvas)
+  navigable?: boolean;
 }
 
 function classNames(...classes: any) {
@@ -52,6 +57,8 @@ export default memo(function SystemNode({ data }: any) {
     entitiesCount = 0,
     containersCount = 0,
     messagesCount = 0,
+    isFocused = false,
+    navigable = true,
   } = data as Data;
   const { id, version, name, summary, scope } = system;
   const isExternal = scope === "external";
@@ -60,6 +67,7 @@ export default memo(function SystemNode({ data }: any) {
   // links to its docs through the context menu, same as a service step, instead
   // of leaving the flow for the system map.
   const isFlowStep = Boolean((data as { step?: unknown }).step);
+  const opensMap = navigable && !isFlowStep;
 
   const stats = [
     { icon: ServerIcon, label: "Services", count: servicesCount },
@@ -86,7 +94,7 @@ export default memo(function SystemNode({ data }: any) {
 
   return (
     <div
-      {...(isFlowStep
+      {...(!opensMap
         ? {}
         : {
             role: "button" as const,
@@ -99,7 +107,7 @@ export default memo(function SystemNode({ data }: any) {
           })}
       className={classNames(
         "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
-        !isFlowStep && "cursor-pointer",
+        opensMap && "cursor-pointer",
         isExternal ? "border-dashed border-violet-400" : "border-violet-500",
       )}
       style={{
@@ -107,6 +115,7 @@ export default memo(function SystemNode({ data }: any) {
         boxShadow: "0 2px 12px rgba(139, 92, 246, 0.15)",
       }}
     >
+      {isFocused && <FocusedResourceIndicator />}
       <Handle
         type="target"
         position={Position.Left}

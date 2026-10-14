@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/visualiser",
-  "version": "4.1.5",
+  "version": "5.0.0-beta.8",
   "description": "ReactFlow nodes and visualiser components for EventCatalog - framework agnostic",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -11,19 +11,33 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./layout": {
+      "types": "./dist/layout.d.ts",
+      "import": "./dist/layout.mjs",
+      "require": "./dist/layout.js"
+    },
+    "./studio": {
+      "types": "./dist/studio.d.mts",
+      "import": "./dist/studio.mjs"
+    },
+    "./model": {
+      "types": "./dist/model.d.mts",
+      "import": "./dist/model.mjs"
+    },
     "./styles.css": "./dist/styles.css",
-    "./styles-core.css": "./dist/styles-core.css"
+    "./styles-core.css": "./dist/styles-core.css",
+    "./studio.css": "./dist/studio.css",
+    "./studio-fonts.css": "./dist/studio-fonts.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup && pnpm build:css",
-    "build:bin": "tsup && pnpm build:css",
-    "build:css": "postcss src/styles.css -o dist/styles.css && postcss src/styles-core.css -o dist/styles-core.css",
+    "build": "rimraf dist && tsup && pnpm build:css",
+    "build:bin": "rimraf dist && tsup && pnpm build:css",
+    "build:css": "postcss src/styles.css -o dist/styles.css && postcss src/styles-core.css -o dist/styles-core.css && cp src/studio/studio.css dist/studio.css && cp src/studio/studio-fonts.css dist/studio-fonts.css && mkdir -p dist/fonts && cp src/studio/fonts/* dist/fonts/",
     "build:watch": "concurrently \"tsup --watch\" \"postcss src/styles.css -o dist/styles.css --watch\" \"postcss src/styles-core.css -o dist/styles-core.css --watch\"",
     "dev": "tsup --watch --onSuccess \"pnpm build:css\"",
-    "playground": "vite playground --config playground/vite.config.ts",
     "clean": "rimraf dist",
     "test": "vitest --run",
     "test:ci": "vitest --run",
@@ -50,17 +64,17 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.4",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@xyflow/react": "^12.6.1",
-    "dagre": "^0.8.5",
+    "@xyflow/react": "^12.12.0",
+    "elkjs": "^0.10.2",
     "html-to-image": "^1.11.11",
     "lucide-react": "^0.510.0",
     "marked": "^16.1.2",
     "mermaid": "^11.16.1",
-    "svg-pan-zoom": "^3.6.2"
+    "svg-pan-zoom": "^3.6.2",
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.5",
-    "@types/dagre": "^0.7.53",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "@vitejs/plugin-react": "^5.1.4",
@@ -68,17 +82,24 @@
     "postcss": "^8.5.3",
     "postcss-cli": "^11.0.0",
     "prettier": "^3.4.2",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "rimraf": "^6.0.1",
     "tailwindcss": "^4.1.5",
     "tsup": "^8.5.0",
     "typescript": "^5.8.2",
     "vite": "^7.1.9",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "yjs": "^13.6.33"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react-dom": ">=18.0.0",
+    "yjs": "^13.6.0"
+  },
+  "peerDependenciesMeta": {
+    "yjs": {
+      "optional": true
+    }
   }
 }

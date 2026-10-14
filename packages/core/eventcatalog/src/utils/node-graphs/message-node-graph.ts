@@ -2,8 +2,6 @@
 import { getEvents } from '@utils/collections/events';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import {
-  calculatedNodes,
-  createDagreGraph,
   createEdge,
   generatedIdForEdge,
   generateIdForNode,
@@ -11,8 +9,8 @@ import {
   getEdgeLabelForMessageAsSource,
   getEdgeLabelForServiceAsTarget,
   versionMatches,
-  layoutDagreGraph,
 } from './utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { MarkerType, type Node, type Edge } from '@xyflow/react';
 import {
   findMatchingNodes,
@@ -31,8 +29,6 @@ import {
   buildContextMenuForService,
   buildContextMenuForResource,
   getOperationFields,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
 } from './utils/utils';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
 import {
@@ -44,16 +40,15 @@ import { getChannelChain, isChannelsConnected } from '@utils/collections/channel
 import { getChannels } from '@utils/collections/channels';
 import { getTriggeredByOfMessage, getTriggersOfMessage, type MessageReceiver } from '@utils/collections/message-triggers';
 
-type DagreGraph = any;
 type RoutableResource = CollectionEntry<'agents'> | CollectionEntry<'services'>;
 type ProducerConsumerResource = RoutableResource | CollectionEntry<'data-products'>;
 
 interface Props {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   channelRenderMode?: 'flat' | 'single';
+  layout?: boolean;
   collection?: CollectionEntry<CollectionMessageTypes>[];
   channels?: CollectionEntry<'channels'>[];
 }
@@ -216,15 +211,14 @@ export const createTriggerMessageNode = (
 const getNodesAndEdges = async ({
   id,
   version,
-  defaultFlow,
   mode = 'simple',
   channelRenderMode = 'flat',
   collection = [],
   channels = [],
+  layout = true,
 }: Props) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
-  const nodes = [] as any,
-    edges = [] as any;
+  const nodes: any[] = [],
+    edges: any[] = [];
 
   const message = collection.find((message) => {
     return message.data.id === id && message.data.version === version;
@@ -297,7 +291,7 @@ const getNodesAndEdges = async ({
       sourcePosition: 'right',
       targetPosition: 'left',
       data: isDataProduct(producer) ? getDataProductNodeData(producer, mode) : getRoutableNodeData(producer, mode),
-      position: { x: 250, y: 0 },
+      position: { x: 0, y: 0 },
     });
     if (!isDataProduct(producer)) {
       appendAgentToolNodesAndEdges({ agent: producer, nodes, edges, mode });
@@ -684,54 +678,42 @@ const getNodesAndEdges = async ({
     appendEdge(relation.receiver, relation.message, getEdgeLabelForServiceAsTarget(relation.message), relation.message);
   }
 
-  nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  });
+  if (!layout) return { nodes, edges };
 
-  edges.forEach((edge: any) => {
-    flow.setEdge(edge.source, edge.target);
-  });
-
-  // Render the diagram in memory getting hte X and Y
-  layoutDagreGraph(flow);
-
-  return {
-    nodes: calculatedNodes(flow, nodes),
-    edges,
-  };
+  return layoutNodeGraph({ nodes, edges });
 };
 
 export const getNodesAndEdgesForQueries = async ({
   id,
   version,
-  defaultFlow,
   mode = 'simple',
   channelRenderMode = 'flat',
+  layout = true,
 }: Props) => {
   const [queries, channels] = await Promise.all([getQueries(), getChannels()]);
-  return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: queries, channels });
+  return getNodesAndEdges({ id, version, mode, channelRenderMode, collection: queries, channels, layout });
 };
 
 export const getNodesAndEdgesForCommands = async ({
   id,
   version,
-  defaultFlow,
   mode = 'simple',
   channelRenderMode = 'flat',
+  layout = true,
 }: Props) => {
   const [commands, channels] = await Promise.all([getCommands(), getChannels()]);
-  return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: commands, channels });
+  return getNodesAndEdges({ id, version, mode, channelRenderMode, collection: commands, channels, layout });
 };
 
 export const getNodesAndEdgesForEvents = async ({
   id,
   version,
-  defaultFlow,
   mode = 'simple',
   channelRenderMode = 'flat',
+  layout = true,
 }: Props) => {
   const [events, channels] = await Promise.all([getEvents(), getChannels()]);
-  return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: events, channels });
+  return getNodesAndEdges({ id, version, mode, channelRenderMode, collection: events, channels, layout });
 };
 
 export const getNodesAndEdgesForConsumedMessage = ({
@@ -756,7 +738,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
   channelMap?: Map<string, CollectionEntry<'channels'>[]>;
 }) => {
   let nodes = [] as Node[],
-    edges = [] as any;
+    edges: any[] = [];
 
   // Use the provided map or create one if missing
   const map = channelMap || createVersionedMap(channels);
@@ -1092,7 +1074,7 @@ export const getNodesAndEdgesForProducedMessage = ({
   channelMap?: Map<string, CollectionEntry<'channels'>[]>;
 }) => {
   let nodes = [] as Node[],
-    edges = [] as any;
+    edges: any[] = [];
 
   // Use provided map or create one
   const map = channelMap || createVersionedMap(channels);

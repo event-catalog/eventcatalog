@@ -4,7 +4,9 @@ import { baseSchema, detailPanelPropertySchema, pointerSchema, resourcePointerSc
 export const adrSchema = z
   .object({
     status: z.enum(['proposed', 'accepted', 'rejected', 'deprecated', 'superseded']),
-    date: z.coerce.date(),
+    // Converted to a date only when it's set, so a missing date is reported as missing: coercing it
+    // first made an invalid date, reported as "Invalid date"
+    date: z.preprocess((value) => (value == null ? value : new Date(value as string | number | Date)), z.date()),
     decisionMakers: z.array(z.any()).optional(),
     appliesTo: z.array(resourcePointerSchema).optional(),
     supersedes: z.array(pointerSchema).optional(),

@@ -1,0 +1,29 @@
+---
+id: return-received
+name: Return Received
+version: 1.0.0
+summary: |
+  Published when returned items have arrived at the warehouse and been inspected.
+owners:
+  - fulfilment-platform
+badges:
+  - content: 'Broker:Kafka'
+    backgroundColor: blue
+    textColor: blue
+    icon: BoltIcon
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+`ReturnReceived` is published by the [[service|returns-processor]] when a returned parcel is scanned in at the warehouse. The [[service|payment-worker]] refunds the customer and the [[service|inventory-service]] restocks resellable items.
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

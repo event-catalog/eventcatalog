@@ -135,6 +135,7 @@ const getFlowReferences = (steps: FlowStep[]) =>
     ...(step.service ? [{ kind: 'service' as const, ...step.service }] : []),
     ...(step.systems ? [{ kind: 'system' as const, ...step.systems }] : []),
     ...(step.system ? [{ kind: 'system' as const, ...step.system }] : []),
+    ...(step.channel ? [{ kind: 'channel' as const, ...step.channel }] : []),
     ...(step.message ? [{ kind: 'message' as const, ...step.message }] : []),
     ...(step.agent ? [{ kind: 'agent' as const, ...step.agent }] : []),
     ...(step.container ? [{ kind: 'container' as const, ...step.container }] : []),

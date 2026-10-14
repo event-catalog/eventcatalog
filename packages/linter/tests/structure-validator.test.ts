@@ -143,6 +143,27 @@ describe('findUnrecognisedFiles', () => {
     expect(await run()).toEqual([]);
   });
 
+  it('ignores usage examples in message examples folders', async () => {
+    write('events/OrderCreated/index.mdx');
+    write('events/OrderCreated/examples/index.mdx', '# Examples');
+    write('events/OrderCreated/examples/nested/refund.md', '# Refund');
+    write('events/OrderCreated/versioned/0.0.1/index.mdx');
+    write('events/OrderCreated/versioned/0.0.1/examples/basic.mdx', '# Basic');
+    write('domains/Shopping/systems/cart-system/services/CartAPI/commands/AddItemToCart/index.mdx');
+    write('domains/Shopping/systems/cart-system/services/CartAPI/commands/AddItemToCart/examples/index.mdx', '# Examples');
+    write('queries/GetOrder/index.mdx');
+    write('queries/GetOrder/examples/by-id.md', '# By id');
+
+    expect(await run()).toEqual([]);
+  });
+
+  it('still reports an examples folder under a resource that is not a message', async () => {
+    write('services/order-service/index.mdx');
+    write('services/order-service/examples/index.mdx', '# Examples');
+
+    expect((await run()).map((file) => file.relativePath)).toEqual(['services/order-service/examples/index.mdx']);
+  });
+
   it('ignores build artifacts and node_modules', async () => {
     write('events/OrderCreated/index.mdx');
     write('node_modules/some-package/events/Foo.mdx');

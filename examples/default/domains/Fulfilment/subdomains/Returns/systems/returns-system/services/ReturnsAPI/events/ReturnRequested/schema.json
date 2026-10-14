@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReturnRequested",
+  "description": "Published when a customer has requested a return",
+  "type": "object",
+  "properties": {
+    "returnId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "customerId": { "type": "string", "format": "uuid" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "minimum": 1 }
+        },
+        "required": ["sku", "quantity"]
+      }
+    },
+    "reason": { "type": "string" },
+    "requestedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["returnId", "orderId", "customerId", "items", "requestedAt"]
+}

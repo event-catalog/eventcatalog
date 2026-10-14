@@ -133,7 +133,7 @@ const IndexAssetSchema = z
   .strict();
 
 const IndexReferenceSchema = ResourcePointerSchema.extend({
-  kind: z.enum(['agent', 'container', 'data-product', 'flow', 'message', 'service']),
+  kind: z.enum(['agent', 'channel', 'container', 'data-product', 'flow', 'message', 'service', 'system']),
 });
 
 const AdrPointerSchema = z

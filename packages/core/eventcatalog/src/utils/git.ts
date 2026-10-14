@@ -1,17 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import shell from 'shelljs';
 
 type Commit = { timestamp: number; author: string };
 
 const COMMIT_MARKER = '\x1e';
 
 const newestCommitsByRepository = new Map<string, Map<string, Commit> | undefined>();
-
-export function hasGit() {
-  return !!shell.which('git');
-}
 
 const runGit = (args: string[]) => {
   try {
@@ -24,6 +19,17 @@ const runGit = (args: string[]) => {
     return undefined;
   }
 };
+
+// Checked once per PATH, as git history is read for every page
+const gitInstalledByPath = new Map<string | undefined, boolean>();
+
+export function hasGit() {
+  const searchPath = process.env.PATH;
+  if (!gitInstalledByPath.has(searchPath)) {
+    gitInstalledByPath.set(searchPath, runGit(['--version']) !== undefined);
+  }
+  return gitInstalledByPath.get(searchPath)!;
+}
 
 const parseCommit = (header: string): Commit => {
   const [timestamp, ...author] = header.split(',');
@@ -80,6 +86,17 @@ const readCommit = (filePath: string, age: 'newest' | 'oldest'): Commit => {
   }
   return parseCommit(match.groups.header);
 };
+
+/**
+ * When a file was last committed, from the history read once for the whole repository: never runs git for one file,
+ * so it's cheap to ask for many (e.g. every resource on the homepage). Undefined without git, or for a file that isn't
+ * committed.
+ */
+export function getLastCommitDate(filePath: string): Date | undefined {
+  if (!hasGit()) return undefined;
+  const commit = getNewestCommits()?.get(toRealPath(filePath));
+  return commit ? new Date(commit.timestamp) : undefined;
+}
 
 export function getGitHistory(
   filePath: string,

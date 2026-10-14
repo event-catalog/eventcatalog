@@ -11,6 +11,7 @@ import {
   buildDiagramNavItems,
   buildResourceDocsSection,
   buildArchitectureDecisionsSection,
+  buildResourcesLink,
 } from './shared';
 import { isVisualiserEnabled, isChangelogEnabled } from '@utils/feature';
 import { iconFieldsForResource } from '@utils/icon';
@@ -137,6 +138,7 @@ export const buildMessageSections = (
           title: 'Overview',
           href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}`),
         },
+        buildResourcesLink(context, collection, message.data.id, message.data.version),
         isChangelogEnabled() &&
           shouldRenderSideBarSection(message, 'changelog') && {
             title: 'Changelog',
@@ -153,7 +155,7 @@ export const buildMessageSections = (
           pages: [
             {
               type: 'item',
-              title: 'Map',
+              title: 'Diagram',
               href: buildUrl(`/visualiser/${collection}/${message.data.id}/${message.data.version}`),
             },
             ...(hasTriggerPaths

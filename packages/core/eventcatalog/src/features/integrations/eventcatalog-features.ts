@@ -1,0 +1,228 @@
+import type { AstroIntegration } from 'astro';
+import fs from 'node:fs';
+import path from 'path';
+import { fileURLToPath } from 'node:url';
+import { getRuntimePaths } from '../../../integrations/runtime-paths.mjs';
+// This integration runs during Astro config evaluation, before @config exists.
+import config from '../../utils/eventcatalog-config/source';
+import {
+  isEventCatalogChatEnabled,
+  isAuthEnabled,
+  isEventCatalogMCPEnabled,
+  isEventCatalogMCPAuthEnabled,
+  isFullCatalogAPIEnabled,
+  isDevMode,
+  isSSR,
+  isCanvasEnabled,
+} from '../../utils/feature';
+import { getCustomPageRoutes, isApiRoute, listCustomPageFiles, resolveCustomPagesPrefix } from '../custom-pages/routes';
+
+const { runtimeDirectory: catalogDirectory } = getRuntimePaths(process.env.PROJECT_DIR || process.cwd(), process.env.CATALOG_DIR);
+const packageDirectory = fileURLToPath(new URL('../../../', import.meta.url));
+const customPagesDirectory = path.join(process.env.PROJECT_DIR || process.cwd(), 'pages');
+
+// Routes are injected at astro:config:setup, so adding or removing a custom page
+// file needs a full Astro restart before its route exists. This manifest is
+// registered via addWatchFile — rewriting it with a changed file list triggers
+// that restart (a Vite-level server.restart() does NOT re-run route injection).
+const customPagesManifest = path.join(catalogDirectory, 'custom-pages.json');
+
+const writeCustomPagesManifest = () => {
+  const content = JSON.stringify(listCustomPageFiles(customPagesDirectory));
+
+  try {
+    if (fs.existsSync(customPagesManifest) && fs.readFileSync(customPagesManifest, 'utf-8') === content) {
+      return;
+    }
+
+    fs.mkdirSync(catalogDirectory, { recursive: true });
+    fs.writeFileSync(customPagesManifest, content);
+  } catch (error: any) {
+    console.warn(`[EventCatalog] Could not update the custom pages manifest: ${error.message}`);
+  }
+};
+
+const configureCustomPages = (params: {
+  command: 'dev' | 'build' | 'preview' | 'sync';
+  injectRoute: (route: { pattern: string; entrypoint: string }) => void;
+}) => {
+  const prefix = resolveCustomPagesPrefix(config.pages?.prefix);
+  const routes = getCustomPageRoutes(customPagesDirectory, prefix);
+
+  const apiRoutes = routes.filter(isApiRoute);
+  if (apiRoutes.length > 0 && !isSSR()) {
+    const message = `Custom API routes (${apiRoutes.map((route) => `pages/${route.file}`).join(', ')}) require EventCatalog to run in server mode. Set output: 'server' in your eventcatalog.config.js or remove the pages/api directory.`;
+
+    // The dev server serves endpoints dynamically regardless of output mode,
+    // so only fail the build — but warn early during development.
+    if (params.command === 'build') {
+      throw new Error(`[EventCatalog] ${message}`);
+    }
+    console.warn(`[EventCatalog] ${message}`);
+  }
+
+  for (const route of routes) {
+    params.injectRoute({
+      pattern: route.pattern,
+      entrypoint: path.join(customPagesDirectory, route.file),
+    });
+  }
+};
+
+const configureAuthentication = (params: {
+  injectRoute: (route: { pattern: string; entrypoint: string }) => void;
+  addMiddleware: (middleware: { entrypoint: string; order: 'pre' }) => void;
+}) => {
+  params.injectRoute({
+    pattern: '/api/[...auth]',
+    entrypoint: path.join(packageDirectory, 'src/features/auth/[...auth].ts'),
+  });
+  params.injectRoute({
+    pattern: '/auth/login',
+    entrypoint: path.join(packageDirectory, 'src/features/auth/login.astro'),
+  });
+  params.injectRoute({
+    pattern: '/auth/error',
+    entrypoint: path.join(packageDirectory, 'src/features/auth/error.astro'),
+  });
+
+  params.injectRoute({
+    pattern: '/unauthorized',
+    entrypoint: path.join(packageDirectory, 'src/features/auth/unauthorized.astro'),
+  });
+
+  // Add the authentication middleware
+  params.addMiddleware({
+    entrypoint: path.join(packageDirectory, 'src/features/auth/middleware/middleware.ts'),
+    order: 'pre',
+  });
+};
+
+export default function eventCatalogIntegration(): AstroIntegration {
+  return {
+    name: 'eventcatalog',
+    hooks: {
+      'astro:config:setup': (params) => {
+        // Handle routes for AI features
+        if (isEventCatalogChatEnabled()) {
+          params.injectRoute({
+            pattern: '/api/chat',
+            entrypoint: path.join(packageDirectory, 'src/features/ai/chat-api.ts'),
+          });
+        }
+
+        // Handle routes for MCP Server (requires SSR)
+        // Also for canvases, so agents can join them (the canvas tools are on the MCP server)
+        if (isEventCatalogMCPEnabled() || isCanvasEnabled()) {
+          params.injectRoute({
+            pattern: '/docs/mcp/[...path]',
+            entrypoint: path.join(packageDirectory, 'src/features/mcp/mcp-server.ts'),
+          });
+        }
+
+        if (isEventCatalogMCPAuthEnabled()) {
+          params.injectRoute({
+            pattern: '/.well-known/oauth-protected-resource',
+            entrypoint: path.join(packageDirectory, 'src/features/mcp/oauth-protected-resource.ts'),
+          });
+          params.injectRoute({
+            pattern: '/.well-known/oauth-protected-resource/[...path]',
+            entrypoint: path.join(packageDirectory, 'src/features/mcp/oauth-protected-resource.ts'),
+          });
+        }
+
+        // Handle routes for authentication
+        if (isAuthEnabled()) {
+          configureAuthentication(params);
+        }
+
+        // Full catalog API route (opt-in)
+        if (isFullCatalogAPIEnabled()) {
+          params.injectRoute({
+            pattern: '/api/catalog',
+            entrypoint: path.join(packageDirectory, 'src/features/api/catalog.ts'),
+          });
+        }
+
+        // Fields Explorer (requires SSR — pages live outside src/pages to avoid static-mode auto-discovery)
+        if (isSSR()) {
+          params.injectRoute({
+            pattern: '/schemas/fields',
+            entrypoint: path.join(packageDirectory, 'src/features/fields/pages/fields.astro'),
+          });
+          params.injectRoute({
+            pattern: '/api/schemas/fields',
+            entrypoint: path.join(packageDirectory, 'src/features/fields/pages/api/fields.ts'),
+          });
+        }
+
+        // User-defined pages and API routes
+        configureCustomPages(params);
+
+        // Keep routes in sync during dev — a manifest change restarts the dev
+        // server so injectRoute runs again with the new file list
+        writeCustomPagesManifest();
+        params.addWatchFile(customPagesManifest);
+
+        // Dev-only routes for visualizer layout persistence
+        if (isDevMode()) {
+          params.injectRoute({
+            pattern: '/api/dev/visualizer-layout/save',
+            entrypoint: path.join(packageDirectory, 'src/features/visualizer-layout/save.ts'),
+          });
+          params.injectRoute({
+            pattern: '/api/dev/visualizer-layout/reset',
+            entrypoint: path.join(packageDirectory, 'src/features/visualizer-layout/reset.ts'),
+          });
+        }
+
+        // What a server starts before anyone asks for it (the storage configured, migrated; Studio), called by
+        // `eventcatalog start` once it listens
+        if (isSSR()) {
+          params.injectRoute({
+            pattern: '/_eventcatalog/start',
+            entrypoint: path.join(packageDirectory, 'src/features/server/start.ts'),
+          });
+        }
+
+        // Collaborative canvases in EventCatalog Studio (/studio lists them, /studio?new=1 starts one). Their WebSocket
+        // server is in integrations/studio-server.mjs.
+        if (isCanvasEnabled()) {
+          params.injectRoute({
+            pattern: '/studio',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/index.astro'),
+          });
+          params.injectRoute({
+            pattern: '/studio/[id]',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/[id].astro'),
+          });
+          // The Studio API (canvases as a whole: listing, creating, deleting)
+          params.injectRoute({
+            pattern: '/api/studio/canvases/[...path]',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/api/canvases.ts'),
+          });
+          params.injectRoute({
+            pattern: '/webmcp-relay/[file]',
+            entrypoint: path.join(packageDirectory, 'src/features/studio/pages/webmcp-relay.ts'),
+          });
+        }
+      },
+      'astro:server:setup': ({ server }) => {
+        // When custom page files appear or disappear, refresh the manifest.
+        // A content change restarts the dev server (via addWatchFile above),
+        // which re-runs route injection. Unchanged content writes nothing,
+        // so events from the watcher's initial scan are no-ops.
+        const onCustomPageChange = (file: string) => {
+          if (!path.resolve(file).startsWith(customPagesDirectory + path.sep)) return;
+          if (!/\.(astro|ts|js|mjs)$/i.test(file)) return;
+          writeCustomPagesManifest();
+        };
+
+        server.watcher.on('add', onCustomPageChange);
+        server.watcher.on('unlink', onCustomPageChange);
+        server.watcher.add(customPagesDirectory);
+        server.watcher.add(customPagesManifest);
+      },
+    },
+  };
+}

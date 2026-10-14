@@ -110,15 +110,16 @@ describe('catalog-to-astro-content-directory', () => {
       expect(existsSync(configFile)).toBe(false);
     });
 
-    it('resolves packages imported by temporary config files from the project dependency tree', async () => {
-      const packageDirectory = path.join(CATALOG_DIR, 'node_modules', '@eventcatalog', 'connectors');
+    it('resolves packages the config imports from the catalog dependency tree', async () => {
+      // Not @eventcatalog/connectors: the test config aliases it to the workspace package
+      const packageDirectory = path.join(CATALOG_DIR, 'node_modules', '@acme', 'catalog-directory');
       const configFile = path.join(CATALOG_DIR, 'eventcatalog.config.js');
 
       await fs.mkdir(packageDirectory, { recursive: true });
       await fs.writeFile(
         path.join(packageDirectory, 'package.json'),
         JSON.stringify({
-          name: '@eventcatalog/connectors',
+          name: '@acme/catalog-directory',
           type: 'module',
           exports: './index.js',
         })
@@ -130,7 +131,7 @@ describe('catalog-to-astro-content-directory', () => {
       await fs.writeFile(
         configFile,
         `
-          import { githubDirectory } from '@eventcatalog/connectors';
+          import { githubDirectory } from '@acme/catalog-directory';
 
           export default {
             title: 'Package Import Test',
@@ -152,6 +153,40 @@ describe('catalog-to-astro-content-directory', () => {
         });
       } finally {
         await fs.rm(path.join(CATALOG_DIR, 'node_modules'), { recursive: true, force: true });
+      }
+    });
+
+    it('loads the config from the catalog, so paths built from its location point into the catalog', async () => {
+      await fs.writeFile(
+        path.join(CATALOG_DIR, 'eventcatalog.config.js'),
+        `
+          import path from 'node:path';
+          import url from 'node:url';
+
+          const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+
+          export default { specPath: path.join(__dirname, 'openapi-files', 'product-api.yml') };
+        `
+      );
+
+      const config = await getEventCatalogConfigFile(CATALOG_DIR);
+
+      expect(config.specPath).toBe(path.join(CATALOG_DIR, 'openapi-files', 'product-api.yml'));
+    });
+
+    it('loads files the config imports from the catalog', async () => {
+      const sidebarFile = path.join(CATALOG_DIR, 'config-sidebar.test.js');
+      await fs.writeFile(sidebarFile, "export default ['list:all'];");
+      await fs.writeFile(
+        path.join(CATALOG_DIR, 'eventcatalog.config.js'),
+        "import pages from './config-sidebar.test.js';\nexport default { navigation: { pages } };"
+      );
+
+      try {
+        const config = await getEventCatalogConfigFile(CATALOG_DIR);
+        expect(config.navigation).toEqual({ pages: ['list:all'] });
+      } finally {
+        await fs.rm(sidebarFile, { force: true });
       }
     });
   });

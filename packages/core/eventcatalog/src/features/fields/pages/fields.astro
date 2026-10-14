@@ -1,0 +1,22 @@
+---
+// Visualiser styles ship in the page head so ClientRouter navigations keep them (see NodeGraph.astro).
+import '@eventcatalog/visualiser/styles-core.css';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import FieldsExplorer from '@components/FieldsExplorer/FieldsExplorer';
+
+export const prerender = false;
+---
+
+<VerticalSideBarLayout title="Fields Explorer" showNestedSideBar={false}>
+  <style is:global>
+    #eventcatalog-header {
+      left: calc(var(--ec-vertical-nav-width, 14rem) + var(--ec-fields-sidebar-width, 320px)) !important;
+    }
+  </style>
+  <main
+    class="min-h-0 overflow-hidden bg-[rgb(var(--ec-page-bg))]"
+    style="--ec-fields-sidebar-width: 320px; margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+  >
+    <FieldsExplorer client:load />
+  </main>
+</VerticalSideBarLayout>

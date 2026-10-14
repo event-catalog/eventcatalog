@@ -3,8 +3,12 @@ import { SEO } from 'astro-seo';
 import config from '@config';
 import defaultImageFile from '../../public/opengraph.png';
 import { buildUrl } from '@utils/url-builder';
+import { formatPageTitle } from '@utils/page-title';
 
-const { title = config.title, description = config.tagline, ogTitle = title, ogType = 'website' } = Astro.props;
+const { description = config.tagline, ogType = 'website' } = Astro.props;
+// The page's own title (none for the homepage), followed by the catalog's
+const title = formatPageTitle(Astro.props.title);
+const ogTitle = title;
 
 const siteBaseURL = new URL(Astro.url);
 const defaultImage = new URL(defaultImageFile.src, siteBaseURL);

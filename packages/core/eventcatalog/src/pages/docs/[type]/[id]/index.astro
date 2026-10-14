@@ -7,6 +7,7 @@ export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
 
 const props = await Page.getData(Astro);
+if (!props) return Astro.rewrite('/404');
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 
@@ -17,7 +18,7 @@ const redirectUrl = buildUrl(pathname + '/' + props.data.latestVersion, false, t
 <!doctype html>
 <html lang="en">
   <head>
-    <Seo title={`EventCatalog | ${pageTitle}`} ogTitle={pageTitle} />
+    <Seo title={pageTitle} />
   </head>
   <body>
     <p>You are being redirected to <a href={redirectUrl}>{redirectUrl}</a></p>

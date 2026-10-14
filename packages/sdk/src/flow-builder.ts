@@ -60,6 +60,17 @@ export type FlowServiceStepInput = FlowStepInput & {
 };
 
 /**
+ * Payload for a flow step that references a channel.
+ */
+export type FlowChannelStepInput = FlowStepInput & {
+  channel?: {
+    id: string;
+    version?: string;
+  };
+  version?: string;
+};
+
+/**
  * Payload for a flow step that references a data store/container.
  */
 export type FlowDataStoreStepInput = FlowStepInput & {
@@ -147,6 +158,7 @@ const cloneStep = (step: FlowStep): FlowStep => ({
   ...(step.service ? { service: { ...step.service } } : {}),
   ...(step.systems ? { systems: { ...step.systems } } : {}),
   ...(step.system ? { system: { ...step.system } } : {}),
+  ...(step.channel ? { channel: { ...step.channel } } : {}),
   ...(step.flow ? { flow: { ...step.flow } } : {}),
   ...(step.container ? { container: { ...step.container } } : {}),
   ...(step.dataProduct ? { dataProduct: { ...step.dataProduct } } : {}),
@@ -368,6 +380,43 @@ export class FlowBuilder<TMessageId extends string = string> {
         title: step.title || String(step.id),
         ...(step.summary ? { summary: step.summary } : {}),
         service: { ...service, ...(step.version && !service.version ? { version: step.version } : {}) },
+      },
+      step.nextSteps
+    );
+  }
+
+  /**
+   * Add a channel step.
+   *
+   * @param step - The channel step payload.
+   *
+   * @example
+   * ```ts
+   * FlowBuilder.create({
+   *   id: 'OrderFlow',
+   *   name: 'Order Flow',
+   *   version: '1.0.0',
+   *   markdown: '',
+   * })
+   *   .addChannelStep({
+   *     id: 'orders-topic',
+   *     channel: { id: 'orders-topic', version: '1.0.0' },
+   *   });
+   * ```
+   */
+  addChannelStep(step: FlowChannelStepInput) {
+    const channel = step.channel || {
+      id: String(step.id),
+      ...(step.version ? { version: step.version } : {}),
+    };
+
+    return this.addStepWithNext(
+      {
+        id: step.id,
+        // Left out, EventCatalog names the step after its channel
+        ...(step.title ? { title: step.title } : {}),
+        ...(step.summary ? { summary: step.summary } : {}),
+        channel: { ...channel, ...(step.version && !channel.version ? { version: step.version } : {}) },
       },
       step.nextSteps
     );

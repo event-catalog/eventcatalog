@@ -56,7 +56,7 @@ export type IndexAsset = {
 };
 
 export type IndexReference = ResourcePointer & {
-  kind: 'agent' | 'container' | 'data-product' | 'flow' | 'message' | 'service' | 'system';
+  kind: 'agent' | 'channel' | 'container' | 'data-product' | 'flow' | 'message' | 'service' | 'system';
 };
 
 export type IndexResource = {
