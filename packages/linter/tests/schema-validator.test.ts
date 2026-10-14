@@ -513,6 +513,46 @@ describe('validateSchema', () => {
       expect(errors[0].rule).toBe('schema/valid-type');
     });
 
+    it('reports an enum given a value of the wrong type as a type error', () => {
+      const parsedFile = createParsedFile('adr', {
+        id: 'adr-001',
+        name: 'Use events',
+        version: '1.0.0',
+        status: 1,
+        date: '2026-05-26',
+      });
+
+      const errors = validateSchema(parsedFile);
+      expect(errors.map((error) => error.message)).toEqual([
+        "status: Expected 'proposed' | 'accepted' | 'rejected' | 'deprecated' | 'superseded', but received number",
+      ]);
+      expect(errors[0].rule).toBe('schema/valid-type');
+    });
+
+    it('reports a value that does not match a literal', () => {
+      const parsedFile = createParsedFile('entity', {
+        id: 'order',
+        name: 'Order',
+        version: '1.0.0',
+        properties: [{ name: 'customer', type: 'string', referenceTarget: 'service' }],
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual([
+        'properties.0.referenceTarget: Invalid literal value, expected "entity"',
+      ]);
+    });
+
+    it('reports a malformed url', () => {
+      const parsedFile = createParsedFile('service', {
+        id: 'user-service',
+        name: 'User Service',
+        version: '1.0.0',
+        attachments: [{ url: 'not-a-url', title: 'Docs' }],
+      });
+
+      expect(validateSchema(parsedFile).map((error) => error.message)).toEqual(['attachments.0.url: Invalid url']);
+    });
+
     it('should pass with valid diagram frontmatter', () => {
       const parsedFile = createParsedFile('diagram', {
         id: 'order-flow',

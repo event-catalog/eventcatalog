@@ -27,8 +27,10 @@ export const validateSchema = (parsedFile: ParsedFile): ValidationError[] => {
         let message = issue.message;
         // A date that doesn't parse is reported as an invalid date, not as a type error
         const isInvalidDate = issue.code === 'invalid_type' && issue.input instanceof Date && Number.isNaN(issue.input.getTime());
-        // A missing enum or literal field reports the allowed values, like any other missing field
-        const isMissingValue = issue.code === 'invalid_value' && issue.input === undefined;
+        // Literals and enums both fail as invalid_value; the schemas have no single-value enums, so one value is a literal
+        const isInvalidLiteral = issue.code === 'invalid_value' && issue.values.length === 1;
+        // An enum given a missing or non-string value is a type error, listing the allowed values as the expected type
+        const isEnumTypeError = issue.code === 'invalid_value' && !isInvalidLiteral && typeof issue.input !== 'string';
 
         if (isInvalidDate) {
           message = 'Invalid date';
@@ -36,17 +38,21 @@ export const validateSchema = (parsedFile: ParsedFile): ValidationError[] => {
           // Records (key/value maps) have always been described as objects
           const expected = issue.expected === 'record' ? 'object' : issue.expected;
           message = `Expected ${expected}, but received ${describeReceived(issue.input)}`;
+        } else if (isInvalidLiteral) {
+          message = `Invalid literal value, expected ${JSON.stringify(issue.values[0])}`;
         } else if (issue.code === 'invalid_value') {
           const allowed = issue.values.map((value) => `'${String(value)}'`).join(' | ');
-          message = isMissingValue
-            ? `Expected ${allowed}, but received undefined`
+          message = isEnumTypeError
+            ? `Expected ${allowed}, but received ${describeReceived(issue.input)}`
             : `Invalid enum value. Expected ${allowed}, received '${String(issue.input)}'`;
         } else if (issue.code === 'invalid_format' && issue.format === 'email') {
           message = 'Invalid email';
+        } else if (issue.code === 'invalid_format' && issue.format === 'url') {
+          message = 'Invalid url';
         }
 
         let rule = 'schema/required-fields';
-        if ((issue.code === 'invalid_type' && !isInvalidDate) || isMissingValue) {
+        if ((issue.code === 'invalid_type' && !isInvalidDate) || isEnumTypeError) {
           rule = 'schema/valid-type';
         } else if (issue.code === 'invalid_format' && issue.format === 'email') {
           rule = 'schema/valid-email';
