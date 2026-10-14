@@ -1,5 +1,32 @@
 # @eventcatalog/create-catalog
 
+## 4.4.0
+
+### Minor Changes
+
+- eb79ef0: Anonymous telemetry stays on by default and can be turned off. Set `EVENTCATALOG_TELEMETRY_DISABLED` or `DO_NOT_TRACK` to `1` or `true`, or set `telemetry: false` in `eventcatalog.config.js`. When telemetry is off, EventCatalog skips collecting and hashing catalog content and does not send the build or create event. Telemetry requests time out after 2 seconds so a slow analytics host cannot stall `eventcatalog dev`, `eventcatalog build`, or `create-eventcatalog`.
+
+### Patch Changes
+
+- eb79ef0: Every feature is now included in EventCatalog, with no plan or license key needed. Custom documentation, resource docs, custom pages, custom styles, the schema API and `schemas.txt`, Fields Explorer lineage, schema diffs, schema and directory sources, private remote files, analytics integrations, embedding, federation, the assistant, the MCP server, authentication and governance checks all work without `EVENTCATALOG_SCALE_LICENSE_KEY`, a Starter or Scale plan, or a Backstage license key. The assistant, MCP server and authentication still need server output (`output: 'server'`) and their configuration files.
+
+  Breaking changes:
+
+  - The billing settings page (`/settings/billing`) and the upgrade prompts are removed.
+  - The EventCatalog branding (the Discord and GitHub links in the header and the footer) is always shown. `EVENTCATALOG_SHOW_BRANDING` is no longer used.
+  - `EVENTCATALOG_STARTER`, `EVENTCATALOG_SCALE` and `ENABLE_EMBED` are no longer passed to the Astro runtime, and the plan helpers (`isEventCatalogStarterEnabled`, `isEventCatalogScaleEnabled` and the features gated on them) are removed from `@utils/feature`.
+  - `@eventcatalog/core` and `@eventcatalog/cli` no longer depend on `@eventcatalog/license`.
+  - Custom pages are served for every catalog, so a `pages/api` directory now requires `output: 'server'`: static builds fail with a message instead of skipping the routes.
+  - The header shows the `repositoryUrl` link next to the EventCatalog links when it's set, rather than in place of them.
+
+- eb79ef0: fix(create-eventcatalog): link the `eventcatalog.auth.js` template to the authentication docs at their new address (`/docs/development/authentication/introduction`), rather than a page that no longer exists
+- eb79ef0: `@eventcatalog/core` 5.0.0 (including its pre-releases) and later is licensed under the Business Source License 1.1 (`BUSL-1.1`), replacing the MIT License and the separate EventCatalog Commercial License for the enterprise and federation code. Releases up to and including 4.x remain available under the MIT License, and their notice is kept in `NOTICE`.
+
+  The ecosystem packages, including `@eventcatalog/create-eventcatalog`, stay MIT and now ship their own `LICENSE` file. New catalogs get a License section in their README that links to the Business Source License and notes that the catalog's own content belongs to its authors. `@eventcatalog/breaking-changes` moves from ISC to MIT.
+
+- eb79ef0: Start the server in `Dockerfile.server` with the exec form (`CMD ["npm", "run", "start"]`), so `docker stop` and container shutdowns reach EventCatalog straight away instead of waiting for Docker's timeout.
+- eb79ef0: feat(create-eventcatalog): new catalogs from the default template open on the catalog dashboard (counts and the architecture graph)
+
 ## 4.4.0-beta.3
 
 ### Patch Changes
@@ -26,6 +53,7 @@
 - 3b46a41: Every feature is now included in EventCatalog, with no plan or license key needed. Custom documentation, resource docs, custom pages, custom styles, the schema API and `schemas.txt`, Fields Explorer lineage, schema diffs, schema and directory sources, private remote files, analytics integrations, embedding, federation, the assistant, the MCP server, authentication and governance checks all work without `EVENTCATALOG_SCALE_LICENSE_KEY`, a Starter or Scale plan, or a Backstage license key. The assistant, MCP server and authentication still need server output (`output: 'server'`) and their configuration files.
 
   Breaking changes:
+
   - The billing settings page (`/settings/billing`) and the upgrade prompts are removed.
   - The EventCatalog branding (the Discord and GitHub links in the header and the footer) is always shown. `EVENTCATALOG_SHOW_BRANDING` is no longer used.
   - `EVENTCATALOG_STARTER`, `EVENTCATALOG_SCALE` and `ENABLE_EMBED` are no longer passed to the Astro runtime, and the plan helpers (`isEventCatalogStarterEnabled`, `isEventCatalogScaleEnabled` and the features gated on them) are removed from `@utils/feature`.

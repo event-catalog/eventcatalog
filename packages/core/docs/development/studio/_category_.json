@@ -1,0 +1,12 @@
+{
+  "label": "Studio",
+  "position": 4.5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "development/studio",
+    "title": "EventCatalog Studio",
+    "description": "Design changes to your architecture on live canvases, with your team and AI agents."
+  }
+}
