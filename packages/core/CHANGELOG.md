@@ -1,5 +1,25 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.29
+
+### Patch Changes
+
+- a81e7ac: feat(core): ways to buy a license from the trial, and neutral colours in Settings
+
+  Settings > License shows "Buy a license" (pricing) and "Talk to us" while the trial runs, and "Buy Business" (the order form) once it has ended. Its left column says who qualifies for Free Use, with a link to get a free key, and links to the license FAQ, which replaces the separate Learn more section. The Business Source License link goes to the LICENSE file on main. An expired license explains that organisations that don't qualify for Free Use need a commercial license in production, that the catalog keeps building, and offers Renew license and Talk to us. Every settings page now has the same top border.
+
+  The terminal box links to pricing during the trial, and to the order form, a free key and the Free Use note once it has ended. The dev header trial badge opens Settings > License, and links to the order form once the trial has ended.
+
+  Badges, buttons, toggles and cards in Settings and the dev header trial badge use black or white, following the light or dark theme, instead of the catalog's accent colour.
+
+- 2a561d8: fix(core): show "Loading graph..." in the graph's box, not at the top right of the homepage
+
+  While a diagram loaded, its "Loading graph..." text showed where the diagram's code sits on the page rather than where the diagram is drawn: on a homepage with a diagram, that was the top right. It now shows in the diagram's box.
+
+- a81e7ac: fix(core): show the trial or a commercial license, not both, and ask legacy key customers for a license.jwt
+  - A catalog is on the trial or has a commercial license: with an expired license, Settings > License and the terminal show the license and how to renew it, without the trial (as the dev header does).
+  - A Scale or Starter plan using a legacy license key (from before EventCatalog 5) is asked to contact us for a license.jwt.
+
 ## 5.0.0-beta.28
 
 ### Patch Changes
