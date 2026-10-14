@@ -29,6 +29,7 @@
     "catalog-graph-settled-first-paint",
     "chat-configuration-error",
     "cli-license-status",
+    "codeql-regex-okta",
     "collaborative-canvases",
     "commercial-license-fallback",
     "config-loads-in-place",
