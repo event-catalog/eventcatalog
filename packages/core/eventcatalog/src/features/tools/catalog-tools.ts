@@ -49,7 +49,9 @@ const stripLikeC4Comments = (content: string) => content.replace(/\/\*[\s\S]*?\*
 const parseLikeC4Views = (content: string, filePath: string): LikeC4View[] => {
   const contentWithoutComments = stripLikeC4Comments(content);
   const viewDeclarationPattern =
-    /\b(?:(dynamic|deployment)\s+)?view(?:\s+([A-Za-z_][\w.-]*))?(?:\s+of\s+[A-Za-z_][\w.-]*(?:\.[A-Za-z_][\w.-]*)*)?\s*\{/g;
+    // `of` names an element, dotted or not (`[\w.-]*` takes the dots: a separate group for each dotted part made the
+    // pattern backtrack heavily on a long dotted name without its `{`)
+    /\b(?:(dynamic|deployment)\s+)?view(?:\s+([A-Za-z_][\w.-]*))?(?:\s+of\s+[A-Za-z_][\w.-]*)?\s*\{/g;
   const views: LikeC4View[] = [];
   let match: RegExpExecArray | null;
 

@@ -817,6 +817,23 @@ model {
     }
   });
 
+  it('finds views of a dotted element, and reads a long dotted name without a view body quickly', async () => {
+    vi.mocked(fs.readFileSync).mockImplementation((filePath) =>
+      String(filePath) === '/catalog/architecture/views.c4'
+        ? `views {\n  view OrderingDetail of cloud.ordering.api {\n    include *\n  }\n  view Broken of ${'a.A'.repeat(5000)}\n}`
+        : (fileContents[String(filePath)] ?? '')
+    );
+
+    const started = Date.now();
+    const result = await getC4Diagram({ viewId: 'OrderingDetail' });
+
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect((result as any).matchingViews[0]).toMatchObject({ id: 'OrderingDetail', filePath: 'architecture/views.c4' });
+    }
+  });
+
   it('returns available views when the requested view cannot be found', async () => {
     const result = await getC4Diagram({ viewId: 'MissingView' });
 

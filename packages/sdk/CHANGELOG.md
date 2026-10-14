@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.30.0-beta.2
+
+### Patch Changes
+
+- f70805e: fix: require `zod` 4.6.6 or later, which fixes a denial of service when parsing large arrays (SNYK-JS-ZOD-20510278)
+
 ## 2.30.0-beta.1
 
 ### Patch Changes

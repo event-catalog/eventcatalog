@@ -1,5 +1,12 @@
 # @eventcatalog/cli
 
+## 1.1.0-beta.2
+
+### Patch Changes
+
+- Updated dependencies [f70805e]
+  - @eventcatalog/sdk@2.30.0-beta.2
+
 ## 1.1.0-beta.1
 
 ### Patch Changes
