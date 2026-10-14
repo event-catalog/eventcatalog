@@ -10,8 +10,8 @@ import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import Admonition from '@components/MDX/Admonition';
 import NewVersionBanner from '@components/NewVersionBanner.astro';
 import Badge from '@components/Badge.astro';
-import { getIconForCollection } from '@utils/collections/icons';
-import { getResourceNoun, getResourceTypeLabel } from '@utils/collections/util';
+import { getResourceTypeBadge } from '@utils/collections/resource-type-badge';
+import { getResourceNoun } from '@utils/collections/util';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -40,9 +40,7 @@ if (isRemote) {
 const pageTitle = `${collection} | ${data.name} | GraphQL Schema`.replace(/^\w/, (c) => c.toUpperCase());
 
 // The schema belongs to a service, event, command, query or domain
-const getResourceBadge = () => {
-  return [{ textColor: 'gray', content: getResourceTypeLabel(collection), icon: getIconForCollection(collection) }];
-};
+const getResourceBadge = () => [getResourceTypeBadge(collection)];
 
 const getGraphQLBadge = () => {
   return [

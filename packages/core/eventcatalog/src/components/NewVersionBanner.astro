@@ -1,9 +1,10 @@
 ---
 /**
  * Shown on a previous version of a page: what you're looking at, and a link to its latest version.
- * The sentences are built as strings so the spaces in them can't be lost when the markup is reformatted.
+ * The sentences come from getVersionBannerText, so the spaces in them can't be lost when the markup is reformatted.
  */
 import Admonition from '@components/MDX/Admonition';
+import { getVersionBannerText } from '@utils/version-banner';
 
 interface Props {
   /** What this page is a version of, e.g. "service" or "service doc" */
@@ -17,13 +18,14 @@ interface Props {
 }
 
 const { subject, name, latestOf, latestVersion, href } = Astro.props;
+const text = getVersionBannerText({ subject, latestOf });
 ---
 
 <Admonition type="warning" title="New version found">
   <p>
-    {`You are looking at a previous version of the ${subject} `}<strong>{name}</strong>.{' '}
+    {text.previous}<strong>{name}</strong>.{' '}
     <a class="underline block pt-2" href={href}>
-      {`The latest version of this ${latestOf} is `}<span>v{latestVersion}</span> &rarr;
+      {text.latest}<span>v{latestVersion}</span> &rarr;
     </a>
   </p>
 </Admonition>
