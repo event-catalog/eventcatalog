@@ -2,7 +2,7 @@
 import { render } from 'astro:content';
 
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import Admonition from '@components/MDX/Admonition';
+import NewVersionBanner from '@components/NewVersionBanner.astro';
 import components from '@components/MDX/components';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
 import Badge from '@components/Badge.astro';
@@ -10,7 +10,7 @@ import { buildUrl } from '@utils/url-builder';
 import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
 import { isEventCatalogChatVisible, isMarkdownDownloadEnabled } from '@utils/feature';
 import { getIcon } from '@utils/badges';
-import { collectionToResourceMap } from '@utils/collections/util';
+import { getResourceNoun } from '@utils/collections/util';
 import { getResourceDocTypeLabel } from '@utils/collections/resource-docs';
 
 import { Page } from './_index.data';
@@ -31,9 +31,7 @@ const badges = (props.data.badges || []).map((badge: any) => ({
 }));
 
 const docsBasePath = `/docs/${props.data.resourceCollection}/${props.data.resourceId}/${props.data.resourceVersion}/${encodeURIComponent(props.data.type)}/${encodeURIComponent(props.data.id)}`;
-const singularResourceName =
-  collectionToResourceMap[props.data.resourceCollection as keyof typeof collectionToResourceMap] ??
-  props.data.resourceCollection.slice(0, props.data.resourceCollection.length - 1);
+const singularResourceName = getResourceNoun(props.data.resourceCollection);
 const typeLabel = getResourceDocTypeLabel(props.data.type);
 const chatEnabled = isEventCatalogChatVisible();
 const chatQuery = `Tell me about the ${props.data.type} doc "${title}" for ${props.data.resourceId} (version ${props.data.version})`;
@@ -88,14 +86,13 @@ const pagefindAttributes =
         <div data-pagefind-ignore>
           {
             props.data.version !== props.data.latestVersion && (
-              <Admonition type="warning" title="New version found">
-                <p>
-                  You are looking at a previous version of the {singularResourceName} doc <strong>{title}</strong>.{' '}
-                  <a class="underline block pt-2" href={buildUrl(`${docsBasePath}/${props.data.latestVersion}`)}>
-                    The latest version of this doc is <span>v{props.data.latestVersion}</span> &rarr;
-                  </a>
-                </p>
-              </Admonition>
+              <NewVersionBanner
+                subject={`${singularResourceName} doc`}
+                name={title}
+                latestOf="doc"
+                latestVersion={props.data.latestVersion}
+                href={buildUrl(`${docsBasePath}/${props.data.latestVersion}`)}
+              />
             )
           }
         </div>

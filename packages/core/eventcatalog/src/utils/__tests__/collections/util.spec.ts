@@ -6,6 +6,7 @@ import {
   getFolderNameFromFilePath,
   getItemsFromCollectionByIdAndSemverOrLatest,
   getPointerField,
+  getResourceNoun,
   getResourceTypeLabel,
   isSameVersion,
   processSpecifications,
@@ -350,6 +351,23 @@ describe('Collections - utils', () => {
 
     it('title-cases the raw collection name when not found in collectionToResourceMap', () => {
       expect(getResourceTypeLabel('unknown-collection')).toBe('Unknown Collection');
+    });
+  });
+
+  describe('getResourceNoun', () => {
+    it('names a resource in a collection as a lowercase singular noun', () => {
+      expect(getResourceNoun('services')).toBe('service');
+      expect(getResourceNoun('queries')).toBe('query');
+      expect(getResourceNoun('entities')).toBe('entity');
+      expect(getResourceNoun('data-products')).toBe('data product');
+    });
+
+    it('calls an ADR an architecture decision', () => {
+      expect(getResourceNoun('adrs')).toBe('architecture decision');
+    });
+
+    it('uses the collection name when it is not a known collection', () => {
+      expect(getResourceNoun('unknown-collection')).toBe('unknown collection');
     });
   });
 

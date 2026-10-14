@@ -228,6 +228,16 @@ export const getResourceTypeLabel = (collection: string): string => {
 };
 
 /**
+ * What a resource in a collection is called in a sentence, e.g. "a previous version of the query".
+ * e.g. 'queries' → 'query', 'data-products' → 'data product', 'adrs' → 'architecture decision'
+ */
+export const getResourceNoun = (collection: string): string => {
+  if (collection === 'adrs') return 'architecture decision';
+  const raw = (collectionToResourceMap as Record<string, string>)[collection] || collection;
+  return raw.replace(/-/g, ' ');
+};
+
+/**
  * Returns the correct pointer field name for a collection and direction.
  * Data-products use 'outputs'/'inputs' instead of 'sends'/'receives'.
  */
