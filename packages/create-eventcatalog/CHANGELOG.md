@@ -1,5 +1,12 @@
 # @eventcatalog/create-catalog
 
+## 4.4.0-beta.3
+
+### Patch Changes
+
+- fc67125: fix(create-eventcatalog): link the `eventcatalog.auth.js` template to the authentication docs at their new address (`/docs/development/authentication/introduction`), rather than a page that no longer exists
+- fc67125: feat(create-eventcatalog): new catalogs from the default template open on the catalog dashboard (counts and the architecture graph)
+
 ## 4.4.0-beta.2
 
 ### Patch Changes

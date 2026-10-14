@@ -1,5 +1,24 @@
 # @eventcatalog/core
 
+## 5.0.0-beta.30
+
+### Patch Changes
+
+- fc67125: fix(visualiser): put an edge's label on its own line when the layout hasn't routed it
+
+  Edges drawn as a step between two nodes (e.g. added in Studio from the catalog) had their label in the middle, where edges from one node to nodes in the same column run on top of each other, so a label could sit on another edge's line ("reads and writes" on the line to an event). The label now sits on the edge's last stretch, into its target.
+
+- fc67125: feat(core): a dashboard homepage
+
+  Catalogs without their own homepage open on a dashboard: the catalog's title and tagline with search and Ask, counts of its domains, services, messages, flows, schemas and teams, and the architecture graph (or, when the graph isn't turned on, what changed most recently, dated from git). A custom homepage can show it too, with `<CatalogDashboard />` from `Astro.props.components` (and an optional `title` and `description`).
+
+- fc67125: fix(core): focus Studio's catalog search when its tab is chosen
+
+  Choosing the Catalog Resources tab left the focus on the tab, so typing a resource's name ran the canvas's shortcuts (typing "Order Service" picked the Comment tool and changed the canvas). The search box is now focused, so typing searches the catalog.
+
+- Updated dependencies [fc67125]
+  - @eventcatalog/visualiser@5.0.0-beta.7
+
 ## 5.0.0-beta.29
 
 ### Patch Changes
