@@ -234,6 +234,9 @@ const runCommandWithFilteredOutput = async ({
       cwd,
       env: {
         ...process.env,
+        // Astro sends usage data (commands, config, machine details) to Astro by default: turn it off
+        // for everyone using EventCatalog
+        ASTRO_TELEMETRY_DISABLED: '1',
         ...env,
       },
       stdio: ['inherit', 'pipe', 'pipe'],
