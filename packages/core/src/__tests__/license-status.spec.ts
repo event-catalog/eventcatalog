@@ -197,21 +197,28 @@ describe('license status', () => {
       const message = getLicenseStatusMessage({ state: 'none' }, tsd, now);
       expect(message).toMatchObject({ title: 'EventCatalog trial', color: 'green' });
       expect(message?.text).toMatch(
-        /^You're on the 60-day EventCatalog trial\n\nTrial      37 days left of 60 \(ends .+\)\n\nLicensing  https:\/\/www\.eventcatalog\.dev\/license-faq$/
+        /^You're on the 60-day EventCatalog trial\n\nTrial          37 days left of 60 \(ends .+\)\n\nBuy a license  https:\/\/www\.eventcatalog\.dev\/pricing\nLicensing      https:\/\/www\.eventcatalog\.dev\/license-faq$/
       );
     });
 
-    it('says when the trial has ended, and where to get a license', () => {
+    it('says when the trial has ended, where to get or buy a license, and who qualifies for Free Use', () => {
       const message = getLicenseStatusMessage({ state: 'none' }, now - 61 * DAY, now);
       expect(message).toMatchObject({ color: 'yellow', headline: 'Your EventCatalog trial has ended' });
-      expect(message?.links.map(([label]) => label)).toEqual(['Get a license', 'Licensing']);
+      expect(message?.links).toEqual([
+        ['Get a license', 'https://eventcatalog.cloud'],
+        ['Buy Business', 'https://www.eventcatalog.dev/buy?source=cli'],
+        ['Licensing', 'https://www.eventcatalog.dev/license-faq'],
+      ]);
+      expect(message?.text).toMatch(
+        /\n\nUnder \$10M revenue and \$10M raised, an individual or an open-source project\?\nYou qualify for Free Use; get a free key at eventcatalog\.cloud\.$/
+      );
     });
 
-    it('shows an expired license with when it expired, the trial, and where to renew', () => {
+    it('shows an expired license with when it expired and where to renew, not the trial', () => {
       const expired = getLicenseStatusMessage({ state: 'expired', org: 'acme', expiresAt: new Date(now - 5 * DAY) }, tsd, now);
       expect(expired).toMatchObject({ title: 'EventCatalog license', color: 'yellow' });
       expect(expired?.text).toMatch(
-        /^Your commercial license has expired\n\nLicensed to  acme\nExpired      .+ \(5 days ago\)\nTrial        37 days left of 60 \(ends .+\)\n\nRenew        https:\/\/eventcatalog\.cloud\nLicensing    https:\/\/www\.eventcatalog\.dev\/license-faq$/
+        /^Your commercial license has expired\n\nLicensed to  acme\nExpired      .+ \(5 days ago\)\n\nRenew        https:\/\/eventcatalog\.cloud\nLicensing    https:\/\/www\.eventcatalog\.dev\/license-faq$/
       );
     });
 

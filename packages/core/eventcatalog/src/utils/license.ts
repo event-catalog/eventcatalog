@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { clearCache, hasCommercialLicense, verifyOfflineLicense } from '@eventcatalog/license';
 
-export { LICENSE_FAQ_URL, LICENSE_RENEW_URL } from './trial';
+export { BUY_BUSINESS_URL, LICENSE_FAQ_URL, LICENSE_RENEW_URL, PRICING_URL } from './trial';
 
 // Details from the license token
 export type LicenseDetails = { org?: string; licenseId?: string; issuedAt?: Date };

@@ -1,7 +1,7 @@
 ---
 import catalog from '@utils/eventcatalog-config/catalog';
 import { isDevMode } from '@utils/feature';
-import { getLicenseDaysLeft, getTrialStatus, LICENSE_FAQ_URL, TRIAL_LENGTH_DAYS } from '@utils/trial';
+import { BUY_BUSINESS_URL, getLicenseDaysLeft, getTrialStatus, TRIAL_LENGTH_DAYS } from '@utils/trial';
 import { getLicenseStatus } from '@utils/license';
 import { buildUrl } from '@utils/url-builder';
 
@@ -29,20 +29,17 @@ const title = licenseExpired
   : licenseDaysLeft !== undefined
     ? `Your EventCatalog commercial license expires on ${licensedUntil?.toLocaleDateString()}. Renew it to keep using EventCatalog commercially.`
     : trial?.ended
-      ? `Your ${TRIAL_LENGTH_DAYS}-day EventCatalog trial ended on ${trial.endsAt.toLocaleDateString()}. Learn about licensing.`
-      : `You're on a ${TRIAL_LENGTH_DAYS}-day EventCatalog trial, ending on ${trial?.endsAt.toLocaleDateString()}. Learn about licensing.`;
+      ? `Your ${TRIAL_LENGTH_DAYS}-day EventCatalog trial ended on ${trial.endsAt.toLocaleDateString()}. See your license settings.`
+      : `You're on a ${TRIAL_LENGTH_DAYS}-day EventCatalog trial, ending on ${trial?.endsAt.toLocaleDateString()}. See your license settings.`;
 const warning = licenseExpired || licenseDaysLeft !== undefined || trial?.ended;
-// An expiring or expired license opens the license settings (where it's renewed), the trial the license FAQ
-const isLicense = licenseExpired || licenseDaysLeft !== undefined;
-const href = isLicense ? buildUrl('/settings/license') : LICENSE_FAQ_URL;
+// The badge opens Settings > License, where the license is renewed or bought
+const href = buildUrl('/settings/license');
 ---
 
 {
   (licenseExpired || licenseDaysLeft !== undefined || trial) && (
     <a
       href={href}
-      target={isLicense ? undefined : '_blank'}
-      rel={isLicense ? undefined : 'noopener noreferrer'}
       title={title}
       data-trial-ended={trial?.ended ? 'true' : undefined}
       data-license-expired={licenseExpired ? 'true' : undefined}
@@ -50,7 +47,7 @@ const href = isLicense ? buildUrl('/settings/license') : LICENSE_FAQ_URL;
         'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
         warning
           ? 'border-[rgb(var(--ec-badge-color-amber-text)/0.3)] bg-[rgb(var(--ec-badge-color-amber-background))] text-[rgb(var(--ec-badge-color-amber-text))] hover:opacity-90'
-          : 'border-[rgb(var(--ec-accent)/0.3)] bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.15)]',
+          : 'border-transparent bg-[rgb(var(--ec-page-text))] text-[rgb(var(--ec-page-bg))] hover:opacity-85',
       ]}
     >
       <svg
@@ -77,6 +74,20 @@ const href = isLicense ? buildUrl('/settings/license') : LICENSE_FAQ_URL;
         )}
       </svg>
       {label}
+    </a>
+  )
+}
+{
+  /* Once the trial has ended, a link to buy the Business plan sits next to the badge */
+  trial?.ended && (
+    <a
+      href={BUY_BUSINESS_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-buy-business="true"
+      class="inline-flex items-center whitespace-nowrap rounded-full border border-transparent bg-[rgb(var(--ec-page-text))] px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-bg))] transition-opacity hover:opacity-85"
+    >
+      Buy Business
     </a>
   )
 }

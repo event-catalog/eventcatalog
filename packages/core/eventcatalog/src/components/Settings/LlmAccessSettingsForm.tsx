@@ -64,44 +64,49 @@ export const LlmAccessSettingsForm = ({ canEdit, initial, apiBase, llmsTxtUrl, l
   };
 
   return (
-    <form onSubmit={(e) => e.preventDefault()} className="divide-y divide-[rgb(var(--ec-page-border))]">
+    <>
       <Toaster richColors closeButton position="bottom-right" theme="system" />
-      {!canEdit && (
-        <div className="pb-6">
-          <ReadOnlyBanner />
-        </div>
-      )}
-
-      <Row
-        title="llms.txt"
-        description="Generate llms.txt files so tools like Claude, ChatGPT, and Cursor can read your catalog at /llms.txt."
-        canEdit={canEdit}
-        dirty={dirty}
-        saving={saving}
-        onSave={save}
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]"
       >
-        <ToggleRow
-          icon={<Bot className="h-4 w-4" aria-hidden />}
-          label={llmsTxtEnabled ? 'Enabled' : 'Disabled'}
-          hint={
-            llmsTxtEnabled ? 'AI tools can read your catalog at /llms.txt.' : 'AI tools will not be able to read your catalog.'
-          }
-          checked={llmsTxtEnabled}
-          disabled={!canEdit}
-          onChange={setLlmsTxtEnabled}
-        />
-        {llmsTxtEnabled && <LlmsTxtPreview url={llmsTxtUrl} fullUrl={llmsFullTxtUrl} />}
-      </Row>
+        {!canEdit && (
+          <div className="pb-6">
+            <ReadOnlyBanner />
+          </div>
+        )}
 
-      <Row
-        title="schemas.txt"
-        description="Give LLMs access to every schema across your organization in one place — events, commands, queries, and services."
-        canEdit={false}
-        dirty={false}
-      >
-        <SchemasTxtAvailable url={schemasTxtUrl} />
-      </Row>
-    </form>
+        <Row
+          title="llms.txt"
+          description="Generate llms.txt files so tools like Claude, ChatGPT, and Cursor can read your catalog at /llms.txt."
+          canEdit={canEdit}
+          dirty={dirty}
+          saving={saving}
+          onSave={save}
+        >
+          <ToggleRow
+            icon={<Bot className="h-4 w-4" aria-hidden />}
+            label={llmsTxtEnabled ? 'Enabled' : 'Disabled'}
+            hint={
+              llmsTxtEnabled ? 'AI tools can read your catalog at /llms.txt.' : 'AI tools will not be able to read your catalog.'
+            }
+            checked={llmsTxtEnabled}
+            disabled={!canEdit}
+            onChange={setLlmsTxtEnabled}
+          />
+          {llmsTxtEnabled && <LlmsTxtPreview url={llmsTxtUrl} fullUrl={llmsFullTxtUrl} />}
+        </Row>
+
+        <Row
+          title="schemas.txt"
+          description="Give LLMs access to every schema across your organization in one place — events, commands, queries, and services."
+          canEdit={false}
+          dirty={false}
+        >
+          <SchemasTxtAvailable url={schemasTxtUrl} />
+        </Row>
+      </form>
+    </>
   );
 };
 

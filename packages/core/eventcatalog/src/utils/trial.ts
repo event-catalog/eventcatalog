@@ -5,6 +5,19 @@ export const LICENSE_FAQ_URL = 'https://www.eventcatalog.dev/license-faq';
 // Where a commercial license is renewed
 export const LICENSE_RENEW_URL = 'https://eventcatalog.cloud';
 
+// Where the Business plan is bought: the order form on the website
+export const BUY_BUSINESS_URL = 'https://www.eventcatalog.dev/buy?source=cli';
+
+// Prices for a commercial license, linked while the trial is running
+export const PRICING_URL = 'https://www.eventcatalog.dev/pricing';
+
+// Questions about licensing or buying: talk to the EventCatalog team
+export const TALK_TO_US_URL = 'https://www.eventcatalog.dev/book-demo';
+
+// Shown with the trial, so organisations that qualify for Free Use don't read it as "EventCatalog is now paid"
+export const FREE_USE_NOTE =
+  'Under $10M revenue and $10M raised, an individual or an open-source project? You qualify for Free Use; get a free key at eventcatalog.cloud.';
+
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 export type TrialStatus = {

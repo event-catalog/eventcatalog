@@ -1,12 +1,14 @@
 import boxen from 'boxen';
 import pc from 'picocolors';
 import { isEventCatalogScaleEnabled, isEventCatalogStarterEnabled } from '@eventcatalog/license';
-import { getTrialStatus, LICENSE_REMINDER_DAYS, TRIAL_LENGTH_DAYS } from '../../eventcatalog/src/utils/trial';
+import { FREE_USE_NOTE, getTrialStatus, LICENSE_REMINDER_DAYS, TRIAL_LENGTH_DAYS } from '../../eventcatalog/src/utils/trial';
 import {
   getCommercialLicenseStatus,
   getLicenseStatus as getCatalogLicenseStatus,
+  BUY_BUSINESS_URL,
   LICENSE_FAQ_URL,
   LICENSE_RENEW_URL,
+  PRICING_URL,
   type LicensePlan,
   type LicenseStatus,
 } from '../../eventcatalog/src/utils/license';
@@ -72,8 +74,8 @@ const formatDays = (days: number) => `${days} ${days === 1 ? 'day' : 'days'}`;
 type Row = [label: string, value: string];
 
 /**
- * What the license box says: a headline, the facts as aligned rows ("Licensed to  acme"), and links on their own
- * rows, so it can be read at a glance. `text` is the box's content without colours.
+ * What the license box says: a headline, the facts as aligned rows ("Licensed to  acme"), links on their own
+ * rows, and an optional note at the end, so it can be read at a glance. `text` is the box's content without colours.
  */
 export type LicenseStatusMessage = {
   title: string;
@@ -81,6 +83,7 @@ export type LicenseStatusMessage = {
   headline: string;
   rows: Row[];
   links: Row[];
+  note?: string[];
   text: string;
 };
 
@@ -88,15 +91,19 @@ type Colours = { bold: (text: string) => string; dim: (text: string) => string; 
 const PLAIN: Colours = { bold: (text) => text, dim: (text) => text, link: (text) => text };
 const COLOURS: Colours = { bold: pc.bold, dim: pc.dim, link: (text) => pc.cyan(text) };
 
-const render = ({ headline, rows, links }: Omit<LicenseStatusMessage, 'text' | 'title' | 'color'>, colours: Colours) => {
+const render = ({ headline, rows, links, note }: Omit<LicenseStatusMessage, 'text' | 'title' | 'color'>, colours: Colours) => {
   const width = Math.max(0, ...[...rows, ...links].map(([label]) => label.length));
   const row = ([label, value]: Row) => `${colours.dim(label.padEnd(width))}  ${value}`;
   return [
     colours.bold(headline),
     ...(rows.length ? ['', ...rows.map(row)] : []),
     ...(links.length ? ['', ...links.map(([label, url]) => row([label, colours.link(url)]))] : []),
+    ...(note?.length ? ['', ...note.map(colours.dim)] : []),
   ].join('\n');
 };
+
+// The Free Use note, one sentence per line so the box stays narrow
+const FREE_USE_LINES = FREE_USE_NOTE.split(/(?<=\?) /);
 
 const message = (content: Omit<LicenseStatusMessage, 'text'>): LicenseStatusMessage => ({
   ...content,
@@ -161,7 +168,10 @@ export const getLicenseStatusMessage = (
       color: trial.ended ? 'yellow' : 'green',
       headline: trial.ended ? 'Your EventCatalog trial has ended' : `You're on the ${TRIAL_LENGTH_DAYS}-day EventCatalog trial`,
       rows: trialRows,
-      links: trial.ended ? [['Get a license', LICENSE_RENEW_URL], licensing] : [licensing],
+      links: trial.ended
+        ? [['Get a license', LICENSE_RENEW_URL], ['Buy Business', BUY_BUSINESS_URL], licensing]
+        : [['Buy a license', PRICING_URL], licensing],
+      note: trial.ended ? FREE_USE_LINES : undefined,
     });
   }
 
@@ -178,7 +188,8 @@ export const getLicenseStatusMessage = (
       title: 'EventCatalog license',
       color: 'yellow',
       headline: 'Your commercial license has expired',
-      rows: [...licensedTo, ...expiredOn, ...trialRows],
+      // A catalog has a license or is on the trial: an expired license is renewed, not replaced by the trial
+      rows: [...licensedTo, ...expiredOn],
       links: [renew, licensing],
     });
   }

@@ -64,53 +64,58 @@ export const AssistantSettingsForm = ({ canEdit, initial, chatAvailable, inSSR, 
   };
 
   return (
-    <form onSubmit={(e) => e.preventDefault()} className="divide-y divide-[rgb(var(--ec-page-border))]">
+    <>
       <Toaster richColors closeButton position="bottom-right" theme="system" />
-      {!canEdit && (
-        <div className="pb-6">
-          <ReadOnlyBanner />
-        </div>
-      )}
-
-      <Row
-        title="Assistant Agent"
-        description="Assistant agent that answers questions about your architecture directly in your catalog."
-        canEdit={canEdit}
-        dirty={dirty}
-        saving={saving}
-        onSave={save}
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]"
       >
-        <div className="space-y-3">
-          <ToggleRow
-            icon={<MessageSquare className="h-4 w-4" aria-hidden />}
-            label={chatEnabled ? 'Enabled' : 'Disabled'}
-            hint={
-              chatEnabled
-                ? 'Event Catalog Assistant is visible in this catalog.'
-                : 'Event Catalog Assistant is hidden from this catalog.'
-            }
-            checked={chatEnabled}
-            disabled={!canEdit}
-            onChange={setChatEnabled}
-          />
-          {chatEnabled &&
-            (chatAvailable ? (
-              <ConfigurationRequired />
-            ) : !inSSR ? (
-              <AssistantNeedsSSR />
-            ) : !hasChatConfigFile ? (
-              <AssistantNeedsConfigFile />
-            ) : null)}
-        </div>
-      </Row>
-    </form>
+        {!canEdit && (
+          <div className="pb-6">
+            <ReadOnlyBanner />
+          </div>
+        )}
+
+        <Row
+          title="Assistant Agent"
+          description="Assistant agent that answers questions about your architecture directly in your catalog."
+          canEdit={canEdit}
+          dirty={dirty}
+          saving={saving}
+          onSave={save}
+        >
+          <div className="space-y-3">
+            <ToggleRow
+              icon={<MessageSquare className="h-4 w-4" aria-hidden />}
+              label={chatEnabled ? 'Enabled' : 'Disabled'}
+              hint={
+                chatEnabled
+                  ? 'Event Catalog Assistant is visible in this catalog.'
+                  : 'Event Catalog Assistant is hidden from this catalog.'
+              }
+              checked={chatEnabled}
+              disabled={!canEdit}
+              onChange={setChatEnabled}
+            />
+            {chatEnabled &&
+              (chatAvailable ? (
+                <ConfigurationRequired />
+              ) : !inSSR ? (
+                <AssistantNeedsSSR />
+              ) : !hasChatConfigFile ? (
+                <AssistantNeedsConfigFile />
+              ) : null)}
+          </div>
+        </Row>
+      </form>
+    </>
   );
 };
 
 const ConfigurationRequired = () => (
-  <div className="rounded-lg border border-[rgb(var(--ec-accent)/0.4)] bg-[rgb(var(--ec-accent)/0.06)] px-4 py-3">
+  <div className="rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)] px-4 py-3">
     <div className="flex items-start gap-3">
-      <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-accent)/0.4)] bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))]">
+      <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <Wrench className="h-3.5 w-3.5" aria-hidden />
       </span>
       <div className="flex-1 min-w-0">
@@ -125,7 +130,7 @@ const ConfigurationRequired = () => (
           target="_blank"
           rel="noreferrer"
           className={cn(
-            'mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-[rgb(var(--ec-accent))] hover:underline'
+            'mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-[rgb(var(--ec-page-text))] hover:underline'
           )}
         >
           Configure the Agent
@@ -137,15 +142,15 @@ const ConfigurationRequired = () => (
 );
 
 const AssistantNeedsSSR = () => (
-  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-accent)/0.4)] bg-gradient-to-br from-[rgb(var(--ec-accent)/0.1)] via-[rgb(var(--ec-accent)/0.05)] to-transparent">
+  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
     <div className="flex items-start gap-3 px-4 py-3.5">
-      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-accent)/0.4)] bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))]">
+      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <ServerCog className="h-4 w-4" aria-hidden />
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-[13px] font-semibold text-[rgb(var(--ec-page-text))]">Server output mode required</p>
-          <span className="inline-flex items-center gap-1 rounded-full border border-[rgb(var(--ec-accent)/0.4)] bg-[rgb(var(--ec-accent)/0.1)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[rgb(var(--ec-accent))]">
+          <span className="inline-flex items-center gap-1 rounded-full border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[rgb(var(--ec-page-text))]">
             SSR
           </span>
         </div>
@@ -157,7 +162,7 @@ const AssistantNeedsSSR = () => (
             href={ASSISTANT_CONFIGURATION_DOCS_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-md bg-[rgb(var(--ec-accent))] px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition-colors hover:bg-[rgb(var(--ec-accent-hover))]"
+            className="inline-flex items-center gap-1 rounded-md bg-[rgb(var(--ec-page-text))] px-3 py-1.5 text-[12px] font-semibold text-[rgb(var(--ec-page-bg))] shadow-sm transition-colors hover:opacity-85"
           >
             Configuration guide
             <ExternalLink className="h-3 w-3" aria-hidden />
@@ -178,9 +183,9 @@ const AssistantNeedsSSR = () => (
 );
 
 const AssistantNeedsConfigFile = () => (
-  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-accent)/0.4)] bg-gradient-to-br from-[rgb(var(--ec-accent)/0.1)] via-[rgb(var(--ec-accent)/0.05)] to-transparent">
+  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
     <div className="flex items-start gap-3 px-4 py-3.5">
-      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-accent)/0.4)] bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))]">
+      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <Wrench className="h-4 w-4" aria-hidden />
       </span>
       <div className="flex-1 min-w-0">
@@ -195,7 +200,7 @@ const AssistantNeedsConfigFile = () => (
             href={ASSISTANT_CONFIGURATION_DOCS_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-md bg-[rgb(var(--ec-accent))] px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition-colors hover:bg-[rgb(var(--ec-accent-hover))]"
+            className="inline-flex items-center gap-1 rounded-md bg-[rgb(var(--ec-page-text))] px-3 py-1.5 text-[12px] font-semibold text-[rgb(var(--ec-page-bg))] shadow-sm transition-colors hover:opacity-85"
           >
             Configuration guide
             <ExternalLink className="h-3 w-3" aria-hidden />

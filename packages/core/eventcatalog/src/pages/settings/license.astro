@@ -11,8 +11,16 @@ const license: LicenseProps =
     ? { ...status, issuedAt: status.issuedAt?.getTime(), expiresAt: status.expiresAt?.getTime() }
     : status;
 const trialStartedAt = typeof catalog?.tsd === 'number' ? catalog.tsd : undefined;
+// The license on the main branch, the same text as www.eventcatalog.dev/license
+const licenseUrl = 'https://github.com/event-catalog/eventcatalog/blob/main/LICENSE';
 ---
 
 <SettingsLayout title="License" active="license">
-  <LicenseSettings client:load license={license} trialStartedAt={trialStartedAt} renderedAt={Date.now()} />
+  <LicenseSettings
+    client:load
+    license={license}
+    trialStartedAt={trialStartedAt}
+    renderedAt={Date.now()}
+    licenseUrl={licenseUrl}
+  />
 </SettingsLayout>

@@ -26,7 +26,8 @@ interface Props {
 
 export const McpSettingsForm = ({ inSSR, mcpUrl, domainServers }: Props) => {
   return (
-    <div className="divide-y divide-[rgb(var(--ec-page-border))]">
+    // A top border, as on the other settings pages
+    <div className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]">
       <Row
         title="Catalog MCP Server"
         description="Connect AI agents (Claude, Cursor, VS Code and any MCP client) to every resource in your catalog: domains, services, messages, flows, schemas and the teams that own them."
@@ -63,7 +64,7 @@ const LivePill = () => (
 const CatalogServer = ({ url }: { url: string }) => (
   <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
     <div className="flex items-start gap-3 px-4 py-3.5">
-      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[rgb(var(--ec-accent)/0.3)] bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))]">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <Library className="h-4 w-4" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
@@ -83,7 +84,7 @@ const CatalogServer = ({ url }: { url: string }) => (
         href={MCP_DOCS_URL}
         target="_blank"
         rel="noreferrer"
-        className="mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-[rgb(var(--ec-accent))] hover:underline"
+        className="mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-[rgb(var(--ec-page-text))] hover:underline"
       >
         How to connect a client
         <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
@@ -100,7 +101,7 @@ const DomainServers = ({ servers }: { servers: DomainMcpServer[] }) => (
           <a
             href={server.docsUrl}
             title={server.summary}
-            className="inline-flex min-w-0 items-center gap-2 text-[13px] font-medium text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]"
+            className="inline-flex min-w-0 items-center gap-2 text-[13px] font-medium text-[rgb(var(--ec-page-text))] hover:underline"
           >
             <Boxes className="h-3.5 w-3.5 flex-shrink-0 self-center text-[rgb(var(--ec-icon-color))]" aria-hidden />
             <span className="truncate">{server.name}</span>
@@ -114,15 +115,15 @@ const DomainServers = ({ servers }: { servers: DomainMcpServer[] }) => (
 );
 
 const McpNeedsSSR = () => (
-  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-accent)/0.4)] bg-gradient-to-br from-[rgb(var(--ec-accent)/0.1)] via-[rgb(var(--ec-accent)/0.05)] to-transparent">
+  <div className="overflow-hidden rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.03)]">
     <div className="flex items-start gap-3 px-4 py-3.5">
-      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-accent)/0.4)] bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))]">
+      <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] text-[rgb(var(--ec-page-text))]">
         <ServerCog className="h-4 w-4" aria-hidden />
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-[13px] font-semibold text-[rgb(var(--ec-page-text))]">Server output mode required</p>
-          <span className="inline-flex items-center gap-1 rounded-full border border-[rgb(var(--ec-accent)/0.4)] bg-[rgb(var(--ec-accent)/0.1)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[rgb(var(--ec-accent))]">
+          <span className="inline-flex items-center gap-1 rounded-full border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-text)/0.05)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[rgb(var(--ec-page-text))]">
             SSR
           </span>
         </div>
@@ -134,7 +135,7 @@ const McpNeedsSSR = () => (
             href={MCP_DOCS_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-md bg-[rgb(var(--ec-accent))] px-3 py-1.5 text-[12px] font-semibold text-white shadow-sm transition-colors hover:bg-[rgb(var(--ec-accent-hover))]"
+            className="inline-flex items-center gap-1 rounded-md bg-[rgb(var(--ec-page-text))] px-3 py-1.5 text-[12px] font-semibold text-[rgb(var(--ec-page-bg))] shadow-sm transition-colors hover:opacity-85"
           >
             MCP setup guide
             <ExternalLink className="h-3 w-3" aria-hidden />

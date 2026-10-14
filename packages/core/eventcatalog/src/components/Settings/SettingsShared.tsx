@@ -32,7 +32,7 @@ export const UrlPanel = ({ url }: UrlPanelProps) => {
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="flex-1 truncate rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-2.5 py-1.5 font-mono text-[12px] text-[rgb(var(--ec-page-text))] transition-colors hover:border-[rgb(var(--ec-accent)/0.5)] hover:text-[rgb(var(--ec-accent))]"
+        className="flex-1 truncate rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] px-2.5 py-1.5 font-mono text-[12px] text-[rgb(var(--ec-page-text))] transition-colors hover:border-[rgb(var(--ec-page-text)/0.4)]"
       >
         {fullUrl}
       </a>
@@ -72,13 +72,13 @@ export const Toggle = ({ checked, disabled, onChange }: ToggleProps) => (
     onClick={() => onChange(!checked)}
     className={cn(
       'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer items-center rounded-full transition-colors',
-      checked ? 'bg-[rgb(var(--ec-accent))]' : 'bg-[rgb(var(--ec-page-text-muted)/0.35)]',
+      checked ? 'bg-[rgb(var(--ec-page-text))]' : 'bg-[rgb(var(--ec-page-text-muted)/0.35)]',
       disabled && 'cursor-not-allowed opacity-50'
     )}
   >
     <span
       className={cn(
-        'inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform',
+        'inline-block h-3.5 w-3.5 transform rounded-full bg-[rgb(var(--ec-page-bg))] shadow-sm transition-transform',
         checked ? 'translate-x-[1.125rem]' : 'translate-x-[0.1875rem]'
       )}
     />
