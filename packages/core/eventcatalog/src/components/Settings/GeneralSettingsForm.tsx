@@ -179,193 +179,198 @@ export const GeneralSettingsForm = ({ canEdit, initial, apiBase }: Props) => {
   };
 
   return (
-    <form onSubmit={(e) => e.preventDefault()} className="divide-y divide-[rgb(var(--ec-page-border))]">
+    <>
       <Toaster richColors closeButton position="bottom-right" theme="system" />
-      {!canEdit && (
-        <div className="pb-6">
-          <ReadOnlyBanner />
-        </div>
-      )}
-
-      <Row
-        title="Theme"
-        description="Pick a built-in colour theme. Selection updates the preview live; click Save to persist."
-        canEdit={canEdit}
-        dirty={dirtyKeys.has('theme')}
-        saving={savingKey === 'theme'}
-        onSave={() => saveRow('theme')}
-        error={errors.theme}
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]"
       >
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {themeOptions(form.theme).map((t) => {
-            const preview = THEME_PREVIEWS[t] ?? { accent: '#888', bg: '#1a1a1a', label: t };
-            const isActive = form.theme === t;
-            const isCustom = !isKnownTheme(t);
-            return (
-              <button
-                type="button"
-                key={t}
-                onClick={() => setField('theme', t)}
-                disabled={!canEdit}
-                aria-pressed={isActive}
-                className={cn(
-                  'group relative flex flex-col overflow-hidden rounded-lg border text-left transition-all',
-                  'disabled:cursor-not-allowed disabled:opacity-50',
-                  isActive
-                    ? 'border-[rgb(var(--ec-accent))] ring-2 ring-[rgb(var(--ec-accent)/0.25)]'
-                    : 'border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-page-text-muted)/0.6)]'
-                )}
-              >
-                <div className="relative h-14 w-full overflow-hidden" style={{ background: preview.bg }}>
-                  <div
-                    className="absolute -bottom-2 -right-2 h-12 w-12 rounded-full opacity-90 blur-md"
-                    style={{ background: preview.accent }}
-                    aria-hidden
-                  />
-                  <div
-                    className="absolute left-3 top-3 h-1.5 w-10 rounded-full opacity-90"
-                    style={{ background: preview.accent }}
-                    aria-hidden
-                  />
-                  <div
-                    className="absolute left-3 top-6 h-1 w-7 rounded-full opacity-60"
-                    style={{ background: 'rgba(255,255,255,0.4)' }}
-                    aria-hidden
-                  />
-                  {isActive && (
-                    <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-black shadow-sm">
-                      <Check className="h-2.5 w-2.5" aria-hidden />
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center justify-between gap-2 px-3 py-2">
-                  <span className="text-[12px] font-medium capitalize text-[rgb(var(--ec-page-text))]">{preview.label}</span>
-                  {isCustom && (
-                    <span className="rounded-full border border-[rgb(var(--ec-page-border))] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[rgb(var(--ec-page-text-muted))]">
-                      custom
-                    </span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </Row>
+        {!canEdit && (
+          <div className="pb-6">
+            <ReadOnlyBanner />
+          </div>
+        )}
 
-      <Row
-        title="Organization"
-        description="Used as the catalog name, the brand line next to the logo, and OpenGraph metadata."
-        canEdit={canEdit}
-        dirty={dirtyKeys.has('organization')}
-        saving={savingKey === 'organization'}
-        onSave={() => saveRow('organization')}
-        error={errors.organization}
-      >
-        <input
-          type="text"
-          value={form.organization}
-          onChange={handleChange('organization')}
-          disabled={!canEdit}
-          maxLength={100}
-          placeholder="Acme Inc."
-          className={cn(inputBase, errors.organization && inputError)}
-          required
-        />
-      </Row>
-
-      <Row
-        title="Tagline"
-        description="A short subtitle shown beneath the organization name on the homepage."
-        canEdit={canEdit}
-        dirty={dirtyKeys.has('tagline')}
-        saving={savingKey === 'tagline'}
-        onSave={() => saveRow('tagline')}
-        error={errors.tagline}
-      >
-        <textarea
-          value={form.tagline}
-          onChange={handleChange('tagline')}
-          disabled={!canEdit}
-          maxLength={500}
-          rows={2}
-          placeholder="Discover and explore our events, services, and architecture."
-          className={cn(inputBase, 'resize-y', errors.tagline && inputError)}
-        />
-      </Row>
-
-      <Row
-        title="Homepage link"
-        description="Where the logo links to. Useful for pointing back to your main site."
-        canEdit={canEdit}
-        dirty={dirtyKeys.has('homepageLink')}
-        saving={savingKey === 'homepageLink'}
-        onSave={() => saveRow('homepageLink')}
-        error={errors.homepageLink}
-      >
-        <input
-          type="url"
-          value={form.homepageLink}
-          onChange={handleChange('homepageLink')}
-          onBlur={handleUrlBlur('homepageLink')}
-          disabled={!canEdit}
-          placeholder="https://example.com"
-          className={cn(inputBase, monoInput, errors.homepageLink && inputError)}
-        />
-      </Row>
-
-      <Row
-        title="Edit URL"
-        description="Base URL for the “Edit on GitHub” links shown on resource pages."
-        canEdit={canEdit}
-        dirty={dirtyKeys.has('editUrl')}
-        saving={savingKey === 'editUrl'}
-        onSave={() => saveRow('editUrl')}
-        error={errors.editUrl}
-      >
-        <input
-          type="url"
-          value={form.editUrl}
-          onChange={handleChange('editUrl')}
-          onBlur={handleUrlBlur('editUrl')}
-          disabled={!canEdit}
-          placeholder="https://github.com/org/repo/edit/main"
-          className={cn(inputBase, monoInput, errors.editUrl && inputError)}
-        />
-      </Row>
-
-      <Row
-        title="Repository URL"
-        description="Link to your catalog's source repository. Shown in the header for quick navigation back to the code."
-        canEdit={canEdit}
-        dirty={dirtyKeys.has('repositoryUrl')}
-        saving={savingKey === 'repositoryUrl'}
-        onSave={() => saveRow('repositoryUrl')}
-        error={errors.repositoryUrl}
-      >
-        <input
-          type="url"
-          value={form.repositoryUrl}
-          onChange={handleChange('repositoryUrl')}
-          onBlur={handleUrlBlur('repositoryUrl')}
-          disabled={!canEdit}
-          placeholder="https://github.com/org/repo"
-          className={cn(inputBase, monoInput, errors.repositoryUrl && inputError)}
-        />
-      </Row>
-
-      <Row
-        title="Logo"
-        description="Image shown in the top-left corner. PNG, JPG, SVG, or WebP up to 2MB."
-        canEdit={canEdit}
-        // Logo upload saves itself directly; no inline Save button needed.
-        dirty={false}
-      >
-        <LogoUpload
+        <Row
+          title="Theme"
+          description="Pick a built-in colour theme. Selection updates the preview live; click Save to persist."
           canEdit={canEdit}
-          initialSrc={initial.logo?.src ? `${initial.logo.src}?t=${Date.now()}` : undefined}
-          apiUrl={`${apiBase}/logo`}
-        />
-      </Row>
-    </form>
+          dirty={dirtyKeys.has('theme')}
+          saving={savingKey === 'theme'}
+          onSave={() => saveRow('theme')}
+          error={errors.theme}
+        >
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {themeOptions(form.theme).map((t) => {
+              const preview = THEME_PREVIEWS[t] ?? { accent: '#888', bg: '#1a1a1a', label: t };
+              const isActive = form.theme === t;
+              const isCustom = !isKnownTheme(t);
+              return (
+                <button
+                  type="button"
+                  key={t}
+                  onClick={() => setField('theme', t)}
+                  disabled={!canEdit}
+                  aria-pressed={isActive}
+                  className={cn(
+                    'group relative flex flex-col overflow-hidden rounded-lg border text-left transition-all',
+                    'disabled:cursor-not-allowed disabled:opacity-50',
+                    isActive
+                      ? 'border-[rgb(var(--ec-page-text))] ring-2 ring-[rgb(var(--ec-page-text)/0.15)]'
+                      : 'border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-page-text-muted)/0.6)]'
+                  )}
+                >
+                  <div className="relative h-14 w-full overflow-hidden" style={{ background: preview.bg }}>
+                    <div
+                      className="absolute -bottom-2 -right-2 h-12 w-12 rounded-full opacity-90 blur-md"
+                      style={{ background: preview.accent }}
+                      aria-hidden
+                    />
+                    <div
+                      className="absolute left-3 top-3 h-1.5 w-10 rounded-full opacity-90"
+                      style={{ background: preview.accent }}
+                      aria-hidden
+                    />
+                    <div
+                      className="absolute left-3 top-6 h-1 w-7 rounded-full opacity-60"
+                      style={{ background: 'rgba(255,255,255,0.4)' }}
+                      aria-hidden
+                    />
+                    {isActive && (
+                      <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-black shadow-sm">
+                        <Check className="h-2.5 w-2.5" aria-hidden />
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2 px-3 py-2">
+                    <span className="text-[12px] font-medium capitalize text-[rgb(var(--ec-page-text))]">{preview.label}</span>
+                    {isCustom && (
+                      <span className="rounded-full border border-[rgb(var(--ec-page-border))] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[rgb(var(--ec-page-text-muted))]">
+                        custom
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </Row>
+
+        <Row
+          title="Organization"
+          description="Used as the catalog name, the brand line next to the logo, and OpenGraph metadata."
+          canEdit={canEdit}
+          dirty={dirtyKeys.has('organization')}
+          saving={savingKey === 'organization'}
+          onSave={() => saveRow('organization')}
+          error={errors.organization}
+        >
+          <input
+            type="text"
+            value={form.organization}
+            onChange={handleChange('organization')}
+            disabled={!canEdit}
+            maxLength={100}
+            placeholder="Acme Inc."
+            className={cn(inputBase, errors.organization && inputError)}
+            required
+          />
+        </Row>
+
+        <Row
+          title="Tagline"
+          description="A short subtitle shown beneath the organization name on the homepage."
+          canEdit={canEdit}
+          dirty={dirtyKeys.has('tagline')}
+          saving={savingKey === 'tagline'}
+          onSave={() => saveRow('tagline')}
+          error={errors.tagline}
+        >
+          <textarea
+            value={form.tagline}
+            onChange={handleChange('tagline')}
+            disabled={!canEdit}
+            maxLength={500}
+            rows={2}
+            placeholder="Discover and explore our events, services, and architecture."
+            className={cn(inputBase, 'resize-y', errors.tagline && inputError)}
+          />
+        </Row>
+
+        <Row
+          title="Homepage link"
+          description="Where the logo links to. Useful for pointing back to your main site."
+          canEdit={canEdit}
+          dirty={dirtyKeys.has('homepageLink')}
+          saving={savingKey === 'homepageLink'}
+          onSave={() => saveRow('homepageLink')}
+          error={errors.homepageLink}
+        >
+          <input
+            type="url"
+            value={form.homepageLink}
+            onChange={handleChange('homepageLink')}
+            onBlur={handleUrlBlur('homepageLink')}
+            disabled={!canEdit}
+            placeholder="https://example.com"
+            className={cn(inputBase, monoInput, errors.homepageLink && inputError)}
+          />
+        </Row>
+
+        <Row
+          title="Edit URL"
+          description="Base URL for the “Edit on GitHub” links shown on resource pages."
+          canEdit={canEdit}
+          dirty={dirtyKeys.has('editUrl')}
+          saving={savingKey === 'editUrl'}
+          onSave={() => saveRow('editUrl')}
+          error={errors.editUrl}
+        >
+          <input
+            type="url"
+            value={form.editUrl}
+            onChange={handleChange('editUrl')}
+            onBlur={handleUrlBlur('editUrl')}
+            disabled={!canEdit}
+            placeholder="https://github.com/org/repo/edit/main"
+            className={cn(inputBase, monoInput, errors.editUrl && inputError)}
+          />
+        </Row>
+
+        <Row
+          title="Repository URL"
+          description="Link to your catalog's source repository. Shown in the header for quick navigation back to the code."
+          canEdit={canEdit}
+          dirty={dirtyKeys.has('repositoryUrl')}
+          saving={savingKey === 'repositoryUrl'}
+          onSave={() => saveRow('repositoryUrl')}
+          error={errors.repositoryUrl}
+        >
+          <input
+            type="url"
+            value={form.repositoryUrl}
+            onChange={handleChange('repositoryUrl')}
+            onBlur={handleUrlBlur('repositoryUrl')}
+            disabled={!canEdit}
+            placeholder="https://github.com/org/repo"
+            className={cn(inputBase, monoInput, errors.repositoryUrl && inputError)}
+          />
+        </Row>
+
+        <Row
+          title="Logo"
+          description="Image shown in the top-left corner. PNG, JPG, SVG, or WebP up to 2MB."
+          canEdit={canEdit}
+          // Logo upload saves itself directly; no inline Save button needed.
+          dirty={false}
+        >
+          <LogoUpload
+            canEdit={canEdit}
+            initialSrc={initial.logo?.src ? `${initial.logo.src}?t=${Date.now()}` : undefined}
+            apiUrl={`${apiBase}/logo`}
+          />
+        </Row>
+      </form>
+    </>
   );
 };

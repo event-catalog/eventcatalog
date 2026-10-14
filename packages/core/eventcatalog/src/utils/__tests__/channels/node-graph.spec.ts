@@ -235,6 +235,27 @@ describe('Channels NodeGraph', () => {
       );
     });
 
+    it('lays the graph out, giving every edge a route to be drawn along', async () => {
+      const { edges } = await getNodesAndEdges({ id: 'EventBus', version: '1.0.0' });
+
+      expect(edges.length).toBeGreaterThan(0);
+      for (const edge of edges) {
+        expect(edge.data.route).toBeDefined();
+      }
+    });
+
+    it('when layout is false, the graph is returned without positions or routes', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'EventBus', version: '1.0.0', layout: false });
+
+      expect(nodes.length).toBeGreaterThan(0);
+      for (const node of nodes) {
+        expect(node.position).toEqual({ x: 0, y: 0 });
+      }
+      for (const edge of edges) {
+        expect(edge.data.route).toBeUndefined();
+      }
+    });
+
     it('when a service sends a message to the channel, the service and the message are rendered upstream of the channel', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'EventBus', version: '1.0.0' });
 

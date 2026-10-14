@@ -1,0 +1,9 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build:bin": {
+      "outputs": ["dist/**", "eventcatalog/src/features/mcp/apps/generated/**"]
+    }
+  }
+}

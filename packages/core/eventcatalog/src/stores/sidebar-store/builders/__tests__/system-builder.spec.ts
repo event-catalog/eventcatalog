@@ -112,6 +112,29 @@ describe('buildSystemNode', () => {
       });
     });
 
+    // Whether a system has a Resources page is worked out once for the whole catalog
+    // (getResourcesPageKeys) and passed in, so the sidebar and the pages agree.
+    it('links to the Resources page when the system has one', () => {
+      const result = buildSystemNode(createMockSystem(), [], {
+        ...emptyContext,
+        resourcesPages: new Set(['systems:CoreMonolith:1.0.0']),
+      });
+
+      const quickRef = (result.pages as any[])?.find((p: any) => p.title === 'Quick Reference');
+      expect((quickRef as any)?.pages).toContainEqual({
+        type: 'item',
+        title: 'Resources',
+        href: '/docs/systems/CoreMonolith/1.0.0/resources',
+      });
+    });
+
+    it('does not link to the Resources page when the system has none', () => {
+      const result = buildSystemNode(createMockSystem(), [], emptyContext);
+
+      const quickRef = (result.pages as any[])?.find((p: any) => p.title === 'Quick Reference');
+      expect((quickRef as any)?.pages).not.toContainEqual(expect.objectContaining({ title: 'Resources' }));
+    });
+
     it('does not include a Changelog link when changelog is disabled', () => {
       const system = createMockSystem();
       const result = buildSystemNode(system, [], emptyContext);

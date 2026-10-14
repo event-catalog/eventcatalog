@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import http from 'node:http';
 import fs from 'fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { generate } from './generate';
 import logBuild from './analytics/log-build';
@@ -18,7 +18,9 @@ import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
-import { buildFieldsIndex } from '../eventcatalog/src/enterprise/fields/field-indexer';
+import { stopChildWithParent } from './utils/child-process-signals';
+import { getLicenseStatus, printLicenseStatus } from './utils/license-status';
+import { buildFieldsIndex } from '../eventcatalog/src/features/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
 import { clearCatalogCache, hasLegacyCatalogRuntime, prepareCatalogRuntime } from './catalog-runtime';
 import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
@@ -34,9 +36,14 @@ import { getFederationDiagnosticCounts, getVisibleFederationDiagnostics } from '
 import { getEventCatalogUpdateMessage, resolveInstalledCoreVersion } from './update-check';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const astroCli = path.join(path.dirname(createRequire(import.meta.url).resolve('astro/package.json')), 'bin/astro.mjs');
-const program = new Command().version(VERSION);
 
-import { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isFeatureEnabled } from '@eventcatalog/license';
+// Astro 7 starts `astro dev` and `astro preview` in the background when an AI agent runs them: the
+// command exits once the server is up, its output goes to a log file and its errors aren't shown.
+// This CLI is the process that runs the server (and watches files and prewarms pages alongside it),
+// so Astro stays in the foreground. Astro sets these on the server it starts in the background.
+const ASTRO_IN_FOREGROUND = { ASTRO_DEV_BACKGROUND: '1', ASTRO_PREVIEW_BACKGROUND: '1' };
+
+const program = new Command().version(VERSION);
 
 // The users dierctory
 const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
@@ -80,7 +87,7 @@ const resolveDevPort = async ({ projectDir }: { projectDir: string }): Promise<n
 
 const startDevPrewarm = ({
   port = 3000,
-  paths = ['/ping', '/'],
+  paths = ['/'],
   retries = 80,
   intervalMs = 250,
   initialDelayMs = 500,
@@ -97,10 +104,13 @@ const startDevPrewarm = ({
     new Promise<boolean>((resolve) => {
       const req = http.get(
         {
-          hostname: '127.0.0.1',
+          // Not 127.0.0.1: the dev server can listen on IPv6 only ([::1]), which refused
+          // every prewarm request
+          hostname: 'localhost',
           port,
           path: requestPath,
-          timeout: 1200,
+          // A refused connection fails at once; once connected, let the first render finish
+          timeout: 30000,
         },
         (res) => {
           res.resume();
@@ -224,10 +234,14 @@ const runCommandWithFilteredOutput = async ({
       cwd,
       env: {
         ...process.env,
+        // Astro sends usage data (commands, config, machine details) to Astro by default: turn it off
+        // for everyone using EventCatalog
+        ASTRO_TELEMETRY_DISABLED: '1',
         ...env,
       },
       stdio: ['inherit', 'pipe', 'pipe'],
     });
+    const signals = stopChildWithParent(child);
 
     let stdoutBuffer = '';
     let stderrBuffer = '';
@@ -261,12 +275,16 @@ const runCommandWithFilteredOutput = async ({
     });
 
     child.on('error', (error) => {
+      signals.childClosed();
       reject(error);
     });
 
     child.on('close', (code) => {
       stdoutBuffer = flush(stdoutBuffer, process.stdout, true);
       stderrBuffer = flush(stderrBuffer, process.stderr, true);
+
+      // Stopped by a signal the CLI received: the CLI is exiting too
+      if (signals.childClosed()) return;
 
       if (code === 0) {
         resolve();
@@ -393,21 +411,11 @@ program
 
     const config = await getEventCatalogConfigFile(dir);
 
-    // Check if backstage is enabled
-    const canEmbedPages = await isFeatureEnabled(
-      '@eventcatalog/backstage-plugin-eventcatalog',
-      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
-    );
-    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
-    const isEventCatalogScale = await isEventCatalogScaleEnabled();
+    const license = await getLicenseStatus(dir);
+    printLicenseStatus(license, config?.tsd);
 
     // Fire-and-forget so dev startup never waits on telemetry
-    void logBuild(dir, {
-      isEventCatalogStarterEnabled: isEventCatalogStarter,
-      isEventCatalogScaleEnabled: isEventCatalogScale,
-      isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
-      command: 'dev',
-    });
+    void logBuild(dir, { command: 'dev', license });
 
     // Build fields index if running in SSR mode
     if (isServer) {
@@ -448,7 +456,9 @@ program
 
         startDevPrewarm({
           port: prewarmPort,
-          paths: ['/ping', '/'],
+          // Renders the homepage before anyone opens it. Requests stop at the first response,
+          // so a probe path like /ping first would leave the homepage cold.
+          paths: ['/'],
         });
       }
 
@@ -459,12 +469,10 @@ program
         env: {
           PROJECT_DIR: dir,
           CATALOG_DIR: core,
-          ENABLE_EMBED: String(canEmbedPages || isEventCatalogScale),
-          EVENTCATALOG_STARTER: String(isEventCatalogStarter),
-          EVENTCATALOG_SCALE: String(isEventCatalogScale),
           EVENTCATALOG_DEV_MODE: 'true',
           IGNORE_BUILD_ARTIFACTS: 'true',
           NODE_NO_WARNINGS: '1',
+          ...ASTRO_IN_FOREGROUND,
         },
         shouldFilterLine: createAstroDevLineFilter(),
         transformLine: replaceAstroReadyVersionLine,
@@ -495,24 +503,13 @@ program
     // Verify required fields (e.g. cId) before preparing the runtime
     await verifyRequiredFieldsAreInCatalogConfigFile(dir);
 
+    const config = await getEventCatalogConfigFile(dir);
+    const license = await getLicenseStatus(dir);
+    printLicenseStatus(license, config?.tsd);
+
     prepareCore();
 
-    // Check if backstage is enabled
-    const isBackstagePluginEnabled = await isFeatureEnabled(
-      '@eventcatalog/backstage-plugin-eventcatalog',
-      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
-    );
-    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
-    const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
-    const canEmbedPages = isBackstagePluginEnabled || isEventCatalogScale;
-
-    await logBuild(dir, {
-      isEventCatalogStarterEnabled: isEventCatalogStarter,
-      isEventCatalogScaleEnabled: isEventCatalogScale,
-      isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
-      command: 'build',
-    });
+    await logBuild(dir, { command: 'build', license });
 
     await resolveCatalogDependencies(dir, core);
 
@@ -543,9 +540,6 @@ program
       env: {
         PROJECT_DIR: dir,
         CATALOG_DIR: core,
-        ENABLE_EMBED: String(canEmbedPages),
-        EVENTCATALOG_STARTER: String(isEventCatalogStarter),
-        EVENTCATALOG_SCALE: String(isEventCatalogScale),
         IGNORE_BUILD_ARTIFACTS: 'true',
       },
       shouldFilterLine: createAstroLineFilter(),
@@ -554,7 +548,6 @@ program
     if (await isIndexedSearchEnabled()) {
       await warnIfIndexedSearchUsesAuth();
 
-      const config = await getEventCatalogConfigFile(dir);
       const outDir = path.resolve(dir, await getProjectOutDir());
 
       logger.info('Building indexed search...', 'search');
@@ -568,17 +561,7 @@ program
     }
   });
 
-const previewCatalog = async ({
-  command,
-  canEmbedPages = false,
-  isEventCatalogStarter = false,
-  isEventCatalogScale = false,
-}: {
-  command: Command;
-  canEmbedPages: boolean;
-  isEventCatalogStarter: boolean;
-  isEventCatalogScale: boolean;
-}) => {
+const previewCatalog = async ({ command }: { command: Command }) => {
   await runCommandWithFilteredOutput({
     command: process.execPath,
     args: [astroCli, 'preview', '--config', astroConfigPath(), ...command.args],
@@ -586,34 +569,46 @@ const previewCatalog = async ({
     env: {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,
-      ENABLE_EMBED: String(canEmbedPages),
-      EVENTCATALOG_STARTER: String(isEventCatalogStarter),
-      EVENTCATALOG_SCALE: String(isEventCatalogScale),
+      ...ASTRO_IN_FOREGROUND,
     },
     shouldFilterLine: createAstroLineFilter(),
   });
 };
 
-const startServerCatalog = async ({
-  canEmbedPages = false,
-  isEventCatalogStarter = false,
-  isEventCatalogScale = false,
-}: {
-  canEmbedPages: boolean;
-  isEventCatalogStarter: boolean;
-  isEventCatalogScale: boolean;
-}) => {
+/**
+ * Runs the built server. Astro's Node adapter starts it itself; instead it's started here (ASTRO_NODE_AUTOSTART is
+ * off) so the HTTP server can be left where EventCatalog Studio finds it, to serve its collaboration connection on
+ * the same port. Once it listens, a request starts what it keeps state for: the storage configured is opened and
+ * migrated, and Studio started, so tabs reconnecting after a restart find it ready.
+ */
+const SERVER_BOOTSTRAP = `
+const entry = await import(process.argv[1]);
+const { server } = entry.startServer();
+globalThis[Symbol.for('eventcatalog.http-server')] = server.server;
+const start = process.env.EVENTCATALOG_START_PATH;
+if (start) {
+  server.server.once('listening', () => {
+    // Where the server listens (HOST can be one address only); loopback when it listens on every address
+    const { address, port } = server.server.address();
+    const host = ['0.0.0.0', '::'].includes(address) ? '127.0.0.1' : address.includes(':') ? '[' + address + ']' : address;
+    fetch('http://' + host + ':' + port + start).catch((error) => console.error('[eventcatalog] Could not start the server:', error.message));
+  });
+}
+`;
+
+const startServerCatalog = async () => {
   const serverEntryPath = path.join(dir, 'dist', 'server', 'entry.mjs');
+  const config = await getEventCatalogConfigFile(dir);
+  const base = (config?.base || '/').replace(/\/$/, '');
   await runCommandWithFilteredOutput({
     command: process.execPath,
-    args: [serverEntryPath],
+    args: ['--input-type=module', '-e', SERVER_BOOTSTRAP, pathToFileURL(serverEntryPath).href],
     cwd: dir,
     env: {
       PROJECT_DIR: dir,
       CATALOG_DIR: core,
-      ENABLE_EMBED: String(canEmbedPages),
-      EVENTCATALOG_STARTER: String(isEventCatalogStarter),
-      EVENTCATALOG_SCALE: String(isEventCatalogScale),
+      ASTRO_NODE_AUTOSTART: 'disabled',
+      EVENTCATALOG_START_PATH: `${base}/_eventcatalog/start`,
     },
     shouldFilterLine: createAstroLineFilter(),
   });
@@ -631,19 +626,7 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
-    const canEmbedPages = await isFeatureEnabled(
-      '@eventcatalog/backstage-plugin-eventcatalog',
-      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
-    );
-    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
-    const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
-    await previewCatalog({
-      command,
-      canEmbedPages: canEmbedPages || isEventCatalogScale,
-      isEventCatalogStarter,
-      isEventCatalogScale,
-    });
+    await previewCatalog({ command });
   });
 
 program
@@ -658,28 +641,16 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
-    const canEmbedPages = await isFeatureEnabled(
-      '@eventcatalog/backstage-plugin-eventcatalog',
-      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
-    );
-    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
-    const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
     const isServerOutput = await isOutputServer();
 
     if (isServerOutput) {
-      await startServerCatalog({
-        canEmbedPages: canEmbedPages || isEventCatalogScale,
-        isEventCatalogStarter,
-        isEventCatalogScale,
-      });
+      // Pages rendered on request read the license (and a Scale or Starter plan) from the environment
+      const license = await getLicenseStatus(dir);
+      // Where a catalog runs in production, e.g. with Studio on (fire-and-forget, so the server never waits on it)
+      void logBuild(dir, { command: 'start', license });
+      await startServerCatalog();
     } else {
-      await previewCatalog({
-        command,
-        canEmbedPages: canEmbedPages || isEventCatalogScale,
-        isEventCatalogStarter,
-        isEventCatalogScale,
-      });
+      await previewCatalog({ command });
     }
   });
 
@@ -863,7 +834,8 @@ program.addHelpText(
 
 program
   .parseAsync()
-  .then(() => process.exit(0))
+  // With the exit code a command set (e.g. generate when a generator fails), otherwise 0
+  .then(() => process.exit())
   .catch((err) => {
     if (!(err instanceof FederationConflictError) && !(err instanceof FederationDiagnosticError)) console.error(err);
     process.exit(1);

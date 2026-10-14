@@ -7,7 +7,9 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
-describe('CLI Integration with Configuration', () => {
+// Each test runs the linter's CLI as a process, some of them several times: on a busy machine (e.g. CI) that's close
+// to the default 5 seconds
+describe('CLI Integration with Configuration', { timeout: 30_000 }, () => {
   let tempDir: string;
   let servicesDir: string;
   let eventsDir: string;

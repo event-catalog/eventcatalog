@@ -1,0 +1,382 @@
+/**
+ * EventCatalog Theme CSS Variables
+ *
+ * Override these variables in your eventcatalog.styles.css file to customize the theme.
+ * Example:
+ *   :root[data-theme="light"] {
+ *     --ec-header-bg: #1e293b;
+ *     --ec-primary: #3b82f6;
+ *   }
+ *
+ * Supported themes: light, dark (more can be added)
+ */
+
+/* Default/Light theme */
+:root,
+:root[data-theme='light'] {
+  /* Header */
+  --ec-header-bg: 255 255 255; /* #ffffff */
+  --ec-header-text: 15 23 42; /* #0f172a (slate-900) */
+  --ec-header-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+
+  /* Primary brand color */
+  --ec-primary: 126 34 206; /* #7e22ce (purple-700) */
+  --ec-primary-hover: 107 33 168; /* #6b21a8 (purple-800) */
+
+  /* Accent colors - used for selections, highlights, interactive elements */
+  --ec-accent: 126 34 206; /* #7e22ce (purple-700) */
+  --ec-accent-hover: 107 33 168; /* #6b21a8 (purple-800) */
+  --ec-accent-subtle: 233 213 255; /* #e9d5ff (purple-200) */
+  --ec-accent-text: 88 28 135; /* #581c87 (purple-900) */
+  --ec-accent-gradient-from: 126 34 206; /* #7e22ce (purple-700) */
+  --ec-accent-gradient-to: 88 28 135; /* #581c87 (purple-900) */
+  /* Resolved on :root for every theme, so the visualiser (which overrides
+     --ec-accent with its own palette) can still use the catalog's accent */
+  --ec-catalog-accent: var(--ec-accent);
+
+  /* Buttons */
+  --ec-button-bg: 15 23 42; /* #0f172a */
+  --ec-button-bg-hover: 30 41 59; /* #1e293b */
+  --ec-button-text: 255 255 255; /* #ffffff */
+
+  /* Dropdowns & menus */
+  --ec-dropdown-bg: 255 255 255; /* #ffffff */
+  --ec-dropdown-text: 51 65 85; /* #334155 (slate-700) */
+  --ec-dropdown-hover: 248 250 252; /* #f8fafc (slate-50) */
+  --ec-dropdown-border: 226 232 240; /* #e2e8f0 (slate-200) */
+
+  /* Icons */
+  --ec-icon-color: 100 116 139; /* #64748b (slate-500) */
+  --ec-icon-hover: 51 65 85; /* #334155 (slate-700) */
+
+  /* Sidebar / Vertical Nav (icon bar) */
+  --ec-sidebar-bg: 255 255 255; /* #ffffff */
+  --ec-sidebar-bg-gradient: 248 250 252; /* #f8fafc (slate-50) */
+  --ec-sidebar-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+  --ec-sidebar-text: 71 85 105; /* #475569 (slate-600) */
+  --ec-sidebar-active-bg: 15 23 42; /* #0f172a */
+  --ec-sidebar-active-text: 255 255 255; /* #ffffff */
+  --ec-sidebar-hover-bg: 15 23 42; /* #0f172a - black on hover like active */
+
+  /* Rail / inset-panel surface (5% off the sidebar bg). Use for navigation rails,
+     filter panels, and any inset surface that should sit slightly off the page. */
+  --ec-rail-bg: 250 250 250; /* #fafafa - 2% darker than white */
+  --ec-rail-active-bg: 218 218 218; /* ~10% darker than rail bg */
+
+  /* Nested sidebar content */
+  --ec-content-bg: 255 255 255; /* #ffffff */
+  --ec-content-text: 15 23 42; /* #0f172a (slate-900) */
+  --ec-content-text-muted: 100 116 139; /* #64748b (slate-500) */
+  --ec-content-text-secondary: 71 85 105; /* #475569 (slate-600) */
+  --ec-content-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+  --ec-content-hover: 248 250 252; /* #f8fafc (slate-50) */
+  --ec-content-active: 245 243 255; /* #f5f3ff (violet-50) */
+
+  /* Input fields */
+  --ec-input-bg: 248 250 252; /* #f8fafc (slate-50) */
+  --ec-input-border: 226 232 240; /* #e2e8f0 (slate-200) */
+  --ec-input-text: 15 23 42; /* #0f172a */
+  --ec-input-placeholder: 148 163 184; /* #94a3b8 (slate-400) */
+
+  /* Group headers */
+  --ec-group-icon-bg: 233 213 255; /* #e9d5ff (purple-200) */
+  --ec-group-icon-text: 88 28 135; /* #581c87 (purple-900) */
+
+  /* Main content/docs area */
+  --ec-page-bg: 255 255 255; /* #ffffff */
+  --ec-page-text: 15 23 42; /* #0f172a */
+  --ec-page-text-muted: 100 116 139; /* #64748b */
+  --ec-page-border: 229 229 229; /* #e5e5e5 (neutral-200) */
+
+  /* Card/elevated surfaces */
+  --ec-card-bg: 255 255 255; /* #ffffff */
+
+  /* Code blocks */
+  --ec-code-bg: 250 250 250; /* #fafafa - light for light mode */
+
+  /* Badge colors - light mode */
+  --ec-badge-domain-bg: 254 249 195; /* yellow-100 */
+  --ec-badge-domain-text: 161 98 7; /* yellow-700 */
+  --ec-badge-service-bg: 252 231 243; /* pink-100 */
+  --ec-badge-service-text: 190 24 93; /* pink-700 */
+  --ec-badge-event-bg: 254 243 199; /* amber-100 */
+  --ec-badge-event-text: 180 83 9; /* amber-700 */
+  --ec-badge-command-bg: 252 231 243; /* pink-100 */
+  --ec-badge-command-text: 190 24 93; /* pink-700 */
+  --ec-badge-query-bg: 243 232 255; /* purple-100 */
+  --ec-badge-query-text: 126 34 206; /* purple-700 */
+  --ec-badge-message-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-message-text: 67 56 202; /* indigo-700 */
+  --ec-badge-design-bg: 204 251 241; /* teal-100 */
+  --ec-badge-design-text: 15 118 110; /* teal-700 */
+  --ec-badge-channel-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-channel-text: 67 56 202; /* indigo-700 */
+  --ec-badge-container-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-container-text: 67 56 202; /* indigo-700 */
+  --ec-badge-data-product-bg: 219 234 254; /* blue-100 */
+  --ec-badge-data-product-text: 30 64 175; /* blue-800 */
+  --ec-badge-default-bg: 243 244 246; /* gray-100 */
+  --ec-badge-default-text: 75 85 99; /* gray-600 */
+
+  /* User-defined badge colors - light mode */
+  --ec-badge-color-slate-background: 248 250 252;
+  --ec-badge-color-slate-text: 71 85 105;
+  --ec-badge-color-gray-background: 249 250 251;
+  --ec-badge-color-gray-text: 75 85 99;
+  --ec-badge-color-zinc-background: 250 250 250;
+  --ec-badge-color-zinc-text: 82 82 91;
+  --ec-badge-color-neutral-background: 250 250 250;
+  --ec-badge-color-neutral-text: 82 82 82;
+  --ec-badge-color-stone-background: 250 250 249;
+  --ec-badge-color-stone-text: 87 83 78;
+  --ec-badge-color-red-background: 254 242 242;
+  --ec-badge-color-red-text: 185 28 28;
+  --ec-badge-color-orange-background: 255 247 237;
+  --ec-badge-color-orange-text: 194 65 12;
+  --ec-badge-color-amber-background: 255 251 235;
+  --ec-badge-color-amber-text: 180 83 9;
+  --ec-badge-color-yellow-background: 254 252 232;
+  --ec-badge-color-yellow-text: 161 98 7;
+  --ec-badge-color-lime-background: 247 254 231;
+  --ec-badge-color-lime-text: 77 124 15;
+  --ec-badge-color-green-background: 240 253 244;
+  --ec-badge-color-green-text: 21 128 61;
+  --ec-badge-color-emerald-background: 236 253 245;
+  --ec-badge-color-emerald-text: 4 120 87;
+  --ec-badge-color-teal-background: 240 253 250;
+  --ec-badge-color-teal-text: 15 118 110;
+  --ec-badge-color-cyan-background: 236 254 255;
+  --ec-badge-color-cyan-text: 14 116 144;
+  --ec-badge-color-sky-background: 240 249 255;
+  --ec-badge-color-sky-text: 3 105 161;
+  --ec-badge-color-blue-background: 239 246 255;
+  --ec-badge-color-blue-text: 29 78 216;
+  --ec-badge-color-indigo-background: 238 242 255;
+  --ec-badge-color-indigo-text: 67 56 202;
+  --ec-badge-color-violet-background: 245 243 255;
+  --ec-badge-color-violet-text: 109 40 217;
+  --ec-badge-color-purple-background: 250 245 255;
+  --ec-badge-color-purple-text: 126 34 206;
+  --ec-badge-color-fuchsia-background: 253 244 255;
+  --ec-badge-color-fuchsia-text: 162 28 175;
+  --ec-badge-color-pink-background: 253 242 248;
+  --ec-badge-color-pink-text: 190 24 93;
+  --ec-badge-color-rose-background: 255 241 242;
+  --ec-badge-color-rose-text: 190 18 60;
+}
+
+/* Dark theme */
+:root[data-theme='dark'] {
+  /*
+   * Modern dark theme inspired by Mintlify
+   * Uses deep blacks with subtle cool undertones for a refined look
+   */
+
+  /* Header - deep black with cool border */
+  --ec-header-bg: 9 13 13; /* #090d0d */
+  --ec-header-text: 240 246 252; /* #f0f6fc - soft white */
+  --ec-header-border: 38 41 47; /* #26292f - lifted ~20% */
+
+  /* Primary brand color */
+  --ec-primary: 147 51 234; /* #9333ea (purple-600) */
+  --ec-primary-hover: 126 34 206; /* #7e22ce (purple-700) */
+
+  /* Accent colors - used for selections, highlights, interactive elements.
+     A light shade, like the other themes use in dark mode, so accent text is readable on dark surfaces */
+  --ec-accent: 192 132 252; /* #c084fc (purple-400) */
+  --ec-accent-hover: 168 85 247; /* #a855f7 (purple-500) */
+  --ec-accent-subtle: 88 28 135 / 0.3; /* purple-900/30 */
+  --ec-accent-text: 216 180 254; /* #d8b4fe (purple-300) */
+  --ec-accent-gradient-from: 192 132 252; /* #c084fc (purple-400) */
+  --ec-accent-gradient-to: 168 85 247; /* #a855f7 (purple-500) */
+
+  /* Buttons - accent color for better visibility */
+  --ec-button-bg: 147 51 234; /* #9333ea - purple-600 */
+  --ec-button-bg-hover: 168 85 247; /* #a855f7 - purple-500 */
+  --ec-button-text: 255 255 255; /* #ffffff - white text */
+
+  /* Dropdowns & menus - elevated surface */
+  --ec-dropdown-bg: 22 27 34; /* #161b22 - slightly elevated */
+  --ec-dropdown-text: 201 209 217; /* #c9d1d9 */
+  --ec-dropdown-hover: 33 38 45; /* #21262d */
+  --ec-dropdown-border: 48 54 61; /* #30363d */
+
+  /* Icons - muted gray that pops on hover */
+  --ec-icon-color: 139 148 158; /* #8b949e */
+  --ec-icon-hover: 240 246 252; /* #f0f6fc */
+
+  /* Sidebar / Vertical Nav (icon bar) */
+  --ec-sidebar-bg: 9 13 13; /* #090d0d - matches page bg */
+  --ec-sidebar-bg-gradient: 9 13 13; /* #090d0d */
+  --ec-sidebar-border: 51 57 65; /* #333941 - lifted ~20% */
+  --ec-sidebar-text: 139 148 158; /* #8b949e */
+  --ec-sidebar-active-bg: 48 54 61; /* #30363d - subtle highlight */
+  --ec-sidebar-active-text: 240 246 252; /* #f0f6fc */
+  --ec-sidebar-hover-bg: 33 38 45; /* #21262d */
+
+  /* Rail / inset-panel surface (~2% lifted from the page bg) */
+  --ec-rail-bg: 15 19 19; /* ~2% lighter than #090d0d */
+  --ec-rail-active-bg: 35 38 38; /* ~10% lifted off rail bg */
+
+  /* Nested sidebar content */
+  --ec-content-bg: 9 13 13; /* #090d0d - matches page bg */
+  --ec-content-text: 201 209 217; /* #c9d1d9 - softer than pure white */
+  --ec-content-text-muted: 139 148 158; /* #8b949e */
+  --ec-content-text-secondary: 170 178 186; /* #aab2ba - sidebar children text */
+  --ec-content-border: 51 57 65; /* #333941 - lifted ~20% */
+  --ec-content-hover: 22 27 34; /* #161b22 */
+  --ec-content-active: 33 38 45; /* #21262d */
+
+  /* Input fields - subtle inset look */
+  --ec-input-bg: 13 17 23; /* #0d1117 */
+  --ec-input-border: 48 54 61; /* #30363d */
+  --ec-input-text: 240 246 252; /* #f0f6fc */
+  --ec-input-placeholder: 110 118 129; /* #6e7681 */
+
+  /* Group headers */
+  --ec-group-icon-bg: 33 38 45; /* #21262d */
+  --ec-group-icon-text: 192 132 252; /* #c084fc (purple-400) */
+
+  /* Main content/docs area - base dark surface */
+  --ec-page-bg: 9 13 13; /* #090d0d */
+  --ec-page-text: 240 246 252; /* #f0f6fc */
+  --ec-page-text-muted: 163 172 182; /* #a3acb6 */
+  --ec-page-border: 38 41 47; /* #26292f - lifted ~20% */
+
+  /* Card/elevated surfaces - for depth */
+  --ec-card-bg: 22 27 34; /* #161b22 */
+
+  /* Code blocks */
+  --ec-code-bg: 22 27 34; /* #161b22 - elevated dark surface */
+
+  /* Badge colors - dark mode (subtle with good contrast) */
+  --ec-badge-domain-bg: 113 63 18 / 0.3; /* yellow-900/30 */
+  --ec-badge-domain-text: 253 224 71; /* yellow-300 */
+  --ec-badge-service-bg: 131 24 67 / 0.3; /* pink-900/30 */
+  --ec-badge-service-text: 249 168 212; /* pink-300 */
+  --ec-badge-event-bg: 120 53 15 / 0.3; /* amber-900/30 */
+  --ec-badge-event-text: 252 211 77; /* amber-300 */
+  --ec-badge-command-bg: 131 24 67 / 0.3; /* pink-900/30 */
+  --ec-badge-command-text: 249 168 212; /* pink-300 */
+  --ec-badge-query-bg: 88 28 135 / 0.3; /* purple-900/30 */
+  --ec-badge-query-text: 216 180 254; /* purple-300 */
+  --ec-badge-message-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-message-text: 165 180 252; /* indigo-300 */
+  --ec-badge-design-bg: 17 94 89 / 0.3; /* teal-900/30 */
+  --ec-badge-design-text: 94 234 212; /* teal-300 */
+  --ec-badge-channel-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-channel-text: 165 180 252; /* indigo-300 */
+  --ec-badge-container-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-container-text: 165 180 252; /* indigo-300 */
+  --ec-badge-data-product-bg: 30 64 175 / 0.3; /* blue-800/30 */
+  --ec-badge-data-product-text: 147 197 253; /* blue-300 */
+  --ec-badge-default-bg: 63 63 70 / 0.3; /* zinc-700/30 */
+  --ec-badge-default-text: 212 212 216; /* zinc-300 */
+
+  /* User-defined badge colors - dark mode */
+  --ec-badge-color-slate-background: 51 65 85 / 0.28;
+  --ec-badge-color-slate-text: 203 213 225;
+  --ec-badge-color-gray-background: 55 65 81 / 0.28;
+  --ec-badge-color-gray-text: 209 213 219;
+  --ec-badge-color-zinc-background: 63 63 70 / 0.28;
+  --ec-badge-color-zinc-text: 212 212 216;
+  --ec-badge-color-neutral-background: 64 64 64 / 0.28;
+  --ec-badge-color-neutral-text: 212 212 212;
+  --ec-badge-color-stone-background: 68 64 60 / 0.28;
+  --ec-badge-color-stone-text: 214 211 209;
+  --ec-badge-color-red-background: 127 29 29 / 0.28;
+  --ec-badge-color-red-text: 252 165 165;
+  --ec-badge-color-orange-background: 124 45 18 / 0.28;
+  --ec-badge-color-orange-text: 253 186 116;
+  --ec-badge-color-amber-background: 120 53 15 / 0.28;
+  --ec-badge-color-amber-text: 252 211 77;
+  --ec-badge-color-yellow-background: 113 63 18 / 0.28;
+  --ec-badge-color-yellow-text: 253 224 71;
+  --ec-badge-color-lime-background: 54 83 20 / 0.28;
+  --ec-badge-color-lime-text: 190 242 100;
+  --ec-badge-color-green-background: 20 83 45 / 0.28;
+  --ec-badge-color-green-text: 134 239 172;
+  --ec-badge-color-emerald-background: 6 78 59 / 0.28;
+  --ec-badge-color-emerald-text: 110 231 183;
+  --ec-badge-color-teal-background: 17 94 89 / 0.28;
+  --ec-badge-color-teal-text: 94 234 212;
+  --ec-badge-color-cyan-background: 21 94 117 / 0.28;
+  --ec-badge-color-cyan-text: 103 232 249;
+  --ec-badge-color-sky-background: 12 74 110 / 0.28;
+  --ec-badge-color-sky-text: 125 211 252;
+  --ec-badge-color-blue-background: 30 64 175 / 0.28;
+  --ec-badge-color-blue-text: 147 197 253;
+  --ec-badge-color-indigo-background: 49 46 129 / 0.28;
+  --ec-badge-color-indigo-text: 165 180 252;
+  --ec-badge-color-violet-background: 76 29 149 / 0.28;
+  --ec-badge-color-violet-text: 196 181 253;
+  --ec-badge-color-purple-background: 88 28 135 / 0.28;
+  --ec-badge-color-purple-text: 216 180 254;
+  --ec-badge-color-fuchsia-background: 112 26 117 / 0.28;
+  --ec-badge-color-fuchsia-text: 240 171 252;
+  --ec-badge-color-pink-background: 131 24 67 / 0.28;
+  --ec-badge-color-pink-text: 249 168 212;
+  --ec-badge-color-rose-background: 136 19 55 / 0.28;
+  --ec-badge-color-rose-text: 253 164 175;
+}
+
+/* Dark mode prose overrides for documentation content */
+:root[data-theme='dark'] .prose {
+  --tw-prose-body: rgb(139 148 158); /* #8b949e - muted body text */
+  --tw-prose-headings: rgb(201 209 217); /* #c9d1d9 - soft white headings */
+  --tw-prose-lead: rgb(110 118 129); /* #6e7681 */
+  --tw-prose-links: rgb(168 85 247); /* purple-500 */
+  --tw-prose-bold: rgb(201 209 217); /* #c9d1d9 */
+  --tw-prose-counters: rgb(110 118 129); /* #6e7681 */
+  --tw-prose-bullets: rgb(72 79 88); /* #484f58 */
+  --tw-prose-hr: rgb(33 38 45); /* #21262d */
+  --tw-prose-quotes: rgb(201 209 217); /* #c9d1d9 */
+  --tw-prose-quote-borders: rgb(48 54 61); /* #30363d */
+  --tw-prose-captions: rgb(110 118 129); /* #6e7681 */
+  --tw-prose-code: rgb(201 209 217); /* #c9d1d9 */
+  --tw-prose-pre-code: rgb(139 148 158); /* #8b949e */
+  --tw-prose-pre-bg: rgb(22 27 34); /* #161b22 */
+  --tw-prose-th-borders: rgb(48 54 61); /* #30363d */
+  --tw-prose-td-borders: rgb(33 38 45); /* #21262d */
+}
+
+/*
+ * Older generated documentation can contain pill markup with hard-coded
+ * light-theme Tailwind colors. Keep that content readable without changing
+ * the appearance of other custom prose elements.
+ */
+:root[data-theme='dark'] .prose .rounded-full.text-gray-900.border-gray-300 {
+  color: rgb(var(--ec-page-text));
+  border-color: rgb(var(--ec-page-border));
+}
+
+:root[data-theme='dark'] .prose code {
+  background-color: rgb(33 38 45); /* #21262d */
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+}
+
+:root[data-theme='dark'] .prose pre {
+  background-color: rgb(22 27 34); /* #161b22 */
+  border: 1px solid rgb(33 38 45); /* #21262d */
+}
+
+:root[data-theme='dark'] .prose a {
+  color: rgb(168 85 247); /* purple-500 */
+}
+
+:root[data-theme='dark'] .prose a:hover {
+  color: rgb(192 132 252); /* purple-400 */
+}
+
+:root[data-theme='dark'] .prose strong {
+  color: rgb(240 246 252); /* #f0f6fc */
+}
+
+:root[data-theme='dark'] .prose table th {
+  color: rgb(240 246 252); /* #f0f6fc */
+}
+
+:root[data-theme='dark'] .prose table td {
+  border-color: rgb(33 38 45); /* #21262d */
+}

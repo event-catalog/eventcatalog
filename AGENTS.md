@@ -5,6 +5,9 @@ This repository is a `pnpm` + Turborepo monorepo. Packages live in `packages/*`:
 - `packages/core`: main EventCatalog app (Astro + React) and local scripts.
 - `packages/cli`, `packages/sdk`, `packages/linter`, `packages/visualiser`, `packages/create-eventcatalog`.
 
+Apps live in `apps/*`:
+- `apps/studio-web`: Studio on the web, a public MCP server and canvas (MIT, deployed on its own to Fly).
+
 Examples and integration checks live in `examples/` (notably `examples/default`). Shared release metadata is in `.changeset/`.
 
 ## Build, Test, and Development Commands
@@ -16,6 +19,7 @@ Run from repo root unless noted:
 - `pnpm test:ci`: CI-style test run used by GitHub Actions.
 - `pnpm format` / `pnpm format:diff`: format or check formatting.
 - `pnpm start:catalog`: run local catalog via `@eventcatalog/core`.
+- `pnpm start:studio`: build the visualiser and run Studio on the web (`apps/studio-web`) at http://localhost:8787.
 - `pnpm --filter @eventcatalog/<pkg> run <script>`: work on one package (example: `pnpm --filter @eventcatalog/sdk test`).
 
 ## Coding Style & Naming Conventions
@@ -47,6 +51,25 @@ Federation is a three-stage pipeline in `packages/sdk`: `buildIndex` discovers a
 - Add or update focused tests in `build-index.test.ts`, `resolve.test.ts`, and `hydrate.test.ts` wherever the behavior crosses those boundaries.
 - Run the relevant focused tests and the complete SDK suite (`pnpm --filter @eventcatalog/sdk test`) before considering federation-related work complete.
 - When filesystem output changes, rerun the default-catalog federation integration review and inspect the diff against `examples/default` so missing, extra, or stale files are deliberate.
+
+## Visualiser Levels
+Visualiser diagrams use the same three levels of detail everywhere, shown as L1, L2 and L3 in the canvas toolbar (and `?level=1|2|3` in the URL):
+- **L1**: high-level things: domains, systems and the relationships between them (e.g. a context diagram).
+- **L2**: services, data stores and how they connect, without messages or channels.
+- **L3**: adds the messages and channels.
+
+The toolbar always shows all three. Levels a diagram doesn't have are greyed out, e.g. a service's diagram (or a domain without systems) opens at L2 with L1 greyed out, and a context diagram is L1 with L2 and L3 greyed out. When adding or changing a diagram, decide which levels it has and keep its content to what each level describes.
+
+## Studio
+Studio's canvas is shared by two products, through `@eventcatalog/visualiser/studio` (`packages/visualiser/src/studio/`):
+- EventCatalog's Studio in core (`packages/core/eventcatalog/src/features/studio/`, at `/studio` in a catalog).
+- Studio on the web (`apps/studio-web`).
+
+Any change to Studio, whether in the shared canvas or in either product's own code, must be verified on both before it's done:
+- Tests: the visualiser's (`pnpm --filter @eventcatalog/visualiser test`), core's Studio tests (`packages/core/eventcatalog/src/features/studio/__tests__/`) and the web app's (`pnpm --filter @eventcatalog/studio-web test`).
+- Types: `pnpm --filter @eventcatalog/studio-web typecheck`, and core's Studio files with TypeScript.
+- In the browser: core's Studio (a canvas at `/studio/<id>` on the running catalog) and Studio on the web (`pnpm start:studio`), checking the change works and looks right in each.
+- Rebuild the visualiser (`pnpm --filter @eventcatalog/visualiser build`) after changing the shared canvas, before running either.
 
 ## Commit & Pull Request Guidelines
 Recent history favors Conventional Commit style with scopes:

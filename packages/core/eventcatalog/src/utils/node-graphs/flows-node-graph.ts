@@ -1,26 +1,20 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import {
-  createDagreGraph,
-  calculatedNodes,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
   buildContextMenuForResource,
   buildContextMenuForService,
   buildContextMenuForSystem,
-  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 import { MarkerType } from '@xyflow/react';
 import type { Node as NodeType } from '@xyflow/react';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
-
-type DagreGraph = any;
+import { createLaneIndex, type LaneIndex } from '@utils/node-graphs/flow-lanes';
 
 interface Props {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
-  renderAllEdges?: boolean;
+  layout?: boolean;
 }
 
 interface Maps {
@@ -31,6 +25,8 @@ interface Maps {
   containerMap: Map<string, any[]>;
   dataProductMap: Map<string, any[]>;
   systemMap: Map<string, any[]>;
+  channelMap: Map<string, any[]>;
+  laneIndex: LaneIndex;
 }
 
 const getServiceNode = (step: any, serviceMap: Map<string, any[]>) => {
@@ -90,6 +86,15 @@ const getSystemNode = (step: any, systemMap: Map<string, any[]>) => {
   };
 };
 
+const getChannelNode = (step: any, channelMap: Map<string, any[]>) => {
+  const channel = findInMap(channelMap, step.channel.id, step.channel.version);
+  return {
+    ...step,
+    type: channel ? 'channels' : 'step',
+    channel,
+  };
+};
+
 const getMessageNode = (step: any, messageMap: Map<string, any[]>) => {
   const message = findInMap(messageMap, step.message.id, step.message.version);
   return {
@@ -97,6 +102,68 @@ const getMessageNode = (step: any, messageMap: Map<string, any[]>) => {
     type: message ? message.collection : 'step',
     message,
   };
+};
+
+// The whole graph is sent to the browser, so a step's resource is in its node's
+// data once (e.g. `data.service`), without what's only needed to build the
+// catalog (its markdown body, file path, ...), and the step is just the step
+const RESOURCE_KEYS = ['message', 'agent', 'service', 'flow', 'container', 'dataProduct', 'system', 'channel'];
+const resourceForNode = (entry: any) => {
+  // Only what the nodes read: its id, collection and frontmatter (nested, as
+  // e.g. the sub-flow node reads `flow.data`, and spread on top)
+  const { id, collection, data } = entry;
+  return { id, collection, data, ...data };
+};
+const stepForNode = (step: any) => {
+  const own = { ...step, ...step.data };
+  RESOURCE_KEYS.forEach((key) => delete own[key]);
+  return { ...own, title: titleOf(step) };
+};
+
+// A step without a title is named after what it points at (or its id). A
+// custom step is labelled with its own title first, as its node is.
+const titleOf = (step: any): string => {
+  if (step.custom?.title) return step.custom.title;
+  if (step.title) return step.title;
+  const resource = RESOURCE_KEYS.map((key) => step[key]).find((entry) => entry?.data);
+  return resource?.data.name || resource?.data.id || step.actor?.name || step.externalSystem?.name || String(step.id);
+};
+
+// Mistakes in a flow (a typo in a next step, a resource that was renamed)
+// would otherwise just drop an arrow or draw a plain box, so they're logged,
+// once each (a flow is drawn on several pages). Once per process on purpose:
+// in `astro dev` a problem that's fixed and then made again isn't logged again
+// until the server restarts, which is fine for a warning.
+const warned = new Set<string>();
+const warnOnce = (flow: any, problem: string) => {
+  const message = `[flows] Flow "${flow.data.id}" (${flow.data.version}): ${problem}`;
+  if (warned.has(message)) return;
+  warned.add(message);
+  console.warn(message);
+};
+
+// The keys a step points at a resource with, as authors write them
+const POINTER_KEYS: Record<string, string> = {
+  message: 'message',
+  agent: 'agent',
+  service: 'service',
+  systems: 'system',
+  system: 'system',
+  channel: 'channel',
+  flow: 'flow',
+  container: 'container',
+  dataProduct: 'data product',
+};
+const warnAboutMissingResource = (flow: any, step: any, hydrated: any) => {
+  for (const [key, kind] of Object.entries(POINTER_KEYS)) {
+    const pointer = step[key];
+    const resourceKey = key === 'systems' ? 'system' : key;
+    if (!pointer || hydrated[resourceKey]) continue;
+    warnOnce(
+      flow,
+      `step "${step.id}" points at ${kind} "${pointer.id}" (${pointer.version ?? 'latest'}), which is not in the catalog, so it is shown as a plain step.`
+    );
+  }
 };
 
 // Rewrite every id/source/target in a precomputed sub-flow graph with a
@@ -145,6 +212,7 @@ const buildFlowGraphInternal = (
     if (step.flow) return getFlowNode(step, maps.flowMap);
     if (step.container) return getContainerNode(step, maps.containerMap);
     if (step.dataProduct) return getDataProductNode(step, maps.dataProductMap);
+    if (step.channel) return getChannelNode(step, maps.channelMap);
     if (step.message) return getMessageNode(step, maps.messageMap);
     if (step.actor) return { ...step, type: 'actor', actor: step.actor };
     if (step.custom) return { ...step, type: 'custom', custom: step.custom };
@@ -152,23 +220,26 @@ const buildFlowGraphInternal = (
     return { ...step, type: 'step' };
   });
 
-  hydratedSteps.forEach((step: any, index: number) => {
+  steps.forEach((step: any, index: number) => warnAboutMissingResource(flow, step, hydratedSteps[index]));
+  const stepIds = new Set(steps.map((step: any) => String(step.id)));
+
+  hydratedSteps.forEach((step: any) => {
     const node: NodeType = {
       id: stepNodeId(step.id),
       sourcePosition: 'right',
       targetPosition: 'left',
       data: {
         mode,
-        step: { ...step, ...step.data },
+        step: stepForNode(step),
         showTarget: true,
         showSource: true,
       },
-      position: { x: 250, y: index * 150 },
+      position: { x: 0, y: 0 },
       type: step.type,
     } as NodeType;
 
     if (step.agent) {
-      node.data.agent = { ...step.agent, ...step.agent.data };
+      node.data.agent = resourceForNode(step.agent);
       node.data.contextMenu = buildContextMenuForResource({
         collection: 'agents',
         id: step.agent.data.id,
@@ -176,7 +247,7 @@ const buildFlowGraphInternal = (
       });
     }
     if (step.service) {
-      node.data.service = { ...step.service, ...step.service.data };
+      node.data.service = resourceForNode(step.service);
       node.data.contextMenu = buildContextMenuForService({
         id: step.service.data.id,
         version: step.service.data.version,
@@ -185,14 +256,14 @@ const buildFlowGraphInternal = (
       });
     }
     if (step.system?.data) {
-      node.data.system = { ...step.system.data };
+      node.data.system = resourceForNode(step.system);
       node.data.contextMenu = buildContextMenuForSystem({
         id: step.system.data.id,
         version: step.system.data.version,
       });
     }
     if (step.flow) {
-      node.data.flow = { ...step.flow, ...step.flow.data };
+      node.data.flow = resourceForNode(step.flow);
       node.data.contextMenu = buildContextMenuForResource({
         collection: 'flows',
         id: step.flow.data.id,
@@ -215,7 +286,7 @@ const buildFlowGraphInternal = (
       }
     }
     if (step.message) {
-      node.data.message = { ...step.message, ...step.message.data };
+      node.data.message = resourceForNode(step.message);
       node.data.contextMenu = buildContextMenuForResource({
         collection: step.message.collection,
         id: step.message.data.id,
@@ -224,15 +295,23 @@ const buildFlowGraphInternal = (
     }
     if (step.container?.data) {
       node.data.data = { ...step.container.data };
-      node.data.container = { ...step.container, ...step.container.data };
+      node.data.container = resourceForNode(step.container);
       node.data.contextMenu = buildContextMenuForResource({
         collection: 'containers',
         id: step.container.data.id,
         version: step.container.data.version,
       });
     }
+    if (step.channel?.data) {
+      node.data.channel = resourceForNode(step.channel);
+      node.data.contextMenu = buildContextMenuForResource({
+        collection: 'channels',
+        id: step.channel.data.id,
+        version: step.channel.data.version,
+      });
+    }
     if (step.dataProduct?.data) {
-      node.data.dataProduct = { ...step.dataProduct, ...step.dataProduct.data };
+      node.data.dataProduct = resourceForNode(step.dataProduct);
       node.data.contextMenu = buildContextMenuForResource({
         collection: 'data-products',
         id: step.dataProduct.data.id,
@@ -245,6 +324,17 @@ const buildFlowGraphInternal = (
     }
     if (step.externalSystem) node.data.externalSystem = { ...step.externalSystem, ...step.externalSystem.data };
     if (step.custom) node.data.custom = { ...step.custom, ...step.custom.data };
+
+    // Which domain, system and team the step belongs to, for swimlanes
+    const resource = step.agent || step.service || step.container || step.dataProduct;
+    const lanes =
+      step.actor || step.externalSystem
+        ? { external: true }
+        : step.system?.data
+          ? maps.laneIndex.lanesForSystem(step.system)
+          : resource && maps.laneIndex.lanesFor(resource);
+    if (lanes) node.data.lanes = lanes;
+
     nodes.push(node);
   });
 
@@ -267,6 +357,10 @@ const buildFlowGraphInternal = (
     });
 
     paths.forEach((path: any) => {
+      if (!stepIds.has(String(path.id))) {
+        warnOnce(flow, `step "${step.id}" leads to step "${path.id}", but the flow has no step with that id.`);
+        return;
+      }
       edges.push({
         id: `step-${step.id}-step-${path.id}`,
         source: stepNodeId(step.id),
@@ -291,20 +385,23 @@ const buildFlowGraphInternal = (
   return { nodes, edges };
 };
 
-export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
-  const graph = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 200 });
-
-  const [flows, events, commands, queries, agents, services, containers, dataProducts, systems] = await Promise.all([
-    getCollection('flows'),
-    getCollection('events'),
-    getCollection('commands'),
-    getCollection('queries'),
-    getCollection('agents'),
-    getCollection('services'),
-    getCollection('containers'),
-    getCollection('data-products'),
-    getCollection('systems'),
-  ]);
+export const getNodesAndEdges = async ({ id, version, mode = 'simple', layout = true }: Props) => {
+  const [flows, events, commands, queries, agents, services, containers, dataProducts, domains, systems, channels, teams, users] =
+    await Promise.all([
+      getCollection('flows'),
+      getCollection('events'),
+      getCollection('commands'),
+      getCollection('queries'),
+      getCollection('agents'),
+      getCollection('services'),
+      getCollection('containers'),
+      getCollection('data-products'),
+      getCollection('domains'),
+      getCollection('systems'),
+      getCollection('channels'),
+      getCollection('teams'),
+      getCollection('users'),
+    ]);
 
   const flow = flows.find((flow) => flow.data.id === id && flow.data.version === version);
 
@@ -324,6 +421,8 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     containerMap: createVersionedMap(containers),
     dataProductMap: createVersionedMap(dataProducts),
     systemMap: createVersionedMap(systems),
+    channelMap: createVersionedMap(channels),
+    laneIndex: createLaneIndex({ domains, systems, teams, users }),
   };
 
   const subFlowCache = new Map<string, { nodes: any[]; edges: any[] }>();
@@ -335,18 +434,5 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     new Set([`${flow.data.id}@${flow.data.version}`])
   );
 
-  nodes.forEach((node: any) => {
-    graph.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  });
-
-  edges.forEach((edge: any) => {
-    graph.setEdge(edge.source, edge.target);
-  });
-
-  layoutDagreGraph(graph);
-
-  return {
-    nodes: calculatedNodes(graph, nodes),
-    edges: edges,
-  };
+  return layout ? await layoutNodeGraph({ nodes, edges }) : { nodes, edges };
 };

@@ -73,20 +73,11 @@ describe('Flows NodeGraph', () => {
           step: {
             id: 3,
             title: 'Payment Processed',
-            message: {
-              slug: 'PaymentProcessed',
-              collection: 'events',
-              data: {
-                id: 'PaymentProcessed',
-                version: '0.0.1',
-              },
-            },
             type: 'events',
           },
           showTarget: true,
           showSource: true,
           message: {
-            slug: 'PaymentProcessed',
             collection: 'events',
             data: {
               id: 'PaymentProcessed',
@@ -121,6 +112,19 @@ describe('Flows NodeGraph', () => {
   });
 
   describe('getNodesAndEdges', () => {
+    it('sends each step its resource once, without what is only needed to build the catalog', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
+      const serialised = JSON.stringify(nodes);
+
+      for (const key of ['"body"', '"filePath"', '"digest"', '"deferredRender"']) {
+        expect(serialised).not.toContain(key);
+      }
+      for (const node of nodes) {
+        expect(node.data.step).not.toHaveProperty('message');
+        expect(node.data.step).not.toHaveProperty('service');
+      }
+    });
+
     it('should return the correct nodes and edges for a given flow', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
 
@@ -136,9 +140,30 @@ describe('Flows NodeGraph', () => {
         },
       ];
 
-      expect(nodes).toEqual(expect.arrayContaining(expectedNodes));
+      expect(nodes).toEqual(expect.arrayContaining(expectedNodes.map((node: any) => expect.objectContaining(node))));
 
       expect(edges).toEqual(expect.arrayContaining([expect.objectContaining(expectedEdges[0])]));
+    });
+
+    it('lays the flow out, positioning its steps and routing its edges', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0' });
+
+      const stepOne = nodes.find((node: any) => node.id === 'step-1');
+      const stepTwo = nodes.find((node: any) => node.id === 'step-2');
+      // Left to right: the next step comes after the one before it
+      expect(stepTwo!.position.x).toBeGreaterThan(stepOne!.position.x);
+
+      const edge = edges.find((e: any) => e.id === 'step-1-step-2');
+      expect(edge?.type).toBe('flow-edge');
+      expect(edge?.data?.route?.points.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('returns the flow without positions when layout is false', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'PaymentFlow', version: '1.0.0', layout: false });
+
+      expect(nodes.map((node: any) => node.id)).toEqual(['step-1', 'step-2', 'step-3', 'step-4']);
+      nodes.forEach((node: any) => expect(node.position).toEqual({ x: 0, y: 0 }));
+      edges.forEach((edge: any) => expect(edge.data?.route).toBeUndefined());
     });
 
     it('attaches a contextMenu to message step nodes so right-click shows the custom menu (issue #2216)', async () => {
@@ -282,15 +307,13 @@ describe('Flows NodeGraph', () => {
 
       expect(nodes).toContainEqual(
         expect.objectContaining({
+          type: 'services',
           data: expect.objectContaining({
-            step: expect.objectContaining({
-              type: 'services',
-              service: expect.objectContaining({
-                data: {
-                  id: 'SubscriptionService',
-                  version: '0.0.1',
-                },
-              }),
+            service: expect.objectContaining({
+              data: {
+                id: 'SubscriptionService',
+                version: '0.0.1',
+              },
             }),
           }),
         })
@@ -360,20 +383,11 @@ describe('Flows NodeGraph', () => {
               step: {
                 id: 3,
                 title: 'Payment Processed',
-                message: {
-                  slug: 'PaymentProcessed',
-                  collection: 'events',
-                  data: {
-                    id: 'PaymentProcessed',
-                    version: '0.0.1',
-                  },
-                },
                 type: 'events',
               },
               showTarget: true,
               showSource: true,
               message: {
-                slug: 'PaymentProcessed',
                 collection: 'events',
                 data: {
                   id: 'PaymentProcessed',
@@ -418,7 +432,7 @@ describe('Flows NodeGraph', () => {
           },
         ];
 
-        expect(nodes).toEqual(expect.arrayContaining(expectedNodes));
+        expect(nodes).toEqual(expect.arrayContaining(expectedNodes.map((node: any) => expect.objectContaining(node))));
         expect(edges).toEqual(expect.arrayContaining([expect.objectContaining(expectedEdges[0])]));
       });
     });

@@ -1,5 +1,83 @@
 # @eventcatalog/linter
 
+## 1.2.1
+
+### Patch Changes
+
+- 0ffe246: Upgrade zod from 3 to 4.6.6, which fixes a denial of service (SNYK-JS-ZOD-20510278). Lint messages and rules are unchanged.
+
+## 1.2.0
+
+### Minor Changes
+
+- eb79ef0: Flow steps can reference channels (`channel: { id, version }`), drawn as channel nodes with a link to their docs. A step's `title` is now optional and defaults to the name of what it references (or the actor, external system or custom node's name, or the step's id); a custom node's `title` defaults to the step's title. Mistakes in flows no longer fail silently: unknown step properties fail the build (custom ones must start with `x-`), steps that use two node types or both `next_step` and `next_steps` fail with a message naming the step and what to change, and a `next_step` to a step that doesn't exist, or a reference to a resource that isn't in the catalog, logs a warning naming the flow and step. The step `type` field is still accepted but ignored. The linter checks the same rules, adds `refs/flow-step-exists` for next steps that aren't in the flow, and checks channel references in flow steps. The SDK adds `FlowBuilder.addChannelStep`, `channel` on `FlowStep`, an optional `title`, and accepts system and channel references when parsing an index.
+
+### Patch Changes
+
+- eb79ef0: Explain a missing or invalid ADR `status` or `date` clearly. A missing `date` was reported as ``Expected type `"date"`, received `"object"` `` (with the field name garbled) by the build, and as `Invalid date` by the linter. The build now reports `Required: a date, e.g. 2026-06-01` or `Invalid date: use a date, e.g. 2026-06-01`, and a missing status lists the allowed values. The linter reports a missing date as missing.
+- eb79ef0: Fix several `npm audit` findings in new catalogs: upgrade `astro-seo` to 1.x (it no longer installs `@astrojs/check`) and `hono` to a version with the `hono/jsx` XSS fix, remove `shelljs` from core, and replace `fast-glob` with `glob` in the linter.
+- eb79ef0: `@eventcatalog/core` 5.0.0 (including its pre-releases) and later is licensed under the Business Source License 1.1 (`BUSL-1.1`), replacing the MIT License and the separate EventCatalog Commercial License for the enterprise and federation code. Releases up to and including 4.x remain available under the MIT License, and their notice is kept in `NOTICE`.
+
+  The ecosystem packages, including `@eventcatalog/create-eventcatalog`, stay MIT and now ship their own `LICENSE` file. New catalogs get a License section in their README that links to the Business Source License and notes that the catalog's own content belongs to its authors. `@eventcatalog/breaking-changes` moves from ISC to MIT.
+
+- eb79ef0: Stop `structure/unrecognised-file` reporting usage examples in a message's `examples/` folder (events, commands and queries, including versioned ones). They're loaded by EventCatalog as examples, not resources.
+- eb79ef0: fix(linter): treat a resource id such as `__proto__` as any other id, rather than crashing
+- Updated dependencies [eb79ef0]
+- Updated dependencies [eb79ef0]
+- Updated dependencies [eb79ef0]
+- Updated dependencies [eb79ef0]
+- Updated dependencies [eb79ef0]
+  - @eventcatalog/sdk@2.30.0
+
+## 1.2.0-beta.5
+
+### Patch Changes
+
+- Updated dependencies [f70805e]
+  - @eventcatalog/sdk@2.30.0-beta.2
+
+## 1.2.0-beta.4
+
+### Patch Changes
+
+- d34ae95: Explain a missing or invalid ADR `status` or `date` clearly. A missing `date` was reported as ``Expected type `"date"`, received `"object"` `` (with the field name garbled) by the build, and as `Invalid date` by the linter. The build now reports `Required: a date, e.g. 2026-06-01` or `Invalid date: use a date, e.g. 2026-06-01`, and a missing status lists the allowed values. The linter reports a missing date as missing.
+
+## 1.2.0-beta.3
+
+### Patch Changes
+
+- 32c02c5: Stop `structure/unrecognised-file` reporting usage examples in a message's `examples/` folder (events, commands and queries, including versioned ones). They're loaded by EventCatalog as examples, not resources.
+
+## 1.2.0-beta.2
+
+### Patch Changes
+
+- Updated dependencies [a4f072a]
+  - @eventcatalog/sdk@2.30.0-beta.1
+
+## 1.2.0-beta.1
+
+### Patch Changes
+
+- 3f745fb: Fix several `npm audit` findings in new catalogs: upgrade `astro-seo` to 1.x (it no longer installs `@astrojs/check`) and `hono` to a version with the `hono/jsx` XSS fix, remove `shelljs` from core, and replace `fast-glob` with `glob` in the linter.
+
+## 1.2.0-beta.0
+
+### Minor Changes
+
+- 62d08d4: Flow steps can reference channels (`channel: { id, version }`), drawn as channel nodes with a link to their docs. A step's `title` is now optional and defaults to the name of what it references (or the actor, external system or custom node's name, or the step's id); a custom node's `title` defaults to the step's title. Mistakes in flows no longer fail silently: unknown step properties fail the build (custom ones must start with `x-`), steps that use two node types or both `next_step` and `next_steps` fail with a message naming the step and what to change, and a `next_step` to a step that doesn't exist, or a reference to a resource that isn't in the catalog, logs a warning naming the flow and step. The step `type` field is still accepted but ignored. The linter checks the same rules, adds `refs/flow-step-exists` for next steps that aren't in the flow, and checks channel references in flow steps. The SDK adds `FlowBuilder.addChannelStep`, `channel` on `FlowStep`, an optional `title`, and accepts system and channel references when parsing an index.
+
+### Patch Changes
+
+- 3b46a41: `@eventcatalog/core` 5.0.0 (including its pre-releases) and later is licensed under the Business Source License 1.1 (`BUSL-1.1`), replacing the MIT License and the separate EventCatalog Commercial License for the enterprise and federation code. Releases up to and including 4.x remain available under the MIT License, and their notice is kept in `NOTICE`.
+
+  The ecosystem packages, including `@eventcatalog/create-eventcatalog`, stay MIT and now ship their own `LICENSE` file. New catalogs get a License section in their README that links to the Business Source License and notes that the catalog's own content belongs to its authors. `@eventcatalog/breaking-changes` moves from ISC to MIT.
+
+- Updated dependencies [3b46a41]
+- Updated dependencies [62d08d4]
+- Updated dependencies [4561180]
+  - @eventcatalog/sdk@2.30.0-beta.0
+
 ## 1.1.21
 
 ### Patch Changes

@@ -1,0 +1,61 @@
+---
+id: returns-processor
+version: 1.0.0
+name: Returns Processor
+summary: |
+  Applies the returns policy to new requests and tracks returned parcels until they arrive back at the warehouse.
+styles:
+  icon: /icons/languages/java.svg
+owners:
+  - fulfilment-platform
+receives:
+  - id: return-requested
+    version: 1.0.0
+    from:
+      - id: fulfilment.returns
+        version: 1.0.0
+    triggers:
+      - id: return-approved
+        version: 1.0.0
+        condition: When the return passes policy checks
+sends:
+  - id: return-approved
+    version: 1.0.0
+    to:
+      - id: fulfilment.returns
+        version: 1.0.0
+  - id: return-received
+    version: 1.0.0
+    to:
+      - id: fulfilment.returns
+        version: 1.0.0
+writesTo:
+  - id: returns-database
+readsFrom:
+  - id: returns-database
+repository:
+  language: Java
+  url: 'https://github.com/acme/returns-processor'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Returns Processor** consumes [[event|return-requested]], checks the returns window and item eligibility, and publishes [[event|return-approved]]. When the warehouse scans the returned parcel it publishes [[event|return-received]], which Payments uses to refund the customer and Inventory uses to restock.
+
+### Responsibilities
+
+| Area | Description |
+|------|-------------|
+| Approval | Applies the returns policy and emits [[event\|return-approved]]. |
+| Receipt | Confirms returned items arrived and emits [[event\|return-received]]. |
+| Persistence | Reads from and writes to the [[container\|returns-database]]. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<MessageTable format="all" limit={4} />
+
+<Footer />

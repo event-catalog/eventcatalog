@@ -9,6 +9,10 @@
       "dependsOn": ["^build", "build:bin"],
       "outputs": [".astro/**", "dist/**"]
     },
+    "@eventcatalog/core#build:bin": {
+      "dependsOn": ["^build:bin", "^build"],
+      "outputs": ["dist/**"]
+    },
     "test": {
       "dependsOn": ["build:bin"],
       "cache": false

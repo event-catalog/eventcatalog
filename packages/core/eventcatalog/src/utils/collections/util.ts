@@ -1,16 +1,19 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import path from 'node:path';
 import { compareVersions, toComparableVersion, versionSatisfiesRange } from './version-compare';
 
 // --- FILE PATH HELPERS ---
+
+// Without node:path: node graph builders that import this module also run in the browser (the Fields Explorer)
+const pathSegments = (filePath: string) => filePath.split(/[\\/]/).filter(Boolean);
+const getBasename = (filePath: string) => pathSegments(filePath).at(-1) ?? '';
 
 /**
  * Extract the folder name from an Astro collection entry's filePath.
  * Replaces the expensive SDK getResourceFolderName which globs + reads every file.
  */
 export const getFolderNameFromFilePath = (filePath: string): string => {
-  return path.basename(path.dirname(filePath));
+  return pathSegments(filePath).at(-2) ?? '';
 };
 
 // --- SPECIFICATION HELPERS ---
@@ -73,8 +76,9 @@ export const processSpecifications = (
   return specs.map((spec) => ({
     ...spec,
     name: spec.name || getDefaultSpecificationName(spec.type),
-    filename: path.basename(spec.path),
-    filenameWithoutExtension: path.basename(spec.path, path.extname(spec.path)),
+    filename: getBasename(spec.path),
+    // Keeps a leading dot, as path.extname does (`.env` has no extension)
+    filenameWithoutExtension: getBasename(spec.path).replace(/(?<=.)\.[^.]*$/, ''),
   }));
 };
 
@@ -289,6 +293,37 @@ export const createVersionedMap = <T extends { data: { id: string; version?: str
     );
   }
   return map;
+};
+
+const versionedMapCache = new WeakMap<object, Map<string, any[]>>();
+
+/**
+ * createVersionedMap, built once per list. Use it in helpers that search the same list once per
+ * resource, so a catalog-wide pass does not rebuild the map every time.
+ */
+export const getVersionedMap = <T extends { data: { id: string; version?: string } }>(items: T[]): Map<string, T[]> => {
+  let map = versionedMapCache.get(items);
+  if (!map) {
+    map = createVersionedMap(items);
+    versionedMapCache.set(items, map);
+  }
+  return map as Map<string, T[]>;
+};
+
+type KeyedResource = { collection: string; data: { id: string; version?: string } };
+
+/** Identifies a resource across collections: a service and an agent can share an id and version. */
+export const resourceKey = (resource: KeyedResource) => `${resource.collection}:${resource.data.id}:${resource.data.version}`;
+
+/** The resources without repeats (by collection, id and version), keeping the first of each in order. */
+export const uniqueResources = <T extends KeyedResource>(resources: T[]): T[] => {
+  const seen = new Map<string, T>();
+  for (const resource of resources) {
+    if (!resource?.data?.id) continue;
+    const key = resourceKey(resource);
+    if (!seen.has(key)) seen.set(key, resource);
+  }
+  return [...seen.values()];
 };
 
 // Merge as many given maps as you want

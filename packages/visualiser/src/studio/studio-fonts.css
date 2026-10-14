@@ -1,0 +1,10 @@
+/*
+ * Excalifont, Excalidraw's hand-drawn font (OFL-1.1, see fonts/README.md), for the welcome on an empty canvas and its
+ * hints: its Latin subset. Apps that bundle the font themselves (Studio on the web, one self-contained page) leave
+ * this out.
+ */
+@font-face {
+  font-family: 'Excalifont';
+  src: url('./fonts/Excalifont-Regular.woff2') format('woff2');
+  font-display: swap;
+}

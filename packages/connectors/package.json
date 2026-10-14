@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/connectors",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "Connectors for syncing external systems into EventCatalog Collections",
   "scripts": {
     "build": "tsup",
@@ -47,6 +47,6 @@
     "url": "https://github.com/event-catalog/eventcatalog"
   },
   "dependencies": {
-    "simple-git": "^3.36.0"
+    "simple-git": "^4.0.1"
   }
 }

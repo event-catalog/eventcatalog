@@ -126,6 +126,42 @@
     },
     {
       "type": "channel",
+      "id": "customer.loyalty-events",
+      "version": "1.0.0",
+      "name": "Loyalty Events",
+      "contentPath": "channels/customer.loyalty-events/index.mdx",
+      "contentHash": "sha256:9bf27727349a07ae81681c9533a646117af2985952e8448c6153a0e27d10155f",
+      "owners": ["customer-platform"],
+      "address": "customer.loyalty-events",
+      "protocols": ["kafka"],
+      "deliveryGuarantee": "at-least-once"
+    },
+    {
+      "type": "channel",
+      "id": "fulfilment.returns",
+      "version": "1.0.0",
+      "name": "Returns",
+      "contentPath": "channels/fulfilment.returns/index.mdx",
+      "contentHash": "sha256:820e1ac23f855e82b40fe7c71e44e80097c59502bd4324e45669233adcdfc8c0",
+      "owners": ["fulfilment-platform"],
+      "address": "fulfilment.returns",
+      "protocols": ["kafka"],
+      "deliveryGuarantee": "at-least-once"
+    },
+    {
+      "type": "channel",
+      "id": "ordering.order-events",
+      "version": "1.0.0",
+      "name": "Order Events",
+      "contentPath": "channels/ordering.order-events/index.mdx",
+      "contentHash": "sha256:9cd0ffc759a9c5f05b581155a2cf26547cc82aad3fc619788ac4567e670d976f",
+      "owners": ["ordering-platform"],
+      "address": "ordering.order-events",
+      "protocols": ["kafka"],
+      "deliveryGuarantee": "at-least-once"
+    },
+    {
+      "type": "channel",
       "id": "payments.outcomes",
       "version": "1.0.0",
       "name": "Payment Outcomes",
@@ -458,6 +494,22 @@
     },
     {
       "type": "command",
+      "id": "request-return",
+      "version": "1.0.0",
+      "name": "Request Return",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/services/ReturnsAPI/commands/RequestReturn/index.mdx",
+      "contentHash": "sha256:f97ad34870ad70c35e10f79623a33554988fbfc2596c055d850afda52a1aa060",
+      "owners": ["fulfilment-platform"],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:7e444bf1d35a3911915810558c1f2aad24be19fc6cf98b802df174ee34f4de6c"
+        }
+      ]
+    },
+    {
+      "type": "command",
       "id": "reserve-inventory",
       "version": "1.0.0",
       "name": "Reserve Inventory",
@@ -616,6 +668,26 @@
     },
     {
       "type": "container",
+      "id": "loyalty-database",
+      "version": "1.0.0",
+      "name": "Loyalty Database",
+      "contentPath": "domains/Customer/subdomains/Loyalty/containers/loyalty-database/index.mdx",
+      "contentHash": "sha256:bacca37b75c237aab4b50cfc3866b669be544503f8cf88af433b047d5b916936",
+      "owners": ["customer-platform"],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
+      "id": "notification-preferences",
+      "version": "1.0.0",
+      "name": "Notification Preferences",
+      "contentPath": "domains/Customer/subdomains/Notifications/containers/notification-preferences/index.mdx",
+      "contentHash": "sha256:9af65c3944ae5bd75646b9c58f591c104cf8f5953b4053ee8413a7e326fb5d0f",
+      "owners": ["customer-platform"],
+      "container_type": "database"
+    },
+    {
+      "type": "container",
       "id": "order-database",
       "version": "1.0.0",
       "name": "Order Database",
@@ -687,6 +759,16 @@
       "contentHash": "sha256:40ed9a3678c69653c7f652edbe70d3fb7f672877cc0f4a490f2bf2eac83c5871",
       "owners": ["reviews-platform"],
       "container_type": "cache"
+    },
+    {
+      "type": "container",
+      "id": "returns-database",
+      "version": "1.0.0",
+      "name": "Returns Database",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/containers/returns-database/index.mdx",
+      "contentHash": "sha256:1add3dcc83e91502cdd212e73bcaa9fd333eb3d6d2df2735491995d821a38519",
+      "owners": ["fulfilment-platform"],
+      "container_type": "database"
     },
     {
       "type": "container",
@@ -819,7 +901,7 @@
       "version": "1.0.0",
       "name": "Customer",
       "contentPath": "domains/Customer/index.mdx",
-      "contentHash": "sha256:946e2c37e3b11a6693f41049d226764d86fb345c6e50e9f4898c1bed4d4659bb",
+      "contentHash": "sha256:93b6cdf846a15a1866f5423de6488df27557e05b36d9929db43c03870c901127",
       "owners": ["customer-platform"],
       "sidecars": [
         {
@@ -863,6 +945,16 @@
           "hash": "sha256:3e3c5f510f9807c7b83889b749414716a1669377aaa23ea79e13b38bca4237a4"
         }
       ],
+      "domains": [
+        {
+          "id": "loyalty",
+          "version": "1.0.0"
+        },
+        {
+          "id": "notifications",
+          "version": "1.0.0"
+        }
+      ],
       "systems": [
         {
           "id": "customer-management-system",
@@ -898,7 +990,7 @@
       "version": "1.0.0",
       "name": "Fulfilment",
       "contentPath": "domains/Fulfilment/index.mdx",
-      "contentHash": "sha256:7d93fe273b2b35f6bba4d03748e2e41a969d1d95264e4e4a4c7c6a942a85e187",
+      "contentHash": "sha256:67a75287a2bb254e3c97b3c598aeed40853daf5eaf3f6162ddc13ba9284cb454",
       "owners": ["fulfilment-platform"],
       "sidecars": [
         {
@@ -938,6 +1030,12 @@
           "hash": "sha256:513c1fd12c9612c7f8903004aeb8914408fa4355219bb4499f62636d55cc3f69"
         }
       ],
+      "domains": [
+        {
+          "id": "returns",
+          "version": "1.0.0"
+        }
+      ],
       "systems": [
         {
           "id": "inventory-system",
@@ -971,6 +1069,36 @@
         },
         {
           "id": "shipment",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "loyalty",
+      "version": "1.0.0",
+      "name": "Loyalty",
+      "contentPath": "domains/Customer/subdomains/Loyalty/index.mdx",
+      "contentHash": "sha256:0196ef4db0ebab6a6371ab4fbbab62f76d09f568a5c6ecf9561966b11e60679f",
+      "owners": ["customer-platform"],
+      "systems": [
+        {
+          "id": "loyalty-system",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "notifications",
+      "version": "1.0.0",
+      "name": "Customer Notifications",
+      "contentPath": "domains/Customer/subdomains/Notifications/index.mdx",
+      "contentHash": "sha256:d69625573c84b1939c89e0c89cec5a596cbcaf5e53600da574425f7da7a05af3",
+      "owners": ["customer-platform"],
+      "services": [
+        {
+          "id": "notification-service",
           "version": "1.0.0"
         }
       ]
@@ -1062,7 +1190,7 @@
       "version": "1.0.0",
       "name": "Payments",
       "contentPath": "domains/Payments/index.mdx",
-      "contentHash": "sha256:3af19203a35d7d45a5b9bd26d2e97cdab085d63143c77f0a4d26477b38c85b02",
+      "contentHash": "sha256:46f9e3f23e7aa6eb59a7794c1e1d6a93bddc188e6f94a862572cf0e7feee04de",
       "owners": ["payments-platform"],
       "sidecars": [
         {
@@ -1114,6 +1242,10 @@
         {
           "id": "fraud-detection",
           "version": "1.0.0"
+        },
+        {
+          "id": "finance-reporting-system",
+          "version": "1.0.0"
         }
       ],
       "entities": [
@@ -1131,6 +1263,21 @@
         },
         {
           "id": "fraud-check",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
+      "id": "returns",
+      "version": "1.0.0",
+      "name": "Returns",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/index.mdx",
+      "contentHash": "sha256:4c21c9a56fac9a1e85c113e24f45ac35de72bab2f5de5014b120fa42764f7b26",
+      "owners": ["fulfilment-platform"],
+      "systems": [
+        {
+          "id": "returns-system",
           "version": "1.0.0"
         }
       ]
@@ -1667,6 +1814,22 @@
     },
     {
       "type": "event",
+      "id": "customer-notified",
+      "version": "1.0.0",
+      "name": "Customer Notified",
+      "contentPath": "domains/Customer/subdomains/Notifications/services/NotificationService/events/CustomerNotified/index.mdx",
+      "contentHash": "sha256:e54f38d1ea4354d28dac93daea901f812c40d422e7f08cf01fbb6ec003fa6574",
+      "owners": ["customer-platform"],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:e232a3d59c23751f10a40e2d0f300ef30dfc34cac5f89d0465fafe930f396f90"
+        }
+      ]
+    },
+    {
+      "type": "event",
       "id": "customer-registered",
       "version": "1.0.0",
       "name": "Customer Registered",
@@ -1816,6 +1979,38 @@
         {
           "path": "domains/Fulfilment/systems/inventory-system/services/InventoryService/events/InventoryUnavailable/examples/index.mdx",
           "hash": "sha256:4274c72b5f31c17fd581a19ebf75f96bf62571b201f7dc33c79829229567ece4"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "loyalty-points-earned",
+      "version": "1.0.0",
+      "name": "Loyalty Points Earned",
+      "contentPath": "domains/Customer/subdomains/Loyalty/systems/loyalty-system/services/LoyaltyService/events/LoyaltyPointsEarned/index.mdx",
+      "contentHash": "sha256:850ce20ee537458ee096181c06e15a58f04e63b82046c0fb9074cdb06cf77c1b",
+      "owners": ["customer-platform"],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:59049c2985961ad109e50786bc723517a4c63a76e6910013752f9c3a2e7d9224"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "loyalty-points-reversed",
+      "version": "1.0.0",
+      "name": "Loyalty Points Reversed",
+      "contentPath": "domains/Customer/subdomains/Loyalty/systems/loyalty-system/services/LoyaltyService/events/LoyaltyPointsReversed/index.mdx",
+      "contentHash": "sha256:2e4fa86052e2e1c90d9305b25d985250373a3de3e814b00ab26aa295856f8d30",
+      "owners": ["customer-platform"],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:c4dc12cd4e4483cc3b818b606d78091ae3faf53c4f6ad8baba65c5e07d46f4ed"
         }
       ]
     },
@@ -2341,6 +2536,54 @@
     },
     {
       "type": "event",
+      "id": "return-approved",
+      "version": "1.0.0",
+      "name": "Return Approved",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/services/ReturnsProcessor/events/ReturnApproved/index.mdx",
+      "contentHash": "sha256:72603204975da3ea6ef45b66c74f0e60691a07ec5d66c72eecd9046374651b3e",
+      "owners": ["fulfilment-platform"],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:487d922b3de923ec903cd2544b03a8485618b7e23f8c016d33c381170df3c188"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "return-received",
+      "version": "1.0.0",
+      "name": "Return Received",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/services/ReturnsProcessor/events/ReturnReceived/index.mdx",
+      "contentHash": "sha256:84cd459564256690eaffba324c374b87f57b218d6a2155e366a853f6042b3a97",
+      "owners": ["fulfilment-platform"],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:ff54d57bebd3c47767645ee31e7cbadb1538c6be517b20ffe665b2583b01ac27"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "id": "return-requested",
+      "version": "1.0.0",
+      "name": "Return Requested",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/services/ReturnsAPI/events/ReturnRequested/index.mdx",
+      "contentHash": "sha256:a2d900928982d2076b739b26f699ddab2dd841941149867db7aff06ec5da62d9",
+      "owners": ["fulfilment-platform"],
+      "schemas": [
+        {
+          "path": "schema.json",
+          "default": true,
+          "hash": "sha256:5743c348367549dd7bb4f0d0f419c85063978b7096cfa1a6f0a218e604a7a4ea"
+        }
+      ]
+    },
+    {
+      "type": "event",
       "id": "review-flagged",
       "version": "1.0.0",
       "name": "Review Flagged",
@@ -2588,6 +2831,357 @@
     },
     {
       "type": "flow",
+      "id": "order-to-doorstep",
+      "version": "1.0.0",
+      "name": "Order to Doorstep",
+      "contentPath": "flows/order-to-doorstep/index.mdx",
+      "contentHash": "sha256:cf1be6f31313c67299e485d24ce1016d5963d30b4e5dcdc0a0a1eaf3fa704d1f",
+      "owners": ["ordering-platform"],
+      "references": [
+        {
+          "kind": "message",
+          "id": "search-products",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "search-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "add-item-to-cart",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "cart-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "checkout-cart",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "authenticate-customer",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "oauth-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "customer-authenticated",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "cart-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "get-product",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "product-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "calculate-discount",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "promotion-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "discount-calculated",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "cart-checked-out",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "checkout-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "checkout-orchestrator",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "reserve-inventory",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "inventory-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "inventory-reserved",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "inventory-unavailable",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "authorize-payment",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "payment-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "payment-requested",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "fraud-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "fraud-check-failed",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "fraud-check-passed",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "stripe-payments-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "stripe-webhook-endpoint",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "payment-failed",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "payment-succeeded",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "ledger-exporter",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "flow",
+          "id": "order-cancellation",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "create-order",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "order-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "order-confirmed",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "loyalty-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "loyalty-points-earned",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "notification-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "customer-notified",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "warehouse-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "picking-worker",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "order-packed",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "order-ready-for-shipping",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "create-shipment",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "carrier-adapter",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "carrier-tracking-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "shipment-created",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "shipment-failed",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "notification-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "shipment-delivered",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "order-completed",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "submit-review",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "review-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "review-submitted",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "rating-aggregator",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "rating-updated",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "request-return",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "returns-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "return-requested",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "returns-processor",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "return-approved",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "payment-worker",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "refund-requested",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "stripe-payments-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "refund-processed",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "loyalty-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "loyalty-points-reversed",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "flow",
       "id": "place-an-order",
       "version": "1.0.0",
       "name": "Place an Order",
@@ -2648,6 +3242,147 @@
         {
           "kind": "message",
           "id": "order-cancelled",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "id": "product-launch",
+      "version": "1.0.0",
+      "name": "Product Launch",
+      "contentPath": "flows/product-launch/index.mdx",
+      "contentHash": "sha256:f5939074e366f1d24eed223c304ad2eff937ddb2d025c8c2f3cb8714b8d3a0e3",
+      "owners": ["product-platform"],
+      "references": [
+        {
+          "kind": "message",
+          "id": "create-product",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "product-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "container",
+          "id": "product-database",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "product-created",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "product-worker",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "product-updated",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "flow",
+          "id": "product-search-indexing",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "container",
+          "id": "search-index",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "get-stock-level",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "inventory-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "calculate-discount",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "promotion-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "discount-calculated",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "notification-service",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "customer-notified",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "search-products",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "search-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "get-product",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "product-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "get-product-reviews",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "review-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "flag-review",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "review-flagged",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "delete-product",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "service",
+          "id": "product-api",
+          "version": "1.0.0"
+        },
+        {
+          "kind": "message",
+          "id": "product-deleted",
           "version": "1.0.0"
         }
       ]
@@ -3132,7 +3867,7 @@
       "version": "1.0.0",
       "name": "Inventory Service",
       "contentPath": "domains/Fulfilment/systems/inventory-system/services/InventoryService/index.mdx",
-      "contentHash": "sha256:ab784d0b72d31fa49a6d40cc22db6620a59505bac10576527abd26c3d59ba798",
+      "contentHash": "sha256:806a7be353cb03ae618e834cdbf6c2c27e6e5cf17e82ae622e025dfa045ce156",
       "owners": ["fulfilment-platform"],
       "sends": [
         {
@@ -3168,6 +3903,16 @@
         {
           "id": "get-stock-level",
           "version": "1.0.0"
+        },
+        {
+          "id": "return-received",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "fulfilment.returns",
+              "version": "1.0.0"
+            }
+          ]
         }
       ],
       "writesTo": [
@@ -3178,6 +3923,160 @@
       "readsFrom": [
         {
           "id": "inventory-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "ledger-exporter",
+      "version": "1.0.0",
+      "name": "Ledger Exporter",
+      "contentPath": "domains/Payments/systems/finance-reporting-system/services/LedgerExporter/index.mdx",
+      "contentHash": "sha256:a3cc2a75f432901345afd55e57d16fb67ad07ff42044de3dc2a5f87a1d1ab9ec",
+      "owners": ["payments-platform"]
+    },
+    {
+      "type": "service",
+      "id": "loyalty-service",
+      "version": "1.0.0",
+      "name": "Loyalty Service",
+      "contentPath": "domains/Customer/subdomains/Loyalty/systems/loyalty-system/services/LoyaltyService/index.mdx",
+      "contentHash": "sha256:40dd6e6af5539067d03dd85dcddb66a57846af6a91194dc7c6ef42b763c5a421",
+      "owners": ["customer-platform"],
+      "sends": [
+        {
+          "id": "loyalty-points-earned",
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "customer.loyalty-events",
+              "version": "1.0.0"
+            }
+          ]
+        },
+        {
+          "id": "loyalty-points-reversed",
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "customer.loyalty-events",
+              "version": "1.0.0"
+            }
+          ]
+        }
+      ],
+      "receives": [
+        {
+          "id": "order-completed",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ],
+          "triggers": [
+            {
+              "id": "loyalty-points-earned",
+              "version": "1.0.0",
+              "condition": "When the order total qualifies for points"
+            }
+          ]
+        },
+        {
+          "id": "order-cancelled",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ],
+          "triggers": [
+            {
+              "id": "loyalty-points-reversed",
+              "version": "1.0.0",
+              "condition": "When points were previously awarded for the order"
+            }
+          ]
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "loyalty-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "loyalty-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "notification-service",
+      "version": "1.0.0",
+      "name": "Notification Service",
+      "contentPath": "domains/Customer/subdomains/Notifications/services/NotificationService/index.mdx",
+      "contentHash": "sha256:99d35e725d266c30177628a4da7306a36251873da8738217c4b834bdf9adf853",
+      "owners": ["customer-platform"],
+      "sends": [
+        {
+          "id": "customer-notified",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "order-confirmed",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ]
+        },
+        {
+          "id": "shipment-delivered",
+          "version": "1.0.0"
+        },
+        {
+          "id": "payment-failed",
+          "version": "1.0.0"
+        },
+        {
+          "id": "refund-processed",
+          "version": "1.0.0"
+        },
+        {
+          "id": "review-published",
+          "version": "1.0.0"
+        },
+        {
+          "id": "loyalty-points-earned",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "customer.loyalty-events",
+              "version": "1.0.0"
+            }
+          ]
+        },
+        {
+          "id": "return-approved",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "fulfilment.returns",
+              "version": "1.0.0"
+            }
+          ]
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "notification-preferences"
         }
       ]
     },
@@ -3213,7 +4112,7 @@
       "version": "1.0.0",
       "name": "Order Service",
       "contentPath": "domains/Ordering/systems/order-management-system/services/OrderService/index.mdx",
-      "contentHash": "sha256:6603ecb47b7fbf521db0c9b9499304ab75d086cd837de3200101707500fc5907",
+      "contentHash": "sha256:f0685a824ecd553b950cb7e92806b8aafda8c4e20f5c552bafab1bbc6247817c",
       "owners": ["ordering-platform"],
       "specifications": [
         {
@@ -3226,11 +4125,23 @@
       "sends": [
         {
           "id": "order-created",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "order-confirmed",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "order-amended",
@@ -3262,11 +4173,23 @@
         },
         {
           "id": "order-completed",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ]
         },
         {
           "id": "order-cancelled",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ]
         }
       ],
       "receives": [
@@ -3295,6 +4218,17 @@
         {
           "id": "get-order",
           "version": "1.0.0"
+        },
+        {
+          "id": "order-packed",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "order-status-changed",
+              "version": "1.0.0",
+              "condition": "When the order moves to the packed status"
+            }
+          ]
         }
       ],
       "writesTo": [
@@ -3339,7 +4273,7 @@
       "version": "1.0.0",
       "name": "Payment Worker",
       "contentPath": "domains/Payments/systems/payment-processing-system/services/PaymentWorker/index.mdx",
-      "contentHash": "sha256:ac6a516c9bdccbf8dc030e84acc55a8c35d247bdbdfbc2df764f1f1633756d83",
+      "contentHash": "sha256:7b145176735f877f2aac874f41984dd5994c2f24b0ead9f283713ef6f2fe6a28",
       "owners": ["payments-platform"],
       "sends": [
         {
@@ -3369,6 +4303,23 @@
             {
               "id": "payments.outcomes",
               "version": "1.0.0"
+            }
+          ]
+        },
+        {
+          "id": "return-received",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "fulfilment.returns",
+              "version": "1.0.0"
+            }
+          ],
+          "triggers": [
+            {
+              "id": "refund-requested",
+              "version": "1.0.0",
+              "condition": "When returned items are received and a refund is due"
             }
           ]
         }
@@ -3531,7 +4482,7 @@
       "version": "1.0.0",
       "name": "Promotion Service",
       "contentPath": "domains/Shopping/systems/promotion-system/services/PromotionService/index.mdx",
-      "contentHash": "sha256:ec0cb8131f0dafa1d905c0b8cd1bf6344e78ed77827ea65b60c45a07b0c89fea",
+      "contentHash": "sha256:20bb01c26bd0879da9b1231cbe51d516e088c7856f585cd368aff6e63a4b8efd",
       "owners": ["shopping-platform"],
       "sends": [
         {
@@ -3546,6 +4497,16 @@
           "from": [
             {
               "id": "shopping.discount-commands",
+              "version": "1.0.0"
+            }
+          ]
+        },
+        {
+          "id": "loyalty-points-earned",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "customer.loyalty-events",
               "version": "1.0.0"
             }
           ]
@@ -3588,6 +4549,105 @@
         },
         {
           "id": "rating-cache"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "returns-api",
+      "version": "1.0.0",
+      "name": "Returns API",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/services/ReturnsAPI/index.mdx",
+      "contentHash": "sha256:fcfedf999f3811e151320c9344b0a48c39edbd095bda4a468b9c5ecd62364212",
+      "owners": ["fulfilment-platform"],
+      "sends": [
+        {
+          "id": "return-requested",
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "fulfilment.returns",
+              "version": "1.0.0"
+            }
+          ]
+        }
+      ],
+      "receives": [
+        {
+          "id": "request-return",
+          "version": "1.0.0",
+          "triggers": [
+            {
+              "id": "return-requested",
+              "version": "1.0.0",
+              "condition": "When the order is eligible and the request is recorded"
+            }
+          ]
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "returns-database"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "returns-processor",
+      "version": "1.0.0",
+      "name": "Returns Processor",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/services/ReturnsProcessor/index.mdx",
+      "contentHash": "sha256:069b19ea9f3ecf598cf3ac645578bea10d7b9753321b97d3078dded7ef8da9ff",
+      "owners": ["fulfilment-platform"],
+      "sends": [
+        {
+          "id": "return-approved",
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "fulfilment.returns",
+              "version": "1.0.0"
+            }
+          ]
+        },
+        {
+          "id": "return-received",
+          "version": "1.0.0",
+          "to": [
+            {
+              "id": "fulfilment.returns",
+              "version": "1.0.0"
+            }
+          ]
+        }
+      ],
+      "receives": [
+        {
+          "id": "return-requested",
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "fulfilment.returns",
+              "version": "1.0.0"
+            }
+          ],
+          "triggers": [
+            {
+              "id": "return-approved",
+              "version": "1.0.0",
+              "condition": "When the return passes policy checks"
+            }
+          ]
+        }
+      ],
+      "writesTo": [
+        {
+          "id": "returns-database"
+        }
+      ],
+      "readsFrom": [
+        {
+          "id": "returns-database"
         }
       ]
     },
@@ -3912,7 +4972,7 @@
       "version": "1.0.0",
       "name": "Warehouse Service",
       "contentPath": "domains/Fulfilment/systems/warehouse-system/services/WarehouseService/index.mdx",
-      "contentHash": "sha256:5901cf452763f2b3e4f62670d2b453f58ef16018804e0d6c84ff96d2b38fa9f4",
+      "contentHash": "sha256:6d072025dc55009f5c2a17b4be4d2351c3ac22dd6ef554b033bf1735d27a9128",
       "owners": ["fulfilment-platform"],
       "sends": [
         {
@@ -3923,7 +4983,13 @@
       "receives": [
         {
           "id": "order-completed",
-          "version": "1.0.0"
+          "version": "1.0.0",
+          "from": [
+            {
+              "id": "ordering.order-events",
+              "version": "1.0.0"
+            }
+          ]
         }
       ],
       "writesTo": [
@@ -4071,6 +5137,20 @@
     },
     {
       "type": "system",
+      "id": "finance-reporting-system",
+      "version": "1.0.0",
+      "name": "Finance Reporting System",
+      "contentPath": "domains/Payments/systems/finance-reporting-system/index.mdx",
+      "contentHash": "sha256:c45273dc96f650c439105b618078859a021a1dcef5b8beb4b599413ac44a393f",
+      "owners": ["payments-platform"],
+      "services": [
+        {
+          "id": "ledger-exporter"
+        }
+      ]
+    },
+    {
+      "type": "system",
       "id": "fraud-detection",
       "version": "1.0.0",
       "name": "Fraud Detection",
@@ -4144,6 +5224,20 @@
         {
           "id": "warehouse-system",
           "label": "provides stock for"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "loyalty-system",
+      "version": "1.0.0",
+      "name": "Loyalty System",
+      "contentPath": "domains/Customer/subdomains/Loyalty/systems/loyalty-system/index.mdx",
+      "contentHash": "sha256:1c54edd09438b0c82e9b0d495e7254bb474d3b9b4186d9083b0eb9949aeaa1a1",
+      "owners": ["customer-platform"],
+      "services": [
+        {
+          "id": "loyalty-service"
         }
       ]
     },
@@ -4277,6 +5371,23 @@
         {
           "id": "cart-system",
           "label": "provides discounts to"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "returns-system",
+      "version": "1.0.0",
+      "name": "Returns System",
+      "contentPath": "domains/Fulfilment/subdomains/Returns/systems/returns-system/index.mdx",
+      "contentHash": "sha256:819ba283590abd3739b8ed50e274dcdf348be65216e600e22cddc8b2c753bfaf",
+      "owners": ["fulfilment-platform"],
+      "services": [
+        {
+          "id": "returns-api"
+        },
+        {
+          "id": "returns-processor"
         }
       ]
     },

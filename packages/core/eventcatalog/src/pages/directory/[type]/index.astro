@@ -7,7 +7,9 @@ import { Page } from './_index.data';
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
 
-const { type, data } = await Page.getData(Astro);
+const pageData = await Page.getData(Astro);
+if (!pageData) return Astro.rewrite('/404');
+const { type, data } = pageData;
 
 function mapToItem(i: any) {
   return {

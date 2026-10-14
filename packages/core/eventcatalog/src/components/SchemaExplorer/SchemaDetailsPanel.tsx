@@ -38,7 +38,7 @@ import {
   SCHEMA_RELATIONSHIP_LABELS,
 } from './utils';
 import { createSchemaDetailsLoader, useSchemaDetails } from './useSchemaDetails';
-import { parseProtobufSchema } from '@utils/protobuf-schema';
+import { parseSchemaForViewer } from './parse-schema';
 import type { SchemaItem, SchemaSourceInfo, SchemaRelationshipCollection, VersionDiff, Owner, Producer } from './types';
 
 const MESSAGE_TYPE_LABELS: Partial<Record<SchemaItem['collection'], string>> = {
@@ -310,7 +310,6 @@ interface SchemaDetailsPanelProps {
   availableVersions: SchemaItem[];
   selectedVersion: string | null;
   onVersionChange: (version: string) => void;
-  apiAccessEnabled?: boolean;
   showOwners?: boolean;
   showProducersConsumers?: boolean;
   /** Tab slug from the URL, when the server could read it. Lets the first render show the right tab. */
@@ -324,7 +323,6 @@ export default function SchemaDetailsPanel({
   availableVersions,
   selectedVersion,
   onVersionChange,
-  apiAccessEnabled = false,
   showOwners = true,
   showProducersConsumers = true,
   initialTab,
@@ -386,6 +384,9 @@ export default function SchemaDetailsPanel({
     [diffToVersion, uniqueAvailableVersions]
   );
   const comparing = (activeTab === 'versions' && hasMultipleVersions) || isDiffModalOpen;
+  const contentReady = !content.loading && !content.error;
+  // Server-rendered examples stay mounted and are only shown on the Examples tab (see the tab content below).
+  const showRenderedExamples = !!renderedExamples && activeTab === 'examples' && contentReady;
 
   const compareWithCurrent = (version: string) => {
     setDiffFromVersion(version);
@@ -428,55 +429,14 @@ export default function SchemaDetailsPanel({
   }, [comparing, diffFromItem, diffToItem]);
   const selectedDiffs = selectedDiff ? [selectedDiff] : [];
 
-  // Check if this is a JSON schema
-  const parsedSchema = useMemo(() => {
-    const isJSONSchema =
-      message.schemaExtension?.toLowerCase() === 'json' && message.schemaContent && message.schemaContent.trim() !== '';
-    if (!isJSONSchema) return null;
-
-    try {
-      const parsed = JSON.parse(message.schemaContent ?? '');
-      if (!parsed.properties && !parsed.$schema && !parsed.type) {
-        return null;
-      }
-      return parsed;
-    } catch {
-      return null;
-    }
-  }, [message.schemaContent, message.schemaExtension]);
-
-  // Check if this is an Avro schema
-  const parsedAvroSchema = useMemo(() => {
-    const extLower = message.schemaExtension?.toLowerCase();
-    const isAvroSchema =
-      (extLower === 'avro' || extLower === 'avsc') && message.schemaContent && message.schemaContent.trim() !== '';
-    if (!isAvroSchema) return null;
-
-    try {
-      const parsed = JSON.parse(message.schemaContent ?? '');
-      if (!parsed.type) {
-        return null;
-      }
-      return parsed;
-    } catch {
-      return null;
-    }
-  }, [message.schemaContent, message.schemaExtension]);
-
-  // Check if this is a Protobuf schema. The extension falls back to the schema
-  // format when the schema has no file path, so accept both 'proto' and 'protobuf'.
-  const parsedProtoSchema = useMemo(() => {
-    const extLower = message.schemaExtension?.toLowerCase();
-    const isProtoSchema =
-      (extLower === 'proto' || extLower === 'protobuf') && message.schemaContent && message.schemaContent.trim() !== '';
-    if (!isProtoSchema) return null;
-
-    try {
-      return parseProtobufSchema(message.schemaContent ?? '');
-    } catch {
-      return null;
-    }
-  }, [message.schemaContent, message.schemaExtension]);
+  // Parse JSON Schema, Avro and Protobuf schemas for the Properties tab
+  const viewableSchema = useMemo(
+    () => parseSchemaForViewer(message.schemaExtension, message.schemaContent),
+    [message.schemaContent, message.schemaExtension]
+  );
+  const parsedSchema = viewableSchema.kind === 'json' ? viewableSchema.schema : null;
+  const parsedAvroSchema = viewableSchema.kind === 'avro' ? viewableSchema.schema : null;
+  const parsedProtoSchema = viewableSchema.kind === 'protobuf' ? viewableSchema.schema : null;
 
   const handleCopy = async () => {
     if (!message.schemaContent) return;
@@ -748,11 +708,16 @@ export default function SchemaDetailsPanel({
 
         {/* Tab content */}
         <div className="flex-1 min-h-0 overflow-hidden p-6">
-          {content.loading || content.error ? (
+          {/* Always render the examples slot and hide it on other tabs. Astro moves a slot missing from the
+              server HTML into a <template>, where its island scripts never run and no island on the page hydrates. */}
+          {renderedExamples && (
+            <div className="h-full overflow-auto pr-1" hidden={!showRenderedExamples}>
+              {renderedExamples}
+            </div>
+          )}
+          {!contentReady ? (
             <SchemaLoadingState loading={content.loading} error={content.error} retry={content.retry} />
-          ) : activeTab === 'examples' && renderedExamples ? (
-            <div className="h-full overflow-auto pr-1">{renderedExamples}</div>
-          ) : activeTab === 'examples' && examples.length > 0 ? (
+          ) : showRenderedExamples ? null : activeTab === 'examples' && examples.length > 0 ? (
             <ExamplesViewer examples={examples} />
           ) : activeTab === 'metadata' ? (
             <SchemaMetadata message={message} owners={showOwners ? owners : []} />
@@ -832,7 +797,7 @@ export default function SchemaDetailsPanel({
                         <p className="text-sm">No schema content available</p>
                       </div>
                     ) : (
-                      <DiffViewer diffs={selectedDiffs} apiAccessEnabled={apiAccessEnabled} />
+                      <DiffViewer diffs={selectedDiffs} />
                     )}
                   </div>
                 </div>
@@ -843,12 +808,7 @@ export default function SchemaDetailsPanel({
           ) : activeTab === 'flows' && showFlowsTab ? (
             <SchemaFlows message={message} flows={flows} />
           ) : activeTab === 'api' ? (
-            <ApiContentViewer
-              message={message}
-              onCopy={handleCopyCustom}
-              copiedId={copiedId}
-              apiAccessEnabled={apiAccessEnabled}
-            />
+            <ApiContentViewer message={message} onCopy={handleCopyCustom} copiedId={copiedId} />
           ) : (
             <SchemaContentViewer
               message={message}
@@ -877,7 +837,6 @@ export default function SchemaDetailsPanel({
         onOpenChange={setIsDiffModalOpen}
         diffs={selectedDiffs}
         messageName={message.data.name}
-        apiAccessEnabled={apiAccessEnabled}
       />
       <SchemaCodeModal
         isOpen={isCodeModalOpen}

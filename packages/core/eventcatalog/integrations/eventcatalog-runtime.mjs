@@ -59,7 +59,7 @@ export function getRuntimeAliases({ projectDirectory, runtimeDirectory, coreDire
     { find: /^@types$/, replacement: source('types/index.ts') },
     { find: '@utils', replacement: source('utils') },
     { find: '@layouts', replacement: source('layouts') },
-    { find: '@enterprise', replacement: source('enterprise') },
+    { find: '@features', replacement: source('features') },
     { find: /^auth:config$/, replacement: path.join(coreDirectory, 'auth.config.ts') },
     { find: '@stores', replacement: source('stores') },
   ];

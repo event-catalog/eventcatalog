@@ -16,34 +16,22 @@
   import { setSidebarData, sidebarStore } from '@stores/sidebar-store';
   import { buildUrl } from '@utils/url-builder';
 
-  // Only fetch if we haven't already loaded the data
+  // Only fetch if we haven't already loaded the data. Fetched straight away rather than when
+  // the browser is idle: the sidebar's first paint comes from the server (see SideNav.astro),
+  // but drilling down and search wait on this data
   if (!sidebarStore.get()) {
-    const apiUrl = buildUrl('/api/sidebar-data.json', true);
-
-    const loadSidebarData = () => {
-      // Double-check cache in case another component loaded data while waiting for idle
-      if (sidebarStore.get()) return;
-
-      fetch(apiUrl)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to fetch sidebar data: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setSidebarData(data);
-        })
-        .catch((error) => {
-          console.error('Error loading sidebar data:', error);
-        });
-    };
-
-    // Defer non-critical sidebar payload fetch until browser is idle
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(loadSidebarData, { timeout: 1200 });
-    } else {
-      setTimeout(loadSidebarData, 300);
-    }
+    fetch(buildUrl('/api/sidebar-data.json', true))
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch sidebar data: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setSidebarData(data);
+      })
+      .catch((error) => {
+        console.error('Error loading sidebar data:', error);
+      });
   }
 </script>

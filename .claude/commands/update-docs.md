@@ -39,7 +39,7 @@ Launch a single `Agent` call with `subagent_type: "docs-updater"`. The agent has
 - A summary of what changed (feature description, not a raw diff dump) — point at file paths and line numbers so the agent can read them itself.
 - Whether you're documenting uncommitted changes or `HEAD`, and how to reproduce the diff (the exact `git` command).
 - A reminder that docs live in `eventcatalog/website-2/docs` (never `/website`) and that every new/changed feature must carry an `<AddedIn />` marker with the resolved version.
-- Any user hint from `$ARGUMENTS` that's relevant (e.g. "this is a paid feature", "ship under the Scale plan section").
+- Any user hint from `$ARGUMENTS` that's relevant (e.g. "this only works in server mode", "add it to the visualiser section").
 
 Keep the brief tight — the agent will do its own exploration of `website-2`.
 

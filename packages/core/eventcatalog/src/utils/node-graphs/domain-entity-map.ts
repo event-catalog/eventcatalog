@@ -212,7 +212,9 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
             height: 20,
           },
         });
-      } else {
+      } else if (!entityMap.has(referencedEntityId)) {
+        // Only a reference to an entity missing from the catalog is broken. An external entity's own
+        // references can point further away than this map shows: those edges are left out.
         console.warn(`Referenced entity "${referencedEntityId}" not found for ${entity.data.name}.${referenceProperty.name}`);
       }
     }

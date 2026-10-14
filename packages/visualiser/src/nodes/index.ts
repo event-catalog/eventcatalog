@@ -66,6 +66,7 @@ export type { EntityProperty } from "./Entity";
 // Core nodes (single files) - import then re-export for nodeComponents
 import CustomNode from "./Custom";
 import DomainNode from "./Domain";
+import DomainCardNode from "./DomainCard";
 import SystemNode from "./System";
 import ContextActorNode from "./ContextActor";
 import SystemGroupNode from "./SystemGroupNode";
@@ -82,6 +83,7 @@ import { MessageGroupNode, MessageGroupExpandedNode } from "./message-group";
 export {
   CustomNode,
   DomainNode,
+  DomainCardNode,
   SystemNode,
   ContextActorNode,
   SystemGroupNode,
@@ -120,6 +122,8 @@ export {
   DATA,
   VIEW,
 } from "./node-types";
+
+export { diagramNodeComponents } from "./diagram-nodes";
 
 // Re-export for convenience (studio-2 nodes only)
 export const nodeComponents = {

@@ -1,57 +1,60 @@
 import React, {
   useState,
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
   useRef,
   memo,
 } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Play,
+  RotateCcw,
+  X,
+} from "lucide-react";
 import type { Edge } from "@xyflow/react";
+import { buildUrl } from "../utils/url-builder";
+import { isTyping } from "../utils/keyboard";
+import {
+  getNodeDocUrl,
+  NODE_COLOR_CLASSES,
+  NODE_TYPE_LABELS,
+} from "./FocusMode/utils";
 
-interface NodeData {
-  label?: string;
+type Resource = {
+  summary?: string;
+  data?: { summary?: string };
+};
+
+// A type (not an interface) so it's a record of node data, as React Flow's are
+type NodeData = {
   summary?: string;
   step?: {
     title?: string;
     summary?: string;
   };
-  service?: {
-    name?: string;
-    summary?: string;
-    data?: {
-      name?: string;
-      summary?: string;
-    };
-  };
-  message?: {
-    name?: string;
-    summary?: string;
-    data?: {
-      name?: string;
-      summary?: string;
-    };
-  };
-  flow?: {
-    data?: {
-      name?: string;
-    };
-  };
+  service?: Resource;
+  message?: Resource;
+  agent?: Resource;
+  flow?: Resource;
+  container?: Resource;
+  dataProduct?: Resource;
   custom?: {
-    title?: string;
-    label?: string;
+    type?: string;
     summary?: string;
-  };
-  actor?: {
-    label?: string;
+    url?: string;
   };
   externalSystem?: {
-    label?: string;
+    url?: string;
   };
-}
+};
 
 interface CustomNode {
   id: string;
+  type?: string;
   data: NodeData;
 }
 
@@ -59,10 +62,15 @@ interface StepWalkthroughProps {
   nodes: CustomNode[];
   edges: Edge[];
   isFlowVisualization: boolean;
+  /**
+   * Called when the step changes: the step (null when the walkthrough ends),
+   * whether to zoom out to the whole flow, and the steps walked so far, in
+   * order (ending with this one)
+   */
   onStepChange: (
     nodeId: string | null,
-    highlightPaths?: string[],
     shouldZoomOut?: boolean,
+    trail?: string[],
   ) => void;
   mode?: "full" | "simple";
 }
@@ -73,17 +81,59 @@ interface PathOption {
   targetNode: CustomNode;
 }
 
+/** What the walkthrough shows for a step */
+const getStepInfo = (node: CustomNode) => {
+  const { data } = node;
+  const type = node.type ?? "step";
+  // What the step points at (its service, message...), for its summary
+  const resource =
+    data.service ??
+    data.message ??
+    data.agent ??
+    data.flow ??
+    data.container ??
+    data.dataProduct;
+  // The flow's own words for the step first, then what the resource is
+  const stepSummary = data.step?.summary;
+  const resourceSummary =
+    resource?.summary ||
+    resource?.data?.summary ||
+    data.custom?.summary ||
+    data.summary;
+  const docsPath = getNodeDocUrl(node);
+  return {
+    // The catalog names every step (after what it points at, if untitled)
+    title: data.step?.title || node.id,
+    typeLabel: data.custom?.type || NODE_TYPE_LABELS[type] || "Step",
+    colorClass: NODE_COLOR_CLASSES[type] ?? NODE_COLOR_CLASSES.step,
+    summary: stepSummary || resourceSummary,
+    detail:
+      stepSummary && resourceSummary && resourceSummary !== stepSummary
+        ? resourceSummary
+        : undefined,
+    docsUrl: docsPath
+      ? buildUrl(docsPath)
+      : data.custom?.url || data.externalSystem?.url,
+  };
+};
+
+// Small, as the walkthrough sits over the flow
+const BUTTON =
+  "flex items-center justify-center gap-1 h-7 text-xs rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--ec-accent))] transition-colors";
+const PRIMARY_BUTTON = `${BUTTON} px-2.5 font-semibold text-white bg-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent-hover))]`;
+const QUIET_BUTTON = `${BUTTON} px-2 font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-page-border)/0.4)]`;
+const ICON_BUTTON =
+  "flex items-center justify-center w-6 h-6 rounded text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-page-border)/0.4)]";
+
 export default memo(function StepWalkthrough({
   nodes,
   edges,
   isFlowVisualization,
   onStepChange,
 }: StepWalkthroughProps) {
-  const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
-  const [pathHistory, setPathHistory] = useState<string[]>([]);
-  const [currentStepIndex, setCurrentStepIndex] = useState<number>(-1); // -1 means not started
-  const [availablePaths, setAvailablePaths] = useState<PathOption[]>([]);
-  const [selectedPathIndex, setSelectedPathIndex] = useState<number>(0);
+  // The steps walked so far, in order (empty before the walkthrough starts)
+  const [trail, setTrail] = useState<string[]>([]);
+  const currentNodeId = trail[trail.length - 1] ?? null;
   const [startNodeId, setStartNodeId] = useState<string | null>(null);
 
   // Stable structural keys — only change when nodes/edges are added/removed,
@@ -102,278 +152,346 @@ export default memo(function StepWalkthrough({
   }
   const edgeKey = edgeKeyRef.current;
 
+  const nodesById = useMemo(
+    () => new Map(nodes.map((node) => [node.id, node])),
+    [nodeIdsKey],
+  );
+
   useEffect(() => {
-    if (isFlowVisualization && nodes.length > 0) {
-      // Find the starting node (node with no incoming edges)
-      const incomingEdgeMap = new Map<string, number>();
-      nodes.forEach((node: CustomNode) => incomingEdgeMap.set(node.id, 0));
-
-      edges.forEach((edge: Edge) => {
-        if (incomingEdgeMap.has(edge.target)) {
-          incomingEdgeMap.set(
-            edge.target,
-            (incomingEdgeMap.get(edge.target) || 0) + 1,
-          );
-        }
-      });
-
-      const startNodes = nodes.filter(
-        (node: CustomNode) => incomingEdgeMap.get(node.id) === 0,
-      );
-
-      // Recompute the start node whenever the cached id no longer exists in
-      // the current node set. This happens when the graph structure changes
-      // — for example when a sub-flow is expanded and its wrapper node gets
-      // replaced by children.
-      const cachedStartStillValid =
-        startNodeId && nodes.some((n: CustomNode) => n.id === startNodeId);
-      if (startNodes.length > 0 && !cachedStartStillValid) {
-        const firstStartNode = startNodes[0];
-        setStartNodeId(firstStartNode.id);
-      }
+    if (!isFlowVisualization || nodes.length === 0) return;
+    // The flow starts at the first step with no edges into it. Worked out
+    // again when the cached one no longer exists (e.g. a sub-flow expanded)
+    const targets = new Set(edges.map((edge) => edge.target));
+    const start = nodes.find((node) => !targets.has(node.id));
+    if (start && !(startNodeId && nodesById.has(startNodeId))) {
+      setStartNodeId(start.id);
     }
   }, [nodeIdsKey, edgeKey, isFlowVisualization, startNodeId]);
 
+  // The current step no longer exists (e.g. the sub-flow it was in was
+  // collapsed): start again
   useEffect(() => {
-    if (currentNodeId) {
-      // If the current node no longer exists (e.g. user expanded a sub-flow
-      // and the wrapper the walkthrough was pointing at just got replaced),
-      // reset so the user can restart from the new start node.
-      const currentExists = nodes.some(
-        (n: CustomNode) => n.id === currentNodeId,
-      );
-      if (!currentExists) {
-        setCurrentNodeId(null);
-        setCurrentStepIndex(-1);
-        setPathHistory([]);
-        setAvailablePaths([]);
+    if (currentNodeId && !nodesById.has(currentNodeId)) setTrail([]);
+  }, [currentNodeId, nodesById]);
+
+  const pathsFrom = useCallback(
+    (nodeId: string | null): PathOption[] =>
+      nodeId
+        ? edges
+            .filter((edge) => edge.source === nodeId)
+            .map((edge) => ({
+              targetId: edge.target,
+              label: edge.label as string | undefined,
+              targetNode: nodesById.get(edge.target)!,
+            }))
+            .filter((path) => !!path.targetNode)
+        : [],
+    [edgeKey, nodesById],
+  );
+  const availablePaths = useMemo(
+    () => pathsFrom(currentNodeId),
+    [pathsFrom, currentNodeId],
+  );
+
+  // How many steps the flow has on the way it's being walked: those walked,
+  // then the first way on from each step until it ends (or loops)
+  const stepsAfter = useCallback(
+    (nodeId: string, walked: string[]) => {
+      const seen = new Set(walked);
+      let steps = 0;
+      let next = pathsFrom(nodeId)[0]?.targetId;
+      while (next && !seen.has(next)) {
+        seen.add(next);
+        steps++;
+        next = pathsFrom(next)[0]?.targetId;
+      }
+      return steps;
+    },
+    [pathsFrom],
+  );
+  const totalSteps = useMemo(
+    () => (currentNodeId ? trail.length + stepsAfter(currentNodeId, trail) : 0),
+    [trail, currentNodeId, stepsAfter],
+  );
+  // The same, before starting
+  const startSteps = useMemo(
+    () => (startNodeId ? 1 + stepsAfter(startNodeId, [startNodeId]) : 0),
+    [startNodeId, stepsAfter],
+  );
+
+  const goTo = useCallback(
+    (nextTrail: string[]) => {
+      setTrail(nextTrail);
+      const nodeId = nextTrail[nextTrail.length - 1];
+      if (!nodeId) {
+        onStepChange(null);
         return;
       }
+      onStepChange(nodeId, false, nextTrail);
+    },
+    [onStepChange],
+  );
 
-      // Find available paths from current node
-      const outgoingEdges = edges.filter(
-        (edge: Edge) => edge.source === currentNodeId,
-      );
-      const paths: PathOption[] = outgoingEdges.map((edge: Edge) => {
-        const targetNode = nodes.find((n: CustomNode) => n.id === edge.target);
-        return {
-          targetId: edge.target,
-          label: edge.label as string | undefined,
-          targetNode: targetNode!,
-        };
-      });
-      setAvailablePaths(paths);
-      setSelectedPathIndex(0);
-    } else {
-      setAvailablePaths([]);
-    }
-  }, [currentNodeId, nodeIdsKey, edgeKey]);
-
-  const handleNextStep = useCallback(() => {
-    if (currentStepIndex === -1) {
-      // Start the walkthrough
-      if (startNodeId) {
-        setPathHistory([startNodeId]);
-        setCurrentNodeId(startNodeId);
-        setCurrentStepIndex(0);
-        onStepChange(startNodeId);
-      }
-    } else if (availablePaths.length > 0) {
-      // Move to the selected path
-      const selectedPath = availablePaths[selectedPathIndex];
-      const newHistory = [...pathHistory, selectedPath.targetId];
-      setPathHistory(newHistory);
-      setCurrentNodeId(selectedPath.targetId);
-      setCurrentStepIndex((prev) => prev + 1);
-
-      // Highlight the selected path
-      const allPaths = availablePaths.map(
-        (p) => `${currentNodeId}-${p.targetId}`,
-      );
-      onStepChange(selectedPath.targetId, allPaths);
-    }
-  }, [
-    currentStepIndex,
-    startNodeId,
-    availablePaths,
-    selectedPathIndex,
-    currentNodeId,
-    onStepChange,
-  ]);
-
-  const handlePreviousStep = useCallback(() => {
-    if (currentStepIndex > 0) {
-      // Go back to previous step
-      const newIndex = currentStepIndex - 1;
-      const prevNodeId = pathHistory[newIndex];
-      setCurrentNodeId(prevNodeId);
-      setCurrentStepIndex(newIndex);
-      onStepChange(prevNodeId);
-    } else if (currentStepIndex === 0) {
-      // Go back to the start (no selection)
-      setCurrentNodeId(null);
-      setCurrentStepIndex(-1);
-      onStepChange(null);
-    }
-  }, [currentStepIndex, pathHistory, onStepChange]);
-
-  const handlePathSelection = useCallback((index: number) => {
-    setSelectedPathIndex(index);
-  }, []);
-
-  const handleFinish = useCallback(() => {
-    setCurrentNodeId(null);
-    setCurrentStepIndex(-1);
-    setPathHistory([]);
-    onStepChange(null, [], true); // Pass true to indicate full reset with zoom out
+  const start = useCallback(() => {
+    if (startNodeId) goTo([startNodeId]);
+  }, [startNodeId, goTo]);
+  // At a branch, the way on picked in the dropdown (the first to start with)
+  const [selectedPath, setSelectedPath] = useState(0);
+  useEffect(() => setSelectedPath(0), [currentNodeId]);
+  const next = useCallback(
+    (index = selectedPath) => {
+      const path = availablePaths[index];
+      if (path) goTo([...trail, path.targetId]);
+    },
+    [availablePaths, selectedPath, trail, goTo],
+  );
+  const previous = useCallback(() => goTo(trail.slice(0, -1)), [trail, goTo]);
+  const finish = useCallback(() => {
+    setTrail([]);
+    onStepChange(null, true); // Zoom out to the whole flow again
   }, [onStepChange]);
+
+  // ←/→ to step through, 1–9 to pick a way on, Esc to stop
+  const isWalking = trail.length > 0;
+  useEffect(() => {
+    if (!isWalking) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTyping(event.target)) return;
+      if (event.key === "ArrowRight") next();
+      else if (event.key === "ArrowLeft") previous();
+      else if (event.key === "Escape") finish();
+      else if (/^[1-9]$/.test(event.key) && availablePaths.length > 1)
+        next(Number(event.key) - 1);
+      else return;
+      event.preventDefault();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isWalking, availablePaths, next, previous, finish]);
+
+  const currentNode = currentNodeId ? nodesById.get(currentNodeId) : undefined;
+  const info = useMemo(
+    () => (currentNode ? getStepInfo(currentNode) : undefined),
+    [currentNode],
+  );
+
+  // Long text is cut short (the title to a line, the summary to two), and
+  // can be expanded to read in full. Collapsed again on each step.
+  const [expanded, setExpanded] = useState(false);
+  const [isCut, setIsCut] = useState(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const summaryRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => setExpanded(false), [currentNodeId]);
+  useLayoutEffect(() => {
+    if (expanded) return;
+    const title = titleRef.current;
+    const summary = summaryRef.current;
+    setIsCut(
+      !!info?.detail ||
+        (!!title && title.scrollWidth > title.clientWidth) ||
+        (!!summary && summary.scrollHeight > summary.clientHeight + 1),
+    );
+  }, [info, expanded]);
+
+  const startInfo = useMemo(() => {
+    const startNode = startNodeId ? nodesById.get(startNodeId) : undefined;
+    return startNode ? getStepInfo(startNode) : undefined;
+  }, [startNodeId, nodesById]);
 
   if (!isFlowVisualization || nodes.length === 0) {
     return null;
   }
 
-  const { title, description } = useMemo(() => {
-    if (currentStepIndex === -1) {
-      return {
-        title: "Walk through business flow",
-        description: "Step through the flow to understand the business process",
-      };
-    }
-
-    const currentNode = nodes.find((n: CustomNode) => n.id === currentNodeId);
-    if (!currentNode) return { title: "Unknown step", description: "" };
-
-    let stepNumber = currentStepIndex + 1;
-    let title = `Step ${stepNumber}`;
-    let description = "";
-
-    // Get node information based on type - check step data first, then type-specific data
-    if (currentNode.data.step?.title) {
-      title += `: ${currentNode.data.step.title}`;
-    } else if (currentNode.data.service?.name) {
-      title += `: ${currentNode.data.service.name}`;
-    } else if (currentNode.data.message?.name) {
-      title += `: ${currentNode.data.message.name}`;
-    } else if (currentNode.data.flow?.data?.name) {
-      title += `: ${currentNode.data.flow.data.name}`;
-    } else if (currentNode.data.custom?.title) {
-      title += `: ${currentNode.data.custom.title}`;
-    } else if (currentNode.data.custom?.label) {
-      title += `: ${currentNode.data.custom.label}`;
-    } else if (currentNode.data.externalSystem?.label) {
-      title += `: ${currentNode.data.externalSystem.label}`;
-    } else if (currentNode.data.label) {
-      // Actor nodes have label directly on data
-      title += `: ${currentNode.data.label}`;
-    }
-
-    // Get description - check step data first, then type-specific data
-    if (currentNode.data.step?.summary) {
-      description = currentNode.data.step.summary;
-    } else if (currentNode.data.service?.summary) {
-      description = currentNode.data.service.summary;
-    } else if (currentNode.data.message?.summary) {
-      description = currentNode.data.message.summary;
-    } else if (currentNode.data.custom?.summary) {
-      description = currentNode.data.custom.summary;
-    } else if (currentNode.data.summary) {
-      // Actor and other nodes may have summary directly on data
-      description = currentNode.data.summary;
-    }
-
-    return { title, description };
-  }, [currentStepIndex, currentNodeId, nodeIdsKey]);
-
-  return (
-    <div className="ml-12 bg-[rgb(var(--ec-card-bg))] rounded-lg shadow-sm px-4 py-2 z-30 border border-[rgb(var(--ec-page-border))] w-[350px]">
-      <div className="mb-2">
-        <h3 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">
-          {title}
-        </h3>
-        {description && (
-          <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
-            {description}
+  // Before starting: the same card as while walking (so starting doesn't
+  // change its size), naming the step the flow starts with
+  if (!isWalking || !info) {
+    return (
+      <div className="ml-12 w-[360px] rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg overflow-hidden">
+        <div className="h-0.5 bg-[rgb(var(--ec-page-border)/0.5)]" />
+        <div className="px-3 pt-2 pb-2">
+          {/* As tall as the step's title row (its icon buttons) */}
+          <div className="flex items-center gap-2 min-w-0 h-6">
+            <span className="flex items-center justify-center shrink-0 w-5 h-5 rounded-full bg-[rgb(var(--ec-accent))] text-white">
+              <Play className="w-2.5 h-2.5 fill-current" />
+            </span>
+            <h3 className="flex-1 min-w-0 truncate text-sm font-semibold text-[rgb(var(--ec-page-text))]">
+              Walk through this flow
+            </h3>
+          </div>
+          <p className="mt-1 text-xs leading-snug text-[rgb(var(--ec-page-text-muted))] line-clamp-2">
+            Step through it one hop at a time
+            {startInfo ? `, starting at ${startInfo.title}.` : "."}
           </p>
-        )}
-      </div>
-
-      {/* Show path options when there are multiple paths */}
-      {currentNodeId && availablePaths.length > 1 && (
-        <div className="mb-3">
-          <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">
-            Choose next path:
-          </label>
-          <select
-            value={selectedPathIndex}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              handlePathSelection(parseInt(e.target.value))
-            }
-            className="w-full px-3 py-2 text-xs border border-[rgb(var(--ec-input-border))] rounded-md bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))]"
-          >
-            {availablePaths.map((path, index) => {
-              // @ts-ignore
-              const nodeLabel =
-                path.targetNode.data.step?.title ||
-                (path.targetNode.data as any).service?.name ||
-                (path.targetNode.data as any).message?.name ||
-                (path.targetNode.data as any).flow?.data?.name ||
-                (path.targetNode.data as any).custom?.title ||
-                (path.targetNode.data as any).custom?.label ||
-                (path.targetNode.data as any).externalSystem?.label ||
-                (path.targetNode.data as any).label ||
-                "Unknown";
-
-              return (
-                <option key={path.targetId} value={index}>
-                  {path.label ? `${path.label}: ${nodeLabel}` : nodeLabel}
-                </option>
-              );
-            })}
-          </select>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        {currentStepIndex === -1 ? (
-          // Initial state - show only Start button on the right
-          <>
-            <div className="flex-1"></div>
+          <div className="flex items-center justify-between gap-2 mt-2">
+            <span className="px-2 text-xs text-[rgb(var(--ec-page-text-muted))]">
+              {startSteps > 0 && `${startSteps} steps`}
+            </span>
             <button
-              onClick={handleNextStep}
-              className="flex items-center justify-center px-6 py-2 text-xs font-medium bg-[rgb(var(--ec-accent))] text-white rounded-md hover:bg-[rgb(var(--ec-accent-hover))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
+              type="button"
+              onClick={start}
+              title="Start walking through the flow"
+              className={PRIMARY_BUTTON}
             >
               Start
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
-          </>
-        ) : (
-          // In walkthrough - show Previous on left, Next on right (only if paths available)
-          <>
-            <button
-              onClick={handlePreviousStep}
-              className="flex items-center justify-center px-4 py-2 text-xs font-medium bg-[rgb(var(--ec-accent))] text-white rounded-md hover:bg-[rgb(var(--ec-accent-hover))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
-            >
-              <ChevronLeftIcon className="w-4 h-4 mr-1" />
-              Previous
-            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-            {availablePaths.length > 0 ? (
+  const stepNumber = trail.length;
+  const atEnd = availablePaths.length === 0;
+  const isBranch = availablePaths.length > 1;
+
+  return (
+    <div className="ml-12 w-[360px] rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] shadow-lg overflow-hidden">
+      {/* Progress through the flow, on the way it's being walked */}
+      <div className="h-0.5 bg-[rgb(var(--ec-page-border)/0.5)]">
+        <div
+          className="h-full bg-[rgb(var(--ec-accent))] transition-[width] duration-300"
+          style={{ width: `${(stepNumber / totalSteps) * 100}%` }}
+        />
+      </div>
+
+      <div className="px-3 pt-2 pb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="shrink-0 text-[11px] font-semibold tabular-nums text-[rgb(var(--ec-page-text-muted))]">
+            {stepNumber}/{totalSteps}
+          </span>
+          <span
+            className={`shrink-0 px-1.5 py-px rounded text-[9px] font-bold uppercase tracking-wide text-white ${info.colorClass}`}
+          >
+            {info.typeLabel}
+          </span>
+          <h3
+            ref={titleRef}
+            className={`flex-1 min-w-0 text-sm font-semibold text-[rgb(var(--ec-page-text))] ${
+              expanded ? "break-words" : "truncate"
+            }`}
+            title={expanded ? undefined : info.title}
+          >
+            {info.title}
+          </h3>
+          {info.docsUrl && (
+            <a
+              href={info.docsUrl}
+              aria-label={`Open the docs for ${info.title}`}
+              title="Open docs"
+              className={ICON_BUTTON}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={finish}
+            aria-label="Stop walking through the flow"
+            title="Stop (Esc)"
+            className={`${ICON_BUTTON} -mr-1`}
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {info.summary && (
+          <p
+            ref={summaryRef}
+            onClick={isCut ? () => setExpanded(!expanded) : undefined}
+            className={`mt-1 text-xs leading-snug text-[rgb(var(--ec-page-text-muted))] ${
+              expanded ? "max-h-40 overflow-y-auto" : "line-clamp-2"
+            } ${isCut ? "cursor-pointer" : ""}`}
+          >
+            {info.summary}
+          </p>
+        )}
+        {expanded && info.detail && (
+          <p className="mt-1.5 pt-1.5 border-t border-[rgb(var(--ec-page-border)/0.6)] text-xs leading-snug text-[rgb(var(--ec-page-text-muted))] max-h-32 overflow-y-auto">
+            {info.detail}
+          </p>
+        )}
+        {isCut && (
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            aria-expanded={expanded}
+            className="mt-0.5 text-[11px] font-medium text-[rgb(var(--ec-accent))] hover:underline"
+          >
+            {expanded ? "Less" : "More"}
+          </button>
+        )}
+
+        <div className="flex items-center justify-between gap-2 mt-2">
+          <button
+            type="button"
+            onClick={previous}
+            title="Back (←)"
+            className={QUIET_BUTTON}
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+            Back
+          </button>
+          {atEnd ? (
+            <div className="flex items-center gap-1">
               <button
-                onClick={handleNextStep}
-                className="flex items-center justify-center px-4 py-2 text-xs font-medium bg-[rgb(var(--ec-accent))] text-white rounded-md hover:bg-[rgb(var(--ec-accent-hover))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
+                type="button"
+                onClick={start}
+                title="Walk through again"
+                className={QUIET_BUTTON}
               >
-                Next
-                <ChevronRightIcon className="w-4 h-4 ml-1" />
+                <RotateCcw className="w-3 h-3" />
+                Restart
               </button>
-            ) : (
-              <button
-                onClick={handleFinish}
-                className="flex items-center justify-center px-4 py-2 text-xs font-medium bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
-              >
+              <button type="button" onClick={finish} className={PRIMARY_BUTTON}>
                 Finish
               </button>
-            )}
-          </>
-        )}
+            </div>
+          ) : isBranch ? (
+            // A branch: pick the way on (or press its number), then Next
+            <div className="flex items-center justify-end gap-1 flex-1 min-w-0">
+              <select
+                value={selectedPath}
+                onChange={(event) =>
+                  setSelectedPath(Number(event.target.value))
+                }
+                aria-label="Which way the flow goes next"
+                title="Which way next (or press its number)"
+                className="min-w-0 flex-1 max-w-[210px] h-7 pl-2 pr-6 text-xs truncate rounded-md border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+              >
+                {availablePaths.map((path, index) => {
+                  const target = getStepInfo(path.targetNode).title;
+                  return (
+                    <option key={path.targetId} value={index}>
+                      {index + 1}.{" "}
+                      {path.label ? `${path.label} → ${target}` : target}
+                    </option>
+                  );
+                })}
+              </select>
+              <button
+                type="button"
+                onClick={() => next()}
+                title="Next (→)"
+                className={PRIMARY_BUTTON}
+              >
+                Next
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => next()}
+              title="Next (→)"
+              className={PRIMARY_BUTTON}
+            >
+              Next
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

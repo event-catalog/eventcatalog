@@ -170,6 +170,16 @@ const nodeRadius = (degree: number, isHub = false) =>
 /** Above this node count, expensive extras (collision force) are disabled. */
 const LARGE_GRAPH_NODE_COUNT = 1500;
 
+/**
+ * The first layout settles before it paints instead of animating into place for ~5s: ticks
+ * run in short slices across frames (no long tasks) until it settles, ~40ms of work for 100
+ * nodes. Big catalogs stop once ticking has taken the work limit, paint past their largest
+ * moves and animate the rest. The limit counts ticking time, not elapsed time, so a page busy
+ * hydrating other islands doesn't cut the settle short.
+ */
+const INITIAL_SETTLE_SLICE_MS = 12;
+const INITIAL_SETTLE_WORK_LIMIT_MS = 400;
+
 /** Sprite resolution for node icons (drawn scaled-down, so keep it crisp) */
 const ICON_SPRITE_SIZE = 64;
 
@@ -617,6 +627,10 @@ const CatalogForceGraph = ({
     // normal-sized, whatever the lens's usual hubs are
     const isHub = (d: SimNode) => (focusKey ? d.key === focusKey : hubs.has(d.collection));
 
+    // Later layouts (lens, focus and filter changes) animate from the previous positions
+    const isFirstLayout = positionsRef.current.size === 0;
+    // Nothing paints until the first layout has settled (see INITIAL_SETTLE_SLICE_MS)
+    let settling = isFirstLayout;
     const visibleNodes: SimNode[] = viewNodes
       .filter((n) => !hiddenCollections.has(n.collection))
       .map((n) => ({ ...n, degree: 0, ...positionsRef.current.get(n.key) }));
@@ -734,6 +748,7 @@ const CatalogForceGraph = ({
     };
 
     const draw = () => {
+      if (settling) return;
       context.save();
       context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
       context.clearRect(0, 0, width, height);
@@ -1014,6 +1029,29 @@ const CatalogForceGraph = ({
       );
     }
 
+    // Settle the first layout before it paints rather than animating it into place
+    let settleFrame: number | undefined;
+    if (isFirstLayout) {
+      simulation.stop();
+      let workLeft = INITIAL_SETTLE_WORK_LIMIT_MS;
+      const settle = () => {
+        const sliceStart = performance.now();
+        const sliceEnd = sliceStart + Math.min(INITIAL_SETTLE_SLICE_MS, workLeft);
+        while (simulation.alpha() > simulation.alphaMin() && performance.now() < sliceEnd) simulation.tick();
+        workLeft -= performance.now() - sliceStart;
+        if (simulation.alpha() > simulation.alphaMin() && workLeft > 0) {
+          settleFrame = requestAnimationFrame(settle);
+          return;
+        }
+        settling = false;
+        // Settled: paint it as is (restarting would run one tick more than the animated
+        // layout). Otherwise paint and animate whatever is left.
+        if (simulation.alpha() <= simulation.alphaMin()) fitToView();
+        else simulation.restart();
+      };
+      settleFrame = requestAnimationFrame(settle);
+    }
+
     const findNode = (canvasX: number, canvasY: number): SimNode | null => {
       if (Number.isNaN(canvasX) || Number.isNaN(canvasY)) return null;
       const x = transform.invertX(canvasX);
@@ -1219,6 +1257,7 @@ const CatalogForceGraph = ({
       for (const node of visibleNodes) {
         if (node.x !== undefined && node.y !== undefined) positionsRef.current.set(node.key, { x: node.x, y: node.y });
       }
+      if (settleFrame !== undefined) cancelAnimationFrame(settleFrame);
       simulation.stop();
       // The tooltip outlives this effect — never leave it showing stale content
       tooltip.style.opacity = '0';

@@ -26,7 +26,6 @@ export interface FieldsTableProps {
   fields: FieldResult[];
   onSelectField: (fieldPath: string) => void;
   isLoading: boolean;
-  isScaleEnabled?: boolean;
 }
 
 const getColorAndIconForMessageType = (type: string) => {
@@ -82,7 +81,7 @@ function FieldPathCell({ path }: { path: string }) {
   );
 }
 
-export default function FieldsTable({ fields, onSelectField, isLoading, isScaleEnabled = false }: FieldsTableProps) {
+export default function FieldsTable({ fields, onSelectField, isLoading }: FieldsTableProps) {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center px-6 pb-5">
@@ -130,16 +129,12 @@ export default function FieldsTable({ fields, onSelectField, isLoading, isScaleE
               <th className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider">
                 Required
               </th>
-              {isScaleEnabled && (
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider">
-                  Consistency
-                </th>
-              )}
-              {isScaleEnabled && (
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider">
-                  Used In
-                </th>
-              )}
+              <th className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider">
+                Consistency
+              </th>
+              <th className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider">
+                Used In
+              </th>
               <th className="px-4 py-2.5 text-left text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wider">
                 Owners
               </th>
@@ -178,32 +173,28 @@ export default function FieldsTable({ fields, onSelectField, isLoading, isScaleE
                       <span className="text-[0.8rem] text-[rgb(var(--ec-page-text-muted))]">-</span>
                     )}
                   </td>
-                  {isScaleEnabled && (
-                    <td className="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
-                      {field.conflicts && field.conflicts.length > 1 ? (
-                        <div
-                          className="flex items-center gap-1.5"
-                          title={field.conflicts.map((c) => `${c.type} (${c.count})`).join(', ')}
-                        >
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                            {field.conflicts.length} types
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center" title="All usages of this field match the same type">
-                          <Check className="h-4 w-4 text-green-500" />
+                  <td className="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                    {field.conflicts && field.conflicts.length > 1 ? (
+                      <div
+                        className="flex items-center gap-1.5"
+                        title={field.conflicts.map((c) => `${c.type} (${c.count})`).join(', ')}
+                      >
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                          {field.conflicts.length} types
                         </span>
-                      )}
-                    </td>
-                  )}
-                  {isScaleEnabled && (
-                    <td className="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
-                      <span className="text-[0.8rem] text-[rgb(var(--ec-page-text-muted))]">
-                        {field.usedInCount || 1} {(field.usedInCount || 1) === 1 ? 'schema' : 'schemas'}
+                      </div>
+                    ) : (
+                      <span className="inline-flex items-center" title="All usages of this field match the same type">
+                        <Check className="h-4 w-4 text-green-500" />
                       </span>
-                    </td>
-                  )}
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
+                    <span className="text-[0.8rem] text-[rgb(var(--ec-page-text-muted))]">
+                      {field.usedInCount || 1} {(field.usedInCount || 1) === 1 ? 'schema' : 'schemas'}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))]">
                     {owners.length > 0 ? (
                       <div className="flex items-center gap-1 flex-wrap">

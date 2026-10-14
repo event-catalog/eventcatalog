@@ -1,0 +1,34 @@
+---
+id: loyalty
+name: Loyalty
+version: 1.0.0
+summary: |
+  The Loyalty subdomain rewards customers for shopping with Acme Inc. It awards points when orders complete, reverses them when orders are cancelled, and keeps each customer's points balance.
+owners:
+  - customer-platform
+systems:
+  - id: loyalty-system
+    version: 1.0.0
+badges:
+  - content: Supporting subdomain
+    backgroundColor: purple
+    textColor: purple
+    icon: RectangleGroupIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Loyalty** subdomain is part of the [[domain|customer]] domain. It listens to the order lifecycle from the Ordering domain and turns completed orders into loyalty points that customers can redeem on future purchases.
+
+| Trigger | Outcome |
+|---------|---------|
+| [[event\|order-completed]] | Points are awarded and [[event\|loyalty-points-earned]] is published. |
+| [[event\|order-cancelled]] | Previously awarded points are removed and [[event\|loyalty-points-reversed]] is published. |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

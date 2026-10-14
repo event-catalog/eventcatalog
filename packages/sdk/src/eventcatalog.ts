@@ -1,6 +1,7 @@
 import type { EventCatalog } from './types';
 import fs from 'fs';
 import path, { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import utils from './index';
 import { getResourcePath } from './internal/resources';
 
@@ -72,7 +73,7 @@ export const getEventCatalogConfigurationFile = (directory: string) => async ():
   try {
     const path = join(directory, 'eventcatalog.config.js');
     // Dynamically import the ES module
-    const configModule = await import(path);
+    const configModule = await import(/* @vite-ignore */ pathToFileURL(path).href);
     return configModule.default;
   } catch (error) {
     console.error('Error getting event catalog configuration file', error);

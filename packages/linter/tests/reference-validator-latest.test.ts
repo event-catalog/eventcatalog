@@ -20,6 +20,17 @@ const createParsedFile = (resourceType: any, resourceId: string, frontmatter: an
 };
 
 describe('validateReferences - latest version handling', () => {
+  it('treats an id such as __proto__ as any other id', () => {
+    const parsedFiles: ParsedFile[] = [
+      createParsedFile('service', '__proto__', { id: '__proto__', version: '1.0.0', sends: [{ id: 'constructor' }] }),
+    ];
+
+    const errors = validateReferences(parsedFiles);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].message).toContain('constructor');
+    expect(({} as any).add).toBeUndefined();
+  });
+
   it('should allow references without version (latest)', () => {
     const parsedFiles: ParsedFile[] = [
       createParsedFile('domain', 'sales', {

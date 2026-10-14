@@ -1,5 +1,11 @@
-import React from "react";
-import { NodeToolbar, Position, useViewport, type Node } from "@xyflow/react";
+import React, { memo } from "react";
+import {
+  NodeToolbar,
+  Position,
+  useStore,
+  type Node,
+  type ReactFlowState,
+} from "@xyflow/react";
 import { ArrowRightLeft, FileText } from "lucide-react";
 import { getNodeDocUrl } from "./utils";
 import { buildUrl } from "../../utils/url-builder";
@@ -10,12 +16,16 @@ interface FocusModeNodeActionsProps {
   onSwitch: (nodeId: string, direction: "left" | "right") => void;
 }
 
+// Smaller when zoomed out (not below 40%): only the zoom, so panning doesn't re-render every node's actions
+const selectScaleFactor = (state: ReactFlowState) =>
+  Math.max(0.4, Math.min(1, state.transform[2]));
+
 const FocusModeNodeActions: React.FC<FocusModeNodeActionsProps> = ({
   node,
   isCenter,
   onSwitch,
 }) => {
-  const { zoom } = useViewport();
+  const scaleFactor = useStore(selectScaleFactor);
 
   // Don't show actions for placeholder nodes
   if (node.type === "placeholder") return null;
@@ -26,7 +36,6 @@ const FocusModeNodeActions: React.FC<FocusModeNodeActionsProps> = ({
   // Scale sizes based on zoom (inverse relationship - smaller when zoomed out)
   const baseButtonSize = 24;
   const baseIconSize = 12;
-  const scaleFactor = Math.max(0.4, Math.min(1, zoom));
   const buttonSize = Math.round(baseButtonSize * scaleFactor);
   const iconSize = Math.round(baseIconSize * scaleFactor);
 
@@ -103,4 +112,4 @@ const FocusModeNodeActions: React.FC<FocusModeNodeActionsProps> = ({
   );
 };
 
-export default FocusModeNodeActions;
+export default memo(FocusModeNodeActions);

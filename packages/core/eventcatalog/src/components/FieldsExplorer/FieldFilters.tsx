@@ -15,7 +15,6 @@ export interface FieldFiltersProps {
     formats: { value: string; count: number }[];
     messageTypes: { value: string; count: number }[];
   } | null;
-  isScaleEnabled?: boolean;
 }
 
 export default function FieldFilters({
@@ -28,7 +27,6 @@ export default function FieldFilters({
   conflictingOnly,
   onConflictingOnlyChange,
   facets,
-  isScaleEnabled = false,
 }: FieldFiltersProps) {
   const toggleFormat = (value: string) => {
     if (selectedFormats.includes(value)) {
@@ -131,32 +129,30 @@ export default function FieldFilters({
       </div>
 
       {/* Conflicting Fields Only Toggle */}
-      {isScaleEnabled && (
-        <div>
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <div
-              className={`w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center transition-colors ${
-                conflictingOnly
-                  ? 'bg-amber-500 border-amber-500'
-                  : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] group-hover:border-[rgb(var(--ec-icon-color))]'
-              }`}
-              onClick={() => onConflictingOnlyChange(!conflictingOnly)}
-            >
-              {conflictingOnly && (
-                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </div>
-            <span className="text-sm text-[rgb(var(--ec-page-text))]" onClick={() => onConflictingOnlyChange(!conflictingOnly)}>
-              Conflicting fields
-            </span>
-          </label>
-          <p className="text-[11px] text-[rgb(var(--ec-page-text-muted))] mt-1 ml-6">
-            Show only fields with inconsistent types across messages
-          </p>
-        </div>
-      )}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer group">
+          <div
+            className={`w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center transition-colors ${
+              conflictingOnly
+                ? 'bg-amber-500 border-amber-500'
+                : 'border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] group-hover:border-[rgb(var(--ec-icon-color))]'
+            }`}
+            onClick={() => onConflictingOnlyChange(!conflictingOnly)}
+          >
+            {conflictingOnly && (
+              <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </div>
+          <span className="text-sm text-[rgb(var(--ec-page-text))]" onClick={() => onConflictingOnlyChange(!conflictingOnly)}>
+            Conflicting fields
+          </span>
+        </label>
+        <p className="text-[11px] text-[rgb(var(--ec-page-text-muted))] mt-1 ml-6">
+          Show only fields with inconsistent types across messages
+        </p>
+      </div>
 
       {/* Results & Clear */}
       {activeFilterCount > 0 && (

@@ -6,8 +6,8 @@
  */
 
 /* Forest Light Mode */
-:root[data-catalog-theme="forest"],
-:root[data-catalog-theme="forest"][data-theme="light"] {
+:root[data-catalog-theme='forest'],
+:root[data-catalog-theme='forest'][data-theme='light'] {
   /* Header - clean white */
   --ec-header-bg: 255 255 255; /* #ffffff */
   --ec-header-text: 20 20 20; /* #141414 */
@@ -110,7 +110,7 @@
 }
 
 /* Forest Dark Mode */
-:root[data-catalog-theme="forest"][data-theme="dark"] {
+:root[data-catalog-theme='forest'][data-theme='dark'] {
   /* Header - deep forest dark */
   --ec-header-bg: 3 7 18; /* #030712 gray-950 */
   --ec-header-text: 243 244 246; /* #f3f4f6 gray-100 */
@@ -209,7 +209,7 @@
 }
 
 /* Forest theme prose overrides */
-:root[data-catalog-theme="forest"][data-theme="dark"] .prose {
+:root[data-catalog-theme='forest'][data-theme='dark'] .prose {
   --tw-prose-body: rgb(156 163 175); /* gray-400 */
   --tw-prose-headings: rgb(243 244 246); /* gray-100 */
   --tw-prose-lead: rgb(107 114 128); /* gray-500 */
@@ -228,19 +228,19 @@
   --tw-prose-td-borders: rgb(31 41 55); /* gray-800 */
 }
 
-:root[data-catalog-theme="forest"][data-theme="dark"] .prose code {
+:root[data-catalog-theme='forest'][data-theme='dark'] .prose code {
   background-color: rgb(31 41 55); /* gray-800 */
 }
 
-:root[data-catalog-theme="forest"][data-theme="dark"] .prose pre {
+:root[data-catalog-theme='forest'][data-theme='dark'] .prose pre {
   background-color: rgb(17 24 39); /* gray-900 */
   border: 1px solid rgb(31 41 55); /* gray-800 */
 }
 
-:root[data-catalog-theme="forest"][data-theme="dark"] .prose a {
+:root[data-catalog-theme='forest'][data-theme='dark'] .prose a {
   color: rgb(74 222 128); /* green-400 */
 }
 
-:root[data-catalog-theme="forest"][data-theme="dark"] .prose a:hover {
+:root[data-catalog-theme='forest'][data-theme='dark'] .prose a:hover {
   color: rgb(134 239 172); /* green-300 */
 }

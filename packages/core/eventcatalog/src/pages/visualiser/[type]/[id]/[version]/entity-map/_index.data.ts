@@ -47,13 +47,6 @@ export class Page extends HybridPage {
     return item;
   }
 
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Service entity map page not found',
-    });
-  }
-
   static get clientAuthScript(): string {
     if (!isAuthEnabled() || !isVisualiserEnabled()) {
       return '';

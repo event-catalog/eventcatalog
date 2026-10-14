@@ -6,14 +6,16 @@ import { badge, ownerReference } from './content.config-shared-collections';
 import { ADR_STATUS_VALUES } from './utils/collections/adr-constants';
 import fs from 'fs';
 import path from 'path';
-import { userTeamDirectoryLoader } from './enterprise/directory/user-team-directory';
+import { userTeamDirectoryLoader } from './features/directory/user-team-directory';
 import config from '@config';
 import { schemaLoader } from './utils/collections/schema-loader';
 import { globWithSafeWatcher, withFederatedContent, withIgnoredBuildArtifacts } from './utils/collections/glob-loader';
 import { withExtensionProperties } from './utils/collections/extension-properties';
+import { flowStepSchema } from './utils/collections/flow-step-schema';
+import { pointer } from './utils/collections/pointer-schema';
 
-// Enterprise Collections
-import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './enterprise/collections';
+// Custom pages and resource docs collections
+import { customPagesSchema, resourceDocsSchema, resourceDocCategoriesSchema } from './features/collections';
 
 // Astro's root is the user's catalog. Keep loader paths relative to that root,
 // independently of where generated metadata or the installed package lives.
@@ -30,11 +32,6 @@ const pages = defineCollection({
       id: z.string(),
     })
     .optional(),
-});
-
-const pointer = z.object({
-  id: z.string(),
-  version: z.string().optional().default('latest'),
 });
 
 const detailPanelPropertySchema = z.object({
@@ -235,19 +232,6 @@ const baseSchema = z.object({
 
 const agentBaseSchema = baseSchema.omit({ specifications: true });
 
-const flowStep = z
-  .union([
-    // Can be a string or a number just to reference a step
-    z.union([z.string(), z.number()]),
-    z
-      .object({
-        id: z.union([z.string(), z.number()]),
-        label: z.string().optional(),
-      })
-      .optional(),
-  ])
-  .optional();
-
 const flows = defineCollection({
   loader: globWithSafeWatcher({
     pattern: withIgnoredBuildArtifacts(['**/flows/**/index.(md|mdx)', '**/flows/**/versioned/*/index.(md|mdx)']),
@@ -266,80 +250,7 @@ const flows = defineCollection({
             changelog: detailPanelPropertySchema.optional(),
           })
           .optional(),
-        steps: z.array(
-          z
-            .object({
-              id: z.union([z.string(), z.number()]),
-              type: z.enum(['node', 'message', 'agent', 'user', 'actor']).optional(),
-              title: z.string(),
-              summary: z.string().optional(),
-              message: pointer.optional(),
-              agent: pointer.optional(),
-              service: pointer.optional(),
-              // Catalog system reference. `systems` matches how authors write the
-              // pointer (same shape as `service`); `system` is accepted as an alias.
-              systems: pointer.optional(),
-              system: pointer.optional(),
-              flow: pointer.optional(),
-              container: pointer.optional(),
-              dataProduct: pointer.optional(),
-
-              actor: z
-                .object({
-                  name: z.string(),
-                  summary: z.string().optional(),
-                })
-                .optional(),
-              custom: z
-                .object({
-                  title: z.string(),
-                  icon: z.string().optional(),
-                  type: z.string().optional(),
-                  summary: z.string().optional(),
-                  url: z.string().url().optional(),
-                  color: z.string().optional(),
-                  properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
-                  height: z.number().optional(),
-                  menu: z
-                    .array(
-                      z.object({
-                        label: z.string(),
-                        url: z.string().url().optional(),
-                      })
-                    )
-                    .optional(),
-                })
-                .optional(),
-              externalSystem: z
-                .object({
-                  name: z.string(),
-                  summary: z.string().optional(),
-                  url: z.string().url().optional(),
-                })
-                .optional(),
-              next_step: flowStep,
-              next_steps: z.array(flowStep).optional(),
-            })
-            .refine((data) => {
-              // Cant have both next_steps and next_steps
-              if (data.next_step && data.next_steps) return false;
-
-              // Either one or non types can be present
-              const typesUsed = [
-                data.message,
-                data.agent,
-                data.service,
-                data.systems,
-                data.system,
-                data.flow,
-                data.container,
-                data.dataProduct,
-                data.actor,
-                data.custom,
-              ].filter((v) => v).length;
-              return typesUsed === 0 || typesUsed === 1;
-            })
-        ),
+        steps: z.array(flowStepSchema),
       })
       .extend(baseSchema.shape)
   ),
@@ -499,6 +410,8 @@ const services = defineCollection({
         'systems/*/services/*/versioned/*/index.(md|mdx)',
         'domains/*/systems/*/services/*/index.(md|mdx)',
         'domains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
+        'domains/*/subdomains/*/systems/*/services/*/index.(md|mdx)',
+        'domains/*/subdomains/*/systems/*/services/*/versioned/*/index.(md|mdx)',
 
         // Capture services in the root
         'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
@@ -589,7 +502,24 @@ const agents = defineCollection({
   ),
 });
 
-const adrStatus = z.enum(ADR_STATUS_VALUES);
+// ADRs need a status and a date, and say so when they're missing or invalid. Astro's own message for
+// a missing or unreadable date was "Expected type date, received object", with the field name garbled.
+const adrStatus = z.enum(ADR_STATUS_VALUES, {
+  error: (issue) =>
+    issue.input === undefined ? `Required: one of ${ADR_STATUS_VALUES.map((value) => `"${value}"`).join(', ')}` : undefined,
+});
+const adrDate = z.preprocess(
+  // Converted to a date only when it's set: a missing date coerced first became an invalid date
+  (value) => (value == null ? value : new Date(value as string | number | Date)),
+  z.date({
+    error: (issue) =>
+      issue.input === undefined
+        ? 'Required: a date, e.g. 2026-06-01'
+        : issue.input instanceof Date
+          ? 'Invalid date: use a date, e.g. 2026-06-01'
+          : undefined,
+  })
+);
 
 const adrPointer = z.object({
   id: z.string(),
@@ -626,7 +556,7 @@ const adrs = defineCollection({
     z
       .object({
         status: adrStatus,
-        date: z.coerce.date(),
+        date: adrDate,
         decisionMakers: z.array(ownerReference).optional(),
         appliesTo: z.array(adrResourcePointer).optional(),
         supersedes: z.array(adrPointer).optional(),
@@ -1311,7 +1241,7 @@ export const collections = {
   ubiquitousLanguages,
   entities,
 
-  // EventCatalog Pro Collections
+  // Documentation Collections
   customPages,
   resourceDocs,
   resourceDocCategories,

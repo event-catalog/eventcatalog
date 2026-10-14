@@ -56,8 +56,4 @@ export class Page extends HybridPage {
 
     return { type, example, ...item };
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, { status: 404, statusText: 'Example not found' });
-  }
 }

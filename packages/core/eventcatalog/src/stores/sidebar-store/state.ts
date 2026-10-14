@@ -38,10 +38,12 @@ import { iconFieldsForResource } from '@utils/icon';
 import {
   buildQuickReferenceSection,
   buildResourceDocsSection,
+  buildResourcesLink,
   shouldRenderSideBarSection,
   withArchitectureDecisionsSection,
 } from './builders/shared';
-import { isArchitectureGraphEnabled, isChangelogEnabled, isResourceDocsEnabled } from '@utils/feature';
+import { getResourcesPageKeys } from '@utils/collections/resource-owners';
+import { isArchitectureGraphEnabled, isChangelogEnabled } from '@utils/feature';
 import { collectMessageIdsWithFieldUsage } from '@utils/collections/field-usage';
 
 export type { NavigationData, NavNode, ChildRef };
@@ -335,7 +337,6 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const messages = [...allEvents, ...allCommands, ...allQueries];
 
   const context = {
-    resourceDocsEnabled: isResourceDocsEnabled(),
     agents,
     services,
     domains,
@@ -356,6 +357,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     teams,
     resourceDocs,
     resourceDocCategories,
+    // Same rule the Resources pages are built from, so a link never points at a missing page.
+    resourcesPages: await getResourcesPageKeys(),
   };
 
   // Process all domains with their owners first (async)
@@ -659,7 +662,6 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   );
 
   const dataProductContext = {
-    resourceDocsEnabled: isResourceDocsEnabled(),
     events,
     commands,
     queries,
@@ -803,6 +805,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                   title: 'Overview',
                   href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
                 },
+                buildResourcesLink(context, 'channels', channel.data.id, channel.data.version),
                 isChangelogEnabled() &&
                   shouldRenderSideBarSection(channel, 'changelog') && {
                     title: 'Changelog',
@@ -818,7 +821,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
               pages: [
                 {
                   type: 'item',
-                  title: 'Map',
+                  title: 'Diagram',
                   href: buildUrl(`/visualiser/${channel.collection}/${channel.data.id}/${channel.data.version}`),
                 },
               ],
@@ -879,7 +882,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
               ? [
                   {
                     type: 'item' as const,
-                    title: 'System Context Map',
+                    title: 'System Context Diagram',
                     href: buildUrl('/visualiser/system-context-map'),
                   },
                 ]
@@ -1172,7 +1175,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       pages: [
         {
           type: 'item',
-          title: 'System Context Map',
+          title: 'System Context Diagram',
           href: buildUrl('/visualiser/system-context-map'),
         },
       ],

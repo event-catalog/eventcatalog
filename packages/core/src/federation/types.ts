@@ -1,8 +1,3 @@
-/**
- * Licensed under the EventCatalog Commercial License.
- * See /packages/core/src/federation/LICENSE
- */
-
 import type { Index } from '@eventcatalog/sdk';
 import type { FederationSourceConfig } from '../eventcatalog.config';
 

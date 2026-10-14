@@ -1,0 +1,41 @@
+---
+id: returns-system
+name: Returns System
+version: 1.0.0
+summary: |
+  Internal system that accepts, approves and tracks customer returns through to their arrival back at the warehouse.
+owners:
+  - fulfilment-platform
+services:
+  - id: returns-api
+  - id: returns-processor
+badges:
+  - content: Internal
+    backgroundColor: gray
+    textColor: gray
+    icon: LockClosedIcon
+---
+
+## Overview
+
+The **Returns System** owns the returns journey. The [[service|returns-api]] accepts [[command|request-return]] from customers, and the [[service|returns-processor]] approves returns and confirms receipt. Both share the [[container|returns-database]].
+
+## Resource Diagram
+
+The services and messages that make up this system.
+
+<NodeGraph />
+
+## What's inside
+
+| Component | Type | Responsibility |
+|-----------|------|----------------|
+| [[service\|returns-api]] | Service | Accepts return requests from customers. |
+| [[service\|returns-processor]] | Service | Applies the returns policy and tracks returned parcels. |
+| [[container\|returns-database]] | Data store | Return requests and their status. |
+
+## Messages this system sends
+
+- [[event\|return-requested]] — a customer asked to return items.
+- [[event\|return-approved]] — the return passed policy checks.
+- [[event\|return-received]] — returned items arrived at the warehouse.

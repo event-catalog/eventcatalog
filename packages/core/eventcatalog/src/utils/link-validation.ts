@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { parse, type DefaultTreeAdapterMap } from 'parse5';
+import { Parser } from 'htmlparser2';
 import picomatch from 'picomatch';
 
 export type LinkValidationSeverity = 'warn' | 'error' | 'ignore';
@@ -42,30 +42,36 @@ const decodeUrlPart = (value: string): string => {
   }
 };
 
+// Elements whose contents browsers don't render as markup (<noscript> when scripts run)
+const INERT_ELEMENTS = new Set(['template', 'noscript']);
+
 // Parse HTML rather than searching markup with a regex: attributes can contain
 // entities, quoted > characters, or single/unquoted values. Scripts and inert
 // template contents must not be mistaken for rendered links or anchor targets.
+// A streaming parser, not a document tree: pages can be large (island props),
+// and building a tree of each one made link validation a large part of a build.
 const readPage = (html: string, source: string): PageLinks => {
   const page: PageLinks = { source, anchors: new Set(), links: new Set() };
-  const nodes: DefaultTreeAdapterMap['node'][] = [parse(html)];
-  while (nodes.length > 0) {
-    const node = nodes.pop()!;
-    if ('tagName' in node) {
-      const attrs = new Map(node.attrs.map((attr) => [attr.name, attr.value]));
-      const id = attrs.get('id');
-      if (id) page.anchors.add(id);
-      if (node.tagName === 'a' && attrs.get('name')) page.anchors.add(attrs.get('name')!);
-      const href = attrs.get('href');
-      if (href !== undefined) {
-        if (node.tagName === 'base' && page.baseHref === undefined) page.baseHref = href;
-        if (node.tagName === 'a' || node.tagName === 'area') page.links.add(href);
+  let inert = 0;
+  const parser = new Parser({
+    onopentag(tagName, attrs) {
+      if (inert === 0) {
+        if (attrs.id) page.anchors.add(attrs.id);
+        if (tagName === 'a' && attrs.name) page.anchors.add(attrs.name);
+        const href = attrs.href;
+        if (href !== undefined) {
+          // Parsed in document order, so the first <base href> wins
+          if (tagName === 'base' && page.baseHref === undefined) page.baseHref = href;
+          if (tagName === 'a' || tagName === 'area') page.links.add(href);
+        }
       }
-    }
-    // Reverse the stack so the first <base href> wins in document order.
-    if ('childNodes' in node) {
-      for (let i = node.childNodes.length - 1; i >= 0; i--) nodes.push(node.childNodes[i]);
-    }
-  }
+      if (INERT_ELEMENTS.has(tagName)) inert++;
+    },
+    onclosetag(tagName) {
+      if (INERT_ELEMENTS.has(tagName) && inert > 0) inert--;
+    },
+  });
+  parser.end(html);
   return page;
 };
 

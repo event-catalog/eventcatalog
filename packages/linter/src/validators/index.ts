@@ -14,6 +14,7 @@ import {
   validateOrphanMessages,
   validateDeprecatedReferences,
   validateDuplicateResourceIds,
+  validateFlowSteps,
 } from './reference-validator';
 import { validateBestPractices } from './best-practices-validator';
 import { validateUnknownFields } from './unknown-field-validator';
@@ -31,6 +32,7 @@ export const validateCatalog = (
   const orphanErrors = validateOrphanMessages(parsedFiles, dependencies);
   const deprecatedRefErrors = validateDeprecatedReferences(parsedFiles);
   const duplicateErrors = validateDuplicateResourceIds(parsedFiles);
+  const flowStepErrors = validateFlowSteps(parsedFiles);
   const bestPracticeErrors = validateBestPractices(parsedFiles);
 
   return [
@@ -41,6 +43,7 @@ export const validateCatalog = (
     ...orphanErrors,
     ...deprecatedRefErrors,
     ...duplicateErrors,
+    ...flowStepErrors,
     ...bestPracticeErrors,
   ];
 };

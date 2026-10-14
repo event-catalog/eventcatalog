@@ -4,27 +4,18 @@ import { Bot, FileText } from 'lucide-react';
 import { aiSettingsSchema } from '@utils/eventcatalog-config/config-schema';
 import { ReadOnlyBanner } from './ReadOnlyBanner';
 import { Row } from './Row';
-import { ToggleRow, UpgradeRequired, UrlPanel } from './SettingsShared';
+import { ToggleRow, UrlPanel } from './SettingsShared';
 
 interface Props {
   canEdit: boolean;
   initial: { llmsTxtEnabled: boolean; chatEnabled: boolean };
-  hasScalePlan: boolean;
   apiBase: string;
   llmsTxtUrl: string;
   llmsFullTxtUrl: string;
   schemasTxtUrl: string;
 }
 
-export const LlmAccessSettingsForm = ({
-  canEdit,
-  initial,
-  hasScalePlan,
-  apiBase,
-  llmsTxtUrl,
-  llmsFullTxtUrl,
-  schemasTxtUrl,
-}: Props) => {
+export const LlmAccessSettingsForm = ({ canEdit, initial, apiBase, llmsTxtUrl, llmsFullTxtUrl, schemasTxtUrl }: Props) => {
   const [llmsTxtEnabled, setLlmsTxtEnabled] = useState(initial.llmsTxtEnabled);
   const [pristine, setPristine] = useState(initial.llmsTxtEnabled);
   const [saving, setSaving] = useState(false);
@@ -73,51 +64,49 @@ export const LlmAccessSettingsForm = ({
   };
 
   return (
-    <form onSubmit={(e) => e.preventDefault()} className="divide-y divide-[rgb(var(--ec-page-border))]">
+    <>
       <Toaster richColors closeButton position="bottom-right" theme="system" />
-      {!canEdit && (
-        <div className="pb-6">
-          <ReadOnlyBanner />
-        </div>
-      )}
-
-      <Row
-        title="llms.txt"
-        description="Generate llms.txt files so tools like Claude, ChatGPT, and Cursor can read your catalog at /llms.txt."
-        canEdit={canEdit}
-        dirty={dirty}
-        saving={saving}
-        onSave={save}
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="divide-y divide-[rgb(var(--ec-page-border))] border-t border-[rgb(var(--ec-page-border))]"
       >
-        <ToggleRow
-          icon={<Bot className="h-4 w-4" aria-hidden />}
-          label={llmsTxtEnabled ? 'Enabled' : 'Disabled'}
-          hint={
-            llmsTxtEnabled ? 'AI tools can read your catalog at /llms.txt.' : 'AI tools will not be able to read your catalog.'
-          }
-          checked={llmsTxtEnabled}
-          disabled={!canEdit}
-          onChange={setLlmsTxtEnabled}
-        />
-        {llmsTxtEnabled && <LlmsTxtPreview url={llmsTxtUrl} fullUrl={llmsFullTxtUrl} />}
-      </Row>
-
-      <Row
-        title="schemas.txt"
-        description="Give LLMs access to every schema across your organization in one place — events, commands, queries, and services."
-        canEdit={false}
-        dirty={false}
-      >
-        {hasScalePlan ? (
-          <SchemasTxtAvailable url={schemasTxtUrl} />
-        ) : (
-          <UpgradeRequired
-            tier="Scale"
-            blurb="The schema index is a Scale-plan feature. Upgrade to publish a machine-readable catalogue of your schemas alongside llms.txt."
-          />
+        {!canEdit && (
+          <div className="pb-6">
+            <ReadOnlyBanner />
+          </div>
         )}
-      </Row>
-    </form>
+
+        <Row
+          title="llms.txt"
+          description="Generate llms.txt files so tools like Claude, ChatGPT, and Cursor can read your catalog at /llms.txt."
+          canEdit={canEdit}
+          dirty={dirty}
+          saving={saving}
+          onSave={save}
+        >
+          <ToggleRow
+            icon={<Bot className="h-4 w-4" aria-hidden />}
+            label={llmsTxtEnabled ? 'Enabled' : 'Disabled'}
+            hint={
+              llmsTxtEnabled ? 'AI tools can read your catalog at /llms.txt.' : 'AI tools will not be able to read your catalog.'
+            }
+            checked={llmsTxtEnabled}
+            disabled={!canEdit}
+            onChange={setLlmsTxtEnabled}
+          />
+          {llmsTxtEnabled && <LlmsTxtPreview url={llmsTxtUrl} fullUrl={llmsFullTxtUrl} />}
+        </Row>
+
+        <Row
+          title="schemas.txt"
+          description="Give LLMs access to every schema across your organization in one place — events, commands, queries, and services."
+          canEdit={false}
+          dirty={false}
+        >
+          <SchemasTxtAvailable url={schemasTxtUrl} />
+        </Row>
+      </form>
+    </>
   );
 };
 

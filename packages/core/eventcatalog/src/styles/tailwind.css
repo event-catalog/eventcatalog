@@ -171,7 +171,7 @@
  * scanning, so we explicitly declare them here.
  *
  * Colors used: orange, blue, green, emerald, amber, violet, pink, purple, gray, yellow, teal, cyan, indigo
- * Used in: SchemaListItem, Grids/components, SchemaExplorer, MessageGrid
+ * Used in: SchemaListItem, SchemaExplorer
  */
 @source inline("bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-{50,100}");
 @source inline("bg-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-500/{10,20}");
@@ -180,7 +180,7 @@
 @source inline("ring-2");
 @source inline("ring-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-500");
 
-/* Border color variants for MessageGrid cards */
+/* Border color variants built at runtime (e.g. hover borders in MessageTableColumns) */
 @source inline("border-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-{200,300}");
 @source inline("{dark:,}border-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-500/{30,50}");
 @source inline("{hover:,dark:hover:,}border-{orange,blue,green,emerald,amber,violet,pink,purple,gray,yellow,teal,cyan,indigo}-{300,400,500,500/50}");

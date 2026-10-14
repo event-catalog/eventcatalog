@@ -3,10 +3,18 @@ import type { HTMLAttributes } from 'astro/types';
 
 interface Props extends Omit<HTMLAttributes<'div'>, 'children'> {}
 import NestedSideBar from './NestedSideBar';
+import { buildSidebarSnapshot, stripBasePath } from './NestedSideBar/utils';
+import { getNestedSideBarData } from '@stores/sidebar-store/state';
 import { ClientRouter } from 'astro:transitions';
+
+// Render this page's sidebar level into the HTML so it shows before any JavaScript runs;
+// the full navigation still loads from /api/sidebar-data.json (see SearchDataLoader)
+const snapshot = buildSidebarSnapshot(await getNestedSideBarData(), stripBasePath(Astro.url.pathname));
 ---
 
 <div {...Astro.props}>
   <ClientRouter />
-  <NestedSideBar client:only="react" />
+  <NestedSideBar client:only="react" snapshot={snapshot}>
+    <NestedSideBar slot="fallback" snapshot={snapshot} />
+  </NestedSideBar>
 </div>

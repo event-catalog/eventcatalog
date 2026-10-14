@@ -8,7 +8,6 @@ import { Page } from './_index.data';
 import SchemaPageViewer from '@components/SchemaExplorer/SchemaPageViewer';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { sortVersioned } from '@utils/collections/util';
-import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
 import path from 'node:path';
 import type { FlowUsage, SchemaItem } from '@components/SchemaExplorer/types';
@@ -35,6 +34,7 @@ export const getStaticPaths = Page.getStaticPaths;
 
 // Get data
 const props = await Page.getData(Astro);
+if (!props) return Astro.rewrite('/404');
 const { type, data } = props as { type: PageTypes; data: any };
 
 // Check if this is a data product with a contract
@@ -187,10 +187,16 @@ if (isDataProduct && contractPath) {
   }
 }
 
-const apiAccessEnabled = isEventCatalogScaleEnabled();
 // Render the requested tab on the server so the page does not flash the default tab before hydration.
 // Static builds cannot see the query string, so the panel also restores the tab on the client.
 const initialTab = Astro.url.searchParams.get('tab') ?? undefined;
+
+// The versions to switch between and compare. The one being viewed is also `message`, with its usage and flow graphs;
+// switching and comparing only need the schemas, so the list leaves the graphs out (each page carried them twice)
+const versionChoices = sortedVersions.map(({ graph: _graph, ...version }) => {
+  const { flows: _flows, ...data } = version.data;
+  return { ...version, data };
+});
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
@@ -215,8 +221,7 @@ const initialTab = Astro.url.searchParams.get('tab') ?? undefined;
         <SchemaPageViewer
           client:load
           message={currentMessage}
-          availableVersions={sortedVersions}
-          apiAccessEnabled={apiAccessEnabled}
+          availableVersions={versionChoices}
           showOwners={true}
           showProducersConsumers={true}
           initialTab={initialTab}

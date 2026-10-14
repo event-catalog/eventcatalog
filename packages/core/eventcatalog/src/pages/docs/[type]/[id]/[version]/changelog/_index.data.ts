@@ -59,11 +59,4 @@ export class Page extends HybridPage {
       ...item,
     };
   }
-
-  protected static createNotFoundResponse(): Response {
-    return new Response(null, {
-      status: 404,
-      statusText: 'Changelog not found',
-    });
-  }
 }

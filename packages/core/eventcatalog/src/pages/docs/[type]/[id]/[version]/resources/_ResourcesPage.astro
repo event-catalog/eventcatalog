@@ -1,0 +1,79 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { buildUrl } from '@utils/url-builder';
+import { isVisualiserEnabled } from '@utils/feature';
+import {
+  ResourcesTable,
+  type ResourceItem,
+} from '@components/Tables/Resources/ResourcesTable';
+import { getCollection } from 'astro:content';
+import {
+  getDocsPath,
+  getFavorite,
+  getResourceGroups,
+  getResourceRelationship,
+  getSchemaPath,
+  getVisualiserPath,
+  type ResourceOwner,
+  type ResourceOwnerCollection,
+} from '@utils/collections/resources';
+
+// Shared by the generic Resources route and the services route.
+interface Props {
+  resourceOwner: ResourceOwner;
+}
+
+const { resourceOwner } = Astro.props;
+const { data } = resourceOwner;
+const ownerCollection = resourceOwner.collection as ResourceOwnerCollection;
+
+// Only show resources directly attached to the owner. Domain child resources are not
+// flattened, so services inside a child system remain on that system's page.
+const resourceGroups = getResourceGroups(data, ownerCollection, resourceOwner);
+
+const withBaseUrl = (path: string | undefined) => (path ? buildUrl(path) : undefined);
+
+// Messages with an entry in the schemas collection have a schema page.
+const schemaKeys = new Set(
+  (await getCollection('schemas')).map(
+    ({ data: schema }) => `${schema.message.collectionName}:${schema.message.id}:${schema.message.version}`
+  )
+);
+
+const resources: ResourceItem[] = resourceGroups.flatMap(({ collection, items }) =>
+  items.map((item) => ({
+    collection,
+    id: item.data.id,
+    name: item.data.name || item.data.id,
+    version: item.data.version,
+    summary: item.data.summary,
+    icon: item.data?.styles?.icon,
+    href: buildUrl(getDocsPath(collection, item)),
+    visualiserHref: withBaseUrl(getVisualiserPath(collection, item, isVisualiserEnabled())),
+    schemaHref: withBaseUrl(getSchemaPath(collection, item, schemaKeys)),
+    favorite: getFavorite(collection, item),
+    relationship: getResourceRelationship(data, ownerCollection, collection, item, resourceOwner),
+  }))
+);
+---
+
+<VerticalSideBarLayout title={`${data.name} | Resources`}>
+  <style is:global>
+    :root[data-embedded='true'] #resources-page {
+      height: 100dvh !important;
+    }
+  </style>
+  {/* Like the discover pages: pull the table out of the content gutter and fill the viewport so it can paginate. */}
+  <main
+    id="resources-page"
+    class="flex h-full min-h-0 flex-col overflow-hidden bg-[rgb(var(--ec-page-bg))]"
+    style="margin-left: calc(var(--ec-app-content-padding-left, 5rem) * -1); margin-right: calc(var(--ec-app-content-padding-right, 5rem) * -1); height: calc(100dvh - 60px);"
+  >
+    <ResourcesTable
+      resources={resources}
+      title={`${data.name} Resources`}
+      description={`${resources.length} ${resources.length === 1 ? 'resource' : 'resources'} mapped to ${data.name}.`}
+      client:only="react"
+    />
+  </main>
+</VerticalSideBarLayout>

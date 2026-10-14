@@ -6,6 +6,7 @@ import {
   buildResourceDocsSection,
   shouldRenderSideBarSection,
   buildArchitectureDecisionsSection,
+  buildResourcesLink,
 } from './shared';
 import { isChangelogEnabled } from '@utils/feature';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
@@ -157,6 +158,7 @@ export const buildFlowSections = (flow: CollectionEntry<'flows'>, context: Resou
     'quick-reference': buildQuickReferenceSection(
       [
         { title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) },
+        buildResourcesLink(context, 'flows', flow.data.id, flow.data.version),
         isChangelogEnabled() &&
           shouldRenderSideBarSection(flow, 'changelog') && {
             title: 'Changelog',

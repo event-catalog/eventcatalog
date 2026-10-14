@@ -1,0 +1,24 @@
+/*
+ * The canvas view's Tailwind stylesheet (with Tailwind's base reset) and EventCatalog's theme variables,
+ * built from the classes of the collaborative canvas components it renders.
+ */
+@import 'tailwindcss' source(none);
+@import '../../../../styles/theme.css';
+@import '@eventcatalog/visualiser/studio.css';
+
+@source './*.tsx';
+@source '../../../studio/components/*.{ts,tsx}';
+/* Studio's shared canvas (nodes, comments, hotspots), from the visualiser in this repo */
+@source '../../../../../../../visualiser/src/studio';
+
+body {
+  margin: 0;
+  background: rgb(var(--ec-page-bg));
+  color: rgb(var(--ec-page-text));
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}

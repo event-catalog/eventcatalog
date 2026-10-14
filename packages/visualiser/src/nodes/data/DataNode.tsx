@@ -5,7 +5,8 @@ import {
   normalizeOwners,
   HIDDEN_HANDLE_STYLE,
 } from "../OwnerIndicator";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../../utils/node-connections";
 import { EventCatalogResource, Data as DataType } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import {
@@ -13,6 +14,7 @@ import {
   FOLDED_CORNER_SHADOW_STYLE,
   EMPTY_ARRAY,
   useDarkMode,
+  HANDLE_GLOW,
 } from "../shared-styles";
 import { CustomIcon, isIconPath } from "../../utils/custom-icon";
 import { TruncatedResourceName } from "../TruncatedResourceName";
@@ -21,6 +23,7 @@ import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -32,7 +35,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         background: "linear-gradient(135deg, #6366f1, #4f46e5)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-data-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.data,
         pointerEvents: "none",
       }}
     />
@@ -233,8 +236,7 @@ function DefaultData(props: DataNode) {
   const mode = props.data.mode || "simple";
   const customIcon = isIconPath(styles?.icon) ? styles!.icon! : undefined;
   const ownersNormalized = useMemo(() => normalizeOwners(owners), [owners]);
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
@@ -274,8 +276,8 @@ function DefaultData(props: DataNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">

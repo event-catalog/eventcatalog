@@ -24,7 +24,7 @@ Please include as much of the following as you can:
 |---|---|
 | Acknowledgement of your report | Within 5 business days |
 | Initial assessment and feedback to you | Within 30 days |
-| Fix for confirmed critical vulnerabilities | As quickly as possible, and no later than 90 days |
+| Fix for serious security issues | Serious security issues are fixed as a priority; we do not commit to a fixed fix deadline |
 | Fix for other confirmed vulnerabilities | Prioritised according to severity |
 
 We will keep you informed of progress, let you know when a fix is released, and credit you in the advisory unless you prefer to remain anonymous.
@@ -35,7 +35,7 @@ Security fixes are released for the latest major version of EventCatalog. We rec
 
 ## Scope
 
-This policy covers the EventCatalog open-source project, the official EventCatalog packages published to npm under the `@eventcatalog` scope, and EventCatalog-operated services (such as the licence API at `api.eventcatalog.cloud`).
+This policy covers the EventCatalog source-available project, the official EventCatalog packages published to npm under the `@eventcatalog` scope, and EventCatalog-operated services (such as the licence API at `api.eventcatalog.cloud`).
 
 ## Safe harbour
 

@@ -11,6 +11,11 @@ systems:
     version: 1.0.0
   - id: identity-provider
     version: 1.0.0
+domains:
+  - id: loyalty
+    version: 1.0.0
+  - id: notifications
+    version: 1.0.0
 entities:
   - id: customer-profile
     version: 1.0.0
@@ -53,6 +58,10 @@ The **Customer** domain is responsible for the lifecycle of every customer accou
 ### How the systems work together
 
 The **Customer Management System** owns customer profile data — it accepts registration and update commands and publishes events when customers change. The **Identity Provider** handles authentication: it verifies credentials and emits an event when a customer successfully authenticates, which the rest of the business can react to.
+
+### Subdomains
+
+The Customer domain also contains two subdomains: [[domain|loyalty]] awards and reverses loyalty points as orders complete or are cancelled, and [[domain|notifications]] keeps customers informed by email, SMS and push in response to events from across Acme Inc.
 
 ## System Diagram
 

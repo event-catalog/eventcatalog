@@ -64,10 +64,13 @@ export const generate = async (PROJECT_DIRECTORY) => {
       for (const { plugin } of errors) {
         logger.error(`  - ${plugin}`, 'generator');
       }
+      // Fail the command (e.g. a CI step) rather than report success
+      process.exitCode = 1;
     }
   } catch (error) {
     // Failed to generate clean up...
     console.error(error);
     await cleanup(PROJECT_DIRECTORY);
+    process.exitCode = 1;
   }
 };

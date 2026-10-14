@@ -10,6 +10,10 @@ export const mockEvents = [
   {
     slug: 'PaymentProcessed',
     collection: 'events',
+    // Only needed to build the catalog, never sent to the browser
+    body: '# Payment processed\n\nPublished when a payment is taken.',
+    filePath: 'events/PaymentProcessed/index.mdx',
+    digest: 'a1b2c3',
     data: {
       id: 'PaymentProcessed',
       version: '0.0.1',

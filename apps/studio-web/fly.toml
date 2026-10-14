@@ -1,0 +1,41 @@
+# Deployed from the repo root (the Docker build uses workspace packages):
+#   fly deploy . --config apps/studio-web/fly.toml --ha=false --remote-only
+# Live rooms (src/rooms.ts) relay between people connected to the same machine: keep it to one (fly scale count 1)
+# until rooms are routed by id (fly-replay). Nothing is stored, so no volume is needed.
+app = "eventcatalog-mcp"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  # Where links point (and the social preview's image). Certs for eventcatalog.studio and www (fly certs list),
+  # DNS on Namecheap: A/AAAA to the app's IPs and _acme-challenge CNAMEs for renewals
+  PUBLIC_URL = "https://eventcatalog.studio"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # WebSockets (live rooms) are long-lived: count connections, not requests
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 2000
+    hard_limit = 2500
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    timeout = "5s"
+
+# Room for ~2,000-3,000 people in live sessions at once (~$15/month in lhr)
+[[vm]]
+  memory = "2gb"
+  cpu_kind = "shared"
+  cpus = 2

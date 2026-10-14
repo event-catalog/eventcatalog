@@ -1,0 +1,184 @@
+{
+  "title": "Orders and Payments",
+  "resources": [
+    {
+      "id": "sales",
+      "type": "domain",
+      "name": "Sales",
+      "summary": "Taking and managing customer orders"
+    },
+    {
+      "id": "finance",
+      "type": "domain",
+      "name": "Finance",
+      "summary": "Payments and billing"
+    },
+    {
+      "id": "ordering",
+      "type": "system",
+      "name": "Ordering",
+      "parent": "sales"
+    },
+    {
+      "id": "orders-service",
+      "type": "service",
+      "name": "Orders Service",
+      "parent": "ordering",
+      "summary": "Accepts orders from the storefront",
+      "evidence": "services/orders/src/index.ts"
+    },
+    {
+      "id": "inventory-service",
+      "type": "service",
+      "name": "Inventory Service",
+      "parent": "ordering",
+      "evidence": "services/inventory/src/index.ts"
+    },
+    {
+      "id": "payments",
+      "type": "system",
+      "name": "Payments",
+      "parent": "finance"
+    },
+    {
+      "id": "payment-service",
+      "type": "service",
+      "name": "Payment Service",
+      "parent": "payments",
+      "evidence": "services/payments/src/handler.ts"
+    },
+    {
+      "id": "billing-service",
+      "type": "service",
+      "name": "Billing Service",
+      "parent": "payments"
+    },
+    {
+      "id": "PlaceOrder",
+      "type": "command",
+      "name": "Place Order"
+    },
+    {
+      "id": "OrderPlaced",
+      "type": "event",
+      "name": "Order Placed",
+      "summary": "An order was accepted",
+      "evidence": "specs/orders.asyncapi.yaml"
+    },
+    {
+      "id": "PaymentProcessed",
+      "type": "event",
+      "name": "Payment Processed"
+    },
+    {
+      "id": "orders-topic",
+      "type": "channel",
+      "name": "orders",
+      "technology": "Kafka"
+    },
+    {
+      "id": "payments-topic",
+      "type": "channel",
+      "name": "payments",
+      "technology": "Kafka"
+    },
+    {
+      "id": "orders-db",
+      "type": "container",
+      "name": "Orders DB",
+      "technology": "PostgreSQL"
+    },
+    {
+      "id": "logistics",
+      "type": "domain",
+      "name": "Logistics"
+    },
+    {
+      "id": "shipping-service",
+      "type": "service",
+      "name": "Shipping Service",
+      "parent": "logistics"
+    },
+    {
+      "id": "OrderShipped",
+      "type": "event",
+      "name": "Order Shipped"
+    }
+  ],
+  "relations": [
+    {
+      "from": "orders-service",
+      "to": "PlaceOrder",
+      "kind": "receives"
+    },
+    {
+      "from": "orders-service",
+      "to": "OrderPlaced",
+      "kind": "sends",
+      "evidence": "services/orders/src/publish.ts:12"
+    },
+    {
+      "from": "OrderPlaced",
+      "to": "orders-topic",
+      "kind": "routes-through"
+    },
+    {
+      "from": "payment-service",
+      "to": "OrderPlaced",
+      "kind": "receives"
+    },
+    {
+      "from": "inventory-service",
+      "to": "OrderPlaced",
+      "kind": "receives",
+      "inferred": true
+    },
+    {
+      "from": "payment-service",
+      "to": "PaymentProcessed",
+      "kind": "sends"
+    },
+    {
+      "from": "PaymentProcessed",
+      "to": "payments-topic",
+      "kind": "routes-through"
+    },
+    {
+      "from": "orders-service",
+      "to": "PaymentProcessed",
+      "kind": "receives"
+    },
+    {
+      "from": "billing-service",
+      "to": "PaymentProcessed",
+      "kind": "receives",
+      "inferred": true
+    },
+    {
+      "from": "orders-service",
+      "to": "orders-db",
+      "kind": "writes"
+    },
+    {
+      "from": "orders-service",
+      "to": "orders-db",
+      "kind": "reads"
+    },
+    {
+      "from": "shipping-service",
+      "to": "OrderPlaced",
+      "kind": "receives"
+    },
+    {
+      "from": "shipping-service",
+      "to": "OrderShipped",
+      "kind": "sends"
+    },
+    {
+      "from": "orders-service",
+      "to": "OrderShipped",
+      "kind": "receives",
+      "inferred": true
+    }
+  ]
+}

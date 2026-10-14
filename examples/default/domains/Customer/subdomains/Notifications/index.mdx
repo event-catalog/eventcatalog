@@ -1,0 +1,37 @@
+---
+id: notifications
+name: Customer Notifications
+version: 1.0.0
+summary: |
+  The Customer Notifications subdomain keeps customers informed. It listens to key moments across Ordering, Fulfilment, Payments, Reviews, Loyalty and Returns and sends the customer an email, SMS or push notification on their preferred channel.
+owners:
+  - customer-platform
+services:
+  - id: notification-service
+    version: 1.0.0
+badges:
+  - content: Generic subdomain
+    backgroundColor: gray
+    textColor: gray
+    icon: RectangleGroupIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Customer Notifications** subdomain is part of the [[domain|customer]] domain. It has no systems of its own — a single [[service|notification-service]] consumes events from across the business and notifies customers according to their [[container|notification-preferences]].
+
+| Source domain | Events |
+|---------------|--------|
+| Ordering | [[event\|order-confirmed]] |
+| Fulfilment | [[event\|shipment-delivered]], [[event\|return-approved]] |
+| Payments | [[event\|payment-failed]], [[event\|refund-processed]] |
+| Reviews | [[event\|review-published]] |
+| Customer (Loyalty) | [[event\|loyalty-points-earned]] |
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

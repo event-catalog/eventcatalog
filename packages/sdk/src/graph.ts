@@ -360,6 +360,7 @@ export const getGraph = (directory: string): GetCatalogGraph => {
           if (step.service) await addPointers([step.service], ['service']);
           if (step.systems) await addPointers([step.systems], ['system']);
           if (step.system) await addPointers([step.system], ['system']);
+          if (step.channel) await addPointers([step.channel], ['channel']);
           if (step.flow) await addPointers([step.flow], ['flow']);
           if (step.container) await addPointers([step.container], ['container']);
           if (step.dataProduct) await addPointers([step.dataProduct], ['data-product']);

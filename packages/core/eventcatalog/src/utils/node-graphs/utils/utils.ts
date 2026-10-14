@@ -1,7 +1,6 @@
 // Can't use the CollectionEntry type from astro:content  because a client component is using this util
 
 import { MarkerType, Position, type Edge, type Node } from '@xyflow/react';
-import dagre from 'dagre';
 import { getItemsFromCollectionByIdAndSemverOrLatest, versionMatches as versionMatchesUtil } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
 
@@ -91,52 +90,6 @@ export const getEdgeLabelForMessageAsSource = (data: MessageCollectionItem, thro
   }
 };
 
-export const calculatedNodes = (flow: dagre.graphlib.Graph, nodes: Node[]) => {
-  return nodes.map((node: any) => {
-    const { x, y } = flow.node(node.id);
-    return { ...node, position: { x, y } };
-  });
-};
-
-export const DEFAULT_NODE_WIDTH = 150;
-export const DEFAULT_NODE_HEIGHT = 120;
-
-// Creates a new dagre graph
-export const createDagreGraph = ({ ranksep = 180, nodesep = 50, ...rest }: any) => {
-  const graph = new dagre.graphlib.Graph({ compound: true });
-  graph.setGraph({ rankdir: 'LR', ranksep, nodesep, ...rest });
-  graph.setDefaultEdgeLabel(() => ({}));
-  return graph;
-};
-
-/**
- * network-simplex produces the nicest layered layout but is O(V·E) and hangs on
- * large architecture maps. tight-tree keeps the same LR layering with far less
- * work. Callers can still force a ranker via createDagreGraph({ ranker }).
- */
-export const LARGE_GRAPH_NODE_THRESHOLD = 80;
-export const LARGE_GRAPH_EDGE_THRESHOLD = 200;
-export const LARGE_GRAPH_RANKER = 'tight-tree';
-
-export const selectDagreRanker = (nodeCount: number, edgeCount: number, explicitRanker?: string) => {
-  if (explicitRanker) return explicitRanker;
-  if (nodeCount >= LARGE_GRAPH_NODE_THRESHOLD || edgeCount >= LARGE_GRAPH_EDGE_THRESHOLD) {
-    return LARGE_GRAPH_RANKER;
-  }
-  return undefined;
-};
-
-export const layoutDagreGraph = (flow: dagre.graphlib.Graph) => {
-  const label = (flow.graph() || {}) as { ranker?: string };
-  const nodeCount = flow.nodeCount();
-  const edgeCount = flow.edgeCount();
-  const ranker = selectDagreRanker(nodeCount, edgeCount, label.ranker);
-  if (ranker && label.ranker !== ranker) {
-    flow.setGraph({ ...label, ranker });
-  }
-  dagre.layout(flow);
-};
-
 export const createEdge = (edgeOptions: Edge) => {
   return {
     label: 'subscribed by',
@@ -166,8 +119,6 @@ export const createNode = (values: Node): Node => {
     ...values,
   };
 };
-
-type DagreGraph = any;
 
 type ContextMenuItem = {
   label: string;
@@ -370,7 +321,7 @@ export const buildContextMenuForSystem = ({ id, version }: { id: string; version
   return [
     { label: 'Read documentation', href: buildUrl(`/docs/systems/${id}/${version}`) },
     { label: 'Focus node', href: buildUrl(`/visualiser/systems/${id}/${version}`) },
-    { label: 'View context', href: buildUrl(`/visualiser/systems/${id}/${version}/context`) },
+    { label: 'View context', href: buildUrl(`/visualiser/systems/${id}/${version}?level=1`) },
   ];
 };
 
@@ -437,32 +388,4 @@ export const partitionMessagesByGroup = (
   });
 
   return { grouped, ungrouped };
-};
-
-export const getNodesAndEdgesFromDagre = ({
-  nodes,
-  edges,
-  defaultFlow,
-}: {
-  nodes: Node[];
-  edges: Edge[];
-  defaultFlow?: DagreGraph;
-}) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
-
-  nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  });
-
-  edges.forEach((edge: any) => {
-    flow.setEdge(edge.source, edge.target);
-  });
-
-  // Render the diagram in memory getting the X and Y
-  layoutDagreGraph(flow);
-
-  return {
-    nodes: calculatedNodes(flow, nodes),
-    edges,
-  };
 };

@@ -77,8 +77,10 @@ describe('Core type-check script', () => {
       packageDirectory: path.join(repoRoot, 'packages/core/eventcatalog'),
     });
     expect(spawn).toHaveBeenCalledOnce();
-    expect(spawn.mock.calls[0][0]).toContain('astro check --minimumSeverity error');
+    expect(spawn.mock.calls[0][0]).toContain('astro/bin/astro.mjs check --minimumSeverity error');
     expect(spawn.mock.calls[0][1].env.PROJECT_DIR).toBe(path.join(repoRoot, 'examples', catalog));
+    // Core's TypeScript, not the TypeScript 7 pnpm hoists, which astro check refuses to run with
+    expect(spawn.mock.calls[0][1].env.NODE_PATH).toBe(path.join(repoRoot, 'packages/core/node_modules'));
   });
 
   it('stops when the standalone package build fails', async () => {

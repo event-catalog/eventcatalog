@@ -1,0 +1,25 @@
+/*
+ * The viewer's Tailwind stylesheet (with Tailwind's base reset) and EventCatalog's theme variables.
+ * Only the classes the views and the components they render use, not every template in EventCatalog:
+ * add every component a view imports here, or its Tailwind classes won't be in the viewer's styles.
+ */
+@import 'tailwindcss' source(none);
+@import '../../../../styles/theme.css';
+
+@source './*.tsx';
+@source '../schema-viewer/*.tsx';
+@source '../../../../components/SchemaExplorer/JSONSchemaViewer.tsx';
+@source '../../../../components/SchemaExplorer/AvroSchemaViewer.tsx';
+@source '../../../../components/SchemaExplorer/ProtobufSchemaViewer.tsx';
+
+body {
+  margin: 0;
+  background: rgb(var(--ec-page-bg));
+  color: rgb(var(--ec-page-text));
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}

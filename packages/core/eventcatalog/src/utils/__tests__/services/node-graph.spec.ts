@@ -218,6 +218,23 @@ describe('Services NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
+    it('lays the graph out, routing each edge', async () => {
+      const { edges } = await getNodesAndEdges({ id: 'OrderService', version: '1.0.0' });
+
+      expect(edges.length).toBeGreaterThan(0);
+      edges.forEach((edge: any) => expect(edge.data.route.points.length).toBeGreaterThan(1));
+    });
+
+    it('when `layout` is false it returns the graph without laying it out, so it can be merged into another graph', async () => {
+      const laidOut = await getNodesAndEdges({ id: 'OrderService', version: '1.0.0' });
+      const { nodes, edges } = await getNodesAndEdges({ id: 'OrderService', version: '1.0.0', layout: false });
+
+      expect(nodes.map((node: any) => node.id)).toEqual(laidOut.nodes.map((node: any) => node.id));
+      expect(edges.map((edge: any) => edge.id)).toEqual(laidOut.edges.map((edge: any) => edge.id));
+      nodes.forEach((node: any) => expect(node.position).toEqual({ x: 0, y: 0 }));
+      edges.forEach((edge: any) => expect(edge.data?.route).toBeUndefined());
+    });
+
     it('returns empty nodes and edges if no service is found', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownService', version: '1.0.0' });
 

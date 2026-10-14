@@ -1,0 +1,33 @@
+---
+id: returns
+name: Returns
+version: 1.0.0
+summary: |
+  The Returns subdomain handles items customers send back. It accepts return requests, approves them against the returns policy, and confirms when returned items arrive at the warehouse so they can be refunded and restocked.
+owners:
+  - fulfilment-platform
+systems:
+  - id: returns-system
+    version: 1.0.0
+badges:
+  - content: Supporting subdomain
+    backgroundColor: purple
+    textColor: purple
+    icon: RectangleGroupIcon
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The **Returns** subdomain is part of the [[domain|fulfilment]] domain and runs the reverse logistics journey through the [[system|returns-system]].
+
+1. A customer sends [[command|request-return]] and the [[service|returns-api]] publishes [[event|return-requested]].
+2. The [[service|returns-processor]] checks the returns policy and publishes [[event|return-approved]].
+3. When the parcel reaches the warehouse it publishes [[event|return-received]] — Payments refunds the customer and Inventory restocks the items.
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

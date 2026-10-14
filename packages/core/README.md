@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- <h1>📖 EventCatalog</h1> -->
-<!-- <h3>The open source tool to help you discover and document your event-driven architectures</h3> -->
+<!-- <h3>The source-available tool to help you discover and document your event-driven architectures</h3> -->
 
 
 
@@ -35,7 +35,7 @@
 <div align="center">
 
 [![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
-[![License](https://img.shields.io/badge/License-MIT%20%2B%20Commercial-blue.svg)](./LICENSE)
+[![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
 [![npm version](https://badge.fury.io/js/@eventcatalog%2Fcore.svg)](https://badge.fury.io/js/@eventcatalog/core)
 
 </div>
@@ -205,5 +205,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 # License
 
-EventCatalog Core uses a mixed-license model. Most files are licensed under MIT; the Enterprise and Federation paths
-identified in [LICENSE](./LICENSE) use the EventCatalog Commercial License.
+EventCatalog is source-available under the [Business Source License 1.1](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE). It is free for eligible organisations (under USD 10M revenue and under USD 10M funding). Otherwise it is covered by a subscription. See [pricing](https://www.eventcatalog.dev/pricing).
+
+`@eventcatalog/core` version 5.0.0 (including its pre-releases) and later is covered by that licence. Releases up to and including 4.x remain available under the MIT License (see [NOTICE](./NOTICE)).

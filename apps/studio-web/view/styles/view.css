@@ -1,0 +1,67 @@
+/* Tailwind (with its base reset) for the classes the visualiser uses, and EventCatalog's theme variables.
+   Adapted from event-catalog/eventcatalog@v5-beta:packages/core/eventcatalog/src/features/mcp/apps/viewer/styles.css */
+@import 'tailwindcss' source(none);
+@import './theme.css';
+/* EventCatalog Studio's canvas (selection, handles, containers, notes, drop targets) */
+@import '@eventcatalog/visualiser/studio.css';
+
+/* Inter, as EventCatalog uses (bundled: views in chats can't load fonts from elsewhere). Its Latin subset, woff2 only:
+   every browser that runs the canvas reads it, and fontsource's woff fallbacks would add ~185 KB inlined */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/inter/files/inter-latin-300-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2') format('woff2');
+}
+
+/* Excalifont, Excalidraw's hand-drawn font (OFL-1.1), for the welcome on an empty canvas: its Latin subset, bundled */
+@font-face {
+  font-family: 'Excalifont';
+  src: url('./fonts/Excalifont-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+
+@source '../*.tsx';
+@source '../ported/*.tsx';
+@source '../studio/*.tsx';
+@source '../studio/components/*.tsx';
+/* Studio's canvas, from the visualiser in this repo (its classes, generated with the rest of the page's) */
+@source '../../../../packages/visualiser/src/studio';
+@source '../collab/*.tsx';
+@source '../build/*.tsx';
+
+body {
+  margin: 0;
+  background: rgb(var(--ec-page-bg));
+  color: rgb(var(--ec-page-text));
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}

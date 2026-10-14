@@ -577,8 +577,10 @@ enum DataClassification {
 
 export interface FlowStep {
   id: string | number;
+  /** @deprecated Ignored by EventCatalog: the kind of step comes from what it points at. */
   type?: 'node' | 'message' | 'agent' | 'user' | 'actor';
-  title: string;
+  /** Defaults to the name of what the step points at (or its id). */
+  title?: string;
   summary?: string;
   message?: ResourcePointer;
   agent?: ResourcePointer;
@@ -586,6 +588,7 @@ export interface FlowStep {
   /** Catalog system referenced by this step. `system` is an alias for `systems`. */
   systems?: ResourcePointer;
   system?: ResourcePointer;
+  channel?: ResourcePointer;
   flow?: ResourcePointer;
   container?: ResourcePointer;
   dataProduct?: ResourcePointer;
@@ -594,7 +597,8 @@ export interface FlowStep {
     summary?: string;
   };
   custom?: {
-    title: string;
+    /** Defaults to the step's title. */
+    title?: string;
     icon?: string;
     type?: string;
     summary?: string;

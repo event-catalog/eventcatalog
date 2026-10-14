@@ -12,7 +12,7 @@ const { id } = Astro.params;
 const version = Astro.props.redirectVersion ?? (id ? await getLatestServiceVersion(id) : undefined);
 
 if (!isChangelogEnabled() || !id || !version) {
-  throw new Response(null, { status: 404, statusText: 'Changelog not found' });
+  return Astro.rewrite('/404');
 }
 
 const redirectUrl = buildUrl(`/docs/services/${id}/${version}/changelog`);

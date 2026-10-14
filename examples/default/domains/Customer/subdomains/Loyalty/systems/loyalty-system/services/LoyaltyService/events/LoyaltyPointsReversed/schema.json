@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LoyaltyPointsReversed",
+  "description": "Published when loyalty points are reversed for a cancelled order",
+  "type": "object",
+  "properties": {
+    "customerId": { "type": "string", "format": "uuid" },
+    "orderId": { "type": "string", "format": "uuid" },
+    "pointsReversed": { "type": "integer", "minimum": 1 },
+    "newBalance": { "type": "integer", "minimum": 0 },
+    "reason": { "type": "string", "enum": ["order_cancelled", "order_refunded"] },
+    "reversedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["customerId", "orderId", "pointsReversed", "newBalance", "reversedAt"]
+}

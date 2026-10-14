@@ -1,6 +1,7 @@
 ---
 interface Props {
-  title: string;
+  /** The page's own title; the catalog's title follows it (the homepage has none) */
+  title?: string;
   sidebar?: boolean;
   description?: string;
   showNestedSideBar?: boolean;
@@ -50,12 +51,12 @@ import { getDataProducts } from '@utils/collections/data-products';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
-import { getFirstNavigationPage } from '@enterprise/custom-documentation/utils/custom-docs';
+import { getFirstNavigationPage } from '@features/custom-documentation/utils/custom-docs';
 
-import { isEmbedEnabled, isCustomStylesEnabled, isCustomDocsEnabled, isSSR } from '@utils/feature';
+import { isCanvasEnabled, isSSR } from '@utils/feature';
 
 const customDocs = await getCollection('customPages');
-const firstCustomDocsPage = isCustomDocsEnabled() && customDocs.length > 0 ? await getFirstNavigationPage() : null;
+const firstCustomDocsPage = customDocs.length > 0 ? await getFirstNavigationPage() : null;
 
 let events: any[] = [];
 let commands: any[] = [];
@@ -84,11 +85,9 @@ let dataProducts: any[] = [];
 ]);
 
 // Try and load any custom styles if they exist
-if (isCustomStylesEnabled()) {
-  try {
-    await import('@catalog/styles');
-  } catch (error) {}
-}
+try {
+  await import('@catalog/styles');
+} catch (error) {}
 
 const currentPath = Astro.url.pathname;
 const wrapContent = Astro.props.wrapContent ?? true;
@@ -243,7 +242,7 @@ const builtinNavigationItems: Record<string, Omit<VerticalNavigationItem, 'curre
   '/studio': {
     id: '/studio',
     matchId: '/studio',
-    label: 'EventCatalog Studio',
+    label: 'Studio',
     icon: 'SquareDashedMousePointer',
     href: buildUrl('/studio'),
   },
@@ -294,7 +293,12 @@ const builtinNavigationItems: Record<string, Omit<VerticalNavigationItem, 'curre
 const defaultNavigationGroups: NavigationGroupConfig[] = [
   {
     id: 'main',
-    items: [{ id: '/' }, { id: '/docs/custom', visible: isCustomDocsEnabled() && customDocs.length > 0 }],
+    items: [
+      { id: '/' },
+      { id: '/docs/custom', visible: customDocs.length > 0 },
+      // Collaborative canvases, where they're on
+      { id: '/studio', visible: isCanvasEnabled() },
+    ],
   },
   {
     id: 'browse',
@@ -325,7 +329,6 @@ const isNavigationItemCurrent = (item: Pick<VerticalNavigationItem, 'href' | 'ma
     return (
       pathname === itemPath ||
       (pathname.includes('/docs') && !pathname.includes('/docs/custom')) ||
-      pathname.includes('/architecture/') ||
       pathname.includes('/visualiser') ||
       (pathname.includes('/schemas') && !pathname.includes('/schemas/explorer') && !pathname.includes('/schemas/fields'))
     );
@@ -374,6 +377,8 @@ const resolveNavigationItem = (item: NavigationItemConfig): VerticalNavigationIt
   if (item.visible === false) return null;
 
   const builtinId = navigationBuiltinAliases[item.id] || item.id;
+  // Studio is only there where canvases are on
+  if (builtinId === '/studio' && !item.href && !isCanvasEnabled()) return null;
   const builtin = builtinNavigationItems[builtinId];
   const href = item.href ? normalizeNavigationHref(item.href) : builtin?.href;
 
@@ -423,11 +428,10 @@ const clientNavigationItems = navigationGroups.flatMap((group) =>
 );
 const { title, description, showNestedSideBar = true, showHeader = true, reducedContentPadding = false } = Astro.props;
 
-const canPageBeEmbedded = isEmbedEnabled();
 const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/docs', true)];
 ---
 
-<BaseLayout title={`EventCatalog | ${title}`} description={description} ogTitle={title}>
+<BaseLayout title={title} description={description}>
   <Fragment slot="head">
     <script is:inline define:vars={{ verticalNavAutoCollapsePaths }}>
       (() => {
@@ -599,10 +603,6 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         display: flex;
         justify-content: center;
         padding: 0.75rem 0.25rem;
-      }
-      :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-premium-icon,
-      .vertical-nav-rail[data-collapsed='true'] .nav-premium-icon {
-        margin-left: 0;
       }
       :root[data-vertical-nav-collapsed='true'] .vertical-nav-rail .nav-collapse-icon,
       .vertical-nav-rail[data-collapsed='true'] .nav-collapse-icon {
@@ -859,22 +859,6 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
           )
         }
       </main>
-
-      <!-- Create a overlay that tells people to purchase backstage plugin if they want to embed the page -->
-      <div class="absolute inset-0 bg-black items-center justify-center z-50 hidden" id="embed-overlay">
-        <div class="text-white text-center space-y-4">
-          <div>
-            <h1 class="text-2xl font-bold">EventCatalog Backstage Integration</h1>
-            <p class="text-md text-red-500">Missing license key for backstage integration.</p>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">Please configure the backstage plugin to embed this page into Backstage.</p>
-            <a href="https://www.eventcatalog.dev/integrations/backstage" class="text-blue-500 text-xs"
-              >Configure backstage plugin &rarr;</a
-            >
-          </div>
-        </div>
-      </div>
     </div>
   </main>
 </BaseLayout>
@@ -883,7 +867,6 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
 <script
   define:vars={{
     clientNavigationItems,
-    canPageBeEmbedded,
     verticalNavAutoCollapsePaths,
   }}
 >
@@ -913,7 +896,6 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
       return (
         pathname === targetPath ||
         (pathname.includes('/docs') && !pathname.includes('/docs/custom')) ||
-        pathname.includes('/architecture/') ||
         pathname.includes('/visualiser') ||
         (pathname.includes('/schemas') && !pathname.includes('/schemas/explorer') && !pathname.includes('/schemas/fields'))
       );
@@ -1144,12 +1126,6 @@ const verticalNavAutoCollapsePaths = [buildUrl('/discover', true), buildUrl('/do
         collapseIcon.setAttribute('title', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
       }
     };
-
-    if (embeded && !canPageBeEmbedded) {
-      const overlay = document.getElementById('embed-overlay');
-      overlay.style.display = 'flex';
-      return;
-    }
 
     if (embeded) {
       const elementsToHide = [

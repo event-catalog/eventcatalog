@@ -42,6 +42,6 @@ EXPOSE 3000
 RUN echo "HELLO"
 RUN pnpm run verify-build:catalog
 
-# Start the server
-# 
-CMD cd examples/default && node ../../dist/eventcatalog.js start
+# Start the server (exec form, so `docker stop` reaches it)
+WORKDIR /app/examples/default
+CMD ["node", "../../dist/eventcatalog.js", "start"]

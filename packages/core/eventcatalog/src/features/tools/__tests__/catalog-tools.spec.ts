@@ -1,0 +1,1606 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { CollectionKey } from 'astro:content';
+import fs from 'node:fs';
+import { glob } from 'glob';
+
+// Type definitions for test results
+type ProducerConsumer = { id: string; version: string; name: string };
+type ResourceResult = { collection: string; id: string; version?: string; name: string };
+import { mockEvents, mockServices, mockTeams, mockUsers, mockCollections } from './catalog-tools.mocks';
+
+// Mock astro:content
+vi.mock('astro:content', async (importOriginal) => {
+  return {
+    ...(await importOriginal<typeof import('astro:content')>()),
+    getCollection: (key: CollectionKey) => {
+      return Promise.resolve(mockCollections[key as string] ?? []);
+    },
+    getEntry: (collection: string, id: string) => {
+      const items = mockCollections[collection] ?? [];
+      return Promise.resolve(items.find((item) => item.id === id));
+    },
+  };
+});
+
+// Mock getSchemasFromResource
+vi.mock('@utils/collections/schemas', () => ({
+  getSchemasFromResource: vi.fn(),
+}));
+
+// Mock getItemsFromCollectionByIdAndSemverOrLatest
+vi.mock('@utils/collections/util', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@utils/collections/util')>()),
+  getItemsFromCollectionByIdAndSemverOrLatest: vi.fn((collection, id, version) => {
+    // Filter collection by id, and optionally by version
+    const matches = collection.filter((item: any) => item.data.id === id);
+    // Like the real util, 'latest' means no version
+    if (version && version !== 'latest') {
+      const exactMatch = matches.find((item: any) => item.data.version === version);
+      return exactMatch ? [exactMatch] : [];
+    }
+    // Return latest (highest version) if no version specified
+    return matches.length > 0 ? [matches[matches.length - 1]] : [];
+  }),
+}));
+
+// Mock getUbiquitousLanguageWithSubdomains
+vi.mock('@utils/collections/domains', () => ({
+  getUbiquitousLanguageWithSubdomains: vi.fn((domain) => {
+    // Return mock ubiquitous language data based on domain
+    if (domain.data.id === 'OrderDomain') {
+      return Promise.resolve({
+        domain: {
+          data: {
+            dictionary: [
+              { id: 'order', name: 'Order', summary: 'A request to purchase goods or services', icon: 'ShoppingCart' },
+              {
+                id: 'line-item',
+                name: 'Line Item',
+                summary: 'An individual product or service within an order',
+                icon: 'Package',
+              },
+              { id: 'customer', name: 'Customer', summary: 'A person or entity placing an order' },
+            ],
+          },
+        },
+        subdomains: [
+          {
+            subdomain: { data: { id: 'FulfillmentSubdomain', name: 'Fulfillment Subdomain' } },
+            ubiquitousLanguage: {
+              data: {
+                dictionary: [
+                  { id: 'shipment', name: 'Shipment', summary: 'A package sent to fulfill an order', icon: 'Truck' },
+                  { id: 'customer', name: 'Customer', summary: 'Duplicate term - recipient of a shipment' },
+                ],
+              },
+            },
+          },
+        ],
+        duplicateTerms: new Set(['customer']),
+      });
+    }
+    if (domain.data.id === 'EmptyDomain') {
+      return Promise.resolve({
+        domain: null,
+        subdomains: [],
+        duplicateTerms: new Set(),
+      });
+    }
+    return Promise.resolve({
+      domain: null,
+      subdomains: [],
+      duplicateTerms: new Set(),
+    });
+  }),
+}));
+
+// Mock fs for schema reading
+vi.mock('node:fs', () => ({
+  default: {
+    readFileSync: vi.fn(() => '{"schema": "content"}'),
+  },
+}));
+
+vi.mock('glob', () => ({
+  glob: vi.fn(async () => []),
+}));
+
+import {
+  encodeCursor,
+  decodeCursor,
+  paginate,
+  DEFAULT_PAGE_SIZE,
+  getResources,
+  getResource,
+  getMessagesProducedOrConsumedByResource,
+  getSchemaForResource,
+  findResourcesByOwner,
+  getProducersOfMessage,
+  getConsumersOfMessage,
+  analyzeChangeImpact,
+  explainBusinessFlow,
+  getArchitectureDiagramAsMermaid,
+  getTeams,
+  getTeam,
+  getUsers,
+  getUser,
+  findMessageBySchemaId,
+  explainUbiquitousLanguageTerms,
+  getC4Diagram,
+  getCustomDocs,
+  searchCustomDocs,
+  getCustomDoc,
+} from '../catalog-tools';
+import { getSchemasFromResource } from '@utils/collections/schemas';
+
+beforeEach(() => {
+  vi.mocked(glob).mockResolvedValue([]);
+  vi.mocked(fs.readFileSync).mockReturnValue('{"schema": "content"}');
+  delete process.env.PROJECT_DIR;
+});
+
+// ============================================
+// Pagination Utilities Tests
+// ============================================
+
+describe('Pagination Utilities', () => {
+  describe('encodeCursor / decodeCursor', () => {
+    it('encodes and decodes position correctly', () => {
+      const position = 50;
+      const cursor = encodeCursor(position);
+      expect(cursor).toBeTruthy();
+      expect(decodeCursor(cursor)).toBe(position);
+    });
+
+    it('handles position 0', () => {
+      const cursor = encodeCursor(0);
+      expect(decodeCursor(cursor)).toBe(0);
+    });
+
+    it('handles large positions', () => {
+      const position = 99999;
+      const cursor = encodeCursor(position);
+      expect(decodeCursor(cursor)).toBe(position);
+    });
+
+    it('returns null for invalid cursor', () => {
+      expect(decodeCursor('invalid-cursor')).toBe(null);
+    });
+
+    it('returns null for empty string cursor', () => {
+      // Empty string decodes to NaN
+      expect(decodeCursor('')).toBe(null);
+    });
+
+    it('returns null for cursor that decodes to negative number', () => {
+      // Manually encode a negative number
+      const negativeCursor = Buffer.from('-1').toString('base64url');
+      expect(decodeCursor(negativeCursor)).toBe(null);
+    });
+  });
+
+  describe('paginate', () => {
+    const items = Array.from({ length: 120 }, (_, i) => ({ id: i }));
+
+    it('returns first page of items when no cursor provided', () => {
+      const result = paginate(items);
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.items.length).toBe(DEFAULT_PAGE_SIZE);
+        expect(result.items[0]).toEqual({ id: 0 });
+        expect(result.totalCount).toBe(120);
+        expect(result.nextCursor).toBeTruthy();
+      }
+    });
+
+    it('returns error for invalid cursor', () => {
+      const result = paginate(items, 'invalid-cursor');
+      expect('error' in result).toBe(true);
+      if ('error' in result) {
+        expect(result.error).toContain('Invalid');
+      }
+    });
+
+    it('returns error when cursor exceeds MAX_CURSOR_POSITION', () => {
+      // MAX_CURSOR_POSITION is 100000
+      const cursor = encodeCursor(100001);
+      const result = paginate(items, cursor);
+      expect('error' in result).toBe(true);
+      if ('error' in result) {
+        expect(result.error).toContain('exceeds maximum');
+      }
+    });
+
+    it('returns nextCursor when more items available', () => {
+      const result = paginate(items);
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.nextCursor).toBeTruthy();
+      }
+    });
+
+    it('returns no nextCursor on last page', () => {
+      const cursor = encodeCursor(100); // Start at position 100, only 20 items left
+      const result = paginate(items, cursor);
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.items.length).toBe(20);
+        expect(result.nextCursor).toBeUndefined();
+      }
+    });
+
+    it('handles empty arrays', () => {
+      const result = paginate([]);
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.items).toEqual([]);
+        expect(result.totalCount).toBe(0);
+        expect(result.nextCursor).toBeUndefined();
+      }
+    });
+
+    it('respects custom pageSize', () => {
+      const result = paginate(items, undefined, 10);
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.items.length).toBe(10);
+      }
+    });
+
+    it('continues from cursor position correctly', () => {
+      const firstPage = paginate(items, undefined, 10);
+      expect('error' in firstPage).toBe(false);
+      if (!('error' in firstPage) && firstPage.nextCursor) {
+        const secondPage = paginate(items, firstPage.nextCursor, 10);
+        expect('error' in secondPage).toBe(false);
+        if (!('error' in secondPage)) {
+          expect(secondPage.items[0]).toEqual({ id: 10 });
+        }
+      }
+    });
+  });
+});
+
+// ============================================
+// Resource Access Tools Tests
+// ============================================
+
+describe('getResources', () => {
+  it.each(['events', 'agents', 'services', 'commands', 'queries', 'flows', 'domains', 'channels', 'entities'] as const)(
+    'returns paginated resources from %s collection',
+    async (collection) => {
+      const result = await getResources({ collection });
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.resources).toBeDefined();
+        expect(result.totalCount).toBeGreaterThanOrEqual(0);
+      }
+    }
+  );
+
+  it('returns empty resources for empty collection', async () => {
+    // diagrams has only 1 item in mocks, but let's test with an empty scenario
+    const result = await getResources({ collection: 'diagrams' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalCount).toBe(1); // Our mock has 1 diagram
+    }
+  });
+
+  it('supports pagination via cursor', async () => {
+    // Create a collection with enough items to paginate
+    const result = await getResources({ collection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.length).toBeLessThanOrEqual(DEFAULT_PAGE_SIZE);
+    }
+  });
+
+  it('returns totalCount', async () => {
+    const result = await getResources({ collection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalCount).toBe(mockEvents.length);
+    }
+  });
+
+  it('returns resources with correct structure', async () => {
+    const result = await getResources({ collection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources[0]).toHaveProperty('id');
+      expect(result.resources[0]).toHaveProperty('version');
+      expect(result.resources[0]).toHaveProperty('name');
+    }
+  });
+
+  it('excludes hidden resources, matching the rest of the catalog', async () => {
+    mockEvents.push({
+      id: 'SecretEvent-1.0.0',
+      slug: 'events/SecretEvent',
+      collection: 'events',
+      body: '',
+      data: { id: 'SecretEvent', name: 'Secret Event', version: '1.0.0', summary: '', owners: [], hidden: true } as any,
+    });
+
+    try {
+      const result = await getResources({ collection: 'events' });
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.resources.some((r) => r.id === 'SecretEvent')).toBe(false);
+        expect(result.totalCount).toBe(mockEvents.length - 1);
+      }
+    } finally {
+      mockEvents.pop();
+    }
+  });
+});
+
+describe('getResource', () => {
+  it('returns resource by id and version', async () => {
+    const result = await getResource({
+      collection: 'events',
+      id: 'OrderCreated',
+      version: '1.0.0',
+    });
+    expect(result).toBeDefined();
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.data.id).toBe('OrderCreated');
+      expect(result.data.version).toBe('1.0.0');
+    }
+  });
+
+  it('returns an agent resource by id and version', async () => {
+    const result = await getResource({
+      collection: 'agents',
+      id: 'FraudReviewAgent',
+      version: '1.0.0',
+    });
+    expect(result).toBeDefined();
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.data.id).toBe('FraudReviewAgent');
+      expect(result.data.model.provider).toBe('OpenAI');
+    }
+  });
+
+  it('returns error when resource not found', async () => {
+    const result = await getResource({
+      collection: 'events',
+      id: 'NonExistent',
+      version: '1.0.0',
+    });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('not found');
+    }
+  });
+
+  it('returns error for wrong version', async () => {
+    const result = await getResource({
+      collection: 'events',
+      id: 'OrderCreated',
+      version: '99.0.0',
+    });
+    expect('error' in result).toBe(true);
+  });
+
+  it.each([undefined, 'latest'])('returns the latest version when the version is %s', async (version) => {
+    const result = await getResource({ collection: 'events', id: 'OrderCreated', version });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.data.version).toBe('2.0.0');
+    }
+  });
+
+  it('returns only the frontmatter and markdown body, without internal Astro entry fields', async () => {
+    const event = mockEvents.find((e) => e.id === 'OrderCreated-1.0.0')!;
+    Object.assign(event, { filePath: '/private/catalog/events/OrderCreated/index.mdx', digest: 'abc123' });
+
+    try {
+      const result = await getResource({ collection: 'events', id: 'OrderCreated', version: '1.0.0' });
+      expect(result).toEqual({
+        id: 'OrderCreated',
+        version: '1.0.0',
+        collection: 'events',
+        data: event.data,
+        body: 'Order created event description',
+      });
+    } finally {
+      delete (event as any).filePath;
+      delete (event as any).digest;
+    }
+  });
+});
+
+describe('optional versions default to the latest version', () => {
+  it('getSchemaForResource resolves the latest version when no version is given', async () => {
+    vi.mocked(getSchemasFromResource).mockResolvedValue([{ url: '/path/to/schema.json', format: 'json-schema' }]);
+    const result = await getSchemaForResource({ resourceId: 'PaymentProcessed', resourceCollection: 'events' });
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it('getProducersOfMessage matches producers against the latest message version', async () => {
+    const result = await getProducersOfMessage({ messageId: 'OrderCreated', messageCollection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message.version).toBe('2.0.0');
+      // OrderService only sends OrderCreated 1.0.0
+      expect(result.producers.some((p: ProducerConsumer) => p.id === 'OrderService')).toBe(false);
+    }
+  });
+
+  it('getConsumersOfMessage matches consumers against the latest message version', async () => {
+    const result = await getConsumersOfMessage({ messageId: 'OrderCreated', messageCollection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message.version).toBe('2.0.0');
+      expect(result.consumers.map((c: ProducerConsumer) => c.id).sort()).toEqual(['NotificationService', 'PaymentService']);
+    }
+  });
+
+  it('analyzeChangeImpact reports the latest message version', async () => {
+    const result = await analyzeChangeImpact({ messageId: 'OrderCreated', messageCollection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message.version).toBe('2.0.0');
+    }
+  });
+
+  it('explainBusinessFlow resolves the latest flow version', async () => {
+    const result = await explainBusinessFlow({ flowId: 'OrderFlow' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.flow.version).toBe('1.0.0');
+    }
+  });
+
+  it('getArchitectureDiagramAsMermaid resolves the latest resource version', async () => {
+    const result = await getArchitectureDiagramAsMermaid({ resourceId: 'CoreSystem', resourceCollection: 'systems' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resourceVersion).toBe('1.0.0');
+    }
+  });
+});
+
+describe('getArchitectureDiagramAsMermaid', () => {
+  it('returns a Mermaid diagram for systems', async () => {
+    const result = await getArchitectureDiagramAsMermaid({
+      resourceId: 'CoreSystem',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'systems',
+    });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.mermaidCode).toContain('flowchart LR');
+      expect(result.mermaidCode).toContain('Order Service');
+    }
+  });
+});
+
+describe('getMessagesProducedOrConsumedByResource', () => {
+  it('resolves the messages a service sends and receives to their catalog entries', async () => {
+    const result = await getMessagesProducedOrConsumedByResource({
+      resourceId: 'OrderService',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'services',
+    });
+
+    expect(result).toEqual({
+      resource: { id: 'OrderService', version: '1.0.0', name: 'Order Service', collection: 'services' },
+      sends: [
+        {
+          id: 'OrderCreated',
+          version: '1.0.0',
+          name: 'Order Created',
+          summary: 'Fired when an order is created',
+          collection: 'events',
+        },
+      ],
+      receives: [
+        {
+          id: 'PaymentProcessed',
+          version: '1.0.0',
+          name: 'Payment Processed',
+          summary: 'Fired when a payment is processed',
+          collection: 'events',
+        },
+      ],
+    });
+  });
+
+  it('resolves message pointers without a version to the latest message version', async () => {
+    const result = await getMessagesProducedOrConsumedByResource({
+      resourceId: 'PaymentService',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'services',
+    });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.receives).toEqual([expect.objectContaining({ id: 'OrderCreated', version: '2.0.0' })]);
+      expect(result.sends).toEqual([expect.objectContaining({ id: 'PaymentProcessed', version: '1.0.0' })]);
+    }
+  });
+
+  it('returns the messages an agent sends and receives', async () => {
+    const result = await getMessagesProducedOrConsumedByResource({
+      resourceId: 'FraudReviewAgent',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'agents',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resource.collection).toBe('agents');
+      expect(Array.isArray(result.sends)).toBe(true);
+      expect(Array.isArray(result.receives)).toBe(true);
+    }
+  });
+
+  it('marks message pointers that are not documented in the catalog as not found', async () => {
+    const service = mockServices.find((s) => s.data.id === 'NotificationService')!;
+    const originalReceives = service.data.receives;
+    service.data.receives = [{ id: 'UndocumentedEvent', version: '1.0.0' }];
+
+    try {
+      const result = await getMessagesProducedOrConsumedByResource({
+        resourceId: 'NotificationService',
+        resourceVersion: '1.0.0',
+        resourceCollection: 'services',
+      });
+      expect('error' in result).toBe(false);
+      if (!('error' in result)) {
+        expect(result.receives).toEqual([{ id: 'UndocumentedEvent', version: '1.0.0', notFound: true }]);
+      }
+    } finally {
+      service.data.receives = originalReceives;
+    }
+  });
+
+  it('returns error when resource not found', async () => {
+    const result = await getMessagesProducedOrConsumedByResource({
+      resourceId: 'NonExistent',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'services',
+    });
+    expect('error' in result).toBe(true);
+  });
+});
+
+// ============================================
+// Message Analysis Tools Tests
+// ============================================
+
+describe('getProducersOfMessage', () => {
+  it('finds services that send exact version', async () => {
+    const result = await getProducersOfMessage({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.producers.length).toBeGreaterThan(0);
+      expect(result.producers.some((p: ProducerConsumer) => p.id === 'OrderService')).toBe(true);
+    }
+  });
+
+  it('finds services with version: latest', async () => {
+    const result = await getProducersOfMessage({
+      messageId: 'PaymentProcessed',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      // PaymentService sends PaymentProcessed with version: 'latest'
+      expect(result.producers.some((p: ProducerConsumer) => p.id === 'PaymentService')).toBe(true);
+    }
+  });
+
+  it('finds services with no version specified (matches all)', async () => {
+    // PaymentService receives OrderCreated without version specified
+    const result = await getConsumersOfMessage({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.consumers.some((c: ProducerConsumer) => c.id === 'PaymentService')).toBe(true);
+    }
+  });
+
+  it('returns correct count', async () => {
+    const result = await getProducersOfMessage({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.count).toBe(result.producers.length);
+    }
+  });
+
+  it('finds agents that send messages', async () => {
+    const result = await getProducersOfMessage({
+      messageId: 'InventoryUpdated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(
+        result.producers.some(
+          (p: ProducerConsumer & { collection?: string }) => p.id === 'FraudReviewAgent' && p.collection === 'agents'
+        )
+      ).toBe(true);
+    }
+  });
+
+  it('returns error when message not found', async () => {
+    const result = await getProducersOfMessage({
+      messageId: 'NonExistent',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('not found');
+    }
+  });
+
+  it('returns message details in response', async () => {
+    const result = await getProducersOfMessage({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message.id).toBe('OrderCreated');
+      expect(result.message.version).toBe('1.0.0');
+      expect(result.message.collection).toBe('events');
+    }
+  });
+});
+
+describe('getConsumersOfMessage', () => {
+  it('finds services that receive exact version', async () => {
+    const result = await getConsumersOfMessage({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.consumers.some((c: ProducerConsumer) => c.id === 'InventoryService')).toBe(true);
+    }
+  });
+
+  it('finds services with no version specified', async () => {
+    const result = await getConsumersOfMessage({
+      messageId: 'OrderCreated',
+      messageVersion: '2.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      // PaymentService receives OrderCreated without version (matches any)
+      expect(result.consumers.some((c: ProducerConsumer) => c.id === 'PaymentService')).toBe(true);
+      // NotificationService receives OrderCreated version 2.0.0
+      expect(result.consumers.some((c: ProducerConsumer) => c.id === 'NotificationService')).toBe(true);
+    }
+  });
+
+  it('finds agents that receive messages', async () => {
+    const result = await getConsumersOfMessage({
+      messageId: 'PaymentProcessed',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(
+        result.consumers.some(
+          (c: ProducerConsumer & { collection?: string }) => c.id === 'FraudReviewAgent' && c.collection === 'agents'
+        )
+      ).toBe(true);
+    }
+  });
+
+  it('returns error when message not found', async () => {
+    const result = await getConsumersOfMessage({
+      messageId: 'NonExistent',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(true);
+  });
+});
+
+describe('getC4Diagram', () => {
+  const projectRoot = '/catalog';
+  const sourceFiles = ['architecture/model.c4', 'architecture/views.c4', 'payments/model.c4', 'payments/views.c4'];
+  const fileContents: Record<string, string> = {
+    '/catalog/architecture/model.c4': `specification {
+  element actor
+  element system
+}
+
+model {
+  customer = actor 'Customer'
+  ordering = system 'Ordering service'
+}`,
+    '/catalog/architecture/views.c4': `views {
+  view OrderFlow {
+    include *
+  }
+
+  dynamic view Checkout {
+    customer -> ordering 'places order'
+  }
+}`,
+    '/catalog/payments/model.c4': `model {
+  payment = system 'Payment service'
+}`,
+    '/catalog/payments/views.c4': `views {
+  deployment view PaymentsOverview {
+    include *
+  }
+}`,
+  };
+
+  beforeEach(() => {
+    process.env.PROJECT_DIR = projectRoot;
+    vi.mocked(glob).mockImplementation(async (pattern) => {
+      if (pattern === '**/*.{c4,likec4}') {
+        return sourceFiles;
+      }
+
+      return [];
+    });
+    vi.mocked(fs.readFileSync).mockImplementation((filePath) => fileContents[String(filePath)] ?? '');
+  });
+
+  it('returns all LikeC4 source files when no viewId is provided', async () => {
+    const result = await getC4Diagram({});
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalSourceFiles).toBe(4);
+      expect(result.totalViews).toBe(3);
+      expect(result.sources.map((source: any) => source.path)).toEqual([
+        'architecture/model.c4',
+        'architecture/views.c4',
+        'payments/model.c4',
+        'payments/views.c4',
+      ]);
+      expect(result.sources[0].content).toContain("customer = actor 'Customer'");
+      expect(result.sources[1].views.map((view: any) => view.id)).toEqual(['OrderFlow', 'Checkout']);
+    }
+  });
+
+  it('returns all source files and the matching view when viewId is provided', async () => {
+    const result = await getC4Diagram({ viewId: 'OrderFlow' });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect((result as any).matchingViews[0]).toMatchObject({
+        id: 'OrderFlow',
+        kind: 'element',
+        filePath: 'architecture/views.c4',
+      });
+      expect(result.sources.map((source: any) => source.path)).toEqual([
+        'architecture/model.c4',
+        'architecture/views.c4',
+        'payments/model.c4',
+        'payments/views.c4',
+      ]);
+      expect(result.sources[0].content).toContain("customer = actor 'Customer'");
+    }
+  });
+
+  it('returns sources for another matching view', async () => {
+    const result = await getC4Diagram({ viewId: 'PaymentsOverview' });
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect((result as any).matchingViews[0]).toMatchObject({
+        id: 'PaymentsOverview',
+        kind: 'deployment',
+      });
+    }
+  });
+
+  it('finds views of a dotted element, and reads a long dotted name without a view body quickly', async () => {
+    vi.mocked(fs.readFileSync).mockImplementation((filePath) =>
+      String(filePath) === '/catalog/architecture/views.c4'
+        ? `views {\n  view OrderingDetail of cloud.ordering.api {\n    include *\n  }\n  view Broken of ${'a.A'.repeat(5000)}\n}`
+        : (fileContents[String(filePath)] ?? '')
+    );
+
+    const started = Date.now();
+    const result = await getC4Diagram({ viewId: 'OrderingDetail' });
+
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect((result as any).matchingViews[0]).toMatchObject({ id: 'OrderingDetail', filePath: 'architecture/views.c4' });
+    }
+  });
+
+  it('returns available views when the requested view cannot be found', async () => {
+    const result = await getC4Diagram({ viewId: 'MissingView' });
+
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('MissingView');
+      expect((result as any).availableViews.map((view: any) => view.id)).toContain('OrderFlow');
+    }
+  });
+
+  it('returns an empty result when no LikeC4 source files are found', async () => {
+    vi.mocked(glob).mockResolvedValue([]);
+
+    const result = await getC4Diagram({});
+
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalSourceFiles).toBe(0);
+      expect(result.sources).toEqual([]);
+    }
+  });
+});
+
+describe('analyzeChangeImpact', () => {
+  it('returns producers and consumers counts', async () => {
+    const result = await analyzeChangeImpact({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.impact.producerCount).toBeGreaterThanOrEqual(0);
+      expect(result.impact.consumerCount).toBeGreaterThanOrEqual(0);
+      expect(result.impact.totalResourcesAffected).toBeGreaterThanOrEqual(0);
+      expect(result.impact.totalServicesAffected).toBeGreaterThanOrEqual(0);
+      expect(result.impact.totalAgentsAffected).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('collects affected owners from string format', async () => {
+    const result = await analyzeChangeImpact({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.impact.teamsAffected).toContain('order-team');
+    }
+  });
+
+  it('collects affected owners from object format', async () => {
+    const result = await analyzeChangeImpact({
+      messageId: 'InventoryUpdated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.impact.teamsAffected).toContain('inventory-team');
+    }
+  });
+
+  it('includes message owners in affected teams', async () => {
+    const result = await analyzeChangeImpact({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      // OrderCreated is owned by 'order-team' and { id: 'user-jane' }
+      expect(result.impact.teamsAffected).toContain('order-team');
+      expect(result.impact.teamsAffected).toContain('user-jane');
+    }
+  });
+
+  it('returns message details', async () => {
+    const result = await analyzeChangeImpact({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message.id).toBe('OrderCreated');
+      expect(result.message.name).toBe('Order Created');
+    }
+  });
+
+  it('includes affected agents', async () => {
+    const result = await analyzeChangeImpact({
+      messageId: 'PaymentProcessed',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.impact.totalAgentsAffected).toBeGreaterThan(0);
+      expect(
+        result.consumers.some(
+          (c: ProducerConsumer & { collection?: string }) => c.id === 'FraudReviewAgent' && c.collection === 'agents'
+        )
+      ).toBe(true);
+    }
+  });
+
+  it('returns error when message not found', async () => {
+    const result = await analyzeChangeImpact({
+      messageId: 'NonExistent',
+      messageVersion: '1.0.0',
+      messageCollection: 'events',
+    });
+    expect('error' in result).toBe(true);
+  });
+});
+
+// ============================================
+// Lookup Tools Tests
+// ============================================
+
+describe('findResourcesByOwner', () => {
+  it('finds resources across all collections by string owner', async () => {
+    const result = await findResourcesByOwner({ ownerId: 'order-team' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalCount).toBeGreaterThan(0);
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'events')).toBe(true);
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'services')).toBe(true);
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'adrs')).toBe(true);
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'containers')).toBe(true);
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'diagrams')).toBe(true);
+    }
+  });
+
+  it('finds agents owned by a team or user', async () => {
+    const result = await findResourcesByOwner({ ownerId: 'risk-team' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.some((r: ResourceResult) => r.collection === 'agents' && r.id === 'FraudReviewAgent')).toBe(true);
+    }
+  });
+
+  it('handles object owner format', async () => {
+    // InventoryService has owner { id: 'inventory-team' }
+    const result = await findResourcesByOwner({ ownerId: 'inventory-team' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalCount).toBeGreaterThan(0);
+      expect(result.resources.some((r: ResourceResult) => r.id === 'InventoryService')).toBe(true);
+    }
+  });
+
+  it('returns message when no resources found', async () => {
+    const result = await findResourcesByOwner({ ownerId: 'non-existent-team' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message).toContain('No resources found');
+      expect(result.resources).toEqual([]);
+    }
+  });
+
+  it('returns resources with correct structure', async () => {
+    const result = await findResourcesByOwner({ ownerId: 'order-team' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result) && result.resources.length > 0) {
+      expect(result.resources[0]).toHaveProperty('collection');
+      expect(result.resources[0]).toHaveProperty('id');
+      expect(result.resources[0]).toHaveProperty('name');
+    }
+  });
+});
+
+describe('findMessageBySchemaId', () => {
+  it('finds message in specified collection', async () => {
+    const result = await findMessageBySchemaId({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      collection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resource.id).toBe('OrderCreated');
+      expect(result.resource.collection).toBe('events');
+    }
+  });
+
+  it('searches all message collections when none specified', async () => {
+    const result = await findMessageBySchemaId({
+      messageId: 'CreateOrder',
+      messageVersion: '1.0.0',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resource.id).toBe('CreateOrder');
+      expect(result.resource.collection).toBe('commands');
+    }
+  });
+
+  it('returns latest version when no version specified', async () => {
+    const result = await findMessageBySchemaId({
+      messageId: 'OrderCreated',
+      // No version - should return latest
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resource.id).toBe('OrderCreated');
+      // Latest version is 2.0.0 in our mocks
+      expect(result.resource.version).toBe('2.0.0');
+    }
+  });
+
+  it('includes producers and consumers', async () => {
+    const result = await findMessageBySchemaId({
+      messageId: 'OrderCreated',
+      messageVersion: '1.0.0',
+      collection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.producers).toBeDefined();
+      expect(result.consumers).toBeDefined();
+      expect(Array.isArray(result.producers)).toBe(true);
+      expect(Array.isArray(result.consumers)).toBe(true);
+    }
+  });
+
+  it('includes agents in message producer and consumer lookups', async () => {
+    const result = await findMessageBySchemaId({
+      messageId: 'PaymentProcessed',
+      messageVersion: '1.0.0',
+      collection: 'events',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(
+        result.consumers.some(
+          (c: ProducerConsumer & { collection?: string }) => c.id === 'FraudReviewAgent' && c.collection === 'agents'
+        )
+      ).toBe(true);
+    }
+  });
+
+  it('returns error when message not found', async () => {
+    const result = await findMessageBySchemaId({
+      messageId: 'NonExistent',
+    });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('not found');
+    }
+  });
+});
+
+describe('getSchemaForResource', () => {
+  beforeEach(() => {
+    vi.mocked(getSchemasFromResource).mockReset();
+  });
+
+  it('returns message schemas from the generated schemas collection', async () => {
+    const result = await getSchemaForResource({
+      resourceId: 'OrderCreated',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'events',
+    });
+
+    expect(result).toEqual([
+      {
+        id: 'file://schemas/OrderCreated.schema.json',
+        name: 'OrderCreated.schema.json',
+        ref: 'file://schemas/OrderCreated.schema.json',
+        format: 'jsonschema',
+        source: {
+          provider: 'file',
+          path: 'schemas/OrderCreated.schema.json',
+        },
+        code: '{"type":"object","title":"OrderCreated"}',
+      },
+    ]);
+    expect(getSchemasFromResource).not.toHaveBeenCalled();
+  });
+
+  it('falls back to legacy resource schema files when no generated schema entry exists', async () => {
+    vi.mocked(getSchemasFromResource).mockResolvedValue([{ url: '/path/to/schema.json', format: 'json-schema' }]);
+
+    const result = await getSchemaForResource({
+      resourceId: 'PaymentProcessed',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'events',
+    });
+    expect(Array.isArray(result)).toBe(true);
+    if (Array.isArray(result)) {
+      expect(result[0]).toHaveProperty('url');
+      expect(result[0]).toHaveProperty('format');
+      expect(result[0]).toHaveProperty('code');
+    }
+  });
+
+  it('returns message when no schema found', async () => {
+    vi.mocked(getSchemasFromResource).mockResolvedValue([]);
+
+    const result = await getSchemaForResource({
+      resourceId: 'PaymentProcessed',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'events',
+    });
+    expect('message' in result).toBe(true);
+    if ('message' in result) {
+      expect(result.message).toContain('No schemas found');
+    }
+  });
+
+  it('returns error when resource not found', async () => {
+    const result = await getSchemaForResource({
+      resourceId: 'NonExistent',
+      resourceVersion: '1.0.0',
+      resourceCollection: 'events',
+    });
+    expect('error' in result).toBe(true);
+  });
+});
+
+// ============================================
+// Flow Tools Tests
+// ============================================
+
+describe('explainBusinessFlow', () => {
+  it('returns flow with steps and mermaid', async () => {
+    const result = await explainBusinessFlow({
+      flowId: 'OrderFlow',
+      flowVersion: '1.0.0',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.flow.id).toBe('OrderFlow');
+      expect(result.flow.steps).toBeDefined();
+      expect(Array.isArray(result.flow.steps)).toBe(true);
+      expect(result.flow.mermaid).toBeDefined();
+    }
+  });
+
+  it('includes related services', async () => {
+    const result = await explainBusinessFlow({
+      flowId: 'OrderFlow',
+      flowVersion: '1.0.0',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.relatedServices).toBeDefined();
+      expect(Array.isArray(result.relatedServices)).toBe(true);
+      // OrderService has flows: [{ id: 'OrderFlow' }]
+      expect(result.relatedServices.some((s: ProducerConsumer) => s.id === 'OrderService')).toBe(true);
+    }
+  });
+
+  it('includes related agents', async () => {
+    const result = await explainBusinessFlow({
+      flowId: 'OrderFlow',
+      flowVersion: '1.0.0',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.relatedAgents).toBeDefined();
+      expect(Array.isArray(result.relatedAgents)).toBe(true);
+      expect(result.relatedAgents.some((a: ProducerConsumer) => a.id === 'FraudReviewAgent')).toBe(true);
+    }
+  });
+
+  it('returns body content', async () => {
+    const result = await explainBusinessFlow({
+      flowId: 'OrderFlow',
+      flowVersion: '1.0.0',
+    });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.content).toBeDefined();
+      expect(result.content).toContain('Order Processing Flow');
+    }
+  });
+
+  it('returns error when flow not found', async () => {
+    const result = await explainBusinessFlow({
+      flowId: 'NonExistent',
+      flowVersion: '1.0.0',
+    });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('not found');
+    }
+  });
+});
+
+// ============================================
+// Team and User Tools Tests
+// ============================================
+
+describe('getTeams', () => {
+  it('returns paginated teams', async () => {
+    const result = await getTeams({});
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.teams).toBeDefined();
+      expect(Array.isArray(result.teams)).toBe(true);
+      expect(result.totalCount).toBe(mockTeams.length);
+    }
+  });
+
+  it('returns teams with correct structure', async () => {
+    const result = await getTeams({});
+    expect('error' in result).toBe(false);
+    if (!('error' in result) && result.teams.length > 0) {
+      expect(result.teams[0]).toHaveProperty('id');
+      expect(result.teams[0]).toHaveProperty('name');
+      expect(result.teams[0]).toHaveProperty('members');
+    }
+  });
+
+  it('supports cursor-based pagination', async () => {
+    const result = await getTeams({ cursor: encodeCursor(1) });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.teams[0].id).toBe('payment-team');
+    }
+  });
+});
+
+describe('getTeam', () => {
+  it('returns team by id with members', async () => {
+    const result = await getTeam({ id: 'order-team' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.id).toBe('order-team');
+      expect(result.name).toBe('Order Team');
+      expect(result.members).toContain('user-jane');
+      expect(result.members).toContain('user-john');
+    }
+  });
+
+  it('returns team content (markdown body)', async () => {
+    const result = await getTeam({ id: 'order-team' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.content).toBeDefined();
+    }
+  });
+
+  it('returns error when team not found', async () => {
+    const result = await getTeam({ id: 'non-existent-team' });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('not found');
+    }
+  });
+});
+
+describe('getUsers', () => {
+  it('returns paginated users', async () => {
+    const result = await getUsers({});
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.users).toBeDefined();
+      expect(Array.isArray(result.users)).toBe(true);
+      expect(result.totalCount).toBe(mockUsers.length);
+    }
+  });
+
+  it('returns users with correct structure', async () => {
+    const result = await getUsers({});
+    expect('error' in result).toBe(false);
+    if (!('error' in result) && result.users.length > 0) {
+      expect(result.users[0]).toHaveProperty('id');
+      expect(result.users[0]).toHaveProperty('name');
+      expect(result.users[0]).toHaveProperty('email');
+      expect(result.users[0]).toHaveProperty('role');
+    }
+  });
+});
+
+describe('getUser', () => {
+  it('returns user by id', async () => {
+    const result = await getUser({ id: 'user-jane' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.id).toBe('user-jane');
+      expect(result.name).toBe('Jane Doe');
+      expect(result.email).toBe('jane@company.com');
+      expect(result.role).toBe('Lead Engineer');
+    }
+  });
+
+  it('returns user content (markdown body)', async () => {
+    const result = await getUser({ id: 'user-jane' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.content).toBeDefined();
+    }
+  });
+
+  it('returns error when user not found', async () => {
+    const result = await getUser({ id: 'non-existent-user' });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('not found');
+    }
+  });
+});
+
+// ============================================
+// Search Filter Tests
+// ============================================
+
+describe('getResources with search filter', () => {
+  it('filters resources by name', async () => {
+    const result = await getResources({ collection: 'events', search: 'Order' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      // Should match OrderCreated events (both versions)
+      expect(result.resources.length).toBeGreaterThan(0);
+      expect(
+        result.resources.every((r: any) => r.name?.toLowerCase().includes('order') || r.id?.toLowerCase().includes('order'))
+      ).toBe(true);
+    }
+  });
+
+  it('filters resources by id', async () => {
+    const result = await getResources({ collection: 'events', search: 'Payment' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.length).toBeGreaterThan(0);
+      expect(result.resources.some((r: any) => r.id === 'PaymentProcessed')).toBe(true);
+    }
+  });
+
+  it('filters resources by summary', async () => {
+    const result = await getResources({ collection: 'events', search: 'inventory' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.length).toBeGreaterThan(0);
+      expect(result.resources.some((r: any) => r.id === 'InventoryUpdated')).toBe(true);
+    }
+  });
+
+  it('returns empty when no match found', async () => {
+    const result = await getResources({ collection: 'events', search: 'nonexistent' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.length).toBe(0);
+      expect(result.totalCount).toBe(0);
+    }
+  });
+
+  it('is case-insensitive', async () => {
+    const resultLower = await getResources({ collection: 'events', search: 'order' });
+    const resultUpper = await getResources({ collection: 'events', search: 'ORDER' });
+    expect('error' in resultLower).toBe(false);
+    expect('error' in resultUpper).toBe(false);
+    if (!('error' in resultLower) && !('error' in resultUpper)) {
+      expect(resultLower.totalCount).toBe(resultUpper.totalCount);
+    }
+  });
+
+  it('returns all resources when search is empty', async () => {
+    const resultWithSearch = await getResources({ collection: 'events', search: '' });
+    const resultWithoutSearch = await getResources({ collection: 'events' });
+    expect('error' in resultWithSearch).toBe(false);
+    expect('error' in resultWithoutSearch).toBe(false);
+    if (!('error' in resultWithSearch) && !('error' in resultWithoutSearch)) {
+      expect(resultWithSearch.totalCount).toBe(resultWithoutSearch.totalCount);
+    }
+  });
+
+  it('includes summary in returned resources', async () => {
+    const result = await getResources({ collection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result) && result.resources.length > 0) {
+      expect(result.resources[0]).toHaveProperty('summary');
+    }
+  });
+});
+
+// ============================================
+// Ubiquitous Language Tests
+// ============================================
+
+describe('explainUbiquitousLanguageTerms', () => {
+  it('returns terms for a domain with ubiquitous language', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.domainId).toBe('OrderDomain');
+      expect(result.terms.length).toBeGreaterThan(0);
+      expect(result.totalCount).toBeGreaterThan(0);
+    }
+  });
+
+  it('includes domain terms', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.domainTermCount).toBe(3);
+      expect(result.terms.some((t: any) => t.term === 'Order')).toBe(true);
+      expect(result.terms.some((t: any) => t.term === 'Line Item')).toBe(true);
+    }
+  });
+
+  it('includes subdomain terms', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.subdomainTermCount).toBe(2);
+      expect(result.terms.some((t: any) => t.term === 'Shipment' && t.isSubdomain === true)).toBe(true);
+    }
+  });
+
+  it('detects duplicate terms', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.duplicateTerms).toContain('customer');
+      expect(result.terms.filter((t: any) => t.term === 'Customer' && t.isDuplicate === true).length).toBe(2);
+    }
+  });
+
+  it('includes term metadata (icon, description)', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      const orderTerm = result.terms.find((t: any) => t.term === 'Order');
+      expect(orderTerm).toBeDefined();
+      expect(orderTerm?.description).toBeDefined();
+      expect(orderTerm?.icon).toBe('ShoppingCart');
+    }
+  });
+
+  it('returns message when no terms defined', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'EmptyDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message).toContain('No ubiquitous language terms');
+      expect(result.terms.length).toBe(0);
+    }
+  });
+
+  it('returns error when domain not found', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'NonExistent' });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('not found');
+    }
+  });
+
+  it('returns subdomain count', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.subdomainCount).toBe(1);
+    }
+  });
+});
+
+// ============================================
+// Custom Documentation Tools Tests
+// ============================================
+
+describe('getCustomDocs', () => {
+  it('returns all custom docs with metadata but no body', async () => {
+    const result = await getCustomDocs({});
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalCount).toBe(2);
+      expect(result.docs[0]).toEqual({
+        id: 'docs/payments/runbook',
+        title: 'Payment Runbook',
+        summary: 'How we operate payments',
+      });
+      expect(result.docs[1]).toEqual({
+        id: 'docs/onboarding',
+        title: 'Onboarding Guide',
+        summary: 'Getting started as a new engineer',
+        slug: 'getting-started',
+      });
+    }
+  });
+
+  it('filters docs with the search param (title, id, summary)', async () => {
+    const result = await getCustomDocs({ search: 'onboarding' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.totalCount).toBe(1);
+      expect(result.docs[0].id).toBe('docs/onboarding');
+    }
+  });
+
+  it('returns no nextCursor when all docs fit on one page', async () => {
+    const result = await getCustomDocs({});
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.nextCursor).toBeUndefined();
+    }
+  });
+});
+
+describe('searchCustomDocs', () => {
+  it('finds docs by body content and returns the matched section with a snippet', async () => {
+    const result = await searchCustomDocs({ query: 'refund fails' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.results.length).toBeGreaterThan(0);
+      expect(result.results[0].docId).toBe('docs/payments/runbook');
+      expect(result.results[0].heading).toBe('Refund failures');
+      expect(result.results[0].snippet.toLowerCase()).toContain('refund');
+    }
+  });
+
+  it('returns empty results when nothing matches', async () => {
+    const result = await searchCustomDocs({ query: 'zzzzz-nonexistent' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.results).toEqual([]);
+    }
+  });
+
+  it('returns an error for an empty query', async () => {
+    const result = await searchCustomDocs({ query: '   ' });
+    expect('error' in result).toBe(true);
+  });
+});
+
+describe('getCustomDoc', () => {
+  it('returns the full markdown and metadata for a doc by id', async () => {
+    const result = await getCustomDoc({ id: 'docs/payments/runbook' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.title).toBe('Payment Runbook');
+      expect(result.markdown).toContain('## Refund failures');
+      expect(result.markdown).toContain('acquirer portal');
+    }
+  });
+
+  it('resolves a doc by its custom slug', async () => {
+    const result = await getCustomDoc({ id: 'getting-started' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.title).toBe('Onboarding Guide');
+    }
+  });
+
+  it('returns only the requested section when a section is provided', async () => {
+    const result = await getCustomDoc({ id: 'docs/payments/runbook', section: 'Chargeback handling' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.markdown).toContain('acquirer portal');
+      expect(result.markdown).not.toContain('Refund failures');
+    }
+  });
+
+  it('returns an error listing available sections when the section is not found', async () => {
+    const result = await getCustomDoc({ id: 'docs/payments/runbook', section: 'Nope' });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('Chargeback handling');
+    }
+  });
+
+  it('returns an error when the doc is not found', async () => {
+    const result = await getCustomDoc({ id: 'docs/does-not-exist' });
+    expect('error' in result).toBe(true);
+  });
+});

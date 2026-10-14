@@ -1,20 +1,16 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import {
-  createDagreGraph,
   generateIdForNode,
   generatedIdForEdge,
-  calculatedNodes,
   createEdge,
   buildContextMenuForAgent,
   buildContextMenuForService,
   buildContextMenuForResource,
   versionMatches,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
   partitionMessagesByGroup,
   getOperationFields,
-  layoutDagreGraph,
 } from '@utils/node-graphs/utils/utils';
+import { layoutNodeGraph } from '@utils/node-graphs/layout-node-graph';
 
 const sanitizeGroupId = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 const sanitizeToolId = (name: string) =>
@@ -108,12 +104,9 @@ const precomputeGroupExpansion = (
   return { expandedNodes, expandedEdges };
 };
 
-type DagreGraph = any;
-
 interface Props {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   renderAllEdges?: boolean;
   channelRenderMode?: 'single' | 'flat';
@@ -172,7 +165,6 @@ const getReceivesMessageByMessageType = (messageType: string) => {
 
 export const getNodesAndEdges = async ({
   id,
-  defaultFlow,
   version,
   mode = 'simple',
   renderAllEdges = false,
@@ -181,7 +173,6 @@ export const getNodesAndEdges = async ({
   collection = 'services',
   layout = true,
 }: Props) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   let nodes = [] as any,
     edges = [] as any;
 
@@ -282,6 +273,7 @@ export const getNodesAndEdges = async ({
 
       nodes.push({
         id: groupNodeId,
+        position: { x: 0, y: 0 },
         sourcePosition: 'right',
         targetPosition: 'left',
         type: 'messageGroup',
@@ -345,6 +337,7 @@ export const getNodesAndEdges = async ({
   // The service itself
   nodes.push({
     id: generateIdForNode(service),
+    position: { x: 0, y: 0 },
     sourcePosition: 'right',
     targetPosition: 'left',
     data: {
@@ -358,6 +351,7 @@ export const getNodesAndEdges = async ({
   writesTo.forEach((writeTo) => {
     nodes.push({
       id: generateIdForNode(writeTo),
+      position: { x: 0, y: 0 },
       sourcePosition: 'right',
       targetPosition: 'left',
       data: {
@@ -398,6 +392,7 @@ export const getNodesAndEdges = async ({
 
       nodes.push({
         id: toolNodeId,
+        position: { x: 0, y: 0 },
         sourcePosition: 'right',
         targetPosition: 'left',
         data: {
@@ -447,6 +442,7 @@ export const getNodesAndEdges = async ({
   readsFrom.forEach((readFrom) => {
     nodes.push({
       id: generateIdForNode(readFrom),
+      position: { x: 0, y: 0 },
       sourcePosition: 'right',
       targetPosition: 'left',
       data: {
@@ -500,6 +496,7 @@ export const getNodesAndEdges = async ({
 
       nodes.push({
         id: groupNodeId,
+        position: { x: 0, y: 0 },
         sourcePosition: 'right',
         targetPosition: 'left',
         type: 'messageGroup',
@@ -626,19 +623,6 @@ export const getNodesAndEdges = async ({
 
   const uniqueNodes = Array.from(uniqueNodesById.values());
 
-  uniqueNodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  });
-
-  edges.forEach((edge: any) => {
-    flow.setEdge(edge.source, edge.target);
-  });
-
-  if (layout) {
-    // Render the diagram in memory getting the X and Y
-    layoutDagreGraph(flow);
-  }
-
   // Find any duplicated edges, and merge them into one edge
   const uniqueEdgesById = new Map<string, any>();
   edges.forEach((edge: any) => {
@@ -661,8 +645,10 @@ export const getNodesAndEdges = async ({
   });
   const uniqueEdges = Array.from(uniqueEdgesById.values());
 
-  return {
-    nodes: calculatedNodes(flow, uniqueNodes),
+  const graph = {
+    nodes: uniqueNodes.map((node: any) => ({ ...node, position: node.position ?? { x: 0, y: 0 } })),
     edges: uniqueEdges,
   };
+
+  return layout ? await layoutNodeGraph(graph) : graph;
 };

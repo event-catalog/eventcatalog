@@ -4,7 +4,7 @@
 
 import type { APIRoute } from 'astro';
 import fs from 'fs';
-import { isLLMSTxtEnabled, isResourceDocsEnabled, isSSR } from '@utils/feature';
+import { isLLMSTxtEnabled, isSSR } from '@utils/feature';
 import { getResourceDocs, getResourceDocsForResource, type ResourceCollection } from '@utils/collections/resource-docs';
 import { filterMarkdownForAgents } from '@utils/llms';
 
@@ -23,7 +23,7 @@ const supportedResourceCollections = new Set<ResourceCollection>([
 ]);
 
 export async function getStaticPaths() {
-  if (isSSR() || !isLLMSTxtEnabled() || !isResourceDocsEnabled()) {
+  if (isSSR() || !isLLMSTxtEnabled()) {
     return [];
   }
 
@@ -45,10 +45,6 @@ export async function getStaticPaths() {
 export const GET: APIRoute = async ({ params, props }) => {
   if (!isLLMSTxtEnabled()) {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
-  }
-
-  if (!isResourceDocsEnabled()) {
-    return new Response('Resource docs are not enabled for this Catalog.', { status: 404 });
   }
 
   let filePath = (props as { filePath?: string } | undefined)?.filePath;

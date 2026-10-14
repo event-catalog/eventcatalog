@@ -1,7 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import type { APIRoute } from 'astro';
 import fs from 'fs';
-import { isCustomDocsEnabled, isResourceDocsEnabled, isLLMSTxtEnabled } from '@utils/feature';
+import { isLLMSTxtEnabled } from '@utils/feature';
 import { addSchemaToMarkdown, filterMarkdownForAgents } from '@utils/llms';
 
 type AllowedCollections =
@@ -37,7 +37,7 @@ const flows = await getCollection('flows');
 const containers = await getCollection('containers');
 const ubiquitousLanguages = await getCollection('ubiquitousLanguages');
 const customDocs = await getCollection('customPages');
-const resourceDocs = isResourceDocsEnabled() ? await getCollection('resourceDocs') : [];
+const resourceDocs = await getCollection('resourceDocs');
 
 export const GET: APIRoute = async ({ params, request }) => {
   if (!isLLMSTxtEnabled()) {
@@ -61,13 +61,8 @@ export const GET: APIRoute = async ({ params, request }) => {
     ...ubiquitousLanguages,
   ];
 
-  if (isCustomDocsEnabled()) {
-    resources.push(...(customDocs as CollectionEntry<AllowedCollections>[]));
-  }
-
-  if (isResourceDocsEnabled()) {
-    resources.push(...(resourceDocs as CollectionEntry<AllowedCollections>[]));
-  }
+  resources.push(...(customDocs as CollectionEntry<AllowedCollections>[]));
+  resources.push(...(resourceDocs as CollectionEntry<AllowedCollections>[]));
 
   const content = resources
     .map((item) => {

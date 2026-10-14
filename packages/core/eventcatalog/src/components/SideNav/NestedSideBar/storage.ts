@@ -107,6 +107,8 @@ export const saveCollapsedSections = (preferences: SectionCollapsePreferences): 
 };
 
 export const loadCollapsedSections = (): SectionCollapsePreferences => {
+  // Rendered on the server for the first paint, where there is nothing saved yet
+  if (typeof localStorage === 'undefined') return createSectionCollapsePreferences();
   try {
     const stored = localStorage.getItem(SECTION_PREFERENCES_KEY);
     if (stored) {

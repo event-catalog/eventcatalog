@@ -1,15 +1,6 @@
 import type { Node, Edge } from '@xyflow/react';
-import dagre from 'dagre';
-import {
-  createDagreGraph,
-  calculatedNodes,
-  createEdge,
-  createNode,
-  buildContextMenuForMessage,
-  buildContextMenuForService,
-  DEFAULT_NODE_WIDTH,
-  DEFAULT_NODE_HEIGHT,
-} from './utils/utils';
+import { createEdge, createNode, buildContextMenuForMessage, buildContextMenuForService } from './utils/utils';
+import { layoutWithElk } from '@eventcatalog/visualiser/layout';
 
 export interface FieldOccurrence {
   messageId: string;
@@ -28,15 +19,16 @@ interface Props {
   fieldType: string;
   occurrences: FieldOccurrence[];
   mode?: 'simple' | 'full';
+  layout?: boolean;
 }
 
-export const getNodesAndEdges = ({
+export const getNodesAndEdges = async ({
   fieldPath,
   fieldType,
   occurrences,
   mode = 'full',
-}: Props): { nodes: Node[]; edges: Edge[] } => {
-  const flow = createDagreGraph({ ranksep: 200, nodesep: 50 });
+  layout = true,
+}: Props): Promise<{ nodes: Node[]; edges: Edge[] }> => {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   const addedNodes = new Set<string>();
@@ -179,14 +171,9 @@ export const getNodesAndEdges = ({
     }
   }
 
-  // Apply layout
-  for (const node of nodes) {
-    flow.setNode(node.id, { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT });
-  }
-  for (const edge of edges) {
-    flow.setEdge(edge.source, edge.target);
-  }
-  dagre.layout(flow);
+  if (!layout) return { nodes, edges };
 
-  return { nodes: calculatedNodes(flow, nodes), edges };
+  // Lays out with ELK directly rather than layoutNodeGraph: this runs in the browser (the Fields Explorer),
+  // and layoutNodeGraph's cache reads the catalog's config, which would put the config in the browser's bundle
+  return (await layoutWithElk({ nodes, edges })) as unknown as { nodes: Node[]; edges: Edge[] };
 };

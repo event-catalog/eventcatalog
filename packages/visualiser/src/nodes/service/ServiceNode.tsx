@@ -6,7 +6,8 @@ import {
   normalizeOwners,
   HIDDEN_HANDLE_STYLE,
 } from "../OwnerIndicator";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../../utils/node-connections";
 import { EventCatalogResource, Service as ServiceType } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import {
@@ -14,6 +15,7 @@ import {
   WATERMARK_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
   useDarkMode,
+  HANDLE_GLOW,
 } from "../shared-styles";
 import { TruncatedResourceName } from "../TruncatedResourceName";
 import { FocusedResourceIndicator } from "../FocusedResourceIndicator";
@@ -171,6 +173,7 @@ const GlowHandle = memo(function GlowHandle({
 }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -184,9 +187,7 @@ const GlowHandle = memo(function GlowHandle({
           : "linear-gradient(135deg, #ec4899, #be185d)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: external
-          ? "ec-external-handle-pulse 2s ease-in-out infinite"
-          : "ec-service-handle-pulse 2s ease-in-out infinite",
+        ...(external ? HANDLE_GLOW.external : HANDLE_GLOW.service),
         pointerEvents: "none",
       }}
     />
@@ -461,8 +462,7 @@ function DefaultService(props: ServiceNode) {
     () => normalizeOwners(props.data.service.owners),
     [props.data.service.owners],
   );
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
   const isDark = useDarkMode();
   const deprecatedStripe = isDark
     ? "rgba(239,68,68,0.25)"
@@ -506,10 +506,8 @@ function DefaultService(props: ServiceNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {targetConnections.length > 0 && (
-        <GlowHandle side="left" external={externalSystem} />
-      )}
-      {sourceConnections.length > 0 && (
+      {connected.target && <GlowHandle side="left" external={externalSystem} />}
+      {connected.source && (
         <GlowHandle side="right" external={externalSystem} />
       )}
 

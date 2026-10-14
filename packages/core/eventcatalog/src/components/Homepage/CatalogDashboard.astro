@@ -1,0 +1,342 @@
+---
+import config from '@config';
+import { buildUrl } from '@utils/url-builder';
+import { getColorForCollection } from '@utils/collection-colors';
+import { isArchitectureGraphEnabled, isEventCatalogChatEnabled } from '@utils/feature';
+import CatalogForceGraph from '@components/CatalogGraph/CatalogForceGraph';
+import { getCatalogForceGraph, toCatalogForceGraphWire } from '@utils/node-graphs/catalog-force-graph';
+import { getDashboard, type DashboardCollection } from '@utils/homepage-dashboard';
+import { Boxes, Clock, FileJson, Mail, Network, Search, Server, Sparkles, Users, Waypoints } from 'lucide-react';
+
+interface Props {
+  /** The heading, the catalog's title by default */
+  title?: string;
+  /** Under the heading, the catalog's tagline by default */
+  description?: string;
+}
+
+const {
+  title = config?.title || config?.organizationName || 'EventCatalog',
+  description = config?.tagline || 'Explore and understand your event-driven architecture.',
+} = Astro.props;
+
+const dashboard = await getDashboard();
+const { counts, recentlyUpdated } = dashboard;
+const chatEnabled = isEventCatalogChatEnabled();
+// The architecture graph leads the dashboard; it's opt-in while in beta, and without it the dashboard shows what changed recently
+const graph = isArchitectureGraphEnabled() ? toCatalogForceGraphWire(await getCatalogForceGraph()) : undefined;
+
+const TYPE_LABELS: Record<DashboardCollection, string> = {
+  domains: 'Domain',
+  services: 'Service',
+  events: 'Event',
+  commands: 'Command',
+  queries: 'Query',
+  flows: 'Flow',
+};
+// The colour each kind of resource has across the catalog, from the theme's badge colours
+const badgeStyle = (collection: string) => {
+  const color = getColorForCollection(collection);
+  return `color: rgb(var(--ec-badge-color-${color}-text)); background: rgb(var(--ec-badge-color-${color}-background));`;
+};
+
+const stats = [
+  { label: 'Domains', value: counts.domains, href: buildUrl('/discover/domains'), icon: Boxes },
+  { label: 'Services', value: counts.services, href: buildUrl('/discover/services'), icon: Server },
+  { label: 'Messages', value: counts.messages, href: buildUrl('/discover/events'), icon: Mail },
+  { label: 'Flows', value: counts.flows, href: buildUrl('/discover/flows'), icon: Waypoints },
+  { label: 'Schemas', value: counts.schemas, href: buildUrl('/schemas/explorer'), icon: FileJson },
+  { label: 'Teams', value: counts.teams, href: buildUrl('/directory/teams'), icon: Users },
+];
+
+const formatDate = (timestamp: number) =>
+  new Date(timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+
+<div class="ec-dashboard">
+  <!-- Header -->
+  <header class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div class="min-w-0">
+      <h1 class="text-[26px] font-semibold leading-tight tracking-tight text-[rgb(var(--ec-page-text))] md:text-[30px]">
+        {title}
+      </h1>
+      <p class="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-[rgb(var(--ec-page-text-muted))]">
+        {description}
+      </p>
+    </div>
+    <div class="flex w-full items-center gap-2 lg:w-auto">
+      <button type="button" data-dashboard-search class="ec-dashboard-search group">
+        <Search className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
+        <span class="flex-1 text-left">Search the catalog</span>
+        <kbd class="ec-dashboard-kbd">⌘K</kbd>
+      </button>
+      {
+        chatEnabled && (
+          <button type="button" data-dashboard-ask class="ec-dashboard-button">
+            <Sparkles className="h-4 w-4" />
+            Ask
+          </button>
+        )
+      }
+    </div>
+  </header>
+
+  <!-- Counts -->
+  <section class="ec-dashboard-stats mt-8" aria-label="Catalog at a glance">
+    {
+      stats.map((stat) => (
+        <a href={stat.href} class="ec-dashboard-card ec-dashboard-stat group">
+          <div class="flex items-center justify-between">
+            <span class="text-[12px] font-medium text-[rgb(var(--ec-page-text-muted))]">{stat.label}</span>
+            <stat.icon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))] transition-colors group-hover:text-[rgb(var(--ec-page-text))]" />
+          </div>
+          <span class="mt-2 block text-[28px] font-semibold leading-none tracking-tight tabular-nums text-[rgb(var(--ec-page-text))]">
+            {stat.value}
+          </span>
+        </a>
+      ))
+    }
+  </section>
+
+  <!-- The architecture graph, or what changed recently without it -->
+  <div class="mt-6">
+    {
+      graph ? (
+        <section class="ec-dashboard-card overflow-hidden">
+          <div class="ec-dashboard-card-header">
+            <h2 class="ec-dashboard-title">
+              <Network className="h-4 w-4" /> Architecture
+            </h2>
+          </div>
+          <div class="relative h-[34rem] border-t border-[rgb(var(--ec-page-border))]">
+            <CatalogForceGraph
+              client:only="react"
+              nodes={graph.nodes}
+              links={graph.links}
+              linkLabels={graph.linkLabels}
+              initialLens="domains"
+              showSearch
+              showLegend
+              showLensPicker
+              syncUrl={false}
+              zoomOnScroll={false}
+              openInGraphUrl={buildUrl('/visualiser/graph')}
+              openInGraphLabel="Open full screen"
+            />
+          </div>
+        </section>
+      ) : (
+        <section class="ec-dashboard-card">
+          <div class="ec-dashboard-card-header">
+            <h2 class="ec-dashboard-title">
+              <Clock className="h-4 w-4" /> Recently updated
+            </h2>
+          </div>
+          {recentlyUpdated.length === 0 ? (
+            <p class="px-5 pb-5 text-[13px] text-[rgb(var(--ec-page-text-muted))]">Nothing to show yet.</p>
+          ) : (
+            <ul class="divide-y divide-[rgb(var(--ec-page-border))]">
+              {recentlyUpdated.map((resource) => (
+                <li>
+                  <a href={resource.href} class="ec-dashboard-row">
+                    <span class="ec-dashboard-type" style={badgeStyle(resource.collection)}>
+                      {TYPE_LABELS[resource.collection]}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-[13.5px] font-medium text-[rgb(var(--ec-page-text))]">
+                        {resource.name}
+                        <span class="ml-1.5 font-mono text-[11.5px] font-normal text-[rgb(var(--ec-page-text-muted))]">
+                          v{resource.version}
+                        </span>
+                      </span>
+                      {resource.summary && (
+                        <span class="block truncate text-[12.5px] text-[rgb(var(--ec-page-text-muted))]">{resource.summary}</span>
+                      )}
+                    </span>
+                    {resource.owners[0] && (
+                      <span class="hidden shrink-0 text-[12px] text-[rgb(var(--ec-page-text-muted))] md:block">
+                        {resource.owners[0].name}
+                      </span>
+                    )}
+                    <time
+                      class="w-24 shrink-0 text-right text-[12px] tabular-nums text-[rgb(var(--ec-page-text-muted))]"
+                      datetime={new Date(resource.updatedAt!).toISOString()}
+                      data-relative-time
+                    >
+                      {formatDate(resource.updatedAt!)}
+                    </time>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )
+    }
+  </div>
+</div>
+
+<script>
+  // The search bar and Ask button open the catalog's search and assistant
+  const bind = () => {
+    document.querySelector('[data-dashboard-search]')?.addEventListener('click', () => {
+      (window as any).searchModalState?.open();
+    });
+    document.querySelector('[data-dashboard-ask]')?.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'));
+    });
+
+    // "3 days ago", counted in the browser so a prerendered page stays current
+    const format = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    const units: [Intl.RelativeTimeFormatUnit, number][] = [
+      ['year', 365 * 24 * 3600],
+      ['month', 30 * 24 * 3600],
+      ['week', 7 * 24 * 3600],
+      ['day', 24 * 3600],
+      ['hour', 3600],
+      ['minute', 60],
+    ];
+    document.querySelectorAll<HTMLTimeElement>('time[data-relative-time]').forEach((time) => {
+      const seconds = (new Date(time.dateTime).getTime() - Date.now()) / 1000;
+      const [unit, size] = units.find(([, size]) => Math.abs(seconds) >= size) ?? ['minute', 60];
+      time.textContent = format.format(Math.round(seconds / size), unit);
+      time.title = new Date(time.dateTime).toLocaleString();
+    });
+  };
+  bind();
+  document.addEventListener('astro:page-load', bind);
+</script>
+
+<style is:global>
+  .ec-dashboard {
+    max-width: 96rem;
+    padding-bottom: 2.5rem;
+  }
+  .ec-dashboard-card {
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 0.875rem;
+    background: rgb(var(--ec-card-bg, var(--ec-page-bg)));
+  }
+  .ec-dashboard-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem 0.75rem;
+  }
+  .ec-dashboard-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-dashboard-title svg {
+    color: rgb(var(--ec-page-text-muted));
+  }
+  .ec-dashboard-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgb(var(--ec-page-text-muted));
+  }
+  .ec-dashboard-link:hover {
+    color: rgb(var(--ec-page-text));
+  }
+  .ec-dashboard-search {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 0.625rem;
+    background: rgb(var(--ec-card-bg, var(--ec-page-bg)));
+    font-size: 13px;
+    color: rgb(var(--ec-page-text-muted));
+    transition: border-color 150ms;
+  }
+  @media (min-width: 1024px) {
+    .ec-dashboard-search {
+      width: 22rem;
+      flex: none;
+    }
+  }
+  .ec-dashboard-search:hover {
+    border-color: rgb(var(--ec-page-text) / 0.35);
+  }
+  .ec-dashboard-kbd {
+    border: 1px solid rgb(var(--ec-page-border));
+    border-radius: 0.375rem;
+    padding: 0.05rem 0.375rem;
+    font-family: inherit;
+    font-size: 11px;
+  }
+  .ec-dashboard-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 2.5rem;
+    padding: 0 0.875rem;
+    border-radius: 0.625rem;
+    background: rgb(var(--ec-page-text));
+    font-size: 13px;
+    font-weight: 500;
+    color: rgb(var(--ec-page-bg));
+    transition: opacity 150ms;
+  }
+  .ec-dashboard-button:hover {
+    opacity: 0.85;
+  }
+  .ec-dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  @media (min-width: 768px) {
+    .ec-dashboard-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1280px) {
+    .ec-dashboard-stats {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+  .ec-dashboard-stat {
+    display: block;
+    padding: 1rem 1.1rem;
+    transition: border-color 150ms;
+  }
+  .ec-dashboard-stat:hover {
+    border-color: rgb(var(--ec-page-text) / 0.35);
+  }
+  .ec-dashboard-row {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.7rem 1.25rem;
+    transition: background 150ms;
+  }
+  .ec-dashboard-row:hover {
+    background: rgb(var(--ec-page-text) / 0.03);
+  }
+  .ec-dashboard-type {
+    flex-shrink: 0;
+    width: 4.75rem;
+    border-radius: 0.375rem;
+    padding: 0.15rem 0;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  @media (min-width: 640px) {
+  }
+  @media (min-width: 1280px) {
+  }
+</style>

@@ -1,12 +1,14 @@
 import { memo } from "react";
 import { Database } from "lucide-react";
 import { HIDDEN_HANDLE_STYLE } from "../OwnerIndicator";
-import { Node, Handle, Position, useNodeConnections } from "@xyflow/react";
-import { useDarkMode } from "../shared-styles";
+import { Node, Handle, Position } from "@xyflow/react";
+import { useNodeHasConnections } from "../../utils/node-connections";
+import { useDarkMode, HANDLE_GLOW } from "../shared-styles";
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
   return (
     <div
+      className="ec-handle-glow"
       style={{
         position: "absolute",
         top: "50%",
@@ -18,7 +20,7 @@ function GlowHandle({ side }: { side: "left" | "right" }) {
         background: "linear-gradient(135deg, #06b6d4, #0891b2)",
         border: "2px solid rgb(var(--ec-page-bg))",
         zIndex: 20,
-        animation: "ec-handle-pulse 2s ease-in-out infinite",
+        ...HANDLE_GLOW.generic,
         pointerEvents: "none" as const,
       }}
     />
@@ -40,8 +42,7 @@ export type FieldNode = Node<FieldNodeData, "field">;
 export default memo(function Field(props: FieldNode) {
   const { name, type: fieldType } = props.data;
   const mode = props.data.mode || "simple";
-  const targetConnections = useNodeConnections({ handleType: "target" });
-  const sourceConnections = useNodeConnections({ handleType: "source" });
+  const connected = useNodeHasConnections();
   const isDark = useDarkMode();
 
   return (
@@ -66,8 +67,8 @@ export default memo(function Field(props: FieldNode) {
         position={Position.Right}
         style={HIDDEN_HANDLE_STYLE}
       />
-      {targetConnections.length > 0 && <GlowHandle side="left" />}
-      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       {/* Type badge top-left */}
       <div className="absolute -top-2.5 left-2.5 z-10">
