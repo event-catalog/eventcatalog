@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 5.0.1
+
+### Patch Changes
+
+- 0ffe246: Upgrade `@modelcontextprotocol/sdk` from 1.30 to 1.32 for the MCP server.
+- Updated dependencies [0ffe246]
+  - @eventcatalog/linter@1.2.1
+
 ## 5.0.0
 
 ### Major Changes
