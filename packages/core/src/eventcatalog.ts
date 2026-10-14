@@ -832,7 +832,8 @@ program.addHelpText(
 
 program
   .parseAsync()
-  .then(() => process.exit(0))
+  // With the exit code a command set (e.g. generate when a generator fails), otherwise 0
+  .then(() => process.exit())
   .catch((err) => {
     if (!(err instanceof FederationConflictError) && !(err instanceof FederationDiagnosticError)) console.error(err);
     process.exit(1);
