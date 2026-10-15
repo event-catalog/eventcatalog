@@ -172,11 +172,12 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   list(queries).forEach((m) => messageKind.set(m.id, 'query'));
   const messageRef = (id: string) => ref(messageKind.get(id) || 'event', id) as Ref & { kind: MessageType };
   const channelById = new Map(list(channels).map((c) => [c.id, c]));
-  const channelRef = (p: ChannelPointer): ChannelRef => ({
-    ...ref('channel', p.id),
-    kind: 'channel',
-    address: channelById.get(p.id)?.address,
-  });
+  const channelRef = (p: ChannelPointer): ChannelRef => {
+    const r = ref('channel', p.id);
+    // An older channel version is named, labelled, and not linked to the latest channel or shown with its address
+    if (!pointsAtLatestChannel(p)) return { kind: 'channel', id: p.id, name: `${r.name} v${p.version}` };
+    return { ...r, kind: 'channel', address: channelById.get(p.id)?.address };
+  };
   const ownersOf = (ids: string[] = []): Owner[] =>
     ids.map(
       (id) =>
@@ -187,17 +188,21 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
             : { kind: 'team', id, name: id }) as Owner
     );
 
-  // ---------- message versions ----------
-  // Only latest versions are exported, so a pointer counts as a relationship with a message's section only when it
-  // points at that version: no version, 'latest', the exact version, or a semver range the version satisfies.
+  // ---------- versions ----------
+  // Only latest versions are exported, so a pointer counts as a relationship with a message's or channel's section
+  // only when it points at that version: no version, 'latest', the exact version, or a semver range it satisfies.
+  // This is the rule core's collections use to resolve pointers.
+  const matchesVersion = (wanted: string | undefined, current: string | undefined) => {
+    const range = wanted?.trim();
+    if (!range || !current || range === 'latest' || range === current) return true;
+    return semver.validRange(range) !== null && semver.valid(current) !== null && semver.satisfies(current, range);
+  };
   const latestVersion = new Map<string, string>();
   [...list(events), ...list(commands), ...list(queries)].forEach((m) => latestVersion.set(m.id, m.version));
-  const pointsAtLatest = (p: { id: string; version?: string }) => {
-    const wanted = p.version?.trim();
-    const current = latestVersion.get(p.id);
-    if (!wanted || !current || wanted === 'latest' || wanted === current) return true;
-    return semver.validRange(wanted) !== null && semver.valid(current) !== null && semver.satisfies(current, wanted);
-  };
+  const latestChannelVersion = new Map(list(channels).map((c) => [c.id, c.version]));
+  const pointsAtLatest = (p: { id: string; version?: string }) => matchesVersion(p.version, latestVersion.get(p.id));
+  const pointsAtLatestChannel = (p: { id: string; version?: string }) =>
+    matchesVersion(p.version, latestChannelVersion.get(p.id));
 
   // ---------- domain membership ----------
   const systemById = new Map(list(systems).map((s: System) => [s.id, s]));
@@ -239,6 +244,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     map.set(k, arr);
   };
   const linkChannel = (messageId: string, p: ChannelPointer) => {
+    if (!pointsAtLatestChannel(p)) return;
     const chans = channelsOfMessage.get(messageId) || new Map();
     chans.set(p.id, channelRef(p));
     channelsOfMessage.set(messageId, chans);

@@ -11,7 +11,6 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing the
 - `@eventcatalog/sdk` - SDK for programmatically interacting with EventCatalog
 - `@eventcatalog/create-eventcatalog` - CLI tool for scaffolding new EventCatalog projects
 - `@eventcatalog/visualiser` - Standalone React visualiser component (ReactFlow-based node graphs), and Studio's canvas (`@eventcatalog/visualiser/studio`)
-- `@eventcatalog/exporters` - Exports a catalog to other formats (today: the single-file HTML architecture reference). Used by `eventcatalog build` in core and `eventcatalog export --format html` in the CLI
 
 And one app:
 - `@eventcatalog/studio-web` (`apps/studio-web`, MIT) - Studio on the web: a public MCP server and canvas (no sign-in, stores nothing), deployed on its own
@@ -22,7 +21,6 @@ And one app:
 |------|---------|
 | Start dev server | `pnpm run start:catalog` |
 | Start SSR server | `pnpm run start:catalog:server` |
-| Generate the architecture reference | `pnpm run generate:reference` (writes `examples/default/public/architecture.html`) |
 | Start Studio on the web | `pnpm run start:studio` |
 | Build all packages | `pnpm run build` or `pnpm run build:bin` |
 | Build catalog example | `pnpm run verify-build:catalog` |
@@ -63,9 +61,6 @@ And one app:
     /templates               # Project templates (default, asyncapi, openapi, etc.)
     /helpers                 # Template helpers
     /dist                    # Built output (not committed)
-  /exporters                 # @eventcatalog/exporters
-    /src/catalog             # Loads the catalog into one resolved model (relationships, schemas, owners)
-    /src/html                # The HTML architecture reference renderer
   /visualiser                # @eventcatalog/visualiser
     /src
       /components            # NodeGraph, FocusMode, Search, etc.

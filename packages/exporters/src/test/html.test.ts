@@ -409,6 +409,29 @@ describe('export --format html', () => {
     expect(legacy).toContain('Order Placed<small>v0.0.1</small>');
   });
 
+  it('does not link a message to the latest channel when it points at an older channel version', async () => {
+    await seedCatalog();
+    await writeService(
+      {
+        id: 'OrdersService',
+        name: 'Orders Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderPlaced', version: '1.0.0', to: [{ id: 'orders-topic', version: '0.0.1' }] }],
+        markdown: '',
+      },
+      { override: true }
+    );
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const channelStart = html.indexOf('id="channel-orders-topic"');
+    const channel = html.slice(channelStart, html.indexOf('</section>', channelStart));
+    const serviceStart = html.indexOf('id="service-OrdersService"');
+    const service = html.slice(serviceStart, html.indexOf('</section>', serviceStart));
+
+    expect(channel).not.toContain('href="#event-OrderPlaced"');
+    expect(service).toContain('Order Placed<small>Orders topic v0.0.1</small>');
+  });
+
   it('exports catalogs that only have flows, entities or other resources', async () => {
     await writeFlow({ id: 'onboarding', name: 'Onboarding', version: '1.0.0', markdown: '', steps: [{ id: 1, title: 'Start' }] });
 
