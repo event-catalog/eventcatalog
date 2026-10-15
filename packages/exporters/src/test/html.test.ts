@@ -21,6 +21,7 @@ const {
   writeTeam,
   writeDataStore,
   writeFlow,
+  writeSystem,
   addSchemaToEvent,
 } = createSDK(CATALOG_PATH);
 
@@ -494,6 +495,52 @@ describe('export --format html', () => {
     expect(html).toContain('<p class="attr-desc">javascript:alert(1)</p>');
   });
 
+  it('only places a service in a system when the system points at the exported service version', async () => {
+    await seedCatalog();
+    await writeSystem({
+      id: 'billing',
+      name: 'Billing System',
+      version: '1.0.0',
+      services: [{ id: 'BillingService', version: '0.0.1' }],
+      markdown: '',
+    } as any);
+    await writeSystem({
+      id: 'ordering',
+      name: 'Ordering System',
+      version: '1.0.0',
+      services: [{ id: 'OrdersService', version: '1.x' }],
+      markdown: '',
+    } as any);
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const slice = (id: string) => {
+      const start = html.indexOf(`id="${id}"`);
+      return html.slice(start, html.indexOf('</section>', start));
+    };
+
+    expect(slice('service-BillingService')).not.toContain('href="#system-billing"');
+    expect(slice('service-OrdersService')).toContain('href="#system-ordering"');
+    expect(slice('system-billing')).toContain('Billing Service v0.0.1');
+  });
+
+  it('does not link a flow step to the latest version of a resource it pins to an older version', async () => {
+    await seedCatalog();
+    await writeFlow({
+      id: 'checkout',
+      name: 'Checkout',
+      version: '1.0.0',
+      markdown: '',
+      steps: [{ id: 1, title: 'Place order', message: { id: 'PlaceOrder', version: '0.0.1' } }],
+    });
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const start = html.indexOf('id="flow-checkout"');
+    const flow = html.slice(start, html.indexOf('</section>', start));
+
+    expect(flow).not.toContain('href="#command-PlaceOrder"');
+    expect(flow).toContain('Place Order v0.0.1');
+  });
+
   it('exports catalogs that only have flows, entities or other resources', async () => {
     await writeFlow({ id: 'onboarding', name: 'Onboarding', version: '1.0.0', markdown: '', steps: [{ id: 1, title: 'Start' }] });
 
@@ -544,6 +591,23 @@ describe('parseSchema', () => {
     expect(schema.typescript).toContain('export interface OrderPlaced {');
     expect(schema.typescript).toContain('orderId: string;');
     expect(schema.typescript).toContain('status?: "PLACED" | "PAID";');
+  });
+
+  it('keeps numeric and boolean enum values as literals in the generated TypeScript', () => {
+    const json = {
+      type: 'object',
+      properties: {
+        priority: { type: 'integer', enum: [1, 2] },
+        flag: { type: 'boolean', enum: [true, false] },
+        state: { type: 'string', enum: ['A', 'B'] },
+      },
+    };
+
+    const schema = parseSchema('schema.json', JSON.stringify(json), 'Task');
+
+    expect(schema.typescript).toContain('priority?: 1 | 2;');
+    expect(schema.typescript).toContain('flag?: true | false;');
+    expect(schema.typescript).toContain('state?: "A" | "B";');
   });
 
   it('reads Avro records like the catalog viewer: nullable unions and defaults are optional, enums list their symbols', () => {

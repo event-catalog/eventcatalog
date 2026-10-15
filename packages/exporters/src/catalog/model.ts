@@ -36,6 +36,8 @@ export interface Attribute {
   /** A schema title that adds to the description. */
   title?: string;
   enum?: string[];
+  /** The enum values as TypeScript literals (`1`, `true`, `"A"`), when they are not all strings. */
+  enumLiterals?: string[];
   example?: string;
   default?: string;
   deprecated?: boolean;

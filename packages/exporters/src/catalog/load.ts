@@ -147,37 +147,58 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
 
   // ---------- references ----------
   const refs = new Map<string, Ref>();
+  const versions = new Map<string, string>();
   const key = (kind: SectionKind, id: string) => `${kind}:${id}`;
-  const register = (kind: SectionKind, id: string, name: string) =>
-    refs.set(key(kind, id), { kind, id, name, anchor: anchorFor(kind, id) });
+  const register = (kind: SectionKind, r: { id: string; name?: string; version?: string }) => {
+    refs.set(key(kind, r.id), { kind, id: r.id, name: r.name || r.id, anchor: anchorFor(kind, r.id) });
+    if (r.version) versions.set(key(kind, r.id), r.version);
+  };
 
-  list(domains).forEach((d) => register('domain', d.id, d.name || d.id));
-  list(systems).forEach((x) => register('system', x.id, x.name || x.id));
-  list(services).forEach((s) => register('service', s.id, s.name || s.id));
-  list(agents).forEach((a) => register('agent', a.id, a.name || a.id));
-  list(events).forEach((m) => register('event', m.id, m.name || m.id));
-  list(commands).forEach((m) => register('command', m.id, m.name || m.id));
-  list(queries).forEach((m) => register('query', m.id, m.name || m.id));
-  list(channels).forEach((c) => register('channel', c.id, c.name || c.id));
-  list(flows).forEach((f) => register('flow', f.id, f.name || f.id));
-  list(entities).forEach((e) => register('entity', e.id, e.name || e.id));
-  list(containers).forEach((c) => register('container', c.id, c.name || c.id));
-  list(teams).forEach((t) => register('team', t.id, t.name || t.id));
-  list(users).forEach((u) => register('user', u.id, u.name || u.id));
+  list(domains).forEach((r) => register('domain', r));
+  list(systems).forEach((r) => register('system', r));
+  list(services).forEach((r) => register('service', r));
+  list(agents).forEach((r) => register('agent', r));
+  list(events).forEach((r) => register('event', r));
+  list(commands).forEach((r) => register('command', r));
+  list(queries).forEach((r) => register('query', r));
+  list(channels).forEach((r) => register('channel', r));
+  list(flows).forEach((r) => register('flow', r));
+  list(entities).forEach((r) => register('entity', r));
+  list(containers).forEach((r) => register('container', r));
+  list(teams).forEach((r) => register('team', r));
+  list(users).forEach((r) => register('user', r));
 
   const ref = (kind: SectionKind, id: string): Ref => refs.get(key(kind, id)) || { kind, id, name: id };
   const messageKind = new Map<string, MessageType>();
   list(events).forEach((m) => messageKind.set(m.id, 'event'));
   list(commands).forEach((m) => messageKind.set(m.id, 'command'));
   list(queries).forEach((m) => messageKind.set(m.id, 'query'));
-  const messageRef = (id: string) => ref(messageKind.get(id) || 'event', id) as Ref & { kind: MessageType };
-  const channelById = new Map(list(channels).map((c) => [c.id, c]));
-  const channelRef = (p: ChannelPointer): ChannelRef => {
-    const r = ref('channel', p.id);
-    // An older channel version is named, labelled, and not linked to the latest channel or shown with its address
-    if (!pointsAtLatestChannel(p)) return { kind: 'channel', id: p.id, name: `${r.name} v${p.version}` };
-    return { ...r, kind: 'channel', address: channelById.get(p.id)?.address };
+  const messageKindOf = (id: string): MessageType => messageKind.get(id) || 'event';
+  const serviceKindOf = (id: string): 'service' | 'agent' =>
+    !refs.has(key('service', id)) && refs.has(key('agent', id)) ? 'agent' : 'service';
+  const messageRef = (id: string) => ref(messageKindOf(id), id) as Ref & { kind: MessageType };
+
+  // ---------- versions ----------
+  // Only latest versions are exported. Every pointer in the catalog (sends, channels, data stores, memberships,
+  // flow steps, …) counts as a relationship with a section only when it points at that section's version: no
+  // version, 'latest', the exact version, or a range it satisfies (matchesVersion follows the SDK and core).
+  // A pointer at an older version is shown named and labelled with its version, but never linked or counted.
+  type Pointer = { id: string; version?: string };
+  const pointsAt = (kind: SectionKind, p: Pointer) => matchesVersion(p.version, versions.get(key(kind, p.id)));
+  const pointerRef = (kind: SectionKind, p: Pointer): Ref => {
+    const r = ref(kind, p.id);
+    return pointsAt(kind, p) ? r : { kind, id: p.id, name: `${r.name} v${p.version}` };
   };
+  const pointsAtLatest = (p: Pointer) => pointsAt(messageKindOf(p.id), p);
+  const pointsAtLatestChannel = (p: Pointer) => pointsAt('channel', p);
+  const storeRef = (p: Pointer) => pointerRef('container', p);
+  const serviceRef = (p: Pointer) => pointerRef(serviceKindOf(p.id), p);
+
+  const channelById = new Map(list(channels).map((c) => [c.id, c]));
+  const channelRef = (p: ChannelPointer): ChannelRef =>
+    pointsAtLatestChannel(p)
+      ? { ...ref('channel', p.id), kind: 'channel', address: channelById.get(p.id)?.address }
+      : { ...pointerRef('channel', p), kind: 'channel' };
   const ownersOf = (ids: string[] = []): Owner[] =>
     ids.map(
       (id) =>
@@ -188,46 +209,37 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
             : { kind: 'team', id, name: id }) as Owner
     );
 
-  // ---------- versions ----------
-  // Only latest versions are exported, so a pointer counts as a relationship with a message's or channel's section
-  // only when it points at that version: no version, 'latest', the exact version, or a semver range it satisfies.
-  // matchesVersion follows the SDK's and core's rules, including number-like versions such as `1` or `v1`.
-  const latestVersion = new Map<string, string>();
-  [...list(events), ...list(commands), ...list(queries)].forEach((m) => latestVersion.set(m.id, m.version));
-  const latestChannelVersion = new Map(list(channels).map((c) => [c.id, c.version]));
-  const pointsAtLatest = (p: { id: string; version?: string }) => matchesVersion(p.version, latestVersion.get(p.id));
-  const pointsAtLatestChannel = (p: { id: string; version?: string }) =>
-    matchesVersion(p.version, latestChannelVersion.get(p.id));
-  const latestStoreVersion = new Map(list(containers).map((c) => [c.id, c.version]));
-  // A data store pointer at an older version is named and labelled, but not linked to (or counted on) the latest store
-  const storeRef = (p: { id: string; version?: string }): Ref => {
-    const r = ref('container', p.id);
-    return matchesVersion(p.version, latestStoreVersion.get(p.id))
-      ? r
-      : { kind: 'container', id: p.id, name: `${r.name} v${p.version}` };
-  };
-
-  // ---------- domain membership ----------
+  // ---------- domain membership (only pointers at the exported versions count) ----------
   const systemById = new Map(list(systems).map((s: System) => [s.id, s]));
   const domainOfService = new Map<string, Ref>();
   const domainOfEntity = new Map<string, Ref>();
   const parentOfDomain = new Map<string, Ref>();
   const domainOfSystem = new Map<string, Ref>();
   const systemOfService = new Map<string, Ref>();
+  const servicesOfSystem = (x: System | undefined) => list(x?.services).filter((p) => pointsAt(serviceKindOf(p.id), p));
   list(systems).forEach((x) =>
-    list(x.services).forEach((p) => !systemOfService.has(p.id) && systemOfService.set(p.id, ref('system', x.id)))
+    servicesOfSystem(x).forEach((p) => !systemOfService.has(p.id) && systemOfService.set(p.id, ref('system', x.id)))
   );
   for (const d of list(domains)) {
     const dRef = ref('domain', d.id);
-    list(d.systems).forEach((p) => !domainOfSystem.has(p.id) && domainOfSystem.set(p.id, dRef));
+    const ownSystems = list(d.systems).filter((p) => pointsAt('system', p));
+    ownSystems.forEach((p) => !domainOfSystem.has(p.id) && domainOfSystem.set(p.id, dRef));
     const serviceIds = [
-      ...list(d.services).map((p) => p.id),
-      ...list(d.agents).map((p) => p.id),
-      ...list(d.systems).flatMap((p) => list(systemById.get(p.id)?.services).map((s) => s.id)),
+      ...list(d.services)
+        .filter((p) => pointsAt(serviceKindOf(p.id), p))
+        .map((p) => p.id),
+      ...list(d.agents)
+        .filter((p) => pointsAt('agent', p))
+        .map((p) => p.id),
+      ...ownSystems.flatMap((p) => servicesOfSystem(systemById.get(p.id)).map((s) => s.id)),
     ];
     serviceIds.forEach((id) => !domainOfService.has(id) && domainOfService.set(id, dRef));
-    list(d.entities).forEach((p) => !domainOfEntity.has(p.id) && domainOfEntity.set(p.id, dRef));
-    list(d.domains).forEach((p) => parentOfDomain.set(p.id, dRef));
+    list(d.entities)
+      .filter((p) => pointsAt('entity', p))
+      .forEach((p) => !domainOfEntity.has(p.id) && domainOfEntity.set(p.id, dRef));
+    list(d.domains)
+      .filter((p) => pointsAt('domain', p))
+      .forEach((p) => parentOfDomain.set(p.id, dRef));
   }
 
   // ---------- producers and consumers ----------
@@ -423,8 +435,8 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
         deprecated: deprecatedText(d.deprecated),
         draft: Boolean(d.draft),
         parent: parentOfDomain.get(d.id),
-        subdomains: list(d.domains).map((p) => ref('domain', p.id)),
-        systems: list(d.systems).map((p) => ref('system', p.id)),
+        subdomains: list(d.domains).map((p) => pointerRef('domain', p)),
+        systems: list(d.systems).map((p) => pointerRef('system', p)),
         services: serviceModels.filter((s) => domainOfService.get(s.id)?.id === d.id).map((s) => ref(s.kind, s.id)),
         sends: list(d.sends)
           .filter(pointsAtLatest)
@@ -432,8 +444,8 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
         receives: list(d.receives)
           .filter(pointsAtLatest)
           .map((p) => messageRef(p.id)),
-        entities: list(d.entities).map((p) => ref('entity', p.id)),
-        flows: list(d.flows).map((p) => ref('flow', p.id)),
+        entities: list(d.entities).map((p) => pointerRef('entity', p)),
+        flows: list(d.flows).map((p) => pointerRef('flow', p)),
         ubiquitousLanguage: dictionary.map((u: any) => ({ name: u.name || u.id, summary: u.summary })),
         specifications: specificationsByKey.get(key('domain', d.id)) || [],
       };
@@ -476,14 +488,14 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
         systems?: { id: string };
       }
     ): Ref | undefined => {
-      if (step.message) return messageRef(step.message.id);
-      if (step.service) return ref('service', step.service.id);
-      if (step.agent) return ref('agent', step.agent.id);
-      if (step.flow) return ref('flow', step.flow.id);
-      if (step.channel) return ref('channel', step.channel.id);
-      if (step.container) return ref('container', step.container.id);
+      if (step.message) return pointerRef(messageKindOf(step.message.id), step.message);
+      if (step.service) return serviceRef(step.service);
+      if (step.agent) return pointerRef('agent', step.agent);
+      if (step.flow) return pointerRef('flow', step.flow);
+      if (step.channel) return pointerRef('channel', step.channel);
+      if (step.container) return pointerRef('container', step.container);
       const system = step.systems || step.system;
-      if (system) return ref('system', system.id);
+      if (system) return pointerRef('system', system);
       return undefined;
     };
     list(f.steps).forEach((s) => titleOf.set(String(s.id), s.title || stepRef(s)?.name || s.actor?.name || String(s.id)));
@@ -518,7 +530,9 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   // ---------- data stores ----------
   const systemOfStore = new Map<string, Ref>();
   list(systems).forEach((x) =>
-    list(x.containers).forEach((p) => !systemOfStore.has(p.id) && systemOfStore.set(p.id, ref('system', x.id)))
+    list(x.containers)
+      .filter((p) => pointsAt('container', p))
+      .forEach((p) => !systemOfStore.has(p.id) && systemOfStore.set(p.id, ref('system', x.id)))
   );
   const writers = new Map<string, Ref[]>();
   const readers = new Map<string, Ref[]>();
@@ -584,13 +598,11 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     draft: Boolean(x.draft),
     scope: x.scope,
     domain: domainOfSystem.get(x.id),
-    services: list(x.services).map((p) =>
-      refs.has(key('agent', p.id)) && !refs.has(key('service', p.id)) ? ref('agent', p.id) : ref('service', p.id)
-    ),
-    flows: list(x.flows).map((p) => ref('flow', p.id)),
-    entities: list(x.entities).map((p) => ref('entity', p.id)),
+    services: list(x.services).map(serviceRef),
+    flows: list(x.flows).map((p) => pointerRef('flow', p)),
+    entities: list(x.entities).map((p) => pointerRef('entity', p)),
     dataStores: list(x.containers).map(storeRef),
-    relationships: list(x.relationships).map((r) => ({ ref: ref('system', r.id), label: r.label })),
+    relationships: list(x.relationships).map((r) => ({ ref: pointerRef('system', r), label: r.label })),
     actors: list(x.actors).map((a) => ({ name: a.name || a.id, label: a.label, direction: a.direction })),
   }));
 

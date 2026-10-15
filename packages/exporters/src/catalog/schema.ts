@@ -174,7 +174,11 @@ const jsonAttributes = (s: JsonSchema, depth: number): Attribute[] => {
     if (p.title && p.title !== p.description && p.title !== p._refName) attr.title = p.title;
     if (p.deprecated) attr.deprecated = true;
     const enumValues = p.enum || items.enum;
-    if (Array.isArray(enumValues)) attr.enum = enumValues.map(stringify);
+    if (Array.isArray(enumValues)) {
+      attr.enum = enumValues.map(stringify);
+      // Keep numbers, booleans and null as themselves in the generated TypeScript
+      if (enumValues.some((v) => typeof v !== 'string')) attr.enumLiterals = enumValues.map((v) => JSON.stringify(v));
+    }
     const example = Array.isArray(p.examples) ? p.examples[0] : p.example;
     if (example !== undefined && !isObject(example) && !Array.isArray(example)) attr.example = stringify(example);
     if (p.default !== undefined) attr.default = stringify(p.default);
@@ -405,7 +409,7 @@ const withoutFormat = (type: string) => {
 };
 
 const tsType = (a: Attribute, indent: string): string => {
-  if (a.enum?.length) return a.enum.map((v) => JSON.stringify(v)).join(' | ');
+  if (a.enum?.length) return (a.enumLiterals ?? a.enum.map((v) => JSON.stringify(v))).join(' | ');
   const isArray = a.type.startsWith('array of ') || a.type.startsWith('repeated ');
   const base = a.type.replace(/^(array of |repeated )/, '');
   let t: string;
