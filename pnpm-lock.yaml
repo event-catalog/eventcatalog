@@ -57,6 +57,9 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.3.0)
+      '@mcp-b/webmcp-polyfill':
+        specifier: 5.1.0
+        version: 5.1.0
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0

@@ -4,15 +4,18 @@
  */
 import { useState } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-import { Check, Code2, Copy, X } from 'lucide-react';
-import { ClaudeCodeLogo, ClaudeLogo, CursorLogo, OpenAILogo } from '@eventcatalog/visualiser/studio';
+import { Check, Code2, Copy, Globe, X } from 'lucide-react';
+import { ClaudeCodeLogo, ClaudeLogo, CursorLogo, OpenAILogo, STATUS } from '@eventcatalog/visualiser/studio';
 import { copyToClipboard } from './ported/clipboard';
 import { track } from './analytics';
+import type { WebMcpStatus } from './webmcp';
 
 type ConnectAgentDialogProps = {
   open: boolean;
   /** This server's MCP endpoint, e.g. https://mcp.eventcatalog.dev/mcp */
   mcpUrl: string;
+  /** Agents in this browser (WebMCP), on the page: whether this tab offers them its tools, and turning that on */
+  webMcp?: { status: WebMcpStatus; onTurnOn: () => void };
   onClose: () => void;
 };
 
@@ -57,7 +60,7 @@ const PAIRING = [
   },
 ];
 
-export function ConnectAgentDialog({ open, mcpUrl, onClose }: ConnectAgentDialogProps) {
+export function ConnectAgentDialog({ open, mcpUrl, webMcp, onClose }: ConnectAgentDialogProps) {
   const clients = [
     {
       name: 'Claude',
@@ -130,6 +133,38 @@ export function ConnectAgentDialog({ open, mcpUrl, onClose }: ConnectAgentDialog
         </Steps>
       ),
     },
+    // An agent in the browser (Chrome's, or the MCP-B extension) works on this canvas through WebMCP: no server to add
+    ...(webMcp
+      ? [
+          {
+            name: 'This browser',
+            logo: <Globe />,
+            body: (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm leading-relaxed text-[rgb(var(--ec-page-text))]">
+                  {webMcp.status.state === 'on'
+                    ? `This tab offers ${webMcp.status.tools} tools to AI agents in your browser (like the MCP-B extension) through WebMCP: they draw on this canvas and walk you through it.`
+                    : 'Let AI agents in your browser (like the MCP-B extension) draw on this canvas and walk you through it, through WebMCP.'}
+                </p>
+                {webMcp.status.state === 'on' ? (
+                  <p className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium ${STATUS.success.text}`}>
+                    <span className={`h-2 w-2 rounded-full ${STATUS.success.dot}`} />
+                    On for this tab
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={webMcp.onTurnOn}
+                    className="h-8 shrink-0 rounded-md border border-[rgb(var(--ec-page-border))] px-3 text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))]!"
+                  >
+                    Turn on
+                  </button>
+                )}
+              </div>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -138,7 +173,7 @@ export function ConnectAgentDialog({ open, mcpUrl, onClose }: ConnectAgentDialog
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel
           transition
-          className="w-full max-w-xl rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] shadow-2xl transition duration-150 data-closed:scale-[0.98] data-closed:opacity-0"
+          className="w-full max-w-2xl rounded-xl border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] shadow-2xl transition duration-150 data-closed:scale-[0.98] data-closed:opacity-0"
         >
           <div className="flex items-start gap-3 px-5 pt-5">
             <div className="min-w-0 flex-1">

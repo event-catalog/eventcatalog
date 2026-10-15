@@ -23,7 +23,7 @@ import {
   Sun,
 } from 'lucide-react';
 import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
-import { loadLocalCanvas, saveLocalCanvas, type LocalPayload } from './local-canvas';
+import { hasContent, loadLocalCanvas, saveLocalCanvas, type LocalPayload } from './local-canvas';
 import { ConfirmDialog } from './ConfirmDialog';
 import { JoinDialog } from './collab/JoinDialog';
 import { ProfileMenu } from './collab/ProfileMenu';
@@ -55,6 +55,7 @@ import { saveFile } from './diagram-file';
 import { SaveFileDialog } from './SaveFileDialog';
 import { EmptyCanvas } from '@eventcatalog/visualiser/studio';
 import { ConnectAgentDialog } from './ConnectAgentDialog';
+import { isWebMcpPolyfillOn, turnOnWebMcpPolyfill, useWebMcp } from './webmcp';
 import { StudioCanvas, type CanvasSnapshot, type StudioCanvasHandle } from './studio/StudioCanvas';
 import type { MenuQuestion } from '@eventcatalog/visualiser/studio';
 import { canvasToModel, modelToCanvas, type ModelCanvasContent as CanvasContent } from '@eventcatalog/visualiser/studio';
@@ -144,6 +145,8 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   reorderOpened.current = reorderWhenOpened;
   // An opened file is shown as it is, not built up
   const openedPayload = useRef<ArchitecturePayload>(undefined);
+  // A diagram from the agent in this browser (WebMCP): built up in front of the user, as the agent's in a chat are
+  const agentPayload = useRef<ArchitecturePayload>(undefined);
   // Diagrams from the agent are built up in front of the user; a walkthrough from the agent goes straight to it
   const animateNext = useRef(animate && !toolPayload.tour);
   const [touring, setTouring] = useState<Scene[] | null>(null);
@@ -215,7 +218,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   useEffect(() => {
     let cancelled = false;
     const next = toolPayload.model;
-    animateNext.current = animate && !toolPayload.tour && toolPayload !== openedPayload.current;
+    animateNext.current = (animate || toolPayload === agentPayload.current) && !toolPayload.tour && toolPayload !== openedPayload.current;
     pendingTour.current = toolPayload.tour;
     if (toolPayload !== openedPayload.current) savedFile.current = undefined;
     setTouring(null);
@@ -228,7 +231,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     const kept = (toolPayload as LocalPayload).doc;
     if (next.resources.length || next.notes?.length || next.comments?.length || next.hotspots?.length) {
       // Where it came from: a file opened, the agent (in a chat), a link opened, a live room, or kept in this browser
-      const via = toolPayload === openedPayload.current ? 'file' : app ? 'agent' : reorderOpened.current === toolPayload ? 'link' : room ? 'room' : 'restored';
+      const via = toolPayload === openedPayload.current ? 'file' : toolPayload === agentPayload.current ? 'webmcp' : app ? 'agent' : reorderOpened.current === toolPayload ? 'link' : room ? 'room' : 'restored';
       track('diagram_loaded', { via, level: toolPayload.level ?? 'messages', has_tour: !!toolPayload.tour?.length, has_focus: !!focus, ...diagramStats(next), ...modelMix(next) });
     }
     if (!next.resources.length) {
@@ -637,6 +640,53 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     else leaveRoom();
   }, [baseUrl, rootModel, leaveRoom]);
 
+  // ---- Agents in this browser (WebMCP, see webmcp.ts): the MCP server's tools, on this canvas ----
+  const latestModel = useRef(rootModel);
+  latestModel.current = rootModel;
+  const latestFocus = useRef(focus);
+  latestFocus.current = focus;
+  // Its first diagram in place of work on the canvas is asked about first (as a link's is); once allowed, not again
+  // while the tab's open, as they work on it together
+  const agentAllowed = useRef(false);
+  const [agentAsking, setAgentAsking] = useState<string>();
+  const answerAgent = useRef<(allowed: boolean) => void>(undefined);
+  const drawForAgent = useCallback(async (next: ArchitecturePayload) => {
+    if (!agentAllowed.current && hasContent(latestModel.current)) {
+      answerAgent.current?.(false);
+      const allowed = await new Promise<boolean>((resolve) => {
+        answerAgent.current = resolve;
+        setAgentAsking(next.model.title);
+      });
+      track('webmcp_replace_answered', { choice: allowed ? 'draw' : 'keep' });
+      if (!allowed) return false;
+    }
+    agentAllowed.current = true;
+    agentPayload.current = next;
+    setToolPayload(next);
+    return true;
+  }, []);
+  const answerAgentAsking = useCallback((allowed: boolean) => {
+    answerAgent.current?.(allowed);
+    answerAgent.current = undefined;
+    setAgentAsking(undefined);
+  }, []);
+  // A walkthrough of the canvas as it is now (with their changes): played on its diagram, laid out again
+  const showTourForAgent = useCallback(async (tour: Scene[]) => {
+    const built = await buildArchitectureGraph(latestModel.current, latestFocus.current);
+    setGraph(built);
+    setTouring(tour);
+  }, []);
+  const [webMcpPolyfill, setWebMcpPolyfill] = useState(isWebMcpPolyfillOn);
+  const turnOnWebMcp = useCallback(() => {
+    track('webmcp_turned_on');
+    turnOnWebMcpPolyfill();
+    setWebMcpPolyfill(true);
+  }, []);
+  const webMcp = useWebMcp({
+    enabled: !app,
+    allowPolyfill: webMcpPolyfill,
+    canvas: { model: rootModel, focus, selected: selected?.resourceId, live: !!room, render: drawForAgent, showTour: showTourForAgent },
+  });
 
   // The theme: chosen in the menu (remembered), else the chat's in a chat, and light in the browser
   const [theme, setTheme] = useState<Theme>(() => {
@@ -1045,7 +1095,26 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
         <DocumentModal model={rootModel} onClose={() => setIsDocumenting(false)} onSendToChat={canSend ? sendToChat : undefined} />
       )}
       <SaveFileDialog open={savingAs} defaultName={defaultFileName} onSave={downloadAs} onClose={() => setSavingAs(false)} />
-      {baseUrl && <ConnectAgentDialog open={connecting} mcpUrl={`${baseUrl}/mcp`} onClose={() => setConnecting(false)} />}
+      {baseUrl && (
+        <ConnectAgentDialog
+          open={connecting}
+          mcpUrl={`${baseUrl}/mcp`}
+          webMcp={app ? undefined : { status: webMcp, onTurnOn: turnOnWebMcp }}
+          onClose={() => setConnecting(false)}
+        />
+      )}
+      <ConfirmDialog
+        open={!!agentAsking}
+        title="Let your agent draw on this canvas?"
+        confirmLabel="Let it draw"
+        cancelLabel="Keep my canvas"
+        danger
+        onConfirm={() => answerAgentAsking(true)}
+        onCancel={() => answerAgentAsking(false)}
+      >
+        An AI agent in your browser wants to draw "{agentAsking}" here, in place of what's on your canvas. Save your canvas to a file first if you want
+        to keep it. You won't be asked again while this tab is open.
+      </ConfirmDialog>
       <ShortcutsDialog open={showingHelp} onClose={() => setShowingHelp(false)} />
       {room && <JoinDialog open={joining} name={me.name} color={me.color} onJoin={join} />}
       <ConfirmDialog

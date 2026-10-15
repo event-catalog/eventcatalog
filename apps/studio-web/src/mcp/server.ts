@@ -8,8 +8,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { appViewMeta, getViewLoader, mcpAppNote, registerMcpApp } from './register';
 import { SCHEMA_GUIDE, SERVER_INSTRUCTIONS } from './guide';
-import { LEVELS, Model, Tour, type ArchitecturePayload, validateModel, validateTour } from '@eventcatalog/visualiser/model';
+import { LEVELS, Model, Tour, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { summarise, toMermaid } from '../model/to-text';
+import { checkPayload } from '../model/check';
 import { parseViewFragment, viewLink } from '../lib/encode';
 import { POSTHOG_ORIGIN } from '../lib/posthog';
 import { modelMix, modelStats, sizeBucket, tourStats } from '../lib/stats';
@@ -45,7 +46,7 @@ export function createMcpServer({ baseUrl, report = () => {} }: { baseUrl: strin
 
   /** Checks a diagram (and its tour) and builds what the model reads and what the view shows */
   const prepare = (payload: ArchitecturePayload): { error: string } | { url?: string; tourUrl?: string; warnings: string[] } => {
-    const { errors, warnings } = validateModel(payload.model);
+    const { problem, warnings } = checkPayload(payload);
     report({
       ...modelStats(payload.model),
       ...modelMix(payload.model),
@@ -54,18 +55,9 @@ export function createMcpServer({ baseUrl, report = () => {} }: { baseUrl: strin
       has_focus: !!payload.focus,
       warnings: sizeBucket(warnings.length),
     });
-    if (errors.length) {
-      report({ ok: false, error_kind: 'invalid_model', problems: sizeBucket(errors.length) });
-      return { error: `The model has ${errors.length} problem(s). Fix them all and call render_architecture again:\n- ${errors.join('\n- ')}` };
-    }
-    if (payload.focus && !payload.model.resources.some((r) => r.id === payload.focus)) {
-      report({ ok: false, error_kind: 'unknown_focus' });
-      return { error: `focus "${payload.focus}" isn't the id of a resource in the model` };
-    }
-    const tourErrors = payload.tour ? validateTour(payload.model, payload.tour) : [];
-    if (tourErrors.length) {
-      report({ ok: false, error_kind: 'invalid_tour', problems: sizeBucket(tourErrors.length) });
-      return { error: `The tour has ${tourErrors.length} problem(s). Fix them and try again:\n- ${tourErrors.join('\n- ')}` };
+    if (problem) {
+      report({ ok: false, error_kind: problem.kind, ...(problem.kind !== 'unknown_focus' && { problems: sizeBucket(problem.problems) }) });
+      return { error: problem.error };
     }
 
     // The diagram's link (shared from the view, and passed back to show_on_diagram), and one with the tour
