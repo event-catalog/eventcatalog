@@ -373,6 +373,9 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     `<header class="group-head" id="${id}"><h2>${e(title)}</h2><p>${e(text)}</p></header>`;
 
   // ---------- overview ----------
+  // "the Acme Inc EventCatalog", but not "the EventCatalog EventCatalog" for a catalog with no name of its own
+  const catalogName = model.organization || model.title;
+  const theCatalog = /eventcatalog$/i.test(catalogName) ? `the ${catalogName}` : `the ${catalogName} EventCatalog`;
   const counts = {
     domains: model.domains.length,
     systems: model.systems.length,
@@ -420,7 +423,7 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     <h1>${e(model.title)}</h1>
     ${lead(model.tagline)}
     <div class="prose">
-      <p>This reference is generated from the ${e(model.organization || model.title)} EventCatalog. ${introSentence}</p>
+      <p>This reference is generated from ${e(theCatalog)}. ${introSentence}</p>
       <p>Everything links to everything else. Press <kbd>⌘K</kbd> to jump to any resource.</p>
     </div>
 `,
@@ -955,6 +958,11 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     ...model.teams.map((t) => ({ g: 'Teams', k: 'TEAM', t: t.name, a: t.id, s: t.summary || '', d: '', h: t.anchor })),
     ...model.users.map((u) => ({ g: 'People', k: 'USER', t: u.name, a: u.id, s: u.role || '', d: '', h: u.anchor })),
   ];
+  // Link previews (Slack, Teams, social): the catalog's name and what it documents, with EventCatalog's card image
+  const pageTitle = `${model.title} · Architecture reference`;
+  const pageDescription = `The architecture reference for ${theCatalog}. ${introSentence.replace(/<[^>]+>/g, '')}`.trim();
+  const ogImage = 'https://www.eventcatalog.dev/img/opengraph.png';
+
   // Keep "</script>" sequences out of the inline JSON.
   const indexJson = JSON.stringify(index).replace(/</g, '\\u003c');
 
@@ -964,7 +972,18 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="generator" content="EventCatalog">
-<title>${e(model.title)} · Architecture reference</title>
+<title>${e(pageTitle)}</title>
+<meta name="description" content="${e(pageDescription)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${e(catalogName)}">
+<meta property="og:title" content="${e(pageTitle)}">
+<meta property="og:description" content="${e(pageDescription)}">
+<meta property="og:image" content="${ogImage}">
+<meta property="og:image:alt" content="EventCatalog">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${e(pageTitle)}">
+<meta name="twitter:description" content="${e(pageDescription)}">
+<meta name="twitter:image" content="${ogImage}">
 <link rel="icon" type="image/svg+xml" href="${eventCatalogFavicon()}">
 <script>try{var t=localStorage.getItem('ec-reference-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -433,6 +433,19 @@ describe('export --format html', () => {
     expect(service).toContain('Order Placed<small>Orders topic v0.0.1</small>');
   });
 
+  it('describes the catalog for link previews with title, description and the EventCatalog card image', async () => {
+    await seedCatalog();
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+
+    expect(html).toContain('<meta property="og:title" content="EventCatalog · Architecture reference">');
+    expect(html).toContain(
+      '<meta name="description" content="The architecture reference for the EventCatalog. It documents 1 domain and 2 services, the 2 messages they exchange (1 event and 1 command) and 1 channel and the 1 team that own them.">'
+    );
+    expect(html).toContain('<meta property="og:image" content="https://www.eventcatalog.dev/img/opengraph.png">');
+    expect(html).toContain('<meta name="twitter:card" content="summary_large_image">');
+  });
+
   it('gives resources whose ids only differ by punctuation their own anchors', async () => {
     await writeEvent({ id: 'orders.created', name: 'Orders created (dotted)', version: '1.0.0', markdown: '' });
     await writeEvent({ id: 'orders-created', name: 'Orders created (dashed)', version: '1.0.0', markdown: '' });
