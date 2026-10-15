@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/exporters",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Export an EventCatalog to other formats, such as a single-file HTML architecture reference",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
