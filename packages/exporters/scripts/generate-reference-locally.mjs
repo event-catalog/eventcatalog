@@ -31,7 +31,7 @@ const { writeHtml } = await import(pathToFileURL(join(packageDir, 'dist/index.mj
 const result = await writeHtml({
   dir: projectDir,
   outputPath: join(projectDir, 'public', 'architecture.html'),
-  regenerateCommand: `pnpm run generate:reference${example === 'default' ? '' : ` ${example}`}`,
+  regenerateCommand: `npm run generate:reference${example === 'default' ? '' : ` ${example}`}`,
 });
 
 console.log(`\n  Architecture reference: ${relative(repoDir, result.path)}`);
