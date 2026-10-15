@@ -41,6 +41,11 @@ export default {
   llmsTxt: {
     enabled: true,
   },
+  // Architecture reference: every build writes architecture.html to your build output, your whole
+  // catalog as one HTML file you can share, attach or host. Uncomment this to turn it off.
+  // exports: {
+  //   html: { enabled: false },
+  // },
   generators: [
     [
       '@eventcatalog/generator-openapi',

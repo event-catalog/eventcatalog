@@ -81,6 +81,7 @@
     "@asyncapi/parser": "^3.6.0",
     "@asyncapi/react-component": "3.2.1",
     "@auth/core": "^0.41.3",
+    "@eventcatalog/exporters": "workspace:*",
     "@eventcatalog/license": "^0.0.9",
     "@eventcatalog/linter": "workspace:*",
     "@eventcatalog/sdk": "workspace:*",

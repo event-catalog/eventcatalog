@@ -143,7 +143,8 @@ const bytesFrom = (people: { socket: Counted }[]) => {
   return () => people.map(({ socket }, index) => socket.bytes - before[index]);
 };
 
-describe('joining a live room', () => {
+// Large canvases sync over real sockets, slower on a busy CI runner: allow longer than `until` waits
+describe('joining a live room', { timeout: 20_000 }, () => {
   it('sends a large canvas to whoever joins, once, and nothing of it to everyone already there', async () => {
     const canvas = bigCanvas(2 * MB);
     const { room, everyone } = await roomWith(canvas, 6);

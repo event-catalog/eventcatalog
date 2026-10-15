@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { executeFunction } from './executor';
 import { listFunctions, formatListOutput } from './list';
 import { exportResource, exportCatalog } from './export';
+import { exportHtml } from './export-html';
 import { snapshotCreate, snapshotDiff, snapshotList } from './snapshot';
 import { governanceCheck } from './governance';
 
@@ -40,21 +41,41 @@ program
     }
   });
 
-// Export command - export a resource to .ec DSL format
+// Export command - export a resource to .ec DSL format, or the whole catalog as an HTML reference
 program
   .command('export')
-  .description('Export a catalog resource to EventCatalog DSL (.ec) format')
+  .description('Export a catalog resource to EventCatalog DSL (.ec) format, or the whole catalog as an HTML reference')
+  .option('-f, --format <format>', 'Output format: dsl or html', 'dsl')
   .option('-a, --all', 'Export the entire catalog (all resource types)', false)
   .option('-r, --resource <type>', 'Resource type (event, command, query, service, domain)')
   .option('--id <id>', 'Resource ID (omit to export all resources of the given type)')
   .option('-v, --version <version>', 'Resource version (defaults to latest)')
   .option('--hydrate', 'Include referenced resources (messages, channels, owners)', false)
   .option('--stdout', 'Print to stdout instead of writing a file', false)
-  .option('-o, --output <path>', 'Output file path (defaults to <id>.ec or catalog.ec)')
+  .option('--no-open', 'With --format html: do not open the reference in your browser')
+  .option('-o, --output <path>', 'Output file path (defaults to <id>.ec, catalog.ec or architecture.html)')
   .action(async (opts) => {
     try {
       const globalOpts = program.opts() as any;
       const dir = globalOpts.dir || '.';
+
+      if (opts.format === 'html') {
+        const result = await exportHtml({
+          dir,
+          output: opts.output,
+          stdout: opts.stdout,
+          // Open it for people at a terminal; never in CI or when the output is piped
+          open: opts.open && !process.env.CI && Boolean(process.stdout.isTTY),
+        });
+        if (opts.stdout) process.stdout.write(result);
+        else console.log(result);
+        return;
+      }
+
+      if (opts.format !== 'dsl') {
+        console.error(`Unknown format '${opts.format}'. Use dsl or html.`);
+        process.exit(1);
+      }
 
       if (opts.all) {
         const result = await exportCatalog({

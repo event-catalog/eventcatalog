@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@eventcatalog/breaking-changes": "workspace:*",
+    "@eventcatalog/exporters": "workspace:*",
     "@eventcatalog/sdk": "workspace:*",
     "commander": "^12.0.0",
     "dotenv": "^16.5.0",

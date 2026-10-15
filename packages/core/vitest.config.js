@@ -38,6 +38,7 @@ export default defineConfig({
       '@config': path.join(projectDirectory, 'eventcatalog.config.js'),
       '@eventcatalog/connectors': path.resolve(__dirname, 'node_modules/@eventcatalog/connectors/dist/index.mjs'),
       '@eventcatalog/license': path.resolve(__dirname, 'node_modules/@eventcatalog/license/dist/index.js'),
+      '@eventcatalog/exporters': path.resolve(__dirname, 'node_modules/@eventcatalog/exporters/dist/index.mjs'),
       '@eventcatalog/sdk': path.resolve(__dirname, 'node_modules/@eventcatalog/sdk/dist/index.mjs'),
       '@eventcatalog/visualiser/layout': path.resolve(__dirname, 'node_modules/@eventcatalog/visualiser/dist/layout.mjs'),
       '@eventcatalog/visualiser/studio': path.resolve(__dirname, 'node_modules/@eventcatalog/visualiser/dist/studio.mjs'),
