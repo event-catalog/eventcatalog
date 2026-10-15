@@ -8,3 +8,12 @@ const PATHS =
 
 export const eventCatalogLogo = (size: number, className = '') =>
   `<svg${className ? ` class="${className}"` : ''} width="${size}" height="${size}" viewBox="${VIEW_BOX}" aria-hidden="true">${PATHS}</svg>`;
+
+/**
+ * The same logo as a favicon data URI. Favicons have no page colour to inherit, so the SVG carries its own:
+ * near-black, or white when the browser is in dark mode (Chrome and Firefox; Safari shows the dark version).
+ */
+export const eventCatalogFavicon = () => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VIEW_BOX}"><style>path{fill:#0B0F17}@media (prefers-color-scheme:dark){path{fill:#FFFFFF}}</style>${PATHS.replace(/ fill="currentColor"/g, '')}</svg>`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+};

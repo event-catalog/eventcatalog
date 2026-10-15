@@ -19,7 +19,7 @@ import type {
   SystemModel,
   TeamModel,
 } from '../catalog/model';
-import { eventCatalogLogo } from './logo';
+import { eventCatalogFavicon, eventCatalogLogo } from './logo';
 import { SPEC_ICONS } from './spec-icons';
 import { attributesToTypeScript } from '../catalog/schema';
 import { styles } from './styles';
@@ -950,6 +950,7 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="generator" content="EventCatalog">
 <title>${e(model.title)} · Architecture reference</title>
+<link rel="icon" type="image/svg+xml" href="${eventCatalogFavicon()}">
 <script>try{var t=localStorage.getItem('ec-reference-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

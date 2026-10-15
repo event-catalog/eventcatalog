@@ -417,6 +417,16 @@ describe('export --format html', () => {
     expect(html).toContain('id="flow-onboarding"');
   });
 
+  it('uses the EventCatalog logo as the favicon', async () => {
+    await seedCatalog();
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const favicon = html.match(/<link rel="icon" type="image\/svg\+xml" href="data:image\/svg\+xml;base64,([^"]+)">/);
+
+    expect(favicon).not.toBeNull();
+    expect(Buffer.from(favicon![1], 'base64').toString()).toContain('@media (prefers-color-scheme:dark)');
+  });
+
   it('throws when the catalog has no resources', async () => {
     await expect(exportHtml({ dir: CATALOG_PATH })).rejects.toThrow('No resources found');
   });
