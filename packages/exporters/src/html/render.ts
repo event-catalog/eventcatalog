@@ -390,9 +390,10 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
   };
   const listJoin = (parts: string[]) =>
     parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0] || '';
-  const count = (n: number, one: string, many?: string) => (n ? `<strong>${plural(n, one, many)}</strong>` : '');
   const messageCount = counts.event + counts.command + counts.query;
-  const introSentence = (() => {
+  /** "It documents 10 domains, …", with each count passed through `mark` (bold on the page, plain in link previews) */
+  const describeCatalog = (mark: (text: string) => string) => {
+    const count = (n: number, one: string, many?: string) => (n ? mark(plural(n, one, many)) : '');
     const structure = [
       count(counts.domains, 'domain'),
       count(counts.systems, 'system'),
@@ -416,7 +417,8 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     ];
     const owners = counts.teams ? ` and the ${count(counts.teams, 'team')} that own them` : '';
     return parts.length ? `It documents ${listJoin(parts)}${owners}.` : '';
-  })();
+  };
+  const introSentence = describeCatalog((text) => `<strong>${text}</strong>`);
   const overview = section(
     'overview',
     `${eyebrow('<span>Architecture reference</span>', `<span>Generated ${e(formatDate(model.generatedAt))}</span>`)}
@@ -960,7 +962,7 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
   ];
   // Link previews (Slack, Teams, social): the catalog's name and what it documents, with EventCatalog's card image
   const pageTitle = `${model.title} · Architecture reference`;
-  const pageDescription = `The architecture reference for ${theCatalog}. ${introSentence.replace(/<[^>]+>/g, '')}`.trim();
+  const pageDescription = `The architecture reference for ${theCatalog}. ${describeCatalog((text) => text)}`.trim();
   const ogImage = 'https://www.eventcatalog.dev/img/opengraph.png';
 
   // Keep "</script>" sequences out of the inline JSON.
