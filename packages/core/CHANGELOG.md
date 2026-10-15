@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 5.1.1
+
+### Patch Changes
+
+- Updated dependencies [5c54ae4]
+  - @eventcatalog/exporters@0.0.3
+
 ## 5.1.0
 
 ### Minor Changes
