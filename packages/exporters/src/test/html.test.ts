@@ -432,6 +432,68 @@ describe('export --format html', () => {
     expect(service).toContain('Order Placed<small>Orders topic v0.0.1</small>');
   });
 
+  it('matches number-like versions such as 1 and v1 the way the catalog does', async () => {
+    await writeEvent({ id: 'PriceChanged', name: 'Price Changed', version: '1', markdown: '' });
+    await writeService({
+      id: 'Pricing',
+      name: 'Pricing',
+      version: '1.0.0',
+      sends: [{ id: 'PriceChanged', version: '^1' }],
+      markdown: '',
+    });
+    await writeService({
+      id: 'Basket',
+      name: 'Basket',
+      version: '1.0.0',
+      receives: [{ id: 'PriceChanged', version: 'v1' }],
+      markdown: '',
+    });
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const start = html.indexOf('id="event-PriceChanged"');
+    const event = html.slice(start, html.indexOf('</section>', start));
+
+    expect(event).toContain('href="#service-Pricing"');
+    expect(event).toContain('href="#service-Basket"');
+  });
+
+  it('does not link a service to the latest data store when it points at an older store version', async () => {
+    await seedCatalog();
+    await writeDataStore({ id: 'orders-db', name: 'Orders DB', version: '1.0.0', container_type: 'database', markdown: '' });
+    await writeService(
+      {
+        id: 'OrdersService',
+        name: 'Orders Service',
+        version: '1.0.0',
+        writesTo: [{ id: 'orders-db', version: '0.0.1' }],
+        markdown: '',
+      },
+      { override: true }
+    );
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const storeStart = html.indexOf('id="container-orders-db"');
+    const store = html.slice(storeStart, html.indexOf('</section>', storeStart));
+    const serviceStart = html.indexOf('id="service-OrdersService"');
+    const service = html.slice(serviceStart, html.indexOf('</section>', serviceStart));
+
+    expect(store).not.toContain('href="#service-OrdersService"');
+    expect(service).toContain('<span class="ep-verb dat">WRITES</span><span class="ep-path">Orders DB v0.0.1</span>');
+  });
+
+  it('only links repository and Slack URLs with http or https', async () => {
+    await seedCatalog();
+    await writeService(
+      { id: 'OrdersService', name: 'Orders Service', version: '1.0.0', repository: { url: 'javascript:alert(1)' }, markdown: '' },
+      { override: true }
+    );
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+
+    expect(html).not.toContain('href="javascript:');
+    expect(html).toContain('<p class="attr-desc">javascript:alert(1)</p>');
+  });
+
   it('exports catalogs that only have flows, entities or other resources', async () => {
     await writeFlow({ id: 'onboarding', name: 'Onboarding', version: '1.0.0', markdown: '', steps: [{ id: 1, title: 'Start' }] });
 

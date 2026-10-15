@@ -1,7 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import createSDK from '@eventcatalog/sdk';
-import semver from 'semver';
 import type {
   Agent,
   Channel,
@@ -36,6 +35,7 @@ import type {
   TeamModel,
 } from './model';
 import { parseSchema } from './schema';
+import { matchesVersion } from './versions';
 
 type SDK = ReturnType<typeof createSDK>;
 
@@ -191,18 +191,21 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   // ---------- versions ----------
   // Only latest versions are exported, so a pointer counts as a relationship with a message's or channel's section
   // only when it points at that version: no version, 'latest', the exact version, or a semver range it satisfies.
-  // This is the rule core's collections use to resolve pointers.
-  const matchesVersion = (wanted: string | undefined, current: string | undefined) => {
-    const range = wanted?.trim();
-    if (!range || !current || range === 'latest' || range === current) return true;
-    return semver.validRange(range) !== null && semver.valid(current) !== null && semver.satisfies(current, range);
-  };
+  // matchesVersion follows the SDK's and core's rules, including number-like versions such as `1` or `v1`.
   const latestVersion = new Map<string, string>();
   [...list(events), ...list(commands), ...list(queries)].forEach((m) => latestVersion.set(m.id, m.version));
   const latestChannelVersion = new Map(list(channels).map((c) => [c.id, c.version]));
   const pointsAtLatest = (p: { id: string; version?: string }) => matchesVersion(p.version, latestVersion.get(p.id));
   const pointsAtLatestChannel = (p: { id: string; version?: string }) =>
     matchesVersion(p.version, latestChannelVersion.get(p.id));
+  const latestStoreVersion = new Map(list(containers).map((c) => [c.id, c.version]));
+  // A data store pointer at an older version is named and labelled, but not linked to (or counted on) the latest store
+  const storeRef = (p: { id: string; version?: string }): Ref => {
+    const r = ref('container', p.id);
+    return matchesVersion(p.version, latestStoreVersion.get(p.id))
+      ? r
+      : { kind: 'container', id: p.id, name: `${r.name} v${p.version}` };
+  };
 
   // ---------- domain membership ----------
   const systemById = new Map(list(systems).map((s: System) => [s.id, s]));
@@ -391,8 +394,8 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
           .filter(pointsAtLatest)
           .flatMap((p) => consumers.get(p.id) || [])
       ).filter((r) => key(r.kind, r.id) !== self),
-      writesTo: list(s.writesTo).map((p) => ref('container', p.id)),
-      readsFrom: list(s.readsFrom).map((p) => ref('container', p.id)),
+      writesTo: list(s.writesTo).map(storeRef),
+      readsFrom: list(s.readsFrom).map(storeRef),
       specifications: specificationsByKey.get(key(kind, s.id)) || [],
       repository: s.repository,
     };
@@ -520,8 +523,8 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   const writers = new Map<string, Ref[]>();
   const readers = new Map<string, Ref[]>();
   serviceModels.forEach((s) => {
-    s.writesTo.forEach((c) => push(writers, c.id, ref(s.kind, s.id)));
-    s.readsFrom.forEach((c) => push(readers, c.id, ref(s.kind, s.id)));
+    s.writesTo.filter((c) => c.anchor).forEach((c) => push(writers, c.id, ref(s.kind, s.id)));
+    s.readsFrom.filter((c) => c.anchor).forEach((c) => push(readers, c.id, ref(s.kind, s.id)));
   });
   const dataStoreModels: DataStoreModel[] = list(containers).map((c: Container) => ({
     kind: 'container',
@@ -586,7 +589,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     ),
     flows: list(x.flows).map((p) => ref('flow', p.id)),
     entities: list(x.entities).map((p) => ref('entity', p.id)),
-    dataStores: list(x.containers).map((p) => ref('container', p.id)),
+    dataStores: list(x.containers).map(storeRef),
     relationships: list(x.relationships).map((r) => ({ ref: ref('system', r.id), label: r.label })),
     actors: list(x.actors).map((a) => ({ name: a.name || a.id, label: a.label, direction: a.direction })),
   }));

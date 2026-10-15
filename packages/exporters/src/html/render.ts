@@ -91,6 +91,12 @@ const ICON = {
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
 };
 
+/** A link for http(s) URLs from the catalog; anything else (javascript:, data:, …) is shown as plain text. */
+const externalLink = (url: string) => {
+  const trimmed = url.trim();
+  return /^https?:\/\//i.test(trimmed) ? `<a href="${e(trimmed)}" target="_blank" rel="noopener">${e(trimmed)}</a>` : e(trimmed);
+};
+
 const formatDate = (d: Date) => `${d.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const prettyJson = (text: string) => {
@@ -495,7 +501,7 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     const attrs = [
       s.repository?.language && termRow('Language', s.repository.language),
       s.repository?.url &&
-        `<div class="attr"><div class="attr-head"><span class="attr-name sans">Repository</span></div><p class="attr-desc"><a href="${e(s.repository.url)}" target="_blank" rel="noopener">${e(s.repository.url)}</a></p></div>`,
+        `<div class="attr"><div class="attr-head"><span class="attr-name sans">Repository</span></div><p class="attr-desc">${externalLink(s.repository.url)}</p></div>`,
       specLinks(s.anchor, s.specifications),
     ].filter(Boolean);
     return section(
@@ -743,7 +749,7 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
       t.email &&
         `<div class="attr"><div class="attr-head"><span class="attr-name sans">Email</span></div><p class="attr-desc"><code>${e(t.email)}</code></p></div>`,
       t.slack &&
-        `<div class="attr"><div class="attr-head"><span class="attr-name sans">Slack</span></div><p class="attr-desc"><a href="${e(t.slack)}" target="_blank" rel="noopener">${e(t.slack)}</a></p></div>`,
+        `<div class="attr"><div class="attr-head"><span class="attr-name sans">Slack</span></div><p class="attr-desc">${externalLink(t.slack)}</p></div>`,
     ].filter(Boolean);
     const owned = OWNED_ORDER.map((kind) => ({ kind, refs: t.owns.filter((r) => r.kind === kind) })).filter((g) => g.refs.length);
     const related = isTeam ? t.members : t.teams;
