@@ -1637,13 +1637,20 @@ export const cliFunctions: CLIFunctionDoc[] = [
   },
 
   // ================================
-  //            Export (DSL)
+  //            Export (DSL and HTML)
   // ================================
   {
     name: 'export',
-    description: 'Export catalog resources to EventCatalog DSL (.ec) format',
+    description:
+      'Export catalog resources to EventCatalog DSL (.ec) format, or the whole catalog as an architecture reference (one HTML file)',
     category: 'Export',
     args: [
+      {
+        name: 'format',
+        type: 'string',
+        required: false,
+        description: 'Output format: dsl (default) or html (the architecture reference)',
+      },
       { name: 'all', type: 'boolean', required: false, description: 'Export the entire catalog (all resource types)' },
       {
         name: 'resource',
@@ -1660,7 +1667,18 @@ export const cliFunctions: CLIFunctionDoc[] = [
         description: 'Include referenced resources (messages, channels, owners)',
       },
       { name: 'stdout', type: 'boolean', required: false, description: 'Print to stdout instead of writing a file' },
-      { name: 'output', type: 'string', required: false, description: 'Output file path (defaults to <id>.ec or catalog.ec)' },
+      {
+        name: 'output',
+        type: 'string',
+        required: false,
+        description: 'Output file path (defaults to <id>.ec, catalog.ec or architecture.html)',
+      },
+      {
+        name: 'no-open',
+        type: 'boolean',
+        required: false,
+        description: 'With --format html: do not open the reference in your browser',
+      },
     ],
     examples: [
       {
@@ -1686,6 +1704,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Export entire catalog to a custom file',
         command: 'npx @eventcatalog/cli export --all --hydrate -o my-catalog.ec',
+      },
+      {
+        description: 'Export the architecture reference and open it in your browser',
+        command: 'npx @eventcatalog/cli export --format html',
+      },
+      {
+        description: 'Export the architecture reference to a custom file without opening it',
+        command: 'npx @eventcatalog/cli export --format html --output docs/architecture.html --no-open',
       },
     ],
   },
