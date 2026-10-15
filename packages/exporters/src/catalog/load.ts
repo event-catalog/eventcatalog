@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import createSDK from '@eventcatalog/sdk';
@@ -42,7 +43,15 @@ type SDK = ReturnType<typeof createSDK>;
 const MESSAGE_TYPES: MessageType[] = ['event', 'command', 'query'];
 const EXAMPLE_EXTENSIONS = /\.(json|ya?ml|xml|txt|avro|proto)$/i;
 
-export const anchorFor = (kind: SectionKind, id: string) => `${kind}-${id.replace(/[^A-Za-z0-9_-]+/g, '-')}`;
+/**
+ * The section's id in the page. IDs that are already safe are used as they are; any other ID is made safe and given
+ * a short hash of the original, so `orders.created` and `orders-created` never share an anchor.
+ */
+export const anchorFor = (kind: SectionKind, id: string) => {
+  if (/^[A-Za-z0-9_-]+$/.test(id)) return `${kind}-${id}`;
+  const hash = createHash('sha1').update(id).digest('hex').slice(0, 8);
+  return `${kind}-${id.replace(/[^A-Za-z0-9_-]+/g, '-')}-${hash}`;
+};
 
 const deprecatedText = (value: unknown): string | true | undefined => {
   if (!value) return undefined;
@@ -475,6 +484,10 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
       default: p.default,
     })),
     messages: [...(messagesOnChannel.get(c.id) || [])].filter((id) => messageKind.has(id)).map(messageRef),
+    routesTo: list(c.routes).map(channelRef),
+    routedFrom: list(channels)
+      .filter((from) => list(from.routes).some((r) => r.id === c.id && pointsAtLatestChannel(r)))
+      .map((from) => channelRef({ id: from.id })),
   }));
 
   // ---------- flows ----------

@@ -174,6 +174,9 @@ export interface ChannelModel extends BaseResource {
   deliveryGuarantee?: string;
   parameters: { name: string; description?: string; enum?: string[]; default?: string }[];
   messages: (Ref & { kind: MessageType })[];
+  /** Channels this one routes messages on to (its `routes`), and the channels that route to it. */
+  routesTo: ChannelRef[];
+  routedFrom: ChannelRef[];
 }
 
 /** A data store (a container in the SDK): database, cache, object store, warehouse and so on. */

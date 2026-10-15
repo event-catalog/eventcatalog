@@ -409,11 +409,13 @@ const withoutFormat = (type: string) => {
 };
 
 const tsType = (a: Attribute, indent: string): string => {
-  if (a.enum?.length) return (a.enumLiterals ?? a.enum.map((v) => JSON.stringify(v))).join(' | ');
-  const isArray = a.type.startsWith('array of ') || a.type.startsWith('repeated ');
-  const base = a.type.replace(/^(array of |repeated )/, '');
+  // JSON Schema: 'array of string', Protobuf: 'repeated string', Avro: 'array<string>'
+  const avroItems = a.type.startsWith('array<') && a.type.endsWith('>') ? a.type.slice(6, -1) : undefined;
+  const isArray = avroItems !== undefined || a.type.startsWith('array of ') || a.type.startsWith('repeated ');
+  const base = avroItems ?? a.type.replace(/^(array of |repeated )/, '');
   let t: string;
-  if (a.children?.length) t = tsObject(a.children, indent);
+  if (a.enum?.length) t = (a.enumLiterals ?? a.enum.map((v) => JSON.stringify(v))).join(' | ');
+  else if (a.children?.length) t = tsObject(a.children, indent);
   else if (a.variants?.length)
     t = a.variants.map((v) => (v.children.length ? tsObject(v.children, indent) : 'unknown')).join(' | ');
   else

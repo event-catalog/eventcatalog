@@ -335,7 +335,14 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     href
       ? `<a class="ep" href="#${href}"><span class="ep-verb ${cls}">${e(verb)}</span><span class="ep-path">${path}</span></a>`
       : `<div class="ep"><span class="ep-verb ${cls}">${e(verb)}</span><span class="ep-path">${path}</span></div>`;
-  const REF_TAG: Record<string, string> = { service: 'SVC', agent: 'AGENT', domain: 'DOM', system: 'SYS', container: 'DB' };
+  const REF_TAG: Record<string, string> = {
+    service: 'SVC',
+    agent: 'AGENT',
+    domain: 'DOM',
+    system: 'SYS',
+    container: 'DB',
+    channel: 'CHN',
+  };
   /** A box of related resources, one tagged row each, noting the domain when it differs from this one's. */
   const refBox = (title: string, refs: Ref[], homeDomain: string | undefined, empty: string) =>
     box(
@@ -614,7 +621,9 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
       ${c.parameters.length ? `<div class="block"><div class="label">Parameters</div>${c.parameters.map((p) => attrRow({ name: p.name, type: 'string', required: false, description: p.description, enum: p.enum, example: p.default })).join('')}</div>` : ''}
       <div class="block"><div class="label">Messages</div>${rows || '<p class="empty">No messages in the catalog use this channel.</p>'}</div>
       ${docs(c.markdown)}`,
-      `${box('Channel', c.protocols[0] || '', `<dl class="kv" style="padding:2px 0">${kv.map(([k, v]) => `<dt>${e(k)}</dt><dd>${e(v)}</dd>`).join('')}</dl>`)}`
+      `${box('Channel', c.protocols[0] || '', `<dl class="kv" style="padding:2px 0">${kv.map(([k, v]) => `<dt>${e(k)}</dt><dd>${e(v)}</dd>`).join('')}</dl>`)}
+      ${refBox('Routed from', c.routedFrom, undefined, '')}
+      ${refBox('Routes to', c.routesTo, undefined, '')}`
     );
   };
 

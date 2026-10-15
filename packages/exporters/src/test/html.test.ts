@@ -433,6 +433,34 @@ describe('export --format html', () => {
     expect(service).toContain('Order Placed<small>Orders topic v0.0.1</small>');
   });
 
+  it('gives resources whose ids only differ by punctuation their own anchors', async () => {
+    await writeEvent({ id: 'orders.created', name: 'Orders created (dotted)', version: '1.0.0', markdown: '' });
+    await writeEvent({ id: 'orders-created', name: 'Orders created (dashed)', version: '1.0.0', markdown: '' });
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const anchors = [...html.matchAll(/<section[^>]* id="(event-orders[^"]*)"/g)].map((m) => m[1]);
+
+    expect(anchors).toHaveLength(2);
+    expect(new Set(anchors).size).toBe(2);
+    expect(anchors).toContain('event-orders-created');
+  });
+
+  it('links channels to the channels they route to and from', async () => {
+    await writeChannel({ id: 'inbound', name: 'Inbound queue', version: '1.0.0', routes: [{ id: 'outbound' }], markdown: '' });
+    await writeChannel({ id: 'outbound', name: 'Outbound topic', version: '1.0.0', markdown: '' });
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const section = (anchor: string) => {
+      const start = html.indexOf(`id="${anchor}"`);
+      return html.slice(start, html.indexOf('</section>', start));
+    };
+
+    expect(section('channel-inbound')).toContain('Routes to');
+    expect(section('channel-inbound')).toContain('href="#channel-outbound"');
+    expect(section('channel-outbound')).toContain('Routed from');
+    expect(section('channel-outbound')).toContain('href="#channel-inbound"');
+  });
+
   it('matches number-like versions such as 1 and v1 the way the catalog does', async () => {
     await writeEvent({ id: 'PriceChanged', name: 'Price Changed', version: '1', markdown: '' });
     await writeService({
@@ -608,6 +636,21 @@ describe('parseSchema', () => {
     expect(schema.typescript).toContain('priority?: 1 | 2;');
     expect(schema.typescript).toContain('flag?: true | false;');
     expect(schema.typescript).toContain('state?: "A" | "B";');
+  });
+
+  it('keeps arrays of enum values as arrays in the generated TypeScript', () => {
+    const json = { type: 'object', properties: { states: { type: 'array', items: { enum: ['A', 'B'] } } } };
+    const avro = {
+      type: 'record',
+      name: 'Task',
+      fields: [{ name: 'states', type: { type: 'array', items: { type: 'enum', name: 'State', symbols: ['A', 'B'] } } }],
+    };
+
+    const fromJson = parseSchema('schema.json', JSON.stringify(json), 'Task');
+    const fromAvro = parseSchema('schema.avsc', JSON.stringify(avro), 'Task');
+
+    expect(fromJson.typescript).toContain('states?: ("A" | "B")[];');
+    expect(fromAvro.typescript).toContain('states: ("A" | "B")[];');
   });
 
   it('reads Avro records like the catalog viewer: nullable unions and defaults are optional, enums list their symbols', () => {
