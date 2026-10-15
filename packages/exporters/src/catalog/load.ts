@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
 import createSDK from '@eventcatalog/sdk';
+import semver from 'semver';
 import type {
   Agent,
   Channel,
@@ -98,6 +99,8 @@ const entityAttributes = (props: EntityProperty[] = [], depth = 0): Attribute[] 
 export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   const sdk: SDK = createSDK(dir);
   const latest = { latestOnly: true };
+  // Hidden resources stay out of the reference, as they stay out of the catalog itself
+  const visible = <T>(items: T[] | undefined): T[] => (items || []).filter((r) => (r as { hidden?: boolean })?.hidden !== true);
 
   const [
     config,
@@ -116,19 +119,28 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     users,
   ] = await Promise.all([
     existsSync(join(dir, 'eventcatalog.config.js')) ? sdk.getEventCatalogConfigurationFile().catch(() => null) : null,
-    sdk.getDomains(latest),
-    sdk.getSystems(latest).catch(() => [] as System[]),
-    sdk.getServices(latest),
-    sdk.getAgents(latest).catch(() => [] as Agent[]),
-    sdk.getEvents(latest),
-    sdk.getCommands(latest),
-    sdk.getQueries(latest),
-    sdk.getChannels(latest),
-    sdk.getDataStores(latest).catch(() => [] as Container[]),
-    sdk.getFlows(latest),
-    sdk.getEntities(latest),
-    sdk.getTeams(),
-    sdk.getUsers(),
+    sdk.getDomains(latest).then(visible),
+    sdk
+      .getSystems(latest)
+      .catch(() => [] as System[])
+      .then(visible),
+    sdk.getServices(latest).then(visible),
+    sdk
+      .getAgents(latest)
+      .catch(() => [] as Agent[])
+      .then(visible),
+    sdk.getEvents(latest).then(visible),
+    sdk.getCommands(latest).then(visible),
+    sdk.getQueries(latest).then(visible),
+    sdk.getChannels(latest).then(visible),
+    sdk
+      .getDataStores(latest)
+      .catch(() => [] as Container[])
+      .then(visible),
+    sdk.getFlows(latest).then(visible),
+    sdk.getEntities(latest).then(visible),
+    sdk.getTeams().then(visible),
+    sdk.getUsers().then(visible),
   ]);
 
   const list = <T>(items: T[] | undefined): T[] => items || [];
@@ -174,6 +186,18 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
             ? ref('user', id)
             : { kind: 'team', id, name: id }) as Owner
     );
+
+  // ---------- message versions ----------
+  // Only latest versions are exported, so a pointer counts as a relationship with a message's section only when it
+  // points at that version: no version, 'latest', the exact version, or a semver range the version satisfies.
+  const latestVersion = new Map<string, string>();
+  [...list(events), ...list(commands), ...list(queries)].forEach((m) => latestVersion.set(m.id, m.version));
+  const pointsAtLatest = (p: { id: string; version?: string }) => {
+    const wanted = p.version?.trim();
+    const current = latestVersion.get(p.id);
+    if (!wanted || !current || wanted === 'latest' || wanted === current) return true;
+    return semver.validRange(wanted) !== null && semver.valid(current) !== null && semver.satisfies(current, wanted);
+  };
 
   // ---------- domain membership ----------
   const systemById = new Map(list(systems).map((s: System) => [s.id, s]));
@@ -224,10 +248,12 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   };
   for (const a of actors) {
     list(a.sends).forEach((p) => {
+      if (!pointsAtLatest(p)) return;
       push(producers, p.id, a.ref);
       list(p.to).forEach((c) => linkChannel(p.id, c));
     });
     list(a.receives).forEach((p) => {
+      if (!pointsAtLatest(p)) return;
       push(consumers, p.id, a.ref);
       list(p.from).forEach((c) => linkChannel(p.id, c));
     });
@@ -325,9 +351,11 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   const uniqueRefs = (items: Ref[]) => [...new Map(items.map((r) => [key(r.kind, r.id), r])).values()];
   const toServiceModel = (s: Service | Agent, kind: 'service' | 'agent'): ServiceModel => {
     const self = key(kind, s.id);
-    const link = (p: { id: string }, channelPointers?: ChannelPointer[]) => ({
+    const link = (p: { id: string; version?: string }, channelPointers?: ChannelPointer[]) => ({
       message: messageRef(p.id),
       channels: list(channelPointers).map(channelRef),
+      // An older pinned version still shows on the service, labelled, but is not a link to the latest section's relationships
+      pinnedVersion: pointsAtLatest(p) ? undefined : p.version,
     });
     const sends = list(s.sends).map((p) => link(p, p.to));
     const receives = list(s.receives).map((p) => link(p, p.from));
@@ -347,8 +375,16 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
       system: systemOfService.get(s.id),
       sends,
       receives,
-      upstream: uniqueRefs(list(s.receives).flatMap((p) => producers.get(p.id) || [])).filter((r) => key(r.kind, r.id) !== self),
-      downstream: uniqueRefs(list(s.sends).flatMap((p) => consumers.get(p.id) || [])).filter((r) => key(r.kind, r.id) !== self),
+      upstream: uniqueRefs(
+        list(s.receives)
+          .filter(pointsAtLatest)
+          .flatMap((p) => producers.get(p.id) || [])
+      ).filter((r) => key(r.kind, r.id) !== self),
+      downstream: uniqueRefs(
+        list(s.sends)
+          .filter(pointsAtLatest)
+          .flatMap((p) => consumers.get(p.id) || [])
+      ).filter((r) => key(r.kind, r.id) !== self),
       writesTo: list(s.writesTo).map((p) => ref('container', p.id)),
       readsFrom: list(s.readsFrom).map((p) => ref('container', p.id)),
       specifications: specificationsByKey.get(key(kind, s.id)) || [],
@@ -381,8 +417,12 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
         subdomains: list(d.domains).map((p) => ref('domain', p.id)),
         systems: list(d.systems).map((p) => ref('system', p.id)),
         services: serviceModels.filter((s) => domainOfService.get(s.id)?.id === d.id).map((s) => ref(s.kind, s.id)),
-        sends: list(d.sends).map((p) => messageRef(p.id)),
-        receives: list(d.receives).map((p) => messageRef(p.id)),
+        sends: list(d.sends)
+          .filter(pointsAtLatest)
+          .map((p) => messageRef(p.id)),
+        receives: list(d.receives)
+          .filter(pointsAtLatest)
+          .map((p) => messageRef(p.id)),
         entities: list(d.entities).map((p) => ref('entity', p.id)),
         flows: list(d.flows).map((p) => ref('flow', p.id)),
         ubiquitousLanguage: dictionary.map((u: any) => ({ name: u.name || u.id, summary: u.summary })),

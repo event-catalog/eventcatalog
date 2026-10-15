@@ -46,7 +46,7 @@ if (shouldOpen) {
     process.platform === 'darwin'
       ? ['open', [result.path]]
       : process.platform === 'win32'
-        ? ['cmd', ['/c', 'start', '', result.path]]
+        ? ['explorer.exe', [result.path]]
         : ['xdg-open', [result.path]];
   const child = spawn(command, commandArgs, { stdio: 'ignore', detached: true });
   child.on('error', () => console.log(`  Could not open a browser. Open ${result.path} yourself.\n`));

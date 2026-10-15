@@ -710,6 +710,9 @@ importers:
       marked:
         specifier: ^15.0.6
         version: 15.0.12
+      semver:
+        specifier: ^7.7.2
+        version: 7.7.3
     devDependencies:
       '@types/js-yaml':
         specifier: ^4.0.9
@@ -717,6 +720,9 @@ importers:
       '@types/node':
         specifier: ^20.14.10
         version: 20.19.19
+      '@types/semver':
+        specifier: ^7.5.8
+        version: 7.7.1
       prettier:
         specifier: ^3.3.3
         version: 3.6.2

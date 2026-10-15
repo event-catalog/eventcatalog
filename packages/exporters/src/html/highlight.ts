@@ -13,8 +13,10 @@ export function highlight(code: string, lang?: string | null): string {
   const yaml = lang === 'yaml';
   const esc = (s: string) =>
     s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] || c);
+  // Linear time: an unterminated /* comment runs to the end of the input instead of being retried from every
+  // '/*', and an object key can't start inside a word and never backtracks (the lookahead and \7 make it atomic).
   const tokens =
-    /(\/\*[\s\S]*?\*\/|\/\/[^\n]*|(?:^|(?<=\s))#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)(\s*:)?|\b(\d+(?:\.\d+)?)\b|\b(export|interface|type|import|from|const|let|await|async|new|return|if|true|false|null|undefined|for|of)\b|([A-Za-z_$][\w$-]*\??)(?=\s*:)/gm;
+    /(\/\*[\s\S]*?(?:\*\/|(?![\s\S]))|\/\/[^\n]*|(?:^|(?<=\s))#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)(\s*:)?|\b(\d+(?:\.\d+)?)\b|\b(export|interface|type|import|from|const|let|await|async|new|return|if|true|false|null|undefined|for|of)\b|(?<![\w$-])((?=([A-Za-z_$][\w$-]*))\7\??)(?=\s*:)/gm;
   let out = '';
   let last = 0;
   let m: RegExpExecArray | null;

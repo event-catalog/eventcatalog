@@ -93,6 +93,8 @@ export interface BaseResource {
 export interface MessageLink {
   message: Ref & { kind: MessageType };
   channels: ChannelRef[];
+  /** Set when the pointer names an older version than the one in the reference. */
+  pinnedVersion?: string;
 }
 
 export interface ChannelRef extends Ref {

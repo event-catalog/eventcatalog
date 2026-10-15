@@ -3,7 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import createSDK from '@eventcatalog/sdk';
 import { renderHtml, writeHtml } from '../html';
-import { LAZY_SECTION_THRESHOLD } from '../html/render';
+import { LAZY_SECTION_THRESHOLD, compactHtml } from '../html/render';
 import { parseSchema } from '../catalog/schema';
 import { renderMarkdown } from '../html/markdown';
 import { highlight } from '../html/highlight';
@@ -364,6 +364,59 @@ describe('export --format html', () => {
     expect(html).not.toContain('.spec-icon.openapi{');
   });
 
+  it('leaves hidden resources out of the reference', async () => {
+    await seedCatalog();
+    await writeService({ id: 'SecretService', name: 'Secret Service', version: '1.0.0', hidden: true, markdown: '' } as any);
+    await writeEvent({ id: 'SecretEvent', name: 'Secret Event', version: '1.0.0', hidden: true, markdown: '' } as any);
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+
+    expect(html).not.toContain('SecretService');
+    expect(html).not.toContain('SecretEvent');
+  });
+
+  it('does not count a service pinned to an older message version as a producer of the latest version', async () => {
+    await seedCatalog();
+    await writeService(
+      {
+        id: 'LegacyService',
+        name: 'Legacy Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderPlaced', version: '0.0.1' }],
+        markdown: '',
+      },
+      { override: true }
+    );
+    await writeService(
+      {
+        id: 'RangeService',
+        name: 'Range Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderPlaced', version: '^1.0.0' }],
+        markdown: '',
+      },
+      { override: true }
+    );
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+    const start = html.indexOf('id="event-OrderPlaced"');
+    const event = html.slice(start, html.indexOf('</section>', start));
+    const legacyStart = html.indexOf('id="service-LegacyService"');
+    const legacy = html.slice(legacyStart, html.indexOf('</section>', legacyStart));
+
+    expect(event).not.toContain('href="#service-LegacyService"');
+    expect(event).toContain('href="#service-RangeService"');
+    expect(legacy).toContain('Order Placed<small>v0.0.1</small>');
+  });
+
+  it('exports catalogs that only have flows, entities or other resources', async () => {
+    await writeFlow({ id: 'onboarding', name: 'Onboarding', version: '1.0.0', markdown: '', steps: [{ id: 1, title: 'Start' }] });
+
+    const html = await exportHtml({ dir: CATALOG_PATH });
+
+    expect(html).toContain('id="flow-onboarding"');
+  });
+
   it('throws when the catalog has no resources', async () => {
     await expect(exportHtml({ dir: CATALOG_PATH })).rejects.toThrow('No resources found');
   });
@@ -509,6 +562,28 @@ message Line {
     const schema = parseSchema('schema.json', JSON.stringify(circular), 'Tree');
 
     expect(schema.attributes[0].name).toBe('node');
+  });
+});
+
+describe('performance on hostile input', () => {
+  // Each of these took quadratic time before (CodeQL: polynomial regular expressions); they must stay linear
+  const time = (fn: () => unknown) => {
+    const started = performance.now();
+    fn();
+    return performance.now() - started;
+  };
+
+  it('highlights long runs of $ and unterminated /* comments in linear time', () => {
+    expect(time(() => highlight('$'.repeat(200_000)))).toBeLessThan(500);
+    expect(time(() => highlight('/* '.repeat(100_000)))).toBeLessThan(500);
+  });
+
+  it('compacts HTML with many unclosed tags in linear time and leaves code untouched', () => {
+    expect(time(() => compactHtml('<pre'.repeat(50_000) + '\n   text'))).toBeLessThan(500);
+    expect(time(() => compactHtml('<style>'.repeat(50_000)))).toBeLessThan(500);
+    expect(compactHtml('<div>\n    <p>a</p>\n\n</div><PRE>\n  keep\n</PRE><script>\n  x\n</script>')).toBe(
+      '<div>\n<p>a</p>\n</div><PRE>\n  keep\n</PRE><script>\n  x\n</script>'
+    );
   });
 });
 

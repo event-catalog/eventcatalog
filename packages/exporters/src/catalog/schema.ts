@@ -398,6 +398,12 @@ const TS_PRIMITIVES: Record<string, string> = {
   bytes: 'string',
 };
 
+/** 'string (date-time)' -> 'string'. Plain string work, so odd type names can't make it slow. */
+const withoutFormat = (type: string) => {
+  const open = type.lastIndexOf(' (');
+  return open !== -1 && type.endsWith(')') ? type.slice(0, open) : type;
+};
+
 const tsType = (a: Attribute, indent: string): string => {
   if (a.enum?.length) return a.enum.map((v) => JSON.stringify(v)).join(' | ');
   const isArray = a.type.startsWith('array of ') || a.type.startsWith('repeated ');
@@ -409,7 +415,7 @@ const tsType = (a: Attribute, indent: string): string => {
   else
     t = base
       .split(' | ')
-      .map((p) => TS_PRIMITIVES[p.replace(/ \(.*\)$/, '')] || 'unknown')
+      .map((p) => TS_PRIMITIVES[withoutFormat(p)] || 'unknown')
       .join(' | ');
   return isArray ? (t.includes(' | ') ? `(${t})[]` : `${t}[]`) : t;
 };

@@ -113,33 +113,34 @@ export const clientScript = /* js */ `
 
   // Mermaid diagrams: load mermaid only when the page has diagrams, render each as it nears the
   // viewport, and re-render when the theme changes (mermaid bakes the theme into the SVG).
-  var graphs = document.querySelectorAll('.mermaid[data-content]');
-  if (graphs.length) {
-    var mermaidLib = null, queue = Promise.resolve(), seq = 0, visible = [];
-    var isDark = function () { var t = root.getAttribute('data-theme'); return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; };
-    var loadMermaid = function () {
-      return mermaidLib || (mermaidLib = import('https://cdn.jsdelivr.net/npm/mermaid@11.16.1/dist/mermaid.esm.min.mjs').then(function (m) { return m.default; }));
-    };
-    var renderGraph = function (el) {
-      queue = queue.then(function () {
-        var theme = isDark() ? 'dark' : 'default';
-        if (el.dataset.rendered === theme) return;
-        return loadMermaid().then(function (mermaid) {
-          mermaid.initialize({ startOnLoad: false, theme: theme, securityLevel: 'strict', fontFamily: getComputedStyle(document.body).fontFamily, maxTextSize: 100000 });
-          return mermaid.render('ec-mermaid-' + (++seq), el.dataset.content).then(function (r) {
-            el.innerHTML = r.svg; el.dataset.rendered = theme;
-          });
-        }).catch(function () { /* offline or invalid diagram: the source stays visible */ });
-      });
-    };
-    var mio = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { if (en.isIntersecting) { mio.unobserve(en.target); visible.push(en.target); renderGraph(en.target); } });
-    }, { rootMargin: '800px 0px' });
-    graphs.forEach(function (g) { mio.observe(g); });
-    var rerender = function () { visible.forEach(renderGraph); };
-    new MutationObserver(rerender).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rerender);
+  // Diagrams in sections of large catalogs appear only when the section is drawn, so drawSection registers them too.
+  var mermaidLib = null, queue = Promise.resolve(), seq = 0, visible = [];
+  var isDark = function () { var t = root.getAttribute('data-theme'); return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; };
+  var loadMermaid = function () {
+    return mermaidLib || (mermaidLib = import('https://cdn.jsdelivr.net/npm/mermaid@11.16.1/dist/mermaid.esm.min.mjs').then(function (m) { return m.default; }));
+  };
+  var renderGraph = function (el) {
+    queue = queue.then(function () {
+      var theme = isDark() ? 'dark' : 'default';
+      if (el.dataset.rendered === theme) return;
+      return loadMermaid().then(function (mermaid) {
+        mermaid.initialize({ startOnLoad: false, theme: theme, securityLevel: 'strict', fontFamily: getComputedStyle(document.body).fontFamily, maxTextSize: 100000 });
+        return mermaid.render('ec-mermaid-' + (++seq), el.dataset.content).then(function (r) {
+          el.innerHTML = r.svg; el.dataset.rendered = theme;
+        });
+      }).catch(function () { /* offline or invalid diagram: the source stays visible */ });
+    });
+  };
+  var mio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) { if (en.isIntersecting) { mio.unobserve(en.target); visible.push(en.target); renderGraph(en.target); } });
+  }, { rootMargin: '800px 0px' });
+  function watchGraphs(scope) {
+    scope.querySelectorAll('.mermaid[data-content]:not([data-watched])').forEach(function (g) { g.setAttribute('data-watched', ''); mio.observe(g); });
   }
+  watchGraphs(document);
+  var rerender = function () { visible.forEach(renderGraph); };
+  new MutationObserver(rerender).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rerender);
 
   // Back to top: shown once the reader is a screen or so down the page
   var toTop = document.getElementById('to-top');
@@ -164,6 +165,7 @@ export const clientScript = /* js */ `
     el.style.height = '';
     el.querySelectorAll('pre[data-lazy]:not([hidden])').forEach(fillCode);
     watchSticky(el);
+    watchGraphs(el);
   }
   document.querySelectorAll('main section:not(.lazy) pre[data-lazy]:not([hidden])').forEach(fillCode);
   var lazySections = document.querySelectorAll('section.lazy');

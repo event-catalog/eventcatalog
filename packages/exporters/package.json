@@ -31,11 +31,13 @@
   "dependencies": {
     "@eventcatalog/sdk": "workspace:*",
     "js-yaml": "^4.1.1",
-    "marked": "^15.0.6"
+    "marked": "^15.0.6",
+    "semver": "^7.7.2"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.14.10",
+    "@types/semver": "^7.5.8",
     "prettier": "^3.3.3",
     "tsup": "^8.1.0",
     "typescript": "^5.5.3",

@@ -23,7 +23,19 @@ export interface WriteHtmlResult extends RenderHtmlResult {
  */
 export async function renderHtml(dir: string, options: RenderHtmlOptions = {}): Promise<RenderHtmlResult> {
   const model = await loadCatalog(resolve(dir));
-  if (!model.domains.length && !model.services.length && !model.messages.length) {
+  const collections = [
+    model.domains,
+    model.systems,
+    model.services,
+    model.messages,
+    model.channels,
+    model.dataStores,
+    model.flows,
+    model.entities,
+    model.teams,
+    model.users,
+  ];
+  if (collections.every((c) => c.length === 0)) {
     throw new Error(`No resources found in catalog at '${dir}'`);
   }
   return { html: renderDocument(model, options), model };

@@ -110,11 +110,34 @@ interface CodeTab {
  * Drops the indentation the templates above add, outside code and scripts. A newline is kept wherever whitespace
  * was, so nothing renders differently; on large catalogs this removes a large share of the file.
  */
-const compactHtml = (html: string) =>
-  html
-    .split(/(<pre[\s\S]*?<\/pre>|<script[\s\S]*?<\/script>|<template>[\s\S]*?<\/template>|<style>[\s\S]*?<\/style>)/)
-    .map((part, i) => (i % 2 ? part : part.replace(/\n[ \t]+/g, '\n').replace(/\n{2,}/g, '\n')))
-    .join('');
+const KEEP_AS_IS = ['pre', 'script', 'template', 'style'];
+export const compactHtml = (html: string) => {
+  // A single forward scan (no regex over the document), so the time stays linear whatever the content
+  const lower = html.toLowerCase();
+  const squeeze = (text: string) => text.replace(/\n[ \t]+/g, '\n').replace(/\n{2,}/g, '\n');
+  // Next position of each tag, searched again only once the scan has passed it, so each is found in one pass
+  const next = new Map(KEEP_AS_IS.map((name) => [name, lower.indexOf(`<${name}`)]));
+  let out = '';
+  let i = 0;
+  while (i < html.length) {
+    let start = -1;
+    let tag = '';
+    for (const name of KEEP_AS_IS) {
+      let at = next.get(name)!;
+      if (at !== -1 && at < i) next.set(name, (at = lower.indexOf(`<${name}`, i)));
+      if (at !== -1 && (start === -1 || at < start)) {
+        start = at;
+        tag = name;
+      }
+    }
+    if (start === -1) break;
+    const close = lower.indexOf(`</${tag}>`, start);
+    const end = close === -1 ? html.length : close + tag.length + 3;
+    out += squeeze(html.slice(i, start)) + html.slice(start, end);
+    i = end;
+  }
+  return out + squeeze(html.slice(i));
+};
 
 export interface RenderHtmlOptions {
   /** The command shown in the "Regenerate this reference" card. */
@@ -465,7 +488,8 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
   const serviceSection = (s: ServiceModel) => {
     const row = (l: ServiceModel['sends'][number], dir: 'send' | 'receive') => {
       const channel = l.channels[0];
-      const path = `${e(l.message.name)}${channel ? `<small>${e(channel.address || channel.name)}</small>` : ''}`;
+      const pinned = l.pinnedVersion ? `<small>v${e(l.pinnedVersion)}</small>` : '';
+      const path = `${e(l.message.name)}${pinned}${channel ? `<small>${e(channel.address || channel.name)}</small>` : ''}`;
       return ep(verb(l.message.kind, dir), TYPE[l.message.kind].cls, path, l.message.anchor);
     };
     const attrs = [
