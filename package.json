@@ -12,6 +12,7 @@
     "start:catalog": "pnpm --filter @eventcatalog/core run start:catalog",
     "export:catalog": "pnpm --filter @eventcatalog/core run export:catalog",
     "preview:catalog": "pnpm --filter @eventcatalog/core run preview:catalog",
+    "generate:reference": "pnpm --filter @eventcatalog/exporters run generate:reference",
     "review:federation": "pnpm --filter @eventcatalog/sdk build && node packages/sdk/scripts/review-default-federation.mjs",
     "start:catalog:server": "pnpm --filter @eventcatalog/core run start:catalog:server",
     "start:studio": "pnpm --filter @eventcatalog/visualiser build && pnpm --filter @eventcatalog/studio-web run dev",

@@ -371,6 +371,18 @@ export interface Config {
   llmsTxt?: {
     enabled: boolean;
   };
+  /** Files written alongside the catalog when it is built. */
+  exports?: {
+    /**
+     * The architecture reference: the whole catalog as one self-contained HTML file, written to
+     * `architecture.html` in the build output. On by default. Catalogs with auth must set `enabled: true`,
+     * because build output is served without auth.
+     * @default { enabled: true }
+     */
+    html?: {
+      enabled?: boolean;
+    };
+  };
   logo?: {
     alt: string;
     src: string;

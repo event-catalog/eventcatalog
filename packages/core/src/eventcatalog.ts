@@ -22,6 +22,7 @@ import { stopChildWithParent } from './utils/child-process-signals';
 import { getLicenseStatus, printLicenseStatus } from './utils/license-status';
 import { buildFieldsIndex } from '../eventcatalog/src/features/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
+import { isCatalogAuthEnabled, resolveArchitectureExport, writeArchitectureExport } from './architecture-export';
 import { clearCatalogCache, hasLegacyCatalogRuntime, prepareCatalogRuntime } from './catalog-runtime';
 import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
 import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
@@ -558,6 +559,31 @@ program
         isServer,
       });
       logger.info(`Indexed ${result.records} page(s) into ${path.relative(dir, result.outputPath)}`, 'search');
+    }
+
+    // The architecture reference: the whole catalog as one HTML file in the build output (opt out with exports.html)
+    const architectureExport = resolveArchitectureExport(config, {
+      authEnabled: isCatalogAuthEnabled({ config, projectDir: dir, isServer }),
+    });
+    if (architectureExport.enabled) {
+      try {
+        const result = await writeArchitectureExport({
+          projectDir: dir,
+          outDir: path.resolve(dir, await getProjectOutDir()),
+          isServer,
+        });
+        logger.info(
+          `Wrote the architecture reference to ${path.relative(dir, result.path)} (${Math.round(result.bytes / 1024)} KB in ${result.durationMs} ms)`,
+          'export'
+        );
+      } catch (err: any) {
+        logger.info(`Skipped the architecture reference: ${err.message}`, 'export');
+      }
+    } else if (architectureExport.reason === 'auth') {
+      logger.info(
+        'Skipped the architecture reference because auth is enabled and build output is served without it. Set exports.html.enabled to true to publish it anyway.',
+        'export'
+      );
     }
   });
 

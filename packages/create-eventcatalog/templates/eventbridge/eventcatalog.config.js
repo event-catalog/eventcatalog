@@ -42,6 +42,11 @@ export default {
   llmsTxt: {
     enabled: true,
   },
+  // Architecture reference: writes architecture.html to your build output, your whole catalog
+  // as one HTML file you can share, attach or host. Set enabled to false to turn it off.
+  exports: {
+    html: { enabled: true },
+  },
   // required random generated id used by eventcatalog
   cId: '<cId>',
   // required by eventcatalog
