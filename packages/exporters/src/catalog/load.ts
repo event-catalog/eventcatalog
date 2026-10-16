@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join } from 'node:path';
-import createSDK from '@eventcatalog/sdk';
+import createSDK, { isCustomPropertyName } from '@eventcatalog/sdk';
 import type {
   Agent,
   Channel,
@@ -86,6 +86,10 @@ const logoFromConfig = (dir: string, logo: { src?: string; alt?: string } | unde
 
 const badgesOf = (r: { badges?: { content: string }[] }) =>
   (r.badges || []).filter((b) => b?.content).map((b) => ({ content: b.content }));
+
+/** The resource's custom properties (its `x-…` frontmatter fields). */
+const propertiesOf = (r: object): Record<string, unknown> =>
+  Object.fromEntries(Object.entries(r).filter(([name]) => isCustomPropertyName(name)));
 
 const entityAttributes = (props: EntityProperty[] = [], depth = 0): Attribute[] =>
   props.map((p) => {
@@ -328,6 +332,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
         anchor: anchorFor(type, m.id),
         owners: ownersOf(m.owners),
         badges: badgesOf(m),
+        properties: propertiesOf(m),
         deprecated: deprecatedText(m.deprecated),
         draft: Boolean(m.draft),
         domain: homeDomain(m.id, type),
@@ -399,6 +404,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
       anchor: anchorFor(kind, s.id),
       owners: ownersOf(s.owners),
       badges: badgesOf(s),
+      properties: propertiesOf(s),
       deprecated: deprecatedText(s.deprecated),
       draft: Boolean(s.draft),
       domain: domainOfService.get(s.id),
@@ -441,6 +447,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
         anchor: anchorFor('domain', d.id),
         owners: ownersOf(d.owners),
         badges: badgesOf(d),
+        properties: propertiesOf(d),
         deprecated: deprecatedText(d.deprecated),
         draft: Boolean(d.draft),
         parent: parentOfDomain.get(d.id),
@@ -472,6 +479,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     anchor: anchorFor('channel', c.id),
     owners: ownersOf(c.owners),
     badges: badgesOf(c),
+    properties: propertiesOf(c),
     deprecated: deprecatedText(c.deprecated),
     draft: Boolean(c.draft),
     address: c.address,
@@ -528,6 +536,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
       anchor: anchorFor('flow', f.id),
       owners: ownersOf(f.owners),
       badges: badgesOf(f),
+      properties: propertiesOf(f),
       deprecated: deprecatedText(f.deprecated),
       draft: Boolean(f.draft),
       steps: list(f.steps).map((s) => ({
@@ -563,6 +572,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     anchor: anchorFor('container', c.id),
     owners: ownersOf(c.owners),
     badges: badgesOf(c),
+    properties: propertiesOf(c),
     deprecated: deprecatedText(c.deprecated),
     draft: Boolean(c.draft),
     containerType: c.container_type,
@@ -589,6 +599,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     anchor: anchorFor('entity', e.id),
     owners: ownersOf(e.owners),
     badges: badgesOf(e),
+    properties: propertiesOf(e),
     deprecated: deprecatedText(e.deprecated),
     draft: Boolean(e.draft),
     aggregateRoot: Boolean(e.aggregateRoot),
@@ -607,6 +618,7 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     anchor: anchorFor('system', x.id),
     owners: ownersOf(x.owners),
     badges: badgesOf(x),
+    properties: propertiesOf(x),
     deprecated: deprecatedText(x.deprecated),
     draft: Boolean(x.draft),
     scope: x.scope,

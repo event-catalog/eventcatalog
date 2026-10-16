@@ -382,6 +382,32 @@ export interface Config {
     html?: {
       enabled?: boolean;
     };
+    /**
+     * Custom exports: parts of the catalog chosen for people outside the team (partners, the public, a regulator). Each
+     * is a file in `exports/` (e.g. `exports/partner-payments.mdx`) whose frontmatter says what it includes and whose
+     * body is its introduction, written to `exports/<id>.html` in the build output. Catalogs with auth must set
+     * `enabled: true`, because build output is served without auth.
+     */
+    custom?: {
+      /** Write the custom exports on build. @default true */
+      enabled?: boolean;
+      /** The folder that holds the custom export files. @default 'exports' */
+      dir?: string;
+      /** Build only these custom exports (by id). */
+      only?: string[];
+      /** What every custom export starts from; its own frontmatter overrides it. */
+      defaults?: {
+        /** Fields left out of every resource. @default ['owners', 'repository', 'contacts', 'docs'] */
+        hide?: ('owners' | 'repository' | 'specifications' | 'examples' | 'docs' | 'contacts')[];
+        /** Pointers at resources outside a custom export: dropped, shown as names, or pulled in (one level). @default 'omit' */
+        references?: 'omit' | 'name-only' | 'include';
+      };
+      /**
+       * Resources no custom export may show, whatever it includes: by id, e.g. [{ service: 'FraudAPI' }], or by custom
+       * property, e.g. [{ 'x-internal': true }] or [{ 'x-data-classification': ['confidential', 'restricted'] }].
+       */
+      neverExport?: { [key: string]: string | number | boolean | (string | number | boolean)[] | undefined }[];
+    };
   };
   logo?: {
     alt: string;

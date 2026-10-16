@@ -219,6 +219,10 @@ import {
   addFileToDiagram,
 } from './diagrams';
 
+import { getResourcesByProperty } from './properties';
+export { CUSTOM_PROPERTY_PREFIX, isCustomPropertyName, matchesProperty } from './properties';
+export type { GetResourcesByPropertyOptions, PropertyResourceType, ResourceWithProperty } from './properties';
+
 import { addFileToAdr, adrHasVersion, getAdr, getAdrs, rmAdr, rmAdrById, versionAdr, writeAdr } from './adrs';
 
 // Export the types
@@ -1714,6 +1718,28 @@ export default (path: string) => {
     versionAdr: versionAdr(join(path)),
     adrHasVersion: adrHasVersion(join(path)),
     addFileToAdr: addFileToAdr(join(path)),
+
+    /**
+     * ================================
+     *        Custom properties
+     * ================================
+     */
+
+    /**
+     * Returns the resources that have a custom property (`x-…` in their frontmatter), optionally with a given value.
+     * Values are compared as text (`true` matches `'true'`), and a list matches when any of its items does.
+     *
+     * @param property - The custom property, e.g. `x-public`
+     * @param options - Optional `equals` (one value), `in` (any of these values), `types` (kinds of resource, e.g. `['service', 'event']`) and `latestOnly`
+     * @returns The matching resources: `{ type, id, version, value, path, latest }`
+     *
+     * @example
+     * ```ts
+     * await sdk.getResourcesByProperty('x-public', { equals: true, latestOnly: true });
+     * await sdk.getResourcesByProperty('x-tier', { in: [1, 2], types: ['service'] });
+     * ```
+     */
+    getResourcesByProperty: getResourcesByProperty(join(path)),
 
     /**
      * ================================

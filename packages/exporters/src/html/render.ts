@@ -148,6 +148,13 @@ export const compactHtml = (html: string) => {
 export interface RenderHtmlOptions {
   /** The command shown in the "Regenerate this reference" card. */
   regenerateCommand?: string;
+  /**
+   * Renders a custom export (part of the catalog chosen for people outside the team, see custom-exports/) rather than the
+   * whole catalog: its own title and introduction, and nothing about how the catalog is generated.
+   */
+  customExport?: { title: string; summary?: string; audience?: string; version?: string; intro?: string };
+  /** Owners were left out on purpose: no "No owner listed" lines. */
+  hideOwners?: boolean;
 }
 
 const DEFAULT_REGENERATE_COMMAND = 'npx @eventcatalog/cli export --format html \\\n  --output architecture.html';
@@ -171,6 +178,9 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     model.teams.length +
     model.users.length;
   const lazySections = sectionCount > LAZY_SECTION_THRESHOLD;
+  const doc = options.customExport;
+  /** Where relationships were looked for: a custom export only shows its own part of the catalog */
+  const where = doc ? 'in this document' : 'in the catalog';
   const domainOfService = new Map(model.services.map((s) => [s.id, s.domain]));
   const anchors = new Map<string, { name: string; anchor?: string }>();
   const register = (kind: string, r: { id: string; name: string; anchor: string }) => anchors.set(`${kind}:${r.id}`, r);
@@ -211,12 +221,16 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     const inner = `${dot}${e(r.name)}${note ? ` <small>${e(note)}</small>` : ''}`;
     return r.anchor ? `<a class="chip" href="#${r.anchor}">${inner}</a>` : `<span class="chip">${inner}</span>`;
   };
-  const chips = (refs: Ref[], homeDomain?: string, empty = 'None in the catalog.') =>
+  const chips = (refs: Ref[], homeDomain?: string, empty = `None ${where}.`) =>
     refs.length
       ? `<div class="chips">${refs.map((r) => chip(r, homeDomain)).join('')}</div>`
       : `<p class="empty">${e(empty)}</p>`;
   const owners = (list: Owner[]) =>
-    list.length ? `<span>Owned by <b>${list.map((o) => link(o)).join(', ')}</b></span>` : '<span>No owner listed</span>';
+    list.length
+      ? `<span>Owned by <b>${list.map((o) => link(o)).join(', ')}</b></span>`
+      : options.hideOwners || doc
+        ? ''
+        : '<span>No owner listed</span>';
   const pills = (r: { version?: string; badges: { content: string }[]; deprecated?: string | true; draft?: boolean }) =>
     [
       r.version ? `<span class="pill ver">v${e(r.version)}</span>` : '',
@@ -419,9 +433,38 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     return parts.length ? `It documents ${listJoin(parts)}${owners}.` : '';
   };
   const introSentence = describeCatalog((text) => `<strong>${text}</strong>`);
-  const overview = section(
-    'overview',
-    `${eyebrow('<span>Architecture reference</span>', `<span>Generated ${e(formatDate(model.generatedAt))}</span>`)}
+  const contentsRows: [string, number][] = [
+    ['Domains', counts.domains],
+    ['Systems', counts.systems],
+    ['Services', counts.services],
+    ['Events', counts.event],
+    ['Commands', counts.command],
+    ['Queries', counts.query],
+    ['Channels', counts.channels],
+    ['Data stores', counts.dataStores],
+    ['Flows', counts.flows],
+    ['Entities', model.entities.length],
+    ['Teams', counts.teams],
+  ];
+  const kvList = (rows: [string, number][]) =>
+    `<dl class="kv" style="padding:2px 0">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+  const introHtml = doc?.intro ? renderMarkdown(doc.intro, resolveLink) : '';
+  const overview = doc
+    ? section(
+        'overview',
+        `${eyebrow(`<span>${e(model.title)}</span>`, doc.version ? `<span>Version ${e(doc.version)}</span>` : undefined, `<span>Updated ${e(formatDate(model.generatedAt).slice(0, 10))}</span>`)}
+    <h1>${e(doc.title)}</h1>
+    ${lead(doc.summary)}
+    ${doc.audience ? `<div class="meta-line"><span>For <b>${e(doc.audience)}</b></span></div>` : ''}
+    ${introHtml ? `<div class="md">${introHtml}</div>` : `<div class="prose"><p>${introSentence}</p></div>`}
+    <div class="prose"><p>Press <kbd>⌘K</kbd> to jump to anything in this document.</p></div>
+`,
+        box('Contents', formatDate(model.generatedAt).slice(0, 10), kvList(contentsRows.filter(([, v]) => v > 0))),
+        'intro'
+      )
+    : section(
+        'overview',
+        `${eyebrow('<span>Architecture reference</span>', `<span>Generated ${e(formatDate(model.generatedAt))}</span>`)}
     <h1>${e(model.title)}</h1>
     ${lead(model.tagline)}
     <div class="prose">
@@ -429,27 +472,10 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
       <p>Everything links to everything else. Press <kbd>⌘K</kbd> to jump to any resource.</p>
     </div>
 `,
-    `${box(
-      'Catalog',
-      formatDate(model.generatedAt).slice(0, 10),
-      `<dl class="kv" style="padding:2px 0">${[
-        ['Domains', counts.domains],
-        ['Systems', counts.systems],
-        ['Services', counts.services],
-        ['Events', counts.event],
-        ['Commands', counts.command],
-        ['Queries', counts.query],
-        ['Channels', counts.channels],
-        ['Data stores', counts.dataStores],
-        ['Flows', counts.flows],
-        ['Teams', counts.teams],
-      ]
-        .map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`)
-        .join('')}</dl>`
-    )}
+        `${box('Catalog', formatDate(model.generatedAt).slice(0, 10), kvList(contentsRows.filter(([k]) => k !== 'Entities')))}
     ${codeCard([{ label: 'Shell', code: options.regenerateCommand || DEFAULT_REGENERATE_COMMAND }], { title: 'Regenerate this reference' })}`,
-    'intro'
-  );
+        'intro'
+      );
 
   // ---------- domains ----------
   const domainSection = (d: DomainModel) =>
@@ -532,8 +558,8 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
         `${s.sends.length} out · ${s.receives.length} in`,
         `${s.sends.length ? `<div class="box-sub">Sends</div>${s.sends.map((l) => row(l, 'send')).join('')}` : ''}${s.receives.length ? `<div class="box-sub">Receives</div>${s.receives.map((l) => row(l, 'receive')).join('')}` : ''}`
       )}
-      ${refBox('Upstream', s.upstream, s.domain?.id, 'Nothing in the catalog sends it messages.')}
-      ${refBox('Downstream', s.downstream, s.domain?.id, 'Nothing in the catalog consumes its output.')}
+      ${refBox('Upstream', s.upstream, s.domain?.id, `Nothing ${where} sends it messages.`)}
+      ${refBox('Downstream', s.downstream, s.domain?.id, `Nothing ${where} consumes its output.`)}
       ${box(
         'Data',
         `${s.writesTo.length + s.readsFrom.length} stores`,
@@ -592,8 +618,8 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
       <div class="block"><div class="label">Attributes</div>${attributes}</div>
       ${docs(m.markdown)}`,
       `${box(m.channels.length ? 'Channels' : 'Routing', m.channels.length ? plural(new Set(m.channels.map((c) => c.name)).size, 'channel') : m.operation?.method ? 'HTTP' : '', routing)}
-      ${refBox(labels[0], m.producers, m.domain?.id, 'Nothing in the catalog.')}
-      ${refBox(labels[1], m.consumers, m.domain?.id, 'Nothing in the catalog.')}
+      ${refBox(labels[0], m.producers, m.domain?.id, `Nothing ${where}.`)}
+      ${refBox(labels[1], m.consumers, m.domain?.id, `Nothing ${where}.`)}
       ${codeCard(tabs)}`
     );
   };
@@ -624,7 +650,7 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
       <div class="meta-line">${owners(c.owners)}</div>
       ${deprecation(c)}
       ${c.parameters.length ? `<div class="block"><div class="label">Parameters</div>${c.parameters.map((p) => attrRow({ name: p.name, type: 'string', required: false, description: p.description, enum: p.enum, example: p.default })).join('')}</div>` : ''}
-      <div class="block"><div class="label">Messages</div>${rows || '<p class="empty">No messages in the catalog use this channel.</p>'}</div>
+      <div class="block"><div class="label">Messages</div>${rows || `<p class="empty">No messages ${where} use this channel.</p>`}</div>
       ${docs(c.markdown)}`,
       `${box('Channel', c.protocols[0] || '', `<dl class="kv" style="padding:2px 0">${kv.map(([k, v]) => `<dt>${e(k)}</dt><dd>${e(v)}</dd>`).join('')}</dl>`)}
       ${refBox('Routed from', c.routedFrom, undefined, '')}
@@ -710,8 +736,8 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
             )
           : ''
       }
-      ${refBox('Written by', c.writers, undefined, 'Nothing in the catalog writes to it.')}
-      ${refBox('Read by', c.readers, undefined, 'Nothing in the catalog reads from it.')}`
+      ${refBox('Written by', c.writers, undefined, `Nothing ${where} writes to it.`)}
+      ${refBox('Read by', c.readers, undefined, `Nothing ${where} reads from it.`)}`
     );
   };
 
@@ -789,7 +815,7 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
               `<div class="box-sub">${OWNED_LABEL[g.kind]}</div>${g.refs.map((r) => ep(STEP_TAG[r.kind] || r.kind.toUpperCase(), KIND_CLS[r.kind] || 'n', e(r.name), r.anchor)).join('')}`
           )
           .join(''),
-        'Nothing in the catalog lists them as an owner.'
+        `Nothing ${where} lists them as an owner.`
       )}`
     );
   };
@@ -961,8 +987,10 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
     ...model.users.map((u) => ({ g: 'People', k: 'USER', t: u.name, a: u.id, s: u.role || '', d: '', h: u.anchor })),
   ];
   // Link previews (Slack, Teams, social): the catalog's name and what it documents, with EventCatalog's card image
-  const pageTitle = `${model.title} · Architecture reference`;
-  const pageDescription = `The architecture reference for ${theCatalog}. ${describeCatalog((text) => text)}`.trim();
+  const pageTitle = doc ? `${doc.title} · ${model.title}` : `${model.title} · Architecture reference`;
+  const pageDescription = doc
+    ? (doc.summary ?? describeCatalog((text) => text))
+    : `The architecture reference for ${theCatalog}. ${describeCatalog((text) => text)}`.trim();
   const ogImage = 'https://www.eventcatalog.dev/img/opengraph.png';
 
   // Keep "</script>" sequences out of the inline JSON.
@@ -996,7 +1024,7 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
 <body>
 <header class="topbar">
   <button class="icon-btn menu-btn" id="menu-btn" aria-label="Open navigation" aria-expanded="false" aria-controls="sidenav">${ICON.menu}</button>
-  <a class="brand" href="#overview">${model.logo ? `<img class="brand-logo" src="${e(model.logo.src)}" alt="${e(model.logo.alt)}" width="26" height="26">` : eventCatalogLogo(26, 'brand-logo')}<span class="name">${e(model.title)}</span><span class="brand-sep"></span><span class="brand-sub">Architecture reference</span></a>
+  <a class="brand" href="#overview">${model.logo ? `<img class="brand-logo" src="${e(model.logo.src)}" alt="${e(model.logo.alt)}" width="26" height="26">` : eventCatalogLogo(26, 'brand-logo')}<span class="name">${e(model.title)}</span><span class="brand-sep"></span><span class="brand-sub">${doc ? e(doc.title) : 'Architecture reference'}</span></a>
   <div class="top-spacer"></div>
   <button class="search-btn" id="search-btn" aria-haspopup="dialog">${ICON.search}<span>Search the document</span><kbd id="kbd-hint">⌘K</kbd></button>
   <span class="date-chip">${e(formatDate(model.generatedAt).slice(0, 10))}</span>

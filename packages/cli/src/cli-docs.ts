@@ -1629,6 +1629,33 @@ export const cliFunctions: CLIFunctionDoc[] = [
     ],
   },
   {
+    name: 'getResourcesByProperty',
+    description:
+      'Returns the resources with a custom property (an x- field in their frontmatter), optionally with a given value. Values are compared as text, and a list matches when any of its items does',
+    category: 'Utilities',
+    args: [
+      { name: 'property', type: 'string', required: true, description: 'The custom property, e.g. x-public' },
+      {
+        name: 'options',
+        type: 'json',
+        required: false,
+        description: 'Options: { equals?: value, in?: [values], types?: ["service", "event", ...], latestOnly?: boolean }',
+      },
+    ],
+    examples: [
+      { description: 'Everything with x-public', command: 'npx @eventcatalog/cli getResourcesByProperty "x-public"' },
+      {
+        description: 'Latest services and events where x-public is true',
+        command:
+          'npx @eventcatalog/cli getResourcesByProperty "x-public" \'{"equals":true,"types":["service","event"],"latestOnly":true}\'',
+      },
+      {
+        description: 'Tier 1 or tier 2',
+        command: 'npx @eventcatalog/cli getResourcesByProperty "x-tier" \'{"in":[1,2]}\'',
+      },
+    ],
+  },
+  {
     name: 'getEventCatalogConfigurationFile',
     description: 'Returns the EventCatalog configuration file',
     category: 'Utilities',
@@ -1642,9 +1669,16 @@ export const cliFunctions: CLIFunctionDoc[] = [
   {
     name: 'export',
     description:
-      'Export catalog resources to EventCatalog DSL (.ec) format, or the whole catalog as an architecture reference (one HTML file)',
+      'Export catalog resources to EventCatalog DSL (.ec) format, the whole catalog as an architecture reference (one HTML file), or a custom export: the part of the catalog chosen in a file in exports/',
     category: 'Export',
     args: [
+      {
+        name: 'custom-export',
+        type: 'string',
+        required: false,
+        description:
+          'The id of a custom export to write as HTML (the file name of exports/<id>.mdx), given as the first argument',
+      },
       {
         name: 'format',
         type: 'string',
@@ -1671,13 +1705,19 @@ export const cliFunctions: CLIFunctionDoc[] = [
         name: 'output',
         type: 'string',
         required: false,
-        description: 'Output file path (defaults to <id>.ec, catalog.ec or architecture.html)',
+        description: 'Output file path (defaults to <id>.ec, catalog.ec, architecture.html or <custom-export>.html)',
       },
       {
         name: 'no-open',
         type: 'boolean',
         required: false,
         description: 'With --format html: do not open the reference in your browser',
+      },
+      {
+        name: 'check',
+        type: 'boolean',
+        required: false,
+        description: 'With a custom export: list what is in it and what was left out, without writing it',
       },
     ],
     examples: [
@@ -1712,6 +1752,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Export the architecture reference to a custom file without opening it',
         command: 'npx @eventcatalog/cli export --format html --output docs/architecture.html --no-open',
+      },
+      {
+        description: 'Write the custom export in exports/partner-payments.mdx',
+        command: 'npx @eventcatalog/cli export partner-payments',
+      },
+      {
+        description: 'See what a custom export includes and what it leaves out, without writing it',
+        command: 'npx @eventcatalog/cli export partner-payments --check',
       },
     ],
   },

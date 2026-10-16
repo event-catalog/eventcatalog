@@ -19,6 +19,8 @@ let _fileIndexCatalogDir: string | null = null;
 let _matterCache: Map<string, matter.GrayMatterFile<string>> | null = null;
 let _filePathToIdCache: Map<string, string> | null = null;
 let _fileIndexMtimeMs: number = 0;
+/** Goes up whenever the cache is built, cleared or updated, so lookups built from it know when they're stale. */
+let _fileCacheGeneration = 0;
 
 function toCanonicalPath(inputPath: string): string {
   return normalize(resolve(inputPath));
@@ -63,6 +65,7 @@ function buildFileCache(catalogDir: string): void {
   _fileIndexCatalogDir = canonicalCatalogDir;
   _matterCache = matterResults;
   _filePathToIdCache = pathToId;
+  _fileCacheGeneration++;
   try {
     _fileIndexMtimeMs = fsSync.statSync(canonicalCatalogDir).mtimeMs;
   } catch {
@@ -93,6 +96,7 @@ export function invalidateFileCache(): void {
   _fileIndexCatalogDir = null;
   _matterCache = null;
   _filePathToIdCache = null;
+  _fileCacheGeneration++;
 }
 
 /**
@@ -122,6 +126,7 @@ export function upsertFileCacheEntry(catalogDir: string, filePath: string, rawCo
   }
 
   _matterCache.set(normalizedPath, parsed);
+  _fileCacheGeneration++;
 
   const id = parsed.data.id;
   if (!id) {
@@ -147,6 +152,18 @@ export function upsertFileCacheEntry(catalogDir: string, filePath: string, rawCo
   } catch {
     // Ignore mtime refresh failures; cache will self-heal on next ensureFileCache call.
   }
+}
+
+/**
+ * Every index file in the catalog with its parsed frontmatter, from the in-memory cache (built on first use), and the
+ * cache's generation: it changes whenever the files do, so anything built from them can tell when to build again.
+ */
+export function getCachedIndexFiles(catalogDir: string): {
+  generation: number;
+  files: ReadonlyMap<string, matter.GrayMatterFile<string>>;
+} {
+  ensureFileCache(catalogDir);
+  return { generation: _fileCacheGeneration, files: _matterCache! };
 }
 
 // Keep these as aliases for backwards compat with CLI export code
