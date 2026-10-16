@@ -313,27 +313,6 @@ describe('getResources', () => {
       expect(result.resources[0]).toHaveProperty('name');
     }
   });
-
-  it('excludes hidden resources, matching the rest of the catalog', async () => {
-    mockEvents.push({
-      id: 'SecretEvent-1.0.0',
-      slug: 'events/SecretEvent',
-      collection: 'events',
-      body: '',
-      data: { id: 'SecretEvent', name: 'Secret Event', version: '1.0.0', summary: '', owners: [], hidden: true } as any,
-    });
-
-    try {
-      const result = await getResources({ collection: 'events' });
-      expect('error' in result).toBe(false);
-      if (!('error' in result)) {
-        expect(result.resources.some((r) => r.id === 'SecretEvent')).toBe(false);
-        expect(result.totalCount).toBe(mockEvents.length - 1);
-      }
-    } finally {
-      mockEvents.pop();
-    }
-  });
 });
 
 describe('getResource', () => {

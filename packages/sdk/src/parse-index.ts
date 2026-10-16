@@ -184,7 +184,6 @@ const UserMemberSchema = z
     name: nonEmptyString,
     avatarUrl: z.string().optional(),
     role: z.string().optional(),
-    hidden: z.boolean().optional(),
     source: z
       .object({
         provider: nonEmptyString,

@@ -168,7 +168,6 @@ const baseSchema = z.object({
       url: z.string().optional(),
     })
     .optional(),
-  hidden: z.boolean().optional(),
   editUrl: z.string().optional(),
   resourceGroups: z
     .array(
@@ -980,7 +979,6 @@ const users = defineCollection({
     name: z.string(),
     avatarUrl: z.string().optional(),
     role: z.string().optional(),
-    hidden: z.boolean().optional(),
     source: directoryEntrySource.optional(),
     readOnly: z.boolean().optional(),
     email: z.string().optional(),
@@ -1013,7 +1011,6 @@ const teams = defineCollection({
     name: z.string(),
     summary: z.string().optional(),
     email: z.string().optional(),
-    hidden: z.boolean().optional(),
     source: directoryEntrySource.optional(),
     readOnly: z.boolean().optional(),
     slackDirectMessageUrl: z.string().optional(),

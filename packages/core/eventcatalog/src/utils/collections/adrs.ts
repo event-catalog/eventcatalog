@@ -39,7 +39,6 @@ export const getAdrs = async ({ getAllVersions = true, returnBody = false }: Pro
   const adrMap = createVersionedMap(allAdrs);
 
   const targetAdrs = allAdrs.filter((adr) => {
-    if (adr.data.hidden === true) return false;
     if (!getAllVersions && adr.filePath?.includes('versioned')) return false;
     return true;
   });

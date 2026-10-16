@@ -167,7 +167,7 @@ const deriveRecordFromPath = async ({
   const fileName = segments[segments.length - 1] || '';
   const fileNameWithoutExtension = removeExtension(fileName);
 
-  if (data.hidden === true || data.draft) {
+  if (data.draft) {
     return null;
   }
 

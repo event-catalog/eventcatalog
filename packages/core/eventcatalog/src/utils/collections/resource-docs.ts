@@ -250,7 +250,7 @@ const getResourceFolderFromFilePath = (filePath: string): string | undefined => 
 
 const buildLookup = (
   resources: Array<{
-    data: { id: string; version: string; hidden?: boolean };
+    data: { id: string; version: string };
     filePath?: string;
   }>
 ): ResourceLookup => {
@@ -258,9 +258,6 @@ const buildLookup = (
   const folderToId = new Map<string, string>();
 
   for (const resource of resources) {
-    if (resource.data.hidden === true) {
-      continue;
-    }
     const list = groupedById.get(resource.data.id) || [];
     list.push(resource.data.version);
     groupedById.set(resource.data.id, list);
@@ -390,7 +387,6 @@ export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
   const [docs, lookups] = await Promise.all([getCollection('resourceDocs'), getResourceLookups()]);
 
   const docsWithResources = docs
-    .filter((doc) => doc.data.hidden !== true)
     .map((doc) => {
       if (!doc.filePath) {
         return null;

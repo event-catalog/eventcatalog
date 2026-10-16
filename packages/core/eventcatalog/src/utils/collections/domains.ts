@@ -79,8 +79,6 @@ export const getDomains = async ({
 
   // 3. Filter the domains we actually want to process/return
   const targetDomains = allDomains.filter((domain: Domain) => {
-    // Filter out hidden
-    if (domain.data.hidden === true) return false;
     // Handle version filtering
     if (!getAllVersions && domain.filePath?.includes('versioned')) return false;
     return true;

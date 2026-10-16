@@ -42,7 +42,6 @@ export const getSystems = async ({ getAllVersions = true, enrichServices = false
 
   // Filter systems
   const targetSystems = allSystems.filter((system) => {
-    if (system.data.hidden === true) return false;
     if (!getAllVersions && system.filePath?.includes('versioned')) return false;
     return true;
   });

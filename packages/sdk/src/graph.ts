@@ -25,7 +25,6 @@ import type {
 } from './types';
 
 type CatalogResource = BaseSchema & {
-  hidden?: boolean;
   [key: string]: any;
 };
 
@@ -263,7 +262,7 @@ export const getGraph = (directory: string): GetCatalogGraph => {
       const resolved = await Promise.all(
         types.map(async (type) => {
           const resource = await read(type, pointer);
-          return resource && resource.hidden !== true ? { type, resource } : undefined;
+          return resource ? { type, resource } : undefined;
         })
       );
 
@@ -283,8 +282,6 @@ export const getGraph = (directory: string): GetCatalogGraph => {
         const targets = new Map<string, AdrTarget[]>();
 
         for (const adr of adrIndex.byVersion.values()) {
-          if (adr.hidden === true) continue;
-
           for (const pointer of adr.appliesTo || []) {
             const type = normalizeResourceType(pointer.type);
             if (!type || type === 'adr') continue;
@@ -428,7 +425,7 @@ export const getGraph = (directory: string): GetCatalogGraph => {
     };
 
     const rootResource = await read(root.type, root);
-    if (!rootResource || rootResource.hidden === true) return undefined;
+    if (!rootResource) return undefined;
 
     const flatRoot = toGraphResource(root.type, rootResource);
     if (!options.flat) {

@@ -112,8 +112,7 @@ const entityAttributes = (props: EntityProperty[] = [], depth = 0): Attribute[] 
 export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   const sdk: SDK = createSDK(dir);
   const latest = { latestOnly: true };
-  // Hidden resources stay out of the reference, as they stay out of the catalog itself
-  const visible = <T>(items: T[] | undefined): T[] => (items || []).filter((r) => (r as { hidden?: boolean })?.hidden !== true);
+  const list = <T>(items: T[] | undefined): T[] => items || [];
 
   const [
     config,
@@ -132,31 +131,29 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
     users,
   ] = await Promise.all([
     existsSync(join(dir, 'eventcatalog.config.js')) ? sdk.getEventCatalogConfigurationFile().catch(() => null) : null,
-    sdk.getDomains(latest).then(visible),
+    sdk.getDomains(latest).then(list),
     sdk
       .getSystems(latest)
       .catch(() => [] as System[])
-      .then(visible),
-    sdk.getServices(latest).then(visible),
+      .then(list),
+    sdk.getServices(latest).then(list),
     sdk
       .getAgents(latest)
       .catch(() => [] as Agent[])
-      .then(visible),
-    sdk.getEvents(latest).then(visible),
-    sdk.getCommands(latest).then(visible),
-    sdk.getQueries(latest).then(visible),
-    sdk.getChannels(latest).then(visible),
+      .then(list),
+    sdk.getEvents(latest).then(list),
+    sdk.getCommands(latest).then(list),
+    sdk.getQueries(latest).then(list),
+    sdk.getChannels(latest).then(list),
     sdk
       .getDataStores(latest)
       .catch(() => [] as Container[])
-      .then(visible),
-    sdk.getFlows(latest).then(visible),
-    sdk.getEntities(latest).then(visible),
-    sdk.getTeams().then(visible),
-    sdk.getUsers().then(visible),
+      .then(list),
+    sdk.getFlows(latest).then(list),
+    sdk.getEntities(latest).then(list),
+    sdk.getTeams().then(list),
+    sdk.getUsers().then(list),
   ]);
-
-  const list = <T>(items: T[] | undefined): T[] => items || [];
 
   // ---------- references ----------
   const refs = new Map<string, Ref>();
@@ -649,34 +646,30 @@ export const loadCatalog = async (dir: string): Promise<CatalogModel> => {
   const teamsOfUser = new Map<string, Ref[]>();
   list(teams).forEach((t) => memberIds(t).forEach((u) => push(teamsOfUser, u, ref('team', t.id))));
 
-  const teamModels: TeamModel[] = list(teams)
-    .filter((t) => !t.hidden)
-    .map((t: Team) => ({
-      kind: 'team',
-      id: t.id,
-      name: t.name || t.id,
-      anchor: anchorFor('team', t.id),
-      summary: t.summary?.trim(),
-      email: t.email,
-      slack: t.slackDirectMessageUrl,
-      members: memberIds(t).map((id) => ref('user', id)),
-      teams: [],
-      owns: owned.get(key('team', t.id)) || [],
-    }));
-  const userModels: TeamModel[] = list(users)
-    .filter((u) => !u.hidden)
-    .map((u: User) => ({
-      kind: 'user',
-      id: u.id,
-      name: u.name || u.id,
-      anchor: anchorFor('user', u.id),
-      role: u.role,
-      email: u.email,
-      slack: u.slackDirectMessageUrl,
-      members: [],
-      teams: teamsOfUser.get(u.id) || [],
-      owns: owned.get(key('user', u.id)) || [],
-    }));
+  const teamModels: TeamModel[] = list(teams).map((t: Team) => ({
+    kind: 'team',
+    id: t.id,
+    name: t.name || t.id,
+    anchor: anchorFor('team', t.id),
+    summary: t.summary?.trim(),
+    email: t.email,
+    slack: t.slackDirectMessageUrl,
+    members: memberIds(t).map((id) => ref('user', id)),
+    teams: [],
+    owns: owned.get(key('team', t.id)) || [],
+  }));
+  const userModels: TeamModel[] = list(users).map((u: User) => ({
+    kind: 'user',
+    id: u.id,
+    name: u.name || u.id,
+    anchor: anchorFor('user', u.id),
+    role: u.role,
+    email: u.email,
+    slack: u.slackDirectMessageUrl,
+    members: [],
+    teams: teamsOfUser.get(u.id) || [],
+    owns: owned.get(key('user', u.id)) || [],
+  }));
 
   const byName = <T extends { name: string }>(a: T, b: T) => a.name.localeCompare(b.name);
 

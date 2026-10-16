@@ -29,10 +29,7 @@ export const getTeams = async (): Promise<Team[]> => {
       getAdrs({ getAllVersions: false }),
     ]);
 
-  // 2. Filter teams
-  const targetTeams = allTeams.filter((team) => team.data.hidden !== true);
-
-  // 3. Build Owner Index: Map<OwnerID, Item[]>
+  // 2. Build Owner Index: Map<OwnerID, Item[]>
   // This index groups all items (domains, services, etc.) by their owner IDs.
   // This allows O(1) lookup to find all items owned by a specific team.
   const ownershipMap = new Map<string, CollectionEntry<CollectionTypes>[]>();
@@ -59,8 +56,8 @@ export const getTeams = async (): Promise<Team[]> => {
   addToIndex(allQueries);
   addToIndex(allAdrs);
 
-  // 4. Enrich teams using the ownership index
-  const processedTeams = targetTeams.map((team) => {
+  // 3. Enrich teams using the ownership index
+  const processedTeams = allTeams.map((team) => {
     const teamId = team.data.id;
     const ownedItems = ownershipMap.get(teamId) || [];
 

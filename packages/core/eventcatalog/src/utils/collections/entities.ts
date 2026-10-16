@@ -34,7 +34,6 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
 
   // 3. Filter entities
   const targetEntities = allEntities.filter((entity) => {
-    if (entity.data.hidden === true) return false;
     if (!getAllVersions && entity.filePath?.includes('versioned')) return false;
     return true;
   });

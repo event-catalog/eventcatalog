@@ -54,7 +54,6 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
 
   // 3. Filter services
   const targetServices = allServices.filter((service) => {
-    if (service.data.hidden === true) return false;
     if (!getAllVersions && service.filePath?.includes('versioned')) return false;
     return true;
   });

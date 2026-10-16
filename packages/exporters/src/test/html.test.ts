@@ -365,17 +365,6 @@ describe('export --format html', () => {
     expect(html).not.toContain('.spec-icon.openapi{');
   });
 
-  it('leaves hidden resources out of the reference', async () => {
-    await seedCatalog();
-    await writeService({ id: 'SecretService', name: 'Secret Service', version: '1.0.0', hidden: true, markdown: '' } as any);
-    await writeEvent({ id: 'SecretEvent', name: 'Secret Event', version: '1.0.0', hidden: true, markdown: '' } as any);
-
-    const html = await exportHtml({ dir: CATALOG_PATH });
-
-    expect(html).not.toContain('SecretService');
-    expect(html).not.toContain('SecretEvent');
-  });
-
   it('does not count a service pinned to an older message version as a producer of the latest version', async () => {
     await seedCatalog();
     await writeService(

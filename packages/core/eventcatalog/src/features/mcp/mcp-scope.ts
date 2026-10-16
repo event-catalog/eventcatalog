@@ -35,7 +35,6 @@ type CatalogEntry = {
     version: string;
     name?: string;
     summary?: string;
-    hidden?: boolean;
     [key: string]: any;
   };
   [key: string]: any;
@@ -78,7 +77,7 @@ export class McpScope {
   }
 
   add(entry: CatalogEntry | undefined) {
-    if (!entry || entry.data.hidden === true) return false;
+    if (!entry) return false;
 
     const collectionEntries = this.entries.get(entry.collection) ?? new Map<string, CatalogEntry>();
     const key = entryKey(entry.data.id, entry.data.version);
@@ -147,7 +146,7 @@ export async function resolveMcpScope(
 
   const rootCollection = graphTypeToCollection[graph.root.type];
   const root = resolve(rootCollection, graph.root.id, graph.root.version);
-  if (!root || root.data.hidden === true) throw scopeNotFound(ref);
+  if (!root) throw scopeNotFound(ref);
 
   const scope = new McpScope(ref, root);
   for (const resource of graph.resources) {

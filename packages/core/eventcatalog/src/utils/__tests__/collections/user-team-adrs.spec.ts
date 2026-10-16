@@ -7,7 +7,6 @@ const user = {
   data: {
     id: 'dave',
     name: 'Dave',
-    hidden: false,
   },
 };
 
@@ -17,7 +16,6 @@ const team = {
   data: {
     id: 'platform',
     name: 'Platform',
-    hidden: false,
     members: [{ id: 'dave' }],
   },
 };
@@ -32,7 +30,6 @@ const userOwnedAdr = {
     version: '1.0.0',
     status: 'accepted',
     date: new Date('2026-01-01'),
-    hidden: false,
     owners: [{ id: 'dave' }],
   },
 };
@@ -47,7 +44,6 @@ const teamOwnedAdr = {
     version: '1.0.0',
     status: 'proposed',
     date: new Date('2026-01-02'),
-    hidden: false,
     owners: [{ id: 'platform' }],
   },
 };
@@ -60,7 +56,6 @@ const userOwnedSystem = {
     id: 'CoreMonolith',
     name: 'Core Monolith',
     version: '1.0.0',
-    hidden: false,
     owners: [{ id: 'dave' }],
   },
 };
@@ -73,7 +68,6 @@ const teamOwnedSystem = {
     id: 'PaymentsPlatform',
     name: 'Payments Platform',
     version: '1.0.0',
-    hidden: false,
     owners: [{ id: 'platform' }],
   },
 };

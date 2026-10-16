@@ -51,7 +51,6 @@ export const getCommands = async ({ getAllVersions = true, hydrateServices = tru
 
   // 3. Filter commands
   const targetCommands = allCommands.filter((command) => {
-    if (command.data.hidden === true) return false;
     if (!getAllVersions && command.filePath?.includes('versioned')) return false;
     return true;
   });
