@@ -272,7 +272,8 @@ export function selectCustomExport(
         return [r.domain, ...owners];
       case 'team':
       case 'user':
-        return [...r.members, ...r.teams, ...r.owns];
+        // Owners hidden means ownership is hidden from both sides: a team doesn't bring in what it owns either
+        return [...r.members, ...r.teams, ...(hidden.has('owners') ? [] : r.owns)];
     }
   };
   if (spec.references === 'include') {
@@ -457,7 +458,7 @@ export function selectCustomExport(
         ...t,
         members: pointAll(t, t.members),
         teams: pointAll(t, t.teams),
-        owns: pointAll(t, t.owns),
+        owns: hidden.has('owners') ? [] : pointAll(t, t.owns),
         ...(hidden.has('contacts') && { email: undefined, slack: undefined }),
       })
     );

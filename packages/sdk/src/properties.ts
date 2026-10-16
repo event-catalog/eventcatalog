@@ -86,16 +86,20 @@ let lookup: { dir: string; generation: number; byProperty: Map<string, ResourceW
  */
 const placeOf = (catalogDir: string, file: string): { type: PropertyResourceType; latest: boolean } | undefined => {
   const folders = relative(catalogDir, file).split(sep).slice(0, -1);
-  const ownVersion = folders.length >= 3 && folders[folders.length - 2] === 'versioned';
-  const above = folders.slice(0, ownVersion ? -3 : -1);
+  const isCollection = (i: number) => i >= 0 && Object.prototype.hasOwnProperty.call(FOLDER_TYPES, folders[i]);
+  // `versioned` is a version folder when it's inside a resource's folder; straight inside a collection, it's a
+  // resource called `versioned` (and `examples` is a resource's examples, or a resource called `examples`, the same way)
+  const isVersionFolder = (i: number) => folders[i] === 'versioned' && i >= 1 && !isCollection(i - 1);
+  const ownVersion = folders.length >= 3 && isVersionFolder(folders.length - 2);
+  const own = ownVersion ? folders.length - 3 : folders.length - 1;
+  if (folders[own] === 'examples' && !isCollection(own - 1)) return undefined;
   // An older version of it, or of anything it's inside (domains/D/versioned/1.0.0/services/S), isn't the latest
-  const latest = !folders.slice(0, -1).includes('versioned');
-  // The nearest collection above it is its kind. An `examples` folder on the way there means the file is one of a
-  // resource's examples, not a resource (a parent resource that's itself called `examples` sits above its collection)
-  for (let i = above.length - 1; i >= 0; i--) {
-    if (above[i] === 'examples') return undefined;
-    const type = FOLDER_TYPES[above[i]];
-    if (type) return { type: type as PropertyResourceType, latest };
+  const latest = !folders.some((_, i) => i < folders.length - 1 && isVersionFolder(i));
+  // The nearest collection above its own folder is its kind. An `examples` folder on the way there means the file is
+  // one of a resource's examples, not a resource
+  for (let i = own - 1; i >= 0; i--) {
+    if (folders[i] === 'examples' && !isCollection(i - 1)) return undefined;
+    if (isCollection(i)) return { type: FOLDER_TYPES[folders[i]] as PropertyResourceType, latest };
   }
   return undefined;
 };

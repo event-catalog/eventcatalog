@@ -101,6 +101,8 @@ describe('getResourcesByProperty', () => {
     };
     write('domains/examples/services/Inside/index.mdx', 'Inside');
     write('events/Placed/examples/sample/index.mdx', 'Sample');
+    write('events/Placed/examples/index.mdx', 'Sidecar');
+    write('services/constructor/examples/index.mdx', 'NotAResource');
 
     expect(ids(await getResourcesByProperty('x-zone'))).toEqual(['service:Inside']);
   });
@@ -110,8 +112,16 @@ describe('getResourcesByProperty', () => {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, '---\nid: Old\nname: Old\nversion: 0.1.0\nx-zone: a\n---\n');
 
-    expect(await getResourcesByProperty('x-zone', { latestOnly: true })).toEqual([]);
-    expect((await getResourcesByProperty('x-zone')).map((r) => [r.type, r.id, r.latest])).toEqual([['service', 'Old', false]]);
+    const current = path.join(CATALOG_PATH, 'domains', 'versioned', 'services', 'Current', 'index.mdx');
+    fs.mkdirSync(path.dirname(current), { recursive: true });
+    fs.writeFileSync(current, '---\nid: Current\nname: Current\nversion: 1.0.0\nx-zone: a\n---\n');
+
+    // A domain called `versioned` is a resource, not a version folder
+    expect(ids(await getResourcesByProperty('x-zone', { latestOnly: true }))).toEqual(['service:Current']);
+    expect((await getResourcesByProperty('x-zone')).map((r) => [r.id, r.latest]).sort()).toEqual([
+      ['Current', true],
+      ['Old', false],
+    ]);
   });
 
   it('only takes custom properties', async () => {

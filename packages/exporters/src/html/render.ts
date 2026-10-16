@@ -799,24 +799,29 @@ export const renderDocument = (model: CatalogModel, options: RenderHtmlOptions =
       <div class="title-row"><h2>${e(t.name)}</h2></div>
       ${idLine(t)}
       ${lead(isTeam ? t.summary : t.role)}
-      <div class="meta-line"><span>Owns ${plural(t.owns.length, 'resource')}</span>${related.length ? `<span>${plural(related.length, isTeam ? 'member' : 'team')}</span>` : ''}</div>
+      <div class="meta-line">${options.hideOwners ? '' : `<span>Owns ${plural(t.owns.length, 'resource')}</span>`}${related.length ? `<span>${plural(related.length, isTeam ? 'member' : 'team')}</span>` : ''}</div>
       ${contact.length ? `<div class="block"><div class="label">Contact</div>${contact.join('')}</div>` : ''}`,
       `${box(
         isTeam ? 'Members' : 'Teams',
         String(related.length),
         related.map((r) => ep(isTeam ? 'USER' : 'TEAM', 'n', e(r.name), r.anchor)).join('')
       )}
-      ${box(
-        'Owns',
-        String(t.owns.length),
-        owned
-          .map(
-            (g) =>
-              `<div class="box-sub">${OWNED_LABEL[g.kind]}</div>${g.refs.map((r) => ep(STEP_TAG[r.kind] || r.kind.toUpperCase(), KIND_CLS[r.kind] || 'n', e(r.name), r.anchor)).join('')}`
-          )
-          .join(''),
-        `Nothing ${where} lists them as an owner.`
-      )}`
+      ${
+        // With owners hidden, who owns what isn't shown from either side
+        options.hideOwners
+          ? ''
+          : box(
+              'Owns',
+              String(t.owns.length),
+              owned
+                .map(
+                  (g) =>
+                    `<div class="box-sub">${OWNED_LABEL[g.kind]}</div>${g.refs.map((r) => ep(STEP_TAG[r.kind] || r.kind.toUpperCase(), KIND_CLS[r.kind] || 'n', e(r.name), r.anchor)).join('')}`
+                )
+                .join(''),
+              `Nothing ${where} lists them as an owner.`
+            )
+      }`
     );
   };
 

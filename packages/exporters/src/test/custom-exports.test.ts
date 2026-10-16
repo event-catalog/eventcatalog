@@ -290,6 +290,21 @@ describe('custom exports', () => {
     expect(shown.html).toContain('Raised by the another service.');
   });
 
+  it('hide ownership from the team side too: no Owns box, and a team brings in nothing it owns', async () => {
+    await seedCatalog();
+
+    const hidden = await render(`title: Payments\ninclude:\n  - team: payments-team\n  - event: PaymentSucceeded`);
+    expect(hidden.html).not.toContain('<span>Owns</span>');
+    expect(hidden.html).not.toMatch(/Owns \d+ resource/);
+    expect(hidden.model.teams[0].owns).toEqual([]);
+
+    const pulled = await render(`title: Team\nreferences: include\ninclude:\n  - team: payments-team`);
+    expect(ids(pulled)).toEqual(['team:payments-team']);
+
+    const shown = await render(`title: Payments\nhide: []\ninclude:\n  - team: payments-team\n  - event: PaymentSucceeded`);
+    expect(shown.html).toContain('<span>Owns</span>');
+  });
+
   it('report what they could not find, and docs that link outside them', async () => {
     await seedCatalog();
 
