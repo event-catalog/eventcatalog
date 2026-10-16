@@ -47,12 +47,13 @@ const stripComponentTags = (source: string) => {
 };
 
 /** `[[service|OrderService]]` (also `[[service\\|…]]`, as written inside tables). */
-export const RESOURCE_LINK = /\[\[([a-z-]+)\s*\\?\|([^\]]+)\]\]/gi;
+export const RESOURCE_LINK = /\[\[([a-z-]+)\s*\\?\|([^[\]]+)\]\]/gi;
 
 const stripMdx = (source: string) =>
   stripComponentTags(source.replace(/^(import|export)\s[^\n]*$/gm, '')).replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
-// One capture after the pipe (spaces trimmed in code), so nothing can match the same spaces two ways: linear on any input
+// One capture after the pipe (spaces trimmed in code), so nothing matches the same text two ways, and it stops at the
+// next bracket, so each attempt ends where the next one starts: linear on any input
 const rewriteLinks = (source: string, resolve: ResolveLink) =>
   source.replace(RESOURCE_LINK, (link, type: string, id: string) => {
     if (!id.trim()) return link;

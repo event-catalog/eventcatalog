@@ -102,8 +102,7 @@ export function selectCustomExport(
   const linked = (refs: (Ref | undefined)[]) => refs.filter((r): r is Ref => Boolean(r?.anchor && resources.has(keyOf(r))));
   const versionOf = (r: Resource) => ('version' in r ? r.version : undefined);
 
-  const kindsOf = (kind: SelectorKind) =>
-    kind === 'message' ? MESSAGE_KINDS : kind === 'service' ? ['service', 'agent'] : [kind];
+  const kindsOf = (kind: SelectorKind) => (kind === 'message' ? MESSAGE_KINDS : [kind]);
   const matches = (selector: ExportSelector): { found: Resource[]; otherVersion?: Resource } => {
     if (isPropertySelector(selector)) {
       const kinds = selector.kinds && new Set(selector.kinds.flatMap(kindsOf));
@@ -117,9 +116,12 @@ export function selectCustomExport(
         ),
       };
     }
-    const found = kindsOf(selector.kind)
+    const named = kindsOf(selector.kind)
       .map((kind) => resources.get(`${kind}:${selector.id}`))
       .filter((r): r is Resource => Boolean(r));
+    // `service: X` reaches an agent called X only when no service is, as [[service|X]] links do
+    const agent = selector.kind === 'service' && !named.length ? resources.get(`agent:${selector.id}`) : undefined;
+    const found = agent ? [agent] : named;
     return {
       found: found.filter((r) => matchesVersion(selector.version, versionOf(r))),
       otherVersion: found.find((r) => !matchesVersion(selector.version, versionOf(r))),
@@ -393,6 +395,8 @@ export function selectCustomExport(
       consumers: pointAll(m, m.consumers),
       channels: pointAll(m, m.channels),
       examples: hidden.has('examples') ? [] : m.examples,
+      // The page falls back to an example made from the schema when there are no example files: that goes too
+      schema: hidden.has('examples') && m.schema ? { ...m.schema, example: undefined } : m.schema,
     })
   );
   const channels = keep(model.channels).map(

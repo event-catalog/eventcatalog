@@ -14,8 +14,18 @@ import {
 
 const CATALOG_PATH = path.join(__dirname, 'catalog-documents-test');
 
-const { writeEvent, writeCommand, writeService, writeDomain, writeTeam, writeDataStore, writeFlow, writeSystem } =
-  createSDK(CATALOG_PATH);
+const {
+  writeEvent,
+  writeCommand,
+  writeService,
+  writeAgent,
+  writeDomain,
+  writeTeam,
+  writeDataStore,
+  writeFlow,
+  writeSystem,
+  addSchemaToEvent,
+} = createSDK(CATALOG_PATH);
 
 /**
  * Payments: a system (Payment API, Payment Worker, the payments database) in a domain with a Fraud API. The Payment API
@@ -407,8 +417,43 @@ describe('custom exports', () => {
     ]);
 
     const started = performance.now();
-    await render(`title: Payments\ninclude:\n  - event: PaymentSucceeded`, { body: `[[-|${' '.repeat(50_000)}` });
+    await render(`title: Payments\ninclude:\n  - event: PaymentSucceeded`, {
+      body: `[[-|${' '.repeat(50_000)} [[-|${'[[-|\\'.repeat(20_000)}`,
+    });
     expect(performance.now() - started).toBeLessThan(2000);
+  });
+
+  it('hide example payloads with hide: examples, including the one made from the schema', async () => {
+    await seedCatalog();
+    await writeEvent(
+      { id: 'RefundIssued', name: 'Refund Issued', version: '1.0.0', markdown: '', schemaPath: 'schema.json' },
+      { override: true }
+    );
+    await addSchemaToEvent('RefundIssued', {
+      schema: JSON.stringify({ type: 'object', properties: { amount: { type: 'number' } } }),
+      fileName: 'schema.json',
+    });
+    const exampleTab = /data-i="\d+">Example<\/button>/;
+
+    const shown = await render(`title: Refunds\ninclude:\n  - event: RefundIssued`);
+    expect(shown.model.messages[0].schema?.example).toBeDefined();
+    expect(shown.html).toMatch(exampleTab);
+
+    const hidden = await render(`title: Refunds\nhide: [examples]\ninclude:\n  - event: RefundIssued`);
+    expect(hidden.model.messages[0].schema?.example).toBeUndefined();
+    expect(hidden.html).not.toMatch(exampleTab);
+  });
+
+  it('match service selectors to services, and to an agent only when no service has the id', async () => {
+    await seedCatalog();
+    await writeAgent({ id: 'PaymentAPI', name: 'Payment Agent', version: '1.0.0', markdown: '' });
+    await writeAgent({ id: 'SupportAgent', name: 'Support Agent', version: '1.0.0', markdown: '' });
+
+    const both = await render(`title: Services\ninclude:\n  - service: PaymentAPI\n  - service: SupportAgent`);
+    expect(ids(both)).toEqual(['agent:SupportAgent', 'service:PaymentAPI']);
+
+    const byKind = await render(`title: Services\ninclude:\n  - service: SupportAgent\nexclude:\n  - service: PaymentAPI`);
+    expect(ids(byKind)).toEqual(['agent:SupportAgent']);
   });
 
   it('refuse a custom export with nothing in it', async () => {
