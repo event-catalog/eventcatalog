@@ -16,6 +16,7 @@ import type {
 } from '../catalog/model';
 import { matchesProperty } from '@eventcatalog/sdk';
 import { matchesVersion } from '../catalog/versions';
+import { RESOURCE_LINK } from '../html/markdown';
 import { describeSelector, isPropertySelector, type ExportSelector, type CustomExportSpec, type SelectorKind } from './spec';
 
 /**
@@ -306,9 +307,10 @@ export function selectCustomExport(
   // nothing exclude took out is named in prose either
   const mentions = new Map<string, CustomExportReport['mentions'][number]>();
   const rewriteLinks = (from: string, markdown: string) =>
-    markdown.replace(/\[\[([a-z-]+)\s*(?:\\?\|)\s*([^\]]+?)\]\]/gi, (link, type: string, rawId: string) => {
+    markdown.replace(RESOURCE_LINK, (link, type: string, rawId: string) => {
       const kind = /^data-?stores?$/i.test(type) ? 'container' : singular(type.toLowerCase());
       const id = rawId.trim();
+      if (!id) return link;
       const target = resources.get(`${kind}:${id}`) ?? (kind === 'service' ? resources.get(`agent:${id}`) : undefined);
       if (!target || inExport.has(keyOf(target))) return link;
       const shownAs =

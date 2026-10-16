@@ -395,6 +395,22 @@ describe('custom exports', () => {
     expect(failed[0].error.message).toContain('are all the custom export "audit"');
   });
 
+  it('read resource links with spaces around the id, and stay fast on text that only looks like one', async () => {
+    await seedCatalog();
+
+    const linked = await render(`title: Payments\ninclude:\n  - event: PaymentSucceeded`, {
+      body: 'See [[event|  PaymentSucceeded ]], sent by the [[service | OrderService]].',
+    });
+    expect(linked.html).toContain('href="#event-PaymentSucceeded"');
+    expect(linked.report.mentions).toEqual([
+      { from: 'the introduction', to: 'service OrderService', shownAs: 'another service' },
+    ]);
+
+    const started = performance.now();
+    await render(`title: Payments\ninclude:\n  - event: PaymentSucceeded`, { body: `[[-|${' '.repeat(50_000)}` });
+    expect(performance.now() - started).toBeLessThan(2000);
+  });
+
   it('refuse a custom export with nothing in it', async () => {
     await seedCatalog();
 
