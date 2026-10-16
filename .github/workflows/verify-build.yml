@@ -53,6 +53,10 @@ jobs:
       - name: Package Visualiser
         run: pnpm pack
         working-directory: packages/visualiser
+      # Core depends on the exporters: without its own build here, npm installs the published one
+      - name: Package Exporters
+        run: pnpm pack
+        working-directory: packages/exporters
       - name: Rename package artifacts
         run: |
           mv packages/sdk/*.tgz sdk-package.tgz
@@ -61,6 +65,7 @@ jobs:
           mv packages/linter/*.tgz linter-package.tgz
           mv packages/connectors/*.tgz connectors-package.tgz
           mv packages/visualiser/*.tgz visualiser-package.tgz
+          mv packages/exporters/*.tgz exporters-package.tgz
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -72,6 +77,7 @@ jobs:
             linter-package.tgz
             connectors-package.tgz
             visualiser-package.tgz
+            exporters-package.tgz
 
   build-and-test:
     name: Build and Test All Packages
@@ -148,7 +154,7 @@ jobs:
           name: eventcatalog-packages-artifact
       - name: Install @eventcatalog packages
         working-directory: examples/${{ matrix.catalog }}/
-        run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz
+        run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz ../../exporters-package.tgz
       - name: Build EventCatalog
         working-directory: examples/${{ matrix.catalog }}/
         run: npx eventcatalog build

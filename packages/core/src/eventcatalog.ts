@@ -22,7 +22,15 @@ import { stopChildWithParent } from './utils/child-process-signals';
 import { getLicenseStatus, printLicenseStatus } from './utils/license-status';
 import { buildFieldsIndex } from '../eventcatalog/src/features/fields/field-indexer';
 import { buildSearchIndex } from './search-indexer';
-import { isCatalogAuthEnabled, resolveArchitectureExport, writeArchitectureExport } from './architecture-export';
+import { summariseCustomExportReport } from '@eventcatalog/exporters';
+import {
+  hasCustomExports,
+  isCatalogAuthEnabled,
+  resolveArchitectureExport,
+  resolveCustomExports,
+  writeArchitectureExport,
+  writeCustomExportsToBuild,
+} from './architecture-export';
 import { clearCatalogCache, hasLegacyCatalogRuntime, prepareCatalogRuntime } from './catalog-runtime';
 import { getRuntimePaths } from '../eventcatalog/integrations/runtime-paths.mjs';
 import { createAstroDevLineFilter, createAstroLineFilter } from './astro-output';
@@ -584,6 +592,45 @@ program
         'Skipped the architecture reference because auth is enabled and build output is served without it. Set exports.html.enabled to true to publish it anyway.',
         'export'
       );
+    }
+
+    // Custom exports: parts of the catalog for people outside the team, one HTML file each from exports/*.mdx
+    if (hasCustomExports({ projectDir: dir, config })) {
+      const folder = `${config?.exports?.custom?.dir || 'exports'}/`;
+      const customExports = resolveCustomExports(config, {
+        authEnabled: isCatalogAuthEnabled({ config, projectDir: dir, isServer }),
+      });
+      if (customExports.enabled) {
+        try {
+          const { written, failed } = await writeCustomExportsToBuild({
+            projectDir: dir,
+            outDir: path.resolve(dir, await getProjectOutDir()),
+            isServer,
+            config,
+          });
+          for (const exported of written) {
+            logger.info(
+              `Wrote the custom export "${exported.spec.title}" to ${path.relative(dir, exported.path)} (${summariseCustomExportReport(exported.report)})`,
+              'export'
+            );
+            if (exported.report.unmatched.length)
+              logger.warning(
+                `${exported.spec.file}: nothing in the catalog matches ${exported.report.unmatched.map((u) => `${u.field} ${u.selector} (${u.reason})`).join(', ')}`,
+                'export'
+              );
+          }
+          // Each export stands alone: one that can't be written is skipped, and the others are still written
+          for (const failure of failed)
+            logger.warning(`Skipped the custom export ${failure.file ?? `"${failure.id}"`}: ${failure.error.message}`, 'export');
+        } catch (err: any) {
+          logger.warning(`Skipped the custom exports in ${folder}: ${err.message}`, 'export');
+        }
+      } else if (customExports.reason === 'auth') {
+        logger.info(
+          `Skipped the custom exports in ${folder} because auth is enabled and build output is served without it. Set exports.custom.enabled to true to publish them anyway.`,
+          'export'
+        );
+      }
     }
   });
 

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { writeHtml } from '@eventcatalog/exporters';
+import { DEFAULT_CUSTOM_EXPORTS_DIR, writeCustomExports, writeHtml, type CustomExportsConfig } from '@eventcatalog/exporters';
 
 /** The part of eventcatalog.config.js that controls the architecture reference. */
 export interface ArchitectureExportConfig {
@@ -8,6 +8,7 @@ export interface ArchitectureExportConfig {
     html?: {
       enabled?: boolean;
     };
+    custom?: CustomExportsConfig;
   };
 }
 
@@ -58,4 +59,47 @@ export const writeArchitectureExport = ({
     dir: projectDir,
     outputPath: getArchitectureExportPath({ outDir, isServer }),
     regenerateCommand: 'npx eventcatalog build',
+  });
+
+/** Custom exports (exports/*.mdx) follow the same rule as the reference: on unless turned off, and opt-in with auth. */
+export const resolveCustomExports = (
+  config: ArchitectureExportConfig | null | undefined,
+  { authEnabled }: { authEnabled: boolean }
+): ArchitectureExportDecision => {
+  const enabled = config?.exports?.custom?.enabled;
+  if (enabled === false) return { enabled: false, reason: 'disabled' };
+  if (authEnabled && enabled !== true) return { enabled: false, reason: 'auth' };
+  return { enabled: true };
+};
+
+/** Whether the catalog has any custom export files, so a catalog without them never hears about custom exports. */
+export const hasCustomExports = ({
+  projectDir,
+  config,
+}: {
+  projectDir: string;
+  config: ArchitectureExportConfig | null | undefined;
+}) => {
+  const folder = path.join(projectDir, config?.exports?.custom?.dir || DEFAULT_CUSTOM_EXPORTS_DIR);
+  return fs.existsSync(folder) && fs.readdirSync(folder).some((name) => /\.mdx?$/i.test(name));
+};
+
+export const getCustomExportsDir = ({ outDir, isServer }: { outDir: string; isServer: boolean }) =>
+  path.join(outDir, isServer ? 'client' : '', 'exports');
+
+export const writeCustomExportsToBuild = ({
+  projectDir,
+  outDir,
+  isServer,
+  config,
+}: {
+  projectDir: string;
+  outDir: string;
+  isServer: boolean;
+  config: ArchitectureExportConfig | null | undefined;
+}) =>
+  writeCustomExports({
+    dir: projectDir,
+    outputDir: getCustomExportsDir({ outDir, isServer }),
+    config: config?.exports?.custom ?? {},
   });

@@ -88,6 +88,8 @@ export interface BaseResource {
   anchor: string;
   owners: Owner[];
   badges: Badge[];
+  /** Custom properties: the resource's `x-…` frontmatter fields, as written. */
+  properties: Record<string, unknown>;
   deprecated?: string | true;
   draft?: boolean;
 }

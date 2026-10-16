@@ -43,8 +43,10 @@ program
 
 // Export command - export a resource to .ec DSL format, or the whole catalog as an HTML reference
 program
-  .command('export')
-  .description('Export a catalog resource to EventCatalog DSL (.ec) format, or the whole catalog as an HTML reference')
+  .command('export [custom-export]')
+  .description(
+    "Export a catalog resource to EventCatalog DSL (.ec) format, the whole catalog as an HTML reference, or a custom export from the catalog's exports/ folder (by id)"
+  )
   .option('-f, --format <format>', 'Output format: dsl or html', 'dsl')
   .option('-a, --all', 'Export the entire catalog (all resource types)', false)
   .option('-r, --resource <type>', 'Resource type (event, command, query, service, domain)')
@@ -53,17 +55,20 @@ program
   .option('--hydrate', 'Include referenced resources (messages, channels, owners)', false)
   .option('--stdout', 'Print to stdout instead of writing a file', false)
   .option('--no-open', 'With --format html: do not open the reference in your browser')
-  .option('-o, --output <path>', 'Output file path (defaults to <id>.ec, catalog.ec or architecture.html)')
-  .action(async (opts) => {
+  .option('-o, --output <path>', 'Output file path (defaults to <id>.ec, catalog.ec, architecture.html or <custom-export>.html)')
+  .option('--check', 'With a custom export: list what is in it and what was left out, without writing it', false)
+  .action(async (customExport, opts) => {
     try {
       const globalOpts = program.opts() as any;
       const dir = globalOpts.dir || '.';
 
-      if (opts.format === 'html') {
+      if (opts.format === 'html' || customExport || opts.check) {
         const result = await exportHtml({
           dir,
           output: opts.output,
           stdout: opts.stdout,
+          customExport,
+          check: opts.check,
           // Open it for people at a terminal; never in CI or when the output is piped
           open: opts.open && !process.env.CI && Boolean(process.stdout.isTTY),
         });

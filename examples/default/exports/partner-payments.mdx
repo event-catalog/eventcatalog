@@ -1,0 +1,39 @@
+---
+title: Payments for partners
+summary: How partners take payment for orders and stay in sync with what happens next.
+audience: Partners integrating with Acme Checkout
+version: 2026.10
+
+include:
+  # A whole system: its services, data stores and the messages they send and receive
+  - system: payment-processing-system
+  # One service, at the version partners integrate with
+  - service: checkout-api
+    version: 1.x
+  # Single messages
+  - event: payment-succeeded
+  - event: payment-failed
+  - event: refund-processed
+
+exclude:
+  # Internal, even though it's in the system above
+  - service: payment-worker
+  - data-store: payment-database
+  # Anything holding personal data, by its custom property (x- in its frontmatter)
+  - x-contains-personal-data: true
+
+# Links to anything not in this export are dropped (not even the name is shown)
+references: omit
+---
+
+Welcome! This guide covers everything you need to take payment for an Acme order and react to what happens afterwards.
+
+## How it works
+
+1. Your app checks out a cart through the [[service|checkout-api]].
+2. We authorise the payment and screen it for fraud.
+3. You receive [[event|payment-succeeded]] or [[event|payment-failed]], then [[event|refund-processed]] if the order is refunded later.
+
+## Verifying events
+
+Each webhook request carries an `Acme-Signature` header. Check it against your signing secret before you trust the payload.
