@@ -1,5 +1,12 @@
 # @eventcatalog/diff
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [234b262]
+  - @eventcatalog/sdk@2.31.0
+
 ## 0.1.3
 
 ### Patch Changes
