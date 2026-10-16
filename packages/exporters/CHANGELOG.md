@@ -1,5 +1,13 @@
 # @eventcatalog/exporters
 
+## 0.1.1
+
+### Patch Changes
+
+- ec9d224: Remove the `hidden` frontmatter field from resources, resource docs, users and teams. Resources that set `hidden: true` are now shown in the catalog, MCP server, API catalog, search and exports; the linter reports `hidden` as an unknown field.
+- Updated dependencies [ec9d224]
+  - @eventcatalog/sdk@2.31.1
+
 ## 0.1.0
 
 ### Minor Changes

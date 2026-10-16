@@ -1,0 +1,12 @@
+{
+  "label": "Export your catalog",
+  "position": 4.4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "slug": "development/export",
+    "title": "Export your catalog",
+    "description": "Share your architecture with people who can't open your catalog: all of it, or just the part they need, as one HTML file."
+  }
+}
