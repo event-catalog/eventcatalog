@@ -94,6 +94,26 @@ describe('getResourcesByProperty', () => {
     expect(ids(await getResourcesByProperty('x-region', { types: ['service'] }))).toEqual(['service:events', 'service:examples']);
   });
 
+  it("find resources inside a parent called examples, and skip index files in a resource's own examples", async () => {
+    const write = (file: string, id: string) => {
+      fs.mkdirSync(path.join(CATALOG_PATH, path.dirname(file)), { recursive: true });
+      fs.writeFileSync(path.join(CATALOG_PATH, file), `---\nid: ${id}\nname: ${id}\nversion: 1.0.0\nx-zone: a\n---\n`);
+    };
+    write('domains/examples/services/Inside/index.mdx', 'Inside');
+    write('events/Placed/examples/sample/index.mdx', 'Sample');
+
+    expect(ids(await getResourcesByProperty('x-zone'))).toEqual(['service:Inside']);
+  });
+
+  it('mark a resource inside an older version of its parent as not the latest', async () => {
+    const file = path.join(CATALOG_PATH, 'domains', 'Orders', 'versioned', '0.1.0', 'services', 'Old', 'index.mdx');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, '---\nid: Old\nname: Old\nversion: 0.1.0\nx-zone: a\n---\n');
+
+    expect(await getResourcesByProperty('x-zone', { latestOnly: true })).toEqual([]);
+    expect((await getResourcesByProperty('x-zone')).map((r) => [r.type, r.id, r.latest])).toEqual([['service', 'Old', false]]);
+  });
+
   it('only takes custom properties', async () => {
     await expect(getResourcesByProperty('owners')).rejects.toThrow('custom properties start with "x-"');
   });

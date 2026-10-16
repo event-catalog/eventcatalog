@@ -81,18 +81,21 @@ let lookup: { dir: string; generation: number; byProperty: Map<string, ResourceW
 
 /**
  * A resource's kind, and whether it's the latest version, from where its file sits: `<collection>/<its folder>/index.mdx`
- * or `<collection>/<its folder>/versioned/<version>/index.mdx`. The resource's own folder is never read as a kind, so a
- * service can be called `events`.
+ * or `<collection>/<its folder>/versioned/<version>/index.mdx`, possibly inside another resource. The resource's own
+ * folder is never read as a kind, so a service can be called `events`.
  */
 const placeOf = (catalogDir: string, file: string): { type: PropertyResourceType; latest: boolean } | undefined => {
   const folders = relative(catalogDir, file).split(sep).slice(0, -1);
-  const versioned = folders.length >= 3 && folders[folders.length - 2] === 'versioned';
-  const above = folders.slice(0, versioned ? -3 : -1);
-  // An index file in a resource's examples isn't a resource (the SDK's other lookups skip them too)
-  if (above.includes('examples')) return undefined;
+  const ownVersion = folders.length >= 3 && folders[folders.length - 2] === 'versioned';
+  const above = folders.slice(0, ownVersion ? -3 : -1);
+  // An older version of it, or of anything it's inside (domains/D/versioned/1.0.0/services/S), isn't the latest
+  const latest = !folders.slice(0, -1).includes('versioned');
+  // The nearest collection above it is its kind. An `examples` folder on the way there means the file is one of a
+  // resource's examples, not a resource (a parent resource that's itself called `examples` sits above its collection)
   for (let i = above.length - 1; i >= 0; i--) {
+    if (above[i] === 'examples') return undefined;
     const type = FOLDER_TYPES[above[i]];
-    if (type) return { type: type as PropertyResourceType, latest: !versioned };
+    if (type) return { type: type as PropertyResourceType, latest };
   }
   return undefined;
 };
