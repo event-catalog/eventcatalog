@@ -55,12 +55,20 @@ export interface WrittenCustomExport extends RenderedCustomExport {
   bytes: number;
 }
 
-/** `exports.custom` from the catalog's eventcatalog.config.js, or nothing when it has none. */
+/**
+ * `exports.custom` from the catalog's eventcatalog.config.js, or nothing when it has none. A config file that can't be
+ * loaded is an error, not an empty config: exporting without it would drop its `neverExport` rules.
+ */
 export const readCustomExportsConfig = async (dir: string): Promise<CustomExportsConfig> => {
   if (!existsSync(join(dir, 'eventcatalog.config.js'))) return {};
+  // The SDK logs why it couldn't load the file, and returns null
   const config = await createSDK(dir)
     .getEventCatalogConfigurationFile()
     .catch(() => null);
+  if (config === null)
+    throw new CustomExportError(
+      "eventcatalog.config.js couldn't be loaded, so nothing was exported: its settings for custom exports (such as neverExport) would be ignored. Fix the error above, then export again."
+    );
   return config?.exports?.custom ?? {};
 };
 

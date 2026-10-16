@@ -87,6 +87,16 @@ describe('getResourcesByProperty', () => {
     expect(ids(await getResourcesByProperty('x-region', { equals: 'eu' }))).toEqual(['event:Refunded']);
   });
 
+  it('take the kind from the collection a resource is in, whatever its own folder is called', async () => {
+    await writeService({ id: 'events', name: 'Events', version: '1.0.0', markdown: '', 'x-region': 'eu' });
+    await writeService({ id: 'examples', name: 'Examples', version: '1.0.0', markdown: '', 'x-region': 'eu' });
+
+    expect(ids(await getResourcesByProperty('x-region', { types: ['service'] }))).toEqual([
+      'service:events',
+      'service:examples',
+    ]);
+  });
+
   it('only takes custom properties', async () => {
     await expect(getResourcesByProperty('owners')).rejects.toThrow('custom properties start with "x-"');
   });

@@ -23,6 +23,7 @@ const FOLDER_TYPES: Record<string, IndexResourceType> = {
   flows: 'flow',
   queries: 'query',
   services: 'service',
+  subdomains: 'domain',
   systems: 'system',
 };
 
@@ -78,13 +79,20 @@ export const matchesProperty = (value: unknown, expected: readonly unknown[]): b
 /** Each custom property's resources, built once from the SDK's file cache and again only when the files change. */
 let lookup: { dir: string; generation: number; byProperty: Map<string, ResourceWithProperty[]> } | undefined;
 
-const typeOf = (catalogDir: string, file: string): PropertyResourceType | undefined => {
+/**
+ * A resource's kind, and whether it's the latest version, from where its file sits: `<collection>/<its folder>/index.mdx`
+ * or `<collection>/<its folder>/versioned/<version>/index.mdx`. The resource's own folder is never read as a kind, so a
+ * service can be called `events`.
+ */
+const placeOf = (catalogDir: string, file: string): { type: PropertyResourceType; latest: boolean } | undefined => {
   const folders = relative(catalogDir, file).split(sep).slice(0, -1);
-  // An example's index file isn't a resource
-  if (folders.includes('examples')) return undefined;
-  for (let i = folders.length - 1; i >= 0; i--) {
-    const type = FOLDER_TYPES[folders[i]];
-    if (type) return type as PropertyResourceType;
+  const versioned = folders.length >= 3 && folders[folders.length - 2] === 'versioned';
+  const above = folders.slice(0, versioned ? -3 : -1);
+  // An index file in a resource's examples isn't a resource (the SDK's other lookups skip them too)
+  if (above.includes('examples')) return undefined;
+  for (let i = above.length - 1; i >= 0; i--) {
+    const type = FOLDER_TYPES[above[i]];
+    if (type) return { type: type as PropertyResourceType, latest: !versioned };
   }
   return undefined;
 };
@@ -99,9 +107,9 @@ const propertyLookup = (catalogDir: string) => {
     if (!data?.id) continue;
     const names = Object.keys(data).filter(isCustomPropertyName);
     if (!names.length) continue;
-    const type = typeOf(dir, path);
-    if (!type) continue;
-    const latest = !path.split(sep).includes('versioned');
+    const place = placeOf(dir, path);
+    if (!place) continue;
+    const { type, latest } = place;
     for (const name of names) {
       const entry: ResourceWithProperty = {
         type,

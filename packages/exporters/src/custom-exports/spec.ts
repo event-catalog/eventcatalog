@@ -109,7 +109,9 @@ export const DEFAULT_REFERENCES: ReferencePolicy = 'omit';
 export class CustomExportError extends Error {
   constructor(
     message: string,
-    readonly problems: string[] = []
+    readonly problems: string[] = [],
+    /** The export's id, when its frontmatter gave a valid one: the export that failed may not be named after its file. */
+    readonly exportId?: string
   ) {
     super(problems.length ? `${message}\n  - ${problems.join('\n  - ')}` : message);
     this.name = 'CustomExportError';
@@ -257,7 +259,7 @@ export const parseCustomExport = (
   Object.keys(data)
     .filter((k) => !known.has(k))
     .forEach((k) => problems.push(`"${k}" isn't a custom export field (${[...known].join(', ')})`));
-  if (problems.length) throw new CustomExportError(`${where} has problems:`, problems);
+  if (problems.length) throw new CustomExportError(`${where} has problems:`, problems, id && EXPORT_ID.test(id) ? id : undefined);
 
   return {
     id: id!,
@@ -276,7 +278,7 @@ export const parseCustomExport = (
 
 /** A custom export file that can't be exported, and why. The others are exported without it. */
 export interface CustomExportFailure {
-  /** The export's id: from its frontmatter, or its file name when the frontmatter can't be read. */
+  /** The export's id: from its frontmatter, or its file name when the frontmatter doesn't give a valid one. */
   id: string;
   /** Where it came from, relative to the catalog (none for an id in `only` that has no file). */
   file?: string;
@@ -307,7 +309,7 @@ export const loadCustomExports = (
       parsed.push(parseCustomExport(readFileSync(join(folder, name), 'utf-8'), { file, fallbackId, defaults: config.defaults }));
     } catch (error) {
       if (!(error instanceof CustomExportError)) throw error;
-      failed.push({ id: fallbackId, file, error });
+      failed.push({ id: error.exportId ?? fallbackId, file, error });
     }
   }
   const byId = new Map<string, CustomExportSpec[]>();

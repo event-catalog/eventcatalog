@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import path from 'node:path';
 import fs from 'node:fs';
 import createSDK from '@eventcatalog/sdk';
+import { RESOURCE_LINK } from '../html/markdown';
 import {
   CustomExportError,
   formatCustomExportReport,
@@ -392,6 +393,31 @@ describe('custom exports', () => {
     expect(failed[2].error.message).toContain('has nothing in it');
   });
 
+  it('report a file that fails under the id its frontmatter gives, not only its file name', async () => {
+    await seedCatalog();
+    writeExportFile('partner.mdx', '---\nid: public\ninclude:\n  - event: PaymentSucceeded\n---\n');
+
+    const { failed } = await renderCustomExports(CATALOG_PATH, { only: ['public'], config: {} });
+
+    expect(failed).toEqual([
+      expect.objectContaining({
+        id: 'public',
+        file: path.join('exports', 'partner.mdx'),
+        error: expect.objectContaining({ problems: ['title is missing'] }),
+      }),
+    ]);
+  });
+
+  it('refuse to export with a config file that cannot be loaded, rather than drop its neverExport', async () => {
+    await seedCatalog();
+    writeExportFile('partners.mdx', '---\ntitle: Partners\ninclude:\n  - event: PaymentSucceeded\n---\n');
+    fs.writeFileSync(path.join(CATALOG_PATH, 'eventcatalog.config.js'), 'export default {{ broken');
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(renderCustomExports(CATALOG_PATH)).rejects.toThrow("eventcatalog.config.js couldn't be loaded");
+    quiet.mockRestore();
+  });
+
   it('leave out both files that claim the same id, since either could be the one meant', async () => {
     await seedCatalog();
     writeExportFile('partners.mdx', '---\ntitle: Partners\ninclude:\n  - event: PaymentSucceeded\n---\n');
@@ -416,11 +442,12 @@ describe('custom exports', () => {
       { from: 'the introduction', to: 'service OrderService', shownAs: 'another service' },
     ]);
 
-    const started = performance.now();
-    await render(`title: Payments\ninclude:\n  - event: PaymentSucceeded`, {
-      body: `[[-|${' '.repeat(50_000)} [[-|${'[[-|\\'.repeat(20_000)}`,
-    });
-    expect(performance.now() - started).toBeLessThan(2000);
+    // The pattern alone, timed: the patterns before it took seconds on these (quadratic), this one milliseconds
+    for (const text of [`[[-|${' '.repeat(100_000)}`, `[[-|${'[[-|\\'.repeat(40_000)}`]) {
+      const started = performance.now();
+      text.replace(RESOURCE_LINK, '');
+      expect(performance.now() - started).toBeLessThan(250);
+    }
   });
 
   it('hide example payloads with hide: examples, including the one made from the schema', async () => {
