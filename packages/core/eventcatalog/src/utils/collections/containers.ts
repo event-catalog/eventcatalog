@@ -33,7 +33,6 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
 
   // 3. Filter containers
   const targetContainers = allContainers.filter((container) => {
-    if (container.data.hidden === true) return false;
     if (!getAllVersions && container.filePath?.includes('versioned')) return false;
     return true;
   });

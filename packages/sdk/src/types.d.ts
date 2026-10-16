@@ -387,7 +387,6 @@ export interface Team {
   role?: string;
   summary?: string;
   email?: string;
-  hidden?: boolean;
   source?: {
     provider: string;
     id?: string;
@@ -407,7 +406,6 @@ export interface User {
   name: string;
   avatarUrl?: string;
   role?: string;
-  hidden?: boolean;
   source?: {
     provider: string;
     id?: string;

@@ -10,7 +10,6 @@ export const resourceDocsSchema = z.object({
   title: z.string().optional(),
   summary: z.string().optional(),
   slug: z.string().optional(),
-  hidden: z.boolean().optional(),
 });
 
 export const resourceDocCategoriesSchema = z.object({

@@ -3,12 +3,10 @@ import { getOwnerDetails, getOwnerNames } from '@utils/collections/owners';
 
 vi.mock('astro:content', () => {
   const users = [
-    { data: { id: 'jdoe', name: 'Jane Doe', role: 'Staff Engineer', hidden: false }, collection: 'users' },
-    { data: { id: 'asmith', name: 'Alice Smith', role: 'Product Manager', hidden: false }, collection: 'users' },
+    { data: { id: 'jdoe', name: 'Jane Doe', role: 'Staff Engineer' }, collection: 'users' },
+    { data: { id: 'asmith', name: 'Alice Smith', role: 'Product Manager' }, collection: 'users' },
   ];
-  const teams = [
-    { data: { id: 'platform', name: 'Platform Team', summary: 'Owns platform infra', hidden: false }, collection: 'teams' },
-  ];
+  const teams = [{ data: { id: 'platform', name: 'Platform Team', summary: 'Owns platform infra' }, collection: 'teams' }];
 
   return {
     getCollection: vi.fn((name: string) => {

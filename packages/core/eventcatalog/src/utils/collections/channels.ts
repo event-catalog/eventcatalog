@@ -66,7 +66,6 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
 
   // 4. Filter channels
   const targetChannels = allChannels.filter((channel) => {
-    if (channel.data.hidden === true) return false;
     if (!getAllVersions && channel.filePath?.includes('versioned')) return false;
     return true;
   });

@@ -50,7 +50,6 @@ export const getQueries = async ({ getAllVersions = true, hydrateServices = true
 
   // 3. Filter queries
   const targetQueries = allQueries.filter((query) => {
-    if (query.data.hidden === true) return false;
     if (!getAllVersions && query.filePath?.includes('versioned')) return false;
     return true;
   });

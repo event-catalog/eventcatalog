@@ -31,11 +31,7 @@ export const getUsers = async (): Promise<User[]> => {
       getAdrs({ getAllVersions: false }),
     ]);
 
-  // 2. Filter users
-  const targetUsers = allUsers.filter((user) => user.data.hidden !== true);
-  const visibleTeams = allTeams.filter((team) => team.data.hidden !== true);
-
-  // 3. Process users (Optimization: Iterate once over relationships if possible,
+  // 2. Process users (Optimization: Iterate once over relationships if possible,
   // but since we need to check ownership for EACH user against ALL items,
   // we can't easily invert the map without building an "owner" index first.
   // Given users/teams count is usually lower than events/services, iterating users and filtering items is acceptable,
@@ -67,8 +63,8 @@ export const getUsers = async (): Promise<User[]> => {
   addToIndex(allAdrs);
 
   // Team Membership Index: Map<UserID, Team[]>
-  const teamMembershipMap = new Map<string, typeof visibleTeams>();
-  for (const team of visibleTeams) {
+  const teamMembershipMap = new Map<string, typeof allTeams>();
+  for (const team of allTeams) {
     if (team.data.members) {
       for (const member of team.data.members) {
         if (!teamMembershipMap.has(member.id)) {
@@ -79,7 +75,7 @@ export const getUsers = async (): Promise<User[]> => {
     }
   }
 
-  const mappedUsers = targetUsers.map((user) => {
+  const mappedUsers = allUsers.map((user) => {
     const userId = user.data.id;
     const associatedTeams = teamMembershipMap.get(userId) || [];
     const associatedTeamIds = associatedTeams.map((t) => t.data.id);

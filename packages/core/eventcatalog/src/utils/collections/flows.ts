@@ -46,7 +46,6 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
 
   // 3. Filter flows
   const targetFlows = allFlows.filter((flow) => {
-    if (flow.data.hidden === true) return false;
     if (!getAllVersions && flow.filePath?.includes('versioned')) return false;
     return true;
   });
@@ -230,7 +229,6 @@ export const getFlowsForMessages = async (
   const flowsByMessage = new Map<string, FlowReference[]>();
 
   for (const flow of flows) {
-    if (flow.data.hidden === true) continue;
     const reference: FlowReference = {
       id: flow.data.id,
       version: flow.data.version,

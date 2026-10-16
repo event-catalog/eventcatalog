@@ -5,9 +5,9 @@ const fixtures = vi.hoisted(() => ({ flows: [] as any[] }));
 vi.mock('astro:content', () => ({ getCollection: vi.fn(async () => fixtures.flows) }));
 
 const message = (collection: string, id: string, version: string) => ({ collection, data: { id, version } });
-const flow = (id: string, version: string, steps: any[], extra: Record<string, unknown> = {}) => ({
+const flow = (id: string, version: string, steps: any[]) => ({
   collection: 'flows',
-  data: { id, version, name: `${id} flow`, summary: `${id} summary`, steps, ...extra },
+  data: { id, version, name: `${id} flow`, summary: `${id} summary`, steps },
 });
 
 describe('getFlowsForMessages', () => {
@@ -55,7 +55,7 @@ describe('getFlowsForMessages', () => {
     expect(flows.get('events:OrderCreated:2.0.0')?.map((f) => f.id)).toEqual(['Latest', 'Bare']);
   });
 
-  it('lists a flow once per message and skips hidden flows and unknown messages', async () => {
+  it('lists a flow once per message and skips unknown messages', async () => {
     fixtures.flows = [
       flow('Twice', '1.0.0', [
         { id: 'a', title: 'A', message: { id: 'OrderCreated', version: '1.0.0' } },
@@ -63,7 +63,6 @@ describe('getFlowsForMessages', () => {
         { id: 'c', title: 'C', message: { id: 'Unknown', version: '1.0.0' } },
         { id: 'd', title: 'D' },
       ]),
-      flow('Hidden', '1.0.0', [{ id: 'a', title: 'A', message: { id: 'OrderCreated', version: '1.0.0' } }], { hidden: true }),
     ];
 
     const flows = await getFlowsForMessages([message('events', 'OrderCreated', '1.0.0')]);

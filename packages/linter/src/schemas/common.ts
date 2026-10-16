@@ -203,7 +203,6 @@ export const baseSchema = z.object({
   sidebar: sidebarSchema,
   repository: repositorySchema.optional(),
   specifications: specificationSchema.optional(),
-  hidden: z.boolean().optional(),
   editUrl: z.string().optional(),
   resourceGroups: resourceGroupSchema,
   styles: stylesSchema,

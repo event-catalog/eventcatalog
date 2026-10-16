@@ -39,9 +39,7 @@ const getSpecificationsForResource = (
 
 export async function getStaticPaths() {
   const [services, domains] = await Promise.all([getCollection('services'), getCollection('domains')]);
-  const resources = [...services, ...domains].filter((resource) => resource.data.hidden !== true);
-
-  return resources.flatMap((resource) =>
+  return [...services, ...domains].flatMap((resource) =>
     getSpecificationsForResource(resource).map((specification) => ({
       params: {
         collection: resource.collection,
@@ -74,7 +72,7 @@ export const GET: APIRoute = async ({ params, props }) => {
   }
 
   const resources = await getCollection(collection);
-  const resource = resources.find((item) => item.data.id === id && item.data.version === version && item.data.hidden !== true);
+  const resource = resources.find((item) => item.data.id === id && item.data.version === version);
 
   if (!resource) {
     return new Response(JSON.stringify({ error: 'Resource not found' }), {

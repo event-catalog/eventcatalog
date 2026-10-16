@@ -42,17 +42,6 @@ const mockServices = [
       summary: 'Customer Service summary',
     },
   },
-  {
-    collection: 'services',
-    filePath: '/catalog/services/HiddenService/index.mdx',
-    data: {
-      name: 'Hidden Service',
-      id: 'HiddenService',
-      version: '1.0.0',
-      hidden: true,
-      specifications: [{ type: 'openapi', path: 'hidden-openapi.yml' }],
-    },
-  },
 ];
 
 const mockDomains = [

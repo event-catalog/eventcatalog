@@ -51,7 +51,6 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
 
   // 3. Filter events
   const targetEvents = allEvents.filter((event) => {
-    if (event.data.hidden === true) return false;
     if (!getAllVersions && event.filePath?.includes('versioned')) return false;
     return true;
   });

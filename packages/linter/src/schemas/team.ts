@@ -5,7 +5,6 @@ export const teamSchema = z.object({
   name: z.string(),
   summary: z.string().optional(),
   email: z.string().email().optional(),
-  hidden: z.boolean().optional(),
   source: z
     .object({
       provider: z.string(),

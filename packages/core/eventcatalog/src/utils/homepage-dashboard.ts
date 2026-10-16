@@ -17,7 +17,6 @@ export type DashboardEntry = {
     name?: string;
     version: string;
     summary?: string;
-    hidden?: boolean;
     owners?: Owner[];
     schemaPath?: string;
   };
@@ -41,8 +40,8 @@ export type DashboardData = {
 
 const MESSAGE_COLLECTIONS = ['events', 'commands', 'queries'] as const;
 
-// The latest version of a resource that isn't hidden (older versions live in a `versioned` folder)
-const isCurrent = (entry: DashboardEntry) => entry.data.hidden !== true && !entry.filePath?.includes('versioned');
+// The latest version of a resource (older versions live in a `versioned` folder)
+const isCurrent = (entry: DashboardEntry) => !entry.filePath?.includes('versioned');
 
 /**
  * Everything the homepage dashboard shows, from the catalog's collections: counts, and what changed recently.

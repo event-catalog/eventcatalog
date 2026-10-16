@@ -39,8 +39,7 @@ const pointerIds = (pointers?: { id: string }[]) => (pointers || []).map((pointe
  * A resource listed by a domain directly belongs to that domain, otherwise to
  * the domain of the system it's in. Built once per flow from the collections,
  * rather than asking `getDomainsForService`, `getOwner` and so on for each step,
- * so it follows their rules: latest versions only, and hidden teams and users
- * are left out.
+ * so it follows their rules: latest versions only.
  */
 export const createLaneIndex = ({ domains, systems, teams, users }: LaneCollections) => {
   const systemOf = new Map<string, Lane>();
@@ -75,14 +74,12 @@ export const createLaneIndex = ({ domains, systems, teams, users }: LaneCollecti
   }
 
   const owners = new Map<string, { lane: Lane; isTeam: boolean }>();
-  const hiddenOwners = new Set<string>();
   for (const [entries, isTeam] of [
     [users, false],
     [teams, true],
   ] as const) {
     for (const owner of entries) {
-      if (owner.data.hidden) hiddenOwners.add(owner.data.id);
-      else owners.set(owner.data.id, { lane: toLane(owner), isTeam });
+      owners.set(owner.data.id, { lane: toLane(owner), isTeam });
     }
   }
 
@@ -90,7 +87,6 @@ export const createLaneIndex = ({ domains, systems, teams, users }: LaneCollecti
   const teamOf = (resource: Resource): Lane | undefined => {
     const resolved = (resource.data.owners || [])
       .map((owner) => (typeof owner === 'string' ? owner : owner.id))
-      .filter((id) => !hiddenOwners.has(id))
       .map((id) => owners.get(id) ?? { lane: { id, name: id }, isTeam: false })
       .sort((a, b) => Number(b.isTeam) - Number(a.isTeam));
     return resolved[0]?.lane;

@@ -220,14 +220,12 @@ const describeVersion = (version?: string) => version ?? 'latest';
  */
 export async function getResources(params: { collection: string; cursor?: string; search?: string }) {
   const resources = await getCollection(params.collection as any);
-  let allResults = resources
-    .filter((resource: any) => resource.data.hidden !== true)
-    .map((resource: any) => ({
-      id: resource.data.id,
-      version: resource.data.version,
-      name: resource.data.name,
-      summary: resource.data.summary,
-    }));
+  let allResults = resources.map((resource: any) => ({
+    id: resource.data.id,
+    version: resource.data.version,
+    name: resource.data.name,
+    summary: resource.data.summary,
+  }));
 
   // Apply search filter if provided
   if (params.search) {

@@ -38,7 +38,6 @@ export const getAgents = async ({ getAllVersions = true, returnBody = false }: P
   const flowMap = createVersionedMap(allFlows);
 
   const targetAgents = allAgents.filter((agent) => {
-    if (agent.data.hidden === true) return false;
     if (!getAllVersions && agent.filePath?.includes('versioned')) return false;
     return true;
   });

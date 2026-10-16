@@ -11,17 +11,17 @@ import {
 const mockDomains = [
   {
     collection: 'domains',
-    data: { id: 'Payments', version: '1.0.0', hidden: false },
+    data: { id: 'Payments', version: '1.0.0' },
     filePath: 'domains/Payments/index.mdx',
   },
   {
     collection: 'domains',
-    data: { id: 'Payments', version: '0.9.0', hidden: false },
+    data: { id: 'Payments', version: '0.9.0' },
     filePath: 'domains/Payments/versioned/0.9.0/index.mdx',
   },
   {
     collection: 'domains',
-    data: { id: 'random', version: '1.0.0', hidden: false },
+    data: { id: 'random', version: '1.0.0' },
     filePath: 'domains/BoxOffice/index.mdx',
   },
 ];
@@ -29,12 +29,12 @@ const mockDomains = [
 const mockServices = [
   {
     collection: 'services',
-    data: { id: 'BillingService', version: '2.0.0', hidden: false },
+    data: { id: 'BillingService', version: '2.0.0' },
     filePath: 'services/BillingService/index.mdx',
   },
   {
     collection: 'services',
-    data: { id: 'BillingService', version: '1.0.0', hidden: false },
+    data: { id: 'BillingService', version: '1.0.0' },
     filePath: 'services/BillingService/versioned/1.0.0/index.mdx',
   },
 ];
@@ -42,7 +42,7 @@ const mockServices = [
 const mockEvents = [
   {
     collection: 'events',
-    data: { id: 'InvoiceIssued', version: '3.0.0', hidden: false },
+    data: { id: 'InvoiceIssued', version: '3.0.0' },
     filePath: 'events/InvoiceIssued/index.mdx',
   },
 ];
@@ -101,12 +101,6 @@ const mockResourceDocs = [
     collection: 'resourceDocs',
     filePath: 'domains/Unknown/docs/runbooks/ignored.mdx',
     data: { id: 'ignored', type: 'runbooks', version: '1.0.0', title: 'Ignored' },
-  },
-  {
-    id: 'domains/Payments/docs/runbooks/hidden.mdx',
-    collection: 'resourceDocs',
-    filePath: 'domains/Payments/docs/runbooks/hidden.mdx',
-    data: { id: 'hidden', type: 'runbooks', version: '1.0.0', title: 'Hidden', hidden: true },
   },
   {
     id: 'domains/BoxOffice/docs/meow.mdx',
@@ -234,9 +228,8 @@ describe('resource-docs', () => {
       ])
     );
 
-    // Unknown and hidden docs are skipped
+    // Unknown docs are skipped
     expect(docs.find((doc) => doc.data.id === 'ignored')).toBeUndefined();
-    expect(docs.find((doc) => doc.data.id === 'hidden')).toBeUndefined();
   });
 
   it('returns docs by resource and groups docs by type alphabetically', async () => {

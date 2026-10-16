@@ -11,10 +11,7 @@ const getOwners = (function () {
   async function init() {
     const ownersMap = new Map<string, CollectionEntry<'users' | 'teams'>>();
 
-    const owners = await Promise.all([
-      getCollection('users', (entry) => entry.data.hidden !== true),
-      getCollection('teams', (entry) => entry.data.hidden !== true),
-    ]);
+    const owners = await Promise.all([getCollection('users'), getCollection('teams')]);
 
     for (const owner of owners.flat()) {
       ownersMap.set(owner.data.id, owner);

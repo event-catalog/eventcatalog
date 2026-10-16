@@ -5,7 +5,6 @@ export const userSchema = z.object({
   name: z.string(),
   avatarUrl: z.string().optional(),
   role: z.string().optional(),
-  hidden: z.boolean().optional(),
   source: z
     .object({
       provider: z.string(),

@@ -53,8 +53,7 @@ const once = <T>(load: () => Promise<T>) => {
   return () => (loaded ??= load());
 };
 
-const isCurrentVersion = (entry: { data: { hidden?: boolean }; filePath?: string }) =>
-  entry.data.hidden !== true && !entry.filePath?.includes('versioned');
+const isCurrentVersion = (entry: { filePath?: string }) => !entry.filePath?.includes('versioned');
 
 // Owners come from their own collection's loader, so an owner of a type is that collection's entry.
 const asEntry = <C extends CollectionKey>(owner: ResourceOwner) => owner as unknown as CollectionEntry<C>;

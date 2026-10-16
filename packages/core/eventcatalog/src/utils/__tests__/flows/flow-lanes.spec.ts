@@ -18,10 +18,7 @@ const index = createLaneIndex({
       containers: [{ id: 'orders-db' }],
     }),
   ],
-  teams: [
-    entry({ id: 'ordering-platform', name: 'Ordering Platform' }),
-    entry({ id: 'old-team', name: 'Old Team', hidden: true }),
-  ],
+  teams: [entry({ id: 'ordering-platform', name: 'Ordering Platform' })],
   users: [entry({ id: 'dboyne', name: 'David Boyne' })],
 });
 
@@ -54,10 +51,6 @@ describe('flow lanes', () => {
       system: { id: 'checkout-system', name: 'Checkout System' },
       team: { id: 'ordering-platform', name: 'Ordering Platform' },
     });
-  });
-
-  it('leaves hidden teams out, as the rest of the catalog does', () => {
-    expect(index.lanesFor(entry({ id: 'x', owners: ['old-team'] }))).toBeUndefined();
   });
 
   it('ignores older versions of domains', () => {
