@@ -27,6 +27,57 @@ const scriptName = `view-${Date.now().toString(36)}.js`;
 // Its first line notes where it starts in whatever page it's in (ours, or a chat's frame): its frames have that page's lines
 const START_MARKER = 'globalThis.__studioViewStart = new Error();';
 
+// ---- </script in the code can't end the page's script tag: it's escaped (<\/script), and the source map's columns
+// after each escape are moved along by the character added, so frames there still point at the right place ----
+
+const BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+/** A source map segment's first value (its column: how far along from the line's previous segment) and the rest */
+const readColumn = (segment) => {
+  let value = 0;
+  let shift = 0;
+  let index = 0;
+  for (let digit = 32; digit & 32; index++, shift += 5) {
+    digit = BASE64.indexOf(segment[index]);
+    value += (digit & 31) << shift;
+  }
+  return { column: value & 1 ? -(value >>> 1) : value >>> 1, rest: segment.slice(index) };
+};
+const writeColumn = (column) => {
+  let value = column < 0 ? (-column << 1) | 1 : column << 1;
+  let encoded = '';
+  do {
+    let digit = value & 31;
+    value >>>= 5;
+    if (value) digit |= 32;
+    encoded += BASE64[digit];
+  } while (value);
+  return encoded;
+};
+const ESCAPED = /<\/script/gi;
+/** The code with </script escaped, and its mappings (one line's per `;`) with the columns after each escape moved */
+const escapeScriptTags = (code, mappings) => {
+  const lines = code.split('\n');
+  const lineMappings = mappings.split(';');
+  lines.forEach((line, number) => {
+    // Where each escape's character goes (after the <), in the line as it was
+    const added = [...line.matchAll(ESCAPED)].map((match) => match.index);
+    if (!added.length || !lineMappings[number]) return;
+    let column = 0;
+    let moved = 0;
+    lineMappings[number] = lineMappings[number]
+      .split(',')
+      .map((segment) => {
+        const read = readColumn(segment);
+        column += read.column;
+        const before = moved;
+        moved = added.filter((index) => index < column).length;
+        return writeColumn(read.column + moved - before) + read.rest;
+      })
+      .join(',');
+  });
+  return { code: code.replace(ESCAPED, '<\\/script'), mappings: lineMappings.join(';') };
+};
+
 const toHtml = (title, script) => `<!doctype html>
 <html>
   <head>
@@ -87,15 +138,15 @@ const output = await build({
 });
 const chunks = (Array.isArray(output) ? output : [output]).flatMap((result) => result.output);
 const script = chunks.find((chunk) => chunk.type === 'chunk');
-// (</script in the code can't end the page's script tag)
-const code = `${START_MARKER}\n${script.code.replace(/<\/script/gi, '<\\/script')}`;
+const escaped = escapeScriptTags(script.code, script.map.mappings);
+const code = `${START_MARKER}\n${escaped.code}`;
 const html = toHtml('EventCatalog Studio', code);
 fs.writeFileSync(path.join(outputDirectory, 'view.html'), html);
 // The script on its own, and its source map moved down a line (for the marker): served at /<scriptName>
 fs.writeFileSync(path.join(outputDirectory, scriptName), `${code}\n//# sourceMappingURL=${scriptName}.map\n`);
 // (its sources named from the repo's root, e.g. apps/studio-web/view/Diagram.tsx: they're relative to view/dist)
 const sources = script.map.sources.map((source) => path.relative(path.join(root, '../..'), path.resolve(viewDirectory, 'dist', source)));
-fs.writeFileSync(path.join(outputDirectory, `${scriptName}.map`), JSON.stringify({ ...script.map, file: scriptName, sources, mappings: `;${script.map.mappings}` }));
+fs.writeFileSync(path.join(outputDirectory, `${scriptName}.map`), JSON.stringify({ ...script.map, file: scriptName, sources, mappings: `;${escaped.mappings}` }));
 // The social preview image (view/og/og.html, rendered), served at /og.png
 fs.copyFileSync(path.join(viewDirectory, 'og/og.png'), path.join(outputDirectory, 'og.png'));
 // The server's icon, served at /icon.svg: MCP clients show it beside the server (serverInfo.icons)
