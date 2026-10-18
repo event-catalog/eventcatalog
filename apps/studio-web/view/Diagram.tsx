@@ -9,6 +9,7 @@ import { ToolbarButton } from '@eventcatalog/visualiser';
 import {
   ArrowRight,
   BookOpen,
+  Braces,
   Download,
   ExternalLink,
   FolderOpen,
@@ -53,6 +54,9 @@ import {
 } from '@eventcatalog/visualiser/studio';
 import { saveFile } from './diagram-file';
 import { SaveFileDialog } from './SaveFileDialog';
+import { ExportDialog } from './ExportDialog';
+import { Toast, type Notice } from './Toast';
+import { copyToClipboard } from './ported/clipboard';
 import { EmptyCanvas } from '@eventcatalog/visualiser/studio';
 import { ConnectAgentDialog } from './ConnectAgentDialog';
 import { isWebMcpPolyfillOn, turnOnWebMcpPolyfill, useWebMcp } from './webmcp';
@@ -193,12 +197,16 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   const [locked, setLocked] = useState(false);
   // Save to file: naming it (where the browser can't ask), and the file saved to (to save to again)
   const [savingAs, setSavingAs] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const savedFile = useRef<SavedFileHandle>(undefined);
-  // A short message at the top (a file that couldn't be opened or saved)
-  const [notice, setNotice] = useState<string>();
+  // A toast at the bottom: what just happened (copied, saved), or what went wrong (a file that couldn't be opened or saved)
+  // Each one stamped when it's shown, so the same message again (copying twice) shows again
+  const [notice, setNotice] = useState<Notice & { at: number }>();
+  const succeeded = useCallback((text: string) => setNotice({ text, tone: 'success', at: Date.now() }), []);
+  const failed = useCallback((text: string) => setNotice({ text, tone: 'error', at: Date.now() }), []);
   useEffect(() => {
     if (!notice) return;
-    const timeout = setTimeout(() => setNotice(undefined), 6000);
+    const timeout = setTimeout(() => setNotice(undefined), notice.tone === 'success' ? 3000 : 6000);
     return () => clearTimeout(timeout);
   }, [notice]);
   const [sharing, setSharing] = useState<'share' | 'open' | null>(null);
@@ -311,7 +319,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
         label,
         onSelect: () => {
           track('node_question_sent', { kind, resource_type: resource.type });
-          void sendToChat(promptFor(kind, resource, model)).catch(() => setNotice("Couldn't send that to the chat."));
+          void sendToChat(promptFor(kind, resource, model)).catch(() => failed("Couldn't send that to the chat."));
         },
       });
       return [
@@ -322,7 +330,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
         ...(resource.evidence ? [prompt('code', 'Show me the code')] : []),
       ];
     },
-    [model, canSend, sendToChat]
+    [model, canSend, sendToChat, failed]
   );
 
   /** A sticky note: beside a resource, or (the note tool) where the canvas is clicked next */
@@ -474,15 +482,15 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
         const saved = await saveToPickedFile(diagramFileText(), { suggestedName: fileNameFor(rootModel.title, DIAGRAM_FILE_EXTENSION), handle });
         if (!saved) return;
         savedFile.current = saved;
-        setNotice(`Saved to ${saved.name}`);
+        succeeded(`Saved to ${saved.name}`);
         track('file_saved', { method: 'picker', again: !!handle, ok: true });
       } catch {
         track('file_saved', { method: 'picker', again: !!handle, ok: false });
         savedFile.current = undefined;
-        setNotice("Couldn't save the file there: try somewhere else.");
+        failed("Couldn't save the file there: try somewhere else.");
       }
     },
-    [diagramFileText, rootModel.title]
+    [diagramFileText, rootModel.title, succeeded, failed]
   );
   const saveToFile = useCallback(() => (canPickWhereToSave() ? saveToPicked() : setSavingAs(true)), [saveToPicked]);
   const saveAgain = useCallback(() => (savedFile.current ? saveToPicked(savedFile.current) : saveToFile()), [saveToPicked, saveToFile]);
@@ -491,9 +499,9 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
       setSavingAs(false);
       const saved = await saveFile({ name: cleanFileName(name, DIAGRAM_FILE_EXTENSION), mimeType: 'application/json', text: diagramFileText() }, app);
       track('file_saved', { method: 'download', ok: !!saved });
-      if (!saved) setNotice("This chat couldn't save the file: open the diagram in your browser and save it from there.");
+      if (!saved) failed("This chat couldn't save the file: open the diagram in your browser and save it from there.");
     },
-    [diagramFileText, app]
+    [diagramFileText, app, failed]
   );
 
   // Open: a .eventcatalog file in place of this diagram (picked, or dropped on the canvas)
@@ -501,7 +509,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     async (file: File, via: 'picker' | 'drop') => {
       const opened = await readDiagramFile(file);
       track('file_opened', { via, ok: !('error' in opened) });
-      if ('error' in opened) return setNotice(opened.error);
+      if ('error' in opened) return failed(opened.error);
       const next: ArchitecturePayload = { ...opened, viewUrl: toolPayload.viewUrl };
       openedPayload.current = next;
       savedFile.current = undefined;
@@ -510,7 +518,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
       // In the browser, the tab is named after it (and it's kept in this browser, as the canvas changes)
       if (!app) document.title = `${next.model.title} · EventCatalog Studio`;
     },
-    [toolPayload.viewUrl, app]
+    [toolPayload.viewUrl, app, failed]
   );
   const openFromDisk = useCallback(async () => {
     const file = await pickDiagramFile();
@@ -726,6 +734,17 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
       if (app) setSharing('open');
     }
   }, [rootModel, app]);
+  // Export model: what Save to file writes (the model, its notes and layout), copied to the clipboard
+  const copyModel = useCallback(async () => {
+    const copied = await copyToClipboard(diagramFileText());
+    track('model_copied', { ok: copied, ...diagramStats(rootModel) });
+    if (copied) succeeded('Model copied to your clipboard');
+    else failed("Couldn't copy the model: save it to a file instead.");
+  }, [diagramFileText, rootModel, succeeded, failed]);
+  const openExportDialog = useCallback((from: string) => {
+    track('export_opened', { from });
+    setExporting(true);
+  }, []);
   const exportImageRef = useRef(exportImage);
   exportImageRef.current = exportImage;
   const fileActionsRef = useRef({ save: saveAgain, open: openFromDisk });
@@ -819,6 +838,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
       keywords: 'png download picture',
       run: exportImage,
     },
+    { id: 'copy-model', group: 'Actions', label: 'Export model (copy to clipboard)', icon: <Braces />, keywords: 'json copy clipboard nodes edges', run: copyModel },
     { id: 'share', group: 'Actions', label: 'Share with your team', icon: <Share2 />, keywords: 'link url', run: () => openShare('palette') },
     { id: 'note', group: 'Actions', label: 'Add a sticky note', icon: <StickyNote />, shortcut: 'N', keywords: 'note post-it comment', run: () => openNotes() },
     {
@@ -922,14 +942,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
         openFile(file, 'drop');
       }}
     >
-      {notice && (
-        <div
-          role="status"
-          className="absolute left-1/2 top-[64px] z-30 max-w-[min(480px,calc(100%-120px))] -translate-x-1/2 rounded-lg border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] px-3 py-2 text-sm text-[rgb(var(--ec-page-text))] shadow-lg"
-        >
-          {notice}
-        </div>
-      )}
+      {notice && <Toast key={notice.at} notice={notice} onClose={() => setNotice(undefined)} />}
       <div className="ec-mcp-graph">
         {!content && <p className="ec-mcp-message">Laying out {model.title}…</p>}
         <StudioCanvas
@@ -1013,8 +1026,8 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
               onLiveCollaboration={app ? undefined : () => openShare('menu')}
               onOpenFile={openFromDisk}
               onSaveFile={saveToFile}
-              onExportImage={exportImage}
-              onExport={() => openExport('menu')}
+              onExport={() => openExportDialog('menu')}
+              onExportToEventCatalog={() => openExport('menu')}
               onOpenInBrowser={app ? openInBrowser : undefined}
               onFind={findOnCanvas}
               onCommandPalette={findOnCanvas}
@@ -1094,6 +1107,12 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
       {isDocumenting && (
         <DocumentModal model={rootModel} onClose={() => setIsDocumenting(false)} onSendToChat={canSend ? sendToChat : undefined} />
       )}
+      <ExportDialog
+        open={exporting}
+        onExportImage={() => (setExporting(false), void exportImage())}
+        onCopyModel={() => (setExporting(false), void copyModel())}
+        onClose={() => setExporting(false)}
+      />
       <SaveFileDialog open={savingAs} defaultName={defaultFileName} onSave={downloadAs} onClose={() => setSavingAs(false)} />
       {baseUrl && (
         <ConnectAgentDialog

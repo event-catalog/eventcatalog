@@ -36,8 +36,9 @@ type AppMenuProps = {
   onLiveCollaboration?: () => void;
   onOpenFile: () => void;
   onSaveFile: () => void;
-  onExportImage: () => void;
+  /** Export…: as an image, or the model copied to the clipboard */
   onExport: () => void;
+  onExportToEventCatalog: () => void;
   onOpenInBrowser?: () => void;
   onFind: () => void;
   onCommandPalette: () => void;
@@ -83,7 +84,7 @@ const XIcon = () => (
 );
 
 export function AppMenu(props: AppMenuProps) {
-  const { onConnectAgent, onLiveCollaboration, onOpenFile, onSaveFile, onExportImage, onExport, onOpenInBrowser, onFind, onCommandPalette, onHelp, fullscreen, theme, onTheme, openLink, container } = props;
+  const { onConnectAgent, onLiveCollaboration, onOpenFile, onSaveFile, onExport, onExportToEventCatalog, onOpenInBrowser, onFind, onCommandPalette, onHelp, fullscreen, theme, onTheme, openLink, container } = props;
 
   const [sharingUsage, setSharingUsage] = useState(analyticsAllowed);
   const toggleUsage = () => {
@@ -130,7 +131,7 @@ export function AppMenu(props: AppMenuProps) {
         >
           {item('Open…', <FolderOpen />, onOpenFile, `${MOD}+O`)}
           {item('Save to file…', <Download />, onSaveFile, `${MOD}+S`)}
-          {item('Export image…', <ImageDown />, onExportImage, `${MOD}+Shift+E`)}
+          {item('Export…', <ImageDown />, onExport)}
           {onLiveCollaboration && item('Live collaboration…', <Users />, onLiveCollaboration)}
           {onOpenInBrowser && item('Open in browser', <ExternalLink />, onOpenInBrowser)}
           {item('Command palette', <CommandIcon />, onCommandPalette, `${MOD}+K`)}
@@ -138,7 +139,7 @@ export function AppMenu(props: AppMenuProps) {
           {onConnectAgent && item('Connect your AI agent…', <Plug />, onConnectAgent)}
           {item('Help', <CircleHelp />, onHelp, '?')}
           {fullscreen && item(fullscreen.active ? 'Exit full screen' : 'Full screen', fullscreen.active ? <Minimize2 /> : <Maximize2 />, fullscreen.toggle)}
-          {item('Export to EventCatalog', <BookOpen />, onExport, undefined, true)}
+          {item('Export to EventCatalog', <BookOpen />, onExportToEventCatalog, undefined, true)}
 
           <DropdownMenu.Separator className="mx-1 my-2 h-px bg-[rgb(var(--ec-page-border))]" />
           {item('EventCatalog', <Globe />, visit('website'))}

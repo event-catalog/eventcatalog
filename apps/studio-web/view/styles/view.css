@@ -65,3 +65,19 @@ body {
   color: rgb(var(--ec-page-text));
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
+
+/* The toast (Toast.tsx) rises up into the bottom right corner, once */
+.ec-toast {
+  animation: ec-toast-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes ec-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ec-toast {
+    animation: none;
+  }
+}
