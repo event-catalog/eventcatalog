@@ -27,10 +27,12 @@ const MAX_FRAMES = 50;
 /** The message, without what it quotes or links to */
 export const scrubMessage = (message: string) =>
   message
-    // One kind of quote at a time ("it's" is one quote)
-    .replace(/"[^"]*"/g, '"…"')
-    .replace(/`[^`]*`/g, '`…`')
-    .replace(/'[^']*'/g, "'…'")
+    // One kind of quote at a time ("it's" is one quote), from its first to its last: what's quoted can have the same
+    // quote in it ('O'Reilly Payments'), so it can't be told from where the quote ends. Takes out more than it quoted
+    // when there are several (the text between them goes too), never less
+    .replace(/"[^]*"/g, '"…"')
+    .replace(/`[^]*`/g, '`…`')
+    .replace(/'[^]*'/g, "'…'")
     .replace(/\b[a-z][a-z0-9+.-]*:\/\/\S+/gi, '<link>')
     .slice(0, MAX_MESSAGE);
 

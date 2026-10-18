@@ -135,11 +135,15 @@ describe('exceptions', () => {
       'can\'t access property "Oracle", node is undefined',
       'Failed to fetch https://studio.example/#m=Dana',
       '`Migrating off Oracle` is not a function',
+      "Cannot find 'O'Reilly Payments Ledger'",
     ];
     const scrubbed = messages.map(scrubMessage);
     expect(leaks(scrubbed)).toEqual([]);
     expect(scrubbed[1]).toBe("Cannot read properties of undefined (reading '…')");
     expect(scrubbed[5]).toBe('Failed to fetch <link>');
+    // A quote in what's quoted doesn't end it
+    expect(scrubbed[7]).toBe("Cannot find '…'");
+    expect(scrubMessage("Failed to execute 'setItem' on 'Storage': Setting the value of 'O'Reilly' exceeded the quota.")).toBe("Failed to execute '…' exceeded the quota.");
     expect(scrubMessage('x'.repeat(500))).toHaveLength(200);
   });
 
