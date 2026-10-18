@@ -155,9 +155,18 @@ Studio on the web reports how it's used to EventCatalog's PostHog project (the e
   Our vocabulary only: never names, ids, technologies or text.
 - **Relay** (`src/rooms.ts`): `live_room_closed` (peak people, duration, messages and dropped messages, bucketed) under
   a random id per room, never the room's; `live_room_refused` (room full, too many rooms, another site).
-- **Errors** (`app_error`): the error's name (`no_error_object` when the browser gives none), `error_source` (`studio`,
-  `extension`, `other`) and, with no error object, `notice` (`resize_observer`, `script_error`): never the message.
+- **Errors** (`$exception`, PostHog's error tracking: grouped into issues): uncaught errors and rejections in the
+  view (`view/analytics.ts`, at most 5 a visit) and errors answering `/mcp` (`reportException`, src/analytics.ts).
+  The error's type, its message with anything quoted and any link taken out (`scrubMessage`, src/lib/exceptions.ts:
+  messages can quote what's on the canvas) and its stack's frames; never the stack's text. The browser's
+  ResizeObserver notice and cross-origin "Script error." aren't sent. `error_source` (`studio`, `extension`, `other`).
   Scripted test clicks need `view: window` on the events (React Flow's drag reads `event.view.document`), or they throw
   and show up here.
+- **Readable stacks**: the view is inlined in its page, so its frames have the page's lines. The script's first line
+  (`globalThis.__studioViewStart = new Error()`, scripts/build-view.mjs) says where it starts in whatever page it's in
+  (ours, or a chat's frame), and the view's frames are moved to the script served on its own,
+  `/view-<build>.js`, with its public source map (`.map`; the code's open source). Error tracking fetches both. Only
+  this build's are served (a new name each build), so an old error is never read against newer code. The server's
+  frames are its source already (`--enable-source-maps`).
 - **Link sources**: links carry `s=agent|share|chat` in the fragment (`viewLink({ from })`), so `canvas_opened` can say
   whether people arrived from an agent, a shared link or a chat.

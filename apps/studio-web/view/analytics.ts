@@ -14,6 +14,7 @@
 
 import { POSTHOG_HOST as HOST, POSTHOG_KEY as KEY } from '../src/lib/posthog';
 import { durationBucket } from '../src/lib/stats';
+import { parseStack, toException, type ExceptionEntry, type StackFrame } from '../src/lib/exceptions';
 
 export { durationBucket, modelMix, modelStats, sizeBucket, tourStats } from '../src/lib/stats';
 
@@ -165,6 +166,8 @@ const campaign = () => {
 let surface = 'browser';
 let environment: 'production' | 'development' = 'production';
 let configured = false;
+// Where the view's script is served on its own (for error tracking's source maps): this server, also in a chat
+let scriptOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 const inChat = () => surface !== 'browser';
 
 /**
@@ -175,7 +178,10 @@ export function configureAnalytics({ host, serverOrigin }: { host?: string; serv
   surface = host ? host.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'chat' : 'browser';
   let server = window.location.hostname;
   try {
-    if (serverOrigin) server = new URL(serverOrigin).hostname;
+    if (serverOrigin) {
+      server = new URL(serverOrigin).hostname;
+      scriptOrigin = new URL(serverOrigin).origin;
+    }
   } catch {}
   environment = isLocalHost(server) || isLocalHost(window.location.hostname) ? 'development' : 'production';
   configured = true;
@@ -206,11 +212,23 @@ const common = (): Properties => ({
   ...device(),
 });
 
-type Queued = { event: string; properties: Properties; timestamp: string; uuid: string };
-/** Where it ran, known by the time it's sent: the environment and surface (and, in a chat, not the page's address: the host's frame's) */
+type Queued = { event: string; properties: Record<string, unknown>; timestamp: string; uuid: string };
+/**
+ * Where it ran, known by the time it's sent: the environment and surface (and, in a chat, not the page's address: the
+ * host's frame's), and for an error, the server its script's frames are served from
+ */
 const whereFrom = (queued: Queued): Queued => {
-  const { $current_url, $host, $pathname, ...rest } = queued.properties;
-  return { ...queued, properties: { ...rest, environment, surface, ...(!inChat() && { $current_url, $host, $pathname }) } };
+  const { $current_url, $host, $pathname, $exception_list, ...rest } = queued.properties;
+  return {
+    ...queued,
+    properties: {
+      ...rest,
+      environment,
+      surface,
+      ...(!inChat() && { $current_url, $host, $pathname }),
+      ...(Array.isArray($exception_list) && { $exception_list: ($exception_list as ExceptionEntry[]).map(servedFrom) }),
+    },
+  };
 };
 const queue: Queued[] = [];
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -244,15 +262,19 @@ export function flush() {
   if (queue.length) schedule();
 }
 
+const enqueue = (event: string, properties: Record<string, unknown>) => {
+  const clean = Object.fromEntries(Object.entries(properties).filter(([, value]) => value !== undefined && value !== null && value !== ''));
+  queue.push({ event, properties: { ...common(), ...clean }, timestamp: new Date().toISOString(), uuid: uuidv7() });
+  bump(event);
+  if (queue.length >= MAX_BATCH) flush();
+  else schedule();
+};
+
 /** Something they did: only kinds, counts and buckets in `properties` (never what's on the canvas) */
 export function track(event: string, properties: Properties = {}) {
   if (typeof window === 'undefined' || !analyticsAllowed()) return;
   try {
-    const clean = Object.fromEntries(Object.entries(properties).filter(([, value]) => value !== undefined && value !== null && value !== ''));
-    queue.push({ event, properties: { ...common(), ...clean }, timestamp: new Date().toISOString(), uuid: uuidv7() });
-    bump(event);
-    if (queue.length >= MAX_BATCH) flush();
-    else schedule();
+    enqueue(event, properties);
   } catch {}
 }
 
@@ -296,27 +318,67 @@ const summarise = () => {
   flush();
 };
 
-// Errors nobody caught: their kind only (messages can carry what's on the canvas). At most a few a visit: an error on
-// every frame would otherwise send one each time
-let errorsTracked = 0;
-const trackError = (category: string, error: unknown, extra: Properties = {}) =>
-  ++errorsTracked <= 5 &&
-  track('app_error', { category, error_name: error instanceof Error ? error.name : error == null ? 'no_error_object' : typeof error, ...extra });
+// ---- Errors nobody caught, for PostHog's error tracking ($exception: grouped into issues, with their stacks) ----
+
+declare const __STUDIO_SCRIPT__: string | undefined;
+/** The view's script, served on its own with its source map (scripts/build-view.mjs), so issues show the source */
+const SCRIPT_PATH = typeof __STUDIO_SCRIPT__ === 'string' ? `/${__STUDIO_SCRIPT__}` : undefined;
+
 /**
- * Where an error came from (Studio's own script, a browser extension, or elsewhere) and, for one with no error object,
- * which notice it was: the browser's that resize observers ran long (harmless), a cross-origin "Script error." (its
- * details hidden from us), or another. The message is only read here, never sent
+ * Where the view's script starts in the page: it's inlined (as MCP App hosts need it), so its frames have the page's
+ * lines. The script's first line notes where it is (`__studioViewStart`), whatever page it's in (ours, or a chat's frame)
  */
-const errorOrigin = (event: ErrorEvent) => {
+const scriptStart = () => parseStack((globalThis as { __studioViewStart?: Error }).__studioViewStart?.stack)[0];
+
+/** A frame of ours: its line in the script served on its own. Others' (an extension's): without query or fragment */
+const placeFrame =
+  (start: ReturnType<typeof scriptStart>) =>
+  (frame: ReturnType<typeof parseStack>[number]): StackFrame => {
+    const own = !!start && !!SCRIPT_PATH && frame.filename === start.filename;
+    return {
+      platform: 'web:javascript',
+      function: frame.function,
+      filename: own ? SCRIPT_PATH! : frame.filename.replace(/[?#].*$/, ''),
+      lineno: own ? frame.lineno - start!.lineno + 1 : frame.lineno,
+      colno: frame.colno,
+      in_app: own,
+    };
+  };
+/** Our frames at the script's address on the server (known once it's configured: in a chat, not the frame's) */
+const servedFrom = (exception: ExceptionEntry): ExceptionEntry =>
+  exception.stacktrace
+    ? {
+        ...exception,
+        stacktrace: {
+          ...exception.stacktrace,
+          frames: exception.stacktrace.frames.map((frame) => (frame.in_app && frame.filename === SCRIPT_PATH ? { ...frame, filename: scriptOrigin + SCRIPT_PATH } : frame)),
+        },
+      }
+    : exception;
+
+// At most a few a visit: an error on every frame would otherwise send one each time
+let errorsTracked = 0;
+/** The error's type, its message without what it quotes or links to, and its stack's frames (src/lib/exceptions.ts) */
+const trackException = (error: unknown, mechanism: 'onerror' | 'onunhandledrejection', extra: Properties = {}) => {
+  if (typeof window === 'undefined' || !analyticsAllowed() || ++errorsTracked > 5) return;
+  try {
+    enqueue('$exception', { $exception_list: [toException(error, { mechanism, frame: placeFrame(scriptStart()) })], $exception_level: 'error', ...extra });
+  } catch {}
+};
+/** Where an error came from: Studio's own script, a browser extension, or elsewhere */
+const errorSource = (event: ErrorEvent) => {
   const file = event.filename ?? '';
-  const source = !file ? 'unknown' : file.startsWith(window.location.origin) ? 'studio' : /^[a-z-]+-extension:/.test(file) ? 'extension' : 'other';
-  const notice = event.error ? undefined : /ResizeObserver/.test(event.message ?? '') ? 'resize_observer' : /^Script error\.?$/.test(event.message ?? '') ? 'script_error' : 'other';
-  return { error_source: source, ...(notice && { notice }) };
+  return !file ? 'unknown' : file.startsWith(window.location.origin) ? 'studio' : /^[a-z-]+-extension:/.test(file) ? 'extension' : 'other';
 };
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('error', (event) => trackError('runtime', event.error, errorOrigin(event)));
-  window.addEventListener('unhandledrejection', (event) => trackError('unhandled_rejection', event.reason));
+  window.addEventListener('error', (event) => {
+    // The browser's notice that resize observers ran long (harmless), and a cross-origin "Script error." (its details
+    // hidden from us): nothing to fix
+    if (!event.error && /ResizeObserver|^Script error\.?$/.test(event.message ?? '')) return;
+    trackException(event.error ?? event.message, 'onerror', { error_source: errorSource(event) });
+  });
+  window.addEventListener('unhandledrejection', (event) => trackException(event.reason, 'onunhandledrejection'));
   window.addEventListener('pagehide', summarise);
   document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush());
 }
