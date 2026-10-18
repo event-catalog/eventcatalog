@@ -21,6 +21,63 @@ const favicon = logo
   .replace('fill="currentColor">', 'fill="#0f172a"><style>@media (prefers-color-scheme: dark) { svg { fill: #f8fafc } }</style>');
 const faviconHref = `data:image/svg+xml,${encodeURIComponent(favicon)}`;
 
+// The script, also served on its own (beside its source map) for error tracking: frames in the page are mapped to it
+// (view/analytics.ts). A new name each build, so an error is only ever read against the build it came from
+const scriptName = `view-${Date.now().toString(36)}.js`;
+// Its first line notes where it starts in whatever page it's in (ours, or a chat's frame): its frames have that page's lines
+const START_MARKER = 'globalThis.__studioViewStart = new Error();';
+
+// ---- </script in the code can't end the page's script tag: it's escaped (<\/script), and the source map's columns
+// after each escape are moved along by the character added, so frames there still point at the right place ----
+
+const BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+/** A source map segment's first value (its column: how far along from the line's previous segment) and the rest */
+const readColumn = (segment) => {
+  let value = 0;
+  let shift = 0;
+  let index = 0;
+  for (let digit = 32; digit & 32; index++, shift += 5) {
+    digit = BASE64.indexOf(segment[index]);
+    value += (digit & 31) << shift;
+  }
+  return { column: value & 1 ? -(value >>> 1) : value >>> 1, rest: segment.slice(index) };
+};
+const writeColumn = (column) => {
+  let value = column < 0 ? (-column << 1) | 1 : column << 1;
+  let encoded = '';
+  do {
+    let digit = value & 31;
+    value >>>= 5;
+    if (value) digit |= 32;
+    encoded += BASE64[digit];
+  } while (value);
+  return encoded;
+};
+const ESCAPED = /<\/script/gi;
+/** The code with </script escaped, and its mappings (one line's per `;`) with the columns after each escape moved */
+const escapeScriptTags = (code, mappings) => {
+  const lines = code.split('\n');
+  const lineMappings = mappings.split(';');
+  lines.forEach((line, number) => {
+    // Where each escape's character goes (after the <), in the line as it was
+    const added = [...line.matchAll(ESCAPED)].map((match) => match.index);
+    if (!added.length || !lineMappings[number]) return;
+    let column = 0;
+    let moved = 0;
+    lineMappings[number] = lineMappings[number]
+      .split(',')
+      .map((segment) => {
+        const read = readColumn(segment);
+        column += read.column;
+        const before = moved;
+        moved = added.filter((index) => index < column).length;
+        return writeColumn(read.column + moved - before) + read.rest;
+      })
+      .join(',');
+  });
+  return { code: code.replace(ESCAPED, '<\\/script'), mappings: lineMappings.join(';') };
+};
+
 const toHtml = (title, script) => `<!doctype html>
 <html>
   <head>
@@ -31,12 +88,14 @@ const toHtml = (title, script) => `<!doctype html>
   </head>
   <body style="margin: 0">
     <div id="root"></div>
-    <script>${script.replace(/<\/script/gi, '<\\/script')}</script>
+    <script>${script}</script>
   </body>
 </html>
 `;
 
 fs.mkdirSync(outputDirectory, { recursive: true });
+// Earlier builds' scripts
+for (const file of fs.readdirSync(outputDirectory)) if (/^view-[a-z0-9]+\.js(\.map)?$/.test(file)) fs.rmSync(path.join(outputDirectory, file));
 
 const output = await build({
   configFile: false,
@@ -44,7 +103,12 @@ const output = await build({
   logLevel: 'warn',
   plugins: [react(), tailwindcss()],
   // __STUDIO_BUILD__: when it was built, on analytics events (which version people are on)
-  define: { 'process.env.NODE_ENV': JSON.stringify('production'), __STUDIO_BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16)) },
+  // __STUDIO_SCRIPT__: the script's name, for errors' frames
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+    __STUDIO_BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16)),
+    __STUDIO_SCRIPT__: JSON.stringify(scriptName),
+  },
   resolve: {
     // One copy of each, shared with the visualiser (a workspace package, with its own node_modules): two React Flows
     // don't share a canvas, and pnpm installs another copy for each set of peer versions (e.g. React's types)
@@ -58,6 +122,12 @@ const output = await build({
     write: false,
     // VIEW_MINIFY=0 keeps component names (for profiling renders: scripts/perf)
     minify: process.env.VIEW_MINIFY !== '0',
+    // Kept beside the script (not linked from the page): error tracking reads it
+    sourcemap: 'hidden',
+    rollupOptions: {
+      // Tailwind's styles (inlined as text) have no map of their own: nothing an error's frames point into
+      onwarn: (warning, warn) => warning.code !== 'SOURCEMAP_BROKEN' && warn(warning),
+    },
     lib: {
       entry: path.join(viewDirectory, 'main.tsx'),
       formats: ['iife'],
@@ -68,8 +138,15 @@ const output = await build({
 });
 const chunks = (Array.isArray(output) ? output : [output]).flatMap((result) => result.output);
 const script = chunks.find((chunk) => chunk.type === 'chunk');
-const html = toHtml('EventCatalog Studio', script.code);
+const escaped = escapeScriptTags(script.code, script.map.mappings);
+const code = `${START_MARKER}\n${escaped.code}`;
+const html = toHtml('EventCatalog Studio', code);
 fs.writeFileSync(path.join(outputDirectory, 'view.html'), html);
+// The script on its own, and its source map moved down a line (for the marker): served at /<scriptName>
+fs.writeFileSync(path.join(outputDirectory, scriptName), `${code}\n//# sourceMappingURL=${scriptName}.map\n`);
+// (its sources named from the repo's root, e.g. apps/studio-web/view/Diagram.tsx: they're relative to view/dist)
+const sources = script.map.sources.map((source) => path.relative(path.join(root, '../..'), path.resolve(viewDirectory, 'dist', source)));
+fs.writeFileSync(path.join(outputDirectory, `${scriptName}.map`), JSON.stringify({ ...script.map, file: scriptName, sources, mappings: `;${escaped.mappings}` }));
 // The social preview image (view/og/og.html, rendered), served at /og.png
 fs.copyFileSync(path.join(viewDirectory, 'og/og.png'), path.join(outputDirectory, 'og.png'));
 // The server's icon, served at /icon.svg: MCP clients show it beside the server (serverInfo.icons)
@@ -77,4 +154,6 @@ fs.writeFileSync(path.join(outputDirectory, 'icon.svg'), favicon);
 // Readable by whoever runs the server (a screenshot can be saved owner-only, and the container runs as another user)
 fs.chmodSync(path.join(outputDirectory, 'og.png'), 0o644);
 fs.chmodSync(path.join(outputDirectory, 'icon.svg'), 0o644);
+fs.chmodSync(path.join(outputDirectory, scriptName), 0o644);
+fs.chmodSync(path.join(outputDirectory, `${scriptName}.map`), 0o644);
 console.log(`Built view (${Math.round(html.length / 1024)} KB)`);

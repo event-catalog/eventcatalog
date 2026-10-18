@@ -5,6 +5,7 @@ import { createMcpServer } from '../src/mcp/server';
 import { callerId, noteMessage, noteResponse, userAgentFamily, type McpCall, type Properties } from '../src/analytics';
 import { modelMix, modelStats, tourStats } from '../src/lib/stats';
 import { parseViewFragment, viewLink } from '../src/lib/encode';
+import { parseStack, scrubMessage, toException } from '../src/lib/exceptions';
 import type { Model } from '@eventcatalog/visualiser/model';
 
 const model: Model = {
@@ -119,5 +120,68 @@ describe('analytics', () => {
     expect(parseViewFragment(link).from).toBe('agent');
     expect(parseViewFragment(viewLink('https://studio.example', model)!).from).toBeUndefined();
     expect(parseViewFragment(`${link.replace('s=agent', 's=elsewhere')}`).from).toBeUndefined();
+  });
+});
+
+describe('exceptions', () => {
+  const asIs = (frame: ReturnType<typeof parseStack>[number]) => ({ ...frame, platform: 'web:javascript' as const, in_app: true });
+
+  it("reports an error's message without anything it quotes or links to (it can quote what's on the canvas)", () => {
+    const messages = [
+      'Unexpected token \'S\', "Secret payments platform" is not valid JSON',
+      "Cannot read properties of undefined (reading 'payments-ledger')",
+      'JSON Parse error: Unexpected identifier "CardCharged"',
+      "Failed to execute 'setItem' on 'Storage': Setting the value of 'Payments Ledger' exceeded the quota.",
+      'can\'t access property "Oracle", node is undefined',
+      'Failed to fetch https://studio.example/#m=Dana',
+      '`Migrating off Oracle` is not a function',
+      "Cannot find 'O'Reilly Payments Ledger'",
+    ];
+    const scrubbed = messages.map(scrubMessage);
+    expect(leaks(scrubbed)).toEqual([]);
+    expect(scrubbed[1]).toBe("Cannot read properties of undefined (reading '…')");
+    expect(scrubbed[5]).toBe('Failed to fetch <link>');
+    // A quote in what's quoted doesn't end it
+    expect(scrubbed[7]).toBe("Cannot find '…'");
+    expect(scrubMessage("Failed to execute 'setItem' on 'Storage': Setting the value of 'O'Reilly' exceeded the quota.")).toBe("Failed to execute '…' exceeded the quota.");
+    expect(scrubMessage('x'.repeat(500))).toHaveLength(200);
+  });
+
+  it("reads a stack's frames in Chrome's, Firefox's and Safari's shapes", () => {
+    expect(
+      parseStack(
+        [
+          "TypeError: Cannot read properties of undefined (reading 'Secret')",
+          '    at Diagram (https://studio.example/view:14:2051)',
+          '    at async load (https://studio.example/view:14:900)',
+          '    at https://studio.example/view:15:12',
+          '    at Array.map (<anonymous>)',
+        ].join('\n')
+      )
+    ).toEqual([
+      { function: 'Diagram', filename: 'https://studio.example/view', lineno: 14, colno: 2051 },
+      { function: 'load', filename: 'https://studio.example/view', lineno: 14, colno: 900 },
+      { function: '?', filename: 'https://studio.example/view', lineno: 15, colno: 12 },
+    ]);
+    expect(parseStack('Diagram@https://studio.example/view:14:2051\n@https://studio.example/view:15:12\n')).toEqual([
+      { function: 'Diagram', filename: 'https://studio.example/view', lineno: 14, colno: 2051 },
+      { function: '?', filename: 'https://studio.example/view', lineno: 15, colno: 12 },
+    ]);
+  });
+
+  it("sends an error's type, its scrubbed message and its frames oldest first; never its stack's text", () => {
+    const error = new TypeError("Cannot read properties of undefined (reading 'Payments Ledger')");
+    error.stack = `TypeError: ${error.message}\n    at inner (https://studio.example/view:2:10)\n    at outer (https://studio.example/view:3:20)`;
+    const exception = toException(error, { mechanism: 'onerror', frame: asIs });
+    expect(exception).toMatchObject({ type: 'TypeError', value: "Cannot read properties of undefined (reading '…')", mechanism: { type: 'onerror', handled: false, synthetic: false } });
+    expect(exception.stacktrace?.frames.map((frame) => frame.function)).toEqual(['outer', 'inner']);
+    expect(leaks(exception)).toEqual([]);
+
+    expect(toException('Request "Secret" timed out', { mechanism: 'onunhandledrejection', frame: asIs })).toEqual({
+      type: 'UnhandledRejection',
+      value: 'Request "…" timed out',
+      mechanism: { type: 'onunhandledrejection', handled: false, synthetic: true },
+    });
+    expect(toException({ payments: 'Oracle' }, { mechanism: 'onunhandledrejection', frame: asIs }).value).toBe('Non-error thrown (object)');
   });
 });

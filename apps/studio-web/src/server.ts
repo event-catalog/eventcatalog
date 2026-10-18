@@ -18,7 +18,7 @@ import { attachRooms } from './rooms';
 import { DIST_DIRECTORY } from './paths';
 import type { Server as HttpServer } from 'node:http';
 import { createRateLimiter, MAX_BODY_BYTES } from './lib/limits';
-import { noteMessage, noteResponse, reportMcpCall, reportRejected, type McpCall } from './analytics';
+import { noteMessage, noteResponse, reportException, reportMcpCall, reportRejected, type McpCall } from './analytics';
 import { POSTHOG_ORIGIN } from './lib/posthog';
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -100,6 +100,7 @@ app.post('/mcp', bodyLimit({ maxSize: MAX_BODY_BYTES, onError: tooLarge }), asyn
     return response;
   } catch (error) {
     console.error('MCP request failed', { error: String(error) });
+    reportException(error, callerOf(c.req.raw));
     return c.json(jsonRpcError('Internal server error', -32603), 500);
   } finally {
     const ms = Date.now() - started;
@@ -222,6 +223,17 @@ app.get('/og.png', async (c) => {
   c.header('Content-Type', 'image/png');
   c.header('Cache-Control', 'public, max-age=86400');
   return c.body(new Uint8Array(await (ogImage ??= fs.promises.readFile(OG_IMAGE_PATH))));
+});
+
+// The view's script on its own and its source map, for error tracking to show where in the source an error was
+// (scripts/build-view.mjs): this build's only, by name. The code's open source, so the map can be public
+app.use('/:script{view-[a-z0-9]+\\.js(?:\\.map)?}', compress());
+app.get('/:script{view-[a-z0-9]+\\.js(?:\\.map)?}', async (c) => {
+  const file = path.join(DIST_DIRECTORY, c.req.param('script'));
+  if (!fs.existsSync(file)) return c.notFound();
+  c.header('Content-Type', file.endsWith('.map') ? 'application/json; charset=UTF-8' : 'text/javascript; charset=UTF-8');
+  c.header('Cache-Control', 'public, max-age=31536000, immutable');
+  return c.body(new Uint8Array(await fs.promises.readFile(file)));
 });
 
 // The icon MCP clients show beside the server (serverInfo.icons)

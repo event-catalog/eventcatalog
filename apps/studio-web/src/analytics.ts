@@ -11,8 +11,11 @@
  * from anywhere, marked as development.
  */
 import crypto from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { getUiCapability } from '@modelcontextprotocol/ext-apps/server';
 import { POSTHOG_HOST, POSTHOG_KEY } from './lib/posthog';
+import { toException, type StackFrame } from './lib/exceptions';
 
 type Value = string | number | boolean | undefined | null;
 export type Properties = Record<string, Value>;
@@ -59,7 +62,7 @@ const rememberClient = (caller: string, client: { name: string; version?: string
 
 // ---- Sending ----
 
-type Queued = { event: string; properties: Properties; timestamp: string };
+type Queued = { event: string; properties: Record<string, unknown>; timestamp: string };
 const queue: Queued[] = [];
 let timer: NodeJS.Timeout | undefined;
 
@@ -82,7 +85,7 @@ export async function flushAnalytics() {
   }
 }
 
-export function capture(event: string, caller: string, properties: Properties = {}) {
+export function capture(event: string, caller: string, properties: Record<string, unknown> = {}) {
   if (!enabled || queue.length >= MAX_QUEUED) return;
   const clean = Object.fromEntries(Object.entries(properties).filter(([, value]) => value !== undefined && value !== null && value !== ''));
   queue.push({
@@ -206,4 +209,33 @@ export function reportMcpCall(call: McpCall, { ip, userAgent, ms, status }: { ip
   } else if (call.method === 'resources/read' && call.viewRead) {
     capture('mcp_view_loaded', caller, common);
   }
+}
+
+// ---- Errors, for PostHog's error tracking ($exception) ----
+
+// The app's folder (above src/, or build/ when bundled): frames are named from it, e.g. src/server.ts
+const APP_ROOT = path.join(import.meta.dirname, '..');
+/** A frame, where in the source it is (node maps the bundle's frames back to it: --enable-source-maps) */
+const nodeFrame = (frame: { function: string; filename: string; lineno: number; colno: number }): StackFrame => {
+  const file = frame.filename.startsWith('file://') ? fileURLToPath(frame.filename) : frame.filename;
+  return {
+    platform: 'node:javascript',
+    function: frame.function,
+    filename: path.isAbsolute(file) ? path.relative(APP_ROOT, file) : file,
+    lineno: frame.lineno,
+    colno: frame.colno,
+    in_app: path.isAbsolute(file) && !file.includes(`${path.sep}node_modules${path.sep}`),
+  };
+};
+
+/** An error answering a request: its type, its message without what it quotes, and its frames (src/lib/exceptions.ts) */
+export function reportException(error: unknown, { ip, userAgent }: { ip: string; userAgent: string }) {
+  if (!enabled) return;
+  const caller = callerId(ip, userAgent);
+  capture('$exception', caller, {
+    $exception_list: [toException(error, { mechanism: 'handled', frame: nodeFrame })],
+    $exception_level: 'error',
+    client_name: clients.get(caller)?.name,
+    user_agent_family: userAgentFamily(userAgent),
+  });
 }
