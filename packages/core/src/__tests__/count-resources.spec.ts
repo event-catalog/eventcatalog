@@ -72,6 +72,23 @@ describe('countResources', () => {
     await expect(countResources(projectDirectory)).resolves.toMatchObject({ fitnessFunctions: 1 });
   });
 
+  it('counts dot-prefixed fitness functions, as fitness check runs them', async () => {
+    await writeFiles(['fitness/.ownership.fitness.ts']);
+
+    await expect(countResources(projectDirectory)).resolves.toMatchObject({ fitnessFunctions: 1 });
+  });
+
+  it('does not count symlinked fitness functions, as fitness check skips them', async () => {
+    await writeFiles(['shared/rule.fitness.ts']);
+    await fs.mkdir(path.join(projectDirectory, 'fitness'));
+    await fs.symlink(
+      path.join(projectDirectory, 'shared/rule.fitness.ts'),
+      path.join(projectDirectory, 'fitness/linked.fitness.ts')
+    );
+
+    await expect(countResources(projectDirectory)).resolves.toMatchObject({ fitnessFunctions: 0 });
+  });
+
   it('reports zero fitness functions for a catalog without any', async () => {
     await expect(countResources(projectDirectory)).resolves.toMatchObject({ fitnessFunctions: 0 });
   });
