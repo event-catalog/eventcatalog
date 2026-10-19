@@ -1,0 +1,11 @@
+{
+  "label": "Fitness functions",
+  "position": 7,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index",
+    "slug": "/fitness-functions",
+    "description": "Write your architecture rules as TypeScript functions, run them against your catalog locally or in CI, and see which resources break them."
+  }
+}
