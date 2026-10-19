@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.31.2
+
+### Patch Changes
+
+- 20f3ed3: fix(sdk): `buildIndex` no longer indexes `fitness/` folders as resource sidecars, so a catalog's fitness functions (code that `eventcatalog fitness check` runs) are not copied into catalogs that federate it
+
 ## 2.31.1
 
 ### Patch Changes
@@ -236,6 +242,7 @@
 - 8f724a7: feat: add `externalSystem` flag to services for modelling third-party integrations
 
   Services can now set `externalSystem: true` in their frontmatter to be rendered as external systems. This changes their presentation without changing their capabilities — they still send and receive messages, have owners, and support specifications like any other service.
+
   - Visualiser: external services render purple with a Globe icon and an "External System" badge
   - Sidebar (root): a dedicated "External Systems" section lists externals; the regular "Services" section excludes them
   - Sidebar (domain): externals appear under a new "External Integrations" group, separate from "Services In Domain"
