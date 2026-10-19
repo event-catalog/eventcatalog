@@ -57,6 +57,10 @@ jobs:
       - name: Package Exporters
         run: pnpm pack
         working-directory: packages/exporters
+      # Core and the CLI depend on fitness: without its own build here, npm installs the published one
+      - name: Package Fitness
+        run: pnpm pack
+        working-directory: packages/fitness
       - name: Rename package artifacts
         run: |
           mv packages/sdk/*.tgz sdk-package.tgz
@@ -66,6 +70,7 @@ jobs:
           mv packages/connectors/*.tgz connectors-package.tgz
           mv packages/visualiser/*.tgz visualiser-package.tgz
           mv packages/exporters/*.tgz exporters-package.tgz
+          mv packages/fitness/*.tgz fitness-package.tgz
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -78,6 +83,7 @@ jobs:
             connectors-package.tgz
             visualiser-package.tgz
             exporters-package.tgz
+            fitness-package.tgz
 
   build-and-test:
     name: Build and Test All Packages
@@ -154,7 +160,7 @@ jobs:
           name: eventcatalog-packages-artifact
       - name: Install @eventcatalog packages
         working-directory: examples/${{ matrix.catalog }}/
-        run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz ../../exporters-package.tgz
+        run: npm install ../../sdk-package.tgz ../../core-package.tgz ../../linter-package.tgz ../../connectors-package.tgz ../../visualiser-package.tgz ../../exporters-package.tgz ../../fitness-package.tgz
       - name: Build EventCatalog
         working-directory: examples/${{ matrix.catalog }}/
         run: npx eventcatalog build
