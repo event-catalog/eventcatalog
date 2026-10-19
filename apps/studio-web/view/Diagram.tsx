@@ -706,19 +706,26 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
   useEffect(() => {
     syncedModel.current = toolPayload.model;
   }, [toolPayload]);
+  // Debounced: each change starts the wait again, and what's sent is worked out when it ends, against what the agent
+  // has by then (marked as sent straight away, so a change made while one's sending doesn't send it again)
   useEffect(() => {
-    if (!syncOn || !canSend) return;
-    const changes = designChanges(syncedModel.current, rootModel);
-    if (!changes.length) return;
+    if (!syncOn || !canSend || !designChanges(syncedModel.current, rootModel).length) return;
     const timeout = setTimeout(() => {
-      const sending = rootModel;
+      const previous = syncedModel.current;
+      const sending = latestModel.current;
+      const changes = designChanges(previous, sending);
+      if (!changes.length) return;
+      syncedModel.current = sending;
       sendToChat(syncMessage(changes))
         .then(() => {
-          syncedModel.current = sending;
           track('sync_sent', { changes: sizeBucket(changes.length) });
           succeeded(`Sent ${changes.length} change${changes.length === 1 ? '' : 's'} to ${agentName}`);
         })
-        .catch(() => failed("Couldn't send your changes to the chat."));
+        .catch(() => {
+          // Not sent: they go with the next changes (unless the agent has drawn a new diagram since)
+          if (syncedModel.current === sending) syncedModel.current = previous;
+          failed("Couldn't send your changes to the chat.");
+        });
     }, SYNC_AFTER_MS);
     return () => clearTimeout(timeout);
   }, [syncOn, canSend, rootModel, sendToChat, agentName, succeeded, failed]);
