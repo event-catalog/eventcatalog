@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/fitness",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Write architecture fitness functions for EventCatalog and run them locally or in CI",
   "repository": {
     "type": "git",
