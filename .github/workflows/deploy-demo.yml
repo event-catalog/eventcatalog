@@ -1,0 +1,44 @@
+# Deploys the demo (the default example catalog as a server with Studio on,
+# https://eventcatalog-demo.fly.dev) to Fly on every merge to main. A deploy restarts the server, which ends
+# live sessions and starts with no canvases. Needs the FLY_DEMO_API_TOKEN secret: a deploy token for the app
+# (fly tokens create deploy -a eventcatalog-demo).
+name: Deploy demo catalog
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Read the code, nothing else (deploying uses the Fly token, not GitHub's)
+permissions:
+  contents: read
+
+# One deploy at a time, and never one stopped halfway (the next waits for it)
+concurrency:
+  group: deploy-demo
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Fly
+    # Only main is deployed, also when it's run by hand (where any branch can be picked)
+    if: github.repository == 'event-catalog/eventcatalog' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Pinned to a commit (v1, 1.6): it runs with the Fly token
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1
+      # From the repo root (the image uses workspace packages); one machine, as live rooms are kept in memory
+      - name: Deploy
+        run: flyctl deploy . --config deploy/demo/fly.toml --ha=false --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_DEMO_API_TOKEN }}
+      - name: Check Studio is up
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            curl -fsS -o /dev/null https://eventcatalog-demo.fly.dev/studio && exit 0
+            sleep 10
+          done
+          echo "::error::https://eventcatalog-demo.fly.dev/studio didn't answer after the deploy"
+          exit 1

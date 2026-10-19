@@ -1,0 +1,14 @@
+# The demo's build context (the repo root): the workspace, for turbo prune, and the example it serves
+*
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!turbo.json
+!packages
+!apps
+!examples/default
+!deploy/demo
+**/node_modules
+**/dist
+**/.turbo
+**/.astro

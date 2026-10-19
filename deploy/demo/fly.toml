@@ -1,0 +1,37 @@
+# Deployed from the repo root on every merge to main (.github/workflows/deploy-demo.yml):
+#   fly deploy . --config deploy/demo/fly.toml --ha=false --remote-only
+# Studio's live rooms are on the one machine: keep it to one (fly scale count 1)
+app = "eventcatalog-demo"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+  ignorefile = "Dockerfile.dockerignore"
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "3000"
+
+# Attached to the machine already. Canvases aren't kept on it, so each deploy starts with none
+[[mounts]]
+  source = "studio_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "30s"
+    method = "GET"
+    path = "/studio"
+    timeout = "5s"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
