@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { Hono, type Context } from 'hono';
-import { McpServer, WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/server';
+import { McpServer, WebStandardStreamableHTTPServerTransport, type StandardSchemaWithJSON } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { join } from 'node:path';
 import * as catalogTools from '@features/tools/catalog-tools';
@@ -20,7 +20,7 @@ import type { SchemaViewerPayload } from './apps/schema-viewer/shared';
 import { RESOURCE_VIEWS, VIEWER_META_KEY, VIEWER_RESOURCE_URI, VIEWER_VIEW_TOOL, type ViewerPayload } from './apps/viewer/shared';
 import { toSchemaViewerSchemas } from './schema-viewer';
 import { getMcpAppViewLoader, mcpAppNote, registerMcpApp } from './mcp-apps';
-import { toCustomToolInput, type CustomToolInput } from './custom-tool-input';
+import { toCustomToolInput } from './custom-tool-input';
 import { buildUrl } from '@utils/url-builder';
 import { isCanvasEnabled } from '@utils/feature';
 import { CANVAS_TOOL_NAMES, registerCanvasTools } from '@features/studio/server/canvas-mcp';
@@ -88,7 +88,7 @@ try {
 }
 
 // Each extended tool's input for the MCP SDK (worked out once, as converting a schema can be async)
-const extendedToolInputs = new Map<string, CustomToolInput>();
+const extendedToolInputs = new Map<string, StandardSchemaWithJSON>();
 for (const [toolName, toolConfig] of Object.entries(extendedTools)) {
   if (!toolConfig || typeof toolConfig !== 'object') continue;
   try {
@@ -663,24 +663,12 @@ function createMcpServer(
       {
         ...(title && { title }),
         description: description || `Custom tool: ${toolName}`,
-        inputSchema: input.inputSchema,
+        inputSchema: input,
         ...(annotations && { annotations }),
       },
       async (params: any) => {
         try {
-          const parsed = input.parse ? await input.parse(params) : { success: true as const, value: params };
-          if (!parsed.success) {
-            return {
-              content: [
-                {
-                  type: 'text' as const,
-                  text: JSON.stringify({ error: `Invalid arguments for ${toolName}: ${parsed.error.message}` }),
-                },
-              ],
-              isError: true,
-            };
-          }
-          const result = await execute(parsed.value);
+          const result = await execute(params);
           return {
             content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
           };

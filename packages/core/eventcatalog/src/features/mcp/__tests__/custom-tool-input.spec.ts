@@ -8,13 +8,12 @@ import { toCustomToolInput } from '../custom-tool-input';
 
 // Registers a custom tool the way the MCP server does, and calls it through a real client
 const serveTool = async (schema: unknown) => {
-  const input = await toCustomToolInput(schema);
   const server = new McpServer({ name: 'test', version: '1.0.0' });
-  server.registerTool('customTool', { description: 'A custom tool', inputSchema: input.inputSchema }, async (params: any) => {
-    const parsed = input.parse ? await input.parse(params) : { success: true as const, value: params };
-    if (!parsed.success) return { content: [{ type: 'text' as const, text: 'invalid' }], isError: true };
-    return { content: [{ type: 'text' as const, text: JSON.stringify(parsed.value) }] };
-  });
+  server.registerTool(
+    'customTool',
+    { description: 'A custom tool', inputSchema: await toCustomToolInput(schema) },
+    async (params: unknown) => ({ content: [{ type: 'text' as const, text: JSON.stringify(params) }] })
+  );
 
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
@@ -51,6 +50,17 @@ describe('custom tool inputs', () => {
         value: { eventId: 'OrderCreated', timeRange: '24h' },
       });
       expect((await tool.call({ eventId: 1 })).isError).toBe(true);
+    } finally {
+      await tool.close();
+    }
+  });
+
+  it('coerces arguments the way a zod 3 schema does, rather than rejecting them by its JSON Schema first', async () => {
+    const tool = await serveTool(z3.object({ limit: z3.coerce.number().int().positive() }));
+    try {
+      expect((await tool.listed())?.inputSchema).toMatchObject({ properties: { limit: { type: 'integer' } } });
+      expect((await tool.call({ limit: '5' })).value).toEqual({ limit: 5 });
+      expect((await tool.call({ limit: 'many' })).isError).toBe(true);
     } finally {
       await tool.close();
     }
