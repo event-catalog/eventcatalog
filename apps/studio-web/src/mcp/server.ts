@@ -4,7 +4,7 @@
  * (the agent walking the user through a diagram it drew: zooming, highlighting, writing notes and pinning code on it)
  * and read_diagram (a diagram link the user pasted, as its model).
  */
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { appViewMeta, getViewLoader, mcpAppNote, registerMcpApp } from './register';
 import { SCHEMA_GUIDE, SERVER_INSTRUCTIONS } from './guide';

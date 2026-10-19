@@ -7,7 +7,7 @@ import { config as configureZod } from 'zod';
 import { createRoot } from 'react-dom/client';
 import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
 import { useApp } from '@modelcontextprotocol/ext-apps/react';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult } from '@modelcontextprotocol/client';
 
 // MCP hosts block eval in views, so stop zod (used by the MCP Apps SDK) from probing for it
 configureZod({ jitless: true });

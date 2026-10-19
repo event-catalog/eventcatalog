@@ -3,8 +3,7 @@ import fixture from './fixtures/orders-model.json';
 import { Model, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { createWebMcpTools, registerWebMcpTools, type ModelContext, type WebMcpCanvas } from '../view/webmcp';
 import { createMcpServer } from '../src/mcp/server';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { viewLink } from '../src/lib/encode';
 
 const model = Model.parse(fixture);

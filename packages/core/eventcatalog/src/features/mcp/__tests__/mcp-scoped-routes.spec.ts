@@ -52,7 +52,7 @@ vi.mock('@eventcatalog/sdk', () => ({
   })),
 }));
 
-vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
+vi.mock('@modelcontextprotocol/server', () => ({
   McpServer: vi.fn().mockImplementation(function () {
     return {
       registerTool: vi.fn(),
@@ -60,9 +60,6 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
       connect: vi.fn(),
     };
   }),
-}));
-
-vi.mock('@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js', () => ({
   WebStandardStreamableHTTPServerTransport: vi.fn().mockImplementation(function () {
     return {
       handleRequest: vi.fn(() => new Response(JSON.stringify({ jsonrpc: '2.0', result: {} }))),
@@ -139,7 +136,7 @@ describe('scoped MCP routes', () => {
 
   it('creates a scoped MCP server for protocol requests', async () => {
     const { ALL } = await import('../mcp-server');
-    const { McpServer } = await import('@modelcontextprotocol/sdk/server/mcp.js');
+    const { McpServer } = await import('@modelcontextprotocol/server');
     const response = await ALL({
       request: new Request('http://localhost:4321/docs/mcp/domains/payments/1.0.0', {
         method: 'POST',
@@ -157,7 +154,7 @@ describe('scoped MCP routes', () => {
 
   it('creates a system-scoped MCP server for protocol requests', async () => {
     const { ALL } = await import('../mcp-server');
-    const { McpServer } = await import('@modelcontextprotocol/sdk/server/mcp.js');
+    const { McpServer } = await import('@modelcontextprotocol/server');
     const response = await ALL({
       request: new Request('http://localhost:4321/docs/mcp/systems/payment-system/1.0.0', {
         method: 'POST',

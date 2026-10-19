@@ -1,6 +1,5 @@
 // Ported from event-catalog/eventcatalog@v5-beta:packages/core/eventcatalog/src/features/mcp/mcp-apps.ts (view loading changed).
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import type { McpServer, ToolAnnotations } from '@modelcontextprotocol/server';
 import type { McpUiDisplayMode } from '@modelcontextprotocol/ext-apps';
 import { registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
@@ -110,7 +109,7 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
   };
 
   const toolInput = z.object(app.tool.input);
-  server.registerTool<z.ZodRawShape, typeof toolInput>(
+  server.registerTool(
     app.tool.name,
     {
       title: app.tool.title,
@@ -134,7 +133,7 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
   };
 
   const viewToolInput = z.object(app.viewTool.input);
-  server.registerTool<z.ZodRawShape, typeof viewToolInput>(
+  server.registerTool(
     app.viewTool.name,
     {
       title: app.viewTool.title,

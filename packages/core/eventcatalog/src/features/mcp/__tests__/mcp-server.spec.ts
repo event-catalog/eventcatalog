@@ -58,7 +58,7 @@ vi.mock('hono', () => {
 });
 
 // Mock @modelcontextprotocol/sdk
-vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
+vi.mock('@modelcontextprotocol/server', () => ({
   McpServer: vi.fn().mockImplementation(() => ({
     tool: vi.fn(),
     resource: vi.fn(),
@@ -66,9 +66,6 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
     registerTool: vi.fn(),
     registerResource: vi.fn(),
   })),
-}));
-
-vi.mock('@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js', () => ({
   WebStandardStreamableHTTPServerTransport: vi.fn().mockImplementation(() => ({})),
 }));
 

@@ -12,7 +12,7 @@ import { Hono, type Context } from 'hono';
 import { serve } from '@hono/node-server';
 import { bodyLimit } from 'hono/body-limit';
 import { compress } from 'hono/compress';
-import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from './mcp/server';
 import { attachRooms } from './rooms';
 import { DIST_DIRECTORY } from './paths';
