@@ -20,6 +20,7 @@
 **/.DS_Store
 examples/default/eventcatalog.chat.js
 examples/default/.eventcatalog
-examples/default/exports
+# The JSON dumps `eventcatalog export` writes (the custom exports there, .mdx, are source)
+examples/default/exports/*.json
 examples/default/public/pagefind
 examples/default/public/architecture.html
