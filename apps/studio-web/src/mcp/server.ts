@@ -84,7 +84,7 @@ export function createMcpServer({ baseUrl, report = () => {} }: { baseUrl: strin
       name: 'render_architecture',
       title: 'Visualise architecture',
       description:
-        'Shows the user an interactive EventCatalog diagram of an architecture you describe (domains, systems, services, messages, channels, data stores), with levels from an overview down to every message. Build the model from the code and specs you read; call get_architecture_schema first. Give every resource a summary (what it is or does) when you can: it is shown on its node. Flag risks, problems and the key parts with hotspots (model.hotspots). Keep the hotspots and comments people added when you change it. Start with one service or domain and set focus. To walk the user through how something works, add a tour (or use show_on_diagram later).',
+        'Shows the user an interactive EventCatalog diagram of an architecture you describe (domains, systems, services, messages, channels, data stores), with levels from an overview down to every message. Build the model from the code and specs you read; call get_architecture_schema first. Give every resource a summary (what it is or does) when you can: it is shown on its node. Flag risks, problems and the key parts with hotspots (model.hotspots). Keep the hotspots and comments people added when you change it. Start with one service or domain and set focus. To walk the user through how something works, add a tour (or use show_on_diagram later). For a blank canvas (the user wants to sketch from scratch), send a model with just a title and no resources.',
       input: {
         model: Model,
         focus: z.string().optional().describe('Id of the resource to highlight'),
@@ -114,6 +114,18 @@ export function createMcpServer({ baseUrl, report = () => {} }: { baseUrl: strin
       }
       const prepared = prepare(payload);
       if ('error' in prepared) return prepared;
+
+      // A blank canvas: nothing to describe, the user sketches on it (or tells the agent what to draw)
+      if (!payload.model.resources.length && !payload.model.notes?.length)
+        return {
+          label: payload.model.title,
+          forModel: {
+            note: 'Clients that support MCP Apps are showing the user this blank canvas. Otherwise, show the user the viewUrl to open it.',
+            viewUrl: prepared.url,
+            next: 'A blank canvas is open. The user adds to it themselves, or tells you what to draw: then call render_architecture with the model (read_diagram first if they changed it).',
+          },
+          getPayload: async () => ({ ...payload, viewUrl: prepared.url }),
+        };
 
       return {
         label: payload.model.title,

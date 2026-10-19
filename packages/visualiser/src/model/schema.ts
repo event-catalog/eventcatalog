@@ -372,7 +372,12 @@ export const Model = z.object({
     .min(1)
     .max(200)
     .describe('What the diagram shows, e.g. "Orders domain"'),
-  resources: z.array(Resource).min(1).max(300),
+  resources: z
+    .array(Resource)
+    .max(300)
+    .describe(
+      "What's on the diagram. Empty opens a blank canvas the user fills in",
+    ),
   relations: z.array(Relation).max(1000).default([]),
   notes: z
     .array(Note)

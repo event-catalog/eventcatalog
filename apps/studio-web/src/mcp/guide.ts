@@ -95,6 +95,9 @@ When the user asks to be shown or taught something ("how does the payments servi
 - caption: what you're saying in this scene
 Keep scenes short (3 to 8 is typical): start wide, zoom in, explain, then zoom back out. Notes and code are temporary.
 
+## A blank canvas
+When the user wants to sketch from scratch ("open a blank canvas"), call render_architecture with a model that has just a title and no resources ({ "title": "Payments ideas", "resources": [] }). They add to it themselves, or tell you what to draw.
+
 ## Levels
 The diagram has three levels: overview (domains and systems), services (services and data stores, messages hidden), messages (everything). Overview needs a system or at least two domains.
 

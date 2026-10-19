@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { createMcpServer } from '../../src/mcp/server';
 import { Model, validateModel } from '@eventcatalog/visualiser/model';
+import { parseViewFragment } from '../../src/lib/encode';
 
 const connect = async () => {
   const server = createMcpServer({ baseUrl: 'https://studio.example' });
@@ -23,6 +24,16 @@ describe('the MCP server', () => {
     const descriptions = (await client.listTools()).tools.map((tool) => tool.description ?? '').join('\n');
     const named = new Set([...`${instructions}\n${descriptions}`.matchAll(/\b(get_[a-z_]+|render_[a-z_]+|show_[a-z_]+|read_[a-z_]+)\b/g)].map((match) => match[1]));
     for (const name of named) expect(names).toContain(name);
+  });
+
+  it('opens a blank canvas for a model with no resources, with a link to it', async () => {
+    const client = await connect();
+    const result = await client.callTool({ name: 'render_architecture', arguments: { model: { title: 'Payments ideas', resources: [] } } });
+    expect(result.isError).toBeFalsy();
+    const reply = JSON.parse(textOf(result));
+    expect(reply.next).toContain('blank canvas');
+    expect(reply.viewUrl).toMatch(/^https:\/\/studio\.example\/.*#m=/);
+    expect(parseViewFragment(reply.viewUrl).model).toMatchObject({ title: 'Payments ideas', resources: [] });
   });
 
   it('teaches the model, with an example that is a valid model', async () => {

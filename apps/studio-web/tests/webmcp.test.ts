@@ -77,6 +77,14 @@ describe('WebMCP tools', () => {
     expect(live.render).not.toHaveBeenCalled();
   });
 
+  it('clears the canvas for a model with no resources', async () => {
+    const { call, render } = await setUp();
+    const cleared = await call('render_architecture', { model: { title: 'Sketch', resources: [] } });
+    expect(cleared.isError).toBe(false);
+    expect(cleared.json()).toMatchObject({ cleared: true });
+    expect(render).toHaveBeenCalledWith(expect.objectContaining({ model: expect.objectContaining({ title: 'Sketch', resources: [] }) }));
+  });
+
   it('plays walkthroughs of what is on the canvas', async () => {
     const { call, showTour } = await setUp();
     const tour = [{ focus: ['OrderPlaced'], caption: 'The event' }];

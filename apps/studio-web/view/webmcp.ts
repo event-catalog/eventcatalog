@@ -125,7 +125,7 @@ export function createWebMcpTools(get: () => WebMcpCanvas): WebMcpTool[] {
       name: 'render_architecture',
       title: 'Visualise architecture',
       description:
-        "Draws an architecture (domains, systems, services, messages, channels, data stores) on the user's canvas in place of what's there. Use it to show or change their diagram: call read_diagram first and build on its model, keeping their notes, layout, hotspots and comments. Call get_architecture_schema before your first one. Give every resource a summary (shown on its node), flag risks and key parts with hotspots, and start with one service or domain in focus.",
+        "Draws an architecture (domains, systems, services, messages, channels, data stores) on the user's canvas in place of what's there. Use it to show or change their diagram: call read_diagram first and build on its model, keeping their notes, layout, hotspots and comments. Call get_architecture_schema before your first one. Give every resource a summary (shown on its node) and flag risks and key parts with hotspots. No resources clears it to a blank canvas.",
       input: z.object({
         model: Model,
         focus: z.string().optional().describe('Id of the resource to highlight'),
@@ -142,6 +142,8 @@ export function createWebMcpTools(get: () => WebMcpCanvas): WebMcpTool[] {
         if (problem) return { error: problem.error };
         if (!(await canvas.render(payload)))
           return { error: 'The user kept their canvas as it is. Ask them before trying again, or tell them what you would change.' };
+        if (!model.resources.length && !model.notes?.length)
+          return { cleared: true, next: 'The canvas is blank. The user adds to it, or tells you what to draw (call read_diagram before you build on it).' };
         return {
           drawn: true,
           summary: summarise(model, warnings),
