@@ -5,7 +5,7 @@
  * and apps/canvas/view.tsx (model context).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ToolbarButton } from '@eventcatalog/visualiser';
+import { Toolbar, ToolbarButton } from '@eventcatalog/visualiser';
 import {
   ArrowRight,
   BookOpen,
@@ -19,6 +19,7 @@ import {
   Monitor,
   Moon,
   Presentation,
+  RefreshCw,
   Share2,
   StickyNote,
   Sun,
@@ -71,6 +72,7 @@ import { INLINE_HEIGHT } from './diagram-styles';
 import { BuildStage } from './build/BuildStage';
 import { TourStage } from './build/TourStage';
 import { toStage, type StageState } from './build/choreography';
+import { designChanges, SYNC_AFTER_MS, syncMessage } from './sync';
 import { bump, configureAnalytics, durationBucket, modelMix, modelStats as diagramStats, notePeople, sizeBucket, tourStats, track } from './analytics';
 
 
@@ -696,6 +698,60 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
     canvas: { model: rootModel, focus, selected: selected?.resourceId, live: !!room, render: drawForAgent, showTour: showTourForAgent },
   });
 
+  // ---- Sync to agent (in a chat): changes to the design go to the agent as a message once they stop for a moment, so it
+  // makes them in the code without being asked (see sync.ts). Off until turned on; the chat must take messages ----
+  const [syncOn, setSyncOn] = useState(false);
+  // The design as the agent has it: what it drew (its own changes are never sent back), then what was last sent
+  const syncedModel = useRef(toolPayload.model);
+  useEffect(() => {
+    syncedModel.current = toolPayload.model;
+  }, [toolPayload]);
+  useEffect(() => {
+    if (!syncOn || !canSend) return;
+    const changes = designChanges(syncedModel.current, rootModel);
+    if (!changes.length) return;
+    const timeout = setTimeout(() => {
+      const sending = rootModel;
+      sendToChat(syncMessage(changes))
+        .then(() => {
+          syncedModel.current = sending;
+          track('sync_sent', { changes: sizeBucket(changes.length) });
+          succeeded(`Sent ${changes.length} change${changes.length === 1 ? '' : 's'} to ${agentName}`);
+        })
+        .catch(() => failed("Couldn't send your changes to the chat."));
+    }, SYNC_AFTER_MS);
+    return () => clearTimeout(timeout);
+  }, [syncOn, canSend, rootModel, sendToChat, agentName, succeeded, failed]);
+  const toggleSync = useCallback(() => {
+    // Turned on: only what changes from now is sent
+    if (!syncOn) syncedModel.current = latestModel.current;
+    track(syncOn ? 'sync_turned_off' : 'sync_turned_on');
+    setSyncOn(!syncOn);
+  }, [syncOn]);
+  const syncControl = useMemo(
+    () =>
+      app ? (
+        <Toolbar>
+          <ToolbarButton
+            label={syncOn ? 'Sync to agent: on' : 'Sync to agent'}
+            hint={
+              !canSend
+                ? "This chat doesn't take messages from the canvas"
+                : syncOn
+                  ? `Your changes to the design go to ${agentName} to make in the code`
+                  : `Send your changes to the design to ${agentName} as you make them, to make in the code`
+            }
+            active={syncOn}
+            disabled={!canSend}
+            onClick={toggleSync}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </ToolbarButton>
+        </Toolbar>
+      ) : undefined,
+    [app, syncOn, canSend, agentName, toggleSync]
+  );
+
   // The theme: chosen in the menu (remembered), else the chat's in a chat, and light in the browser
   const [theme, setTheme] = useState<Theme>(() => {
     const fallback: Theme = fullPage ? 'light' : 'system';
@@ -970,6 +1026,7 @@ export function Diagram({ payload: incomingPayload, app, hostContext, fullPage, 
           onNodesMove={room ? moveNodes : undefined}
           onEditing={room ? editNode : undefined}
           paletteFooter={isEmpty ? undefined : exportFooter}
+          footer={syncControl}
           barExtras={
             toolPayload.tour ? (
               <ToolbarButton

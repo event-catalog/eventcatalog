@@ -576,7 +576,8 @@ export function canvasToModel(
     const kept = (node.data.resource as Resource | undefined) ?? undefined;
     const fields = getResource(node.type, node.data);
     const parent = node.parentId && lookup.get(node.parentId);
-    const summary = String(fields.summary ?? "").trim();
+    // Domains and systems drawn as boxes don't show a summary: theirs is kept with the node
+    const summary = String(fields.summary ?? kept?.summary ?? "").trim();
     const version = String(fields.version ?? kept?.version ?? "").trim();
     const { parent: _, card: __, ...rest } = kept ?? ({} as Partial<Resource>);
     return {
