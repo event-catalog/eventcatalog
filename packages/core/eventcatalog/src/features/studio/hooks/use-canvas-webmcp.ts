@@ -46,7 +46,7 @@ type ModelContextTool = {
   title?: string;
   description: string;
   inputSchema?: object;
-  annotations?: { readOnlyHint?: boolean; consequentialHint?: boolean };
+  annotations?: { readOnlyHint?: boolean; consequentialHint?: boolean; untrustedContentHint?: boolean };
   execute: (input: unknown, options?: { signal?: AbortSignal }) => Promise<ToolResult>;
 };
 type ModelContext = { registerTool: (tool: ModelContextTool, options?: { signal?: AbortSignal }) => Promise<void> | void };
@@ -204,7 +204,8 @@ const createCanvasTools = (get: () => CanvasWebMcpOptions, getStage: () => Agent
       description:
         'Reads the collaborative canvas open on this page: its nodes (ids, names, positions, the catalog resource they stand for), connections, comment threads, and who is on it. Call it first, and again to see what people changed.',
       input: z.object({}),
-      annotations: { readOnlyHint: true },
+      // Names, notes and comments come from people
+      annotations: { readOnlyHint: true, untrustedContentHint: true },
       execute: () =>
         withDoc((doc) => ({
           ...describeCanvas(doc),
@@ -342,7 +343,7 @@ const createCanvasTools = (get: () => CanvasWebMcpOptions, getStage: () => Agent
       description:
         'Selects nodes and moves the view to them, to point the user at something. Leave out nodeIds to show the whole canvas.',
       input: z.object({ nodeIds: z.array(z.string()).optional() }),
-      annotations: { readOnlyHint: true },
+      // Not read only: it changes the user's selection and view
       execute: ({ nodeIds }) => {
         if (nodeIds?.length) get().select(nodeIds);
         get().fitView(nodeIds);

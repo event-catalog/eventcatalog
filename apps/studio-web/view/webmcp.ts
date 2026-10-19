@@ -125,13 +125,14 @@ export function createWebMcpTools(get: () => WebMcpCanvas): WebMcpTool[] {
       name: 'render_architecture',
       title: 'Visualise architecture',
       description:
-        "Draws an architecture you describe (domains, systems, services, messages, channels, data stores) on the user's canvas, built up in front of them, in place of what's there: call read_diagram first and build on its model, keeping their notes, layout, hotspots and comments. Call get_architecture_schema before your first one. Give every resource a summary (what it is or does): it is shown on its node. Flag risks, problems and the key parts with hotspots (model.hotspots). Start with one service or domain and set focus. To walk the user through how something works, add a tour (or use show_on_diagram later).",
+        "Draws an architecture (domains, systems, services, messages, channels, data stores) on the user's canvas in place of what's there. Use it to show or change their diagram: call read_diagram first and build on its model, keeping their notes, layout, hotspots and comments. Call get_architecture_schema before your first one. Give every resource a summary (shown on its node), flag risks and key parts with hotspots, and start with one service or domain in focus.",
       input: z.object({
         model: Model,
         focus: z.string().optional().describe('Id of the resource to highlight'),
         level: z.enum(LEVELS).optional().describe('Level to open at: overview, services or messages (default)'),
         tour: Tour.optional().describe('Scenes to play on the diagram once it is drawn (see show_on_diagram)'),
       }),
+      // Replacing what's on the canvas can't be undone (the page asks first when there's work on it)
       annotations: { consequentialHint: true },
       execute: async ({ model, focus, level, tour }) => {
         const canvas = get();
@@ -154,11 +155,9 @@ export function createWebMcpTools(get: () => WebMcpCanvas): WebMcpTool[] {
       description:
         "Walks the user through the diagram on their canvas, like a person at the canvas: switch level, zoom into a service or area, highlight resources (fading the rest), write notes next to them and pin code (e.g. an event's schema, copied from the files you read). Use it when the user asks to be shown or taught something (\"how does this service work?\", \"show me the schema for OrderPlaced\"). Use the resource ids from read_diagram.",
       input: z.object({
-        tour: Tour.describe(
-          'Scenes to play on the diagram, in order, like walking someone through it at a whiteboard: each can switch level, zoom to resources, highlight them (fading the rest), write notes next to them and pin code (e.g. a schema). The user steps through them; notes and code are temporary.'
-        ),
+        tour: Tour.describe('Scenes to play in order: each can switch level, zoom to and highlight resources, write notes beside them and pin code (e.g. a schema)'),
       }),
-      annotations: { readOnlyHint: true },
+      // Not read only: it changes what the user sees (the level, the view, a walkthrough over the canvas)
       execute: async ({ tour }) => {
         const canvas = get();
         if (!canvas.model.resources.length) return { error: 'There is nothing on the canvas to walk through: draw a diagram with render_architecture first' };

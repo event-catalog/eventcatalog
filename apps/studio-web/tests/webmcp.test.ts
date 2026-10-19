@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import fixture from './fixtures/orders-model.json';
 import { Model, type ArchitecturePayload } from '@eventcatalog/visualiser/model';
 import { createWebMcpTools, registerWebMcpTools, type ModelContext, type WebMcpCanvas } from '../view/webmcp';
@@ -93,5 +94,24 @@ describe('WebMCP tools', () => {
     expect(isError).toBe(false);
     expect(text).toContain('# EventCatalog architecture model');
     expect(text).toContain('In the browser (WebMCP)');
+  });
+
+  // Chrome's budgets for WebMCP tools (names 30, descriptions 500, parameter descriptions 150 characters)
+  it('keep to the browser’s budgets', () => {
+    for (const tool of createWebMcpTools(() => ({ model, live: false, render: async () => true, showTour: async () => {} }))) {
+      expect(tool.name.length, tool.name).toBeLessThanOrEqual(30);
+      expect(tool.description.length, tool.name).toBeLessThanOrEqual(500);
+      const { properties = {} } = z.toJSONSchema(tool.input, { io: 'input', unrepresentable: 'any' }) as { properties?: Record<string, { description?: string }> };
+      for (const [name, property] of Object.entries(properties)) {
+        expect(name.length, `${tool.name}.${name}`).toBeLessThanOrEqual(30);
+        expect(property.description?.length ?? 0, `${tool.name}.${name}`).toBeLessThanOrEqual(150);
+      }
+    }
+  });
+
+  it('are only read only when they change nothing the user sees', () => {
+    const tools = createWebMcpTools(() => ({ model, live: false, render: async () => true, showTour: async () => {} }));
+    const readOnly = tools.filter((tool) => tool.annotations?.readOnlyHint).map((tool) => tool.name);
+    expect(readOnly.sort()).toEqual(['get_architecture_schema', 'read_diagram']);
   });
 });
