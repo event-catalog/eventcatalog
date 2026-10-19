@@ -840,6 +840,28 @@ describe('buildIndex', () => {
       ]);
     });
 
+    it('does not index fitness functions as sidecars, so their code is not copied into catalogs that federate this one', async () => {
+      await sdk.writeDomain({
+        id: 'payments',
+        name: 'Payments',
+        version: '1.0.0',
+        markdown: '# Payments',
+      });
+      fs.writeFileSync(path.join(CATALOG_PATH, 'domains/payments/notes.txt'), 'Useful notes');
+      fs.mkdirSync(path.join(CATALOG_PATH, 'domains/payments/fitness/helpers'), { recursive: true });
+      fs.writeFileSync(path.join(CATALOG_PATH, 'domains/payments/fitness/boundaries.fitness.ts'), 'export default {};');
+      fs.writeFileSync(path.join(CATALOG_PATH, 'domains/payments/fitness/helpers/shared.ts'), 'export const x = 1;');
+
+      const index = await sdk.buildIndex({ source: 'acme/payments', commit: '4a1b7e2' });
+
+      expect(index.resources[0].sidecars).toEqual([
+        {
+          path: 'domains/payments/notes.txt',
+          hash: hashFile('domains/payments/notes.txt'),
+        },
+      ]);
+    });
+
     it('honors an optional .eventcatalogignore when collecting resource sidecars', async () => {
       await sdk.writeDomain({
         id: 'payments',

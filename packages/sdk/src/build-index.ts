@@ -264,7 +264,9 @@ const normalizeSchemas = async (
 };
 
 const IGNORED_SIDECAR_FILES = new Set(['.DS_Store', '.gitignore', '.gitkeep', '.npmignore', 'Thumbs.db', 'desktop.ini']);
-const IGNORED_SIDECAR_DIRECTORIES = new Set(['.git', '.hg', '.svn', 'node_modules']);
+// fitness/ holds the catalog's fitness functions: code that `eventcatalog fitness check` runs. It stays with the catalog
+// that owns it, rather than being copied into (and run by) catalogs that federate this one.
+const IGNORED_SIDECAR_DIRECTORIES = new Set(['.git', '.hg', '.svn', 'node_modules', 'fitness']);
 
 const normalizeSidecars = async (
   directory: string,
