@@ -60,6 +60,26 @@ const jsonRpcError = (message: string, code = -32000) => ({ jsonrpc: '2.0', erro
 
 app.get('/health', (c) => c.json({ ok: true }));
 
+// What the site is and how agents use it, for agents that look (https://llmstxt.org)
+app.get('/llms.txt', (c) => {
+  const base = baseUrl(c.req.raw);
+  c.header('Cache-Control', 'public, max-age=3600');
+  return c.text(`# EventCatalog Studio
+
+> A canvas for sketching, designing and sharing software architecture (domains, systems, services, events, commands, queries, channels and data stores) with your team and AI agents. No sign-in; diagrams are kept in the browser and in links, never on the server.
+
+## For AI agents
+
+- [MCP server](${base}/mcp): Streamable HTTP, no auth. Tools: get_architecture_schema (learn the model), render_architecture (draw a diagram), read_diagram (read one, or a diagram link), show_on_diagram (walk the user through it).
+- WebMCP: the page at ${base}/ offers the same tools to agents in the browser (document.modelContext), working on the canvas the user has open. In browsers without WebMCP, turn it on in Connect agent.
+
+## Links
+
+- [Studio](${base}/): the canvas
+- [EventCatalog](https://www.eventcatalog.dev): the open source project behind it
+`);
+});
+
 // Responses compressed for clients that take it: reading the MCP App's view returns the ~4 MB page
 app.use('/mcp', compress());
 
@@ -170,8 +190,14 @@ const contentSecurityPolicy = (html: string, base: string) => {
 };
 const MAX_PAGES = 4;
 const pages = new Map<string, Promise<Page>>();
+// Chrome's WebMCP origin trial (for eventcatalog.studio and its subdomains): Chrome offers the page's tools to agents
+// without its flag. In the page, as Chrome's own WebMCP demos have it.
+// Public, not a secret; it expires with the trial (30 March 2027)
+const ORIGIN_TRIAL_TOKEN = process.env.WEBMCP_ORIGIN_TRIAL_TOKEN?.trim();
+const originTrialTag = ORIGIN_TRIAL_TOKEN ? `    <meta http-equiv="origin-trial" content="${escapeAttribute(ORIGIN_TRIAL_TOKEN)}" />\n` : '';
+
 const buildPage = async (base: string): Promise<Page> => {
-  const html = (await fs.promises.readFile(VIEW_PATH, 'utf8')).replace('</title>', `</title>\n${socialTags(base)}`);
+  const html = (await fs.promises.readFile(VIEW_PATH, 'utf8')).replace('</title>', `</title>\n${originTrialTag}${socialTags(base)}`);
   const raw = Buffer.from(html);
   const page: Page = {
     csp: contentSecurityPolicy(html, base),
