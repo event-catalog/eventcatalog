@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { join } from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 
 // Runs `eventcatalog fitness check` against an example catalog, e.g. `pnpm run fitness:catalog -- --format json`
 async function main() {
@@ -14,7 +14,11 @@ async function main() {
   execSync('pnpm --filter @eventcatalog/fitness run build', { stdio: 'inherit' });
   execSync('pnpm run build:bin', { stdio: 'inherit' });
 
-  execSync(`cross-env PROJECT_DIR=${projectDIR} npx . fitness check ${args.join(' ')}`, { stdio: 'inherit' });
+  // Arguments go straight to the CLI, not through a shell, so paths and values with spaces stay whole
+  execFileSync(process.execPath, [join(__dirname, '../bin/eventcatalog.js'), 'fitness', 'check', ...args], {
+    stdio: 'inherit',
+    env: { ...process.env, PROJECT_DIR: projectDIR },
+  });
 }
 
 main()

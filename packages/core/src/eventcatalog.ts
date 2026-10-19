@@ -786,6 +786,9 @@ fitness
       format: commandOptions.format,
       color: Boolean(process.stdout.isTTY) && !process.env.NO_COLOR,
     });
+    // The CLI exits as soon as the command returns. Piped output is written asynchronously (e.g. on macOS), so wait
+    // until it has all been written, or a long report gets cut off
+    await new Promise<void>((resolve) => process.stdout.write('', () => resolve()));
   });
 
 const reportFederationProgress = (event: FederationProgressEvent, verbose = false) => {
