@@ -1,5 +1,4 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import type { Icon, McpServer, ToolAnnotations } from '@modelcontextprotocol/server';
 import type { McpUiDisplayMode } from '@modelcontextprotocol/ext-apps';
 import { registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
@@ -40,6 +39,8 @@ type ToolDefinition<Shape extends z.ZodRawShape> = {
   input: Shape;
   /** More `_meta` for the tool, e.g. host extensions such as ChatGPT's `openai/ui` entrypoints */
   meta?: Record<string, unknown>;
+  /** Icons listed with the tool (MCP 2025-11-25 tool icons, which ChatGPT shows on entrypoints) */
+  icons?: Icon[];
 };
 
 export type McpAppDefinition<Shape extends z.ZodRawShape, ViewShape extends z.ZodRawShape, Payload> = {
@@ -106,13 +107,14 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
   };
 
   const toolInput = z.object(app.tool.input);
-  server.registerTool<z.ZodRawShape, typeof toolInput>(
+  server.registerTool(
     app.tool.name,
     {
       title: app.tool.title,
       description: app.tool.description,
       inputSchema: toolInput,
       annotations: app.annotations,
+      ...(app.tool.icons && { icons: app.tool.icons }),
       _meta: loadView ? { ...appViewMeta(app.resource.uri), ...app.tool.meta } : undefined,
     },
     showInView
@@ -130,7 +132,7 @@ export function registerMcpApp<Shape extends z.ZodRawShape, ViewShape extends z.
   };
 
   const viewToolInput = z.object(app.viewTool.input);
-  server.registerTool<z.ZodRawShape, typeof viewToolInput>(
+  server.registerTool(
     app.viewTool.name,
     {
       title: app.viewTool.title,

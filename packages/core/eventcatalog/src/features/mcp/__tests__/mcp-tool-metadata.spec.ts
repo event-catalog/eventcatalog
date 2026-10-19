@@ -59,7 +59,7 @@ vi.mock('@utils/collections/util', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@utils/collections/util')>()),
 }));
 
-vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
+vi.mock('@modelcontextprotocol/server', () => ({
   McpServer: vi.fn().mockImplementation(function (info: any, options: any) {
     captured.servers.push({ info, options });
     return {
@@ -70,9 +70,6 @@ vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
       connect: vi.fn(),
     };
   }),
-}));
-
-vi.mock('@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js', () => ({
   WebStandardStreamableHTTPServerTransport: vi.fn().mockImplementation(function () {
     return { handleRequest: vi.fn(() => new Response(JSON.stringify({ jsonrpc: '2.0', result: {} }))) };
   }),

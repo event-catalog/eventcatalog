@@ -1,4 +1,4 @@
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import type * as Y from 'yjs';
 import { z } from 'zod';
 import { buildUrl } from '@utils/url-builder';
@@ -37,7 +37,6 @@ import {
 } from '../agent-choreography';
 import { STUDIO_SOCKET_PATH, findStudioRuntime } from './runtime';
 import { getAgent } from '../agents';
-import { addToolIcons } from './tool-icons';
 
 /**
  * MCP tools for the collaborative canvas: agents create canvases, join the ones people are on, and
@@ -139,6 +138,7 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
       // ChatGPT entrypoints (OpenAI MCP extensions): people can open canvases from the sidebar or as a tab in a
       // thread, which calls the tool with {} (the list of canvases)
       meta: { 'openai/ui': { entrypoints: [{ type: 'global' }, { type: 'thread' }] } },
+      icons: [CANVAS_ICON],
       input: {
         canvasId: canvasId.optional(),
         title: z.string().optional().describe('For a new canvas: what it is for'),
@@ -490,6 +490,4 @@ export function registerCanvasTools(server: McpServer, { catalogUrl, userAgent }
       return found ? text({ threadId, resolved }) : text({ error: `No comment thread "${threadId}"` }, true);
     }
   );
-
-  addToolIcons(server, { openCanvas: [CANVAS_ICON] });
 }

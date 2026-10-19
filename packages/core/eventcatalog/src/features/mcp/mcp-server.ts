@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { Hono, type Context } from 'hono';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
+import { McpServer, WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { join } from 'node:path';
 import * as catalogTools from '@features/tools/catalog-tools';
@@ -21,6 +20,7 @@ import type { SchemaViewerPayload } from './apps/schema-viewer/shared';
 import { RESOURCE_VIEWS, VIEWER_META_KEY, VIEWER_RESOURCE_URI, VIEWER_VIEW_TOOL, type ViewerPayload } from './apps/viewer/shared';
 import { toSchemaViewerSchemas } from './schema-viewer';
 import { getMcpAppViewLoader, mcpAppNote, registerMcpApp } from './mcp-apps';
+import { toCustomToolInput, type CustomToolInput } from './custom-tool-input';
 import { buildUrl } from '@utils/url-builder';
 import { isCanvasEnabled } from '@utils/feature';
 import { CANVAS_TOOL_NAMES, registerCanvasTools } from '@features/studio/server/canvas-mcp';
@@ -85,6 +85,17 @@ try {
   }
 } catch (error) {
   // No chat configuration or tools defined - this is fine
+}
+
+// Each extended tool's input for the MCP SDK (worked out once, as converting a schema can be async)
+const extendedToolInputs = new Map<string, CustomToolInput>();
+for (const [toolName, toolConfig] of Object.entries(extendedTools)) {
+  if (!toolConfig || typeof toolConfig !== 'object') continue;
+  try {
+    extendedToolInputs.set(toolName, await toCustomToolInput(toolConfig.inputSchema || toolConfig.parameters));
+  } catch (error) {
+    console.warn(`[MCP] Skipping extended tool ${toolName}: its input schema could not be read (${error})`);
+  }
 }
 
 const MCP_SERVER_VERSION = '1.3.0';
@@ -638,7 +649,9 @@ function createMcpServer(
 
     // Extract tool properties (Vercel AI SDK format)
     // The AI SDK tool() helper uses "inputSchema" for Zod schemas
-    const { title, description, parameters, inputSchema, annotations, execute } = toolConfig;
+    const { title, description, annotations, execute } = toolConfig;
+    const input = extendedToolInputs.get(toolName);
+    if (!input) continue;
 
     if (!description || !execute) {
       console.warn(`[MCP] Skipping invalid extended tool: ${toolName}`);
@@ -650,12 +663,24 @@ function createMcpServer(
       {
         ...(title && { title }),
         description: description || `Custom tool: ${toolName}`,
-        inputSchema: inputSchema || parameters || z.object({}),
+        inputSchema: input.inputSchema,
         ...(annotations && { annotations }),
       },
       async (params: any) => {
         try {
-          const result = await execute(params);
+          const parsed = input.parse ? await input.parse(params) : { success: true as const, value: params };
+          if (!parsed.success) {
+            return {
+              content: [
+                {
+                  type: 'text' as const,
+                  text: JSON.stringify({ error: `Invalid arguments for ${toolName}: ${parsed.error.message}` }),
+                },
+              ],
+              isError: true,
+            };
+          }
+          const result = await execute(parsed.value);
           return {
             content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
           };
