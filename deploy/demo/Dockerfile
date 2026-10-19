@@ -21,8 +21,8 @@ RUN pnpm turbo run build:bin --filter=@eventcatalog/core
 COPY examples/default ./examples/default
 COPY deploy/demo/configure-catalog.mjs /repo/deploy/demo/configure-catalog.mjs
 WORKDIR /repo/examples/default
-# Server output with Studio on, and no AI chat (the demo is public)
-RUN node /repo/deploy/demo/configure-catalog.mjs eventcatalog.config.js && rm eventcatalog.chat.js
+# Server output with Studio on, and no AI chat (the demo is public; its config, gitignored, is kept out of the image)
+RUN node /repo/deploy/demo/configure-catalog.mjs eventcatalog.config.js
 # The server imports @eventcatalog/core from the catalog's node_modules, as it would from a catalog that installed it
 RUN mkdir -p node_modules/@eventcatalog && ln -s /repo/packages/core node_modules/@eventcatalog/core
 # Fix for Astro in Docker: https://github.com/withastro/astro/issues/2596

@@ -12,3 +12,14 @@
 **/dist
 **/.turbo
 **/.astro
+# What's only on someone's machine (gitignored): never in the image, even when deployed from a local checkout.
+# Secrets, licences and the AI chat's config (chat is off on the demo), and what local runs leave behind
+**/.env
+**/.env.*
+**/license.jwt
+**/.DS_Store
+examples/default/eventcatalog.chat.js
+examples/default/.eventcatalog
+examples/default/exports
+examples/default/public/pagefind
+examples/default/public/architecture.html
