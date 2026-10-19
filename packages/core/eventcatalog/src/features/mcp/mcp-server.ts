@@ -74,29 +74,33 @@ function createToolHandler<T>(fn: (params: T) => Promise<any>, errorMessage: str
 
 // Load extended tools from user configuration
 let extendedTools: Record<string, any> = {};
-let extendedToolNames: string[] = [];
 
 try {
   const providerConfiguration = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.chat.js'));
 
   if (providerConfiguration.tools) {
     extendedTools = providerConfiguration.tools;
-    extendedToolNames = Object.keys(extendedTools);
   }
 } catch (error) {
   // No chat configuration or tools defined - this is fine
 }
 
-// Each extended tool's input for the MCP SDK (worked out once, as converting a schema can be async)
+// The extended tools the MCP server offers, each with its input for the MCP SDK. Worked out once (converting a
+// schema can be async), so the tools registered and the tools listed by GET /docs/mcp are the same ones.
 const extendedToolInputs = new Map<string, StandardSchemaWithJSON>();
 for (const [toolName, toolConfig] of Object.entries(extendedTools)) {
   if (!toolConfig || typeof toolConfig !== 'object') continue;
+  if (!toolConfig.description || !toolConfig.execute) {
+    console.warn(`[MCP] Skipping invalid extended tool: ${toolName}`);
+    continue;
+  }
   try {
     extendedToolInputs.set(toolName, await toCustomToolInput(toolConfig.inputSchema || toolConfig.parameters));
   } catch (error) {
     console.warn(`[MCP] Skipping extended tool ${toolName}: its input schema could not be read (${error})`);
   }
 }
+const extendedToolNames = [...extendedToolInputs.keys()];
 
 const MCP_SERVER_VERSION = '1.3.0';
 
@@ -644,25 +648,15 @@ function createMcpServer(
   }
 
   // Register extended tools from user configuration
-  for (const [toolName, toolConfig] of Object.entries(scope ? {} : extendedTools)) {
-    if (!toolConfig || typeof toolConfig !== 'object') continue;
-
-    // Extract tool properties (Vercel AI SDK format)
-    // The AI SDK tool() helper uses "inputSchema" for Zod schemas
-    const { title, description, annotations, execute } = toolConfig;
-    const input = extendedToolInputs.get(toolName);
-    if (!input) continue;
-
-    if (!description || !execute) {
-      console.warn(`[MCP] Skipping invalid extended tool: ${toolName}`);
-      continue;
-    }
+  for (const [toolName, input] of scope ? [] : extendedToolInputs) {
+    // Tool properties in the Vercel AI SDK format
+    const { title, description, annotations, execute } = extendedTools[toolName];
 
     server.registerTool(
       toolName,
       {
         ...(title && { title }),
-        description: description || `Custom tool: ${toolName}`,
+        description,
         inputSchema: input,
         ...(annotations && { annotations }),
       },
