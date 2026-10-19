@@ -32,6 +32,21 @@ const DEFAULT_IGNORES = ['**/versioned/**', '**/dist/**', '**/node_modules/**'];
 const CUSTOM_ROUTE_IGNORES = [...DEFAULT_IGNORES, 'pages/**/_*/**', 'pages/**/_*'];
 
 /**
+ * The fitness functions `eventcatalog fitness check` runs, found the same way it finds them (counted to see whether
+ * the feature is used). They are code, not documentation, so they stay out of the content hash.
+ * @param {string} projectDir - Path to the catalog directory
+ * @returns {Promise<number | undefined>} - undefined when they can't be counted, so the rest of the counts still send
+ */
+async function countFitnessFunctions(projectDir) {
+  try {
+    const { discoverFitnessFiles } = await import('@eventcatalog/fitness');
+    return discoverFitnessFiles(projectDir).files.length;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Count resources in the catalog directory using glob patterns
  * @param {string} projectDir - Path to the catalog directory
  * @returns {Promise<Record<string, number>>} - Object with resource type counts
@@ -49,6 +64,8 @@ export async function countResources(projectDir) {
     }
     counts[type] = total;
   }
+  const fitnessFunctions = await countFitnessFunctions(projectDir);
+  if (fitnessFunctions !== undefined) counts.fitnessFunctions = fitnessFunctions;
   return counts;
 }
 
