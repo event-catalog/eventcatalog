@@ -28,8 +28,22 @@ const CUSTOM_ROUTE_PATTERNS = {
   customApis: ['pages/**/*.@(ts|js|mjs)'],
 };
 
+// The fitness functions `eventcatalog fitness check` runs (counted to see whether the feature is used). They are code,
+// not documentation, so they stay out of the content hash. Unlike resources, ones beside a version count too, but not
+// ones in federated catalogs: fitness check doesn't run those.
+const FITNESS_PATTERNS = {
+  fitnessFunctions: ['**/fitness/**/*.fitness.ts'],
+};
+
 const DEFAULT_IGNORES = ['**/versioned/**', '**/dist/**', '**/node_modules/**'];
 const CUSTOM_ROUTE_IGNORES = [...DEFAULT_IGNORES, 'pages/**/_*/**', 'pages/**/_*'];
+const FITNESS_IGNORES = ['**/dist/**', '**/node_modules/**', 'federated/**'];
+
+const getIgnores = (type) => {
+  if (type in CUSTOM_ROUTE_PATTERNS) return CUSTOM_ROUTE_IGNORES;
+  if (type in FITNESS_PATTERNS) return FITNESS_IGNORES;
+  return DEFAULT_IGNORES;
+};
 
 /**
  * Count resources in the catalog directory using glob patterns
@@ -38,13 +52,10 @@ const CUSTOM_ROUTE_IGNORES = [...DEFAULT_IGNORES, 'pages/**/_*/**', 'pages/**/_*
  */
 export async function countResources(projectDir) {
   const counts = {};
-  for (const [type, patterns] of Object.entries({ ...RESOURCE_PATTERNS, ...CUSTOM_ROUTE_PATTERNS })) {
+  for (const [type, patterns] of Object.entries({ ...RESOURCE_PATTERNS, ...CUSTOM_ROUTE_PATTERNS, ...FITNESS_PATTERNS })) {
     let total = 0;
     for (const pattern of patterns) {
-      const files = await glob(pattern, {
-        cwd: projectDir,
-        ignore: type in CUSTOM_ROUTE_PATTERNS ? CUSTOM_ROUTE_IGNORES : DEFAULT_IGNORES,
-      });
+      const files = await glob(pattern, { cwd: projectDir, ignore: getIgnores(type) });
       total += files.length;
     }
     counts[type] = total;
