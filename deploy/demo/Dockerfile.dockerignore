@@ -1,0 +1,26 @@
+# The demo's build context (the repo root): the workspace, for turbo prune, and the example it serves
+*
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!turbo.json
+!packages
+!apps
+!examples/default
+!deploy/demo
+**/node_modules
+**/dist
+**/.turbo
+**/.astro
+# What's only on someone's machine (gitignored): never in the image, even when deployed from a local checkout.
+# Secrets, licences and the AI chat's config (chat is off on the demo), and what local runs leave behind
+**/.env
+**/.env.*
+**/license.jwt
+**/.DS_Store
+examples/default/eventcatalog.chat.js
+examples/default/.eventcatalog
+# The JSON dumps `eventcatalog export` writes (the custom exports there, .mdx, are source)
+examples/default/exports/*.json
+examples/default/public/pagefind
+examples/default/public/architecture.html
