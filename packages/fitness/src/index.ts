@@ -1,0 +1,11 @@
+export { defineFitnessFunction } from './define';
+export { createReadOnlyCatalog, READ_ONLY_METHODS } from './catalog';
+export { discoverFitnessFiles } from './discover';
+export type { DiscoveryResult, FitnessFile, FitnessScope } from './discover';
+export { evaluateFitness, getFitnessExitCode, writeFitnessReport, DEFAULT_REPORT_PATH } from './run';
+export type { EvaluateFitnessOptions } from './run';
+export { formatFitnessReport } from './format';
+export type { FormatFitnessReportOptions } from './format';
+export { runFitnessCheck } from './check';
+export type { FitnessCheckOptions } from './check';
+export type * from './types';

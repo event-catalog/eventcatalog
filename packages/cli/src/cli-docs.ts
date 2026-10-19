@@ -1877,6 +1877,37 @@ export const cliFunctions: CLIFunctionDoc[] = [
       },
     ],
   },
+
+  // Fitness
+  {
+    name: 'fitnessCheck',
+    description:
+      'Run the architecture fitness functions (*.fitness.ts files in fitness/ folders) against the catalog, print the results and write them to a JSON report. Exits with 1 when a function fails or errors, so it can gate CI',
+    category: 'Fitness',
+    args: [
+      {
+        name: '--output',
+        type: 'string',
+        required: false,
+        description: 'Where to write the report, relative to the catalog (default: .eventcatalog/fitness/results.json)',
+      },
+      { name: '--format', type: 'string', required: false, description: 'Output format: text or json (default: text)' },
+    ],
+    examples: [
+      {
+        description: 'Run every fitness function in the catalog',
+        command: 'npx @eventcatalog/cli fitness check',
+      },
+      {
+        description: 'Run the fitness functions of a catalog in another directory',
+        command: 'npx @eventcatalog/cli --dir ./my-catalog fitness check',
+      },
+      {
+        description: 'Print the report as JSON',
+        command: 'npx @eventcatalog/cli fitness check --format json',
+      },
+    ],
+  },
 ];
 
 /**
