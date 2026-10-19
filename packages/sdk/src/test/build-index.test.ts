@@ -862,6 +862,28 @@ describe('buildIndex', () => {
       ]);
     });
 
+    it('still indexes sidecars in nested folders named fitness, as only the fitness folder beside the resource holds fitness functions', async () => {
+      await sdk.writeDomain({
+        id: 'payments',
+        name: 'Payments',
+        version: '1.0.0',
+        markdown: '# Payments',
+      });
+      fs.mkdirSync(path.join(CATALOG_PATH, 'domains/payments/attachments/fitness'), { recursive: true });
+      fs.writeFileSync(path.join(CATALOG_PATH, 'domains/payments/attachments/fitness/report.mdx'), '# Fitness report');
+      fs.mkdirSync(path.join(CATALOG_PATH, 'domains/payments/fitness'), { recursive: true });
+      fs.writeFileSync(path.join(CATALOG_PATH, 'domains/payments/fitness/boundaries.fitness.ts'), 'export default {};');
+
+      const index = await sdk.buildIndex({ source: 'acme/payments', commit: '4a1b7e2' });
+
+      expect(index.resources[0].sidecars).toEqual([
+        {
+          path: 'domains/payments/attachments/fitness/report.mdx',
+          hash: hashFile('domains/payments/attachments/fitness/report.mdx'),
+        },
+      ]);
+    });
+
     it('honors an optional .eventcatalogignore when collecting resource sidecars', async () => {
       await sdk.writeDomain({
         id: 'payments',
