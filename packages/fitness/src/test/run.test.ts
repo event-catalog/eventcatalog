@@ -332,6 +332,31 @@ describe('evaluateFitness', () => {
       expect(report.functions[0]).toMatchObject({ status: 'failed', violations: [{ message: 'Fitness catalog,function' }] });
     });
 
+    it('does not let changes a function makes to a config containing functions leak into what other functions read', async () => {
+      const report = await evaluate({
+        'package.json': JSON.stringify({ type: 'module' }),
+        'eventcatalog.config.js': `export default { title: 'Original', docs: { sidebar: ['a'] }, transform: (value) => value + '!' };`,
+        'fitness/a-mutate.fitness.ts': fitnessFunction(
+          { id: 'mutate' },
+          `
+          const config = await catalog.getEventCatalogConfigurationFile();
+          config.title = 'Changed';
+          config.docs.sidebar.push('b');
+          return [];
+          `
+        ),
+        'fitness/b-read.fitness.ts': fitnessFunction(
+          { id: 'read' },
+          `
+          const config = await catalog.getEventCatalogConfigurationFile();
+          return [{ message: [config.title, config.docs.sidebar.join(','), config.transform('ok')].join('|') }];
+          `
+        ),
+      });
+
+      expect(report.functions[1].violations[0].message).toBe('Original|a|ok!');
+    });
+
     it('loads helpers the fitness function imports from the catalog', async () => {
       const report = await evaluate({
         'fitness/helpers/messages.ts': `export const message = (id: string): string => id + ' has a problem';`,

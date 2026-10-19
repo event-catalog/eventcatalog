@@ -28,6 +28,10 @@ const COLLECTION_TYPES: Record<string, CatalogResourceType> = {
 // Dot folders cover .git, .astro, .eventcatalog and .eventcatalog-core
 const isIgnoredDirectory = (name: string) => name.startsWith('.') || name === 'node_modules' || name === 'dist';
 
+// Federation writes other catalogs into federated/<source>/. Only the catalog's own fitness functions run: other
+// catalogs' code is never run without the catalog choosing to (https://github.com/event-catalog/eventcatalog/issues/2977)
+const FEDERATED_DIRECTORY = 'federated';
+
 export type FitnessScope = {
   type: CatalogResourceType;
   id: string;
@@ -53,11 +57,12 @@ export type DiscoveryResult = {
   diagnostics: FitnessDiagnostic[];
 };
 
-const findFitnessFiles = (directory: string, found: string[] = []): string[] => {
+const findFitnessFiles = (directory: string, found: string[] = [], isRoot = true): string[] => {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      if (!isIgnoredDirectory(entry.name)) findFitnessFiles(entryPath, found);
+      if (isIgnoredDirectory(entry.name) || (isRoot && entry.name === FEDERATED_DIRECTORY)) continue;
+      findFitnessFiles(entryPath, found, false);
     } else if (entry.isFile() && entry.name.endsWith(FITNESS_FILE_SUFFIX)) {
       found.push(entryPath);
     }

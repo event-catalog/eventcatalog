@@ -78,13 +78,41 @@ export const READ_ONLY_METHODS = [
 export type ReadOnlyCatalog = Readonly<Pick<SDK, (typeof READ_ONLY_METHODS)[number]>>;
 
 // The SDK caches what it reads, so callers get their own copy: changing a resource can't change what the next call returns.
-// Values that can't be copied are returned as they are: only the catalog's config, which can hold functions.
+// The catalog's config can hold functions, which structuredClone can't copy: it is copied object by object instead,
+// keeping the functions as they are.
+const copyWithFunctions = (value: unknown, copies: WeakMap<object, unknown>): unknown => {
+  if (value === null || typeof value !== 'object') return value;
+  if (copies.has(value)) return copies.get(value);
+
+  if (Array.isArray(value)) {
+    const array: unknown[] = [];
+    copies.set(value, array);
+    for (const item of value) array.push(copyWithFunctions(item, copies));
+    return array;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype === Object.prototype || prototype === null) {
+    const object: Record<string, unknown> = Object.create(prototype);
+    copies.set(value, object);
+    for (const [key, item] of Object.entries(value)) object[key] = copyWithFunctions(item, copies);
+    return object;
+  }
+
+  // Anything else (dates, maps, class instances): a copy where possible
+  try {
+    return structuredClone(value);
+  } catch {
+    return value;
+  }
+};
+
 const copy = <T>(value: T): T => {
   if (value === undefined || value === null) return value;
   try {
     return structuredClone(value);
   } catch {
-    return value;
+    return copyWithFunctions(value, new WeakMap()) as T;
   }
 };
 

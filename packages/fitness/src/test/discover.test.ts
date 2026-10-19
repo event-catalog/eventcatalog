@@ -146,4 +146,16 @@ describe('discoverFitnessFiles', () => {
 
     expect(files).toEqual([]);
   });
+
+  it('does not run fitness functions in federated catalogs, only the catalog’s own', () => {
+    const { files, diagnostics } = discover({
+      'federated/payments/domains/Payments/index.mdx': '---\nid: Payments\nversion: 1.0.0\n---\n',
+      'federated/payments/domains/Payments/fitness/rule.fitness.ts': RULE,
+      'federated/payments/rule.fitness.ts': RULE,
+      'fitness/own.fitness.ts': RULE,
+    });
+
+    expect(files.map((file) => file.source)).toEqual(['fitness/own.fitness.ts']);
+    expect(diagnostics).toEqual([]);
+  });
 });
