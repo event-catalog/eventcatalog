@@ -5,50 +5,7 @@
 /* EventCatalog Studio's canvas (selection, handles, containers, notes, drop targets) */
 @import '@eventcatalog/visualiser/studio.css';
 
-/* Inter, as EventCatalog uses (bundled: views in chats can't load fonts from elsewhere). Its Latin subset, woff2 only:
-   every browser that runs the canvas reads it, and fontsource's woff fallbacks would add ~185 KB inlined */
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src: url('../../node_modules/@fontsource/inter/files/inter-latin-300-normal.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('../../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('../../node_modules/@fontsource/inter/files/inter-latin-500-normal.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('../../node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../../node_modules/@fontsource/inter/files/inter-latin-700-normal.woff2') format('woff2');
-}
-
-/* Excalifont, Excalidraw's hand-drawn font (OFL-1.1), for the welcome on an empty canvas: its Latin subset, bundled */
-@font-face {
-  font-family: 'Excalifont';
-  src: url('./fonts/Excalifont-Regular.woff2') format('woff2');
-  font-display: swap;
-}
+/* Inter and Excalifont are added from their bytes (fonts.ts): chats' sandboxes block fonts from data: URLs in CSS */
 
 @source '../*.tsx';
 @source '../ported/*.tsx';

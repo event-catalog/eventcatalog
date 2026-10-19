@@ -13,6 +13,7 @@ import { BLANK_PAYLOAD, hasContent, loadLocalCanvas, saveLocalCanvas } from './l
 import { ConfirmDialog } from './ConfirmDialog';
 import { parseRoomFragment } from './collab/room';
 import { isReturningVisitor, track, trackPageView } from './analytics';
+import { loadFonts } from './fonts';
 
 const VIEW_META_KEY = 'eventcatalog/architecture';
 const VIEW_TOOL = 'get_architecture_view';
@@ -133,4 +134,5 @@ try {
   }
 } catch {}
 const isWeb = window.location.hash.includes('m=') || window.parent === window;
+loadFonts();
 mountView(isWeb ? WebPage : McpApp, [styles, architectureDiagramStyles].join('\n'));
