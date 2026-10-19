@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 5.4.1
+
+### Patch Changes
+
+- 41e9e78: fix(core): Studio's WebMCP tools follow Chrome's annotation rules: `show_nodes` is no longer marked read only (it changes the user's selection and view), and `get_canvas` is marked as returning untrusted content (names, notes and comments come from people)
+
 ## 5.4.0
 
 ### Minor Changes
