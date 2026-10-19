@@ -56,6 +56,7 @@ export const installTemplate = async ({
       federate: 'eventcatalog federate',
       export: 'eventcatalog export',
       lint: 'eventcatalog-linter',
+      fitness: 'eventcatalog fitness check',
       test: 'echo "Error: no test specified" && exit 1',
     },
   };
@@ -102,7 +103,8 @@ export const installTemplate = async ({
   }
 
   // "@myuser/my-package": "file:../lib"
-  const devDependencies = [] as any;
+  // Types for the fitness functions in fitness/ (they run without it)
+  const devDependencies = ['@eventcatalog/fitness'] as any;
 
   /**
    * Install package.json dependencies if they exist.
@@ -143,6 +145,9 @@ export const installTemplate = async ({
       }
     },
   });
+
+  // Files every template gets, such as the starter fitness functions
+  await copy('**', root, { parents: true, cwd: path.join(__dirname, '../templates/shared') });
 
   fs.writeFileSync(path.join(root, 'AGENTS.md'), AGENT_RULES);
   fs.writeFileSync(path.join(root, 'CLAUDE.md'), CLAUDE_RULES);

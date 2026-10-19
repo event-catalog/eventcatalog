@@ -767,6 +767,30 @@ program
     await generate(dir);
   });
 
+const fitness = program.command('fitness').description('Run the architecture fitness functions in your catalog.');
+
+fitness
+  .command('check')
+  .description('Run every *.fitness.ts function in the catalog, print the results and write them to a JSON report.')
+  .option('-o, --output <path>', 'Where to write the report, relative to the catalog', '.eventcatalog/fitness/results.json')
+  .option('--format <format>', 'Output format: text or json', 'text')
+  .action(async (commandOptions: { output: string; format: 'text' | 'json' }) => {
+    // Fitness functions can read settings from the project's .env file
+    if (fs.existsSync(path.join(dir, '.env'))) {
+      dotenv.config({ path: path.join(dir, '.env') });
+    }
+    const { runFitnessCheck } = await import('@eventcatalog/fitness');
+    process.exitCode = await runFitnessCheck({
+      dir,
+      output: commandOptions.output,
+      format: commandOptions.format,
+      color: Boolean(process.stdout.isTTY) && !process.env.NO_COLOR,
+    });
+    // The CLI exits as soon as the command returns. Piped output is written asynchronously (e.g. on macOS), so wait
+    // until it has all been written, or a long report gets cut off
+    await new Promise<void>((resolve) => process.stdout.write('', () => resolve()));
+  });
+
 const reportFederationProgress = (event: FederationProgressEvent, verbose = false) => {
   switch (event.type) {
     case 'configured':

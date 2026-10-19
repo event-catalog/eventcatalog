@@ -156,6 +156,9 @@ importers:
       '@eventcatalog/exporters':
         specifier: workspace:*
         version: link:../exporters
+      '@eventcatalog/fitness':
+        specifier: workspace:*
+        version: link:../fitness
       '@eventcatalog/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -251,6 +254,9 @@ importers:
       '@eventcatalog/exporters':
         specifier: workspace:*
         version: link:../exporters
+      '@eventcatalog/fitness':
+        specifier: workspace:*
+        version: link:../fitness
       '@eventcatalog/license':
         specifier: ^0.0.9
         version: 0.0.9
@@ -726,6 +732,34 @@ importers:
       '@types/semver':
         specifier: ^7.5.8
         version: 7.7.1
+      prettier:
+        specifier: ^3.3.3
+        version: 3.6.2
+      tsup:
+        specifier: ^8.1.0
+        version: 8.5.0(jiti@2.7.0)(postcss@8.5.29)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+      typescript:
+        specifier: ^5.5.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.12)(@types/node@20.19.19)(jiti@2.7.0)(jsdom@27.0.0(postcss@8.5.29))(lightningcss@1.33.0)(terser@5.46.0)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/fitness:
+    dependencies:
+      '@eventcatalog/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      jiti:
+        specifier: ^2.6.1
+        version: 2.7.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.10
+        version: 20.19.19
       prettier:
         specifier: ^3.3.3
         version: 3.6.2
@@ -6685,10 +6719,6 @@ packages:
 
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
-
-  jiti@2.6.1:
-    resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
-    hasBin: true
 
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
@@ -13016,7 +13046,7 @@ snapshots:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       enhanced-resolve: 5.19.0
-      jiti: 2.6.1
+      jiti: 2.7.0
       lightningcss: 1.30.2
       magic-string: 0.30.21
       source-map-js: 1.2.1
@@ -16211,8 +16241,6 @@ snapshots:
       '@isaacs/cliui': 8.0.2
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
-
-  jiti@2.6.1: {}
 
   jiti@2.7.0: {}
 

@@ -265,6 +265,10 @@ const normalizeSchemas = async (
 
 const IGNORED_SIDECAR_FILES = new Set(['.DS_Store', '.gitignore', '.gitkeep', '.npmignore', 'Thumbs.db', 'desktop.ini']);
 const IGNORED_SIDECAR_DIRECTORIES = new Set(['.git', '.hg', '.svn', 'node_modules']);
+// The fitness/ folder beside a resource's index holds the catalog's fitness functions: code that `eventcatalog fitness
+// check` runs. It stays with the catalog that owns it, rather than being copied into (and run by) catalogs that
+// federate this one. Folders named fitness deeper in the resource are ordinary sidecars.
+const FITNESS_DIRECTORY = 'fitness';
 
 const normalizeSidecars = async (
   directory: string,
@@ -277,6 +281,7 @@ const normalizeSidecars = async (
   // Teams and users are individual files in shared directories. Only resources
   // backed by their own index file own the surrounding directory tree.
   if (!/^index\.mdx?$/i.test(path.basename(resourcePath))) return undefined;
+  const resourceDirectory = path.dirname(resourcePath);
 
   const collectFiles = async (currentDirectory: string): Promise<string[]> => {
     let entries;
@@ -298,6 +303,7 @@ const normalizeSidecars = async (
 
           if (entry.isDirectory()) {
             if (IGNORED_SIDECAR_DIRECTORIES.has(entry.name) || resourceDirectories.has(resolvedEntryPath)) return [];
+            if (entry.name === FITNESS_DIRECTORY && currentDirectory === resourceDirectory) return [];
             if (ignoreRules?.ignores(`${catalogPath}/`)) return [];
             return collectFiles(entryPath);
           }
@@ -312,7 +318,7 @@ const normalizeSidecars = async (
 
     return files.flat();
   };
-  const sidecarPaths = (await collectFiles(path.dirname(resourcePath))).sort(compareText);
+  const sidecarPaths = (await collectFiles(resourceDirectory)).sort(compareText);
   const sidecars: IndexSidecar[] = await Promise.all(
     sidecarPaths.map(async (sidecarPath) => ({
       path: toCatalogPath(directory, sidecarPath),

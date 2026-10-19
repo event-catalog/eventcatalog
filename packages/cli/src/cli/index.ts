@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { program } from 'commander';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { executeFunction } from './executor';
 import { listFunctions, formatListOutput } from './list';
@@ -9,6 +9,8 @@ import { exportResource, exportCatalog } from './export';
 import { exportHtml } from './export-html';
 import { snapshotCreate, snapshotDiff, snapshotList } from './snapshot';
 import { governanceCheck } from './governance';
+import { runFitnessCheck } from '@eventcatalog/fitness';
+import dotenv from 'dotenv';
 
 // Read package.json to get version
 let version = '1.0.0';
@@ -194,6 +196,28 @@ governance
       console.error(error instanceof Error ? error.message : String(error));
       process.exit(1);
     }
+  });
+
+// Fitness command group
+const fitness = program.command('fitness').description('Run the architecture fitness functions in your catalog');
+
+fitness
+  .command('check')
+  .description('Run every *.fitness.ts function in the catalog, print the results and write them to a JSON report')
+  .option('-o, --output <path>', 'Where to write the report, relative to the catalog', '.eventcatalog/fitness/results.json')
+  .option('--format <format>', 'Output format: text or json', 'text')
+  .action(async (opts) => {
+    const globalOpts = program.opts() as any;
+    const dir = globalOpts.dir || '.';
+    // Fitness functions can read settings from the catalog's .env file
+    const envFile = resolve(dir, '.env');
+    if (existsSync(envFile)) dotenv.config({ path: envFile });
+    process.exitCode = await runFitnessCheck({
+      dir,
+      output: opts.output,
+      format: opts.format,
+      color: Boolean(process.stdout.isTTY) && !process.env.NO_COLOR,
+    });
   });
 
 // Catch-all for any other command - execute as SDK function

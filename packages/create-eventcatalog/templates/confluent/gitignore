@@ -22,6 +22,7 @@ yarn-debug.log*
 yarn-error.log*
 
 .eventcatalog-core
+.eventcatalog/fitness/
 .eventcatalog-cache/
 federated/
 

@@ -68,6 +68,25 @@ eventcatalog export --all --output catalog.ec
 
 ---
 
+#### `fitness check` — Run architecture fitness functions
+
+Runs every `*.fitness.ts` function in the catalog's `fitness/` folders (see [`@eventcatalog/fitness`](https://www.npmjs.com/package/@eventcatalog/fitness)), prints the results and writes a JSON report.
+
+```bash
+eventcatalog fitness check [options]
+```
+
+**Options:**
+
+| Option              | Description                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `--output <path>`   | Where to write the report, relative to the catalog (`.eventcatalog/fitness/results.json`) |
+| `--format <format>` | `text` (default) or `json`                                                                |
+
+Exits with `0` when every function passes or only warns, `1` when a function fails or can't be evaluated, and `2` when the check can't run, so it can gate pull requests.
+
+---
+
 #### `list` — List available SDK functions
 
 Display all SDK functions organized by category (Events, Commands, Queries, Services, Domains, etc.).

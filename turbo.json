@@ -13,6 +13,10 @@
       "dependsOn": ["^build:bin", "^build"],
       "outputs": ["dist/**"]
     },
+    "@eventcatalog/cli#build:bin": {
+      "dependsOn": ["^build:bin", "^build"],
+      "outputs": ["dist/**"]
+    },
     "test": {
       "dependsOn": ["build:bin"],
       "cache": false

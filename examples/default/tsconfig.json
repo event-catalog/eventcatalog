@@ -22,8 +22,10 @@
       "@stores/*": ["../../packages/core/eventcatalog/src/stores/*"],
       "@types": ["../../packages/core/eventcatalog/src/types/index.ts"],
       "@config": ["eventcatalog.config.js"],
-      "@eventcatalog": ["../../packages/core/eventcatalog/src/utils/eventcatalog-config/catalog.ts"]
+      "@eventcatalog": ["../../packages/core/eventcatalog/src/utils/eventcatalog-config/catalog.ts"],
+      "@eventcatalog/fitness": ["../../packages/fitness/src/index.ts"]
     }
   },
-  "include": ["pages/**/*", "components/**/*"]
+  "include": ["pages/**/*", "components/**/*", "**/fitness/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

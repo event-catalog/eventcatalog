@@ -38,6 +38,16 @@ With this integration you can:
 - Visualize your Kafka architecture
 - Add semantic meaning to schemas and topics
 
+## Check Your Architecture
+
+Fitness functions check your catalog against your own architecture rules, such as "every message has an owner". Each rule is a `*.fitness.ts` file in the `fitness/` folder, or in a `fitness/` folder next to a domain, system, service or message.
+
+```sh
+npm run fitness
+```
+
+It exits with an error when a rule fails, so you can run it in CI to check every change.
+
 ## Use AI with Architecture Context
 
 EventCatalog gives AI tools structured context about your domains, services, messages, schemas, owners, and flows. Connect an MCP-compatible tool with the [EventCatalog MCP Server](https://www.eventcatalog.dev/docs/development/guides/ai/using-mcp-server).
