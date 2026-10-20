@@ -3,6 +3,7 @@ import { BaseEdge } from "@xyflow/react";
 import { EDGE_WARNING_STYLE, EDGE_DEFAULT_STYLE } from "../nodes/shared-styles";
 import EdgeLabel from "./EdgeLabel";
 import { getStepPath, useRoute } from "./route";
+import DomainEdgeEnds from "./DomainEdgeEnds";
 import { CROSS_DOMAIN_CLASS, isCrossDomain } from "./use-cross-domain";
 
 /** Map collection type → envelope fill color (module-level, zero allocation). */
@@ -37,7 +38,7 @@ const AnimatedMessageEdge = memo(
     markerEnd,
     markerStart,
   }: any) => {
-    const [edgePath, labelX, labelY, zIndex] = useRoute(
+    const [edgePath, labelX, labelY, zIndex, domainEnds] = useRoute(
       {
         data,
         source,
@@ -129,6 +130,7 @@ const AnimatedMessageEdge = memo(
           style={warning ? EDGE_WARNING_STYLE : EDGE_DEFAULT_STYLE}
           className={crossDomain ? CROSS_DOMAIN_CLASS : undefined}
         />
+        <DomainEdgeEnds ends={domainEnds} />
         {animatedNodes}
         <EdgeLabel
           zIndex={zIndex}

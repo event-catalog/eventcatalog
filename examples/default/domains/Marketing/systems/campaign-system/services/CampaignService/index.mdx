@@ -1,0 +1,18 @@
+---
+id: campaign-service
+version: 1.0.0
+name: Campaign Service
+summary: |
+  Runs the welcome campaign and sends customers campaign offers.
+owners:
+  - shopping-platform
+sends:
+  - id: campaign-offer-sent
+    version: 1.0.0
+---
+
+## Overview
+
+The **Campaign Service** runs the welcome campaign and publishes [[event|campaign-offer-sent]] for each offer it sends.
+
+<NodeGraph />

@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import { memo, type KeyboardEvent } from "react";
 import { buildUrl, navigateTo } from "../utils/url-builder";
-import { LINE_CLAMP_STYLE } from "./shared-styles";
+import { HANDLE_GLOW, LINE_CLAMP_STYLE } from "./shared-styles";
+import { useNodeHasConnections } from "../utils/node-connections";
 import { HIDDEN_HANDLE_STYLE } from "./OwnerIndicator";
 import { TruncatedResourceName } from "./TruncatedResourceName";
 
@@ -33,6 +34,33 @@ const CARD_STYLE = {
   boxShadow: "0 2px 12px rgba(234, 179, 8, 0.15)",
 } as const;
 
+// Shown on the sides with edges, as on every other card
+const GlowHandle = memo(function GlowHandle({
+  side,
+}: {
+  side: "left" | "right";
+}) {
+  return (
+    <div
+      className="ec-handle-glow"
+      style={{
+        position: "absolute",
+        top: "50%",
+        [side]: -6,
+        transform: "translateY(-50%)",
+        width: 12,
+        height: 12,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, #eab308, #a16207)",
+        border: "2px solid rgb(var(--ec-page-bg))",
+        zIndex: 20,
+        ...HANDLE_GLOW.domain,
+        pointerEvents: "none",
+      }}
+    />
+  );
+});
+
 /**
  * A domain shown as a single card (not expanded into its systems), e.g. another
  * domain on a domain's diagram. Styled like the system node, in the domain
@@ -50,6 +78,7 @@ export default memo(function DomainCardNode({ data }: any) {
     navigable = true,
   } = data as Data;
   const { id, version, name, summary } = domain;
+  const connected = useNodeHasConnections();
 
   const stats = [
     { icon: GroupIcon, label: "Systems", count: systemsCount },
@@ -86,6 +115,8 @@ export default memo(function DomainCardNode({ data }: any) {
         position={Position.Right}
         style={HIDDEN_HANDLE_STYLE}
       />
+      {connected.target && <GlowHandle side="left" />}
+      {connected.source && <GlowHandle side="right" />}
 
       {/* Floating type badge on the top-left border */}
       <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
