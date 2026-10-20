@@ -182,6 +182,14 @@ const HIDE_ATTRIBUTION = { hideAttribution: true };
 const RENDER_PARAM = "render";
 const isMermaidInUrl = () =>
   new URLSearchParams(window.location.search).get(RENDER_PARAM) === "mermaid";
+/** A link (relative or absolute) that opens in the Mermaid view */
+const withMermaidInUrl = (link: string) => {
+  const url = new URL(link, window.location.href);
+  url.searchParams.set(RENDER_PARAM, "mermaid");
+  return /^[a-z]+:/i.test(link)
+    ? url.href
+    : `${url.pathname}${url.search}${url.hash}`;
+};
 const setMermaidInUrl = (isMermaid: boolean) => {
   const url = new URL(window.location.href);
   if (isMermaid) url.searchParams.set(RENDER_PARAM, "mermaid");
@@ -2657,10 +2665,15 @@ const NodeGraphBuilder = ({
               }
               onChange={(e) => {
                 // Goes to one of the links given, never to whatever the option's value was changed to
-                const url = links.find(
+                const link = links.find(
                   (link) => link.url === e.target.value,
                 )?.url;
-                if (!url) return;
+                if (!link) return;
+                // Another version opens in the Mermaid view too, when the URL keeps it
+                const url =
+                  isMermaidView && isMermaidInUrl()
+                    ? withMermaidInUrl(link)
+                    : link;
                 if (onNavigate) {
                   onNavigate(url);
                 } else {
