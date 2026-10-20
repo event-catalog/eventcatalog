@@ -60,12 +60,12 @@ describe("layoutWithElk", () => {
     expect(start(edges[2])).toEqual(start(edges[3]));
   });
 
-  it("records where each edge's nodes were laid out, in the flow", async () => {
+  it("records where each edge's nodes were laid out in the flow, and how tall", async () => {
     const { nodes, edges } = await layoutWithElk({
       nodes: [
         node("group", { type: "system-group" }),
         node("A", { parentId: "group" }),
-        node("B"),
+        node("B", { type: "systems" }),
       ],
       edges: [edge("e1", "A", "B")],
     });
@@ -75,8 +75,12 @@ describe("layoutWithElk", () => {
     expect(routeOf(edges[0]).source).toEqual({
       x: group.x + byId.get("A")!.position.x,
       y: group.y + byId.get("A")!.position.y,
+      height: 112,
     });
-    expect(routeOf(edges[0]).target).toEqual(byId.get("B")!.position);
+    expect(routeOf(edges[0]).target).toEqual({
+      ...byId.get("B")!.position,
+      height: 120,
+    });
   });
 
   it("leaves edges to nodes not in the graph as they are", async () => {

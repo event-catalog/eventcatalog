@@ -96,9 +96,15 @@ const pointSchema = z.object({ x: z.number(), y: z.number() });
 /**
  * Edges for a new canvas (through the Studio API): as add_to_canvas takes them, and how each is drawn, if known
  * (e.g. copied from a diagram): the points it goes through (canvas coordinates, at right angles) and where its
- * label goes. It follows its nodes when they're moved.
+ * label goes, and how tall its nodes were laid out (for its ends to land on them as they render). It follows its
+ * nodes when they're moved.
  */
-const routeSchema = z.object({ points: z.array(pointSchema).min(2).max(200), label: pointSchema.optional() });
+const routeSchema = z.object({
+  points: z.array(pointSchema).min(2).max(200),
+  label: pointSchema.optional(),
+  sourceHeight: z.number().positive().optional(),
+  targetHeight: z.number().positive().optional(),
+});
 export const newCanvasEdgesSchema = z.array(edgeSpecsSchema.element.extend({ route: routeSchema.optional() }));
 export type NewCanvasEdges = z.output<typeof newCanvasEdgesSchema>;
 

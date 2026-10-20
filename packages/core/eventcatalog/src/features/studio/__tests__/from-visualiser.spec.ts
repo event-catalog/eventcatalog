@@ -208,6 +208,28 @@ describe('canvasFromVisualiser', () => {
     });
   });
 
+  it('keeps how tall the diagram laid the connected nodes out, so connections land on them as they render', () => {
+    const laidOut = { ...route, sourceHeight: 112, targetHeight: 104 };
+    const { nodes, edges } = canvasFromVisualiser({
+      ...snapshot,
+      edges: [{ source: 'OrderService-1.0.0', target: 'OrderPlaced-1.0.0', label: 'publishes', route: laidOut }],
+    });
+    const { content, errors } = planCanvas(nodes, edges, catalog);
+    expect(errors).toEqual([]);
+
+    const doc = new Y.Doc();
+    addCanvasContent(doc, content);
+    const onCanvas = new Map(getCanvasMaps(doc).nodes.entries());
+    const routed = [...getCanvasMaps(doc).edges.values()].find((edge) => edge.label === 'publishes')!;
+    const target = [...onCanvas.values()].find((node) => (node.data.catalog as { key: string }).key === 'events:OrderPlaced')!;
+
+    expect(routed.data?.route).toEqual({
+      ...route,
+      source: { x: 180, y: 260, height: 112 },
+      target: { ...getAbsolutePosition(target, onCanvas), height: 104 },
+    });
+  });
+
   describe("the diagram's levels", () => {
     // Level 1 of the Orders domain: its Checkout system as a card (a container on level 3), and Billing
     const level1 = {
