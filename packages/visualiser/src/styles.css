@@ -50,6 +50,25 @@
   --ec-group-bg: rgba(250, 248, 255, 0.35);
   --ec-group-header-bg: rgba(237, 233, 254, 0.7);
   --ec-group-text: #5b21b6;
+
+  /* Minimap: each resource's colour (utils/minimap.ts) */
+  --ec-minimap-event: 234, 88, 12;
+  --ec-minimap-command: 37, 99, 235;
+  --ec-minimap-query: 22, 163, 74;
+  --ec-minimap-service: 219, 39, 119;
+  --ec-minimap-channel: 107, 114, 128;
+  --ec-minimap-data: 79, 70, 229;
+  --ec-minimap-agent: 2, 132, 199;
+  --ec-minimap-view: 14, 165, 233;
+  --ec-minimap-message-group: 124, 58, 237;
+  --ec-minimap-system: 139, 92, 246;
+  --ec-minimap-external: 147, 51, 234;
+  --ec-minimap-domain: 234, 179, 8;
+  --ec-minimap-actor: 202, 138, 4;
+  --ec-minimap-flow: 13, 148, 136;
+  --ec-minimap-entity: 59, 130, 246;
+  --ec-minimap-note: 253, 224, 71;
+  --ec-minimap-other: 156, 163, 175;
 }
 
 /* Dark mode theme — aligned with EventCatalog core (GitHub-dark) */
@@ -88,6 +107,25 @@
   --ec-group-bg: #1e1533;
   --ec-group-header-bg: #2d1f4e;
   --ec-group-text: #c084fc;
+
+  /* Minimap: each resource's colour, lighter on dark */
+  --ec-minimap-event: 251, 146, 60;
+  --ec-minimap-command: 96, 165, 250;
+  --ec-minimap-query: 74, 222, 128;
+  --ec-minimap-service: 244, 114, 182;
+  --ec-minimap-channel: 156, 163, 175;
+  --ec-minimap-data: 129, 140, 248;
+  --ec-minimap-agent: 56, 189, 248;
+  --ec-minimap-view: 125, 211, 252;
+  --ec-minimap-message-group: 196, 181, 253;
+  --ec-minimap-system: 167, 139, 250;
+  --ec-minimap-external: 192, 132, 252;
+  --ec-minimap-domain: 250, 204, 21;
+  --ec-minimap-actor: 234, 179, 8;
+  --ec-minimap-flow: 45, 212, 191;
+  --ec-minimap-entity: 147, 197, 253;
+  --ec-minimap-note: 202, 138, 4;
+  --ec-minimap-other: 107, 114, 128;
 }
 
 /* Hide download button on small screens without emitting a global .hidden rule */
@@ -506,8 +544,85 @@
   animation-play-state: paused;
 }
 
-/* Minimap customizations */
+/* Minimap: the diagram in miniature (DiagramMiniMap, utils/minimap.ts): each node in its resource's colour, and
+   containers (domains, systems, groups) outlined in theirs, with what's in them inside */
 .react-flow__minimap {
   background-color: rgb(var(--ec-card-bg));
   border: 1px solid rgb(var(--ec-page-border));
+  --xy-minimap-mask-background-color: rgba(var(--ec-page-text), 0.08);
+}
+
+.ec-minimap-node {
+  fill: rgb(var(--ec-minimap-color));
+}
+
+.ec-minimap-container {
+  fill: rgba(var(--ec-minimap-color), 0.08);
+  stroke: rgb(var(--ec-minimap-color));
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* External systems are dashed outlines, as on the diagram */
+.ec-minimap-external {
+  stroke: rgb(var(--ec-minimap-color));
+  stroke-width: 1.5px;
+  stroke-dasharray: 3 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.ec-minimap-external:not(.ec-minimap-container) {
+  fill: rgba(var(--ec-minimap-color), 0.25);
+}
+
+.ec-minimap-event {
+  --ec-minimap-color: var(--ec-minimap-event);
+}
+.ec-minimap-command {
+  --ec-minimap-color: var(--ec-minimap-command);
+}
+.ec-minimap-query {
+  --ec-minimap-color: var(--ec-minimap-query);
+}
+.ec-minimap-service {
+  --ec-minimap-color: var(--ec-minimap-service);
+}
+.ec-minimap-channel {
+  --ec-minimap-color: var(--ec-minimap-channel);
+}
+.ec-minimap-data {
+  --ec-minimap-color: var(--ec-minimap-data);
+}
+.ec-minimap-agent {
+  --ec-minimap-color: var(--ec-minimap-agent);
+}
+.ec-minimap-view {
+  --ec-minimap-color: var(--ec-minimap-view);
+}
+.ec-minimap-message-group {
+  --ec-minimap-color: var(--ec-minimap-message-group);
+}
+.ec-minimap-system {
+  --ec-minimap-color: var(--ec-minimap-system);
+}
+.ec-minimap-external {
+  --ec-minimap-color: var(--ec-minimap-external);
+}
+.ec-minimap-domain {
+  --ec-minimap-color: var(--ec-minimap-domain);
+}
+.ec-minimap-actor {
+  --ec-minimap-color: var(--ec-minimap-actor);
+}
+.ec-minimap-flow {
+  --ec-minimap-color: var(--ec-minimap-flow);
+}
+.ec-minimap-entity {
+  --ec-minimap-color: var(--ec-minimap-entity);
+}
+.ec-minimap-note {
+  --ec-minimap-color: var(--ec-minimap-note);
+}
+.ec-minimap-other {
+  --ec-minimap-color: var(--ec-minimap-other);
 }
