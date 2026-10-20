@@ -66,6 +66,9 @@ interface Props {
   overview?: { label: string };
   // Flows only: group the steps into swimlanes to start with
   lanes?: FlowGroupBy;
+  // The visualiser's own pages: keep the Mermaid view in the URL (`?render=mermaid`), so links open in it.
+  // Not docs pages, which can show several diagrams.
+  syncRenderModeWithUrl?: boolean;
 }
 
 const {
@@ -84,6 +87,7 @@ const {
   disableMessageAnimation,
   overview,
   lanes,
+  syncRenderModeWithUrl = false,
 } = Astro.props;
 
 let nodes = [],
@@ -263,6 +267,7 @@ if (overview && levelsOverview) {
     preferenceScope={collection}
     swimlanes={lanes}
     studioApiUrl={studioApiUrl}
+    syncRenderModeWithUrl={syncRenderModeWithUrl}
   />
 </div>
 

@@ -2973,6 +2973,12 @@ const NodeGraphBuilder = ({
 
 interface NodeGraphProps {
   id: string;
+  /**
+   * Keeps the Mermaid view in the page's URL (`?render=mermaid`), so links open
+   * in it. Only for the visualiser's own pages: not diagrams embedded in docs
+   * or other apps, which can share a page (or an iframe) with others.
+   */
+  syncRenderModeWithUrl?: boolean;
   title?: string;
   href?: string;
   hrefLabel?: string;
@@ -3062,6 +3068,7 @@ const NodeGraph = ({
   footerLabel,
   linksToVisualiser = false,
   links = [],
+  syncRenderModeWithUrl = false,
   mode = "full",
   portalId,
   showFlowWalkthrough = true,
@@ -3159,10 +3166,8 @@ const NodeGraph = ({
     hiddenLegendKeys.current = keys;
   }, []);
   // The Mermaid view, kept when switching between the graphs. On the
-  // visualiser's own page it's in the URL too (`?render=mermaid`), so links
-  // open in it, as they open at their level (not on docs pages, which can
-  // show several diagrams)
-  const syncRenderModeWithUrl = mode === "full";
+  // visualiser's own pages it's in the URL too (`?render=mermaid`), so links
+  // open in it, as they open at their level
   const isMermaidView = useRef<boolean | null>(null);
   if (isMermaidView.current === null) {
     isMermaidView.current = syncRenderModeWithUrl && isMermaidInUrl();

@@ -78,6 +78,8 @@ interface AstroNodeGraphProps {
   hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
   // The kind of diagram, so the level is remembered for each kind
   preferenceScope?: string;
+  // On the visualiser's own pages: keep the Mermaid view in the URL (`?render=mermaid`)
+  syncRenderModeWithUrl?: boolean;
   // Group a flow's steps into swimlanes to start with
   swimlanes?: FlowGroupBy;
   // The Studio API's address, when Studio is on: the menu can then start a canvas from the diagram
