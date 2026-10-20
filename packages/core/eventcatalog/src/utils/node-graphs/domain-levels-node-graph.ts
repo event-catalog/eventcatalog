@@ -512,6 +512,16 @@ const addDomainMessages = ({
     }
     return false;
   };
+  // Whether a service in a (sub)domain's box says it sends (or receives) the message: e.g. one it sends in a
+  // message group, which its graph shows as the group rather than the message. Services only: agents in a
+  // domain aren't drawn on its diagram
+  const groupOfTreeDomain = new Map(tree.map((entry) => [entry.domain.data.id, entry.groupId]));
+  const declaredIn = (groupId: string, key: 'sends' | 'receives', messageId: string) =>
+    catalogServices.some((service) => {
+      if (!lists(service, key, messageId)) return false;
+      const ownerGroup = groupOfTreeDomain.get(owners.get(generateIdForNode(service))?.domain.data.id);
+      return !!ownerGroup && (ownerGroup === groupId || isInside(nodes, ownerGroup, groupId));
+    });
   // The node standing for a service (or agent) on the other side, or none when it's in the domain
   const otherSide = (service: any) => {
     const serviceId = generateIdForNode(service);
@@ -551,7 +561,7 @@ const addDomainMessages = ({
         if (!message.data) return;
         const messageId = generateIdForNode(message);
         const sends = key === 'sends';
-        if (reaches(messageId, sends ? 'senders' : 'receivers', groupId)) return;
+        if (reaches(messageId, sends ? 'senders' : 'receivers', groupId) || declaredIn(groupId, key, messageId)) return;
         // Outside the box, as the box sends or receives it (e.g. not left in it by a service in it consuming it)
         const node = nodes.get(messageId);
         if (!node) nodes.set(messageId, createTriggerMessageNode(message, mode));

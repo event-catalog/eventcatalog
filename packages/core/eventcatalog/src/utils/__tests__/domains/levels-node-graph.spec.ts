@@ -691,6 +691,31 @@ describe('domain-level messages', () => {
     );
   });
 
+  it("leaves a domain-level message as it is when one of the domain's services sends it in a message group", () => {
+    // PaymentService sends PaymentTaken in a named group: its graph only has the group's node
+    const paymentService = entry('services', 'PaymentService', { sends: [paymentTaken] });
+    const withService = { ...payments, data: { ...payments.data, services: [paymentService], receives: [] } };
+    const { nodes, edges } = build(
+      withService,
+      [
+        {
+          service: paymentService,
+          graph: {
+            nodes: [
+              { id: 'PaymentService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+              { id: 'payment-events', type: 'messageGroup', position: { x: 0, y: 0 }, data: {} },
+            ],
+            edges: [{ id: 'grouped', source: 'PaymentService-1.0.0', target: 'payment-events' }],
+          },
+        },
+      ],
+      { catalogServices: [...catalogServices, paymentService] }
+    );
+
+    expect(edges).not.toContain('domain-group-Payments-1.0.0->PaymentTaken-1.0.0');
+    expect(nodes.has('PaymentTaken-1.0.0')).toBe(false);
+  });
+
   it("leaves a domain-level message as it is when one of the domain's services receives it through a channel", () => {
     const paymentService = entry('services', 'PaymentService', { receives: [processPayment] });
     const withService = { ...payments, data: { ...payments.data, services: [paymentService], sends: [] } };
