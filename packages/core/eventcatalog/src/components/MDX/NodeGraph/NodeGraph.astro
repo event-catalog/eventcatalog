@@ -113,8 +113,10 @@ if (collection in getNodesAndEdgesFunctions) {
     version,
     mode,
     channelRenderMode: config.visualiser?.channels?.renderMode === 'single' ? 'single' : 'flat',
-    // The standalone System Diagram wraps the system's nodes in one parent boundary node.
+    // The standalone System Diagram wraps the system's own services, messages
+    // and channels in one parent boundary. Services of other systems stay outside it.
     wrapInSystemGroup: collection === 'systems',
+    confineToMembers: collection === 'systems',
   });
 
   nodes = fetchedNodes;

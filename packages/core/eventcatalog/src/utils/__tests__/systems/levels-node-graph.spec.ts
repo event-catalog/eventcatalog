@@ -9,41 +9,59 @@ const makeSystem = (id: string, data: Record<string, any> = {}) => ({
   data: { id, name: id, version: '1.0.0', ...data },
 });
 
+const shippingService = {
+  id: 'services/ShippingService/index.mdx',
+  collection: 'services',
+  data: { id: 'ShippingService', name: 'Shipping Service', version: '1.0.0' },
+};
+
 const systems = [
-  makeSystem('Shipping', { relationships: [{ id: 'Carrier', label: 'delivers shipments with' }] }),
+  makeSystem('Shipping', {
+    services: [{ id: 'ShippingService', version: '1.0.0' }],
+    relationships: [{ id: 'Carrier', label: 'delivers shipments with' }],
+  }),
   makeSystem('Carrier'),
 ];
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    getCollection: (key: CollectionKey) => Promise.resolve(key === 'systems' ? systems : []),
+    getCollection: (key: CollectionKey) => {
+      if (key === 'systems') return Promise.resolve(systems);
+      if (key === 'services') return Promise.resolve([shippingService]);
+      return Promise.resolve([]);
+    },
   };
 });
 
-// The Shipping system's resource diagram: a system group with one service inside
-vi.mock('@utils/node-graphs/systems-node-graph', () => ({
-  getNodesAndEdges: () =>
-    Promise.resolve({
-      nodes: [
-        {
-          id: 'system-group-Shipping-1.0.0',
-          type: 'system-group',
-          position: { x: 0, y: 0 },
-          style: { width: 600, height: 400 },
-          data: {},
-        },
-        {
-          id: 'ShippingService-1.0.0',
-          type: 'services',
-          parentId: 'system-group-Shipping-1.0.0',
-          position: { x: 100, y: 164 },
-          data: {},
-        },
-      ],
-      edges: [],
-    }),
-}));
+// The Shipping system's resource diagram: a system group with one service inside.
+// Membership helpers stay real; only the built graph is stubbed.
+vi.mock('@utils/node-graphs/systems-node-graph', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@utils/node-graphs/systems-node-graph')>();
+  return {
+    ...actual,
+    getNodesAndEdges: () =>
+      Promise.resolve({
+        nodes: [
+          {
+            id: 'system-group-Shipping-1.0.0',
+            type: 'system-group',
+            position: { x: 0, y: 0 },
+            style: { width: 600, height: 400 },
+            data: {},
+          },
+          {
+            id: 'ShippingService-1.0.0',
+            type: 'services',
+            parentId: 'system-group-Shipping-1.0.0',
+            position: { x: 100, y: 164 },
+            data: {},
+          },
+        ],
+        edges: [],
+      }),
+  };
+});
 
 describe('System Levels NodeGraph', () => {
   it('replaces the system node in its context diagram with the expanded system group', async () => {
