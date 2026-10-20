@@ -100,7 +100,7 @@
     "@modelcontextprotocol/ext-apps": "2.0.3",
     "@modelcontextprotocol/server": "2.3.1",
     "@nanostores/react": "^1.0.0",
-    "@parcel/watcher": "^2.4.1",
+    "@parcel/watcher": "^2.5.4",
     "@radix-ui/react-context-menu": "^2.2.6",
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-dropdown-menu": "^2.1.12",
