@@ -229,7 +229,7 @@ describe('compactVisualiserGraph', () => {
     expect((nodes[0].data as any).messages[0].message.producers).toBeUndefined();
   });
 
-  it('preserves entity properties and aggregateRoot so Entity nodes keep relationship handles', () => {
+  it('preserves entity properties, aggregateRoot and identifier so Entity nodes keep relationship handles and the Mermaid export its primary keys', () => {
     const { nodes } = compactVisualiserGraph(
       [
         {
@@ -243,6 +243,7 @@ describe('compactVisualiserGraph', () => {
               name: 'Order',
               version: '1.0.0',
               aggregateRoot: true,
+              identifier: 'id',
               properties: [
                 { name: 'id', type: 'string', required: true },
                 {
@@ -266,6 +267,7 @@ describe('compactVisualiserGraph', () => {
       name: 'Order',
       version: '1.0.0',
       aggregateRoot: true,
+      identifier: 'id',
       properties: [
         { name: 'id', type: 'string', required: true },
         {

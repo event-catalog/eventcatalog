@@ -12,6 +12,7 @@ import {
   paginate,
 } from '@features/tools/catalog-tools';
 import type { McpScope } from './mcp-scope';
+import type { ArchitectureDiagramDetail } from '@utils/node-graphs/architecture-diagram-types';
 
 const notFound = (collection: string, id: string, version?: string) => ({
   error: `Resource not found: ${collection}/${id}${version ? ` (${version})` : ''}`,
@@ -186,7 +187,7 @@ export function createScopedCatalogTools(scope: McpScope) {
       resourceId: string;
       resourceVersion?: string;
       resourceCollection: string;
-      detail?: 'overview' | 'full';
+      detail?: ArchitectureDiagramDetail;
     }) {
       const entry = scope.find(params.resourceCollection, params.resourceId, params.resourceVersion);
       if (!entry) return notFound(params.resourceCollection, params.resourceId, params.resourceVersion);

@@ -66,6 +66,7 @@ import { getStoredShowMinimap, storeShowMinimap } from "../utils/minimap";
 import { getLegend, LegendPanel, type LegendEntry } from "./Legend";
 import { DIAGRAM_FIT_VIEW_OPTIONS } from "../utils/fit-view";
 import MermaidView from "./MermaidView";
+import ExportModal from "./ExportModal";
 import { setLevelInUrl, useNodeVisibility } from "../hooks/use-node-visibility";
 import type { GraphTransition } from "../utils/animate-layout";
 import {
@@ -112,6 +113,8 @@ import { memoNode } from "../utils/node-memo";
 import { pauseEdgeAnimations } from "../utils/edge-animations";
 import { convertToMermaid } from "../utils/export-mermaid";
 import {
+  addExportBranding,
+  EXPORT_PADDING,
   getExportImageDimensions,
   injectExportStyles,
 } from "../utils/export-image";
@@ -175,6 +178,27 @@ const INITIAL_FIT_VIEW_OPTIONS = {
   duration: 0,
 } as const;
 const HIDE_ATTRIBUTION = { hideAttribution: true };
+
+/** Shows the diagram as Mermaid, in the URL (`?render=mermaid`), as `?level=` keeps its level */
+const RENDER_PARAM = "render";
+const isMermaidInUrl = () =>
+  new URLSearchParams(window.location.search).get(RENDER_PARAM) === "mermaid";
+/** A link (relative or absolute) that opens in the Mermaid view */
+const withMermaidInUrl = (link: string) => {
+  const url = new URL(link, window.location.href);
+  url.searchParams.set(RENDER_PARAM, "mermaid");
+  return /^[a-z]+:/i.test(link)
+    ? url.href
+    : `${url.pathname}${url.search}${url.hash}`;
+};
+const setMermaidInUrl = (isMermaid: boolean) => {
+  const url = new URL(window.location.href);
+  if (isMermaid) url.searchParams.set(RENDER_PARAM, "mermaid");
+  else url.searchParams.delete(RENDER_PARAM);
+  window.history.replaceState(window.history.state, "", url);
+};
+// Exported images are drawn at twice their size, as Studio's are, so they stay sharp
+const EXPORT_PIXEL_RATIO = 2;
 // Nothing to show yet (e.g. a graph still being laid out): the same arrays every render, or the graph is set again
 const NO_NODES: Node[] = [];
 const NO_EDGES: Edge[] = [];
@@ -401,6 +425,11 @@ interface Props {
   /** Group a flow's steps to start with (the `group` URL parameter wins) */
   swimlanes?: FlowGroupBy;
   onHiddenLegendKeysChange?: (keys: string[]) => void;
+  /** The level of detail to open at (2 or 3), rather than the URL's or the saved one */
+  initialLevel?: 2 | 3;
+  /** Show the Mermaid view to start with (kept when switching graphs, e.g. to level 1) */
+  initialMermaidView?: boolean;
+  onMermaidViewChange?: (isMermaidView: boolean) => void;
   /** The kind of diagram, so the level is remembered for each kind */
   preferenceScope?: string;
   /** When set, the graph will zoom to this node id. */
@@ -623,6 +652,9 @@ const NodeGraphBuilder = ({
   hiddenMessagesGraph,
   initialHiddenLegendKeys,
   onHiddenLegendKeysChange,
+  initialMermaidView = false,
+  onMermaidViewChange,
+  initialLevel,
   preferenceScope,
   swimlanes: initialSwimlanes,
   focusNodeId,
@@ -757,8 +789,22 @@ const NodeGraphBuilder = ({
   const [_activeStepIndex, _setActiveStepIndex] = useState<number | null>(null);
   const [_isFullscreen, _setIsFullscreen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const openExportModal = useCallback(() => setIsExportModalOpen(true), []);
+  const closeExportModal = useCallback(() => setIsExportModalOpen(false), []);
   const [shareUrlCopySuccess, setShareUrlCopySuccess] = useState(false);
-  const [isMermaidView, setIsMermaidView] = useState(false);
+  const [isMermaidView, setMermaidViewState] = useState(initialMermaidView);
+  const setIsMermaidView = useCallback(
+    (value: boolean) => {
+      setMermaidViewState(value);
+      onMermaidViewChange?.(value);
+    },
+    [onMermaidViewChange],
+  );
+  const showMermaidView = useCallback(
+    () => setIsMermaidView(true),
+    [setIsMermaidView],
+  );
   // Remembered, so the minimap stays on when switching levels (each level is its own page) or diagrams
   const [showMinimap, setShowMinimapState] = useState(getStoredShowMinimap);
   const setShowMinimap = useCallback((show: boolean) => {
@@ -974,6 +1020,8 @@ const NodeGraphBuilder = ({
     hasMessages,
     transitionFrom,
     nodeOrigin: NODE_ORIGIN,
+    // The Mermaid view would draw every step of the animation between levels
+    disableAnimation: isMermaidView,
     hiddenMessagesGraph,
     prepareEdges,
     matchesLegendKey,
@@ -983,6 +1031,7 @@ const NodeGraphBuilder = ({
     // e.g. "services" from "services/OrderService/1.0.0"
     preferenceScope: preferenceScope ?? resourceKey?.split("/")[0],
     ignoreSavedLevel: isFlowGraph,
+    initialLevel,
     beforeLayout,
     afterLayout,
   });
@@ -1897,6 +1946,17 @@ const NodeGraphBuilder = ({
     }, 150);
   }, []);
 
+  // Leaving the Mermaid view mounts the diagram again. It may be at another
+  // level now, reached without the animation that fits it (see
+  // disableAnimation), so fit it once its nodes are measured
+  const wasMermaidView = useRef(isMermaidView);
+  useEffect(() => {
+    if (wasMermaidView.current && !isMermaidView) {
+      fitView(INITIAL_FIT_VIEW_OPTIONS);
+    }
+    wasMermaidView.current = isMermaidView;
+  }, [isMermaidView, fitView]);
+
   // Generate mermaid code lazily (only when needed for copy)
   const generateMermaidCode = useCallback(() => {
     try {
@@ -2188,12 +2248,14 @@ const NodeGraphBuilder = ({
       backgroundColor: "#f1f1f1",
       width,
       height,
+      pixelRatio: EXPORT_PIXEL_RATIO,
       style: {
         width: `${width}px`,
         height: `${height}px`,
         transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
       },
     })
+      .then((dataUrl: string) => addExportBranding(dataUrl, EXPORT_PIXEL_RATIO))
       .then((dataUrl: string) => {
         downloadImage(dataUrl, title);
       })
@@ -2202,6 +2264,43 @@ const NodeGraphBuilder = ({
         if (controls) controls.style.display = "block";
       });
   }, [getNodes, storeApi, downloadImage, title]);
+
+  // In the Mermaid view, the image is of the Mermaid diagram, at its own size
+  // (not zoomed or panned) on the diagram's background
+  const handleExportMermaidImage = useCallback(() => {
+    const svg = reactFlowWrapperRef.current?.querySelector<SVGSVGElement>(
+      'svg[id^="mermaid-view"]',
+    );
+    if (!svg) return;
+    const background = getComputedStyle(
+      reactFlowWrapperRef.current!,
+    ).backgroundColor;
+    toPng(svg as unknown as HTMLElement, {
+      backgroundColor: background,
+      pixelRatio: EXPORT_PIXEL_RATIO,
+    })
+      // Cropped to the diagram, so with the same space around it as the diagram's image
+      .then((dataUrl: string) =>
+        addExportBranding(dataUrl, EXPORT_PIXEL_RATIO, {
+          padding: EXPORT_PADDING,
+          background,
+        }),
+      )
+      .then((dataUrl: string) => downloadImage(dataUrl, title));
+  }, [downloadImage, title]);
+
+  const handleExportMermaidFile = useCallback(() => {
+    const code = generateMermaidCode();
+    if (!code) return;
+    const url = URL.createObjectURL(
+      new Blob([code], { type: "text/plain;charset=utf-8" }),
+    );
+    const a = document.createElement("a");
+    a.setAttribute("download", `${title || "eventcatalog"}.mmd`);
+    a.setAttribute("href", url);
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [generateMermaidCode, title]);
 
   // Legend only depends on node types and groups, not positions.
   // Use a ref to avoid recomputing the key string on every drag tick.
@@ -2485,11 +2584,142 @@ const NodeGraphBuilder = ({
     ? DIAGRAM_MENU_BUTTON_ICON_COMPACT
     : DIAGRAM_MENU_BUTTON_ICON;
 
+  // The title, menu and search over the diagram, and over its Mermaid view
+  const diagramHeader = (
+    <>
+      <div className="flex space-x-2 justify-between items-center pointer-events-auto">
+        <div className="flex space-x-2 ml-4">
+          {/* Settings Dropdown Menu */}
+          {showMenu && (
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button className={menuButtonClassName} aria-label="Open menu">
+                  {title && <span className={DIAGRAM_MENU_TITLE}>{title}</span>}
+                  <MoreVertical className={menuIconClassName} />
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal container={reactFlowWrapperRef.current}>
+                <DropdownMenu.Content
+                  className={DIAGRAM_MENU}
+                  sideOffset={0}
+                  align="end"
+                  alignOffset={-180}
+                >
+                  <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
+                  <VisualizerDropdownContent
+                    isMermaidView={isMermaidView}
+                    setIsMermaidView={setIsMermaidView}
+                    animateMessages={animateMessages}
+                    toggleAnimateMessages={toggleAnimateMessages}
+                    hideAnimateMessages={disableMessageAnimation}
+                    hideChannels={hideChannels}
+                    toggleChannelsVisibility={toggleChannelsVisibility}
+                    hasChannels={hasChannels}
+                    hideMessages={hideMessages}
+                    toggleMessagesVisibility={toggleMessagesVisibility}
+                    hasMessages={hasMessages}
+                    showMinimap={showMinimap}
+                    setShowMinimap={setShowMinimap}
+                    handleFitView={handleFitView}
+                    searchRef={searchRef}
+                    isChatEnabled={isChatEnabled}
+                    openChat={openChat}
+                    handleCopyArchitectureCode={handleCopyArchitectureCode}
+                    onOpenExport={openExportModal}
+                    setIsShareModalOpen={setIsShareModalOpen}
+                    toggleFullScreen={toggleFullScreen}
+                    isDevMode={isDevMode}
+                    onSaveLayout={swimlanes ? undefined : handleSaveLayout}
+                    onResetLayout={handleResetLayout}
+                    notesCount={totalNotesCount}
+                    onOpenNotes={openNotesModal}
+                    onOpenInStudio={
+                      onOpenInStudio ? handleOpenInStudio : undefined
+                    }
+                  />
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          )}
+        </div>
+        {mode === "full" && showSearch && (
+          <div className="flex justify-end items-center gap-2">
+            {!isMermaidView && (
+              <div className={compactSearch ? "w-60" : "w-96"}>
+                <VisualiserSearch
+                  ref={searchRef}
+                  nodes={searchNodes}
+                  onNodeSelect={handleNodeSelect}
+                  onClear={handleSearchClear}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {links.length > 0 && (
+        <div className="flex justify-end mt-3">
+          <div className="relative flex items-center -mt-1">
+            <span className="absolute left-2 pointer-events-none flex items-center h-full">
+              <HistoryIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
+            </span>
+            <select
+              value={
+                links.find((link) => window.location.href.includes(link.url))
+                  ?.url || links[0].url
+              }
+              onChange={(e) => {
+                // Goes to one of the links given, never to whatever the option's value was changed to
+                const link = links.find(
+                  (link) => link.url === e.target.value,
+                )?.url;
+                if (!link) return;
+                // Another version opens in the Mermaid view too, when the URL keeps it
+                const url =
+                  isMermaidView && isMermaidInUrl()
+                    ? withMermaidInUrl(link)
+                    : link;
+                if (onNavigate) {
+                  onNavigate(url);
+                } else {
+                  window.location.href = url;
+                }
+              }}
+              className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] rounded-md border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-page-border)/0.5)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
+              style={{ minWidth: 120, height: "26px" }}
+            >
+              {links.map((link) => (
+                <option key={link.url} value={link.url}>
+                  {link.label}
+                </option>
+              ))}
+            </select>
+            <span className="absolute right-2 pointer-events-none">
+              <svg
+                className="w-4 h-4 text-[rgb(var(--ec-page-text-muted))]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div
       ref={reactFlowWrapperRef}
       onClick={handleCollapseGroup}
-      className="w-full h-full bg-[rgb(var(--ec-page-bg))] flex flex-col eventcatalog-visualizer"
+      className="relative w-full h-full bg-[rgb(var(--ec-page-bg))] flex flex-col eventcatalog-visualizer"
       style={{
         width: "100%",
         height: "100%",
@@ -2499,88 +2729,26 @@ const NodeGraphBuilder = ({
     >
       <PortalContainerProvider value={reactFlowWrapperRef.current}>
         {isMermaidView ? (
-          <>
-            {/* Menu Bar for Mermaid View */}
-            <div className="w-full pr-6 flex space-x-2 justify-between items-center bg-[rgb(var(--ec-page-bg))] border-b border-[rgb(var(--ec-page-border))] p-4">
-              <div className="flex space-x-2 ml-4">
-                {/* Settings Dropdown Menu */}
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger asChild>
-                    <button
-                      className={menuButtonClassName}
-                      aria-label="Open menu"
-                    >
-                      {title && (
-                        <span className={DIAGRAM_MENU_TITLE}>{title}</span>
-                      )}
-                      <MoreVertical className={menuIconClassName} />
-                    </button>
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Portal container={reactFlowWrapperRef.current}>
-                    <DropdownMenu.Content
-                      className={DIAGRAM_MENU}
-                      sideOffset={0}
-                      align="end"
-                      alignOffset={-180}
-                    >
-                      <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
-                      <VisualizerDropdownContent
-                        isMermaidView={isMermaidView}
-                        setIsMermaidView={setIsMermaidView}
-                        animateMessages={animateMessages}
-                        toggleAnimateMessages={toggleAnimateMessages}
-                        hideAnimateMessages={disableMessageAnimation}
-                        hideChannels={hideChannels}
-                        toggleChannelsVisibility={toggleChannelsVisibility}
-                        hasChannels={hasChannels}
-                        hideMessages={hideMessages}
-                        toggleMessagesVisibility={toggleMessagesVisibility}
-                        hasMessages={hasMessages}
-                        showMinimap={showMinimap}
-                        setShowMinimap={setShowMinimap}
-                        handleFitView={handleFitView}
-                        searchRef={searchRef}
-                        isChatEnabled={isChatEnabled}
-                        openChat={openChat}
-                        handleCopyArchitectureCode={handleCopyArchitectureCode}
-                        handleExportVisual={handleExportVisual}
-                        setIsShareModalOpen={setIsShareModalOpen}
-                        toggleFullScreen={toggleFullScreen}
-                        isDevMode={isDevMode}
-                        onSaveLayout={swimlanes ? undefined : handleSaveLayout}
-                        onResetLayout={handleResetLayout}
-                        onOpenInStudio={
-                          onOpenInStudio ? handleOpenInStudio : undefined
-                        }
-                      />
-                    </DropdownMenu.Content>
-                  </DropdownMenu.Portal>
-                </DropdownMenu.Root>
-              </div>
-              {mode === "full" && showSearch && (
-                <div className="flex justify-end items-center gap-2">
-                  {!isMermaidView && (
-                    <div className="w-96">
-                      <VisualiserSearch
-                        ref={searchRef}
-                        nodes={searchNodes}
-                        onNodeSelect={handleNodeSelect}
-                        onClear={handleSearchClear}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            {/* Mermaid View */}
-            <div className="flex-1 overflow-hidden relative">
-              <MermaidView
-                nodes={nodes}
-                edges={edges}
-                maxTextSize={maxTextSize}
-              />
-            </div>
-          </>
+          // The same title, menu and toolbar as the diagram, over the Mermaid
+          // version of it, so the two look like one tool
+          <div className="flex-1 overflow-hidden relative">
+            <MermaidView
+              nodes={nodes}
+              edges={edges}
+              maxTextSize={maxTextSize}
+              levels={mode === "full" ? levels : []}
+              zoomOnScroll={zoomOnScroll}
+              onShowDiagram={
+                mode === "full" ? () => setIsMermaidView(false) : undefined
+              }
+            />
+            <Panel
+              position="top-center"
+              className="w-full pr-6 pointer-events-none"
+            >
+              {diagramHeader}
+            </Panel>
+          </div>
         ) : (
           <ReactFlow
             nodeTypes={nodeTypes}
@@ -2622,138 +2790,7 @@ const NodeGraphBuilder = ({
               position="top-center"
               className="w-full pr-6 pointer-events-none"
             >
-              <div className="flex space-x-2 justify-between items-center pointer-events-auto">
-                <div className="flex space-x-2 ml-4">
-                  {/* Settings Dropdown Menu */}
-                  {showMenu && (
-                    <DropdownMenu.Root>
-                      <DropdownMenu.Trigger asChild>
-                        <button
-                          className={menuButtonClassName}
-                          aria-label="Open menu"
-                        >
-                          {title && (
-                            <span className={DIAGRAM_MENU_TITLE}>{title}</span>
-                          )}
-                          <MoreVertical className={menuIconClassName} />
-                        </button>
-                      </DropdownMenu.Trigger>
-                      <DropdownMenu.Portal
-                        container={reactFlowWrapperRef.current}
-                      >
-                        <DropdownMenu.Content
-                          className={DIAGRAM_MENU}
-                          sideOffset={0}
-                          align="end"
-                          alignOffset={-180}
-                        >
-                          <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
-                          <VisualizerDropdownContent
-                            isMermaidView={isMermaidView}
-                            setIsMermaidView={setIsMermaidView}
-                            animateMessages={animateMessages}
-                            toggleAnimateMessages={toggleAnimateMessages}
-                            hideAnimateMessages={disableMessageAnimation}
-                            hideChannels={hideChannels}
-                            toggleChannelsVisibility={toggleChannelsVisibility}
-                            hasChannels={hasChannels}
-                            hideMessages={hideMessages}
-                            toggleMessagesVisibility={toggleMessagesVisibility}
-                            hasMessages={hasMessages}
-                            showMinimap={showMinimap}
-                            setShowMinimap={setShowMinimap}
-                            handleFitView={handleFitView}
-                            searchRef={searchRef}
-                            isChatEnabled={isChatEnabled}
-                            openChat={openChat}
-                            handleCopyArchitectureCode={
-                              handleCopyArchitectureCode
-                            }
-                            handleExportVisual={handleExportVisual}
-                            setIsShareModalOpen={setIsShareModalOpen}
-                            toggleFullScreen={toggleFullScreen}
-                            isDevMode={isDevMode}
-                            onSaveLayout={
-                              swimlanes ? undefined : handleSaveLayout
-                            }
-                            onResetLayout={handleResetLayout}
-                            notesCount={totalNotesCount}
-                            onOpenNotes={openNotesModal}
-                            onOpenInStudio={
-                              onOpenInStudio ? handleOpenInStudio : undefined
-                            }
-                          />
-                        </DropdownMenu.Content>
-                      </DropdownMenu.Portal>
-                    </DropdownMenu.Root>
-                  )}
-                </div>
-                {mode === "full" && showSearch && (
-                  <div className="flex justify-end items-center gap-2">
-                    {!isMermaidView && (
-                      <div className={compactSearch ? "w-60" : "w-96"}>
-                        <VisualiserSearch
-                          ref={searchRef}
-                          nodes={searchNodes}
-                          onNodeSelect={handleNodeSelect}
-                          onClear={handleSearchClear}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {links.length > 0 && (
-                <div className="flex justify-end mt-3">
-                  <div className="relative flex items-center -mt-1">
-                    <span className="absolute left-2 pointer-events-none flex items-center h-full">
-                      <HistoryIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
-                    </span>
-                    <select
-                      value={
-                        links.find((link) =>
-                          window.location.href.includes(link.url),
-                        )?.url || links[0].url
-                      }
-                      onChange={(e) => {
-                        // Goes to one of the links given, never to whatever the option's value was changed to
-                        const url = links.find(
-                          (link) => link.url === e.target.value,
-                        )?.url;
-                        if (!url) return;
-                        if (onNavigate) {
-                          onNavigate(url);
-                        } else {
-                          window.location.href = url;
-                        }
-                      }}
-                      className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] rounded-md border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-page-border)/0.5)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
-                      style={{ minWidth: 120, height: "26px" }}
-                    >
-                      {links.map((link) => (
-                        <option key={link.url} value={link.url}>
-                          {link.label}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="absolute right-2 pointer-events-none">
-                      <svg
-                        className="w-4 h-4 text-[rgb(var(--ec-page-text-muted))]"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </span>
-                  </div>
-                </div>
-              )}
+              {diagramHeader}
             </Panel>
 
             {includeBackground && <DiagramBackground />}
@@ -2762,6 +2799,7 @@ const NodeGraphBuilder = ({
               <CanvasToolbar
                 levels={levels}
                 tools={canvasTools}
+                onShowMermaid={showMermaidView}
                 animateMessages={animateMessages}
                 toggleAnimateMessages={toggleAnimateMessages}
                 // Nothing to simulate without edges
@@ -2859,16 +2897,26 @@ const NodeGraphBuilder = ({
           nodes={nodes}
         />
 
+        {isExportModalOpen && (
+          <ExportModal
+            onClose={closeExportModal}
+            onExportImage={
+              isMermaidView ? handleExportMermaidImage : handleExportVisual
+            }
+            onExportMermaid={handleExportMermaidFile}
+          />
+        )}
+
         {/* Share Link Modal */}
         {isShareModalOpen && (
           <>
             <div
-              className="fixed inset-0 bg-black/20 z-40"
+              className="absolute inset-0 bg-black/20 z-40"
               onClick={() => setIsShareModalOpen(false)}
               style={{ animation: "fadeIn 150ms ease-out" }}
             />
             <div
-              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[rgb(var(--ec-page-bg))] rounded-lg shadow-xl z-50 w-full max-w-md p-6 border border-[rgb(var(--ec-page-border))]"
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[rgb(var(--ec-page-bg))] rounded-lg shadow-xl z-50 w-[calc(100%-2rem)] max-w-md p-6 border border-[rgb(var(--ec-page-border))]"
               style={{ animation: "slideInCenter 250ms ease-out" }}
             >
               <style>{`
@@ -2877,8 +2925,8 @@ const NodeGraphBuilder = ({
                 to { opacity: 1; }
               }
               @keyframes slideInCenter {
-                from { opacity: 0; transform: translate(-50%, -48%); }
-                to { opacity: 1; transform: translate(-50%, -50%); }
+                from { opacity: 0; transform: translateY(8px); }
+                to { opacity: 1; transform: none; }
               }
             `}</style>
 
@@ -2936,6 +2984,17 @@ const NodeGraphBuilder = ({
 
 interface NodeGraphProps {
   id: string;
+  /**
+   * Keeps the Mermaid view in the page's URL (`?render=mermaid`), so links open
+   * in it. Only for the visualiser's own pages: not diagrams embedded in docs
+   * or other apps, which can share a page (or an iframe) with others.
+   */
+  syncRenderModeWithUrl?: boolean;
+  /**
+   * The level of detail to open at (1, 2 or 3), rather than the URL's or the
+   * saved one, e.g. the level an MCP client asked for
+   */
+  initialLevel?: 1 | 2 | 3;
   title?: string;
   href?: string;
   hrefLabel?: string;
@@ -3025,6 +3084,8 @@ const NodeGraph = ({
   footerLabel,
   linksToVisualiser = false,
   links = [],
+  syncRenderModeWithUrl = false,
+  initialLevel,
   mode = "full",
   portalId,
   showFlowWalkthrough = true,
@@ -3102,6 +3163,7 @@ const NodeGraph = ({
   // opens at it, unless the URL asks for another level (`?level=2|3`).
   const [showOverview, setShowOverview] = useState(() => {
     if (!overviewGraph) return false;
+    if (initialLevel) return initialLevel === 1;
     const level = new URLSearchParams(window.location.search).get("level");
     return level === null || level === "1";
   });
@@ -3121,6 +3183,20 @@ const NodeGraph = ({
   const handleHiddenLegendKeysChange = useCallback((keys: string[]) => {
     hiddenLegendKeys.current = keys;
   }, []);
+  // The Mermaid view, kept when switching between the graphs. On the
+  // visualiser's own pages it's in the URL too (`?render=mermaid`), so links
+  // open in it, as they open at their level
+  const isMermaidView = useRef<boolean | null>(null);
+  if (isMermaidView.current === null) {
+    isMermaidView.current = syncRenderModeWithUrl && isMermaidInUrl();
+  }
+  const handleMermaidViewChange = useCallback(
+    (value: boolean) => {
+      isMermaidView.current = value;
+      if (syncRenderModeWithUrl) setMermaidInUrl(value);
+    },
+    [syncRenderModeWithUrl],
+  );
 
   useEffect(() => {
     // @ts-ignore
@@ -3173,6 +3249,9 @@ const NodeGraph = ({
             preferenceScope={preferenceScope}
             swimlanes={overview ? undefined : swimlanes}
             onHiddenLegendKeysChange={handleHiddenLegendKeysChange}
+            initialMermaidView={isMermaidView.current ?? false}
+            initialLevel={initialLevel === 1 ? undefined : initialLevel}
+            onMermaidViewChange={handleMermaidViewChange}
             focusNodeId={focusNodeId}
             focusRequestId={focusRequestId}
             fitRequestId={fitRequestId}

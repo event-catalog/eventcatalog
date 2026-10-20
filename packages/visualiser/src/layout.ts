@@ -17,3 +17,7 @@ export {
   isCarrier,
   isMessageNode,
 } from "./utils/hide-messages";
+export {
+  convertToMermaid,
+  type MermaidExportOptions,
+} from "./utils/export-mermaid";

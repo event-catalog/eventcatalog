@@ -1,6 +1,6 @@
 import { Fragment, memo, type ReactNode } from "react";
 import { Panel, useReactFlow, useStore } from "@xyflow/react";
-import { Map, Maximize, Zap, ZoomIn, ZoomOut } from "lucide-react";
+import { Code, Map, Maximize, Zap, ZoomIn, ZoomOut } from "lucide-react";
 import { Tip, TipProvider } from "./Tip";
 
 export type CanvasLevel = {
@@ -24,6 +24,8 @@ interface CanvasToolbarProps {
   levels: CanvasLevel[];
   /** Tools for the resource shown, between the levels and the canvas tools */
   tools?: CanvasTool[];
+  /** Shows the diagram as Mermaid (the button after the levels) */
+  onShowMermaid?: () => void;
   animateMessages: boolean;
   toggleAnimateMessages: () => void;
   /** Hide the "Simulate messages" action (e.g. on the Context Diagram). */
@@ -117,11 +119,50 @@ export const Toolbar = ({ children }: { children: ReactNode }) => (
 );
 
 /**
+ * Switches between the diagram and its Mermaid view: in the same place in
+ * both toolbars, after the levels, and on while the Mermaid view is shown
+ */
+export const MermaidToggle = ({
+  active,
+  onClick,
+}: {
+  active: boolean;
+  onClick: () => void;
+}) => (
+  <ToolbarButton label="Render as Mermaid" active={active} onClick={onClick}>
+    <Code className="w-4 h-4" />
+  </ToolbarButton>
+);
+
+/** The levels of detail, as L1, L2, ... (the diagram's toolbar, and its Mermaid view's) */
+export const LevelButtons = ({ levels }: { levels: CanvasLevel[] }) => (
+  <div
+    role="group"
+    aria-label="Level of detail"
+    className="flex items-center gap-0.5"
+  >
+    {levels.map((level, index) => (
+      <ToolbarButton
+        key={level.description}
+        label={`Level ${index + 1}: ${level.description}`}
+        hint={level.disabledReason}
+        active={level.active}
+        disabled={!!level.disabledReason}
+        onClick={level.onSelect}
+      >
+        <span className="text-xs font-semibold">L{index + 1}</span>
+      </ToolbarButton>
+    ))}
+  </div>
+);
+
+/**
  * Floating action bar at the bottom of the canvas for quick view actions.
  */
 const CanvasToolbar = memo(function CanvasToolbar({
   levels,
   tools = [],
+  onShowMermaid,
   animateMessages,
   toggleAnimateMessages,
   hideAnimateMessages = false,
@@ -150,26 +191,8 @@ const CanvasToolbar = memo(function CanvasToolbar({
         <ZoomIn className="w-4 h-4" />
       </ToolbarButton>
     </>,
-    levels.length > 0 && (
-      <div
-        role="group"
-        aria-label="Level of detail"
-        className="flex items-center gap-0.5"
-      >
-        {levels.map((level, index) => (
-          <ToolbarButton
-            key={level.description}
-            label={`Level ${index + 1}: ${level.description}`}
-            hint={level.disabledReason}
-            active={level.active}
-            disabled={!!level.disabledReason}
-            onClick={level.onSelect}
-          >
-            <span className="text-xs font-semibold">L{index + 1}</span>
-          </ToolbarButton>
-        ))}
-      </div>
-    ),
+    levels.length > 0 && <LevelButtons levels={levels} />,
+    onShowMermaid && <MermaidToggle active={false} onClick={onShowMermaid} />,
     tools.length > 0 &&
       tools.map((tool) => (
         <ToolbarButton

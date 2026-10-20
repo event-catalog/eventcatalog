@@ -12,10 +12,11 @@ import fs from 'node:fs';
 import { getArchitectureDiagramGraph } from '@utils/node-graphs/architecture-diagram';
 import {
   ARCHITECTURE_DIAGRAM_COLLECTIONS,
+  ARCHITECTURE_DIAGRAM_DETAILS,
   isArchitectureDiagramCollection,
   type ArchitectureDiagramDetail,
 } from '@utils/node-graphs/architecture-diagram-types';
-import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
+import { convertToMermaid } from '@eventcatalog/visualiser/layout';
 import { glob } from 'glob';
 import path from 'node:path';
 import {
@@ -200,6 +201,12 @@ export const resourceCollectionSchema = z.enum([
 ]);
 
 export const visualiserCollectionSchema = z.enum(ARCHITECTURE_DIAGRAM_COLLECTIONS);
+
+export const architectureDiagramDetailSchema = z
+  .enum(ARCHITECTURE_DIAGRAM_DETAILS)
+  .describe(
+    'The level of the diagram, as on its Diagram page: "overview" (L1) shows only domains, systems and their relationships (domains and systems only); "services" (L2) shows services and data stores without messages and channels; "full" (L3, default) also shows messages and channels'
+  );
 
 // ============================================
 // Tool implementations (core logic)

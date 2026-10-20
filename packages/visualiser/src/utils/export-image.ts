@@ -1,4 +1,5 @@
 import { getViewportForBounds, type Rect, type Viewport } from "@xyflow/react";
+import logoSvg from "../studio/eventcatalog-logo.svg?raw";
 
 const MIN_IMAGE_WIDTH = 1024;
 const MIN_IMAGE_HEIGHT = 768;
@@ -131,4 +132,141 @@ export function injectExportStyles(viewport: HTMLElement): () => void {
     restoreSvgStyles();
     styleElement.remove();
   };
+}
+
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+
+/** A theme colour, from EventCatalog's variables (e.g. --ec-card-bg is "255 255 255") */
+const themeColor = (name: string, alpha = 1) => {
+  const value =
+    getComputedStyle(document.documentElement).getPropertyValue(name).trim() ||
+    getComputedStyle(document.body).getPropertyValue(name).trim();
+  return value
+    ? `rgb(${value} / ${alpha})`
+    : alpha === 1
+      ? "#0f172a"
+      : `rgb(15 23 42 / ${alpha})`;
+};
+
+type BrandingOptions = {
+  /** Space to add around the image, in CSS pixels (e.g. for an image cropped to what's drawn) */
+  padding?: number;
+  /** The background around the image, when its own edges aren't background */
+  background?: string;
+};
+
+async function drawBranding(
+  dataUrl: string,
+  pixelRatio: number,
+  { padding = 0, background }: BrandingOptions,
+): Promise<string> {
+  const image = await loadImage(dataUrl);
+  // Sized to the image, so it reads the same on a small diagram or a very wide one
+  const r = Math.max(
+    pixelRatio,
+    Math.min(image.width / 1200, image.height / 500),
+  );
+  const height = 30 * r;
+  const margin = 20 * r;
+
+  const pad = padding * pixelRatio;
+
+  // The badge goes in a strip under the image, so it never covers the diagram
+  const canvas = document.createElement("canvas");
+  canvas.width = image.width + pad * 2;
+  canvas.height = image.height + pad * 2 + height + margin;
+  const context = canvas.getContext("2d");
+  if (!context) return dataUrl;
+  context.drawImage(image, pad, pad);
+  // The space around it in the image's background (its corner is padding,
+  // never the diagram), filled in behind it
+  const [red, green, blue, alpha] = context.getImageData(
+    pad,
+    pad + image.height - 1,
+    1,
+    1,
+  ).data;
+  context.globalCompositeOperation = "destination-over";
+  context.fillStyle =
+    background ?? `rgba(${red}, ${green}, ${blue}, ${alpha / 255})`;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.globalCompositeOperation = "source-over";
+  await document.fonts?.ready;
+
+  const text = themeColor("--ec-page-text");
+  const muted = themeColor("--ec-page-text-muted");
+  const font = (weight: number) =>
+    `${weight} ${12 * r}px Inter, ui-sans-serif, system-ui, sans-serif`;
+  const parts = [
+    { label: "Made with ", weight: 400, color: muted },
+    { label: "EventCatalog", weight: 600, color: text },
+    { label: "  ·  eventcatalog.dev", weight: 400, color: muted },
+  ];
+  const widths = parts.map((part) => {
+    context.font = font(part.weight);
+    return context.measureText(part.label).width;
+  });
+  const logoSize = 16 * r;
+  const paddingX = 12 * r;
+  const gap = 7 * r;
+  const width =
+    paddingX * 2 + logoSize + gap + widths.reduce((sum, w) => sum + w, 0);
+  const x = canvas.width - width - margin;
+  const y = image.height + pad * 2;
+
+  // The pill
+  context.fillStyle = themeColor("--ec-card-bg", 0.96);
+  context.strokeStyle = themeColor("--ec-page-border");
+  context.lineWidth = r;
+  context.beginPath();
+  context.roundRect(x, y, width, height, height / 2);
+  context.fill();
+  context.stroke();
+
+  // The logo, in the text colour
+  const logo = await loadImage(
+    `data:image/svg+xml;charset=utf-8,${encodeURIComponent(logoSvg.replace(/currentColor/g, text))}`,
+  );
+  context.drawImage(
+    logo,
+    x + paddingX,
+    y + (height - logoSize) / 2,
+    logoSize,
+    logoSize,
+  );
+
+  // Made with EventCatalog · eventcatalog.dev
+  let textX = x + paddingX + logoSize + gap;
+  context.textBaseline = "middle";
+  parts.forEach((part, index) => {
+    context.font = font(part.weight);
+    context.fillStyle = part.color;
+    context.fillText(part.label, textX, y + height / 2 + r);
+    textX += widths[index];
+  });
+  return canvas.toDataURL("image/png");
+}
+
+/**
+ * An exported image with "Made with EventCatalog · eventcatalog.dev" in its
+ * bottom right corner: a small pill with the logo, in the diagram's theme.
+ * Diagrams and Studio canvases are exported with it.
+ */
+export async function addExportBranding(
+  dataUrl: string,
+  pixelRatio: number,
+  options: BrandingOptions = {},
+): Promise<string> {
+  try {
+    return await drawBranding(dataUrl, pixelRatio, options);
+  } catch {
+    // Exported without the badge rather than not at all
+    return dataUrl;
+  }
 }

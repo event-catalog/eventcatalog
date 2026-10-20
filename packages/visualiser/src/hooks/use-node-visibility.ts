@@ -46,6 +46,11 @@ interface NodeVisibilityProps {
   transitionFrom?: GraphTransition;
   /** React Flow's node origin, to line up nodes when animating */
   nodeOrigin?: [number, number];
+  /**
+   * Go straight to each graph rather than animating to it, e.g. while the
+   * graph is shown as Mermaid, which would draw every step of the animation
+   */
+  disableAnimation?: boolean;
   /** The graph laid out with messages and channels hidden, if precomputed */
   hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
   /** Prepares the edges of each graph shown (e.g. animating messages) */
@@ -66,6 +71,11 @@ interface NodeVisibilityProps {
    * everything shown, whatever level was last picked
    */
   ignoreSavedLevel?: boolean;
+  /**
+   * The level to open at (2 or 3; level 1 is an overview graph shown instead),
+   * rather than the URL's or the saved one, e.g. the level an MCP client asked for
+   */
+  initialLevel?: 2 | 3;
   /**
    * Called on a graph before it's laid out again (e.g. taking it out of
    * swimlanes, which the layout doesn't know about), and on each graph before
@@ -145,6 +155,7 @@ export const useNodeVisibility = ({
   hasMessages,
   transitionFrom,
   nodeOrigin,
+  disableAnimation = false,
   hiddenMessagesGraph,
   prepareEdges = (edges) => edges,
   matchesLegendKey = matchesType,
@@ -152,6 +163,7 @@ export const useNodeVisibility = ({
   onHiddenLegendKeysChange,
   preferenceScope,
   ignoreSavedLevel = false,
+  initialLevel,
   beforeLayout = identity,
   afterLayout = identity,
 }: NodeVisibilityProps) => {
@@ -162,6 +174,7 @@ export const useNodeVisibility = ({
   // graph shown instead of this one, so without one this graph opens at level 2.
   const [urlLevel] = useState(() => {
     if (ignoreSavedLevel) return 3;
+    if (initialLevel) return initialLevel;
     const level = Number(
       new URLSearchParams(window.location.search).get("level"),
     );
@@ -294,6 +307,10 @@ export const useNodeVisibility = ({
   // the graph stays out of sight rather than showing everything first
   const [isLayingOut, setIsLayingOut] = useState(false);
 
+  // Read when the level changes, not a reason to lay the graph out again
+  const disableAnimationRef = useRef(disableAnimation);
+  disableAnimationRef.current = disableAnimation;
+
   // A layout effect, so the graph is at the right level before it's painted
   // (when its layout is already known)
   const isFirstRun = useRef(true);
@@ -313,7 +330,8 @@ export const useNodeVisibility = ({
       return;
 
     const run = ++latestRun.current;
-    const animate = !!from || animateNextChange.current;
+    const animate =
+      !disableAnimationRef.current && (!!from || animateNextChange.current);
     animateNextChange.current = false;
     cancelAnimation.current?.();
 

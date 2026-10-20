@@ -4,6 +4,7 @@
  * diagram tool used by AI Chat and the MCP server, so they show the same thing.
  */
 import config from '@config';
+import { hideMessageNodes } from '@eventcatalog/visualiser/layout';
 import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForAgent } from '@utils/node-graphs/agents-node-graph';
 import {
@@ -79,6 +80,8 @@ export async function getArchitectureDiagramGraph({
 }): Promise<Graph> {
   const view = await getArchitectureDiagramView(resource);
   // A domain without systems or subdomains has no level 1, so it shows the full diagram
-  const graph = detail === 'overview' && view.overview ? view.overview : view;
-  return { nodes: graph.nodes, edges: graph.edges };
+  if (detail === 'overview' && view.overview) return { nodes: view.overview.nodes, edges: view.overview.edges };
+  // Level 2: as laid out for domains and systems, otherwise the diagram without its messages and channels
+  if (detail === 'services') return view.hiddenMessages ?? hideMessageNodes(view.nodes, view.edges);
+  return { nodes: view.nodes, edges: view.edges };
 }

@@ -11,6 +11,9 @@ import visualiserStyles from '@eventcatalog/visualiser/styles.css?inline';
 import type { App, McpUiHostContext } from '@modelcontextprotocol/ext-apps';
 import type { Node } from '@xyflow/react';
 import type { ArchitectureDiagramPayload } from './shared';
+
+/** The diagram's level for each level of detail an MCP client can ask for */
+const LEVEL_OF_DETAIL = { overview: 1, services: 2, full: 3 } as const;
 import { NodeChat, describeNode, describeNodeForModel, type SelectedNode } from './node-chat';
 import { parseAskLink, parseDiagramLink, withAskMenuItem, type DiagramLink } from './links';
 import { getToolResultPayload } from '../shared/app-view';
@@ -421,7 +424,8 @@ export function ArchitectureDiagramView({ app, payload: toolPayload, hostContext
           />
         )}
       </div>
-      <div style={{ display: 'none' }} key={`${graphId}-graph`}>
+      {/* Again for another level of the same diagram, so it opens at it */}
+      <div style={{ display: 'none' }} key={`${graphId}-${payload.detail ?? 'default'}-graph`}>
         <NodeGraph
           id={graphId}
           nodes={graph.nodes}
@@ -436,6 +440,7 @@ export function ArchitectureDiagramView({ app, payload: toolPayload, hostContext
           }
           hiddenMessagesGraph={graph.hiddenMessages}
           preferenceScope={resource.collection}
+          initialLevel={payload.detail ? LEVEL_OF_DETAIL[payload.detail] : undefined}
           mode="full"
           linkTo="docs"
           showSearch

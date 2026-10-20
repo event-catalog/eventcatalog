@@ -94,6 +94,48 @@ describe('architecture diagrams as Mermaid (/visualiser/{type}/{id}/{version}.me
     expect(text).toContain('order_service_1_0_0[["Order Service (1.0.0)"]]');
   });
 
+  it('serves level 1 and level 2 of domain and system diagrams', async () => {
+    const domainLevel = await import('../../pages/visualiser/domains/[id]/[version]/[level].mermaid');
+    const systemLevel = await import('../../pages/visualiser/systems/[id]/[version]/[level].mermaid');
+
+    const overview = await get(domainLevel, { id: 'ordering', version: '1.0.0', level: 'overview' });
+    const services = await get(systemLevel, { id: 'checkout-system', version: '1.0.0', level: 'services' });
+
+    expect(overview.status).toBe(200);
+    expect(overview.text).toContain('%% Level: L1 overview');
+    expect(diagram.getGraph).toHaveBeenCalledWith({
+      collection: 'domains',
+      id: 'ordering',
+      version: '1.0.0',
+      detail: 'overview',
+    });
+    expect(services.text).toContain('%% Level: L2 services and data stores');
+    expect(diagram.getGraph).toHaveBeenCalledWith({
+      collection: 'systems',
+      id: 'checkout-system',
+      version: '1.0.0',
+      detail: 'services',
+    });
+  });
+
+  it('builds a Mermaid file for each level of every domain and system version in static builds', async () => {
+    const domainLevel = await import('../../pages/visualiser/domains/[id]/[version]/[level].mermaid');
+
+    expect(await domainLevel.getStaticPaths({} as any)).toEqual([
+      { params: { id: 'ordering', version: '1.0.0', level: 'overview' } },
+      { params: { id: 'ordering', version: '1.0.0', level: 'services' } },
+    ]);
+  });
+
+  it('returns 404 for a level that does not exist', async () => {
+    const domainLevel = await import('../../pages/visualiser/domains/[id]/[version]/[level].mermaid');
+
+    const { status } = await get(domainLevel, { id: 'ordering', version: '1.0.0', level: 'toString' });
+
+    expect(status).toBe(404);
+    expect(diagram.getGraph).not.toHaveBeenCalled();
+  });
+
   it('returns 404 when a resource has no diagram', async () => {
     diagram.getGraph.mockResolvedValue({ nodes: [], edges: [] });
     const route = await import('../../pages/visualiser/domains/[id]/[version].mermaid');

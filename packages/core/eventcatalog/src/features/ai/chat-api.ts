@@ -29,6 +29,7 @@ import {
   resourceCollectionSchema,
   messageCollectionSchema,
   visualiserCollectionSchema,
+  architectureDiagramDetailSchema,
   toolDescriptions,
 } from '@features/tools/catalog-tools';
 
@@ -136,7 +137,8 @@ The referer URL is: ${referrer}
 
 IMPORTANT: When the user is on a visualiser page (/visualiser/*) or asks about architecture, dependencies, data flow, or connections:
 - Use the getArchitectureDiagramAsMermaid tool to fetch the architecture diagram
-- The mermaid code shows all the connections between resources (services, events, channels, etc.)
+- The mermaid code shows all the connections between resources (services, events, channels, etc.), with domains and systems as subgraphs around what's in them
+- For a high-level answer about a domain or system, pass detail "overview" (domains, systems and their relationships) or "services" (services and data stores) instead of the full diagram
 - Use this to provide accurate, contextual answers about the architecture
 
 Sometimes the user will be on the specification page (openapi, asyncapi, graphql) for a resource too 
@@ -336,9 +338,10 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
               'The collection of the resource (events, commands, queries, services, domains, systems, flows, containers, data-products)'
             )
             .default('services'),
+          detail: architectureDiagramDetailSchema.optional(),
         }),
-        execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
-          return await getArchitectureDiagramImpl({ resourceId, resourceVersion, resourceCollection });
+        execute: async ({ resourceId, resourceVersion, resourceCollection, detail }) => {
+          return await getArchitectureDiagramImpl({ resourceId, resourceVersion, resourceCollection, detail });
         },
       }),
       getCustomDocs: tool({
