@@ -157,6 +157,7 @@ export const HANDLE_GLOW = {
   data: glow("59, 130, 246"),
   channel: glow("107, 114, 128"),
   actor: glow("234, 179, 8"),
+  domain: glow("234, 179, 8"),
   external: glow("168, 85, 247"),
   dataProduct: glow("99, 102, 241"),
   view: glow("14, 165, 233"),

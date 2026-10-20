@@ -1,5 +1,13 @@
 import { expect, describe, it, vi } from 'vitest';
-import { getNodesAndEdges, markCrossDomain, placeMessagesWithPublishers } from '@utils/node-graphs/domain-levels-node-graph';
+import {
+  buildDomainGraph,
+  buildDomainTree,
+  collapseSystems,
+  collectOwners,
+  getNodesAndEdges,
+  markCrossDomain,
+  placeMessagesWithPublishers,
+} from '@utils/node-graphs/domain-levels-node-graph';
 import { getDomains } from '@utils/collections/domains';
 
 const entry = (collection: string, id: string, data: Record<string, any> = {}) => ({
@@ -26,6 +34,11 @@ const notifications = entry('domains', 'Notifications', { systems: [], services:
 // Shipping's Tracking subdomain, with a service outside a system
 const trackingService = entry('services', 'TrackingService');
 const tracking = entry('domains', 'Tracking', { systems: [], services: [trackingService] });
+// Promo sends PromoStarted itself. The Pinned domain has an older version of the
+// Legacy service, which receives it (the latest version doesn't)
+const promoStarted = entry('events', 'PromoStarted');
+const legacyPinned = entry('services', 'Legacy', { version: '0.9.0', receives: [promoStarted] });
+const legacyLatest = entry('services', 'Legacy', { version: '1.0.0', receives: [] });
 const domains = [
   entry('domains', 'Orders', { systems: [checkout, returns], services: [] }),
   entry('domains', 'Shipping', { systems: [delivery], services: [], domains: [tracking] }),
@@ -38,10 +51,19 @@ const domains = [
   entry('domains', 'Shared', { systems: [], services: [checkoutService] }),
   // An older version of the Orders domain, before it had any systems
   entry('domains', 'Orders', { version: '0.0.1', systems: [], services: [] }),
+  entry('domains', 'Promo', { systems: [], services: [], sends: [promoStarted] }),
+  entry('domains', 'Pinned', { systems: [], services: [legacyPinned] }),
 ];
 
 vi.mock('@utils/collections/domains', () => ({
   getDomains: vi.fn(() => Promise.resolve(domains)),
+}));
+
+vi.mock('@utils/collections/services', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@utils/collections/services')>()),
+  getServices: vi.fn(({ getAllVersions }: { getAllVersions: boolean }) =>
+    Promise.resolve(getAllVersions ? [legacyPinned, legacyLatest] : [legacyLatest])
+  ),
 }));
 
 // Checkout's resource diagram: its service publishes OrderPlaced, which the
@@ -187,6 +209,12 @@ describe('Domain Levels NodeGraph', () => {
     expect(byId.get('OrderShipped-1.0.0')).toMatchObject({ parentId: undefined, data: { otherDomain: true } });
     // Messages this domain sends stay in the system sending them
     expect(byId.get('OrderPlaced-1.0.0')?.parentId).toBe('system-group-Checkout-1.0.0');
+  });
+
+  it("finds the version of a service another domain has for the domain's own messages, not only the latest", async () => {
+    const { edges } = await getNodesAndEdges({ id: 'Promo', version: '1.0.0' });
+
+    expect(edges.map((edge: any) => `${edge.source}->${edge.target}`)).toContain('PromoStarted-1.0.0->domain-Pinned-1.0.0');
   });
 
   it('lays out each node in its own place', async () => {
@@ -468,5 +496,306 @@ describe('placeMessagesWithPublishers', () => {
     ]);
 
     expect(nodes.get('Message').parentId).toBe('publisher-group');
+  });
+});
+
+describe('domain-level messages', () => {
+  // Payments sends PaymentTaken and receives ProcessPayment itself (no service
+  // of its own does). Orders' service sends ProcessPayment, Ledger receives
+  // PaymentTaken itself, and the Audit service (in no domain) receives it too
+  const paymentTaken = entry('events', 'PaymentTaken');
+  const processPayment = entry('commands', 'ProcessPayment');
+  const orderService = entry('services', 'OrderService', { sends: [processPayment] });
+  const auditService = entry('services', 'AuditService', { receives: [paymentTaken] });
+  const accountsService = entry('services', 'AccountsService', { receives: [paymentTaken] });
+  const payments = entry('domains', 'Payments', { services: [], sends: [paymentTaken], receives: [processPayment] });
+  const orders = entry('domains', 'Orders', { services: [orderService] });
+  const ledger = entry('domains', 'Ledger', { services: [], receives: [paymentTaken] });
+  const accounts = entry('domains', 'Accounts', { services: [accountsService] });
+  const allDomains = [payments, orders, ledger, accounts];
+  const catalogServices = [orderService, auditService, accountsService];
+
+  const build = (
+    domain: any,
+    serviceGraphs: { service: any; graph: any }[] = [],
+    catalog: { domains?: any[]; catalogServices?: any[] } = {}
+  ) => {
+    // The domain given (e.g. Payments with a service) in place of the one with its id
+    const domains = (catalog.domains ?? allDomains).map((d) => (d.data.id === domain.data.id ? domain : d));
+    const tree = buildDomainTree(domain, (id) => domains.find((d) => d.data.id === id));
+    const { owners, parentDomainOf } = collectOwners(domains);
+    const { nodes, edges, otherDomainIds, domainMessages } = buildDomainGraph({
+      tree,
+      owners,
+      parentDomainOf,
+      systems: [],
+      systemGraphs: [],
+      looseServices: serviceGraphs.map(({ service }) => ({ service, groupId: tree[0].groupId })),
+      serviceGraphs: serviceGraphs.map(({ graph }) => graph),
+      mode: 'full',
+      domains,
+      catalogServices: catalog.catalogServices ?? catalogServices,
+    });
+    return { nodes, edges: edges.map((edge: any) => `${edge.source}->${edge.target}`), otherDomainIds, domainMessages };
+  };
+
+  it('connects the messages a domain sends and receives itself to its box, and to the other side outside it', () => {
+    const { nodes, edges, otherDomainIds } = build(payments);
+
+    expect(edges).toEqual([
+      'domain-group-Payments-1.0.0->PaymentTaken-1.0.0',
+      'PaymentTaken-1.0.0->AuditService-1.0.0',
+      'PaymentTaken-1.0.0->domain-Accounts-1.0.0',
+      'ProcessPayment-1.0.0->domain-group-Payments-1.0.0',
+      'domain-Orders-1.0.0->ProcessPayment-1.0.0',
+      'PaymentTaken-1.0.0->domain-Ledger-1.0.0',
+    ]);
+    // Outside the domain, as the domain is drawn sending and receiving them
+    expect(nodes.get('PaymentTaken-1.0.0')).toMatchObject({ type: 'events' });
+    expect(nodes.get('PaymentTaken-1.0.0').parentId).toBeUndefined();
+    // A service in no domain is shown as itself
+    expect(nodes.get('AuditService-1.0.0')).toMatchObject({ type: 'services' });
+    expect(nodes.get('AuditService-1.0.0').parentId).toBeUndefined();
+    expect([...otherDomainIds].sort()).toEqual(['domain-Accounts-1.0.0', 'domain-Ledger-1.0.0', 'domain-Orders-1.0.0']);
+  });
+
+  it("leaves a domain-level message as it is when one of the domain's services already sends it", () => {
+    const paymentService = entry('services', 'PaymentService');
+    const withService = { ...payments, data: { ...payments.data, services: [paymentService], receives: [] } };
+    const { edges } = build(withService, [
+      {
+        service: paymentService,
+        graph: {
+          nodes: [
+            { id: 'PaymentService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+            { id: 'PaymentTaken-1.0.0', type: 'events', position: { x: 0, y: 0 }, data: {} },
+          ],
+          edges: [{ id: 'takes', source: 'PaymentService-1.0.0', target: 'PaymentTaken-1.0.0' }],
+        },
+      },
+    ]);
+
+    expect(edges).not.toContain('domain-group-Payments-1.0.0->PaymentTaken-1.0.0');
+    expect(edges).toContain('PaymentService-1.0.0->PaymentTaken-1.0.0');
+  });
+
+  it('shows other domains sending a message the domain receives themselves', () => {
+    const { edges } = build(ledger);
+
+    expect(edges).toContain('domain-Payments-1.0.0->PaymentTaken-1.0.0');
+  });
+
+  it('leaves out other domains only receiving the same message as the domain', () => {
+    // Accounts' service receives PaymentTaken, which Ledger receives too
+    const { edges } = build(accounts, [
+      {
+        service: accountsService,
+        graph: {
+          nodes: [
+            { id: 'AccountsService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+            { id: 'PaymentTaken-1.0.0', type: 'events', position: { x: 0, y: 0 }, data: { message: paymentTaken.data } },
+          ],
+          edges: [{ id: 'books', source: 'PaymentTaken-1.0.0', target: 'AccountsService-1.0.0' }],
+        },
+      },
+    ]);
+
+    expect(edges).toEqual(['PaymentTaken-1.0.0->AccountsService-1.0.0', 'domain-Payments-1.0.0->PaymentTaken-1.0.0']);
+  });
+
+  it('shows the domain sending a message one of its own services consumes, outside its box', () => {
+    // PaymentService (in Payments) consumes PaymentTaken, which Payments sends itself
+    const paymentService = entry('services', 'PaymentService', { receives: [paymentTaken] });
+    const withService = { ...payments, data: { ...payments.data, services: [paymentService], receives: [] } };
+    const { nodes, edges, domainMessages } = build(withService, [
+      {
+        service: paymentService,
+        graph: {
+          nodes: [
+            { id: 'PaymentService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+            { id: 'PaymentTaken-1.0.0', type: 'events', position: { x: 0, y: 0 }, data: {} },
+          ],
+          edges: [{ id: 'takes', source: 'PaymentTaken-1.0.0', target: 'PaymentService-1.0.0' }],
+        },
+      },
+    ]);
+
+    expect(edges).toContain('domain-group-Payments-1.0.0->PaymentTaken-1.0.0');
+    expect(edges).toContain('PaymentTaken-1.0.0->PaymentService-1.0.0');
+    // Moved out of the box it was left in by the service consuming it
+    expect(nodes.get('PaymentTaken-1.0.0').parentId).toBeUndefined();
+    // Folded into the box at level 1
+    expect(domainMessages.get('PaymentTaken-1.0.0')).toEqual(new Set(['domain-group-Payments-1.0.0']));
+  });
+
+  it('shows the domain receiving a message one of its own services sends, outside its box', () => {
+    // RefundService (in Payments) sends RefundIssued, which Payments receives itself
+    const refundIssued = entry('events', 'RefundIssued');
+    const refundService = entry('services', 'RefundService', { sends: [refundIssued] });
+    const withService = {
+      ...payments,
+      data: { ...payments.data, services: [refundService], sends: [], receives: [refundIssued] },
+    };
+    const { nodes, edges } = build(withService, [
+      {
+        service: refundService,
+        graph: {
+          nodes: [
+            { id: 'RefundService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+            { id: 'RefundIssued-1.0.0', type: 'events', position: { x: 0, y: 0 }, data: {} },
+          ],
+          edges: [{ id: 'refunds', source: 'RefundService-1.0.0', target: 'RefundIssued-1.0.0' }],
+        },
+      },
+    ]);
+
+    expect(edges).toEqual(['RefundService-1.0.0->RefundIssued-1.0.0', 'RefundIssued-1.0.0->domain-group-Payments-1.0.0']);
+    // Not moved back into the box by its publisher being in it
+    expect(nodes.get('RefundIssued-1.0.0').parentId).toBeUndefined();
+  });
+
+  it('shows an agent on the other side as an agent', () => {
+    // FraudAgent (in no domain) receives PaymentTaken, which Payments sends itself
+    const fraudAgent = entry('agents', 'FraudAgent', { receives: [paymentTaken] });
+    const { nodes, edges } = build(payments, [], { catalogServices: [...catalogServices, fraudAgent] });
+
+    expect(edges).toContain('PaymentTaken-1.0.0->FraudAgent-1.0.0');
+    expect(nodes.get('FraudAgent-1.0.0')).toMatchObject({ type: 'agents', data: { agent: { name: 'FraudAgent' } } });
+  });
+
+  it("shows an agent in another domain as that domain, and leaves out one in the domain's own", () => {
+    // RiskAgent (in Risk) and PaymentAgent (in Payments) receive PaymentTaken, which Payments sends itself
+    const riskAgent = entry('agents', 'RiskAgent', { receives: [paymentTaken] });
+    const paymentAgent = entry('agents', 'PaymentAgent', { receives: [paymentTaken] });
+    const risk = entry('domains', 'Risk', { services: [], agents: [riskAgent] });
+    const withAgent = { ...payments, data: { ...payments.data, agents: [paymentAgent] } };
+    const { nodes, edges } = build(withAgent, [], {
+      domains: [...allDomains, risk],
+      catalogServices: [...catalogServices, riskAgent, paymentAgent],
+    });
+
+    expect(edges).toContain('PaymentTaken-1.0.0->domain-Risk-1.0.0');
+    expect(nodes.has('RiskAgent-1.0.0')).toBe(false);
+    expect(nodes.has('PaymentAgent-1.0.0')).toBe(false);
+  });
+
+  it('keeps every subdomain sending a message itself', () => {
+    // Two subdomains of Finance both send PaymentTaken themselves
+    const billing = entry('domains', 'Billing', { services: [], sends: [paymentTaken] });
+    const refunds = entry('domains', 'Refunds', { services: [], sends: [paymentTaken] });
+    const finance = entry('domains', 'Finance', { services: [], domains: [billing, refunds] });
+    const { domainMessages } = build(finance, [], { domains: [...allDomains, finance, billing, refunds] });
+
+    expect(domainMessages.get('PaymentTaken-1.0.0')).toEqual(
+      new Set(['domain-group-Billing-1.0.0', 'domain-group-Refunds-1.0.0'])
+    );
+  });
+
+  it("leaves a domain-level message as it is when one of the domain's services sends it in a message group", () => {
+    // PaymentService sends PaymentTaken in a named group: its graph only has the group's node
+    const paymentService = entry('services', 'PaymentService', { sends: [paymentTaken] });
+    const withService = { ...payments, data: { ...payments.data, services: [paymentService], receives: [] } };
+    const { nodes, edges } = build(
+      withService,
+      [
+        {
+          service: paymentService,
+          graph: {
+            nodes: [
+              { id: 'PaymentService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+              { id: 'payment-events', type: 'messageGroup', position: { x: 0, y: 0 }, data: {} },
+            ],
+            edges: [{ id: 'grouped', source: 'PaymentService-1.0.0', target: 'payment-events' }],
+          },
+        },
+      ],
+      { catalogServices: [...catalogServices, paymentService] }
+    );
+
+    expect(edges).not.toContain('domain-group-Payments-1.0.0->PaymentTaken-1.0.0');
+    expect(nodes.has('PaymentTaken-1.0.0')).toBe(false);
+  });
+
+  it("leaves a domain-level message as it is when one of the domain's services receives it through a channel", () => {
+    const paymentService = entry('services', 'PaymentService', { receives: [processPayment] });
+    const withService = { ...payments, data: { ...payments.data, services: [paymentService], sends: [] } };
+    const { edges } = build(withService, [
+      {
+        service: paymentService,
+        graph: {
+          nodes: [
+            { id: 'PaymentService-1.0.0', type: 'services', position: { x: 0, y: 0 }, data: {} },
+            { id: 'ProcessPayment-1.0.0', type: 'commands', position: { x: 0, y: 0 }, data: {} },
+            { id: 'payments-queue-1.0.0', type: 'channels', position: { x: 0, y: 0 }, data: {} },
+          ],
+          edges: [
+            { id: 'queued', source: 'ProcessPayment-1.0.0', target: 'payments-queue-1.0.0' },
+            { id: 'pulls', source: 'payments-queue-1.0.0', target: 'PaymentService-1.0.0' },
+          ],
+        },
+      },
+    ]);
+
+    expect(edges).not.toContain('ProcessPayment-1.0.0->domain-group-Payments-1.0.0');
+  });
+});
+
+describe('collapseSystems', () => {
+  it('folds the messages a domain sends or receives itself into its box, connecting it to the other side directly', () => {
+    const graph = {
+      nodes: [
+        { id: 'domain-group-Marketing-1.0.0', type: 'domain-group', position: { x: 0, y: 0 }, data: {} },
+        { id: 'GetProduct-1.0.0', type: 'queries', position: { x: 0, y: 0 }, data: { message: { name: 'Get Product' } } },
+        { id: 'domain-Catalog-1.0.0', type: 'context-domain', position: { x: 0, y: 0 }, data: {} },
+      ],
+      edges: [
+        { id: 'requests', source: 'domain-group-Marketing-1.0.0', target: 'GetProduct-1.0.0' },
+        { id: 'accepts', source: 'GetProduct-1.0.0', target: 'domain-Catalog-1.0.0' },
+      ],
+    };
+
+    const { nodes, edges } = collapseSystems(
+      graph,
+      [],
+      new Map(),
+      new Map(),
+      new Map([['GetProduct-1.0.0', new Set(['domain-group-Marketing-1.0.0'])]])
+    );
+
+    expect(nodes.map((node: any) => node.id)).not.toContain('GetProduct-1.0.0');
+    expect(edges).toHaveLength(1);
+    expect(edges[0]).toMatchObject({ source: 'domain-group-Marketing-1.0.0', target: 'domain-Catalog-1.0.0' });
+    expect(String(edges[0].label)).toContain('Get Product');
+  });
+
+  it('leaves a message more than one subdomain sends itself as it is, rather than folding it into one of them', () => {
+    const graph = {
+      nodes: [
+        { id: 'domain-group-Billing-1.0.0', type: 'domain-group', position: { x: 0, y: 0 }, data: {} },
+        { id: 'domain-group-Refunds-1.0.0', type: 'domain-group', position: { x: 0, y: 0 }, data: {} },
+        { id: 'PaymentTaken-1.0.0', type: 'events', position: { x: 0, y: 0 }, data: {} },
+        { id: 'domain-Ledger-1.0.0', type: 'context-domain', position: { x: 0, y: 0 }, data: {} },
+      ],
+      edges: [
+        { id: 'billing', source: 'domain-group-Billing-1.0.0', target: 'PaymentTaken-1.0.0' },
+        { id: 'refunds', source: 'domain-group-Refunds-1.0.0', target: 'PaymentTaken-1.0.0' },
+        { id: 'ledger', source: 'PaymentTaken-1.0.0', target: 'domain-Ledger-1.0.0' },
+      ],
+    };
+
+    const { edges } = collapseSystems(
+      graph,
+      [],
+      new Map(),
+      new Map(),
+      new Map([['PaymentTaken-1.0.0', new Set(['domain-group-Billing-1.0.0', 'domain-group-Refunds-1.0.0'])]])
+    );
+
+    // Each subdomain reaches Ledger through the message; neither is drawn sending to the other
+    expect(edges.map((edge: any) => `${edge.source}->${edge.target}`)).toEqual([
+      'domain-group-Billing-1.0.0->PaymentTaken-1.0.0',
+      'domain-group-Refunds-1.0.0->PaymentTaken-1.0.0',
+      'PaymentTaken-1.0.0->domain-Ledger-1.0.0',
+    ]);
   });
 });

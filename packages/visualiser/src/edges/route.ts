@@ -120,6 +120,8 @@ export const getRoutePath = (
       .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
       .join(" "),
     label: route.label && moveLabel(route.label, points, moved),
+    start: moved[0],
+    end: moved[last],
   };
 };
 
@@ -182,10 +184,13 @@ type EdgeState = {
   moved?: [Point, Point];
   heights?: [number | undefined, number | undefined];
   zIndex: number;
+  // Which ends are on a domain's box (1: source, 2: target)
+  domainEnds: number;
 };
 const isSamePoint = (a: Point, b: Point) => a.x === b.x && a.y === b.y;
 const isSameEdgeState = (a: EdgeState, b: EdgeState) =>
   a.zIndex === b.zIndex &&
+  a.domainEnds === b.domainEnds &&
   a.heights?.[0] === b.heights?.[0] &&
   a.heights?.[1] === b.heights?.[1] &&
   (a.moved === b.moved ||
@@ -194,12 +199,20 @@ const isSameEdgeState = (a: EdgeState, b: EdgeState) =>
       isSamePoint(a.moved[0], b.moved[0]) &&
       isSamePoint(a.moved[1], b.moved[1])));
 
+const isDomainBox = (state: ReactFlowState, nodeId: string) =>
+  state.nodeLookup.get(nodeId)?.type === "domain-group";
+
+/** Where an edge meets a domain's box, for the dot drawn there (domains have no handles of their own to show) */
+export type DomainEnds = { source?: Point; target?: Point };
+const NO_DOMAIN_ENDS: DomainEnds = {};
+
 /**
  * An edge's path, label position and layer: along the route the layout gave it
  * (`data.route`), following its nodes when they move (e.g. dragged or between
  * layouts), otherwise the fallback (e.g. a smooth step path) passed in. The
  * layer (z-index) is React Flow's for the edge: above the groups its nodes are
- * in and under the nodes, for its label to be drawn in too.
+ * in and under the nodes, for its label to be drawn in too. Also where its ends
+ * meet a domain's box.
  */
 export const useRoute = (
   {
@@ -224,10 +237,10 @@ export const useRoute = (
     targetHandleId?: string | null;
   },
   [path, labelX, labelY]: [string, number, number, ...unknown[]],
-): [string, number, number, number] => {
+): [string, number, number, number, DomainEnds] => {
   const route = (data as { route?: Route } | undefined)?.route;
   // One subscription per edge, as selectors run on every store update
-  const { moved, heights, zIndex } = useStore(
+  const { moved, heights, zIndex, domainEnds } = useStore(
     useCallback(
       (state: ReactFlowState): EdgeState => {
         const z = (nodeId: string) => {
@@ -235,13 +248,17 @@ export const useRoute = (
           return node?.parentId ? node.internals.z : 0;
         };
         const zIndex = Math.max(z(source), z(target));
-        if (!route?.source || !route.target) return { zIndex };
+        const domainEnds =
+          (isDomainBox(state, source) ? 1 : 0) |
+          (isDomainBox(state, target) ? 2 : 0);
+        if (!route?.source || !route.target) return { zIndex, domainEnds };
         const sourceMoved = getMoved(state, source, route.source);
         const targetMoved = getMoved(state, target, route.target);
         const height = (nodeId: string) =>
           state.nodeLookup.get(nodeId)?.measured.height;
         return {
           zIndex,
+          domainEnds,
           moved:
             sourceMoved && targetMoved ? [sourceMoved, targetMoved] : undefined,
           heights: [height(source), height(target)],
@@ -267,11 +284,20 @@ export const useRoute = (
         targetHeight: heights?.[1],
       },
     );
-  if (!routed) return [path, labelX, labelY, zIndex];
+  const start = routed?.start ?? { x: sourceX, y: sourceY };
+  const end = routed?.end ?? { x: targetX, y: targetY };
+  const ends = domainEnds
+    ? {
+        ...(domainEnds & 1 ? { source: start } : {}),
+        ...(domainEnds & 2 ? { target: end } : {}),
+      }
+    : NO_DOMAIN_ENDS;
+  if (!routed) return [path, labelX, labelY, zIndex, ends];
   return [
     routed.path,
     routed.label?.x ?? labelX,
     routed.label?.y ?? labelY,
     zIndex,
+    ends,
   ];
 };

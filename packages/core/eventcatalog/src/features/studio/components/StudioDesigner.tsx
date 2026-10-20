@@ -97,6 +97,7 @@ import {
   type HotspotFields,
   type HotspotSeverity,
   type HotspotSpot,
+  RemeasureHandles,
 } from '@eventcatalog/visualiser/studio';
 import { X } from 'lucide-react';
 import type { CatalogRelation, CatalogResource } from '../catalog-resources';
@@ -1751,6 +1752,7 @@ function Canvas({
                     maxZoom={2}
                   >
                     <DiagramBackground />
+                    <RemeasureHandles />
                     {/* Above the selected node's top right corner: its details, to edit them */}
                     {toEdit && <EditButton nodeId={toEdit.id} locked={locked} onClick={editSelected} />}
                     <LegendPanel legend={legend} hiddenKeys={hiddenLegendKeys} onLegendClick={toggleLegendKey} />

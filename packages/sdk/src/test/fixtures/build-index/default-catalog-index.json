@@ -1090,6 +1090,41 @@
     },
     {
       "type": "domain",
+      "id": "marketing",
+      "version": "1.0.0",
+      "name": "Marketing",
+      "contentPath": "domains/Marketing/index.mdx",
+      "contentHash": "sha256:e34e01631763c071200a0fc5c249cc36aa4a169165e808a43dbb78df60896599",
+      "owners": ["shopping-platform"],
+      "sends": [
+        {
+          "id": "calculate-discount",
+          "version": "1.0.0"
+        },
+        {
+          "id": "get-product",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "customer-registered",
+          "version": "1.0.0"
+        },
+        {
+          "id": "order-confirmed",
+          "version": "1.0.0"
+        }
+      ],
+      "systems": [
+        {
+          "id": "campaign-system",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "domain",
       "id": "notifications",
       "version": "1.0.0",
       "name": "Customer Notifications",
@@ -1767,6 +1802,15 @@
       "contentPath": "domains/Fulfilment/entities/warehouse-pick/index.mdx",
       "contentHash": "sha256:54408bf5ba5e8cc06592d144b9736fda55ff503fb1e0fbc5ccf70e4668797bd9",
       "owners": ["fulfilment-platform"]
+    },
+    {
+      "type": "event",
+      "id": "campaign-offer-sent",
+      "version": "1.0.0",
+      "name": "Campaign Offer Sent",
+      "contentPath": "domains/Marketing/systems/campaign-system/services/CampaignService/events/CampaignOfferSent/index.mdx",
+      "contentHash": "sha256:dd930eb1301cdd5d1915fb0252b2d039e034b18404007f26176dcb0de43d4e21",
+      "owners": ["shopping-platform"]
     },
     {
       "type": "event",
@@ -3619,6 +3663,21 @@
     },
     {
       "type": "service",
+      "id": "campaign-service",
+      "version": "1.0.0",
+      "name": "Campaign Service",
+      "contentPath": "domains/Marketing/systems/campaign-system/services/CampaignService/index.mdx",
+      "contentHash": "sha256:83e51edda0adccb567589e1fa4d12bb929d4f1bca088cb8d433a949c88b40e14",
+      "owners": ["shopping-platform"],
+      "sends": [
+        {
+          "id": "campaign-offer-sent",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "type": "service",
       "id": "carrier-adapter",
       "version": "1.0.0",
       "name": "Carrier Adapter",
@@ -4103,6 +4162,27 @@
       "readsFrom": [
         {
           "id": "user-directory"
+        }
+      ]
+    },
+    {
+      "type": "service",
+      "id": "offer-service",
+      "version": "1.0.0",
+      "name": "Offer Service",
+      "contentPath": "domains/Marketing/systems/campaign-system/services/OfferService/index.mdx",
+      "contentHash": "sha256:74033a3eab45727d77fcc314a04e85466a204f4498de0553e7543e1b87aee818",
+      "owners": ["shopping-platform"],
+      "sends": [
+        {
+          "id": "calculate-discount",
+          "version": "1.0.0"
+        }
+      ],
+      "receives": [
+        {
+          "id": "order-confirmed",
+          "version": "1.0.0"
         }
       ]
     },
@@ -5000,6 +5080,23 @@
       "readsFrom": [
         {
           "id": "warehouse-database"
+        }
+      ]
+    },
+    {
+      "type": "system",
+      "id": "campaign-system",
+      "version": "1.0.0",
+      "name": "Campaign System",
+      "contentPath": "domains/Marketing/systems/campaign-system/index.mdx",
+      "contentHash": "sha256:f7d5f2ae8556d1ab754648239b4cadf10b9a59e2fb69c06a33e5de8bfaa66053",
+      "owners": ["shopping-platform"],
+      "services": [
+        {
+          "id": "campaign-service"
+        },
+        {
+          "id": "offer-service"
         }
       ]
     },

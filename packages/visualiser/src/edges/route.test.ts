@@ -25,6 +25,12 @@ describe("getRoutePath", () => {
     );
   });
 
+  it("gives where the route meets each node, for the dots drawn where an edge meets a domain's box", () => {
+    expect(
+      getRoutePath(route, { x: 5, y: 60 }, { x: 195, y: 140 }),
+    ).toMatchObject({ start: { x: 5, y: 50 }, end: { x: 195, y: 150 } });
+  });
+
   it("has no path when a node has moved away from where it was laid out", () => {
     expect(
       getRoutePath(route, { x: 300, y: 50 }, { x: 200, y: 150 }),
@@ -141,6 +147,8 @@ describe("getRoutePath", () => {
     ).toEqual({
       path: "M 20 80 L 120 80 L 120 180 L 220 180",
       label: { x: 120, y: 130 },
+      start: { x: 20, y: 80 },
+      end: { x: 220, y: 180 },
     });
   });
 });
