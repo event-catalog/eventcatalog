@@ -15,6 +15,11 @@ interface NodesAndEdgesProps {
   wrapInSystemGroup?: boolean;
   channelRenderMode?: 'single' | 'flat';
   layout?: boolean;
+  // Only parent this system's own services. Services pulled in because they
+  // send or receive the same messages stay in the graph, but outside the group.
+  // The domain diagram leaves this off: it uses the parent to tell which
+  // system's graph a service came from.
+  confineToMembers?: boolean;
 }
 
 export const getNodesAndEdges = async ({
@@ -25,6 +30,7 @@ export const getNodesAndEdges = async ({
   wrapInSystemGroup = false,
   channelRenderMode = 'flat',
   layout = true,
+  confineToMembers = false,
 }: NodesAndEdgesProps) => {
   let nodes = new Map(),
     edges = new Map();
@@ -118,21 +124,52 @@ export const getNodesAndEdges = async ({
     });
   }
 
-  // Wrap everything inside a single parent "system group" boundary node, so all
-  // the services / data stores / messages visibly belong to one system
+  // Wrap the graph in one parent "system group" boundary node. Messages,
+  // channels and data stores stay in it. With confineToMembers, only this
+  // system's own services are children; other services are left outside.
   const graph = {
-    nodes: wrapInSystemGroup && nodes.size > 0 ? wrapNodesInSystemGroup([...nodes.values()], system) : [...nodes.values()],
+    nodes:
+      wrapInSystemGroup && nodes.size > 0
+        ? wrapNodesInSystemGroup(
+            [...nodes.values()],
+            system,
+            confineToMembers ? memberServiceNodeIds(system, serviceMap) : undefined
+          )
+        : [...nodes.values()],
     edges: [...edges.values()],
   };
 
   return layout ? layoutNodeGraph(graph) : graph;
 };
 
+/** Service and agent nodes. Anything else in the graph (messages, channels, data stores) stays with the system. */
+export const SERVICE_NODE_TYPES = new Set(['services', 'agents']);
+
+/** Node ids of the services a system lists, with `latest` and semver ranges resolved to a real version. */
+export const memberServiceNodeIds = (
+  system: { data: { services?: { id: string; version?: string }[] } },
+  serviceMap: Map<string, { data: { id: string; version?: string } }[]>
+) => {
+  const ids = new Set<string>();
+  for (const ref of system.data.services || []) {
+    const service = findInMap(serviceMap, ref.id, ref.version);
+    if (service) ids.add(`${service.data.id}-${service.data.version}`);
+  }
+  return ids;
+};
+
+const withoutGroupParent = (node: any) => {
+  const { parentId, extent, ...rest } = node;
+  return rest;
+};
+
 /**
  * Wraps a system's nodes in one parent `system-group` node (sized to fit them
  * when the graph is laid out), so they visibly belong to the system.
+ * When `memberIds` is set, service and agent nodes that aren't members are
+ * left outside the group.
  */
-const wrapNodesInSystemGroup = (systemNodes: any[], system: any) => {
+const wrapNodesInSystemGroup = (systemNodes: any[], system: any, memberIds?: Set<string>) => {
   const groupId = `system-group-${system.data.id}-${system.data.version}`;
 
   const groupNode = {
@@ -149,5 +186,11 @@ const wrapNodesInSystemGroup = (systemNodes: any[], system: any) => {
   };
 
   // Parent must come before its children in the array for React Flow
-  return [groupNode, ...systemNodes.map((node) => ({ ...node, parentId: groupId, extent: 'parent' }))];
+  return [
+    groupNode,
+    ...systemNodes.map((node) => {
+      if (memberIds && SERVICE_NODE_TYPES.has(node.type) && !memberIds.has(node.id)) return withoutGroupParent(node);
+      return { ...node, parentId: groupId, extent: 'parent' };
+    }),
+  ];
 };

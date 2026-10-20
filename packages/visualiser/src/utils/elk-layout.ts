@@ -13,9 +13,21 @@ export type LayoutSize = { width: number; height: number };
 export type EdgeRoute = {
   points: { x: number; y: number }[];
   label?: { x: number; y: number };
-  /** Where the edge's source and target were laid out (top-left, in the flow) */
-  source?: { x: number; y: number };
-  target?: { x: number; y: number };
+  /**
+   * Where the edge's source and target were laid out (top-left, in the flow),
+   * and how tall: nodes often render shorter than the layout estimated
+   */
+  source?: { x: number; y: number; height?: number };
+  target?: { x: number; y: number; height?: number };
+};
+
+/**
+ * A route copied to another canvas (e.g. a diagram opened in Studio), which
+ * places the nodes itself: where it goes, and how tall its nodes were laid out
+ */
+export type CopiedEdgeRoute = Pick<EdgeRoute, "points" | "label"> & {
+  sourceHeight?: number;
+  targetHeight?: number;
 };
 
 // The size each node type renders at (at most), for nodes that haven't been
@@ -226,6 +238,11 @@ export const layoutWithElk = async (
     return { x: offset.x + (elkNode?.x ?? 0), y: offset.y + (elkNode?.y ?? 0) };
   };
 
+  const laidOutAt = (nodeId: string) => ({
+    ...absolute(nodeId),
+    height: laidOut.get(nodeId)?.height,
+  });
+
   const routes = new Map<Edge, EdgeRoute>();
   (layout.edges || []).forEach((elkEdge: ElkExtendedEdge) => {
     const section = elkEdge.sections?.[0];
@@ -244,8 +261,8 @@ export const layoutWithElk = async (
             y: (label.y ?? 0) + (label.height ?? 0) / 2,
           }
         : undefined,
-      source: absolute(edge.source),
-      target: absolute(edge.target),
+      source: laidOutAt(edge.source),
+      target: laidOutAt(edge.target),
     });
   });
 

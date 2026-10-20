@@ -70,6 +70,7 @@ import type { GraphTransition } from "../utils/animate-layout";
 import {
   getNodeSize,
   layoutWithElk,
+  type CopiedEdgeRoute,
   type EdgeRoute,
 } from "../utils/elk-layout";
 import {
@@ -321,8 +322,11 @@ export type VisualiserSnapshot = {
     source: string;
     target: string;
     label?: string;
-    /** How it's drawn: the points it goes through on the diagram, and where its label is (from the layout) */
-    route?: Pick<EdgeRoute, "points" | "label">;
+    /**
+     * How it's drawn: the points it goes through on the diagram, where its label is, and how tall its nodes were
+     * (from the layout)
+     */
+    route?: CopiedEdgeRoute;
   }[];
   /**
    * Levels 1 and 2 as the diagram shows them (laid out, positions relative to their parents), for Studio to show
@@ -465,7 +469,14 @@ const toSnapshot = (
           source: edge.source,
           target: edge.target,
           ...(typeof edge.label === "string" && { label: edge.label }),
-          ...(route && { route: { points: route.points, label: route.label } }),
+          ...(route && {
+            route: {
+              points: route.points,
+              label: route.label,
+              sourceHeight: route.source?.height,
+              targetHeight: route.target?.height,
+            },
+          }),
         };
       }),
   };

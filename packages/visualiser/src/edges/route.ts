@@ -20,6 +20,28 @@ const isStraight = (a: Point, b: Point) => a.x === b.x || a.y === b.y;
 const add = (a: Point, b: Point) => ({ x: a.x + b.x, y: a.y + b.y });
 const NOT_MOVED = { x: 0, y: 0 };
 
+// How far inside a node's top and bottom corners an edge's end stays
+const END_INSET = 8;
+
+/**
+ * Where an end of the route goes down its node's side. Nodes often render
+ * shorter than the layout estimated, so an end in the middle of the node as
+ * laid out would be below the node (and miss its handle). The end keeps how
+ * far it was from the middle (edges spread along a side stay as far apart, so
+ * their labels don't overlap), measured from the middle as rendered, and stays
+ * on the side.
+ */
+const alongSide = (end: Point, node: Route["source"], height?: number) => {
+  if (!node?.height || !height) return end;
+  const fromMiddle = end.y - (node.y + node.height / 2);
+  const furthest = Math.max(height / 2 - END_INSET, 0);
+  return {
+    x: end.x,
+    y:
+      node.y + height / 2 + Math.min(Math.max(fromMiddle, -furthest), furthest),
+  };
+};
+
 /**
  * SVG path along a laid out route (at right angles), and where its label goes.
  * Its ends are moved onto the sides of the edge's source and target (they
@@ -40,18 +62,29 @@ export const getRoutePath = (
     // How far the source and target have moved since they were laid out
     sourceMoved = NOT_MOVED,
     targetMoved = NOT_MOVED,
+    // How tall the source and target render
+    sourceHeight,
+    targetHeight,
   }: {
     toSourceHandle?: boolean;
     toTargetHandle?: boolean;
     sourceMoved?: Point;
     targetMoved?: Point;
+    sourceHeight?: number;
+    targetHeight?: number;
   } = {},
 ) => {
   const { points } = route;
   if (points.length < 2) return undefined;
   const last = points.length - 1;
-  const start = add(points[0], sourceMoved);
-  const end = add(points[last], targetMoved);
+  const start = add(
+    alongSide(points[0], route.source, sourceHeight),
+    sourceMoved,
+  );
+  const end = add(
+    alongSide(points[last], route.target, targetHeight),
+    targetMoved,
+  );
   const fits = (a: Point, b: Point) =>
     Math.abs(a.x - b.x) <= ROUTE_TOLERANCE.x &&
     Math.abs(a.y - b.y) <= ROUTE_TOLERANCE.y;
@@ -145,10 +178,16 @@ const getMoved = (state: ReactFlowState, nodeId: string, at: Point) => {
   const position = state.nodeLookup.get(nodeId)?.internals.positionAbsolute;
   return position && { x: position.x - at.x, y: position.y - at.y };
 };
-type EdgeState = { moved?: [Point, Point]; zIndex: number };
+type EdgeState = {
+  moved?: [Point, Point];
+  heights?: [number | undefined, number | undefined];
+  zIndex: number;
+};
 const isSamePoint = (a: Point, b: Point) => a.x === b.x && a.y === b.y;
 const isSameEdgeState = (a: EdgeState, b: EdgeState) =>
   a.zIndex === b.zIndex &&
+  a.heights?.[0] === b.heights?.[0] &&
+  a.heights?.[1] === b.heights?.[1] &&
   (a.moved === b.moved ||
     (!!a.moved &&
       !!b.moved &&
@@ -188,7 +227,7 @@ export const useRoute = (
 ): [string, number, number, number] => {
   const route = (data as { route?: Route } | undefined)?.route;
   // One subscription per edge, as selectors run on every store update
-  const { moved, zIndex } = useStore(
+  const { moved, heights, zIndex } = useStore(
     useCallback(
       (state: ReactFlowState): EdgeState => {
         const z = (nodeId: string) => {
@@ -199,10 +238,13 @@ export const useRoute = (
         if (!route?.source || !route.target) return { zIndex };
         const sourceMoved = getMoved(state, source, route.source);
         const targetMoved = getMoved(state, target, route.target);
+        const height = (nodeId: string) =>
+          state.nodeLookup.get(nodeId)?.measured.height;
         return {
           zIndex,
           moved:
             sourceMoved && targetMoved ? [sourceMoved, targetMoved] : undefined,
+          heights: [height(source), height(target)],
         };
       },
       [route, source, target],
@@ -221,6 +263,8 @@ export const useRoute = (
         toTargetHandle: !!targetHandleId,
         sourceMoved: moved[0],
         targetMoved: moved[1],
+        sourceHeight: heights?.[0],
+        targetHeight: heights?.[1],
       },
     );
   if (!routed) return [path, labelX, labelY, zIndex];

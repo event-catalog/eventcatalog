@@ -42,6 +42,67 @@ describe("getRoutePath", () => {
     ).toBe("M 5 60 L 100 60 L 100 140 L 195 140");
   });
 
+  it("lands an edge laid out in the middle of a node in the middle of the node as rendered, when it renders shorter", () => {
+    // Laid out 100 tall, rendered 40 tall: the middle moves from 50 to 20 below the top
+    const laidOut = {
+      ...route,
+      source: { x: 0, y: 0, height: 100 },
+      target: { x: 200, y: 100, height: 100 },
+    };
+
+    expect(
+      getRoutePath(
+        laidOut,
+        { x: 0, y: 20 },
+        { x: 200, y: 120 },
+        { sourceHeight: 40, targetHeight: 40 },
+      )?.path,
+    ).toBe("M 0 20 L 100 20 L 100 120 L 200 120");
+  });
+
+  it("keeps edges as far apart as they were spread along a node's side, so their labels don't overlap", () => {
+    // 10 below the middle of a node laid out 100 tall, so 10 below the middle of one rendered 40 tall
+    const lower = {
+      points: [
+        { x: 0, y: 60 },
+        { x: 200, y: 60 },
+      ],
+      source: { x: 0, y: 0, height: 100 },
+      target: { x: 200, y: 0, height: 100 },
+    };
+
+    expect(
+      getRoutePath(
+        lower,
+        { x: 0, y: 20 },
+        { x: 200, y: 20 },
+        { sourceHeight: 40, targetHeight: 40 },
+      )?.path,
+    ).toBe("M 0 30 L 200 30");
+  });
+
+  it("keeps an edge spread further than a node renders on the node's side", () => {
+    // 45 below the middle of a node laid out 100 tall: a node rendered 40 tall ends 20 below
+    // its middle, so the edge goes just inside its bottom corner
+    const nearBottom = {
+      points: [
+        { x: 0, y: 95 },
+        { x: 200, y: 95 },
+      ],
+      source: { x: 0, y: 0, height: 100 },
+      target: { x: 200, y: 0, height: 100 },
+    };
+
+    expect(
+      getRoutePath(
+        nearBottom,
+        { x: 0, y: 20 },
+        { x: 200, y: 20 },
+        { sourceHeight: 40, targetHeight: 40 },
+      )?.path,
+    ).toBe("M 0 32 L 200 32");
+  });
+
   it("keeps a straight route straight", () => {
     const straight = {
       points: [

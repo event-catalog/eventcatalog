@@ -20,7 +20,9 @@ import type { SignedInUser } from '../server/sign-in';
  *                                       "edges"?: [...] }, starting with the nodes and edges given, if any (as the
  *                                       add_to_canvas MCP tool takes them: catalog resources or new components, x/y
  *                                       their centres, and only the connections in edges are made, each drawn
- *                                       along its "route" if given: { "points": [{x, y}, ...], "label"?: {x, y} }),
+ *                                       along its "route" if given: { "points": [{x, y}, ...], "label"?: {x, y},
+ *                                       "sourceHeight"?: number, "targetHeight"?: number }, the heights its nodes
+ *                                       were laid out at),
  *                                       and "levels" (L1 and L2 laid out, e.g. as a diagram shows them, by the
  *                                       nodes' refs), shown as given until what's on the canvas changes
  *   GET    /api/studio/canvases/:id    One canvas

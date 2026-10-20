@@ -8,6 +8,7 @@ export {
   type LayoutGraph,
   type LayoutSize,
   type EdgeRoute,
+  type CopiedEdgeRoute,
 } from "./utils/elk-layout";
 export {
   hideMessageNodes,

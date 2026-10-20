@@ -1,6 +1,6 @@
 import * as Y from "yjs";
 import type { Connection, Edge, Node, XYPosition } from "@xyflow/react";
-import type { EdgeRoute } from "../layout";
+import type { CopiedEdgeRoute, EdgeRoute } from "../layout";
 import { createEdge, getEdgeLabel } from "./edges";
 import {
   fitGroup,
@@ -607,7 +607,7 @@ export type CanvasContent = {
     from: string;
     to: string;
     label?: string;
-    route?: Pick<EdgeRoute, "points" | "label">;
+    route?: CopiedEdgeRoute;
   }[];
   levels?: Pick<DiagramLevels, 1 | 2 | "unavailable">;
 };
@@ -629,10 +629,17 @@ export const addCanvasContent = (
       const edge = connectNodes(doc, { source: from, target: to }, label);
       const [source, target] = [placed.get(from), placed.get(to)];
       if (!route || "error" in edge || !source || !target) return;
+      const { sourceHeight, targetHeight, ...drawn } = route;
       routes.set(edge.id, {
-        ...route,
-        source: getAbsolutePosition(source, placed),
-        target: getAbsolutePosition(target, placed),
+        ...drawn,
+        source: {
+          ...getAbsolutePosition(source, placed),
+          ...(sourceHeight && { height: sourceHeight }),
+        },
+        target: {
+          ...getAbsolutePosition(target, placed),
+          ...(targetHeight && { height: targetHeight }),
+        },
       });
     });
     if (routes.size) setEdgeRoutes(doc, routes);
