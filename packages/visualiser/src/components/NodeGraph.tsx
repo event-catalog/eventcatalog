@@ -13,7 +13,6 @@ import {
   ConnectionLineType,
   Controls,
   Panel,
-  MiniMap,
   ReactFlowProvider,
   useNodesState,
   useEdgesState,
@@ -62,6 +61,8 @@ import CanvasToolbar from "./CanvasToolbar";
 import SwimlanePicker from "./SwimlanePicker";
 import FocusModeModal from "./FocusModeModal";
 import DiagramBackground from "./DiagramBackground";
+import DiagramMiniMap from "./DiagramMiniMap";
+import { getStoredShowMinimap, storeShowMinimap } from "../utils/minimap";
 import { getLegend, LegendPanel, type LegendEntry } from "./Legend";
 import { DIAGRAM_FIT_VIEW_OPTIONS } from "../utils/fit-view";
 import MermaidView from "./MermaidView";
@@ -178,11 +179,6 @@ const HIDE_ATTRIBUTION = { hideAttribution: true };
 const NO_NODES: Node[] = [];
 const NO_EDGES: Edge[] = [];
 
-const MINIMAP_STYLE = {
-  backgroundColor: "rgb(var(--ec-page-bg))",
-  border: "1px solid rgb(var(--ec-page-border))",
-  borderRadius: "8px",
-} as const;
 const LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH = {
   marginBottom: "20px",
   marginLeft: "420px",
@@ -763,7 +759,12 @@ const NodeGraphBuilder = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareUrlCopySuccess, setShareUrlCopySuccess] = useState(false);
   const [isMermaidView, setIsMermaidView] = useState(false);
-  const [showMinimap, setShowMinimap] = useState(false);
+  // Remembered, so the minimap stays on when switching levels (each level is its own page) or diagrams
+  const [showMinimap, setShowMinimapState] = useState(getStoredShowMinimap);
+  const setShowMinimap = useCallback((show: boolean) => {
+    setShowMinimapState(show);
+    storeShowMinimap(show);
+  }, []);
   const [hasLayoutChanges, setHasLayoutChanges] = useState(false);
   const [isSavingLayout, setIsSavingLayout] = useState(false);
   const initialPositionsRef = useRef<Record<string, { x: number; y: number }>>(
@@ -2772,14 +2773,7 @@ const NodeGraphBuilder = ({
                 handleFitView={handleFitView}
               />
             )}
-            {showMinimap && (
-              <MiniMap
-                nodeStrokeWidth={3}
-                zoomable
-                pannable
-                style={MINIMAP_STYLE}
-              />
-            )}
+            {showMinimap && <DiagramMiniMap />}
             {swimlaneOptions.length > 0 && (
               <Panel
                 position="top-right"
