@@ -93,6 +93,48 @@ describe('getArchitectureDiagramGraph', () => {
     expect(result.nodes).toEqual([{ id: 'domain-detailed' }]);
   });
 
+  it('returns level 2 (without messages and channels) as the domain or system diagram lays it out', async () => {
+    const result = await getArchitectureDiagramGraph({
+      collection: 'domains',
+      id: 'ordering',
+      version: '1.0.0',
+      detail: 'services',
+    });
+
+    expect(result.nodes).toEqual([{ id: 'x' }]);
+  });
+
+  it('returns level 2 of other diagrams by hiding their messages, bridging the services either side', async () => {
+    builders.services.mockResolvedValue({
+      nodes: [
+        { id: 'checkout-api', type: 'services', position: { x: 0, y: 0 }, data: {} },
+        {
+          id: 'order-placed',
+          type: 'events',
+          position: { x: 0, y: 0 },
+          data: { message: { name: 'Order Placed' } },
+        },
+        { id: 'order-service', type: 'services', position: { x: 0, y: 0 }, data: {} },
+      ],
+      edges: [
+        { id: 'a', source: 'checkout-api', target: 'order-placed' },
+        { id: 'b', source: 'order-placed', target: 'order-service' },
+      ],
+    });
+
+    const result = await getArchitectureDiagramGraph({
+      collection: 'services',
+      id: 'checkout-api',
+      version: '1.0.0',
+      detail: 'services',
+    });
+
+    expect(result.nodes.map((node) => node.id)).toEqual(['checkout-api', 'order-service']);
+    expect(result.edges).toEqual([
+      expect.objectContaining({ source: 'checkout-api', target: 'order-service', label: 'publishes\nOrder Placed' }),
+    ]);
+  });
+
   it('uses the resource graph for other collections', async () => {
     const result = await getArchitectureDiagramGraph({ collection: 'services', id: 'checkout-api', version: '1.0.0' });
 

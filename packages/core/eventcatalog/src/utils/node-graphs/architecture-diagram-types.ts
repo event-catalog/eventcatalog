@@ -21,7 +21,13 @@ export type ArchitectureDiagramCollection = (typeof ARCHITECTURE_DIAGRAM_COLLECT
 export const isArchitectureDiagramCollection = (collection: string): collection is ArchitectureDiagramCollection =>
   (ARCHITECTURE_DIAGRAM_COLLECTIONS as readonly string[]).includes(collection);
 
-export type ArchitectureDiagramDetail = 'overview' | 'full';
+/**
+ * The levels of a diagram, as on the Diagram page's toolbar: L1 `overview` (domains, systems and their
+ * relationships), L2 `services` (services and data stores, without messages and channels) and L3 `full`.
+ */
+export const ARCHITECTURE_DIAGRAM_DETAILS = ['overview', 'services', 'full'] as const;
+
+export type ArchitectureDiagramDetail = (typeof ARCHITECTURE_DIAGRAM_DETAILS)[number];
 
 export type Graph = { nodes: any[]; edges: any[] };
 

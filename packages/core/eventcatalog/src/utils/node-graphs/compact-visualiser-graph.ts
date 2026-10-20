@@ -34,6 +34,8 @@ const RESOURCE_DATA_KEYS = [
   'schemas',
   'properties',
   'aggregateRoot',
+  // An entity's identifier, its primary key in the Mermaid export
+  'identifier',
   'sidebar',
 ] as const;
 

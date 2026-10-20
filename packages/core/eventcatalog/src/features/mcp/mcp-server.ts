@@ -11,6 +11,7 @@ import { McpScopeNotFoundError, resolveMcpScope, type McpScope, type McpScopeKin
 import { getArchitectureDiagramView } from '@utils/node-graphs/architecture-diagram';
 import type {
   ArchitectureDiagramCollection,
+  ArchitectureDiagramDetail,
   ArchitectureDiagramView,
   Graph,
 } from '@utils/node-graphs/architecture-diagram-types';
@@ -30,7 +31,7 @@ const loadViewerView = getMcpAppViewLoader('viewer');
 
 const SHOW_RESOURCE_DESCRIPTION = [
   "Show the user a resource in EventCatalog's interactive viewer. Pick what to show with view:",
-  '"architecture" shows an architecture diagram of a domain, system, service, agent, event, command, query, flow, data store or data product: what it connects to, what it publishes and consumes, and the systems and domains around it. Use it whenever the user wants to see or understand how something works or fits together, e.g. "show me how the Order Service works", "how does the Ordering domain fit together", "what does Payments talk to", or asks for a diagram, map or visual of something. Prefer it over drawing your own diagram. For domains and systems, pass detail "overview" for just the domains, systems and their relationships, or "full" (default) to include services, messages and channels.',
+  '"architecture" shows an architecture diagram of a domain, system, service, agent, event, command, query, flow, data store or data product: what it connects to, what it publishes and consumes, and the systems and domains around it. Use it whenever the user wants to see or understand how something works or fits together, e.g. "show me how the Order Service works", "how does the Ordering domain fit together", "what does Payments talk to", or asks for a diagram, map or visual of something. Prefer it over drawing your own diagram. Pick the level with detail: "overview" for just the domains, systems and their relationships (domains and systems), "services" for services and data stores without messages and channels, or "full" (default) to include messages and channels.',
   '"schema" shows the schema of a message (event, command or query) or other resource: its properties, types, descriptions and which ones are required. Use it whenever the user wants to see or understand a schema or payload, e.g. "show me the schema for OrderCreated", "what fields does PlaceOrder have", "what does the OrderShipped payload look like".',
   'Clients that support MCP Apps show one viewer and switch it to each thing you show, so call this again to show the user something else. The result also contains what is shown (the diagram as Mermaid in mermaidCode, or the schema code) so you can understand it.',
   'When the client shows the viewer, do not redraw the diagram or print the whole schema again in your reply: explain it and point out what matters. Otherwise, show the user the mermaidCode or the relevant parts of the schema code.',
@@ -455,7 +456,7 @@ function createMcpServer(
     resourceId: string;
     resourceVersion?: string;
     resourceCollection: string;
-    detail?: 'overview' | 'full';
+    detail?: ArchitectureDiagramDetail;
   };
 
   const loadArchitectureView = async ({ view, ...params }: ResourceViewParams) => {
@@ -517,12 +518,9 @@ function createMcpServer(
       description: SHOW_RESOURCE_DESCRIPTION,
       input: {
         ...resourceViewInput,
-        detail: z
-          .enum(['overview', 'full'])
+        detail: catalogTools.architectureDiagramDetailSchema
           .optional()
-          .describe(
-            'For view "architecture" of domains and systems: "overview" shows only domains, systems and their relationships; "full" (default) also shows services, messages and channels'
-          ),
+          .describe(`For view "architecture": ${catalogTools.architectureDiagramDetailSchema.description}`),
       },
     },
     viewTool: {

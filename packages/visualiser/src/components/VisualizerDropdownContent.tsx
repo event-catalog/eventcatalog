@@ -48,7 +48,8 @@ interface VisualizerDropdownContentProps {
   isChatEnabled: boolean;
   openChat: () => void;
   handleCopyArchitectureCode: () => void;
-  handleExportVisual: () => void;
+  /** Opens the choice of exports (an image, or Mermaid) */
+  onOpenExport: () => void;
   setIsShareModalOpen: (value: boolean) => void;
   toggleFullScreen: () => void;
   isDevMode?: boolean;
@@ -81,7 +82,7 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
       isChatEnabled,
       openChat,
       handleCopyArchitectureCode,
-      handleExportVisual,
+      onOpenExport,
       setIsShareModalOpen,
       toggleFullScreen,
       isDevMode = false,
@@ -374,11 +375,11 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> =
           </DropdownMenu.Item>
 
           <DropdownMenu.Item
-            onClick={handleExportVisual}
+            onClick={onOpenExport}
             className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors"
           >
             <DocumentArrowDownIcon className={DIAGRAM_MENU_ITEM_ICON} />
-            <span className="flex-1 font-normal">Export image</span>
+            <span className="flex-1 font-normal">Export</span>
           </DropdownMenu.Item>
 
           {/* Share Link */}

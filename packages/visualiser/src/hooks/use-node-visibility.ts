@@ -46,6 +46,11 @@ interface NodeVisibilityProps {
   transitionFrom?: GraphTransition;
   /** React Flow's node origin, to line up nodes when animating */
   nodeOrigin?: [number, number];
+  /**
+   * Go straight to each graph rather than animating to it, e.g. while the
+   * graph is shown as Mermaid, which would draw every step of the animation
+   */
+  disableAnimation?: boolean;
   /** The graph laid out with messages and channels hidden, if precomputed */
   hiddenMessagesGraph?: { nodes: Node[]; edges: Edge[] };
   /** Prepares the edges of each graph shown (e.g. animating messages) */
@@ -145,6 +150,7 @@ export const useNodeVisibility = ({
   hasMessages,
   transitionFrom,
   nodeOrigin,
+  disableAnimation = false,
   hiddenMessagesGraph,
   prepareEdges = (edges) => edges,
   matchesLegendKey = matchesType,
@@ -294,6 +300,10 @@ export const useNodeVisibility = ({
   // the graph stays out of sight rather than showing everything first
   const [isLayingOut, setIsLayingOut] = useState(false);
 
+  // Read when the level changes, not a reason to lay the graph out again
+  const disableAnimationRef = useRef(disableAnimation);
+  disableAnimationRef.current = disableAnimation;
+
   // A layout effect, so the graph is at the right level before it's painted
   // (when its layout is already known)
   const isFirstRun = useRef(true);
@@ -313,7 +323,8 @@ export const useNodeVisibility = ({
       return;
 
     const run = ++latestRun.current;
-    const animate = !!from || animateNextChange.current;
+    const animate =
+      !disableAnimationRef.current && (!!from || animateNextChange.current);
     animateNextChange.current = false;
     cancelAnimation.current?.();
 
